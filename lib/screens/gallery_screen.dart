@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +22,11 @@ class GalleryScreen extends StatefulWidget {
   State<GalleryScreen> createState() => _GalleryScreenState();
 }
 
-class _GalleryScreenState extends State<GalleryScreen> {
+class _GalleryScreenState extends State<GalleryScreen>
+    with SingleTickerProviderStateMixin {
+  static const double _floatingTopShowcaseMaxHeight = 380;
+  static const double _floatingTopShowcaseMinHeight = 118;
+
   @override
   void initState() {
     super.initState();
@@ -329,121 +335,260 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ? 'Thêm một kỷ niệm mới hôm nay'
         : '${couple.person1Name} & ${couple.person2Name} hôm nay có gì mới?';
 
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.white.withValues(alpha: 0.70),
+                AppColors.white.withValues(alpha: 0.42),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: AppColors.white.withValues(alpha: 0.58),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.045),
+                blurRadius: 18,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  _buildCoupleAvatar(couple, size: 52),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Biến thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _buildFeedStatChip(
+                    icon: Icons.collections_rounded,
+                    label: '$photoCount khoảnh khắc',
+                    color: AppColors.accentRose,
+                  ),
+                  if (couple != null)
+                    _buildFeedStatChip(
+                      icon: Icons.favorite_rounded,
+                      label: '${_daysTogether(couple)} ngày bên nhau',
+                      color: AppColors.accentCoral,
+                    ),
+                  _buildFeedStatChip(
+                    icon: Icons.auto_stories_rounded,
+                    label: 'Feed riêng của hai bạn',
+                    color: AppColors.info,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _pickAndAddPhoto,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.accentRose,
+                        foregroundColor: AppColors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      icon: const Icon(Icons.add_a_photo_rounded),
+                      label: const Text('Đăng ảnh mới'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _pickMultiplePhotos,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textPrimary,
+                        side: BorderSide(
+                          color: AppColors.accentRose.withValues(alpha: 0.24),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      icon: const Icon(Icons.grid_view_rounded),
+                      label: const Text('Thêm nhiều'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingTopShowcase(Couple? couple, int photoCount) {
     return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.white,
-            AppColors.surfaceLight,
+      color: Colors.transparent,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Thư Viện Ảnh',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Vuốt lên nhẹ để gọi lại nhanh khung đăng ảnh và quản lý kỷ niệm.',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 18),
+            _buildComposerCard(couple, photoCount),
           ],
         ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _buildCoupleAvatar(couple, size: 52),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Biến thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
+    );
+  }
+
+  Widget _buildCompactTopShowcase(Couple? couple, int photoCount) {
+    final title = couple == null
+        ? 'Đăng thêm kỷ niệm mới'
+        : '${couple.person1Name} & ${couple.person2Name}';
+
+    return Container(
+      color: Colors.transparent,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.white.withValues(alpha: 0.72),
+                  AppColors.white.withValues(alpha: 0.48),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: AppColors.white.withValues(alpha: 0.62),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.035),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _buildFeedStatChip(
-                icon: Icons.collections_rounded,
-                label: '$photoCount khoảnh khắc',
-                color: AppColors.accentRose,
-              ),
-              if (couple != null)
-                _buildFeedStatChip(
-                  icon: Icons.favorite_rounded,
-                  label: '${_daysTogether(couple)} ngày bên nhau',
-                  color: AppColors.accentCoral,
+              ],
+            ),
+            child: Row(
+              children: [
+                _buildCoupleAvatar(couple, size: 42),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$photoCount khoảnh khắc • Vuốt thêm để bung khung đăng ảnh',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              _buildFeedStatChip(
-                icon: Icons.auto_stories_rounded,
-                label: 'Feed riêng của hai bạn',
-                color: AppColors.info,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
+                const SizedBox(width: 8),
+                IconButton.filled(
                   onPressed: _pickAndAddPhoto,
-                  style: FilledButton.styleFrom(
+                  style: IconButton.styleFrom(
                     backgroundColor: AppColors.accentRose,
                     foregroundColor: AppColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
                   ),
-                  icon: const Icon(Icons.add_a_photo_rounded),
-                  label: const Text('Đăng ảnh mới'),
+                  icon: const Icon(Icons.add_a_photo_rounded, size: 18),
+                  tooltip: 'Đăng ảnh mới',
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
+                const SizedBox(width: 8),
+                IconButton.filledTonal(
                   onPressed: _pickMultiplePhotos,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary,
-                    side: BorderSide(
-                      color: AppColors.accentRose.withValues(alpha: 0.24),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColors.accentCoral.withValues(alpha: 0.14),
+                    foregroundColor: AppColors.accentCoral,
                   ),
-                  icon: const Icon(Icons.grid_view_rounded),
-                  label: const Text('Thêm nhiều'),
+                  icon: const Icon(Icons.grid_view_rounded, size: 18),
+                  tooltip: 'Thêm nhiều',
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -943,62 +1088,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
-  Widget _buildFloatingActionCluster(double actionBottomOffset) {
-    return Positioned(
-      bottom: actionBottomOffset,
-      right: 20,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.92),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 18,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton.filledTonal(
-                    onPressed: _pickMultiplePhotos,
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppColors.accentCoral.withValues(alpha: 0.16),
-                      foregroundColor: AppColors.accentCoral,
-                    ),
-                    icon: const Icon(Icons.collections_rounded),
-                  ),
-                  const SizedBox(height: 8),
-                  FloatingActionButton.small(
-                    onPressed: _pickAndAddPhoto,
-                    backgroundColor: AppColors.accentRose,
-                    foregroundColor: AppColors.white,
-                    elevation: 0,
-                    child: const Icon(Icons.add_rounded),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final actionBottomOffset = widget.bottomInset > 0
-        ? widget.bottomInset - 8
-        : 24.0;
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Consumer2<PhotoProvider, CoupleProvider>(
@@ -1007,77 +1098,50 @@ class _GalleryScreenState extends State<GalleryScreen> {
           final couple = coupleProvider.couple;
 
           return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.bgLight,
-                  AppColors.surfaceLight.withValues(alpha: 0.7),
-                ],
-              ),
+            decoration: const BoxDecoration(
+              gradient: AppColors.galleryGradient,
             ),
-            child: Stack(
-              children: [
-                CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Thư Viện Ảnh',
-                              style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Một newfeed riêng tư để lưu lại từng khoảnh khắc dịu dàng của hai bạn.',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 13,
-                                height: 1.45,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            _buildComposerCard(couple, photos.length),
-                            if (photos.isNotEmpty) ...[
-                              const SizedBox(height: 22),
-                              _buildStoryStripSection(couple, photos),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (photos.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: _buildEmptyFeedState(couple),
-                      )
-                    else
-                      SliverPadding(
-                        padding: EdgeInsets.fromLTRB(
-                          16,
-                          0,
-                          16,
-                          widget.bottomInset + 88,
-                        ),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate((context, index) {
-                            final photo = photos[index];
-                            return _buildPhotoFeedCard(couple, photo, index);
-                          }, childCount: photos.length),
-                        ),
-                      ),
-                  ],
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverPersistentHeader(
+                  floating: true,
+                  pinned: false,
+                  delegate: _GalleryFloatingShowcaseHeaderDelegate(
+                    vsync: this,
+                    minHeaderExtent: _floatingTopShowcaseMinHeight,
+                    maxHeaderExtent: _floatingTopShowcaseMaxHeight,
+                    compactChild: _buildCompactTopShowcase(couple, photos.length),
+                    expandedChild: _buildFloatingTopShowcase(couple, photos.length),
+                  ),
                 ),
-                _buildFloatingActionCluster(actionBottomOffset),
+                if (photos.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+                      child: _buildStoryStripSection(couple, photos),
+                    ),
+                  ),
+                if (photos.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildEmptyFeedState(couple),
+                  )
+                else
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(
+                      16,
+                      0,
+                      16,
+                      widget.bottomInset + 32,
+                    ),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final photo = photos[index];
+                        return _buildPhotoFeedCard(couple, photo, index);
+                      }, childCount: photos.length),
+                    ),
+                  ),
               ],
             ),
           );
@@ -1088,6 +1152,114 @@ class _GalleryScreenState extends State<GalleryScreen> {
 }
 
 enum _PhotoFeedAction { editCaption, delete }
+
+class _GalleryFloatingShowcaseHeaderDelegate
+    extends SliverPersistentHeaderDelegate {
+  const _GalleryFloatingShowcaseHeaderDelegate({
+    required this.vsync,
+    required this.minHeaderExtent,
+    required this.maxHeaderExtent,
+    required this.compactChild,
+    required this.expandedChild,
+  });
+
+  @override
+  final TickerProvider vsync;
+
+  final double minHeaderExtent;
+  final double maxHeaderExtent;
+  final Widget compactChild;
+  final Widget expandedChild;
+
+  @override
+  double get minExtent => minHeaderExtent;
+
+  @override
+  double get maxExtent => maxHeaderExtent;
+
+  @override
+  FloatingHeaderSnapConfiguration get snapConfiguration =>
+      FloatingHeaderSnapConfiguration(
+        curve: Curves.easeOutCubic,
+        duration: Duration(milliseconds: 260),
+      );
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final range = (maxExtent - minExtent).clamp(1.0, double.infinity);
+    final progress = (shrinkOffset / range).clamp(0.0, 1.0);
+    final expandedOpacity = 1 - Curves.easeInOut.transform(progress);
+    final compactOpacity = Curves.easeOutCubic.transform(progress);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: AppColors.galleryGradient,
+        boxShadow: overlapsContent
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ]
+            : null,
+      ),
+      child: ClipRect(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            OverflowBox(
+              alignment: Alignment.topCenter,
+              minHeight: maxExtent,
+              maxHeight: maxExtent,
+              child: IgnorePointer(
+                ignoring: progress > 0.45,
+                child: Opacity(
+                  opacity: expandedOpacity,
+                  child: Transform.translate(
+                    offset: Offset(0, -20 * progress),
+                    child: SingleChildScrollView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      child: expandedChild,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                height: minExtent,
+                child: IgnorePointer(
+                  ignoring: progress < 0.12,
+                  child: Opacity(
+                    opacity: compactOpacity,
+                    child: Transform.translate(
+                      offset: Offset(0, 14 * (1 - progress)),
+                      child: compactChild,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _GalleryFloatingShowcaseHeaderDelegate oldDelegate) {
+    return oldDelegate.minHeaderExtent != minHeaderExtent ||
+        oldDelegate.maxHeaderExtent != maxHeaderExtent ||
+        oldDelegate.compactChild != compactChild ||
+        oldDelegate.expandedChild != expandedChild;
+  }
+}
 
 class _FullscreenPhotoPreview extends StatefulWidget {
   const _FullscreenPhotoPreview({

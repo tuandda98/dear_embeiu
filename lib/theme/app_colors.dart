@@ -7,6 +7,8 @@ class AppColors {
 
   static const Color secondaryGradientStart = Color(0xFFFFC0CB); // Pink
   static const Color secondaryGradientEnd = Color(0xFFE6B3FF); // Lavender
+  static const Color galleryGradientStart = Color(0xFFEED6E2); // Dusty blush
+  static const Color galleryGradientEnd = Color(0xFFE2CBDB); // Mauve mist
 
   // Accent colors
   static const Color accentRose = Color(0xFFFF69B4); // Hot pink
@@ -23,6 +25,7 @@ class AppColors {
   static const Color bgLight = Color(0xFFFAF9F7);
   static const Color bgDark = Color(0xFFFAF9F7);
   static const Color surfaceLight = Color(0xFFFFEEF5); // Light rose tint
+  static const Color galleryBackground = Color(0xFFE7D1DE); // Deeper blush-mauve for gallery base
 
   // Status colors
   static const Color success = Color(0xFF66BB6A);
@@ -41,6 +44,12 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [secondaryGradientStart, secondaryGradientEnd],
+  );
+
+  static const LinearGradient galleryGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [galleryGradientStart, galleryBackground, galleryGradientEnd],
   );
 
   static const LinearGradient counterGradient = LinearGradient(
