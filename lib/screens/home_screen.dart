@@ -23,13 +23,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const double _floatingNavHeight = 70;
-  static const double _floatingNavMaxWidth = 300;
+  static const double _floatingNavHeight = 84;
+  static const double _floatingNavMaxWidth = 284;
   static const double _floatingNavMargin = 14;
   static const double _floatingNavSpacing = 18;
   static const double _floatingNavInnerPadding = 8;
   static const double _floatingNavGlowSize = 46;
   static const double _floatingNavItemHorizontalPadding = 2;
+  static const double _floatingNavLabelSpacing = 4;
+  static const double _floatingNavGlowVerticalOffset = 8;
 
   static const List<_NavigationItem> _navigationItems = [
     _NavigationItem(
@@ -165,7 +167,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     final glowCenter = (itemWidth * _selectedIndex) + (itemWidth / 2);
                     final glowLeft = glowCenter - (_floatingNavGlowSize / 2);
                     final glowTop =
-                        (constraints.maxHeight - _floatingNavGlowSize) / 2;
+                        ((constraints.maxHeight - _floatingNavGlowSize) / 2) -
+                        _floatingNavGlowVerticalOffset;
 
                     return Stack(
                       alignment: Alignment.center,
@@ -250,36 +253,83 @@ class _HomeScreenState extends State<HomeScreen> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 260),
             curve: Curves.easeOutCubic,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             child: Center(
-              child: AnimatedScale(
-                duration: const Duration(milliseconds: 260),
-                curve: Curves.easeOutCubic,
-                scale: isSelected ? 1.16 : 1,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 260),
-                  curve: Curves.easeOutCubic,
-                  width: isSelected ? 40 : 36,
-                  height: isSelected ? 40 : 36,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.white.withValues(alpha: 0.10)
-                        : Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: isSelected
-                        ? Border.all(
-                            color: AppColors.white.withValues(alpha: 0.16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedScale(
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                    scale: isSelected ? 1.16 : 1,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 260),
+                      curve: Curves.easeOutCubic,
+                      width: isSelected ? 40 : 36,
+                      height: isSelected ? 40 : 36,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.white.withValues(alpha: 0.10)
+                            : Colors.transparent,
+                        shape: BoxShape.circle,
+                        border: isSelected
+                            ? Border.all(
+                                color: AppColors.white.withValues(alpha: 0.16),
+                              )
+                            : null,
+                      ),
+                      child: Icon(
+                        isSelected ? (item.selectedIcon ?? item.icon) : item.icon,
+                        size: 20,
+                        color: isSelected
+                            ? AppColors.white
+                            : AppColors.white.withValues(alpha: 0.90),
+                      ),
+                    ),
+                  ),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) {
+                      final slideAnimation = Tween<Offset>(
+                        begin: const Offset(0, 0.18),
+                        end: Offset.zero,
+                      ).animate(animation);
+
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: slideAnimation,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: isSelected
+                        ? Padding(
+                            key: ValueKey('bottom-nav-label-$index'),
+                            padding: const EdgeInsets.only(
+                              top: _floatingNavLabelSpacing,
+                            ),
+                            child: Text(
+                              item.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: AppColors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                height: 1,
+                              ),
+                            ),
                           )
-                        : null,
+                        : SizedBox(
+                            key: ValueKey('bottom-nav-label-hidden-$index'),
+                            height: 0,
+                          ),
                   ),
-                  child: Icon(
-                    isSelected ? (item.selectedIcon ?? item.icon) : item.icon,
-                    size: isSelected ? 20 : 20,
-                    color: isSelected
-                        ? AppColors.white
-                        : AppColors.white.withValues(alpha: 0.90),
-                  ),
-                ),
+                ],
               ),
             ),
           ),
