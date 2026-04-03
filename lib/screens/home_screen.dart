@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -15,22 +16,60 @@ import 'profile_screen.dart';
 import 'gallery_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const double _floatingNavHeight = 70;
+  static const double _floatingNavMaxWidth = 300;
+  static const double _floatingNavMargin = 14;
+  static const double _floatingNavSpacing = 18;
+  static const double _floatingNavInnerPadding = 8;
+  static const double _floatingNavGlowSize = 46;
+  static const double _floatingNavItemHorizontalPadding = 2;
+
+  static const List<_NavigationItem> _navigationItems = [
+    _NavigationItem(
+      icon: Icons.favorite_border_rounded,
+      selectedIcon: Icons.favorite_rounded,
+      label: 'Trang chủ',
+      color: AppColors.accentRose,
+    ),
+    _NavigationItem(
+      icon: Icons.photo_library_outlined,
+      selectedIcon: Icons.photo_library_rounded,
+      label: 'Thư viện',
+      color: AppColors.accentRose,
+    ),
+    _NavigationItem(
+      icon: Icons.person_outline_rounded,
+      selectedIcon: Icons.person_rounded,
+      label: 'Hồ sơ',
+      color: AppColors.accentRose,
+    ),
+  ];
+
   int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final bottomInset =
+        mediaQuery.padding.bottom +
+        _floatingNavHeight +
+        (_floatingNavMargin * 2) +
+        _floatingNavSpacing;
+
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBody: true,
       body: Consumer2<CoupleProvider, PhotoProvider>(
         builder: (context, coupleProvider, photoProvider, _) {
           if (coupleProvider.couple == null) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           final couple = coupleProvider.couple!;
@@ -38,62 +77,223 @@ class _HomeScreenState extends State<HomeScreen> {
             couple.anniversaryDate,
           );
 
-          return Container(
-            decoration: BoxDecoration(gradient: AppColors.secondaryGradient),
-            child: SafeArea(
-              child: IndexedStack(
-                index: _selectedIndex,
-                children: [
-                  _buildHomeTab(couple, counterData, photoProvider.sortedPhotos),
-                  GalleryScreen(),
-                  ProfileScreen(),
-                ],
+          return Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(gradient: AppColors.secondaryGradient),
+                child: SafeArea(
+                  bottom: false,
+                  child: IndexedStack(
+                    index: _selectedIndex,
+                    children: [
+                      _buildHomeTab(
+                        couple,
+                        counterData,
+                        photoProvider.sortedPhotos,
+                        bottomInset,
+                      ),
+                      GalleryScreen(bottomInset: bottomInset),
+                      ProfileScreen(bottomInset: bottomInset),
+                    ],
+                  ),
+                ),
               ),
-            ),
+              Positioned(
+                left: _floatingNavMargin,
+                right: _floatingNavMargin,
+                bottom: mediaQuery.padding.bottom + _floatingNavMargin,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: _floatingNavMaxWidth),
+                    child: _buildFloatingNavigationBar(),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
+    );
+  }
+
+  Widget _buildFloatingNavigationBar() {
+    final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+
+    return AnimatedSlide(
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      offset: isKeyboardVisible ? const Offset(0, 1.2) : Offset.zero,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 220),
+        opacity: isKeyboardVisible ? 0 : 1,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.black.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: Container(
+                height: _floatingNavHeight,
+                padding: const EdgeInsets.all(_floatingNavInnerPadding),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.white.withValues(alpha: 0.16),
+                      AppColors.white.withValues(alpha: 0.04),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: AppColors.white.withValues(alpha: 0.10),
+                  ),
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final itemWidth =
+                        constraints.maxWidth / _navigationItems.length;
+                    final glowCenter = (itemWidth * _selectedIndex) + (itemWidth / 2);
+                    final glowLeft = glowCenter - (_floatingNavGlowSize / 2);
+                    final glowTop =
+                        (constraints.maxHeight - _floatingNavGlowSize) / 2;
+
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 320),
+                          curve: Curves.easeOutBack,
+                          left: glowLeft,
+                          top: glowTop,
+                          child: Container(
+                            width: _floatingNavGlowSize,
+                            height: _floatingNavGlowSize,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _navigationItems[_selectedIndex].color
+                                  .withValues(alpha: 0.24),
+                              border: Border.all(
+                                color: _navigationItems[_selectedIndex].color
+                                    .withValues(alpha: 0.28),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _navigationItems[_selectedIndex].color
+                                      .withValues(alpha: 0.06),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Row(
+                          children: List.generate(_navigationItems.length, (index) {
+                            final item = _navigationItems[index];
+                            final isSelected = index == _selectedIndex;
+
+                            return Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: _floatingNavItemHorizontalPadding,
+                                ),
+                                child: _buildNavigationItem(
+                                  item: item,
+                                  index: index,
+                                  isSelected: isSelected,
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
             ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: AppColors.white,
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            setState(() => _selectedIndex = index);
-          },
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Trang chủ',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.photo_library),
-              label: 'Thư viện',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Hồ sơ',
-            ),
-          ],
-          selectedItemColor: AppColors.accentRose,
-          unselectedItemColor: AppColors.textSecondary.withOpacity(0.5),
+          ),
         ),
       ),
     );
   }
 
+  Widget _buildNavigationItem({
+    required _NavigationItem item,
+    required int index,
+    required bool isSelected,
+  }) {
+    return Tooltip(
+      message: item.label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: ValueKey('bottom-nav-$index'),
+          borderRadius: BorderRadius.circular(24),
+          onTap: () {
+            if (_selectedIndex == index) {
+              return;
+            }
+
+            setState(() => _selectedIndex = index);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Center(
+              child: AnimatedScale(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOutCubic,
+                scale: isSelected ? 1.16 : 1,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  width: isSelected ? 40 : 36,
+                  height: isSelected ? 40 : 36,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.white.withValues(alpha: 0.10)
+                        : Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: isSelected
+                        ? Border.all(
+                            color: AppColors.white.withValues(alpha: 0.16),
+                          )
+                        : null,
+                  ),
+                  child: Icon(
+                    isSelected ? (item.selectedIcon ?? item.icon) : item.icon,
+                    size: isSelected ? 20 : 20,
+                    color: isSelected
+                        ? AppColors.white
+                        : AppColors.white.withValues(alpha: 0.90),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+
   Widget _buildHomeTab(
     Couple couple,
     CounterData counterData,
     List<Photo> photos,
+    double bottomInset,
   ) {
     final totalDays = _getTotalDays(couple.anniversaryDate);
     final nextAnniversary = _getNextAnniversary(couple.anniversaryDate);
@@ -103,7 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final recentPhotos = photos.take(5).toList();
 
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(16, 16, 16, 28),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -782,7 +982,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: photos.length,
-        separatorBuilder: (_, __) => SizedBox(width: 12),
+        separatorBuilder: (_, index) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final photo = photos[index];
           return GestureDetector(
@@ -1016,3 +1216,18 @@ class _HomeScreenState extends State<HomeScreen> {
     return '$days ngày';
   }
 }
+
+class _NavigationItem {
+  const _NavigationItem({
+    required this.icon,
+    this.selectedIcon,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final IconData? selectedIcon;
+  final String label;
+  final Color color;
+}
+

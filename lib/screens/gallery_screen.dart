@@ -6,7 +6,9 @@ import '../theme/app_colors.dart';
 import '../widgets/masonry_gallery.dart';
 
 class GalleryScreen extends StatefulWidget {
-  const GalleryScreen({Key? key}) : super(key: key);
+  const GalleryScreen({super.key, this.bottomInset = 0});
+
+  final double bottomInset;
 
   @override
   State<GalleryScreen> createState() => _GalleryScreenState();
@@ -87,6 +89,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final actionBottomOffset = widget.bottomInset > 0
+        ? widget.bottomInset - 12
+        : 24.0;
+
     return Scaffold(
       backgroundColor: AppColors.bgLight,
       appBar: AppBar(
@@ -99,7 +105,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           return Stack(
             children: [
               Padding(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.fromLTRB(12, 12, 12, widget.bottomInset),
                 child: MasonryGallery(
                   photos: photoProvider.sortedPhotos,
                   onDeletePhoto: (photoId) {
@@ -112,7 +118,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               ),
               // Add Photo Button
               Positioned(
-                bottom: 24,
+                bottom: actionBottomOffset,
                 right: 24,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

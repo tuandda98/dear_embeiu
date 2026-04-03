@@ -6,7 +6,9 @@ import '../theme/app_colors.dart';
 import 'setup_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key, this.bottomInset = 0});
+
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +29,7 @@ class ProfileScreen extends StatelessWidget {
           final photoCount = context.watch<PhotoProvider>().photoCount;
 
           return SingleChildScrollView(
-            padding: EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, bottomInset),
             child: Column(
               children: [
                 // Couple Profile Card
