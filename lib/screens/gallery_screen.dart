@@ -323,8 +323,26 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
-  Color _galleryLavender([double alpha = 1]) {
-    return AppColors.primaryGradientEnd.withValues(alpha: alpha);
+  BoxDecoration _gallerySurfaceDecoration({
+    required double radius,
+    double fillAlpha = 0.9,
+    double borderAlpha = 0.82,
+    double shadowAlpha = 0.045,
+    double blurRadius = 18,
+    Offset offset = const Offset(0, 10),
+  }) {
+    return BoxDecoration(
+      color: AppColors.white.withValues(alpha: fillAlpha),
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: AppColors.white.withValues(alpha: borderAlpha)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: shadowAlpha),
+          blurRadius: blurRadius,
+          offset: offset,
+        ),
+      ],
+    );
   }
 
   Widget _buildGalleryEyebrow(String label) {
@@ -402,11 +420,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Color.lerp(AppColors.white, _galleryLavender(0.08), 0.5),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Color.lerp(color.withValues(alpha: 0.12), _galleryLavender(0.18), 0.35)!,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.12)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -416,7 +432,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           Text(
             label,
             style: _galleryMetaStyle(
-              color: Color.lerp(AppColors.textPrimary, _galleryLavender(), 0.18)!,
+              color: AppColors.textPrimary,
               alpha: 0.82,
             ),
           ),
@@ -430,136 +446,108 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ? 'Thêm một kỷ niệm mới hôm nay'
         : '${couple.person1Name} & ${couple.person2Name} hôm nay có gì mới?';
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.white.withValues(alpha: 0.72),
-                _galleryLavender(0.12),
-                AppColors.white.withValues(alpha: 0.38),
-              ],
-              stops: const [0.0, 0.48, 1.0],
-            ),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-              color: _galleryLavender(0.18),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.045),
-                blurRadius: 18,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: _gallerySurfaceDecoration(radius: 28, fillAlpha: 0.84),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  _buildCoupleAvatar(couple, size: 52),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            color: AppColors.textPrimary.withValues(alpha: 0.84),
-                            fontSize: 16.8,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.18,
-                            height: 1.18,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Biến thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.',
-                          style: _galleryBodyStyle(
-                            color: AppColors.textPrimary,
-                            size: 12.4,
-                            alpha: 0.62,
-                            weight: FontWeight.w500,
-                            height: 1.48,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _buildFeedStatChip(
-                    icon: Icons.collections_rounded,
-                    label: '$photoCount khoảnh khắc',
-                    color: AppColors.accentRose,
-                  ),
-                  if (couple != null)
-                    _buildFeedStatChip(
-                      icon: Icons.favorite_rounded,
-                      label: '${_daysTogether(couple)} ngày bên nhau',
-                      color: AppColors.accentCoral,
-                    ),
-                  _buildFeedStatChip(
-                    icon: Icons.auto_stories_rounded,
-                    label: 'Feed riêng của hai bạn',
-                    color: AppColors.info,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: _pickAndAddPhoto,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.accentRose,
-                        foregroundColor: AppColors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
+              _buildCoupleAvatar(couple, size: 52),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: AppColors.textPrimary.withValues(alpha: 0.88),
+                        fontSize: 16.8,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.18,
+                        height: 1.18,
                       ),
-                      icon: const Icon(Icons.add_a_photo_rounded),
-                      label: const Text('Đăng ảnh mới'),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _pickMultiplePhotos,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.textPrimary,
-                        side: BorderSide(
-                          color: AppColors.accentRose.withValues(alpha: 0.24),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Biến thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.',
+                      style: _galleryBodyStyle(
+                        color: AppColors.textPrimary,
+                        size: 12.4,
+                        alpha: 0.64,
+                        weight: FontWeight.w500,
+                        height: 1.48,
                       ),
-                      icon: const Icon(Icons.grid_view_rounded),
-                      label: const Text('Thêm nhiều'),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _buildFeedStatChip(
+                icon: Icons.collections_rounded,
+                label: '$photoCount khoảnh khắc',
+                color: AppColors.accentRose,
+              ),
+              if (couple != null)
+                _buildFeedStatChip(
+                  icon: Icons.favorite_rounded,
+                  label: '${_daysTogether(couple)} ngày bên nhau',
+                  color: AppColors.accentCoral,
+                ),
+              _buildFeedStatChip(
+                icon: Icons.auto_stories_rounded,
+                label: 'Feed riêng của hai bạn',
+                color: AppColors.info,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: _pickAndAddPhoto,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.accentRose,
+                    foregroundColor: AppColors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  icon: const Icon(Icons.add_a_photo_rounded),
+                  label: const Text('Đăng ảnh mới'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _pickMultiplePhotos,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: BorderSide(
+                      color: AppColors.accentRose.withValues(alpha: 0.24),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  icon: const Icon(Icons.grid_view_rounded),
+                  label: const Text('Thêm nhiều'),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -600,88 +588,67 @@ class _GalleryScreenState extends State<GalleryScreen> {
     return Container(
       color: Colors.transparent,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.white.withValues(alpha: 0.74),
-                  _galleryLavender(0.14),
-                  AppColors.white.withValues(alpha: 0.46),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: _gallerySurfaceDecoration(
+          radius: 24,
+          fillAlpha: 0.9,
+          borderAlpha: 0.86,
+          shadowAlpha: 0.035,
+          blurRadius: 16,
+          offset: const Offset(0, 8),
+        ),
+        child: Row(
+          children: [
+            _buildCoupleAvatar(couple, size: 42),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _galleryCardTitleStyle(size: 15.3),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$photoCount khoảnh khắc • Vuốt thêm để bung khung đăng ảnh',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _galleryMetaStyle(
+                      color: AppColors.textSecondary,
+                      size: 11.1,
+                      alpha: 0.82,
+                      weight: FontWeight.w600,
+                    ),
+                  ),
                 ],
-                stops: const [0.0, 0.52, 1.0],
               ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: _galleryLavender(0.22),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filled(
+              onPressed: _pickAndAddPhoto,
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.accentRose,
+                foregroundColor: AppColors.white,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.035),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+              icon: const Icon(Icons.add_a_photo_rounded, size: 18),
+              tooltip: 'Đăng ảnh mới',
             ),
-            child: Row(
-              children: [
-                _buildCoupleAvatar(couple, size: 42),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: _galleryCardTitleStyle(size: 15.3),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$photoCount khoảnh khắc • Vuốt thêm để bung khung đăng ảnh',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: _galleryMetaStyle(
-                          color: _galleryLavender(),
-                          size: 11.1,
-                          alpha: 0.74,
-                          weight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  onPressed: _pickAndAddPhoto,
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.accentRose,
-                    foregroundColor: AppColors.white,
-                  ),
-                  icon: const Icon(Icons.add_a_photo_rounded, size: 18),
-                  tooltip: 'Đăng ảnh mới',
-                ),
-                const SizedBox(width: 8),
-                IconButton.filledTonal(
-                  onPressed: _pickMultiplePhotos,
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.accentCoral.withValues(alpha: 0.14),
-                    foregroundColor: AppColors.accentCoral,
-                  ),
-                  icon: const Icon(Icons.grid_view_rounded, size: 18),
-                  tooltip: 'Thêm nhiều',
-                ),
-              ],
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              onPressed: _pickMultiplePhotos,
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.accentCoral.withValues(alpha: 0.14),
+                foregroundColor: AppColors.accentCoral,
+              ),
+              icon: const Icon(Icons.grid_view_rounded, size: 18),
+              tooltip: 'Thêm nhiều',
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -720,9 +687,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: _galleryLavender(0.10),
+                color: AppColors.white.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: _galleryLavender(0.18)),
+                border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
               ),
               child: Text(
                 '${storyPhotos.length}',
@@ -792,17 +759,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
       ),
       child: Container(
         width: 104,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(26),
-          color: Color.lerp(AppColors.white, _galleryLavender(0.06), 0.8),
-          border: Border.all(color: _galleryLavender(0.10)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 16,
-              offset: const Offset(0, 10),
-            ),
-          ],
+        decoration: _gallerySurfaceDecoration(
+          radius: 26,
+          fillAlpha: 0.92,
+          borderAlpha: 0.88,
+          shadowAlpha: 0.05,
+          blurRadius: 16,
         ),
         child: Padding(
           padding: const EdgeInsets.all(8),
@@ -848,8 +810,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              _galleryLavender(0.54),
-                              Colors.black.withValues(alpha: 0.34),
+                              AppColors.accentRose.withValues(alpha: 0.94),
+                              AppColors.accentCoral.withValues(alpha: 0.82),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(999),
@@ -902,17 +864,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
-      decoration: BoxDecoration(
-        color: Color.lerp(AppColors.white, _galleryLavender(0.055), 0.85),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: _galleryLavender(0.10)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 12),
-          ),
-        ],
+      decoration: _gallerySurfaceDecoration(
+        radius: 30,
+        fillAlpha: 0.94,
+        borderAlpha: 0.9,
+        shadowAlpha: 0.05,
+        blurRadius: 20,
+        offset: const Offset(0, 12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -938,13 +896,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           Icon(
                             Icons.schedule_rounded,
                             size: 14,
-                            color: _galleryLavender(0.62),
+                            color: AppColors.textSecondary.withValues(alpha: 0.72),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             _formatFeedDate(photo.uploadDate),
                             style: _galleryMetaStyle(
-                              color: _galleryLavender(),
+                              color: AppColors.textSecondary,
                               size: 11.7,
                               alpha: 0.68,
                               weight: FontWeight.w600,
@@ -958,7 +916,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 PopupMenuButton<_PhotoFeedAction>(
                   icon: Icon(
                     Icons.more_horiz_rounded,
-                    color: _galleryLavender(0.62),
+                    color: AppColors.textSecondary.withValues(alpha: 0.76),
                   ),
                   onSelected: (action) {
                     if (action == _PhotoFeedAction.editCaption) {
@@ -1022,7 +980,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               child: Container(
                 height: 260,
                 decoration: BoxDecoration(
-                  color: Color.lerp(AppColors.surfaceLight, _galleryLavender(0.12), 0.42),
+                  color: AppColors.surfaceLight.withValues(alpha: 0.94),
                   borderRadius: BorderRadius.circular(26),
                 ),
                 child: Center(
@@ -1075,7 +1033,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.textPrimary,
                           side: BorderSide(
-                            color: _galleryLavender(0.16),
+                            color: AppColors.accentRose.withValues(alpha: 0.16),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -1091,11 +1049,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       child: FilledButton.icon(
                         onPressed: () => _deletePhoto(photo),
                         style: FilledButton.styleFrom(
-                          backgroundColor: Color.lerp(
-                            AppColors.accentRose.withValues(alpha: 0.12),
-                            _galleryLavender(0.14),
-                            0.32,
-                          ),
+                          backgroundColor: AppColors.accentRose.withValues(alpha: 0.12),
                           foregroundColor: AppColors.accentRose,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1127,18 +1081,14 @@ class _GalleryScreenState extends State<GalleryScreen> {
         padding: const EdgeInsets.all(24),
         child: Container(
           padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Color.lerp(AppColors.white, _galleryLavender(0.05), 0.85),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: _galleryLavender(0.10)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 20,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
+            decoration: _gallerySurfaceDecoration(
+              radius: 30,
+              fillAlpha: 0.92,
+              borderAlpha: 0.88,
+              shadowAlpha: 0.05,
+              blurRadius: 20,
+              offset: const Offset(0, 12),
+            ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1205,7 +1155,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
           return Container(
             decoration: const BoxDecoration(
-              gradient: AppColors.galleryGradient,
+              gradient: AppColors.secondaryGradient,
             ),
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
@@ -1311,9 +1261,9 @@ class _GalleryFloatingShowcaseHeaderDelegate
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.galleryGradient.colors.first.withValues(alpha: 0.96),
-            AppColors.galleryGradient.colors.first.withValues(alpha: 0.82),
-            AppColors.galleryGradient.colors.last.withValues(alpha: 0.18),
+            AppColors.secondaryGradient.colors.first.withValues(alpha: 0.96),
+            AppColors.secondaryGradient.colors.last.withValues(alpha: 0.82),
+            AppColors.secondaryGradient.colors.last.withValues(alpha: 0.16),
             Colors.transparent,
           ],
           stops: const [0.0, 0.42, 0.78, 1.0],

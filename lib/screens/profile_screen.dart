@@ -36,16 +36,8 @@ class ProfileScreen extends StatelessWidget {
           final daysUntilAnniversary = _daysUntil(nextAnniversary);
 
           return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.secondaryGradientStart,
-                  AppColors.galleryBackground,
-                  AppColors.secondaryGradientEnd,
-                ],
-              ),
+            decoration: const BoxDecoration(
+              gradient: AppColors.secondaryGradient,
             ),
             child: SafeArea(
               bottom: false,
