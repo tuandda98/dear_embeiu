@@ -345,6 +345,48 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
+  Widget _buildPastelStoryBadge(
+    String label, {
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    double fontSize = 10,
+    Color? textColor,
+  }) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.white.withValues(alpha: 0.92),
+            AppColors.secondaryGradientStart.withValues(alpha: 0.88),
+            AppColors.secondaryGradientEnd.withValues(alpha: 0.82),
+          ],
+          stops: const [0.0, 0.45, 1.0],
+        ),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.56)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: (textColor ?? AppColors.textPrimary).withValues(alpha: 0.78),
+          fontSize: fontSize,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.12,
+          height: 1,
+        ),
+      ),
+    );
+  }
+
   Widget _buildGalleryEyebrow(String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -675,41 +717,37 @@ class _GalleryScreenState extends State<GalleryScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildGalleryEyebrow(memoriesToday.isNotEmpty ? 'TODAY IN LOVE' : 'STORY STRIP'),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Text(
-              title,
-              style: _gallerySectionTitleStyle(),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.16),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildGalleryEyebrow(memoriesToday.isNotEmpty ? 'TODAY IN LOVE' : 'STORY STRIP'),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Text(
+                    title,
+                    style: _gallerySectionTitleStyle(),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildPastelStoryBadge(
+                    '${storyPhotos.length}',
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    fontSize: 11,
+                  ),
+                ],
               ),
-              child: Text(
-                '${storyPhotos.length}',
-                style: _galleryMetaStyle(
-                  color: AppColors.accentRose,
-                  size: 11,
-                  alpha: 1,
-                  weight: FontWeight.w800,
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                style: _galleryOnBackgroundBodyStyle(
+                  size: 12.4,
+                  alpha: 0.74,
+                  height: 1.52,
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Text(
-          subtitle,
-          style: _galleryOnBackgroundBodyStyle(
-            size: 12.4,
-            alpha: 0.74,
-            height: 1.52,
+            ],
           ),
         ),
         const SizedBox(height: 14),
@@ -800,49 +838,27 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     Positioned(
                       top: 8,
                       left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.accentRose.withValues(alpha: 0.94),
-                              AppColors.accentCoral.withValues(alpha: 0.82),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: AppColors.white.withValues(alpha: 0.14)),
-                        ),
-                        child: Text(
-                          isMemory ? 'Memory' : 'Mới',
-                          style: TextStyle(
-                            color: AppColors.white.withValues(alpha: 0.94),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.18,
-                          ),
-                        ),
-                      ),
+                      child: _buildPastelStoryBadge(isMemory ? 'Memory' : 'Mới'),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 10),
-              Text(
-                photo.caption?.trim().isNotEmpty == true
-                    ? photo.caption!.trim()
-                    : _formatShortDate(photo.uploadDate),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: _galleryMetaStyle(
-                  color: AppColors.textPrimary,
-                  size: 11.2,
-                  alpha: 0.88,
-                  weight: FontWeight.w700,
+              SizedBox(
+                width: double.infinity,
+                child: Text(
+                  photo.caption?.trim().isNotEmpty == true
+                      ? photo.caption!.trim()
+                      : _formatShortDate(photo.uploadDate),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: _galleryMetaStyle(
+                    color: AppColors.textPrimary,
+                    size: 11.2,
+                    alpha: 0.88,
+                    weight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
@@ -1173,7 +1189,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 if (photos.isNotEmpty)
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 18),
+                      padding: const EdgeInsets.fromLTRB(0, 24, 0, 18),
                       child: _buildStoryStripSection(couple, photos),
                     ),
                   ),
@@ -1352,19 +1368,60 @@ class _FullscreenPhotoPreview extends StatefulWidget {
   State<_FullscreenPhotoPreview> createState() => _FullscreenPhotoPreviewState();
 }
 
-class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview> {
+class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
+    with SingleTickerProviderStateMixin {
   late final PageController _pageController;
+  late final AnimationController _dismissResetController;
+  late final List<TransformationController> _transformationControllers;
+  late final List<VoidCallback> _transformationListeners;
+  late final List<double> _pageScales;
   late int _currentIndex;
+  double _verticalDragOffset = 0;
+
+  static const double _dismissDistanceThreshold = 140;
+  static const double _dismissVelocityThreshold = 1000;
+  static const double _dismissProgressDistance = 240;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
+    _dismissResetController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 220),
+    );
+    _pageScales = List<double>.filled(widget.photos.length, 1);
+    _transformationControllers = List.generate(
+      widget.photos.length,
+      (_) => TransformationController(),
+    );
+    _transformationListeners = List<VoidCallback>.generate(widget.photos.length, (index) {
+      return () {
+        final nextScale = _transformationControllers[index].value.getMaxScaleOnAxis();
+        if ((_pageScales[index] - nextScale).abs() < 0.01) {
+          return;
+        }
+
+        _pageScales[index] = nextScale;
+        if (mounted && index == _currentIndex) {
+          setState(() {});
+        }
+      };
+    });
+
+    for (var i = 0; i < _transformationControllers.length; i++) {
+      _transformationControllers[i].addListener(_transformationListeners[i]);
+    }
   }
 
   @override
   void dispose() {
+    for (var i = 0; i < _transformationControllers.length; i++) {
+      _transformationControllers[i].removeListener(_transformationListeners[i]);
+      _transformationControllers[i].dispose();
+    }
+    _dismissResetController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -1373,20 +1430,115 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview> {
     return DateFormat("dd 'thg' MM • HH:mm").format(date);
   }
 
+  bool get _canDismissWithDrag => _pageScales[_currentIndex] <= 1.02;
+
+  double get _dismissProgress =>
+      (_verticalDragOffset / _dismissProgressDistance).clamp(0.0, 1.0);
+
+  void _onVerticalDragStart(DragStartDetails details) {
+    if (!_canDismissWithDrag) {
+      return;
+    }
+
+    _dismissResetController.stop();
+  }
+
+  void _onVerticalDragUpdate(DragUpdateDetails details) {
+    if (!_canDismissWithDrag) {
+      return;
+    }
+
+    final delta = details.primaryDelta ?? 0;
+    final nextOffset = (_verticalDragOffset + delta).clamp(0.0, double.infinity);
+    if ((nextOffset - _verticalDragOffset).abs() < 0.1) {
+      return;
+    }
+
+    setState(() {
+      _verticalDragOffset = nextOffset;
+    });
+  }
+
+  void _onVerticalDragEnd(DragEndDetails details) {
+    if (!_canDismissWithDrag) {
+      return;
+    }
+
+    final velocity = details.primaryVelocity ?? 0;
+    if (_verticalDragOffset >= _dismissDistanceThreshold ||
+        velocity >= _dismissVelocityThreshold) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    _animateDismissOffsetToZero();
+  }
+
+  void _animateDismissOffsetToZero() {
+    final start = _verticalDragOffset;
+    if (start <= 0) {
+      if (mounted && _verticalDragOffset != 0) {
+        setState(() => _verticalDragOffset = 0);
+      }
+      return;
+    }
+
+    final animation = Tween<double>(begin: start, end: 0).animate(
+      CurvedAnimation(parent: _dismissResetController, curve: Curves.easeOutCubic),
+    );
+
+    void listener() {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _verticalDragOffset = animation.value;
+      });
+    }
+
+    _dismissResetController
+      ..removeListener(listener)
+      ..reset()
+      ..addListener(listener);
+
+    _dismissResetController.forward().whenCompleteOrCancel(() {
+      _dismissResetController.removeListener(listener);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentPhoto = widget.photos[_currentIndex];
+    final dismissProgress = _dismissProgress;
+    final contentScale = lerpDouble(1, 0.93, dismissProgress) ?? 1;
+    final overlayOpacity = (1 - (dismissProgress * 1.15)).clamp(0.0, 1.0);
+    final backgroundAlpha = (0.94 - (dismissProgress * 0.74)).clamp(0.0, 0.94);
+    final verticalDragHandlersEnabled = _canDismissWithDrag;
 
     return Scaffold(
-      backgroundColor: Colors.black.withValues(alpha: 0.94),
-      body: Stack(
+      backgroundColor: Colors.black.withValues(alpha: backgroundAlpha),
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onVerticalDragStart:
+            verticalDragHandlersEnabled ? _onVerticalDragStart : null,
+        onVerticalDragUpdate:
+            verticalDragHandlersEnabled ? _onVerticalDragUpdate : null,
+        onVerticalDragEnd: verticalDragHandlersEnabled ? _onVerticalDragEnd : null,
+        child: Transform.translate(
+          offset: Offset(0, _verticalDragOffset),
+          child: Transform.scale(
+            scale: contentScale,
+            child: Stack(
         children: [
           Positioned.fill(
             child: PageView.builder(
               controller: _pageController,
               itemCount: widget.photos.length,
               onPageChanged: (index) {
-                setState(() => _currentIndex = index);
+                setState(() {
+                  _currentIndex = index;
+                  _verticalDragOffset = 0;
+                });
               },
               itemBuilder: (context, index) {
                 final photo = widget.photos[index];
@@ -1397,6 +1549,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview> {
 
                 final child = Center(
                   child: InteractiveViewer(
+                    transformationController: _transformationControllers[index],
                     minScale: 0.9,
                     maxScale: 4,
                     child: index == widget.initialIndex
@@ -1418,65 +1571,71 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview> {
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
             right: 16,
-            child: IconButton.filledTonal(
-              onPressed: () => Navigator.of(context).pop(),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.black.withValues(alpha: 0.28),
-                foregroundColor: AppColors.white,
+            child: Opacity(
+              opacity: overlayOpacity,
+              child: IconButton.filledTonal(
+                onPressed: () => Navigator.of(context).pop(),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.black.withValues(alpha: 0.28),
+                  foregroundColor: AppColors.white,
+                ),
+                icon: const Icon(Icons.close_rounded),
               ),
-              icon: const Icon(Icons.close_rounded),
             ),
           ),
           Positioned(
             left: 20,
             right: 20,
             bottom: MediaQuery.of(context).padding.bottom + 20,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.36),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: AppColors.white.withValues(alpha: 0.12),
+            child: Opacity(
+              opacity: overlayOpacity,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.36),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppColors.white.withValues(alpha: 0.12),
+                  ),
                 ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.coupleNames,
-                      style: TextStyle(
-                        color: AppColors.white.withValues(alpha: 0.96),
-                        fontSize: 15.6,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.15,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      _formatFeedDate(currentPhoto.uploadDate),
-                      style: TextStyle(
-                        color: AppColors.white.withValues(alpha: 0.72),
-                        fontSize: 12.1,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.06,
-                      ),
-                    ),
-                    if (currentPhoto.caption?.trim().isNotEmpty == true) ...[
-                      const SizedBox(height: 10),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        currentPhoto.caption!.trim(),
+                        widget.coupleNames,
                         style: TextStyle(
-                          color: AppColors.white.withValues(alpha: 0.94),
-                          fontSize: 14.2,
-                          fontWeight: FontWeight.w500,
-                          height: 1.58,
+                          color: AppColors.white.withValues(alpha: 0.96),
+                          fontSize: 15.6,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.15,
                         ),
                       ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _formatFeedDate(currentPhoto.uploadDate),
+                        style: TextStyle(
+                          color: AppColors.white.withValues(alpha: 0.72),
+                          fontSize: 12.1,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.06,
+                        ),
+                      ),
+                      if (currentPhoto.caption?.trim().isNotEmpty == true) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          currentPhoto.caption!.trim(),
+                          style: TextStyle(
+                            color: AppColors.white.withValues(alpha: 0.94),
+                            fontSize: 14.2,
+                            fontWeight: FontWeight.w500,
+                            height: 1.58,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -1486,25 +1645,31 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview> {
               left: 0,
               right: 0,
               bottom: MediaQuery.of(context).padding.bottom + 124,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.28),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    '${_currentIndex + 1} / ${widget.photos.length}',
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+              child: Opacity(
+                opacity: overlayOpacity,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.28),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '${_currentIndex + 1} / ${widget.photos.length}',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
         ],
+            ),
+          ),
+        ),
       ),
     );
   }
