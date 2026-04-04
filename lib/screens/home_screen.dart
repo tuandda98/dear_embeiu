@@ -10,6 +10,7 @@ import '../models/photo.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/couple_info_card.dart';
 import 'profile_screen.dart';
@@ -364,21 +365,38 @@ class _HomeScreenState extends State<HomeScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Trang Chủ',
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.auto_awesome_rounded,
+                          size: 14,
+                          color: AppColors.white.withValues(alpha: 0.92),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'LOVE HOME',
+                          style: AppTheme.pageEyebrowStyle(),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: 14),
+                  Text(
+                    'Trang Chủ',
+                    style: AppTheme.pageTitleStyle(),
+                  ),
+                  SizedBox(height: 8),
                   Text(
                     'Lưu giữ từng ngày hạnh phúc của hai bạn',
-                    style: TextStyle(
-                      color: AppColors.white.withOpacity(0.82),
-                      fontSize: 13,
-                    ),
+                    style: AppTheme.pageSubtitleStyle(),
                   ),
                 ],
               ),
@@ -674,20 +692,12 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: AppTheme.sectionTitleStyle(),
               ),
               SizedBox(height: 4),
               Text(
                 subtitle,
-                style: TextStyle(
-                  color: AppColors.white.withOpacity(0.8),
-                  fontSize: 13,
-                  height: 1.35,
-                ),
+                style: AppTheme.sectionSubtitleStyle(),
               ),
             ],
           ),

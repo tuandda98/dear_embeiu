@@ -12,6 +12,7 @@ import '../models/photo.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key, this.bottomInset = 0});
@@ -22,10 +23,9 @@ class GalleryScreen extends StatefulWidget {
   State<GalleryScreen> createState() => _GalleryScreenState();
 }
 
-class _GalleryScreenState extends State<GalleryScreen>
-    with SingleTickerProviderStateMixin {
-  static const double _floatingTopShowcaseMaxHeight = 380;
-  static const double _floatingTopShowcaseMinHeight = 118;
+class _GalleryScreenState extends State<GalleryScreen> {
+  static const double _floatingTopShowcaseMaxHeight = 408;
+  static const double _floatingTopShowcaseMinHeight = 122;
 
   @override
   void initState() {
@@ -300,6 +300,100 @@ class _GalleryScreenState extends State<GalleryScreen>
     );
   }
 
+  TextStyle _galleryDisplayStyle() {
+    return AppTheme.pageTitleStyle();
+  }
+
+  TextStyle _gallerySectionTitleStyle() {
+    return AppTheme.sectionTitleStyle();
+  }
+
+  TextStyle _galleryOnBackgroundBodyStyle({
+    double size = 13,
+    double alpha = 0.82,
+    FontWeight weight = FontWeight.w500,
+    double height = 1.5,
+  }) {
+    return TextStyle(
+      color: AppColors.white.withValues(alpha: alpha),
+      fontSize: size,
+      fontWeight: weight,
+      height: height,
+      letterSpacing: 0.02,
+    );
+  }
+
+  Color _galleryLavender([double alpha = 1]) {
+    return AppColors.primaryGradientEnd.withValues(alpha: alpha);
+  }
+
+  Widget _buildGalleryEyebrow(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.auto_awesome_rounded,
+            size: 12,
+            color: AppColors.white.withValues(alpha: 0.72),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+                style: AppTheme.pageEyebrowStyle(alpha: 0.88),
+          ),
+        ],
+      ),
+    );
+  }
+
+  TextStyle _galleryCardTitleStyle({double size = 16.5}) {
+    return TextStyle(
+      color: AppColors.textPrimary.withValues(alpha: 0.90),
+      fontSize: size,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.2,
+      height: 1.18,
+    );
+  }
+
+  TextStyle _galleryBodyStyle({
+    Color? color,
+    double size = 13,
+    double alpha = 0.82,
+    FontWeight weight = FontWeight.w500,
+    double height = 1.5,
+  }) {
+    return TextStyle(
+      color: (color ?? AppColors.textSecondary).withValues(alpha: alpha),
+      fontSize: size,
+      fontWeight: weight,
+      height: height,
+      letterSpacing: 0.02,
+    );
+  }
+
+  TextStyle _galleryMetaStyle({
+    Color? color,
+    double size = 12,
+    double alpha = 0.68,
+    FontWeight weight = FontWeight.w600,
+  }) {
+    return TextStyle(
+      color: (color ?? AppColors.textPrimary).withValues(alpha: alpha),
+      fontSize: size,
+      fontWeight: weight,
+      height: 1.24,
+      letterSpacing: 0.08,
+    );
+  }
+
   Widget _buildFeedStatChip({
     required IconData icon,
     required String label,
@@ -308,9 +402,11 @@ class _GalleryScreenState extends State<GalleryScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Color.lerp(AppColors.white, _galleryLavender(0.08), 0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.12)),
+        border: Border.all(
+          color: Color.lerp(color.withValues(alpha: 0.12), _galleryLavender(0.18), 0.35)!,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -319,10 +415,9 @@ class _GalleryScreenState extends State<GalleryScreen>
           const SizedBox(width: 8),
           Text(
             label,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+            style: _galleryMetaStyle(
+              color: Color.lerp(AppColors.textPrimary, _galleryLavender(), 0.18)!,
+              alpha: 0.82,
             ),
           ),
         ],
@@ -346,13 +441,15 @@ class _GalleryScreenState extends State<GalleryScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.white.withValues(alpha: 0.70),
-                AppColors.white.withValues(alpha: 0.42),
+                AppColors.white.withValues(alpha: 0.72),
+                _galleryLavender(0.12),
+                AppColors.white.withValues(alpha: 0.38),
               ],
+              stops: const [0.0, 0.48, 1.0],
             ),
             borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: AppColors.white.withValues(alpha: 0.58),
+              color: _galleryLavender(0.18),
             ),
             boxShadow: [
               BoxShadow(
@@ -376,18 +473,22 @@ class _GalleryScreenState extends State<GalleryScreen>
                         Text(
                           title,
                           style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 16,
+                            color: AppColors.textPrimary.withValues(alpha: 0.84),
+                            fontSize: 16.8,
                             fontWeight: FontWeight.w700,
+                            letterSpacing: -0.18,
+                            height: 1.18,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Biến thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            height: 1.4,
+                          style: _galleryBodyStyle(
+                            color: AppColors.textPrimary,
+                            size: 12.4,
+                            alpha: 0.62,
+                            weight: FontWeight.w500,
+                            height: 1.48,
                           ),
                         ),
                       ],
@@ -466,30 +567,24 @@ class _GalleryScreenState extends State<GalleryScreen>
   Widget _buildFloatingTopShowcase(Couple? couple, int photoCount) {
     return Container(
       color: Colors.transparent,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildGalleryEyebrow('PRIVATE GALLERY'),
+            const SizedBox(height: 10),
             Text(
               'Thư Viện Ảnh',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-              ),
+              style: _galleryDisplayStyle(),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
               'Vuốt lên nhẹ để gọi lại nhanh khung đăng ảnh và quản lý kỷ niệm.',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-                height: 1.45,
-              ),
+              style: AppTheme.pageSubtitleStyle(),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             _buildComposerCard(couple, photoCount),
           ],
         ),
@@ -516,13 +611,15 @@ class _GalleryScreenState extends State<GalleryScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.white.withValues(alpha: 0.72),
-                  AppColors.white.withValues(alpha: 0.48),
+                  AppColors.white.withValues(alpha: 0.74),
+                  _galleryLavender(0.14),
+                  AppColors.white.withValues(alpha: 0.46),
                 ],
+                stops: const [0.0, 0.52, 1.0],
               ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: AppColors.white.withValues(alpha: 0.62),
+                color: _galleryLavender(0.22),
               ),
               boxShadow: [
                 BoxShadow(
@@ -545,21 +642,18 @@ class _GalleryScreenState extends State<GalleryScreen>
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: _galleryCardTitleStyle(size: 15.3),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '$photoCount khoảnh khắc • Vuốt thêm để bung khung đăng ảnh',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
+                        style: _galleryMetaStyle(
+                          color: _galleryLavender(),
+                          size: 11.1,
+                          alpha: 0.74,
+                          weight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -604,8 +698,8 @@ class _GalleryScreenState extends State<GalleryScreen>
     );
     final title = memoriesToday.isNotEmpty ? 'Memories today' : 'Ảnh gần đây';
     final subtitle = memoriesToday.isNotEmpty
-        ? 'Cùng ngày này trong những năm trước, hai bạn đã lưu lại những khoảnh khắc này.'
-        : 'Một dải story nhỏ để xem nhanh những khoảnh khắc mới nhất.';
+        ? 'Những khoảnh khắc được lưu đúng ngày này, dịu dàng và rất riêng.'
+        : 'Một dải story nhỏ để xem nhanh những khoảnh khắc mới nhất của hai bạn.';
 
     if (storyPhotos.isEmpty) {
       return const SizedBox.shrink();
@@ -614,29 +708,29 @@ class _GalleryScreenState extends State<GalleryScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildGalleryEyebrow(memoriesToday.isNotEmpty ? 'TODAY IN LOVE' : 'STORY STRIP'),
+        const SizedBox(height: 10),
         Row(
           children: [
             Text(
               title,
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
+              style: _gallerySectionTitleStyle(),
             ),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: _galleryLavender(0.10),
                 borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: _galleryLavender(0.18)),
               ),
               child: Text(
                 '${storyPhotos.length}',
-                style: TextStyle(
+                style: _galleryMetaStyle(
                   color: AppColors.accentRose,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
+                  size: 11,
+                  alpha: 1,
+                  weight: FontWeight.w800,
                 ),
               ),
             ),
@@ -645,10 +739,10 @@ class _GalleryScreenState extends State<GalleryScreen>
         const SizedBox(height: 6),
         Text(
           subtitle,
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 12,
-            height: 1.45,
+          style: _galleryOnBackgroundBodyStyle(
+            size: 12.4,
+            alpha: 0.74,
+            height: 1.52,
           ),
         ),
         const SizedBox(height: 14),
@@ -700,7 +794,8 @@ class _GalleryScreenState extends State<GalleryScreen>
         width: 104,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(26),
-          color: AppColors.white,
+          color: Color.lerp(AppColors.white, _galleryLavender(0.06), 0.8),
+          border: Border.all(color: _galleryLavender(0.10)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -749,15 +844,24 @@ class _GalleryScreenState extends State<GalleryScreen>
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.38),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              _galleryLavender(0.54),
+                              Colors.black.withValues(alpha: 0.34),
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: AppColors.white.withValues(alpha: 0.14)),
                         ),
                         child: Text(
                           isMemory ? 'Memory' : 'Mới',
-                          style: const TextStyle(
-                            color: AppColors.white,
+                          style: TextStyle(
+                            color: AppColors.white.withValues(alpha: 0.94),
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
+                            letterSpacing: 0.18,
                           ),
                         ),
                       ),
@@ -772,11 +876,11 @@ class _GalleryScreenState extends State<GalleryScreen>
                     : _formatShortDate(photo.uploadDate),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: _galleryMetaStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  height: 1.3,
+                  size: 11.2,
+                  alpha: 0.88,
+                  weight: FontWeight.w700,
                 ),
               ),
             ],
@@ -799,8 +903,9 @@ class _GalleryScreenState extends State<GalleryScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Color.lerp(AppColors.white, _galleryLavender(0.055), 0.85),
         borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: _galleryLavender(0.10)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -825,11 +930,7 @@ class _GalleryScreenState extends State<GalleryScreen>
                     children: [
                       Text(
                         coupleNames,
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: _galleryCardTitleStyle(size: 15.6),
                       ),
                       const SizedBox(height: 4),
                       Row(
@@ -837,15 +938,16 @@ class _GalleryScreenState extends State<GalleryScreen>
                           Icon(
                             Icons.schedule_rounded,
                             size: 14,
-                            color: AppColors.textSecondary,
+                            color: _galleryLavender(0.62),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             _formatFeedDate(photo.uploadDate),
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                            style: _galleryMetaStyle(
+                              color: _galleryLavender(),
+                              size: 11.7,
+                              alpha: 0.68,
+                              weight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -856,7 +958,7 @@ class _GalleryScreenState extends State<GalleryScreen>
                 PopupMenuButton<_PhotoFeedAction>(
                   icon: Icon(
                     Icons.more_horiz_rounded,
-                    color: AppColors.textSecondary,
+                    color: _galleryLavender(0.62),
                   ),
                   onSelected: (action) {
                     if (action == _PhotoFeedAction.editCaption) {
@@ -920,7 +1022,7 @@ class _GalleryScreenState extends State<GalleryScreen>
               child: Container(
                 height: 260,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceLight,
+                  color: Color.lerp(AppColors.surfaceLight, _galleryLavender(0.12), 0.42),
                   borderRadius: BorderRadius.circular(26),
                 ),
                 child: Center(
@@ -957,10 +1059,11 @@ class _GalleryScreenState extends State<GalleryScreen>
                 Text(
                   displayCaption,
                   style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
+                    color: AppColors.textPrimary.withValues(alpha: 0.84),
+                    fontSize: 14.2,
                     fontWeight: FontWeight.w500,
-                    height: 1.55,
+                    height: 1.62,
+                    letterSpacing: 0.02,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -972,7 +1075,7 @@ class _GalleryScreenState extends State<GalleryScreen>
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.textPrimary,
                           side: BorderSide(
-                            color: AppColors.textSecondary.withValues(alpha: 0.18),
+                            color: _galleryLavender(0.16),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -988,7 +1091,11 @@ class _GalleryScreenState extends State<GalleryScreen>
                       child: FilledButton.icon(
                         onPressed: () => _deletePhoto(photo),
                         style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.accentRose.withValues(alpha: 0.12),
+                          backgroundColor: Color.lerp(
+                            AppColors.accentRose.withValues(alpha: 0.12),
+                            _galleryLavender(0.14),
+                            0.32,
+                          ),
                           foregroundColor: AppColors.accentRose,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1021,8 +1128,9 @@ class _GalleryScreenState extends State<GalleryScreen>
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: Color.lerp(AppColors.white, _galleryLavender(0.05), 0.85),
             borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: _galleryLavender(0.10)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
@@ -1052,20 +1160,18 @@ class _GalleryScreenState extends State<GalleryScreen>
                 title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 20,
+                  color: AppColors.textPrimary.withValues(alpha: 0.92),
+                  fontSize: 20.5,
                   fontWeight: FontWeight.w800,
+                  letterSpacing: -0.35,
+                  height: 1.12,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 'Khi thêm ảnh, thư viện này sẽ trở thành một newfeed tình yêu riêng tư với những dòng thời gian thật dễ nhìn và cảm xúc.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  height: 1.6,
-                ),
+                style: _galleryBodyStyle(size: 13.1, alpha: 0.82, height: 1.62),
               ),
               const SizedBox(height: 22),
               FilledButton.icon(
@@ -1105,10 +1211,9 @@ class _GalleryScreenState extends State<GalleryScreen>
               physics: const BouncingScrollPhysics(),
               slivers: [
                 SliverPersistentHeader(
-                  floating: true,
-                  pinned: false,
+                  floating: false,
+                  pinned: true,
                   delegate: _GalleryFloatingShowcaseHeaderDelegate(
-                    vsync: this,
                     minHeaderExtent: _floatingTopShowcaseMinHeight,
                     maxHeaderExtent: _floatingTopShowcaseMaxHeight,
                     compactChild: _buildCompactTopShowcase(couple, photos.length),
@@ -1118,7 +1223,7 @@ class _GalleryScreenState extends State<GalleryScreen>
                 if (photos.isNotEmpty)
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 18),
                       child: _buildStoryStripSection(couple, photos),
                     ),
                   ),
@@ -1156,15 +1261,11 @@ enum _PhotoFeedAction { editCaption, delete }
 class _GalleryFloatingShowcaseHeaderDelegate
     extends SliverPersistentHeaderDelegate {
   const _GalleryFloatingShowcaseHeaderDelegate({
-    required this.vsync,
     required this.minHeaderExtent,
     required this.maxHeaderExtent,
     required this.compactChild,
     required this.expandedChild,
   });
-
-  @override
-  final TickerProvider vsync;
 
   final double minHeaderExtent;
   final double maxHeaderExtent;
@@ -1181,7 +1282,7 @@ class _GalleryFloatingShowcaseHeaderDelegate
   FloatingHeaderSnapConfiguration get snapConfiguration =>
       FloatingHeaderSnapConfiguration(
         curve: Curves.easeOutCubic,
-        duration: Duration(milliseconds: 260),
+        duration: Duration(milliseconds: 250),
       );
 
   @override
@@ -1192,16 +1293,35 @@ class _GalleryFloatingShowcaseHeaderDelegate
   ) {
     final range = (maxExtent - minExtent).clamp(1.0, double.infinity);
     final progress = (shrinkOffset / range).clamp(0.0, 1.0);
-    final expandedOpacity = 1 - Curves.easeInOut.transform(progress);
-    final compactOpacity = Curves.easeOutCubic.transform(progress);
+    const compactRevealStart = 0.14;
+    final handoffProgress = progress <= compactRevealStart
+        ? 0.0
+        : ((progress - compactRevealStart) / (1 - compactRevealStart)).clamp(0.0, 1.0);
+    final compactProgress = Curves.easeInOutCubic.transform(handoffProgress);
+    final expandedOpacity = 1 - Curves.easeOutCubic.transform(progress);
+    final compactOpacity = Curves.easeInOut.transform(handoffProgress);
+    final compactScale = lerpDouble(0.998, 1.0, compactProgress) ?? 1.0;
+    final compactTranslateY = lerpDouble(3, 0, compactProgress) ?? 0.0;
+    final expandedTranslateY = lerpDouble(0, -6, progress) ?? 0.0;
+    final backgroundShadowProgress = Curves.easeOutCubic.transform(compactOpacity);
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        gradient: AppColors.galleryGradient,
-        boxShadow: overlapsContent
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.galleryGradient.colors.first.withValues(alpha: 0.96),
+            AppColors.galleryGradient.colors.first.withValues(alpha: 0.82),
+            AppColors.galleryGradient.colors.last.withValues(alpha: 0.18),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.42, 0.78, 1.0],
+        ),
+        boxShadow: overlapsContent && backgroundShadowProgress > 0.4
             ? [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: Colors.black.withValues(alpha: 0.018 * backgroundShadowProgress),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -1217,11 +1337,11 @@ class _GalleryFloatingShowcaseHeaderDelegate
               minHeight: maxExtent,
               maxHeight: maxExtent,
               child: IgnorePointer(
-                ignoring: progress > 0.45,
+                ignoring: compactOpacity > 0.6,
                 child: Opacity(
                   opacity: expandedOpacity,
                   child: Transform.translate(
-                    offset: Offset(0, -20 * progress),
+                    offset: Offset(0, expandedTranslateY),
                     child: SingleChildScrollView(
                       physics: const NeverScrollableScrollPhysics(),
                       child: expandedChild,
@@ -1235,12 +1355,16 @@ class _GalleryFloatingShowcaseHeaderDelegate
               child: SizedBox(
                 height: minExtent,
                 child: IgnorePointer(
-                  ignoring: progress < 0.12,
+                  ignoring: compactOpacity < 0.08,
                   child: Opacity(
                     opacity: compactOpacity,
                     child: Transform.translate(
-                      offset: Offset(0, 14 * (1 - progress)),
-                      child: compactChild,
+                      offset: Offset(0, compactTranslateY),
+                      child: Transform.scale(
+                        scale: compactScale,
+                        alignment: Alignment.topCenter,
+                        child: compactChild,
+                      ),
                     ),
                   ),
                 ),
@@ -1373,30 +1497,32 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview> {
                   children: [
                     Text(
                       widget.coupleNames,
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 15,
+                      style: TextStyle(
+                        color: AppColors.white.withValues(alpha: 0.96),
+                        fontSize: 15.6,
                         fontWeight: FontWeight.w700,
+                        letterSpacing: -0.15,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       _formatFeedDate(currentPhoto.uploadDate),
                       style: TextStyle(
-                        color: AppColors.white.withValues(alpha: 0.78),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        color: AppColors.white.withValues(alpha: 0.72),
+                        fontSize: 12.1,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.06,
                       ),
                     ),
                     if (currentPhoto.caption?.trim().isNotEmpty == true) ...[
                       const SizedBox(height: 10),
                       Text(
                         currentPhoto.caption!.trim(),
-                        style: const TextStyle(
-                          color: AppColors.white,
-                          fontSize: 14,
+                        style: TextStyle(
+                          color: AppColors.white.withValues(alpha: 0.94),
+                          fontSize: 14.2,
                           fontWeight: FontWeight.w500,
-                          height: 1.5,
+                          height: 1.58,
                         ),
                       ),
                     ],

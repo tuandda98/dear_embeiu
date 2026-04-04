@@ -99,5 +99,64 @@ class AppTheme {
       ),
     );
   }
+
+  static TextStyle pageEyebrowStyle({Color color = AppColors.white, double alpha = 0.9}) {
+    return TextStyle(
+      color: color.withValues(alpha: alpha),
+      fontSize: 10,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 1.1,
+      height: 1,
+    );
+  }
+
+  static TextStyle pageTitleStyle({Color color = AppColors.white}) {
+    return TextStyle(
+      color: color,
+      fontSize: 31,
+      fontWeight: FontWeight.w800,
+      letterSpacing: -0.8,
+      height: 1.02,
+      shadows: color == AppColors.white
+          ? [
+              Shadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ]
+          : null,
+    );
+  }
+
+  static TextStyle pageSubtitleStyle({Color color = AppColors.white, double alpha = 0.8}) {
+    return TextStyle(
+      color: color.withValues(alpha: alpha),
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      height: 1.55,
+      letterSpacing: 0.02,
+    );
+  }
+
+  static TextStyle sectionTitleStyle({Color color = AppColors.white}) {
+    return TextStyle(
+      color: color,
+      fontSize: 19,
+      fontWeight: FontWeight.w800,
+      letterSpacing: -0.38,
+      height: 1.08,
+    );
+  }
+
+  static TextStyle sectionSubtitleStyle({Color color = AppColors.white, double alpha = 0.8}) {
+    return TextStyle(
+      color: color.withValues(alpha: alpha),
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      height: 1.48,
+      letterSpacing: 0.02,
+    );
+  }
 }
 
