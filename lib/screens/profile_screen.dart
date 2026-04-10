@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../app/app_routes.dart';
 import '../models/couple.dart';
+import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/animated_couple_name.dart';
 import 'setup_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -305,9 +308,14 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            Text(
-                              '${couple.person1Name} & ${couple.person2Name}',
-                              style: TextStyle(
+                            AnimatedCoupleName(
+                              person1Name: couple.person1Name,
+                              person2Name: couple.person2Name,
+                              spacing: 8,
+                              runSpacing: 6,
+                              heartSize: 26,
+                              heartColor: AppColors.white,
+                              textStyle: TextStyle(
                                 color: AppColors.white,
                                 fontSize: 30,
                                 fontWeight: FontWeight.w800,
@@ -441,6 +449,15 @@ class ProfileScreen extends StatelessWidget {
             value: _formatDate(couple.anniversaryDate),
             tint: AppColors.accentRose,
           ),
+          if (couple.inviteCode.trim().isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildDetailTile(
+              icon: Icons.password_rounded,
+              title: couple.isWaitingForPartner ? 'Mã kết nối' : 'Mã ghép cặp',
+              value: couple.inviteCode,
+              tint: AppColors.warning,
+            ),
+          ],
           const SizedBox(height: 12),
           _buildDetailTile(
             icon: Icons.local_fire_department_rounded,
@@ -480,10 +497,11 @@ class ProfileScreen extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: () {
                 final coupleProvider = context.read<CoupleProvider>();
+                final currentUser = context.read<AuthProvider>().currentUser;
                 Navigator.of(context)
                     .push(MaterialPageRoute(builder: (context) => const SetupScreen()))
                     .then((_) {
-                  coupleProvider.loadCouple();
+                  coupleProvider.loadCoupleForUser(currentUser);
                 });
               },
               style: FilledButton.styleFrom(
@@ -967,9 +985,29 @@ class ProfileScreen extends StatelessWidget {
             child: const Text('Hủy'),
           ),
           TextButton(
-            onPressed: () {
-              context.read<CoupleProvider>().resetCouple();
+            onPressed: () async {
+              final authProvider = context.read<AuthProvider>();
+              final currentUser = authProvider.currentUser;
+
+              if (currentUser == null) {
+                Navigator.pop(context);
+                return;
+              }
+
+              final updatedUser = await context.read<CoupleProvider>().resetCouple(
+                    currentUser: currentUser,
+                  );
+              await authProvider.updateCurrentUser(updatedUser);
+
+              if (!context.mounted) {
+                return;
+              }
+
               Navigator.pop(context);
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.setup,
+                (route) => false,
+              );
             },
             child: Text(
               'Xóa dữ liệu',

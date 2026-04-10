@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "720641448163",
+    "project_id": "dear-embeiu",
+    "storage_bucket": "dear-embeiu.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:720641448163:android:cd7b10600e02a0c7cb4dd6",
+        "android_client_info": {
+          "package_name": "com.example.dear_embeiu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbrmnjy8OH9-vrifQUiPmnXtAGY614q0A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+

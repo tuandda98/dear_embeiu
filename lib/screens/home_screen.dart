@@ -11,6 +11,7 @@ import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/animated_couple_name.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/couple_info_card.dart';
 import 'profile_screen.dart';
@@ -603,13 +604,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Chào ${couple.person1Name} & ${couple.person2Name}',
-                        style: TextStyle(
-                          color: AppColors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          const Text(
+                            'Chào',
+                            style: TextStyle(
+                              color: AppColors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          AnimatedCoupleName(
+                            person1Name: couple.person1Name,
+                            person2Name: couple.person2Name,
+                            spacing: 6,
+                            runSpacing: 4,
+                            heartSize: 18,
+                            heartColor: AppColors.white,
+                            textStyle: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 4),
                       Text(
@@ -986,13 +1007,33 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SizedBox(height: 12),
-          Text(
-            '— ${couple.person1Name} & ${couple.person2Name}',
-            style: TextStyle(
-              color: AppColors.white.withOpacity(0.82),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                '—',
+                style: TextStyle(
+                  color: AppColors.white.withOpacity(0.82),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              AnimatedCoupleName(
+                person1Name: couple.person1Name,
+                person2Name: couple.person2Name,
+                spacing: 5,
+                runSpacing: 4,
+                heartSize: 12,
+                heartColor: AppColors.white,
+                textStyle: TextStyle(
+                  color: AppColors.white.withOpacity(0.82),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ],
       ),

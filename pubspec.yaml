@@ -38,6 +38,12 @@ dependencies:
   # State Management
   provider: ^6.1.0
 
+  # Firebase (Sprint 2 integration)
+  firebase_core: ^4.1.1
+  firebase_auth: ^6.0.2
+  cloud_firestore: ^6.0.1
+  firebase_storage: ^13.0.1
+
   # Image handling
   image_picker: ^1.1.0
   cached_network_image: ^3.3.1
@@ -57,6 +63,10 @@ dependencies:
 
   # UUID generation
   uuid: ^4.0.0
+
+  # Auth/session scaffolding
+  flutter_secure_storage: ^9.2.4
+  connectivity_plus: ^6.1.4
 
 dev_dependencies:
   flutter_test:

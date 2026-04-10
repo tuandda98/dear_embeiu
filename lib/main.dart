@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'app/app_routes.dart';
+import 'providers/auth_provider.dart';
 import 'theme/app_theme.dart';
-import 'theme/app_colors.dart';
 import 'providers/couple_provider.dart';
 import 'providers/photo_provider.dart';
+import 'screens/auth_gate_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
 import 'screens/setup_screen.dart';
-import 'services/storage_service.dart';
+import 'screens/splash_screen.dart';
+import 'services/auth_service.dart';
+import 'services/firebase_bootstrap_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await FirebaseBootstrapService.initialize();
   runApp(const MyApp());
 }
 
@@ -20,6 +28,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(authService: AuthService()),
+        ),
         ChangeNotifierProvider(create: (_) => CoupleProvider()),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
       ],
@@ -29,132 +40,14 @@ class MyApp extends StatelessWidget {
         home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
         routes: {
-          '/home': (_) => const HomeScreen(),
-          '/setup': (_) => const SetupScreen(),
+          AppRoutes.authGate: (_) => const AuthGateScreen(),
+          AppRoutes.login: (_) => const LoginScreen(),
+          AppRoutes.register: (_) => const RegisterScreen(),
+          AppRoutes.home: (_) => const HomeScreen(),
+          AppRoutes.setup: (_) => const SetupScreen(),
         },
       ),
     );
   }
 }
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
-
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _initializeApp();
-  }
-
-  Future<void> _initializeApp() async {
-    // Load couple data
-    await context.read<CoupleProvider>().loadCouple();
-
-    // Check if couple data exists
-    final hasCoupleData = await StorageService.hasCoupleData();
-
-    if (mounted) {
-      // Navigate to appropriate screen
-      if (hasCoupleData) {
-        // Load photos and go to home
-        await context.read<PhotoProvider>().loadPhotos();
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
-        }
-      } else {
-        // Go to setup
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/setup');
-        }
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppColors.secondaryGradient),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.favorite,
-                size: 80,
-                color: AppColors.white,
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Kỷ Niệm Của Chúng Mình',
-                style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              SizedBox(height: 40),
-              CircularProgressIndicator(
-                color: AppColors.white,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class MyAppHome extends StatefulWidget {
-  const MyAppHome({super.key});
-
-  @override
-  State<MyAppHome> createState() => _MyAppHomeState();
-}
-
-class _MyAppHomeState extends State<MyAppHome> {
-  @override
-  void initState() {
-    super.initState();
-    _checkAndNavigate();
-  }
-
-  Future<void> _checkAndNavigate() async {
-    final hasCoupleData = await StorageService.hasCoupleData();
-
-    if (mounted) {
-      if (!hasCoupleData) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const SetupScreen()),
-        );
-      } else {
-        await context.read<CoupleProvider>().loadCouple();
-        await context.read<PhotoProvider>().loadPhotos();
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
-        }
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppColors.secondaryGradient),
-        child: Center(
-          child: CircularProgressIndicator(
-            color: AppColors.white,
-          ),
-        ),
-      ),
-    );
-  }
-}

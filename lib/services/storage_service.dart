@@ -51,6 +51,18 @@ class StorageService {
     return null;
   }
 
+  static Future<void> clearCouple() async {
+    try {
+      final appDir = await _appDir;
+      final file = File('${appDir.path}/$_coupleFileName');
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      print('Error clearing couple data: $e');
+    }
+  }
+
   // Save photos list
   static Future<void> savePhotos(List<Photo> photos) async {
     try {

@@ -13,6 +13,7 @@ import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/animated_couple_name.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key, this.bottomInset = 0});
@@ -228,9 +229,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           photos: photos,
           heroTags: heroTags,
           initialIndex: initialIndex,
-          coupleNames: couple == null
-              ? 'Hai bạn'
-              : '${couple.person1Name} & ${couple.person2Name}',
+          couple: couple,
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
@@ -484,10 +483,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Widget _buildComposerCard(Couple? couple, int photoCount) {
-    final title = couple == null
-        ? 'Thêm một kỷ niệm mới hôm nay'
-        : '${couple.person1Name} & ${couple.person2Name} hôm nay có gì mới?';
-
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: _gallerySurfaceDecoration(radius: 28, fillAlpha: 0.84),
@@ -502,16 +497,50 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: AppColors.textPrimary.withValues(alpha: 0.88),
-                        fontSize: 16.8,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.18,
-                        height: 1.18,
-                      ),
-                    ),
+                        if (couple == null)
+                          Text(
+                            'Thêm một kỷ niệm mới hôm nay',
+                            style: TextStyle(
+                              color: AppColors.textPrimary.withValues(alpha: 0.88),
+                              fontSize: 16.8,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.18,
+                              height: 1.18,
+                            ),
+                          )
+                        else
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              AnimatedCoupleName(
+                                person1Name: couple.person1Name,
+                                person2Name: couple.person2Name,
+                                spacing: 5,
+                                runSpacing: 4,
+                                heartSize: 15,
+                                heartColor: AppColors.accentRose,
+                                textStyle: TextStyle(
+                                  color: AppColors.textPrimary.withValues(alpha: 0.88),
+                                  fontSize: 16.8,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.18,
+                                  height: 1.18,
+                                ),
+                              ),
+                              Text(
+                                'hôm nay có gì mới?',
+                                style: TextStyle(
+                                  color: AppColors.textPrimary.withValues(alpha: 0.88),
+                                  fontSize: 16.8,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.18,
+                                  height: 1.18,
+                                ),
+                              ),
+                            ],
+                          ),
                     const SizedBox(height: 4),
                     Text(
                       'Biến thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.',
@@ -623,10 +652,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Widget _buildCompactTopShowcase(Couple? couple, int photoCount) {
-    final title = couple == null
-        ? 'Đăng thêm kỷ niệm mới'
-        : '${couple.person1Name} & ${couple.person2Name}';
-
     return Container(
       color: Colors.transparent,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -649,12 +674,23 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: _galleryCardTitleStyle(size: 15.3),
-                  ),
+                    if (couple == null)
+                      Text(
+                        'Đăng thêm kỷ niệm mới',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: _galleryCardTitleStyle(size: 15.3),
+                      )
+                    else
+                      AnimatedCoupleName(
+                        person1Name: couple.person1Name,
+                        person2Name: couple.person2Name,
+                        spacing: 5,
+                        runSpacing: 4,
+                        heartSize: 14,
+                        heartColor: AppColors.accentRose,
+                        textStyle: _galleryCardTitleStyle(size: 15.3),
+                      ),
                   const SizedBox(height: 4),
                   Text(
                     '$photoCount khoảnh khắc • Vuốt thêm để bung khung đăng ảnh',
@@ -873,9 +909,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ? photo.caption!.trim()
         : 'Khoảnh khắc #${index + 1} được lưu lại cho hành trình yêu thương của hai bạn.';
     final hasPhoto = File(photo.path).existsSync();
-    final coupleNames = couple == null
-        ? 'Hai bạn'
-        : '${couple.person1Name} & ${couple.person2Name}';
     final heroTag = _feedHeroTag(photo, index);
 
     return Container(
@@ -902,10 +935,21 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        coupleNames,
-                        style: _galleryCardTitleStyle(size: 15.6),
-                      ),
+                        if (couple == null)
+                          Text(
+                            'Hai bạn',
+                            style: _galleryCardTitleStyle(size: 15.6),
+                          )
+                        else
+                          AnimatedCoupleName(
+                            person1Name: couple.person1Name,
+                            person2Name: couple.person2Name,
+                            spacing: 5,
+                            runSpacing: 4,
+                            heartSize: 14,
+                            heartColor: AppColors.accentRose,
+                            textStyle: _galleryCardTitleStyle(size: 15.6),
+                          ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
@@ -1088,10 +1132,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Widget _buildEmptyFeedState(Couple? couple) {
-    final title = couple == null
-        ? 'Bắt đầu tạo newfeed kỷ niệm'
-        : 'Hãy đăng khoảnh khắc đầu tiên của ${couple.person1Name} & ${couple.person2Name}';
-
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -1122,17 +1162,54 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 ),
               ),
               const SizedBox(height: 18),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.textPrimary.withValues(alpha: 0.92),
-                  fontSize: 20.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.35,
-                  height: 1.12,
+              if (couple == null)
+                Text(
+                  'Bắt đầu tạo newfeed kỷ niệm',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.textPrimary.withValues(alpha: 0.92),
+                    fontSize: 20.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.35,
+                    height: 1.12,
+                  ),
+                )
+              else
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      'Hãy đăng khoảnh khắc đầu tiên của',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.textPrimary.withValues(alpha: 0.92),
+                        fontSize: 20.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.35,
+                        height: 1.12,
+                      ),
+                    ),
+                    AnimatedCoupleName(
+                      person1Name: couple.person1Name,
+                      person2Name: couple.person2Name,
+                      spacing: 6,
+                      runSpacing: 4,
+                      alignment: WrapAlignment.center,
+                      heartSize: 18,
+                      heartColor: AppColors.accentRose,
+                      textStyle: TextStyle(
+                        color: AppColors.textPrimary.withValues(alpha: 0.92),
+                        fontSize: 20.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.35,
+                        height: 1.12,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
               const SizedBox(height: 10),
               Text(
                 'Khi thêm ảnh, thư viện này sẽ trở thành một newfeed tình yêu riêng tư với những dòng thời gian thật dễ nhìn và cảm xúc.',
@@ -1356,13 +1433,13 @@ class _FullscreenPhotoPreview extends StatefulWidget {
     required this.photos,
     required this.heroTags,
     required this.initialIndex,
-    required this.coupleNames,
+    required this.couple,
   });
 
   final List<Photo> photos;
   final List<String> heroTags;
   final int initialIndex;
-  final String coupleNames;
+  final Couple? couple;
 
   @override
   State<_FullscreenPhotoPreview> createState() => _FullscreenPhotoPreviewState();
@@ -1603,15 +1680,31 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.coupleNames,
-                        style: TextStyle(
-                          color: AppColors.white.withValues(alpha: 0.96),
-                          fontSize: 15.6,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.15,
+                      if (widget.couple == null)
+                        Text(
+                          'Hai bạn',
+                          style: TextStyle(
+                            color: AppColors.white.withValues(alpha: 0.96),
+                            fontSize: 15.6,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.15,
+                          ),
+                        )
+                      else
+                        AnimatedCoupleName(
+                          person1Name: widget.couple!.person1Name,
+                          person2Name: widget.couple!.person2Name,
+                          spacing: 6,
+                          runSpacing: 4,
+                          heartSize: 14,
+                          heartColor: AppColors.white,
+                          textStyle: TextStyle(
+                            color: AppColors.white.withValues(alpha: 0.96),
+                            fontSize: 15.6,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.15,
+                          ),
                         ),
-                      ),
                       const SizedBox(height: 6),
                       Text(
                         _formatFeedDate(currentPhoto.uploadDate),

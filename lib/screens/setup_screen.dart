@@ -1,267 +1,305 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'dart:io';
+
+import '../app/app_routes.dart';
 import '../models/couple.dart';
+import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
-import '../services/storage_service.dart';
+import '../services/couple_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
+
+enum _SetupMode { create, join }
 
 class SetupScreen extends StatefulWidget {
-  const SetupScreen({Key? key}) : super(key: key);
+  const SetupScreen({super.key});
 
   @override
   State<SetupScreen> createState() => _SetupScreenState();
 }
 
 class _SetupScreenState extends State<SetupScreen> {
-  late TextEditingController _person1Controller;
-  late TextEditingController _person2Controller;
+  late final TextEditingController _person1Controller;
+  late final TextEditingController _person2Controller;
+  late final TextEditingController _inviteCodeController;
+
   DateTime? _selectedDate;
   String? _couplePhotoPath;
-  bool _isLoading = false;
+  bool _didPrefill = false;
+  _SetupMode _mode = _SetupMode.create;
 
   @override
   void initState() {
     super.initState();
     _person1Controller = TextEditingController();
     _person2Controller = TextEditingController();
+    _inviteCodeController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didPrefill) {
+      return;
+    }
+
+    final authProvider = context.read<AuthProvider>();
+    final coupleProvider = context.read<CoupleProvider>();
+    final currentUser = authProvider.currentUser;
+    final existingCouple = coupleProvider.couple;
+
+    if (existingCouple != null) {
+      _person1Controller.text = existingCouple.person1Name;
+      _person2Controller.text = existingCouple.person2Name;
+      _selectedDate = existingCouple.anniversaryDate;
+      _couplePhotoPath = existingCouple.couplePhotoPath;
+    } else if (currentUser != null && currentUser.displayName.trim().isNotEmpty) {
+      _person1Controller.text = currentUser.displayName.trim();
+    }
+
+    _didPrefill = true;
   }
 
   @override
   void dispose() {
     _person1Controller.dispose();
     _person2Controller.dispose();
+    _inviteCodeController.dispose();
     super.dispose();
   }
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now().subtract(Duration(days: 365)),
+      initialDate: _selectedDate ?? DateTime.now().subtract(const Duration(days: 365)),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
     );
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
+
+    if (!mounted || picked == null) {
+      return;
     }
+
+    setState(() => _selectedDate = picked);
   }
 
   Future<void> _pickPhoto() async {
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.gallery,
+      imageQuality: 92,
     );
-    if (pickedFile != null) {
-      setState(() {
-        _couplePhotoPath = pickedFile.path;
-      });
-    }
-  }
 
-  Future<void> _saveCoupleData() async {
-    if (_person1Controller.text.isEmpty ||
-        _person2Controller.text.isEmpty ||
-        _selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vui lòng điền đầy đủ thông tin')),
-      );
+    if (!mounted || pickedFile == null) {
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() => _couplePhotoPath = pickedFile.path);
+  }
+
+  Future<void> _submitCreateOrUpdate() async {
+    final authProvider = context.read<AuthProvider>();
+    final coupleProvider = context.read<CoupleProvider>();
+    final currentUser = authProvider.currentUser;
+    final existingCouple = coupleProvider.couple;
+    final isEditing = currentUser?.hasCouple == true && existingCouple != null;
+
+    if (currentUser == null) {
+      _showSnack('Không tìm thấy tài khoản hiện tại. Bạn đăng nhập lại nhé.');
+      return;
+    }
+
+    final person1 = _person1Controller.text.trim();
+    final person2 = _person2Controller.text.trim();
+    if (person1.isEmpty || person2.isEmpty || _selectedDate == null) {
+      _showSnack('Vui lòng điền đầy đủ tên hai bạn và ngày kỷ niệm.');
+      return;
+    }
 
     try {
-      String? savedPhotoPath;
-      if (_couplePhotoPath != null) {
-        savedPhotoPath = await StorageService.savePhotoFile(_couplePhotoPath!);
+      final navigator = Navigator.of(context);
+      final CoupleActionResult result = isEditing
+          ? await coupleProvider.updateCouple(
+              currentUser: currentUser,
+              person1: person1,
+              person2: person2,
+              anniversary: _selectedDate!,
+              photoPath: _couplePhotoPath,
+            )
+          : await coupleProvider.createCouple(
+              currentUser: currentUser,
+              person1: person1,
+              person2: person2,
+              anniversary: _selectedDate!,
+              photoPath: _couplePhotoPath,
+            );
+
+      await authProvider.updateCurrentUser(result.updatedUser);
+
+      if (!mounted) {
+        return;
       }
 
-      await context.read<CoupleProvider>().saveCouple(
-            _person1Controller.text,
-            _person2Controller.text,
-            _selectedDate!,
-            photoPath: savedPhotoPath,
-          );
-
-      if (mounted) {
-        Navigator.of(context).pop();
+      if (!isEditing) {
+        await _showInviteCodeDialog(result.couple.inviteCode);
+      } else {
+        _showSnack(result.message ?? 'Đã cập nhật thông tin cặp đôi.');
       }
+
+      if (navigator.canPop()) {
+        navigator.pop();
+      } else {
+        navigator.pushReplacementNamed(AppRoutes.home);
+      }
+    } on CoupleException catch (e) {
+      _showSnack(e.message);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      _showSnack('Không thể lưu thông tin cặp đôi: $e');
     }
+  }
+
+  Future<void> _submitJoin() async {
+    final authProvider = context.read<AuthProvider>();
+    final coupleProvider = context.read<CoupleProvider>();
+    final currentUser = authProvider.currentUser;
+
+    if (currentUser == null) {
+      _showSnack('Không tìm thấy tài khoản hiện tại.');
+      return;
+    }
+
+    final inviteCode = _inviteCodeController.text.trim();
+    if (inviteCode.isEmpty) {
+      _showSnack('Bạn hãy nhập mã kết nối trước nhé.');
+      return;
+    }
+
+    try {
+      final result = await coupleProvider.joinCoupleByCode(
+        currentUser: currentUser,
+        inviteCode: inviteCode,
+      );
+      await authProvider.updateCurrentUser(result.updatedUser);
+
+      if (!mounted) {
+        return;
+      }
+
+      _showSnack(result.message ?? 'Kết nối thành công rồi 💞');
+      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    } on CoupleException catch (e) {
+      _showSnack(e.message);
+    } catch (e) {
+      _showSnack('Không thể tham gia cặp đôi: $e');
+    }
+  }
+
+  Future<void> _showInviteCodeDialog(String inviteCode) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Text('Mã kết nối của hai bạn'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Gửi mã này cho người còn lại để họ nhập vào màn hình tham gia cặp đôi.',
+              ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(
+                  inviteCode,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Tiếp tục'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSnack(String message) {
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final coupleProvider = context.watch<CoupleProvider>();
+    final currentUser = authProvider.currentUser;
+    final existingCouple = coupleProvider.couple;
+    final isEditing = currentUser?.hasCouple == true && existingCouple != null;
+    final editingCouple = isEditing ? existingCouple : null;
+
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(gradient: AppColors.secondaryGradient),
+        decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
         child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  SizedBox(height: 20),
-                  Icon(
-                    Icons.favorite,
-                    size: 64,
-                    color: AppColors.white,
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    'Kỷ Niệm Của Chúng Mình',
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Lưu giữ những khoảnh khắc đặc biệt',
-                    style: TextStyle(
-                      color: AppColors.white.withOpacity(0.8),
-                      fontSize: 14,
-                    ),
-                  ),
-                  SizedBox(height: 40),
-                  // Person 1 Name
-                  _buildTextField(
-                    controller: _person1Controller,
-                    label: 'Tên người 1',
-                    icon: Icons.person,
-                  ),
-                  SizedBox(height: 16),
-                  // Person 2 Name
-                  _buildTextField(
-                    controller: _person2Controller,
-                    label: 'Tên người 2',
-                    icon: Icons.person,
-                  ),
-                  SizedBox(height: 16),
-                  // Anniversary Date
-                  GestureDetector(
-                    onTap: _pickDate,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.white.withOpacity(0.3),
-                        ),
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(authProvider, coupleProvider, isEditing),
+                    const SizedBox(height: 24),
+                    if (!isEditing) _buildModeSelector(),
+                    if (!isEditing) const SizedBox(height: 16),
+                    if (editingCouple != null) ...[
+                      _buildInviteCard(editingCouple),
+                      const SizedBox(height: 16),
+                    ],
+                    if (isEditing || _mode == _SetupMode.create)
+                      _buildCreateCard(
+                        isEditing: isEditing,
+                        isLoading: coupleProvider.isLoading,
+                      )
+                    else
+                      _buildJoinCard(
+                        authProvider: authProvider,
+                        isLoading: coupleProvider.isLoading,
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today,
-                            color: AppColors.white,
-                            size: 20,
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _selectedDate == null
-                                  ? 'Chọn ngày yêu nhau'
-                                  : 'Ngày: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                              style: TextStyle(
-                                color: AppColors.white,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  // Photo Picker
-                  GestureDetector(
-                    onTap: _pickPhoto,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.white.withOpacity(0.3),
-                        ),
-                      ),
-                      padding: EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          if (_couplePhotoPath != null)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.file(
-                                File(_couplePhotoPath!),
-                                height: 150,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          else
-                            Icon(
-                              Icons.image,
-                              color: AppColors.white,
-                              size: 48,
-                            ),
-                          SizedBox(height: 12),
-                          Text(
-                            _couplePhotoPath == null
-                                ? 'Chọn ảnh đôi'
-                                : 'Đã chọn ảnh',
-                            style: TextStyle(
-                              color: AppColors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 40),
-                  // Save Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveCoupleData,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accentRose,
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: AppColors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              'Bắt Đầu Nào',
-                              style: TextStyle(
-                                color: AppColors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -270,25 +308,486 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
+  Widget _buildHeader(
+    AuthProvider authProvider,
+    CoupleProvider coupleProvider,
+    bool isEditing,
+  ) {
+    final title = isEditing
+        ? 'Cập nhật thông tin cặp đôi'
+        : 'Tạo hoặc tham gia cặp đôi';
+    final subtitle = isEditing
+        ? 'Bạn có thể chỉnh lại tên, ngày yêu và ảnh đôi. Mã kết nối hiện tại vẫn được giữ nguyên.'
+        : 'Sau khi đăng nhập, mỗi người chỉ thuộc 1 couple. Bạn có thể tự tạo không gian mới hoặc nhập mã kết nối từ người kia.';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isEditing ? Icons.edit_rounded : Icons.favorite_rounded,
+                size: 14,
+                color: AppColors.white.withValues(alpha: 0.92),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isEditing ? 'EDIT COUPLE' : 'COUPLE ONBOARDING',
+                style: AppTheme.pageEyebrowStyle(),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+        Text(title, style: AppTheme.pageTitleStyle()),
+        const SizedBox(height: 10),
+        Text(subtitle, style: AppTheme.pageSubtitleStyle(alpha: 0.84)),
+        const SizedBox(height: 14),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.16),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: authProvider.isUsingFirebase
+                      ? AppColors.success.withValues(alpha: 0.16)
+                      : AppColors.warning.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  authProvider.isUsingFirebase
+                      ? Icons.cloud_done_rounded
+                      : Icons.usb_off_rounded,
+                  color: authProvider.isUsingFirebase
+                      ? AppColors.success
+                      : AppColors.warning,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      authProvider.authSourceLabel,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      authProvider.isUsingFirebase
+                          ? 'Couple và invite code sẽ được lưu trên Firestore để 2 người dùng 2 máy khác nhau vẫn kết nối được.'
+                          : 'Bạn đang ở local fallback mode. Tạo couple vẫn chạy được, nhưng join theo invite code chỉ hữu ích trong cùng môi trường local.',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 12,
+                        height: 1.45,
+                      ),
+                    ),
+                    if (coupleProvider.errorMessage != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        coupleProvider.errorMessage!,
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModeSelector() {
+    return Row(
+      children: [
+        Expanded(
+          child: ChoiceChip(
+            label: const Text('Tạo cặp đôi'),
+            selected: _mode == _SetupMode.create,
+            onSelected: (_) => setState(() => _mode = _SetupMode.create),
+            selectedColor: AppColors.white,
+            labelStyle: TextStyle(
+              color: _mode == _SetupMode.create
+                  ? AppColors.textPrimary
+                  : AppColors.white,
+              fontWeight: FontWeight.w700,
+            ),
+            backgroundColor: AppColors.white.withValues(alpha: 0.12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ChoiceChip(
+            label: const Text('Nhập mã mời'),
+            selected: _mode == _SetupMode.join,
+            onSelected: (_) => setState(() => _mode = _SetupMode.join),
+            selectedColor: AppColors.white,
+            labelStyle: TextStyle(
+              color: _mode == _SetupMode.join
+                  ? AppColors.textPrimary
+                  : AppColors.white,
+              fontWeight: FontWeight.w700,
+            ),
+            backgroundColor: AppColors.white.withValues(alpha: 0.12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInviteCard(Couple couple) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            couple.isWaitingForPartner
+                ? 'Mã kết nối hiện tại'
+                : 'Cặp đôi của bạn đã kết nối xong',
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            couple.inviteCode,
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            couple.isWaitingForPartner
+                ? 'Gửi mã này cho người còn lại để họ nhập vào app và tham gia cùng bạn.'
+                : 'Cặp đôi đã đủ 2 người. Bạn vẫn có thể chỉnh sửa tên và ngày kỷ niệm bên dưới.',
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 12,
+              height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreateCard({
+    required bool isEditing,
+    required bool isLoading,
+  }) {
+    final hasPhoto = _couplePhotoPath != null &&
+        _couplePhotoPath!.isNotEmpty &&
+        File(_couplePhotoPath!).existsSync();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.20),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Thông tin cặp đôi',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isEditing
+                ? 'Chỉnh lại dữ liệu chung của cả hai. Nếu dùng Firebase, thông tin sẽ được lưu chung trên cloud.'
+                : 'Người tạo couple sẽ nhận một mã kết nối để gửi cho người còn lại.',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12.5,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 18),
+          TextField(
+            controller: _person1Controller,
+            decoration: _inputDecoration(
+              label: 'Tên người thứ nhất',
+              hint: 'Ví dụ: Anh',
+              icon: Icons.person_rounded,
+            ),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _person2Controller,
+            decoration: _inputDecoration(
+              label: 'Tên người thứ hai',
+              hint: 'Ví dụ: Em',
+              icon: Icons.favorite_rounded,
+            ),
+          ),
+          const SizedBox(height: 14),
+          InkWell(
+            onTap: _pickDate,
+            borderRadius: BorderRadius.circular(20),
+            child: Ink(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.calendar_month_rounded, color: AppColors.accentCoral),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _selectedDate == null
+                          ? 'Chọn ngày yêu nhau'
+                          : _formatDate(_selectedDate!),
+                      style: TextStyle(
+                        color: _selectedDate == null
+                            ? AppColors.textSecondary
+                            : AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          InkWell(
+            onTap: _pickPhoto,
+            borderRadius: BorderRadius.circular(20),
+            child: Ink(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.image_rounded, color: AppColors.info),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          hasPhoto ? 'Đã chọn ảnh đôi' : 'Chọn ảnh đôi (tuỳ chọn)',
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (hasPhoto) ...[
+                    const SizedBox(height: 14),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: Image.file(
+                        File(_couplePhotoPath!),
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: isLoading ? null : _submitCreateOrUpdate,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.accentRose,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              icon: isLoading
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        color: AppColors.white,
+                      ),
+                    )
+                  : Icon(isEditing ? Icons.save_rounded : Icons.favorite_rounded),
+              label: Text(
+                isEditing ? 'Lưu thay đổi' : 'Tạo cặp đôi & nhận mã mời',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildJoinCard({
+    required AuthProvider authProvider,
+    required bool isLoading,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.20),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Nhập mã kết nối',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            authProvider.isUsingFirebase
+                ? 'Mã này sẽ tìm đúng document couple trên Firestore và thêm bạn vào cặp đôi đó.'
+                : 'Ở local fallback mode, tính năng join chỉ hữu ích khi bạn đang test cùng dữ liệu local.',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12.5,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 18),
+          TextField(
+            controller: _inviteCodeController,
+            textCapitalization: TextCapitalization.characters,
+            decoration: _inputDecoration(
+              label: 'Mã kết nối',
+              hint: 'Ví dụ: A7B9KD',
+              icon: Icons.password_rounded,
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: isLoading ? null : _submitJoin,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.accentRose,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              icon: isLoading
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        color: AppColors.white,
+                      ),
+                    )
+                  : const Icon(Icons.link_rounded),
+              label: const Text(
+                'Tham gia cặp đôi',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
     required String label,
+    required String hint,
     required IconData icon,
   }) {
-    return TextField(
-      controller: controller,
-      style: TextStyle(color: AppColors.white),
-      decoration: InputDecoration(
-        hintText: label,
-        hintStyle: TextStyle(color: AppColors.white.withOpacity(0.6)),
-        prefixIcon: Icon(icon, color: AppColors.white),
-        filled: true,
-        fillColor: AppColors.white.withOpacity(0.15),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      prefixIcon: Icon(icon, color: AppColors.accentRose),
+      filled: true,
+      fillColor: AppColors.white.withValues(alpha: 0.92),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide(color: AppColors.white.withValues(alpha: 0.9)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide(
+          color: AppColors.accentRose.withValues(alpha: 0.45),
+          width: 1.2,
         ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }
