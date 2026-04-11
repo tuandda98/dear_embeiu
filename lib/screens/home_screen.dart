@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +13,7 @@ import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/couple_info_card.dart';
+import '../widgets/shared_photo_view.dart';
 import 'profile_screen.dart';
 import 'gallery_screen.dart';
 
@@ -474,6 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
             person1Name: couple.person1Name,
             person2Name: couple.person2Name,
             couplePhotoPath: couple.couplePhotoPath,
+            couplePhotoUrl: couple.couplePhotoUrl,
             onTap: () => setState(() => _selectedIndex = 2),
           ),
           SizedBox(height: 20),
@@ -1106,12 +1107,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    File(photo.path).existsSync()
-                        ? Image.file(
-                            File(photo.path),
-                            fit: BoxFit.cover,
-                          )
-                        : Container(color: AppColors.surfaceLight),
+                    SharedPhotoView(
+                      photo: photo,
+                      fit: BoxFit.cover,
+                      placeholder: Container(color: AppColors.surfaceLight),
+                    ),
                     DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(

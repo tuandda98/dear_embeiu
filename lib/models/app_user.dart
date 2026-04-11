@@ -1,9 +1,12 @@
 class AppUser {
+  static const Object _unset = Object();
+
   final String id;
   final String email;
   final String displayName;
   final String? avatarUrl;
   final String? coupleId;
+  final String inviteCode;
   final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -15,6 +18,7 @@ class AppUser {
     required this.displayName,
     this.avatarUrl,
     this.coupleId,
+    required this.inviteCode,
     required this.status,
     required this.createdAt,
     required this.updatedAt,
@@ -22,6 +26,7 @@ class AppUser {
   });
 
   bool get hasCouple => coupleId != null && coupleId!.isNotEmpty;
+  bool get hasInviteCode => inviteCode.trim().isNotEmpty;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -29,6 +34,7 @@ class AppUser {
         'displayName': displayName,
         'avatarUrl': avatarUrl,
         'coupleId': coupleId,
+        'inviteCode': inviteCode,
         'status': status,
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
@@ -40,6 +46,7 @@ class AppUser {
         'displayName': displayName,
         'avatarUrl': avatarUrl,
         'coupleId': coupleId,
+        'inviteCode': inviteCode,
         'status': status,
         'createdAt': createdAt,
         'updatedAt': updatedAt,
@@ -52,6 +59,7 @@ class AppUser {
         displayName: json['displayName'] as String,
         avatarUrl: json['avatarUrl'] as String?,
         coupleId: json['coupleId'] as String?,
+        inviteCode: json['inviteCode'] as String? ?? '',
         status: json['status'] as String? ?? 'single',
         createdAt: _parseDateTime(json['createdAt']) ?? DateTime.now(),
         updatedAt: _parseDateTime(json['updatedAt']) ?? DateTime.now(),
@@ -62,23 +70,25 @@ class AppUser {
     String? id,
     String? email,
     String? displayName,
-    String? avatarUrl,
-    String? coupleId,
+    Object? avatarUrl = _unset,
+    Object? coupleId = _unset,
+    String? inviteCode,
     String? status,
     DateTime? createdAt,
     DateTime? updatedAt,
-    DateTime? lastSeenAt,
+    Object? lastSeenAt = _unset,
   }) {
     return AppUser(
       id: id ?? this.id,
       email: email ?? this.email,
       displayName: displayName ?? this.displayName,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      coupleId: coupleId ?? this.coupleId,
+      avatarUrl: identical(avatarUrl, _unset) ? this.avatarUrl : avatarUrl as String?,
+      coupleId: identical(coupleId, _unset) ? this.coupleId : coupleId as String?,
+      inviteCode: inviteCode ?? this.inviteCode,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      lastSeenAt: lastSeenAt ?? this.lastSeenAt,
+      lastSeenAt: identical(lastSeenAt, _unset) ? this.lastSeenAt : lastSeenAt as DateTime?,
     );
   }
 

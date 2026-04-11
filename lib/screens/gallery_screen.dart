@@ -9,11 +9,14 @@ import 'package:provider/provider.dart';
 
 import '../models/couple.dart';
 import '../models/photo.dart';
+import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
+import '../widgets/shared_couple_photo_view.dart';
+import '../widgets/shared_photo_view.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key, this.bottomInset = 0});
@@ -28,13 +31,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
   static const double _floatingTopShowcaseMaxHeight = 408;
   static const double _floatingTopShowcaseMinHeight = 122;
 
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      context.read<PhotoProvider>().loadPhotos();
-    });
-  }
 
   Future<String?> _showCaptionDialog({
     String title = 'Thêm chú thích',
@@ -70,6 +66,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Future<void> _pickAndAddPhoto() async {
+    final currentUser = context.read<AuthProvider>().currentUser;
+    if (currentUser == null) {
+      return;
+    }
+
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.gallery,
     );
@@ -86,10 +87,26 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
-    await context.read<PhotoProvider>().addPhoto(
-      pickedFile.path,
-      caption: caption != null && caption.isNotEmpty ? caption : null,
-    );
+    try {
+      await context.read<PhotoProvider>().addPhoto(
+        pickedFile.path,
+        currentUser: currentUser,
+        caption: caption != null && caption.isNotEmpty ? caption : null,
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.read<PhotoProvider>().errorMessage ?? 'Không thể đăng ảnh lúc này.',
+          ),
+        ),
+      );
+      return;
+    }
 
     if (!mounted) {
       return;
@@ -101,11 +118,35 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Future<void> _pickMultiplePhotos() async {
+    final currentUser = context.read<AuthProvider>().currentUser;
+    if (currentUser == null) {
+      return;
+    }
+
     final pickedFiles = await ImagePicker().pickMultiImage();
     if (pickedFiles.isNotEmpty) {
       for (var file in pickedFiles) {
         if (mounted) {
-          await context.read<PhotoProvider>().addPhoto(file.path);
+          try {
+            await context.read<PhotoProvider>().addPhoto(
+              file.path,
+              currentUser: currentUser,
+            );
+          } catch (_) {
+            if (!mounted) {
+              return;
+            }
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  context.read<PhotoProvider>().errorMessage ??
+                      'Không thể đồng bộ một trong các ảnh vừa chọn.',
+                ),
+              ),
+            );
+            return;
+          }
         }
       }
       if (mounted) {
@@ -119,6 +160,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Future<void> _editCaption(Photo photo) async {
+    final currentUser = context.read<AuthProvider>().currentUser;
+    if (currentUser == null) {
+      return;
+    }
+
     final caption = await _showCaptionDialog(
       title: 'Chỉnh sửa chú thích',
       hint: 'Khoảnh khắc này đáng nhớ thế nào?',
@@ -129,7 +175,26 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
-    await context.read<PhotoProvider>().updatePhotoCaption(photo.id, caption);
+    try {
+      await context.read<PhotoProvider>().updatePhotoCaption(
+        photo.id,
+        caption,
+        currentUser: currentUser,
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.read<PhotoProvider>().errorMessage ?? 'Không thể cập nhật chú thích.',
+          ),
+        ),
+      );
+      return;
+    }
 
     if (!mounted) {
       return;
@@ -141,6 +206,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Future<void> _deletePhoto(Photo photo) async {
+    final currentUser = context.read<AuthProvider>().currentUser;
+    if (currentUser == null) {
+      return;
+    }
+
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -163,7 +233,25 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
-    await context.read<PhotoProvider>().deletePhoto(photo.id);
+    try {
+      await context.read<PhotoProvider>().deletePhoto(
+        photo.id,
+        currentUser: currentUser,
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.read<PhotoProvider>().errorMessage ?? 'Không thể xóa ảnh lúc này.',
+          ),
+        ),
+      );
+      return;
+    }
 
     if (!mounted) {
       return;
@@ -176,6 +264,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   String _formatFeedDate(DateTime date) {
     return DateFormat("dd 'thg' MM • HH:mm").format(date);
+  }
+
+  String _feedPostedByLabel(Photo photo) {
+    return 'Đăng bởi ${photo.posterName}';
   }
 
   String _formatShortDate(DateTime date) {
@@ -217,7 +309,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     }
 
     final photo = photos[initialIndex];
-    if (!File(photo.path).existsSync()) {
+    if (!(photo.hasLocalPath && File(photo.path).existsSync()) && !photo.hasRemoteUrl) {
       return;
     }
 
@@ -225,7 +317,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       PageRouteBuilder(
         opaque: false,
         barrierDismissible: true,
-        pageBuilder: (_, __, ___) => _FullscreenPhotoPreview(
+        pageBuilder: (context, animation, secondaryAnimation) => _FullscreenPhotoPreview(
           photos: photos,
           heroTags: heroTags,
           initialIndex: initialIndex,
@@ -271,9 +363,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Widget _buildCoupleAvatar(Couple? couple, {double size = 48}) {
-    final photoPath = couple?.couplePhotoPath;
-    final hasPhoto = photoPath != null && photoPath.isNotEmpty && File(photoPath).existsSync();
-
     return Container(
       width: size,
       height: size,
@@ -283,18 +372,21 @@ class _GalleryScreenState extends State<GalleryScreen> {
         border: Border.all(color: AppColors.white.withValues(alpha: 0.9), width: 2),
       ),
       child: ClipOval(
-        child: hasPhoto
-            ? Image.file(File(photoPath), fit: BoxFit.cover)
-            : Center(
-                child: Text(
-                  _initialsFromCouple(couple),
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: size * 0.3,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+        child: SharedCouplePhotoView(
+          localPath: couple?.couplePhotoPath,
+          remoteUrl: couple?.couplePhotoUrl,
+          fit: BoxFit.cover,
+          placeholder: Center(
+            child: Text(
+              _initialsFromCouple(couple),
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: size * 0.3,
+                fontWeight: FontWeight.w800,
               ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -793,7 +885,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             itemCount: storyPhotos.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final photo = storyPhotos[index];
               return _buildStoryCard(
@@ -821,9 +913,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
     required int index,
     required bool isMemory,
   }) {
-    final imageFile = File(photo.path);
-    final hasPhoto = imageFile.existsSync();
-
     return GestureDetector(
       onTap: () => _openPhotoPreview(
         photos,
@@ -856,18 +945,20 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           createRectTween: (begin, end) =>
                               MaterialRectCenterArcTween(begin: begin, end: end),
                           transitionOnUserGestures: true,
-                          child: hasPhoto
-                              ? Image.file(imageFile, fit: BoxFit.cover)
-                              : DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: AppColors.surfaceLight,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Icon(
-                                    Icons.image_not_supported_outlined,
-                                    color: AppColors.textSecondary.withValues(alpha: 0.5),
-                                  ),
-                                ),
+                          child: SharedPhotoView(
+                            photo: photo,
+                            fit: BoxFit.cover,
+                            placeholder: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceLight,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Icon(
+                                Icons.image_not_supported_outlined,
+                                color: AppColors.textSecondary.withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -908,7 +999,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
     final displayCaption = photo.caption?.trim().isNotEmpty == true
         ? photo.caption!.trim()
         : 'Khoảnh khắc #${index + 1} được lưu lại cho hành trình yêu thương của hai bạn.';
-    final hasPhoto = File(photo.path).existsSync();
     final heroTag = _feedHeroTag(photo, index);
 
     return Container(
@@ -953,6 +1043,25 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
+                          Icon(
+                            Icons.person_rounded,
+                            size: 14,
+                            color: AppColors.textSecondary.withValues(alpha: 0.72),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              _feedPostedByLabel(photo),
+                              overflow: TextOverflow.ellipsis,
+                              style: _galleryMetaStyle(
+                                color: AppColors.textSecondary,
+                                size: 11.7,
+                                alpha: 0.72,
+                                weight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
                           Icon(
                             Icons.schedule_rounded,
                             size: 14,
@@ -1000,58 +1109,48 @@ class _GalleryScreenState extends State<GalleryScreen> {
               ],
             ),
           ),
-          if (hasPhoto)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: GestureDetector(
-                onTap: () => _openPhotoPreview(
-                  context.read<PhotoProvider>().sortedPhotos,
-                  initialIndex: index,
-                  couple: couple,
-                  heroTags: List.generate(
-                    context.read<PhotoProvider>().sortedPhotos.length,
-                    (photoIndex) => _feedHeroTag(
-                      context.read<PhotoProvider>().sortedPhotos[photoIndex],
-                      photoIndex,
-                    ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: GestureDetector(
+              onTap: () => _openPhotoPreview(
+                context.read<PhotoProvider>().sortedPhotos,
+                initialIndex: index,
+                couple: couple,
+                heroTags: List.generate(
+                  context.read<PhotoProvider>().sortedPhotos.length,
+                  (photoIndex) => _feedHeroTag(
+                    context.read<PhotoProvider>().sortedPhotos[photoIndex],
+                    photoIndex,
                   ),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(26),
-                  child: Hero(
-                    tag: heroTag,
-                    createRectTween: (begin, end) =>
-                        MaterialRectCenterArcTween(begin: begin, end: end),
-                    transitionOnUserGestures: true,
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: Image.file(
-                        File(photo.path),
-                        fit: BoxFit.cover,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(26),
+                child: Hero(
+                  tag: heroTag,
+                  createRectTween: (begin, end) =>
+                      MaterialRectCenterArcTween(begin: begin, end: end),
+                  transitionOnUserGestures: true,
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: SharedPhotoView(
+                      photo: photo,
+                      fit: BoxFit.cover,
+                      placeholder: Container(
+                        color: AppColors.surfaceLight.withValues(alpha: 0.94),
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.image_not_supported_outlined,
+                          size: 40,
+                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Container(
-                height: 260,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceLight.withValues(alpha: 0.94),
-                  borderRadius: BorderRadius.circular(26),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.image_not_supported_outlined,
-                    size: 40,
-                    color: AppColors.textSecondary.withValues(alpha: 0.5),
-                  ),
-                ),
-              ),
             ),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
             child: Column(
@@ -1070,6 +1169,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       icon: Icons.calendar_month_rounded,
                       label: _formatShortDate(photo.uploadDate),
                       color: AppColors.info,
+                    ),
+                    _buildFeedStatChip(
+                      icon: Icons.person_rounded,
+                      label: photo.posterName,
+                      color: AppColors.accentCoral,
                     ),
                   ],
                 ),
@@ -1507,6 +1611,10 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
     return DateFormat("dd 'thg' MM • HH:mm").format(date);
   }
 
+  String _previewPostedByLabel(Photo photo) {
+    return 'Đăng bởi ${photo.posterName}';
+  }
+
   bool get _canDismissWithDrag => _pageScales[_currentIndex] <= 1.02;
 
   double get _dismissProgress =>
@@ -1619,8 +1727,8 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
               },
               itemBuilder: (context, index) {
                 final photo = widget.photos[index];
-                final image = Image.file(
-                  File(photo.path),
+                final image = SharedPhotoView(
+                  photo: photo,
                   fit: BoxFit.contain,
                 );
 
@@ -1706,6 +1814,16 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                           ),
                         ),
                       const SizedBox(height: 6),
+                      Text(
+                        _previewPostedByLabel(currentPhoto),
+                        style: TextStyle(
+                          color: AppColors.white.withValues(alpha: 0.82),
+                          fontSize: 12.4,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.06,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       Text(
                         _formatFeedDate(currentPhoto.uploadDate),
                         style: TextStyle(

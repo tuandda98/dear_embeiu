@@ -1,0 +1,19 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isCoupleMember(coupleId) {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/couples/$(coupleId))
+        && request.auth.uid in firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.memberIds;
+    }
+
+    match /couple_photos/{coupleId}/{fileName} {
+      allow read, write: if isCoupleMember(coupleId);
+    }
+  }
+}
+

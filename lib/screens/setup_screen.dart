@@ -5,12 +5,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../app/app_routes.dart';
-import '../models/couple.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
+import '../providers/photo_provider.dart';
+import '../models/couple.dart';
 import '../services/couple_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shared_couple_photo_view.dart';
 
 enum _SetupMode { create, join }
 
@@ -102,6 +104,7 @@ class _SetupScreenState extends State<SetupScreen> {
   Future<void> _submitCreateOrUpdate() async {
     final authProvider = context.read<AuthProvider>();
     final coupleProvider = context.read<CoupleProvider>();
+    final photoProvider = context.read<PhotoProvider>();
     final currentUser = authProvider.currentUser;
     final existingCouple = coupleProvider.couple;
     final isEditing = currentUser?.hasCouple == true && existingCouple != null;
@@ -137,13 +140,14 @@ class _SetupScreenState extends State<SetupScreen> {
             );
 
       await authProvider.updateCurrentUser(result.updatedUser);
+      await photoProvider.syncForUser(result.updatedUser);
 
       if (!mounted) {
         return;
       }
 
       if (!isEditing) {
-        await _showInviteCodeDialog(result.couple.inviteCode);
+        await _showInviteCodeDialog(result.updatedUser.inviteCode);
       } else {
         _showSnack(result.message ?? 'Đã cập nhật thông tin cặp đôi.');
       }
@@ -163,6 +167,7 @@ class _SetupScreenState extends State<SetupScreen> {
   Future<void> _submitJoin() async {
     final authProvider = context.read<AuthProvider>();
     final coupleProvider = context.read<CoupleProvider>();
+    final photoProvider = context.read<PhotoProvider>();
     final currentUser = authProvider.currentUser;
 
     if (currentUser == null) {
@@ -172,7 +177,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
     final inviteCode = _inviteCodeController.text.trim();
     if (inviteCode.isEmpty) {
-      _showSnack('Bạn hãy nhập mã kết nối trước nhé.');
+      _showSnack('Bạn hãy nhập mã mời trước nhé.');
       return;
     }
 
@@ -182,6 +187,7 @@ class _SetupScreenState extends State<SetupScreen> {
         inviteCode: inviteCode,
       );
       await authProvider.updateCurrentUser(result.updatedUser);
+      await photoProvider.syncForUser(result.updatedUser);
 
       if (!mounted) {
         return;
@@ -203,13 +209,13 @@ class _SetupScreenState extends State<SetupScreen> {
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: const Text('Mã kết nối của hai bạn'),
+          title: const Text('Mã mời tài khoản của bạn'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Gửi mã này cho người còn lại để họ nhập vào màn hình tham gia cặp đôi.',
+                'Mã mời này gắn trực tiếp với tài khoản của bạn. Gửi nó cho người còn lại để họ đăng nhập bằng tài khoản riêng và nhập vào màn hình tham gia cặp đôi.',
               ),
               const SizedBox(height: 16),
               Container(
@@ -267,6 +273,7 @@ class _SetupScreenState extends State<SetupScreen> {
     final existingCouple = coupleProvider.couple;
     final isEditing = currentUser?.hasCouple == true && existingCouple != null;
     final editingCouple = isEditing ? existingCouple : null;
+    final hasInviteCode = currentUser?.hasInviteCode == true;
 
     return Scaffold(
       body: Container(
@@ -282,14 +289,19 @@ class _SetupScreenState extends State<SetupScreen> {
                   children: [
                     _buildHeader(authProvider, coupleProvider, isEditing),
                     const SizedBox(height: 24),
-                    if (!isEditing) _buildModeSelector(),
-                    if (!isEditing) const SizedBox(height: 16),
-                    if (editingCouple != null) ...[
-                      _buildInviteCard(editingCouple),
+                    if (hasInviteCode) ...[
+                      _buildInviteCard(
+                        inviteCode: currentUser!.inviteCode,
+                        hasCreatedCoupleSpace: currentUser.hasCouple,
+                        isWaitingForPartner: editingCouple?.isWaitingForPartner ?? false,
+                      ),
                       const SizedBox(height: 16),
                     ],
+                    if (!isEditing) _buildModeSelector(),
+                    if (!isEditing) const SizedBox(height: 16),
                     if (isEditing || _mode == _SetupMode.create)
                       _buildCreateCard(
+                        existingCouple: editingCouple,
                         isEditing: isEditing,
                         isLoading: coupleProvider.isLoading,
                       )
@@ -317,8 +329,8 @@ class _SetupScreenState extends State<SetupScreen> {
         ? 'Cập nhật thông tin cặp đôi'
         : 'Tạo hoặc tham gia cặp đôi';
     final subtitle = isEditing
-        ? 'Bạn có thể chỉnh lại tên, ngày yêu và ảnh đôi. Mã kết nối hiện tại vẫn được giữ nguyên.'
-        : 'Sau khi đăng nhập, mỗi người chỉ thuộc 1 couple. Bạn có thể tự tạo không gian mới hoặc nhập mã kết nối từ người kia.';
+        ? 'Bạn có thể chỉnh lại tên, ngày yêu và ảnh đôi. Mã mời cá nhân của bạn vẫn giữ nguyên theo tài khoản.'
+        : 'Mỗi người đăng nhập bằng tài khoản riêng và có một mã mời gắn với tài khoản đó. Một người tạo không gian cặp đôi, người còn lại nhập mã để kết nối.';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,8 +409,8 @@ class _SetupScreenState extends State<SetupScreen> {
                     const SizedBox(height: 4),
                     Text(
                       authProvider.isUsingFirebase
-                          ? 'Couple và invite code sẽ được lưu trên Firestore để 2 người dùng 2 máy khác nhau vẫn kết nối được.'
-                          : 'Bạn đang ở local fallback mode. Tạo couple vẫn chạy được, nhưng join theo invite code chỉ hữu ích trong cùng môi trường local.',
+                          ? 'Tài khoản, mã mời và dữ liệu couple sẽ được lưu trên Firestore để hai người dùng hai máy khác nhau vẫn kết nối được.'
+                          : 'Bạn đang ở local fallback mode. Mã mời tài khoản vẫn được tạo, nhưng trải nghiệm ghép cặp chủ yếu phù hợp để test trong cùng môi trường local.',
                       style: const TextStyle(
                         color: AppColors.white,
                         fontSize: 12,
@@ -466,7 +478,23 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-  Widget _buildInviteCard(Couple couple) {
+  Widget _buildInviteCard({
+    required String inviteCode,
+    required bool hasCreatedCoupleSpace,
+    required bool isWaitingForPartner,
+  }) {
+    final title = !hasCreatedCoupleSpace
+        ? 'Mã mời tài khoản của bạn'
+        : isWaitingForPartner
+            ? 'Gửi mã này cho người ấy'
+            : 'Mã mời gắn với tài khoản bạn';
+
+    final description = !hasCreatedCoupleSpace
+        ? 'Mã này đã gắn với tài khoản của bạn ngay khi đăng ký. Hãy tạo không gian cặp đôi trước, rồi gửi mã này cho người còn lại.'
+        : isWaitingForPartner
+            ? 'Người kia chỉ cần đăng nhập bằng tài khoản riêng rồi nhập mã này để kết nối vào không gian cặp đôi của bạn.'
+            : 'Hai bạn đã kết nối thành công. Nếu sau này đặt lại couple, bạn vẫn có thể tiếp tục dùng mã mời tài khoản này.';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -479,9 +507,7 @@ class _SetupScreenState extends State<SetupScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            couple.isWaitingForPartner
-                ? 'Mã kết nối hiện tại'
-                : 'Cặp đôi của bạn đã kết nối xong',
+              title,
             style: const TextStyle(
               color: AppColors.white,
               fontSize: 15,
@@ -490,7 +516,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            couple.inviteCode,
+              inviteCode,
             style: const TextStyle(
               color: AppColors.white,
               fontSize: 26,
@@ -500,9 +526,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            couple.isWaitingForPartner
-                ? 'Gửi mã này cho người còn lại để họ nhập vào app và tham gia cùng bạn.'
-                : 'Cặp đôi đã đủ 2 người. Bạn vẫn có thể chỉnh sửa tên và ngày kỷ niệm bên dưới.',
+              description,
             style: const TextStyle(
               color: AppColors.white,
               fontSize: 12,
@@ -515,12 +539,14 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Widget _buildCreateCard({
+    Couple? existingCouple,
     required bool isEditing,
     required bool isLoading,
   }) {
     final hasPhoto = _couplePhotoPath != null &&
         _couplePhotoPath!.isNotEmpty &&
         File(_couplePhotoPath!).existsSync();
+    final hasSyncedPhoto = existingCouple?.couplePhotoUrl?.trim().isNotEmpty == true;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -551,7 +577,7 @@ class _SetupScreenState extends State<SetupScreen> {
           Text(
             isEditing
                 ? 'Chỉnh lại dữ liệu chung của cả hai. Nếu dùng Firebase, thông tin sẽ được lưu chung trên cloud.'
-                : 'Người tạo couple sẽ nhận một mã kết nối để gửi cho người còn lại.',
+                : 'Bạn tạo không gian cặp đôi trước, sau đó người kia đăng nhập bằng tài khoản riêng và nhập mã mời tài khoản của bạn để kết nối.',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12.5,
@@ -636,15 +662,23 @@ class _SetupScreenState extends State<SetupScreen> {
                       ),
                     ],
                   ),
-                  if (hasPhoto) ...[
+                  if (hasPhoto || hasSyncedPhoto) ...[
                     const SizedBox(height: 14),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(18),
-                      child: Image.file(
-                        File(_couplePhotoPath!),
+                      child: SizedBox(
                         height: 180,
                         width: double.infinity,
-                        fit: BoxFit.cover,
+                        child: hasPhoto
+                            ? Image.file(
+                                File(_couplePhotoPath!),
+                                fit: BoxFit.cover,
+                              )
+                            : SharedCouplePhotoView(
+                                localPath: existingCouple?.couplePhotoPath,
+                                remoteUrl: existingCouple?.couplePhotoUrl,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
                   ],
@@ -676,7 +710,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     )
                   : Icon(isEditing ? Icons.save_rounded : Icons.favorite_rounded),
               label: Text(
-                isEditing ? 'Lưu thay đổi' : 'Tạo cặp đôi & nhận mã mời',
+                isEditing ? 'Lưu thay đổi' : 'Tạo không gian cặp đôi',
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
@@ -701,7 +735,7 @@ class _SetupScreenState extends State<SetupScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Nhập mã kết nối',
+            'Nhập mã mời',
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -711,8 +745,8 @@ class _SetupScreenState extends State<SetupScreen> {
           const SizedBox(height: 6),
           Text(
             authProvider.isUsingFirebase
-                ? 'Mã này sẽ tìm đúng document couple trên Firestore và thêm bạn vào cặp đôi đó.'
-                : 'Ở local fallback mode, tính năng join chỉ hữu ích khi bạn đang test cùng dữ liệu local.',
+                ? 'Nhập mã mời gắn với tài khoản của người ấy để tham gia vào không gian cặp đôi mà họ đã tạo.'
+                : 'Ở local fallback mode, mã mời vẫn hoạt động theo dữ liệu local hiện có trên thiết bị hoặc môi trường test.',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12.5,
@@ -724,7 +758,7 @@ class _SetupScreenState extends State<SetupScreen> {
             controller: _inviteCodeController,
             textCapitalization: TextCapitalization.characters,
             decoration: _inputDecoration(
-              label: 'Mã kết nối',
+              label: 'Mã mời của người ấy',
               hint: 'Ví dụ: A7B9KD',
               icon: Icons.password_rounded,
             ),

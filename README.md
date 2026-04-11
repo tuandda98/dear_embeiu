@@ -22,6 +22,16 @@ Một ứng dụng Flutter hiện đại để đếm ngày yêu nhau của các
 - **Chỉnh Sửa**: Cập nhật thông tin cặp đôi
 - **Đặt Lại**: Xóa tất cả dữ liệu
 
+### 🔐 Tài Khoản & Mã Mời
+- **Đăng nhập riêng biệt**: Mỗi người dùng một tài khoản riêng
+- **Mã mời cá nhân**: Mỗi tài khoản có một mã mời gắn cố định với account
+- **Kết nối cặp đôi**: Một người tạo không gian couple, người còn lại nhập mã mời để kết nối
+
+### ☁️ Sync 2 Máy Sau Khi Ghép Cặp
+- **Ảnh & bài post dùng chung**: Ảnh đăng từ một máy sẽ hiện trên máy còn lại
+- **Đồng bộ thời gian thực**: Feed ảnh được lắng nghe từ Firebase theo `coupleId`
+- **Hiển thị người đăng**: Mỗi bài trong thư viện cho biết ai là người post
+
 ## 🎨 Thiết Kế UI/UX
 
 ### Màu Sắc Hiện Đại
@@ -43,7 +53,8 @@ Một ứng dụng Flutter hiện đại để đếm ngày yêu nhau của các
 
 - **Framework**: Flutter 3.11.4+
 - **State Management**: Provider
-- **Storage**: Local file system (JSON)
+- **Auth & Cloud**: Firebase Auth + Cloud Firestore
+- **Storage**: Local file system (JSON) + Firestore sync cho dữ liệu người dùng/couple
 - **Image Picking**: image_picker
 - **Gallery Layout**: flutter_staggered_grid_view
 - **UUID**: uuid package
@@ -103,9 +114,23 @@ cd dear_embeiu
 # Lấy dependencies
 flutter pub get
 
+# Deploy Firestore + Storage rules (cần Firebase CLI và đã login)
+npx firebase-tools deploy --only firestore:rules,storage --project dear-embeiu
+
 # Run app
 flutter run
 ```
+
+### Firebase CLI
+Nếu máy chưa có Firebase CLI hoặc chưa đăng nhập:
+
+```bash
+npx firebase-tools login
+npx firebase-tools deploy --only firestore:rules,storage --project dear-embeiu
+```
+
+Project Firebase mặc định đã được map trong các file `firebase.json` và `.firebaserc`.
+Storage rules nằm trong file `storage.rules`.
 
 ### Build
 ```bash
@@ -118,7 +143,15 @@ flutter build ios --release
 
 ## 💾 Lưu Trữ Dữ Liệu
 
-Dữ liệu được lưu trữ cục bộ trong thư mục `Documents` của ứng dụng:
+Ứng dụng hiện dùng cả local storage và Firebase:
+
+- Firestore `users/{uid}`: hồ sơ người dùng, `inviteCode`, trạng thái couple
+- Firestore `invite_codes/{code}`: ánh xạ mã mời → tài khoản
+- Firestore `couples/{coupleId}`: không gian chung của 2 người
+- Firestore `couples/{coupleId}/photos/{photoId}`: feed ảnh/bài post dùng chung của cặp đôi
+- Firebase Storage `couple_photos/{coupleId}/{photoId}`: file ảnh gốc dùng để sync giữa 2 máy
+
+Dữ liệu cục bộ vẫn được lưu trong thư mục `Documents` của ứng dụng:
 - `couple_data.json`: Thông tin cặp đôi
 - `photos_data.json`: Metadata ảnh
 - `couple_photos/`: Thư mục chứa ảnh
@@ -137,8 +170,9 @@ Dữ liệu được lưu trữ cục bộ trong thư mục `Documents` của �
 ## 📝 Ghi Chú
 
 - Ảnh được lưu cục bộ trên thiết bị
-- Không có xác thực, dữ liệu lưu trữ cho người dùng hiện tại
-- Tất cả dữ liệu được lưu trong thư mục riêng tư của ứng dụng
+- Đăng nhập dùng Firebase Auth nếu Firebase được cấu hình đầy đủ
+- Để flow mã mời và sync ảnh hoạt động, cần deploy đúng cả `firestore.rules` và `storage.rules` lên project Firebase
+- Tất cả dữ liệu local được lưu trong thư mục riêng tư của ứng dụng
 
 ---
 

@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import 'animated_couple_name.dart';
+import 'shared_couple_photo_view.dart';
 
 class CoupleInfoCard extends StatelessWidget {
   const CoupleInfoCard({
@@ -11,19 +10,18 @@ class CoupleInfoCard extends StatelessWidget {
     required this.person1Name,
     required this.person2Name,
     this.couplePhotoPath,
+    this.couplePhotoUrl,
     this.onTap,
   });
 
   final String person1Name;
   final String person2Name;
   final String? couplePhotoPath;
+  final String? couplePhotoUrl;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final hasPhoto =
-        couplePhotoPath != null && couplePhotoPath!.isNotEmpty && File(couplePhotoPath!).existsSync();
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -48,21 +46,20 @@ class CoupleInfoCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.white, width: 3),
-                  image: hasPhoto
-                      ? DecorationImage(
-                          image: FileImage(File(couplePhotoPath!)),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
                   color: AppColors.white.withValues(alpha: 0.3),
                 ),
-                child: hasPhoto
-                    ? null
-                    : Icon(
-                        Icons.favorite,
-                        color: AppColors.white.withValues(alpha: 0.6),
-                        size: 40,
-                      ),
+                child: ClipOval(
+                  child: SharedCouplePhotoView(
+                    localPath: couplePhotoPath,
+                    remoteUrl: couplePhotoUrl,
+                    fit: BoxFit.cover,
+                    placeholder: Icon(
+                      Icons.favorite,
+                      color: AppColors.white.withValues(alpha: 0.6),
+                      size: 40,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(

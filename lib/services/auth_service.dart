@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -41,6 +41,7 @@ class AuthService {
   final FirebaseAuth? _firebaseAuth;
   final UserService _userService;
   final Uuid _uuid = const Uuid();
+  final Random _random = Random.secure();
 
   bool get isUsingFirebase =>
       FirebaseBootstrapService.isFirebaseReady && Firebase.apps.isNotEmpty;
@@ -60,15 +61,15 @@ class AuthService {
 
       final existingProfile = await _userService.fetchUserProfile(firebaseUser.uid);
       if (existingProfile != null) {
-        final refreshedProfile = existingProfile.copyWith(
+        final refreshedProfile = await _ensureInviteCode(existingProfile.copyWith(
           lastSeenAt: DateTime.now(),
           updatedAt: DateTime.now(),
-        );
+        ));
         await _userService.updateUserProfile(refreshedProfile);
         return refreshedProfile;
       }
 
-      final createdProfile = _buildFirebaseProfile(firebaseUser);
+      final createdProfile = await _ensureInviteCode(_buildFirebaseProfile(firebaseUser));
       await _userService.saveUserProfile(createdProfile);
       return createdProfile;
     }
@@ -86,7 +87,20 @@ class AuthService {
       return null;
     }
 
-    return AppUser.fromJson(record);
+    final recordUser = AppUser.fromJson(record);
+    final userWithInvite = await _ensureInviteCode(recordUser);
+    if (userWithInvite.inviteCode != recordUser.inviteCode) {
+      final index = users.indexWhere((user) => user['id'] == sessionUserId);
+      if (index != -1) {
+        users[index] = {
+          ...userWithInvite.toJson(),
+          'password': users[index]['password'],
+        };
+        await _saveUserRecords(users);
+      }
+    }
+
+    return userWithInvite;
   }
 
   Future<AppUser> signUp({
@@ -113,6 +127,7 @@ class AuthService {
           id: firebaseUser.uid,
           email: firebaseUser.email ?? email.trim().toLowerCase(),
           displayName: displayName.trim(),
+          inviteCode: await _generateUniqueInviteCode(),
           status: 'single',
           createdAt: now,
           updatedAt: now,
@@ -152,6 +167,7 @@ class AuthService {
       id: _uuid.v4(),
       email: normalizedEmail,
       displayName: normalizedDisplayName,
+      inviteCode: await _generateUniqueInviteCode(),
       status: 'single',
       createdAt: now,
       updatedAt: now,
@@ -186,14 +202,14 @@ class AuthService {
         }
 
         final existingProfile = await _userService.fetchUserProfile(firebaseUser.uid);
-        final user = (existingProfile ?? _buildFirebaseProfile(firebaseUser)).copyWith(
+        final user = await _ensureInviteCode((existingProfile ?? _buildFirebaseProfile(firebaseUser)).copyWith(
           updatedAt: DateTime.now(),
           lastSeenAt: DateTime.now(),
           email: firebaseUser.email ?? email.trim().toLowerCase(),
           displayName: firebaseUser.displayName?.trim().isNotEmpty == true
               ? firebaseUser.displayName!.trim()
               : (existingProfile?.displayName ?? email.trim().split('@').first),
-        );
+        ));
 
         await _userService.updateUserProfile(user);
         return user;
@@ -221,10 +237,10 @@ class AuthService {
       throw const AuthException('Mật khẩu chưa đúng, bạn kiểm tra lại nhé.');
     }
 
-    final signedInUser = AppUser.fromJson(record).copyWith(
+    final signedInUser = await _ensureInviteCode(AppUser.fromJson(record).copyWith(
       updatedAt: DateTime.now(),
       lastSeenAt: DateTime.now(),
-    );
+    ));
 
     users[index] = {
       ...signedInUser.toJson(),
@@ -330,6 +346,7 @@ class AuthService {
       displayName: firebaseUser.displayName?.trim().isNotEmpty == true
           ? firebaseUser.displayName!.trim()
           : (firebaseUser.email?.split('@').first ?? 'Người dùng mới'),
+      inviteCode: '',
       status: 'single',
       createdAt: now,
       updatedAt: now,
@@ -369,6 +386,8 @@ class AuthService {
 
   String _mapFirestoreError(FirebaseException exception) {
     switch (exception.code) {
+      case 'invite-code-unavailable':
+        return 'Không thể tạo mã mời cho tài khoản lúc này, bạn thử lại nhé.';
       case 'permission-denied':
         return 'Firestore đang chặn quyền ghi dữ liệu người dùng. Bạn vào Firebase Console > Firestore Database > Rules và cho phép user đã đăng nhập tạo/ghi `users/{uid}` của chính họ.';
       case 'unavailable':
@@ -376,6 +395,46 @@ class AuthService {
       default:
         return exception.message ?? 'Đã có lỗi Firestore xảy ra.';
     }
+  }
+
+  Future<AppUser> _ensureInviteCode(AppUser user) async {
+    if (user.hasInviteCode) {
+      return user.copyWith(inviteCode: user.inviteCode.trim().toUpperCase());
+    }
+
+    return user.copyWith(
+      inviteCode: await _generateUniqueInviteCode(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  Future<String> _generateUniqueInviteCode() async {
+    if (isUsingFirebase) {
+      return _userService.generateUniqueInviteCode();
+    }
+
+    final users = await _loadUserRecords();
+    final existingCodes = users
+        .map((record) => '${record['inviteCode'] ?? ''}'.trim().toUpperCase())
+        .where((code) => code.isNotEmpty)
+        .toSet();
+
+    for (var attempt = 0; attempt < 12; attempt++) {
+      final candidate = _generateInviteCode();
+      if (!existingCodes.contains(candidate)) {
+        return candidate;
+      }
+    }
+
+    throw const AuthException('Không thể tạo mã mời mới, bạn thử lại sau nhé.');
+  }
+
+  String _generateInviteCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    return List.generate(
+      6,
+      (_) => chars[_random.nextInt(chars.length)],
+    ).join();
   }
 }
 

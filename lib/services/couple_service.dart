@@ -1,8 +1,9 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/app_user.dart';
@@ -35,22 +36,45 @@ class CoupleActionResult {
 class CoupleService {
   CoupleService({
     FirebaseFirestore? firestore,
+    FirebaseStorage? storage,
     UserService? userService,
   })  : _firestore = firestore,
+        _storage = storage,
         _userService = userService ?? UserService();
 
   final FirebaseFirestore? _firestore;
+  final FirebaseStorage? _storage;
   final UserService _userService;
   final Uuid _uuid = const Uuid();
-  final Random _random = Random.secure();
 
   bool get isUsingFirebase =>
       FirebaseBootstrapService.isFirebaseReady && Firebase.apps.isNotEmpty;
 
   FirebaseFirestore get _db => _firestore ?? FirebaseFirestore.instance;
+  FirebaseStorage get _bucket => _storage ?? FirebaseStorage.instance;
 
   CollectionReference<Map<String, dynamic>> get _couplesCollection =>
       _db.collection('couples');
+
+  Stream<Couple?> watchCouple(String coupleId) {
+    if (!isUsingFirebase || coupleId.trim().isEmpty) {
+      return Stream<Couple?>.value(null);
+    }
+
+    return _couplesCollection.doc(coupleId).snapshots().asyncMap((snapshot) async {
+      if (!snapshot.exists || snapshot.data() == null) {
+        return null;
+      }
+
+      final remoteCouple = Couple.fromJson({
+        'id': snapshot.id,
+        ...snapshot.data()!,
+      });
+      final mergedCouple = await _mergeWithLocalCouple(remoteCouple);
+      await StorageService.saveCouple(mergedCouple);
+      return mergedCouple;
+    });
+  }
 
   Future<Couple?> fetchCouple(String coupleId) async {
     if (coupleId.trim().isEmpty) {
@@ -63,10 +87,11 @@ class CoupleService {
         return null;
       }
 
-      final couple = Couple.fromJson({
+      final remoteCouple = Couple.fromJson({
         'id': snapshot.id,
         ...snapshot.data()!,
       });
+      final couple = await _mergeWithLocalCouple(remoteCouple);
       await StorageService.saveCouple(couple);
       return couple;
     }
@@ -90,16 +115,21 @@ class CoupleService {
     }
 
     final now = DateTime.now();
-    final savedPhotoPath = await _prepareLocalPhotoPath(photoPath);
-    final inviteCode = await _generateUniqueInviteCode();
+    final coupleId = isUsingFirebase ? _couplesCollection.doc().id : _uuid.v4();
+    final photoSync = await _syncCouplePhoto(
+      coupleId: coupleId,
+      sourcePath: photoPath,
+    );
 
     final couple = Couple(
-      id: isUsingFirebase ? _couplesCollection.doc().id : _uuid.v4(),
+      id: coupleId,
       person1Name: person1Name.trim(),
       person2Name: person2Name.trim(),
       anniversaryDate: anniversaryDate,
-      couplePhotoPath: savedPhotoPath,
-      inviteCode: inviteCode,
+      couplePhotoPath: photoSync.localPath,
+      couplePhotoUrl: photoSync.remoteUrl,
+      couplePhotoStoragePath: photoSync.storagePath,
+      inviteCode: currentUser.inviteCode,
       memberIds: [currentUser.id],
       memberCount: 1,
       createdByUserId: currentUser.id,
@@ -125,7 +155,7 @@ class CoupleService {
     return CoupleActionResult(
       couple: couple,
       updatedUser: updatedUser,
-      message: 'Mã kết nối của hai bạn là ${couple.inviteCode}',
+      message: 'Mã mời tài khoản của bạn là ${updatedUser.inviteCode}',
     );
   }
 
@@ -138,16 +168,19 @@ class CoupleService {
     String? photoPath,
   }) async {
     final now = DateTime.now();
-    final savedPhotoPath = await _prepareLocalPhotoPath(
-      photoPath,
-      fallbackPath: existingCouple.couplePhotoPath,
+    final photoSync = await _syncCouplePhoto(
+      coupleId: existingCouple.id,
+      sourcePath: photoPath,
+      existingCouple: existingCouple,
     );
 
     final updatedCouple = existingCouple.copyWith(
       person1Name: person1Name.trim(),
       person2Name: person2Name.trim(),
       anniversaryDate: anniversaryDate,
-      couplePhotoPath: savedPhotoPath,
+      couplePhotoPath: photoSync.localPath,
+      couplePhotoUrl: photoSync.remoteUrl,
+      couplePhotoStoragePath: photoSync.storagePath,
       updatedAt: now,
     );
 
@@ -180,76 +213,112 @@ class CoupleService {
       throw const CoupleException('Bạn hãy nhập mã kết nối trước nhé.');
     }
 
+    if (normalizedCode == currentUser.inviteCode.trim().toUpperCase()) {
+      throw const CoupleException('Bạn không thể nhập mã mời của chính mình.');
+    }
+
     if (isUsingFirebase) {
-      final querySnapshot = await _couplesCollection
-          .where('inviteCode', isEqualTo: normalizedCode)
-          .limit(1)
-          .get();
-
-      if (querySnapshot.docs.isEmpty) {
-        throw const CoupleException('Mã kết nối không hợp lệ hoặc đã hết hiệu lực.');
-      }
-
-      final docRef = querySnapshot.docs.first.reference;
-      late Couple updatedCouple;
-      late AppUser updatedUser;
-
-      await _db.runTransaction((transaction) async {
-        final coupleSnapshot = await transaction.get(docRef);
-        final coupleData = coupleSnapshot.data();
-        if (coupleData == null) {
-          throw const CoupleException('Không tìm thấy cặp đôi tương ứng với mã này.');
+      try {
+        if (FirebaseAuth.instance.currentUser == null) {
+          throw const CoupleException(
+            'Phiên đăng nhập Firebase chưa sẵn sàng. Bạn đăng xuất rồi đăng nhập lại giúp mình nhé.',
+          );
         }
 
-        final currentCouple = Couple.fromJson({
-          'id': coupleSnapshot.id,
-          ...coupleData,
+        final accountInvite = await _userService.fetchAccountInvite(normalizedCode);
+        if (accountInvite == null) {
+          throw const CoupleException('Mã mời không hợp lệ hoặc không còn tồn tại.');
+        }
+
+        if (accountInvite.userId == currentUser.id) {
+          throw const CoupleException('Bạn không thể dùng mã mời của chính mình.');
+        }
+
+        final targetCoupleId = accountInvite.coupleId?.trim() ?? '';
+        if (targetCoupleId.isEmpty) {
+          throw const CoupleException(
+            'Người ấy đã có mã mời riêng nhưng chưa tạo không gian cặp đôi để bạn tham gia.',
+          );
+        }
+
+        final docRef = _couplesCollection.doc(targetCoupleId);
+        late Couple updatedCouple;
+        late AppUser updatedUser;
+
+        await _db.runTransaction((transaction) async {
+          final coupleSnapshot = await transaction.get(docRef);
+          final coupleData = coupleSnapshot.data();
+          if (coupleData == null) {
+            throw const CoupleException('Không tìm thấy cặp đôi tương ứng với mã này.');
+          }
+
+          final currentCouple = Couple.fromJson({
+            'id': coupleSnapshot.id,
+            ...coupleData,
+          });
+
+          if (!currentCouple.memberIds.contains(accountInvite.userId)) {
+            throw const CoupleException('Mã mời này không còn trỏ tới một cặp đôi hợp lệ nữa.');
+          }
+
+          if (currentCouple.memberIds.contains(currentUser.id)) {
+            throw const CoupleException('Bạn đã ở trong cặp đôi này rồi.');
+          }
+
+          if (currentCouple.memberCount >= 2) {
+            throw const CoupleException('Cặp đôi này đã đủ 2 người rồi.');
+          }
+
+          final now = DateTime.now();
+          final newMemberIds = [...currentCouple.memberIds, currentUser.id];
+          updatedCouple = currentCouple.copyWith(
+            memberIds: newMemberIds,
+            memberCount: newMemberIds.length,
+            status: newMemberIds.length >= 2 ? 'active' : 'waiting_partner',
+            updatedAt: now,
+            person2Name: currentCouple.person2Name.trim().isEmpty
+                ? currentUser.displayName
+                : currentCouple.person2Name,
+          );
+          updatedUser = currentUser.copyWith(
+            coupleId: currentCouple.id,
+            status: 'in_couple',
+            updatedAt: now,
+            lastSeenAt: now,
+          );
+
+          transaction.set(
+            docRef,
+            updatedCouple.toFirestore(),
+            SetOptions(merge: true),
+          );
+          transaction.set(
+            _db.collection('users').doc(currentUser.id),
+            updatedUser.toFirestore(),
+            SetOptions(merge: true),
+          );
         });
 
-        if (currentCouple.memberIds.contains(currentUser.id)) {
-          throw const CoupleException('Bạn đã ở trong cặp đôi này rồi.');
+        await StorageService.saveCouple(updatedCouple);
+        return CoupleActionResult(
+          couple: updatedCouple,
+          updatedUser: updatedUser,
+          message: 'Hai bạn đã kết nối thành công rồi 💞',
+        );
+      } on FirebaseException catch (e) {
+        switch (e.code) {
+          case 'permission-denied':
+            throw const CoupleException(
+              'Firestore đang từ chối đọc mã mời. Bạn cần deploy file `firestore.rules` mới lên project Firebase `dear-embeiu` rồi thử lại.',
+            );
+          case 'unavailable':
+            throw const CoupleException(
+              'Firestore hiện chưa khả dụng hoặc mạng chưa ổn định. Bạn thử lại sau ít phút nhé.',
+            );
+          default:
+            throw CoupleException(e.message ?? 'Không thể kết nối bằng mã mời lúc này.');
         }
-
-        if (currentCouple.memberCount >= 2) {
-          throw const CoupleException('Cặp đôi này đã đủ 2 người rồi.');
-        }
-
-        final now = DateTime.now();
-        final newMemberIds = [...currentCouple.memberIds, currentUser.id];
-        updatedCouple = currentCouple.copyWith(
-          memberIds: newMemberIds,
-          memberCount: newMemberIds.length,
-          status: newMemberIds.length >= 2 ? 'active' : 'waiting_partner',
-          updatedAt: now,
-          person2Name: currentCouple.person2Name.trim().isEmpty
-              ? currentUser.displayName
-              : currentCouple.person2Name,
-        );
-        updatedUser = currentUser.copyWith(
-          coupleId: currentCouple.id,
-          status: 'in_couple',
-          updatedAt: now,
-          lastSeenAt: now,
-        );
-
-        transaction.set(
-          docRef,
-          updatedCouple.toFirestore(),
-          SetOptions(merge: true),
-        );
-        transaction.set(
-          _db.collection('users').doc(currentUser.id),
-          updatedUser.toFirestore(),
-          SetOptions(merge: true),
-        );
-      });
-
-      await StorageService.saveCouple(updatedCouple);
-      return CoupleActionResult(
-        couple: updatedCouple,
-        updatedUser: updatedUser,
-        message: 'Hai bạn đã kết nối thành công rồi 💞',
-      );
+      }
     }
 
     final localCouple = await StorageService.loadCouple();
@@ -329,49 +398,112 @@ class CoupleService {
     return updatedUser;
   }
 
-  Future<String?> _prepareLocalPhotoPath(
-    String? sourcePath, {
-    String? fallbackPath,
+  Future<CouplePhotoSyncResult> _syncCouplePhoto({
+    required String coupleId,
+    String? sourcePath,
+    Couple? existingCouple,
   }) async {
     final trimmedPath = sourcePath?.trim();
     if (trimmedPath == null || trimmedPath.isEmpty) {
-      return fallbackPath;
+      return CouplePhotoSyncResult(
+        localPath: existingCouple?.couplePhotoPath,
+        remoteUrl: existingCouple?.couplePhotoUrl,
+        storagePath: existingCouple?.couplePhotoStoragePath,
+      );
     }
 
     final file = File(trimmedPath);
     if (!await file.exists()) {
-      return fallbackPath ?? trimmedPath;
+      return CouplePhotoSyncResult(
+        localPath: existingCouple?.couplePhotoPath ?? trimmedPath,
+        remoteUrl: existingCouple?.couplePhotoUrl,
+        storagePath: existingCouple?.couplePhotoStoragePath,
+      );
     }
 
     final savedPath = await StorageService.savePhotoFile(trimmedPath);
-    return savedPath ?? fallbackPath ?? trimmedPath;
-  }
 
-  Future<String> _generateUniqueInviteCode() async {
     if (!isUsingFirebase) {
-      return _generateInviteCode();
+      return CouplePhotoSyncResult(
+        localPath: savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
+        remoteUrl: existingCouple?.couplePhotoUrl,
+        storagePath: existingCouple?.couplePhotoStoragePath,
+      );
     }
 
-    for (var attempt = 0; attempt < 10; attempt++) {
-      final candidate = _generateInviteCode();
-      final existing = await _couplesCollection
-          .where('inviteCode', isEqualTo: candidate)
-          .limit(1)
-          .get();
-      if (existing.docs.isEmpty) {
-        return candidate;
-      }
+    final shouldReuseRemote =
+        existingCouple != null &&
+        trimmedPath == existingCouple.couplePhotoPath &&
+        existingCouple.couplePhotoUrl?.trim().isNotEmpty == true;
+    if (shouldReuseRemote) {
+      return CouplePhotoSyncResult(
+        localPath: savedPath ?? existingCouple.couplePhotoPath,
+        remoteUrl: existingCouple.couplePhotoUrl,
+        storagePath: existingCouple.couplePhotoStoragePath,
+      );
     }
 
-    throw const CoupleException('Không thể tạo mã kết nối mới, bạn thử lại nhé.');
+    final extension = _guessFileExtension(trimmedPath);
+    final storagePath = 'couple_photos/$coupleId/cover_$coupleId$extension';
+    final uploadTask = await _bucket.ref(storagePath).putFile(file);
+    final remoteUrl = await uploadTask.ref.getDownloadURL();
+
+    return CouplePhotoSyncResult(
+      localPath: savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
+      remoteUrl: remoteUrl,
+      storagePath: storagePath,
+    );
   }
 
-  String _generateInviteCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    return List.generate(
-      6,
-      (_) => chars[_random.nextInt(chars.length)],
-    ).join();
+  Future<Couple> _mergeWithLocalCouple(Couple remoteCouple) async {
+    final localCouple = await StorageService.loadCouple();
+    if (localCouple == null || localCouple.id != remoteCouple.id) {
+      return remoteCouple;
+    }
+
+    final shouldKeepLocalPath =
+        remoteCouple.couplePhotoPath?.trim().isEmpty != false &&
+        localCouple.couplePhotoPath?.trim().isNotEmpty == true;
+
+    return remoteCouple.copyWith(
+      couplePhotoPath: shouldKeepLocalPath
+          ? localCouple.couplePhotoPath
+          : remoteCouple.couplePhotoPath,
+      couplePhotoUrl: remoteCouple.couplePhotoUrl?.trim().isNotEmpty == true
+          ? remoteCouple.couplePhotoUrl
+          : localCouple.couplePhotoUrl,
+      couplePhotoStoragePath:
+          remoteCouple.couplePhotoStoragePath?.trim().isNotEmpty == true
+              ? remoteCouple.couplePhotoStoragePath
+              : localCouple.couplePhotoStoragePath,
+    );
   }
+
+  String _guessFileExtension(String path) {
+    final dotIndex = path.lastIndexOf('.');
+    if (dotIndex == -1 || dotIndex == path.length - 1) {
+      return '.jpg';
+    }
+
+    final extension = path.substring(dotIndex).toLowerCase();
+    if (extension.length > 6) {
+      return '.jpg';
+    }
+
+    return extension;
+  }
+
+}
+
+class CouplePhotoSyncResult {
+  const CouplePhotoSyncResult({
+    this.localPath,
+    this.remoteUrl,
+    this.storagePath,
+  });
+
+  final String? localPath;
+  final String? remoteUrl;
+  final String? storagePath;
 }
 

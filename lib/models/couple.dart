@@ -4,6 +4,8 @@ class Couple {
   final String person2Name;
   final DateTime anniversaryDate;
   final String? couplePhotoPath;
+  final String? couplePhotoUrl;
+  final String? couplePhotoStoragePath;
   final String inviteCode;
   final List<String> memberIds;
   final int memberCount;
@@ -18,6 +20,8 @@ class Couple {
     required this.person2Name,
     required this.anniversaryDate,
     this.couplePhotoPath,
+    this.couplePhotoUrl,
+    this.couplePhotoStoragePath,
     required this.inviteCode,
     required this.memberIds,
     required this.memberCount,
@@ -36,6 +40,8 @@ class Couple {
     'person2Name': person2Name,
     'anniversaryDate': anniversaryDate.toIso8601String(),
     'couplePhotoPath': couplePhotoPath,
+    'couplePhotoUrl': couplePhotoUrl,
+    'couplePhotoStoragePath': couplePhotoStoragePath,
     'inviteCode': inviteCode,
     'memberIds': memberIds,
     'memberCount': memberCount,
@@ -49,7 +55,9 @@ class Couple {
     'person1Name': person1Name,
     'person2Name': person2Name,
     'anniversaryDate': anniversaryDate,
-    'couplePhotoPath': couplePhotoPath,
+    'couplePhotoPath': '',
+    'couplePhotoUrl': couplePhotoUrl,
+    'couplePhotoStoragePath': couplePhotoStoragePath,
     'inviteCode': inviteCode,
     'memberIds': memberIds,
     'memberCount': memberCount,
@@ -66,6 +74,8 @@ class Couple {
     person2Name: json['person2Name'] as String? ?? '',
     anniversaryDate: _parseDateTime(json['anniversaryDate']) ?? DateTime.now(),
     couplePhotoPath: json['couplePhotoPath'] as String?,
+    couplePhotoUrl: json['couplePhotoUrl'] as String?,
+    couplePhotoStoragePath: json['couplePhotoStoragePath'] as String?,
     inviteCode: json['inviteCode'] as String? ?? '',
     memberIds: (json['memberIds'] as List?)?.map((e) => '$e').toList() ?? const [],
     memberCount: json['memberCount'] as int? ?? ((json['memberIds'] as List?)?.length ?? 0),
@@ -82,6 +92,8 @@ class Couple {
     String? person2Name,
     DateTime? anniversaryDate,
     String? couplePhotoPath,
+    String? couplePhotoUrl,
+    String? couplePhotoStoragePath,
     String? inviteCode,
     List<String>? memberIds,
     int? memberCount,
@@ -96,6 +108,9 @@ class Couple {
         person2Name: person2Name ?? this.person2Name,
         anniversaryDate: anniversaryDate ?? this.anniversaryDate,
         couplePhotoPath: couplePhotoPath ?? this.couplePhotoPath,
+        couplePhotoUrl: couplePhotoUrl ?? this.couplePhotoUrl,
+        couplePhotoStoragePath:
+            couplePhotoStoragePath ?? this.couplePhotoStoragePath,
         inviteCode: inviteCode ?? this.inviteCode,
         memberIds: memberIds ?? this.memberIds,
         memberCount: memberCount ?? this.memberCount,

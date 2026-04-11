@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/app_user.dart';
@@ -10,6 +12,7 @@ class CoupleProvider extends ChangeNotifier {
 
   final CoupleService _coupleService;
   Couple? _couple;
+  StreamSubscription<Couple?>? _coupleSubscription;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -19,6 +22,9 @@ class CoupleProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   Future<void> loadCoupleForUser(AppUser? currentUser) async {
+    await _coupleSubscription?.cancel();
+    _coupleSubscription = null;
+
     if (currentUser == null || !currentUser.hasCouple) {
       _couple = null;
       notifyListeners();
@@ -30,6 +36,19 @@ class CoupleProvider extends ChangeNotifier {
 
     try {
       _couple = await _coupleService.fetchCouple(currentUser.coupleId!);
+
+      if (_coupleService.isUsingFirebase) {
+        _coupleSubscription = _coupleService.watchCouple(currentUser.coupleId!).listen(
+          (couple) {
+            _couple = couple;
+            notifyListeners();
+          },
+          onError: (error) {
+            _errorMessage = 'Không thể đồng bộ thông tin cặp đôi: $error';
+            notifyListeners();
+          },
+        );
+      }
     } catch (e) {
       _errorMessage = 'Không thể tải thông tin cặp đôi: $e';
       _couple = null;
@@ -134,6 +153,8 @@ class CoupleProvider extends ChangeNotifier {
 
     try {
       final updatedUser = await _coupleService.resetCouple(currentUser: currentUser);
+      await _coupleSubscription?.cancel();
+      _coupleSubscription = null;
       _couple = null;
       notifyListeners();
       return updatedUser;
@@ -160,6 +181,12 @@ class CoupleProvider extends ChangeNotifier {
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _coupleSubscription?.cancel();
+    super.dispose();
   }
 }
 

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -13,6 +12,7 @@ import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
+import '../widgets/shared_couple_photo_view.dart';
 import 'setup_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -26,6 +26,8 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: Consumer2<CoupleProvider, PhotoProvider>(
         builder: (context, coupleProvider, photoProvider, _) {
+          final currentUser = context.watch<AuthProvider>().currentUser;
+
           if (coupleProvider.couple == null) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -68,6 +70,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 18),
                     _buildProfileDetailsSection(
                       couple: couple,
+                      inviteCode: currentUser?.inviteCode,
                       photoCount: photoCount,
                       totalDays: totalDays,
                       daysUntilAnniversary: daysUntilAnniversary,
@@ -133,9 +136,6 @@ class ProfileScreen extends StatelessWidget {
     required int totalDays,
     required int daysUntilAnniversary,
   }) {
-    final photoPath = couple.couplePhotoPath;
-    final hasPhoto = photoPath != null && photoPath.isNotEmpty && File(photoPath).existsSync();
-
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(32),
@@ -158,13 +158,15 @@ class ProfileScreen extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: hasPhoto
+              child: (couple.couplePhotoPath?.trim().isNotEmpty == true ||
+                      couple.couplePhotoUrl?.trim().isNotEmpty == true)
                   ? Transform.scale(
                       scale: 1.04,
                       child: ImageFiltered(
                         imageFilter: ImageFilter.blur(sigmaX: 0.6, sigmaY: 0.6),
-                        child: Image.file(
-                          File(photoPath),
+                        child: SharedCouplePhotoView(
+                          localPath: couple.couplePhotoPath,
+                          remoteUrl: couple.couplePhotoUrl,
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -434,6 +436,7 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildProfileDetailsSection({
     required Couple couple,
+    required String? inviteCode,
     required int photoCount,
     required int totalDays,
     required int daysUntilAnniversary,
@@ -449,12 +452,12 @@ class ProfileScreen extends StatelessWidget {
             value: _formatDate(couple.anniversaryDate),
             tint: AppColors.accentRose,
           ),
-          if (couple.inviteCode.trim().isNotEmpty) ...[
+          if (inviteCode != null && inviteCode.trim().isNotEmpty) ...[
             const SizedBox(height: 12),
             _buildDetailTile(
               icon: Icons.password_rounded,
-              title: couple.isWaitingForPartner ? 'Mã kết nối' : 'Mã ghép cặp',
-              value: couple.inviteCode,
+              title: 'Mã mời tài khoản của bạn',
+              value: inviteCode,
               tint: AppColors.warning,
             ),
           ],
@@ -880,9 +883,6 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildAvatarBadge(Couple couple) {
-    final photoPath = couple.couplePhotoPath;
-    final hasPhoto = photoPath != null && photoPath.isNotEmpty && File(photoPath).existsSync();
-
     return Container(
       width: 72,
       height: 72,
@@ -908,21 +908,24 @@ class ProfileScreen extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(3),
         child: ClipOval(
-          child: hasPhoto
-              ? Image.file(File(photoPath), fit: BoxFit.cover)
-              : Container(
-                  decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-                  child: Center(
-                    child: Text(
-                      _initials(couple),
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+          child: SharedCouplePhotoView(
+            localPath: couple.couplePhotoPath,
+            remoteUrl: couple.couplePhotoUrl,
+            fit: BoxFit.cover,
+            placeholder: Container(
+              decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+              child: Center(
+                child: Text(
+                  _initials(couple),
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -998,6 +1001,7 @@ class ProfileScreen extends StatelessWidget {
                     currentUser: currentUser,
                   );
               await authProvider.updateCurrentUser(updatedUser);
+              await context.read<PhotoProvider>().syncForUser(updatedUser);
 
               if (!context.mounted) {
                 return;

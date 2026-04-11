@@ -91,6 +91,18 @@ class StorageService {
     return [];
   }
 
+  static Future<void> clearPhotos() async {
+    try {
+      final appDir = await _appDir;
+      final file = File('${appDir.path}/$_photosFileName');
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      print('Error clearing photos data: $e');
+    }
+  }
+
   // Save photo file
   static Future<String?> savePhotoFile(String sourcePath) async {
     try {

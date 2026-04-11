@@ -36,6 +36,7 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
     }
 
     if (!authProvider.isAuthenticated) {
+      await photoProvider.clearForSignOut();
       navigator.pushReplacementNamed(AppRoutes.login);
       return;
     }
@@ -45,7 +46,9 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
     final hasCoupleData = currentUser?.hasCouple == true && coupleProvider.hasCoupleData;
 
     if (hasCoupleData) {
-      await photoProvider.loadPhotos();
+      await photoProvider.syncForUser(currentUser);
+    } else {
+      await photoProvider.clearForSignOut();
     }
 
     if (!mounted) {
