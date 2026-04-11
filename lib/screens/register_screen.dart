@@ -253,112 +253,120 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 18),
-            TextFormField(
-              controller: _displayNameController,
-              textInputAction: TextInputAction.next,
-              decoration: _buildInputDecoration(
-                label: 'Tên hiển thị',
-                hint: 'Ví dụ: Bé iu',
-                icon: Icons.badge_rounded,
+            _buildFieldBlock(
+              label: 'Tên hiển thị',
+              child: TextFormField(
+                controller: _displayNameController,
+                textInputAction: TextInputAction.next,
+                decoration: _buildInputDecoration(
+                  hint: 'Ví dụ: Bé iu',
+                  icon: Icons.badge_rounded,
+                ),
+                validator: (value) {
+                  final text = value?.trim() ?? '';
+                  if (text.isEmpty) {
+                    return 'Vui lòng nhập tên hiển thị';
+                  }
+                  if (text.length < 2) {
+                    return 'Tên hiển thị quá ngắn';
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                final text = value?.trim() ?? '';
-                if (text.isEmpty) {
-                  return 'Vui lòng nhập tên hiển thị';
-                }
-                if (text.length < 2) {
-                  return 'Tên hiển thị quá ngắn';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 14),
-            TextFormField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              decoration: _buildInputDecoration(
-                label: 'Email',
-                hint: 'ban@example.com',
-                icon: Icons.email_rounded,
+            _buildFieldBlock(
+              label: 'Email',
+              child: TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                decoration: _buildInputDecoration(
+                  hint: 'ban@example.com',
+                  icon: Icons.email_rounded,
+                ),
+                validator: (value) {
+                  final text = value?.trim() ?? '';
+                  if (text.isEmpty) {
+                    return 'Vui lòng nhập email';
+                  }
+                  if (!text.contains('@')) {
+                    return 'Email chưa hợp lệ';
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                final text = value?.trim() ?? '';
-                if (text.isEmpty) {
-                  return 'Vui lòng nhập email';
-                }
-                if (!text.contains('@')) {
-                  return 'Email chưa hợp lệ';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 14),
-            TextFormField(
-              controller: _passwordController,
-              obscureText: _obscurePassword,
-              textInputAction: TextInputAction.next,
-              decoration: _buildInputDecoration(
-                label: 'Mật khẩu',
-                hint: 'Tối thiểu 6 ký tự',
-                icon: Icons.password_rounded,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_rounded
-                        : Icons.visibility_off_rounded,
-                    color: AppColors.textSecondary,
+            _buildFieldBlock(
+              label: 'Mật khẩu',
+              child: TextFormField(
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                textInputAction: TextInputAction.next,
+                decoration: _buildInputDecoration(
+                  hint: 'Tối thiểu 6 ký tự',
+                  icon: Icons.password_rounded,
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() => _obscurePassword = !_obscurePassword);
+                    },
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_rounded
+                          : Icons.visibility_off_rounded,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
+                validator: (value) {
+                  final text = value?.trim() ?? '';
+                  if (text.isEmpty) {
+                    return 'Vui lòng nhập mật khẩu';
+                  }
+                  if (text.length < 6) {
+                    return 'Mật khẩu cần ít nhất 6 ký tự';
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                final text = value?.trim() ?? '';
-                if (text.isEmpty) {
-                  return 'Vui lòng nhập mật khẩu';
-                }
-                if (text.length < 6) {
-                  return 'Mật khẩu cần ít nhất 6 ký tự';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 14),
-            TextFormField(
-              controller: _confirmPasswordController,
-              obscureText: _obscureConfirmPassword,
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) => _submit(),
-              decoration: _buildInputDecoration(
-                label: 'Nhập lại mật khẩu',
-                hint: 'Nhập giống phía trên',
-                icon: Icons.verified_user_rounded,
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(
-                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                    );
-                  },
-                  icon: Icon(
-                    _obscureConfirmPassword
-                        ? Icons.visibility_rounded
-                        : Icons.visibility_off_rounded,
-                    color: AppColors.textSecondary,
+            _buildFieldBlock(
+              label: 'Nhập lại mật khẩu',
+              child: TextFormField(
+                controller: _confirmPasswordController,
+                obscureText: _obscureConfirmPassword,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submit(),
+                decoration: _buildInputDecoration(
+                  hint: 'Nhập giống phía trên',
+                  icon: Icons.verified_user_rounded,
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(
+                        () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                      );
+                    },
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility_rounded
+                          : Icons.visibility_off_rounded,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
+                validator: (value) {
+                  final text = value?.trim() ?? '';
+                  if (text.isEmpty) {
+                    return 'Vui lòng nhập lại mật khẩu';
+                  }
+                  if (text != _passwordController.text.trim()) {
+                    return 'Mật khẩu xác nhận chưa khớp';
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                final text = value?.trim() ?? '';
-                if (text.isEmpty) {
-                  return 'Vui lòng nhập lại mật khẩu';
-                }
-                if (text != _passwordController.text.trim()) {
-                  return 'Mật khẩu xác nhận chưa khớp';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -416,19 +424,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  InputDecoration _buildInputDecoration({
+  Widget _buildFieldBlock({
     required String label,
+    required Widget child,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.accentRose,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        child,
+      ],
+    );
+  }
+
+  InputDecoration _buildInputDecoration({
     required String hint,
     required IconData icon,
     Widget? suffixIcon,
   }) {
     return InputDecoration(
-      labelText: label,
       hintText: hint,
+      floatingLabelBehavior: FloatingLabelBehavior.never,
       prefixIcon: Icon(icon, color: AppColors.accentRose),
       suffixIcon: suffixIcon,
       filled: true,
       fillColor: AppColors.white.withValues(alpha: 0.92),
+      hintStyle: const TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+      ),
+      errorMaxLines: 2,
+      errorStyle: const TextStyle(
+        fontSize: 12,
+        height: 1.35,
+        fontWeight: FontWeight.w500,
+      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide.none,

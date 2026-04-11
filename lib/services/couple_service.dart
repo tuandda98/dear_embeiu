@@ -26,11 +26,13 @@ class CoupleActionResult {
     required this.couple,
     required this.updatedUser,
     this.message,
+    this.warningMessage,
   });
 
   final Couple couple;
   final AppUser updatedUser;
   final String? message;
+  final String? warningMessage;
 }
 
 class CoupleService {
@@ -116,19 +118,11 @@ class CoupleService {
 
     final now = DateTime.now();
     final coupleId = isUsingFirebase ? _couplesCollection.doc().id : _uuid.v4();
-    final photoSync = await _syncCouplePhoto(
-      coupleId: coupleId,
-      sourcePath: photoPath,
-    );
-
-    final couple = Couple(
+    final baseCouple = Couple(
       id: coupleId,
       person1Name: person1Name.trim(),
       person2Name: person2Name.trim(),
       anniversaryDate: anniversaryDate,
-      couplePhotoPath: photoSync.localPath,
-      couplePhotoUrl: photoSync.remoteUrl,
-      couplePhotoStoragePath: photoSync.storagePath,
       inviteCode: currentUser.inviteCode,
       memberIds: [currentUser.id],
       memberCount: 1,
@@ -139,15 +133,45 @@ class CoupleService {
     );
 
     final updatedUser = currentUser.copyWith(
-      coupleId: couple.id,
+      coupleId: baseCouple.id,
       status: 'waiting_partner',
       updatedAt: now,
       lastSeenAt: now,
     );
 
     if (isUsingFirebase) {
-      await _couplesCollection.doc(couple.id).set(couple.toFirestore());
-      await _userService.updateUserProfile(updatedUser);
+      try {
+        await _couplesCollection.doc(baseCouple.id).set(baseCouple.toFirestore());
+        await _userService.updateUserProfile(updatedUser);
+      } on FirebaseException catch (e) {
+        throw CoupleException(_mapFirebaseError(e));
+      }
+    }
+
+    final photoAttempt = await _syncCouplePhoto(
+      coupleId: coupleId,
+      sourcePath: photoPath,
+      existingCouple: baseCouple,
+    );
+
+    final couple = baseCouple.copyWith(
+      couplePhotoPath: photoAttempt.result.localPath,
+      couplePhotoUrl: photoAttempt.result.remoteUrl,
+      couplePhotoStoragePath: photoAttempt.result.storagePath,
+      updatedAt: photoAttempt.warningMessage == null && photoPath?.trim().isNotEmpty == true
+          ? DateTime.now()
+          : baseCouple.updatedAt,
+    );
+
+    if (isUsingFirebase && _hasRemotePhotoChanges(baseCouple, couple)) {
+      try {
+        await _couplesCollection.doc(couple.id).set(
+              couple.toFirestore(),
+              SetOptions(merge: true),
+            );
+      } on FirebaseException catch (e) {
+        throw CoupleException(_mapFirebaseError(e));
+      }
     }
 
     await StorageService.saveCouple(couple);
@@ -155,7 +179,7 @@ class CoupleService {
     return CoupleActionResult(
       couple: couple,
       updatedUser: updatedUser,
-      message: 'Mã mời tài khoản của bạn là ${updatedUser.inviteCode}',
+      warningMessage: photoAttempt.warningMessage,
     );
   }
 
@@ -168,7 +192,7 @@ class CoupleService {
     String? photoPath,
   }) async {
     final now = DateTime.now();
-    final photoSync = await _syncCouplePhoto(
+    final photoAttempt = await _syncCouplePhoto(
       coupleId: existingCouple.id,
       sourcePath: photoPath,
       existingCouple: existingCouple,
@@ -178,17 +202,21 @@ class CoupleService {
       person1Name: person1Name.trim(),
       person2Name: person2Name.trim(),
       anniversaryDate: anniversaryDate,
-      couplePhotoPath: photoSync.localPath,
-      couplePhotoUrl: photoSync.remoteUrl,
-      couplePhotoStoragePath: photoSync.storagePath,
+      couplePhotoPath: photoAttempt.result.localPath,
+      couplePhotoUrl: photoAttempt.result.remoteUrl,
+      couplePhotoStoragePath: photoAttempt.result.storagePath,
       updatedAt: now,
     );
 
     if (isUsingFirebase && updatedCouple.id.isNotEmpty) {
-      await _couplesCollection.doc(updatedCouple.id).set(
-            updatedCouple.toFirestore(),
-            SetOptions(merge: true),
-          );
+      try {
+        await _couplesCollection.doc(updatedCouple.id).set(
+              updatedCouple.toFirestore(),
+              SetOptions(merge: true),
+            );
+      } on FirebaseException catch (e) {
+        throw CoupleException(_mapFirebaseError(e));
+      }
     }
 
     await StorageService.saveCouple(updatedCouple);
@@ -197,6 +225,7 @@ class CoupleService {
       couple: updatedCouple,
       updatedUser: currentUser.copyWith(updatedAt: now, lastSeenAt: now),
       message: 'Đã cập nhật thông tin cặp đôi.',
+      warningMessage: photoAttempt.warningMessage,
     );
   }
 
@@ -398,36 +427,42 @@ class CoupleService {
     return updatedUser;
   }
 
-  Future<CouplePhotoSyncResult> _syncCouplePhoto({
+  Future<CouplePhotoSyncAttempt> _syncCouplePhoto({
     required String coupleId,
     String? sourcePath,
     Couple? existingCouple,
   }) async {
     final trimmedPath = sourcePath?.trim();
     if (trimmedPath == null || trimmedPath.isEmpty) {
-      return CouplePhotoSyncResult(
-        localPath: existingCouple?.couplePhotoPath,
-        remoteUrl: existingCouple?.couplePhotoUrl,
-        storagePath: existingCouple?.couplePhotoStoragePath,
+      return CouplePhotoSyncAttempt(
+        result: CouplePhotoSyncResult(
+          localPath: existingCouple?.couplePhotoPath,
+          remoteUrl: existingCouple?.couplePhotoUrl,
+          storagePath: existingCouple?.couplePhotoStoragePath,
+        ),
       );
     }
 
     final file = File(trimmedPath);
     if (!await file.exists()) {
-      return CouplePhotoSyncResult(
-        localPath: existingCouple?.couplePhotoPath ?? trimmedPath,
-        remoteUrl: existingCouple?.couplePhotoUrl,
-        storagePath: existingCouple?.couplePhotoStoragePath,
+      return CouplePhotoSyncAttempt(
+        result: CouplePhotoSyncResult(
+          localPath: existingCouple?.couplePhotoPath ?? trimmedPath,
+          remoteUrl: existingCouple?.couplePhotoUrl,
+          storagePath: existingCouple?.couplePhotoStoragePath,
+        ),
       );
     }
 
     final savedPath = await StorageService.savePhotoFile(trimmedPath);
 
     if (!isUsingFirebase) {
-      return CouplePhotoSyncResult(
-        localPath: savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
-        remoteUrl: existingCouple?.couplePhotoUrl,
-        storagePath: existingCouple?.couplePhotoStoragePath,
+      return CouplePhotoSyncAttempt(
+        result: CouplePhotoSyncResult(
+          localPath: savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
+          remoteUrl: existingCouple?.couplePhotoUrl,
+          storagePath: existingCouple?.couplePhotoStoragePath,
+        ),
       );
     }
 
@@ -436,23 +471,70 @@ class CoupleService {
         trimmedPath == existingCouple.couplePhotoPath &&
         existingCouple.couplePhotoUrl?.trim().isNotEmpty == true;
     if (shouldReuseRemote) {
-      return CouplePhotoSyncResult(
-        localPath: savedPath ?? existingCouple.couplePhotoPath,
-        remoteUrl: existingCouple.couplePhotoUrl,
-        storagePath: existingCouple.couplePhotoStoragePath,
+      return CouplePhotoSyncAttempt(
+        result: CouplePhotoSyncResult(
+          localPath: savedPath ?? existingCouple.couplePhotoPath,
+          remoteUrl: existingCouple.couplePhotoUrl,
+          storagePath: existingCouple.couplePhotoStoragePath,
+        ),
       );
     }
 
     final extension = _guessFileExtension(trimmedPath);
     final storagePath = 'couple_photos/$coupleId/cover_$coupleId$extension';
-    final uploadTask = await _bucket.ref(storagePath).putFile(file);
-    final remoteUrl = await uploadTask.ref.getDownloadURL();
+    try {
+      final uploadTask = await _bucket.ref(storagePath).putFile(file);
+      final remoteUrl = await uploadTask.ref.getDownloadURL();
 
-    return CouplePhotoSyncResult(
-      localPath: savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
-      remoteUrl: remoteUrl,
-      storagePath: storagePath,
-    );
+      return CouplePhotoSyncAttempt(
+        result: CouplePhotoSyncResult(
+          localPath: savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
+          remoteUrl: remoteUrl,
+          storagePath: storagePath,
+        ),
+      );
+    } on FirebaseException catch (e) {
+      return CouplePhotoSyncAttempt(
+        result: CouplePhotoSyncResult(
+          localPath: savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
+          remoteUrl: existingCouple?.couplePhotoUrl,
+          storagePath: existingCouple?.couplePhotoStoragePath,
+        ),
+        warningMessage: _mapPhotoSyncError(e),
+      );
+    }
+  }
+
+  bool _hasRemotePhotoChanges(Couple previous, Couple next) {
+    return previous.couplePhotoUrl != next.couplePhotoUrl ||
+        previous.couplePhotoStoragePath != next.couplePhotoStoragePath;
+  }
+
+  String _mapFirebaseError(FirebaseException exception) {
+    switch (exception.code) {
+      case 'permission-denied':
+        return 'Firestore đang chặn thao tác với dữ liệu cặp đôi. Bạn cần deploy `firestore.rules` mới lên Firebase rồi thử lại.';
+      case 'unauthenticated':
+        return 'Phiên đăng nhập Firebase không còn hợp lệ. Bạn đăng nhập lại giúp mình nhé.';
+      case 'unavailable':
+        return 'Firebase hiện chưa khả dụng hoặc mạng chưa ổn định. Bạn thử lại sau ít phút nhé.';
+      default:
+        return exception.message ?? 'Không thể lưu thông tin cặp đôi lúc này.';
+    }
+  }
+
+  String _mapPhotoSyncError(FirebaseException exception) {
+    switch (exception.code) {
+      case 'unauthorized':
+      case 'permission-denied':
+        return 'Ảnh đôi chưa upload được lên Firebase Storage. Mình vẫn lưu thông tin cặp đôi trước, bạn deploy `storage.rules` rồi thử đổi ảnh lại sau nhé.';
+      case 'unauthenticated':
+        return 'Ảnh đôi chưa upload được vì phiên đăng nhập Firebase không còn hợp lệ.';
+      case 'unavailable':
+        return 'Ảnh đôi chưa upload được vì Firebase Storage hoặc mạng đang tạm thời không ổn định.';
+      default:
+        return exception.message ?? 'Ảnh đôi chưa upload được lên Firebase Storage.';
+    }
   }
 
   Future<Couple> _mergeWithLocalCouple(Couple remoteCouple) async {
@@ -505,5 +587,15 @@ class CouplePhotoSyncResult {
   final String? localPath;
   final String? remoteUrl;
   final String? storagePath;
+}
+
+class CouplePhotoSyncAttempt {
+  const CouplePhotoSyncAttempt({
+    required this.result,
+    this.warningMessage,
+  });
+
+  final CouplePhotoSyncResult result;
+  final String? warningMessage;
 }
 

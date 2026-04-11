@@ -148,8 +148,11 @@ class _SetupScreenState extends State<SetupScreen> {
 
       if (!isEditing) {
         await _showInviteCodeDialog(result.updatedUser.inviteCode);
+        if (result.warningMessage != null && mounted) {
+          _showSnack(result.warningMessage!);
+        }
       } else {
-        _showSnack(result.message ?? 'Đã cập nhật thông tin cặp đôi.');
+        _showSnack(_resolveCoupleResultMessage(result));
       }
 
       if (navigator.canPop()) {
@@ -257,6 +260,14 @@ class _SetupScreenState extends State<SetupScreen> {
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  String _resolveCoupleResultMessage(CoupleActionResult result) {
+    if (result.warningMessage != null && result.message != null) {
+      return '${result.message}\n${result.warningMessage}';
+    }
+
+    return result.warningMessage ?? result.message ?? 'Đã cập nhật thông tin cặp đôi.';
   }
 
   String _formatDate(DateTime date) {
@@ -585,104 +596,120 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          TextField(
-            controller: _person1Controller,
-            decoration: _inputDecoration(
-              label: 'Tên người thứ nhất',
-              hint: 'Ví dụ: Anh',
-              icon: Icons.person_rounded,
-            ),
-          ),
-          const SizedBox(height: 14),
-          TextField(
-            controller: _person2Controller,
-            decoration: _inputDecoration(
-              label: 'Tên người thứ hai',
-              hint: 'Ví dụ: Em',
-              icon: Icons.favorite_rounded,
-            ),
-          ),
-          const SizedBox(height: 14),
-          InkWell(
-            onTap: _pickDate,
-            borderRadius: BorderRadius.circular(20),
-            child: Ink(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.92),
-                borderRadius: BorderRadius.circular(20),
+          _buildFieldBlock(
+            label: 'Tên người thứ nhất',
+            child: TextField(
+              controller: _person1Controller,
+              decoration: _inputDecoration(
+                hint: 'Ví dụ: Anh',
+                icon: Icons.person_rounded,
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.calendar_month_rounded, color: AppColors.accentCoral),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      _selectedDate == null
-                          ? 'Chọn ngày yêu nhau'
-                          : _formatDate(_selectedDate!),
-                      style: TextStyle(
-                        color: _selectedDate == null
-                            ? AppColors.textSecondary
-                            : AppColors.textPrimary,
-                        fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 14),
+          _buildFieldBlock(
+            label: 'Tên người thứ hai',
+            child: TextField(
+              controller: _person2Controller,
+              decoration: _inputDecoration(
+                hint: 'Ví dụ: Em',
+                icon: Icons.favorite_rounded,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          _buildFieldBlock(
+            label: 'Ngày yêu nhau',
+            child: InkWell(
+              onTap: _pickDate,
+              borderRadius: BorderRadius.circular(20),
+              child: Ink(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_month_rounded, color: AppColors.accentCoral),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _selectedDate == null
+                            ? 'Chọn ngày yêu nhau'
+                            : _formatDate(_selectedDate!),
+                        style: TextStyle(
+                          color: _selectedDate == null
+                              ? AppColors.textSecondary
+                              : AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                  const Icon(Icons.chevron_right_rounded),
-                ],
+                    const Icon(Icons.chevron_right_rounded),
+                  ],
+                ),
               ),
             ),
           ),
           const SizedBox(height: 14),
-          InkWell(
-            onTap: _pickPhoto,
-            borderRadius: BorderRadius.circular(20),
-            child: Ink(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.92),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.image_rounded, color: AppColors.info),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          hasPhoto ? 'Đã chọn ảnh đôi' : 'Chọn ảnh đôi (tuỳ chọn)',
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w700,
+          _buildFieldBlock(
+            label: 'Ảnh đôi',
+            child: InkWell(
+              onTap: _pickPhoto,
+              borderRadius: BorderRadius.circular(20),
+              child: Ink(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.image_rounded, color: AppColors.info),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            hasPhoto ? 'Đã chọn ảnh đôi' : 'Chọn ảnh đôi (tuỳ chọn)',
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
+                        ),
+                      ],
+                    ),
+                    if (hasPhoto || hasSyncedPhoto) ...[
+                      const SizedBox(height: 14),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: SizedBox(
+                          height: 180,
+                          width: double.infinity,
+                          child: hasPhoto
+                              ? Image.file(
+                                  File(_couplePhotoPath!),
+                                  fit: BoxFit.cover,
+                                )
+                              : SharedCouplePhotoView(
+                                  localPath: existingCouple?.couplePhotoPath,
+                                  remoteUrl: existingCouple?.couplePhotoUrl,
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                       ),
                     ],
-                  ),
-                  if (hasPhoto || hasSyncedPhoto) ...[
-                    const SizedBox(height: 14),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
-                      child: SizedBox(
-                        height: 180,
-                        width: double.infinity,
-                        child: hasPhoto
-                            ? Image.file(
-                                File(_couplePhotoPath!),
-                                fit: BoxFit.cover,
-                              )
-                            : SharedCouplePhotoView(
-                                localPath: existingCouple?.couplePhotoPath,
-                                remoteUrl: existingCouple?.couplePhotoUrl,
-                                fit: BoxFit.cover,
-                              ),
-                      ),
-                    ),
                   ],
-                ],
+                ),
               ),
             ),
           ),
@@ -754,13 +781,15 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          TextField(
-            controller: _inviteCodeController,
-            textCapitalization: TextCapitalization.characters,
-            decoration: _inputDecoration(
-              label: 'Mã mời của người ấy',
-              hint: 'Ví dụ: A7B9KD',
-              icon: Icons.password_rounded,
+          _buildFieldBlock(
+            label: 'Mã mời của người ấy',
+            child: TextField(
+              controller: _inviteCodeController,
+              textCapitalization: TextCapitalization.characters,
+              decoration: _inputDecoration(
+                hint: 'Ví dụ: A7B9KD',
+                icon: Icons.password_rounded,
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -797,17 +826,42 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-  InputDecoration _inputDecoration({
+  Widget _buildFieldBlock({
     required String label,
+    required Widget child,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.accentRose,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        child,
+      ],
+    );
+  }
+
+  InputDecoration _inputDecoration({
     required String hint,
     required IconData icon,
   }) {
     return InputDecoration(
-      labelText: label,
       hintText: hint,
+      floatingLabelBehavior: FloatingLabelBehavior.never,
       prefixIcon: Icon(icon, color: AppColors.accentRose),
       filled: true,
       fillColor: AppColors.white.withValues(alpha: 0.92),
+      hintStyle: const TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide.none,
