@@ -15,11 +15,13 @@ class CoupleProvider extends ChangeNotifier {
   Couple? _couple;
   StreamSubscription<Couple?>? _coupleSubscription;
   bool _isLoading = false;
+  String? _loadingMessage;
   String? _errorMessage;
 
   Couple? get couple => _couple;
   bool get hasCoupleData => _couple != null;
   bool get isLoading => _isLoading;
+  String? get loadingMessage => _loadingMessage;
   String? get errorMessage => _errorMessage;
 
   Future<void> loadCoupleForUser(AppUser? currentUser) async {
@@ -32,7 +34,7 @@ class CoupleProvider extends ChangeNotifier {
       return;
     }
 
-    _setLoading(true);
+    _setLoading(true, message: 'Đang tải thông tin cặp đôi...');
     _clearError(notify: false);
 
     try {
@@ -65,7 +67,7 @@ class CoupleProvider extends ChangeNotifier {
     required DateTime anniversary,
     String? photoPath,
   }) async {
-    _setLoading(true);
+    _setLoading(true, message: 'Đang lưu không gian cặp đôi...');
     _clearError(notify: false);
 
     try {
@@ -92,7 +94,7 @@ class CoupleProvider extends ChangeNotifier {
     required AppUser currentUser,
     required String inviteCode,
   }) async {
-    _setLoading(true);
+    _setLoading(true, message: 'Đang kết nối couple...');
     _clearError(notify: false);
 
     try {
@@ -124,7 +126,7 @@ class CoupleProvider extends ChangeNotifier {
       throw const CoupleException('Chưa có dữ liệu cặp đôi để cập nhật.');
     }
 
-    _setLoading(true);
+    _setLoading(true, message: 'Đang cập nhật thông tin cặp đôi...');
     _clearError(notify: false);
 
     try {
@@ -149,7 +151,7 @@ class CoupleProvider extends ChangeNotifier {
   }
 
   Future<AppUser> leaveCouple({required AppUser currentUser}) async {
-    _setLoading(true);
+    _setLoading(true, message: 'Đang rời khỏi couple...');
     _clearError(notify: false);
 
     try {
@@ -184,8 +186,9 @@ class CoupleProvider extends ChangeNotifier {
     }
   }
 
-  void _setLoading(bool value) {
+  void _setLoading(bool value, {String? message}) {
     _isLoading = value;
+    _loadingMessage = value ? (message ?? _loadingMessage) : null;
     notifyListeners();
   }
 

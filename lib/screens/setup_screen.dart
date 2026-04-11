@@ -12,6 +12,7 @@ import '../models/couple.dart';
 import '../services/couple_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/shared_couple_photo_view.dart';
 
 enum _SetupMode { create, join }
@@ -280,48 +281,57 @@ class _SetupScreenState extends State<SetupScreen> {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final coupleProvider = context.watch<CoupleProvider>();
+    final photoProvider = context.watch<PhotoProvider>();
     final currentUser = authProvider.currentUser;
     final existingCouple = coupleProvider.couple;
     final isEditing = currentUser?.hasCouple == true && existingCouple != null;
     final editingCouple = isEditing ? existingCouple : null;
     final hasInviteCode = currentUser?.hasInviteCode == true;
+    final isBusy = coupleProvider.isLoading || photoProvider.isLoading;
+    final loadingMessage = coupleProvider.isLoading
+        ? coupleProvider.loadingMessage
+        : photoProvider.loadingMessage;
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(authProvider, coupleProvider, isEditing),
-                    const SizedBox(height: 24),
-                    if (hasInviteCode) ...[
-                      _buildInviteCard(
-                        inviteCode: currentUser!.inviteCode,
-                        hasCreatedCoupleSpace: currentUser.hasCouple,
-                        isWaitingForPartner: editingCouple?.isWaitingForPartner ?? false,
-                      ),
-                      const SizedBox(height: 16),
+      body: BlockingLoadingOverlay(
+        isVisible: isBusy,
+        message: loadingMessage,
+        child: Container(
+          decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
+          child: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(authProvider, coupleProvider, isEditing),
+                      const SizedBox(height: 24),
+                      if (hasInviteCode) ...[
+                        _buildInviteCard(
+                          inviteCode: currentUser!.inviteCode,
+                          hasCreatedCoupleSpace: currentUser.hasCouple,
+                          isWaitingForPartner: editingCouple?.isWaitingForPartner ?? false,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      if (!isEditing) _buildModeSelector(),
+                      if (!isEditing) const SizedBox(height: 16),
+                      if (isEditing || _mode == _SetupMode.create)
+                        _buildCreateCard(
+                          existingCouple: editingCouple,
+                          isEditing: isEditing,
+                          isLoading: coupleProvider.isLoading,
+                        )
+                      else
+                        _buildJoinCard(
+                          authProvider: authProvider,
+                          isLoading: coupleProvider.isLoading,
+                        ),
                     ],
-                    if (!isEditing) _buildModeSelector(),
-                    if (!isEditing) const SizedBox(height: 16),
-                    if (isEditing || _mode == _SetupMode.create)
-                      _buildCreateCard(
-                        existingCouple: editingCouple,
-                        isEditing: isEditing,
-                        isLoading: coupleProvider.isLoading,
-                      )
-                    else
-                      _buildJoinCard(
-                        authProvider: authProvider,
-                        isLoading: coupleProvider.isLoading,
-                      ),
-                  ],
+                  ),
                 ),
               ),
             ),

@@ -15,6 +15,7 @@ import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
+import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/shared_photo_view.dart';
 
@@ -677,7 +678,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             children: [
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: _pickAndAddPhoto,
+                  onPressed: context.watch<PhotoProvider>().isLoading ? null : _pickAndAddPhoto,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.accentRose,
                     foregroundColor: AppColors.white,
@@ -693,7 +694,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: _pickMultiplePhotos,
+                  onPressed: context.watch<PhotoProvider>().isLoading ? null : _pickMultiplePhotos,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.textPrimary,
                     side: BorderSide(
@@ -800,7 +801,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             const SizedBox(width: 8),
             IconButton.filled(
-              onPressed: _pickAndAddPhoto,
+              onPressed: context.watch<PhotoProvider>().isLoading ? null : _pickAndAddPhoto,
               style: IconButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
@@ -810,7 +811,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             const SizedBox(width: 8),
             IconButton.filledTonal(
-              onPressed: _pickMultiplePhotos,
+              onPressed: context.watch<PhotoProvider>().isLoading ? null : _pickMultiplePhotos,
               style: IconButton.styleFrom(
                 backgroundColor: AppColors.accentCoral.withValues(alpha: 0.14),
                 foregroundColor: AppColors.accentCoral,
@@ -1322,7 +1323,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               ),
               const SizedBox(height: 22),
               FilledButton.icon(
-                onPressed: _pickAndAddPhoto,
+                onPressed: context.watch<PhotoProvider>().isLoading ? null : _pickAndAddPhoto,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accentRose,
                   foregroundColor: AppColors.white,
@@ -1350,51 +1351,55 @@ class _GalleryScreenState extends State<GalleryScreen> {
           final photos = photoProvider.sortedPhotos;
           final couple = coupleProvider.couple;
 
-          return Container(
-            decoration: const BoxDecoration(
-              gradient: AppColors.secondaryGradient,
-            ),
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverPersistentHeader(
-                  floating: false,
-                  pinned: true,
-                  delegate: _GalleryFloatingShowcaseHeaderDelegate(
-                    minHeaderExtent: _floatingTopShowcaseMinHeight,
-                    maxHeaderExtent: _floatingTopShowcaseMaxHeight,
-                    compactChild: _buildCompactTopShowcase(couple, photos.length),
-                    expandedChild: _buildFloatingTopShowcase(couple, photos.length),
-                  ),
-                ),
-                if (photos.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 24, 0, 18),
-                      child: _buildStoryStripSection(couple, photos),
+          return BlockingLoadingOverlay(
+            isVisible: photoProvider.isLoading,
+            message: photoProvider.loadingMessage,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.secondaryGradient,
+              ),
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverPersistentHeader(
+                    floating: false,
+                    pinned: true,
+                    delegate: _GalleryFloatingShowcaseHeaderDelegate(
+                      minHeaderExtent: _floatingTopShowcaseMinHeight,
+                      maxHeaderExtent: _floatingTopShowcaseMaxHeight,
+                      compactChild: _buildCompactTopShowcase(couple, photos.length),
+                      expandedChild: _buildFloatingTopShowcase(couple, photos.length),
                     ),
                   ),
-                if (photos.isEmpty)
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _buildEmptyFeedState(couple),
-                  )
-                else
-                  SliverPadding(
-                    padding: EdgeInsets.fromLTRB(
-                      16,
-                      0,
-                      16,
-                      widget.bottomInset + 32,
+                  if (photos.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 24, 0, 18),
+                        child: _buildStoryStripSection(couple, photos),
+                      ),
                     ),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final photo = photos[index];
-                        return _buildPhotoFeedCard(couple, photo, index);
-                      }, childCount: photos.length),
+                  if (photos.isEmpty)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _buildEmptyFeedState(couple),
+                    )
+                  else
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        0,
+                        16,
+                        widget.bottomInset + 32,
+                      ),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final photo = photos[index];
+                          return _buildPhotoFeedCard(couple, photo, index);
+                        }, childCount: photos.length),
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           );
         },

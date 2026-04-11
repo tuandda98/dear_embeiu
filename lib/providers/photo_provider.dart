@@ -16,11 +16,13 @@ class PhotoProvider extends ChangeNotifier {
   StreamSubscription<List<Photo>>? _photoSubscription;
   AppUser? _currentUser;
   bool _isLoading = false;
+  String? _loadingMessage;
   String? _errorMessage;
 
   List<Photo> get photos => _photos;
   List<Photo> get sortedPhotos => [..._photos]..sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
   bool get isLoading => _isLoading;
+  String? get loadingMessage => _loadingMessage;
   String? get errorMessage => _errorMessage;
 
   Future<void> loadPhotos({AppUser? currentUser}) async {
@@ -53,7 +55,7 @@ class PhotoProvider extends ChangeNotifier {
       return;
     }
 
-    _setLoading(true);
+    _setLoading(true, message: 'Đang đồng bộ thư viện...');
     _clearError(notify: false);
 
     _photoSubscription = _photoService.watchCouplePhotos(currentUser.coupleId!).listen(
@@ -88,7 +90,7 @@ class PhotoProvider extends ChangeNotifier {
     required AppUser currentUser,
     String? caption,
   }) async {
-    _setLoading(true);
+    _setLoading(true, message: 'Đang đăng ảnh...');
     _clearError(notify: false);
 
     try {
@@ -118,7 +120,7 @@ class PhotoProvider extends ChangeNotifier {
   }) async {
     final photo = _photos.firstWhere((p) => p.id == photoId);
 
-    _setLoading(true);
+    _setLoading(true, message: 'Đang xóa ảnh...');
     _clearError(notify: false);
 
     try {
@@ -148,7 +150,7 @@ class PhotoProvider extends ChangeNotifier {
       return;
     }
 
-    _setLoading(true);
+    _setLoading(true, message: 'Đang cập nhật chú thích...');
     _clearError(notify: false);
 
     try {
@@ -201,8 +203,9 @@ class PhotoProvider extends ChangeNotifier {
     }
   }
 
-  void _setLoading(bool value, {bool notify = true}) {
+  void _setLoading(bool value, {bool notify = true, String? message}) {
     _isLoading = value;
+    _loadingMessage = value ? (message ?? _loadingMessage) : null;
     if (notify) {
       notifyListeners();
     }
