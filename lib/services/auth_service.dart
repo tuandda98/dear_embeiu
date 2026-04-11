@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../models/app_user.dart';
 import 'firebase_bootstrap_service.dart';
+import 'storage_service.dart';
 import 'user_service.dart';
 
 class AuthException implements Exception {
@@ -260,6 +261,28 @@ class AuthService {
     }
 
     await _delete(_sessionStorageKey);
+  }
+
+  Future<void> purgePersistedSession({bool clearDeviceCache = true}) async {
+    if (_firebaseAuth != null || Firebase.apps.isNotEmpty) {
+      try {
+        await (_firebaseAuth ?? FirebaseAuth.instance).signOut();
+      } catch (_) {
+        // Ignore Firebase sign-out failures during reinstall cleanup.
+      }
+    }
+
+    _memoryFallbackStore.clear();
+
+    try {
+      await _secureStorage.deleteAll();
+    } catch (_) {
+      await clearLocalAuthData();
+    }
+
+    if (clearDeviceCache) {
+      await StorageService.clearLocalData();
+    }
   }
 
   Future<void> clearLocalAuthData() async {

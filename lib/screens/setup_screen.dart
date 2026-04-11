@@ -690,21 +690,10 @@ class _SetupScreenState extends State<SetupScreen> {
                     ),
                     if (hasPhoto || hasSyncedPhoto) ...[
                       const SizedBox(height: 14),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
-                        child: SizedBox(
-                          height: 180,
-                          width: double.infinity,
-                          child: hasPhoto
-                              ? Image.file(
-                                  File(_couplePhotoPath!),
-                                  fit: BoxFit.cover,
-                                )
-                              : SharedCouplePhotoView(
-                                  localPath: existingCouple?.couplePhotoPath,
-                                  remoteUrl: existingCouple?.couplePhotoUrl,
-                                  fit: BoxFit.cover,
-                                ),
+                      Center(
+                        child: _buildCircularPhotoPreview(
+                          hasPhoto: hasPhoto,
+                          existingCouple: existingCouple,
                         ),
                       ),
                     ],
@@ -844,6 +833,78 @@ class _SetupScreenState extends State<SetupScreen> {
         const SizedBox(height: 8),
         child,
       ],
+    );
+  }
+
+  Widget _buildCircularPhotoPreview({
+    required bool hasPhoto,
+    required Couple? existingCouple,
+  }) {
+    return Container(
+      width: 118,
+      height: 118,
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.white.withValues(alpha: 0.78),
+        border: Border.all(
+          color: AppColors.white.withValues(alpha: 0.92),
+          width: 1.4,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: AppColors.accentRose.withValues(alpha: 0.10),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ColorFiltered(
+              colorFilter: const ColorFilter.matrix([
+                1, 0, 0, 0, 10,
+                0, 1, 0, 0, 10,
+                0, 0, 1, 0, 10,
+                0, 0, 0, 1, 0,
+              ]),
+              child: hasPhoto
+                  ? Image.file(
+                      File(_couplePhotoPath!),
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    )
+                  : SharedCouplePhotoView(
+                      localPath: existingCouple?.couplePhotoPath,
+                      remoteUrl: existingCouple?.couplePhotoUrl,
+                      fit: BoxFit.cover,
+                    ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.white.withValues(alpha: 0.14),
+                    Colors.transparent,
+                    AppColors.white.withValues(alpha: 0.06),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -14,22 +14,29 @@ import 'screens/setup_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_bootstrap_service.dart';
+import 'services/install_state_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final authService = AuthService();
   await FirebaseBootstrapService.initialize();
-  runApp(const MyApp());
+  await InstallStateService().handleFreshInstall(
+    onFreshInstall: () => authService.purgePersistedSession(),
+  );
+  runApp(MyApp(authService: authService));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.authService});
+
+  final AuthService authService;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => AuthProvider(authService: AuthService()),
+          create: (_) => AuthProvider(authService: authService),
         ),
         ChangeNotifierProvider(create: (_) => CoupleProvider()),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
