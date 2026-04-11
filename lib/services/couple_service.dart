@@ -382,33 +382,38 @@ class CoupleService {
     );
   }
 
-  Future<AppUser> resetCouple({required AppUser currentUser}) async {
+  Future<AppUser> leaveCouple({required AppUser currentUser}) async {
     final now = DateTime.now();
 
     if (isUsingFirebase && currentUser.coupleId != null) {
-      final docRef = _couplesCollection.doc(currentUser.coupleId);
-      final snapshot = await docRef.get();
+      try {
+        final docRef = _couplesCollection.doc(currentUser.coupleId);
+        final snapshot = await docRef.get();
 
-      if (snapshot.exists && snapshot.data() != null) {
-        final currentCouple = Couple.fromJson({
-          'id': snapshot.id,
-          ...snapshot.data()!,
-        });
-        final remainingMembers = currentCouple.memberIds
-            .where((memberId) => memberId != currentUser.id)
-            .toList();
+        if (snapshot.exists && snapshot.data() != null) {
+          final currentCouple = Couple.fromJson({
+            'id': snapshot.id,
+            ...snapshot.data()!,
+          });
+          final remainingMembers = currentCouple.memberIds
+              .where((memberId) => memberId != currentUser.id)
+              .toList();
 
-        if (remainingMembers.isEmpty) {
-          await docRef.delete();
-        } else {
-          final updatedCouple = currentCouple.copyWith(
-            memberIds: remainingMembers,
-            memberCount: remainingMembers.length,
-            status: 'waiting_partner',
-            updatedAt: now,
-          );
-          await docRef.set(updatedCouple.toFirestore(), SetOptions(merge: true));
+          if (remainingMembers.isEmpty) {
+            await _cleanupCoupleSharedData(currentCouple);
+            await docRef.delete();
+          } else {
+            final updatedCouple = currentCouple.copyWith(
+              memberIds: remainingMembers,
+              memberCount: remainingMembers.length,
+              status: 'waiting_partner',
+              updatedAt: now,
+            );
+            await docRef.set(updatedCouple.toFirestore(), SetOptions(merge: true));
+          }
         }
+      } on FirebaseException catch (e) {
+        throw CoupleException(_mapFirebaseError(e));
       }
     }
 
@@ -425,6 +430,41 @@ class CoupleService {
 
     await StorageService.clearCouple();
     return updatedUser;
+  }
+
+  Future<void> _cleanupCoupleSharedData(Couple couple) async {
+    if (!isUsingFirebase || couple.id.trim().isEmpty) {
+      return;
+    }
+
+    await _deleteStorageObjectIfNeeded(couple.couplePhotoStoragePath);
+
+    final photosSnapshot = await _couplesCollection
+        .doc(couple.id)
+        .collection('photos')
+        .get();
+
+    for (final photoDoc in photosSnapshot.docs) {
+      final data = photoDoc.data();
+      final storagePath = (data['storagePath'] as String?)?.trim();
+      await _deleteStorageObjectIfNeeded(storagePath);
+      await photoDoc.reference.delete();
+    }
+  }
+
+  Future<void> _deleteStorageObjectIfNeeded(String? storagePath) async {
+    final normalizedPath = storagePath?.trim();
+    if (normalizedPath == null || normalizedPath.isEmpty) {
+      return;
+    }
+
+    try {
+      await _bucket.ref(normalizedPath).delete();
+    } on FirebaseException catch (e) {
+      if (e.code != 'object-not-found') {
+        rethrow;
+      }
+    }
   }
 
   Future<CouplePhotoSyncAttempt> _syncCouplePhoto({

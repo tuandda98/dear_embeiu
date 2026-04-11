@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/app_user.dart';
 import '../models/couple.dart';
 import '../services/couple_service.dart';
+import '../services/storage_service.dart';
 
 class CoupleProvider extends ChangeNotifier {
   CoupleProvider({CoupleService? coupleService})
@@ -147,12 +148,12 @@ class CoupleProvider extends ChangeNotifier {
     }
   }
 
-  Future<AppUser> resetCouple({required AppUser currentUser}) async {
+  Future<AppUser> leaveCouple({required AppUser currentUser}) async {
     _setLoading(true);
     _clearError(notify: false);
 
     try {
-      final updatedUser = await _coupleService.resetCouple(currentUser: currentUser);
+      final updatedUser = await _coupleService.leaveCouple(currentUser: currentUser);
       await _coupleSubscription?.cancel();
       _coupleSubscription = null;
       _couple = null;
@@ -165,6 +166,11 @@ class CoupleProvider extends ChangeNotifier {
     } finally {
       _setLoading(false);
     }
+  }
+
+  Future<void> clearLocalCache() async {
+    await StorageService.clearCouple();
+    notifyListeners();
   }
 
   void clearError() {

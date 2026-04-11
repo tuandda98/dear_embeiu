@@ -11,8 +11,22 @@ service firebase.storage {
         && request.auth.uid in firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.memberIds;
     }
 
+    function isSoleCoupleMember(coupleId) {
+      return isCoupleMember(coupleId)
+        && firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.memberCount == 1
+        && firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.memberIds.size() == 1
+        && firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.memberIds[0] == request.auth.uid;
+    }
+
+    function isCoverPhoto(fileName) {
+      return fileName.matches('cover_.*');
+    }
+
     match /couple_photos/{coupleId}/{fileName} {
-      allow read, write: if isCoupleMember(coupleId);
+      allow read: if isCoupleMember(coupleId);
+      allow create, update: if isCoupleMember(coupleId);
+      allow delete: if isCoupleMember(coupleId)
+        && (!isCoverPhoto(fileName) || isSoleCoupleMember(coupleId));
     }
   }
 }

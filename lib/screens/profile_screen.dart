@@ -26,7 +26,8 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: Consumer2<CoupleProvider, PhotoProvider>(
         builder: (context, coupleProvider, photoProvider, _) {
-          final currentUser = context.watch<AuthProvider>().currentUser;
+          final authProvider = context.watch<AuthProvider>();
+          final currentUser = authProvider.currentUser;
 
           if (coupleProvider.couple == null) {
             return const Center(child: CircularProgressIndicator());
@@ -78,7 +79,10 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 18),
                     _buildActionsSection(context),
                     const SizedBox(height: 18),
-                    _buildDangerZone(context),
+                    _buildDangerZone(
+                      context,
+                      isUsingFirebase: authProvider.isUsingFirebase,
+                    ),
                   ],
                 ),
               ),
@@ -576,7 +580,10 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDangerZone(BuildContext context) {
+  Widget _buildDangerZone(
+    BuildContext context, {
+    required bool isUsingFirebase,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -615,7 +622,7 @@ class ProfileScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Vùng dữ liệu nhạy cảm',
+                      'Quản lý dữ liệu',
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 16,
@@ -624,7 +631,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Hành động này sẽ xoá toàn bộ thông tin cặp đôi hiện tại.',
+                      'Một người chỉ được xóa cache trên máy này hoặc rời khỏi couple. Muốn xóa dữ liệu chung, cả hai phải cùng xác nhận.',
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 12,
@@ -637,10 +644,51 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          if (isUsingFirebase) ...[
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _showClearLocalDialog(context),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textPrimary,
+                  side: BorderSide(
+                    color: AppColors.textSecondary.withValues(alpha: 0.22),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                icon: const Icon(Icons.cleaning_services_rounded),
+                label: const Text('Xóa dữ liệu trên máy này'),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ] else
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: AppColors.warning.withValues(alpha: 0.18),
+                ),
+              ),
+              child: Text(
+                'App đang ở local fallback nên chưa hỗ trợ xóa cache riêng an toàn. Bạn có thể rời khỏi couple local hiện tại nếu muốn làm mới.',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  height: 1.45,
+                ),
+              ),
+            ),
+          if (!isUsingFirebase) const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () => _showResetDialog(context),
+              onPressed: () => _showLeaveCoupleDialog(context),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.error,
                 side: BorderSide(color: AppColors.error.withValues(alpha: 0.28)),
@@ -649,8 +697,25 @@ class ProfileScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                 ),
               ),
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Đặt lại dữ liệu'),
+              icon: const Icon(Icons.exit_to_app_rounded),
+              label: const Text('Rời khỏi couple'),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceLight.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Text(
+              'Xóa toàn bộ dữ liệu chung hiện chưa cho phép từ một phía. Ở sprint sau, mình sẽ đổi sang flow cần cả hai cùng xác nhận.',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                height: 1.45,
+              ),
             ),
           ),
         ],
@@ -974,13 +1039,58 @@ class ProfileScreen extends StatelessWidget {
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
-  void _showResetDialog(BuildContext context) {
+  void _showClearLocalDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xác nhận đặt lại'),
+        title: const Text('Xóa dữ liệu trên máy này'),
         content: const Text(
-          'Bạn có chắc muốn xóa toàn bộ dữ liệu cặp đôi hiện tại không?',
+          'Thao tác này chỉ xóa cache trên thiết bị hiện tại. Dữ liệu chung trên Firebase vẫn được giữ nguyên và sẽ tải lại khi cần.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await Future.wait([
+                context.read<CoupleProvider>().clearLocalCache(),
+                context.read<PhotoProvider>().clearLocalCache(),
+              ]);
+
+              if (!context.mounted) {
+                return;
+              }
+
+              ScaffoldMessenger.of(context)
+                ..clearSnackBars()
+                ..showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Đã xóa dữ liệu local trên máy này. Dữ liệu chung trên cloud vẫn được giữ nguyên.',
+                    ),
+                  ),
+                );
+            },
+            child: Text(
+              'Xóa local',
+              style: TextStyle(color: AppColors.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLeaveCoupleDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rời khỏi couple'),
+        content: const Text(
+          'Bạn sẽ rời khỏi không gian couple hiện tại. Người còn lại vẫn giữ dữ liệu chung. Bạn không thể xóa toàn bộ dữ liệu chung chỉ từ một phía.',
         ),
         actions: [
           TextButton(
@@ -997,7 +1107,7 @@ class ProfileScreen extends StatelessWidget {
                 return;
               }
 
-              final updatedUser = await context.read<CoupleProvider>().resetCouple(
+              final updatedUser = await context.read<CoupleProvider>().leaveCouple(
                     currentUser: currentUser,
                   );
               await authProvider.updateCurrentUser(updatedUser);
@@ -1014,7 +1124,7 @@ class ProfileScreen extends StatelessWidget {
               );
             },
             child: Text(
-              'Xóa dữ liệu',
+              'Rời khỏi couple',
               style: TextStyle(color: AppColors.error),
             ),
           ),

@@ -187,6 +187,11 @@ class PhotoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> clearLocalCache() async {
+    await StorageService.clearPhotos();
+    notifyListeners();
+  }
+
   int get photoCount => _photos.length;
 
   void _clearError({bool notify = true}) {

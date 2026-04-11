@@ -98,9 +98,19 @@ class StorageService {
       if (await file.exists()) {
         await file.delete();
       }
+
+      final photoDir = Directory('${appDir.path}/$_photosDir');
+      if (await photoDir.exists()) {
+        await photoDir.delete(recursive: true);
+      }
     } catch (e) {
       print('Error clearing photos data: $e');
     }
+  }
+
+  static Future<void> clearLocalData() async {
+    await clearCouple();
+    await clearPhotos();
   }
 
   // Save photo file
