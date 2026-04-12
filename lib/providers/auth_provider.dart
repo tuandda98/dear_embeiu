@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/app_user.dart';
 import '../models/auth_status.dart';
 import '../services/auth_service.dart';
+import '../services/push_notification_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   AuthProvider({required AuthService authService}) : _authService = authService;
@@ -39,6 +40,7 @@ class AuthProvider extends ChangeNotifier {
       _status = _currentUser == null
           ? AuthStatus.unauthenticated
           : AuthStatus.authenticated;
+      await PushNotificationService.instance.syncForUser(_currentUser);
     } catch (e) {
       _status = AuthStatus.unauthenticated;
       _errorMessage = 'Không thể khởi tạo phiên đăng nhập: $e';
@@ -60,6 +62,7 @@ class AuthProvider extends ChangeNotifier {
       _currentUser = await _authService.signIn(email: email, password: password);
       _status = AuthStatus.authenticated;
       _isInitialized = true;
+      await PushNotificationService.instance.syncForUser(_currentUser);
       return true;
     } on AuthException catch (e) {
       _status = AuthStatus.unauthenticated;
@@ -90,6 +93,7 @@ class AuthProvider extends ChangeNotifier {
       );
       _status = AuthStatus.authenticated;
       _isInitialized = true;
+      await PushNotificationService.instance.syncForUser(_currentUser);
       return true;
     } on AuthException catch (e) {
       _status = AuthStatus.unauthenticated;
@@ -109,6 +113,8 @@ class AuthProvider extends ChangeNotifier {
     _clearError(notify: false);
 
     try {
+      final previousUser = _currentUser;
+      await PushNotificationService.instance.unregisterForUser(previousUser);
       await _authService.signOut();
       _currentUser = null;
       _status = AuthStatus.unauthenticated;
@@ -123,6 +129,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> updateCurrentUser(AppUser user) async {
     _currentUser = user;
     await _authService.updateCurrentUser(user);
+    await PushNotificationService.instance.syncForUser(_currentUser);
     notifyListeners();
   }
 

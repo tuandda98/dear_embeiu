@@ -56,6 +56,10 @@ service cloud.firestore {
       allow read: if isSignedIn() && request.auth.uid == userId;
       allow update: if isSignedIn() && request.auth.uid == userId;
       allow delete: if false;
+
+      match /devices/{deviceId} {
+        allow read, create, update, delete: if isSignedIn() && request.auth.uid == userId;
+      }
     }
 
     match /invite_codes/{inviteCode} {

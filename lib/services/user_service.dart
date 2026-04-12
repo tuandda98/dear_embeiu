@@ -20,6 +20,9 @@ class UserService {
   CollectionReference<Map<String, dynamic>> get _inviteCodesCollection =>
       (_firestore ?? FirebaseFirestore.instance).collection('invite_codes');
 
+  CollectionReference<Map<String, dynamic>> _devicesCollection(String userId) =>
+      _usersCollection.doc(userId).collection('devices');
+
   Future<AppUser?> fetchUserProfile(String uid) async {
     if (!isEnabled) {
       return null;
@@ -86,6 +89,36 @@ class UserService {
 
     await _usersCollection.doc(user.id).set(user.toFirestore(), SetOptions(merge: true));
     await _syncInviteCode(user);
+  }
+
+  Future<void> saveDeviceRegistration({
+    required String userId,
+    required String deviceId,
+    required String token,
+    required String platform,
+    required bool notificationsEnabled,
+  }) async {
+    if (!isEnabled || userId.trim().isEmpty || deviceId.trim().isEmpty) {
+      return;
+    }
+
+    await _devicesCollection(userId).doc(deviceId).set({
+      'token': token.trim(),
+      'platform': platform.trim(),
+      'notificationsEnabled': notificationsEnabled,
+      'updatedAt': DateTime.now(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> removeDeviceRegistration({
+    required String userId,
+    required String deviceId,
+  }) async {
+    if (!isEnabled || userId.trim().isEmpty || deviceId.trim().isEmpty) {
+      return;
+    }
+
+    await _devicesCollection(userId).doc(deviceId).delete();
   }
 
   Future<void> _syncInviteCode(AppUser user) async {

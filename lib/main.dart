@@ -1,3 +1,5 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,11 +17,18 @@ import 'screens/splash_screen.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_bootstrap_service.dart';
 import 'services/install_state_service.dart';
+import 'services/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final authService = AuthService();
   await FirebaseBootstrapService.initialize();
+  if (!kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS)) {
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    await PushNotificationService.instance.initialize();
+  }
   await InstallStateService().handleFreshInstall(
     onFreshInstall: () => authService.purgePersistedSession(),
   );
