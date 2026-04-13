@@ -60,6 +60,8 @@ class AuthService {
         return null;
       }
 
+      await _ensureFirebaseSessionReady(firebaseUser);
+
       final existingProfile = await _userService.fetchUserProfile(firebaseUser.uid);
       if (existingProfile != null) {
         final refreshedProfile = await _ensureInviteCode(existingProfile.copyWith(
@@ -122,6 +124,7 @@ class AuthService {
         }
 
         await firebaseUser.updateDisplayName(displayName.trim());
+        await _ensureFirebaseSessionReady(firebaseUser);
 
         final now = DateTime.now();
         final user = AppUser(
@@ -202,14 +205,13 @@ class AuthService {
           throw const AuthException('Không thể lấy phiên đăng nhập Firebase.');
         }
 
+        await _ensureFirebaseSessionReady(firebaseUser);
+
         final existingProfile = await _userService.fetchUserProfile(firebaseUser.uid);
-        final user = await _ensureInviteCode((existingProfile ?? _buildFirebaseProfile(firebaseUser)).copyWith(
-          updatedAt: DateTime.now(),
-          lastSeenAt: DateTime.now(),
-          email: firebaseUser.email ?? email.trim().toLowerCase(),
-          displayName: firebaseUser.displayName?.trim().isNotEmpty == true
-              ? firebaseUser.displayName!.trim()
-              : (existingProfile?.displayName ?? email.trim().split('@').first),
+        final user = await _ensureInviteCode(_buildSignInProfile(
+          firebaseUser: firebaseUser,
+          fallbackEmail: email.trim().toLowerCase(),
+          existingProfile: existingProfile,
         ));
 
         await _userService.updateUserProfile(user);
@@ -412,7 +414,7 @@ class AuthService {
       case 'invite-code-unavailable':
         return 'Không thể tạo mã mời cho tài khoản lúc này, bạn thử lại nhé.';
       case 'permission-denied':
-        return 'Firestore đang chặn quyền ghi dữ liệu người dùng. Bạn vào Firebase Console > Firestore Database > Rules và cho phép user đã đăng nhập tạo/ghi `users/{uid}` của chính họ.';
+        return 'Firestore đang chặn quyền ghi dữ liệu người dùng. App này đang kết nối project Firebase `tonyembeiu`, nên bạn cần kiểm tra Firestore Rules của project đó và cho phép user đã đăng nhập tạo/ghi `users/{uid}` cùng `invite_codes/{code}` của chính họ.';
       case 'unavailable':
         return 'Firestore hiện chưa khả dụng hoặc mạng không ổn định. Bạn thử lại sau ít phút nhé.';
       default:
@@ -420,9 +422,50 @@ class AuthService {
     }
   }
 
+  Future<void> _ensureFirebaseSessionReady(User firebaseUser) async {
+    final expectedUid = firebaseUser.uid;
+
+    if (_auth.currentUser?.uid != expectedUid) {
+      await _auth.authStateChanges().firstWhere(
+        (user) => user?.uid == expectedUid,
+      );
+    }
+
+    final activeUser = _auth.currentUser;
+    if (activeUser == null || activeUser.uid != expectedUid) {
+      throw const AuthException(
+        'Phiên đăng nhập Firebase chưa sẵn sàng. Bạn thử đăng nhập lại giúp mình nhé.',
+      );
+    }
+
+    await activeUser.getIdToken(true);
+  }
+
+  AppUser _buildSignInProfile({
+    required User firebaseUser,
+    required String fallbackEmail,
+    AppUser? existingProfile,
+  }) {
+    final baseUser = existingProfile ?? _buildFirebaseProfile(firebaseUser);
+    final firebaseEmail = firebaseUser.email?.trim();
+    final preservedEmail = (existingProfile?.email.trim().isNotEmpty == true)
+        ? existingProfile!.email
+        : (firebaseEmail?.isNotEmpty == true ? firebaseEmail! : fallbackEmail);
+    final preferredDisplayName = firebaseUser.displayName?.trim().isNotEmpty == true
+        ? firebaseUser.displayName!.trim()
+        : (existingProfile?.displayName ?? fallbackEmail.split('@').first);
+
+    return baseUser.copyWith(
+      email: preservedEmail,
+      displayName: preferredDisplayName,
+      updatedAt: DateTime.now(),
+      lastSeenAt: DateTime.now(),
+    );
+  }
+
   Future<AppUser> _ensureInviteCode(AppUser user) async {
     if (user.hasInviteCode) {
-      return user.copyWith(inviteCode: user.inviteCode.trim().toUpperCase());
+      return user;
     }
 
     return user.copyWith(

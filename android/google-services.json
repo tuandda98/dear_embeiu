@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "720641448163",
-    "project_id": "dear-embeiu",
-    "storage_bucket": "dear-embeiu.firebasestorage.app"
+    "project_number": "478033104351",
+    "project_id": "tonyembeiu",
+    "storage_bucket": "tonyembeiu.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:720641448163:android:cd7b10600e02a0c7cb4dd6",
+        "mobilesdk_app_id": "1:478033104351:android:6fdb201d977aeef3e6086a",
         "android_client_info": {
-          "package_name": "com.example.dear_embeiu"
+          "package_name": "com.tony.dearembeiu"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAbrmnjy8OH9-vrifQUiPmnXtAGY614q0A"
+          "current_key": "AIzaSyCF3jn3VurM7ODhdbnv2mBeI3DgM-oCu4o"
         }
       ],
       "services": {

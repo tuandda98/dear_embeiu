@@ -84,6 +84,7 @@ class CoupleService {
     }
 
     if (isUsingFirebase) {
+      await _ensureFirebaseSessionReady();
       final snapshot = await _couplesCollection.doc(coupleId).get();
       if (!snapshot.exists || snapshot.data() == null) {
         return null;
@@ -141,6 +142,7 @@ class CoupleService {
 
     if (isUsingFirebase) {
       try {
+        await _ensureFirebaseSessionReady();
         await _couplesCollection.doc(baseCouple.id).set(baseCouple.toFirestore());
         await _userService.updateUserProfile(updatedUser);
       } on FirebaseException catch (e) {
@@ -165,6 +167,7 @@ class CoupleService {
 
     if (isUsingFirebase && _hasRemotePhotoChanges(baseCouple, couple)) {
       try {
+        await _ensureFirebaseSessionReady();
         await _couplesCollection.doc(couple.id).set(
               couple.toFirestore(),
               SetOptions(merge: true),
@@ -210,6 +213,7 @@ class CoupleService {
 
     if (isUsingFirebase && updatedCouple.id.isNotEmpty) {
       try {
+        await _ensureFirebaseSessionReady();
         await _couplesCollection.doc(updatedCouple.id).set(
               updatedCouple.toFirestore(),
               SetOptions(merge: true),
@@ -248,11 +252,7 @@ class CoupleService {
 
     if (isUsingFirebase) {
       try {
-        if (FirebaseAuth.instance.currentUser == null) {
-          throw const CoupleException(
-            'Phiên đăng nhập Firebase chưa sẵn sàng. Bạn đăng xuất rồi đăng nhập lại giúp mình nhé.',
-          );
-        }
+        await _ensureFirebaseSessionReady();
 
         final accountInvite = await _userService.fetchAccountInvite(normalizedCode);
         if (accountInvite == null) {
@@ -338,7 +338,7 @@ class CoupleService {
         switch (e.code) {
           case 'permission-denied':
             throw const CoupleException(
-              'Firestore đang từ chối đọc mã mời. Bạn cần deploy file `firestore.rules` mới lên project Firebase `dear-embeiu` rồi thử lại.',
+              'Firestore đang từ chối đọc mã mời. App này đang kết nối project Firebase `tonyembeiu`, nên bạn cần deploy `firestore.rules` lên đúng project đó rồi thử lại.',
             );
           case 'unavailable':
             throw const CoupleException(
@@ -387,6 +387,7 @@ class CoupleService {
 
     if (isUsingFirebase && currentUser.coupleId != null) {
       try {
+        await _ensureFirebaseSessionReady();
         final docRef = _couplesCollection.doc(currentUser.coupleId);
         final snapshot = await docRef.get();
 
@@ -550,10 +551,25 @@ class CoupleService {
         previous.couplePhotoStoragePath != next.couplePhotoStoragePath;
   }
 
+  Future<void> _ensureFirebaseSessionReady() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      throw const CoupleException(
+        'Phiên đăng nhập Firebase chưa sẵn sàng. Bạn đăng xuất rồi đăng nhập lại giúp mình nhé.',
+      );
+    }
+
+    await FirebaseAuth.instance.idTokenChanges().firstWhere(
+      (user) => user?.uid == currentUser.uid,
+    );
+
+    await currentUser.getIdToken(true);
+  }
+
   String _mapFirebaseError(FirebaseException exception) {
     switch (exception.code) {
       case 'permission-denied':
-        return 'Firestore đang chặn thao tác với dữ liệu cặp đôi. Bạn cần deploy `firestore.rules` mới lên Firebase rồi thử lại.';
+        return 'Firestore đang chặn thao tác với dữ liệu cặp đôi. App này đang kết nối project Firebase `tonyembeiu`, nên bạn cần kiểm tra/deploy lại `firestore.rules` của đúng project đó rồi thử lại.';
       case 'unauthenticated':
         return 'Phiên đăng nhập Firebase không còn hợp lệ. Bạn đăng nhập lại giúp mình nhé.';
       case 'unavailable':

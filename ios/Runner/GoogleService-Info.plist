@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyCGS2ed-CtAxjmZ2Ck2D_EoeFw-86x9oxY</string>
+	<string>AIzaSyDCAO95smeh5HkMSQHLs7miP8Tm2xDtwOM</string>
 	<key>GCM_SENDER_ID</key>
-	<string>720641448163</string>
+	<string>478033104351</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.dearEmbeiu</string>
+	<string>com.tony.dearembeiu</string>
 	<key>PROJECT_ID</key>
-	<string>dear-embeiu</string>
+	<string>tonyembeiu</string>
 	<key>STORAGE_BUCKET</key>
-	<string>dear-embeiu.firebasestorage.app</string>
+	<string>tonyembeiu.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,7 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:720641448163:ios:ef531e259fa0df6acb4dd6</string>
+	<string>1:478033104351:ios:ec1501de6d0eaa56e6086a</string>
 </dict>
 </plist>
+

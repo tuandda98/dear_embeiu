@@ -115,7 +115,7 @@ cd dear_embeiu
 flutter pub get
 
 # Deploy Firestore + Storage rules (cần Firebase CLI và đã login)
-npx firebase-tools deploy --only firestore:rules,storage --project dear-embeiu
+npx firebase-tools deploy --only firestore:rules,storage --project tonyembeiu
 
 # Run app
 flutter run
@@ -126,10 +126,10 @@ Nếu máy chưa có Firebase CLI hoặc chưa đăng nhập:
 
 ```bash
 npx firebase-tools login
-npx firebase-tools deploy --only firestore:rules,storage --project dear-embeiu
+npx firebase-tools deploy --only firestore:rules,storage --project tonyembeiu
 ```
 
-Project Firebase mặc định đã được map trong các file `firebase.json` và `.firebaserc`.
+Project Firebase mặc định hiện đang map tới `tonyembeiu` trong `.firebaserc`, trùng với `android/app/google-services.json` và `ios/Runner/GoogleService-Info.plist`.
 Storage rules nằm trong file `storage.rules`.
 
 ### Build
