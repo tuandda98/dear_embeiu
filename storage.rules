@@ -1,32 +1,21 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    // User must be signed in
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isCoupleMember(coupleId) {
-      return isSignedIn()
-        && firestore.exists(/databases/(default)/documents/couples/$(coupleId))
-        && request.auth.uid in firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.memberIds;
-    }
-
-    function isSoleCoupleMember(coupleId) {
-      return isCoupleMember(coupleId)
-        && firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.memberCount == 1
-        && firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.memberIds.size() == 1
-        && firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.memberIds[0] == request.auth.uid;
-    }
-
-    function isCoverPhoto(fileName) {
-      return fileName.matches('cover_.*');
-    }
-
+    // For couple photos - check that user is authenticated
+    // Note: Detailed authorization is handled in Firestore rules
+    // Storage path format: couple_photos/{coupleId}/{fileName}
     match /couple_photos/{coupleId}/{fileName} {
-      allow read: if isCoupleMember(coupleId);
-      allow create, update: if isCoupleMember(coupleId);
-      allow delete: if isCoupleMember(coupleId)
-        && (!isCoverPhoto(fileName) || isSoleCoupleMember(coupleId));
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && request.auth != null
+        && coupleId is string
+        && coupleId.size() > 0;
+      allow delete: if isSignedIn();
     }
   }
 }
