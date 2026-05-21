@@ -23,9 +23,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final authService = AuthService();
   await FirebaseBootstrapService.initialize();
-  if (!kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS)) {
+  // Push notifications: enabled only for Android due to iOS personal team limitation
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     await PushNotificationService.instance.initialize();
   }
@@ -51,7 +50,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
       ],
       child: MaterialApp(
-        title: 'Kỷ Niệm Của Chúng Mình',
+        title: 'Dear Embeiu',
         theme: AppTheme.lightTheme,
         home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
