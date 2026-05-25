@@ -1,0 +1,392 @@
+{
+  "@@locale": "en",
+
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "continueBtn": "Continue",
+  "keep": "Keep",
+
+  "splashTagline": "Our story",
+  "splashSubtitle": "Counting every day of us",
+
+  "checkingSession": "Checking your session...",
+
+  "loginTitle": "Welcome back",
+  "loginSubtitle": "Sign in to keep counting every day of you two.",
+  "loginLocalFallback": "Local fallback is on — Firebase will be wired up later.",
+  "emailLabel": "Email",
+  "emailHint": "you@example.com",
+  "emailRequired": "Please enter your email",
+  "emailInvalid": "That doesn't look like an email",
+  "passwordLabel": "Password",
+  "passwordHint": "At least 6 characters",
+  "passwordRequired": "Please enter your password",
+  "passwordTooShort": "Password needs at least 6 characters",
+  "signIn": "Sign in",
+  "newHere": "New here?",
+  "createAccountLink": "Create an account",
+
+  "registerTitle": "Begin your\nlove story",
+  "registerSubtitle": "Create an account to keep every day of you two safe.",
+  "registerLocalFallback": "Local fallback is on — Firebase will be wired up later.",
+  "displayNameLabel": "Display name",
+  "displayNameHint": "How you'll appear",
+  "displayNameRequired": "Please enter a display name",
+  "displayNameTooShort": "Name is too short",
+  "confirmPasswordLabel": "Confirm password",
+  "confirmPasswordHint": "Repeat the password",
+  "confirmPasswordRequired": "Please confirm the password",
+  "passwordsMismatch": "Passwords don't match yet",
+  "createAccountBtn": "Create account",
+  "alreadyWithUs": "Already with us?",
+  "backToSignIn": "Back to sign in",
+
+  "setupCreateTitle": "Begin\nour story",
+  "setupEditTitle": "Refine\nyour story",
+  "setupTabCreate": "Create",
+  "setupTabJoin": "Join with code",
+  "inviteCodeDialogTitle": "Your invite code",
+  "inviteCodeDialogContent": "This code is tied to your account. Send it to your partner so they can sign in with their own account and enter it on the join screen.",
+  "sectionAboutCouple": "About your couple",
+  "setupEditSectionDesc": "Edit shared info — names, anniversary, couple photo.",
+  "setupCreateSectionDesc": "Create the space first, then share your invite code with your partner.",
+  "yourNameLabel": "Your name",
+  "yourNameHint": "e.g. Anh",
+  "partnerNameLabel": "Partner's name",
+  "partnerNameHint": "e.g. Em",
+  "anniversaryLabel": "Anniversary date",
+  "anniversaryHint": "Pick the day you started",
+  "couplePhotoLabel": "Couple photo",
+  "couplePhotoHint": "Add a couple photo (optional)",
+  "couplePhotoSelected": "Photo selected",
+  "saveChangesBtn": "Save changes",
+  "createOurSpaceBtn": "Create our space",
+  "useInviteCodeTitle": "Use an invite code",
+  "theirInviteCodeLabel": "Their invite code",
+  "theirInviteCodeHint": "e.g. A7B9KD",
+  "joinBtn": "Join their space",
+  "yourInviteCodeTitle": "Your invite code",
+  "sendToPartnerHint": "Send this to them",
+  "inviteCodeTiedToAccount": "Code tied to your account",
+  "setupErrorNoAccount": "No account found. Please sign in again.",
+  "setupErrorFillRequired": "Please fill in both names and the anniversary date.",
+  "setupErrorSaveCouple": "Could not save couple info: {error}",
+  "@setupErrorSaveCouple": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "setupErrorNoAccountShort": "No account found.",
+  "setupErrorNoInviteCode": "Please enter the invite code first.",
+  "setupErrorJoinCouple": "Could not join couple: {error}",
+  "@setupErrorJoinCouple": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "setupSuccessConnected": "Connected successfully 💞",
+
+  "navHome": "Home",
+  "navMemories": "Memories",
+  "navProfile": "Profile",
+
+  "ourStoryBadge": "OUR STORY",
+  "helloGreeting": "Hello,",
+  "homeSubtitle": "A good day to look back at your love story.",
+  "youveBeenTogetherFor": "YOU'VE BEEN TOGETHER FOR",
+  "daysOfUsSince": "days of us · since {date}",
+  "@daysOfUsSince": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "todayIsAnniversary": "Today is your anniversary ✨",
+  "daysUntilNextAnniversary": "{count} days until your next anniversary",
+  "@daysUntilNextAnniversary": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "quickMomentsTitle": "Quick moments",
+  "quickMomentsSubtitle": "Shortcuts to revisit your story",
+  "memoriesCardTitle": "Memories",
+  "viewAllPhotos": "View all photos",
+  "profileCardTitle": "Profile",
+  "updateInfo": "Update info",
+  "milestoneCardTitle": "Milestone",
+  "loveInNumbersTitle": "Love in numbers",
+  "loveInNumbersSubtitle": "Little stats from your journey",
+  "daysTogether": "Days together",
+  "daysUnit": "days",
+  "memoriesSaved": "Memories saved",
+  "photosUnit": "photos",
+  "nextAnniversaryLabel": "Next anniversary",
+  "daysAway": "days away",
+  "nextMilestoneTitle": "Next milestone",
+  "milestoneProgressTitle": "Milestone progress",
+  "milestoneProgressSubtitle": "Gently approaching the next sweet number",
+  "recentMemoriesTitle": "Recent memories",
+  "addPhotosPrompt": "Add a few photos to start your love letter",
+  "latestMomentsSubtitle": "A few of your latest moments together",
+  "seeAll": "See all",
+  "addPhotosEmpty": "Add a few photos to start filling this love letter.",
+  "yourStorySoFar": "Your story so far",
+  "whenItAllBegan": "When it all began",
+  "whenItAllBeganSubtitle": "{name1} & {name2} on {date}",
+  "@whenItAllBeganSubtitle": {
+    "placeholders": {
+      "name1": { "type": "String" },
+      "name2": { "type": "String" },
+      "date": { "type": "String" }
+    }
+  },
+  "monthiversaries": "{count} monthiversaries",
+  "@monthiversaries": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "monthiversaryDesc": "Each month, another layer of understanding and tenderness.",
+  "memoriesCaptured": "{count} memories captured",
+  "@memoriesCaptured": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "memoriesCapturedDesc": "Your library is becoming a quiet little album.",
+  "loveNoteLabel": "Love note",
+  "loveNoteQuote": "\"{count} days isn't just time — it's every soft moment, every choice to stay, every little kindness we share.\"",
+  "@loveNoteQuote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "milestoneReached": "You just reached a beautiful milestone ✨",
+  "onlyDaysUntilMilestone": "Only {count} days until your next milestone.",
+  "@onlyDaysUntilMilestone": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "nextMilestonePrefix": "Next: {label}",
+  "@nextMilestonePrefix": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "daysCountLabel": "{count} days",
+  "@daysCountLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "percentThere": "{percent}% there",
+  "@percentThere": {
+    "placeholders": {
+      "percent": { "type": "String" }
+    }
+  },
+  "milestoneYearsOne": "{count} year",
+  "@milestoneYearsOne": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "milestoneYearsMany": "{count} years",
+  "@milestoneYearsMany": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "milestoneMonthsOne": "{count} month",
+  "@milestoneMonthsOne": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "milestoneMonthsMany": "{count} months",
+  "@milestoneMonthsMany": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "milestoneDaysLabel": "{count} days",
+  "@milestoneDaysLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "privateGalleryBadge": "PRIVATE GALLERY",
+  "galleryTitle": "Photo Library",
+  "gallerySubtitle": "Swipe up to quickly bring up the post frame and manage memories.",
+  "addCaptionTitle": "Add caption",
+  "addCaptionHint": "Write a few lines about this moment...",
+  "addCaptionOptionalTitle": "Add caption (optional)",
+  "addCaptionOptionalHint": "Write something truly memorable...",
+  "editCaptionTitle": "Edit caption",
+  "editCaptionHint": "How memorable was this moment?",
+  "deletePhotoTitle": "Delete this photo?",
+  "deletePhotoContent": "This moment will be removed from your shared diary.",
+  "keepPhotoBtn": "Keep",
+  "deletePhotoBtn": "Delete",
+  "postedByLabel": "Posted by {name}",
+  "@postedByLabel": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "momentsCount": "{count} moments",
+  "@momentsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "daysTogetherCount": "{count} days together",
+  "@daysTogetherCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "privateFeedLabel": "Private feed for you two",
+  "postNewPhotoBtn": "Post new photo",
+  "addMultipleBtn": "Add multiple",
+  "addNewMemoryTitle": "Add a new memory today",
+  "whatNewToday": "what's new today?",
+  "composerSubtitle": "Turn the library into a private and memorable love newsfeed.",
+  "compactCaption": "{count} moments · Swipe to expand post frame",
+  "@compactCaption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "todayInLoveBadge": "TODAY IN LOVE",
+  "storyStripBadge": "STORY STRIP",
+  "memoriesTodayTitle": "Memories today",
+  "recentPhotosTitle": "Recent photos",
+  "memoriesTodaySubtitle": "Moments saved on this exact date, tender and personal.",
+  "recentPhotosSubtitle": "A small story strip for a quick look at your latest moments.",
+  "memoryBadge": "Memory",
+  "newBadge": "New",
+  "momentLabel": "Moment #{number}",
+  "@momentLabel": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
+  "editCaptionAction": "Edit caption",
+  "deletePhotoAction": "Delete photo",
+  "editAction": "Edit",
+  "deleteAction": "Delete",
+  "startNewfeedTitle": "Start building a memory newsfeed",
+  "postFirstMomentOf": "Post the first moment of",
+  "emptyFeedContent": "Once you add photos, this library will become a private love newsfeed with timelines that are easy to view and feel.",
+  "postFirstPhotoBtn": "Post first photo",
+  "photoAddedSuccess": "Photo added successfully!",
+  "photoAddError": "Could not post photo right now.",
+  "multiplePhotosAdded": "Added {count} photos!",
+  "@multiplePhotosAdded": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "captionUpdatedSuccess": "Caption updated",
+  "captionUpdateError": "Could not update caption.",
+  "photoDeletedSuccess": "Photo deleted",
+  "photoDeleteError": "Could not delete photo right now.",
+  "youTwoLabel": "You two",
+  "syncingLibrary": "Syncing library...",
+  "uploadingPhoto": "Uploading photo...",
+  "deletingPhoto": "Deleting photo...",
+  "updatingCaption": "Updating caption...",
+  "feedDateFormat": "dd MMM • HH:mm",
+  "momentNumberFallback": "Moment #{index}",
+  "@momentNumberFallback": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+
+  "loveProfileBadge": "LOVE PROFILE",
+  "profileTitle": "Your profile",
+  "profileSubtitle": "A private corner to look back on your love journey, milestones, and memory album.",
+  "todayIsAnniversaryProfile": "Today is your anniversary ✨",
+  "daysUntilAnniversaryProfile": "{count} days until the next anniversary",
+  "@daysUntilAnniversaryProfile": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "khoanhKhacCount": "{count} moments",
+  "@khoanhKhacCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "privateDiaryLabel": "Private diary",
+  "loveMilestonesLabel": "Love milestones",
+  "journeySnapshotTitle": "Journey snapshot",
+  "journeySnapshotSubtitle": "The standout numbers of your relationship, presented cleanly, modernly, and clearly.",
+  "yearsTogether": "Years together",
+  "monthsRemaining": "Months remaining",
+  "totalDaysLabel": "Total days",
+  "memoriesSavedLabel": "Memories saved",
+  "infoAndRhythmTitle": "Info & rhythm",
+  "infoAndRhythmSubtitle": "A clearer look at your start date, album, and upcoming milestones.",
+  "loveStartDateLabel": "Love start date",
+  "yourInviteCodeLabel": "Your account invite code",
+  "dayStreakLabel": "Day streak",
+  "dayStreakValue": "{count} days and still going",
+  "@dayStreakValue": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "memoryAlbumLabel": "Memory album",
+  "memoryAlbumValue": "{count} photos saved in private album",
+  "@memoryAlbumValue": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "upcomingMilestoneLabel": "Upcoming milestone",
+  "todaySpecialMsg": "Today is a very special day for you two",
+  "daysUntilNextMsg": "{count} more days until the next anniversary",
+  "@daysUntilNextMsg": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "customizeProfileTitle": "Customize profile",
+  "customizeProfileSubtitle": "Update names, anniversary date, and couple photo so the profile always reflects your current journey.",
+  "editOurStoryBtn": "Edit our story",
+  "proTipLabel": "Pro tip",
+  "proTipContent": "A bright, close-up couple photo with good breathing room will make the hero section look much more polished.",
+  "dataManagementTitle": "Data management",
+  "dataManagementDesc": "One person can only clear cache on this device or leave the couple. To delete shared data, both must confirm.",
+  "clearLocalDataBtn": "Clear data on this device",
+  "localFallbackWarning": "App is in local fallback mode so safe individual cache clearing is not yet supported. You can leave the current local couple if you want to reset.",
+  "leaveCoupleBtn": "Leave couple",
+  "clearDataNote": "Deleting all shared data is currently not allowed from one side. In the next sprint, this will be changed to a flow requiring both to confirm.",
+  "clearLocalDialogTitle": "Clear data on this device",
+  "clearLocalDialogContent": "This only clears the cache on the current device. Shared data on Firebase is preserved and will reload when needed.",
+  "clearLocalActionBtn": "Clear local",
+  "leaveCoupleDialogTitle": "Leave couple",
+  "leaveCoupleDialogContent": "You will leave the current couple space. The other person keeps the shared data. You cannot delete all shared data from one side.",
+  "leaveCoupleActionBtn": "Leave couple",
+  "localDataClearedMsg": "Local data on this device has been cleared. Shared data on cloud is preserved.",
+
+  "languageTitle": "Language",
+  "languageSubtitle": "Choose the app display language",
+  "languageSystem": "System default",
+  "languageSystemDesc": "Follow device language",
+  "languageEnglish": "English",
+  "languageVietnamese": "Tiếng Việt",
+
+  "loadingCoupleInfo": "Loading couple info...",
+  "savingCoupleSpace": "Saving couple space...",
+  "connectingCouple": "Connecting couple...",
+  "updatingCoupleInfo": "Updating couple info..."
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../app/app_routes.dart';
+import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
@@ -62,18 +63,20 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    final l10n = context.l10n;
+
+    return Scaffold(
       body: DecoratedBox(
-        decoration: BoxDecoration(gradient: AppColors.secondaryGradient),
+        decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: AppColors.white),
-              SizedBox(height: 16),
+              const CircularProgressIndicator(color: AppColors.white),
+              const SizedBox(height: 16),
               Text(
-                'Đang kiểm tra phiên đăng nhập...',
-                style: TextStyle(
+                l10n.checkingSession,
+                style: const TextStyle(
                   color: AppColors.white,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,

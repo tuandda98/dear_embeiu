@@ -1,12 +1,15 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'app/app_routes.dart';
 import 'providers/auth_provider.dart';
-import 'theme/app_theme.dart';
 import 'providers/couple_provider.dart';
+import 'providers/locale_provider.dart';
 import 'providers/photo_provider.dart';
 import 'screens/auth_gate_screen.dart';
 import 'screens/home_screen.dart';
@@ -18,9 +21,11 @@ import 'services/auth_service.dart';
 import 'services/firebase_bootstrap_service.dart';
 import 'services/install_state_service.dart';
 import 'services/push_notification_service.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
   final authService = AuthService();
   await FirebaseBootstrapService.initialize();
   if (!kIsWeb &&
@@ -49,21 +54,36 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => CoupleProvider()),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
       ],
-      child: MaterialApp(
-        title: 'Kỷ Niệm Của Chúng Mình',
-        theme: AppTheme.lightTheme,
-        home: const SplashScreen(),
-        debugShowCheckedModeBanner: false,
-        routes: {
-          AppRoutes.authGate: (_) => const AuthGateScreen(),
-          AppRoutes.login: (_) => const LoginScreen(),
-          AppRoutes.register: (_) => const RegisterScreen(),
-          AppRoutes.home: (_) => const HomeScreen(),
-          AppRoutes.setup: (_) => const SetupScreen(),
+      child: Consumer<LocaleProvider>(
+        builder: (context, localeProvider, _) {
+          return MaterialApp(
+            title: 'Kỷ Niệm Của Chúng Mình',
+            theme: AppTheme.lightTheme,
+            locale: localeProvider.locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('vi'),
+            ],
+            home: const SplashScreen(),
+            debugShowCheckedModeBanner: false,
+            routes: {
+              AppRoutes.authGate: (_) => const AuthGateScreen(),
+              AppRoutes.login: (_) => const LoginScreen(),
+              AppRoutes.register: (_) => const RegisterScreen(),
+              AppRoutes.home: (_) => const HomeScreen(),
+              AppRoutes.setup: (_) => const SetupScreen(),
+            },
+          );
         },
       ),
     );
   }
 }
-

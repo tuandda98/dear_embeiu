@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../l10n/l10n.dart';
 import '../models/couple.dart';
 import '../models/counter_data.dart';
 import '../models/photo.dart';
@@ -26,37 +27,45 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const double _floatingNavHeight = 84;
-  static const double _floatingNavMaxWidth = 284;
-  static const double _floatingNavMargin = 14;
+  static const double _floatingNavMargin = 16;
   static const double _floatingNavSpacing = 18;
-  static const double _floatingNavInnerPadding = 8;
-  static const double _floatingNavGlowSize = 46;
-  static const double _floatingNavItemHorizontalPadding = 2;
+  static const double _floatingNavInnerPadding = 6;
+  static const double _floatingNavPillInset = 5;
+  static const double _floatingNavItemHorizontalPadding = 0;
   static const double _floatingNavLabelSpacing = 4;
-  static const double _floatingNavGlowVerticalOffset = 8;
 
   static const List<_NavigationItem> _navigationItems = [
     _NavigationItem(
       icon: Icons.favorite_border_rounded,
       selectedIcon: Icons.favorite_rounded,
-      label: 'Trang chủ',
       color: AppColors.accentRose,
     ),
     _NavigationItem(
       icon: Icons.photo_library_outlined,
       selectedIcon: Icons.photo_library_rounded,
-      label: 'Thư viện',
       color: AppColors.accentRose,
     ),
     _NavigationItem(
       icon: Icons.person_outline_rounded,
       selectedIcon: Icons.person_rounded,
-      label: 'Hồ sơ',
       color: AppColors.accentRose,
     ),
   ];
 
   int _selectedIndex = 0;
+
+  String _navLabel(int index, AppLocalizations l10n) {
+    switch (index) {
+      case 0:
+        return l10n.navHome;
+      case 1:
+        return l10n.navMemories;
+      case 2:
+        return l10n.navProfile;
+      default:
+        return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return Stack(
             children: [
               Container(
-                decoration: BoxDecoration(gradient: AppColors.secondaryGradient),
+                decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
                 child: SafeArea(
                   bottom: false,
                   child: IndexedStack(
@@ -106,12 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 left: _floatingNavMargin,
                 right: _floatingNavMargin,
                 bottom: mediaQuery.padding.bottom + _floatingNavMargin,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: _floatingNavMaxWidth),
-                    child: _buildFloatingNavigationBar(),
-                  ),
-                ),
+                child: _buildFloatingNavigationBar(),
               ),
             ],
           );
@@ -122,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFloatingNavigationBar() {
     final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+    final l10n = context.l10n;
 
     return AnimatedSlide(
       duration: const Duration(milliseconds: 260),
@@ -135,16 +140,21 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.05),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+                color: AppColors.accentLove.withOpacity(0.18),
+                blurRadius: 32,
+                offset: const Offset(0, 12),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(28),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
               child: Container(
                 height: _floatingNavHeight,
                 padding: const EdgeInsets.all(_floatingNavInnerPadding),
@@ -154,72 +164,76 @@ class _HomeScreenState extends State<HomeScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.white.withValues(alpha: 0.16),
-                      AppColors.white.withValues(alpha: 0.04),
+                      AppColors.white.withOpacity(0.28),
+                      AppColors.white.withOpacity(0.14),
                     ],
                   ),
                   border: Border.all(
-                    color: AppColors.white.withValues(alpha: 0.10),
+                    color: AppColors.white.withOpacity(0.35),
+                    width: 1.2,
                   ),
                 ),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final itemWidth =
                         constraints.maxWidth / _navigationItems.length;
-                    final glowCenter = (itemWidth * _selectedIndex) + (itemWidth / 2);
-                    final glowLeft = glowCenter - (_floatingNavGlowSize / 2);
-                    final glowTop =
-                        ((constraints.maxHeight - _floatingNavGlowSize) / 2) -
-                        _floatingNavGlowVerticalOffset;
+                    final pillLeft =
+                        itemWidth * _selectedIndex + _floatingNavPillInset;
+                    final pillWidth =
+                        itemWidth - _floatingNavPillInset * 2;
+                    final pillHeight =
+                        constraints.maxHeight - _floatingNavPillInset * 2;
 
                     return Stack(
-                      alignment: Alignment.center,
                       children: [
+                        // ── Sliding rose-gradient pill ───────────────────
                         AnimatedPositioned(
                           duration: const Duration(milliseconds: 320),
-                          curve: Curves.easeOutBack,
-                          left: glowLeft,
-                          top: glowTop,
+                          curve: Curves.easeOutCubic,
+                          left: pillLeft,
+                          top: _floatingNavPillInset,
+                          width: pillWidth,
+                          height: pillHeight,
                           child: Container(
-                            width: _floatingNavGlowSize,
-                            height: _floatingNavGlowSize,
                             decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _navigationItems[_selectedIndex].color
-                                  .withValues(alpha: 0.24),
-                              border: Border.all(
-                                color: _navigationItems[_selectedIndex].color
-                                    .withValues(alpha: 0.28),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppColors.sunset1,
+                                  AppColors.accentLoveDeep,
+                                ],
                               ),
+                              borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: _navigationItems[_selectedIndex].color
-                                      .withValues(alpha: 0.06),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 2),
+                                  color: AppColors.accentLove.withOpacity(0.40),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
                           ),
                         ),
+                        // ── Nav items ────────────────────────────────────
                         Row(
-                          children: List.generate(_navigationItems.length, (index) {
-                            final item = _navigationItems[index];
-                            final isSelected = index == _selectedIndex;
+                          children: List.generate(
+                            _navigationItems.length,
+                            (index) {
+                              final item = _navigationItems[index];
+                              final isSelected = index == _selectedIndex;
+                              final label = _navLabel(index, l10n);
 
-                            return Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: _floatingNavItemHorizontalPadding,
-                                ),
+                              return Expanded(
                                 child: _buildNavigationItem(
                                   item: item,
                                   index: index,
                                   isSelected: isSelected,
+                                  label: label,
                                 ),
-                              ),
-                            );
-                          }),
+                              );
+                            },
+                          ),
                         ),
                       ],
                     );
@@ -237,84 +251,51 @@ class _HomeScreenState extends State<HomeScreen> {
     required _NavigationItem item,
     required int index,
     required bool isSelected,
+    required String label,
   }) {
     return Tooltip(
-      message: item.label,
+      message: label,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           key: ValueKey('bottom-nav-$index'),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
+          splashColor: AppColors.white.withOpacity(0.15),
+          highlightColor: Colors.transparent,
           onTap: () {
-            if (_selectedIndex == index) {
-              return;
-            }
-
+            if (_selectedIndex == index) return;
             setState(() => _selectedIndex = index);
           },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOutCubic,
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          child: SizedBox.expand(
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   AnimatedScale(
-                    duration: const Duration(milliseconds: 260),
+                    duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOutCubic,
-                    scale: isSelected ? 1.16 : 1,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 260),
-                      curve: Curves.easeOutCubic,
-                      width: isSelected ? 40 : 36,
-                      height: isSelected ? 40 : 36,
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.white.withValues(alpha: 0.10)
-                            : Colors.transparent,
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(
-                                color: AppColors.white.withValues(alpha: 0.16),
-                              )
-                            : null,
-                      ),
+                    scale: isSelected ? 1.12 : 1.0,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
                       child: Icon(
                         isSelected ? (item.selectedIcon ?? item.icon) : item.icon,
-                        size: 20,
+                        key: ValueKey('icon-$index-$isSelected'),
+                        size: 22,
                         color: isSelected
                             ? AppColors.white
-                            : AppColors.white.withValues(alpha: 0.90),
+                            : AppColors.white.withOpacity(0.55),
                       ),
                     ),
                   ),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) {
-                      final slideAnimation = Tween<Offset>(
-                        begin: const Offset(0, 0.18),
-                        end: Offset.zero,
-                      ).animate(animation);
-
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: slideAnimation,
-                          child: child,
-                        ),
-                      );
-                    },
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
                     child: isSelected
                         ? Padding(
-                            key: ValueKey('bottom-nav-label-$index'),
-                            padding: const EdgeInsets.only(
-                              top: _floatingNavLabelSpacing,
-                            ),
+                            padding: const EdgeInsets.only(top: 5),
                             child: Text(
-                              item.label,
+                              label,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.center,
@@ -322,14 +303,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: AppColors.white,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
+                                letterSpacing: 0.2,
                                 height: 1,
                               ),
                             ),
                           )
-                        : SizedBox(
-                            key: ValueKey('bottom-nav-label-hidden-$index'),
-                            height: 0,
-                          ),
+                        : const SizedBox.shrink(),
                   ),
                 ],
               ),
@@ -347,6 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
     List<Photo> photos,
     double bottomInset,
   ) {
+    final l10n = context.l10n;
     final totalDays = _getTotalDays(couple.anniversaryDate);
     final nextAnniversary = _getNextAnniversary(couple.anniversaryDate);
     final daysUntilAnniversary = _daysUntil(nextAnniversary);
@@ -359,19 +339,20 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.12),
+                      color: AppColors.white.withOpacity( 0.12),
                       borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+                      border: Border.all(color: AppColors.white.withOpacity( 0.18)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -379,9 +360,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icon(
                           Icons.auto_awesome_rounded,
                           size: 14,
-                          color: AppColors.white.withValues(alpha: 0.92),
+                          color: AppColors.white.withOpacity( 0.92),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           'LOVE HOME',
                           style: AppTheme.pageEyebrowStyle(),
@@ -389,20 +370,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 14),
+                  const SizedBox(height: 14),
                   Text(
-                    'Trang Chủ',
+                    l10n.navHome,
                     style: AppTheme.pageTitleStyle(),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'Lưu giữ từng ngày hạnh phúc của hai bạn',
+                    l10n.homeSubtitle,
                     style: AppTheme.pageSubtitleStyle(),
                   ),
                 ],
               ),
+              ),
               Container(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.white.withOpacity(0.16),
                   borderRadius: BorderRadius.circular(18),
@@ -410,66 +392,67 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: AppColors.white.withOpacity(0.18),
                   ),
                 ),
-                child: Icon(Icons.favorite_rounded, color: AppColors.white),
+                child: const Icon(Icons.favorite_rounded, color: AppColors.white),
               ),
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           _buildHeroSection(
             couple: couple,
             totalDays: totalDays,
             daysUntilAnniversary: daysUntilAnniversary,
+            l10n: l10n,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           CounterCard(
             years: counterData.years,
             months: counterData.months,
             days: counterData.days,
             subtitle: 'Bắt đầu từ ${_formatDate(couple.anniversaryDate)}',
             footer: daysUntilAnniversary == 0
-                ? 'Hôm nay là ngày kỷ niệm của hai bạn ✨'
-                : 'Còn $daysUntilAnniversary ngày nữa tới kỷ niệm tiếp theo',
+                ? l10n.todayIsAnniversary
+                : l10n.daysUntilNextAnniversary(daysUntilAnniversary),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           _buildSectionTitle(
-            title: 'Khám phá nhanh',
-            subtitle: 'Các lối tắt để bạn xem kỷ niệm nhanh hơn',
+            title: l10n.quickMomentsTitle,
+            subtitle: l10n.quickMomentsSubtitle,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: _buildQuickActionCard(
                   icon: Icons.photo_library_rounded,
-                  title: 'Thư viện',
-                  subtitle: 'Xem toàn bộ ảnh',
+                  title: l10n.memoriesCardTitle,
+                  subtitle: l10n.viewAllPhotos,
                   color: AppColors.accentRose,
                   onTap: () => setState(() => _selectedIndex = 1),
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildQuickActionCard(
                   icon: Icons.person_rounded,
-                  title: 'Hồ sơ',
-                  subtitle: 'Cập nhật thông tin',
+                  title: l10n.profileCardTitle,
+                  subtitle: l10n.updateInfo,
                   color: AppColors.accentCoral,
                   onTap: () => setState(() => _selectedIndex = 2),
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildQuickActionCard(
                   icon: Icons.auto_awesome_rounded,
-                  title: 'Cột mốc',
-                  subtitle: _milestoneLabel(nextMilestone),
+                  title: l10n.milestoneCardTitle,
+                  subtitle: _milestoneLabel(nextMilestone, l10n),
                   color: AppColors.accentGold,
                   onTap: () {},
                 ),
               ),
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           CoupleInfoCard(
             person1Name: couple.person1Name,
             person2Name: couple.person2Name,
@@ -477,87 +460,88 @@ class _HomeScreenState extends State<HomeScreen> {
             couplePhotoUrl: couple.couplePhotoUrl,
             onTap: () => setState(() => _selectedIndex = 2),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           _buildSectionTitle(
-            title: 'Bảng thông tin tình yêu',
-            subtitle: 'Những con số đáng nhớ của hai bạn',
+            title: l10n.loveInNumbersTitle,
+            subtitle: l10n.loveInNumbersSubtitle,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: _buildInsightCard(
                   icon: Icons.today_rounded,
-                  title: 'Tổng ngày',
+                  title: l10n.daysTogether,
                   value: '$totalDays',
-                  hint: 'ngày bên nhau',
+                  hint: l10n.daysUnit,
                   color: AppColors.accentRose,
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildInsightCard(
                   icon: Icons.photo_camera_back_rounded,
-                  title: 'Kho ảnh',
+                  title: l10n.memoriesSaved,
                   value: '${photos.length}',
-                  hint: 'khoảnh khắc',
+                  hint: l10n.photosUnit,
                   color: AppColors.accentCoral,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: _buildInsightCard(
                   icon: Icons.event_available_rounded,
-                  title: 'Kỷ niệm tới',
+                  title: l10n.nextAnniversaryLabel,
                   value: '$daysUntilAnniversary',
-                  hint: 'ngày nữa',
+                  hint: l10n.daysAway,
                   color: AppColors.info,
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildInsightCard(
                   icon: Icons.workspace_premium_rounded,
-                  title: 'Mục tiêu gần',
+                  title: l10n.nextMilestoneTitle,
                   value: '$nextMilestone',
-                  hint: 'ngày',
+                  hint: l10n.daysUnit,
                   color: AppColors.accentGold,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           _buildSectionTitle(
-            title: 'Tiến trình cột mốc',
-            subtitle: 'Bạn đang tiến gần tới dấu mốc đẹp tiếp theo',
+            title: l10n.milestoneProgressTitle,
+            subtitle: l10n.milestoneProgressSubtitle,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           _buildMilestoneSection(
             totalDays: totalDays,
             nextMilestone: nextMilestone,
             progress: progressToMilestone.clamp(0, 1),
+            l10n: l10n,
           ),
-          SizedBox(height: 20),
-          _buildQuoteCard(totalDays, couple),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
+          _buildQuoteCard(totalDays, couple, l10n),
+          const SizedBox(height: 20),
           _buildSectionTitle(
-            title: 'Kỷ niệm gần đây',
+            title: l10n.recentMemoriesTitle,
             subtitle: photos.isEmpty
-                ? 'Chưa có ảnh nào, hãy bắt đầu thêm những khoảnh khắc đẹp'
-                : 'Một vài khoảnh khắc mới nhất trong thư viện của hai bạn',
-            actionLabel: photos.isEmpty ? null : 'Xem tất cả',
+                ? l10n.addPhotosPrompt
+                : l10n.latestMomentsSubtitle,
+            actionLabel: photos.isEmpty ? null : l10n.seeAll,
             onActionTap: photos.isEmpty
                 ? null
                 : () => setState(() => _selectedIndex = 1),
           ),
-          SizedBox(height: 12),
-          _buildRecentPhotosSection(recentPhotos),
-          SizedBox(height: 20),
-          _buildTimelineCard(totalDays, couple, photos.length),
+          const SizedBox(height: 12),
+          _buildRecentPhotosSection(recentPhotos, l10n),
+          const SizedBox(height: 20),
+          _buildTimelineCard(totalDays, couple, photos.length, l10n),
         ],
       ),
     );
@@ -567,6 +551,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required Couple couple,
     required int totalDays,
     required int daysUntilAnniversary,
+    required AppLocalizations l10n,
   }) {
     return Container(
       width: double.infinity,
@@ -578,29 +563,29 @@ class _HomeScreenState extends State<HomeScreen> {
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
             blurRadius: 20,
-            offset: Offset(0, 12),
+            offset: const Offset(0, 12),
           ),
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.white.withOpacity(0.16),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.wb_sunny_rounded,
                     color: AppColors.white,
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -610,9 +595,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         runSpacing: 4,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          const Text(
-                            'Chào',
-                            style: TextStyle(
+                          Text(
+                            l10n.helloGreeting,
+                            style: const TextStyle(
                               color: AppColors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -633,9 +618,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'Hôm nay là một ngày đẹp để nhìn lại hành trình yêu thương.',
+                        l10n.homeSubtitle,
                         style: TextStyle(
                           color: AppColors.white.withOpacity(0.82),
                           fontSize: 13,
@@ -647,35 +632,36 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-          SizedBox(height: 18),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _buildHeroBadge(
-                Icons.favorite_rounded,
-                '$totalDays ngày yêu nhau',
-              ),
-              _buildHeroBadge(
-                Icons.celebration_rounded,
-                daysUntilAnniversary == 0
-                    ? 'Đến ngày kỷ niệm rồi'
-                    : '$daysUntilAnniversary ngày nữa tới kỷ niệm',
-              ),
-              _buildHeroBadge(
-                Icons.calendar_month_rounded,
-                _formatDate(couple.anniversaryDate),
-              ),
-            ],
-          ),
-        ],
+            const SizedBox(height: 18),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                _buildHeroBadge(
+                  Icons.favorite_rounded,
+                  l10n.daysCountLabel(totalDays),
+                ),
+                _buildHeroBadge(
+                  Icons.celebration_rounded,
+                  daysUntilAnniversary == 0
+                      ? l10n.todayIsAnniversary
+                      : l10n.daysUntilNextAnniversary(daysUntilAnniversary),
+                ),
+                _buildHeroBadge(
+                  Icons.calendar_month_rounded,
+                  _formatDate(couple.anniversaryDate),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 
   Widget _buildHeroBadge(IconData icon, String label) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.white.withOpacity(0.14),
         borderRadius: BorderRadius.circular(999),
@@ -685,10 +671,10 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: AppColors.white, size: 16),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.white,
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -716,7 +702,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 title,
                 style: AppTheme.sectionTitleStyle(),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 subtitle,
                 style: AppTheme.sectionSubtitleStyle(),
@@ -747,7 +733,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(14),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(20),
@@ -755,7 +741,7 @@ class _HomeScreenState extends State<HomeScreen> {
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
               blurRadius: 16,
-              offset: Offset(0, 8),
+              offset: const Offset(0, 8),
             ),
           ],
         ),
@@ -763,26 +749,26 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.14),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(icon, color: color),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               subtitle,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 11,
                 height: 1.35,
@@ -802,7 +788,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color color,
   }) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(22),
@@ -810,7 +796,7 @@ class _HomeScreenState extends State<HomeScreen> {
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
             blurRadius: 16,
-            offset: Offset(0, 10),
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -818,29 +804,29 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: color.withOpacity(0.14),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, color: color, size: 20),
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           RichText(
             text: TextSpan(
               children: [
                 TextSpan(
                   text: value,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
@@ -848,7 +834,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 TextSpan(
                   text: '  $hint',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -866,12 +852,13 @@ class _HomeScreenState extends State<HomeScreen> {
     required int totalDays,
     required int nextMilestone,
     required double progress,
+    required AppLocalizations l10n,
   }) {
     final daysLeft = nextMilestone - totalDays;
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(18),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
@@ -879,7 +866,7 @@ class _HomeScreenState extends State<HomeScreen> {
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
             blurRadius: 16,
-            offset: Offset(0, 10),
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -889,35 +876,35 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: AppColors.accentGold.withOpacity(0.14),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.workspace_premium_rounded,
                   color: AppColors.accentGold,
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mốc tiếp theo: ${_milestoneLabel(nextMilestone)}',
-                      style: TextStyle(
+                      l10n.nextMilestonePrefix(_milestoneLabel(nextMilestone, l10n)),
+                      style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       daysLeft <= 0
-                          ? 'Hai bạn vừa chạm một cột mốc thật đẹp ✨'
-                          : 'Chỉ còn $daysLeft ngày nữa là chạm cột mốc tiếp theo.',
-                      style: TextStyle(
+                          ? l10n.milestoneReached
+                          : l10n.onlyDaysUntilMilestone(daysLeft),
+                      style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 13,
                       ),
@@ -927,31 +914,31 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          SizedBox(height: 18),
+          const SizedBox(height: 18),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 10,
               backgroundColor: AppColors.surfaceLight,
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.accentRose),
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accentRose),
             ),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '$totalDays ngày',
-                style: TextStyle(
+                l10n.daysCountLabel(totalDays),
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
-                '${(progress * 100).toStringAsFixed(0)}% hoàn thành',
-                style: TextStyle(
+                l10n.percentThere((progress * 100).toStringAsFixed(0)),
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -964,7 +951,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuoteCard(int totalDays, Couple couple) {
+  Widget _buildQuoteCard(int totalDays, Couple couple, AppLocalizations l10n) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -979,17 +966,17 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.white.withOpacity(0.18)),
       ),
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.format_quote_rounded, color: AppColors.white),
-              SizedBox(width: 8),
+              const Icon(Icons.format_quote_rounded, color: AppColors.white),
+              const SizedBox(width: 8),
               Text(
-                'Love note',
-                style: TextStyle(
+                l10n.loveNoteLabel,
+                style: const TextStyle(
                   color: AppColors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -997,17 +984,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Text(
-            '"$totalDays ngày không chỉ là thời gian, mà là từng lần cùng nhau trưởng thành, dịu dàng và chọn ở lại bên nhau."',
-            style: TextStyle(
+            l10n.loveNoteQuote(totalDays),
+            style: const TextStyle(
               color: AppColors.white,
               fontSize: 15,
               fontWeight: FontWeight.w500,
               height: 1.55,
             ),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 6,
             runSpacing: 4,
@@ -1041,11 +1028,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildRecentPhotosSection(List<Photo> photos) {
+  Widget _buildRecentPhotosSection(List<Photo> photos, AppLocalizations l10n) {
     if (photos.isEmpty) {
       return Container(
         width: double.infinity,
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(24),
@@ -1053,7 +1040,7 @@ class _HomeScreenState extends State<HomeScreen> {
             BoxShadow(
               color: Colors.black.withOpacity(0.06),
               blurRadius: 16,
-              offset: Offset(0, 10),
+              offset: const Offset(0, 10),
             ),
           ],
         ),
@@ -1064,11 +1051,11 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.textSecondary.withOpacity(0.5),
               size: 42,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'Thêm vài bức ảnh đầu tiên để biến trang chủ thành một cuốn nhật ký tình yêu.',
+              l10n.addPhotosEmpty,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 13,
                 height: 1.45,
@@ -1098,7 +1085,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   BoxShadow(
                     color: Colors.black.withOpacity(0.08),
                     blurRadius: 16,
-                    offset: Offset(0, 10),
+                    offset: const Offset(0, 10),
                   ),
                 ],
               ),
@@ -1134,16 +1121,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             photo.caption?.trim().isNotEmpty == true
                                 ? photo.caption!
-                                : 'Khoảnh khắc #${index + 1}',
+                                : l10n.momentNumberFallback(index + 1),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: AppColors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
                             _formatDate(photo.uploadDate),
                             style: TextStyle(
@@ -1164,12 +1151,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTimelineCard(int totalDays, Couple couple, int photoCount) {
+  Widget _buildTimelineCard(int totalDays, Couple couple, int photoCount, AppLocalizations l10n) {
     final currentMonthiversary = totalDays ~/ 30;
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
@@ -1177,7 +1164,7 @@ class _HomeScreenState extends State<HomeScreen> {
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
             blurRadius: 16,
-            offset: Offset(0, 10),
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -1185,32 +1172,36 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Tóm tắt hành trình',
-            style: TextStyle(
+            l10n.yourStorySoFar,
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 17,
               fontWeight: FontWeight.w700,
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           _buildTimelineItem(
             icon: Icons.favorite_rounded,
-            title: 'Bắt đầu yêu nhau',
-            subtitle: '${couple.person1Name} và ${couple.person2Name} chính thức bắt đầu vào ${_formatDate(couple.anniversaryDate)}',
+            title: l10n.whenItAllBegan,
+            subtitle: l10n.whenItAllBeganSubtitle(
+              couple.person1Name,
+              couple.person2Name,
+              _formatDate(couple.anniversaryDate),
+            ),
             color: AppColors.accentRose,
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           _buildTimelineItem(
             icon: Icons.calendar_view_month_rounded,
-            title: 'Đã đi qua $currentMonthiversary tháng kỷ niệm',
-            subtitle: 'Mỗi tháng là thêm một lớp ký ức và sự thấu hiểu dành cho nhau.',
+            title: l10n.monthiversaries(currentMonthiversary),
+            subtitle: l10n.monthiversaryDesc,
             color: AppColors.accentCoral,
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           _buildTimelineItem(
             icon: Icons.collections_rounded,
-            title: '$photoCount kỷ niệm đã được lưu lại',
-            subtitle: 'Thư viện đang dần trở thành album riêng của hai bạn.',
+            title: l10n.memoriesCaptured(photoCount),
+            subtitle: l10n.memoriesCapturedDesc,
             color: AppColors.info,
           ),
         ],
@@ -1228,30 +1219,30 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: EdgeInsets.all(10),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: color.withOpacity(0.14),
             borderRadius: BorderRadius.circular(14),
           ),
           child: Icon(icon, color: color, size: 18),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 12,
                   height: 1.45,
@@ -1307,14 +1298,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return ((totalDays ~/ 500) + 1) * 500;
   }
 
-  String _milestoneLabel(int days) {
+  String _milestoneLabel(int days, AppLocalizations l10n) {
     if (days % 365 == 0) {
-      return '${days ~/ 365} năm';
+      final count = days ~/ 365;
+      return count == 1 ? l10n.milestoneYearsOne(count) : l10n.milestoneYearsMany(count);
     }
     if (days < 365 && days % 30 == 0) {
-      return '${days ~/ 30} tháng';
+      final count = days ~/ 30;
+      return count == 1 ? l10n.milestoneMonthsOne(count) : l10n.milestoneMonthsMany(count);
     }
-    return '$days ngày';
+    return l10n.milestoneDaysLabel(days);
   }
 }
 
@@ -1322,13 +1315,10 @@ class _NavigationItem {
   const _NavigationItem({
     required this.icon,
     this.selectedIcon,
-    required this.label,
     required this.color,
   });
 
   final IconData icon;
   final IconData? selectedIcon;
-  final String label;
   final Color color;
 }
-

@@ -43,7 +43,7 @@ class AuthProvider extends ChangeNotifier {
       await PushNotificationService.instance.syncForUser(_currentUser);
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = 'Không thể khởi tạo phiên đăng nhập: $e';
+      _errorMessage = 'Could not initialize session: $e';
     } finally {
       _isInitialized = true;
       _setLoading(false, notify: false);
@@ -70,7 +70,7 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = 'Đăng nhập thất bại: $e';
+      _errorMessage = 'Sign in failed: $e';
       return false;
     } finally {
       _setLoading(false);
@@ -101,7 +101,7 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = 'Tạo tài khoản thất bại: $e';
+      _errorMessage = 'Account creation failed: $e';
       return false;
     } finally {
       _setLoading(false);
@@ -120,7 +120,7 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.unauthenticated;
       _isInitialized = true;
     } catch (e) {
-      _errorMessage = 'Đăng xuất thất bại: $e';
+      _errorMessage = 'Sign out failed: $e';
     } finally {
       _setLoading(false);
     }

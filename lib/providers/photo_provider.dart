@@ -55,7 +55,7 @@ class PhotoProvider extends ChangeNotifier {
       return;
     }
 
-    _setLoading(true, message: 'Đang đồng bộ thư viện...');
+    _setLoading(true, message: 'Syncing library...');
     _clearError(notify: false);
 
     _photoSubscription = _photoService.watchCouplePhotos(currentUser.coupleId!).listen(
@@ -90,7 +90,7 @@ class PhotoProvider extends ChangeNotifier {
     required AppUser currentUser,
     String? caption,
   }) async {
-    _setLoading(true, message: 'Đang đăng ảnh...');
+    _setLoading(true, message: 'Uploading photo...');
     _clearError(notify: false);
 
     try {
@@ -120,7 +120,7 @@ class PhotoProvider extends ChangeNotifier {
   }) async {
     final photo = _photos.firstWhere((p) => p.id == photoId);
 
-    _setLoading(true, message: 'Đang xóa ảnh...');
+    _setLoading(true, message: 'Deleting photo...');
     _clearError(notify: false);
 
     try {
@@ -150,7 +150,7 @@ class PhotoProvider extends ChangeNotifier {
       return;
     }
 
-    _setLoading(true, message: 'Đang cập nhật chú thích...');
+    _setLoading(true, message: 'Updating caption...');
     _clearError(notify: false);
 
     try {

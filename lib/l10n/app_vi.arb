@@ -1,0 +1,392 @@
+{
+  "@@locale": "vi",
+
+  "cancel": "Hủy",
+  "save": "Lưu",
+  "delete": "Xóa",
+  "edit": "Chỉnh sửa",
+  "continueBtn": "Tiếp tục",
+  "keep": "Giữ lại",
+
+  "splashTagline": "Câu chuyện của chúng mình",
+  "splashSubtitle": "Đếm từng ngày bên nhau",
+
+  "checkingSession": "Đang kiểm tra phiên đăng nhập...",
+
+  "loginTitle": "Chào mừng trở lại",
+  "loginSubtitle": "Đăng nhập để tiếp tục đếm từng ngày bên nhau.",
+  "loginLocalFallback": "Đang dùng local fallback — Firebase sẽ được kết nối sau.",
+  "emailLabel": "Email",
+  "emailHint": "you@example.com",
+  "emailRequired": "Vui lòng nhập email",
+  "emailInvalid": "Email không hợp lệ",
+  "passwordLabel": "Mật khẩu",
+  "passwordHint": "Ít nhất 6 ký tự",
+  "passwordRequired": "Vui lòng nhập mật khẩu",
+  "passwordTooShort": "Mật khẩu cần ít nhất 6 ký tự",
+  "signIn": "Đăng nhập",
+  "newHere": "Chưa có tài khoản?",
+  "createAccountLink": "Tạo tài khoản",
+
+  "registerTitle": "Bắt đầu\ncâu chuyện tình",
+  "registerSubtitle": "Tạo tài khoản để lưu giữ từng ngày bên nhau.",
+  "registerLocalFallback": "Đang dùng local fallback — Firebase sẽ được kết nối sau.",
+  "displayNameLabel": "Tên hiển thị",
+  "displayNameHint": "Tên của bạn",
+  "displayNameRequired": "Vui lòng nhập tên hiển thị",
+  "displayNameTooShort": "Tên quá ngắn",
+  "confirmPasswordLabel": "Xác nhận mật khẩu",
+  "confirmPasswordHint": "Nhập lại mật khẩu",
+  "confirmPasswordRequired": "Vui lòng xác nhận mật khẩu",
+  "passwordsMismatch": "Mật khẩu chưa khớp",
+  "createAccountBtn": "Tạo tài khoản",
+  "alreadyWithUs": "Đã có tài khoản?",
+  "backToSignIn": "Quay lại đăng nhập",
+
+  "setupCreateTitle": "Bắt đầu\ncâu chuyện của hai mình",
+  "setupEditTitle": "Chỉnh sửa\ncâu chuyện của hai mình",
+  "setupTabCreate": "Tạo mới",
+  "setupTabJoin": "Tham gia bằng mã",
+  "inviteCodeDialogTitle": "Mã mời tài khoản của bạn",
+  "inviteCodeDialogContent": "Mã mời này gắn trực tiếp với tài khoản của bạn. Gửi nó cho người còn lại để họ đăng nhập bằng tài khoản riêng và nhập vào màn hình tham gia cặp đôi.",
+  "sectionAboutCouple": "Thông tin cặp đôi",
+  "setupEditSectionDesc": "Chỉnh sửa thông tin chung — tên, ngày kỷ niệm, ảnh đôi.",
+  "setupCreateSectionDesc": "Tạo không gian trước, sau đó chia sẻ mã mời với người ấy.",
+  "yourNameLabel": "Tên của bạn",
+  "yourNameHint": "VD: Anh",
+  "partnerNameLabel": "Tên người ấy",
+  "partnerNameHint": "VD: Em",
+  "anniversaryLabel": "Ngày kỷ niệm",
+  "anniversaryHint": "Chọn ngày bắt đầu",
+  "couplePhotoLabel": "Ảnh đôi",
+  "couplePhotoHint": "Thêm ảnh đôi (tùy chọn)",
+  "couplePhotoSelected": "Đã chọn ảnh",
+  "saveChangesBtn": "Lưu thay đổi",
+  "createOurSpaceBtn": "Tạo không gian của hai mình",
+  "useInviteCodeTitle": "Dùng mã mời",
+  "theirInviteCodeLabel": "Mã mời của người ấy",
+  "theirInviteCodeHint": "VD: A7B9KD",
+  "joinBtn": "Tham gia",
+  "yourInviteCodeTitle": "Mã mời của bạn",
+  "sendToPartnerHint": "Gửi mã này cho người ấy",
+  "inviteCodeTiedToAccount": "Mã gắn với tài khoản bạn",
+  "setupErrorNoAccount": "Không tìm thấy tài khoản. Bạn đăng nhập lại nhé.",
+  "setupErrorFillRequired": "Vui lòng điền đầy đủ tên hai bạn và ngày kỷ niệm.",
+  "setupErrorSaveCouple": "Không thể lưu thông tin cặp đôi: {error}",
+  "@setupErrorSaveCouple": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "setupErrorNoAccountShort": "Không tìm thấy tài khoản.",
+  "setupErrorNoInviteCode": "Bạn hãy nhập mã mời trước nhé.",
+  "setupErrorJoinCouple": "Không thể tham gia cặp đôi: {error}",
+  "@setupErrorJoinCouple": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "setupSuccessConnected": "Kết nối thành công rồi 💞",
+
+  "navHome": "Trang chủ",
+  "navMemories": "Kỷ niệm",
+  "navProfile": "Hồ sơ",
+
+  "ourStoryBadge": "CÂU CHUYỆN CỦA CHÚNG MÌNH",
+  "helloGreeting": "Xin chào,",
+  "homeSubtitle": "Hôm nay là ngày tốt để nhìn lại câu chuyện tình yêu.",
+  "youveBeenTogetherFor": "HAI BẠN ĐÃ BÊN NHAU",
+  "daysOfUsSince": "ngày · từ {date}",
+  "@daysOfUsSince": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "todayIsAnniversary": "Hôm nay là ngày kỷ niệm của hai bạn ✨",
+  "daysUntilNextAnniversary": "Còn {count} ngày tới kỷ niệm tiếp theo",
+  "@daysUntilNextAnniversary": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "quickMomentsTitle": "Khoảnh khắc nhanh",
+  "quickMomentsSubtitle": "Lối tắt để xem lại câu chuyện của hai bạn",
+  "memoriesCardTitle": "Kỷ niệm",
+  "viewAllPhotos": "Xem tất cả ảnh",
+  "profileCardTitle": "Hồ sơ",
+  "updateInfo": "Cập nhật thông tin",
+  "milestoneCardTitle": "Cột mốc",
+  "loveInNumbersTitle": "Tình yêu qua con số",
+  "loveInNumbersSubtitle": "Những thống kê nhỏ từ hành trình của hai bạn",
+  "daysTogether": "Ngày bên nhau",
+  "daysUnit": "ngày",
+  "memoriesSaved": "Kỷ niệm đã lưu",
+  "photosUnit": "ảnh",
+  "nextAnniversaryLabel": "Kỷ niệm tiếp theo",
+  "daysAway": "ngày nữa",
+  "nextMilestoneTitle": "Cột mốc tiếp theo",
+  "milestoneProgressTitle": "Tiến trình cột mốc",
+  "milestoneProgressSubtitle": "Nhẹ nhàng tiến về con số ngọt ngào tiếp theo",
+  "recentMemoriesTitle": "Kỷ niệm gần đây",
+  "addPhotosPrompt": "Thêm vài ảnh để bắt đầu thư tình của hai bạn",
+  "latestMomentsSubtitle": "Một vài khoảnh khắc mới nhất của hai bạn",
+  "seeAll": "Xem tất cả",
+  "addPhotosEmpty": "Thêm vài ảnh để bắt đầu lấp đầy bức thư tình này.",
+  "yourStorySoFar": "Câu chuyện của hai bạn",
+  "whenItAllBegan": "Khi tất cả bắt đầu",
+  "whenItAllBeganSubtitle": "{name1} & {name2} vào {date}",
+  "@whenItAllBeganSubtitle": {
+    "placeholders": {
+      "name1": { "type": "String" },
+      "name2": { "type": "String" },
+      "date": { "type": "String" }
+    }
+  },
+  "monthiversaries": "{count} tháng kỷ niệm",
+  "@monthiversaries": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "monthiversaryDesc": "Mỗi tháng là thêm một lớp hiểu biết và trìu mến.",
+  "memoriesCaptured": "{count} kỷ niệm đã lưu",
+  "@memoriesCaptured": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "memoriesCapturedDesc": "Thư viện của hai bạn đang trở thành một album nhỏ xinh.",
+  "loveNoteLabel": "Ghi chú tình yêu",
+  "loveNoteQuote": "\"{count} ngày không chỉ là thời gian — đó là từng khoảnh khắc nhẹ nhàng, từng lựa chọn ở lại, từng điều nhỏ bé chúng mình chia sẻ.\"",
+  "@loveNoteQuote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "milestoneReached": "Hai bạn vừa đạt một cột mốc đẹp ✨",
+  "onlyDaysUntilMilestone": "Chỉ còn {count} ngày tới cột mốc tiếp theo.",
+  "@onlyDaysUntilMilestone": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "nextMilestonePrefix": "Tiếp: {label}",
+  "@nextMilestonePrefix": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "daysCountLabel": "{count} ngày",
+  "@daysCountLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "percentThere": "{percent}% rồi",
+  "@percentThere": {
+    "placeholders": {
+      "percent": { "type": "String" }
+    }
+  },
+  "milestoneYearsOne": "{count} năm",
+  "@milestoneYearsOne": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "milestoneYearsMany": "{count} năm",
+  "@milestoneYearsMany": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "milestoneMonthsOne": "{count} tháng",
+  "@milestoneMonthsOne": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "milestoneMonthsMany": "{count} tháng",
+  "@milestoneMonthsMany": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "milestoneDaysLabel": "{count} ngày",
+  "@milestoneDaysLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "privateGalleryBadge": "THƯ VIỆN RIÊNG TƯ",
+  "galleryTitle": "Thư Viện Ảnh",
+  "gallerySubtitle": "Vuốt lên nhẹ để gọi lại nhanh khung đăng ảnh và quản lý kỷ niệm.",
+  "addCaptionTitle": "Thêm chú thích",
+  "addCaptionHint": "Viết vài dòng về khoảnh khắc này...",
+  "addCaptionOptionalTitle": "Thêm chú thích (tùy chọn)",
+  "addCaptionOptionalHint": "Viết điều gì đó thật đáng nhớ...",
+  "editCaptionTitle": "Chỉnh sửa chú thích",
+  "editCaptionHint": "Khoảnh khắc này đáng nhớ thế nào?",
+  "deletePhotoTitle": "Xóa ảnh này?",
+  "deletePhotoContent": "Khoảnh khắc này sẽ bị xóa khỏi nhật ký của hai bạn.",
+  "keepPhotoBtn": "Giữ lại",
+  "deletePhotoBtn": "Xóa",
+  "postedByLabel": "Đăng bởi {name}",
+  "@postedByLabel": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "momentsCount": "{count} khoảnh khắc",
+  "@momentsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "daysTogetherCount": "{count} ngày bên nhau",
+  "@daysTogetherCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "privateFeedLabel": "Feed riêng của hai bạn",
+  "postNewPhotoBtn": "Đăng ảnh mới",
+  "addMultipleBtn": "Thêm nhiều",
+  "addNewMemoryTitle": "Thêm một kỷ niệm mới hôm nay",
+  "whatNewToday": "hôm nay có gì mới?",
+  "composerSubtitle": "Biến thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.",
+  "compactCaption": "{count} khoảnh khắc · Vuốt thêm để bung khung đăng ảnh",
+  "@compactCaption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "todayInLoveBadge": "HÔM NAY TRONG TÌNH YÊU",
+  "storyStripBadge": "DẢI STORY",
+  "memoriesTodayTitle": "Kỷ niệm hôm nay",
+  "recentPhotosTitle": "Ảnh gần đây",
+  "memoriesTodaySubtitle": "Những khoảnh khắc được lưu đúng ngày này, dịu dàng và rất riêng.",
+  "recentPhotosSubtitle": "Một dải story nhỏ để xem nhanh những khoảnh khắc mới nhất của hai bạn.",
+  "memoryBadge": "Kỷ niệm",
+  "newBadge": "Mới",
+  "momentLabel": "Khoảnh khắc #{number}",
+  "@momentLabel": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
+  "editCaptionAction": "Chỉnh sửa chú thích",
+  "deletePhotoAction": "Xóa ảnh",
+  "editAction": "Chỉnh sửa",
+  "deleteAction": "Xóa",
+  "startNewfeedTitle": "Bắt đầu tạo newfeed kỷ niệm",
+  "postFirstMomentOf": "Hãy đăng khoảnh khắc đầu tiên của",
+  "emptyFeedContent": "Khi thêm ảnh, thư viện này sẽ trở thành một newfeed tình yêu riêng tư với những dòng thời gian thật dễ nhìn và cảm xúc.",
+  "postFirstPhotoBtn": "Đăng ảnh đầu tiên",
+  "photoAddedSuccess": "Thêm ảnh thành công!",
+  "photoAddError": "Không thể đăng ảnh lúc này.",
+  "multiplePhotosAdded": "Đã thêm {count} ảnh!",
+  "@multiplePhotosAdded": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "captionUpdatedSuccess": "Đã cập nhật chú thích",
+  "captionUpdateError": "Không thể cập nhật chú thích.",
+  "photoDeletedSuccess": "Đã xóa ảnh",
+  "photoDeleteError": "Không thể xóa ảnh lúc này.",
+  "youTwoLabel": "Hai bạn",
+  "syncingLibrary": "Đang đồng bộ thư viện...",
+  "uploadingPhoto": "Đang đăng ảnh...",
+  "deletingPhoto": "Đang xóa ảnh...",
+  "updatingCaption": "Đang cập nhật chú thích...",
+  "feedDateFormat": "dd 'thg' MM • HH:mm",
+  "momentNumberFallback": "Khoảnh khắc #{index}",
+  "@momentNumberFallback": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+
+  "loveProfileBadge": "HỒ SƠ TÌNH YÊU",
+  "profileTitle": "Hồ sơ của hai bạn",
+  "profileSubtitle": "Một góc riêng để nhìn lại hành trình yêu nhau, cột mốc và album kỷ ức của hai bạn.",
+  "todayIsAnniversaryProfile": "Hôm nay là ngày kỷ niệm ✨",
+  "daysUntilAnniversaryProfile": "Còn {count} ngày tới kỷ niệm tiếp theo",
+  "@daysUntilAnniversaryProfile": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "khoanhKhacCount": "{count} khoảnh khắc",
+  "@khoanhKhacCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "privateDiaryLabel": "Nhật ký riêng tư",
+  "loveMilestonesLabel": "Mốc yêu thương",
+  "journeySnapshotTitle": "Bức tranh hành trình",
+  "journeySnapshotSubtitle": "Các con số nổi bật của mối quan hệ được trình bày gọn gàng, hiện đại và dễ nhìn.",
+  "yearsTogether": "Năm bên nhau",
+  "monthsRemaining": "Tháng lẻ",
+  "totalDaysLabel": "Tổng số ngày",
+  "memoriesSavedLabel": "Khoảnh khắc lưu",
+  "infoAndRhythmTitle": "Thông tin & nhịp sống",
+  "infoAndRhythmSubtitle": "Một cách nhìn rõ ràng hơn về ngày bắt đầu, album và cột mốc sắp tới.",
+  "loveStartDateLabel": "Ngày yêu nhau",
+  "yourInviteCodeLabel": "Mã mời tài khoản của bạn",
+  "dayStreakLabel": "Chuỗi ngày bên nhau",
+  "dayStreakValue": "{count} ngày và vẫn đang tiếp tục",
+  "@dayStreakValue": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "memoryAlbumLabel": "Thư viện kỷ niệm",
+  "memoryAlbumValue": "{count} ảnh đang được lưu trong album riêng",
+  "@memoryAlbumValue": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "upcomingMilestoneLabel": "Cột mốc gần nhất",
+  "todaySpecialMsg": "Hôm nay là ngày thật đặc biệt của hai bạn",
+  "daysUntilNextMsg": "Còn {count} ngày nữa tới kỷ niệm tiếp theo",
+  "@daysUntilNextMsg": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "customizeProfileTitle": "Tùy chỉnh hồ sơ",
+  "customizeProfileSubtitle": "Cập nhật tên, ngày yêu và ảnh đôi để trang hồ sơ luôn phản ánh đúng hành trình hiện tại.",
+  "editOurStoryBtn": "Chỉnh sửa câu chuyện",
+  "proTipLabel": "Mẹo nhỏ",
+  "proTipContent": "Một ảnh đôi sáng, cận mặt và có nhiều khoảng thở sẽ giúp phần hero ở hồ sơ trông sang hơn hẳn.",
+  "dataManagementTitle": "Quản lý dữ liệu",
+  "dataManagementDesc": "Một người chỉ được xóa cache trên máy này hoặc rời khỏi couple. Muốn xóa dữ liệu chung, cả hai phải cùng xác nhận.",
+  "clearLocalDataBtn": "Xóa dữ liệu trên máy này",
+  "localFallbackWarning": "App đang ở local fallback nên chưa hỗ trợ xóa cache riêng an toàn. Bạn có thể rời khỏi couple local hiện tại nếu muốn làm mới.",
+  "leaveCoupleBtn": "Rời khỏi couple",
+  "clearDataNote": "Xóa toàn bộ dữ liệu chung hiện chưa cho phép từ một phía. Ở sprint sau, mình sẽ đổi sang flow cần cả hai cùng xác nhận.",
+  "clearLocalDialogTitle": "Xóa dữ liệu trên máy này",
+  "clearLocalDialogContent": "Thao tác này chỉ xóa cache trên thiết bị hiện tại. Dữ liệu chung trên Firebase vẫn được giữ nguyên và sẽ tải lại khi cần.",
+  "clearLocalActionBtn": "Xóa local",
+  "leaveCoupleDialogTitle": "Rời khỏi couple",
+  "leaveCoupleDialogContent": "Bạn sẽ rời khỏi không gian couple hiện tại. Người còn lại vẫn giữ dữ liệu chung. Bạn không thể xóa toàn bộ dữ liệu chung chỉ từ một phía.",
+  "leaveCoupleActionBtn": "Rời khỏi couple",
+  "localDataClearedMsg": "Đã xóa dữ liệu local trên máy này. Dữ liệu chung trên cloud vẫn được giữ nguyên.",
+
+  "languageTitle": "Ngôn ngữ",
+  "languageSubtitle": "Chọn ngôn ngữ hiển thị của ứng dụng",
+  "languageSystem": "Theo hệ thống",
+  "languageSystemDesc": "Theo ngôn ngữ thiết bị",
+  "languageEnglish": "English",
+  "languageVietnamese": "Tiếng Việt",
+
+  "loadingCoupleInfo": "Đang tải thông tin cặp đôi...",
+  "savingCoupleSpace": "Đang lưu không gian cặp đôi...",
+  "connectingCouple": "Đang kết nối cặp đôi...",
+  "updatingCoupleInfo": "Đang cập nhật thông tin cặp đôi..."
+}

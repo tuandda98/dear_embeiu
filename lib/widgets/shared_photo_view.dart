@@ -55,7 +55,7 @@ class SharedPhotoView extends StatelessWidget {
           alignment: Alignment.center,
           child: Icon(
             Icons.image_not_supported_outlined,
-            color: AppColors.textSecondary.withValues(alpha: 0.5),
+            color: AppColors.textSecondary.withOpacity( 0.5),
           ),
         );
   }

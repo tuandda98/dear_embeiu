@@ -5,9 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../app/app_routes.dart';
+import '../l10n/l10n.dart';
 import '../models/couple.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
+import '../providers/locale_provider.dart';
 import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
@@ -53,9 +55,10 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildPageHeader(),
+                    _buildPageHeader(context),
                     const SizedBox(height: 20),
                     _buildHeroCard(
+                      context,
                       couple: couple,
                       photoCount: photoCount,
                       totalDays: totalDays,
@@ -63,6 +66,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                     _buildStatsSection(
+                      context,
                       years: years,
                       months: months,
                       totalDays: totalDays,
@@ -70,6 +74,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                     _buildProfileDetailsSection(
+                      context,
                       couple: couple,
                       inviteCode: currentUser?.inviteCode,
                       photoCount: photoCount,
@@ -78,6 +83,8 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                     _buildActionsSection(context),
+                    const SizedBox(height: 18),
+                    _buildLanguageSection(context),
                     const SizedBox(height: 18),
                     _buildDangerZone(
                       context,
@@ -93,16 +100,18 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPageHeader() {
+  Widget _buildPageHeader(BuildContext context) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
+            color: AppColors.white.withOpacity( 0.12),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+            border: Border.all(color: AppColors.white.withOpacity( 0.18)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -110,11 +119,11 @@ class ProfileScreen extends StatelessWidget {
               Icon(
                 Icons.auto_awesome_rounded,
                 size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
+                color: AppColors.white.withOpacity( 0.92),
               ),
               const SizedBox(width: 8),
               Text(
-                'LOVE PROFILE',
+                l10n.loveProfileBadge,
                 style: AppTheme.pageEyebrowStyle(),
               ),
             ],
@@ -122,36 +131,39 @@ class ProfileScreen extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         Text(
-          'Hồ sơ của hai bạn',
+          l10n.profileTitle,
           style: AppTheme.pageTitleStyle(),
         ),
         const SizedBox(height: 8),
         Text(
-          'Một góc riêng để nhìn lại hành trình yêu nhau, cột mốc và album ký ức của hai bạn.',
+          l10n.profileSubtitle,
           style: AppTheme.pageSubtitleStyle(),
         ),
       ],
     );
   }
 
-  Widget _buildHeroCard({
+  Widget _buildHeroCard(
+    BuildContext context, {
     required Couple couple,
     required int photoCount,
     required int totalDays,
     required int daysUntilAnniversary,
   }) {
+    final l10n = context.l10n;
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.16)),
+        border: Border.all(color: AppColors.white.withOpacity( 0.16)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.14),
+            color: Colors.black.withOpacity( 0.14),
             blurRadius: 34,
             offset: const Offset(0, 18),
           ),
           BoxShadow(
-            color: AppColors.accentRose.withValues(alpha: 0.12),
+            color: AppColors.accentRose.withOpacity( 0.12),
             blurRadius: 42,
             offset: const Offset(0, 14),
           ),
@@ -181,8 +193,8 @@ class ProfileScreen extends StatelessWidget {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            AppColors.accentRose.withValues(alpha: 0.88),
-                            AppColors.primaryGradientEnd.withValues(alpha: 0.94),
+                            AppColors.accentRose.withOpacity( 0.88),
+                            AppColors.primaryGradientEnd.withOpacity( 0.94),
                           ],
                         ),
                       ),
@@ -190,7 +202,7 @@ class ProfileScreen extends StatelessWidget {
                         child: Text(
                           _initials(couple),
                           style: TextStyle(
-                            color: AppColors.white.withValues(alpha: 0.94),
+                            color: AppColors.white.withOpacity( 0.94),
                             fontSize: 56,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 2,
@@ -206,8 +218,8 @@ class ProfileScreen extends StatelessWidget {
                                 center: const Alignment(-0.62, -0.86),
                                 radius: 1.05,
                                 colors: [
-                                  AppColors.white.withValues(alpha: 0.16),
-                                  AppColors.accentRose.withValues(alpha: 0.14),
+                                  AppColors.white.withOpacity( 0.16),
+                                  AppColors.accentRose.withOpacity( 0.14),
                                   Colors.transparent,
                                 ],
                                 stops: const [0.0, 0.28, 0.78],
@@ -225,8 +237,8 @@ class ProfileScreen extends StatelessWidget {
                               shape: BoxShape.circle,
                               gradient: RadialGradient(
                                 colors: [
-                                  AppColors.primaryGradientEnd.withValues(alpha: 0.34),
-                                  AppColors.accentRose.withValues(alpha: 0.18),
+                                  AppColors.primaryGradientEnd.withOpacity( 0.34),
+                                  AppColors.accentRose.withOpacity( 0.18),
                                   Colors.transparent,
                                 ],
                               ),
@@ -240,7 +252,7 @@ class ProfileScreen extends StatelessWidget {
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
-                                  Colors.black.withValues(alpha: 0.02),
+                                  Colors.black.withOpacity( 0.02),
                                   Colors.transparent,
                                 ],
                               ),
@@ -254,9 +266,9 @@ class ProfileScreen extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                                  Colors.black.withValues(alpha: 0.08),
-                                  Colors.black.withValues(alpha: 0.22),
-                                  Colors.black.withValues(alpha: 0.68),
+                                  Colors.black.withOpacity( 0.08),
+                                  Colors.black.withOpacity( 0.22),
+                                  Colors.black.withOpacity( 0.68),
                     ],
                                 stops: const [0.0, 0.34, 1.0],
                   ),
@@ -275,7 +287,7 @@ class ProfileScreen extends StatelessWidget {
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   Colors.transparent,
-                                  AppColors.accentRose.withValues(alpha: 0.10),
+                                  AppColors.accentRose.withOpacity( 0.10),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(28),
@@ -291,8 +303,8 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.auto_awesome_rounded,
                                 isProminent: true,
                     label: daysUntilAnniversary == 0
-                        ? 'Hôm nay là ngày kỷ niệm ✨'
-                        : 'Còn $daysUntilAnniversary ngày tới kỷ niệm tiếp theo',
+                        ? l10n.todayIsAnniversaryProfile
+                        : l10n.daysUntilAnniversaryProfile(daysUntilAnniversary),
                   ),
                               const SizedBox(height: 106),
                   Row(
@@ -305,9 +317,9 @@ class ProfileScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'OUR STORY',
+                              l10n.ourStoryBadge,
                               style: TextStyle(
-                                color: AppColors.white.withValues(alpha: 0.72),
+                                color: AppColors.white.withOpacity( 0.72),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 1.3,
@@ -329,7 +341,7 @@ class ProfileScreen extends StatelessWidget {
                                 letterSpacing: -0.7,
                                 shadows: [
                                   Shadow(
-                                    color: Colors.black.withValues(alpha: 0.24),
+                                    color: Colors.black.withOpacity( 0.24),
                                     blurRadius: 20,
                                     offset: const Offset(0, 10),
                                   ),
@@ -338,9 +350,9 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              '${_formatDate(couple.anniversaryDate)} • $totalDays ngày bên nhau',
+                              l10n.daysOfUsSince(_formatDate(couple.anniversaryDate)),
                               style: TextStyle(
-                                color: AppColors.white.withValues(alpha: 0.82),
+                                color: AppColors.white.withOpacity( 0.82),
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.15,
@@ -358,15 +370,15 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       _buildGlassPill(
                         icon: Icons.collections_rounded,
-                        label: '$photoCount khoảnh khắc',
+                        label: l10n.khoanhKhacCount(photoCount),
                       ),
                       _buildGlassPill(
                         icon: Icons.favorite_rounded,
-                        label: 'Nhật ký riêng tư',
+                        label: l10n.privateDiaryLabel,
                       ),
                       _buildGlassPill(
                         icon: Icons.workspace_premium_rounded,
-                        label: 'Mốc yêu thương',
+                        label: l10n.loveMilestonesLabel,
                       ),
                     ],
                   ),
@@ -379,15 +391,18 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsSection({
+  Widget _buildStatsSection(
+    BuildContext context, {
     required int years,
     required int months,
     required int totalDays,
     required int photoCount,
   }) {
+    final l10n = context.l10n;
+
     return _buildSectionCard(
-      title: 'Bức tranh hành trình',
-      subtitle: 'Các con số nổi bật của mối quan hệ được trình bày gọn gàng, hiện đại và dễ nhìn.',
+      title: l10n.journeySnapshotTitle,
+      subtitle: l10n.journeySnapshotSubtitle,
       child: Column(
         children: [
           Row(
@@ -396,7 +411,7 @@ class ProfileScreen extends StatelessWidget {
                 child: _buildModernStatCard(
                   icon: Icons.favorite_rounded,
                   value: '$years',
-                  label: 'Năm bên nhau',
+                  label: l10n.yearsTogether,
                   color: AppColors.accentRose,
                 ),
               ),
@@ -405,7 +420,7 @@ class ProfileScreen extends StatelessWidget {
                 child: _buildModernStatCard(
                   icon: Icons.calendar_month_rounded,
                   value: '$months',
-                  label: 'Tháng lẻ',
+                  label: l10n.monthsRemaining,
                   color: AppColors.accentCoral,
                 ),
               ),
@@ -418,7 +433,7 @@ class ProfileScreen extends StatelessWidget {
                 child: _buildModernStatCard(
                   icon: Icons.today_rounded,
                   value: '$totalDays',
-                  label: 'Tổng số ngày',
+                  label: l10n.totalDaysLabel,
                   color: AppColors.info,
                 ),
               ),
@@ -427,7 +442,7 @@ class ProfileScreen extends StatelessWidget {
                 child: _buildModernStatCard(
                   icon: Icons.photo_library_rounded,
                   value: '$photoCount',
-                  label: 'Khoảnh khắc lưu',
+                  label: l10n.memoriesSavedLabel,
                   color: AppColors.accentGold,
                 ),
               ),
@@ -438,21 +453,24 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileDetailsSection({
+  Widget _buildProfileDetailsSection(
+    BuildContext context, {
     required Couple couple,
     required String? inviteCode,
     required int photoCount,
     required int totalDays,
     required int daysUntilAnniversary,
   }) {
+    final l10n = context.l10n;
+
     return _buildSectionCard(
-      title: 'Thông tin & nhịp sống',
-      subtitle: 'Một cách nhìn rõ ràng hơn về ngày bắt đầu, album và cột mốc sắp tới.',
+      title: l10n.infoAndRhythmTitle,
+      subtitle: l10n.infoAndRhythmSubtitle,
       child: Column(
         children: [
           _buildDetailTile(
             icon: Icons.calendar_today_rounded,
-            title: 'Ngày yêu nhau',
+            title: l10n.loveStartDateLabel,
             value: _formatDate(couple.anniversaryDate),
             tint: AppColors.accentRose,
           ),
@@ -460,7 +478,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailTile(
               icon: Icons.password_rounded,
-              title: 'Mã mời tài khoản của bạn',
+              title: l10n.yourInviteCodeLabel,
               value: inviteCode,
               tint: AppColors.warning,
             ),
@@ -468,24 +486,24 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _buildDetailTile(
             icon: Icons.local_fire_department_rounded,
-            title: 'Chuỗi ngày bên nhau',
-            value: '$totalDays ngày và vẫn đang tiếp tục',
+            title: l10n.dayStreakLabel,
+            value: l10n.dayStreakValue(totalDays),
             tint: AppColors.accentCoral,
           ),
           const SizedBox(height: 12),
           _buildDetailTile(
             icon: Icons.collections_bookmark_rounded,
-            title: 'Thư viện kỷ niệm',
-            value: '$photoCount ảnh đang được lưu trong album riêng',
+            title: l10n.memoryAlbumLabel,
+            value: l10n.memoryAlbumValue(photoCount),
             tint: AppColors.info,
           ),
           const SizedBox(height: 12),
           _buildDetailTile(
             icon: Icons.celebration_rounded,
-            title: 'Cột mốc gần nhất',
+            title: l10n.upcomingMilestoneLabel,
             value: daysUntilAnniversary == 0
-                ? 'Hôm nay là ngày thật đặc biệt của hai bạn'
-                : 'Còn $daysUntilAnniversary ngày nữa tới kỷ niệm tiếp theo',
+                ? l10n.todaySpecialMsg
+                : l10n.daysUntilNextMsg(daysUntilAnniversary),
             tint: AppColors.accentGold,
           ),
         ],
@@ -494,9 +512,11 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildActionsSection(BuildContext context) {
+    final l10n = context.l10n;
+
     return _buildSectionCard(
-      title: 'Tùy chỉnh hồ sơ',
-      subtitle: 'Cập nhật tên, ngày yêu và ảnh đôi để trang hồ sơ luôn phản ánh đúng hành trình hiện tại.',
+      title: l10n.customizeProfileTitle,
+      subtitle: l10n.customizeProfileSubtitle,
       child: Column(
         children: [
           SizedBox(
@@ -520,16 +540,16 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               icon: const Icon(Icons.edit_rounded),
-              label: const Text('Chỉnh sửa thông tin cặp đôi'),
+              label: Text(l10n.editOurStoryBtn),
             ),
           ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.surfaceLight.withValues(alpha: 0.78),
+              color: AppColors.surfaceLight.withOpacity( 0.78),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.white.withValues(alpha: 0.8)),
+              border: Border.all(color: AppColors.white.withOpacity( 0.8)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -538,7 +558,7 @@ class ProfileScreen extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: AppColors.white.withValues(alpha: 0.88),
+                    color: AppColors.white.withOpacity( 0.88),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(
@@ -553,7 +573,7 @@ class ProfileScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Mẹo nhỏ',
+                        l10n.proTipLabel,
                         style: TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 14,
@@ -562,7 +582,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Một ảnh đôi sáng, cận mặt và có nhiều khoảng thở sẽ giúp phần hero ở hồ sơ trông sang hơn hẳn.',
+                        l10n.proTipContent,
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 12,
@@ -580,20 +600,125 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildLanguageSection(BuildContext context) {
+    final l10n = context.l10n;
+    final localeProvider = context.watch<LocaleProvider>();
+    final currentLocale = localeProvider.locale;
+
+    return _buildSectionCard(
+      title: l10n.languageTitle,
+      subtitle: l10n.languageSubtitle,
+      child: Column(
+        children: [
+          _buildLanguageOption(
+            context,
+            label: l10n.languageSystem,
+            description: l10n.languageSystemDesc,
+            isSelected: currentLocale == null,
+            onTap: () => localeProvider.useSystemLocale(),
+          ),
+          const SizedBox(height: 10),
+          _buildLanguageOption(
+            context,
+            label: l10n.languageEnglish,
+            description: 'English',
+            isSelected: currentLocale?.languageCode == 'en',
+            onTap: () => localeProvider.setLocale(const Locale('en')),
+          ),
+          const SizedBox(height: 10),
+          _buildLanguageOption(
+            context,
+            label: l10n.languageVietnamese,
+            description: 'Tiếng Việt',
+            isSelected: currentLocale?.languageCode == 'vi',
+            onTap: () => localeProvider.setLocale(const Locale('vi')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageOption(
+    BuildContext context, {
+    required String label,
+    required String description,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.accentRose.withOpacity( 0.10)
+              : AppColors.white.withOpacity( 0.72),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.accentRose.withOpacity( 0.28)
+                : AppColors.white.withOpacity( 0.6),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.accentRose,
+                size: 22,
+              )
+            else
+              Icon(
+                Icons.radio_button_unchecked_rounded,
+                color: AppColors.textSecondary.withOpacity( 0.4),
+                size: 22,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildDangerZone(
     BuildContext context, {
     required bool isUsingFirebase,
   }) {
+    final l10n = context.l10n;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.92),
+        color: AppColors.white.withOpacity( 0.92),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.14)),
+        border: Border.all(color: AppColors.error.withOpacity( 0.14)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withOpacity( 0.04),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
@@ -608,7 +733,7 @@ class ProfileScreen extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.10),
+                  color: AppColors.error.withOpacity( 0.10),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
@@ -622,7 +747,7 @@ class ProfileScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Quản lý dữ liệu',
+                      l10n.dataManagementTitle,
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 16,
@@ -631,7 +756,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Một người chỉ được xóa cache trên máy này hoặc rời khỏi couple. Muốn xóa dữ liệu chung, cả hai phải cùng xác nhận.',
+                      l10n.dataManagementDesc,
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 12,
@@ -652,7 +777,7 @@ class ProfileScreen extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.textPrimary,
                   side: BorderSide(
-                    color: AppColors.textSecondary.withValues(alpha: 0.22),
+                    color: AppColors.textSecondary.withOpacity( 0.22),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -660,7 +785,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 icon: const Icon(Icons.cleaning_services_rounded),
-                label: const Text('Xóa dữ liệu trên máy này'),
+                label: Text(l10n.clearLocalDataBtn),
               ),
             ),
             const SizedBox(height: 12),
@@ -669,14 +794,14 @@ class ProfileScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.08),
+                color: AppColors.warning.withOpacity( 0.08),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: AppColors.warning.withValues(alpha: 0.18),
+                  color: AppColors.warning.withOpacity( 0.18),
                 ),
               ),
               child: Text(
-                'App đang ở local fallback nên chưa hỗ trợ xóa cache riêng an toàn. Bạn có thể rời khỏi couple local hiện tại nếu muốn làm mới.',
+                l10n.localFallbackWarning,
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 12,
@@ -691,14 +816,14 @@ class ProfileScreen extends StatelessWidget {
               onPressed: () => _showLeaveCoupleDialog(context),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.error,
-                side: BorderSide(color: AppColors.error.withValues(alpha: 0.28)),
+                side: BorderSide(color: AppColors.error.withOpacity( 0.28)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
                 ),
               ),
               icon: const Icon(Icons.exit_to_app_rounded),
-              label: const Text('Rời khỏi couple'),
+              label: Text(l10n.leaveCoupleBtn),
             ),
           ),
           const SizedBox(height: 12),
@@ -706,11 +831,11 @@ class ProfileScreen extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.surfaceLight.withValues(alpha: 0.72),
+              color: AppColors.surfaceLight.withOpacity( 0.72),
               borderRadius: BorderRadius.circular(18),
             ),
             child: Text(
-              'Xóa toàn bộ dữ liệu chung hiện chưa cho phép từ một phía. Ở sprint sau, mình sẽ đổi sang flow cần cả hai cùng xác nhận.',
+              l10n.clearDataNote,
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 12,
@@ -732,12 +857,12 @@ class ProfileScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.84),
+        color: AppColors.white.withOpacity( 0.84),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.82)),
+        border: Border.all(color: AppColors.white.withOpacity( 0.82)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.045),
+            color: Colors.black.withOpacity( 0.045),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
@@ -779,9 +904,9 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
+        color: color.withOpacity( 0.10),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: color.withValues(alpha: 0.10)),
+        border: Border.all(color: color.withOpacity( 0.10)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -790,7 +915,7 @@ class ProfileScreen extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.78),
+              color: AppColors.white.withOpacity( 0.78),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, color: color, size: 20),
@@ -828,9 +953,9 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.72),
+        color: AppColors.white.withOpacity( 0.72),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: tint.withValues(alpha: 0.10)),
+        border: Border.all(color: tint.withOpacity( 0.10)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -839,7 +964,7 @@ class ProfileScreen extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: tint.withValues(alpha: 0.12),
+              color: tint.withOpacity( 0.12),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: tint, size: 20),
@@ -891,23 +1016,23 @@ class ProfileScreen extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: isProminent
               ? [
-                  AppColors.white.withValues(alpha: 0.26),
-                  AppColors.accentRose.withValues(alpha: 0.18),
+                  AppColors.white.withOpacity( 0.26),
+                  AppColors.accentRose.withOpacity( 0.18),
                 ]
               : [
-                  AppColors.white.withValues(alpha: 0.18),
-                  AppColors.white.withValues(alpha: 0.10),
+                  AppColors.white.withOpacity( 0.18),
+                  AppColors.white.withOpacity( 0.10),
                 ],
         ),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: isProminent
-              ? AppColors.white.withValues(alpha: 0.32)
-              : AppColors.white.withValues(alpha: 0.22),
+              ? AppColors.white.withOpacity( 0.32)
+              : AppColors.white.withOpacity( 0.22),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isProminent ? 0.12 : 0.08),
+            color: Colors.black.withOpacity( isProminent ? 0.12 : 0.08),
             blurRadius: isProminent ? 16 : 10,
             offset: const Offset(0, 6),
           ),
@@ -920,9 +1045,9 @@ class ProfileScreen extends StatelessWidget {
             width: isProminent ? 24 : 22,
             height: isProminent ? 24 : 22,
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: isProminent ? 0.20 : 0.14),
+              color: AppColors.white.withOpacity( isProminent ? 0.20 : 0.14),
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
+              border: Border.all(color: AppColors.white.withOpacity( 0.20)),
             ),
             child: Icon(
               icon,
@@ -935,7 +1060,7 @@ class ProfileScreen extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                color: AppColors.white.withValues(alpha: 0.95),
+                color: AppColors.white.withOpacity( 0.95),
                 fontSize: isProminent ? 12.5 : 12,
                 fontWeight: isProminent ? FontWeight.w700 : FontWeight.w600,
                 letterSpacing: isProminent ? 0.12 : 0,
@@ -957,14 +1082,14 @@ class ProfileScreen extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.white.withValues(alpha: 0.96),
-            AppColors.white.withValues(alpha: 0.36),
+            AppColors.white.withOpacity( 0.96),
+            AppColors.white.withOpacity( 0.36),
           ],
         ),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.38), width: 1.4),
+        border: Border.all(color: AppColors.white.withOpacity( 0.38), width: 1.4),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.22),
+            color: Colors.black.withOpacity( 0.22),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
@@ -1040,17 +1165,17 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showClearLocalDialog(BuildContext context) {
+    final l10n = context.l10n;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xóa dữ liệu trên máy này'),
-        content: const Text(
-          'Thao tác này chỉ xóa cache trên thiết bị hiện tại. Dữ liệu chung trên Firebase vẫn được giữ nguyên và sẽ tải lại khi cần.',
-        ),
+        title: Text(l10n.clearLocalDialogTitle),
+        content: Text(l10n.clearLocalDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -1067,15 +1192,13 @@ class ProfileScreen extends StatelessWidget {
               ScaffoldMessenger.of(context)
                 ..clearSnackBars()
                 ..showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Đã xóa dữ liệu local trên máy này. Dữ liệu chung trên cloud vẫn được giữ nguyên.',
-                    ),
+                  SnackBar(
+                    content: Text(l10n.localDataClearedMsg),
                   ),
                 );
             },
             child: Text(
-              'Xóa local',
+              l10n.clearLocalActionBtn,
               style: TextStyle(color: AppColors.textPrimary),
             ),
           ),
@@ -1085,17 +1208,17 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showLeaveCoupleDialog(BuildContext context) {
+    final l10n = context.l10n;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Rời khỏi couple'),
-        content: const Text(
-          'Bạn sẽ rời khỏi không gian couple hiện tại. Người còn lại vẫn giữ dữ liệu chung. Bạn không thể xóa toàn bộ dữ liệu chung chỉ từ một phía.',
-        ),
+        title: Text(l10n.leaveCoupleDialogTitle),
+        content: Text(l10n.leaveCoupleDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -1124,7 +1247,7 @@ class ProfileScreen extends StatelessWidget {
               );
             },
             child: Text(
-              'Rời khỏi couple',
+              l10n.leaveCoupleActionBtn,
               style: TextStyle(color: AppColors.error),
             ),
           ),
@@ -1133,4 +1256,3 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
-

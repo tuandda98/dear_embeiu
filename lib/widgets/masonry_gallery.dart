@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'dart:io';
 import '../models/photo.dart';
 import '../theme/app_colors.dart';
 import 'photo_item.dart';

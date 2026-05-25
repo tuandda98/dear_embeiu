@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../app/app_routes.dart';
+import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
@@ -55,7 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    final message = authProvider.errorMessage ?? 'Đăng nhập thất bại.';
+    final l10n = context.l10n;
+    final message = authProvider.errorMessage ?? l10n.signIn;
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(message)));
@@ -91,15 +93,17 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildHeader(AuthProvider authProvider) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
+            color: AppColors.white.withOpacity( 0.12),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+            border: Border.all(color: AppColors.white.withOpacity( 0.18)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -107,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Icon(
                 Icons.lock_rounded,
                 size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
+                color: AppColors.white.withOpacity( 0.92),
               ),
               const SizedBox(width: 8),
               Text(
@@ -119,14 +123,14 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         const SizedBox(height: 18),
         Text(
-          'Đăng nhập để tiếp tục',
+          l10n.loginTitle,
           style: AppTheme.pageTitleStyle(),
         ),
         const SizedBox(height: 10),
         Text(
           authProvider.isUsingFirebase
-              ? 'Firebase Auth đã sẵn sàng. Sau khi đăng nhập, user profile sẽ được lưu trên Firestore.'
-              : 'Firebase chưa được cấu hình hoàn chỉnh nên app đang chạy local fallback để bạn tiếp tục test UI.',
+              ? l10n.loginSubtitle
+              : l10n.loginLocalFallback,
           style: AppTheme.pageSubtitleStyle(alpha: 0.84),
         ),
         if (authProvider.bootstrapMessage != null) ...[
@@ -156,9 +160,9 @@ class _LoginScreenState extends State<LoginScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.16),
+        color: AppColors.white.withOpacity( 0.16),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+        border: Border.all(color: AppColors.white.withOpacity( 0.18)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.16),
+              color: color.withOpacity( 0.16),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 18),
@@ -203,15 +207,17 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildFormCard(AuthProvider authProvider) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.22),
+        color: AppColors.white.withOpacity( 0.22),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.22)),
+        border: Border.all(color: AppColors.white.withOpacity( 0.22)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withOpacity( 0.06),
             blurRadius: 24,
             offset: const Offset(0, 14),
           ),
@@ -222,43 +228,32 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Tài khoản',
-              style: TextStyle(
+            Text(
+              l10n.emailLabel,
+              style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              authProvider.isUsingFirebase
-                  ? 'Bạn đang đăng nhập bằng Firebase Auth thật. Account tạo ra sẽ dùng lại được ở các sprint sau.'
-                  : 'Bạn đang ở local fallback mode. Sau khi cấu hình Firebase xong, cùng UI này sẽ dùng Firebase Auth.',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12.5,
-                height: 1.45,
-              ),
-            ),
             const SizedBox(height: 18),
             _buildFieldBlock(
-              label: 'Email',
+              label: l10n.emailLabel,
               child: TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 decoration: _buildInputDecoration(
-                  hint: 'ban@example.com',
+                  hint: l10n.emailHint,
                   icon: Icons.email_rounded,
                 ),
                 validator: (value) {
                   final text = value?.trim() ?? '';
                   if (text.isEmpty) {
-                    return 'Vui lòng nhập email';
+                    return l10n.emailRequired;
                   }
                   if (!text.contains('@')) {
-                    return 'Email chưa hợp lệ';
+                    return l10n.emailInvalid;
                   }
                   return null;
                 },
@@ -266,14 +261,14 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 14),
             _buildFieldBlock(
-              label: 'Mật khẩu',
+              label: l10n.passwordLabel,
               child: TextFormField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => _submit(),
                 decoration: _buildInputDecoration(
-                  hint: 'Tối thiểu 6 ký tự',
+                  hint: l10n.passwordHint,
                   icon: Icons.password_rounded,
                   suffixIcon: IconButton(
                     onPressed: () {
@@ -290,10 +285,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 validator: (value) {
                   final text = value?.trim() ?? '';
                   if (text.isEmpty) {
-                    return 'Vui lòng nhập mật khẩu';
+                    return l10n.passwordRequired;
                   }
                   if (text.length < 6) {
-                    return 'Mật khẩu cần ít nhất 6 ký tự';
+                    return l10n.passwordTooShort;
                   }
                   return null;
                 },
@@ -321,9 +316,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: AppColors.white,
                         ),
                       )
-                    : const Text(
-                        'Đăng nhập',
-                        style: TextStyle(
+                    : Text(
+                        l10n.signIn,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
@@ -336,15 +331,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 spacing: 6,
                 children: [
-                  const Text(
-                    'Chưa có tài khoản?',
-                    style: TextStyle(color: AppColors.textSecondary),
+                  Text(
+                    l10n.newHere,
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pushNamed(AppRoutes.register);
                     },
-                    child: const Text('Tạo tài khoản'),
+                    child: Text(l10n.createAccountLink),
                   ),
                 ],
               ),
@@ -387,7 +382,7 @@ class _LoginScreenState extends State<LoginScreen> {
       prefixIcon: Icon(icon, color: AppColors.accentRose),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: AppColors.white.withValues(alpha: 0.92),
+      fillColor: AppColors.white.withOpacity( 0.92),
       hintStyle: const TextStyle(
         color: AppColors.textPrimary,
         fontSize: 14,
@@ -405,16 +400,15 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: AppColors.white.withValues(alpha: 0.9)),
+        borderSide: BorderSide(color: AppColors.white.withOpacity( 0.9)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(
-          color: AppColors.accentRose.withValues(alpha: 0.45),
+          color: AppColors.accentRose.withOpacity( 0.45),
           width: 1.2,
         ),
       ),
     );
   }
 }
-

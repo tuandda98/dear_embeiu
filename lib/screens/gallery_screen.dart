@@ -29,7 +29,7 @@ class GalleryScreen extends StatefulWidget {
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
-  static const double _floatingTopShowcaseMaxHeight = 408;
+  static const double _floatingTopShowcaseMaxHeight = 340;
   static const double _floatingTopShowcaseMinHeight = 122;
 
 
@@ -552,22 +552,23 @@ class _GalleryScreenState extends State<GalleryScreen> {
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: 0.12)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 8),
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 6),
           Text(
             label,
             style: _galleryMetaStyle(
               color: AppColors.textPrimary,
-              alpha: 0.82,
+              size: 11,
+              alpha: 0.80,
             ),
           ),
         ],
@@ -577,72 +578,75 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   Widget _buildComposerCard(Couple? couple, int photoCount) {
     return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: _gallerySurfaceDecoration(radius: 28, fillAlpha: 0.84),
+      padding: const EdgeInsets.all(14),
+      decoration: _gallerySurfaceDecoration(radius: 24, fillAlpha: 0.84),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildCoupleAvatar(couple, size: 52),
-              const SizedBox(width: 12),
+              _buildCoupleAvatar(couple, size: 42),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                        if (couple == null)
+                    if (couple == null)
+                      Text(
+                        'Thêm một kỷ niệm mới',
+                        style: TextStyle(
+                          color: AppColors.textPrimary.withValues(alpha: 0.88),
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.15,
+                          height: 1.2,
+                        ),
+                      )
+                    else
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 2,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          AnimatedCoupleName(
+                            person1Name: couple.person1Name,
+                            person2Name: couple.person2Name,
+                            spacing: 4,
+                            runSpacing: 2,
+                            heartSize: 13,
+                            heartColor: AppColors.accentRose,
+                            textStyle: TextStyle(
+                              color: AppColors.textPrimary.withValues(alpha: 0.88),
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.15,
+                              height: 1.2,
+                            ),
+                          ),
                           Text(
-                            'Thêm một kỷ niệm mới hôm nay',
+                            'hôm nay có gì mới?',
                             style: TextStyle(
                               color: AppColors.textPrimary.withValues(alpha: 0.88),
-                              fontSize: 16.8,
+                              fontSize: 14.5,
                               fontWeight: FontWeight.w700,
-                              letterSpacing: -0.18,
-                              height: 1.18,
+                              letterSpacing: -0.15,
+                              height: 1.2,
                             ),
-                          )
-                        else
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 4,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              AnimatedCoupleName(
-                                person1Name: couple.person1Name,
-                                person2Name: couple.person2Name,
-                                spacing: 5,
-                                runSpacing: 4,
-                                heartSize: 15,
-                                heartColor: AppColors.accentRose,
-                                textStyle: TextStyle(
-                                  color: AppColors.textPrimary.withValues(alpha: 0.88),
-                                  fontSize: 16.8,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.18,
-                                  height: 1.18,
-                                ),
-                              ),
-                              Text(
-                                'hôm nay có gì mới?',
-                                style: TextStyle(
-                                  color: AppColors.textPrimary.withValues(alpha: 0.88),
-                                  fontSize: 16.8,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.18,
-                                  height: 1.18,
-                                ),
-                              ),
-                            ],
                           ),
-                    const SizedBox(height: 4),
+                        ],
+                      ),
+                    const SizedBox(height: 3),
                     Text(
                       'Biến thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.',
                       style: _galleryBodyStyle(
                         color: AppColors.textPrimary,
-                        size: 12.4,
-                        alpha: 0.64,
+                        size: 11.5,
+                        alpha: 0.58,
                         weight: FontWeight.w500,
-                        height: 1.48,
+                        height: 1.4,
                       ),
                     ),
                   ],
@@ -650,10 +654,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
+          const SizedBox(height: 10),
+          _MarqueeRow(
             children: [
               _buildFeedStatChip(
                 icon: Icons.collections_rounded,
@@ -671,9 +673,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 label: 'Feed riêng của hai bạn',
                 color: AppColors.info,
               ),
-            ],
+            ].whereType<Widget>().toList(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
@@ -682,30 +684,32 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.accentRose,
                     foregroundColor: AppColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    minimumSize: Size.zero,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(14),
                     ),
+                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
-                  icon: const Icon(Icons.add_a_photo_rounded),
+                  icon: const Icon(Icons.add_a_photo_rounded, size: 16),
                   label: const Text('Đăng ảnh mới'),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: context.watch<PhotoProvider>().isLoading ? null : _pickMultiplePhotos,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.textPrimary,
-                    side: BorderSide(
-                      color: AppColors.accentRose.withValues(alpha: 0.24),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: BorderSide(color: AppColors.accentRose.withValues(alpha: 0.24)),
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    minimumSize: Size.zero,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(14),
                     ),
+                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
-                  icon: const Icon(Icons.grid_view_rounded),
+                  icon: const Icon(Icons.grid_view_rounded, size: 16),
                   label: const Text('Thêm nhiều'),
                 ),
               ),
@@ -719,27 +723,25 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget _buildFloatingTopShowcase(Couple? couple, int photoCount) {
     return Container(
       color: Colors.transparent,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildGalleryEyebrow('PRIVATE GALLERY'),
-            const SizedBox(height: 10),
-            Text(
-              'Thư Viện Ảnh',
-              style: _galleryDisplayStyle(),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Vuốt lên nhẹ để gọi lại nhanh khung đăng ảnh và quản lý kỷ niệm.',
-              style: AppTheme.pageSubtitleStyle(),
-            ),
-            const SizedBox(height: 16),
-            _buildComposerCard(couple, photoCount),
-          ],
-        ),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildGalleryEyebrow('PRIVATE GALLERY'),
+          const SizedBox(height: 6),
+          Text(
+            'Thư Viện Ảnh',
+            style: AppTheme.pageTitleStyle().copyWith(fontSize: 26),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Vuốt lên để gọi nhanh khung đăng ảnh.',
+            style: AppTheme.pageSubtitleStyle().copyWith(fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+          _buildComposerCard(couple, photoCount),
+        ],
       ),
     );
   }
@@ -1378,11 +1380,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         child: _buildStoryStripSection(couple, photos),
                       ),
                     ),
-                  if (photos.isEmpty)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: _buildEmptyFeedState(couple),
-                    )
+                  if (photos.isEmpty) ...[
+                    SliverToBoxAdapter(child: _buildEmptyFeedState(couple)),
+                    SliverPadding(
+                      padding: EdgeInsets.only(bottom: widget.bottomInset + 24),
+                    ),
+                  ]
                   else
                     SliverPadding(
                       padding: EdgeInsets.fromLTRB(
@@ -1409,6 +1412,61 @@ class _GalleryScreenState extends State<GalleryScreen> {
 }
 
 enum _PhotoFeedAction { editCaption, delete }
+
+class _MarqueeRow extends StatefulWidget {
+  const _MarqueeRow({required this.children});
+  final List<Widget> children;
+
+  @override
+  State<_MarqueeRow> createState() => _MarqueeRowState();
+}
+
+class _MarqueeRowState extends State<_MarqueeRow> {
+  final ScrollController _controller = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loop());
+  }
+
+  Future<void> _loop() async {
+    await Future.delayed(const Duration(milliseconds: 1200));
+    while (mounted && _controller.hasClients) {
+      final max = _controller.position.maxScrollExtent;
+      if (max <= 0) break;
+      await _controller.animateTo(
+        max,
+        duration: Duration(milliseconds: (max * 14).round()),
+        curve: Curves.linear,
+      );
+      if (!mounted) break;
+      _controller.jumpTo(0);
+      await Future.delayed(const Duration(milliseconds: 600));
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 30,
+      child: ListView.separated(
+        controller: _controller,
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: widget.children.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) => widget.children[i],
+      ),
+    );
+  }
+}
 
 class _GalleryFloatingShowcaseHeaderDelegate
     extends SliverPersistentHeaderDelegate {

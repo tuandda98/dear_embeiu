@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../app/app_routes.dart';
+import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
@@ -66,7 +67,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    final message = authProvider.errorMessage ?? 'Tạo tài khoản thất bại.';
+    final l10n = context.l10n;
+    final message = authProvider.errorMessage ?? l10n.createAccountBtn;
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(message)));
@@ -102,15 +104,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildHeader(AuthProvider authProvider) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
+            color: AppColors.white.withOpacity( 0.12),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+            border: Border.all(color: AppColors.white.withOpacity( 0.18)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -118,7 +122,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Icon(
                 Icons.person_add_alt_1_rounded,
                 size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
+                color: AppColors.white.withOpacity( 0.92),
               ),
               const SizedBox(width: 8),
               Text(
@@ -130,14 +134,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         const SizedBox(height: 18),
         Text(
-          'Tạo tài khoản đầu tiên',
+          l10n.registerTitle,
           style: AppTheme.pageTitleStyle(),
         ),
         const SizedBox(height: 10),
         Text(
           authProvider.isUsingFirebase
-              ? 'Tài khoản mới sẽ được tạo bằng Firebase Auth và user profile sẽ được lưu lên Firestore.'
-              : 'Nếu Firebase chưa cấu hình xong, app sẽ tạo tài khoản local tạm để bạn tiếp tục phát triển UI.',
+              ? l10n.registerSubtitle
+              : l10n.registerLocalFallback,
           style: AppTheme.pageSubtitleStyle(alpha: 0.84),
         ),
         if (authProvider.bootstrapMessage != null) ...[
@@ -167,9 +171,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.16),
+        color: AppColors.white.withOpacity( 0.16),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+        border: Border.all(color: AppColors.white.withOpacity( 0.18)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,7 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.16),
+              color: color.withOpacity( 0.16),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 18),
@@ -214,15 +218,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildFormCard(AuthProvider authProvider) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.22),
+        color: AppColors.white.withOpacity( 0.22),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.22)),
+        border: Border.all(color: AppColors.white.withOpacity( 0.22)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withOpacity( 0.06),
             blurRadius: 24,
             offset: const Offset(0, 14),
           ),
@@ -233,42 +239,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Thông tin cơ bản',
-              style: TextStyle(
+            Text(
+              l10n.displayNameLabel,
+              style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              authProvider.isUsingFirebase
-                  ? 'Khi tạo tài khoản thành công, document `users/{uid}` cũng sẽ được tạo trên Firestore.'
-                  : 'Tài khoản đang được lưu local tạm thời. Sau khi cấu hình Firebase xong, bạn có thể dùng lại cùng form này.',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12.5,
-                height: 1.45,
-              ),
-            ),
             const SizedBox(height: 18),
             _buildFieldBlock(
-              label: 'Tên hiển thị',
+              label: l10n.displayNameLabel,
               child: TextFormField(
                 controller: _displayNameController,
                 textInputAction: TextInputAction.next,
                 decoration: _buildInputDecoration(
-                  hint: 'Ví dụ: Bé iu',
+                  hint: l10n.displayNameHint,
                   icon: Icons.badge_rounded,
                 ),
                 validator: (value) {
                   final text = value?.trim() ?? '';
                   if (text.isEmpty) {
-                    return 'Vui lòng nhập tên hiển thị';
+                    return l10n.displayNameRequired;
                   }
                   if (text.length < 2) {
-                    return 'Tên hiển thị quá ngắn';
+                    return l10n.displayNameTooShort;
                   }
                   return null;
                 },
@@ -276,22 +271,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 14),
             _buildFieldBlock(
-              label: 'Email',
+              label: l10n.emailLabel,
               child: TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 decoration: _buildInputDecoration(
-                  hint: 'ban@example.com',
+                  hint: l10n.emailHint,
                   icon: Icons.email_rounded,
                 ),
                 validator: (value) {
                   final text = value?.trim() ?? '';
                   if (text.isEmpty) {
-                    return 'Vui lòng nhập email';
+                    return l10n.emailRequired;
                   }
                   if (!text.contains('@')) {
-                    return 'Email chưa hợp lệ';
+                    return l10n.emailInvalid;
                   }
                   return null;
                 },
@@ -299,13 +294,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 14),
             _buildFieldBlock(
-              label: 'Mật khẩu',
+              label: l10n.passwordLabel,
               child: TextFormField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 textInputAction: TextInputAction.next,
                 decoration: _buildInputDecoration(
-                  hint: 'Tối thiểu 6 ký tự',
+                  hint: l10n.passwordHint,
                   icon: Icons.password_rounded,
                   suffixIcon: IconButton(
                     onPressed: () {
@@ -322,10 +317,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 validator: (value) {
                   final text = value?.trim() ?? '';
                   if (text.isEmpty) {
-                    return 'Vui lòng nhập mật khẩu';
+                    return l10n.passwordRequired;
                   }
                   if (text.length < 6) {
-                    return 'Mật khẩu cần ít nhất 6 ký tự';
+                    return l10n.passwordTooShort;
                   }
                   return null;
                 },
@@ -333,14 +328,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 14),
             _buildFieldBlock(
-              label: 'Nhập lại mật khẩu',
+              label: l10n.confirmPasswordLabel,
               child: TextFormField(
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => _submit(),
                 decoration: _buildInputDecoration(
-                  hint: 'Nhập giống phía trên',
+                  hint: l10n.confirmPasswordHint,
                   icon: Icons.verified_user_rounded,
                   suffixIcon: IconButton(
                     onPressed: () {
@@ -359,10 +354,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 validator: (value) {
                   final text = value?.trim() ?? '';
                   if (text.isEmpty) {
-                    return 'Vui lòng nhập lại mật khẩu';
+                    return l10n.confirmPasswordRequired;
                   }
                   if (text != _passwordController.text.trim()) {
-                    return 'Mật khẩu xác nhận chưa khớp';
+                    return l10n.passwordsMismatch;
                   }
                   return null;
                 },
@@ -390,9 +385,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           color: AppColors.white,
                         ),
                       )
-                    : const Text(
-                        'Tạo tài khoản',
-                        style: TextStyle(
+                    : Text(
+                        l10n.createAccountBtn,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
@@ -405,15 +400,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 spacing: 6,
                 children: [
-                  const Text(
-                    'Đã có tài khoản?',
-                    style: TextStyle(color: AppColors.textSecondary),
+                  Text(
+                    l10n.alreadyWithUs,
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: const Text('Quay lại đăng nhập'),
+                    child: Text(l10n.backToSignIn),
                   ),
                 ],
               ),
@@ -456,7 +451,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       prefixIcon: Icon(icon, color: AppColors.accentRose),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: AppColors.white.withValues(alpha: 0.92),
+      fillColor: AppColors.white.withOpacity( 0.92),
       hintStyle: const TextStyle(
         color: AppColors.textPrimary,
         fontSize: 14,
@@ -474,16 +469,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: AppColors.white.withValues(alpha: 0.9)),
+        borderSide: BorderSide(color: AppColors.white.withOpacity( 0.9)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(
-          color: AppColors.accentRose.withValues(alpha: 0.45),
+          color: AppColors.accentRose.withOpacity( 0.45),
           width: 1.2,
         ),
       ),
     );
   }
 }
-

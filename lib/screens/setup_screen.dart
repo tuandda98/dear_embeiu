@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../app/app_routes.dart';
+import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
@@ -109,16 +110,17 @@ class _SetupScreenState extends State<SetupScreen> {
     final currentUser = authProvider.currentUser;
     final existingCouple = coupleProvider.couple;
     final isEditing = currentUser?.hasCouple == true && existingCouple != null;
+    final l10n = context.l10n;
 
     if (currentUser == null) {
-      _showSnack('Không tìm thấy tài khoản hiện tại. Bạn đăng nhập lại nhé.');
+      _showSnack(l10n.setupErrorNoAccount);
       return;
     }
 
     final person1 = _person1Controller.text.trim();
     final person2 = _person2Controller.text.trim();
     if (person1.isEmpty || person2.isEmpty || _selectedDate == null) {
-      _showSnack('Vui lòng điền đầy đủ tên hai bạn và ngày kỷ niệm.');
+      _showSnack(l10n.setupErrorFillRequired);
       return;
     }
 
@@ -164,7 +166,8 @@ class _SetupScreenState extends State<SetupScreen> {
     } on CoupleException catch (e) {
       _showSnack(e.message);
     } catch (e) {
-      _showSnack('Không thể lưu thông tin cặp đôi: $e');
+      if (!mounted) return;
+      _showSnack(context.l10n.setupErrorSaveCouple('$e'));
     }
   }
 
@@ -173,15 +176,16 @@ class _SetupScreenState extends State<SetupScreen> {
     final coupleProvider = context.read<CoupleProvider>();
     final photoProvider = context.read<PhotoProvider>();
     final currentUser = authProvider.currentUser;
+    final l10n = context.l10n;
 
     if (currentUser == null) {
-      _showSnack('Không tìm thấy tài khoản hiện tại.');
+      _showSnack(l10n.setupErrorNoAccountShort);
       return;
     }
 
     final inviteCode = _inviteCodeController.text.trim();
     if (inviteCode.isEmpty) {
-      _showSnack('Bạn hãy nhập mã mời trước nhé.');
+      _showSnack(l10n.setupErrorNoInviteCode);
       return;
     }
 
@@ -197,30 +201,30 @@ class _SetupScreenState extends State<SetupScreen> {
         return;
       }
 
-      _showSnack(result.message ?? 'Kết nối thành công rồi 💞');
+      _showSnack(result.message ?? l10n.setupSuccessConnected);
       Navigator.of(context).pushReplacementNamed(AppRoutes.home);
     } on CoupleException catch (e) {
       _showSnack(e.message);
     } catch (e) {
-      _showSnack('Không thể tham gia cặp đôi: $e');
+      if (!mounted) return;
+      _showSnack(context.l10n.setupErrorJoinCouple('$e'));
     }
   }
 
   Future<void> _showInviteCodeDialog(String inviteCode) async {
+    final l10n = context.l10n;
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: const Text('Mã mời tài khoản của bạn'),
+          title: Text(l10n.inviteCodeDialogTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Mã mời này gắn trực tiếp với tài khoản của bạn. Gửi nó cho người còn lại để họ đăng nhập bằng tài khoản riêng và nhập vào màn hình tham gia cặp đôi.',
-              ),
+              Text(l10n.inviteCodeDialogContent),
               const SizedBox(height: 16),
               Container(
                 width: double.infinity,
@@ -245,7 +249,7 @@ class _SetupScreenState extends State<SetupScreen> {
           actions: [
             FilledButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Tiếp tục'),
+              child: Text(l10n.continueBtn),
             ),
           ],
         );
@@ -268,7 +272,7 @@ class _SetupScreenState extends State<SetupScreen> {
       return '${result.message}\n${result.warningMessage}';
     }
 
-    return result.warningMessage ?? result.message ?? 'Đã cập nhật thông tin cặp đôi.';
+    return result.warningMessage ?? result.message ?? '';
   }
 
   String _formatDate(DateTime date) {
@@ -346,12 +350,11 @@ class _SetupScreenState extends State<SetupScreen> {
     CoupleProvider coupleProvider,
     bool isEditing,
   ) {
-    final title = isEditing
-        ? 'Cập nhật thông tin cặp đôi'
-        : 'Tạo hoặc tham gia cặp đôi';
+    final l10n = context.l10n;
+    final title = isEditing ? l10n.setupEditTitle : l10n.setupCreateTitle;
     final subtitle = isEditing
-        ? 'Bạn có thể chỉnh lại tên, ngày yêu và ảnh đôi. Mã mời cá nhân của bạn vẫn giữ nguyên theo tài khoản.'
-        : 'Mỗi người đăng nhập bằng tài khoản riêng và có một mã mời gắn với tài khoản đó. Một người tạo không gian cặp đôi, người còn lại nhập mã để kết nối.';
+        ? l10n.setupEditSectionDesc
+        : l10n.setupCreateSectionDesc;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -359,9 +362,9 @@ class _SetupScreenState extends State<SetupScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
+            color: AppColors.white.withOpacity( 0.12),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+            border: Border.all(color: AppColors.white.withOpacity( 0.18)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -369,7 +372,7 @@ class _SetupScreenState extends State<SetupScreen> {
               Icon(
                 isEditing ? Icons.edit_rounded : Icons.favorite_rounded,
                 size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
+                color: AppColors.white.withOpacity( 0.92),
               ),
               const SizedBox(width: 8),
               Text(
@@ -388,9 +391,9 @@ class _SetupScreenState extends State<SetupScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.16),
+            color: AppColors.white.withOpacity( 0.16),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+            border: Border.all(color: AppColors.white.withOpacity( 0.18)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,8 +403,8 @@ class _SetupScreenState extends State<SetupScreen> {
                 height: 38,
                 decoration: BoxDecoration(
                   color: authProvider.isUsingFirebase
-                      ? AppColors.success.withValues(alpha: 0.16)
-                      : AppColors.warning.withValues(alpha: 0.16),
+                      ? AppColors.success.withOpacity( 0.16)
+                      : AppColors.warning.withOpacity( 0.16),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -430,8 +433,8 @@ class _SetupScreenState extends State<SetupScreen> {
                     const SizedBox(height: 4),
                     Text(
                       authProvider.isUsingFirebase
-                          ? 'Tài khoản, mã mời và dữ liệu couple sẽ được lưu trên Firestore để hai người dùng hai máy khác nhau vẫn kết nối được.'
-                          : 'Bạn đang ở local fallback mode. Mã mời tài khoản vẫn được tạo, nhưng trải nghiệm ghép cặp chủ yếu phù hợp để test trong cùng môi trường local.',
+                          ? l10n.setupCreateSectionDesc
+                          : l10n.setupEditSectionDesc,
                       style: const TextStyle(
                         color: AppColors.white,
                         fontSize: 12,
@@ -460,11 +463,13 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Widget _buildModeSelector() {
+    final l10n = context.l10n;
+
     return Row(
       children: [
         Expanded(
           child: ChoiceChip(
-            label: const Text('Tạo cặp đôi'),
+            label: Text(l10n.setupTabCreate),
             selected: _mode == _SetupMode.create,
             onSelected: (_) => setState(() => _mode = _SetupMode.create),
             selectedColor: AppColors.white,
@@ -474,14 +479,14 @@ class _SetupScreenState extends State<SetupScreen> {
                   : AppColors.white,
               fontWeight: FontWeight.w700,
             ),
-            backgroundColor: AppColors.white.withValues(alpha: 0.12),
+            backgroundColor: AppColors.white.withOpacity( 0.12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: ChoiceChip(
-            label: const Text('Nhập mã mời'),
+            label: Text(l10n.setupTabJoin),
             selected: _mode == _SetupMode.join,
             onSelected: (_) => setState(() => _mode = _SetupMode.join),
             selectedColor: AppColors.white,
@@ -491,7 +496,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   : AppColors.white,
               fontWeight: FontWeight.w700,
             ),
-            backgroundColor: AppColors.white.withValues(alpha: 0.12),
+            backgroundColor: AppColors.white.withOpacity( 0.12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           ),
         ),
@@ -504,31 +509,33 @@ class _SetupScreenState extends State<SetupScreen> {
     required bool hasCreatedCoupleSpace,
     required bool isWaitingForPartner,
   }) {
+    final l10n = context.l10n;
+
     final title = !hasCreatedCoupleSpace
-        ? 'Mã mời tài khoản của bạn'
+        ? l10n.yourInviteCodeTitle
         : isWaitingForPartner
-            ? 'Gửi mã này cho người ấy'
-            : 'Mã mời gắn với tài khoản bạn';
+            ? l10n.sendToPartnerHint
+            : l10n.inviteCodeTiedToAccount;
 
     final description = !hasCreatedCoupleSpace
-        ? 'Mã này đã gắn với tài khoản của bạn ngay khi đăng ký. Hãy tạo không gian cặp đôi trước, rồi gửi mã này cho người còn lại.'
+        ? l10n.setupCreateSectionDesc
         : isWaitingForPartner
-            ? 'Người kia chỉ cần đăng nhập bằng tài khoản riêng rồi nhập mã này để kết nối vào không gian cặp đôi của bạn.'
-            : 'Hai bạn đã kết nối thành công. Nếu sau này đặt lại couple, bạn vẫn có thể tiếp tục dùng mã mời tài khoản này.';
+            ? l10n.inviteCodeDialogContent
+            : l10n.setupEditSectionDesc;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.18),
+        color: AppColors.white.withOpacity( 0.18),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
+        border: Border.all(color: AppColors.white.withOpacity( 0.20)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-              title,
+            title,
             style: const TextStyle(
               color: AppColors.white,
               fontSize: 15,
@@ -537,7 +544,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-              inviteCode,
+            inviteCode,
             style: const TextStyle(
               color: AppColors.white,
               fontSize: 26,
@@ -547,7 +554,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-              description,
+            description,
             style: const TextStyle(
               color: AppColors.white,
               fontSize: 12,
@@ -564,6 +571,7 @@ class _SetupScreenState extends State<SetupScreen> {
     required bool isEditing,
     required bool isLoading,
   }) {
+    final l10n = context.l10n;
     final hasPhoto = _couplePhotoPath != null &&
         _couplePhotoPath!.isNotEmpty &&
         File(_couplePhotoPath!).existsSync();
@@ -572,12 +580,12 @@ class _SetupScreenState extends State<SetupScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.20),
+        color: AppColors.white.withOpacity( 0.20),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
+        border: Border.all(color: AppColors.white.withOpacity( 0.20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withOpacity( 0.06),
             blurRadius: 24,
             offset: const Offset(0, 14),
           ),
@@ -586,9 +594,9 @@ class _SetupScreenState extends State<SetupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Thông tin cặp đôi',
-            style: TextStyle(
+          Text(
+            l10n.sectionAboutCouple,
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w800,
@@ -596,9 +604,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            isEditing
-                ? 'Chỉnh lại dữ liệu chung của cả hai. Nếu dùng Firebase, thông tin sẽ được lưu chung trên cloud.'
-                : 'Bạn tạo không gian cặp đôi trước, sau đó người kia đăng nhập bằng tài khoản riêng và nhập mã mời tài khoản của bạn để kết nối.',
+            isEditing ? l10n.setupEditSectionDesc : l10n.setupCreateSectionDesc,
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12.5,
@@ -607,39 +613,39 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 18),
           _buildFieldBlock(
-            label: 'Tên người thứ nhất',
+            label: l10n.yourNameLabel,
             child: TextField(
               controller: _person1Controller,
               decoration: _inputDecoration(
-                hint: 'Ví dụ: Anh',
+                hint: l10n.yourNameHint,
                 icon: Icons.person_rounded,
               ),
             ),
           ),
           const SizedBox(height: 14),
           _buildFieldBlock(
-            label: 'Tên người thứ hai',
+            label: l10n.partnerNameLabel,
             child: TextField(
               controller: _person2Controller,
               decoration: _inputDecoration(
-                hint: 'Ví dụ: Em',
+                hint: l10n.partnerNameHint,
                 icon: Icons.favorite_rounded,
               ),
             ),
           ),
           const SizedBox(height: 14),
           _buildFieldBlock(
-            label: 'Ngày yêu nhau',
+            label: l10n.anniversaryLabel,
             child: InkWell(
               onTap: _pickDate,
               borderRadius: BorderRadius.circular(20),
               child: Ink(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.92),
+                  color: AppColors.white.withOpacity( 0.92),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.white.withValues(alpha: 0.9),
+                    color: AppColors.white.withOpacity( 0.9),
                   ),
                 ),
                 child: Row(
@@ -649,7 +655,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     Expanded(
                       child: Text(
                         _selectedDate == null
-                            ? 'Chọn ngày yêu nhau'
+                            ? l10n.anniversaryHint
                             : _formatDate(_selectedDate!),
                         style: TextStyle(
                           color: _selectedDate == null
@@ -667,17 +673,17 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 14),
           _buildFieldBlock(
-            label: 'Ảnh đôi',
+            label: l10n.couplePhotoLabel,
             child: InkWell(
               onTap: _pickPhoto,
               borderRadius: BorderRadius.circular(20),
               child: Ink(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.92),
+                  color: AppColors.white.withOpacity( 0.92),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.white.withValues(alpha: 0.9),
+                    color: AppColors.white.withOpacity( 0.9),
                   ),
                 ),
                 child: Column(
@@ -689,7 +695,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            hasPhoto ? 'Đã chọn ảnh đôi' : 'Chọn ảnh đôi (tuỳ chọn)',
+                            hasPhoto ? l10n.couplePhotoSelected : l10n.couplePhotoHint,
                             style: const TextStyle(
                               color: AppColors.textPrimary,
                               fontWeight: FontWeight.w700,
@@ -736,7 +742,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     )
                   : Icon(isEditing ? Icons.save_rounded : Icons.favorite_rounded),
               label: Text(
-                isEditing ? 'Lưu thay đổi' : 'Tạo không gian cặp đôi',
+                isEditing ? l10n.saveChangesBtn : l10n.createOurSpaceBtn,
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
@@ -750,19 +756,21 @@ class _SetupScreenState extends State<SetupScreen> {
     required AuthProvider authProvider,
     required bool isLoading,
   }) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.20),
+        color: AppColors.white.withOpacity( 0.20),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
+        border: Border.all(color: AppColors.white.withOpacity( 0.20)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Nhập mã mời',
-            style: TextStyle(
+          Text(
+            l10n.useInviteCodeTitle,
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w800,
@@ -771,8 +779,8 @@ class _SetupScreenState extends State<SetupScreen> {
           const SizedBox(height: 6),
           Text(
             authProvider.isUsingFirebase
-                ? 'Nhập mã mời gắn với tài khoản của người ấy để tham gia vào không gian cặp đôi mà họ đã tạo.'
-                : 'Ở local fallback mode, mã mời vẫn hoạt động theo dữ liệu local hiện có trên thiết bị hoặc môi trường test.',
+                ? l10n.setupCreateSectionDesc
+                : l10n.setupEditSectionDesc,
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12.5,
@@ -781,12 +789,12 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 18),
           _buildFieldBlock(
-            label: 'Mã mời của người ấy',
+            label: l10n.theirInviteCodeLabel,
             child: TextField(
               controller: _inviteCodeController,
               textCapitalization: TextCapitalization.characters,
               decoration: _inputDecoration(
-                hint: 'Ví dụ: A7B9KD',
+                hint: l10n.theirInviteCodeHint,
                 icon: Icons.password_rounded,
               ),
             ),
@@ -814,9 +822,9 @@ class _SetupScreenState extends State<SetupScreen> {
                       ),
                     )
                   : const Icon(Icons.link_rounded),
-              label: const Text(
-                'Tham gia cặp đôi',
-                style: TextStyle(fontWeight: FontWeight.w700),
+              label: Text(
+                l10n.joinBtn,
+                style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
           ),
@@ -856,19 +864,19 @@ class _SetupScreenState extends State<SetupScreen> {
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.white.withValues(alpha: 0.78),
+        color: AppColors.white.withOpacity( 0.78),
         border: Border.all(
-          color: AppColors.white.withValues(alpha: 0.92),
+          color: AppColors.white.withOpacity( 0.92),
           width: 1.4,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withOpacity( 0.08),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: AppColors.accentRose.withValues(alpha: 0.10),
+            color: AppColors.accentRose.withOpacity( 0.10),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -905,9 +913,9 @@ class _SetupScreenState extends State<SetupScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.white.withValues(alpha: 0.14),
+                    AppColors.white.withOpacity( 0.14),
                     Colors.transparent,
-                    AppColors.white.withValues(alpha: 0.06),
+                    AppColors.white.withOpacity( 0.06),
                   ],
                 ),
               ),
@@ -927,7 +935,7 @@ class _SetupScreenState extends State<SetupScreen> {
       floatingLabelBehavior: FloatingLabelBehavior.never,
       prefixIcon: Icon(icon, color: AppColors.accentRose),
       filled: true,
-      fillColor: AppColors.white.withValues(alpha: 0.92),
+      fillColor: AppColors.white.withOpacity( 0.92),
       hintStyle: const TextStyle(
         color: AppColors.textPrimary,
         fontSize: 14,
@@ -939,16 +947,15 @@ class _SetupScreenState extends State<SetupScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: AppColors.white.withValues(alpha: 0.9)),
+        borderSide: BorderSide(color: AppColors.white.withOpacity( 0.9)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(
-          color: AppColors.accentRose.withValues(alpha: 0.45),
+          color: AppColors.accentRose.withOpacity( 0.45),
           width: 1.2,
         ),
       ),
     );
   }
 }
-

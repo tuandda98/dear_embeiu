@@ -34,7 +34,7 @@ class CoupleProvider extends ChangeNotifier {
       return;
     }
 
-    _setLoading(true, message: 'Đang tải thông tin cặp đôi...');
+    _setLoading(true, message: 'Loading couple info...');
     _clearError(notify: false);
 
     try {
@@ -47,13 +47,13 @@ class CoupleProvider extends ChangeNotifier {
             notifyListeners();
           },
           onError: (error) {
-            _errorMessage = 'Không thể đồng bộ thông tin cặp đôi: $error';
+            _errorMessage = 'Could not sync couple info: $error';
             notifyListeners();
           },
         );
       }
     } catch (e) {
-      _errorMessage = 'Không thể tải thông tin cặp đôi: $e';
+      _errorMessage = 'Could not load couple info: $e';
       _couple = null;
     } finally {
       _setLoading(false);
@@ -67,7 +67,7 @@ class CoupleProvider extends ChangeNotifier {
     required DateTime anniversary,
     String? photoPath,
   }) async {
-    _setLoading(true, message: 'Đang lưu không gian cặp đôi...');
+    _setLoading(true, message: 'Saving couple space...');
     _clearError(notify: false);
 
     try {
@@ -94,7 +94,7 @@ class CoupleProvider extends ChangeNotifier {
     required AppUser currentUser,
     required String inviteCode,
   }) async {
-    _setLoading(true, message: 'Đang kết nối couple...');
+    _setLoading(true, message: 'Connecting couple...');
     _clearError(notify: false);
 
     try {
@@ -123,10 +123,10 @@ class CoupleProvider extends ChangeNotifier {
   }) async {
     final existingCouple = _couple;
     if (existingCouple == null) {
-      throw const CoupleException('Chưa có dữ liệu cặp đôi để cập nhật.');
+      throw const CoupleException('No couple data to update.');
     }
 
-    _setLoading(true, message: 'Đang cập nhật thông tin cặp đôi...');
+    _setLoading(true, message: 'Updating couple info...');
     _clearError(notify: false);
 
     try {
@@ -151,7 +151,7 @@ class CoupleProvider extends ChangeNotifier {
   }
 
   Future<AppUser> leaveCouple({required AppUser currentUser}) async {
-    _setLoading(true, message: 'Đang rời khỏi couple...');
+    _setLoading(true, message: 'Leaving couple...');
     _clearError(notify: false);
 
     try {

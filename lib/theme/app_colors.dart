@@ -1,61 +1,98 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary colors - Soft pastels with vibrant accents
-  static const Color primaryGradientStart = Color(0xFFFFB6C1); // Light pink
-  static const Color primaryGradientEnd = Color(0xFFDDA0DD); // Plum
+  // ---------------------------------------------------------------------------
+  // Sunset Romance — hero gradient (warm pink → soft coral)
+  static const Color sunset1 = Color(0xFFFF6B9D);
+  static const Color sunset2 = Color(0xFFFF8FA3);
+  static const Color sunset3 = Color(0xFFFFB6C1);
 
-  static const Color secondaryGradientStart = Color(0xFFFFC0CB); // Pink
-  static const Color secondaryGradientEnd = Color(0xFFE6B3FF); // Lavender
-  static const Color galleryGradientStart = Color(0xFFEED6E2); // Dusty blush
-  static const Color galleryGradientEnd = Color(0xFFE2CBDB); // Mauve mist
+  // Dawn Blush — secondary gradient (pink → lavender)
+  static const Color dawn1 = Color(0xFFFFC1CC);
+  static const Color dawn2 = Color(0xFFE8B4D8);
+  static const Color dawn3 = Color(0xFFC8A8E9);
 
-  // Accent colors
-  static const Color accentRose = Color(0xFFFF69B4); // Hot pink
-  static const Color accentCoral = Color(0xFFFF7F50); // Coral
-  static const Color accentGold = Color(0xFFFFD700); // Gold
+  // Dreamy Mint — milestone/celebration (blush → lilac → mint)
+  static const Color mint1 = Color(0xFFFFD6E0);
+  static const Color mint2 = Color(0xFFE0D4F7);
+  static const Color mint3 = Color(0xFFC6E5D9);
 
-  // Neutral colors
+  // ---------------------------------------------------------------------------
+  // Accents
+  static const Color accentLove = Color(0xFFFF4D6D);     // primary heart accent
+  static const Color accentLoveDeep = Color(0xFFE63956); // active state
+  static const Color accentLavender = Color(0xFFA78BFA); // secondary accent
+
+  // Backwards-compat aliases (so existing screens keep compiling).
+  static const Color accentRose = accentLove;
+  static const Color accentCoral = sunset2;
+  static const Color accentGold = Color(0xFFE8B4D8); // re-purposed to dawn pink
+
+  // ---------------------------------------------------------------------------
+  // Surfaces
+  static const Color bgLight = Color(0xFFFAFAFC);     // app background
+  static const Color bgDark = Color(0xFFFAFAFC);
+  static const Color surfaceLight = Color(0xFFF5F0F5); // section divider tint
+  static const Color cardSurface = Color(0xFFFFFFFF);
+  static const Color galleryBackground = Color(0xFFF5F0F5);
+  static const Color galleryGradientStart = mint1;
+  static const Color galleryGradientEnd = mint2;
+
+  // Backwards-compat aliases for hero gradient stops referenced by widgets
+  static const Color primaryGradientStart = sunset1;
+  static const Color primaryGradientEnd = sunset3;
+  static const Color secondaryGradientStart = dawn1;
+  static const Color secondaryGradientEnd = dawn3;
+
+  // ---------------------------------------------------------------------------
+  // Text
+  static const Color textPrimary = Color(0xFF1A1A2E);   // deep navy-black
+  static const Color textSecondary = Color(0xFF6B6B7B);
+  static const Color textTertiary = Color(0xFFA0A0B0);
+  static const Color textOnGradient = Color(0xFFFFFFFF);
+
+  // ---------------------------------------------------------------------------
+  // Neutral / utility
   static const Color white = Color(0xFFFFFFFF);
-  static const Color black = Color(0xFF1A1A1A);
-  static const Color textPrimary = Color(0xFF2D2D2D);
-  static const Color textSecondary = Color(0xFF6B6B6B);
+  static const Color black = Color(0xFF1A1A2E);
 
-  // Background colors
-  static const Color bgLight = Color(0xFFFAF9F7);
-  static const Color bgDark = Color(0xFFFAF9F7);
-  static const Color surfaceLight = Color(0xFFFFEEF5); // Light rose tint
-  static const Color galleryBackground = Color(0xFFE7D1DE); // Deeper blush-mauve for gallery base
-
-  // Status colors
+  // ---------------------------------------------------------------------------
+  // Status
   static const Color success = Color(0xFF66BB6A);
   static const Color error = Color(0xFFEF5350);
   static const Color warning = Color(0xFFFFA726);
-  static const Color info = Color(0xFF42A5F5);
+  static const Color info = Color(0xFFA78BFA); // lavender, design-aligned
 
+  // ---------------------------------------------------------------------------
   // Gradients
-  static const LinearGradient primaryGradient = LinearGradient(
+  static const LinearGradient sunsetRomance = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [primaryGradientStart, primaryGradientEnd],
+    colors: [sunset1, sunset2, sunset3],
   );
 
-  static const LinearGradient secondaryGradient = LinearGradient(
+  static const LinearGradient dawnBlush = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [secondaryGradientStart, secondaryGradientEnd],
+    colors: [dawn1, dawn2, dawn3],
   );
 
-  static const LinearGradient galleryGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [galleryGradientStart, galleryBackground, galleryGradientEnd],
-  );
-
-  static const LinearGradient counterGradient = LinearGradient(
+  static const LinearGradient dreamyMint = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [accentRose, accentCoral],
+    colors: [mint1, mint2, mint3],
   );
+
+  // Backwards-compat aliases used across screens
+  static const LinearGradient primaryGradient = sunsetRomance;
+  static const LinearGradient secondaryGradient = dawnBlush;
+  static const LinearGradient counterGradient = sunsetRomance;
+  static const LinearGradient galleryGradient = dreamyMint;
+
+  // Soft pink shadow for diffused, hue-matched depth
+  static BoxShadow softCardShadow({double opacity = 0.12}) => BoxShadow(
+        color: sunset1.withOpacity( opacity),
+        blurRadius: 24,
+        offset: const Offset(0, 8),
+      );
 }
-

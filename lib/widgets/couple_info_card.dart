@@ -4,6 +4,8 @@ import '../theme/app_colors.dart';
 import 'animated_couple_name.dart';
 import 'shared_couple_photo_view.dart';
 
+/// Soft white card showing the couple photo + names with a faint Dawn Blush
+/// glow underneath. Sits beneath the hero counter on the home screen.
 class CoupleInfoCard extends StatelessWidget {
   const CoupleInfoCard({
     super.key,
@@ -26,62 +28,94 @@ class CoupleInfoCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.cardSurface,
+          borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryGradientStart.withValues(alpha: 0.2),
-              blurRadius: 12,
-              offset: const Offset(0, 8),
+              color: AppColors.sunset1.withOpacity( 0.14),
+              blurRadius: 28,
+              offset: const Offset(0, 12),
             ),
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(18),
           child: Row(
             children: [
               Container(
-                width: 80,
-                height: 80,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.white, width: 3),
-                  color: AppColors.white.withValues(alpha: 0.3),
+                  gradient: AppColors.dawnBlush,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.sunset1.withOpacity( 0.25),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
+                padding: const EdgeInsets.all(3),
                 child: ClipOval(
                   child: SharedCouplePhotoView(
                     localPath: couplePhotoPath,
                     remoteUrl: couplePhotoUrl,
                     fit: BoxFit.cover,
-                    placeholder: Icon(
-                      Icons.favorite,
-                      color: AppColors.white.withValues(alpha: 0.6),
-                      size: 40,
+                    placeholder: Container(
+                      color: AppColors.surfaceLight,
+                      child: const Icon(
+                        Icons.favorite_rounded,
+                        color: AppColors.accentLove,
+                        size: 26,
+                      ),
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: AnimatedCoupleName(
-                  person1Name: person1Name,
-                  person2Name: person2Name,
-                  spacing: 6,
-                  runSpacing: 6,
-                  heartSize: 16,
-                  heartColor: AppColors.white,
-                  textStyle: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Our story',
+                      style: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    AnimatedCoupleName(
+                      person1Name: person1Name,
+                      person2Name: person2Name,
+                      spacing: 6,
+                      runSpacing: 4,
+                      heartSize: 14,
+                      heartColor: AppColors.accentLove,
+                      textStyle: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Icon(
-                Icons.edit,
-                color: AppColors.white.withValues(alpha: 0.7),
-                size: 24,
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.surfaceLight,
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_rounded,
+                  color: AppColors.textSecondary,
+                  size: 18,
+                ),
               ),
             ],
           ),

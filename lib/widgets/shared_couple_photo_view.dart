@@ -60,7 +60,7 @@ class SharedCouplePhotoView extends StatelessWidget {
           alignment: Alignment.center,
           child: Icon(
             Icons.favorite_rounded,
-            color: AppColors.textSecondary.withValues(alpha: 0.5),
+            color: AppColors.textSecondary.withOpacity( 0.5),
           ),
         );
   }
