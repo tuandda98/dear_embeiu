@@ -121,6 +121,24 @@ class UserService {
     await _devicesCollection(userId).doc(deviceId).delete();
   }
 
+  Future<void> deleteUserData(AppUser user) async {
+    if (!isEnabled || user.id.trim().isEmpty) {
+      return;
+    }
+
+    final devicesSnapshot = await _devicesCollection(user.id).get();
+    for (final doc in devicesSnapshot.docs) {
+      await doc.reference.delete();
+    }
+
+    final normalizedCode = user.inviteCode.trim().toUpperCase();
+    if (normalizedCode.isNotEmpty) {
+      await _inviteCodesCollection.doc(normalizedCode).delete();
+    }
+
+    await _usersCollection.doc(user.id).delete();
+  }
+
   Future<void> _syncInviteCode(AppUser user) async {
     final normalizedCode = user.inviteCode.trim().toUpperCase();
     if (!isEnabled || normalizedCode.isEmpty) {

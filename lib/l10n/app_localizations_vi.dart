@@ -787,4 +787,64 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get updatingCoupleInfo => 'Đang cập nhật thông tin cặp đôi...';
+
+  @override
+  String get welcomeBackBadge => 'CHÀO MỪNG TRỞ LẠI';
+
+  @override
+  String get createAccountBadge => 'TẠO TÀI KHOẢN';
+
+  @override
+  String get loveHomeBadge => 'TRANG CHỦ';
+
+  @override
+  String get coupleOnboardingBadge => 'BẮT ĐẦU';
+
+  @override
+  String get editCoupleBadge => 'CHỈNH SỬA';
+
+  @override
+  String get deleteAccountBtn => 'Xóa tài khoản';
+
+  @override
+  String get deleteAccountTitle => 'Xóa tài khoản';
+
+  @override
+  String get deleteAccountDesc => 'Xóa vĩnh viễn tài khoản và toàn bộ dữ liệu của bạn';
+
+  @override
+  String get deleteAccountDialogTitle => 'Xóa tài khoản?';
+
+  @override
+  String get deleteAccountDialogContent =>
+      'Hành động này không thể hoàn tác. Toàn bộ dữ liệu của bạn bao gồm ảnh và thông tin cặp đôi sẽ bị xóa vĩnh viễn.';
+
+  @override
+  String get deleteAccountConfirmBtn => 'Xóa vĩnh viễn';
+
+  @override
+  String get deleteAccountSuccessMsg => 'Tài khoản đã được xóa';
+
+  @override
+  String get deleteAccountRequiresReloginMsg =>
+      'Vui lòng đăng xuất, đăng nhập lại và thử lại để xác nhận danh tính';
+
+  @override
+  String get privacyPolicyLabel => 'Chính sách bảo mật';
+
+  @override
+  String get privacyDisclosure =>
+      'Bằng cách tạo tài khoản, bạn đồng ý với Chính sách bảo mật của chúng tôi. Chúng tôi thu thập email, tên hiển thị và ảnh bạn chia sẻ để cung cấp dịch vụ.';
+
+  String get signOutBtn => 'Đăng xuất';
+
+  String get signOutDialogTitle => 'Đăng xuất?';
+
+  String get signOutDialogContent => 'Bạn có chắc muốn đăng xuất khỏi tài khoản không?';
+
+  String get signOutConfirmBtn => 'Đăng xuất';
+
+  String get agreeToPrivacyPolicy => 'Tôi đồng ý với Chính sách bảo mật';
+
+  String get mustAgreeToPrivacyPolicy => 'Vui lòng đồng ý với chính sách bảo mật để tiếp tục';
 }

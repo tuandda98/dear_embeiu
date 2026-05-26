@@ -81,29 +81,36 @@ class PhotoItem extends StatelessWidget {
                   ),
                 ),
               ),
-            // Delete button
+            // Delete button — minimum 40×40 tap target
             if (onDelete != null)
               Positioned(
-                top: 8,
-                right: 8,
+                top: 4,
+                right: 4,
                 child: GestureDetector(
                   onTap: onDelete,
+                  behavior: HitTestBehavior.opaque,
                   child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.error.withOpacity(0.8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
-                    padding: EdgeInsets.all(4),
-                    child: Icon(
-                      Icons.close,
-                      color: AppColors.white,
-                      size: 16,
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.center,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.error.withOpacity(0.85),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(6),
+                      child: const Icon(
+                        Icons.close,
+                        color: AppColors.white,
+                        size: 16,
+                      ),
                     ),
                   ),
                 ),

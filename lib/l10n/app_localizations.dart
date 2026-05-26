@@ -1477,6 +1477,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Updating couple info...'**
   String get updatingCoupleInfo;
+
+  String get welcomeBackBadge;
+
+  String get createAccountBadge;
+
+  String get loveHomeBadge;
+
+  String get coupleOnboardingBadge;
+
+  String get editCoupleBadge;
+
+  String get deleteAccountBtn;
+
+  String get deleteAccountTitle;
+
+  String get deleteAccountDesc;
+
+  String get deleteAccountDialogTitle;
+
+  String get deleteAccountDialogContent;
+
+  String get deleteAccountConfirmBtn;
+
+  String get deleteAccountSuccessMsg;
+
+  String get deleteAccountRequiresReloginMsg;
+
+  String get privacyPolicyLabel;
+
+  String get privacyDisclosure;
+
+  String get signOutBtn;
+
+  String get signOutDialogTitle;
+
+  String get signOutDialogContent;
+
+  String get signOutConfirmBtn;
+
+  String get agreeToPrivacyPolicy;
+
+  String get mustAgreeToPrivacyPolicy;
 }
 
 class _AppLocalizationsDelegate

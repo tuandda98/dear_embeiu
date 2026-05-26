@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -362,9 +363,9 @@ class _SetupScreenState extends State<SetupScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.white.withOpacity( 0.12),
+            color: AppColors.white.withOpacity(0.12),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withOpacity( 0.18)),
+            border: Border.all(color: AppColors.white.withOpacity(0.18)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -372,11 +373,11 @@ class _SetupScreenState extends State<SetupScreen> {
               Icon(
                 isEditing ? Icons.edit_rounded : Icons.favorite_rounded,
                 size: 14,
-                color: AppColors.white.withOpacity( 0.92),
+                color: AppColors.white.withOpacity(0.92),
               ),
               const SizedBox(width: 8),
               Text(
-                isEditing ? 'EDIT COUPLE' : 'COUPLE ONBOARDING',
+                isEditing ? l10n.editCoupleBadge : l10n.coupleOnboardingBadge,
                 style: AppTheme.pageEyebrowStyle(),
               ),
             ],
@@ -386,121 +387,139 @@ class _SetupScreenState extends State<SetupScreen> {
         Text(title, style: AppTheme.pageTitleStyle()),
         const SizedBox(height: 10),
         Text(subtitle, style: AppTheme.pageSubtitleStyle(alpha: 0.84)),
-        const SizedBox(height: 14),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.white.withOpacity( 0.16),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.white.withOpacity( 0.18)),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: authProvider.isUsingFirebase
-                      ? AppColors.success.withOpacity( 0.16)
-                      : AppColors.warning.withOpacity( 0.16),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  authProvider.isUsingFirebase
-                      ? Icons.cloud_done_rounded
-                      : Icons.usb_off_rounded,
-                  color: authProvider.isUsingFirebase
-                      ? AppColors.success
-                      : AppColors.warning,
-                  size: 18,
-                ),
+        if (coupleProvider.errorMessage != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.warning.withOpacity(0.30)),
+            ),
+            child: Text(
+              coupleProvider.errorMessage!,
+              style: const TextStyle(
+                color: AppColors.white,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                height: 1.4,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      authProvider.authSourceLabel,
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      authProvider.isUsingFirebase
-                          ? l10n.setupCreateSectionDesc
-                          : l10n.setupEditSectionDesc,
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 12,
-                        height: 1.45,
-                      ),
-                    ),
-                    if (coupleProvider.errorMessage != null) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        coupleProvider.errorMessage!,
-                        style: const TextStyle(
-                          color: AppColors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
 
   Widget _buildModeSelector() {
     final l10n = context.l10n;
+    final isCreate = _mode == _SetupMode.create;
 
-    return Row(
-      children: [
-        Expanded(
-          child: ChoiceChip(
-            label: Text(l10n.setupTabCreate),
-            selected: _mode == _SetupMode.create,
-            onSelected: (_) => setState(() => _mode = _SetupMode.create),
-            selectedColor: AppColors.white,
-            labelStyle: TextStyle(
-              color: _mode == _SetupMode.create
-                  ? AppColors.textPrimary
-                  : AppColors.white,
-              fontWeight: FontWeight.w700,
-            ),
-            backgroundColor: AppColors.white.withOpacity( 0.12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalWidth = constraints.maxWidth;
+        const padding = 4.0;
+        final pillWidth = (totalWidth - padding * 2) / 2;
+
+        return Container(
+          height: 48,
+          padding: const EdgeInsets.all(padding),
+          decoration: BoxDecoration(
+            color: AppColors.white.withOpacity(0.14),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.white.withOpacity(0.18)),
+          ),
+          child: Stack(
+            children: [
+              // Sliding pill
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeInOutCubic,
+                left: isCreate ? 0 : pillWidth,
+                top: 0,
+                bottom: 0,
+                width: pillWidth,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.10),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Tab labels on top
+              Row(
+                children: [
+                  _buildModeTabLabel(
+                    label: l10n.setupTabCreate,
+                    icon: Icons.add_circle_outline_rounded,
+                    selected: isCreate,
+                    onTap: () => setState(() => _mode = _SetupMode.create),
+                  ),
+                  _buildModeTabLabel(
+                    label: l10n.setupTabJoin,
+                    icon: Icons.link_rounded,
+                    selected: !isCreate,
+                    onTap: () => setState(() => _mode = _SetupMode.join),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModeTabLabel({
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox.expand(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  icon,
+                  key: ValueKey('$icon-$selected'),
+                  size: 15,
+                  color: selected
+                      ? AppColors.accentRose
+                      : AppColors.white.withOpacity(0.75),
+                ),
+              ),
+              const SizedBox(width: 6),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOutCubic,
+                style: TextStyle(
+                  color: selected
+                      ? AppColors.textPrimary
+                      : AppColors.white.withOpacity(0.75),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13.5,
+                ),
+                child: Text(label),
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ChoiceChip(
-            label: Text(l10n.setupTabJoin),
-            selected: _mode == _SetupMode.join,
-            onSelected: (_) => setState(() => _mode = _SetupMode.join),
-            selectedColor: AppColors.white,
-            labelStyle: TextStyle(
-              color: _mode == _SetupMode.join
-                  ? AppColors.textPrimary
-                  : AppColors.white,
-              fontWeight: FontWeight.w700,
-            ),
-            backgroundColor: AppColors.white.withOpacity( 0.12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -518,45 +537,106 @@ class _SetupScreenState extends State<SetupScreen> {
             : l10n.inviteCodeTiedToAccount;
 
     final description = !hasCreatedCoupleSpace
-        ? l10n.setupCreateSectionDesc
+        ? l10n.inviteCodeDialogContent
         : isWaitingForPartner
             ? l10n.inviteCodeDialogContent
-            : l10n.setupEditSectionDesc;
+            : l10n.inviteCodeTiedToAccount;
+
+    final statusIcon = isWaitingForPartner
+        ? Icons.hourglass_top_rounded
+        : hasCreatedCoupleSpace
+            ? Icons.favorite_rounded
+            : Icons.vpn_key_rounded;
+
+    final statusColor = isWaitingForPartner
+        ? AppColors.warning
+        : hasCreatedCoupleSpace
+            ? AppColors.accentRose
+            : AppColors.white;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity( 0.18),
+        color: AppColors.white.withOpacity(0.18),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.white.withOpacity( 0.20)),
+        border: Border.all(color: AppColors.white.withOpacity(0.22)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: AppColors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-            ),
+          Row(
+            children: [
+              Icon(statusIcon, size: 14, color: statusColor),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: AppColors.white.withOpacity(0.80),
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            inviteCode,
-            style: const TextStyle(
-              color: AppColors.white,
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2,
-            ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  inviteCode,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 30,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 4,
+                  ),
+                ),
+              ),
+              Material(
+                color: AppColors.white.withOpacity(0.18),
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: inviteCode));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Đã sao chép mã mời'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.copy_rounded, size: 14, color: AppColors.white.withOpacity(0.90)),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Sao chép',
+                          style: TextStyle(
+                            color: AppColors.white.withOpacity(0.90),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
             description,
-            style: const TextStyle(
-              color: AppColors.white,
+            style: TextStyle(
+              color: AppColors.white.withOpacity(0.65),
               fontSize: 12,
               height: 1.45,
             ),
@@ -602,16 +682,7 @@ class _SetupScreenState extends State<SetupScreen> {
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            isEditing ? l10n.setupEditSectionDesc : l10n.setupCreateSectionDesc,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12.5,
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           _buildFieldBlock(
             label: l10n.yourNameLabel,
             child: TextField(
@@ -776,18 +847,7 @@ class _SetupScreenState extends State<SetupScreen> {
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            authProvider.isUsingFirebase
-                ? l10n.setupCreateSectionDesc
-                : l10n.setupEditSectionDesc,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12.5,
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           _buildFieldBlock(
             label: l10n.theirInviteCodeLabel,
             child: TextField(

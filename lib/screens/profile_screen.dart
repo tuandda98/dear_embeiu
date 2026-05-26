@@ -544,6 +544,23 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _showSignOutDialog(context),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+                side: BorderSide(color: AppColors.textSecondary.withOpacity( 0.25)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              icon: const Icon(Icons.logout_rounded),
+              label: Text(l10n.signOutBtn),
+            ),
+          ),
+          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -840,6 +857,26 @@ class ProfileScreen extends StatelessWidget {
                 color: AppColors.textSecondary,
                 fontSize: 12,
                 height: 1.45,
+              ),
+            ),
+          ),
+            const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _showDeleteAccountDialog(context),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.error,
+                side: BorderSide(color: AppColors.error.withOpacity( 0.55)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+              icon: const Icon(Icons.delete_forever_rounded),
+              label: Text(
+                l10n.deleteAccountBtn,
+                style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
           ),
@@ -1201,6 +1238,88 @@ class ProfileScreen extends StatelessWidget {
               l10n.clearLocalActionBtn,
               style: TextStyle(color: AppColors.textPrimary),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    final l10n = context.l10n;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          l10n.deleteAccountDialogTitle,
+          style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w800),
+        ),
+        content: Text(l10n.deleteAccountDialogContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+
+              final authProvider = context.read<AuthProvider>();
+              final errorCode = await authProvider.deleteAccount();
+
+              if (!context.mounted) return;
+
+              if (errorCode == null) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.authGate,
+                  (route) => false,
+                );
+              } else if (errorCode == 'requires-recent-login') {
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    SnackBar(content: Text(l10n.deleteAccountRequiresReloginMsg)),
+                  );
+              } else {
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(SnackBar(content: Text(errorCode)));
+              }
+            },
+            child: Text(
+              l10n.deleteAccountConfirmBtn,
+              style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSignOutDialog(BuildContext context) {
+    final l10n = context.l10n;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.signOutDialogTitle),
+        content: Text(l10n.signOutDialogContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await context.read<AuthProvider>().signOut();
+              if (!context.mounted) return;
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.authGate,
+                (route) => false,
+              );
+            },
+            child: Text(l10n.signOutConfirmBtn),
           ),
         ],
       ),

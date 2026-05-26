@@ -364,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'LOVE HOME',
+                          l10n.loveHomeBadge,
                           style: AppTheme.pageEyebrowStyle(),
                         ),
                       ],

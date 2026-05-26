@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/app_user.dart';
+import 'couple_service.dart';
 import 'firebase_bootstrap_service.dart';
 import 'storage_service.dart';
 import 'user_service.dart';
@@ -290,6 +291,35 @@ class AuthService {
   Future<void> clearLocalAuthData() async {
     await _delete(_sessionStorageKey);
     await _delete(_usersStorageKey);
+  }
+
+  Future<void> deleteAccount({required AppUser currentUser}) async {
+    if (!isUsingFirebase) {
+      await purgePersistedSession();
+      return;
+    }
+
+    try {
+      if (currentUser.coupleId != null) {
+        await CoupleService().leaveCouple(currentUser: currentUser);
+      }
+    } catch (_) {}
+
+    await _userService.deleteUserData(currentUser);
+
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser != null) {
+      try {
+        await firebaseUser.delete();
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'requires-recent-login') {
+          throw AuthException('requires-recent-login');
+        }
+        rethrow;
+      }
+    }
+
+    await purgePersistedSession();
   }
 
   Future<void> updateCurrentUser(AppUser user) async {

@@ -115,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'WELCOME BACK',
+                l10n.welcomeBackBadge,
                 style: AppTheme.pageEyebrowStyle(),
               ),
             ],

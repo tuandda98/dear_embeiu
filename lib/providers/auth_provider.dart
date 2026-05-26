@@ -126,6 +126,33 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<String?> deleteAccount() async {
+    final user = _currentUser;
+    if (user == null) return null;
+
+    _setLoading(true);
+    _clearError(notify: false);
+
+    try {
+      await PushNotificationService.instance.unregisterForUser(user);
+      await _authService.deleteAccount(currentUser: user);
+      _currentUser = null;
+      _status = AuthStatus.unauthenticated;
+      return null;
+    } on AuthException catch (e) {
+      if (e.message == 'requires-recent-login') {
+        return 'requires-recent-login';
+      }
+      _errorMessage = e.message;
+      return e.message;
+    } catch (e) {
+      _errorMessage = 'Delete account failed: $e';
+      return _errorMessage;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<void> updateCurrentUser(AppUser user) async {
     _currentUser = user;
     await _authService.updateCurrentUser(user);

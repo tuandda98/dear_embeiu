@@ -22,6 +22,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late final TextEditingController _confirmPasswordController;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _agreedToTerms = false;
+  bool _showTermsError = false;
 
   @override
   void initState() {
@@ -43,6 +45,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
+
+    if (!_agreedToTerms) {
+      setState(() => _showTermsError = true);
+      return;
+    }
 
     if (!_formKey.currentState!.validate()) {
       return;
@@ -126,7 +133,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'CREATE ACCOUNT',
+                l10n.createAccountBadge,
                 style: AppTheme.pageEyebrowStyle(),
               ),
             ],
@@ -363,7 +370,87 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.white.withOpacity(0.14),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.white.withOpacity(0.18)),
+              ),
+              child: Text(
+                l10n.privacyDisclosure,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11.5,
+                  height: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            InkWell(
+              onTap: () => setState(() {
+                _agreedToTerms = !_agreedToTerms;
+                if (_agreedToTerms) _showTermsError = false;
+              }),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Checkbox(
+                      value: _agreedToTerms,
+                      onChanged: (v) => setState(() {
+                        _agreedToTerms = v ?? false;
+                        if (_agreedToTerms) _showTermsError = false;
+                      }),
+                      activeColor: AppColors.accentRose,
+                      checkColor: AppColors.white,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      side: BorderSide(
+                        color: _showTermsError
+                            ? Colors.red.shade400
+                            : AppColors.textSecondary.withOpacity(0.5),
+                        width: 1.5,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        l10n.agreeToPrivacyPolicy,
+                        style: TextStyle(
+                          color: _showTermsError
+                              ? Colors.red.shade400
+                              : AppColors.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_showTermsError) ...[
+              Padding(
+                padding: const EdgeInsets.only(left: 12, top: 2),
+                child: Text(
+                  l10n.mustAgreeToPrivacyPolicy,
+                  style: TextStyle(
+                    color: Colors.red.shade400,
+                    fontSize: 11.5,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: FilledButton(

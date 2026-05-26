@@ -783,4 +783,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updatingCoupleInfo => 'Updating couple info...';
+
+  @override
+  String get welcomeBackBadge => 'WELCOME BACK';
+
+  @override
+  String get createAccountBadge => 'CREATE ACCOUNT';
+
+  @override
+  String get loveHomeBadge => 'LOVE HOME';
+
+  @override
+  String get coupleOnboardingBadge => 'ONBOARDING';
+
+  @override
+  String get editCoupleBadge => 'EDIT COUPLE';
+
+  @override
+  String get deleteAccountBtn => 'Delete account';
+
+  @override
+  String get deleteAccountTitle => 'Delete Account';
+
+  @override
+  String get deleteAccountDesc => 'Permanently delete your account and all associated data';
+
+  @override
+  String get deleteAccountDialogTitle => 'Delete account?';
+
+  @override
+  String get deleteAccountDialogContent =>
+      'This action cannot be undone. All your data, including photos and couple information, will be permanently deleted.';
+
+  @override
+  String get deleteAccountConfirmBtn => 'Delete permanently';
+
+  @override
+  String get deleteAccountSuccessMsg => 'Account deleted';
+
+  @override
+  String get deleteAccountRequiresReloginMsg =>
+      'Please sign out, sign in again, and retry to verify your identity';
+
+  @override
+  String get privacyPolicyLabel => 'Privacy Policy';
+
+  @override
+  String get privacyDisclosure =>
+      'By creating an account, you agree to our Privacy Policy. We collect your email, display name, and photos you share to provide the service.';
+
+  String get signOutBtn => 'Sign out';
+
+  String get signOutDialogTitle => 'Sign out?';
+
+  String get signOutDialogContent => 'Are you sure you want to sign out of your account?';
+
+  String get signOutConfirmBtn => 'Sign out';
+
+  String get agreeToPrivacyPolicy => 'I agree to the Privacy Policy';
+
+  String get mustAgreeToPrivacyPolicy => 'Please agree to the privacy policy to continue';
 }

@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/l10n.dart';
 import '../models/couple.dart';
 import '../models/photo.dart';
 import '../providers/auth_provider.dart';
@@ -34,15 +35,16 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
 
   Future<String?> _showCaptionDialog({
-    String title = 'Thêm chú thích',
-    String hint = 'Viết vài dòng về khoảnh khắc này...',
+    required String title,
+    required String hint,
     String initialValue = '',
   }) async {
+    final l10n = context.l10n;
     final captionController = TextEditingController(text: initialValue);
 
     return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: Text(title),
         content: TextField(
           controller: captionController,
@@ -54,12 +56,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, captionController.text.trim()),
-            child: const Text('Lưu'),
+            onPressed: () => Navigator.pop(ctx, captionController.text.trim()),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -79,9 +81,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
+    final l10n = context.l10n;
     final caption = await _showCaptionDialog(
-      title: 'Thêm chú thích (tùy chọn)',
-      hint: 'Viết điều gì đó thật đáng nhớ...',
+      title: l10n.addCaptionOptionalTitle,
+      hint: l10n.addCaptionOptionalHint,
     );
 
     if (!mounted) {
@@ -102,7 +105,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            context.read<PhotoProvider>().errorMessage ?? 'Không thể đăng ảnh lúc này.',
+            context.read<PhotoProvider>().errorMessage ?? context.l10n.photoAddError,
           ),
         ),
       );
@@ -114,7 +117,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Thêm ảnh thành công!')),
+      SnackBar(content: Text(context.l10n.photoAddedSuccess)),
     );
   }
 
@@ -141,8 +144,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  context.read<PhotoProvider>().errorMessage ??
-                      'Không thể đồng bộ một trong các ảnh vừa chọn.',
+                  context.read<PhotoProvider>().errorMessage ?? context.l10n.photoAddError,
                 ),
               ),
             );
@@ -153,7 +155,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Đã thêm ${pickedFiles.length} ảnh!'),
+            content: Text(context.l10n.multiplePhotosAdded(pickedFiles.length)),
           ),
         );
       }
@@ -166,9 +168,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
+    final l10n = context.l10n;
     final caption = await _showCaptionDialog(
-      title: 'Chỉnh sửa chú thích',
-      hint: 'Khoảnh khắc này đáng nhớ thế nào?',
+      title: l10n.editCaptionTitle,
+      hint: l10n.editCaptionHint,
       initialValue: photo.caption ?? '',
     );
 
@@ -190,7 +193,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            context.read<PhotoProvider>().errorMessage ?? 'Không thể cập nhật chú thích.',
+            context.read<PhotoProvider>().errorMessage ?? context.l10n.captionUpdateError,
           ),
         ),
       );
@@ -202,7 +205,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã cập nhật chú thích')),
+      SnackBar(content: Text(context.l10n.captionUpdatedSuccess)),
     );
   }
 
@@ -212,19 +215,23 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
+    final l10n = context.l10n;
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Xóa ảnh này?'),
-        content: const Text('Khoảnh khắc này sẽ bị xóa khỏi nhật ký của hai bạn.'),
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.deletePhotoTitle),
+        content: Text(l10n.deletePhotoContent),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Giữ lại'),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.keepPhotoBtn),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xóa'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              l10n.deletePhotoBtn,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
@@ -247,7 +254,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            context.read<PhotoProvider>().errorMessage ?? 'Không thể xóa ảnh lúc này.',
+            context.read<PhotoProvider>().errorMessage ?? context.l10n.photoDeleteError,
           ),
         ),
       );
@@ -259,7 +266,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã xóa ảnh')),
+      SnackBar(content: Text(context.l10n.photoDeletedSuccess)),
     );
   }
 
@@ -268,7 +275,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   String _feedPostedByLabel(Photo photo) {
-    return 'Đăng bởi ${photo.posterName}';
+    return context.l10n.postedByLabel(photo.posterName);
   }
 
   String _formatShortDate(DateTime date) {
@@ -596,7 +603,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   children: [
                     if (couple == null)
                       Text(
-                        'Thêm một kỷ niệm mới',
+                        context.l10n.addNewMemoryTitle,
                         style: TextStyle(
                           color: AppColors.textPrimary.withValues(alpha: 0.88),
                           fontSize: 14.5,
@@ -627,7 +634,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             ),
                           ),
                           Text(
-                            'hôm nay có gì mới?',
+                            context.l10n.whatNewToday,
                             style: TextStyle(
                               color: AppColors.textPrimary.withValues(alpha: 0.88),
                               fontSize: 14.5,
@@ -640,7 +647,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       ),
                     const SizedBox(height: 3),
                     Text(
-                      'Biến thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.',
+                      context.l10n.composerSubtitle,
                       style: _galleryBodyStyle(
                         color: AppColors.textPrimary,
                         size: 11.5,
@@ -692,7 +699,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                   icon: const Icon(Icons.add_a_photo_rounded, size: 16),
-                  label: const Text('Đăng ảnh mới'),
+                  label: Text(context.l10n.postNewPhotoBtn),
                 ),
               ),
               const SizedBox(width: 8),
@@ -710,7 +717,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                   icon: const Icon(Icons.grid_view_rounded, size: 16),
-                  label: const Text('Thêm nhiều'),
+                  label: Text(context.l10n.addMultipleBtn),
                 ),
               ),
             ],
@@ -728,15 +735,15 @@ class _GalleryScreenState extends State<GalleryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildGalleryEyebrow('PRIVATE GALLERY'),
+          _buildGalleryEyebrow(context.l10n.privateGalleryBadge),
           const SizedBox(height: 6),
           Text(
-            'Thư Viện Ảnh',
+            context.l10n.galleryTitle,
             style: AppTheme.pageTitleStyle().copyWith(fontSize: 26),
           ),
           const SizedBox(height: 4),
           Text(
-            'Vuốt lên để gọi nhanh khung đăng ảnh.',
+            context.l10n.gallerySubtitle,
             style: AppTheme.pageSubtitleStyle().copyWith(fontSize: 12),
           ),
           const SizedBox(height: 10),
@@ -771,7 +778,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 children: [
                     if (couple == null)
                       Text(
-                        'Đăng thêm kỷ niệm mới',
+                        context.l10n.addNewMemoryTitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: _galleryCardTitleStyle(size: 15.3),
@@ -788,7 +795,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       ),
                   const SizedBox(height: 4),
                   Text(
-                    '$photoCount khoảnh khắc • Vuốt thêm để bung khung đăng ảnh',
+                    context.l10n.compactCaption(photoCount),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: _galleryMetaStyle(
@@ -968,7 +975,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     Positioned(
                       top: 8,
                       left: 8,
-                      child: _buildPastelStoryBadge(isMemory ? 'Memory' : 'Mới'),
+                      child: _buildPastelStoryBadge(
+                        isMemory ? context.l10n.memoryBadge : context.l10n.newBadge,
+                      ),
                     ),
                   ],
                 ),
@@ -1001,7 +1010,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget _buildPhotoFeedCard(Couple? couple, Photo photo, int index) {
     final displayCaption = photo.caption?.trim().isNotEmpty == true
         ? photo.caption!.trim()
-        : 'Khoảnh khắc #${index + 1} được lưu lại cho hành trình yêu thương của hai bạn.';
+        : context.l10n.momentNumberFallback(index + 1);
     final heroTag = _feedHeroTag(photo, index);
 
     return Container(
@@ -1030,7 +1039,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     children: [
                         if (couple == null)
                           Text(
-                            'Hai bạn',
+                            context.l10n.youTwoLabel,
                             style: _galleryCardTitleStyle(size: 15.6),
                           )
                         else
@@ -1098,14 +1107,14 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
                     _deletePhoto(photo);
                   },
-                  itemBuilder: (context) => const [
+                  itemBuilder: (context) => [
                     PopupMenuItem(
                       value: _PhotoFeedAction.editCaption,
-                      child: Text('Chỉnh sửa chú thích'),
+                      child: Text(context.l10n.editCaptionAction),
                     ),
                     PopupMenuItem(
                       value: _PhotoFeedAction.delete,
-                      child: Text('Xóa ảnh'),
+                      child: Text(context.l10n.deletePhotoAction),
                     ),
                   ],
                 ),
@@ -1208,7 +1217,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           ),
                         ),
                         icon: const Icon(Icons.edit_note_rounded, size: 18),
-                        label: const Text('Chỉnh sửa'),
+                        label: Text(context.l10n.editAction),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -1225,7 +1234,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           ),
                         ),
                         icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                        label: const Text('Xóa'),
+                        label: Text(context.l10n.deleteAction),
                       ),
                     ),
                   ],
@@ -1271,7 +1280,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               const SizedBox(height: 18),
               if (couple == null)
                 Text(
-                  'Bắt đầu tạo newfeed kỷ niệm',
+                  context.l10n.startNewfeedTitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textPrimary.withValues(alpha: 0.92),
@@ -1289,7 +1298,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
-                      'Hãy đăng khoảnh khắc đầu tiên của',
+                      context.l10n.postFirstMomentOf,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: AppColors.textPrimary.withValues(alpha: 0.92),
@@ -1319,7 +1328,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 ),
               const SizedBox(height: 10),
               Text(
-                'Khi thêm ảnh, thư viện này sẽ trở thành một newfeed tình yêu riêng tư với những dòng thời gian thật dễ nhìn và cảm xúc.',
+                context.l10n.emptyFeedContent,
                 textAlign: TextAlign.center,
                 style: _galleryBodyStyle(size: 13.1, alpha: 0.82, height: 1.62),
               ),
@@ -1335,7 +1344,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   ),
                 ),
                 icon: const Icon(Icons.add_photo_alternate_rounded),
-                label: const Text('Đăng ảnh đầu tiên'),
+                label: Text(context.l10n.postFirstPhotoBtn),
               ),
             ],
           ),
@@ -1423,6 +1432,8 @@ class _MarqueeRow extends StatefulWidget {
 
 class _MarqueeRowState extends State<_MarqueeRow> {
   final ScrollController _controller = ScrollController();
+  static const double _speed = 45.0; // pixels per second
+  static const int _repeatFactor = 300;
 
   @override
   void initState() {
@@ -1431,18 +1442,26 @@ class _MarqueeRowState extends State<_MarqueeRow> {
   }
 
   Future<void> _loop() async {
-    await Future.delayed(const Duration(milliseconds: 1200));
+    await Future.delayed(const Duration(milliseconds: 800));
     while (mounted && _controller.hasClients) {
       final max = _controller.position.maxScrollExtent;
-      if (max <= 0) break;
+      if (max <= 0) {
+        await Future.delayed(const Duration(milliseconds: 300));
+        continue;
+      }
+      final remaining = max - _controller.offset;
+      final durationMs = (remaining / _speed * 1000).round();
+      if (durationMs <= 0) {
+        _controller.jumpTo(0);
+        continue;
+      }
       await _controller.animateTo(
         max,
-        duration: Duration(milliseconds: (max * 14).round()),
+        duration: Duration(milliseconds: durationMs),
         curve: Curves.linear,
       );
       if (!mounted) break;
       _controller.jumpTo(0);
-      await Future.delayed(const Duration(milliseconds: 600));
     }
   }
 
@@ -1454,15 +1473,21 @@ class _MarqueeRowState extends State<_MarqueeRow> {
 
   @override
   Widget build(BuildContext context) {
+    final count = widget.children.length;
     return SizedBox(
       height: 30,
-      child: ListView.separated(
+      child: ListView.builder(
         controller: _controller,
         scrollDirection: Axis.horizontal,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: widget.children.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) => widget.children[i],
+        itemCount: count * _repeatFactor,
+        itemBuilder: (_, i) {
+          final child = widget.children[i % count];
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: child,
+          );
+        },
       ),
     );
   }
