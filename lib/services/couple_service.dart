@@ -276,7 +276,8 @@ class CoupleService {
     required AppUser currentUser,
     required String inviteCode,
   }) async {
-    if (currentUser.hasCouple) {
+    // Block only users who are actively paired with a partner
+    if (currentUser.hasCouple && currentUser.status == 'in_couple') {
       throw const CoupleException('Tài khoản này đã thuộc một cặp đôi rồi.');
     }
 
@@ -289,6 +290,12 @@ class CoupleService {
       throw const CoupleException('Bạn không thể nhập mã mời của chính mình.');
     }
 
+    // If user already created a solo couple (waiting_partner), leave it first
+    AppUser effectiveUser = currentUser;
+    if (currentUser.hasCouple && currentUser.status == 'waiting_partner') {
+      effectiveUser = await leaveCouple(currentUser: currentUser);
+    }
+
     if (isUsingFirebase) {
       try {
         await _ensureFirebaseSessionReady();
@@ -298,7 +305,7 @@ class CoupleService {
           throw const CoupleException('Mã mời không hợp lệ hoặc không còn tồn tại.');
         }
 
-        if (accountInvite.userId == currentUser.id) {
+        if (accountInvite.userId == effectiveUser.id) {
           throw const CoupleException('Bạn không thể dùng mã mời của chính mình.');
         }
 
@@ -329,7 +336,7 @@ class CoupleService {
             throw const CoupleException('Mã mời này không còn trỏ tới một cặp đôi hợp lệ nữa.');
           }
 
-          if (currentCouple.memberIds.contains(currentUser.id)) {
+          if (currentCouple.memberIds.contains(effectiveUser.id)) {
             throw const CoupleException('Bạn đã ở trong cặp đôi này rồi.');
           }
 
@@ -338,17 +345,17 @@ class CoupleService {
           }
 
           final now = DateTime.now();
-          final newMemberIds = [...currentCouple.memberIds, currentUser.id];
+          final newMemberIds = [...currentCouple.memberIds, effectiveUser.id];
           updatedCouple = currentCouple.copyWith(
             memberIds: newMemberIds,
             memberCount: newMemberIds.length,
             status: newMemberIds.length >= 2 ? 'active' : 'waiting_partner',
             updatedAt: now,
             person2Name: currentCouple.person2Name.trim().isEmpty
-                ? currentUser.displayName
+                ? effectiveUser.displayName
                 : currentCouple.person2Name,
           );
-          updatedUser = currentUser.copyWith(
+          updatedUser = effectiveUser.copyWith(
             coupleId: currentCouple.id,
             status: 'in_couple',
             updatedAt: now,
@@ -399,7 +406,7 @@ class CoupleService {
     }
 
     final now = DateTime.now();
-    final newMemberIds = [...localCouple.memberIds, currentUser.id];
+    final newMemberIds = [...localCouple.memberIds, effectiveUser.id];
     final updatedLocalCouple = localCouple.copyWith(
       memberIds: newMemberIds,
       memberCount: newMemberIds.length,
@@ -411,7 +418,7 @@ class CoupleService {
 
     return CoupleActionResult(
       couple: updatedLocalCouple,
-      updatedUser: currentUser.copyWith(
+      updatedUser: effectiveUser.copyWith(
         coupleId: updatedLocalCouple.id,
         status: 'in_couple',
         updatedAt: now,
