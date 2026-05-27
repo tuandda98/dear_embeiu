@@ -388,5 +388,9 @@
   "loadingCoupleInfo": "Loading couple info...",
   "savingCoupleSpace": "Saving couple space...",
   "connectingCouple": "Connecting couple...",
-  "updatingCoupleInfo": "Updating couple info..."
+  "updatingCoupleInfo": "Updating couple info...",
+
+  "setupNoChangesToSaveMsg": "No changes to save.",
+  "inviteCodeCopiedMsg": "Invite code copied",
+  "copyBtn": "Copy"
 }

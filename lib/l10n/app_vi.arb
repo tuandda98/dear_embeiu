@@ -388,5 +388,9 @@
   "loadingCoupleInfo": "Đang tải thông tin cặp đôi...",
   "savingCoupleSpace": "Đang lưu không gian cặp đôi...",
   "connectingCouple": "Đang kết nối cặp đôi...",
-  "updatingCoupleInfo": "Đang cập nhật thông tin cặp đôi..."
+  "updatingCoupleInfo": "Đang cập nhật thông tin cặp đôi...",
+
+  "setupNoChangesToSaveMsg": "Không có gì thay đổi để lưu.",
+  "inviteCodeCopiedMsg": "Đã sao chép mã mời",
+  "copyBtn": "Sao chép"
 }

@@ -843,4 +843,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get agreeToPrivacyPolicy => 'I agree to the Privacy Policy';
 
   String get mustAgreeToPrivacyPolicy => 'Please agree to the privacy policy to continue';
+
+  @override
+  String get setupNoChangesToSaveMsg => 'No changes to save.';
+
+  @override
+  String get inviteCodeCopiedMsg => 'Invite code copied';
+
+  @override
+  String get copyBtn => 'Copy';
 }

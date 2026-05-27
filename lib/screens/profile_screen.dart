@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
+import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import 'setup_screen.dart';
 
@@ -30,9 +32,17 @@ class ProfileScreen extends StatelessWidget {
         builder: (context, coupleProvider, photoProvider, _) {
           final authProvider = context.watch<AuthProvider>();
           final currentUser = authProvider.currentUser;
+          final isBusy = coupleProvider.isLoading || photoProvider.isLoading;
+          final busyMessage = coupleProvider.isLoading
+              ? coupleProvider.loadingMessage
+              : photoProvider.loadingMessage;
 
           if (coupleProvider.couple == null) {
-            return const Center(child: CircularProgressIndicator());
+            return BlockingLoadingOverlay(
+              isVisible: isBusy,
+              message: busyMessage,
+              child: const Center(child: CircularProgressIndicator()),
+            );
           }
 
           final couple = coupleProvider.couple!;
@@ -43,52 +53,56 @@ class ProfileScreen extends StatelessWidget {
           final nextAnniversary = _getNextAnniversary(couple.anniversaryDate);
           final daysUntilAnniversary = _daysUntil(nextAnniversary);
 
-          return Container(
-            decoration: const BoxDecoration(
-              gradient: AppColors.secondaryGradient,
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildPageHeader(context),
-                    const SizedBox(height: 20),
-                    _buildHeroCard(
-                      context,
-                      couple: couple,
-                      daysUntilAnniversary: daysUntilAnniversary,
-                    ),
-                    const SizedBox(height: 18),
-                    _buildStatsSection(
-                      context,
-                      years: years,
-                      months: months,
-                      totalDays: totalDays,
-                      photoCount: photoCount,
-                    ),
-                    const SizedBox(height: 18),
-                    _buildCoupleInfoSection(
-                      context,
-                      couple: couple,
-                      inviteCode: currentUser?.inviteCode,
-                      daysUntilAnniversary: daysUntilAnniversary,
-                    ),
-                    const SizedBox(height: 18),
-                    _buildActionsSection(context),
-                    const SizedBox(height: 18),
-                    _buildLanguageSection(context),
-                    const SizedBox(height: 12),
-                    _buildSignOutButton(context),
-                    const SizedBox(height: 18),
-                    _buildDangerZone(
-                      context,
-                      isUsingFirebase: authProvider.isUsingFirebase,
-                    ),
-                  ],
+          return BlockingLoadingOverlay(
+            isVisible: isBusy,
+            message: busyMessage,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.secondaryGradient,
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPageHeader(context),
+                      const SizedBox(height: 20),
+                      _buildHeroCard(
+                        context,
+                        couple: couple,
+                        daysUntilAnniversary: daysUntilAnniversary,
+                      ),
+                      const SizedBox(height: 18),
+                      _buildStatsSection(
+                        context,
+                        years: years,
+                        months: months,
+                        totalDays: totalDays,
+                        photoCount: photoCount,
+                      ),
+                      const SizedBox(height: 18),
+                      _buildCoupleInfoSection(
+                        context,
+                        couple: couple,
+                        inviteCode: currentUser?.inviteCode,
+                        daysUntilAnniversary: daysUntilAnniversary,
+                      ),
+                      const SizedBox(height: 18),
+                      _buildActionsSection(context),
+                      const SizedBox(height: 18),
+                      _buildLanguageSection(context),
+                      const SizedBox(height: 12),
+                      _buildSignOutButton(context),
+                      const SizedBox(height: 18),
+                      _buildDangerZone(
+                        context,
+                        isUsingFirebase: authProvider.isUsingFirebase,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1255,41 +1269,42 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _showLeaveCoupleDialog(BuildContext context) {
-    final l10n = context.l10n;
+  void _showLeaveCoupleDialog(BuildContext screenContext) {
+    final l10n = screenContext.l10n;
 
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: screenContext,
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.leaveCoupleDialogTitle),
         content: Text(l10n.leaveCoupleDialogContent),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
-              final authProvider = context.read<AuthProvider>();
+              final authProvider = screenContext.read<AuthProvider>();
+              final coupleProvider = screenContext.read<CoupleProvider>();
+              final photoProvider = screenContext.read<PhotoProvider>();
               final currentUser = authProvider.currentUser;
 
-              if (currentUser == null) {
-                Navigator.pop(context);
+              Navigator.pop(dialogContext);
+
+              if (currentUser == null) return;
+
+              try {
+                final updatedUser = await coupleProvider.leaveCouple(
+                  currentUser: currentUser,
+                );
+                unawaited(photoProvider.syncForUser(updatedUser));
+              } catch (_) {
                 return;
               }
 
-              final updatedUser = await context.read<CoupleProvider>().leaveCouple(
-                    currentUser: currentUser,
-                  );
-              await authProvider.updateCurrentUser(updatedUser);
-              await context.read<PhotoProvider>().syncForUser(updatedUser);
+              if (!screenContext.mounted) return;
 
-              if (!context.mounted) {
-                return;
-              }
-
-              Navigator.pop(context);
-              Navigator.of(context).pushNamedAndRemoveUntil(
+              Navigator.of(screenContext).pushNamedAndRemoveUntil(
                 AppRoutes.setup,
                 (route) => false,
               );

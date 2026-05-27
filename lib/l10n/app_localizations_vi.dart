@@ -847,4 +847,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get agreeToPrivacyPolicy => 'Tôi đồng ý với Chính sách bảo mật';
 
   String get mustAgreeToPrivacyPolicy => 'Vui lòng đồng ý với chính sách bảo mật để tiếp tục';
+
+  @override
+  String get setupNoChangesToSaveMsg => 'Không có gì thay đổi để lưu.';
+
+  @override
+  String get inviteCodeCopiedMsg => 'Đã sao chép mã mời';
+
+  @override
+  String get copyBtn => 'Sao chép';
 }

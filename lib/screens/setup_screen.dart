@@ -125,6 +125,15 @@ class _SetupScreenState extends State<SetupScreen> {
       return;
     }
 
+    if (isEditing && !_hasPendingChanges(existingCouple, person1, person2, _selectedDate!)) {
+      _showSnack(l10n.setupNoChangesToSaveMsg);
+      final navigator = Navigator.of(context);
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
+      return;
+    }
+
     try {
       final navigator = Navigator.of(context);
       final CoupleActionResult result = isEditing
@@ -143,8 +152,10 @@ class _SetupScreenState extends State<SetupScreen> {
               photoPath: _couplePhotoPath,
             );
 
-      await authProvider.updateCurrentUser(result.updatedUser);
-      await photoProvider.syncForUser(result.updatedUser);
+      if (!isEditing) {
+        await authProvider.updateCurrentUser(result.updatedUser);
+        await photoProvider.syncForUser(result.updatedUser);
+      }
 
       if (!mounted) {
         return;
@@ -170,6 +181,23 @@ class _SetupScreenState extends State<SetupScreen> {
       if (!mounted) return;
       _showSnack(context.l10n.setupErrorSaveCouple('$e'));
     }
+  }
+
+  bool _hasPendingChanges(
+    Couple existing,
+    String person1,
+    String person2,
+    DateTime anniversary,
+  ) {
+    if (person1 != existing.person1Name.trim()) return true;
+    if (person2 != existing.person2Name.trim()) return true;
+    if (anniversary.year != existing.anniversaryDate.year ||
+        anniversary.month != existing.anniversaryDate.month ||
+        anniversary.day != existing.anniversaryDate.day) {
+      return true;
+    }
+    if ((_couplePhotoPath ?? '') != (existing.couplePhotoPath ?? '')) return true;
+    return false;
   }
 
   Future<void> _submitJoin() async {
@@ -603,9 +631,9 @@ class _SetupScreenState extends State<SetupScreen> {
                   onTap: () {
                     Clipboard.setData(ClipboardData(text: inviteCode));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Đã sao chép mã mời'),
-                        duration: Duration(seconds: 2),
+                      SnackBar(
+                        content: Text(l10n.inviteCodeCopiedMsg),
+                        duration: const Duration(seconds: 2),
                       ),
                     );
                   },
@@ -618,7 +646,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         Icon(Icons.copy_rounded, size: 14, color: AppColors.white.withOpacity(0.90)),
                         const SizedBox(width: 4),
                         Text(
-                          'Sao chép',
+                          l10n.copyBtn,
                           style: TextStyle(
                             color: AppColors.white.withOpacity(0.90),
                             fontSize: 12,

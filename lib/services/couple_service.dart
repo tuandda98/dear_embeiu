@@ -12,10 +12,49 @@ import 'firebase_bootstrap_service.dart';
 import 'storage_service.dart';
 import 'user_service.dart';
 
-class CoupleException implements Exception {
-  final String message;
+enum CoupleErrorCode {
+  alreadyHasCouple,
+  emptyInvite,
+  ownInvite,
+  inviteNotFound,
+  inviteNoSpace,
+  targetNotFound,
+  invalidInviteLink,
+  alreadyInThis,
+  full,
+  localNotFound,
+  localFull,
+  firestorePermissionRead,
+  firestorePermissionWrite,
+  unavailable,
+  unauthenticated,
+  sessionNotReady,
+  saveGeneric,
+  joinGeneric,
+  noCurrentUser,
+  noCoupleToUpdate,
+  loadFailed,
+  syncFailed,
+  unknown,
+}
 
+enum CoupleResultCode {
+  updated,
+  joined,
+  localFallbackJoined,
+}
+
+enum CouplePhotoSyncWarningCode {
+  permissionDenied,
+  unauthenticated,
+  unavailable,
+  generic,
+}
+
+class CoupleException implements Exception {
   const CoupleException(this.message);
+
+  final String message;
 
   @override
   String toString() => message;
@@ -438,19 +477,20 @@ class CoupleService {
       return;
     }
 
-    await _deleteStorageObjectIfNeeded(couple.couplePhotoStoragePath);
-
     final photosSnapshot = await _couplesCollection
         .doc(couple.id)
         .collection('photos')
         .get();
 
-    for (final photoDoc in photosSnapshot.docs) {
-      final data = photoDoc.data();
-      final storagePath = (data['storagePath'] as String?)?.trim();
-      await _deleteStorageObjectIfNeeded(storagePath);
-      await photoDoc.reference.delete();
-    }
+    await Future.wait([
+      _deleteStorageObjectIfNeeded(couple.couplePhotoStoragePath),
+      for (final photoDoc in photosSnapshot.docs) ...[
+        _deleteStorageObjectIfNeeded(
+          (photoDoc.data()['storagePath'] as String?)?.trim(),
+        ),
+        photoDoc.reference.delete(),
+      ],
+    ]);
   }
 
   Future<void> _deleteStorageObjectIfNeeded(String? storagePath) async {
@@ -558,12 +598,7 @@ class CoupleService {
         'Phiên đăng nhập Firebase chưa sẵn sàng. Bạn đăng xuất rồi đăng nhập lại giúp mình nhé.',
       );
     }
-
-    await FirebaseAuth.instance.idTokenChanges().firstWhere(
-      (user) => user?.uid == currentUser.uid,
-    );
-
-    await currentUser.getIdToken(true);
+    await currentUser.getIdToken();
   }
 
   String _mapFirebaseError(FirebaseException exception) {

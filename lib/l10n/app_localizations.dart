@@ -1519,6 +1519,12 @@ abstract class AppLocalizations {
   String get agreeToPrivacyPolicy;
 
   String get mustAgreeToPrivacyPolicy;
+
+  String get setupNoChangesToSaveMsg;
+
+  String get inviteCodeCopiedMsg;
+
+  String get copyBtn;
 }
 
 class _AppLocalizationsDelegate
