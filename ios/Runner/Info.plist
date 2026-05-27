@@ -4,6 +4,10 @@
 	<dict>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Dear Embeiu cần truy cập thư viện ảnh để bạn chọn và chia sẻ ảnh kỷ niệm với người ấy.</string>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
