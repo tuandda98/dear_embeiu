@@ -13,10 +13,10 @@ import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/counter_card.dart';
-import '../widgets/couple_info_card.dart';
 import '../widgets/shared_photo_view.dart';
 import 'profile_screen.dart';
 import 'gallery_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -346,63 +346,70 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity( 0.12),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColors.white.withOpacity( 0.18)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.auto_awesome_rounded,
-                          size: 14,
-                          color: AppColors.white.withOpacity( 0.92),
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.white.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: AppColors.white.withOpacity(0.18),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          l10n.loveHomeBadge,
-                          style: AppTheme.pageEyebrowStyle(),
-                        ),
-                      ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.auto_awesome_rounded,
+                            size: 14,
+                            color: AppColors.white.withOpacity(0.92),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.loveHomeBadge,
+                            style: AppTheme.pageEyebrowStyle(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(l10n.navHome, style: AppTheme.pageTitleStyle()),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.homeSubtitle,
+                      style: AppTheme.pageSubtitleStyle(),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () => setState(() => _selectedIndex = 2),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withOpacity(0.16),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: AppColors.white.withOpacity(0.18),
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  Text(
-                    l10n.navHome,
-                    style: AppTheme.pageTitleStyle(),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.homeSubtitle,
-                    style: AppTheme.pageSubtitleStyle(),
-                  ),
-                ],
-              ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.16),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: AppColors.white.withOpacity(0.18),
+                  child: const Icon(
+                    Icons.favorite_rounded,
+                    color: AppColors.white,
                   ),
                 ),
-                child: const Icon(Icons.favorite_rounded, color: AppColors.white),
               ),
             ],
           ),
           const SizedBox(height: 20),
-          _buildHeroSection(
-            couple: couple,
-            totalDays: totalDays,
-            daysUntilAnniversary: daysUntilAnniversary,
-            l10n: l10n,
-          ),
+          _buildHeroSection(couple: couple, l10n: l10n),
+          if (couple.isWaitingForPartner) ...[
+            const SizedBox(height: 16),
+            _buildWaitingForPartnerBanner(couple),
+          ],
           const SizedBox(height: 20),
           CounterCard(
             years: counterData.years,
@@ -440,77 +447,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => setState(() => _selectedIndex = 2),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickActionCard(
-                  icon: Icons.auto_awesome_rounded,
-                  title: l10n.milestoneCardTitle,
-                  subtitle: _milestoneLabel(nextMilestone, l10n),
-                  color: AppColors.accentGold,
-                  onTap: () {},
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          CoupleInfoCard(
-            person1Name: couple.person1Name,
-            person2Name: couple.person2Name,
-            couplePhotoPath: couple.couplePhotoPath,
-            couplePhotoUrl: couple.couplePhotoUrl,
-            onTap: () => setState(() => _selectedIndex = 2),
-          ),
-          const SizedBox(height: 20),
-          _buildSectionTitle(
-            title: l10n.loveInNumbersTitle,
-            subtitle: l10n.loveInNumbersSubtitle,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildInsightCard(
-                  icon: Icons.today_rounded,
-                  title: l10n.daysTogether,
-                  value: '$totalDays',
-                  hint: l10n.daysUnit,
-                  color: AppColors.accentRose,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildInsightCard(
-                  icon: Icons.photo_camera_back_rounded,
-                  title: l10n.memoriesSaved,
-                  value: '${photos.length}',
-                  hint: l10n.photosUnit,
-                  color: AppColors.accentCoral,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildInsightCard(
-                  icon: Icons.event_available_rounded,
-                  title: l10n.nextAnniversaryLabel,
-                  value: '$daysUntilAnniversary',
-                  hint: l10n.daysAway,
-                  color: AppColors.info,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildInsightCard(
-                  icon: Icons.workspace_premium_rounded,
-                  title: l10n.nextMilestoneTitle,
-                  value: '$nextMilestone',
-                  hint: l10n.daysUnit,
-                  color: AppColors.accentGold,
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -540,8 +476,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 12),
           _buildRecentPhotosSection(recentPhotos, l10n),
-          const SizedBox(height: 20),
-          _buildTimelineCard(totalDays, couple, photos.length, l10n),
         ],
       ),
     );
@@ -549,8 +483,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHeroSection({
     required Couple couple,
-    required int totalDays,
-    required int daysUntilAnniversary,
     required AppLocalizations l10n,
   }) {
     return Container(
@@ -569,89 +501,46 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withOpacity(0.16),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: const Icon(
-                    Icons.wb_sunny_rounded,
-                    color: AppColors.white,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Text(
-                            l10n.helloGreeting,
-                            style: const TextStyle(
-                              color: AppColors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          AnimatedCoupleName(
-                            person1Name: couple.person1Name,
-                            person2Name: couple.person2Name,
-                            spacing: 6,
-                            runSpacing: 4,
-                            heartSize: 18,
-                            heartColor: AppColors.white,
-                            textStyle: const TextStyle(
-                              color: AppColors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.homeSubtitle,
-                        style: TextStyle(
-                          color: AppColors.white.withOpacity(0.82),
-                          fontSize: 13,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.white.withOpacity(0.16),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Icon(Icons.wb_sunny_rounded, color: AppColors.white),
             ),
-            const SizedBox(height: 18),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                _buildHeroBadge(
-                  Icons.favorite_rounded,
-                  l10n.daysCountLabel(totalDays),
-                ),
-                _buildHeroBadge(
-                  Icons.celebration_rounded,
-                  daysUntilAnniversary == 0
-                      ? l10n.todayIsAnniversary
-                      : l10n.daysUntilNextAnniversary(daysUntilAnniversary),
-                ),
-                _buildHeroBadge(
-                  Icons.calendar_month_rounded,
-                  _formatDate(couple.anniversaryDate),
-                ),
-              ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    l10n.helloGreeting,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  AnimatedCoupleName(
+                    person1Name: couple.person1Name,
+                    person2Name: couple.person2Name,
+                    spacing: 6,
+                    runSpacing: 4,
+                    heartSize: 18,
+                    heartColor: AppColors.white,
+                    textStyle: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -659,25 +548,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeroBadge(IconData icon, String label) {
+  Widget _buildWaitingForPartnerBanner(Couple couple) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.14),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.white.withOpacity(0.16)),
+        color: AppColors.white.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.white.withOpacity(0.32)),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: AppColors.white, size: 16),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.white.withOpacity(0.20),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.link_rounded, color: AppColors.white, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Chờ bạn đồng hành',
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Chia sẻ mã mời với người ấy để bắt đầu hành trình cùng nhau.',
+                  style: TextStyle(
+                    color: AppColors.white.withOpacity(0.80),
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+                if (couple.inviteCode.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withOpacity(0.22),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      couple.inviteCode,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ],
@@ -776,74 +708,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildInsightCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required String hint,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.14),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            title,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 6),
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: value,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                TextSpan(
-                  text: '  $hint',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1148,110 +1012,6 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildTimelineCard(int totalDays, Couple couple, int photoCount, AppLocalizations l10n) {
-    final currentMonthiversary = totalDays ~/ 30;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.yourStorySoFar,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildTimelineItem(
-            icon: Icons.favorite_rounded,
-            title: l10n.whenItAllBegan,
-            subtitle: l10n.whenItAllBeganSubtitle(
-              couple.person1Name,
-              couple.person2Name,
-              _formatDate(couple.anniversaryDate),
-            ),
-            color: AppColors.accentRose,
-          ),
-          const SizedBox(height: 14),
-          _buildTimelineItem(
-            icon: Icons.calendar_view_month_rounded,
-            title: l10n.monthiversaries(currentMonthiversary),
-            subtitle: l10n.monthiversaryDesc,
-            color: AppColors.accentCoral,
-          ),
-          const SizedBox(height: 14),
-          _buildTimelineItem(
-            icon: Icons.collections_rounded,
-            title: l10n.memoriesCaptured(photoCount),
-            subtitle: l10n.memoriesCapturedDesc,
-            color: AppColors.info,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimelineItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.14),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Icon(icon, color: color, size: 18),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  height: 1.45,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 

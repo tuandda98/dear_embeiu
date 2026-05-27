@@ -87,7 +87,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
       hint: l10n.addCaptionOptionalHint,
     );
 
-    if (!mounted) {
+    // null = user pressed Cancel (dismiss dialog) = cancel entire upload
+    if (caption == null || !mounted) {
       return;
     }
 
@@ -95,7 +96,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       await context.read<PhotoProvider>().addPhoto(
         pickedFile.path,
         currentUser: currentUser,
-        caption: caption != null && caption.isNotEmpty ? caption : null,
+        caption: caption.isNotEmpty ? caption : null,
       );
     } catch (_) {
       if (!mounted) {
@@ -278,28 +279,16 @@ class _GalleryScreenState extends State<GalleryScreen> {
     return context.l10n.postedByLabel(photo.posterName);
   }
 
-  String _formatShortDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
-  }
-
-  List<Photo> _memoriesToday(List<Photo> photos) {
+  List<Photo> _photosUploadedToday(List<Photo> photos) {
     final now = DateTime.now();
     return photos
         .where(
-          (photo) =>
-              photo.uploadDate.day == now.day &&
-              photo.uploadDate.month == now.month,
+          (p) =>
+              p.uploadDate.year == now.year &&
+              p.uploadDate.month == now.month &&
+              p.uploadDate.day == now.day,
         )
-        .take(10)
         .toList();
-  }
-
-  List<Photo> _recentStoryPhotos(List<Photo> photos) {
-    return photos.take(10).toList();
-  }
-
-  String _storyHeroTag(Photo photo, bool isMemory) {
-    return 'story-photo-${photo.id}-${isMemory ? 'memory' : 'recent'}';
   }
 
   String _feedHeroTag(Photo photo, int index) {
@@ -330,6 +319,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           heroTags: heroTags,
           initialIndex: initialIndex,
           couple: couple,
+          onEditCaption: _editCaption,
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
@@ -353,21 +343,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ? couple.person2Name.trim().characters.first.toUpperCase()
         : 'B';
     return '$first$second';
-  }
-
-  int _daysTogether(Couple? couple) {
-    if (couple == null) {
-      return 0;
-    }
-
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final anniversary = DateTime(
-      couple.anniversaryDate.year,
-      couple.anniversaryDate.month,
-      couple.anniversaryDate.day,
-    );
-    return today.difference(anniversary).inDays;
   }
 
   Widget _buildCoupleAvatar(Couple? couple, {double size = 48}) {
@@ -396,29 +371,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  TextStyle _galleryDisplayStyle() {
-    return AppTheme.pageTitleStyle();
-  }
-
-  TextStyle _gallerySectionTitleStyle() {
-    return AppTheme.sectionTitleStyle();
-  }
-
-  TextStyle _galleryOnBackgroundBodyStyle({
-    double size = 13,
-    double alpha = 0.82,
-    FontWeight weight = FontWeight.w500,
-    double height = 1.5,
-  }) {
-    return TextStyle(
-      color: AppColors.white.withValues(alpha: alpha),
-      fontSize: size,
-      fontWeight: weight,
-      height: height,
-      letterSpacing: 0.02,
     );
   }
 
@@ -666,21 +618,15 @@ class _GalleryScreenState extends State<GalleryScreen> {
             children: [
               _buildFeedStatChip(
                 icon: Icons.collections_rounded,
-                label: '$photoCount khoảnh khắc',
+                label: context.l10n.momentsCount(photoCount),
                 color: AppColors.accentRose,
               ),
-              if (couple != null)
-                _buildFeedStatChip(
-                  icon: Icons.favorite_rounded,
-                  label: '${_daysTogether(couple)} ngày bên nhau',
-                  color: AppColors.accentCoral,
-                ),
               _buildFeedStatChip(
                 icon: Icons.auto_stories_rounded,
-                label: 'Feed riêng của hai bạn',
+                label: context.l10n.privateFeedLabel,
                 color: AppColors.info,
               ),
-            ].whereType<Widget>().toList(),
+            ],
           ),
           const SizedBox(height: 10),
           Row(
@@ -816,7 +762,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 foregroundColor: AppColors.white,
               ),
               icon: const Icon(Icons.add_a_photo_rounded, size: 18),
-              tooltip: 'Đăng ảnh mới',
+              tooltip: context.l10n.postNewPhotoBtn,
             ),
             const SizedBox(width: 8),
             IconButton.filledTonal(
@@ -826,7 +772,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 foregroundColor: AppColors.accentCoral,
               ),
               icon: const Icon(Icons.grid_view_rounded, size: 18),
-              tooltip: 'Thêm nhiều',
+              tooltip: context.l10n.addMultipleBtn,
             ),
           ],
         ),
@@ -834,175 +780,171 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
-  Widget _buildStoryStripSection(Couple? couple, List<Photo> photos) {
-    final memoriesToday = _memoriesToday(photos);
-    final storyPhotos = memoriesToday.isNotEmpty
-        ? memoriesToday
-        : _recentStoryPhotos(photos);
-    final storyHeroTags = List.generate(
-      storyPhotos.length,
-      (index) => _storyHeroTag(storyPhotos[index], memoriesToday.isNotEmpty),
-    );
-    final title = memoriesToday.isNotEmpty ? 'Memories today' : 'Ảnh gần đây';
-    final subtitle = memoriesToday.isNotEmpty
-        ? 'Những khoảnh khắc được lưu đúng ngày này, dịu dàng và rất riêng.'
-        : 'Một dải story nhỏ để xem nhanh những khoảnh khắc mới nhất của hai bạn.';
-
-    if (storyPhotos.isEmpty) {
-      return const SizedBox.shrink();
+  Widget _buildTodayCTACard(Couple? couple, List<Photo> allPhotos) {
+    final todayPhotos = _photosUploadedToday(allPhotos);
+    if (todayPhotos.isEmpty) {
+      return _buildAddTodayPromptCard(couple);
     }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildGalleryEyebrow(memoriesToday.isNotEmpty ? 'TODAY IN LOVE' : 'STORY STRIP'),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Text(
-                    title,
-                    style: _gallerySectionTitleStyle(),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildPastelStoryBadge(
-                    '${storyPhotos.length}',
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    fontSize: 11,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                subtitle,
-                style: _galleryOnBackgroundBodyStyle(
-                  size: 12.4,
-                  alpha: 0.74,
-                  height: 1.52,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        SizedBox(
-          height: 158,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: storyPhotos.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final photo = storyPhotos[index];
-              return _buildStoryCard(
-                couple: couple,
-                photo: photo,
-                heroTag: storyHeroTags[index],
-                photos: storyPhotos,
-                heroTags: storyHeroTags,
-                index: index,
-                isMemory: memoriesToday.isNotEmpty,
-              );
-            },
-          ),
-        ),
-      ],
-    );
+    return _buildTodayMemoriesCard(couple, todayPhotos);
   }
 
-  Widget _buildStoryCard({
-    required Couple? couple,
-    required Photo photo,
-    required String heroTag,
-    required List<Photo> photos,
-    required List<String> heroTags,
-    required int index,
-    required bool isMemory,
-  }) {
-    return GestureDetector(
-      onTap: () => _openPhotoPreview(
-        photos,
-        initialIndex: index,
-        couple: couple,
-        heroTags: heroTags,
-      ),
-      child: Container(
-        width: 104,
-        decoration: _gallerySurfaceDecoration(
-          radius: 26,
-          fillAlpha: 0.92,
-          borderAlpha: 0.88,
-          shadowAlpha: 0.05,
-          blurRadius: 16,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
+  Widget _buildAddTodayPromptCard(Couple? couple) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: _gallerySurfaceDecoration(radius: 24, fillAlpha: 0.9),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.accentRose.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.wb_sunny_rounded,
+                  color: AppColors.accentRose,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
-                child: Stack(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: SizedBox.expand(
-                        child: Hero(
-                          tag: heroTag,
-                          createRectTween: (begin, end) =>
-                              MaterialRectCenterArcTween(begin: begin, end: end),
-                          transitionOnUserGestures: true,
-                          child: SharedPhotoView(
-                            photo: photo,
-                            fit: BoxFit.cover,
-                            placeholder: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceLight,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Icon(
-                                Icons.image_not_supported_outlined,
-                                color: AppColors.textSecondary.withValues(alpha: 0.5),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                    Text(
+                      'Hôm nay chưa có khoảnh khắc nào',
+                      style: _galleryCardTitleStyle(size: 14.5),
                     ),
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: _buildPastelStoryBadge(
-                        isMemory ? context.l10n.memoryBadge : context.l10n.newBadge,
+                    const SizedBox(height: 4),
+                    Text(
+                      'Đừng để ngày này trôi qua không dấu vết.',
+                      style: _galleryBodyStyle(
+                        size: 12,
+                        alpha: 0.60,
+                        height: 1.45,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: Text(
-                  photo.caption?.trim().isNotEmpty == true
-                      ? photo.caption!.trim()
-                      : _formatShortDate(photo.uploadDate),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: _galleryMetaStyle(
-                    color: AppColors.textPrimary,
-                    size: 11.2,
-                    alpha: 0.88,
-                    weight: FontWeight.w700,
-                  ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed:
+                  context.watch<PhotoProvider>().isLoading
+                      ? null
+                      : _pickAndAddPhoto,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.accentRose,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
+                textStyle: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              icon: const Icon(Icons.add_a_photo_rounded, size: 17),
+              label: const Text('Ghi lại khoảnh khắc hôm nay'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTodayMemoriesCard(Couple? couple, List<Photo> todayPhotos) {
+    final heroTags = List.generate(
+      todayPhotos.length,
+      (i) => 'today-cta-${todayPhotos[i].id}',
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _gallerySurfaceDecoration(radius: 24, fillAlpha: 0.9),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.success,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '${todayPhotos.length} khoảnh khắc hôm nay',
+                  style: _galleryCardTitleStyle(size: 14.5),
+                ),
+              ),
+              _buildPastelStoryBadge(
+                'Hôm nay',
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                fontSize: 10,
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 96,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: todayPhotos.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final photo = todayPhotos[index];
+                return GestureDetector(
+                  onTap: () => _openPhotoPreview(
+                    todayPhotos,
+                    initialIndex: index,
+                    couple: couple,
+                    heroTags: heroTags,
+                  ),
+                  child: Hero(
+                    tag: heroTags[index],
+                    createRectTween: (begin, end) =>
+                        MaterialRectCenterArcTween(begin: begin, end: end),
+                    transitionOnUserGestures: true,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: SizedBox(
+                        width: 96,
+                        child: SharedPhotoView(
+                          photo: photo,
+                          fit: BoxFit.cover,
+                          placeholder: Container(
+                            color: AppColors.surfaceLight,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1107,16 +1049,20 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
                     _deletePhoto(photo);
                   },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: _PhotoFeedAction.editCaption,
-                      child: Text(context.l10n.editCaptionAction),
-                    ),
-                    PopupMenuItem(
-                      value: _PhotoFeedAction.delete,
-                      child: Text(context.l10n.deletePhotoAction),
-                    ),
-                  ],
+                  itemBuilder: (context) {
+                    final currentUserId = context.read<AuthProvider>().currentUser?.id;
+                    return [
+                      PopupMenuItem(
+                        value: _PhotoFeedAction.editCaption,
+                        child: Text(context.l10n.editCaptionAction),
+                      ),
+                      if (currentUserId != null && currentUserId == photo.authorUserId)
+                        PopupMenuItem(
+                          value: _PhotoFeedAction.delete,
+                          child: Text(context.l10n.deletePhotoAction),
+                        ),
+                    ];
+                  },
                 ),
               ],
             ),
@@ -1144,7 +1090,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       MaterialRectCenterArcTween(begin: begin, end: end),
                   transitionOnUserGestures: true,
                   child: AspectRatio(
-                    aspectRatio: 1,
+                    aspectRatio: 4 / 5,
                     child: SharedPhotoView(
                       photo: photo,
                       fit: BoxFit.cover,
@@ -1163,83 +1109,70 @@ class _GalleryScreenState extends State<GalleryScreen> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildFeedStatChip(
-                      icon: Icons.favorite_rounded,
-                      label: 'Kỷ niệm #${index + 1}',
-                      color: AppColors.accentRose,
-                    ),
-                    _buildFeedStatChip(
-                      icon: Icons.calendar_month_rounded,
-                      label: _formatShortDate(photo.uploadDate),
-                      color: AppColors.info,
-                    ),
-                    _buildFeedStatChip(
-                      icon: Icons.person_rounded,
-                      label: photo.posterName,
-                      color: AppColors.accentCoral,
-                    ),
-                  ],
+          if (displayCaption.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+              child: Text(
+                displayCaption,
+                style: TextStyle(
+                  color: AppColors.textPrimary.withValues(alpha: 0.84),
+                  fontSize: 14.2,
+                  fontWeight: FontWeight.w500,
+                  height: 1.62,
+                  letterSpacing: 0.02,
                 ),
-                const SizedBox(height: 14),
-                Text(
-                  displayCaption,
-                  style: TextStyle(
-                    color: AppColors.textPrimary.withValues(alpha: 0.84),
-                    fontSize: 14.2,
-                    fontWeight: FontWeight.w500,
-                    height: 1.62,
-                    letterSpacing: 0.02,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _editCaption(photo),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.textPrimary,
-                          side: BorderSide(
-                            color: AppColors.accentRose.withValues(alpha: 0.16),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        icon: const Icon(Icons.edit_note_rounded, size: 18),
-                        label: Text(context.l10n.editAction),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () => _deletePhoto(photo),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.accentRose.withValues(alpha: 0.12),
-                          foregroundColor: AppColors.accentRose,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                        label: Text(context.l10n.deleteAction),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
+            )
+          else
+            const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  List<_FeedItem> _buildFeedItems(List<Photo> photos) {
+    final items = <_FeedItem>[];
+    String? lastKey;
+    for (int i = 0; i < photos.length; i++) {
+      final photo = photos[i];
+      final key = '${photo.uploadDate.month}-${photo.uploadDate.year}';
+      if (key != lastKey) {
+        items.add(_FeedMonthHeader(photo.uploadDate));
+        lastKey = key;
+      }
+      items.add(_FeedPhotoItem(photo, i));
+    }
+    return items;
+  }
+
+  Widget _buildMonthHeaderWidget(DateTime date) {
+    final label = DateFormat("'Tháng' MM • yyyy").format(date);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 4),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: AppColors.white.withValues(alpha: 0.82),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Container(
+              height: 1,
+              color: AppColors.white.withValues(alpha: 0.12),
             ),
           ),
         ],
@@ -1361,6 +1294,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         builder: (context, photoProvider, coupleProvider, _) {
           final photos = photoProvider.sortedPhotos;
           final couple = coupleProvider.couple;
+          final _feedItems = _buildFeedItems(photos);
 
           return BlockingLoadingOverlay(
             isVisible: photoProvider.isLoading,
@@ -1385,8 +1319,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   if (photos.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 24, 0, 18),
-                        child: _buildStoryStripSection(couple, photos),
+                        padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                        child: _buildTodayCTACard(couple, photos),
                       ),
                     ),
                   if (photos.isEmpty) ...[
@@ -1405,9 +1339,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       ),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate((context, index) {
-                          final photo = photos[index];
-                          return _buildPhotoFeedCard(couple, photo, index);
-                        }, childCount: photos.length),
+                          final item = _feedItems[index];
+                          if (item is _FeedMonthHeader) {
+                            return _buildMonthHeaderWidget(item.date);
+                          }
+                          final p = item as _FeedPhotoItem;
+                          return _buildPhotoFeedCard(couple, p.photo, p.originalIndex);
+                        }, childCount: _feedItems.length),
                       ),
                     ),
                 ],
@@ -1421,6 +1359,19 @@ class _GalleryScreenState extends State<GalleryScreen> {
 }
 
 enum _PhotoFeedAction { editCaption, delete }
+
+sealed class _FeedItem {}
+
+class _FeedMonthHeader extends _FeedItem {
+  _FeedMonthHeader(this.date);
+  final DateTime date;
+}
+
+class _FeedPhotoItem extends _FeedItem {
+  _FeedPhotoItem(this.photo, this.originalIndex);
+  final Photo photo;
+  final int originalIndex;
+}
 
 class _MarqueeRow extends StatefulWidget {
   const _MarqueeRow({required this.children});
@@ -1626,12 +1577,14 @@ class _FullscreenPhotoPreview extends StatefulWidget {
     required this.heroTags,
     required this.initialIndex,
     required this.couple,
+    this.onEditCaption,
   });
 
   final List<Photo> photos;
   final List<String> heroTags;
   final int initialIndex;
   final Couple? couple;
+  final void Function(Photo photo)? onEditCaption;
 
   @override
   State<_FullscreenPhotoPreview> createState() => _FullscreenPhotoPreviewState();
@@ -1700,7 +1653,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
   }
 
   String _previewPostedByLabel(Photo photo) {
-    return 'Đăng bởi ${photo.posterName}';
+    return context.l10n.postedByLabel(photo.posterName);
   }
 
   bool get _canDismissWithDrag => _pageScales[_currentIndex] <= 1.02;
@@ -1846,13 +1799,32 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
             right: 16,
             child: Opacity(
               opacity: overlayOpacity,
-              child: IconButton.filledTonal(
-                onPressed: () => Navigator.of(context).pop(),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.black.withValues(alpha: 0.28),
-                  foregroundColor: AppColors.white,
-                ),
-                icon: const Icon(Icons.close_rounded),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.onEditCaption != null)
+                    IconButton.filledTonal(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        widget.onEditCaption!(currentPhoto);
+                      },
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black.withValues(alpha: 0.28),
+                        foregroundColor: AppColors.white,
+                      ),
+                      icon: const Icon(Icons.edit_note_rounded),
+                      tooltip: 'Sửa chú thích',
+                    ),
+                  const SizedBox(width: 8),
+                  IconButton.filledTonal(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.black.withValues(alpha: 0.28),
+                      foregroundColor: AppColors.white,
+                    ),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
               ),
             ),
           ),
@@ -1878,7 +1850,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                     children: [
                       if (widget.couple == null)
                         Text(
-                          'Hai bạn',
+                          context.l10n.youTwoLabel,
                           style: TextStyle(
                             color: AppColors.white.withValues(alpha: 0.96),
                             fontSize: 15.6,

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xoá tài khoản — Dear Embeiu</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fbcfe8 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: #1f2937;
+    }
+
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 48px 40px;
+      max-width: 560px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(236, 72, 153, 0.12), 0 4px 16px rgba(0,0,0,0.06);
+    }
+
+    .logo {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #ec4899, #be185d);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      font-size: 32px;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #6b7280;
+      font-size: 15px;
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #9ca3af;
+      margin-bottom: 12px;
+    }
+
+    .method {
+      border: 1.5px solid #f3f4f6;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .method:hover { border-color: #fbcfe8; }
+
+    .method-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .method-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .method-icon.pink  { background: #fdf2f8; }
+    .method-icon.blue  { background: #eff6ff; }
+
+    .method-name {
+      font-weight: 600;
+      font-size: 15px;
+      color: #111827;
+    }
+
+    .method-desc {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.55;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.82; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ec4899, #be185d);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .warning {
+      background: #fff7ed;
+      border: 1.5px solid #fed7aa;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 14px;
+      color: #92400e;
+      margin: 24px 0;
+      line-height: 1.5;
+    }
+
+    .warning strong { color: #b45309; }
+
+    .data-list {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 24px 0;
+    }
+
+    .data-list p {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    .data-list ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .data-list li {
+      font-size: 14px;
+      color: #6b7280;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .data-list li::before {
+      content: "✓";
+      color: #ec4899;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    footer {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #f3f4f6;
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+    }
+
+    footer a { color: #ec4899; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">💌</div>
+
+    <h1>Xoá tài khoản Dear Embeiu</h1>
+    <p class="subtitle">
+      Bạn có thể xoá tài khoản và toàn bộ dữ liệu của mình theo hai cách dưới đây.
+      Quá trình xoá sẽ được hoàn tất trong vòng <strong>30 ngày</strong>.
+    </p>
+
+    <p class="section-title">Cách xoá tài khoản</p>
+
+    <div class="method">
+      <div class="method-header">
+        <div class="method-icon pink">📱</div>
+        <span class="method-name">Cách 1 — Xoá trực tiếp trong app (nhanh nhất)</span>
+      </div>
+      <p class="method-desc">
+        Mở app Dear Embeiu → vào tab <strong>Hồ sơ</strong> → cuộn xuống mục
+        <strong>Vùng nguy hiểm</strong> → chọn <strong>Xoá tài khoản</strong>
+        và xác nhận. Tài khoản sẽ bị xoá ngay lập tức.
+      </p>
+    </div>
+
+    <div class="method">
+      <div class="method-header">
+        <div class="method-icon blue">✉️</div>
+        <span class="method-name">Cách 2 — Gửi yêu cầu qua email</span>
+      </div>
+      <p class="method-desc">
+        Nếu bạn không thể truy cập app, gửi email đến địa chỉ bên dưới với tiêu đề
+        <strong>"Yêu cầu xoá tài khoản"</strong> và kèm theo địa chỉ email đã đăng ký.
+      </p>
+      <a class="btn btn-secondary"
+         href="mailto:thesavior9820@gmail.com?subject=Yêu%20cầu%20xoá%20tài%20khoản%20Dear%20Embeiu&body=Địa%20chỉ%20email%20đã%20đăng%20ký%3A%20[email%20của%20bạn]">
+        ✉️ Gửi yêu cầu qua email
+      </a>
+    </div>
+
+    <div class="warning">
+      <strong>⚠️ Lưu ý:</strong> Việc xoá tài khoản là <strong>không thể hoàn tác</strong>.
+      Toàn bộ dữ liệu của bạn sẽ bị xoá vĩnh viễn sau 30 ngày kể từ ngày yêu cầu.
+    </div>
+
+    <div class="data-list">
+      <p>Dữ liệu sẽ bị xoá vĩnh viễn:</p>
+      <ul>
+        <li>Thông tin tài khoản (email, tên hiển thị)</li>
+        <li>Toàn bộ ảnh và caption trong thư viện</li>
+        <li>Thông tin cặp đôi (tên, ngày kỷ niệm, ảnh cặp đôi)</li>
+        <li>Mã mời và dữ liệu ghép cặp</li>
+        <li>Token thông báo đẩy</li>
+        <li>Bộ nhớ đệm cục bộ trên thiết bị</li>
+      </ul>
+    </div>
+
+    <footer>
+      <p>Dear Embeiu · <a href="privacy-policy.html">Chính sách quyền riêng tư</a></p>
+      <p style="margin-top:6px">Liên hệ: <a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a></p>
+    </footer>
+  </div>
+</body>
+</html>

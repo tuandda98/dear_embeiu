@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <!-- Main gradient background -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#1a0a14"/>
+      <stop offset="40%"  stop-color="#4a0e2e"/>
+      <stop offset="100%" stop-color="#be185d"/>
+    </linearGradient>
+
+    <!-- Glow gradient for circles -->
+    <radialGradient id="glowLeft" cx="25%" cy="55%" r="40%">
+      <stop offset="0%"   stop-color="#ec4899" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#ec4899" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowRight" cx="78%" cy="40%" r="35%">
+      <stop offset="0%"   stop-color="#f472b6" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#f472b6" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Heart gradient -->
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#f9a8d4"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+
+    <!-- Icon card gradient -->
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.06)"/>
+    </linearGradient>
+
+    <filter id="blur1">
+      <feGaussianBlur stdDeviation="48"/>
+    </filter>
+    <filter id="blur2">
+      <feGaussianBlur stdDeviation="32"/>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="8" stdDeviation="20" flood-color="#ec4899" flood-opacity="0.4"/>
+    </filter>
+    <filter id="softShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+    <clipPath id="roundedCard">
+      <rect x="600" y="80" width="360" height="340" rx="32" ry="32"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="500" fill="url(#bgGrad)"/>
+
+  <!-- Atmospheric glow blobs -->
+  <ellipse cx="220" cy="280" rx="280" ry="240" fill="url(#glowLeft)" filter="url(#blur1)"/>
+  <ellipse cx="780" cy="200" rx="240" ry="200" fill="url(#glowRight)" filter="url(#blur2)"/>
+
+  <!-- Decorative rings -->
+  <circle cx="100" cy="420" r="160" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1.5"/>
+  <circle cx="100" cy="420" r="120" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <circle cx="940" cy="60"  r="130" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1.5"/>
+
+  <!-- Floating dots (stars) -->
+  <circle cx="480" cy="48"  r="2.5" fill="rgba(255,255,255,0.5)"/>
+  <circle cx="380" cy="80"  r="1.8" fill="rgba(255,255,255,0.35)"/>
+  <circle cx="560" cy="100" r="1.5" fill="rgba(255,255,255,0.4)"/>
+  <circle cx="320" cy="420" r="2"   fill="rgba(255,255,255,0.3)"/>
+  <circle cx="150" cy="140" r="1.5" fill="rgba(255,255,255,0.35)"/>
+  <circle cx="460" cy="440" r="2.2" fill="rgba(255,255,255,0.3)"/>
+  <circle cx="90"  cy="220" r="1.5" fill="rgba(255,255,255,0.25)"/>
+
+  <!-- ===================== LEFT SIDE — TEXT AREA ===================== -->
+
+  <!-- Pill badge -->
+  <rect x="56" y="100" width="180" height="34" rx="17" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  <text x="146" y="122" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" font-weight="600" fill="rgba(255,255,255,0.9)" text-anchor="middle" letter-spacing="0.5">💌 Dành cho cặp đôi</text>
+
+  <!-- App name -->
+  <text x="56" y="210" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="68" font-weight="800" fill="white" letter-spacing="-1">Dear</text>
+  <text x="56" y="284" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="68" font-weight="800" letter-spacing="-1">
+    <tspan fill="#f9a8d4">Em</tspan><tspan fill="white">beiu</tspan>
+  </text>
+
+  <!-- Tagline -->
+  <text x="56" y="326" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="18" fill="rgba(255,255,255,0.65)" letter-spacing="0.2">Lưu kỷ niệm · Đếm ngày yêu · Chia sẻ khoảnh khắc</text>
+
+  <!-- Divider line -->
+  <rect x="56" y="352" width="64" height="3" rx="1.5" fill="#ec4899"/>
+
+  <!-- Feature pills -->
+  <rect x="56"  y="374" width="128" height="30" rx="15" fill="rgba(255,255,255,0.1)"/>
+  <text x="120" y="394" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="rgba(255,255,255,0.8)" text-anchor="middle">📅 Kỷ niệm ngày yêu</text>
+
+  <rect x="196" y="374" width="108" height="30" rx="15" fill="rgba(255,255,255,0.1)"/>
+  <text x="250" y="394" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="rgba(255,255,255,0.8)" text-anchor="middle">🖼️ Thư viện ảnh</text>
+
+  <rect x="56"  y="414" width="118" height="30" rx="15" fill="rgba(255,255,255,0.1)"/>
+  <text x="115" y="434" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="rgba(255,255,255,0.8)" text-anchor="middle">🔔 Thông báo cho nhau</text>
+
+  <rect x="186" y="414" width="98" height="30" rx="15" fill="rgba(255,255,255,0.1)"/>
+  <text x="235" y="434" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="rgba(255,255,255,0.8)" text-anchor="middle">🔒 Chỉ 2 người biết</text>
+
+  <!-- ===================== RIGHT SIDE — MOCK UI CARD ===================== -->
+
+  <!-- Phone frame shadow -->
+  <rect x="604" y="50" width="352" height="400" rx="34" fill="rgba(0,0,0,0.4)" filter="url(#softShadow)"/>
+
+  <!-- Phone background -->
+  <rect x="600" y="46" width="352" height="400" rx="32" fill="url(#cardGrad)" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+
+  <!-- Phone inner bg -->
+  <rect x="612" y="58" width="328" height="376" rx="24" fill="rgba(26,10,20,0.7)"/>
+
+  <!-- Status bar -->
+  <rect x="680" y="64" width="88" height="8" rx="4" fill="rgba(255,255,255,0.12)"/>
+
+  <!-- Day counter card -->
+  <rect x="628" y="90" width="296" height="120" rx="20" fill="linear-gradient(135deg,rgba(236,72,153,0.3),rgba(190,24,93,0.2))" stroke="rgba(236,72,153,0.3)" stroke-width="1"/>
+  <rect x="628" y="90" width="296" height="120" rx="20" fill="rgba(236,72,153,0.15)"/>
+
+  <!-- Big day count -->
+  <text x="776" y="152" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="48" font-weight="800" fill="white" text-anchor="middle" filter="url(#shadow)">365</text>
+  <text x="776" y="178" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="rgba(255,255,255,0.6)" text-anchor="middle" letter-spacing="2">NGÀY YÊU NHAU</text>
+
+  <!-- Couple name row -->
+  <rect x="628" y="224" width="296" height="48" rx="14" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <circle cx="658" cy="248" r="14" fill="rgba(236,72,153,0.4)"/>
+  <text x="658" y="253" font-family="sans-serif" font-size="13" fill="white" text-anchor="middle">A</text>
+  <text x="690" y="251" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" font-weight="600" fill="white">Anh</text>
+  <text x="776" y="251" font-family="sans-serif" font-size="16" fill="#ec4899" text-anchor="middle">♥</text>
+  <text x="800" y="251" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" font-weight="600" fill="white">Em</text>
+  <circle cx="884" cy="248" r="14" fill="rgba(244,114,182,0.4)"/>
+  <text x="884" y="253" font-family="sans-serif" font-size="13" fill="white" text-anchor="middle">E</text>
+
+  <!-- Photo grid mini -->
+  <rect x="628" y="284" width="93" height="80" rx="12" fill="rgba(255,255,255,0.1)"/>
+  <text x="674" y="332" font-family="sans-serif" font-size="24" text-anchor="middle">🌅</text>
+
+  <rect x="729" y="284" width="93" height="80" rx="12" fill="rgba(255,255,255,0.08)"/>
+  <text x="775" y="332" font-family="sans-serif" font-size="24" text-anchor="middle">🌸</text>
+
+  <rect x="830" y="284" width="94" height="80" rx="12" fill="rgba(255,255,255,0.06)"/>
+  <text x="877" y="332" font-family="sans-serif" font-size="24" text-anchor="middle">☕</text>
+
+  <!-- Bottom nav bar -->
+  <rect x="628" y="378" width="296" height="44" rx="14" fill="rgba(255,255,255,0.06)"/>
+  <text x="700" y="406" font-family="sans-serif" font-size="18" text-anchor="middle">🏠</text>
+  <text x="776" y="406" font-family="sans-serif" font-size="18" text-anchor="middle">🖼️</text>
+  <text x="852" y="406" font-family="sans-serif" font-size="18" text-anchor="middle">👤</text>
+  <rect x="764" y="390" width="24" height="3" rx="1.5" fill="#ec4899"/>
+
+  <!-- Heart accent floating -->
+  <path d="M530,170 C530,158 522,148 512,148 C502,148 494,158 494,170 C494,182 512,200 512,200 C512,200 530,182 530,170Z"
+        fill="url(#heartGrad)" opacity="0.7" filter="url(#shadow)"/>
+
+  <!-- Small floating hearts -->
+  <path d="M68,58 C68,54 65,51 62,51 C59,51 56,54 56,58 C56,62 62,67 62,67 C62,67 68,62 68,58Z"
+        fill="#f9a8d4" opacity="0.5"/>
+  <path d="M990,380 C990,376 987,373 984,373 C981,373 978,376 978,380 C978,384 984,389 984,389 C984,389 990,384 990,380Z"
+        fill="#f9a8d4" opacity="0.4"/>
+</svg>

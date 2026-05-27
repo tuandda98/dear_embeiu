@@ -60,8 +60,6 @@ class ProfileScreen extends StatelessWidget {
                     _buildHeroCard(
                       context,
                       couple: couple,
-                      photoCount: photoCount,
-                      totalDays: totalDays,
                       daysUntilAnniversary: daysUntilAnniversary,
                     ),
                     const SizedBox(height: 18),
@@ -73,18 +71,18 @@ class ProfileScreen extends StatelessWidget {
                       photoCount: photoCount,
                     ),
                     const SizedBox(height: 18),
-                    _buildProfileDetailsSection(
+                    _buildCoupleInfoSection(
                       context,
                       couple: couple,
                       inviteCode: currentUser?.inviteCode,
-                      photoCount: photoCount,
-                      totalDays: totalDays,
                       daysUntilAnniversary: daysUntilAnniversary,
                     ),
                     const SizedBox(height: 18),
                     _buildActionsSection(context),
                     const SizedBox(height: 18),
                     _buildLanguageSection(context),
+                    const SizedBox(height: 12),
+                    _buildSignOutButton(context),
                     const SizedBox(height: 18),
                     _buildDangerZone(
                       context,
@@ -146,8 +144,6 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildHeroCard(
     BuildContext context, {
     required Couple couple,
-    required int photoCount,
-    required int totalDays,
     required int daysUntilAnniversary,
   }) {
     final l10n = context.l10n;
@@ -363,25 +359,6 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: [
-                      _buildGlassPill(
-                        icon: Icons.collections_rounded,
-                        label: l10n.khoanhKhacCount(photoCount),
-                      ),
-                      _buildGlassPill(
-                        icon: Icons.favorite_rounded,
-                        label: l10n.privateDiaryLabel,
-                      ),
-                      _buildGlassPill(
-                        icon: Icons.workspace_premium_rounded,
-                        label: l10n.loveMilestonesLabel,
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -453,12 +430,10 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileDetailsSection(
+  Widget _buildCoupleInfoSection(
     BuildContext context, {
     required Couple couple,
     required String? inviteCode,
-    required int photoCount,
-    required int totalDays,
     required int daysUntilAnniversary,
   }) {
     final l10n = context.l10n;
@@ -474,29 +449,6 @@ class ProfileScreen extends StatelessWidget {
             value: _formatDate(couple.anniversaryDate),
             tint: AppColors.accentRose,
           ),
-          if (inviteCode != null && inviteCode.trim().isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _buildDetailTile(
-              icon: Icons.password_rounded,
-              title: l10n.yourInviteCodeLabel,
-              value: inviteCode,
-              tint: AppColors.warning,
-            ),
-          ],
-          const SizedBox(height: 12),
-          _buildDetailTile(
-            icon: Icons.local_fire_department_rounded,
-            title: l10n.dayStreakLabel,
-            value: l10n.dayStreakValue(totalDays),
-            tint: AppColors.accentCoral,
-          ),
-          const SizedBox(height: 12),
-          _buildDetailTile(
-            icon: Icons.collections_bookmark_rounded,
-            title: l10n.memoryAlbumLabel,
-            value: l10n.memoryAlbumValue(photoCount),
-            tint: AppColors.info,
-          ),
           const SizedBox(height: 12),
           _buildDetailTile(
             icon: Icons.celebration_rounded,
@@ -506,6 +458,15 @@ class ProfileScreen extends StatelessWidget {
                 : l10n.daysUntilNextMsg(daysUntilAnniversary),
             tint: AppColors.accentGold,
           ),
+          if (inviteCode != null && inviteCode.trim().isNotEmpty && couple.isWaitingForPartner) ...[
+            const SizedBox(height: 12),
+            _buildDetailTile(
+              icon: Icons.password_rounded,
+              title: l10n.yourInviteCodeLabel,
+              value: inviteCode,
+              tint: AppColors.warning,
+            ),
+          ],
         ],
       ),
     );
@@ -517,102 +478,54 @@ class ProfileScreen extends StatelessWidget {
     return _buildSectionCard(
       title: l10n.customizeProfileTitle,
       subtitle: l10n.customizeProfileSubtitle,
-      child: Column(
-        children: [
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () {
-                final coupleProvider = context.read<CoupleProvider>();
-                final currentUser = context.read<AuthProvider>().currentUser;
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (context) => const SetupScreen()))
-                    .then((_) {
-                  coupleProvider.loadCoupleForUser(currentUser);
-                });
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.accentRose,
-                foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              icon: const Icon(Icons.edit_rounded),
-              label: Text(l10n.editOurStoryBtn),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _showSignOutDialog(context),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.textSecondary,
-                side: BorderSide(color: AppColors.textSecondary.withOpacity( 0.25)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              icon: const Icon(Icons.logout_rounded),
-              label: Text(l10n.signOutBtn),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceLight.withOpacity( 0.78),
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: () {
+            final coupleProvider = context.read<CoupleProvider>();
+            final currentUser = context.read<AuthProvider>().currentUser;
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (context) => const SetupScreen()))
+                .then((_) {
+              coupleProvider.loadCoupleForUser(currentUser);
+            });
+          },
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.accentRose,
+            foregroundColor: AppColors.white,
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.white.withOpacity( 0.8)),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withOpacity( 0.88),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    Icons.tips_and_updates_rounded,
-                    color: AppColors.accentRose,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.proTipLabel,
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.proTipContent,
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                          height: 1.45,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ),
           ),
-        ],
+          icon: const Icon(Icons.edit_rounded),
+          label: Text(l10n.editOurStoryBtn),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSignOutButton(BuildContext context) {
+    final l10n = context.l10n;
+
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => _showSignOutDialog(context),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.textSecondary,
+          side: BorderSide(color: AppColors.white.withOpacity(0.60)),
+          backgroundColor: AppColors.white.withOpacity(0.22),
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        icon: const Icon(Icons.logout_rounded),
+        label: Text(
+          l10n.signOutBtn,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }
@@ -730,12 +643,12 @@ class ProfileScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity( 0.92),
+        color: AppColors.white.withOpacity(0.92),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.error.withOpacity( 0.14)),
+        border: Border.all(color: AppColors.error.withOpacity(0.14)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity( 0.04),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
@@ -744,19 +657,17 @@ class ProfileScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Row(
             children: [
               Container(
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity( 0.10),
+                  color: AppColors.error.withOpacity(0.10),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  Icons.delete_sweep_rounded,
-                  color: AppColors.error,
-                ),
+                child: const Icon(Icons.delete_sweep_rounded, color: AppColors.error),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -765,7 +676,7 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     Text(
                       l10n.dataManagementTitle,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -774,7 +685,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       l10n.dataManagementDesc,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 12,
                         height: 1.45,
@@ -785,7 +696,29 @@ class ProfileScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+
+          // Warning context FIRST — user reads before acting
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.error.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.error.withOpacity(0.14)),
+            ),
+            child: Text(
+              l10n.clearDataNote,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Firebase-specific: clear local cache (low severity)
           if (isUsingFirebase) ...[
             SizedBox(
               width: double.infinity,
@@ -793,87 +726,83 @@ class ProfileScreen extends StatelessWidget {
                 onPressed: () => _showClearLocalDialog(context),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.textPrimary,
-                  side: BorderSide(
-                    color: AppColors.textSecondary.withOpacity( 0.22),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
+                  side: BorderSide(color: AppColors.textSecondary.withOpacity(0.22)),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                icon: const Icon(Icons.cleaning_services_rounded),
+                icon: const Icon(Icons.cleaning_services_rounded, size: 18),
                 label: Text(l10n.clearLocalDataBtn),
               ),
             ),
-            const SizedBox(height: 12),
-          ] else
+            const SizedBox(height: 10),
+          ] else ...[
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(13),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity( 0.08),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: AppColors.warning.withOpacity( 0.18),
-                ),
+                color: AppColors.warning.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.warning.withOpacity(0.18)),
               ),
               child: Text(
                 l10n.localFallbackWarning,
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  height: 1.45,
-                ),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.45),
               ),
             ),
-          if (!isUsingFirebase) const SizedBox(height: 12),
+            const SizedBox(height: 10),
+          ],
+
+          // Leave Couple (medium severity — outlined)
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () => _showLeaveCoupleDialog(context),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.error,
-                side: BorderSide(color: AppColors.error.withOpacity( 0.28)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
+                side: BorderSide(color: AppColors.error.withOpacity(0.30)),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              icon: const Icon(Icons.exit_to_app_rounded),
+              icon: const Icon(Icons.exit_to_app_rounded, size: 18),
               label: Text(l10n.leaveCoupleBtn),
             ),
           ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceLight.withOpacity( 0.72),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Text(
-              l10n.clearDataNote,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-                height: 1.45,
-              ),
+
+          // Divider separating medium vs high severity
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            child: Row(
+              children: [
+                Expanded(child: Divider(color: AppColors.error.withOpacity(0.15), height: 1)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    'Không thể hoàn tác',
+                    style: TextStyle(
+                      color: AppColors.error.withOpacity(0.50),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+                Expanded(child: Divider(color: AppColors.error.withOpacity(0.15), height: 1)),
+              ],
             ),
           ),
-            const SizedBox(height: 12),
+
+          // Delete Account (highest severity — filled red)
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: FilledButton.icon(
               onPressed: () => _showDeleteAccountDialog(context),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: BorderSide(color: AppColors.error.withOpacity( 0.55)),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: AppColors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              icon: const Icon(Icons.delete_forever_rounded),
+              icon: const Icon(Icons.delete_forever_rounded, size: 18),
               label: Text(
                 l10n.deleteAccountBtn,
                 style: const TextStyle(fontWeight: FontWeight.w700),
@@ -972,7 +901,7 @@ class ProfileScreen extends StatelessWidget {
             label,
             style: TextStyle(
               color: AppColors.textSecondary,
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
           ),

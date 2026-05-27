@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/l10n.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 
@@ -73,16 +74,7 @@ class CounterCard extends StatelessWidget {
                     if (totalDays != null)
                       _buildHeroNumber(totalDays!)
                     else
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildCounterItem(years, 'years'),
-                          _buildDivider(),
-                          _buildCounterItem(months, 'months'),
-                          _buildDivider(),
-                          _buildCounterItem(days, 'days'),
-                        ],
-                      ),
+                      _buildBreakdownRow(context),
                     if (subtitle != null) ...[
                       const SizedBox(height: 18),
                       Text(
@@ -130,6 +122,26 @@ class CounterCard extends StatelessWidget {
         color: AppColors.white,
         size: 22,
       ),
+    );
+  }
+
+  Widget _buildBreakdownRow(BuildContext context) {
+    final l10n = context.l10n;
+    final items = <(int, String)>[];
+    if (years > 0) items.add((years, l10n.yearsTogether));
+    if (months > 0) items.add((months, l10n.monthsRemaining));
+    // Always show days (even if 0, or when it's the only non-zero unit)
+    if (days > 0 || items.isEmpty) items.add((days, l10n.daysUnit));
+
+    final widgets = <Widget>[];
+    for (var i = 0; i < items.length; i++) {
+      if (i > 0) widgets.add(_buildDivider());
+      widgets.add(_buildCounterItem(items[i].$1, items[i].$2));
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: widgets,
     );
   }
 

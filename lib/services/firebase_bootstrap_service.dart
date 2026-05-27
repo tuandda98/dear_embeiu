@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
 class FirebaseBootstrapService {
@@ -20,6 +21,11 @@ class FirebaseBootstrapService {
       await Firebase.initializeApp();
       _isFirebaseReady = true;
       _bootstrapMessage = null;
+
+      if (!kIsWeb) {
+        await FirebaseCrashlytics.instance
+            .setCrashlyticsCollectionEnabled(!kDebugMode);
+      }
     } catch (e) {
       _isFirebaseReady = false;
       _bootstrapMessage = _buildBootstrapMessage();
