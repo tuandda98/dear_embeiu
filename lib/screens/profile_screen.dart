@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../app/app_routes.dart';
+import '../app/app_urls.dart';
 import '../l10n/l10n.dart';
 import '../models/couple.dart';
 import '../providers/auth_provider.dart';
@@ -101,6 +103,8 @@ class ProfileScreen extends StatelessWidget {
                         context,
                         isUsingFirebase: authProvider.isUsingFirebase,
                       ),
+                      const SizedBox(height: 12),
+                      _buildPrivacyPolicyLink(context),
                     ],
                   ),
                 ),
@@ -1142,6 +1146,41 @@ class ProfileScreen extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  Widget _buildPrivacyPolicyLink(BuildContext context) {
+    return GestureDetector(
+      onTap: () => launchUrl(
+        Uri.parse(AppUrls.privacyPolicy),
+        mode: LaunchMode.externalApplication,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.shield_outlined,
+              size: 13,
+              color: AppColors.textTertiary,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Privacy Policy',
+              style: TextStyle(
+                color: AppColors.textTertiary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                decoration: TextDecoration.underline,
+                decorationColor: AppColors.textTertiary,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.open_in_new_rounded, size: 11, color: AppColors.textTertiary),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showClearLocalDialog(BuildContext context) {

@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../app/app_routes.dart';
+import '../app/session_resolver.dart';
 import '../l10n/l10n.dart';
-import '../providers/auth_provider.dart';
-import '../providers/couple_provider.dart';
-import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
 
 class AuthGateScreen extends StatefulWidget {
@@ -23,42 +19,16 @@ class _AuthGateScreenState extends State<AuthGateScreen> {
   }
 
   Future<void> _resolveRoute() async {
-    final authProvider = context.read<AuthProvider>();
-    final coupleProvider = context.read<CoupleProvider>();
-    final photoProvider = context.read<PhotoProvider>();
+    // Shared with SplashScreen — single source of truth for "where to go next".
+    // Reused after login / register / logout to re-resolve the destination.
     final navigator = Navigator.of(context);
-
-    if (!authProvider.isInitialized) {
-      await authProvider.initialize();
-    }
+    final route = await SessionResolver.resolveStartRoute(context);
 
     if (!mounted) {
       return;
     }
 
-    if (!authProvider.isAuthenticated) {
-      await photoProvider.clearForSignOut();
-      navigator.pushReplacementNamed(AppRoutes.login);
-      return;
-    }
-
-    final currentUser = authProvider.currentUser;
-    await coupleProvider.loadCoupleForUser(currentUser);
-    final hasCoupleData = currentUser?.hasCouple == true && coupleProvider.hasCoupleData;
-
-    if (hasCoupleData) {
-      await photoProvider.syncForUser(currentUser);
-    } else {
-      await photoProvider.clearForSignOut();
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    navigator.pushReplacementNamed(
-      hasCoupleData ? AppRoutes.home : AppRoutes.setup,
-    );
+    navigator.pushReplacementNamed(route);
   }
 
   @override

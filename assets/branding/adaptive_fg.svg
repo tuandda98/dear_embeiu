@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Android adaptive-icon FOREGROUND layer: white heart, transparent,
+       scaled into the central safe zone so launcher masking never clips it. -->
+  <defs>
+    <linearGradient id="heart" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFF0F4"/>
+    </linearGradient>
+    <filter id="heartShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="16" stdDeviation="26" flood-color="#E63956" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <!-- heart bbox center is (512,459); recenter to (512,512). Scale kept near full —
+       flutter_launcher_icons adds its own 16% inset, so no double-padding. -->
+  <g transform="translate(512 512) scale(0.92) translate(-512 -459)">
+    <path d="M 512 752
+             C 512 752 182 566 182 338
+             C 182 240 256 166 346 166
+             C 410 166 467 199 512 250
+             C 557 199 614 166 678 166
+             C 768 166 842 240 842 338
+             C 842 566 512 752 512 752 Z"
+      fill="url(#heart)" filter="url(#heartShadow)"/>
+  </g>
+</svg>

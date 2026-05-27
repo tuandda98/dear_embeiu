@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../app/app_routes.dart';
+import '../app/session_resolver.dart';
 import '../l10n/l10n.dart';
 import '../theme/app_colors.dart';
 
@@ -19,13 +19,16 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _continueToApp() async {
-    await Future<void>.delayed(const Duration(milliseconds: 900));
+    // Do the real session check here (no artificial delay) and route straight
+    // to the destination — so cold start shows just this one branded loader.
+    final navigator = Navigator.of(context);
+    final route = await SessionResolver.resolveStartRoute(context);
 
     if (!mounted) {
       return;
     }
 
-    Navigator.of(context).pushReplacementNamed(AppRoutes.authGate);
+    navigator.pushReplacementNamed(route);
   }
 
   @override
@@ -34,6 +37,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     return Scaffold(
       body: Container(
+        // Dawn gradient — same as authGate/login/home, so this splash dissolves
+        // seamlessly into the app. The launch eases sunset (icon + native splash)
+        // → dawn (this splash → app); the white heart is the constant thread.
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
         child: Center(
           child: Column(

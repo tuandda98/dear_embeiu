@@ -6,6 +6,7 @@ import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/language_toggle_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -71,21 +72,30 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 460),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(authProvider),
-                    const SizedBox(height: 24),
-                    _buildFormCard(authProvider),
-                  ],
+          child: Stack(
+            children: [
+              Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 460),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(authProvider),
+                        const SizedBox(height: 24),
+                        _buildFormCard(authProvider),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const Positioned(
+                top: 12,
+                right: 16,
+                child: LanguageToggleButton(),
+              ),
+            ],
           ),
         ),
       ),

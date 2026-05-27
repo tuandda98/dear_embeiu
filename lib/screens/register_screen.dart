@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
 import '../app/app_routes.dart';
+import '../app/app_urls.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/language_toggle_button.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -89,21 +93,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 460),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(authProvider),
-                    const SizedBox(height: 24),
-                    _buildFormCard(authProvider),
-                  ],
+          child: Stack(
+            children: [
+              Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 460),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(authProvider),
+                        const SizedBox(height: 24),
+                        _buildFormCard(authProvider),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const Positioned(
+                top: 12,
+                right: 16,
+                child: LanguageToggleButton(),
+              ),
+            ],
           ),
         ),
       ),
@@ -371,19 +384,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.white.withOpacity(0.14),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.white.withOpacity(0.18)),
+            GestureDetector(
+              onTap: () => launchUrl(
+                Uri.parse(AppUrls.privacyPolicy),
+                mode: LaunchMode.externalApplication,
               ),
-              child: Text(
-                l10n.privacyDisclosure,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 11.5,
-                  height: 1.5,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withOpacity(0.14),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.white.withOpacity(0.18)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.privacyDisclosure,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 11.5,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.open_in_new_rounded,
+                      size: 14,
+                      color: AppColors.textTertiary,
+                    ),
+                  ],
                 ),
               ),
             ),

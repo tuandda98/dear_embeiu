@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1152" height="1152" viewBox="0 0 1024 1024">
+  <!-- Splash logo: white heart on transparent. Centered, sized to sit inside
+       the Android-12 circular splash mask. Pairs with bg color #FF6B9D. -->
+  <defs>
+    <linearGradient id="heart" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFF0F4"/>
+    </linearGradient>
+    <filter id="s" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="14" stdDeviation="24" flood-color="#C2185B" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <g transform="translate(512 512) scale(0.62) translate(-512 -459)">
+    <path d="M 512 752
+             C 512 752 182 566 182 338
+             C 182 240 256 166 346 166
+             C 410 166 467 199 512 250
+             C 557 199 614 166 678 166
+             C 768 166 842 240 842 338
+             C 842 566 512 752 512 752 Z"
+      fill="url(#heart)" filter="url(#s)"/>
+  </g>
+</svg>

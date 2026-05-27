@@ -73,6 +73,9 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   connectivity_plus: ^6.1.4
 
+  # Open URLs in browser
+  url_launcher: ^6.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -80,6 +83,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
   flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.3
 
   # Code generation for Hive
   hive_generator: ^2.0.1
@@ -128,13 +132,38 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 flutter_launcher_icons:
+  # Brand: "Sunset Romance" (see lib/theme/app_colors.dart)
   android: true
   ios: true
+  # Android adaptive icon: full-bleed gradient bg + white-heart foreground,
+  # so modern launchers mask cleanly with no white ring behind the icon.
+  adaptive_icon_background: "assets/branding/adaptive_bg.png"
+  adaptive_icon_foreground: "assets/branding/adaptive_fg.png"
   web:
     generate: true
     image_path: assets/branding/app_icon.png
-    background_color: "#F8BBD0"
-    theme_color: "#EC4899"
+    background_color: "#FF6B9D"
+    theme_color: "#FF4D6D"
   image_path: assets/branding/app_icon.png
+  # iOS forbids alpha; flatten the rounded-tile corners onto the brand pink
+  # (iOS then applies its own squircle mask).
   remove_alpha_ios: true
+  background_color_ios: "#FF6B9D"
+
+# Native launch splash — brand pink (#FF6B9D = sunset1) + white heart logo,
+# a seamless lead-in to the in-app SplashScreen (same heart + sunset gradient).
+flutter_native_splash:
+  color: "#FF6B9D"
+  image: assets/branding/splash_logo.png
+  color_dark: "#FF6B9D"
+  image_dark: assets/branding/splash_logo.png
+  android: true
+  ios: true
+  web: false
+  # Android 12+ uses the system splash API (solid bg + masked icon).
+  android_12:
+    color: "#FF6B9D"
+    image: assets/branding/splash_logo.png
+    color_dark: "#FF6B9D"
+    image_dark: assets/branding/splash_logo.png
 
