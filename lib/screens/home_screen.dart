@@ -31,8 +31,6 @@ class _HomeScreenState extends State<HomeScreen> {
   static const double _floatingNavSpacing = 18;
   static const double _floatingNavInnerPadding = 6;
   static const double _floatingNavPillInset = 5;
-  static const double _floatingNavItemHorizontalPadding = 0;
-  static const double _floatingNavLabelSpacing = 4;
 
   static const List<_NavigationItem> _navigationItems = [
     _NavigationItem(
@@ -140,12 +138,12 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: AppColors.accentLove.withOpacity(0.18),
+                color: AppColors.accentLove.withValues(alpha: 0.18),
                 blurRadius: 32,
                 offset: const Offset(0, 12),
               ),
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: Colors.black.withValues(alpha: 0.08),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -164,12 +162,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.white.withOpacity(0.28),
-                      AppColors.white.withOpacity(0.14),
+                      AppColors.white.withValues(alpha: 0.28),
+                      AppColors.white.withValues(alpha: 0.14),
                     ],
                   ),
                   border: Border.all(
-                    color: AppColors.white.withOpacity(0.35),
+                    color: AppColors.white.withValues(alpha: 0.35),
                     width: 1.2,
                   ),
                 ),
@@ -207,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.accentLove.withOpacity(0.40),
+                                  color: AppColors.accentLove.withValues(alpha: 0.40),
                                   blurRadius: 16,
                                   offset: const Offset(0, 4),
                                 ),
@@ -260,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: InkWell(
           key: ValueKey('bottom-nav-$index'),
           borderRadius: BorderRadius.circular(20),
-          splashColor: AppColors.white.withOpacity(0.15),
+          splashColor: AppColors.white.withValues(alpha: 0.15),
           highlightColor: Colors.transparent,
           onTap: () {
             if (_selectedIndex == index) return;
@@ -284,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         size: 22,
                         color: isSelected
                             ? AppColors.white
-                            : AppColors.white.withOpacity(0.55),
+                            : AppColors.white.withValues(alpha: 0.55),
                       ),
                     ),
                   ),
@@ -353,10 +351,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.12),
+                        color: AppColors.white.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(999),
                         border: Border.all(
-                          color: AppColors.white.withOpacity(0.18),
+                          color: AppColors.white.withValues(alpha: 0.18),
                         ),
                       ),
                       child: Row(
@@ -365,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Icon(
                             Icons.auto_awesome_rounded,
                             size: 14,
-                            color: AppColors.white.withOpacity(0.92),
+                            color: AppColors.white.withValues(alpha: 0.92),
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -390,10 +388,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.white.withOpacity(0.16),
+                    color: AppColors.white.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: AppColors.white.withOpacity(0.18),
+                      color: AppColors.white.withValues(alpha: 0.18),
                     ),
                   ),
                   child: const Icon(
@@ -488,12 +486,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.14),
+        color: AppColors.white.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withOpacity(0.2)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, 12),
           ),
@@ -506,7 +504,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.white.withOpacity(0.16),
+                color: AppColors.white.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: const Icon(Icons.wb_sunny_rounded, color: AppColors.white),
@@ -553,16 +551,16 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.18),
+        color: AppColors.white.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.white.withOpacity(0.32)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.32)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.white.withOpacity(0.20),
+              color: AppColors.white.withValues(alpha: 0.20),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(Icons.link_rounded, color: AppColors.white, size: 20),
@@ -585,7 +583,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   'Chia sẻ mã mời với người ấy để bắt đầu hành trình cùng nhau.',
                   style: TextStyle(
-                    color: AppColors.white.withOpacity(0.80),
+                    color: AppColors.white.withValues(alpha: 0.80),
                     fontSize: 12,
                     height: 1.4,
                   ),
@@ -595,7 +593,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity(0.22),
+                      color: AppColors.white.withValues(alpha: 0.22),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -671,7 +669,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 16,
               offset: const Offset(0, 8),
             ),
@@ -683,7 +681,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.14),
+                color: color.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(icon, color: color),
@@ -728,7 +726,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 10),
           ),
@@ -742,7 +740,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.accentGold.withOpacity(0.14),
+                  color: AppColors.accentGold.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
@@ -823,12 +821,12 @@ class _HomeScreenState extends State<HomeScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.white.withOpacity(0.24),
-            AppColors.white.withOpacity(0.08),
+            AppColors.white.withValues(alpha: 0.24),
+            AppColors.white.withValues(alpha: 0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.white.withOpacity(0.18)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -867,7 +865,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 '—',
                 style: TextStyle(
-                  color: AppColors.white.withOpacity(0.82),
+                  color: AppColors.white.withValues(alpha: 0.82),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -880,7 +878,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 heartSize: 12,
                 heartColor: AppColors.white,
                 textStyle: TextStyle(
-                  color: AppColors.white.withOpacity(0.82),
+                  color: AppColors.white.withValues(alpha: 0.82),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -902,7 +900,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 16,
               offset: const Offset(0, 10),
             ),
@@ -912,7 +910,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(
               Icons.photo_library_outlined,
-              color: AppColors.textSecondary.withOpacity(0.5),
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
               size: 42,
             ),
             const SizedBox(height: 12),
@@ -947,7 +945,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(22),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 16,
                     offset: const Offset(0, 10),
                   ),
@@ -970,7 +968,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withOpacity(0.7),
+                            Colors.black.withValues(alpha: 0.7),
                           ],
                         ),
                       ),
@@ -998,7 +996,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             _formatDate(photo.uploadDate),
                             style: TextStyle(
-                              color: AppColors.white.withOpacity(0.82),
+                              color: AppColors.white.withValues(alpha: 0.82),
                               fontSize: 11,
                             ),
                           ),

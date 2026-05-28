@@ -111,9 +111,9 @@ class _LoginScreenState extends State<LoginScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.white.withOpacity( 0.12),
+            color: AppColors.white.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withOpacity( 0.18)),
+            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Icon(
                 Icons.lock_rounded,
                 size: 14,
-                color: AppColors.white.withOpacity( 0.92),
+                color: AppColors.white.withValues(alpha: 0.92),
               ),
               const SizedBox(width: 8),
               Text(
@@ -170,9 +170,9 @@ class _LoginScreenState extends State<LoginScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity( 0.16),
+        color: AppColors.white.withValues(alpha: 0.16),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.white.withOpacity( 0.18)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: color.withOpacity( 0.16),
+              color: color.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 18),
@@ -222,12 +222,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity( 0.22),
+        color: AppColors.white.withValues(alpha: 0.22),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withOpacity( 0.22)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.22)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity( 0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 24,
             offset: const Offset(0, 14),
           ),
@@ -392,7 +392,7 @@ class _LoginScreenState extends State<LoginScreen> {
       prefixIcon: Icon(icon, color: AppColors.accentRose),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: AppColors.white.withOpacity( 0.92),
+      fillColor: AppColors.white.withValues(alpha: 0.92),
       hintStyle: const TextStyle(
         color: AppColors.textPrimary,
         fontSize: 14,
@@ -410,12 +410,12 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: AppColors.white.withOpacity( 0.9)),
+        borderSide: BorderSide(color: AppColors.white.withValues(alpha: 0.9)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(
-          color: AppColors.accentRose.withOpacity( 0.45),
+          color: AppColors.accentRose.withValues(alpha: 0.45),
           width: 1.2,
         ),
       ),

@@ -40,13 +40,13 @@ class LanguageToggleButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
         decoration: BoxDecoration(
           color: onDark
-              ? AppColors.white.withOpacity(0.14)
-              : AppColors.textPrimary.withOpacity(0.07),
+              ? AppColors.white.withValues(alpha: 0.14)
+              : AppColors.textPrimary.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
             color: onDark
-                ? AppColors.white.withOpacity(0.22)
-                : AppColors.textPrimary.withOpacity(0.12),
+                ? AppColors.white.withValues(alpha: 0.22)
+                : AppColors.textPrimary.withValues(alpha: 0.12),
           ),
         ),
         child: Row(
@@ -64,7 +64,7 @@ class LanguageToggleButton extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 3),
-            Icon(Icons.expand_more_rounded, size: 14, color: fgColor.withOpacity(0.7)),
+            Icon(Icons.expand_more_rounded, size: 14, color: fgColor.withValues(alpha: 0.7)),
           ],
         ),
       ),
@@ -114,7 +114,7 @@ class _LanguageSheet extends StatelessWidget {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.textTertiary.withOpacity(0.4),
+              color: AppColors.textTertiary.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(999),
             ),
           ),
@@ -175,12 +175,12 @@ class _LanguageTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.accentRose.withOpacity(0.08)
+              ? AppColors.accentRose.withValues(alpha: 0.08)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
-                ? AppColors.accentRose.withOpacity(0.22)
+                ? AppColors.accentRose.withValues(alpha: 0.22)
                 : Colors.transparent,
           ),
         ),

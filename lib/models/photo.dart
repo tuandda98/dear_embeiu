@@ -106,6 +106,14 @@ class Photo {
       return DateTime.tryParse(value);
     }
 
+    // Firestore Timestamp: read with microsecond precision so a read→write
+    // round-trip is lossless. Truncating to milliseconds would change the
+    // value and trip the immutable-`uploadDate` checks in firestore.rules.
+    final dynamic microsecondsSinceEpoch = (value as dynamic).microsecondsSinceEpoch;
+    if (microsecondsSinceEpoch is int) {
+      return DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
+    }
+
     final dynamic millisecondsSinceEpoch = (value as dynamic).millisecondsSinceEpoch;
     if (millisecondsSinceEpoch is int) {
       return DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);

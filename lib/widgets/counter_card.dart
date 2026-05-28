@@ -10,7 +10,8 @@ class CounterCard extends StatelessWidget {
   final int months;
   final int days;
   final VoidCallback? onTap;
-  final String title;
+  /// When null, falls back to the localized "you've been together for" label.
+  final String? title;
   final String? subtitle;
   final String? footer;
 
@@ -25,13 +26,14 @@ class CounterCard extends StatelessWidget {
     required this.days,
     this.totalDays,
     this.onTap,
-    this.title = 'You\'ve been together for',
+    this.title,
     this.subtitle,
     this.footer,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -41,7 +43,7 @@ class CounterCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: AppColors.sunset1.withOpacity( 0.32),
+              color: AppColors.sunset1.withValues(alpha: 0.32),
               blurRadius: 32,
               offset: const Offset(0, 16),
             ),
@@ -61,10 +63,10 @@ class CounterCard extends StatelessWidget {
                     _buildHeartBadge(),
                     const SizedBox(height: 14),
                     Text(
-                      title,
+                      title ?? l10n.youveBeenTogetherFor,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: AppColors.white.withOpacity( 0.92),
+                        color: AppColors.white.withValues(alpha: 0.92),
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 1.6,
@@ -81,7 +83,7 @@ class CounterCard extends StatelessWidget {
                         subtitle!,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: AppColors.white.withOpacity( 0.88),
+                          color: AppColors.white.withValues(alpha: 0.88),
                           fontSize: 13,
                           fontWeight: FontWeight.w400,
                           letterSpacing: 0.2,
@@ -108,11 +110,11 @@ class CounterCard extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.white.withOpacity( 0.22),
-        border: Border.all(color: AppColors.white.withOpacity( 0.45)),
+        color: AppColors.white.withValues(alpha: 0.22),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.45)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.white.withOpacity( 0.35),
+            color: AppColors.white.withValues(alpha: 0.35),
             blurRadius: 22,
           ),
         ],
@@ -157,7 +159,7 @@ class CounterCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(60),
             boxShadow: [
               BoxShadow(
-                color: AppColors.white.withOpacity( 0.55),
+                color: AppColors.white.withValues(alpha: 0.55),
                 blurRadius: 48,
               ),
             ],
@@ -188,7 +190,7 @@ class CounterCard extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: AppColors.white.withOpacity( 0.85),
+            color: AppColors.white.withValues(alpha: 0.85),
             fontSize: 11,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.2,
@@ -202,7 +204,7 @@ class CounterCard extends StatelessWidget {
     return Container(
       width: 1,
       height: 38,
-      color: AppColors.white.withOpacity( 0.32),
+      color: AppColors.white.withValues(alpha: 0.32),
     );
   }
 
@@ -210,9 +212,9 @@ class CounterCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity( 0.20),
+        color: AppColors.white.withValues(alpha: 0.20),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.white.withOpacity( 0.28)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.28)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -252,8 +254,8 @@ class CounterCard extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  AppColors.white.withOpacity( opacity),
-                  AppColors.white.withOpacity( 0),
+                  AppColors.white.withValues(alpha: opacity),
+                  AppColors.white.withValues(alpha: 0),
                 ],
               ),
             ),

@@ -246,7 +246,7 @@ class AppTheme {
     double alpha = 0.92,
   }) {
     return TextStyle(
-      color: color.withOpacity( alpha),
+      color: color.withValues(alpha: alpha),
       fontSize: 10,
       fontWeight: FontWeight.w700,
       letterSpacing: 1.4,
@@ -271,7 +271,7 @@ class AppTheme {
     double alpha = 0.82,
   }) {
     return TextStyle(
-      color: color.withOpacity( alpha),
+      color: color.withValues(alpha: alpha),
       fontSize: 14,
       fontWeight: FontWeight.w400,
       height: 1.5,
@@ -296,7 +296,7 @@ class AppTheme {
     double alpha = 1.0,
   }) {
     return TextStyle(
-      color: color.withOpacity( alpha),
+      color: color.withValues(alpha: alpha),
       fontSize: 13,
       fontWeight: FontWeight.w400,
       height: 1.5,
@@ -316,7 +316,7 @@ class AppTheme {
       letterSpacing: -2.4,
       shadows: [
         Shadow(
-          color: Colors.white.withOpacity( 0.45),
+          color: Colors.white.withValues(alpha: 0.45),
           blurRadius: 28,
         ),
       ],

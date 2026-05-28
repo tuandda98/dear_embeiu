@@ -391,9 +391,9 @@ class _SetupScreenState extends State<SetupScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.white.withOpacity(0.12),
+            color: AppColors.white.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withOpacity(0.18)),
+            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -401,7 +401,7 @@ class _SetupScreenState extends State<SetupScreen> {
               Icon(
                 isEditing ? Icons.edit_rounded : Icons.favorite_rounded,
                 size: 14,
-                color: AppColors.white.withOpacity(0.92),
+                color: AppColors.white.withValues(alpha: 0.92),
               ),
               const SizedBox(width: 8),
               Text(
@@ -421,9 +421,9 @@ class _SetupScreenState extends State<SetupScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.warning.withOpacity(0.18),
+              color: AppColors.warning.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.warning.withOpacity(0.30)),
+              border: Border.all(color: AppColors.warning.withValues(alpha: 0.30)),
             ),
             child: Text(
               coupleProvider.errorMessage!,
@@ -454,9 +454,9 @@ class _SetupScreenState extends State<SetupScreen> {
           height: 48,
           padding: const EdgeInsets.all(padding),
           decoration: BoxDecoration(
-            color: AppColors.white.withOpacity(0.14),
+            color: AppColors.white.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.white.withOpacity(0.18)),
+            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
           ),
           child: Stack(
             children: [
@@ -474,7 +474,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.10),
+                        color: Colors.black.withValues(alpha: 0.10),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -528,7 +528,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   size: 15,
                   color: selected
                       ? AppColors.accentRose
-                      : AppColors.white.withOpacity(0.75),
+                      : AppColors.white.withValues(alpha: 0.75),
                 ),
               ),
               const SizedBox(width: 6),
@@ -538,7 +538,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 style: TextStyle(
                   color: selected
                       ? AppColors.textPrimary
-                      : AppColors.white.withOpacity(0.75),
+                      : AppColors.white.withValues(alpha: 0.75),
                   fontWeight: FontWeight.w700,
                   fontSize: 13.5,
                 ),
@@ -586,9 +586,9 @@ class _SetupScreenState extends State<SetupScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.18),
+        color: AppColors.white.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.white.withOpacity(0.22)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.22)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -601,7 +601,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 child: Text(
                   title,
                   style: TextStyle(
-                    color: AppColors.white.withOpacity(0.80),
+                    color: AppColors.white.withValues(alpha: 0.80),
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
                   ),
@@ -625,7 +625,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 ),
               ),
               Material(
-                color: AppColors.white.withOpacity(0.18),
+                color: AppColors.white.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(12),
                 child: InkWell(
                   onTap: () {
@@ -643,12 +643,12 @@ class _SetupScreenState extends State<SetupScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.copy_rounded, size: 14, color: AppColors.white.withOpacity(0.90)),
+                        Icon(Icons.copy_rounded, size: 14, color: AppColors.white.withValues(alpha: 0.90)),
                         const SizedBox(width: 4),
                         Text(
                           l10n.copyBtn,
                           style: TextStyle(
-                            color: AppColors.white.withOpacity(0.90),
+                            color: AppColors.white.withValues(alpha: 0.90),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -664,7 +664,7 @@ class _SetupScreenState extends State<SetupScreen> {
           Text(
             description,
             style: TextStyle(
-              color: AppColors.white.withOpacity(0.65),
+              color: AppColors.white.withValues(alpha: 0.65),
               fontSize: 12,
               height: 1.45,
             ),
@@ -688,12 +688,12 @@ class _SetupScreenState extends State<SetupScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity( 0.20),
+        color: AppColors.white.withValues(alpha: 0.20),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withOpacity( 0.20)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity( 0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 24,
             offset: const Offset(0, 14),
           ),
@@ -741,10 +741,10 @@ class _SetupScreenState extends State<SetupScreen> {
               child: Ink(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity( 0.92),
+                  color: AppColors.white.withValues(alpha: 0.92),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.white.withOpacity( 0.9),
+                    color: AppColors.white.withValues(alpha: 0.9),
                   ),
                 ),
                 child: Row(
@@ -779,10 +779,10 @@ class _SetupScreenState extends State<SetupScreen> {
               child: Ink(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity( 0.92),
+                  color: AppColors.white.withValues(alpha: 0.92),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.white.withOpacity( 0.9),
+                    color: AppColors.white.withValues(alpha: 0.9),
                   ),
                 ),
                 child: Column(
@@ -860,9 +860,9 @@ class _SetupScreenState extends State<SetupScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity( 0.20),
+        color: AppColors.white.withValues(alpha: 0.20),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withOpacity( 0.20)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -952,19 +952,19 @@ class _SetupScreenState extends State<SetupScreen> {
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.white.withOpacity( 0.78),
+        color: AppColors.white.withValues(alpha: 0.78),
         border: Border.all(
-          color: AppColors.white.withOpacity( 0.92),
+          color: AppColors.white.withValues(alpha: 0.92),
           width: 1.4,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity( 0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: AppColors.accentRose.withOpacity( 0.10),
+            color: AppColors.accentRose.withValues(alpha: 0.10),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -1001,9 +1001,9 @@ class _SetupScreenState extends State<SetupScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.white.withOpacity( 0.14),
+                    AppColors.white.withValues(alpha: 0.14),
                     Colors.transparent,
-                    AppColors.white.withOpacity( 0.06),
+                    AppColors.white.withValues(alpha: 0.06),
                   ],
                 ),
               ),
@@ -1023,7 +1023,7 @@ class _SetupScreenState extends State<SetupScreen> {
       floatingLabelBehavior: FloatingLabelBehavior.never,
       prefixIcon: Icon(icon, color: AppColors.accentRose),
       filled: true,
-      fillColor: AppColors.white.withOpacity( 0.92),
+      fillColor: AppColors.white.withValues(alpha: 0.92),
       hintStyle: const TextStyle(
         color: AppColors.textPrimary,
         fontSize: 14,
@@ -1035,12 +1035,12 @@ class _SetupScreenState extends State<SetupScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: AppColors.white.withOpacity( 0.9)),
+        borderSide: BorderSide(color: AppColors.white.withValues(alpha: 0.9)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(
-          color: AppColors.accentRose.withOpacity( 0.45),
+          color: AppColors.accentRose.withValues(alpha: 0.45),
           width: 1.2,
         ),
       ),

@@ -91,7 +91,7 @@ class AppColors {
 
   // Soft pink shadow for diffused, hue-matched depth
   static BoxShadow softCardShadow({double opacity = 0.12}) => BoxShadow(
-        color: sunset1.withOpacity( opacity),
+        color: sunset1.withValues(alpha: opacity),
         blurRadius: 24,
         offset: const Offset(0, 8),
       );

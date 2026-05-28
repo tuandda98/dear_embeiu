@@ -24,7 +24,7 @@ class BlockingLoadingOverlay extends StatelessWidget {
             child: IgnorePointer(
               ignoring: false,
               child: Container(
-                color: Colors.black.withOpacity( 0.18),
+                color: Colors.black.withValues(alpha: 0.18),
               ),
             ),
           ),
@@ -39,7 +39,7 @@ class BlockingLoadingOverlay extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity( 0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 24,
                       offset: const Offset(0, 12),
                     ),

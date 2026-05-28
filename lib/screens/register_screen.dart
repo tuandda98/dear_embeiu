@@ -132,9 +132,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.white.withOpacity( 0.12),
+            color: AppColors.white.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withOpacity( 0.18)),
+            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -142,7 +142,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Icon(
                 Icons.person_add_alt_1_rounded,
                 size: 14,
-                color: AppColors.white.withOpacity( 0.92),
+                color: AppColors.white.withValues(alpha: 0.92),
               ),
               const SizedBox(width: 8),
               Text(
@@ -191,9 +191,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity( 0.16),
+        color: AppColors.white.withValues(alpha: 0.16),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.white.withOpacity( 0.18)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +202,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: color.withOpacity( 0.16),
+              color: color.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 18),
@@ -243,12 +243,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity( 0.22),
+        color: AppColors.white.withValues(alpha: 0.22),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withOpacity( 0.22)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.22)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity( 0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 24,
             offset: const Offset(0, 14),
           ),
@@ -392,9 +392,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.14),
+                  color: AppColors.white.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.white.withOpacity(0.18)),
+                  border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -447,7 +447,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       side: BorderSide(
                         color: _showTermsError
                             ? Colors.red.shade400
-                            : AppColors.textSecondary.withOpacity(0.5),
+                            : AppColors.textSecondary.withValues(alpha: 0.5),
                         width: 1.5,
                       ),
                     ),
@@ -570,7 +570,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       prefixIcon: Icon(icon, color: AppColors.accentRose),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: AppColors.white.withOpacity( 0.92),
+      fillColor: AppColors.white.withValues(alpha: 0.92),
       hintStyle: const TextStyle(
         color: AppColors.textPrimary,
         fontSize: 14,
@@ -588,12 +588,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: AppColors.white.withOpacity( 0.9)),
+        borderSide: BorderSide(color: AppColors.white.withValues(alpha: 0.9)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(
-          color: AppColors.accentRose.withOpacity( 0.45),
+          color: AppColors.accentRose.withValues(alpha: 0.45),
           width: 1.2,
         ),
       ),

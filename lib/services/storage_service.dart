@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+
 import '../models/couple.dart';
 import '../models/photo.dart';
-import 'dart:convert';
 
 class StorageService {
   static const String _coupleFileName = 'couple_data.json';
@@ -31,7 +34,7 @@ class StorageService {
       final file = File('${appDir.path}/$_coupleFileName');
       await file.writeAsString(jsonEncode(couple.toJson()));
     } catch (e) {
-      print('Error saving couple data: $e');
+      debugPrint('Error saving couple data: $e');
     }
   }
 
@@ -46,7 +49,7 @@ class StorageService {
         return Couple.fromJson(json);
       }
     } catch (e) {
-      print('Error loading couple data: $e');
+      debugPrint('Error loading couple data: $e');
     }
     return null;
   }
@@ -59,7 +62,7 @@ class StorageService {
         await file.delete();
       }
     } catch (e) {
-      print('Error clearing couple data: $e');
+      debugPrint('Error clearing couple data: $e');
     }
   }
 
@@ -71,7 +74,7 @@ class StorageService {
       final jsonList = photos.map((p) => p.toJson()).toList();
       await file.writeAsString(jsonEncode(jsonList));
     } catch (e) {
-      print('Error saving photos data: $e');
+      debugPrint('Error saving photos data: $e');
     }
   }
 
@@ -86,7 +89,7 @@ class StorageService {
         return jsonList.map((json) => Photo.fromJson(json)).toList();
       }
     } catch (e) {
-      print('Error loading photos data: $e');
+      debugPrint('Error loading photos data: $e');
     }
     return [];
   }
@@ -104,7 +107,7 @@ class StorageService {
         await photoDir.delete(recursive: true);
       }
     } catch (e) {
-      print('Error clearing photos data: $e');
+      debugPrint('Error clearing photos data: $e');
     }
   }
 
@@ -122,7 +125,7 @@ class StorageService {
       await File(sourcePath).copy(destFile.path);
       return destFile.path;
     } catch (e) {
-      print('Error saving photo file: $e');
+      debugPrint('Error saving photo file: $e');
     }
     return null;
   }
@@ -136,7 +139,7 @@ class StorageService {
         return true;
       }
     } catch (e) {
-      print('Error deleting photo file: $e');
+      debugPrint('Error deleting photo file: $e');
     }
     return false;
   }

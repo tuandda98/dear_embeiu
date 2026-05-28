@@ -121,6 +121,56 @@ class UserService {
     await _devicesCollection(userId).doc(deviceId).delete();
   }
 
+  /// Keep the user's device list tidy so registrations don't pile up across
+  /// reinstalls (each install gets a fresh deviceId). Removes docs older than
+  /// [maxAge] and caps the list to the [keepMostRecent] newest. The current
+  /// device ([keepDeviceId]) is always preserved.
+  ///
+  /// Dead-*token* removal is handled server-side when a notification send
+  /// fails; this prunes abandoned/duplicate registrations.
+  Future<void> pruneStaleDevices({
+    required String userId,
+    String? keepDeviceId,
+    Duration maxAge = const Duration(days: 60),
+    int keepMostRecent = 8,
+  }) async {
+    if (!isEnabled || userId.trim().isEmpty) {
+      return;
+    }
+
+    final snapshot = await _devicesCollection(userId).get();
+    if (snapshot.docs.length <= 1) {
+      return;
+    }
+
+    final now = DateTime.now();
+    final docs = snapshot.docs.toList()
+      ..sort((a, b) => _deviceUpdatedAt(b.data()).compareTo(_deviceUpdatedAt(a.data())));
+
+    for (var i = 0; i < docs.length; i++) {
+      final doc = docs[i];
+      if (doc.id == keepDeviceId) {
+        continue;
+      }
+      final tooOld = now.difference(_deviceUpdatedAt(doc.data())) > maxAge;
+      final overCap = i >= keepMostRecent;
+      if (tooOld || overCap) {
+        await doc.reference.delete();
+      }
+    }
+  }
+
+  DateTime _deviceUpdatedAt(Map<String, dynamic> data) {
+    final value = data['updatedAt'];
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+    if (value is DateTime) {
+      return value;
+    }
+    return DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
   Future<void> deleteUserData(AppUser user) async {
     if (!isEnabled || user.id.trim().isEmpty) {
       return;

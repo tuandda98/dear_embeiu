@@ -32,7 +32,7 @@ class CoupleInfoCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: AppColors.sunset1.withOpacity( 0.14),
+              color: AppColors.sunset1.withValues(alpha: 0.14),
               blurRadius: 28,
               offset: const Offset(0, 12),
             ),
@@ -50,7 +50,7 @@ class CoupleInfoCard extends StatelessWidget {
                   gradient: AppColors.dawnBlush,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.sunset1.withOpacity( 0.25),
+                      color: AppColors.sunset1.withValues(alpha: 0.25),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),

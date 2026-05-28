@@ -10,11 +10,11 @@ class MasonryGallery extends StatelessWidget {
   final Function(String photoId)? onDeletePhoto;
 
   const MasonryGallery({
-    Key? key,
+    super.key,
     required this.photos,
     this.onPhotoTap,
     this.onDeletePhoto,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class MasonryGallery extends StatelessWidget {
             Icon(
               Icons.image_not_supported,
               size: 64,
-              color: AppColors.textSecondary.withOpacity(0.3),
+              color: AppColors.textSecondary.withValues(alpha: 0.3),
             ),
             SizedBox(height: 16),
             Text(
@@ -40,7 +40,7 @@ class MasonryGallery extends StatelessWidget {
             Text(
               'Thêm ảnh để bắt đầu tạo kỷ niệm',
               style: TextStyle(
-                color: AppColors.textSecondary.withOpacity(0.6),
+                color: AppColors.textSecondary.withValues(alpha: 0.6),
                 fontSize: 13,
               ),
             ),

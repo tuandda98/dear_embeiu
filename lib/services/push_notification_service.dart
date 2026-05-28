@@ -193,13 +193,16 @@ class PushNotificationService {
     required String token,
   }) async {
     try {
+      final deviceId = await _getInstallationId();
       await _userService.saveDeviceRegistration(
         userId: userId,
-        deviceId: await _getInstallationId(),
+        deviceId: deviceId,
         token: token,
         platform: _platformLabel,
         notificationsEnabled: true,
       );
+      // Keep this user's device list from accumulating stale registrations.
+      await _userService.pruneStaleDevices(userId: userId, keepDeviceId: deviceId);
     } catch (e) {
       debugPrint('Push token sync failed: $e');
     }

@@ -1,10 +1,60 @@
 const admin = require("firebase-admin");
 const {logger} = require("firebase-functions");
 const {onDocumentCreated} = require("firebase-functions/v2/firestore");
+const {onSchedule} = require("firebase-functions/v2/scheduler");
 
 admin.initializeApp();
 
 const db = admin.firestore();
+
+// Daily sweep: validate every registered device token with a dry-run send
+// (nothing is delivered) and delete the ones FCM reports as dead. Keeps the
+// users/{uid}/devices subcollections free of stale tokens without waiting for
+// a real photo-notification send to surface them.
+exports.pruneDeadDevices = onSchedule(
+  {schedule: "every 24 hours", timeZone: "Asia/Ho_Chi_Minh", region: "us-central1"},
+  async () => {
+    const snapshot = await db.collectionGroup("devices").get();
+    const messaging = admin.messaging();
+    let checked = 0;
+    let alive = 0;
+    let removed = 0;
+    let kept = 0;
+
+    for (const doc of snapshot.docs) {
+      const token = `${doc.get("token") || ""}`.trim();
+      if (!token) {
+        await doc.ref.delete().catch(() => null);
+        removed += 1;
+        continue;
+      }
+
+      checked += 1;
+      try {
+        // dryRun = true -> FCM validates the token but delivers nothing.
+        await messaging.send({token, data: {type: "token_health_check"}}, true);
+        alive += 1;
+      } catch (err) {
+        const code = (err && err.code) ||
+          (err && err.errorInfo && err.errorInfo.code) || "unknown";
+        // Only delete on token-specific "dead" codes — never on generic
+        // errors (which could indicate a transient/server issue, not a bad token).
+        if (
+          code === "messaging/registration-token-not-registered" ||
+          code === "messaging/invalid-registration-token"
+        ) {
+          await doc.ref.delete().catch(() => null);
+          removed += 1;
+        } else {
+          kept += 1;
+          logger.warn("Device token kept despite validation error.", {code});
+        }
+      }
+    }
+
+    logger.info("pruneDeadDevices finished.", {checked, alive, removed, kept});
+  },
+);
 
 exports.sendPartnerPhotoNotification = onDocumentCreated(
   "couples/{coupleId}/photos/{photoId}",

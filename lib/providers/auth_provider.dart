@@ -27,6 +27,17 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated =>
       _status == AuthStatus.authenticated && _currentUser != null;
 
+  /// Re-register the current user's FCM token. Safe to call repeatedly — used
+  /// on every app resume so the token never goes stale while the user stays
+  /// logged in (previously it was only synced on login / token refresh, which
+  /// let partner devices end up with 0 valid tokens after a token rotation).
+  Future<void> refreshPushRegistration() async {
+    if (!isAuthenticated) {
+      return;
+    }
+    await PushNotificationService.instance.syncForUser(_currentUser);
+  }
+
   Future<void> initialize() async {
     if (_isInitialized) {
       return;

@@ -911,7 +911,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               itemCount: todayPhotos.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final photo = todayPhotos[index];
                 return GestureDetector(
@@ -1294,7 +1294,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         builder: (context, photoProvider, coupleProvider, _) {
           final photos = photoProvider.sortedPhotos;
           final couple = coupleProvider.couple;
-          final _feedItems = _buildFeedItems(photos);
+          final feedItems = _buildFeedItems(photos);
 
           return BlockingLoadingOverlay(
             isVisible: photoProvider.isLoading,
@@ -1339,13 +1339,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       ),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate((context, index) {
-                          final item = _feedItems[index];
+                          final item = feedItems[index];
                           if (item is _FeedMonthHeader) {
                             return _buildMonthHeaderWidget(item.date);
                           }
                           final p = item as _FeedPhotoItem;
                           return _buildPhotoFeedCard(couple, p.photo, p.originalIndex);
-                        }, childCount: _feedItems.length),
+                        }, childCount: feedItems.length),
                       ),
                     ),
                 ],
