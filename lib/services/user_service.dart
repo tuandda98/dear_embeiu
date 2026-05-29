@@ -87,7 +87,7 @@ class UserService {
       return;
     }
 
-    await _usersCollection.doc(user.id).set(user.toFirestore(), SetOptions(merge: true));
+    await _usersCollection.doc(user.id).set(user.toFirestoreUpdate(), SetOptions(merge: true));
     await _syncInviteCode(user);
   }
 
@@ -197,18 +197,21 @@ class UserService {
 
     final now = DateTime.now();
     final existing = await _inviteCodesCollection.doc(normalizedCode).get();
-    final existingData = existing.data();
-    final createdAt = existingData == null
-        ? now
-        : AccountInvite.fromJson(normalizedCode, existingData).createdAt;
 
-    await _inviteCodesCollection.doc(normalizedCode).set({
+    // Only send `createdAt` when creating the doc. On update, omit it so the
+    // immutable-`createdAt` rule check passes — merge keeps the stored value
+    // and avoids the iOS DateTime→Timestamp nanosecond drift.
+    final data = <String, dynamic>{
       'userId': user.id,
       'displayName': user.displayName,
       'coupleId': user.coupleId,
-      'createdAt': createdAt,
       'updatedAt': now,
-    }, SetOptions(merge: true));
+    };
+    if (!existing.exists) {
+      data['createdAt'] = now;
+    }
+
+    await _inviteCodesCollection.doc(normalizedCode).set(data, SetOptions(merge: true));
   }
 
   String _generateInviteCode() {

@@ -67,6 +67,26 @@ class Couple {
     'updatedAt': updatedAt,
   };
 
+  // Payload for merge-updates of an existing couple. Omits the immutable
+  // `createdAt`: re-sending it round-trips through DateTime and on iOS the
+  // DateTime→Timestamp conversion drifts by a few nanoseconds, breaking the
+  // exact-equality `createdAt` check in firestore.rules (permission-denied).
+  // Merge keeps the stored value.
+  Map<String, dynamic> toFirestoreUpdate() => {
+    'person1Name': person1Name,
+    'person2Name': person2Name,
+    'anniversaryDate': anniversaryDate,
+    'couplePhotoPath': '',
+    'couplePhotoUrl': couplePhotoUrl,
+    'couplePhotoStoragePath': couplePhotoStoragePath,
+    'inviteCode': inviteCode,
+    'memberIds': memberIds,
+    'memberCount': memberCount,
+    'createdByUserId': createdByUserId,
+    'status': status,
+    'updatedAt': updatedAt,
+  };
+
   // Create from JSON
   factory Couple.fromJson(Map<String, dynamic> json) => Couple(
     id: json['id'] as String? ?? '',

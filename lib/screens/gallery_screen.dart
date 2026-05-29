@@ -1056,7 +1056,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         value: _PhotoFeedAction.editCaption,
                         child: Text(context.l10n.editCaptionAction),
                       ),
-                      if (currentUserId != null && currentUserId == photo.authorUserId)
+                      if (currentUserId != null)
                         PopupMenuItem(
                           value: _PhotoFeedAction.delete,
                           child: Text(context.l10n.deletePhotoAction),

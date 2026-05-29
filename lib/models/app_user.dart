@@ -53,6 +53,22 @@ class AppUser {
         'lastSeenAt': lastSeenAt,
       };
 
+  // Payload for merge-updates of an existing doc. Intentionally omits the
+  // immutable `createdAt`: re-sending it round-trips the value through
+  // DateTime, and on iOS the DateTime→Timestamp conversion drifts by a few
+  // nanoseconds, which breaks the exact-equality `createdAt` check in
+  // firestore.rules and yields permission-denied. Merge keeps the stored value.
+  Map<String, dynamic> toFirestoreUpdate() => {
+        'email': email,
+        'displayName': displayName,
+        'avatarUrl': avatarUrl,
+        'coupleId': coupleId,
+        'inviteCode': inviteCode,
+        'status': status,
+        'updatedAt': updatedAt,
+        'lastSeenAt': lastSeenAt,
+      };
+
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
         id: json['id'] as String,
         email: json['email'] as String,

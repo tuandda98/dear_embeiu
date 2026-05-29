@@ -208,7 +208,7 @@ class CoupleService {
       try {
         await _ensureFirebaseSessionReady();
         await _couplesCollection.doc(couple.id).set(
-              couple.toFirestore(),
+              couple.toFirestoreUpdate(),
               SetOptions(merge: true),
             );
       } on FirebaseException catch (e) {
@@ -254,7 +254,7 @@ class CoupleService {
       try {
         await _ensureFirebaseSessionReady();
         await _couplesCollection.doc(updatedCouple.id).set(
-              updatedCouple.toFirestore(),
+              updatedCouple.toFirestoreUpdate(),
               SetOptions(merge: true),
             );
       } on FirebaseException catch (e) {
@@ -364,12 +364,12 @@ class CoupleService {
 
           transaction.set(
             docRef,
-            updatedCouple.toFirestore(),
+            updatedCouple.toFirestoreUpdate(),
             SetOptions(merge: true),
           );
           transaction.set(
             _db.collection('users').doc(currentUser.id),
-            updatedUser.toFirestore(),
+            updatedUser.toFirestoreUpdate(),
             SetOptions(merge: true),
           );
         });
@@ -456,7 +456,7 @@ class CoupleService {
               status: 'waiting_partner',
               updatedAt: now,
             );
-            await docRef.set(updatedCouple.toFirestore(), SetOptions(merge: true));
+            await docRef.set(updatedCouple.toFirestoreUpdate(), SetOptions(merge: true));
           }
         }
       } on FirebaseException catch (e) {

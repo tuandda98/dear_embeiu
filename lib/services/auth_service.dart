@@ -215,20 +215,15 @@ class AuthService {
           existingProfile: existingProfile,
         ));
 
-        // ignore: avoid_print
-        print('[AUTH-DEBUG signIn] firebaseUser.uid=${firebaseUser.uid} '
-            'user.id=${user.id} match=${firebaseUser.uid == user.id} '
-            'currentUser.uid=${_auth.currentUser?.uid} '
-            'payload=${user.toFirestore()}');
-        await _userService.updateUserProfile(user);
+        if (existingProfile == null) {
+          await _userService.saveUserProfile(user);
+        } else {
+          await _userService.updateUserProfile(user);
+        }
         return user;
       } on FirebaseAuthException catch (e) {
-        // ignore: avoid_print
-        print('[AUTH-DEBUG signIn] FirebaseAuthException code=${e.code} message=${e.message}');
         throw AuthException(_mapFirebaseAuthError(e));
-      } on FirebaseException catch (e, st) {
-        // ignore: avoid_print
-        print('[AUTH-DEBUG signIn] FirebaseException plugin=${e.plugin} code=${e.code} message=${e.message}\n$st');
+      } on FirebaseException catch (e) {
         throw AuthException(_mapFirestoreError(e));
       }
     }

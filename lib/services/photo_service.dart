@@ -134,7 +134,7 @@ class PhotoService {
 
     try {
       await _photosCollection(updatedPhoto.coupleId!).doc(updatedPhoto.id).set(
-            updatedPhoto.toFirestore(),
+            updatedPhoto.toFirestoreUpdate(),
             SetOptions(merge: true),
           );
     } on FirebaseException catch (e) {

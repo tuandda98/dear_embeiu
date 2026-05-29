@@ -53,6 +53,22 @@ class Photo {
     'updatedAt': updatedAt,
   };
 
+  // Payload for merge-updates of an existing photo. Omits the immutable
+  // `uploadDate`: re-sending it round-trips through DateTime and on iOS the
+  // DateTime→Timestamp conversion drifts by a few nanoseconds, breaking the
+  // exact-equality `uploadDate` check in firestore.rules (permission-denied).
+  // Merge keeps the stored value.
+  Map<String, dynamic> toFirestoreUpdate() => {
+    'path': '',
+    'remoteUrl': remoteUrl,
+    'storagePath': storagePath,
+    'coupleId': coupleId,
+    'authorUserId': authorUserId,
+    'authorName': authorName,
+    'caption': caption,
+    'updatedAt': updatedAt,
+  };
+
   // Create from JSON
   factory Photo.fromJson(Map<String, dynamic> json) => Photo(
     id: json['id'],
