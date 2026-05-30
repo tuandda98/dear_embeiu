@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import 'firebase_bootstrap_service.dart';
 import 'user_service.dart';
@@ -29,12 +30,13 @@ class PushNotificationService {
   static final PushNotificationService instance = PushNotificationService._();
   static const String _deviceIdStorageKey = 'push_notification_installation_id';
   static const String _photoChannelId = 'partner_photo_updates';
-  static const AndroidNotificationChannel _photoChannel = AndroidNotificationChannel(
-    _photoChannelId,
-    'Partner photo updates',
-    description: 'Thông báo khi người ấy đăng ảnh mới.',
-    importance: Importance.high,
-  );
+  static AndroidNotificationChannel get _photoChannel =>
+      AndroidNotificationChannel(
+        _photoChannelId,
+        AppL10n.strings.pushPhotoChannelName,
+        description: AppL10n.strings.pushPhotoChannelDescription,
+        importance: Importance.high,
+      );
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   final FlutterLocalNotificationsPlugin _localNotifications =
@@ -273,11 +275,11 @@ class PushNotificationService {
       message.messageId.hashCode ^ DateTime.now().millisecondsSinceEpoch,
       title,
       body,
-      const NotificationDetails(
+      NotificationDetails(
         android: AndroidNotificationDetails(
           _photoChannelId,
-          'Partner photo updates',
-          channelDescription: 'Thông báo khi người ấy đăng ảnh mới.',
+          AppL10n.strings.pushPhotoChannelName,
+          channelDescription: AppL10n.strings.pushPhotoChannelDescription,
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',

@@ -14,10 +14,12 @@ import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/locale_provider.dart';
 import '../providers/photo_provider.dart';
+import '../providers/reminder_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/blocking_loading_overlay.dart';
+import '../widgets/language_toggle_button.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import 'setup_screen.dart';
 
@@ -94,6 +96,14 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 18),
                       _buildActionsSection(context),
+                      const SizedBox(height: 18),
+                      _buildRemindersSection(
+                        context,
+                        couple: couple,
+                        lastPhotoDate: photoProvider.sortedPhotos.isEmpty
+                            ? null
+                            : photoProvider.sortedPhotos.first.uploadDate,
+                      ),
                       const SizedBox(height: 18),
                       _buildLanguageSection(context),
                       const SizedBox(height: 12),
@@ -548,104 +558,240 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildRemindersSection(
+    BuildContext context, {
+    required Couple couple,
+    required DateTime? lastPhotoDate,
+  }) {
+    final l10n = context.l10n;
+
+    return Consumer<ReminderProvider>(
+      builder: (context, reminderProvider, _) {
+        final settings = reminderProvider.settings;
+        final time = TimeOfDay(hour: settings.hour, minute: settings.minute);
+
+        Future<void> handleToggle(bool value) async {
+          final granted = await reminderProvider.setEnabled(
+            value,
+            anniversaryDate: couple.anniversaryDate,
+            lastPhotoDate: lastPhotoDate,
+            l10n: l10n,
+          );
+          if (!granted && context.mounted) {
+            ScaffoldMessenger.of(context)
+              ..clearSnackBars()
+              ..showSnackBar(
+                SnackBar(content: Text(l10n.remindersPermissionDeniedMsg)),
+              );
+          }
+        }
+
+        Future<void> handlePickTime() async {
+          final picked = await showTimePicker(
+            context: context,
+            initialTime: time,
+          );
+          if (picked == null) {
+            return;
+          }
+          await reminderProvider.setTime(
+            picked.hour,
+            picked.minute,
+            anniversaryDate: couple.anniversaryDate,
+            lastPhotoDate: lastPhotoDate,
+            l10n: l10n,
+          );
+        }
+
+        return _buildSectionCard(
+          title: l10n.remindersTitle,
+          subtitle: l10n.remindersSubtitle,
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.72),
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: AppColors.accentRose.withValues(alpha: 0.10),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.accentRose.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.notifications_active_rounded,
+                        color: AppColors.accentRose,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.remindersToggleLabel,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.remindersToggleDesc,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Switch.adaptive(
+                      value: settings.enabled,
+                      activeThumbColor: AppColors.accentRose,
+                      onChanged: handleToggle,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: settings.enabled ? handlePickTime : null,
+                child: Opacity(
+                  opacity: settings.enabled ? 1 : 0.45,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.72),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
+                        color: AppColors.accentGold.withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.accentGold.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(
+                            Icons.schedule_rounded,
+                            color: AppColors.accentGold,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Text(
+                            l10n.remindersTimeLabel,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          time.format(context),
+                          style: const TextStyle(
+                            color: AppColors.accentRose,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildLanguageSection(BuildContext context) {
     final l10n = context.l10n;
-    final localeProvider = context.watch<LocaleProvider>();
-    final currentLocale = localeProvider.locale;
+    final current = currentAppLanguage(context.watch<LocaleProvider>().locale);
 
     return _buildSectionCard(
       title: l10n.languageTitle,
       subtitle: l10n.languageSubtitle,
-      child: Column(
-        children: [
-          _buildLanguageOption(
-            context,
-            label: l10n.languageSystem,
-            description: l10n.languageSystemDesc,
-            isSelected: currentLocale == null,
-            onTap: () => localeProvider.useSystemLocale(),
-          ),
-          const SizedBox(height: 10),
-          _buildLanguageOption(
-            context,
-            label: l10n.languageEnglish,
-            description: 'English',
-            isSelected: currentLocale?.languageCode == 'en',
-            onTap: () => localeProvider.setLocale(const Locale('en')),
-          ),
-          const SizedBox(height: 10),
-          _buildLanguageOption(
-            context,
-            label: l10n.languageVietnamese,
-            description: 'Tiếng Việt',
-            isSelected: currentLocale?.languageCode == 'vi',
-            onTap: () => localeProvider.setLocale(const Locale('vi')),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLanguageOption(
-    BuildContext context, {
-    required String label,
-    required String description,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.accentRose.withValues(alpha: 0.10)
-              : AppColors.white.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.accentRose.withValues(alpha: 0.28)
-                : AppColors.white.withValues(alpha: 0.6),
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
+      child: GestureDetector(
+        onTap: () => showLanguagePicker(context),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: AppColors.accentRose.withValues(alpha: 0.12),
             ),
-            if (isSelected)
-              Icon(
-                Icons.check_circle_rounded,
-                color: AppColors.accentRose,
-                size: 22,
-              )
-            else
-              Icon(
-                Icons.radio_button_unchecked_rounded,
-                color: AppColors.textSecondary.withValues(alpha: 0.4),
-                size: 22,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.accentRose.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(current.flag, style: const TextStyle(fontSize: 22)),
               ),
-          ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.languageTitle,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      appLanguageLabel(current, l10n),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.textSecondary.withValues(alpha: 0.5),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -795,7 +941,7 @@ class ProfileScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Text(
-                    'Không thể hoàn tác',
+                    l10n.profileDangerIrreversible,
                     style: TextStyle(
                       color: AppColors.error.withValues(alpha: 0.50),
                       fontSize: 11,
@@ -1166,7 +1312,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              'Privacy Policy',
+              context.l10n.privacyPolicyLabel,
               style: TextStyle(
                 color: AppColors.textTertiary,
                 fontSize: 12,

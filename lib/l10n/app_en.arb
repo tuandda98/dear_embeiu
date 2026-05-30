@@ -392,5 +392,36 @@
 
   "setupNoChangesToSaveMsg": "No changes to save.",
   "inviteCodeCopiedMsg": "Invite code copied",
-  "copyBtn": "Copy"
+  "copyBtn": "Copy",
+
+  "remindersTitle": "Love reminders",
+  "remindersSubtitle": "Gentle nudges to keep your story growing",
+  "remindersToggleLabel": "Daily reminders",
+  "remindersToggleDesc": "A daily nudge plus milestone & anniversary alerts",
+  "remindersTimeLabel": "Reminder time",
+  "remindersPermissionDeniedMsg": "Turn on notifications in Settings to receive reminders.",
+
+  "reminderDailyTitle": "Another day of us 💕",
+  "reminderDailyBody": "Open Dear Embeiu and count today together.",
+  "reminderMilestoneApproachingTitle": "A milestone is near 💕",
+  "reminderMilestoneApproachingBody": "{count} days until your {milestone} milestone!",
+  "@reminderMilestoneApproachingBody": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "milestone": { "type": "String" }
+    }
+  },
+  "reminderMilestoneTodayTitle": "Milestone reached 🎉",
+  "reminderMilestoneTodayBody": "Today you reach {milestone} together 💕",
+  "@reminderMilestoneTodayBody": {
+    "placeholders": {
+      "milestone": { "type": "String" }
+    }
+  },
+  "reminderAnniversaryTitle": "Happy anniversary 🎉",
+  "reminderAnniversaryBody": "Celebrate another year of your love story today 💕",
+  "reminderInactivityTitle": "Missing your moments 💭",
+  "reminderInactivityBody": "It's been a while — add a new memory together 💕",
+
+  "languageSearchHint": "Search languages"
 }

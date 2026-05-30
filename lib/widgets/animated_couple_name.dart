@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
 import '../theme/app_colors.dart';
 
 class AnimatedHeartIcon extends StatefulWidget {
@@ -81,7 +82,7 @@ class AnimatedCoupleName extends StatelessWidget {
     final style = textStyle ?? const TextStyle();
 
     if (first.isEmpty && second.isEmpty) {
-      return Text('Hai bạn', style: style);
+      return Text(context.l10n.youTwoLabel, style: style);
     }
 
     if (first.isEmpty) {

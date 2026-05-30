@@ -1,3 +1,5 @@
+import '../l10n/app_l10n.dart';
+
 class CounterData {
   final int days;
   final int months;
@@ -36,7 +38,7 @@ class CounterData {
 
   // Get formatted string
   String toFormattedString() {
-    return '$years năm, $months tháng, $days ngày';
+    return AppL10n.strings.counterDuration(years, months, days);
   }
 }
 

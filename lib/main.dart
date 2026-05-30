@@ -2,6 +2,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'l10n/app_l10n.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -12,6 +13,7 @@ import 'providers/auth_provider.dart';
 import 'providers/couple_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/photo_provider.dart';
+import 'providers/reminder_provider.dart';
 import 'screens/auth_gate_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -22,6 +24,7 @@ import 'services/auth_service.dart';
 import 'services/firebase_bootstrap_service.dart';
 import 'services/install_state_service.dart';
 import 'services/push_notification_service.dart';
+import 'services/reminder_service.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -35,6 +38,9 @@ void main() async {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     await PushNotificationService.instance.initialize();
   }
+  // Prepare local scheduled-notification infrastructure (timezone + channel)
+  // for the retention "love reminders" feature.
+  await ReminderService.instance.initialize();
   await InstallStateService().handleFreshInstall(
     onFreshInstall: () => authService.purgePersistedSession(),
   );
@@ -94,11 +100,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => CoupleProvider()),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(create: (_) => ReminderProvider()..load()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
           return MaterialApp(
-            title: 'Kỷ Niệm Của Chúng Mình',
+            onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
             theme: AppTheme.lightTheme,
             locale: localeProvider.locale,
             localizationsDelegates: const [
@@ -111,6 +118,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               Locale('en'),
               Locale('vi'),
             ],
+            // Keep the non-widget localization layer (services, providers,
+            // models, background isolates) in sync with the locale MaterialApp
+            // actually resolves — including when following the system locale.
+            localeResolutionCallback: (deviceLocale, supportedLocales) {
+              Locale resolved = supportedLocales.first;
+              if (deviceLocale != null) {
+                for (final locale in supportedLocales) {
+                  if (locale.languageCode == deviceLocale.languageCode) {
+                    resolved = locale;
+                    break;
+                  }
+                }
+              }
+              AppL10n.setLocale(resolved);
+              return resolved;
+            },
             home: const SplashScreen(),
             debugShowCheckedModeBanner: false,
             routes: {

@@ -9,6 +9,7 @@ import '../models/counter_data.dart';
 import '../models/photo.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
+import '../providers/reminder_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
@@ -51,6 +52,44 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   int _selectedIndex = 0;
+  String? _lastReminderKey;
+
+  /// (Re)schedule love reminders whenever the data that feeds them changes.
+  /// Cheap to call on every build: it skips when nothing relevant changed and
+  /// defers the work to after the frame so it never mutates providers mid-build.
+  void _syncReminders(
+    BuildContext context,
+    Couple couple,
+    PhotoProvider photoProvider,
+  ) {
+    final l10n = context.l10n;
+    final photos = photoProvider.sortedPhotos;
+    final lastPhotoDate = photos.isEmpty ? null : photos.first.uploadDate;
+    final now = DateTime.now();
+    final key = [
+      couple.anniversaryDate.millisecondsSinceEpoch,
+      lastPhotoDate?.millisecondsSinceEpoch ?? 0,
+      l10n.localeName,
+      '${now.year}-${now.month}-${now.day}',
+    ].join('|');
+    if (key == _lastReminderKey) {
+      return;
+    }
+    _lastReminderKey = key;
+
+    final reminderProvider = context.read<ReminderProvider>();
+    final anniversaryDate = couple.anniversaryDate;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      reminderProvider.sync(
+        anniversaryDate: anniversaryDate,
+        lastPhotoDate: lastPhotoDate,
+        l10n: l10n,
+      );
+    });
+  }
 
   String _navLabel(int index, AppLocalizations l10n) {
     switch (index) {
@@ -84,6 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
 
           final couple = coupleProvider.couple!;
+          _syncReminders(context, couple, photoProvider);
           final counterData = CounterData.calculateFromAnniversary(
             couple.anniversaryDate,
           );
@@ -413,7 +453,7 @@ class _HomeScreenState extends State<HomeScreen> {
             years: counterData.years,
             months: counterData.months,
             days: counterData.days,
-            subtitle: 'Bắt đầu từ ${_formatDate(couple.anniversaryDate)}',
+            subtitle: l10n.homeCounterStartFrom(_formatDate(couple.anniversaryDate)),
             footer: daysUntilAnniversary == 0
                 ? l10n.todayIsAnniversary
                 : l10n.daysUntilNextAnniversary(daysUntilAnniversary),
@@ -570,9 +610,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Chờ bạn đồng hành',
-                  style: TextStyle(
+                Text(
+                  context.l10n.homeWaitingPartnerTitle,
+                  style: const TextStyle(
                     color: AppColors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -581,7 +621,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Chia sẻ mã mời với người ấy để bắt đầu hành trình cùng nhau.',
+                  context.l10n.homeWaitingPartnerSubtitle,
                   style: TextStyle(
                     color: AppColors.white.withValues(alpha: 0.80),
                     fontSize: 12,

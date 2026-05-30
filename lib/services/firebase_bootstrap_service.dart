@@ -2,13 +2,19 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
+import '../l10n/app_l10n.dart';
+
 class FirebaseBootstrapService {
   static bool _isInitialized = false;
   static bool _isFirebaseReady = false;
-  static String? _bootstrapMessage;
 
   static bool get isFirebaseReady => _isFirebaseReady;
-  static String? get bootstrapMessage => _bootstrapMessage;
+
+  // Built lazily so it resolves against the locale that's active when the
+  // message is actually shown (login/register screens), not the default locale
+  // present during early startup when initialize() runs.
+  static String? get bootstrapMessage =>
+      _isFirebaseReady ? null : _buildBootstrapMessage();
 
   static Future<void> initialize() async {
     if (_isInitialized) {
@@ -20,7 +26,6 @@ class FirebaseBootstrapService {
     try {
       await Firebase.initializeApp();
       _isFirebaseReady = true;
-      _bootstrapMessage = null;
 
       if (!kIsWeb) {
         await FirebaseCrashlytics.instance
@@ -28,29 +33,29 @@ class FirebaseBootstrapService {
       }
     } catch (e) {
       _isFirebaseReady = false;
-      _bootstrapMessage = _buildBootstrapMessage();
       debugPrint('Firebase init skipped: $e');
     }
   }
 
   static String _buildBootstrapMessage() {
+    final l10n = AppL10n.strings;
     if (kIsWeb) {
-      return 'Firebase chưa được cấu hình cho Web nên app đang chạy local fallback.';
+      return l10n.bootstrapWebNotConfigured;
     }
 
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return 'Firebase Android chưa sẵn sàng. Kiểm tra lại `android/app/google-services.json` và package name của app.';
+        return l10n.bootstrapAndroidNotReady;
       case TargetPlatform.iOS:
-        return 'Bạn đang chạy iOS nhưng project chưa có `GoogleService-Info.plist`, nên app đang rơi về local fallback.';
+        return l10n.bootstrapIosNotConfigured;
       case TargetPlatform.macOS:
-        return 'Firebase cho macOS chưa được cấu hình nên app đang chạy local fallback.';
+        return l10n.bootstrapMacosNotConfigured;
       case TargetPlatform.windows:
-        return 'Firebase cho Windows chưa được cấu hình nên app đang chạy local fallback.';
+        return l10n.bootstrapWindowsNotConfigured;
       case TargetPlatform.linux:
-        return 'Firebase cho Linux chưa được cấu hình nên app đang chạy local fallback.';
+        return l10n.bootstrapLinuxNotConfigured;
       case TargetPlatform.fuchsia:
-        return 'Firebase chưa được cấu hình cho platform hiện tại nên app đang chạy local fallback.';
+        return l10n.bootstrapPlatformNotConfigured;
     }
   }
 }

@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/photo.dart';
 import 'firebase_bootstrap_service.dart';
@@ -65,7 +66,7 @@ class PhotoService {
     String? caption,
   }) async {
     if (!currentUser.hasCouple) {
-      throw const PhotoSyncException('Bạn cần kết nối couple trước khi đăng ảnh.');
+      throw PhotoSyncException(AppL10n.strings.photoConnectCoupleFirst);
     }
 
     final localCopyPath = await StorageService.savePhotoFile(localImagePath);
@@ -87,7 +88,7 @@ class PhotoService {
 
     final file = File(localImagePath);
     if (!await file.exists()) {
-      throw const PhotoSyncException('Không tìm thấy ảnh để đăng.');
+      throw PhotoSyncException(AppL10n.strings.photoNotFoundToPost);
     }
 
     final coupleId = currentUser.coupleId!;
@@ -179,19 +180,20 @@ class PhotoService {
   }
 
   String _mapFirebaseError(FirebaseException exception) {
+    final l10n = AppL10n.strings;
     switch (exception.code) {
       case 'permission-denied':
-        return 'Bạn chưa có quyền đồng bộ ảnh. Hãy kiểm tra `firestore.rules` và `storage.rules` trên Firebase.';
+        return l10n.photoSyncPermissionDenied;
       case 'unauthenticated':
-        return 'Phiên đăng nhập Firebase đã hết hạn. Bạn đăng nhập lại giúp mình nhé.';
+        return l10n.photoSyncSessionExpired;
       case 'object-not-found':
-        return 'Không tìm thấy file ảnh trên Firebase Storage.';
+        return l10n.photoFileNotFoundStorage;
       case 'unauthorized':
-        return 'Firebase Storage đang từ chối thao tác với ảnh này.';
+        return l10n.photoStorageUnauthorized;
       case 'unavailable':
-        return 'Firebase hiện chưa khả dụng hoặc mạng chưa ổn định.';
+        return l10n.photoFirebaseUnavailable;
       default:
-        return exception.message ?? 'Không thể đồng bộ ảnh lúc này.';
+        return exception.message ?? l10n.photoSyncGeneric;
     }
   }
 }

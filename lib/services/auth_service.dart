@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import 'couple_service.dart';
 import 'firebase_bootstrap_service.dart';
@@ -121,7 +122,7 @@ class AuthService {
 
         final firebaseUser = credential.user;
         if (firebaseUser == null) {
-          throw const AuthException('Không tạo được người dùng Firebase.');
+          throw AuthException(AppL10n.strings.authFirebaseUserCreateFailed);
         }
 
         await firebaseUser.updateDisplayName(displayName.trim());
@@ -164,7 +165,7 @@ class AuthService {
     );
 
     if (emailAlreadyUsed) {
-      throw const AuthException('Email này đã được sử dụng rồi.');
+      throw AuthException(AppL10n.strings.authEmailAlreadyUsed);
     }
 
     final now = DateTime.now();
@@ -203,7 +204,7 @@ class AuthService {
 
         final firebaseUser = credential.user;
         if (firebaseUser == null) {
-          throw const AuthException('Không thể lấy phiên đăng nhập Firebase.');
+          throw AuthException(AppL10n.strings.authSessionUnavailable);
         }
 
         await _ensureFirebaseSessionReady(firebaseUser);
@@ -237,12 +238,12 @@ class AuthService {
     );
 
     if (index == -1) {
-      throw const AuthException('Không tìm thấy tài khoản với email này.');
+      throw AuthException(AppL10n.strings.authAccountNotFound);
     }
 
     final record = users[index];
     if ((record['password'] as String?) != normalizedPassword) {
-      throw const AuthException('Mật khẩu chưa đúng, bạn kiểm tra lại nhé.');
+      throw AuthException(AppL10n.strings.authWrongPassword);
     }
 
     final signedInUser = await _ensureInviteCode(AppUser.fromJson(record).copyWith(
@@ -404,7 +405,7 @@ class AuthService {
       email: firebaseUser.email?.trim().toLowerCase() ?? '',
       displayName: firebaseUser.displayName?.trim().isNotEmpty == true
           ? firebaseUser.displayName!.trim()
-          : (firebaseUser.email?.split('@').first ?? 'Người dùng mới'),
+          : (firebaseUser.email?.split('@').first ?? AppL10n.strings.defaultDisplayName),
       inviteCode: '',
       status: 'single',
       createdAt: now,
@@ -416,43 +417,45 @@ class AuthService {
   String _mapFirebaseAuthError(FirebaseAuthException exception) {
     final rawMessage = exception.message ?? '';
 
+    final l10n = AppL10n.strings;
     switch (exception.code) {
       case 'email-already-in-use':
-        return 'Email này đã được sử dụng rồi.';
+        return l10n.authEmailAlreadyUsed;
       case 'operation-not-allowed':
       case 'configuration-not-found':
-        return 'Firebase Authentication chưa được cấu hình đầy đủ cho Email/Password. Bạn vào Firebase Console > Authentication > Sign-in method và bật Email/Password nhé.';
+        return l10n.authEmailPasswordNotEnabled;
       case 'invalid-email':
-        return 'Email chưa hợp lệ.';
+        return l10n.authInvalidEmail;
       case 'weak-password':
-        return 'Mật khẩu còn yếu, bạn chọn mật khẩu mạnh hơn nhé.';
+        return l10n.authWeakPassword;
       case 'user-not-found':
-        return 'Không tìm thấy tài khoản với email này.';
+        return l10n.authAccountNotFound;
       case 'wrong-password':
       case 'invalid-credential':
-        return 'Email hoặc mật khẩu chưa đúng.';
+        return l10n.authInvalidCredential;
       case 'too-many-requests':
-        return 'Bạn thử lại sau ít phút nhé, hiện có quá nhiều yêu cầu đăng nhập.';
+        return l10n.authTooManyRequests;
       case 'network-request-failed':
-        return 'Không có kết nối mạng ổn định để đăng nhập Firebase.';
+        return l10n.authNetworkError;
       default:
         if (rawMessage.contains('CONFIGURATION_NOT_FOUND')) {
-          return 'Firebase Authentication của project này chưa được bật hoặc chưa bật Email/Password. Bạn vào Firebase Console > Authentication > Sign-in method > Email/Password để bật lên.';
+          return l10n.authConfigNotFound;
         }
-        return exception.message ?? 'Đã có lỗi Firebase Auth xảy ra.';
+        return exception.message ?? l10n.authFirebaseAuthGeneric;
     }
   }
 
   String _mapFirestoreError(FirebaseException exception) {
+    final l10n = AppL10n.strings;
     switch (exception.code) {
       case 'invite-code-unavailable':
-        return 'Không thể tạo mã mời cho tài khoản lúc này, bạn thử lại nhé.';
+        return l10n.authInviteCodeUnavailable;
       case 'permission-denied':
-        return 'Firestore đang chặn quyền ghi dữ liệu người dùng. App này đang kết nối project Firebase `tonyembeiu`, nên bạn cần kiểm tra Firestore Rules của project đó và cho phép user đã đăng nhập tạo/ghi `users/{uid}` cùng `invite_codes/{code}` của chính họ.';
+        return l10n.authFirestorePermissionDenied;
       case 'unavailable':
-        return 'Firestore hiện chưa khả dụng hoặc mạng không ổn định. Bạn thử lại sau ít phút nhé.';
+        return l10n.authFirestoreUnavailable;
       default:
-        return exception.message ?? 'Đã có lỗi Firestore xảy ra.';
+        return exception.message ?? l10n.authFirestoreGeneric;
     }
   }
 
@@ -467,9 +470,7 @@ class AuthService {
 
     final activeUser = _auth.currentUser;
     if (activeUser == null || activeUser.uid != expectedUid) {
-      throw const AuthException(
-        'Phiên đăng nhập Firebase chưa sẵn sàng. Bạn thử đăng nhập lại giúp mình nhé.',
-      );
+      throw AuthException(AppL10n.strings.authSessionNotReady);
     }
 
     await activeUser.getIdToken(true);
@@ -526,7 +527,7 @@ class AuthService {
       }
     }
 
-    throw const AuthException('Không thể tạo mã mời mới, bạn thử lại sau nhé.');
+    throw AuthException(AppL10n.strings.authInviteCodeGenerateFailed);
   }
 
   String _generateInviteCode() {

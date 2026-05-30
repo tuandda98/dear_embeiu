@@ -856,4 +856,367 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get copyBtn => 'Sao chép';
+
+  @override
+  String get remindersTitle => 'Nhắc nhở yêu thương';
+
+  @override
+  String get remindersSubtitle =>
+      'Những lời nhắc nhẹ nhàng để câu chuyện thêm đong đầy';
+
+  @override
+  String get remindersToggleLabel => 'Nhắc nhở hằng ngày';
+
+  @override
+  String get remindersToggleDesc =>
+      'Lời nhắc mỗi ngày cùng thông báo cột mốc & kỷ niệm';
+
+  @override
+  String get remindersTimeLabel => 'Giờ nhắc';
+
+  @override
+  String get remindersPermissionDeniedMsg =>
+      'Hãy bật thông báo trong Cài đặt để nhận lời nhắc.';
+
+  @override
+  String get reminderDailyTitle => 'Thêm một ngày của chúng mình 💕';
+
+  @override
+  String get reminderDailyBody =>
+      'Mở Dear Embeiu và cùng đếm thêm một ngày bên nhau nhé.';
+
+  @override
+  String get reminderMilestoneApproachingTitle => 'Sắp đến cột mốc rồi 💕';
+
+  @override
+  String reminderMilestoneApproachingBody(int count, String milestone) {
+    return 'Còn $count ngày nữa là đến cột mốc $milestone!';
+  }
+
+  @override
+  String get reminderMilestoneTodayTitle => 'Đã đến cột mốc 🎉';
+
+  @override
+  String reminderMilestoneTodayBody(String milestone) {
+    return 'Hôm nay chúng mình chạm mốc $milestone rồi 💕';
+  }
+
+  @override
+  String get reminderAnniversaryTitle => 'Chúc mừng kỷ niệm 🎉';
+
+  @override
+  String get reminderAnniversaryBody =>
+      'Hôm nay hãy cùng mừng thêm một năm yêu thương 💕';
+
+  @override
+  String get reminderInactivityTitle => 'Nhớ những khoảnh khắc 💭';
+
+  @override
+  String get reminderInactivityBody =>
+      'Đã lâu rồi — cùng thêm một kỷ niệm mới nhé 💕';
+
+  @override
+  String get languageSearchHint => 'Tìm ngôn ngữ';
+
+  @override
+  String get appTitle => 'Kỷ Niệm Của Chúng Mình';
+
+  @override
+  String homeCounterStartFrom(String date) => 'Bắt đầu từ $date';
+
+  @override
+  String get homeWaitingPartnerTitle => 'Chờ bạn đồng hành';
+
+  @override
+  String get homeWaitingPartnerSubtitle =>
+      'Chia sẻ mã mời với người ấy để bắt đầu hành trình cùng nhau.';
+
+  @override
+  String get galleryTodayEmptyTitle => 'Hôm nay chưa có khoảnh khắc nào';
+
+  @override
+  String get galleryTodayEmptySubtitle =>
+      'Đừng để ngày này trôi qua không dấu vết.';
+
+  @override
+  String get galleryRecordTodayMoment => 'Ghi lại khoảnh khắc hôm nay';
+
+  @override
+  String galleryTodayMomentsCount(int count) => '$count khoảnh khắc hôm nay';
+
+  @override
+  String get galleryTodayBadge => 'Hôm nay';
+
+  @override
+  String get galleryEditCaptionTooltip => 'Sửa chú thích';
+
+  @override
+  String galleryMonthLabel(int month, int year) {
+    final mm = month.toString().padLeft(2, '0');
+    return 'Tháng $mm • $year';
+  }
+
+  @override
+  String get galleryEmptyTitle => 'Chưa có ảnh nào';
+
+  @override
+  String get galleryEmptySubtitle => 'Thêm ảnh để bắt đầu tạo kỷ niệm';
+
+  @override
+  String get profileDangerIrreversible => 'Không thể hoàn tác';
+
+  @override
+  String get posterNameFallback => 'Người ấy';
+
+  @override
+  String counterDuration(int years, int months, int days) =>
+      '$years năm, $months tháng, $days ngày';
+
+  @override
+  String get pushPhotoChannelName => 'Ảnh mới từ người ấy';
+
+  @override
+  String get pushPhotoChannelDescription =>
+      'Thông báo khi người ấy đăng ảnh mới.';
+
+  @override
+  String get leavingCouple => 'Đang rời cặp đôi...';
+
+  @override
+  String coupleSyncError(String error) =>
+      'Không thể đồng bộ thông tin cặp đôi: $error';
+
+  @override
+  String coupleLoadError(String error) =>
+      'Không thể tải thông tin cặp đôi: $error';
+
+  @override
+  String get coupleNoDataToUpdate =>
+      'Chưa có thông tin cặp đôi để cập nhật.';
+
+  @override
+  String get authFirebaseUserCreateFailed => 'Không tạo được người dùng Firebase.';
+
+  @override
+  String get authEmailAlreadyUsed => 'Email này đã được sử dụng rồi.';
+
+  @override
+  String get authSessionUnavailable => 'Không thể lấy phiên đăng nhập Firebase.';
+
+  @override
+  String get authAccountNotFound => 'Không tìm thấy tài khoản với email này.';
+
+  @override
+  String get authWrongPassword => 'Mật khẩu chưa đúng, bạn kiểm tra lại nhé.';
+
+  @override
+  String get authEmailPasswordNotEnabled =>
+      'Firebase Authentication chưa được cấu hình đầy đủ cho Email/Password. Bạn vào Firebase Console > Authentication > Sign-in method và bật Email/Password nhé.';
+
+  @override
+  String get authInvalidEmail => 'Email chưa hợp lệ.';
+
+  @override
+  String get authWeakPassword =>
+      'Mật khẩu còn yếu, bạn chọn mật khẩu mạnh hơn nhé.';
+
+  @override
+  String get authInvalidCredential => 'Email hoặc mật khẩu chưa đúng.';
+
+  @override
+  String get authTooManyRequests =>
+      'Bạn thử lại sau ít phút nhé, hiện có quá nhiều yêu cầu đăng nhập.';
+
+  @override
+  String get authNetworkError =>
+      'Không có kết nối mạng ổn định để đăng nhập Firebase.';
+
+  @override
+  String get authConfigNotFound =>
+      'Firebase Authentication của project này chưa được bật hoặc chưa bật Email/Password. Bạn vào Firebase Console > Authentication > Sign-in method > Email/Password để bật lên.';
+
+  @override
+  String get authFirebaseAuthGeneric => 'Đã có lỗi Firebase Auth xảy ra.';
+
+  @override
+  String get authInviteCodeUnavailable =>
+      'Không thể tạo mã mời cho tài khoản lúc này, bạn thử lại nhé.';
+
+  @override
+  String get authFirestorePermissionDenied =>
+      'Firestore đang chặn quyền ghi dữ liệu người dùng. App này đang kết nối project Firebase `tonyembeiu`, nên bạn cần kiểm tra Firestore Rules của project đó và cho phép user đã đăng nhập tạo/ghi `users/{uid}` cùng `invite_codes/{code}` của chính họ.';
+
+  @override
+  String get authFirestoreUnavailable =>
+      'Firestore hiện chưa khả dụng hoặc mạng không ổn định. Bạn thử lại sau ít phút nhé.';
+
+  @override
+  String get authFirestoreGeneric => 'Đã có lỗi Firestore xảy ra.';
+
+  @override
+  String get authSessionNotReady =>
+      'Phiên đăng nhập Firebase chưa sẵn sàng. Bạn thử đăng nhập lại giúp mình nhé.';
+
+  @override
+  String get authInviteCodeGenerateFailed =>
+      'Không thể tạo mã mời mới, bạn thử lại sau nhé.';
+
+  @override
+  String get defaultDisplayName => 'Người dùng mới';
+
+  @override
+  String get coupleUserNotFoundForCreate =>
+      'Không tìm thấy người dùng hiện tại để tạo cặp đôi.';
+
+  @override
+  String get coupleUpdatedSuccess => 'Đã cập nhật thông tin cặp đôi.';
+
+  @override
+  String get coupleAlreadyInCouple => 'Tài khoản này đã thuộc một cặp đôi rồi.';
+
+  @override
+  String get coupleEnterCodeFirst => 'Bạn hãy nhập mã kết nối trước nhé.';
+
+  @override
+  String get coupleCannotUseOwnCode => 'Bạn không thể nhập mã mời của chính mình.';
+
+  @override
+  String get coupleInviteCodeInvalid =>
+      'Mã mời không hợp lệ hoặc không còn tồn tại.';
+
+  @override
+  String get couplePartnerHasNoSpace =>
+      'Người ấy đã có mã mời riêng nhưng chưa tạo không gian cặp đôi để bạn tham gia.';
+
+  @override
+  String get coupleNotFoundForCode =>
+      'Không tìm thấy cặp đôi tương ứng với mã này.';
+
+  @override
+  String get coupleCodeNoLongerValid =>
+      'Mã mời này không còn trỏ tới một cặp đôi hợp lệ nữa.';
+
+  @override
+  String get coupleAlreadyInThisCouple => 'Bạn đã ở trong cặp đôi này rồi.';
+
+  @override
+  String get coupleFull => 'Cặp đôi này đã đủ 2 người rồi.';
+
+  @override
+  String get coupleSpaceInvalidRegenerate =>
+      'Mã mời này đang trỏ tới một không gian cặp đôi không còn hợp lệ. Bạn nhờ người ấy tạo lại mã mời rồi thử lại nhé.';
+
+  @override
+  String get coupleJoinPermissionDenied =>
+      'Không thể kết nối bằng mã mời này. Có thể không gian cặp đôi đã thay đổi hoặc không còn hợp lệ — bạn nhờ người ấy tạo lại mã mời, hoặc đăng xuất/đăng nhập lại rồi thử nhé.';
+
+  @override
+  String get coupleSessionExpiredJoin =>
+      'Phiên đăng nhập đã hết hạn. Bạn đăng nhập lại rồi thử kết nối lại nhé.';
+
+  @override
+  String get coupleFirebaseUnavailable =>
+      'Firebase hiện chưa khả dụng hoặc mạng chưa ổn định. Bạn thử lại sau ít phút nhé.';
+
+  @override
+  String get coupleJoinGeneric => 'Không thể kết nối bằng mã mời lúc này.';
+
+  @override
+  String get coupleCodeNotFoundLocal =>
+      'Không tìm thấy mã kết nối trong local fallback.';
+
+  @override
+  String get coupleFullLocal => 'Cặp đôi local này đã đủ 2 người rồi.';
+
+  @override
+  String get coupleMatchedLocal => 'Đã ghép cặp trong local fallback mode.';
+
+  @override
+  String get coupleSessionNotReadyRelogin =>
+      'Phiên đăng nhập Firebase chưa sẵn sàng. Bạn đăng xuất rồi đăng nhập lại giúp mình nhé.';
+
+  @override
+  String get coupleSavePermissionDenied =>
+      'Không thể lưu thông tin cặp đôi do quyền truy cập bị từ chối. Dữ liệu có thể đang ở trạng thái không hợp lệ — bạn thử đăng xuất/đăng nhập lại rồi thử lại nhé.';
+
+  @override
+  String get coupleSessionInvalid =>
+      'Phiên đăng nhập Firebase không còn hợp lệ. Bạn đăng nhập lại giúp mình nhé.';
+
+  @override
+  String get coupleSaveGeneric => 'Không thể lưu thông tin cặp đôi lúc này.';
+
+  @override
+  String get couplePhotoUploadPermission =>
+      'Ảnh đôi chưa upload được lên Firebase Storage. Mình vẫn lưu thông tin cặp đôi trước, bạn deploy `storage.rules` rồi thử đổi ảnh lại sau nhé.';
+
+  @override
+  String get couplePhotoUploadSessionInvalid =>
+      'Ảnh đôi chưa upload được vì phiên đăng nhập Firebase không còn hợp lệ.';
+
+  @override
+  String get couplePhotoUploadUnavailable =>
+      'Ảnh đôi chưa upload được vì Firebase Storage hoặc mạng đang tạm thời không ổn định.';
+
+  @override
+  String get couplePhotoUploadGeneric =>
+      'Ảnh đôi chưa upload được lên Firebase Storage.';
+
+  @override
+  String get photoConnectCoupleFirst =>
+      'Bạn cần kết nối couple trước khi đăng ảnh.';
+
+  @override
+  String get photoNotFoundToPost => 'Không tìm thấy ảnh để đăng.';
+
+  @override
+  String get photoSyncPermissionDenied =>
+      'Bạn chưa có quyền đồng bộ ảnh. Hãy kiểm tra `firestore.rules` và `storage.rules` trên Firebase.';
+
+  @override
+  String get photoSyncSessionExpired =>
+      'Phiên đăng nhập Firebase đã hết hạn. Bạn đăng nhập lại giúp mình nhé.';
+
+  @override
+  String get photoFileNotFoundStorage =>
+      'Không tìm thấy file ảnh trên Firebase Storage.';
+
+  @override
+  String get photoStorageUnauthorized =>
+      'Firebase Storage đang từ chối thao tác với ảnh này.';
+
+  @override
+  String get photoFirebaseUnavailable =>
+      'Firebase hiện chưa khả dụng hoặc mạng chưa ổn định.';
+
+  @override
+  String get photoSyncGeneric => 'Không thể đồng bộ ảnh lúc này.';
+
+  @override
+  String get bootstrapWebNotConfigured =>
+      'Firebase chưa được cấu hình cho Web nên app đang chạy local fallback.';
+
+  @override
+  String get bootstrapAndroidNotReady =>
+      'Firebase Android chưa sẵn sàng. Kiểm tra lại `android/app/google-services.json` và package name của app.';
+
+  @override
+  String get bootstrapIosNotConfigured =>
+      'Bạn đang chạy iOS nhưng project chưa có `GoogleService-Info.plist`, nên app đang rơi về local fallback.';
+
+  @override
+  String get bootstrapMacosNotConfigured =>
+      'Firebase cho macOS chưa được cấu hình nên app đang chạy local fallback.';
+
+  @override
+  String get bootstrapWindowsNotConfigured =>
+      'Firebase cho Windows chưa được cấu hình nên app đang chạy local fallback.';
+
+  @override
+  String get bootstrapLinuxNotConfigured =>
+      'Firebase cho Linux chưa được cấu hình nên app đang chạy local fallback.';
+
+  @override
+  String get bootstrapPlatformNotConfigured =>
+      'Firebase chưa được cấu hình cho platform hiện tại nên app đang chạy local fallback.';
 }

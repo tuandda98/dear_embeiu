@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/couple.dart';
 import 'firebase_bootstrap_service.dart';
@@ -153,7 +154,7 @@ class CoupleService {
     String? photoPath,
   }) async {
     if (currentUser.id.trim().isEmpty) {
-      throw const CoupleException('Không tìm thấy người dùng hiện tại để tạo cặp đôi.');
+      throw CoupleException(AppL10n.strings.coupleUserNotFoundForCreate);
     }
 
     final now = DateTime.now();
@@ -267,7 +268,7 @@ class CoupleService {
     return CoupleActionResult(
       couple: updatedCouple,
       updatedUser: currentUser.copyWith(updatedAt: now, lastSeenAt: now),
-      message: 'Đã cập nhật thông tin cặp đôi.',
+      message: AppL10n.strings.coupleUpdatedSuccess,
       warningMessage: photoAttempt.warningMessage,
     );
   }
@@ -278,16 +279,16 @@ class CoupleService {
   }) async {
     // Block only users who are actively paired with a partner
     if (currentUser.hasCouple && currentUser.status == 'in_couple') {
-      throw const CoupleException('Tài khoản này đã thuộc một cặp đôi rồi.');
+      throw CoupleException(AppL10n.strings.coupleAlreadyInCouple);
     }
 
     final normalizedCode = inviteCode.trim().toUpperCase();
     if (normalizedCode.isEmpty) {
-      throw const CoupleException('Bạn hãy nhập mã kết nối trước nhé.');
+      throw CoupleException(AppL10n.strings.coupleEnterCodeFirst);
     }
 
     if (normalizedCode == currentUser.inviteCode.trim().toUpperCase()) {
-      throw const CoupleException('Bạn không thể nhập mã mời của chính mình.');
+      throw CoupleException(AppL10n.strings.coupleCannotUseOwnCode);
     }
 
     // If user already created a solo couple (waiting_partner), leave it first
@@ -302,18 +303,16 @@ class CoupleService {
 
         final accountInvite = await _userService.fetchAccountInvite(normalizedCode);
         if (accountInvite == null) {
-          throw const CoupleException('Mã mời không hợp lệ hoặc không còn tồn tại.');
+          throw CoupleException(AppL10n.strings.coupleInviteCodeInvalid);
         }
 
         if (accountInvite.userId == effectiveUser.id) {
-          throw const CoupleException('Bạn không thể dùng mã mời của chính mình.');
+          throw CoupleException(AppL10n.strings.coupleCannotUseOwnCode);
         }
 
         final targetCoupleId = accountInvite.coupleId?.trim() ?? '';
         if (targetCoupleId.isEmpty) {
-          throw const CoupleException(
-            'Người ấy đã có mã mời riêng nhưng chưa tạo không gian cặp đôi để bạn tham gia.',
-          );
+          throw CoupleException(AppL10n.strings.couplePartnerHasNoSpace);
         }
 
         final docRef = _couplesCollection.doc(targetCoupleId);
@@ -324,7 +323,7 @@ class CoupleService {
           final coupleSnapshot = await transaction.get(docRef);
           final coupleData = coupleSnapshot.data();
           if (coupleData == null) {
-            throw const CoupleException('Không tìm thấy cặp đôi tương ứng với mã này.');
+            throw CoupleException(AppL10n.strings.coupleNotFoundForCode);
           }
 
           final currentCouple = Couple.fromJson({
@@ -333,15 +332,33 @@ class CoupleService {
           });
 
           if (!currentCouple.memberIds.contains(accountInvite.userId)) {
-            throw const CoupleException('Mã mời này không còn trỏ tới một cặp đôi hợp lệ nữa.');
+            throw CoupleException(AppL10n.strings.coupleCodeNoLongerValid);
           }
 
           if (currentCouple.memberIds.contains(effectiveUser.id)) {
-            throw const CoupleException('Bạn đã ở trong cặp đôi này rồi.');
+            throw CoupleException(AppL10n.strings.coupleAlreadyInThisCouple);
           }
 
           if (currentCouple.memberCount >= 2) {
-            throw const CoupleException('Cặp đôi này đã đủ 2 người rồi.');
+            throw CoupleException(AppL10n.strings.coupleFull);
+          }
+
+          // Guard against stale/incomplete couple docs that the security rules
+          // would reject on write — e.g. an older doc missing `createdAt` (the
+          // one field the join write omits and relies on merge to preserve) or
+          // a doc whose memberCount/memberIds are inconsistent. Failing here
+          // gives a clear, actionable message instead of a cryptic
+          // permission-denied. The joiner can't repair the other account's
+          // invite pointer, so we ask them to regenerate the code.
+          final storedMemberIds = (coupleData['memberIds'] as List?) ?? const [];
+          final targetIsJoinable = coupleData['createdAt'] != null &&
+              (coupleData['memberCount'] as num?)?.toInt() == 1 &&
+              storedMemberIds.length == 1 &&
+              currentCouple.status == 'waiting_partner' &&
+              currentCouple.createdByUserId.trim().isNotEmpty &&
+              currentCouple.inviteCode.trim().isNotEmpty;
+          if (!targetIsJoinable) {
+            throw CoupleException(AppL10n.strings.coupleSpaceInvalidRegenerate);
           }
 
           final now = DateTime.now();
@@ -374,35 +391,45 @@ class CoupleService {
           );
         });
 
+        // Keep the joiner's own invite_codes pointer consistent with their new
+        // couple. The transaction writes the user doc directly (bypassing the
+        // invite sync), so without this the joiner's code could linger pointing
+        // at their old, now-deleted solo couple. Best-effort: a successful join
+        // must not fail just because this housekeeping write does.
+        try {
+          await _userService.updateUserProfile(updatedUser);
+        } catch (_) {
+          // Ignore — the pairing already succeeded; the pointer will be
+          // re-synced on the next profile update.
+        }
+
         await StorageService.saveCouple(updatedCouple);
         return CoupleActionResult(
           couple: updatedCouple,
           updatedUser: updatedUser,
-          message: 'Hai bạn đã kết nối thành công rồi 💞',
+          message: AppL10n.strings.setupSuccessConnected,
         );
       } on FirebaseException catch (e) {
         switch (e.code) {
           case 'permission-denied':
-            throw const CoupleException(
-              'Firestore đang từ chối đọc mã mời. App này đang kết nối project Firebase `tonyembeiu`, nên bạn cần deploy `firestore.rules` lên đúng project đó rồi thử lại.',
-            );
+            throw CoupleException(AppL10n.strings.coupleJoinPermissionDenied);
+          case 'unauthenticated':
+            throw CoupleException(AppL10n.strings.coupleSessionExpiredJoin);
           case 'unavailable':
-            throw const CoupleException(
-              'Firestore hiện chưa khả dụng hoặc mạng chưa ổn định. Bạn thử lại sau ít phút nhé.',
-            );
+            throw CoupleException(AppL10n.strings.coupleFirebaseUnavailable);
           default:
-            throw CoupleException(e.message ?? 'Không thể kết nối bằng mã mời lúc này.');
+            throw CoupleException(e.message ?? AppL10n.strings.coupleJoinGeneric);
         }
       }
     }
 
     final localCouple = await StorageService.loadCouple();
     if (localCouple == null || localCouple.inviteCode != normalizedCode) {
-      throw const CoupleException('Không tìm thấy mã kết nối trong local fallback.');
+      throw CoupleException(AppL10n.strings.coupleCodeNotFoundLocal);
     }
 
     if (localCouple.memberCount >= 2) {
-      throw const CoupleException('Cặp đôi local này đã đủ 2 người rồi.');
+      throw CoupleException(AppL10n.strings.coupleFullLocal);
     }
 
     final now = DateTime.now();
@@ -424,7 +451,7 @@ class CoupleService {
         updatedAt: now,
         lastSeenAt: now,
       ),
-      message: 'Đã ghép cặp trong local fallback mode.',
+      message: AppL10n.strings.coupleMatchedLocal,
     );
   }
 
@@ -601,37 +628,37 @@ class CoupleService {
   Future<void> _ensureFirebaseSessionReady() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
-      throw const CoupleException(
-        'Phiên đăng nhập Firebase chưa sẵn sàng. Bạn đăng xuất rồi đăng nhập lại giúp mình nhé.',
-      );
+      throw CoupleException(AppL10n.strings.coupleSessionNotReadyRelogin);
     }
     await currentUser.getIdToken();
   }
 
   String _mapFirebaseError(FirebaseException exception) {
+    final l10n = AppL10n.strings;
     switch (exception.code) {
       case 'permission-denied':
-        return 'Firestore đang chặn thao tác với dữ liệu cặp đôi. App này đang kết nối project Firebase `tonyembeiu`, nên bạn cần kiểm tra/deploy lại `firestore.rules` của đúng project đó rồi thử lại.';
+        return l10n.coupleSavePermissionDenied;
       case 'unauthenticated':
-        return 'Phiên đăng nhập Firebase không còn hợp lệ. Bạn đăng nhập lại giúp mình nhé.';
+        return l10n.coupleSessionInvalid;
       case 'unavailable':
-        return 'Firebase hiện chưa khả dụng hoặc mạng chưa ổn định. Bạn thử lại sau ít phút nhé.';
+        return l10n.coupleFirebaseUnavailable;
       default:
-        return exception.message ?? 'Không thể lưu thông tin cặp đôi lúc này.';
+        return exception.message ?? l10n.coupleSaveGeneric;
     }
   }
 
   String _mapPhotoSyncError(FirebaseException exception) {
+    final l10n = AppL10n.strings;
     switch (exception.code) {
       case 'unauthorized':
       case 'permission-denied':
-        return 'Ảnh đôi chưa upload được lên Firebase Storage. Mình vẫn lưu thông tin cặp đôi trước, bạn deploy `storage.rules` rồi thử đổi ảnh lại sau nhé.';
+        return l10n.couplePhotoUploadPermission;
       case 'unauthenticated':
-        return 'Ảnh đôi chưa upload được vì phiên đăng nhập Firebase không còn hợp lệ.';
+        return l10n.couplePhotoUploadSessionInvalid;
       case 'unavailable':
-        return 'Ảnh đôi chưa upload được vì Firebase Storage hoặc mạng đang tạm thời không ổn định.';
+        return l10n.couplePhotoUploadUnavailable;
       default:
-        return exception.message ?? 'Ảnh đôi chưa upload được lên Firebase Storage.';
+        return exception.message ?? l10n.couplePhotoUploadGeneric;
     }
   }
 

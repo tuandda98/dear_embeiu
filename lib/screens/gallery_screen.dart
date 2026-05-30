@@ -817,12 +817,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hôm nay chưa có khoảnh khắc nào',
+                      context.l10n.galleryTodayEmptyTitle,
                       style: _galleryCardTitleStyle(size: 14.5),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Đừng để ngày này trôi qua không dấu vết.',
+                      context.l10n.galleryTodayEmptySubtitle,
                       style: _galleryBodyStyle(
                         size: 12,
                         alpha: 0.60,
@@ -855,7 +855,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 ),
               ),
               icon: const Icon(Icons.add_a_photo_rounded, size: 17),
-              label: const Text('Ghi lại khoảnh khắc hôm nay'),
+              label: Text(context.l10n.galleryRecordTodayMoment),
             ),
           ),
         ],
@@ -893,12 +893,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '${todayPhotos.length} khoảnh khắc hôm nay',
+                  context.l10n.galleryTodayMomentsCount(todayPhotos.length),
                   style: _galleryCardTitleStyle(size: 14.5),
                 ),
               ),
               _buildPastelStoryBadge(
-                'Hôm nay',
+                context.l10n.galleryTodayBadge,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 fontSize: 10,
               ),
@@ -1146,7 +1146,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Widget _buildMonthHeaderWidget(DateTime date) {
-    final label = DateFormat("'Tháng' MM • yyyy").format(date);
+    final label = context.l10n.galleryMonthLabel(date.month, date.year);
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 4),
       child: Row(
@@ -1813,7 +1813,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                         foregroundColor: AppColors.white,
                       ),
                       icon: const Icon(Icons.edit_note_rounded),
-                      tooltip: 'Sửa chú thích',
+                      tooltip: context.l10n.galleryEditCaptionTooltip,
                     ),
                   const SizedBox(width: 8),
                   IconButton.filledTonal(

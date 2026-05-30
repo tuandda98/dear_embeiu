@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/couple.dart';
 import '../services/couple_service.dart';
@@ -34,7 +35,7 @@ class CoupleProvider extends ChangeNotifier {
       return;
     }
 
-    _setLoading(true, message: 'Đang tải thông tin cặp đôi...');
+    _setLoading(true, message: AppL10n.strings.loadingCoupleInfo);
     _clearError(notify: false);
 
     try {
@@ -47,13 +48,13 @@ class CoupleProvider extends ChangeNotifier {
             notifyListeners();
           },
           onError: (error) {
-            _errorMessage = 'Không thể đồng bộ thông tin cặp đôi: $error';
+            _errorMessage = AppL10n.strings.coupleSyncError('$error');
             notifyListeners();
           },
         );
       }
     } catch (e) {
-      _errorMessage = 'Không thể tải thông tin cặp đôi: $e';
+      _errorMessage = AppL10n.strings.coupleLoadError('$e');
       _couple = null;
     } finally {
       _setLoading(false);
@@ -67,7 +68,7 @@ class CoupleProvider extends ChangeNotifier {
     required DateTime anniversary,
     String? photoPath,
   }) async {
-    _setLoading(true, message: 'Đang lưu không gian cặp đôi...');
+    _setLoading(true, message: AppL10n.strings.savingCoupleSpace);
     _clearError(notify: false);
 
     try {
@@ -94,7 +95,7 @@ class CoupleProvider extends ChangeNotifier {
     required AppUser currentUser,
     required String inviteCode,
   }) async {
-    _setLoading(true, message: 'Đang kết nối cặp đôi...');
+    _setLoading(true, message: AppL10n.strings.connectingCouple);
     _clearError(notify: false);
 
     try {
@@ -123,10 +124,10 @@ class CoupleProvider extends ChangeNotifier {
   }) async {
     final existingCouple = _couple;
     if (existingCouple == null) {
-      throw const CoupleException('No couple data to update.');
+      throw CoupleException(AppL10n.strings.coupleNoDataToUpdate);
     }
 
-    _setLoading(true, message: 'Đang cập nhật thông tin cặp đôi...');
+    _setLoading(true, message: AppL10n.strings.updatingCoupleInfo);
     _clearError(notify: false);
 
     try {
@@ -151,7 +152,7 @@ class CoupleProvider extends ChangeNotifier {
   }
 
   Future<AppUser> leaveCouple({required AppUser currentUser}) async {
-    _setLoading(true, message: 'Đang rời cặp đôi...');
+    _setLoading(true, message: AppL10n.strings.leavingCouple);
     _clearError(notify: false);
 
     try {

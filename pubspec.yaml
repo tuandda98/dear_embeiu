@@ -76,6 +76,10 @@ dependencies:
   # Open URLs in browser
   url_launcher: ^6.3.1
 
+  # Scheduled local notifications for retention "love reminders"
+  timezone: ^0.10.1
+  flutter_timezone: ^4.1.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

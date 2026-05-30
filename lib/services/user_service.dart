@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import '../l10n/app_l10n.dart';
 import '../models/account_invite.dart';
 import '../models/app_user.dart';
 
@@ -69,7 +70,7 @@ class UserService {
     throw FirebaseException(
       plugin: 'cloud_firestore',
       code: 'invite-code-unavailable',
-      message: 'Không thể tạo mã mời mới vào lúc này.',
+      message: AppL10n.strings.authInviteCodeUnavailable,
     );
   }
 

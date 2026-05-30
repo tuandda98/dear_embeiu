@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import '../l10n/l10n.dart';
 import '../models/photo.dart';
 import '../theme/app_colors.dart';
 import 'photo_item.dart';
@@ -30,7 +31,7 @@ class MasonryGallery extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-              'Chưa có ảnh nào',
+              context.l10n.galleryEmptyTitle,
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 16,
@@ -38,7 +39,7 @@ class MasonryGallery extends StatelessWidget {
             ),
             SizedBox(height: 8),
             Text(
-              'Thêm ảnh để bắt đầu tạo kỷ niệm',
+              context.l10n.galleryEmptySubtitle,
               style: TextStyle(
                 color: AppColors.textSecondary.withValues(alpha: 0.6),
                 fontSize: 13,

@@ -852,4 +852,378 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copyBtn => 'Copy';
+
+  @override
+  String get remindersTitle => 'Love reminders';
+
+  @override
+  String get remindersSubtitle => 'Gentle nudges to keep your story growing';
+
+  @override
+  String get remindersToggleLabel => 'Daily reminders';
+
+  @override
+  String get remindersToggleDesc =>
+      'A daily nudge plus milestone & anniversary alerts';
+
+  @override
+  String get remindersTimeLabel => 'Reminder time';
+
+  @override
+  String get remindersPermissionDeniedMsg =>
+      'Turn on notifications in Settings to receive reminders.';
+
+  @override
+  String get reminderDailyTitle => 'Another day of us 💕';
+
+  @override
+  String get reminderDailyBody => 'Open Dear Embeiu and count today together.';
+
+  @override
+  String get reminderMilestoneApproachingTitle => 'A milestone is near 💕';
+
+  @override
+  String reminderMilestoneApproachingBody(int count, String milestone) {
+    return '$count days until your $milestone milestone!';
+  }
+
+  @override
+  String get reminderMilestoneTodayTitle => 'Milestone reached 🎉';
+
+  @override
+  String reminderMilestoneTodayBody(String milestone) {
+    return 'Today you reach $milestone together 💕';
+  }
+
+  @override
+  String get reminderAnniversaryTitle => 'Happy anniversary 🎉';
+
+  @override
+  String get reminderAnniversaryBody =>
+      'Celebrate another year of your love story today 💕';
+
+  @override
+  String get reminderInactivityTitle => 'Missing your moments 💭';
+
+  @override
+  String get reminderInactivityBody =>
+      'It\'s been a while — add a new memory together 💕';
+
+  @override
+  String get languageSearchHint => 'Search languages';
+
+  @override
+  String get appTitle => 'Our Memories';
+
+  @override
+  String homeCounterStartFrom(String date) => 'Since $date';
+
+  @override
+  String get homeWaitingPartnerTitle => 'Waiting for your partner';
+
+  @override
+  String get homeWaitingPartnerSubtitle =>
+      'Share your invite code with your partner to start the journey together.';
+
+  @override
+  String get galleryTodayEmptyTitle => 'No moments captured today yet';
+
+  @override
+  String get galleryTodayEmptySubtitle =>
+      'Don\'t let today slip by without a trace.';
+
+  @override
+  String get galleryRecordTodayMoment => 'Capture today\'s moment';
+
+  @override
+  String galleryTodayMomentsCount(int count) => '$count moments today';
+
+  @override
+  String get galleryTodayBadge => 'Today';
+
+  @override
+  String get galleryEditCaptionTooltip => 'Edit caption';
+
+  @override
+  String galleryMonthLabel(int month, int year) {
+    const names = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return '${names[month - 1]} $year';
+  }
+
+  @override
+  String get galleryEmptyTitle => 'No photos yet';
+
+  @override
+  String get galleryEmptySubtitle => 'Add photos to start making memories';
+
+  @override
+  String get profileDangerIrreversible => 'Can\'t be undone';
+
+  @override
+  String get posterNameFallback => 'Your partner';
+
+  @override
+  String counterDuration(int years, int months, int days) =>
+      '$years years, $months months, $days days';
+
+  @override
+  String get pushPhotoChannelName => 'Partner photo updates';
+
+  @override
+  String get pushPhotoChannelDescription =>
+      'Get notified when your partner posts a new photo.';
+
+  @override
+  String get leavingCouple => 'Leaving the couple...';
+
+  @override
+  String coupleSyncError(String error) => 'Couldn\'t sync couple info: $error';
+
+  @override
+  String coupleLoadError(String error) => 'Couldn\'t load couple info: $error';
+
+  @override
+  String get coupleNoDataToUpdate => 'No couple data to update.';
+
+  @override
+  String get authFirebaseUserCreateFailed =>
+      'Couldn\'t create your Firebase account.';
+
+  @override
+  String get authEmailAlreadyUsed => 'This email is already in use.';
+
+  @override
+  String get authSessionUnavailable => 'Couldn\'t get your Firebase session.';
+
+  @override
+  String get authAccountNotFound => 'No account found for this email.';
+
+  @override
+  String get authWrongPassword =>
+      'That password isn\'t right — please check and try again.';
+
+  @override
+  String get authEmailPasswordNotEnabled =>
+      'Firebase Authentication isn\'t fully set up for Email/Password. In Firebase Console > Authentication > Sign-in method, enable Email/Password.';
+
+  @override
+  String get authInvalidEmail => 'That email isn\'t valid.';
+
+  @override
+  String get authWeakPassword =>
+      'That password is too weak — please choose a stronger one.';
+
+  @override
+  String get authInvalidCredential => 'Email or password is incorrect.';
+
+  @override
+  String get authTooManyRequests =>
+      'Too many sign-in attempts — please try again in a few minutes.';
+
+  @override
+  String get authNetworkError =>
+      'No stable network connection to sign in to Firebase.';
+
+  @override
+  String get authConfigNotFound =>
+      'Firebase Authentication for this project isn\'t enabled, or Email/Password is off. In Firebase Console > Authentication > Sign-in method > Email/Password, turn it on.';
+
+  @override
+  String get authFirebaseAuthGeneric => 'A Firebase Auth error occurred.';
+
+  @override
+  String get authInviteCodeUnavailable =>
+      'Couldn\'t create an invite code for your account right now — please try again.';
+
+  @override
+  String get authFirestorePermissionDenied =>
+      'Firestore is blocking writes to user data. This app connects to the Firebase project `tonyembeiu`, so check that project\'s Firestore Rules and allow a signed-in user to create/write their own `users/{uid}` and `invite_codes/{code}`.';
+
+  @override
+  String get authFirestoreUnavailable =>
+      'Firestore is currently unavailable or the network is unstable. Please try again in a few minutes.';
+
+  @override
+  String get authFirestoreGeneric => 'A Firestore error occurred.';
+
+  @override
+  String get authSessionNotReady =>
+      'Your Firebase session isn\'t ready. Please sign in again.';
+
+  @override
+  String get authInviteCodeGenerateFailed =>
+      'Couldn\'t generate a new invite code — please try again later.';
+
+  @override
+  String get defaultDisplayName => 'New user';
+
+  @override
+  String get coupleUserNotFoundForCreate =>
+      'Couldn\'t find your current account to create a couple.';
+
+  @override
+  String get coupleUpdatedSuccess => 'Couple info updated.';
+
+  @override
+  String get coupleAlreadyInCouple =>
+      'This account already belongs to a couple.';
+
+  @override
+  String get coupleEnterCodeFirst => 'Please enter a connection code first.';
+
+  @override
+  String get coupleCannotUseOwnCode => 'You can\'t use your own invite code.';
+
+  @override
+  String get coupleInviteCodeInvalid =>
+      'This invite code is invalid or no longer exists.';
+
+  @override
+  String get couplePartnerHasNoSpace =>
+      'Your partner has their own invite code but hasn\'t created a couple space for you to join yet.';
+
+  @override
+  String get coupleNotFoundForCode => 'No couple found for this code.';
+
+  @override
+  String get coupleCodeNoLongerValid =>
+      'This invite code no longer points to a valid couple.';
+
+  @override
+  String get coupleAlreadyInThisCouple => 'You\'re already in this couple.';
+
+  @override
+  String get coupleFull => 'This couple already has two people.';
+
+  @override
+  String get coupleSpaceInvalidRegenerate =>
+      'This invite code points to a couple space that\'s no longer valid. Ask your partner to regenerate the code, then try again.';
+
+  @override
+  String get coupleJoinPermissionDenied =>
+      'Couldn\'t connect with this invite code. The couple space may have changed or is no longer valid — ask your partner to regenerate the code, or sign out and back in, then try again.';
+
+  @override
+  String get coupleSessionExpiredJoin =>
+      'Your session has expired. Please sign in again, then retry connecting.';
+
+  @override
+  String get coupleFirebaseUnavailable =>
+      'Firebase is currently unavailable or the network is unstable. Please try again in a few minutes.';
+
+  @override
+  String get coupleJoinGeneric =>
+      'Couldn\'t connect with this invite code right now.';
+
+  @override
+  String get coupleCodeNotFoundLocal =>
+      'Couldn\'t find the connection code in local fallback.';
+
+  @override
+  String get coupleFullLocal => 'This local couple already has two people.';
+
+  @override
+  String get coupleMatchedLocal => 'Matched in local fallback mode.';
+
+  @override
+  String get coupleSessionNotReadyRelogin =>
+      'Your Firebase session isn\'t ready. Please sign out and back in.';
+
+  @override
+  String get coupleSavePermissionDenied =>
+      'Couldn\'t save couple info because access was denied. The data may be in an invalid state — please sign out and back in, then try again.';
+
+  @override
+  String get coupleSessionInvalid =>
+      'Your Firebase session is no longer valid. Please sign in again.';
+
+  @override
+  String get coupleSaveGeneric => 'Couldn\'t save couple info right now.';
+
+  @override
+  String get couplePhotoUploadPermission =>
+      'The couple photo couldn\'t be uploaded to Firebase Storage. Your couple info was saved first — deploy `storage.rules`, then try changing the photo again.';
+
+  @override
+  String get couplePhotoUploadSessionInvalid =>
+      'The couple photo couldn\'t be uploaded because your Firebase session is no longer valid.';
+
+  @override
+  String get couplePhotoUploadUnavailable =>
+      'The couple photo couldn\'t be uploaded because Firebase Storage or the network is temporarily unstable.';
+
+  @override
+  String get couplePhotoUploadGeneric =>
+      'The couple photo couldn\'t be uploaded to Firebase Storage.';
+
+  @override
+  String get photoConnectCoupleFirst =>
+      'Connect with your partner before posting a photo.';
+
+  @override
+  String get photoNotFoundToPost => 'Couldn\'t find the photo to post.';
+
+  @override
+  String get photoSyncPermissionDenied =>
+      'You don\'t have permission to sync photos. Check `firestore.rules` and `storage.rules` on Firebase.';
+
+  @override
+  String get photoSyncSessionExpired =>
+      'Your Firebase session has expired. Please sign in again.';
+
+  @override
+  String get photoFileNotFoundStorage =>
+      'The photo file wasn\'t found on Firebase Storage.';
+
+  @override
+  String get photoStorageUnauthorized =>
+      'Firebase Storage is refusing this photo operation.';
+
+  @override
+  String get photoFirebaseUnavailable =>
+      'Firebase is currently unavailable or the network is unstable.';
+
+  @override
+  String get photoSyncGeneric => 'Couldn\'t sync photos right now.';
+
+  @override
+  String get bootstrapWebNotConfigured =>
+      'Firebase isn\'t configured for Web, so the app is running in local fallback.';
+
+  @override
+  String get bootstrapAndroidNotReady =>
+      'Firebase Android isn\'t ready. Check `android/app/google-services.json` and the app\'s package name.';
+
+  @override
+  String get bootstrapIosNotConfigured =>
+      'You\'re on iOS but the project has no `GoogleService-Info.plist`, so the app fell back to local mode.';
+
+  @override
+  String get bootstrapMacosNotConfigured =>
+      'Firebase for macOS isn\'t configured, so the app is running in local fallback.';
+
+  @override
+  String get bootstrapWindowsNotConfigured =>
+      'Firebase for Windows isn\'t configured, so the app is running in local fallback.';
+
+  @override
+  String get bootstrapLinuxNotConfigured =>
+      'Firebase for Linux isn\'t configured, so the app is running in local fallback.';
+
+  @override
+  String get bootstrapPlatformNotConfigured =>
+      'Firebase isn\'t configured for the current platform, so the app is running in local fallback.';
 }

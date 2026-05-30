@@ -392,5 +392,36 @@
 
   "setupNoChangesToSaveMsg": "Không có gì thay đổi để lưu.",
   "inviteCodeCopiedMsg": "Đã sao chép mã mời",
-  "copyBtn": "Sao chép"
+  "copyBtn": "Sao chép",
+
+  "remindersTitle": "Nhắc nhở yêu thương",
+  "remindersSubtitle": "Những lời nhắc nhẹ nhàng để câu chuyện thêm đong đầy",
+  "remindersToggleLabel": "Nhắc nhở hằng ngày",
+  "remindersToggleDesc": "Lời nhắc mỗi ngày cùng thông báo cột mốc & kỷ niệm",
+  "remindersTimeLabel": "Giờ nhắc",
+  "remindersPermissionDeniedMsg": "Hãy bật thông báo trong Cài đặt để nhận lời nhắc.",
+
+  "reminderDailyTitle": "Thêm một ngày của chúng mình 💕",
+  "reminderDailyBody": "Mở Dear Embeiu và cùng đếm thêm một ngày bên nhau nhé.",
+  "reminderMilestoneApproachingTitle": "Sắp đến cột mốc rồi 💕",
+  "reminderMilestoneApproachingBody": "Còn {count} ngày nữa là đến cột mốc {milestone}!",
+  "@reminderMilestoneApproachingBody": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "milestone": { "type": "String" }
+    }
+  },
+  "reminderMilestoneTodayTitle": "Đã đến cột mốc 🎉",
+  "reminderMilestoneTodayBody": "Hôm nay chúng mình chạm mốc {milestone} rồi 💕",
+  "@reminderMilestoneTodayBody": {
+    "placeholders": {
+      "milestone": { "type": "String" }
+    }
+  },
+  "reminderAnniversaryTitle": "Chúc mừng kỷ niệm 🎉",
+  "reminderAnniversaryBody": "Hôm nay hãy cùng mừng thêm một năm yêu thương 💕",
+  "reminderInactivityTitle": "Nhớ những khoảnh khắc 💭",
+  "reminderInactivityBody": "Đã lâu rồi — cùng thêm một kỷ niệm mới nhé 💕",
+
+  "languageSearchHint": "Tìm ngôn ngữ"
 }

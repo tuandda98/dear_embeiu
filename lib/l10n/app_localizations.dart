@@ -1525,6 +1525,146 @@ abstract class AppLocalizations {
   String get inviteCodeCopiedMsg;
 
   String get copyBtn;
+
+  String get remindersTitle;
+
+  String get remindersSubtitle;
+
+  String get remindersToggleLabel;
+
+  String get remindersToggleDesc;
+
+  String get remindersTimeLabel;
+
+  String get remindersPermissionDeniedMsg;
+
+  String get reminderDailyTitle;
+
+  String get reminderDailyBody;
+
+  String get reminderMilestoneApproachingTitle;
+
+  String reminderMilestoneApproachingBody(int count, String milestone);
+
+  String get reminderMilestoneTodayTitle;
+
+  String reminderMilestoneTodayBody(String milestone);
+
+  String get reminderAnniversaryTitle;
+
+  String get reminderAnniversaryBody;
+
+  String get reminderInactivityTitle;
+
+  String get reminderInactivityBody;
+
+  String get languageSearchHint;
+
+  // ----- App-wide -----
+  String get appTitle;
+
+  // ----- Home screen -----
+  String homeCounterStartFrom(String date);
+  String get homeWaitingPartnerTitle;
+  String get homeWaitingPartnerSubtitle;
+
+  // ----- Gallery screen -----
+  String get galleryTodayEmptyTitle;
+  String get galleryTodayEmptySubtitle;
+  String get galleryRecordTodayMoment;
+  String galleryTodayMomentsCount(int count);
+  String get galleryTodayBadge;
+  String get galleryEditCaptionTooltip;
+  String galleryMonthLabel(int month, int year);
+  String get galleryEmptyTitle;
+  String get galleryEmptySubtitle;
+
+  // ----- Profile screen -----
+  String get profileDangerIrreversible;
+
+  // ----- Models -----
+  String get posterNameFallback;
+  String counterDuration(int years, int months, int days);
+
+  // ----- Push notifications -----
+  String get pushPhotoChannelName;
+  String get pushPhotoChannelDescription;
+
+  // ----- Providers -----
+  String get leavingCouple;
+  String coupleSyncError(String error);
+  String coupleLoadError(String error);
+  String get coupleNoDataToUpdate;
+
+  // ----- Auth service -----
+  String get authFirebaseUserCreateFailed;
+  String get authEmailAlreadyUsed;
+  String get authSessionUnavailable;
+  String get authAccountNotFound;
+  String get authWrongPassword;
+  String get authEmailPasswordNotEnabled;
+  String get authInvalidEmail;
+  String get authWeakPassword;
+  String get authInvalidCredential;
+  String get authTooManyRequests;
+  String get authNetworkError;
+  String get authConfigNotFound;
+  String get authFirebaseAuthGeneric;
+  String get authInviteCodeUnavailable;
+  String get authFirestorePermissionDenied;
+  String get authFirestoreUnavailable;
+  String get authFirestoreGeneric;
+  String get authSessionNotReady;
+  String get authInviteCodeGenerateFailed;
+  String get defaultDisplayName;
+
+  // ----- Couple service -----
+  String get coupleUserNotFoundForCreate;
+  String get coupleUpdatedSuccess;
+  String get coupleAlreadyInCouple;
+  String get coupleEnterCodeFirst;
+  String get coupleCannotUseOwnCode;
+  String get coupleInviteCodeInvalid;
+  String get couplePartnerHasNoSpace;
+  String get coupleNotFoundForCode;
+  String get coupleCodeNoLongerValid;
+  String get coupleAlreadyInThisCouple;
+  String get coupleFull;
+  String get coupleSpaceInvalidRegenerate;
+  String get coupleJoinPermissionDenied;
+  String get coupleSessionExpiredJoin;
+  String get coupleFirebaseUnavailable;
+  String get coupleJoinGeneric;
+  String get coupleCodeNotFoundLocal;
+  String get coupleFullLocal;
+  String get coupleMatchedLocal;
+  String get coupleSessionNotReadyRelogin;
+  String get coupleSavePermissionDenied;
+  String get coupleSessionInvalid;
+  String get coupleSaveGeneric;
+  String get couplePhotoUploadPermission;
+  String get couplePhotoUploadSessionInvalid;
+  String get couplePhotoUploadUnavailable;
+  String get couplePhotoUploadGeneric;
+
+  // ----- Photo service -----
+  String get photoConnectCoupleFirst;
+  String get photoNotFoundToPost;
+  String get photoSyncPermissionDenied;
+  String get photoSyncSessionExpired;
+  String get photoFileNotFoundStorage;
+  String get photoStorageUnauthorized;
+  String get photoFirebaseUnavailable;
+  String get photoSyncGeneric;
+
+  // ----- Firebase bootstrap -----
+  String get bootstrapWebNotConfigured;
+  String get bootstrapAndroidNotReady;
+  String get bootstrapIosNotConfigured;
+  String get bootstrapMacosNotConfigured;
+  String get bootstrapWindowsNotConfigured;
+  String get bootstrapLinuxNotConfigured;
+  String get bootstrapPlatformNotConfigured;
 }
 
 class _AppLocalizationsDelegate

@@ -1,3 +1,5 @@
+import '../l10n/app_l10n.dart';
+
 class Photo {
   final String id;
   final String path;
@@ -25,7 +27,7 @@ class Photo {
 
   bool get hasLocalPath => path.trim().isNotEmpty;
   bool get hasRemoteUrl => remoteUrl?.trim().isNotEmpty == true;
-  String get posterName => authorName?.trim().isNotEmpty == true ? authorName!.trim() : 'Người ấy';
+  String get posterName => authorName?.trim().isNotEmpty == true ? authorName!.trim() : AppL10n.strings.posterNameFallback;
 
   // Convert to JSON for storage
   Map<String, dynamic> toJson() => {

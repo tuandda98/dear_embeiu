@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/photo.dart';
 import '../services/photo_service.dart';
@@ -55,7 +56,7 @@ class PhotoProvider extends ChangeNotifier {
       return;
     }
 
-    _setLoading(true, message: 'Đang đồng bộ thư viện...');
+    _setLoading(true, message: AppL10n.strings.syncingLibrary);
     _clearError(notify: false);
 
     _photoSubscription = _photoService.watchCouplePhotos(currentUser.coupleId!).listen(
@@ -90,7 +91,7 @@ class PhotoProvider extends ChangeNotifier {
     required AppUser currentUser,
     String? caption,
   }) async {
-    _setLoading(true, message: 'Đang tải ảnh lên...');
+    _setLoading(true, message: AppL10n.strings.uploadingPhoto);
     _clearError(notify: false);
 
     try {
@@ -120,7 +121,7 @@ class PhotoProvider extends ChangeNotifier {
   }) async {
     final photo = _photos.firstWhere((p) => p.id == photoId);
 
-    _setLoading(true, message: 'Đang xóa ảnh...');
+    _setLoading(true, message: AppL10n.strings.deletingPhoto);
     _clearError(notify: false);
 
     try {
@@ -150,7 +151,7 @@ class PhotoProvider extends ChangeNotifier {
       return;
     }
 
-    _setLoading(true, message: 'Đang cập nhật chú thích...');
+    _setLoading(true, message: AppL10n.strings.updatingCaption);
     _clearError(notify: false);
 
     try {
