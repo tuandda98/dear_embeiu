@@ -125,6 +125,8 @@ exports.sendPartnerPhotoNotification = onDocumentCreated(
           ref: doc.ref,
           partnerId,
           platform: `${doc.get("platform") || "unknown"}`.trim().toLowerCase(),
+          // Gap B — language of the recipient device, used to localize the push.
+          languageCode: `${doc.get("languageCode") || ""}`.trim().toLowerCase(),
         });
       }
     }
@@ -137,44 +139,49 @@ exports.sendPartnerPhotoNotification = onDocumentCreated(
       return;
     }
 
-    const title = `${authorName} vừa đăng ảnh mới 💞`;
-    const body = caption
-      ? truncateText(caption, 120)
-      : "Mở app để xem khoảnh khắc mới của hai bạn nhé.";
-
-    const response = await admin.messaging().sendEachForMulticast({
-      tokens: deviceDocs.map((entry) => entry.token),
-      notification: {
-        title,
-        body,
-      },
-      data: {
-        type: "photo_posted",
-        title,
-        body,
-        coupleId,
-        photoId,
-        authorUserId,
-      },
-      android: {
-        priority: "high",
-        notification: {
-          channelId: "partner_photo_updates",
+    // Gap B — build one message per device so each recipient gets the push in
+    // the language THEIR device registered (falls back to Vietnamese). Sent via
+    // sendEach (not multicast) because the notification text now varies by token.
+    // TODO deploy: cần `firebase deploy --only functions` để áp dụng thay đổi này.
+    const messages = deviceDocs.map((device) => {
+      const {title, body} = buildPhotoNotificationText(
+        device.languageCode,
+        authorName,
+        caption,
+      );
+      return {
+        token: device.token,
+        notification: {title, body},
+        data: {
+          type: "photo_posted",
+          title,
+          body,
+          coupleId,
+          photoId,
+          authorUserId,
         },
-      },
-      apns: {
-        headers: {
-          "apns-priority": "10",
-          "apns-push-type": "alert",
-        },
-        payload: {
-          aps: {
-            sound: "default",
-            badge: 1,
+        android: {
+          priority: "high",
+          notification: {
+            channelId: "partner_photo_updates",
           },
         },
-      },
+        apns: {
+          headers: {
+            "apns-priority": "10",
+            "apns-push-type": "alert",
+          },
+          payload: {
+            aps: {
+              sound: "default",
+              badge: 1,
+            },
+          },
+        },
+      };
     });
+
+    const response = await admin.messaging().sendEach(messages);
 
     const invalidRefs = [];
     const failures = [];
@@ -380,6 +387,29 @@ async function deleteStoragePrefix(prefix) {
 function normalizeActorName(value) {
   const normalized = `${value || ""}`.trim();
   return normalized || "Người ấy";
+}
+
+// Gap B — localized copy for the partner-photo push, keyed by the recipient
+// device's languageCode. Unknown/missing codes fall back to Vietnamese.
+const PHOTO_NOTIFICATION_COPY = {
+  vi: {
+    title: (author) => `${author} vừa đăng ảnh mới 💞`,
+    fallbackBody: "Mở app để xem khoảnh khắc mới của hai bạn nhé.",
+  },
+  en: {
+    title: (author) => `${author} just shared a new photo 💞`,
+    fallbackBody: "Open the app to see your latest moment together.",
+  },
+};
+
+function buildPhotoNotificationText(languageCode, authorName, caption) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = PHOTO_NOTIFICATION_COPY[code] || PHOTO_NOTIFICATION_COPY.vi;
+  const trimmedCaption = `${caption || ""}`.trim();
+  return {
+    title: copy.title(authorName),
+    body: trimmedCaption ? truncateText(trimmedCaption, 120) : copy.fallbackBody,
+  };
 }
 
 function truncateText(value, maxLength) {

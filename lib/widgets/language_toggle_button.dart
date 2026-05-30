@@ -16,10 +16,14 @@ import '../theme/app_colors.dart';
 ///      search field automatically once there are more than [_kSearchThreshold]
 ///      languages.
 const List<AppLanguage> kAppLanguages = [
-  AppLanguage(code: null, flag: '🌐', endonym: ''), // system default
-  AppLanguage(code: 'en', flag: '🇺🇸', endonym: 'English'),
-  AppLanguage(code: 'vi', flag: '🇻🇳', endonym: 'Tiếng Việt'),
+  AppLanguage(code: null, endonym: ''), // system default — keep first
+  AppLanguage(code: 'en', endonym: 'English'),
+  AppLanguage(code: 'vi', endonym: 'Tiếng Việt'),
 ];
+
+/// Globe used for the "system default" entry — it represents "automatic",
+/// not a specific language, so it stays an emoji rather than a letter chip.
+const String _kSystemGlyph = '🌐';
 
 /// Show the search field once the list grows past this many languages.
 const int _kSearchThreshold = 6;
@@ -27,13 +31,11 @@ const int _kSearchThreshold = 6;
 class AppLanguage {
   const AppLanguage({
     required this.code,
-    required this.flag,
     required this.endonym,
   });
 
   /// BCP-47 language code, or null for "follow the device language".
   final String? code;
-  final String flag;
 
   /// The language's name in its own language (e.g. "Tiếng Việt"). Empty for the
   /// system-default entry, whose label is localized at render time. Showing the
@@ -85,6 +87,15 @@ class LanguageToggleButton extends StatelessWidget {
     final selected = currentAppLanguage(context.watch<LocaleProvider>().locale);
     final fgColor = onDark ? AppColors.white : AppColors.textPrimary;
 
+    // When following the system language the pill shows the globe plus the code
+    // MaterialApp actually resolved (e.g. "🌐 VI") instead of a bare dash.
+    final bool isSystem = selected.code == null;
+    final String resolvedCode =
+        Localizations.localeOf(context).languageCode.toUpperCase();
+    final String leadingGlyph =
+        isSystem ? _kSystemGlyph : selected.code!.toUpperCase();
+    final String pillCode = isSystem ? resolvedCode : selected.code!.toUpperCase();
+
     return GestureDetector(
       onTap: () => showLanguagePicker(context),
       child: Container(
@@ -103,10 +114,10 @@ class LanguageToggleButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(selected.flag, style: const TextStyle(fontSize: 14)),
+            Text(leadingGlyph, style: const TextStyle(fontSize: 14)),
             const SizedBox(width: 5),
             Text(
-              selected.code?.toUpperCase() ?? '—',
+              pillCode,
               style: TextStyle(
                 color: fgColor,
                 fontSize: 12,
@@ -218,6 +229,10 @@ class _LanguageSheetState extends State<_LanguageSheet> {
                 return _LanguageTile(
                   lang: lang,
                   label: appLanguageLabel(lang, l10n),
+                  // System uses its localized description as the subtitle;
+                  // real languages show only their endonym (PO decision: no
+                  // English sub-name line in the picker).
+                  subtitle: lang.code == null ? l10n.languageSystemDesc : null,
                   isSelected: lang.code == widget.currentCode,
                   onTap: () {
                     Navigator.pop(context);
@@ -240,10 +255,12 @@ class _LanguageTile extends StatelessWidget {
     required this.label,
     required this.isSelected,
     required this.onTap,
+    this.subtitle,
   });
 
   final AppLanguage lang;
   final String label;
+  final String? subtitle;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -268,16 +285,34 @@ class _LanguageTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Text(lang.flag, style: const TextStyle(fontSize: 22)),
+            _LanguageChip(lang: lang),
             const SizedBox(width: 14),
             Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 15,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                  if (subtitle != null && subtitle!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: const TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             if (isSelected)
@@ -286,6 +321,40 @@ class _LanguageTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Letter chip used by the picker rows. Real languages show their uppercase
+/// code (EN/VI) on a soft rose tile; the system-default entry shows the globe
+/// glyph (it stands for "automatic", not a single language).
+class _LanguageChip extends StatelessWidget {
+  const _LanguageChip({required this.lang});
+
+  final AppLanguage lang;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isSystem = lang.code == null;
+    return Container(
+      width: 44,
+      height: 44,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.accentRose.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: isSystem
+          ? const Text(_kSystemGlyph, style: TextStyle(fontSize: 20))
+          : Text(
+              lang.code!.toUpperCase(),
+              style: const TextStyle(
+                color: AppColors.accentLove,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
+            ),
     );
   }
 }

@@ -6,6 +6,8 @@ import 'l10n/app_l10n.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
 import 'app/app_routes.dart';
@@ -30,6 +32,16 @@ import 'theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+
+  // Initialise locale-aware date formatting once, up front. DateFormat.yMMMd
+  // (and friends) throw for non-en locales unless their symbols have been
+  // loaded, so this must run before any localized DateFormat is used.
+  await initializeDateFormatting();
+
+  // Gap D — preload the saved locale BEFORE runApp so a returning user goes
+  // straight into their chosen language without a frame of the wrong one.
+  final initialLocale = await _readSavedLocale();
+
   final authService = AuthService();
   await FirebaseBootstrapService.initialize();
   if (!kIsWeb &&
@@ -53,13 +65,30 @@ void main() async {
     };
   }
 
-  runApp(MyApp(authService: authService));
+  runApp(MyApp(authService: authService, initialLocale: initialLocale));
+}
+
+/// Reads the persisted locale from the `app_settings` Hive box (key `locale`)
+/// before the widget tree is built. Returns null when the user follows the
+/// system language or nothing has been saved yet. Tolerates any read failure.
+Future<Locale?> _readSavedLocale() async {
+  try {
+    final box = await Hive.openBox<String>('app_settings');
+    final saved = box.get('locale');
+    if (saved != null && saved.isNotEmpty) {
+      return Locale(saved);
+    }
+  } catch (_) {
+    // Fall back to the system locale if settings can't be read.
+  }
+  return null;
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key, required this.authService});
+  const MyApp({super.key, required this.authService, this.initialLocale});
 
   final AuthService authService;
+  final Locale? initialLocale;
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -99,7 +128,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => CoupleProvider()),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
-        ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(
+          create: (_) => LocaleProvider(initialLocale: widget.initialLocale),
+        ),
         ChangeNotifierProvider(create: (_) => ReminderProvider()..load()),
       ],
       child: Consumer<LocaleProvider>(
@@ -132,6 +163,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 }
               }
               AppL10n.setLocale(resolved);
+              // Gap A — keep non-widget date/number formatting in sync with the
+              // resolved locale so DateFormat() defaults match what the user
+              // sees (e.g. "May 30" vs "30 thg 5"). Symbols were preloaded in
+              // main() via initializeDateFormatting().
+              Intl.defaultLocale = resolved.languageCode;
               return resolved;
             },
             home: const SplashScreen(),

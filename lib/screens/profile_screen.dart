@@ -374,7 +374,9 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              l10n.daysOfUsSince(_formatDate(couple.anniversaryDate)),
+                              l10n.daysOfUsSince(
+                                _formatDate(context, couple.anniversaryDate),
+                              ),
                               style: TextStyle(
                                 color: AppColors.white.withValues(alpha: 0.82),
                                 fontSize: 13.5,
@@ -474,7 +476,7 @@ class ProfileScreen extends StatelessWidget {
           _buildDetailTile(
             icon: Icons.calendar_today_rounded,
             title: l10n.loveStartDateLabel,
-            value: _formatDate(couple.anniversaryDate),
+            value: _formatDate(context, couple.anniversaryDate),
             tint: AppColors.accentRose,
           ),
           const SizedBox(height: 12),
@@ -759,7 +761,17 @@ class ProfileScreen extends StatelessWidget {
                   color: AppColors.accentRose.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Text(current.flag, style: const TextStyle(fontSize: 22)),
+                child: current.code == null
+                    ? const Text('🌐', style: TextStyle(fontSize: 20))
+                    : Text(
+                        current.code!.toUpperCase(),
+                        style: const TextStyle(
+                          color: AppColors.accentLove,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -1290,8 +1302,8 @@ class ProfileScreen extends StatelessWidget {
     return date.difference(today).inDays;
   }
 
-  String _formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
+  String _formatDate(BuildContext context, DateTime date) {
+    return DateFormat(context.l10n.fullDateFormat).format(date);
   }
 
   Widget _buildPrivacyPolicyLink(BuildContext context) {

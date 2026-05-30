@@ -1154,6 +1154,12 @@ abstract class AppLocalizations {
   /// **'dd MMM • HH:mm'**
   String get feedDateFormat;
 
+  /// No description provided for @fullDateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'MMM d, y'**
+  String get fullDateFormat;
+
   /// No description provided for @momentNumberFallback.
   ///
   /// In en, this message translates to:
@@ -1441,18 +1447,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Follow device language'**
   String get languageSystemDesc;
-
-  /// No description provided for @languageEnglish.
-  ///
-  /// In en, this message translates to:
-  /// **'English'**
-  String get languageEnglish;
-
-  /// No description provided for @languageVietnamese.
-  ///
-  /// In en, this message translates to:
-  /// **'Tiếng Việt'**
-  String get languageVietnamese;
 
   /// No description provided for @loadingCoupleInfo.
   ///

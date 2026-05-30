@@ -302,6 +302,7 @@
   "deletingPhoto": "Đang xóa ảnh...",
   "updatingCaption": "Đang cập nhật chú thích...",
   "feedDateFormat": "dd 'thg' MM • HH:mm",
+  "fullDateFormat": "d 'thg' M, y",
   "momentNumberFallback": "Khoảnh khắc #{index}",
   "@momentNumberFallback": {
     "placeholders": {

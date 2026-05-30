@@ -272,7 +272,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   String _formatFeedDate(DateTime date) {
-    return DateFormat("dd 'thg' MM • HH:mm").format(date);
+    final l10n = context.l10n;
+    return DateFormat(
+      l10n.feedDateFormat,
+      Localizations.localeOf(context).languageCode,
+    ).format(date);
   }
 
   String _feedPostedByLabel(Photo photo) {
@@ -1649,7 +1653,11 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
   }
 
   String _formatFeedDate(DateTime date) {
-    return DateFormat("dd 'thg' MM • HH:mm").format(date);
+    final l10n = context.l10n;
+    return DateFormat(
+      l10n.feedDateFormat,
+      Localizations.localeOf(context).languageCode,
+    ).format(date);
   }
 
   String _previewPostedByLabel(Photo photo) {

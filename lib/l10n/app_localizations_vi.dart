@@ -604,6 +604,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get feedDateFormat => 'dd \'thg\' MM • HH:mm';
 
   @override
+  String get fullDateFormat => 'd \'thg\' M, y';
+
+  @override
   String momentNumberFallback(int index) {
     return 'Khoảnh khắc #$index';
   }
@@ -769,12 +772,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get languageSystemDesc => 'Theo ngôn ngữ thiết bị';
-
-  @override
-  String get languageEnglish => 'English';
-
-  @override
-  String get languageVietnamese => 'Tiếng Việt';
 
   @override
   String get loadingCoupleInfo => 'Đang tải thông tin cặp đôi...';

@@ -600,6 +600,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedDateFormat => 'dd MMM • HH:mm';
 
   @override
+  String get fullDateFormat => 'MMM d, y';
+
+  @override
   String momentNumberFallback(int index) {
     return 'Moment #$index';
   }
@@ -765,12 +768,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageSystemDesc => 'Follow device language';
-
-  @override
-  String get languageEnglish => 'English';
-
-  @override
-  String get languageVietnamese => 'Tiếng Việt';
 
   @override
   String get loadingCoupleInfo => 'Loading couple info...';

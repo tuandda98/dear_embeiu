@@ -453,7 +453,9 @@ class _HomeScreenState extends State<HomeScreen> {
             years: counterData.years,
             months: counterData.months,
             days: counterData.days,
-            subtitle: l10n.homeCounterStartFrom(_formatDate(couple.anniversaryDate)),
+            subtitle: l10n.homeCounterStartFrom(
+              _formatDate(context, couple.anniversaryDate),
+            ),
             footer: daysUntilAnniversary == 0
                 ? l10n.todayIsAnniversary
                 : l10n.daysUntilNextAnniversary(daysUntilAnniversary),
@@ -1034,7 +1036,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _formatDate(photo.uploadDate),
+                            _formatDate(context, photo.uploadDate),
                             style: TextStyle(
                               color: AppColors.white.withValues(alpha: 0.82),
                               fontSize: 11,
@@ -1064,8 +1066,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return today.difference(start).inDays;
   }
 
-  String _formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
+  String _formatDate(BuildContext context, DateTime date) {
+    return DateFormat(context.l10n.fullDateFormat).format(date);
   }
 
   DateTime _getNextAnniversary(DateTime anniversaryDate) {

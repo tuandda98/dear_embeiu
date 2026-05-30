@@ -98,15 +98,22 @@ class UserService {
     required String token,
     required String platform,
     required bool notificationsEnabled,
+    String? languageCode,
   }) async {
     if (!isEnabled || userId.trim().isEmpty || deviceId.trim().isEmpty) {
       return;
     }
 
+    final normalizedLanguageCode = languageCode?.trim().toLowerCase();
+
     await _devicesCollection(userId).doc(deviceId).set({
       'token': token.trim(),
       'platform': platform.trim(),
       'notificationsEnabled': notificationsEnabled,
+      // Language of THIS device, so the Cloud Function can localize the
+      // partner-photo push per recipient device (Gap B).
+      if (normalizedLanguageCode != null && normalizedLanguageCode.isNotEmpty)
+        'languageCode': normalizedLanguageCode,
       'updatedAt': DateTime.now(),
     }, SetOptions(merge: true));
   }

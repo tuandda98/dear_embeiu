@@ -8,18 +8,10 @@ class LocaleProvider extends ChangeNotifier {
   Locale? _locale;
   Locale? get locale => _locale;
 
-  LocaleProvider() {
-    _loadLocale();
-  }
-
-  Future<void> _loadLocale() async {
-    final box = await Hive.openBox<String>(_boxName);
-    final saved = box.get(_localeKey);
-    if (saved != null && saved.isNotEmpty) {
-      _locale = Locale(saved);
-    }
-    notifyListeners();
-  }
+  /// [initialLocale] is the locale already read from Hive in `main()` before
+  /// the first frame (Gap D — prevents a flash of the wrong language on cold
+  /// start). Pass null to follow the system language.
+  LocaleProvider({Locale? initialLocale}) : _locale = initialLocale;
 
   Future<void> setLocale(Locale? locale) async {
     _locale = locale;

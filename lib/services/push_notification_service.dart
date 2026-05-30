@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
@@ -202,6 +203,7 @@ class PushNotificationService {
         token: token,
         platform: _platformLabel,
         notificationsEnabled: true,
+        languageCode: _currentLanguageCode,
       );
       // Keep this user's device list from accumulating stale registrations.
       await _userService.pruneStaleDevices(userId: userId, keepDeviceId: deviceId);
@@ -257,6 +259,16 @@ class PushNotificationService {
       return 'android';
     }
     return 'unknown';
+  }
+
+  /// The language code currently in effect for this device (Gap B). Mirrors
+  /// whatever locale MaterialApp resolved — set on `Intl.defaultLocale` by
+  /// main.dart's localeResolutionCallback — so it honours both an explicit
+  /// pick and "follow system". Falls back to the device locale, then 'vi'.
+  String get _currentLanguageCode {
+    final resolved = Intl.defaultLocale ?? Intl.getCurrentLocale();
+    final code = resolved.split(RegExp('[_-]')).first.trim().toLowerCase();
+    return code.isNotEmpty ? code : 'vi';
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {

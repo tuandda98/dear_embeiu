@@ -302,6 +302,7 @@
   "deletingPhoto": "Deleting photo...",
   "updatingCaption": "Updating caption...",
   "feedDateFormat": "dd MMM • HH:mm",
+  "fullDateFormat": "MMM d, y",
   "momentNumberFallback": "Moment #{index}",
   "@momentNumberFallback": {
     "placeholders": {
