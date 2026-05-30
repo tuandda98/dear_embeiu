@@ -172,23 +172,11 @@ class UserService {
     return DateTime.fromMillisecondsSinceEpoch(0);
   }
 
-  Future<void> deleteUserData(AppUser user) async {
-    if (!isEnabled || user.id.trim().isEmpty) {
-      return;
-    }
-
-    final devicesSnapshot = await _devicesCollection(user.id).get();
-    for (final doc in devicesSnapshot.docs) {
-      await doc.reference.delete();
-    }
-
-    final normalizedCode = user.inviteCode.trim().toUpperCase();
-    if (normalizedCode.isNotEmpty) {
-      await _inviteCodesCollection.doc(normalizedCode).delete();
-    }
-
-    await _usersCollection.doc(user.id).delete();
-  }
+  // Account deletion is performed server-side by the `deleteAccount` Cloud
+  // Function (see functions/index.js). The client can't delete its own
+  // `users/{uid}` or `invite_codes/{code}` documents — both are
+  // `allow delete: if false` in firestore.rules — so a client-side erase path
+  // would only ever fail with permission-denied.
 
   Future<void> _syncInviteCode(AppUser user) async {
     final normalizedCode = user.inviteCode.trim().toUpperCase();

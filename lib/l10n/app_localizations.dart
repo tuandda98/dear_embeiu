@@ -1504,6 +1504,8 @@ abstract class AppLocalizations {
 
   String get deleteAccountRequiresReloginMsg;
 
+  String get deleteAccountFailed;
+
   String get privacyPolicyLabel;
 
   String get privacyDisclosure;

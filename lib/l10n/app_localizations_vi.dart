@@ -830,6 +830,10 @@ class AppLocalizationsVi extends AppLocalizations {
       'Vui lòng đăng xuất, đăng nhập lại và thử lại để xác nhận danh tính';
 
   @override
+  String get deleteAccountFailed =>
+      'Hiện chưa thể xoá tài khoản. Vui lòng thử lại.';
+
+  @override
   String get privacyPolicyLabel => 'Chính sách bảo mật';
 
   @override

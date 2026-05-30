@@ -826,6 +826,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please sign out, sign in again, and retry to verify your identity';
 
   @override
+  String get deleteAccountFailed =>
+      'Could not delete your account right now. Please try again.';
+
+  @override
   String get privacyPolicyLabel => 'Privacy Policy';
 
   @override

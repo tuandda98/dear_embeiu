@@ -12,10 +12,17 @@ service firebase.storage {
           ).data.memberIds;
     }
 
+    // Cap uploads at 10 MB and require an image content-type, so a member
+    // can't burn Storage quota with oversized or arbitrary (non-image) files.
+    function isValidImageUpload() {
+      return request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
     // Storage path format: couple_photos/{coupleId}/{fileName}
     match /couple_photos/{coupleId}/{fileName} {
       allow read:   if isCoupleMember(coupleId);
-      allow create, update: if isCoupleMember(coupleId);
+      allow create, update: if isCoupleMember(coupleId) && isValidImageUpload();
       allow delete: if isCoupleMember(coupleId);
     }
   }

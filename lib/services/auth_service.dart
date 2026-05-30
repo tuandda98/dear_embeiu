@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -8,7 +9,6 @@ import 'package:uuid/uuid.dart';
 
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
-import 'couple_service.dart';
 import 'firebase_bootstrap_service.dart';
 import 'storage_service.dart';
 import 'user_service.dart';
@@ -54,6 +54,9 @@ class AuthService {
   String? get bootstrapMessage => FirebaseBootstrapService.bootstrapMessage;
 
   FirebaseAuth get _auth => _firebaseAuth ?? FirebaseAuth.instance;
+
+  // Default region (us-central1) matches the deployed `deleteAccount` callable.
+  FirebaseFunctions get _functions => FirebaseFunctions.instance;
 
   Future<AppUser?> getCurrentUser() async {
     if (isUsingFirebase) {
@@ -304,24 +307,19 @@ class AuthService {
       return;
     }
 
+    // Deletion is performed server-side by the `deleteAccount` Cloud Function:
+    // it runs with admin privileges so it can remove the user doc, invite_code,
+    // couple data + Storage objects and the Auth user — none of which the
+    // client is permitted to delete directly under the security rules. Running
+    // it as admin also avoids the `requires-recent-login` challenge that a
+    // client-side FirebaseUser.delete() would hit.
     try {
-      if (currentUser.coupleId != null) {
-        await CoupleService().leaveCouple(currentUser: currentUser);
+      await _functions.httpsCallable('deleteAccount').call<dynamic>();
+    } on FirebaseFunctionsException catch (e) {
+      if (e.code == 'unauthenticated') {
+        throw AuthException('requires-recent-login');
       }
-    } catch (_) {}
-
-    await _userService.deleteUserData(currentUser);
-
-    final firebaseUser = _auth.currentUser;
-    if (firebaseUser != null) {
-      try {
-        await firebaseUser.delete();
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'requires-recent-login') {
-          throw AuthException('requires-recent-login');
-        }
-        rethrow;
-      }
+      throw AuthException(e.message ?? AppL10n.strings.deleteAccountFailed);
     }
 
     await purgePersistedSession();

@@ -2,6 +2,7 @@ const admin = require("firebase-admin");
 const {logger} = require("firebase-functions");
 const {onDocumentCreated} = require("firebase-functions/v2/firestore");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
+const {onCall, HttpsError} = require("firebase-functions/v2/https");
 
 admin.initializeApp();
 
@@ -222,6 +223,159 @@ exports.sendPartnerPhotoNotification = onDocumentCreated(
     });
   },
 );
+
+// Callable that fully erases the signed-in user's account. It runs with admin
+// privileges so it can remove the things the client is forbidden to delete
+// directly under the Firestore security rules (`users/{uid}` and
+// `invite_codes/{code}` are both `allow delete: if false`) and can delete the
+// Auth user without a recent-login challenge. Required by the App Store
+// (5.1.1(v)) and Google Play account-deletion policies.
+exports.deleteAccount = onCall(
+  {region: "us-central1"},
+  async (request) => {
+    const uid = request.auth && request.auth.uid;
+    if (!uid) {
+      throw new HttpsError(
+        "unauthenticated",
+        "Bạn cần đăng nhập để xoá tài khoản.",
+      );
+    }
+
+    const userRef = db.collection("users").doc(uid);
+    const userSnap = await userRef.get();
+    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    const coupleId = `${userData.coupleId || ""}`.trim();
+    const inviteCode = `${userData.inviteCode || ""}`.trim().toUpperCase();
+
+    // 1) Detach from / tear down the couple before the user doc disappears.
+    if (coupleId) {
+      try {
+        await handleCoupleOnAccountDeletion(coupleId, uid);
+      } catch (err) {
+        logger.error("Couple teardown failed during account deletion.", {
+          uid,
+          coupleId,
+          message: err && err.message,
+        });
+        throw new HttpsError("internal", "Không thể xoá dữ liệu cặp đôi. Vui lòng thử lại.");
+      }
+    }
+
+    // 2) Device tokens (FCM) for this user.
+    const devicesSnap = await userRef.collection("devices").get();
+    await Promise.all(devicesSnap.docs.map((doc) => doc.ref.delete().catch(() => null)));
+
+    // 3) The invite_code pointer — only if it still points at this user, so we
+    //    never clobber a code that has since been reassigned.
+    if (inviteCode) {
+      const inviteRef = db.collection("invite_codes").doc(inviteCode);
+      const inviteSnap = await inviteRef.get();
+      if (inviteSnap.exists && `${inviteSnap.get("userId") || ""}`.trim() === uid) {
+        await inviteRef.delete().catch(() => null);
+      }
+    }
+
+    // 4) The user profile document.
+    await userRef.delete().catch(() => null);
+
+    // 5) The Auth user itself (no recent-login requirement on the admin SDK).
+    try {
+      await admin.auth().deleteUser(uid);
+    } catch (err) {
+      const code = (err && err.code) || "unknown";
+      // auth/user-not-found means it's already gone — treat as success.
+      if (code !== "auth/user-not-found") {
+        logger.error("Failed to delete Auth user during account deletion.", {uid, code});
+        throw new HttpsError("internal", "Không thể xoá tài khoản đăng nhập. Vui lòng thử lại.");
+      }
+    }
+
+    logger.info("Account deleted.", {uid, coupleId: coupleId || null});
+    return {success: true};
+  },
+);
+
+// Mirror of the client-side leaveCouple semantics: if the leaving user is the
+// only remaining member, the couple (with all its photos + Storage objects) is
+// destroyed; otherwise the partner is kept and the couple is demoted back to
+// the "waiting_partner" state.
+async function handleCoupleOnAccountDeletion(coupleId, uid) {
+  const coupleRef = db.collection("couples").doc(coupleId);
+  const coupleSnap = await coupleRef.get();
+  if (!coupleSnap.exists) {
+    return;
+  }
+
+  const data = coupleSnap.data() || {};
+  const memberIds = Array.isArray(data.memberIds) ? data.memberIds : [];
+  const remaining = memberIds.filter(
+    (id) => typeof id === "string" && id.trim() && id !== uid,
+  );
+
+  if (remaining.length === 0) {
+    await deleteCoupleCompletely(coupleRef, data);
+    return;
+  }
+
+  await coupleRef.set(
+    {
+      memberIds: remaining,
+      memberCount: remaining.length,
+      status: "waiting_partner",
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    {merge: true},
+  );
+}
+
+async function deleteCoupleCompletely(coupleRef, coupleData) {
+  const photosSnap = await coupleRef.collection("photos").get();
+  const tasks = [];
+
+  for (const photoDoc of photosSnap.docs) {
+    const storagePath = `${photoDoc.get("storagePath") || ""}`.trim();
+    if (storagePath) {
+      tasks.push(deleteStorageObject(storagePath));
+    }
+    tasks.push(photoDoc.ref.delete().catch(() => null));
+  }
+
+  const coverPath = `${(coupleData && coupleData.couplePhotoStoragePath) || ""}`.trim();
+  if (coverPath) {
+    tasks.push(deleteStorageObject(coverPath));
+  }
+
+  await Promise.all(tasks);
+
+  // Sweep the whole prefix too, in case any object was orphaned from its doc.
+  await deleteStoragePrefix(`couple_photos/${coupleRef.id}/`);
+
+  await coupleRef.delete().catch(() => null);
+}
+
+async function deleteStorageObject(path) {
+  try {
+    await admin.storage().bucket().file(path).delete();
+  } catch (err) {
+    if (!err || err.code !== 404) {
+      logger.warn("Failed to delete Storage object during account deletion.", {
+        path,
+        code: err && err.code,
+      });
+    }
+  }
+}
+
+async function deleteStoragePrefix(prefix) {
+  try {
+    await admin.storage().bucket().deleteFiles({prefix});
+  } catch (err) {
+    logger.warn("Failed to sweep Storage prefix during account deletion.", {
+      prefix,
+      message: err && err.message,
+    });
+  }
+}
 
 function normalizeActorName(value) {
   const normalized = `${value || ""}`.trim();
