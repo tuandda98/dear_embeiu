@@ -24,6 +24,7 @@
 | Custom reminders (reminder tuỳ chỉnh, local) | P1 | 🧪 Test PASS (smoke on-device OK) — gate D7 đang đổi sang force-open theo Reminders v2 | [spec](features/custom-reminders/overview.md) · [roadmap](features/custom-reminders/roadmap.md) |
 | Reminders v2 (bỏ nudge hằng ngày + milestone tự bật/tắt + giờ-theo-mốc Dv8) | P1 | 🧪 Test PASS — chờ smoke-test thiết bị | [spec](features/reminders/overview.md) (5b) · [roadmap](features/reminders/roadmap.md) |
 | Settings (màn Cài đặt tổng, gom Profile + giờ theo mốc Dv8) | P1 | 🧪 Test PASS (29/30) — chờ user smoke-test thiết bị (2026-05-31) | [spec](features/settings/overview.md) · [roadmap](features/settings/roadmap.md) |
+| Photo report (UGC compliance Apple 1.2) | P1 | 🧪 Test PASS (17/17) — chờ deploy rules (2026-05-31) | [spec](features/photo-report/overview.md) · [roadmap](features/photo-report/roadmap.md) |
 
 ## Đã Done
 

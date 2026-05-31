@@ -373,6 +373,14 @@ service cloud.firestore {
 
       allow delete: if isCoupleMember(coupleId);
     }
+
+    // UGC moderation reports (Apple Guideline 1.2). Create-only for any
+    // signed-in user; admins review via the Firebase Console. Clients can
+    // never read, edit, or delete reports.
+    match /reports/{reportId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if false;
+    }
   }
 }
 

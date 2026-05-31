@@ -1040,6 +1040,54 @@ abstract class AppLocalizations {
   /// **'Delete photo'**
   String get deletePhotoAction;
 
+  /// No description provided for @reportPhotoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Report photo'**
+  String get reportPhotoAction;
+
+  /// No description provided for @reportPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report photo'**
+  String get reportPhotoTitle;
+
+  /// No description provided for @reportPhotoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what\'s wrong with this photo.'**
+  String get reportPhotoSubtitle;
+
+  /// No description provided for @reportReasonInappropriate.
+  ///
+  /// In en, this message translates to:
+  /// **'Inappropriate content'**
+  String get reportReasonInappropriate;
+
+  /// No description provided for @reportReasonSpam.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam or scam'**
+  String get reportReasonSpam;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get reportReasonOther;
+
+  /// No description provided for @reportCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get reportCancel;
+
+  /// No description provided for @reportSentConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent, thank you.'**
+  String get reportSentConfirm;
+
   /// No description provided for @editAction.
   ///
   /// In en, this message translates to:

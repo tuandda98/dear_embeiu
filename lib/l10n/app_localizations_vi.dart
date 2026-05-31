@@ -544,6 +544,30 @@ class AppLocalizationsVi extends AppLocalizations {
   String get deletePhotoAction => 'Xóa ảnh';
 
   @override
+  String get reportPhotoAction => 'Báo cáo ảnh';
+
+  @override
+  String get reportPhotoTitle => 'Báo cáo ảnh';
+
+  @override
+  String get reportPhotoSubtitle => 'Cho chúng tôi biết vấn đề với ảnh này.';
+
+  @override
+  String get reportReasonInappropriate => 'Nội dung không phù hợp';
+
+  @override
+  String get reportReasonSpam => 'Spam hoặc lừa đảo';
+
+  @override
+  String get reportReasonOther => 'Khác';
+
+  @override
+  String get reportCancel => 'Huỷ';
+
+  @override
+  String get reportSentConfirm => 'Đã gửi báo cáo, cảm ơn bạn.';
+
+  @override
   String get editAction => 'Chỉnh sửa';
 
   @override

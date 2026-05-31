@@ -123,6 +123,7 @@ Firebase project `tonyembeiu` (us-central1). `firebase.json`: functions ở `fun
 - `couples/{coupleId}` — không gian chung; tạo solo (memberIds=1, status `waiting_partner`); join → memberIds=2, status `active`; leave → demote về waiting_partner; xoá chỉ khi còn 1 member. inviteCode + creator immutable.
 - `couples/{coupleId}/photos/{photoId}` — feed ảnh; members CRUD; tạo phải đúng author; authorUserId + uploadDate immutable.
 - `users/{uid}/devices/{...}` — FCM tokens (token, platform, notificationsEnabled).
+- `reports/{autoId}` — UGC moderation reports (Apple Guideline 1.2). Field: reporterUid, coupleId, photoId, authorUserId, reason (mã ổn định inappropriate/spam/other), createdAt. Rules **create-only**: `allow create: if request.auth != null; allow read, update, delete: if false`. Admin xem qua Console; client không đọc/sửa/xoá. (feature photo-report — ⚠️ cần deploy rules trước khi chạy thật.)
 
 **Storage** (`storage.rules`): `couple_photos/{coupleId}/{file}` — chỉ members; create/update yêu cầu ảnh < 10MB; không public.
 

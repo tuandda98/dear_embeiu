@@ -540,6 +540,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deletePhotoAction => 'Delete photo';
 
   @override
+  String get reportPhotoAction => 'Report photo';
+
+  @override
+  String get reportPhotoTitle => 'Report photo';
+
+  @override
+  String get reportPhotoSubtitle => 'Tell us what\'s wrong with this photo.';
+
+  @override
+  String get reportReasonInappropriate => 'Inappropriate content';
+
+  @override
+  String get reportReasonSpam => 'Spam or scam';
+
+  @override
+  String get reportReasonOther => 'Something else';
+
+  @override
+  String get reportCancel => 'Cancel';
+
+  @override
+  String get reportSentConfirm => 'Report sent, thank you.';
+
+  @override
   String get editAction => 'Edit';
 
   @override

@@ -271,6 +271,158 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
+  // Opens the report bottom-sheet (Apple Guideline 1.2 UGC). Tapping a reason
+  // submits immediately; cancel/dismiss writes nothing. Reporting is
+  // best-effort and always shows an optimistic confirmation (no error state).
+  Future<void> _reportPhoto(Photo photo) async {
+    final reason = await _showReportReasonSheet();
+    if (reason == null || !mounted) {
+      return;
+    }
+
+    final reporterUid = context.read<AuthProvider>().currentUser?.id ?? '';
+    await context.read<PhotoProvider>().reportPhoto(
+          photo: photo,
+          reporterUid: reporterUid,
+          reason: reason,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.reportSentConfirm)),
+    );
+  }
+
+  // Returns a stable reason code (`inappropriate` / `spam` / `other`) or null
+  // if the user cancelled. The localized labels are display-only.
+  Future<String?> _showReportReasonSheet() {
+    final l10n = context.l10n;
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.cardSurface,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.textTertiary.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                Text(
+                  l10n.reportPhotoTitle,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.reportPhotoSubtitle,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                _buildReportReasonTile(
+                  sheetContext,
+                  label: l10n.reportReasonInappropriate,
+                  code: 'inappropriate',
+                ),
+                const SizedBox(height: 10),
+                _buildReportReasonTile(
+                  sheetContext,
+                  label: l10n.reportReasonSpam,
+                  code: 'spam',
+                ),
+                const SizedBox(height: 10),
+                _buildReportReasonTile(
+                  sheetContext,
+                  label: l10n.reportReasonOther,
+                  code: 'other',
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    child: Text(
+                      l10n.reportCancel,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildReportReasonTile(
+    BuildContext sheetContext, {
+    required String label,
+    required String code,
+  }) {
+    return Material(
+      color: AppColors.surfaceLight,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => Navigator.of(sheetContext).pop(code),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: AppColors.textTertiary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _formatFeedDate(DateTime date) {
     final l10n = context.l10n;
     return DateFormat(
@@ -324,6 +476,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           initialIndex: initialIndex,
           couple: couple,
           onEditCaption: _editCaption,
+          onReport: _reportPhoto,
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
@@ -1051,6 +1204,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       return;
                     }
 
+                    if (action == _PhotoFeedAction.report) {
+                      _reportPhoto(photo);
+                      return;
+                    }
+
                     _deletePhoto(photo);
                   },
                   itemBuilder: (context) {
@@ -1065,6 +1223,24 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           value: _PhotoFeedAction.delete,
                           child: Text(context.l10n.deletePhotoAction),
                         ),
+                      PopupMenuItem(
+                        value: _PhotoFeedAction.report,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.flag_outlined,
+                              size: 18,
+                              color: AppColors.accentRose,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              context.l10n.reportPhotoAction,
+                              style: const TextStyle(color: AppColors.accentRose),
+                            ),
+                          ],
+                        ),
+                      ),
                     ];
                   },
                 ),
@@ -1365,7 +1541,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 }
 
-enum _PhotoFeedAction { editCaption, delete }
+enum _PhotoFeedAction { editCaption, delete, report }
 
 sealed class _FeedItem {}
 
@@ -1585,6 +1761,7 @@ class _FullscreenPhotoPreview extends StatefulWidget {
     required this.initialIndex,
     required this.couple,
     this.onEditCaption,
+    this.onReport,
   });
 
   final List<Photo> photos;
@@ -1592,6 +1769,7 @@ class _FullscreenPhotoPreview extends StatefulWidget {
   final int initialIndex;
   final Couple? couple;
   final void Function(Photo photo)? onEditCaption;
+  final void Function(Photo photo)? onReport;
 
   @override
   State<_FullscreenPhotoPreview> createState() => _FullscreenPhotoPreviewState();
@@ -1813,6 +1991,18 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (widget.onReport != null) ...[
+                    IconButton.filledTonal(
+                      onPressed: () => widget.onReport!(currentPhoto),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black.withValues(alpha: 0.28),
+                        foregroundColor: AppColors.white,
+                      ),
+                      icon: const Icon(Icons.flag_outlined),
+                      tooltip: context.l10n.reportPhotoAction,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   if (widget.onEditCaption != null)
                     IconButton.filledTonal(
                       onPressed: () {

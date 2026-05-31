@@ -181,6 +181,22 @@ class PhotoProvider extends ChangeNotifier {
     }
   }
 
+  /// Records a moderation report for [photo] (Apple Guideline 1.2 UGC).
+  /// Best-effort: never throws or surfaces errors to the UI (see service).
+  Future<void> reportPhoto({
+    required Photo photo,
+    required String reporterUid,
+    required String reason,
+  }) async {
+    await _photoService.reportPhoto(
+      reporterUid: reporterUid,
+      coupleId: photo.coupleId ?? '',
+      photoId: photo.id,
+      authorUserId: photo.authorUserId ?? '',
+      reason: reason,
+    );
+  }
+
   Future<void> clearForSignOut() async {
     await _photoSubscription?.cancel();
     _photoSubscription = null;

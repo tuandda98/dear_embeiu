@@ -166,6 +166,38 @@ class PhotoService {
     }
   }
 
+  /// Records a moderation report for a photo (Apple Guideline 1.2 UGC).
+  /// Writes a create-only doc to the top-level `reports` collection.
+  ///
+  /// Best-effort by design: when Firebase is unavailable (local fallback) or
+  /// the write fails, this silently no-ops so the UI can always report success
+  /// without leaking errors to the user.
+  Future<void> reportPhoto({
+    required String reporterUid,
+    required String coupleId,
+    required String photoId,
+    required String authorUserId,
+    required String reason,
+  }) async {
+    if (!isUsingFirebase || reporterUid.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      await _db.collection('reports').add({
+        'reporterUid': reporterUid,
+        'coupleId': coupleId,
+        'photoId': photoId,
+        'authorUserId': authorUserId,
+        'reason': reason,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException {
+      // Swallow: reporting is best-effort, never surface backend errors.
+      return;
+    }
+  }
+
   String _guessFileExtension(String path) {
     final dotIndex = path.lastIndexOf('.');
     if (dotIndex == -1 || dotIndex == path.length - 1) {
