@@ -4,6 +4,9 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../models/custom_reminder.dart';
+import '../models/milestone_reminder.dart';
+
 /// Local, on-device infrastructure for the retention "love reminders" feature.
 ///
 /// This owns the [FlutterLocalNotificationsPlugin] instance, the timezone
@@ -23,12 +26,31 @@ class ReminderService {
       'Gentle daily and milestone reminders for your relationship.';
 
   // Stable notification ids so re-scheduling replaces the previous entry
-  // instead of stacking duplicates.
-  static const int _idDaily = 1001;
-  static const int _idAnniversary = 1002;
-  static const int _idMilestoneApproaching = 1003;
-  static const int _idMilestoneToday = 1004;
+  // instead of stacking duplicates. Auto reminders live in the 1001–1099 band
+  // (custom reminders use 2000–2999 and are never touched here).
+  //
+  // 1001 (legacy daily nudge) is retired in v2 — `cancelAll` still cancels it so
+  // any schedule left over from a previous version is cleared on the next run.
+  static const int _idLegacyDaily = 1001;
+  static const int _idAnniversary = 1002; // yearly milestone
+  static const int _idMilestoneEvery100 = 1003;
   static const int _idInactivity = 1005;
+  static const int _idMilestoneHalfYear = 1006;
+  static const int _idMilestone520 = 1010;
+  static const int _idMilestone1000 = 1011;
+  static const int _idMilestone1314 = 1012;
+
+  /// Every auto-reminder id this service may own, used by [cancelAll].
+  static const List<int> _autoIds = <int>[
+    _idLegacyDaily,
+    _idAnniversary,
+    _idMilestoneEvery100,
+    _idInactivity,
+    _idMilestoneHalfYear,
+    _idMilestone520,
+    _idMilestone1000,
+    _idMilestone1314,
+  ];
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -133,13 +155,7 @@ class ReminderService {
     if (!_initialized) {
       return;
     }
-    for (final id in const [
-      _idDaily,
-      _idAnniversary,
-      _idMilestoneApproaching,
-      _idMilestoneToday,
-      _idInactivity,
-    ]) {
+    for (final id in _autoIds) {
       try {
         await _plugin.cancel(id);
       } catch (_) {
@@ -148,20 +164,36 @@ class ReminderService {
     }
   }
 
-  /// Schedule a notification that repeats every day at [hour]:[minute].
-  Future<void> scheduleDaily({
-    required int hour,
-    required int minute,
-    required String title,
-    required String body,
-  }) async {
-    await _scheduleAt(
-      id: _idDaily,
-      when: _nextInstanceOfTime(hour, minute),
-      title: title,
-      body: body,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
+  /// Cancel a single auto reminder by its [MilestoneType]. Used when the user
+  /// turns one milestone off in the customization screen.
+  Future<void> cancelMilestone(MilestoneType type) async {
+    if (!_initialized) {
+      return;
+    }
+    try {
+      await _plugin.cancel(_idForMilestone(type));
+    } catch (_) {
+      // Already in the desired state.
+    }
+  }
+
+  int _idForMilestone(MilestoneType type) {
+    switch (type) {
+      case MilestoneType.every100:
+        return _idMilestoneEvery100;
+      case MilestoneType.d520:
+        return _idMilestone520;
+      case MilestoneType.d1000:
+        return _idMilestone1000;
+      case MilestoneType.d1314:
+        return _idMilestone1314;
+      case MilestoneType.halfYear:
+        return _idMilestoneHalfYear;
+      case MilestoneType.yearly:
+        return _idAnniversary;
+      case MilestoneType.inactivity:
+        return _idInactivity;
+    }
   }
 
   /// Schedule the next yearly anniversary reminder at [hour]:[minute].
@@ -182,8 +214,11 @@ class ReminderService {
     );
   }
 
-  /// Schedule the "milestone approaching" nudge for a specific calendar day.
-  Future<void> scheduleMilestoneApproaching({
+  /// Schedule a one-shot day-count or half-year milestone for [type] on a
+  /// specific calendar [date] at [hour]:[minute] (v2). The caller decides the
+  /// date and only calls this when that date is still in the future.
+  Future<void> scheduleMilestoneOneShot({
+    required MilestoneType type,
     required DateTime date,
     required int hour,
     required int minute,
@@ -191,23 +226,7 @@ class ReminderService {
     required String body,
   }) async {
     await _scheduleAt(
-      id: _idMilestoneApproaching,
-      when: _at(date, hour, minute),
-      title: title,
-      body: body,
-    );
-  }
-
-  /// Schedule the "milestone reached today" celebration for a specific day.
-  Future<void> scheduleMilestoneToday({
-    required DateTime date,
-    required int hour,
-    required int minute,
-    required String title,
-    required String body,
-  }) async {
-    await _scheduleAt(
-      id: _idMilestoneToday,
+      id: _idForMilestone(type),
       when: _at(date, hour, minute),
       title: title,
       body: body,
@@ -239,6 +258,151 @@ class ReminderService {
     } catch (_) {}
   }
 
+  // ---------------------------------------------------------------------------
+  // Custom reminders (user-created, local-only). Notification ids live in the
+  // reserved 2000–2999 band (D6) and are owned by CustomRemindersProvider.
+  // ---------------------------------------------------------------------------
+
+  /// Schedule a single user-created reminder.
+  ///
+  /// Returns whether anything was actually scheduled. A `once` reminder whose
+  /// next fire time is in the past is intentionally not scheduled (the caller
+  /// decides how to surface that). Repeating reminders always schedule because
+  /// they advance to the next valid cycle.
+  Future<bool> scheduleCustom({
+    required int id,
+    required CustomReminder reminder,
+    required String title,
+    required String body,
+  }) async {
+    await initialize();
+    if (!_initialized) {
+      return false;
+    }
+    final when = nextFireFor(reminder);
+    if (when == null) {
+      // `once` in the past — nothing to schedule.
+      await cancelCustom(id);
+      return false;
+    }
+    await _scheduleAt(
+      id: id,
+      when: when,
+      title: title,
+      body: body,
+      matchDateTimeComponents: _matchComponentsFor(reminder.recurrence),
+    );
+    return true;
+  }
+
+  /// Cancel a single custom reminder by id. Safe to call for an id that isn't
+  /// currently scheduled.
+  Future<void> cancelCustom(int id) async {
+    if (!_initialized) {
+      return;
+    }
+    try {
+      await _plugin.cancel(id);
+    } catch (_) {
+      // Already in the desired state.
+    }
+  }
+
+  DateTimeComponents? _matchComponentsFor(ReminderRecurrence recurrence) {
+    switch (recurrence) {
+      case ReminderRecurrence.once:
+        return null;
+      case ReminderRecurrence.daily:
+        return DateTimeComponents.time;
+      case ReminderRecurrence.weekly:
+        return DateTimeComponents.dayOfWeekAndTime;
+      case ReminderRecurrence.monthly:
+        return DateTimeComponents.dayOfMonthAndTime;
+      case ReminderRecurrence.yearly:
+        return DateTimeComponents.dateAndTime;
+    }
+  }
+
+  /// Compute the next time [reminder] will fire, applying the D8 day clamp for
+  /// monthly/yearly cycles. Shared by scheduling and the "Next: …" list label.
+  ///
+  /// Returns `null` only for a `once` reminder whose moment has already passed.
+  tz.TZDateTime? nextFireFor(CustomReminder reminder) {
+    final now = tz.TZDateTime.now(tz.local);
+    final h = reminder.hour;
+    final m = reminder.minute;
+    final date = reminder.date;
+
+    switch (reminder.recurrence) {
+      case ReminderRecurrence.once:
+        final when =
+            tz.TZDateTime(tz.local, date.year, date.month, date.day, h, m);
+        return when.isAfter(now) ? when : null;
+
+      case ReminderRecurrence.daily:
+        var when = tz.TZDateTime(tz.local, now.year, now.month, now.day, h, m);
+        if (!when.isAfter(now)) {
+          when = when.add(const Duration(days: 1));
+        }
+        return when;
+
+      case ReminderRecurrence.weekly:
+        // Same weekday as the anchor date, at or after now.
+        final targetWeekday = date.weekday; // 1=Mon..7=Sun
+        var when = tz.TZDateTime(tz.local, now.year, now.month, now.day, h, m);
+        var delta = (targetWeekday - when.weekday) % 7;
+        if (delta < 0) {
+          delta += 7;
+        }
+        when = when.add(Duration(days: delta));
+        if (!when.isAfter(now)) {
+          when = when.add(const Duration(days: 7));
+        }
+        return when;
+
+      case ReminderRecurrence.monthly:
+        // Same day-of-month as the anchor, clamped to each month's length (D8).
+        var year = now.year;
+        var month = now.month;
+        var when = _clampedDate(year, month, date.day, h, m);
+        if (!when.isAfter(now)) {
+          month += 1;
+          if (month > 12) {
+            month = 1;
+            year += 1;
+          }
+          when = _clampedDate(year, month, date.day, h, m);
+        }
+        return when;
+
+      case ReminderRecurrence.yearly:
+        // Same day/month as the anchor, clamping Feb 29 → Feb 28 in non-leap
+        // years (D8).
+        var year = now.year;
+        var when = _clampedDate(year, date.month, date.day, h, m);
+        if (!when.isAfter(now)) {
+          when = _clampedDate(year + 1, date.month, date.day, h, m);
+        }
+        return when;
+    }
+  }
+
+  /// Build a [tz.TZDateTime] for [year]/[month]/[day], clamping [day] to the
+  /// last valid day of that month (e.g. 31 → 30, or 29 Feb → 28 in a non-leap
+  /// year). Implements decision D8 so a cycle is never silently skipped.
+  tz.TZDateTime _clampedDate(int year, int month, int day, int hour, int minute) {
+    final lastDay = _daysInMonth(year, month);
+    final safeDay = day > lastDay ? lastDay : day;
+    return tz.TZDateTime(tz.local, year, month, safeDay, hour, minute);
+  }
+
+  int _daysInMonth(int year, int month) {
+    // The 0th day of the next month is the last day of this month.
+    final firstOfNextMonth =
+        month == 12 ? DateTime(year + 1, 1, 1) : DateTime(year, month + 1, 1);
+    return firstOfNextMonth.subtract(const Duration(days: 1)).day;
+  }
+
   Future<void> _scheduleAt({
     required int id,
     required tz.TZDateTime when,
@@ -262,16 +426,6 @@ class ReminderService {
     } catch (error) {
       debugPrint('ReminderService schedule($id) failed: $error');
     }
-  }
-
-  tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduled =
-        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-    if (!scheduled.isAfter(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
-    }
-    return scheduled;
   }
 
   tz.TZDateTime _nextAnniversary(DateTime anniversary, int hour, int minute) {

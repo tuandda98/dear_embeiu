@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'app/app_routes.dart';
 import 'providers/auth_provider.dart';
 import 'providers/couple_provider.dart';
+import 'providers/custom_reminders_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/photo_provider.dart';
 import 'providers/reminder_provider.dart';
@@ -53,6 +54,22 @@ void main() async {
   // Prepare local scheduled-notification infrastructure (timezone + channel)
   // for the retention "love reminders" feature.
   await ReminderService.instance.initialize();
+
+  // Restore user-created custom reminders and re-arm their OS schedule on cold
+  // start. Built here (rather than lazily in MultiProvider) so the reschedule
+  // happens once at launch; AppL10n is already set up for the fallback body.
+  final customRemindersProvider = CustomRemindersProvider();
+  await customRemindersProvider.load();
+  // D7 — custom reminders may only be (re)armed while the master "love
+  // reminders" toggle is on (which is when OS permission was granted). When the
+  // master toggle is off their schedule was already cancelled, so on cold start
+  // we must NOT re-arm them; otherwise they'd silently fire again.
+  if (await _readMasterRemindersEnabled()) {
+    await customRemindersProvider.rescheduleAllEnabled();
+  } else {
+    await customRemindersProvider.cancelAllSchedules();
+  }
+
   await InstallStateService().handleFreshInstall(
     onFreshInstall: () => authService.purgePersistedSession(),
   );
@@ -65,7 +82,11 @@ void main() async {
     };
   }
 
-  runApp(MyApp(authService: authService, initialLocale: initialLocale));
+  runApp(MyApp(
+    authService: authService,
+    initialLocale: initialLocale,
+    customRemindersProvider: customRemindersProvider,
+  ));
 }
 
 /// Reads the persisted locale from the `app_settings` Hive box (key `locale`)
@@ -84,11 +105,31 @@ Future<Locale?> _readSavedLocale() async {
   return null;
 }
 
+/// Reads the master "love reminders" toggle from the `reminder_settings` Hive
+/// box (key `enabled`, default false) before the widget tree is built. Used to
+/// decide whether user-created custom reminders may be re-armed on cold start
+/// (D7). The box is owned by [ReminderProvider]; Hive.openBox is idempotent so
+/// reopening it here is safe. Any read failure is treated as "off".
+Future<bool> _readMasterRemindersEnabled() async {
+  try {
+    final box = await Hive.openBox<dynamic>('reminder_settings');
+    return box.get('enabled', defaultValue: false) as bool;
+  } catch (_) {
+    return false;
+  }
+}
+
 class MyApp extends StatefulWidget {
-  const MyApp({super.key, required this.authService, this.initialLocale});
+  const MyApp({
+    super.key,
+    required this.authService,
+    this.initialLocale,
+    required this.customRemindersProvider,
+  });
 
   final AuthService authService;
   final Locale? initialLocale;
+  final CustomRemindersProvider customRemindersProvider;
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -132,6 +173,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           create: (_) => LocaleProvider(initialLocale: widget.initialLocale),
         ),
         ChangeNotifierProvider(create: (_) => ReminderProvider()..load()),
+        ChangeNotifierProvider<CustomRemindersProvider>.value(
+          value: widget.customRemindersProvider,
+        ),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {

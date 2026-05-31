@@ -770,6 +770,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageSystemDesc => 'Follow device language';
 
   @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageVietnamese => 'Tiếng Việt';
+
+  @override
   String get loadingCoupleInfo => 'Loading couple info...';
 
   @override
@@ -780,70 +786,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updatingCoupleInfo => 'Updating couple info...';
-
-  @override
-  String get welcomeBackBadge => 'WELCOME BACK';
-
-  @override
-  String get createAccountBadge => 'CREATE ACCOUNT';
-
-  @override
-  String get loveHomeBadge => 'LOVE HOME';
-
-  @override
-  String get coupleOnboardingBadge => 'ONBOARDING';
-
-  @override
-  String get editCoupleBadge => 'EDIT COUPLE';
-
-  @override
-  String get deleteAccountBtn => 'Delete account';
-
-  @override
-  String get deleteAccountTitle => 'Delete Account';
-
-  @override
-  String get deleteAccountDesc => 'Permanently delete your account and all associated data';
-
-  @override
-  String get deleteAccountDialogTitle => 'Delete account?';
-
-  @override
-  String get deleteAccountDialogContent =>
-      'This action cannot be undone. All your data, including photos and couple information, will be permanently deleted.';
-
-  @override
-  String get deleteAccountConfirmBtn => 'Delete permanently';
-
-  @override
-  String get deleteAccountSuccessMsg => 'Account deleted';
-
-  @override
-  String get deleteAccountRequiresReloginMsg =>
-      'Please sign out, sign in again, and retry to verify your identity';
-
-  @override
-  String get deleteAccountFailed =>
-      'Could not delete your account right now. Please try again.';
-
-  @override
-  String get privacyPolicyLabel => 'Privacy Policy';
-
-  @override
-  String get privacyDisclosure =>
-      'By creating an account, you agree to our Privacy Policy. We collect your email, display name, and photos you share to provide the service.';
-
-  String get signOutBtn => 'Sign out';
-
-  String get signOutDialogTitle => 'Sign out?';
-
-  String get signOutDialogContent => 'Are you sure you want to sign out of your account?';
-
-  String get signOutConfirmBtn => 'Sign out';
-
-  String get agreeToPrivacyPolicy => 'I agree to the Privacy Policy';
-
-  String get mustAgreeToPrivacyPolicy => 'Please agree to the privacy policy to continue';
 
   @override
   String get setupNoChangesToSaveMsg => 'No changes to save.';
@@ -861,11 +803,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remindersSubtitle => 'Gentle nudges to keep your story growing';
 
   @override
-  String get remindersToggleLabel => 'Daily reminders';
+  String get remindersToggleLabel => 'Milestone & anniversary reminders';
 
   @override
   String get remindersToggleDesc =>
-      'A daily nudge plus milestone & anniversary alerts';
+      'Reminds you of the milestones & anniversaries you choose. Required to use \"Our reminders\".';
 
   @override
   String get remindersTimeLabel => 'Reminder time';
@@ -911,248 +853,484 @@ class AppLocalizationsEn extends AppLocalizations {
       'It\'s been a while — add a new memory together 💕';
 
   @override
+  String get remindersV2MilestoneEntryTitle => 'Milestones & anniversaries';
+
+  @override
+  String get remindersV2MilestoneEntrySubtitle =>
+      'Choose which milestones to be reminded of';
+
+  @override
+  String remindersV2MilestoneCountBadge(int count) {
+    return '$count';
+  }
+
+  @override
+  String get remindersV2MilestoneScreenTitle => 'Milestones & anniversaries';
+
+  @override
+  String get remindersV2MilestoneScreenCaption =>
+      'Choose the milestones you want and when to be reminded.';
+
+  @override
+  String remindersV2MilestoneNext(String date) {
+    return 'Next: $date';
+  }
+
+  @override
+  String remindersV2MilestoneNextWithLabel(String label, String date) {
+    return 'Next: $label · $date';
+  }
+
+  @override
+  String get remindersV2MilestonePast => 'Passed';
+
+  @override
+  String get remindersV2MilestonePending =>
+      'Calculated once your anniversary begins';
+
+  @override
+  String remindersV2MilestoneDaysLabel(int count) {
+    return '$count days';
+  }
+
+  @override
+  String remindersV2MilestoneYearsLabel(int count) {
+    return '$count years';
+  }
+
+  @override
+  String get milestoneEvery100Title => 'Every 100 days';
+
+  @override
+  String get milestoneEvery100Desc => 'Celebrate every 100 days together';
+
+  @override
+  String get milestone520Title => '520 days';
+
+  @override
+  String get milestone520Desc => '\"I love you\" — the 520-day mark';
+
+  @override
+  String get milestone1000Title => '1000 days';
+
+  @override
+  String get milestone1000Desc => 'A full 1000 days in love';
+
+  @override
+  String get milestone1314Title => '1314 days';
+
+  @override
+  String get milestone1314Desc => '\"Forever love\" — the 1314-day mark';
+
+  @override
+  String get milestoneHalfYearTitle => 'Half a year together';
+
+  @override
+  String get milestoneHalfYearDesc => 'A full 6 months together';
+
+  @override
+  String get milestoneYearlyTitle => 'Yearly anniversary';
+
+  @override
+  String get milestoneYearlyDesc => 'Every year on your anniversary';
+
+  @override
+  String get milestoneInactivityTitle => 'No photos for a while';
+
+  @override
+  String get milestoneInactivityDesc =>
+      'A gentle nudge after 7 days without a new photo';
+
+  @override
+  String get milestoneInactivitySub => 'Reminds you after 7 photo-free days';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsProfileTileSubtitle => 'Reminders, language, account';
+
+  @override
+  String get settingsRemindersModuleTitle => 'Reminders';
+
+  @override
+  String get settingsRemindersModuleSubtitle =>
+      'Milestones, anniversaries & your own reminders';
+
+  @override
+  String get settingsAccountModuleTitle => 'Account & data';
+
+  @override
+  String get settingsAccountModuleSubtitle => 'Your story, data & account';
+
+  @override
+  String get settingsEditStorySubtitle => 'Edit names, anniversary date, photo';
+
+  @override
+  String get settingsDefaultTimeLabel => 'Default time';
+
+  @override
+  String get settingsDefaultTimeSubtitle =>
+      'Used for milestones without a custom time';
+
+  @override
+  String settingsMilestoneUsesDefault(String time) {
+    return 'Default · $time';
+  }
+
+  @override
+  String get settingsMilestoneCustomTimeReset => 'Reset to default time';
+
+  @override
+  String get remindersV2ForceOpenTitle => 'Turn on reminders to continue';
+
+  @override
+  String get remindersV2ForceOpenBody =>
+      'You need to turn on \"Milestone & anniversary reminders\" to create and receive your own reminders.';
+
+  @override
+  String get remindersV2ForceOpenConfirm => 'Turn on';
+
+  @override
+  String get remindersV2ForceOpenLater => 'Later';
+
+  @override
+  String get remindersV2ForceOpenDeniedMsg =>
+      'Notification permission denied. Enable notifications in Settings to continue.';
+
+  @override
   String get languageSearchHint => 'Search languages';
+
+  @override
+  String get customRemindersEntryTitle => 'Our reminders';
+
+  @override
+  String get customRemindersEntrySubtitle => 'Create your own special dates';
+
+  @override
+  String get customRemindersScreenTitle => 'Our reminders';
+
+  @override
+  String customRemindersCount(int count) {
+    return '$count/20';
+  }
+
+  @override
+  String customRemindersNextFire(String date) {
+    return 'Next: $date';
+  }
+
+  @override
+  String get customRemindersDisabledLabel => 'Off';
+
+  @override
+  String get customRemindersFabTooltip => 'Add reminder';
+
+  @override
+  String get customRemindersItemMenuEdit => 'Edit';
+
+  @override
+  String get customRemindersItemMenuDelete => 'Delete';
+
+  @override
+  String get customRemindersEmptyTitle => 'No reminders yet';
+
+  @override
+  String get customRemindersEmptyBody =>
+      'Create your own moments: birthdays, monthsaries, special days…';
+
+  @override
+  String get customRemindersEmptyCta => 'Create your first reminder';
+
+  @override
+  String get customRemindersOffTitle => 'Reminders are off';
+
+  @override
+  String get customRemindersOffBody =>
+      'Turn on \"Love reminders\" in Profile so your reminders can work.';
+
+  @override
+  String get customRemindersOffCta => 'Turn on reminders';
+
+  @override
+  String get customRemindersLimitMsg =>
+      'You\'ve reached the max of 20 reminders. Delete one to add more.';
+
+  @override
+  String get customRemindersAddTitle => 'New reminder';
+
+  @override
+  String get customRemindersEditTitle => 'Edit reminder';
+
+  @override
+  String get customRemindersSave => 'Save';
+
+  @override
+  String get customRemindersCancel => 'Cancel';
+
+  @override
+  String get customRemindersSavedMsg => 'Reminder saved 💌';
+
+  @override
+  String get customRemindersNameLabel => 'Reminder name';
+
+  @override
+  String get customRemindersNameRequiredMark => '*';
+
+  @override
+  String get customRemindersNameHint => 'e.g. My love\'s birthday';
+
+  @override
+  String get customRemindersNoteLabel => 'Note (optional)';
+
+  @override
+  String get customRemindersNoteHint => 'Add a sweet note…';
+
+  @override
+  String get customRemindersDateLabel => 'Date';
+
+  @override
+  String get customRemindersTimeLabel => 'Time';
+
+  @override
+  String get customRemindersRepeatLabel => 'Repeat';
+
+  @override
+  String get customRemindersRepeatOnce => 'Once';
+
+  @override
+  String get customRemindersRepeatDaily => 'Daily';
+
+  @override
+  String get customRemindersRepeatWeekly => 'Weekly';
+
+  @override
+  String get customRemindersRepeatMonthly => 'Monthly';
+
+  @override
+  String get customRemindersRepeatYearly => 'Yearly';
+
+  @override
+  String customRemindersMetaOnce(String date, String time) {
+    return 'Once · $date · $time';
+  }
+
+  @override
+  String customRemindersMetaDaily(String time) {
+    return 'Daily · $time';
+  }
+
+  @override
+  String customRemindersMetaWeekly(String weekday, String time) {
+    return 'Weekly · $weekday · $time';
+  }
+
+  @override
+  String customRemindersMetaMonthly(int day, String time) {
+    return 'Monthly · day $day · $time';
+  }
+
+  @override
+  String customRemindersMetaYearly(String dayMonth, String time) {
+    return 'Yearly · $dayMonth · $time';
+  }
+
+  @override
+  String get customRemindersNameError => 'Please name your reminder';
+
+  @override
+  String get customRemindersPastDateWarning =>
+      'That date has passed — pick another';
+
+  @override
+  String get customRemindersDeleteSectionHint => 'Can\'t be undone';
+
+  @override
+  String get customRemindersDeleteButton => 'Delete reminder';
+
+  @override
+  String get customRemindersDeleteDialogTitle => 'Delete this reminder?';
+
+  @override
+  String customRemindersDeleteDialogBody(String name) {
+    return '\"$name\" will be removed and won\'t remind you anymore.';
+  }
+
+  @override
+  String get customRemindersDeleteConfirm => 'Delete';
+
+  @override
+  String get customRemindersDeletedMsg => 'Reminder deleted';
+
+  @override
+  String get customRemindersNotifBodyFallback =>
+      'A special moment for the two of you 💞';
+
+  @override
+  String get agreeToPrivacyPolicy => 'I agree to the Privacy Policy';
 
   @override
   String get appTitle => 'Our Memories';
 
   @override
-  String homeCounterStartFrom(String date) => 'Since $date';
-
-  @override
-  String get homeWaitingPartnerTitle => 'Waiting for your partner';
-
-  @override
-  String get homeWaitingPartnerSubtitle =>
-      'Share your invite code with your partner to start the journey together.';
-
-  @override
-  String get galleryTodayEmptyTitle => 'No moments captured today yet';
-
-  @override
-  String get galleryTodayEmptySubtitle =>
-      'Don\'t let today slip by without a trace.';
-
-  @override
-  String get galleryRecordTodayMoment => 'Capture today\'s moment';
-
-  @override
-  String galleryTodayMomentsCount(int count) => '$count moments today';
-
-  @override
-  String get galleryTodayBadge => 'Today';
-
-  @override
-  String get galleryEditCaptionTooltip => 'Edit caption';
-
-  @override
-  String galleryMonthLabel(int month, int year) {
-    const names = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return '${names[month - 1]} $year';
-  }
-
-  @override
-  String get galleryEmptyTitle => 'No photos yet';
-
-  @override
-  String get galleryEmptySubtitle => 'Add photos to start making memories';
-
-  @override
-  String get profileDangerIrreversible => 'Can\'t be undone';
-
-  @override
-  String get posterNameFallback => 'Your partner';
-
-  @override
-  String counterDuration(int years, int months, int days) =>
-      '$years years, $months months, $days days';
-
-  @override
-  String get pushPhotoChannelName => 'Partner photo updates';
-
-  @override
-  String get pushPhotoChannelDescription =>
-      'Get notified when your partner posts a new photo.';
-
-  @override
-  String get leavingCouple => 'Leaving the couple...';
-
-  @override
-  String coupleSyncError(String error) => 'Couldn\'t sync couple info: $error';
-
-  @override
-  String coupleLoadError(String error) => 'Couldn\'t load couple info: $error';
-
-  @override
-  String get coupleNoDataToUpdate => 'No couple data to update.';
-
-  @override
-  String get authFirebaseUserCreateFailed =>
-      'Couldn\'t create your Firebase account.';
-
-  @override
-  String get authEmailAlreadyUsed => 'This email is already in use.';
-
-  @override
-  String get authSessionUnavailable => 'Couldn\'t get your Firebase session.';
-
-  @override
   String get authAccountNotFound => 'No account found for this email.';
-
-  @override
-  String get authWrongPassword =>
-      'That password isn\'t right — please check and try again.';
-
-  @override
-  String get authEmailPasswordNotEnabled =>
-      'Firebase Authentication isn\'t fully set up for Email/Password. In Firebase Console > Authentication > Sign-in method, enable Email/Password.';
-
-  @override
-  String get authInvalidEmail => 'That email isn\'t valid.';
-
-  @override
-  String get authWeakPassword =>
-      'That password is too weak — please choose a stronger one.';
-
-  @override
-  String get authInvalidCredential => 'Email or password is incorrect.';
-
-  @override
-  String get authTooManyRequests =>
-      'Too many sign-in attempts — please try again in a few minutes.';
-
-  @override
-  String get authNetworkError =>
-      'No stable network connection to sign in to Firebase.';
 
   @override
   String get authConfigNotFound =>
       'Firebase Authentication for this project isn\'t enabled, or Email/Password is off. In Firebase Console > Authentication > Sign-in method > Email/Password, turn it on.';
 
   @override
+  String get authEmailAlreadyUsed => 'This email is already in use.';
+
+  @override
+  String get authEmailPasswordNotEnabled =>
+      'Firebase Authentication isn\'t fully set up for Email/Password. In Firebase Console > Authentication > Sign-in method, enable Email/Password.';
+
+  @override
   String get authFirebaseAuthGeneric => 'A Firebase Auth error occurred.';
 
   @override
-  String get authInviteCodeUnavailable =>
-      'Couldn\'t create an invite code for your account right now — please try again.';
+  String get authFirebaseUserCreateFailed =>
+      'Couldn\'t create your Firebase account.';
+
+  @override
+  String get authFirestoreGeneric => 'A Firestore error occurred.';
 
   @override
   String get authFirestorePermissionDenied =>
-      'Firestore is blocking writes to user data. This app connects to the Firebase project `tonyembeiu`, so check that project\'s Firestore Rules and allow a signed-in user to create/write their own `users/{uid}` and `invite_codes/{code}`.';
+      'Firestore is blocking writes to user data. This app connects to the Firebase project `tonyembeiu`, so check that project\'s Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.';
 
   @override
   String get authFirestoreUnavailable =>
       'Firestore is currently unavailable or the network is unstable. Please try again in a few minutes.';
 
   @override
-  String get authFirestoreGeneric => 'A Firestore error occurred.';
+  String get authInvalidCredential => 'Email or password is incorrect.';
 
   @override
-  String get authSessionNotReady =>
-      'Your Firebase session isn\'t ready. Please sign in again.';
+  String get authInvalidEmail => 'That email isn\'t valid.';
 
   @override
   String get authInviteCodeGenerateFailed =>
       'Couldn\'t generate a new invite code — please try again later.';
 
   @override
-  String get defaultDisplayName => 'New user';
+  String get authInviteCodeUnavailable =>
+      'Couldn\'t create an invite code for your account right now — please try again.';
 
   @override
-  String get coupleUserNotFoundForCreate =>
-      'Couldn\'t find your current account to create a couple.';
+  String get authNetworkError =>
+      'No stable network connection to sign in to Firebase.';
 
   @override
-  String get coupleUpdatedSuccess => 'Couple info updated.';
+  String get authSessionNotReady =>
+      'Your Firebase session isn\'t ready. Please sign in again.';
+
+  @override
+  String get authSessionUnavailable => 'Couldn\'t get your Firebase session.';
+
+  @override
+  String get authTooManyRequests =>
+      'Too many sign-in attempts — please try again in a few minutes.';
+
+  @override
+  String get authWeakPassword =>
+      'That password is too weak — please choose a stronger one.';
+
+  @override
+  String get authWrongPassword =>
+      'That password isn\'t right — please check and try again.';
+
+  @override
+  String get bootstrapAndroidNotReady =>
+      'Firebase Android isn\'t ready. Check `android/app/google-services.json` and the app\'s package name.';
+
+  @override
+  String get bootstrapIosNotConfigured =>
+      'You\'re on iOS but the project has no `GoogleService-Info.plist`, so the app fell back to local mode.';
+
+  @override
+  String get bootstrapLinuxNotConfigured =>
+      'Firebase for Linux isn\'t configured, so the app is running in local fallback.';
+
+  @override
+  String get bootstrapMacosNotConfigured =>
+      'Firebase for macOS isn\'t configured, so the app is running in local fallback.';
+
+  @override
+  String get bootstrapPlatformNotConfigured =>
+      'Firebase isn\'t configured for the current platform, so the app is running in local fallback.';
+
+  @override
+  String get bootstrapWebNotConfigured =>
+      'Firebase isn\'t configured for Web, so the app is running in local fallback.';
+
+  @override
+  String get bootstrapWindowsNotConfigured =>
+      'Firebase for Windows isn\'t configured, so the app is running in local fallback.';
 
   @override
   String get coupleAlreadyInCouple =>
       'This account already belongs to a couple.';
 
   @override
-  String get coupleEnterCodeFirst => 'Please enter a connection code first.';
+  String get coupleAlreadyInThisCouple => 'You\'re already in this couple.';
 
   @override
   String get coupleCannotUseOwnCode => 'You can\'t use your own invite code.';
-
-  @override
-  String get coupleInviteCodeInvalid =>
-      'This invite code is invalid or no longer exists.';
-
-  @override
-  String get couplePartnerHasNoSpace =>
-      'Your partner has their own invite code but hasn\'t created a couple space for you to join yet.';
-
-  @override
-  String get coupleNotFoundForCode => 'No couple found for this code.';
 
   @override
   String get coupleCodeNoLongerValid =>
       'This invite code no longer points to a valid couple.';
 
   @override
-  String get coupleAlreadyInThisCouple => 'You\'re already in this couple.';
+  String get coupleCodeNotFoundLocal =>
+      'Couldn\'t find the connection code in local fallback.';
 
   @override
-  String get coupleFull => 'This couple already has two people.';
-
-  @override
-  String get coupleSpaceInvalidRegenerate =>
-      'This invite code points to a couple space that\'s no longer valid. Ask your partner to regenerate the code, then try again.';
-
-  @override
-  String get coupleJoinPermissionDenied =>
-      'Couldn\'t connect with this invite code. The couple space may have changed or is no longer valid — ask your partner to regenerate the code, or sign out and back in, then try again.';
-
-  @override
-  String get coupleSessionExpiredJoin =>
-      'Your session has expired. Please sign in again, then retry connecting.';
+  String get coupleEnterCodeFirst => 'Please enter a connection code first.';
 
   @override
   String get coupleFirebaseUnavailable =>
       'Firebase is currently unavailable or the network is unstable. Please try again in a few minutes.';
 
   @override
-  String get coupleJoinGeneric =>
-      'Couldn\'t connect with this invite code right now.';
-
-  @override
-  String get coupleCodeNotFoundLocal =>
-      'Couldn\'t find the connection code in local fallback.';
+  String get coupleFull => 'This couple already has two people.';
 
   @override
   String get coupleFullLocal => 'This local couple already has two people.';
 
   @override
+  String get coupleInviteCodeInvalid =>
+      'This invite code is invalid or no longer exists.';
+
+  @override
+  String get coupleJoinGeneric =>
+      'Couldn\'t connect with this invite code right now.';
+
+  @override
+  String get coupleJoinPermissionDenied =>
+      'Couldn\'t connect with this invite code. The couple space may have changed or is no longer valid — ask your partner to regenerate the code, or sign out and back in, then try again.';
+
+  @override
   String get coupleMatchedLocal => 'Matched in local fallback mode.';
 
   @override
-  String get coupleSessionNotReadyRelogin =>
-      'Your Firebase session isn\'t ready. Please sign out and back in.';
+  String get coupleNoDataToUpdate => 'No couple data to update.';
 
   @override
-  String get coupleSavePermissionDenied =>
-      'Couldn\'t save couple info because access was denied. The data may be in an invalid state — please sign out and back in, then try again.';
+  String get coupleNotFoundForCode => 'No couple found for this code.';
 
   @override
-  String get coupleSessionInvalid =>
-      'Your Firebase session is no longer valid. Please sign in again.';
+  String get coupleOnboardingBadge => 'ONBOARDING';
 
   @override
-  String get coupleSaveGeneric => 'Couldn\'t save couple info right now.';
+  String get couplePartnerHasNoSpace =>
+      'Your partner has their own invite code but hasn\'t created a couple space for you to join yet.';
+
+  @override
+  String get couplePhotoUploadGeneric =>
+      'The couple photo couldn\'t be uploaded to Firebase Storage.';
 
   @override
   String get couplePhotoUploadPermission =>
@@ -1167,15 +1345,135 @@ class AppLocalizationsEn extends AppLocalizations {
       'The couple photo couldn\'t be uploaded because Firebase Storage or the network is temporarily unstable.';
 
   @override
-  String get couplePhotoUploadGeneric =>
-      'The couple photo couldn\'t be uploaded to Firebase Storage.';
+  String get coupleSaveGeneric => 'Couldn\'t save couple info right now.';
+
+  @override
+  String get coupleSavePermissionDenied =>
+      'Couldn\'t save couple info because access was denied. The data may be in an invalid state — please sign out and back in, then try again.';
+
+  @override
+  String get coupleSessionExpiredJoin =>
+      'Your session has expired. Please sign in again, then retry connecting.';
+
+  @override
+  String get coupleSessionInvalid =>
+      'Your Firebase session is no longer valid. Please sign in again.';
+
+  @override
+  String get coupleSessionNotReadyRelogin =>
+      'Your Firebase session isn\'t ready. Please sign out and back in.';
+
+  @override
+  String get coupleSpaceInvalidRegenerate =>
+      'This invite code points to a couple space that\'s no longer valid. Ask your partner to regenerate the code, then try again.';
+
+  @override
+  String get coupleUpdatedSuccess => 'Couple info updated.';
+
+  @override
+  String get coupleUserNotFoundForCreate =>
+      'Couldn\'t find your current account to create a couple.';
+
+  @override
+  String get createAccountBadge => 'CREATE ACCOUNT';
+
+  @override
+  String get defaultDisplayName => 'New user';
+
+  @override
+  String get deleteAccountBtn => 'Delete account';
+
+  @override
+  String get deleteAccountConfirmBtn => 'Delete permanently';
+
+  @override
+  String get deleteAccountDesc =>
+      'Permanently delete your account and all associated data';
+
+  @override
+  String get deleteAccountDialogContent =>
+      'This action cannot be undone. All your data, including photos and couple information, will be permanently deleted.';
+
+  @override
+  String get deleteAccountDialogTitle => 'Delete account?';
+
+  @override
+  String get deleteAccountFailed =>
+      'Could not delete your account right now. Please try again.';
+
+  @override
+  String get deleteAccountRequiresReloginMsg =>
+      'Please sign out, sign in again, and retry to verify your identity';
+
+  @override
+  String get deleteAccountSuccessMsg => 'Account deleted';
+
+  @override
+  String get deleteAccountTitle => 'Delete Account';
+
+  @override
+  String get editCoupleBadge => 'EDIT COUPLE';
+
+  @override
+  String get galleryEditCaptionTooltip => 'Edit caption';
+
+  @override
+  String get galleryEmptySubtitle => 'Add photos to start making memories';
+
+  @override
+  String get galleryEmptyTitle => 'No photos yet';
+
+  @override
+  String get galleryRecordTodayMoment => 'Capture today\'s moment';
+
+  @override
+  String get galleryTodayBadge => 'Today';
+
+  @override
+  String get galleryTodayEmptySubtitle =>
+      'Don\'t let today slip by without a trace.';
+
+  @override
+  String get galleryTodayEmptyTitle => 'No moments captured today yet';
+
+  @override
+  String get homeWaitingPartnerSubtitle =>
+      'Share your invite code with your partner to start the journey together.';
+
+  @override
+  String get homeWaitingPartnerTitle => 'Waiting for your partner';
+
+  @override
+  String get leavingCouple => 'Leaving the couple...';
+
+  @override
+  String get loveHomeBadge => 'LOVE HOME';
+
+  @override
+  String get mustAgreeToPrivacyPolicy =>
+      'Please agree to the privacy policy to continue';
 
   @override
   String get photoConnectCoupleFirst =>
       'Connect with your partner before posting a photo.';
 
   @override
+  String get photoFileNotFoundStorage =>
+      'The photo file wasn\'t found on Firebase Storage.';
+
+  @override
+  String get photoFirebaseUnavailable =>
+      'Firebase is currently unavailable or the network is unstable.';
+
+  @override
   String get photoNotFoundToPost => 'Couldn\'t find the photo to post.';
+
+  @override
+  String get photoStorageUnauthorized =>
+      'Firebase Storage is refusing this photo operation.';
+
+  @override
+  String get photoSyncGeneric => 'Couldn\'t sync photos right now.';
 
   @override
   String get photoSyncPermissionDenied =>
@@ -1186,45 +1484,83 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your Firebase session has expired. Please sign in again.';
 
   @override
-  String get photoFileNotFoundStorage =>
-      'The photo file wasn\'t found on Firebase Storage.';
+  String get posterNameFallback => 'Your partner';
 
   @override
-  String get photoStorageUnauthorized =>
-      'Firebase Storage is refusing this photo operation.';
+  String get privacyDisclosure =>
+      'By creating an account, you agree to our Privacy Policy. We collect your email, display name, and photos you share to provide the service.';
 
   @override
-  String get photoFirebaseUnavailable =>
-      'Firebase is currently unavailable or the network is unstable.';
+  String get privacyPolicyLabel => 'Privacy Policy';
 
   @override
-  String get photoSyncGeneric => 'Couldn\'t sync photos right now.';
+  String get profileDangerIrreversible => 'Can\'t be undone';
 
   @override
-  String get bootstrapWebNotConfigured =>
-      'Firebase isn\'t configured for Web, so the app is running in local fallback.';
+  String get pushPhotoChannelDescription =>
+      'Get notified when your partner posts a new photo.';
 
   @override
-  String get bootstrapAndroidNotReady =>
-      'Firebase Android isn\'t ready. Check `android/app/google-services.json` and the app\'s package name.';
+  String get pushPhotoChannelName => 'Partner photo updates';
 
   @override
-  String get bootstrapIosNotConfigured =>
-      'You\'re on iOS but the project has no `GoogleService-Info.plist`, so the app fell back to local mode.';
+  String get signOutBtn => 'Sign out';
 
   @override
-  String get bootstrapMacosNotConfigured =>
-      'Firebase for macOS isn\'t configured, so the app is running in local fallback.';
+  String get signOutConfirmBtn => 'Sign out';
 
   @override
-  String get bootstrapWindowsNotConfigured =>
-      'Firebase for Windows isn\'t configured, so the app is running in local fallback.';
+  String get signOutDialogContent =>
+      'Are you sure you want to sign out of your account?';
 
   @override
-  String get bootstrapLinuxNotConfigured =>
-      'Firebase for Linux isn\'t configured, so the app is running in local fallback.';
+  String get signOutDialogTitle => 'Sign out?';
 
   @override
-  String get bootstrapPlatformNotConfigured =>
-      'Firebase isn\'t configured for the current platform, so the app is running in local fallback.';
+  String get welcomeBackBadge => 'WELCOME BACK';
+
+  @override
+  String counterDuration(int years, int months, int days) {
+    return '$years years, $months months, $days days';
+  }
+
+  @override
+  String coupleLoadError(String error) {
+    return 'Couldn\'t load couple info: $error';
+  }
+
+  @override
+  String coupleSyncError(String error) {
+    return 'Couldn\'t sync couple info: $error';
+  }
+
+  @override
+  String galleryMonthLabel(String month, String year) {
+    String _temp0 = intl.Intl.selectLogic(month, {
+      '1': 'January $year',
+      '2': 'February $year',
+      '3': 'March $year',
+      '4': 'April $year',
+      '5': 'May $year',
+      '6': 'June $year',
+      '7': 'July $year',
+      '8': 'August $year',
+      '9': 'September $year',
+      '10': 'October $year',
+      '11': 'November $year',
+      '12': 'December $year',
+      'other': '$month $year',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String galleryTodayMomentsCount(int count) {
+    return '$count moments today';
+  }
+
+  @override
+  String homeCounterStartFrom(String date) {
+    return 'Since $date';
+  }
 }

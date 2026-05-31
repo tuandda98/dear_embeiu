@@ -1448,6 +1448,18 @@ abstract class AppLocalizations {
   /// **'Follow device language'**
   String get languageSystemDesc;
 
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languageVietnamese.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiếng Việt'**
+  String get languageVietnamese;
+
   /// No description provided for @loadingCoupleInfo.
   ///
   /// In en, this message translates to:
@@ -1472,195 +1484,1301 @@ abstract class AppLocalizations {
   /// **'Updating couple info...'**
   String get updatingCoupleInfo;
 
-  String get welcomeBackBadge;
-
-  String get createAccountBadge;
-
-  String get loveHomeBadge;
-
-  String get coupleOnboardingBadge;
-
-  String get editCoupleBadge;
-
-  String get deleteAccountBtn;
-
-  String get deleteAccountTitle;
-
-  String get deleteAccountDesc;
-
-  String get deleteAccountDialogTitle;
-
-  String get deleteAccountDialogContent;
-
-  String get deleteAccountConfirmBtn;
-
-  String get deleteAccountSuccessMsg;
-
-  String get deleteAccountRequiresReloginMsg;
-
-  String get deleteAccountFailed;
-
-  String get privacyPolicyLabel;
-
-  String get privacyDisclosure;
-
-  String get signOutBtn;
-
-  String get signOutDialogTitle;
-
-  String get signOutDialogContent;
-
-  String get signOutConfirmBtn;
-
-  String get agreeToPrivacyPolicy;
-
-  String get mustAgreeToPrivacyPolicy;
-
+  /// No description provided for @setupNoChangesToSaveMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes to save.'**
   String get setupNoChangesToSaveMsg;
 
+  /// No description provided for @inviteCodeCopiedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code copied'**
   String get inviteCodeCopiedMsg;
 
+  /// No description provided for @copyBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
   String get copyBtn;
 
+  /// No description provided for @remindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Love reminders'**
   String get remindersTitle;
 
+  /// No description provided for @remindersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle nudges to keep your story growing'**
   String get remindersSubtitle;
 
+  /// No description provided for @remindersToggleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestone & anniversary reminders'**
   String get remindersToggleLabel;
 
+  /// No description provided for @remindersToggleDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminds you of the milestones & anniversaries you choose. Required to use \"Our reminders\".'**
   String get remindersToggleDesc;
 
+  /// No description provided for @remindersTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time'**
   String get remindersTimeLabel;
 
+  /// No description provided for @remindersPermissionDeniedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications in Settings to receive reminders.'**
   String get remindersPermissionDeniedMsg;
 
+  /// No description provided for @reminderDailyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Another day of us 💕'**
   String get reminderDailyTitle;
 
+  /// No description provided for @reminderDailyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Dear Embeiu and count today together.'**
   String get reminderDailyBody;
 
+  /// No description provided for @reminderMilestoneApproachingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A milestone is near 💕'**
   String get reminderMilestoneApproachingTitle;
 
+  /// No description provided for @reminderMilestoneApproachingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days until your {milestone} milestone!'**
   String reminderMilestoneApproachingBody(int count, String milestone);
 
+  /// No description provided for @reminderMilestoneTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestone reached 🎉'**
   String get reminderMilestoneTodayTitle;
 
+  /// No description provided for @reminderMilestoneTodayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today you reach {milestone} together 💕'**
   String reminderMilestoneTodayBody(String milestone);
 
+  /// No description provided for @reminderAnniversaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy anniversary 🎉'**
   String get reminderAnniversaryTitle;
 
+  /// No description provided for @reminderAnniversaryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Celebrate another year of your love story today 💕'**
   String get reminderAnniversaryBody;
 
+  /// No description provided for @reminderInactivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing your moments 💭'**
   String get reminderInactivityTitle;
 
+  /// No description provided for @reminderInactivityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s been a while — add a new memory together 💕'**
   String get reminderInactivityBody;
 
+  /// No description provided for @remindersV2MilestoneEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones & anniversaries'**
+  String get remindersV2MilestoneEntryTitle;
+
+  /// No description provided for @remindersV2MilestoneEntrySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which milestones to be reminded of'**
+  String get remindersV2MilestoneEntrySubtitle;
+
+  /// No description provided for @remindersV2MilestoneCountBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}'**
+  String remindersV2MilestoneCountBadge(int count);
+
+  /// No description provided for @remindersV2MilestoneScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones & anniversaries'**
+  String get remindersV2MilestoneScreenTitle;
+
+  /// No description provided for @remindersV2MilestoneScreenCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the milestones you want and when to be reminded.'**
+  String get remindersV2MilestoneScreenCaption;
+
+  /// No description provided for @remindersV2MilestoneNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {date}'**
+  String remindersV2MilestoneNext(String date);
+
+  /// No description provided for @remindersV2MilestoneNextWithLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {label} · {date}'**
+  String remindersV2MilestoneNextWithLabel(String label, String date);
+
+  /// No description provided for @remindersV2MilestonePast.
+  ///
+  /// In en, this message translates to:
+  /// **'Passed'**
+  String get remindersV2MilestonePast;
+
+  /// No description provided for @remindersV2MilestonePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated once your anniversary begins'**
+  String get remindersV2MilestonePending;
+
+  /// No description provided for @remindersV2MilestoneDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days'**
+  String remindersV2MilestoneDaysLabel(int count);
+
+  /// No description provided for @remindersV2MilestoneYearsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} years'**
+  String remindersV2MilestoneYearsLabel(int count);
+
+  /// No description provided for @milestoneEvery100Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Every 100 days'**
+  String get milestoneEvery100Title;
+
+  /// No description provided for @milestoneEvery100Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Celebrate every 100 days together'**
+  String get milestoneEvery100Desc;
+
+  /// No description provided for @milestone520Title.
+  ///
+  /// In en, this message translates to:
+  /// **'520 days'**
+  String get milestone520Title;
+
+  /// No description provided for @milestone520Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'\"I love you\" — the 520-day mark'**
+  String get milestone520Desc;
+
+  /// No description provided for @milestone1000Title.
+  ///
+  /// In en, this message translates to:
+  /// **'1000 days'**
+  String get milestone1000Title;
+
+  /// No description provided for @milestone1000Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'A full 1000 days in love'**
+  String get milestone1000Desc;
+
+  /// No description provided for @milestone1314Title.
+  ///
+  /// In en, this message translates to:
+  /// **'1314 days'**
+  String get milestone1314Title;
+
+  /// No description provided for @milestone1314Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Forever love\" — the 1314-day mark'**
+  String get milestone1314Desc;
+
+  /// No description provided for @milestoneHalfYearTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Half a year together'**
+  String get milestoneHalfYearTitle;
+
+  /// No description provided for @milestoneHalfYearDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A full 6 months together'**
+  String get milestoneHalfYearDesc;
+
+  /// No description provided for @milestoneYearlyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly anniversary'**
+  String get milestoneYearlyTitle;
+
+  /// No description provided for @milestoneYearlyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Every year on your anniversary'**
+  String get milestoneYearlyDesc;
+
+  /// No description provided for @milestoneInactivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No photos for a while'**
+  String get milestoneInactivityTitle;
+
+  /// No description provided for @milestoneInactivityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A gentle nudge after 7 days without a new photo'**
+  String get milestoneInactivityDesc;
+
+  /// No description provided for @milestoneInactivitySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminds you after 7 photo-free days'**
+  String get milestoneInactivitySub;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsProfileTileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders, language, account'**
+  String get settingsProfileTileSubtitle;
+
+  /// No description provided for @settingsRemindersModuleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get settingsRemindersModuleTitle;
+
+  /// No description provided for @settingsRemindersModuleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones, anniversaries & your own reminders'**
+  String get settingsRemindersModuleSubtitle;
+
+  /// No description provided for @settingsAccountModuleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account & data'**
+  String get settingsAccountModuleTitle;
+
+  /// No description provided for @settingsAccountModuleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your story, data & account'**
+  String get settingsAccountModuleSubtitle;
+
+  /// No description provided for @settingsEditStorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit names, anniversary date, photo'**
+  String get settingsEditStorySubtitle;
+
+  /// No description provided for @settingsDefaultTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default time'**
+  String get settingsDefaultTimeLabel;
+
+  /// No description provided for @settingsDefaultTimeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Used for milestones without a custom time'**
+  String get settingsDefaultTimeSubtitle;
+
+  /// No description provided for @settingsMilestoneUsesDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default · {time}'**
+  String settingsMilestoneUsesDefault(String time);
+
+  /// No description provided for @settingsMilestoneCustomTimeReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default time'**
+  String get settingsMilestoneCustomTimeReset;
+
+  /// No description provided for @remindersV2ForceOpenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on reminders to continue'**
+  String get remindersV2ForceOpenTitle;
+
+  /// No description provided for @remindersV2ForceOpenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to turn on \"Milestone & anniversary reminders\" to create and receive your own reminders.'**
+  String get remindersV2ForceOpenBody;
+
+  /// No description provided for @remindersV2ForceOpenConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get remindersV2ForceOpenConfirm;
+
+  /// No description provided for @remindersV2ForceOpenLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get remindersV2ForceOpenLater;
+
+  /// No description provided for @remindersV2ForceOpenDeniedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission denied. Enable notifications in Settings to continue.'**
+  String get remindersV2ForceOpenDeniedMsg;
+
+  /// No description provided for @languageSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search languages'**
   String get languageSearchHint;
 
-  // ----- App-wide -----
+  /// No description provided for @customRemindersEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our reminders'**
+  String get customRemindersEntryTitle;
+
+  /// No description provided for @customRemindersEntrySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your own special dates'**
+  String get customRemindersEntrySubtitle;
+
+  /// No description provided for @customRemindersScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our reminders'**
+  String get customRemindersScreenTitle;
+
+  /// No description provided for @customRemindersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/20'**
+  String customRemindersCount(int count);
+
+  /// No description provided for @customRemindersNextFire.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {date}'**
+  String customRemindersNextFire(String date);
+
+  /// No description provided for @customRemindersDisabledLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get customRemindersDisabledLabel;
+
+  /// No description provided for @customRemindersFabTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add reminder'**
+  String get customRemindersFabTooltip;
+
+  /// No description provided for @customRemindersItemMenuEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get customRemindersItemMenuEdit;
+
+  /// No description provided for @customRemindersItemMenuDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get customRemindersItemMenuDelete;
+
+  /// No description provided for @customRemindersEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminders yet'**
+  String get customRemindersEmptyTitle;
+
+  /// No description provided for @customRemindersEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your own moments: birthdays, monthsaries, special days…'**
+  String get customRemindersEmptyBody;
+
+  /// No description provided for @customRemindersEmptyCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first reminder'**
+  String get customRemindersEmptyCta;
+
+  /// No description provided for @customRemindersOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are off'**
+  String get customRemindersOffTitle;
+
+  /// No description provided for @customRemindersOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on \"Love reminders\" in Profile so your reminders can work.'**
+  String get customRemindersOffBody;
+
+  /// No description provided for @customRemindersOffCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on reminders'**
+  String get customRemindersOffCta;
+
+  /// No description provided for @customRemindersLimitMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve reached the max of 20 reminders. Delete one to add more.'**
+  String get customRemindersLimitMsg;
+
+  /// No description provided for @customRemindersAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New reminder'**
+  String get customRemindersAddTitle;
+
+  /// No description provided for @customRemindersEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit reminder'**
+  String get customRemindersEditTitle;
+
+  /// No description provided for @customRemindersSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get customRemindersSave;
+
+  /// No description provided for @customRemindersCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get customRemindersCancel;
+
+  /// No description provided for @customRemindersSavedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder saved 💌'**
+  String get customRemindersSavedMsg;
+
+  /// No description provided for @customRemindersNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder name'**
+  String get customRemindersNameLabel;
+
+  /// No description provided for @customRemindersNameRequiredMark.
+  ///
+  /// In en, this message translates to:
+  /// **'*'**
+  String get customRemindersNameRequiredMark;
+
+  /// No description provided for @customRemindersNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. My love\'s birthday'**
+  String get customRemindersNameHint;
+
+  /// No description provided for @customRemindersNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get customRemindersNoteLabel;
+
+  /// No description provided for @customRemindersNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a sweet note…'**
+  String get customRemindersNoteHint;
+
+  /// No description provided for @customRemindersDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get customRemindersDateLabel;
+
+  /// No description provided for @customRemindersTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get customRemindersTimeLabel;
+
+  /// No description provided for @customRemindersRepeatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get customRemindersRepeatLabel;
+
+  /// No description provided for @customRemindersRepeatOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Once'**
+  String get customRemindersRepeatOnce;
+
+  /// No description provided for @customRemindersRepeatDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get customRemindersRepeatDaily;
+
+  /// No description provided for @customRemindersRepeatWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get customRemindersRepeatWeekly;
+
+  /// No description provided for @customRemindersRepeatMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get customRemindersRepeatMonthly;
+
+  /// No description provided for @customRemindersRepeatYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get customRemindersRepeatYearly;
+
+  /// No description provided for @customRemindersMetaOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Once · {date} · {time}'**
+  String customRemindersMetaOnce(String date, String time);
+
+  /// No description provided for @customRemindersMetaDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily · {time}'**
+  String customRemindersMetaDaily(String time);
+
+  /// No description provided for @customRemindersMetaWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly · {weekday} · {time}'**
+  String customRemindersMetaWeekly(String weekday, String time);
+
+  /// No description provided for @customRemindersMetaMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly · day {day} · {time}'**
+  String customRemindersMetaMonthly(int day, String time);
+
+  /// No description provided for @customRemindersMetaYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly · {dayMonth} · {time}'**
+  String customRemindersMetaYearly(String dayMonth, String time);
+
+  /// No description provided for @customRemindersNameError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please name your reminder'**
+  String get customRemindersNameError;
+
+  /// No description provided for @customRemindersPastDateWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'That date has passed — pick another'**
+  String get customRemindersPastDateWarning;
+
+  /// No description provided for @customRemindersDeleteSectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t be undone'**
+  String get customRemindersDeleteSectionHint;
+
+  /// No description provided for @customRemindersDeleteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete reminder'**
+  String get customRemindersDeleteButton;
+
+  /// No description provided for @customRemindersDeleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this reminder?'**
+  String get customRemindersDeleteDialogTitle;
+
+  /// No description provided for @customRemindersDeleteDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" will be removed and won\'t remind you anymore.'**
+  String customRemindersDeleteDialogBody(String name);
+
+  /// No description provided for @customRemindersDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get customRemindersDeleteConfirm;
+
+  /// No description provided for @customRemindersDeletedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder deleted'**
+  String get customRemindersDeletedMsg;
+
+  /// No description provided for @customRemindersNotifBodyFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'A special moment for the two of you 💞'**
+  String get customRemindersNotifBodyFallback;
+
+  /// agreeToPrivacyPolicy
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the Privacy Policy'**
+  String get agreeToPrivacyPolicy;
+
+  /// appTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Our Memories'**
   String get appTitle;
 
-  // ----- Home screen -----
-  String homeCounterStartFrom(String date);
-  String get homeWaitingPartnerTitle;
-  String get homeWaitingPartnerSubtitle;
+  /// authAccountNotFound
+  ///
+  /// In en, this message translates to:
+  /// **'No account found for this email.'**
+  String get authAccountNotFound;
 
-  // ----- Gallery screen -----
-  String get galleryTodayEmptyTitle;
-  String get galleryTodayEmptySubtitle;
-  String get galleryRecordTodayMoment;
-  String galleryTodayMomentsCount(int count);
-  String get galleryTodayBadge;
-  String get galleryEditCaptionTooltip;
-  String galleryMonthLabel(int month, int year);
-  String get galleryEmptyTitle;
-  String get galleryEmptySubtitle;
+  /// authConfigNotFound
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase Authentication for this project isn\'t enabled, or Email/Password is off. In Firebase Console > Authentication > Sign-in method > Email/Password, turn it on.'**
+  String get authConfigNotFound;
 
-  // ----- Profile screen -----
-  String get profileDangerIrreversible;
+  /// authEmailAlreadyUsed
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already in use.'**
+  String get authEmailAlreadyUsed;
 
-  // ----- Models -----
-  String get posterNameFallback;
-  String counterDuration(int years, int months, int days);
+  /// authEmailPasswordNotEnabled
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase Authentication isn\'t fully set up for Email/Password. In Firebase Console > Authentication > Sign-in method, enable Email/Password.'**
+  String get authEmailPasswordNotEnabled;
 
-  // ----- Push notifications -----
-  String get pushPhotoChannelName;
-  String get pushPhotoChannelDescription;
+  /// authFirebaseAuthGeneric
+  ///
+  /// In en, this message translates to:
+  /// **'A Firebase Auth error occurred.'**
+  String get authFirebaseAuthGeneric;
 
-  // ----- Providers -----
-  String get leavingCouple;
-  String coupleSyncError(String error);
-  String coupleLoadError(String error);
+  /// authFirebaseUserCreateFailed
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create your Firebase account.'**
+  String get authFirebaseUserCreateFailed;
+
+  /// authFirestoreGeneric
+  ///
+  /// In en, this message translates to:
+  /// **'A Firestore error occurred.'**
+  String get authFirestoreGeneric;
+
+  /// authFirestorePermissionDenied
+  ///
+  /// In en, this message translates to:
+  /// **'Firestore is blocking writes to user data. This app connects to the Firebase project `tonyembeiu`, so check that project\'s Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.'**
+  String get authFirestorePermissionDenied;
+
+  /// authFirestoreUnavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Firestore is currently unavailable or the network is unstable. Please try again in a few minutes.'**
+  String get authFirestoreUnavailable;
+
+  /// authInvalidCredential
+  ///
+  /// In en, this message translates to:
+  /// **'Email or password is incorrect.'**
+  String get authInvalidCredential;
+
+  /// authInvalidEmail
+  ///
+  /// In en, this message translates to:
+  /// **'That email isn\'t valid.'**
+  String get authInvalidEmail;
+
+  /// authInviteCodeGenerateFailed
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t generate a new invite code — please try again later.'**
+  String get authInviteCodeGenerateFailed;
+
+  /// authInviteCodeUnavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create an invite code for your account right now — please try again.'**
+  String get authInviteCodeUnavailable;
+
+  /// authNetworkError
+  ///
+  /// In en, this message translates to:
+  /// **'No stable network connection to sign in to Firebase.'**
+  String get authNetworkError;
+
+  /// authSessionNotReady
+  ///
+  /// In en, this message translates to:
+  /// **'Your Firebase session isn\'t ready. Please sign in again.'**
+  String get authSessionNotReady;
+
+  /// authSessionUnavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get your Firebase session.'**
+  String get authSessionUnavailable;
+
+  /// authTooManyRequests
+  ///
+  /// In en, this message translates to:
+  /// **'Too many sign-in attempts — please try again in a few minutes.'**
+  String get authTooManyRequests;
+
+  /// authWeakPassword
+  ///
+  /// In en, this message translates to:
+  /// **'That password is too weak — please choose a stronger one.'**
+  String get authWeakPassword;
+
+  /// authWrongPassword
+  ///
+  /// In en, this message translates to:
+  /// **'That password isn\'t right — please check and try again.'**
+  String get authWrongPassword;
+
+  /// bootstrapAndroidNotReady
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase Android isn\'t ready. Check `android/app/google-services.json` and the app\'s package name.'**
+  String get bootstrapAndroidNotReady;
+
+  /// bootstrapIosNotConfigured
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on iOS but the project has no `GoogleService-Info.plist`, so the app fell back to local mode.'**
+  String get bootstrapIosNotConfigured;
+
+  /// bootstrapLinuxNotConfigured
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase for Linux isn\'t configured, so the app is running in local fallback.'**
+  String get bootstrapLinuxNotConfigured;
+
+  /// bootstrapMacosNotConfigured
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase for macOS isn\'t configured, so the app is running in local fallback.'**
+  String get bootstrapMacosNotConfigured;
+
+  /// bootstrapPlatformNotConfigured
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase isn\'t configured for the current platform, so the app is running in local fallback.'**
+  String get bootstrapPlatformNotConfigured;
+
+  /// bootstrapWebNotConfigured
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase isn\'t configured for Web, so the app is running in local fallback.'**
+  String get bootstrapWebNotConfigured;
+
+  /// bootstrapWindowsNotConfigured
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase for Windows isn\'t configured, so the app is running in local fallback.'**
+  String get bootstrapWindowsNotConfigured;
+
+  /// coupleAlreadyInCouple
+  ///
+  /// In en, this message translates to:
+  /// **'This account already belongs to a couple.'**
+  String get coupleAlreadyInCouple;
+
+  /// coupleAlreadyInThisCouple
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re already in this couple.'**
+  String get coupleAlreadyInThisCouple;
+
+  /// coupleCannotUseOwnCode
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t use your own invite code.'**
+  String get coupleCannotUseOwnCode;
+
+  /// coupleCodeNoLongerValid
+  ///
+  /// In en, this message translates to:
+  /// **'This invite code no longer points to a valid couple.'**
+  String get coupleCodeNoLongerValid;
+
+  /// coupleCodeNotFoundLocal
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find the connection code in local fallback.'**
+  String get coupleCodeNotFoundLocal;
+
+  /// coupleEnterCodeFirst
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a connection code first.'**
+  String get coupleEnterCodeFirst;
+
+  /// coupleFirebaseUnavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase is currently unavailable or the network is unstable. Please try again in a few minutes.'**
+  String get coupleFirebaseUnavailable;
+
+  /// coupleFull
+  ///
+  /// In en, this message translates to:
+  /// **'This couple already has two people.'**
+  String get coupleFull;
+
+  /// coupleFullLocal
+  ///
+  /// In en, this message translates to:
+  /// **'This local couple already has two people.'**
+  String get coupleFullLocal;
+
+  /// coupleInviteCodeInvalid
+  ///
+  /// In en, this message translates to:
+  /// **'This invite code is invalid or no longer exists.'**
+  String get coupleInviteCodeInvalid;
+
+  /// coupleJoinGeneric
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t connect with this invite code right now.'**
+  String get coupleJoinGeneric;
+
+  /// coupleJoinPermissionDenied
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t connect with this invite code. The couple space may have changed or is no longer valid — ask your partner to regenerate the code, or sign out and back in, then try again.'**
+  String get coupleJoinPermissionDenied;
+
+  /// coupleMatchedLocal
+  ///
+  /// In en, this message translates to:
+  /// **'Matched in local fallback mode.'**
+  String get coupleMatchedLocal;
+
+  /// coupleNoDataToUpdate
+  ///
+  /// In en, this message translates to:
+  /// **'No couple data to update.'**
   String get coupleNoDataToUpdate;
 
-  // ----- Auth service -----
-  String get authFirebaseUserCreateFailed;
-  String get authEmailAlreadyUsed;
-  String get authSessionUnavailable;
-  String get authAccountNotFound;
-  String get authWrongPassword;
-  String get authEmailPasswordNotEnabled;
-  String get authInvalidEmail;
-  String get authWeakPassword;
-  String get authInvalidCredential;
-  String get authTooManyRequests;
-  String get authNetworkError;
-  String get authConfigNotFound;
-  String get authFirebaseAuthGeneric;
-  String get authInviteCodeUnavailable;
-  String get authFirestorePermissionDenied;
-  String get authFirestoreUnavailable;
-  String get authFirestoreGeneric;
-  String get authSessionNotReady;
-  String get authInviteCodeGenerateFailed;
-  String get defaultDisplayName;
-
-  // ----- Couple service -----
-  String get coupleUserNotFoundForCreate;
-  String get coupleUpdatedSuccess;
-  String get coupleAlreadyInCouple;
-  String get coupleEnterCodeFirst;
-  String get coupleCannotUseOwnCode;
-  String get coupleInviteCodeInvalid;
-  String get couplePartnerHasNoSpace;
+  /// coupleNotFoundForCode
+  ///
+  /// In en, this message translates to:
+  /// **'No couple found for this code.'**
   String get coupleNotFoundForCode;
-  String get coupleCodeNoLongerValid;
-  String get coupleAlreadyInThisCouple;
-  String get coupleFull;
-  String get coupleSpaceInvalidRegenerate;
-  String get coupleJoinPermissionDenied;
-  String get coupleSessionExpiredJoin;
-  String get coupleFirebaseUnavailable;
-  String get coupleJoinGeneric;
-  String get coupleCodeNotFoundLocal;
-  String get coupleFullLocal;
-  String get coupleMatchedLocal;
-  String get coupleSessionNotReadyRelogin;
-  String get coupleSavePermissionDenied;
-  String get coupleSessionInvalid;
-  String get coupleSaveGeneric;
-  String get couplePhotoUploadPermission;
-  String get couplePhotoUploadSessionInvalid;
-  String get couplePhotoUploadUnavailable;
+
+  /// coupleOnboardingBadge
+  ///
+  /// In en, this message translates to:
+  /// **'ONBOARDING'**
+  String get coupleOnboardingBadge;
+
+  /// couplePartnerHasNoSpace
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner has their own invite code but hasn\'t created a couple space for you to join yet.'**
+  String get couplePartnerHasNoSpace;
+
+  /// couplePhotoUploadGeneric
+  ///
+  /// In en, this message translates to:
+  /// **'The couple photo couldn\'t be uploaded to Firebase Storage.'**
   String get couplePhotoUploadGeneric;
 
-  // ----- Photo service -----
+  /// couplePhotoUploadPermission
+  ///
+  /// In en, this message translates to:
+  /// **'The couple photo couldn\'t be uploaded to Firebase Storage. Your couple info was saved first — deploy `storage.rules`, then try changing the photo again.'**
+  String get couplePhotoUploadPermission;
+
+  /// couplePhotoUploadSessionInvalid
+  ///
+  /// In en, this message translates to:
+  /// **'The couple photo couldn\'t be uploaded because your Firebase session is no longer valid.'**
+  String get couplePhotoUploadSessionInvalid;
+
+  /// couplePhotoUploadUnavailable
+  ///
+  /// In en, this message translates to:
+  /// **'The couple photo couldn\'t be uploaded because Firebase Storage or the network is temporarily unstable.'**
+  String get couplePhotoUploadUnavailable;
+
+  /// coupleSaveGeneric
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save couple info right now.'**
+  String get coupleSaveGeneric;
+
+  /// coupleSavePermissionDenied
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save couple info because access was denied. The data may be in an invalid state — please sign out and back in, then try again.'**
+  String get coupleSavePermissionDenied;
+
+  /// coupleSessionExpiredJoin
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again, then retry connecting.'**
+  String get coupleSessionExpiredJoin;
+
+  /// coupleSessionInvalid
+  ///
+  /// In en, this message translates to:
+  /// **'Your Firebase session is no longer valid. Please sign in again.'**
+  String get coupleSessionInvalid;
+
+  /// coupleSessionNotReadyRelogin
+  ///
+  /// In en, this message translates to:
+  /// **'Your Firebase session isn\'t ready. Please sign out and back in.'**
+  String get coupleSessionNotReadyRelogin;
+
+  /// coupleSpaceInvalidRegenerate
+  ///
+  /// In en, this message translates to:
+  /// **'This invite code points to a couple space that\'s no longer valid. Ask your partner to regenerate the code, then try again.'**
+  String get coupleSpaceInvalidRegenerate;
+
+  /// coupleUpdatedSuccess
+  ///
+  /// In en, this message translates to:
+  /// **'Couple info updated.'**
+  String get coupleUpdatedSuccess;
+
+  /// coupleUserNotFoundForCreate
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find your current account to create a couple.'**
+  String get coupleUserNotFoundForCreate;
+
+  /// createAccountBadge
+  ///
+  /// In en, this message translates to:
+  /// **'CREATE ACCOUNT'**
+  String get createAccountBadge;
+
+  /// defaultDisplayName
+  ///
+  /// In en, this message translates to:
+  /// **'New user'**
+  String get defaultDisplayName;
+
+  /// deleteAccountBtn
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccountBtn;
+
+  /// deleteAccountConfirmBtn
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently'**
+  String get deleteAccountConfirmBtn;
+
+  /// deleteAccountDesc
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your account and all associated data'**
+  String get deleteAccountDesc;
+
+  /// deleteAccountDialogContent
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone. All your data, including photos and couple information, will be permanently deleted.'**
+  String get deleteAccountDialogContent;
+
+  /// deleteAccountDialogTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account?'**
+  String get deleteAccountDialogTitle;
+
+  /// deleteAccountFailed
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete your account right now. Please try again.'**
+  String get deleteAccountFailed;
+
+  /// deleteAccountRequiresReloginMsg
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign out, sign in again, and retry to verify your identity'**
+  String get deleteAccountRequiresReloginMsg;
+
+  /// deleteAccountSuccessMsg
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted'**
+  String get deleteAccountSuccessMsg;
+
+  /// deleteAccountTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccountTitle;
+
+  /// editCoupleBadge
+  ///
+  /// In en, this message translates to:
+  /// **'EDIT COUPLE'**
+  String get editCoupleBadge;
+
+  /// galleryEditCaptionTooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Edit caption'**
+  String get galleryEditCaptionTooltip;
+
+  /// galleryEmptySubtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos to start making memories'**
+  String get galleryEmptySubtitle;
+
+  /// galleryEmptyTitle
+  ///
+  /// In en, this message translates to:
+  /// **'No photos yet'**
+  String get galleryEmptyTitle;
+
+  /// galleryRecordTodayMoment
+  ///
+  /// In en, this message translates to:
+  /// **'Capture today\'s moment'**
+  String get galleryRecordTodayMoment;
+
+  /// galleryTodayBadge
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get galleryTodayBadge;
+
+  /// galleryTodayEmptySubtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t let today slip by without a trace.'**
+  String get galleryTodayEmptySubtitle;
+
+  /// galleryTodayEmptyTitle
+  ///
+  /// In en, this message translates to:
+  /// **'No moments captured today yet'**
+  String get galleryTodayEmptyTitle;
+
+  /// homeWaitingPartnerSubtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Share your invite code with your partner to start the journey together.'**
+  String get homeWaitingPartnerSubtitle;
+
+  /// homeWaitingPartnerTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your partner'**
+  String get homeWaitingPartnerTitle;
+
+  /// leavingCouple
+  ///
+  /// In en, this message translates to:
+  /// **'Leaving the couple...'**
+  String get leavingCouple;
+
+  /// loveHomeBadge
+  ///
+  /// In en, this message translates to:
+  /// **'LOVE HOME'**
+  String get loveHomeBadge;
+
+  /// mustAgreeToPrivacyPolicy
+  ///
+  /// In en, this message translates to:
+  /// **'Please agree to the privacy policy to continue'**
+  String get mustAgreeToPrivacyPolicy;
+
+  /// photoConnectCoupleFirst
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with your partner before posting a photo.'**
   String get photoConnectCoupleFirst;
-  String get photoNotFoundToPost;
-  String get photoSyncPermissionDenied;
-  String get photoSyncSessionExpired;
+
+  /// photoFileNotFoundStorage
+  ///
+  /// In en, this message translates to:
+  /// **'The photo file wasn\'t found on Firebase Storage.'**
   String get photoFileNotFoundStorage;
-  String get photoStorageUnauthorized;
+
+  /// photoFirebaseUnavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase is currently unavailable or the network is unstable.'**
   String get photoFirebaseUnavailable;
+
+  /// photoNotFoundToPost
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find the photo to post.'**
+  String get photoNotFoundToPost;
+
+  /// photoStorageUnauthorized
+  ///
+  /// In en, this message translates to:
+  /// **'Firebase Storage is refusing this photo operation.'**
+  String get photoStorageUnauthorized;
+
+  /// photoSyncGeneric
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sync photos right now.'**
   String get photoSyncGeneric;
 
-  // ----- Firebase bootstrap -----
-  String get bootstrapWebNotConfigured;
-  String get bootstrapAndroidNotReady;
-  String get bootstrapIosNotConfigured;
-  String get bootstrapMacosNotConfigured;
-  String get bootstrapWindowsNotConfigured;
-  String get bootstrapLinuxNotConfigured;
-  String get bootstrapPlatformNotConfigured;
+  /// photoSyncPermissionDenied
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have permission to sync photos. Check `firestore.rules` and `storage.rules` on Firebase.'**
+  String get photoSyncPermissionDenied;
+
+  /// photoSyncSessionExpired
+  ///
+  /// In en, this message translates to:
+  /// **'Your Firebase session has expired. Please sign in again.'**
+  String get photoSyncSessionExpired;
+
+  /// posterNameFallback
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner'**
+  String get posterNameFallback;
+
+  /// privacyDisclosure
+  ///
+  /// In en, this message translates to:
+  /// **'By creating an account, you agree to our Privacy Policy. We collect your email, display name, and photos you share to provide the service.'**
+  String get privacyDisclosure;
+
+  /// privacyPolicyLabel
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicyLabel;
+
+  /// profileDangerIrreversible
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t be undone'**
+  String get profileDangerIrreversible;
+
+  /// pushPhotoChannelDescription
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when your partner posts a new photo.'**
+  String get pushPhotoChannelDescription;
+
+  /// pushPhotoChannelName
+  ///
+  /// In en, this message translates to:
+  /// **'Partner photo updates'**
+  String get pushPhotoChannelName;
+
+  /// signOutBtn
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOutBtn;
+
+  /// signOutConfirmBtn
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOutConfirmBtn;
+
+  /// signOutDialogContent
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to sign out of your account?'**
+  String get signOutDialogContent;
+
+  /// signOutDialogTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out?'**
+  String get signOutDialogTitle;
+
+  /// welcomeBackBadge
+  ///
+  /// In en, this message translates to:
+  /// **'WELCOME BACK'**
+  String get welcomeBackBadge;
+
+  /// Love duration breakdown
+  ///
+  /// In en, this message translates to:
+  /// **'{years} years, {months} months, {days} days'**
+  String counterDuration(int years, int months, int days);
+
+  /// Error loading couple info
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load couple info: {error}'**
+  String coupleLoadError(String error);
+
+  /// Error syncing couple info
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sync couple info: {error}'**
+  String coupleSyncError(String error);
+
+  /// Month header label in gallery
+  ///
+  /// In en, this message translates to:
+  /// **'{month, select, 1{January {year}} 2{February {year}} 3{March {year}} 4{April {year}} 5{May {year}} 6{June {year}} 7{July {year}} 8{August {year}} 9{September {year}} 10{October {year}} 11{November {year}} 12{December {year}} other{{month} {year}}}'**
+  String galleryMonthLabel(String month, String year);
+
+  /// Count of moments posted today
+  ///
+  /// In en, this message translates to:
+  /// **'{count} moments today'**
+  String galleryTodayMomentsCount(int count);
+
+  /// Start date label
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String homeCounterStartFrom(String date);
 }
 
 class _AppLocalizationsDelegate

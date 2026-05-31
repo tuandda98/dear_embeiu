@@ -105,6 +105,9 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Enable generation of localizations (gen-l10n) from lib/l10n/*.arb.
+  generate: true
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

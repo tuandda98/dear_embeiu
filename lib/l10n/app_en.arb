@@ -1,18 +1,14 @@
 {
   "@@locale": "en",
-
   "cancel": "Cancel",
   "save": "Save",
   "delete": "Delete",
   "edit": "Edit",
   "continueBtn": "Continue",
   "keep": "Keep",
-
   "splashTagline": "Our story",
   "splashSubtitle": "Counting every day of us",
-
   "checkingSession": "Checking your session...",
-
   "loginTitle": "Welcome back",
   "loginSubtitle": "Sign in to keep counting every day of you two.",
   "loginLocalFallback": "Local fallback is on — Firebase will be wired up later.",
@@ -27,7 +23,6 @@
   "signIn": "Sign in",
   "newHere": "New here?",
   "createAccountLink": "Create an account",
-
   "registerTitle": "Begin your\nlove story",
   "registerSubtitle": "Create an account to keep every day of you two safe.",
   "registerLocalFallback": "Local fallback is on — Firebase will be wired up later.",
@@ -42,7 +37,6 @@
   "createAccountBtn": "Create account",
   "alreadyWithUs": "Already with us?",
   "backToSignIn": "Back to sign in",
-
   "setupCreateTitle": "Begin\nour story",
   "setupEditTitle": "Refine\nyour story",
   "setupTabCreate": "Create",
@@ -75,7 +69,9 @@
   "setupErrorSaveCouple": "Could not save couple info: {error}",
   "@setupErrorSaveCouple": {
     "placeholders": {
-      "error": { "type": "String" }
+      "error": {
+        "type": "String"
+      }
     }
   },
   "setupErrorNoAccountShort": "No account found.",
@@ -83,15 +79,15 @@
   "setupErrorJoinCouple": "Could not join couple: {error}",
   "@setupErrorJoinCouple": {
     "placeholders": {
-      "error": { "type": "String" }
+      "error": {
+        "type": "String"
+      }
     }
   },
   "setupSuccessConnected": "Connected successfully 💞",
-
   "navHome": "Home",
   "navMemories": "Memories",
   "navProfile": "Profile",
-
   "ourStoryBadge": "OUR STORY",
   "helloGreeting": "Hello,",
   "homeSubtitle": "A good day to look back at your love story.",
@@ -99,14 +95,18 @@
   "daysOfUsSince": "days of us · since {date}",
   "@daysOfUsSince": {
     "placeholders": {
-      "date": { "type": "String" }
+      "date": {
+        "type": "String"
+      }
     }
   },
   "todayIsAnniversary": "Today is your anniversary ✨",
   "daysUntilNextAnniversary": "{count} days until your next anniversary",
   "@daysUntilNextAnniversary": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "quickMomentsTitle": "Quick moments",
@@ -137,22 +137,32 @@
   "whenItAllBeganSubtitle": "{name1} & {name2} on {date}",
   "@whenItAllBeganSubtitle": {
     "placeholders": {
-      "name1": { "type": "String" },
-      "name2": { "type": "String" },
-      "date": { "type": "String" }
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
     }
   },
   "monthiversaries": "{count} monthiversaries",
   "@monthiversaries": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "monthiversaryDesc": "Each month, another layer of understanding and tenderness.",
   "memoriesCaptured": "{count} memories captured",
   "@memoriesCaptured": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "memoriesCapturedDesc": "Your library is becoming a quiet little album.",
@@ -160,65 +170,84 @@
   "loveNoteQuote": "\"{count} days isn't just time — it's every soft moment, every choice to stay, every little kindness we share.\"",
   "@loveNoteQuote": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "milestoneReached": "You just reached a beautiful milestone ✨",
   "onlyDaysUntilMilestone": "Only {count} days until your next milestone.",
   "@onlyDaysUntilMilestone": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "nextMilestonePrefix": "Next: {label}",
   "@nextMilestonePrefix": {
     "placeholders": {
-      "label": { "type": "String" }
+      "label": {
+        "type": "String"
+      }
     }
   },
   "daysCountLabel": "{count} days",
   "@daysCountLabel": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "percentThere": "{percent}% there",
   "@percentThere": {
     "placeholders": {
-      "percent": { "type": "String" }
+      "percent": {
+        "type": "String"
+      }
     }
   },
   "milestoneYearsOne": "{count} year",
   "@milestoneYearsOne": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "milestoneYearsMany": "{count} years",
   "@milestoneYearsMany": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "milestoneMonthsOne": "{count} month",
   "@milestoneMonthsOne": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "milestoneMonthsMany": "{count} months",
   "@milestoneMonthsMany": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "milestoneDaysLabel": "{count} days",
   "@milestoneDaysLabel": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "privateGalleryBadge": "PRIVATE GALLERY",
   "galleryTitle": "Photo Library",
   "gallerySubtitle": "Swipe up to quickly bring up the post frame and manage memories.",
@@ -235,19 +264,25 @@
   "postedByLabel": "Posted by {name}",
   "@postedByLabel": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "momentsCount": "{count} moments",
   "@momentsCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "daysTogetherCount": "{count} days together",
   "@daysTogetherCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "privateFeedLabel": "Private feed for you two",
@@ -259,7 +294,9 @@
   "compactCaption": "{count} moments · Swipe to expand post frame",
   "@compactCaption": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "todayInLoveBadge": "TODAY IN LOVE",
@@ -273,7 +310,9 @@
   "momentLabel": "Moment #{number}",
   "@momentLabel": {
     "placeholders": {
-      "number": { "type": "int" }
+      "number": {
+        "type": "int"
+      }
     }
   },
   "editCaptionAction": "Edit caption",
@@ -289,7 +328,9 @@
   "multiplePhotosAdded": "Added {count} photos!",
   "@multiplePhotosAdded": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "captionUpdatedSuccess": "Caption updated",
@@ -306,10 +347,11 @@
   "momentNumberFallback": "Moment #{index}",
   "@momentNumberFallback": {
     "placeholders": {
-      "index": { "type": "int" }
+      "index": {
+        "type": "int"
+      }
     }
   },
-
   "loveProfileBadge": "LOVE PROFILE",
   "profileTitle": "Your profile",
   "profileSubtitle": "A private corner to look back on your love journey, milestones, and memory album.",
@@ -317,13 +359,17 @@
   "daysUntilAnniversaryProfile": "{count} days until the next anniversary",
   "@daysUntilAnniversaryProfile": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "khoanhKhacCount": "{count} moments",
   "@khoanhKhacCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "privateDiaryLabel": "Private diary",
@@ -342,14 +388,18 @@
   "dayStreakValue": "{count} days and still going",
   "@dayStreakValue": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "memoryAlbumLabel": "Memory album",
   "memoryAlbumValue": "{count} photos saved in private album",
   "@memoryAlbumValue": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "upcomingMilestoneLabel": "Upcoming milestone",
@@ -357,7 +407,9 @@
   "daysUntilNextMsg": "{count} more days until the next anniversary",
   "@daysUntilNextMsg": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "customizeProfileTitle": "Customize profile",
@@ -378,51 +430,717 @@
   "leaveCoupleDialogContent": "You will leave the current couple space. The other person keeps the shared data. You cannot delete all shared data from one side.",
   "leaveCoupleActionBtn": "Leave couple",
   "localDataClearedMsg": "Local data on this device has been cleared. Shared data on cloud is preserved.",
-
   "languageTitle": "Language",
   "languageSubtitle": "Choose the app display language",
   "languageSystem": "System default",
   "languageSystemDesc": "Follow device language",
   "languageEnglish": "English",
   "languageVietnamese": "Tiếng Việt",
-
   "loadingCoupleInfo": "Loading couple info...",
   "savingCoupleSpace": "Saving couple space...",
   "connectingCouple": "Connecting couple...",
   "updatingCoupleInfo": "Updating couple info...",
-
   "setupNoChangesToSaveMsg": "No changes to save.",
   "inviteCodeCopiedMsg": "Invite code copied",
   "copyBtn": "Copy",
-
   "remindersTitle": "Love reminders",
   "remindersSubtitle": "Gentle nudges to keep your story growing",
-  "remindersToggleLabel": "Daily reminders",
-  "remindersToggleDesc": "A daily nudge plus milestone & anniversary alerts",
+  "remindersToggleLabel": "Milestone & anniversary reminders",
+  "remindersToggleDesc": "Reminds you of the milestones & anniversaries you choose. Required to use \"Our reminders\".",
   "remindersTimeLabel": "Reminder time",
   "remindersPermissionDeniedMsg": "Turn on notifications in Settings to receive reminders.",
-
   "reminderDailyTitle": "Another day of us 💕",
   "reminderDailyBody": "Open Dear Embeiu and count today together.",
   "reminderMilestoneApproachingTitle": "A milestone is near 💕",
   "reminderMilestoneApproachingBody": "{count} days until your {milestone} milestone!",
   "@reminderMilestoneApproachingBody": {
     "placeholders": {
-      "count": { "type": "int" },
-      "milestone": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "milestone": {
+        "type": "String"
+      }
     }
   },
   "reminderMilestoneTodayTitle": "Milestone reached 🎉",
   "reminderMilestoneTodayBody": "Today you reach {milestone} together 💕",
   "@reminderMilestoneTodayBody": {
     "placeholders": {
-      "milestone": { "type": "String" }
+      "milestone": {
+        "type": "String"
+      }
     }
   },
   "reminderAnniversaryTitle": "Happy anniversary 🎉",
   "reminderAnniversaryBody": "Celebrate another year of your love story today 💕",
   "reminderInactivityTitle": "Missing your moments 💭",
   "reminderInactivityBody": "It's been a while — add a new memory together 💕",
-
-  "languageSearchHint": "Search languages"
+  "remindersV2MilestoneEntryTitle": "Milestones & anniversaries",
+  "remindersV2MilestoneEntrySubtitle": "Choose which milestones to be reminded of",
+  "remindersV2MilestoneCountBadge": "{count}",
+  "@remindersV2MilestoneCountBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "remindersV2MilestoneScreenTitle": "Milestones & anniversaries",
+  "remindersV2MilestoneScreenCaption": "Choose the milestones you want and when to be reminded.",
+  "remindersV2MilestoneNext": "Next: {date}",
+  "@remindersV2MilestoneNext": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "remindersV2MilestoneNextWithLabel": "Next: {label} · {date}",
+  "@remindersV2MilestoneNextWithLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "remindersV2MilestonePast": "Passed",
+  "remindersV2MilestonePending": "Calculated once your anniversary begins",
+  "remindersV2MilestoneDaysLabel": "{count} days",
+  "@remindersV2MilestoneDaysLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "remindersV2MilestoneYearsLabel": "{count} years",
+  "@remindersV2MilestoneYearsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneEvery100Title": "Every 100 days",
+  "milestoneEvery100Desc": "Celebrate every 100 days together",
+  "milestone520Title": "520 days",
+  "milestone520Desc": "\"I love you\" — the 520-day mark",
+  "milestone1000Title": "1000 days",
+  "milestone1000Desc": "A full 1000 days in love",
+  "milestone1314Title": "1314 days",
+  "milestone1314Desc": "\"Forever love\" — the 1314-day mark",
+  "milestoneHalfYearTitle": "Half a year together",
+  "milestoneHalfYearDesc": "A full 6 months together",
+  "milestoneYearlyTitle": "Yearly anniversary",
+  "milestoneYearlyDesc": "Every year on your anniversary",
+  "milestoneInactivityTitle": "No photos for a while",
+  "milestoneInactivityDesc": "A gentle nudge after 7 days without a new photo",
+  "milestoneInactivitySub": "Reminds you after 7 photo-free days",
+  "settingsTitle": "Settings",
+  "settingsProfileTileSubtitle": "Reminders, language, account",
+  "settingsRemindersModuleTitle": "Reminders",
+  "settingsRemindersModuleSubtitle": "Milestones, anniversaries & your own reminders",
+  "settingsAccountModuleTitle": "Account & data",
+  "settingsAccountModuleSubtitle": "Your story, data & account",
+  "settingsEditStorySubtitle": "Edit names, anniversary date, photo",
+  "settingsDefaultTimeLabel": "Default time",
+  "settingsDefaultTimeSubtitle": "Used for milestones without a custom time",
+  "settingsMilestoneUsesDefault": "Default · {time}",
+  "@settingsMilestoneUsesDefault": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsMilestoneCustomTimeReset": "Reset to default time",
+  "remindersV2ForceOpenTitle": "Turn on reminders to continue",
+  "remindersV2ForceOpenBody": "You need to turn on \"Milestone & anniversary reminders\" to create and receive your own reminders.",
+  "remindersV2ForceOpenConfirm": "Turn on",
+  "remindersV2ForceOpenLater": "Later",
+  "remindersV2ForceOpenDeniedMsg": "Notification permission denied. Enable notifications in Settings to continue.",
+  "languageSearchHint": "Search languages",
+  "customRemindersEntryTitle": "Our reminders",
+  "customRemindersEntrySubtitle": "Create your own special dates",
+  "customRemindersScreenTitle": "Our reminders",
+  "customRemindersCount": "{count}/20",
+  "@customRemindersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "customRemindersNextFire": "Next: {date}",
+  "@customRemindersNextFire": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "customRemindersDisabledLabel": "Off",
+  "customRemindersFabTooltip": "Add reminder",
+  "customRemindersItemMenuEdit": "Edit",
+  "customRemindersItemMenuDelete": "Delete",
+  "customRemindersEmptyTitle": "No reminders yet",
+  "customRemindersEmptyBody": "Create your own moments: birthdays, monthsaries, special days…",
+  "customRemindersEmptyCta": "Create your first reminder",
+  "customRemindersOffTitle": "Reminders are off",
+  "customRemindersOffBody": "Turn on \"Love reminders\" in Profile so your reminders can work.",
+  "customRemindersOffCta": "Turn on reminders",
+  "customRemindersLimitMsg": "You've reached the max of 20 reminders. Delete one to add more.",
+  "customRemindersAddTitle": "New reminder",
+  "customRemindersEditTitle": "Edit reminder",
+  "customRemindersSave": "Save",
+  "customRemindersCancel": "Cancel",
+  "customRemindersSavedMsg": "Reminder saved 💌",
+  "customRemindersNameLabel": "Reminder name",
+  "customRemindersNameRequiredMark": "*",
+  "customRemindersNameHint": "e.g. My love's birthday",
+  "customRemindersNoteLabel": "Note (optional)",
+  "customRemindersNoteHint": "Add a sweet note…",
+  "customRemindersDateLabel": "Date",
+  "customRemindersTimeLabel": "Time",
+  "customRemindersRepeatLabel": "Repeat",
+  "customRemindersRepeatOnce": "Once",
+  "customRemindersRepeatDaily": "Daily",
+  "customRemindersRepeatWeekly": "Weekly",
+  "customRemindersRepeatMonthly": "Monthly",
+  "customRemindersRepeatYearly": "Yearly",
+  "customRemindersMetaOnce": "Once · {date} · {time}",
+  "@customRemindersMetaOnce": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "customRemindersMetaDaily": "Daily · {time}",
+  "@customRemindersMetaDaily": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "customRemindersMetaWeekly": "Weekly · {weekday} · {time}",
+  "@customRemindersMetaWeekly": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "customRemindersMetaMonthly": "Monthly · day {day} · {time}",
+  "@customRemindersMetaMonthly": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "customRemindersMetaYearly": "Yearly · {dayMonth} · {time}",
+  "@customRemindersMetaYearly": {
+    "placeholders": {
+      "dayMonth": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "customRemindersNameError": "Please name your reminder",
+  "customRemindersPastDateWarning": "That date has passed — pick another",
+  "customRemindersDeleteSectionHint": "Can't be undone",
+  "customRemindersDeleteButton": "Delete reminder",
+  "customRemindersDeleteDialogTitle": "Delete this reminder?",
+  "customRemindersDeleteDialogBody": "\"{name}\" will be removed and won't remind you anymore.",
+  "@customRemindersDeleteDialogBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "customRemindersDeleteConfirm": "Delete",
+  "customRemindersDeletedMsg": "Reminder deleted",
+  "customRemindersNotifBodyFallback": "A special moment for the two of you 💞",
+  "agreeToPrivacyPolicy": "I agree to the Privacy Policy",
+  "@agreeToPrivacyPolicy": {
+    "description": "agreeToPrivacyPolicy"
+  },
+  "appTitle": "Our Memories",
+  "@appTitle": {
+    "description": "appTitle"
+  },
+  "authAccountNotFound": "No account found for this email.",
+  "@authAccountNotFound": {
+    "description": "authAccountNotFound"
+  },
+  "authConfigNotFound": "Firebase Authentication for this project isn't enabled, or Email/Password is off. In Firebase Console > Authentication > Sign-in method > Email/Password, turn it on.",
+  "@authConfigNotFound": {
+    "description": "authConfigNotFound"
+  },
+  "authEmailAlreadyUsed": "This email is already in use.",
+  "@authEmailAlreadyUsed": {
+    "description": "authEmailAlreadyUsed"
+  },
+  "authEmailPasswordNotEnabled": "Firebase Authentication isn't fully set up for Email/Password. In Firebase Console > Authentication > Sign-in method, enable Email/Password.",
+  "@authEmailPasswordNotEnabled": {
+    "description": "authEmailPasswordNotEnabled"
+  },
+  "authFirebaseAuthGeneric": "A Firebase Auth error occurred.",
+  "@authFirebaseAuthGeneric": {
+    "description": "authFirebaseAuthGeneric"
+  },
+  "authFirebaseUserCreateFailed": "Couldn't create your Firebase account.",
+  "@authFirebaseUserCreateFailed": {
+    "description": "authFirebaseUserCreateFailed"
+  },
+  "authFirestoreGeneric": "A Firestore error occurred.",
+  "@authFirestoreGeneric": {
+    "description": "authFirestoreGeneric"
+  },
+  "authFirestorePermissionDenied": "Firestore is blocking writes to user data. This app connects to the Firebase project `tonyembeiu`, so check that project's Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.",
+  "@authFirestorePermissionDenied": {
+    "description": "authFirestorePermissionDenied"
+  },
+  "authFirestoreUnavailable": "Firestore is currently unavailable or the network is unstable. Please try again in a few minutes.",
+  "@authFirestoreUnavailable": {
+    "description": "authFirestoreUnavailable"
+  },
+  "authInvalidCredential": "Email or password is incorrect.",
+  "@authInvalidCredential": {
+    "description": "authInvalidCredential"
+  },
+  "authInvalidEmail": "That email isn't valid.",
+  "@authInvalidEmail": {
+    "description": "authInvalidEmail"
+  },
+  "authInviteCodeGenerateFailed": "Couldn't generate a new invite code — please try again later.",
+  "@authInviteCodeGenerateFailed": {
+    "description": "authInviteCodeGenerateFailed"
+  },
+  "authInviteCodeUnavailable": "Couldn't create an invite code for your account right now — please try again.",
+  "@authInviteCodeUnavailable": {
+    "description": "authInviteCodeUnavailable"
+  },
+  "authNetworkError": "No stable network connection to sign in to Firebase.",
+  "@authNetworkError": {
+    "description": "authNetworkError"
+  },
+  "authSessionNotReady": "Your Firebase session isn't ready. Please sign in again.",
+  "@authSessionNotReady": {
+    "description": "authSessionNotReady"
+  },
+  "authSessionUnavailable": "Couldn't get your Firebase session.",
+  "@authSessionUnavailable": {
+    "description": "authSessionUnavailable"
+  },
+  "authTooManyRequests": "Too many sign-in attempts — please try again in a few minutes.",
+  "@authTooManyRequests": {
+    "description": "authTooManyRequests"
+  },
+  "authWeakPassword": "That password is too weak — please choose a stronger one.",
+  "@authWeakPassword": {
+    "description": "authWeakPassword"
+  },
+  "authWrongPassword": "That password isn't right — please check and try again.",
+  "@authWrongPassword": {
+    "description": "authWrongPassword"
+  },
+  "bootstrapAndroidNotReady": "Firebase Android isn't ready. Check `android/app/google-services.json` and the app's package name.",
+  "@bootstrapAndroidNotReady": {
+    "description": "bootstrapAndroidNotReady"
+  },
+  "bootstrapIosNotConfigured": "You're on iOS but the project has no `GoogleService-Info.plist`, so the app fell back to local mode.",
+  "@bootstrapIosNotConfigured": {
+    "description": "bootstrapIosNotConfigured"
+  },
+  "bootstrapLinuxNotConfigured": "Firebase for Linux isn't configured, so the app is running in local fallback.",
+  "@bootstrapLinuxNotConfigured": {
+    "description": "bootstrapLinuxNotConfigured"
+  },
+  "bootstrapMacosNotConfigured": "Firebase for macOS isn't configured, so the app is running in local fallback.",
+  "@bootstrapMacosNotConfigured": {
+    "description": "bootstrapMacosNotConfigured"
+  },
+  "bootstrapPlatformNotConfigured": "Firebase isn't configured for the current platform, so the app is running in local fallback.",
+  "@bootstrapPlatformNotConfigured": {
+    "description": "bootstrapPlatformNotConfigured"
+  },
+  "bootstrapWebNotConfigured": "Firebase isn't configured for Web, so the app is running in local fallback.",
+  "@bootstrapWebNotConfigured": {
+    "description": "bootstrapWebNotConfigured"
+  },
+  "bootstrapWindowsNotConfigured": "Firebase for Windows isn't configured, so the app is running in local fallback.",
+  "@bootstrapWindowsNotConfigured": {
+    "description": "bootstrapWindowsNotConfigured"
+  },
+  "coupleAlreadyInCouple": "This account already belongs to a couple.",
+  "@coupleAlreadyInCouple": {
+    "description": "coupleAlreadyInCouple"
+  },
+  "coupleAlreadyInThisCouple": "You're already in this couple.",
+  "@coupleAlreadyInThisCouple": {
+    "description": "coupleAlreadyInThisCouple"
+  },
+  "coupleCannotUseOwnCode": "You can't use your own invite code.",
+  "@coupleCannotUseOwnCode": {
+    "description": "coupleCannotUseOwnCode"
+  },
+  "coupleCodeNoLongerValid": "This invite code no longer points to a valid couple.",
+  "@coupleCodeNoLongerValid": {
+    "description": "coupleCodeNoLongerValid"
+  },
+  "coupleCodeNotFoundLocal": "Couldn't find the connection code in local fallback.",
+  "@coupleCodeNotFoundLocal": {
+    "description": "coupleCodeNotFoundLocal"
+  },
+  "coupleEnterCodeFirst": "Please enter a connection code first.",
+  "@coupleEnterCodeFirst": {
+    "description": "coupleEnterCodeFirst"
+  },
+  "coupleFirebaseUnavailable": "Firebase is currently unavailable or the network is unstable. Please try again in a few minutes.",
+  "@coupleFirebaseUnavailable": {
+    "description": "coupleFirebaseUnavailable"
+  },
+  "coupleFull": "This couple already has two people.",
+  "@coupleFull": {
+    "description": "coupleFull"
+  },
+  "coupleFullLocal": "This local couple already has two people.",
+  "@coupleFullLocal": {
+    "description": "coupleFullLocal"
+  },
+  "coupleInviteCodeInvalid": "This invite code is invalid or no longer exists.",
+  "@coupleInviteCodeInvalid": {
+    "description": "coupleInviteCodeInvalid"
+  },
+  "coupleJoinGeneric": "Couldn't connect with this invite code right now.",
+  "@coupleJoinGeneric": {
+    "description": "coupleJoinGeneric"
+  },
+  "coupleJoinPermissionDenied": "Couldn't connect with this invite code. The couple space may have changed or is no longer valid — ask your partner to regenerate the code, or sign out and back in, then try again.",
+  "@coupleJoinPermissionDenied": {
+    "description": "coupleJoinPermissionDenied"
+  },
+  "coupleMatchedLocal": "Matched in local fallback mode.",
+  "@coupleMatchedLocal": {
+    "description": "coupleMatchedLocal"
+  },
+  "coupleNoDataToUpdate": "No couple data to update.",
+  "@coupleNoDataToUpdate": {
+    "description": "coupleNoDataToUpdate"
+  },
+  "coupleNotFoundForCode": "No couple found for this code.",
+  "@coupleNotFoundForCode": {
+    "description": "coupleNotFoundForCode"
+  },
+  "coupleOnboardingBadge": "ONBOARDING",
+  "@coupleOnboardingBadge": {
+    "description": "coupleOnboardingBadge"
+  },
+  "couplePartnerHasNoSpace": "Your partner has their own invite code but hasn't created a couple space for you to join yet.",
+  "@couplePartnerHasNoSpace": {
+    "description": "couplePartnerHasNoSpace"
+  },
+  "couplePhotoUploadGeneric": "The couple photo couldn't be uploaded to Firebase Storage.",
+  "@couplePhotoUploadGeneric": {
+    "description": "couplePhotoUploadGeneric"
+  },
+  "couplePhotoUploadPermission": "The couple photo couldn't be uploaded to Firebase Storage. Your couple info was saved first — deploy `storage.rules`, then try changing the photo again.",
+  "@couplePhotoUploadPermission": {
+    "description": "couplePhotoUploadPermission"
+  },
+  "couplePhotoUploadSessionInvalid": "The couple photo couldn't be uploaded because your Firebase session is no longer valid.",
+  "@couplePhotoUploadSessionInvalid": {
+    "description": "couplePhotoUploadSessionInvalid"
+  },
+  "couplePhotoUploadUnavailable": "The couple photo couldn't be uploaded because Firebase Storage or the network is temporarily unstable.",
+  "@couplePhotoUploadUnavailable": {
+    "description": "couplePhotoUploadUnavailable"
+  },
+  "coupleSaveGeneric": "Couldn't save couple info right now.",
+  "@coupleSaveGeneric": {
+    "description": "coupleSaveGeneric"
+  },
+  "coupleSavePermissionDenied": "Couldn't save couple info because access was denied. The data may be in an invalid state — please sign out and back in, then try again.",
+  "@coupleSavePermissionDenied": {
+    "description": "coupleSavePermissionDenied"
+  },
+  "coupleSessionExpiredJoin": "Your session has expired. Please sign in again, then retry connecting.",
+  "@coupleSessionExpiredJoin": {
+    "description": "coupleSessionExpiredJoin"
+  },
+  "coupleSessionInvalid": "Your Firebase session is no longer valid. Please sign in again.",
+  "@coupleSessionInvalid": {
+    "description": "coupleSessionInvalid"
+  },
+  "coupleSessionNotReadyRelogin": "Your Firebase session isn't ready. Please sign out and back in.",
+  "@coupleSessionNotReadyRelogin": {
+    "description": "coupleSessionNotReadyRelogin"
+  },
+  "coupleSpaceInvalidRegenerate": "This invite code points to a couple space that's no longer valid. Ask your partner to regenerate the code, then try again.",
+  "@coupleSpaceInvalidRegenerate": {
+    "description": "coupleSpaceInvalidRegenerate"
+  },
+  "coupleUpdatedSuccess": "Couple info updated.",
+  "@coupleUpdatedSuccess": {
+    "description": "coupleUpdatedSuccess"
+  },
+  "coupleUserNotFoundForCreate": "Couldn't find your current account to create a couple.",
+  "@coupleUserNotFoundForCreate": {
+    "description": "coupleUserNotFoundForCreate"
+  },
+  "createAccountBadge": "CREATE ACCOUNT",
+  "@createAccountBadge": {
+    "description": "createAccountBadge"
+  },
+  "defaultDisplayName": "New user",
+  "@defaultDisplayName": {
+    "description": "defaultDisplayName"
+  },
+  "deleteAccountBtn": "Delete account",
+  "@deleteAccountBtn": {
+    "description": "deleteAccountBtn"
+  },
+  "deleteAccountConfirmBtn": "Delete permanently",
+  "@deleteAccountConfirmBtn": {
+    "description": "deleteAccountConfirmBtn"
+  },
+  "deleteAccountDesc": "Permanently delete your account and all associated data",
+  "@deleteAccountDesc": {
+    "description": "deleteAccountDesc"
+  },
+  "deleteAccountDialogContent": "This action cannot be undone. All your data, including photos and couple information, will be permanently deleted.",
+  "@deleteAccountDialogContent": {
+    "description": "deleteAccountDialogContent"
+  },
+  "deleteAccountDialogTitle": "Delete account?",
+  "@deleteAccountDialogTitle": {
+    "description": "deleteAccountDialogTitle"
+  },
+  "deleteAccountFailed": "Could not delete your account right now. Please try again.",
+  "@deleteAccountFailed": {
+    "description": "deleteAccountFailed"
+  },
+  "deleteAccountRequiresReloginMsg": "Please sign out, sign in again, and retry to verify your identity",
+  "@deleteAccountRequiresReloginMsg": {
+    "description": "deleteAccountRequiresReloginMsg"
+  },
+  "deleteAccountSuccessMsg": "Account deleted",
+  "@deleteAccountSuccessMsg": {
+    "description": "deleteAccountSuccessMsg"
+  },
+  "deleteAccountTitle": "Delete Account",
+  "@deleteAccountTitle": {
+    "description": "deleteAccountTitle"
+  },
+  "editCoupleBadge": "EDIT COUPLE",
+  "@editCoupleBadge": {
+    "description": "editCoupleBadge"
+  },
+  "galleryEditCaptionTooltip": "Edit caption",
+  "@galleryEditCaptionTooltip": {
+    "description": "galleryEditCaptionTooltip"
+  },
+  "galleryEmptySubtitle": "Add photos to start making memories",
+  "@galleryEmptySubtitle": {
+    "description": "galleryEmptySubtitle"
+  },
+  "galleryEmptyTitle": "No photos yet",
+  "@galleryEmptyTitle": {
+    "description": "galleryEmptyTitle"
+  },
+  "galleryRecordTodayMoment": "Capture today's moment",
+  "@galleryRecordTodayMoment": {
+    "description": "galleryRecordTodayMoment"
+  },
+  "galleryTodayBadge": "Today",
+  "@galleryTodayBadge": {
+    "description": "galleryTodayBadge"
+  },
+  "galleryTodayEmptySubtitle": "Don't let today slip by without a trace.",
+  "@galleryTodayEmptySubtitle": {
+    "description": "galleryTodayEmptySubtitle"
+  },
+  "galleryTodayEmptyTitle": "No moments captured today yet",
+  "@galleryTodayEmptyTitle": {
+    "description": "galleryTodayEmptyTitle"
+  },
+  "homeWaitingPartnerSubtitle": "Share your invite code with your partner to start the journey together.",
+  "@homeWaitingPartnerSubtitle": {
+    "description": "homeWaitingPartnerSubtitle"
+  },
+  "homeWaitingPartnerTitle": "Waiting for your partner",
+  "@homeWaitingPartnerTitle": {
+    "description": "homeWaitingPartnerTitle"
+  },
+  "leavingCouple": "Leaving the couple...",
+  "@leavingCouple": {
+    "description": "leavingCouple"
+  },
+  "loveHomeBadge": "LOVE HOME",
+  "@loveHomeBadge": {
+    "description": "loveHomeBadge"
+  },
+  "mustAgreeToPrivacyPolicy": "Please agree to the privacy policy to continue",
+  "@mustAgreeToPrivacyPolicy": {
+    "description": "mustAgreeToPrivacyPolicy"
+  },
+  "photoConnectCoupleFirst": "Connect with your partner before posting a photo.",
+  "@photoConnectCoupleFirst": {
+    "description": "photoConnectCoupleFirst"
+  },
+  "photoFileNotFoundStorage": "The photo file wasn't found on Firebase Storage.",
+  "@photoFileNotFoundStorage": {
+    "description": "photoFileNotFoundStorage"
+  },
+  "photoFirebaseUnavailable": "Firebase is currently unavailable or the network is unstable.",
+  "@photoFirebaseUnavailable": {
+    "description": "photoFirebaseUnavailable"
+  },
+  "photoNotFoundToPost": "Couldn't find the photo to post.",
+  "@photoNotFoundToPost": {
+    "description": "photoNotFoundToPost"
+  },
+  "photoStorageUnauthorized": "Firebase Storage is refusing this photo operation.",
+  "@photoStorageUnauthorized": {
+    "description": "photoStorageUnauthorized"
+  },
+  "photoSyncGeneric": "Couldn't sync photos right now.",
+  "@photoSyncGeneric": {
+    "description": "photoSyncGeneric"
+  },
+  "photoSyncPermissionDenied": "You don't have permission to sync photos. Check `firestore.rules` and `storage.rules` on Firebase.",
+  "@photoSyncPermissionDenied": {
+    "description": "photoSyncPermissionDenied"
+  },
+  "photoSyncSessionExpired": "Your Firebase session has expired. Please sign in again.",
+  "@photoSyncSessionExpired": {
+    "description": "photoSyncSessionExpired"
+  },
+  "posterNameFallback": "Your partner",
+  "@posterNameFallback": {
+    "description": "posterNameFallback"
+  },
+  "privacyDisclosure": "By creating an account, you agree to our Privacy Policy. We collect your email, display name, and photos you share to provide the service.",
+  "@privacyDisclosure": {
+    "description": "privacyDisclosure"
+  },
+  "privacyPolicyLabel": "Privacy Policy",
+  "@privacyPolicyLabel": {
+    "description": "privacyPolicyLabel"
+  },
+  "profileDangerIrreversible": "Can't be undone",
+  "@profileDangerIrreversible": {
+    "description": "profileDangerIrreversible"
+  },
+  "pushPhotoChannelDescription": "Get notified when your partner posts a new photo.",
+  "@pushPhotoChannelDescription": {
+    "description": "pushPhotoChannelDescription"
+  },
+  "pushPhotoChannelName": "Partner photo updates",
+  "@pushPhotoChannelName": {
+    "description": "pushPhotoChannelName"
+  },
+  "signOutBtn": "Sign out",
+  "@signOutBtn": {
+    "description": "signOutBtn"
+  },
+  "signOutConfirmBtn": "Sign out",
+  "@signOutConfirmBtn": {
+    "description": "signOutConfirmBtn"
+  },
+  "signOutDialogContent": "Are you sure you want to sign out of your account?",
+  "@signOutDialogContent": {
+    "description": "signOutDialogContent"
+  },
+  "signOutDialogTitle": "Sign out?",
+  "@signOutDialogTitle": {
+    "description": "signOutDialogTitle"
+  },
+  "welcomeBackBadge": "WELCOME BACK",
+  "@welcomeBackBadge": {
+    "description": "welcomeBackBadge"
+  },
+  "counterDuration": "{years} years, {months} months, {days} days",
+  "@counterDuration": {
+    "description": "Love duration breakdown",
+    "placeholders": {
+      "years": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "coupleLoadError": "Couldn't load couple info: {error}",
+  "@coupleLoadError": {
+    "description": "Error loading couple info",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "coupleSyncError": "Couldn't sync couple info: {error}",
+  "@coupleSyncError": {
+    "description": "Error syncing couple info",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "galleryMonthLabel": "{month, select, 1{January {year}} 2{February {year}} 3{March {year}} 4{April {year}} 5{May {year}} 6{June {year}} 7{July {year}} 8{August {year}} 9{September {year}} 10{October {year}} 11{November {year}} 12{December {year}} other{{month} {year}}}",
+  "@galleryMonthLabel": {
+    "description": "Month header label in gallery",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "galleryTodayMomentsCount": "{count} moments today",
+  "@galleryTodayMomentsCount": {
+    "description": "Count of moments posted today",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeCounterStartFrom": "Since {date}",
+  "@homeCounterStartFrom": {
+    "description": "Start date label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
 }

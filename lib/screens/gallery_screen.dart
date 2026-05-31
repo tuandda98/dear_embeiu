@@ -1150,7 +1150,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Widget _buildMonthHeaderWidget(DateTime date) {
-    final label = context.l10n.galleryMonthLabel(date.month, date.year);
+    final label = context.l10n.galleryMonthLabel(
+      date.month.toString(),
+      date.year.toString(),
+    );
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 4),
       child: Row(
