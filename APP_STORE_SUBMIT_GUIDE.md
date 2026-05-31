@@ -21,7 +21,7 @@ git add -A && git commit -m "feat: iPhone-only + photo report (UGC) + App Store 
 3. Chọn **Individual** (cá nhân — nhanh, không cần giấy tờ DUNS) trừ khi muốn đứng tên công ty.
 4. Trả phí $99 → chờ Apple duyệt (email xác nhận).
 - ⚠️ Mọi bước ký số/upload bên dưới CẦN bước này xong trước.
-- [ ] Đã có Developer account active.
+- [x] Đã có Developer account active. (Team ID 4UBR69C227)
 
 ---
 
@@ -35,7 +35,7 @@ open ios/Runner.xcworkspace
 4. **Team**: chọn team Apple Developer (vừa enroll). Xcode sẽ tự tạo App ID + provisioning profile cho `com.tony.dearembeiu`.
 5. Kiểm có capability **Push Notifications** trong danh sách (app đã có `Runner.entitlements` với `aps-environment`). Nếu chưa thấy → **+ Capability** → thêm **Push Notifications**.
 6. (Nếu báo lỗi bundle id đã tồn tại → đổi nhẹ hoặc dùng đúng id đã đăng ký.)
-- [ ] Signing xanh (no error), Team đã chọn.
+- [x] Signing xanh (no error), Team Tuan Do Dao Anh, Push Notifications OK.
 
 ---
 
@@ -48,7 +48,7 @@ open ios/Runner.xcworkspace
 **3b. Nạp vào Firebase:**
 4. https://console.firebase.google.com → project **tonyembeiu** → ⚙️ **Project settings** → tab **Cloud Messaging**.
 5. Mục **Apple app configuration** → **APNs Authentication Key** → **Upload** → chọn file .p8 + nhập **Key ID** + **Team ID** → Upload.
-- [ ] APNs key đã upload vào Firebase (push mới chạy trên TestFlight/production).
+- [x] APNs key đã upload vào Firebase (Key ID KVG69JX4SL).
 
 ---
 
@@ -58,7 +58,7 @@ npx firebase-tools login        # nếu chưa đăng nhập
 npx firebase-tools deploy --only firestore:rules --project tonyembeiu
 ```
 - Rule `reports` (create-only) vừa thêm cần deploy thì báo cáo mới ghi thật.
-- [ ] Deploy rules thành công.
+- [x] Deploy rules thành công. (đã deploy 2026-05-31)
 
 ---
 

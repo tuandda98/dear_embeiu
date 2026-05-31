@@ -4,7 +4,7 @@
 
 - **Feature:** photo-report
 - **Ưu tiên:** P1 (compliance — giảm rủi ro reject App Store Guideline 1.2)
-- **Trạng thái:** 🧪 Test PASS (17/17) — code xong; chờ **deploy `firestore.rules`** (R5) để write thật + cập nhật App Review notes → đóng ✅ Done
+- **Trạng thái:** ✅ Done (2026-05-31) — Tester PASS 17/17; **rules đã deploy** lên `tonyembeiu` (report ghi thật được). Còn (ngoài code): điền tài khoản demo vào App Review notes khi submit.
 - **Tạo ngày:** 2026-05-31
 - **Liên quan:** mở rộng [gallery](../gallery/overview.md) · [`../../../CLAUDE.md`](../../../CLAUDE.md) mục 5 (Firestore/rules)
 
