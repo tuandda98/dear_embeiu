@@ -41,9 +41,9 @@ cặp đôi,yêu nhau,kỷ niệm,đếm ngày yêu,couple,anniversary,love,ản
 ## 5. URLs
 | Mục | URL |
 |-----|-----|
-| Support URL (bắt buộc) | `https://<project-id>.web.app/` hoặc trang GitHub Pages |
+| Support URL (bắt buộc) | `https://tonyembeiu.web.app/` hoặc trang GitHub Pages |
 | Marketing URL (tuỳ chọn) | — |
-| Privacy Policy URL (bắt buộc) | `https://<project-id>.web.app/privacy-policy.html` |
+| Privacy Policy URL (bắt buộc) | `https://tonyembeiu.web.app/privacy-policy.html` |
 
 ## 6. Age Rating (questionnaire)
 - App có **User Generated Content** (ảnh chung) nhưng **riêng tư, chỉ 2 thành viên ghép cặp** — không feed công khai.
