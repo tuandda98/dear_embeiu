@@ -680,5 +680,19 @@
   "coupleSyncError": "Không thể đồng bộ thông tin cặp đôi: {error}",
   "galleryMonthLabel": "{month, select, 1{Tháng 01 • {year}} 2{Tháng 02 • {year}} 3{Tháng 03 • {year}} 4{Tháng 04 • {year}} 5{Tháng 05 • {year}} 6{Tháng 06 • {year}} 7{Tháng 07 • {year}} 8{Tháng 08 • {year}} 9{Tháng 09 • {year}} 10{Tháng 10 • {year}} 11{Tháng 11 • {year}} 12{Tháng 12 • {year}} other{Tháng {month} • {year}}}",
   "galleryTodayMomentsCount": "{count} khoảnh khắc hôm nay",
-  "homeCounterStartFrom": "Bắt đầu từ {date}"
+  "homeCounterStartFrom": "Bắt đầu từ {date}",
+  "guestTryWithoutLogin": "Dùng thử không cần đăng nhập",
+  "guestLoginDivider": "hoặc",
+  "guestModeBadge": "Chế độ dùng thử",
+  "guestCounterTitle": "Đếm ngày yêu",
+  "guestCounterSubtitle": "Nhập ngày hai bạn bắt đầu để xem đã bên nhau bao lâu.",
+  "guestEmptyTitle": "Bắt đầu đếm ngày yêu của bạn",
+  "guestEmptyBody": "Chọn ngày kỷ niệm để xem hai bạn đã bên nhau bao lâu rồi.",
+  "guestPickDate": "Chọn ngày kỷ niệm",
+  "guestChangeDate": "Đổi ngày kỷ niệm",
+  "guestCounterStartFrom": "Bắt đầu từ {date}",
+  "guestCtaTitle": "Muốn lưu kỷ niệm cùng người ấy?",
+  "guestCtaBody": "Đăng nhập để ghép đôi & lưu ảnh chung.",
+  "guestCtaSignIn": "Đăng nhập",
+  "guestCtaRegister": "Đăng ký"
 }

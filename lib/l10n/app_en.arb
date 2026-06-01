@@ -1150,5 +1150,66 @@
         "type": "String"
       }
     }
+  },
+  "guestTryWithoutLogin": "Try without signing in",
+  "@guestTryWithoutLogin": {
+    "description": "Login screen button entering guest counter mode"
+  },
+  "guestLoginDivider": "or",
+  "@guestLoginDivider": {
+    "description": "Divider label between sign-in and guest button on login"
+  },
+  "guestModeBadge": "Trial mode",
+  "@guestModeBadge": {
+    "description": "Eyebrow badge on the guest counter screen"
+  },
+  "guestCounterTitle": "Love day counter",
+  "@guestCounterTitle": {
+    "description": "Page title on the guest counter screen"
+  },
+  "guestCounterSubtitle": "Enter the day you started to see how long you've been together.",
+  "@guestCounterSubtitle": {
+    "description": "Page subtitle on the guest counter screen"
+  },
+  "guestEmptyTitle": "Start counting your love days",
+  "@guestEmptyTitle": {
+    "description": "Title of the empty state card before picking a date"
+  },
+  "guestEmptyBody": "Pick your anniversary date to see how long you've been together.",
+  "@guestEmptyBody": {
+    "description": "Body of the empty state card before picking a date"
+  },
+  "guestPickDate": "Pick anniversary date",
+  "@guestPickDate": {
+    "description": "Button to open the date picker in empty state"
+  },
+  "guestChangeDate": "Change anniversary date",
+  "@guestChangeDate": {
+    "description": "Button to reopen the date picker once a date is set"
+  },
+  "guestCounterStartFrom": "Since {date}",
+  "@guestCounterStartFrom": {
+    "description": "Counter card subtitle showing the guest start date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "guestCtaTitle": "Want to keep memories together?",
+  "@guestCtaTitle": {
+    "description": "Title of the conversion CTA card on the guest screen"
+  },
+  "guestCtaBody": "Sign in to pair up & share photos together.",
+  "@guestCtaBody": {
+    "description": "Body of the conversion CTA card on the guest screen"
+  },
+  "guestCtaSignIn": "Sign in",
+  "@guestCtaSignIn": {
+    "description": "CTA button returning to the login screen"
+  },
+  "guestCtaRegister": "Sign up",
+  "@guestCtaRegister": {
+    "description": "CTA button opening the register screen"
   }
 }

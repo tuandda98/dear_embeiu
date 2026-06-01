@@ -18,6 +18,7 @@ import 'providers/locale_provider.dart';
 import 'providers/photo_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'screens/auth_gate_screen.dart';
+import 'screens/guest_counter_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
@@ -222,6 +223,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               AppRoutes.register: (_) => const RegisterScreen(),
               AppRoutes.home: (_) => const HomeScreen(),
               AppRoutes.setup: (_) => const SetupScreen(),
+              // Guest counter is a pure-local trial flow (Apple 5.1.1). It does
+              // NOT go through SessionResolver/authGate — it opens directly
+              // without any authentication.
+              AppRoutes.guest: (_) => const GuestCounterScreen(),
             },
           );
         },

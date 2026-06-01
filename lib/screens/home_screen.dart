@@ -10,6 +10,7 @@ import '../models/photo.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
+import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
@@ -53,6 +54,51 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _selectedIndex = 0;
   String? _lastReminderKey;
+
+  @override
+  void initState() {
+    super.initState();
+    // Cold-start deep-link: a terminated→tap set the pending tab inside
+    // PushNotificationService.initialize() (before this mounted), so apply it
+    // now as the initial tab. Then listen for warm taps while mounted.
+    _applyPendingTab(NotificationTapRouter.pendingHomeTab.value);
+    NotificationTapRouter.consumeHomeTabRequest();
+    NotificationTapRouter.pendingHomeTab.addListener(_onNotificationTapRequest);
+  }
+
+  @override
+  void dispose() {
+    NotificationTapRouter.pendingHomeTab
+        .removeListener(_onNotificationTapRequest);
+    super.dispose();
+  }
+
+  /// Reacts to a warm tap (app already running) requesting a tab switch.
+  void _onNotificationTapRequest() {
+    final requested = NotificationTapRouter.pendingHomeTab.value;
+    if (requested == -1) {
+      return;
+    }
+    NotificationTapRouter.consumeHomeTabRequest();
+    // Never setState mid-build; defer to after the current frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      if (_selectedIndex != requested) {
+        setState(() => _selectedIndex = requested);
+      }
+    });
+  }
+
+  /// Sets the initial tab from a pending request during initState (no setState
+  /// needed — the first build hasn't happened yet). Ignores -1 (no request)
+  /// and any out-of-range value, keeping the default Home tab.
+  void _applyPendingTab(int requested) {
+    if (requested >= 0 && requested < _navigationItems.length) {
+      _selectedIndex = requested;
+    }
+  }
 
   /// (Re)schedule love reminders whenever the data that feeds them changes.
   /// Cheap to call on every build: it skips when nothing relevant changed and

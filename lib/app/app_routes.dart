@@ -5,6 +5,7 @@ class AppRoutes {
   static const String register = '/register';
   static const String home = '/home';
   static const String setup = '/setup';
+  static const String guest = '/guest';
 
   const AppRoutes._();
 }

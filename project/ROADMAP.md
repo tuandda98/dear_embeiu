@@ -25,6 +25,7 @@
 | Reminders v2 (bỏ nudge hằng ngày + milestone tự bật/tắt + giờ-theo-mốc Dv8) | P1 | 🧪 Test PASS — chờ smoke-test thiết bị | [spec](features/reminders/overview.md) (5b) · [roadmap](features/reminders/roadmap.md) |
 | Settings (màn Cài đặt tổng, gom Profile + giờ theo mốc Dv8) | P1 | 🧪 Test PASS (29/30) — chờ user smoke-test thiết bị (2026-05-31) | [spec](features/settings/overview.md) · [roadmap](features/settings/roadmap.md) |
 | Photo report (UGC compliance Apple 1.2) | P1 | ✅ Done (2026-05-31) — rules đã deploy | [spec](features/photo-report/overview.md) · [roadmap](features/photo-report/roadmap.md) |
+| Guest mode (fix Apple reject 5.1.1) | P0 | 💻 Dev (2026-06-01) | [spec](features/guest-mode/overview.md) · [roadmap](features/guest-mode/roadmap.md) |
 
 ## Đã Done
 

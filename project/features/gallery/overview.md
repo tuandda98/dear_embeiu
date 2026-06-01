@@ -24,10 +24,15 @@
 - [x] Đăng ảnh (đơn/nhiều) đồng bộ realtime giữa 2 máy
 - [x] Caption thêm/sửa; xoá ảnh; người đăng hiển thị
 - [x] Push tới partner khi đăng ảnh
+- [x] Push khi partner ghép cặp (`notifyPartnerJoined`, 2026-06-01)
+- [x] Tap push deep-link vào đúng tab (photo→Gallery, joined→Home, 2026-06-01)
 
 ## 5. Nợ kỹ thuật / rủi ro
-- 🔴 **Push notification hardcode tiếng Việt** (gap B — thuộc [language]), `functions/index.js:140-143`.
+- ✅ ~~Push hardcode tiếng Việt~~ — ĐÃ localized vi/en theo `languageCode` device (2026-06-01, deployed).
 - 🔴 **Ngày feed hardcode "thg"** (gap A — [language]).
+- 🟢 **Permission push xin quá sớm** (trong `syncForUser` ngay lúc login/register, không priming) → opt-in thấp; cân nhắc màn priming. (Push #4)
+- 🟢 **`badge:1` hardcode** ở apns, không phản ánh unread thật & không clear → badge "1" dai dẳng. (Push #5)
+- 🟢 **Không analytics push** (delivery/open rate) — gắn cùng đợt Analytics toàn app. (Push #6)
 - 🟡 **Photo delete không check author** (rules ~374) → member nào cũng xoá ảnh partner (harassment).
 - 🟡 **Storage content-type spoof** — rule tin `contentType` client gửi; non-image gắn `image/png` vẫn qua.
 - 🟡 **Offline photo không tự re-upload** khi online lại (local-only mãi); cache path không `existsSync` → ảnh vỡ; optimistic delete/caption không rollback khi server fail.
@@ -36,3 +41,6 @@
 
 ## 6. Changelog
 - [2026-05-30] [PO] Tài liệu hoá feature; nối gap A,B sang feature language.
+- [2026-06-01] [PO] Phân tích lại push notification (verify đĩa). Phát hiện: chỉ có 1 push (partner-photo); hở vòng lặp lõi (B join → A không nhận gì); tap push không deep-link. Chốt vá 3 việc.
+- [2026-06-01] [Dev] #2 `notifyPartnerJoined` (server, onDocumentUpdated couple, guard transition 1→2). #3 deep-link tap (`NotificationTapRouter` + HomeScreen). Refactor helper chung `sendToRecipientDevices` (photo push giữ nguyên hành vi). `node --check` OK, `flutter analyze` sạch.
+- [2026-06-01] [PO] Gate PASS + redeploy functions production (4 fn live, gồm notifyPartnerJoined mới + photo localized + apns iOS chắc chắn live).

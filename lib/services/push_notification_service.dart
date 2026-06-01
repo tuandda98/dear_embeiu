@@ -25,6 +25,38 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
 }
 
+/// Deep-link bridge for notification taps (no extra package, no navigatorKey).
+///
+/// [PushNotificationService] writes the home tab a tapped push should open into
+/// [pendingHomeTab]; [HomeScreen] reads + listens to it. Default 0 (Home).
+///
+/// Cold start (terminated → tap): `getInitialMessage()` runs inside
+/// [PushNotificationService.initialize] (called in main() before runApp), so it
+/// sets the pending value BEFORE HomeScreen mounts — HomeScreen then consumes it
+/// in initState. Warm taps (background/foreground) push a new value while
+/// HomeScreen is mounted and listening.
+///
+/// HomeScreen calls [consumeHomeTabRequest] after applying the value so the same
+/// tap isn't replayed on a later rebuild/remount.
+class NotificationTapRouter {
+  NotificationTapRouter._();
+
+  /// Tab index a tapped notification wants HomeScreen to show. -1 means "no
+  /// pending request"; HomeScreen ignores it and keeps its current tab.
+  static final ValueNotifier<int> pendingHomeTab = ValueNotifier<int>(-1);
+
+  /// Marks the current request as handled so it won't be reapplied later.
+  static void consumeHomeTabRequest() {
+    if (pendingHomeTab.value != -1) {
+      pendingHomeTab.value = -1;
+    }
+  }
+}
+
+/// Home tab indices a deep-link can target (mirror HomeScreen's IndexedStack).
+const int _homeTabIndex = 0;
+const int _galleryTabIndex = 1;
+
 class PushNotificationService {
   PushNotificationService._();
 
@@ -91,7 +123,18 @@ class PushNotificationService {
       );
 
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-      FirebaseMessaging.onMessageOpenedApp.listen((_) {});
+
+      // Tap handling (deep-link). Warm path: app is running (foreground or
+      // background) and the user taps the push.
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+
+      // Cold path: app was terminated and launched by tapping a push. Runs
+      // before runApp, so the pending tab is set before HomeScreen mounts.
+      final initialMessage =
+          await FirebaseMessaging.instance.getInitialMessage();
+      if (initialMessage != null) {
+        _handleNotificationTap(initialMessage);
+      }
 
       _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh.listen(
         (token) async {
@@ -269,6 +312,25 @@ class PushNotificationService {
     final resolved = Intl.defaultLocale ?? Intl.getCurrentLocale();
     final code = resolved.split(RegExp('[_-]')).first.trim().toLowerCase();
     return code.isNotEmpty ? code : 'vi';
+  }
+
+  /// Maps a tapped push to the home tab it should open and publishes it via
+  /// [NotificationTapRouter]. Covers all three tap states (foreground tap,
+  /// background tap, cold-start) since each routes a [RemoteMessage] here.
+  /// Unknown/missing types are ignored (no tab change, no error).
+  void _handleNotificationTap(RemoteMessage message) {
+    final type = message.data['type'];
+    switch (type) {
+      case 'photo_posted':
+        NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
+        break;
+      case 'partner_joined':
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        break;
+      default:
+        // Unknown or absent type — leave the current tab untouched.
+        break;
+    }
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {

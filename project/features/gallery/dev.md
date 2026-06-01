@@ -18,3 +18,4 @@
 
 ## Nhật ký implement
 - [2026-05-30] [PO] Khởi tạo doc; liệt kê việc cần Dev.
+- [2026-06-01] [Dev] Notification tap deep-link: chạm push mở đúng tab. `push_notification_service.dart` thêm `NotificationTapRouter` (`ValueNotifier<int> pendingHomeTab`, -1=không có) + `_handleNotificationTap(RemoteMessage)` map `type` → tab (photo_posted→Gallery 1, partner_joined→Home 0, type khác/thiếu→bỏ qua). `initialize()`: `onMessageOpenedApp.listen(_handleNotificationTap)` (warm) + `getInitialMessage()` (cold). `home_screen.dart`: initState đọc pending (cold-start, set trước khi mount) + listen notifier (warm → addPostFrameCallback + guard mounted), consume sau khi áp dụng. Không thêm package, không navigatorKey. `flutter analyze` sạch.
