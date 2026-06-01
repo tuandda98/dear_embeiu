@@ -143,10 +143,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        automaticallyImplyLeading: false,
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 12),
@@ -504,7 +501,8 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
             children: [
               Expanded(
                 child: FilledButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.login),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.accentRose,
                     foregroundColor: AppColors.white,

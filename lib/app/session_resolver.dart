@@ -26,7 +26,7 @@ class SessionResolver {
 
     if (!authProvider.isAuthenticated) {
       await photoProvider.clearForSignOut();
-      return AppRoutes.login;
+      return AppRoutes.guest;
     }
 
     final currentUser = authProvider.currentUser;

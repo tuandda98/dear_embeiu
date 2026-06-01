@@ -55,7 +55,7 @@ Ghép đôi qua **mã mời (invite code)**: A tạo couple → nhận mã 6 ký
 
 **Entry `lib/main.dart`:** `Hive.initFlutter()` → `FirebaseBootstrapService.initialize()` → (mobile) FCM background handler + `PushNotificationService.initialize()` → `ReminderService.initialize()` → `InstallStateService.handleFreshInstall` (purge session khi reinstall) → Crashlytics hook → `runApp`. MultiProvider: AuthProvider, CoupleProvider, PhotoProvider, LocaleProvider, ReminderProvider. `home: SplashScreen`. Routes ở `lib/app/app_routes.dart`: splash `/`, authGate, login, register, home, setup.
 
-**Navigation gate:** `lib/app/session_resolver.dart` `SessionResolver.resolveStartRoute()` → login nếu chưa auth; setup nếu authed nhưng chưa có couple; home nếu có couple.
+**Navigation gate:** `lib/app/session_resolver.dart` `SessionResolver.resolveStartRoute()` → **guest (đếm ngày local) nếu chưa auth** (đổi từ login để qua Apple 5.1.1(v) — app mở thẳng vào tính năng không cần tài khoản); setup nếu authed nhưng chưa có couple; home nếu có couple. Mọi luồng (cold-start, sign-out, login/register success) đều qua authGate→resolver nên nhất quán.
 
 **Services (`lib/services/`):**
 - `auth_service.dart` (~548 dòng) — Firebase Auth + Firestore, có **local fallback** (FlutterSecureStorage mock store) khi Firebase chưa sẵn. Tạo invite code, sign up/in/out, persist session, gọi callable `deleteAccount`. `isUsingFirebase` quyết định nhánh. Còn comment "Sprint 1 local scaffold".
@@ -72,7 +72,7 @@ Ghép đôi qua **mã mời (invite code)**: A tạo couple → nhận mã 6 ký
 
 **Models (`lib/models/`):** app_user (id,email,displayName,coupleId?,inviteCode,status single/waiting_partner/in_couple), couple (person1/2Name,anniversaryDate,couplePhoto local/url/storagePath,inviteCode,memberIds[1-2],status waiting_partner/active,createdByUserId), photo (path,remoteUrl,storagePath,coupleId,authorUserId,authorName,caption), account_invite, counter_data, auth_status (enum).
 
-**Screens (`lib/screens/`):** splash, auth_gate, login, register, setup, home, gallery, profile, **settings** (màn Cài đặt tổng — gom reminders/ngôn ngữ/tài khoản+danger; vào từ tile "⚙️ Cài đặt" ở Profile), milestone_reminders (Cột mốc & kỷ niệm + giờ-theo-mốc), custom_reminders + custom_reminder_form (reminder tuỳ chỉnh — vào từ Settings), **guest_counter** (chế độ "Dùng thử không cần đăng nhập" — fix Apple 5.1.1; màn đếm ngày yêu thuần local, route `/guest` KHÔNG qua authGate, Hive box `guest_settings`, tái dùng CounterCard/CounterData; vào từ nút ở login). Widgets ở `lib/widgets/`. Theme ở `lib/theme/`.
+**Screens (`lib/screens/`):** splash, auth_gate, login, register, setup, home, gallery, profile, **settings** (màn Cài đặt tổng — gom reminders/ngôn ngữ/tài khoản+danger; vào từ tile "⚙️ Cài đặt" ở Profile), milestone_reminders (Cột mốc & kỷ niệm + giờ-theo-mốc), custom_reminders + custom_reminder_form (reminder tuỳ chỉnh — vào từ Settings), **guest_counter** (fix Apple 5.1.1(v) — **MÀN LANDING khi chưa đăng nhập**: SessionResolver unauth→`/guest`; màn đếm ngày yêu thuần local, Hive box `guest_settings`, tái dùng CounterCard/CounterData; là root nên KHÔNG có nút back; "Đăng nhập"→pushNamed(login), "Đăng ký"→pushNamed(register). Login đã BỎ nút guest thừa, login-success dùng `pushNamedAndRemoveUntil(authGate,false)` clear stack. **login+register có nút back (mũi tên góc trái) → `maybePop()` về guest** vì giờ chúng được push trên guest). Widgets ở `lib/widgets/`. Theme ở `lib/theme/`.
 
 **Localization (`lib/l10n/`):** ARB-generated AppLocalizations (en/vi). `app_l10n.dart` (`AppL10n`) là **lớp truy cập l10n không cần BuildContext** — services/providers/background isolate dùng `AppL10n.strings`. MyApp giữ đồng bộ qua `localeResolutionCallback` → `AppL10n.setLocale()`, fallback English. MyApp observe `AppLifecycleState.resumed` → `refreshPushRegistration()`.
 
@@ -109,6 +109,7 @@ App id chung: `com.tony.dearembeiu`.
 - `UIBackgroundModes: remote-notification`; `NSPhotoLibraryUsageDescription` (text VI); `ITSAppUsesNonExemptEncryption: false`.
 - Scene-based lifecycle. Phone portrait; iPad mọi hướng.
 - `ios/Runner/GoogleService-Info.plist` (project `tonyembeiu`); `PrivacyInfo.xcprivacy` có khai báo.
+- **Build-phase "Strip Invalid Architectures"** (thêm vào target Runner qua `ios/Podfile` post_install bằng Xcodeproj, 2026-06-01): lipo remove `i386/x86_64` khỏi mọi embedded framework + re-sign. **Bắt buộc** vì `objective_c.framework` (transitive của native FFI) ship fat binary có slice simulator → Transporter báo *Validation failed (409) Invalid executable … x86_64 slice*. Idempotent, sống qua `pod install`.
 - ⚠️ Thiếu `CFBundleLocalizations`/`CFBundleAllowMixedLocalizations` (gap i18n — mục 7).
 
 ---

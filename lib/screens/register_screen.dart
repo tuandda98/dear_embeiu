@@ -111,6 +111,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ),
+              Positioned(
+                top: 4,
+                left: 4,
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: AppColors.white,
+                  ),
+                ),
+              ),
               const Positioned(
                 top: 12,
                 right: 16,

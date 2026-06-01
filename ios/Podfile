@@ -44,4 +44,37 @@ post_install do |installer|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
     end
   end
+
+  # App Store validation rejects executables that carry a simulator slice
+  # (e.g. objective_c.framework ships a fat x86_64+arm64 binary). Add a Run
+  # Script build phase on the Runner target that strips i386/x86_64 from every
+  # embedded framework, then re-signs it. Idempotent; survives `pod install`.
+  runner_project_path = File.join(__dir__, 'Runner.xcodeproj')
+  runner_project = Xcodeproj::Project.open(runner_project_path)
+  runner_target = runner_project.targets.find { |t| t.name == 'Runner' }
+  phase_name = 'Strip Invalid Architectures'
+  if runner_target && runner_target.shell_script_build_phases.none? { |p| p.name == phase_name }
+    phase = runner_target.new_shell_script_build_phase(phase_name)
+    phase.shell_script = <<~'SCRIPT'
+      set -e
+      APP_FRAMEWORKS="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
+      [ -d "$APP_FRAMEWORKS" ] || exit 0
+      find "$APP_FRAMEWORKS" -name '*.framework' -type d | while read -r FRAMEWORK; do
+        NAME=$(basename "$FRAMEWORK" .framework)
+        BIN="$FRAMEWORK/$NAME"
+        [ -f "$BIN" ] || continue
+        STRIPPED=0
+        for ARCH in i386 x86_64; do
+          if lipo -info "$BIN" 2>/dev/null | grep -q "$ARCH"; then
+            lipo -remove "$ARCH" "$BIN" -output "$BIN"
+            STRIPPED=1
+          fi
+        done
+        if [ "$STRIPPED" = "1" ] && [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ] && [ "${CODE_SIGNING_REQUIRED:-}" != "NO" ]; then
+          codesign --force --sign "$EXPANDED_CODE_SIGN_IDENTITY" --preserve-metadata=identifier,entitlements,flags "$FRAMEWORK" || true
+        fi
+      done
+    SCRIPT
+    runner_project.save
+  end
 end

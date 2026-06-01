@@ -53,7 +53,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (didSignIn) {
-      Navigator.of(context).pushReplacementNamed(AppRoutes.authGate);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.authGate,
+        (route) => false,
+      );
       return;
     }
 
@@ -87,6 +90,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         _buildFormCard(authProvider),
                       ],
                     ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 4,
+                left: 4,
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: AppColors.white,
                   ),
                 ),
               ),
@@ -336,34 +350,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            _buildGuestDivider(l10n),
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.guest);
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.accentRose,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                icon: const Icon(
-                  Icons.favorite_border_rounded,
-                  size: 18,
-                  color: AppColors.accentRose,
-                ),
-                label: Text(
-                  l10n.guestTryWithoutLogin,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.accentRose,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
             Align(
               child: Wrap(
                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -385,27 +371,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildGuestDivider(AppLocalizations l10n) {
-    final lineColor = AppColors.textSecondary.withValues(alpha: 0.3);
-    return Row(
-      children: [
-        Expanded(child: Divider(color: lineColor, thickness: 0.8)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            l10n.guestLoginDivider,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        Expanded(child: Divider(color: lineColor, thickness: 0.8)),
-      ],
     );
   }
 

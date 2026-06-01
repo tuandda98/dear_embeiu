@@ -214,6 +214,7 @@
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				B656FE80EC06DC7518E82580 /* [CP] Embed Pods Frameworks */,
 				1F1C49AB15F437A40883516C /* [CP] Copy Pods Resources */,
+				989E58F114A94C1B429B41A2 /* Strip Invalid Architectures */,
 			);
 			buildRules = (
 			);
@@ -362,6 +363,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+		};
+		989E58F114A94C1B429B41A2 /* Strip Invalid Architectures */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Invalid Architectures";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\nAPP_FRAMEWORKS=\"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n[ -d \"$APP_FRAMEWORKS\" ] || exit 0\nfind \"$APP_FRAMEWORKS\" -name '*.framework' -type d | while read -r FRAMEWORK; do\n  NAME=$(basename \"$FRAMEWORK\" .framework)\n  BIN=\"$FRAMEWORK/$NAME\"\n  [ -f \"$BIN\" ] || continue\n  STRIPPED=0\n  for ARCH in i386 x86_64; do\n    if lipo -info \"$BIN\" 2>/dev/null | grep -q \"$ARCH\"; then\n      lipo -remove \"$ARCH\" \"$BIN\" -output \"$BIN\"\n      STRIPPED=1\n    fi\n  done\n  if [ \"$STRIPPED\" = \"1\" ] && [ -n \"${EXPANDED_CODE_SIGN_IDENTITY:-}\" ] && [ \"${CODE_SIGNING_REQUIRED:-}\" != \"NO\" ]; then\n    codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --preserve-metadata=identifier,entitlements,flags \"$FRAMEWORK\" || true\n  fi\ndone\n";
 		};
 		B656FE80EC06DC7518E82580 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
