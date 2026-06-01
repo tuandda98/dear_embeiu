@@ -111,6 +111,8 @@
   },
   "quickMomentsTitle": "Khoảnh khắc nhanh",
   "quickMomentsSubtitle": "Lối tắt để xem lại câu chuyện của hai bạn",
+  "addMemoryCta": "Thêm kỷ niệm",
+  "addMemoryCtaSubtitle": "Đăng một tấm ảnh mới cho cả hai cùng xem",
   "memoriesCardTitle": "Kỷ niệm",
   "viewAllPhotos": "Xem tất cả ảnh",
   "profileCardTitle": "Hồ sơ",
@@ -451,6 +453,15 @@
   "setupNoChangesToSaveMsg": "Không có gì thay đổi để lưu.",
   "inviteCodeCopiedMsg": "Đã sao chép mã mời",
   "copyBtn": "Sao chép",
+  "shareBtn": "Chia sẻ",
+  "inviteShareMessage": "Mình muốn lưu giữ kỷ niệm cùng bạn trên Dear Embeiu 💞\nNhập mã mời này để ghép đôi với mình nhé: {code}",
+  "@inviteShareMessage": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
   "remindersTitle": "Nhắc nhở yêu thương",
   "remindersSubtitle": "Những lời nhắc nhẹ nhàng để câu chuyện thêm đong đầy",
   "remindersToggleLabel": "Nhắc cột mốc & kỷ niệm",

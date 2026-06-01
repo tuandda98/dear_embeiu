@@ -13,6 +13,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/blocking_loading_overlay.dart';
+import '../widgets/invite_action_buttons.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import 'settings_screen.dart';
 
@@ -469,6 +470,10 @@ class ProfileScreen extends StatelessWidget {
               title: l10n.yourInviteCodeLabel,
               value: inviteCode,
               tint: AppColors.warning,
+              belowValue: InviteActionButtons(
+                code: inviteCode,
+                onDark: false,
+              ),
             ),
           ],
         ],
@@ -646,6 +651,7 @@ class ProfileScreen extends StatelessWidget {
     required String title,
     required String value,
     required Color tint,
+    Widget? belowValue,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -689,6 +695,10 @@ class ProfileScreen extends StatelessWidget {
                     height: 1.35,
                   ),
                 ),
+                if (belowValue != null) ...[
+                  const SizedBox(height: 10),
+                  belowValue,
+                ],
               ],
             ),
           ),

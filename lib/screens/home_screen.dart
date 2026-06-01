@@ -1,12 +1,14 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../l10n/l10n.dart';
 import '../models/couple.dart';
 import '../models/counter_data.dart';
 import '../models/photo.dart';
+import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
@@ -15,6 +17,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/counter_card.dart';
+import '../widgets/invite_action_buttons.dart';
 import '../widgets/shared_photo_view.dart';
 import 'profile_screen.dart';
 import 'gallery_screen.dart';
@@ -187,6 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         couple,
                         counterData,
                         photoProvider.sortedPhotos,
+                        photoProvider.isLoading,
                         bottomInset,
                       ),
                       GalleryScreen(bottomInset: bottomInset),
@@ -408,6 +412,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Couple couple,
     CounterData counterData,
     List<Photo> photos,
+    bool isUploadingPhoto,
     double bottomInset,
   ) {
     final l10n = context.l10n;
@@ -509,32 +514,12 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 20),
           _buildSectionTitle(
             title: l10n.quickMomentsTitle,
-            subtitle: l10n.quickMomentsSubtitle,
+            subtitle: l10n.addPhotosPrompt,
+            actionLabel: l10n.viewAllPhotos,
+            onActionTap: () => setState(() => _selectedIndex = 1),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildQuickActionCard(
-                  icon: Icons.photo_library_rounded,
-                  title: l10n.memoriesCardTitle,
-                  subtitle: l10n.viewAllPhotos,
-                  color: AppColors.accentRose,
-                  onTap: () => setState(() => _selectedIndex = 1),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildQuickActionCard(
-                  icon: Icons.person_rounded,
-                  title: l10n.profileCardTitle,
-                  subtitle: l10n.updateInfo,
-                  color: AppColors.accentCoral,
-                  onTap: () => setState(() => _selectedIndex = 2),
-                ),
-              ),
-            ],
-          ),
+          _buildAddMemoryCta(l10n, isUploadingPhoto),
           const SizedBox(height: 20),
           _buildSectionTitle(
             title: l10n.milestoneProgressTitle,
@@ -561,7 +546,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 : () => setState(() => _selectedIndex = 1),
           ),
           const SizedBox(height: 12),
-          _buildRecentPhotosSection(recentPhotos, l10n),
+          _buildRecentPhotosSection(recentPhotos, isUploadingPhoto, l10n),
         ],
       ),
     );
@@ -678,21 +663,34 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 if (couple.inviteCode.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.22),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      couple.inviteCode,
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 3,
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          couple.inviteCode,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 3,
+                          ),
+                        ),
                       ),
-                    ),
+                      InviteActionButtons(
+                        code: couple.inviteCode,
+                        onDark: true,
+                        iconOnly: true,
+                      ),
+                    ],
                   ),
                 ],
               ],
@@ -741,60 +739,161 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActionCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: color),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 11,
-                height: 1.35,
-              ),
-            ),
-          ],
-        ),
+  Widget _buildAddMemoryCta(AppLocalizations l10n, bool isLoading) {
+    final card = Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.accentRose,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accentRose.withValues(alpha: 0.28),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.white.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.add_a_photo_rounded,
+              color: AppColors.white,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.addMemoryCta,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  l10n.addMemoryCtaSubtitle,
+                  style: TextStyle(
+                    color: AppColors.white.withValues(alpha: 0.85),
+                    fontSize: 12,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: AppColors.white.withValues(alpha: 0.7),
+            size: 22,
+          ),
+        ],
+      ),
+    );
+
+    return GestureDetector(
+      onTap: isLoading ? null : _pickAndAddPhoto,
+      child: isLoading ? Opacity(opacity: 0.6, child: card) : card,
+    );
+  }
+
+  Future<String?> _showCaptionDialog({
+    required String title,
+    required String hint,
+  }) async {
+    final l10n = context.l10n;
+    final captionController = TextEditingController(text: '');
+
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: captionController,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: hint,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, captionController.text.trim()),
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickAndAddPhoto() async {
+    final currentUser = context.read<AuthProvider>().currentUser;
+    if (currentUser == null) {
+      return;
+    }
+
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile == null || !mounted) {
+      return;
+    }
+
+    final l10n = context.l10n;
+    final caption = await _showCaptionDialog(
+      title: l10n.addCaptionOptionalTitle,
+      hint: l10n.addCaptionOptionalHint,
+    );
+
+    // null = user pressed Cancel (dismiss dialog) = cancel entire upload
+    if (caption == null || !mounted) {
+      return;
+    }
+
+    try {
+      await context.read<PhotoProvider>().addPhoto(
+            pickedFile.path,
+            currentUser: currentUser,
+            caption: caption.isNotEmpty ? caption : null,
+          );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.read<PhotoProvider>().errorMessage ??
+                context.l10n.photoAddError,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.photoAddedSuccess)),
     );
   }
 
@@ -978,7 +1077,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildRecentPhotosSection(List<Photo> photos, AppLocalizations l10n) {
+  Widget _buildRecentPhotosSection(
+    List<Photo> photos,
+    bool isLoading,
+    AppLocalizations l10n,
+  ) {
     if (photos.isEmpty) {
       return Container(
         width: double.infinity,
@@ -1010,6 +1113,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: 13,
                 height: 1.45,
               ),
+            ),
+            const SizedBox(height: 18),
+            FilledButton.icon(
+              onPressed: isLoading ? null : _pickAndAddPhoto,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.accentRose,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+              icon: const Icon(Icons.add_photo_alternate_rounded),
+              label: Text(l10n.postFirstPhotoBtn),
             ),
           ],
         ),

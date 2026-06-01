@@ -111,6 +111,8 @@
   },
   "quickMomentsTitle": "Quick moments",
   "quickMomentsSubtitle": "Shortcuts to revisit your story",
+  "addMemoryCta": "Add a memory",
+  "addMemoryCtaSubtitle": "Post a new photo for you both to keep",
   "memoriesCardTitle": "Memories",
   "viewAllPhotos": "View all photos",
   "profileCardTitle": "Profile",
@@ -451,6 +453,15 @@
   "setupNoChangesToSaveMsg": "No changes to save.",
   "inviteCodeCopiedMsg": "Invite code copied",
   "copyBtn": "Copy",
+  "shareBtn": "Share",
+  "inviteShareMessage": "I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: {code}",
+  "@inviteShareMessage": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
   "remindersTitle": "Love reminders",
   "remindersSubtitle": "Gentle nudges to keep your story growing",
   "remindersToggleLabel": "Milestone & anniversary reminders",

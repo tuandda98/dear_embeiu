@@ -273,6 +273,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickMomentsSubtitle => 'Shortcuts to revisit your story';
 
   @override
+  String get addMemoryCta => 'Add a memory';
+
+  @override
+  String get addMemoryCtaSubtitle => 'Post a new photo for you both to keep';
+
+  @override
   String get memoriesCardTitle => 'Memories';
 
   @override
@@ -819,6 +825,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copyBtn => 'Copy';
+
+  @override
+  String get shareBtn => 'Share';
+
+  @override
+  String inviteShareMessage(String code) {
+    return 'I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: $code';
+  }
 
   @override
   String get remindersTitle => 'Love reminders';
@@ -1587,4 +1601,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String homeCounterStartFrom(String date) {
     return 'Since $date';
   }
+
+  @override
+  String get guestTryWithoutLogin => 'Try without signing in';
+
+  @override
+  String get guestLoginDivider => 'or';
+
+  @override
+  String get guestModeBadge => 'Trial mode';
+
+  @override
+  String get guestCounterTitle => 'Love day counter';
+
+  @override
+  String get guestCounterSubtitle =>
+      'Enter the day you started to see how long you\'ve been together.';
+
+  @override
+  String get guestEmptyTitle => 'Start counting your love days';
+
+  @override
+  String get guestEmptyBody =>
+      'Pick your anniversary date to see how long you\'ve been together.';
+
+  @override
+  String get guestPickDate => 'Pick anniversary date';
+
+  @override
+  String get guestChangeDate => 'Change anniversary date';
+
+  @override
+  String guestCounterStartFrom(String date) {
+    return 'Since $date';
+  }
+
+  @override
+  String get guestCtaTitle => 'Want to keep memories together?';
+
+  @override
+  String get guestCtaBody => 'Sign in to pair up & share photos together.';
+
+  @override
+  String get guestCtaSignIn => 'Sign in';
+
+  @override
+  String get guestCtaRegister => 'Sign up';
 }

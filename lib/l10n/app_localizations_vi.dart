@@ -275,6 +275,12 @@ class AppLocalizationsVi extends AppLocalizations {
       'Lối tắt để xem lại câu chuyện của hai bạn';
 
   @override
+  String get addMemoryCta => 'Thêm kỷ niệm';
+
+  @override
+  String get addMemoryCtaSubtitle => 'Đăng một tấm ảnh mới cho cả hai cùng xem';
+
+  @override
   String get memoriesCardTitle => 'Kỷ niệm';
 
   @override
@@ -823,6 +829,14 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get copyBtn => 'Sao chép';
+
+  @override
+  String get shareBtn => 'Chia sẻ';
+
+  @override
+  String inviteShareMessage(String code) {
+    return 'Mình muốn lưu giữ kỷ niệm cùng bạn trên Dear Embeiu 💞\nNhập mã mời này để ghép đôi với mình nhé: $code';
+  }
 
   @override
   String get remindersTitle => 'Nhắc nhở yêu thương';
@@ -1590,4 +1604,50 @@ class AppLocalizationsVi extends AppLocalizations {
   String homeCounterStartFrom(String date) {
     return 'Bắt đầu từ $date';
   }
+
+  @override
+  String get guestTryWithoutLogin => 'Dùng thử không cần đăng nhập';
+
+  @override
+  String get guestLoginDivider => 'hoặc';
+
+  @override
+  String get guestModeBadge => 'Chế độ dùng thử';
+
+  @override
+  String get guestCounterTitle => 'Đếm ngày yêu';
+
+  @override
+  String get guestCounterSubtitle =>
+      'Nhập ngày hai bạn bắt đầu để xem đã bên nhau bao lâu.';
+
+  @override
+  String get guestEmptyTitle => 'Bắt đầu đếm ngày yêu của bạn';
+
+  @override
+  String get guestEmptyBody =>
+      'Chọn ngày kỷ niệm để xem hai bạn đã bên nhau bao lâu rồi.';
+
+  @override
+  String get guestPickDate => 'Chọn ngày kỷ niệm';
+
+  @override
+  String get guestChangeDate => 'Đổi ngày kỷ niệm';
+
+  @override
+  String guestCounterStartFrom(String date) {
+    return 'Bắt đầu từ $date';
+  }
+
+  @override
+  String get guestCtaTitle => 'Muốn lưu kỷ niệm cùng người ấy?';
+
+  @override
+  String get guestCtaBody => 'Đăng nhập để ghép đôi & lưu ảnh chung.';
+
+  @override
+  String get guestCtaSignIn => 'Đăng nhập';
+
+  @override
+  String get guestCtaRegister => 'Đăng ký';
 }

@@ -596,6 +596,18 @@ abstract class AppLocalizations {
   /// **'Shortcuts to revisit your story'**
   String get quickMomentsSubtitle;
 
+  /// No description provided for @addMemoryCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a memory'**
+  String get addMemoryCta;
+
+  /// No description provided for @addMemoryCtaSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post a new photo for you both to keep'**
+  String get addMemoryCtaSubtitle;
+
   /// No description provided for @memoriesCardTitle.
   ///
   /// In en, this message translates to:
@@ -1549,6 +1561,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy'**
   String get copyBtn;
+
+  /// No description provided for @shareBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareBtn;
+
+  /// No description provided for @inviteShareMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: {code}'**
+  String inviteShareMessage(String code);
 
   /// No description provided for @remindersTitle.
   ///
@@ -2827,6 +2851,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Since {date}'**
   String homeCounterStartFrom(String date);
+
+  /// Login screen button entering guest counter mode
+  ///
+  /// In en, this message translates to:
+  /// **'Try without signing in'**
+  String get guestTryWithoutLogin;
+
+  /// Divider label between sign-in and guest button on login
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get guestLoginDivider;
+
+  /// Eyebrow badge on the guest counter screen
+  ///
+  /// In en, this message translates to:
+  /// **'Trial mode'**
+  String get guestModeBadge;
+
+  /// Page title on the guest counter screen
+  ///
+  /// In en, this message translates to:
+  /// **'Love day counter'**
+  String get guestCounterTitle;
+
+  /// Page subtitle on the guest counter screen
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the day you started to see how long you\'ve been together.'**
+  String get guestCounterSubtitle;
+
+  /// Title of the empty state card before picking a date
+  ///
+  /// In en, this message translates to:
+  /// **'Start counting your love days'**
+  String get guestEmptyTitle;
+
+  /// Body of the empty state card before picking a date
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your anniversary date to see how long you\'ve been together.'**
+  String get guestEmptyBody;
+
+  /// Button to open the date picker in empty state
+  ///
+  /// In en, this message translates to:
+  /// **'Pick anniversary date'**
+  String get guestPickDate;
+
+  /// Button to reopen the date picker once a date is set
+  ///
+  /// In en, this message translates to:
+  /// **'Change anniversary date'**
+  String get guestChangeDate;
+
+  /// Counter card subtitle showing the guest start date
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String guestCounterStartFrom(String date);
+
+  /// Title of the conversion CTA card on the guest screen
+  ///
+  /// In en, this message translates to:
+  /// **'Want to keep memories together?'**
+  String get guestCtaTitle;
+
+  /// Body of the conversion CTA card on the guest screen
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to pair up & share photos together.'**
+  String get guestCtaBody;
+
+  /// CTA button returning to the login screen
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get guestCtaSignIn;
+
+  /// CTA button opening the register screen
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get guestCtaRegister;
 }
 
 class _AppLocalizationsDelegate

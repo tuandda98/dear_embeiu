@@ -4,7 +4,7 @@
 
 - **Feature:** guest-mode
 - **Ưu tiên:** P0 (CHẶN release — Apple reject 5.1.1, không qua được nếu thiếu)
-- **Trạng thái:** 📋 Spec
+- **Trạng thái:** 🧪 Test PASS (code-level) — chờ user smoke-test thiết bị (5 case runtime)
 - **Tạo ngày:** 2026-06-01
 - **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · feature [counter](../counter/overview.md) (tái dùng) · [auth](../auth/overview.md) · [`../../../CLAUDE.md`](../../../CLAUDE.md)
 
@@ -55,3 +55,4 @@
 
 ## 7. Changelog
 - [2026-06-01] [PO] Tạo feature guest-mode để fix Apple reject 5.1.1: counter chế độ khách (local, không login) + CTA đăng nhập cho tính năng couple. Khởi động pipeline.
+- [2026-06-01] [PO] Pipeline xong: Designer (design.md) → Dev (`lib/screens/guest_counter_screen.dart`, thuần local Hive `guest_settings`) → Tester PASS code-level. PO GATE: tự chạy `fvm flutter analyze` = "No issues found!"; verify thuần-local (0 ref Firebase/Auth/Provider); đọc file khớp design. **Sửa build vỡ kế thừa từ phiên Dev trước:** main.dart import file màn guest chưa tồn tại + login_screen gọi getter `guest*` chưa regen → tạo file màn + chạy `fvm flutter gen-l10n` (an toàn, ARB đầy đủ, không xoá getter). Giữ 🧪 Test PASS, **chờ user smoke-test 5 case runtime** (picker chặn ngày tương lai · Hive persist cold start · navigation CTA/back · không regression auth sau guest · toggle VI/EN). Chưa commit/deploy (chờ user duyệt + smoke-test).

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -15,6 +14,7 @@ import '../services/couple_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/blocking_loading_overlay.dart';
+import '../widgets/invite_action_buttons.dart';
 import '../widgets/shared_couple_photo_view.dart';
 
 enum _SetupMode { create, join }
@@ -582,6 +582,11 @@ class _SetupScreenState extends State<SetupScreen> {
             ? AppColors.accentRose
             : AppColors.white;
 
+    // Cụm Copy/Share chỉ có nghĩa khi couple đang chờ partner: mã mời còn
+    // join được. Khi couple đã active (đã tạo space & không còn waiting),
+    // ẩn cụm nút vì không ai join bằng mã này nữa.
+    final showInviteActions = !hasCreatedCoupleSpace || isWaitingForPartner;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -610,56 +615,19 @@ class _SetupScreenState extends State<SetupScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  inviteCode,
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 30,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 4,
-                  ),
-                ),
-              ),
-              Material(
-                color: AppColors.white.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: inviteCode));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.inviteCodeCopiedMsg),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.copy_rounded, size: 14, color: AppColors.white.withValues(alpha: 0.90)),
-                        const SizedBox(width: 4),
-                        Text(
-                          l10n.copyBtn,
-                          style: TextStyle(
-                            color: AppColors.white.withValues(alpha: 0.90),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          Text(
+            inviteCode,
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 30,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 4,
+            ),
           ),
+          if (showInviteActions) ...[
+            const SizedBox(height: 10),
+            InviteActionButtons(code: inviteCode, onDark: true),
+          ],
           const SizedBox(height: 8),
           Text(
             description,
