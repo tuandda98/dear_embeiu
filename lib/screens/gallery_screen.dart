@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +18,7 @@ import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/blocking_loading_overlay.dart';
@@ -117,6 +122,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
+    HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.photoAddedSuccess)),
     );
@@ -154,6 +160,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         }
       }
       if (mounted) {
+        HapticFeedback.mediumImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(context.l10n.multiplePhotosAdded(pickedFiles.length)),
@@ -412,7 +419,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 ),
               ),
               const Icon(
-                Icons.chevron_right_rounded,
+                LucideIcons.chevronRight,
                 size: 20,
                 color: AppColors.textTertiary,
               ),
@@ -607,7 +614,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.auto_awesome_rounded,
+            LucideIcons.sparkles,
             size: 12,
             color: AppColors.white.withValues(alpha: 0.72),
           ),
@@ -774,12 +781,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
           _MarqueeRow(
             children: [
               _buildFeedStatChip(
-                icon: Icons.collections_rounded,
+                icon: LucideIcons.galleryHorizontalEnd,
                 label: context.l10n.momentsCount(photoCount),
                 color: AppColors.accentRose,
               ),
               _buildFeedStatChip(
-                icon: Icons.auto_stories_rounded,
+                icon: LucideIcons.bookOpen,
                 label: context.l10n.privateFeedLabel,
                 color: AppColors.info,
               ),
@@ -801,7 +808,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     ),
                     textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
-                  icon: const Icon(Icons.add_a_photo_rounded, size: 16),
+                  icon: const Icon(LucideIcons.camera, size: 16),
                   label: Text(context.l10n.postNewPhotoBtn),
                 ),
               ),
@@ -819,7 +826,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     ),
                     textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
-                  icon: const Icon(Icons.grid_view_rounded, size: 16),
+                  icon: const Icon(LucideIcons.layoutGrid, size: 16),
                   label: Text(context.l10n.addMultipleBtn),
                 ),
               ),
@@ -918,7 +925,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
               ),
-              icon: const Icon(Icons.add_a_photo_rounded, size: 18),
+              icon: const Icon(LucideIcons.camera, size: 18),
               tooltip: context.l10n.postNewPhotoBtn,
             ),
             const SizedBox(width: 8),
@@ -928,7 +935,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 backgroundColor: AppColors.accentCoral.withValues(alpha: 0.14),
                 foregroundColor: AppColors.accentCoral,
               ),
-              icon: const Icon(Icons.grid_view_rounded, size: 18),
+              icon: const Icon(LucideIcons.layoutGrid, size: 18),
               tooltip: context.l10n.addMultipleBtn,
             ),
           ],
@@ -963,7 +970,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
-                  Icons.wb_sunny_rounded,
+                  LucideIcons.sun,
                   color: AppColors.accentRose,
                   size: 20,
                 ),
@@ -1011,7 +1018,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              icon: const Icon(Icons.add_a_photo_rounded, size: 17),
+              icon: const Icon(LucideIcons.camera, size: 17),
               label: Text(context.l10n.galleryRecordTodayMoment),
             ),
           ),
@@ -1042,7 +1049,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
-                  Icons.check_circle_rounded,
+                  LucideIcons.checkCircle,
                   color: AppColors.success,
                   size: 18,
                 ),
@@ -1155,7 +1162,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       Row(
                         children: [
                           Icon(
-                            Icons.person_rounded,
+                            LucideIcons.user,
                             size: 14,
                             color: AppColors.textSecondary.withValues(alpha: 0.72),
                           ),
@@ -1174,7 +1181,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           ),
                           const SizedBox(width: 12),
                           Icon(
-                            Icons.schedule_rounded,
+                            LucideIcons.clock,
                             size: 14,
                             color: AppColors.textSecondary.withValues(alpha: 0.72),
                           ),
@@ -1195,7 +1202,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 ),
                 PopupMenuButton<_PhotoFeedAction>(
                   icon: Icon(
-                    Icons.more_horiz_rounded,
+                    LucideIcons.moreHorizontal,
                     color: AppColors.textSecondary.withValues(alpha: 0.76),
                   ),
                   onSelected: (action) {
@@ -1229,7 +1236,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
-                              Icons.flag_outlined,
+                              LucideIcons.flag,
                               size: 18,
                               color: AppColors.accentRose,
                             ),
@@ -1278,7 +1285,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         color: AppColors.surfaceLight.withValues(alpha: 0.94),
                         alignment: Alignment.center,
                         child: Icon(
-                          Icons.image_not_supported_outlined,
+                          LucideIcons.imageOff,
                           size: 40,
                           color: AppColors.textSecondary.withValues(alpha: 0.5),
                         ),
@@ -1388,7 +1395,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.auto_stories_rounded,
+                  LucideIcons.bookOpen,
                   color: AppColors.white,
                   size: 38,
                 ),
@@ -1459,7 +1466,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     borderRadius: BorderRadius.circular(18),
                   ),
                 ),
-                icon: const Icon(Icons.add_photo_alternate_rounded),
+                icon: const Icon(LucideIcons.imagePlus),
                 label: Text(context.l10n.postFirstPhotoBtn),
               ),
             ],
@@ -1527,7 +1534,18 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             return _buildMonthHeaderWidget(item.date);
                           }
                           final p = item as _FeedPhotoItem;
-                          return _buildPhotoFeedCard(couple, p.photo, p.originalIndex);
+                          final card =
+                              _buildPhotoFeedCard(couple, p.photo, p.originalIndex);
+                          // Only the first few cards get the staggered entrance;
+                          // deeper cards (revealed by scrolling) appear normally
+                          // so a long feed never lags or re-animates on recycle.
+                          if (p.originalIndex < 6) {
+                            return _OnceEntrance(
+                              order: p.originalIndex,
+                              child: card,
+                            );
+                          }
+                          return card;
                         }, childCount: feedItems.length),
                       ),
                     ),
@@ -1784,6 +1802,9 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
   late final List<double> _pageScales;
   late int _currentIndex;
   double _verticalDragOffset = 0;
+  // Tracks whether we've already buzzed for the current drag so the
+  // light haptic fires only once, the moment the dismiss threshold is crossed.
+  bool _dismissThresholdHapticFired = false;
 
   static const double _dismissDistanceThreshold = 140;
   static const double _dismissVelocityThreshold = 1000;
@@ -1855,6 +1876,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
       return;
     }
 
+    _dismissThresholdHapticFired = false;
     _dismissResetController.stop();
   }
 
@@ -1867,6 +1889,17 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
     final nextOffset = (_verticalDragOffset + delta).clamp(0.0, double.infinity);
     if ((nextOffset - _verticalDragOffset).abs() < 0.1) {
       return;
+    }
+
+    // Buzz once when the drag first reaches the release-to-dismiss threshold,
+    // so the user feels the "let go now" point. Reset below it for re-cross.
+    if (!_dismissThresholdHapticFired &&
+        nextOffset >= _dismissDistanceThreshold) {
+      _dismissThresholdHapticFired = true;
+      HapticFeedback.lightImpact();
+    } else if (_dismissThresholdHapticFired &&
+        nextOffset < _dismissDistanceThreshold) {
+      _dismissThresholdHapticFired = false;
     }
 
     setState(() {
@@ -1998,7 +2031,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                         backgroundColor: Colors.black.withValues(alpha: 0.28),
                         foregroundColor: AppColors.white,
                       ),
-                      icon: const Icon(Icons.flag_outlined),
+                      icon: const Icon(LucideIcons.flag),
                       tooltip: context.l10n.reportPhotoAction,
                     ),
                     const SizedBox(width: 8),
@@ -2013,7 +2046,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                         backgroundColor: Colors.black.withValues(alpha: 0.28),
                         foregroundColor: AppColors.white,
                       ),
-                      icon: const Icon(Icons.edit_note_rounded),
+                      icon: const Icon(LucideIcons.pencil),
                       tooltip: context.l10n.galleryEditCaptionTooltip,
                     ),
                   const SizedBox(width: 8),
@@ -2023,7 +2056,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                       backgroundColor: Colors.black.withValues(alpha: 0.28),
                       foregroundColor: AppColors.white,
                     ),
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const Icon(LucideIcons.x),
                   ),
                 ],
               ),
@@ -2144,6 +2177,60 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
         ),
       ),
     );
+  }
+}
+
+/// Plays the shared fade+slide entrance once, the first time it is mounted,
+/// then renders its child statically. Used for the first few feed cards so the
+/// gallery enters smoothly without re-animating on rebuild or scroll-recycle.
+class _OnceEntrance extends StatefulWidget {
+  const _OnceEntrance({required this.order, required this.child});
+
+  final int order;
+  final Widget child;
+
+  @override
+  State<_OnceEntrance> createState() => _OnceEntranceState();
+}
+
+class _OnceEntranceState extends State<_OnceEntrance> {
+  bool _played = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(
+      AppMotion.entrance + AppMotion.stagger * widget.order,
+      () {
+        if (mounted) {
+          setState(() => _played = true);
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_played) {
+      return widget.child;
+    }
+    return widget.child
+        .animate()
+        .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
+        .slideY(
+          begin: 0.08,
+          end: 0,
+          duration: AppMotion.entrance,
+          curve: AppMotion.curve,
+          delay: AppMotion.stagger * widget.order,
+        );
   }
 }
 

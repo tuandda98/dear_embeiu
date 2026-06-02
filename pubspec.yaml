@@ -84,6 +84,13 @@ dependencies:
   timezone: ^0.10.1
   flutter_timezone: ^4.1.1
 
+  # UI/UX revamp foundation (Đợt 1): fonts, motion, skeletons, celebration
+  google_fonts: ^6.2.1
+  flutter_animate: ^4.5.2
+  shimmer: ^3.0.0
+  lucide_icons: ^0.257.0
+  confetti: ^0.8.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

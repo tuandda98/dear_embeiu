@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import 'shimmer_skeleton.dart';
 
 class BlockingLoadingOverlay extends StatelessWidget {
   const BlockingLoadingOverlay({
@@ -48,16 +49,21 @@ class BlockingLoadingOverlay extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const SizedBox(
-                      width: 26,
-                      height: 26,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.6,
-                        color: AppColors.accentRose,
-                      ),
+                    // Shimmer bars replace the spinner for a modern feel
+                    // while keeping the blocking overlay mechanism intact.
+                    const ShimmerSkeleton(
+                      width: 180,
+                      height: 12,
+                      borderRadius: 999,
+                    ),
+                    const SizedBox(height: 10),
+                    const ShimmerSkeleton(
+                      width: 120,
+                      height: 12,
+                      borderRadius: 999,
                     ),
                     if (message?.trim().isNotEmpty == true) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       Text(
                         message!.trim(),
                         textAlign: TextAlign.center,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 
 import '../app/app_routes.dart';
@@ -8,6 +9,7 @@ import '../models/counter_data.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/counter_card.dart';
+import '../widgets/glass_card.dart';
 import '../widgets/language_toggle_button.dart';
 
 /// Guest "try without signing in" love-day counter (Apple 5.1.1 fix).
@@ -199,7 +201,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Icons.auto_awesome_rounded,
+                LucideIcons.sparkles,
                 size: 14,
                 color: AppColors.white.withValues(alpha: 0.92),
               ),
@@ -226,21 +228,10 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   }
 
   Widget _buildEmptyCard(AppLocalizations l10n) {
-    return Container(
+    return GlassCard(
       key: const ValueKey('guest-empty'),
+      borderRadius: AppTheme.cardRadius,
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.22),
-        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.22)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -284,7 +275,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
             width: double.infinity,
             child: FilledButton.icon(
               onPressed: _pickDate,
-              icon: const Icon(Icons.calendar_today_rounded, size: 18),
+              icon: const Icon(LucideIcons.calendar, size: 18),
               label: Text(l10n.guestPickDate),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
@@ -332,7 +323,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
         const SizedBox(height: 20),
         OutlinedButton.icon(
           onPressed: _pickDate,
-          icon: const Icon(Icons.event_repeat_rounded, size: 18),
+          icon: const Icon(LucideIcons.repeat, size: 18),
           label: Text(l10n.guestChangeDate),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.accentRose,
@@ -384,7 +375,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
-                  Icons.workspace_premium_rounded,
+                  LucideIcons.award,
                   color: AppColors.accentGold,
                 ),
               ),
@@ -457,13 +448,8 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   }
 
   Widget _buildCtaCard(AppLocalizations l10n) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-      ),
+    return GlassCard(
+      borderRadius: AppTheme.cardRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

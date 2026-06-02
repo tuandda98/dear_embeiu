@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import 'shimmer_skeleton.dart';
 
 class SharedCouplePhotoView extends StatelessWidget {
   const SharedCouplePhotoView({
@@ -37,7 +38,7 @@ class SharedCouplePhotoView extends StatelessWidget {
       return CachedNetworkImage(
         imageUrl: normalizedRemoteUrl,
         fit: fit,
-        placeholder: (context, url) => placeholder ?? _buildLoading(),
+        placeholder: (context, url) => _buildLoading(),
         errorWidget: (context, url, error) => _buildFallback(),
       );
     }
@@ -46,11 +47,8 @@ class SharedCouplePhotoView extends StatelessWidget {
   }
 
   Widget _buildLoading() {
-    return Container(
-      color: AppColors.surfaceLight,
-      alignment: Alignment.center,
-      child: const CircularProgressIndicator(strokeWidth: 2.2),
-    );
+    // Content-shaped shimmer; the parent clip (ClipOval) enforces the shape.
+    return const ShimmerSkeleton.fill();
   }
 
   Widget _buildFallback() {

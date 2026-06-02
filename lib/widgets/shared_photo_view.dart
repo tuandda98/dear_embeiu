@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../models/photo.dart';
 import '../theme/app_colors.dart';
+import 'shimmer_skeleton.dart';
 
 class SharedPhotoView extends StatelessWidget {
   const SharedPhotoView({
@@ -32,7 +34,7 @@ class SharedPhotoView extends StatelessWidget {
       return CachedNetworkImage(
         imageUrl: photo.remoteUrl!,
         fit: fit,
-        placeholder: (context, url) => placeholder ?? _buildLoading(),
+        placeholder: (context, url) => _buildLoading(),
         errorWidget: (context, url, error) => _buildFallback(),
       );
     }
@@ -41,11 +43,8 @@ class SharedPhotoView extends StatelessWidget {
   }
 
   Widget _buildLoading() {
-    return Container(
-      color: AppColors.surfaceLight,
-      alignment: Alignment.center,
-      child: const CircularProgressIndicator(strokeWidth: 2.2),
-    );
+    // Content-shaped shimmer; the parent clip enforces the final shape.
+    return const ShimmerSkeleton.fill();
   }
 
   Widget _buildFallback() {
@@ -54,7 +53,7 @@ class SharedPhotoView extends StatelessWidget {
           color: AppColors.surfaceLight,
           alignment: Alignment.center,
           child: Icon(
-            Icons.image_not_supported_outlined,
+            LucideIcons.imageOff,
             color: AppColors.textSecondary.withValues(alpha: 0.5),
           ),
         );

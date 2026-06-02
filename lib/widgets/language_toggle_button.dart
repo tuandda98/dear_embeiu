@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../l10n/l10n.dart';
 import '../providers/locale_provider.dart';
@@ -20,10 +21,6 @@ const List<AppLanguage> kAppLanguages = [
   AppLanguage(code: 'en', endonym: 'English'),
   AppLanguage(code: 'vi', endonym: 'Tiếng Việt'),
 ];
-
-/// Globe used for the "system default" entry — it represents "automatic",
-/// not a specific language, so it stays an emoji rather than a letter chip.
-const String _kSystemGlyph = '🌐';
 
 /// Show the search field once the list grows past this many languages.
 const int _kSearchThreshold = 6;
@@ -92,8 +89,6 @@ class LanguageToggleButton extends StatelessWidget {
     final bool isSystem = selected.code == null;
     final String resolvedCode =
         Localizations.localeOf(context).languageCode.toUpperCase();
-    final String leadingGlyph =
-        isSystem ? _kSystemGlyph : selected.code!.toUpperCase();
     final String pillCode = isSystem ? resolvedCode : selected.code!.toUpperCase();
 
     return GestureDetector(
@@ -114,7 +109,16 @@ class LanguageToggleButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(leadingGlyph, style: const TextStyle(fontSize: 14)),
+            if (isSystem)
+              Icon(LucideIcons.globe, size: 14, color: fgColor)
+            else
+              Text(selected.code!.toUpperCase(),
+                  style: TextStyle(
+                    color: fgColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  )),
             const SizedBox(width: 5),
             Text(
               pillCode,
@@ -126,7 +130,7 @@ class LanguageToggleButton extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 3),
-            Icon(Icons.expand_more_rounded,
+            Icon(LucideIcons.chevronDown,
                 size: 14, color: fgColor.withValues(alpha: 0.7)),
           ],
         ),
@@ -191,7 +195,7 @@ class _LanguageSheetState extends State<_LanguageSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Icon(Icons.language_rounded, size: 18, color: AppColors.accentRose),
+                Icon(LucideIcons.globe, size: 18, color: AppColors.accentRose),
                 const SizedBox(width: 8),
                 Text(
                   l10n.languageTitle,
@@ -212,7 +216,7 @@ class _LanguageSheetState extends State<_LanguageSheet> {
                 onChanged: (value) => setState(() => _query = value),
                 decoration: InputDecoration(
                   isDense: true,
-                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                  prefixIcon: const Icon(LucideIcons.search, size: 20),
                   hintText: l10n.languageSearchHint,
                 ),
               ),
@@ -316,7 +320,7 @@ class _LanguageTile extends StatelessWidget {
               ),
             ),
             if (isSelected)
-              Icon(Icons.check_circle_rounded,
+              Icon(LucideIcons.checkCircle,
                   color: AppColors.accentRose, size: 20),
           ],
         ),
@@ -345,7 +349,7 @@ class _LanguageChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       child: isSystem
-          ? const Text(_kSystemGlyph, style: TextStyle(fontSize: 20))
+          ? const Icon(LucideIcons.globe, size: 20, color: AppColors.accentLove)
           : Text(
               lang.code!.toUpperCase(),
               style: const TextStyle(

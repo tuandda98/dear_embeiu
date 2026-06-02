@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -9,6 +11,7 @@ import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/glass_card.dart';
 import '../widgets/language_toggle_button.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -49,13 +52,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
+    HapticFeedback.lightImpact();
 
     if (!_agreedToTerms) {
+      HapticFeedback.heavyImpact();
       setState(() => _showTermsError = true);
       return;
     }
 
     if (!_formKey.currentState!.validate()) {
+      HapticFeedback.heavyImpact();
       return;
     }
 
@@ -78,6 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    HapticFeedback.heavyImpact();
     final l10n = context.l10n;
     final message = authProvider.errorMessage ?? l10n.createAccountBtn;
     ScaffoldMessenger.of(context)
@@ -103,6 +110,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Clear the top-bar (back button + language toggle)
+                        // so a tall form never pushes the header under them.
+                        const SizedBox(height: 52),
                         _buildHeader(authProvider),
                         const SizedBox(height: 24),
                         _buildFormCard(authProvider),
@@ -117,7 +127,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: IconButton(
                   onPressed: () => Navigator.of(context).maybePop(),
                   icon: const Icon(
-                    Icons.arrow_back_rounded,
+                    LucideIcons.arrowLeft,
                     color: AppColors.white,
                   ),
                 ),
@@ -151,7 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Icons.person_add_alt_1_rounded,
+                LucideIcons.userPlus,
                 size: 14,
                 color: AppColors.white.withValues(alpha: 0.92),
               ),
@@ -181,8 +191,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             label: authProvider.authSourceLabel,
             message: authProvider.bootstrapMessage!,
             icon: authProvider.isUsingFirebase
-                ? Icons.cloud_done_rounded
-                : Icons.usb_off_rounded,
+                ? LucideIcons.cloud
+                : LucideIcons.cloudOff,
             color: authProvider.isUsingFirebase
                 ? AppColors.success
                 : AppColors.warning,
@@ -251,20 +261,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildFormCard(AuthProvider authProvider) {
     final l10n = context.l10n;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.22),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.22)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
+    return GlassCard(
+      borderRadius: 28,
       child: Form(
         key: _formKey,
         child: Column(
@@ -286,7 +284,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 textInputAction: TextInputAction.next,
                 decoration: _buildInputDecoration(
                   hint: l10n.displayNameHint,
-                  icon: Icons.badge_rounded,
+                  icon: LucideIcons.user,
                 ),
                 validator: (value) {
                   final text = value?.trim() ?? '';
@@ -309,7 +307,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 textInputAction: TextInputAction.next,
                 decoration: _buildInputDecoration(
                   hint: l10n.emailHint,
-                  icon: Icons.email_rounded,
+                  icon: LucideIcons.mail,
                 ),
                 validator: (value) {
                   final text = value?.trim() ?? '';
@@ -332,15 +330,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 textInputAction: TextInputAction.next,
                 decoration: _buildInputDecoration(
                   hint: l10n.passwordHint,
-                  icon: Icons.password_rounded,
+                  icon: LucideIcons.lock,
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() => _obscurePassword = !_obscurePassword);
                     },
                     icon: Icon(
                       _obscurePassword
-                          ? Icons.visibility_rounded
-                          : Icons.visibility_off_rounded,
+                          ? LucideIcons.eye
+                          : LucideIcons.eyeOff,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -367,7 +365,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onFieldSubmitted: (_) => _submit(),
                 decoration: _buildInputDecoration(
                   hint: l10n.confirmPasswordHint,
-                  icon: Icons.verified_user_rounded,
+                  icon: LucideIcons.shieldCheck,
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(
@@ -376,8 +374,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     icon: Icon(
                       _obscureConfirmPassword
-                          ? Icons.visibility_rounded
-                          : Icons.visibility_off_rounded,
+                          ? LucideIcons.eye
+                          : LucideIcons.eyeOff,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -400,13 +398,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Uri.parse(AppUrls.privacyPolicy),
                 mode: LaunchMode.externalApplication,
               ),
-              child: Container(
+              child: GlassCard(
+                borderRadius: 14,
+                blur: 14,
+                fillAlpha: 0.12,
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -422,7 +418,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(width: 6),
                     const Icon(
-                      Icons.open_in_new_rounded,
+                      LucideIcons.externalLink,
                       size: 14,
                       color: AppColors.textTertiary,
                     ),

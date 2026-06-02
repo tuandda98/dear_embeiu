@@ -1,6 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -14,11 +17,14 @@ import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/counter_card.dart';
+import '../widgets/glass_card.dart';
 import '../widgets/invite_action_buttons.dart';
 import '../widgets/shared_photo_view.dart';
+import '../widgets/shimmer_skeleton.dart';
 import 'profile_screen.dart';
 import 'gallery_screen.dart';
 
@@ -44,19 +50,43 @@ class _HomeScreenState extends State<HomeScreen> {
       color: AppColors.accentRose,
     ),
     _NavigationItem(
-      icon: Icons.photo_library_outlined,
-      selectedIcon: Icons.photo_library_rounded,
+      icon: LucideIcons.image,
+      selectedIcon: LucideIcons.image,
       color: AppColors.accentRose,
     ),
     _NavigationItem(
-      icon: Icons.person_outline_rounded,
-      selectedIcon: Icons.person_rounded,
+      icon: LucideIcons.user,
+      selectedIcon: LucideIcons.user,
       color: AppColors.accentRose,
     ),
   ];
 
   int _selectedIndex = 0;
   String? _lastReminderKey;
+
+  // Staggered entrance for the Home tab should play once per screen lifetime,
+  // not on every provider rebuild/scroll. We mark it played after the first
+  // build that has real couple data, then build plain (un-animated) children.
+  bool _homeEntrancePlayed = false;
+
+  /// Wraps a Home-tab block with the shared fade+slide entrance, staggered by
+  /// [order]. Returns the child unchanged once the entrance has already played
+  /// so rebuilds don't re-run it.
+  Widget _entrance(int order, Widget child) {
+    if (_homeEntrancePlayed) {
+      return child;
+    }
+    return child
+        .animate()
+        .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
+        .slideY(
+          begin: 0.08,
+          end: 0,
+          duration: AppMotion.entrance,
+          curve: AppMotion.curve,
+          delay: AppMotion.stagger * order,
+        );
+  }
 
   @override
   void initState() {
@@ -153,6 +183,37 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Content-shaped shimmer shown while the couple data is still loading,
+  /// mirroring the real Home layout (header, hero counter, quick actions).
+  Widget _buildHomeLoadingSkeleton(double topPadding) {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(20, topPadding + 20, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header line.
+          const ShimmerSkeleton(width: 160, height: 22, borderRadius: 8),
+          const SizedBox(height: 24),
+          // Hero counter card (matches CounterCard radius 28).
+          const ShimmerSkeleton(height: 220, borderRadius: 28),
+          const SizedBox(height: 24),
+          // Quick-action cards row.
+          Row(
+            children: const [
+              Expanded(child: ShimmerSkeleton(height: 96, borderRadius: 22)),
+              SizedBox(width: 14),
+              Expanded(child: ShimmerSkeleton(height: 96, borderRadius: 22)),
+            ],
+          ),
+          const SizedBox(height: 24),
+          // Quote / banner block.
+          const ShimmerSkeleton(height: 120, borderRadius: 24),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -168,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Consumer2<CoupleProvider, PhotoProvider>(
         builder: (context, coupleProvider, photoProvider, _) {
           if (coupleProvider.couple == null) {
-            return const Center(child: CircularProgressIndicator());
+            return _buildHomeLoadingSkeleton(mediaQuery.padding.top);
           }
 
           final couple = coupleProvider.couple!;
@@ -352,6 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
           highlightColor: Colors.transparent,
           onTap: () {
             if (_selectedIndex == index) return;
+            HapticFeedback.selectionClick();
             setState(() => _selectedIndex = index);
           },
           child: SizedBox.expand(
@@ -423,130 +485,161 @@ class _HomeScreenState extends State<HomeScreen> {
     final progressToMilestone = totalDays / nextMilestone;
     final recentPhotos = photos.take(5).toList();
 
+    // After the first frame with real data, lock the entrance so future
+    // rebuilds (provider updates, tab switches) don't replay it.
+    if (!_homeEntrancePlayed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _homeEntrancePlayed = true;
+        }
+      });
+    }
+
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color: AppColors.white.withValues(alpha: 0.18),
+          _entrance(
+            0,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: AppColors.white.withValues(alpha: 0.18),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              LucideIcons.sparkles,
+                              size: 14,
+                              color: AppColors.white.withValues(alpha: 0.92),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              l10n.loveHomeBadge,
+                              style: AppTheme.pageEyebrowStyle(),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.auto_awesome_rounded,
-                            size: 14,
-                            color: AppColors.white.withValues(alpha: 0.92),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            l10n.loveHomeBadge,
-                            style: AppTheme.pageEyebrowStyle(),
-                          ),
-                        ],
+                      const SizedBox(height: 14),
+                      Text(l10n.navHome, style: AppTheme.pageTitleStyle()),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.homeSubtitle,
+                        style: AppTheme.pageSubtitleStyle(),
+                      ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => _selectedIndex = 2),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: AppColors.white.withValues(alpha: 0.18),
                       ),
                     ),
-                    const SizedBox(height: 14),
-                    Text(l10n.navHome, style: AppTheme.pageTitleStyle()),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.homeSubtitle,
-                      style: AppTheme.pageSubtitleStyle(),
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () => setState(() => _selectedIndex = 2),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: AppColors.white.withValues(alpha: 0.18),
+                    child: const Icon(
+                      Icons.favorite_rounded,
+                      color: AppColors.white,
                     ),
                   ),
-                  child: const Icon(
-                    Icons.favorite_rounded,
-                    color: AppColors.white,
-                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 20),
-          _buildHeroSection(couple: couple, l10n: l10n),
+          _entrance(1, _buildHeroSection(couple: couple, l10n: l10n)),
           if (couple.isWaitingForPartner) ...[
             const SizedBox(height: 16),
-            _buildWaitingForPartnerBanner(couple),
+            _entrance(2, _buildWaitingForPartnerBanner(couple)),
           ],
           const SizedBox(height: 20),
-          CounterCard(
-            years: counterData.years,
-            months: counterData.months,
-            days: counterData.days,
-            subtitle: l10n.homeCounterStartFrom(
-              _formatDate(context, couple.anniversaryDate),
+          _entrance(
+            3,
+            CounterCard(
+              years: counterData.years,
+              months: counterData.months,
+              days: counterData.days,
+              subtitle: l10n.homeCounterStartFrom(
+                _formatDate(context, couple.anniversaryDate),
+              ),
+              footer: daysUntilAnniversary == 0
+                  ? l10n.todayIsAnniversary
+                  : l10n.daysUntilNextAnniversary(daysUntilAnniversary),
             ),
-            footer: daysUntilAnniversary == 0
-                ? l10n.todayIsAnniversary
-                : l10n.daysUntilNextAnniversary(daysUntilAnniversary),
           ),
           const SizedBox(height: 20),
-          _buildSectionTitle(
-            title: l10n.quickMomentsTitle,
-            subtitle: l10n.addPhotosPrompt,
-            actionLabel: l10n.viewAllPhotos,
-            onActionTap: () => setState(() => _selectedIndex = 1),
+          _entrance(
+            4,
+            _buildSectionTitle(
+              title: l10n.quickMomentsTitle,
+              subtitle: l10n.addPhotosPrompt,
+              actionLabel: l10n.viewAllPhotos,
+              onActionTap: () => setState(() => _selectedIndex = 1),
+            ),
           ),
           const SizedBox(height: 12),
-          _buildAddMemoryCta(l10n, isUploadingPhoto),
+          _entrance(4, _buildAddMemoryCta(l10n, isUploadingPhoto)),
           const SizedBox(height: 20),
-          _buildSectionTitle(
-            title: l10n.milestoneProgressTitle,
-            subtitle: l10n.milestoneProgressSubtitle,
+          _entrance(
+            5,
+            _buildSectionTitle(
+              title: l10n.milestoneProgressTitle,
+              subtitle: l10n.milestoneProgressSubtitle,
+            ),
           ),
           const SizedBox(height: 12),
-          _buildMilestoneSection(
-            totalDays: totalDays,
-            nextMilestone: nextMilestone,
-            progress: progressToMilestone.clamp(0, 1),
-            l10n: l10n,
+          _entrance(
+            5,
+            _buildMilestoneSection(
+              totalDays: totalDays,
+              nextMilestone: nextMilestone,
+              progress: progressToMilestone.clamp(0, 1),
+              l10n: l10n,
+            ),
           ),
           const SizedBox(height: 20),
-          _buildQuoteCard(totalDays, couple, l10n),
+          _entrance(6, _buildQuoteCard(totalDays, couple, l10n)),
           const SizedBox(height: 20),
-          _buildSectionTitle(
-            title: l10n.recentMemoriesTitle,
-            subtitle: photos.isEmpty
-                ? l10n.addPhotosPrompt
-                : l10n.latestMomentsSubtitle,
-            actionLabel: photos.isEmpty ? null : l10n.seeAll,
-            onActionTap: photos.isEmpty
-                ? null
-                : () => setState(() => _selectedIndex = 1),
+          _entrance(
+            7,
+            _buildSectionTitle(
+              title: l10n.recentMemoriesTitle,
+              subtitle: photos.isEmpty
+                  ? l10n.addPhotosPrompt
+                  : l10n.latestMomentsSubtitle,
+              actionLabel: photos.isEmpty ? null : l10n.seeAll,
+              onActionTap: photos.isEmpty
+                  ? null
+                  : () => setState(() => _selectedIndex = 1),
+            ),
           ),
           const SizedBox(height: 12),
-          _buildRecentPhotosSection(recentPhotos, isUploadingPhoto, l10n),
+          _entrance(
+            7,
+            _buildRecentPhotosSection(recentPhotos, isUploadingPhoto, l10n),
+          ),
         ],
       ),
     );
@@ -556,22 +649,10 @@ class _HomeScreenState extends State<HomeScreen> {
     required Couple couple,
     required AppLocalizations l10n,
   }) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
+      child: GlassCard(
+        borderRadius: 28,
         child: Row(
           children: [
             Container(
@@ -580,7 +661,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppColors.white.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: const Icon(Icons.wb_sunny_rounded, color: AppColors.white),
+              child: const Icon(LucideIcons.sun, color: AppColors.white),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -636,7 +717,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.white.withValues(alpha: 0.20),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.link_rounded, color: AppColors.white, size: 20),
+            child: const Icon(LucideIcons.link, color: AppColors.white, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -763,7 +844,7 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
-              Icons.add_a_photo_rounded,
+              LucideIcons.camera,
               color: AppColors.white,
               size: 22,
             ),
@@ -795,7 +876,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Icon(
-            Icons.chevron_right_rounded,
+            LucideIcons.chevronRight,
             color: AppColors.white.withValues(alpha: 0.7),
             size: 22,
           ),
@@ -892,6 +973,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
+    HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.photoAddedSuccess)),
     );
@@ -931,7 +1013,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
-                  Icons.workspace_premium_rounded,
+                  LucideIcons.award,
                   color: AppColors.accentGold,
                 ),
               ),
@@ -1021,7 +1103,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.format_quote_rounded, color: AppColors.white),
+              const Icon(LucideIcons.quote, color: AppColors.white),
               const SizedBox(width: 8),
               Text(
                 l10n.loveNoteLabel,
@@ -1100,7 +1182,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             Icon(
-              Icons.photo_library_outlined,
+              LucideIcons.image,
               color: AppColors.textSecondary.withValues(alpha: 0.5),
               size: 42,
             ),
@@ -1128,7 +1210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(18),
                 ),
               ),
-              icon: const Icon(Icons.add_photo_alternate_rounded),
+              icon: const Icon(LucideIcons.imagePlus),
               label: Text(l10n.postFirstPhotoBtn),
             ),
           ],

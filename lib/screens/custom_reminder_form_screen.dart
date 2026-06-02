@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
@@ -103,6 +105,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
       lastDate: DateTime(now.year + 10),
     );
     if (picked != null) {
+      HapticFeedback.selectionClick();
       setState(() => _date = picked);
     }
   }
@@ -233,7 +236,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
           elevation: 0,
           leading: IconButton(
             icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
+              LucideIcons.chevronLeft,
               color: AppColors.accentRose,
             ),
             onPressed: () => Navigator.of(context).maybePop(),
@@ -344,7 +347,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
             children: [
               Expanded(
                 child: _pickerTile(
-                  icon: Icons.calendar_today_rounded,
+                  icon: LucideIcons.calendar,
                   label: l10n.customRemindersDateLabel,
                   value: dateLabel,
                   onTap: _pickDate,
@@ -353,7 +356,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _pickerTile(
-                  icon: Icons.schedule_rounded,
+                  icon: LucideIcons.clock,
                   label: l10n.customRemindersTimeLabel,
                   value: timeLabel,
                   onTap: _pickTime,
@@ -366,7 +369,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
             Row(
               children: [
                 const Icon(
-                  Icons.warning_amber_rounded,
+                  LucideIcons.alertTriangle,
                   color: AppColors.warning,
                   size: 16,
                 ),
@@ -438,7 +441,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
         TextButton.icon(
           onPressed: _confirmDelete,
           icon: const Icon(
-            Icons.delete_outline_rounded,
+            LucideIcons.trash2,
             color: AppColors.error,
           ),
           label: Text(

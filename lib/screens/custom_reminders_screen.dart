@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -7,6 +11,8 @@ import '../models/custom_reminder.dart';
 import '../providers/custom_reminders_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
+import '../widgets/shimmer_skeleton.dart';
 import 'custom_reminder_form_screen.dart';
 
 /// Manage screen for user-created custom reminders (D1–D9): list / empty /
@@ -37,7 +43,7 @@ class CustomRemindersScreen extends StatelessWidget {
               elevation: 0,
               leading: IconButton(
                 icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
+                  LucideIcons.chevronLeft,
                   color: AppColors.accentRose,
                 ),
                 onPressed: () => Navigator.of(context).maybePop(),
@@ -77,7 +83,7 @@ class CustomRemindersScreen extends StatelessWidget {
                         : AppColors.accentLove,
                     onPressed: () => _onAddPressed(context, customProvider),
                     child: const Icon(
-                      Icons.add_rounded,
+                      LucideIcons.plus,
                       color: AppColors.white,
                       size: 26,
                     ),
@@ -105,11 +111,13 @@ class CustomRemindersScreen extends StatelessWidget {
     required List<CustomReminder> reminders,
   }) {
     if (!customProvider.isLoaded) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.accentRose,
-          strokeWidth: 2.5,
-        ),
+      // Content-shaped shimmer mirroring the reminder list rows.
+      return ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+        itemCount: 5,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) =>
+            const ShimmerSkeleton(height: 76, borderRadius: 22),
       );
     }
 
@@ -172,7 +180,7 @@ class _EmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.mark_email_unread_rounded,
+                LucideIcons.bellRing,
                 color: AppColors.white,
                 size: 40,
               ),
@@ -210,7 +218,7 @@ class _EmptyState extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                 ),
-                icon: const Icon(Icons.add_rounded),
+                icon: const Icon(LucideIcons.plus),
                 label: Text(
                   l10n.customRemindersEmptyCta,
                   style: const TextStyle(fontWeight: FontWeight.w700),
@@ -258,7 +266,7 @@ class _DisabledState extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: const Icon(
-                  Icons.notifications_off_rounded,
+                  LucideIcons.bellOff,
                   color: AppColors.warning,
                   size: 24,
                 ),
@@ -351,14 +359,17 @@ class _ReminderList extends StatelessWidget {
               color: AppColors.error.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(22),
             ),
-            child: const Icon(Icons.delete_rounded, color: AppColors.white),
+            child: const Icon(LucideIcons.trash2, color: AppColors.white),
           ),
           confirmDismiss: (_) => _confirmDelete(context, reminder),
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutCubic,
-            opacity: reminder.enabled ? 1 : 0.55,
-            child: _ReminderCard(reminder: reminder, interactive: true),
+          child: _OnceEntrance(
+            order: index,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              opacity: reminder.enabled ? 1 : 0.55,
+              child: _ReminderCard(reminder: reminder, interactive: true),
+            ),
           ),
         );
       },
@@ -445,18 +456,23 @@ class _ReminderCard extends StatelessWidget {
     final timeLabel =
         TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context);
 
-    return GestureDetector(
-      onTap: interactive ? () => _openEdit(context) : null,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: AppColors.accentRose.withValues(alpha: 0.10),
+    return Material(
+      color: AppColors.white.withValues(alpha: 0.72),
+      borderRadius: BorderRadius.circular(22),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: interactive ? () => _openEdit(context) : null,
+        splashColor: AppColors.accentRose.withValues(alpha: 0.12),
+        highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: AppColors.accentRose.withValues(alpha: 0.10),
+            ),
           ),
-        ),
-        child: Row(
+          child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
@@ -515,7 +531,7 @@ class _ReminderCard extends StatelessWidget {
                   IconButton(
                     visualDensity: VisualDensity.compact,
                     icon: const Icon(
-                      Icons.more_vert_rounded,
+                      LucideIcons.moreVertical,
                       color: AppColors.textSecondary,
                     ),
                     onPressed: () => _openMenu(context),
@@ -523,6 +539,7 @@ class _ReminderCard extends StatelessWidget {
               ],
             ),
           ],
+          ),
         ),
       ),
     );
@@ -594,15 +611,15 @@ class _ReminderCard extends StatelessWidget {
   IconData _iconFor(ReminderRecurrence recurrence) {
     switch (recurrence) {
       case ReminderRecurrence.once:
-        return Icons.push_pin_rounded;
+        return LucideIcons.pin;
       case ReminderRecurrence.daily:
-        return Icons.wb_sunny_rounded;
+        return LucideIcons.sun;
       case ReminderRecurrence.weekly:
-        return Icons.event_repeat_rounded;
+        return LucideIcons.repeat;
       case ReminderRecurrence.monthly:
-        return Icons.calendar_month_rounded;
+        return LucideIcons.calendar;
       case ReminderRecurrence.yearly:
-        return Icons.cake_rounded;
+        return LucideIcons.cake;
     }
   }
 
@@ -629,7 +646,7 @@ class _ReminderCard extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(
-                  Icons.edit_rounded,
+                  LucideIcons.pencil,
                   color: AppColors.accentRose,
                 ),
                 title: Text(l10n.customRemindersItemMenuEdit),
@@ -640,7 +657,7 @@ class _ReminderCard extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(
-                  Icons.delete_outline_rounded,
+                  LucideIcons.trash2,
                   color: AppColors.error,
                 ),
                 title: Text(l10n.customRemindersItemMenuDelete),
@@ -711,5 +728,59 @@ class _ReminderCard extends StatelessWidget {
     messenger
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(deletedMsg)));
+  }
+}
+
+/// Plays the shared fade+slide entrance once, the first time it is mounted,
+/// then renders its child statically (the list rebuilds on toggle/delete, so
+/// this guard stops the entrance replaying).
+class _OnceEntrance extends StatefulWidget {
+  const _OnceEntrance({required this.order, required this.child});
+
+  final int order;
+  final Widget child;
+
+  @override
+  State<_OnceEntrance> createState() => _OnceEntranceState();
+}
+
+class _OnceEntranceState extends State<_OnceEntrance> {
+  bool _played = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(
+      AppMotion.entrance + AppMotion.stagger * widget.order,
+      () {
+        if (mounted) {
+          setState(() => _played = true);
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_played) {
+      return widget.child;
+    }
+    return widget.child
+        .animate()
+        .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
+        .slideY(
+          begin: 0.08,
+          end: 0,
+          duration: AppMotion.entrance,
+          curve: AppMotion.curve,
+          delay: AppMotion.stagger * widget.order,
+        );
   }
 }

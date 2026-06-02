@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -15,6 +16,7 @@ import '../widgets/animated_couple_name.dart';
 import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/invite_action_buttons.dart';
 import '../widgets/shared_couple_photo_view.dart';
+import '../widgets/shimmer_skeleton.dart';
 import 'settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -39,7 +41,7 @@ class ProfileScreen extends StatelessWidget {
             return BlockingLoadingOverlay(
               isVisible: isBusy,
               message: busyMessage,
-              child: const Center(child: CircularProgressIndicator()),
+              child: _buildProfileLoadingSkeleton(context),
             );
           }
 
@@ -101,6 +103,47 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  /// Content-shaped shimmer shown while the couple profile is loading,
+  /// mirroring the real layout (header, hero card, 2x2 stats, info tiles).
+  Widget _buildProfileLoadingSkeleton(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(20, topPadding + 20, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const ShimmerSkeleton(width: 140, height: 22, borderRadius: 8),
+          const SizedBox(height: 24),
+          // Couple hero card (radius 32).
+          const ShimmerSkeleton(height: 240, borderRadius: 32),
+          const SizedBox(height: 24),
+          // 2x2 stats grid.
+          Row(
+            children: const [
+              Expanded(child: ShimmerSkeleton(height: 92, borderRadius: 22)),
+              SizedBox(width: 14),
+              Expanded(child: ShimmerSkeleton(height: 92, borderRadius: 22)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: const [
+              Expanded(child: ShimmerSkeleton(height: 92, borderRadius: 22)),
+              SizedBox(width: 14),
+              Expanded(child: ShimmerSkeleton(height: 92, borderRadius: 22)),
+            ],
+          ),
+          const SizedBox(height: 24),
+          // Info tiles.
+          const ShimmerSkeleton(height: 64, borderRadius: 22),
+          const SizedBox(height: 12),
+          const ShimmerSkeleton(height: 64, borderRadius: 22),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPageHeader(BuildContext context) {
     final l10n = context.l10n;
 
@@ -118,7 +161,7 @@ class ProfileScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Icons.auto_awesome_rounded,
+                LucideIcons.sparkles,
                 size: 14,
                 color: AppColors.white.withValues(alpha: 0.92),
               ),
@@ -299,7 +342,7 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildGlassPill(
-                    icon: Icons.auto_awesome_rounded,
+                    icon: LucideIcons.sparkles,
                                 isProminent: true,
                     label: daysUntilAnniversary == 0
                         ? l10n.todayIsAnniversaryProfile
@@ -400,7 +443,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildModernStatCard(
-                  icon: Icons.calendar_month_rounded,
+                  icon: LucideIcons.calendar,
                   value: '$months',
                   label: l10n.monthsRemaining,
                   color: AppColors.accentCoral,
@@ -413,7 +456,7 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildModernStatCard(
-                  icon: Icons.today_rounded,
+                  icon: LucideIcons.calendarDays,
                   value: '$totalDays',
                   label: l10n.totalDaysLabel,
                   color: AppColors.info,
@@ -422,7 +465,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildModernStatCard(
-                  icon: Icons.photo_library_rounded,
+                  icon: LucideIcons.image,
                   value: '$photoCount',
                   label: l10n.memoriesSavedLabel,
                   color: AppColors.accentGold,
@@ -449,14 +492,14 @@ class ProfileScreen extends StatelessWidget {
       child: Column(
         children: [
           _buildDetailTile(
-            icon: Icons.calendar_today_rounded,
+            icon: LucideIcons.calendar,
             title: l10n.loveStartDateLabel,
             value: _formatDate(context, couple.anniversaryDate),
             tint: AppColors.accentRose,
           ),
           const SizedBox(height: 12),
           _buildDetailTile(
-            icon: Icons.celebration_rounded,
+            icon: LucideIcons.partyPopper,
             title: l10n.upcomingMilestoneLabel,
             value: daysUntilAnniversary == 0
                 ? l10n.todaySpecialMsg
@@ -466,7 +509,7 @@ class ProfileScreen extends StatelessWidget {
           if (inviteCode != null && inviteCode.trim().isNotEmpty && couple.isWaitingForPartner) ...[
             const SizedBox(height: 12),
             _buildDetailTile(
-              icon: Icons.password_rounded,
+              icon: LucideIcons.keyRound,
               title: l10n.yourInviteCodeLabel,
               value: inviteCode,
               tint: AppColors.warning,
@@ -486,21 +529,19 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildSettingsTile(BuildContext context) {
     final l10n = context.l10n;
 
-    return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
-      ),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: AppColors.accentRose.withValues(alpha: 0.10),
+    return Stack(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: AppColors.accentRose.withValues(alpha: 0.10),
+            ),
           ),
-        ),
-        child: Row(
+          child: Row(
           children: [
             Container(
               width: 44,
@@ -510,7 +551,7 @@ class ProfileScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Icon(
-                Icons.settings_rounded,
+                LucideIcons.settings,
                 color: AppColors.accentRose,
                 size: 20,
               ),
@@ -541,12 +582,28 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             Icon(
-              Icons.chevron_right_rounded,
+              LucideIcons.chevronRight,
               color: AppColors.textSecondary.withValues(alpha: 0.5),
             ),
           ],
+          ),
         ),
-      ),
+        // Ripple overlay on top of the filled tile, clipped to its radius.
+        Positioned.fill(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+              ),
+              borderRadius: BorderRadius.circular(22),
+              splashColor: AppColors.accentRose.withValues(alpha: 0.12),
+              highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

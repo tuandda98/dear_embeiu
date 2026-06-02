@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../l10n/l10n.dart';
 import '../models/photo.dart';
 import '../theme/app_colors.dart';
@@ -25,7 +26,7 @@ class MasonryGallery extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.image_not_supported,
+              LucideIcons.imageOff,
               size: 64,
               color: AppColors.textSecondary.withValues(alpha: 0.3),
             ),

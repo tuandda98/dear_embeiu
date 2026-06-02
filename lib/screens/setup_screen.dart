@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
@@ -14,6 +16,7 @@ import '../services/couple_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/blocking_loading_overlay.dart';
+import '../widgets/glass_card.dart';
 import '../widgets/invite_action_buttons.dart';
 import '../widgets/shared_couple_photo_view.dart';
 
@@ -88,6 +91,7 @@ class _SetupScreenState extends State<SetupScreen> {
       return;
     }
 
+    HapticFeedback.selectionClick();
     setState(() => _selectedDate = picked);
   }
 
@@ -105,6 +109,7 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Future<void> _submitCreateOrUpdate() async {
+    HapticFeedback.lightImpact();
     final authProvider = context.read<AuthProvider>();
     final coupleProvider = context.read<CoupleProvider>();
     final photoProvider = context.read<PhotoProvider>();
@@ -114,6 +119,7 @@ class _SetupScreenState extends State<SetupScreen> {
     final l10n = context.l10n;
 
     if (currentUser == null) {
+      HapticFeedback.heavyImpact();
       _showSnack(l10n.setupErrorNoAccount);
       return;
     }
@@ -121,6 +127,7 @@ class _SetupScreenState extends State<SetupScreen> {
     final person1 = _person1Controller.text.trim();
     final person2 = _person2Controller.text.trim();
     if (person1.isEmpty || person2.isEmpty || _selectedDate == null) {
+      HapticFeedback.heavyImpact();
       _showSnack(l10n.setupErrorFillRequired);
       return;
     }
@@ -201,6 +208,7 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Future<void> _submitJoin() async {
+    HapticFeedback.lightImpact();
     final authProvider = context.read<AuthProvider>();
     final coupleProvider = context.read<CoupleProvider>();
     final photoProvider = context.read<PhotoProvider>();
@@ -208,12 +216,14 @@ class _SetupScreenState extends State<SetupScreen> {
     final l10n = context.l10n;
 
     if (currentUser == null) {
+      HapticFeedback.heavyImpact();
       _showSnack(l10n.setupErrorNoAccountShort);
       return;
     }
 
     final inviteCode = _inviteCodeController.text.trim();
     if (inviteCode.isEmpty) {
+      HapticFeedback.heavyImpact();
       _showSnack(l10n.setupErrorNoInviteCode);
       return;
     }
@@ -399,7 +409,7 @@ class _SetupScreenState extends State<SetupScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                isEditing ? Icons.edit_rounded : Icons.favorite_rounded,
+                isEditing ? LucideIcons.pencil : Icons.favorite_rounded,
                 size: 14,
                 color: AppColors.white.withValues(alpha: 0.92),
               ),
@@ -487,13 +497,13 @@ class _SetupScreenState extends State<SetupScreen> {
                 children: [
                   _buildModeTabLabel(
                     label: l10n.setupTabCreate,
-                    icon: Icons.add_circle_outline_rounded,
+                    icon: LucideIcons.plusCircle,
                     selected: isCreate,
                     onTap: () => setState(() => _mode = _SetupMode.create),
                   ),
                   _buildModeTabLabel(
                     label: l10n.setupTabJoin,
-                    icon: Icons.link_rounded,
+                    icon: LucideIcons.link,
                     selected: !isCreate,
                     onTap: () => setState(() => _mode = _SetupMode.join),
                   ),
@@ -571,10 +581,10 @@ class _SetupScreenState extends State<SetupScreen> {
             : l10n.inviteCodeTiedToAccount;
 
     final statusIcon = isWaitingForPartner
-        ? Icons.hourglass_top_rounded
+        ? LucideIcons.hourglass
         : hasCreatedCoupleSpace
             ? Icons.favorite_rounded
-            : Icons.vpn_key_rounded;
+            : LucideIcons.keyRound;
 
     final statusColor = isWaitingForPartner
         ? AppColors.warning
@@ -587,20 +597,17 @@ class _SetupScreenState extends State<SetupScreen> {
     // ẩn cụm nút vì không ai join bằng mã này nữa.
     final showInviteActions = !hasCreatedCoupleSpace || isWaitingForPartner;
 
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.22)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(statusIcon, size: 14, color: statusColor),
+      child: GlassCard(
+        borderRadius: 24,
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(statusIcon, size: 14, color: statusColor),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -638,6 +645,7 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -653,25 +661,15 @@ class _SetupScreenState extends State<SetupScreen> {
         File(_couplePhotoPath!).existsSync();
     final hasSyncedPhoto = existingCouple?.couplePhotoUrl?.trim().isNotEmpty == true;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.20),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.sectionAboutCouple,
+    return SizedBox(
+      width: double.infinity,
+      child: GlassCard(
+        borderRadius: 28,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.sectionAboutCouple,
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -685,7 +683,7 @@ class _SetupScreenState extends State<SetupScreen> {
               controller: _person1Controller,
               decoration: _inputDecoration(
                 hint: l10n.yourNameHint,
-                icon: Icons.person_rounded,
+                icon: LucideIcons.user,
               ),
             ),
           ),
@@ -717,7 +715,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_month_rounded, color: AppColors.accentCoral),
+                    const Icon(LucideIcons.calendar, color: AppColors.accentCoral),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -732,7 +730,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         ),
                       ),
                     ),
-                    const Icon(Icons.chevron_right_rounded),
+                    const Icon(LucideIcons.chevronRight),
                   ],
                 ),
               ),
@@ -758,7 +756,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.image_rounded, color: AppColors.info),
+                        const Icon(LucideIcons.image, color: AppColors.info),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -807,7 +805,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         color: AppColors.white,
                       ),
                     )
-                  : Icon(isEditing ? Icons.save_rounded : Icons.favorite_rounded),
+                  : Icon(isEditing ? LucideIcons.save : Icons.favorite_rounded),
               label: Text(
                 isEditing ? l10n.saveChangesBtn : l10n.createOurSpaceBtn,
                 style: const TextStyle(fontWeight: FontWeight.w700),
@@ -815,6 +813,7 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -825,18 +824,15 @@ class _SetupScreenState extends State<SetupScreen> {
   }) {
     final l10n = context.l10n;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.20),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.useInviteCodeTitle,
+    return SizedBox(
+      width: double.infinity,
+      child: GlassCard(
+        borderRadius: 28,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.useInviteCodeTitle,
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -851,7 +847,7 @@ class _SetupScreenState extends State<SetupScreen> {
               textCapitalization: TextCapitalization.characters,
               decoration: _inputDecoration(
                 hint: l10n.theirInviteCodeHint,
-                icon: Icons.password_rounded,
+                icon: LucideIcons.lock,
               ),
             ),
           ),
@@ -877,7 +873,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         color: AppColors.white,
                       ),
                     )
-                  : const Icon(Icons.link_rounded),
+                  : const Icon(LucideIcons.link),
               label: Text(
                 l10n.joinBtn,
                 style: const TextStyle(fontWeight: FontWeight.w700),
@@ -885,6 +881,7 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

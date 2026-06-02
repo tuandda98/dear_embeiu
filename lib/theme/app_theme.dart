@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
-  // Font families — using system fallbacks; swap to google_fonts/DM Serif
-  // Display + Inter after `flutter pub get` is healthy.
-  static const String _displayFontFamily = 'serif';
-  static const List<String> _displayFallback = <String>['serif', 'Times'];
-  static const String? _bodyFontFamily = null; // platform default sans
-  static const List<String> _bodyFallback = <String>[
-    'Inter',
-    'SF Pro Text',
-    'Manrope',
-    'Roboto',
-  ];
+  // Typography — google_fonts. Both families ship full Vietnamese (Latin
+  // Extended) coverage, so diacritics render correctly.
+  //   Display / hero  → Fraunces  (romantic serif)
+  //   Body / UI       → Plus Jakarta Sans
+  // Kept as helper getters so every existing style helper just swaps family
+  // while preserving its size / weight / spacing / shadow exactly.
+  static TextStyle get _displayBase => GoogleFonts.fraunces();
+  static TextStyle get _bodyBase => GoogleFonts.plusJakartaSans();
 
   static const double cardRadius = 28;
   static const double pillRadius = 999;
@@ -20,8 +18,7 @@ class AppTheme {
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    fontFamily: _bodyFontFamily,
-    fontFamilyFallback: _bodyFallback,
+    textTheme: _buildTextTheme(),
     colorScheme: const ColorScheme.light(
       primary: AppColors.accentLove,
       onPrimary: AppColors.white,
@@ -51,7 +48,6 @@ class AppTheme {
       elevation: 0,
       shape: CircleBorder(),
     ),
-    textTheme: _buildTextTheme(),
     cardTheme: CardThemeData(
       color: AppColors.cardSurface,
       elevation: 0,
@@ -143,9 +139,7 @@ class AppTheme {
     double height = 1.02,
     double letterSpacing = -1.2,
   }) {
-    return TextStyle(
-      fontFamily: _displayFontFamily,
-      fontFamilyFallback: _displayFallback,
+    return _displayBase.copyWith(
       fontSize: size,
       fontWeight: weight,
       fontStyle: style,
@@ -156,7 +150,8 @@ class AppTheme {
   }
 
   static TextTheme _buildTextTheme() {
-    return TextTheme(
+    final base = GoogleFonts.plusJakartaSansTextTheme();
+    return base.copyWith(
       // Serif display — the day count is the hero
       displayLarge: displaySerif(size: 72, height: 1, letterSpacing: -1.5),
       displayMedium: displaySerif(size: 56, height: 1.02, letterSpacing: -1.2),
@@ -182,55 +177,55 @@ class AppTheme {
       ),
 
       // Sans titles for UI
-      titleLarge: const TextStyle(
+      titleLarge: _bodyBase.copyWith(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
         letterSpacing: 0.1,
       ),
-      titleMedium: const TextStyle(
+      titleMedium: _bodyBase.copyWith(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
-      titleSmall: const TextStyle(
+      titleSmall: _bodyBase.copyWith(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
 
       // Sans body
-      bodyLarge: const TextStyle(
+      bodyLarge: _bodyBase.copyWith(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: AppColors.textPrimary,
         height: 1.5,
       ),
-      bodyMedium: const TextStyle(
+      bodyMedium: _bodyBase.copyWith(
         fontSize: 15,
         fontWeight: FontWeight.w400,
         color: AppColors.textSecondary,
         height: 1.5,
       ),
-      bodySmall: const TextStyle(
+      bodySmall: _bodyBase.copyWith(
         fontSize: 13,
         fontWeight: FontWeight.w400,
         color: AppColors.textTertiary,
         height: 1.45,
       ),
 
-      labelLarge: const TextStyle(
+      labelLarge: _bodyBase.copyWith(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: AppColors.white,
       ),
-      labelMedium: const TextStyle(
+      labelMedium: _bodyBase.copyWith(
         fontSize: 12,
         fontWeight: FontWeight.w600,
         color: AppColors.textSecondary,
         letterSpacing: 0.4,
       ),
-      labelSmall: const TextStyle(
+      labelSmall: _bodyBase.copyWith(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         color: AppColors.textTertiary,
@@ -245,7 +240,7 @@ class AppTheme {
     Color color = AppColors.white,
     double alpha = 0.92,
   }) {
-    return TextStyle(
+    return _bodyBase.copyWith(
       color: color.withValues(alpha: alpha),
       fontSize: 10,
       fontWeight: FontWeight.w700,
@@ -255,9 +250,7 @@ class AppTheme {
   }
 
   static TextStyle pageTitleStyle({Color color = AppColors.white}) {
-    return TextStyle(
-      fontFamily: _displayFontFamily,
-      fontFamilyFallback: _displayFallback,
+    return _displayBase.copyWith(
       color: color,
       fontSize: 32,
       fontWeight: FontWeight.w500,
@@ -270,7 +263,7 @@ class AppTheme {
     Color color = AppColors.white,
     double alpha = 0.82,
   }) {
-    return TextStyle(
+    return _bodyBase.copyWith(
       color: color.withValues(alpha: alpha),
       fontSize: 14,
       fontWeight: FontWeight.w400,
@@ -280,9 +273,7 @@ class AppTheme {
   }
 
   static TextStyle sectionTitleStyle({Color color = AppColors.textPrimary}) {
-    return TextStyle(
-      fontFamily: _displayFontFamily,
-      fontFamilyFallback: _displayFallback,
+    return _displayBase.copyWith(
       color: color,
       fontSize: 22,
       fontWeight: FontWeight.w500,
@@ -295,7 +286,7 @@ class AppTheme {
     Color color = AppColors.textSecondary,
     double alpha = 1.0,
   }) {
-    return TextStyle(
+    return _bodyBase.copyWith(
       color: color.withValues(alpha: alpha),
       fontSize: 13,
       fontWeight: FontWeight.w400,
@@ -306,9 +297,7 @@ class AppTheme {
 
   // Hero day-count numerals — large serif, used on gradient cards.
   static TextStyle dayCountStyle({Color color = AppColors.white}) {
-    return TextStyle(
-      fontFamily: _displayFontFamily,
-      fontFamilyFallback: _displayFallback,
+    return _displayBase.copyWith(
       color: color,
       fontSize: 76,
       fontWeight: FontWeight.w500,

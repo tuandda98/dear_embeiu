@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:io';
 import '../theme/app_colors.dart';
 
@@ -42,7 +43,7 @@ class PhotoItem extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: AppColors.surfaceLight,
-                    child: Icon(Icons.image_not_supported),
+                    child: Icon(LucideIcons.imageOff),
                   );
                 },
               ),
@@ -107,7 +108,7 @@ class PhotoItem extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.all(6),
                       child: const Icon(
-                        Icons.close,
+                        LucideIcons.x,
                         color: AppColors.white,
                         size: 16,
                       ),

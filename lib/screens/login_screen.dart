@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/glass_card.dart';
 import '../widgets/language_toggle_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -37,8 +40,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
+    HapticFeedback.lightImpact();
 
     if (!_formKey.currentState!.validate()) {
+      HapticFeedback.heavyImpact();
       return;
     }
 
@@ -60,6 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    HapticFeedback.heavyImpact();
     final l10n = context.l10n;
     final message = authProvider.errorMessage ?? l10n.signIn;
     ScaffoldMessenger.of(context)
@@ -85,6 +91,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Clear the top-bar (back button + language toggle)
+                        // so a tall form never pushes the header under them.
+                        const SizedBox(height: 52),
                         _buildHeader(authProvider),
                         const SizedBox(height: 24),
                         _buildFormCard(authProvider),
@@ -99,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: IconButton(
                   onPressed: () => Navigator.of(context).maybePop(),
                   icon: const Icon(
-                    Icons.arrow_back_rounded,
+                    LucideIcons.arrowLeft,
                     color: AppColors.white,
                   ),
                 ),
@@ -133,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Icons.lock_rounded,
+                LucideIcons.lock,
                 size: 14,
                 color: AppColors.white.withValues(alpha: 0.92),
               ),
@@ -163,8 +172,8 @@ class _LoginScreenState extends State<LoginScreen> {
             label: authProvider.authSourceLabel,
             message: authProvider.bootstrapMessage!,
             icon: authProvider.isUsingFirebase
-                ? Icons.cloud_done_rounded
-                : Icons.usb_off_rounded,
+                ? LucideIcons.cloud
+                : LucideIcons.cloudOff,
             color: authProvider.isUsingFirebase
                 ? AppColors.success
                 : AppColors.warning,
@@ -233,20 +242,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildFormCard(AuthProvider authProvider) {
     final l10n = context.l10n;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.22),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.22)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
+    return GlassCard(
+      borderRadius: 28,
       child: Form(
         key: _formKey,
         child: Column(
@@ -269,7 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 textInputAction: TextInputAction.next,
                 decoration: _buildInputDecoration(
                   hint: l10n.emailHint,
-                  icon: Icons.email_rounded,
+                  icon: LucideIcons.mail,
                 ),
                 validator: (value) {
                   final text = value?.trim() ?? '';
@@ -293,15 +290,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 onFieldSubmitted: (_) => _submit(),
                 decoration: _buildInputDecoration(
                   hint: l10n.passwordHint,
-                  icon: Icons.password_rounded,
+                  icon: LucideIcons.lock,
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() => _obscurePassword = !_obscurePassword);
                     },
                     icon: Icon(
                       _obscurePassword
-                          ? Icons.visibility_rounded
-                          : Icons.visibility_off_rounded,
+                          ? LucideIcons.eye
+                          : LucideIcons.eyeOff,
                       color: AppColors.textSecondary,
                     ),
                   ),

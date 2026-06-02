@@ -88,8 +88,9 @@ Dart SDK env `^3.11.4`. (pubspec.yaml — đầy đủ để khỏi grep lại)
 - **Notifications:** flutter_local_notifications ^19.4.0, timezone ^0.10.1, flutter_timezone ^4.1.1.
 - **Media/UI:** image_picker ^1.1.0, cached_network_image ^3.3.1, flutter_staggered_grid_view ^0.7.0 (masonry), cupertino_icons ^1.0.8.
 - **Misc:** intl ^0.20.2, uuid ^4.0.0, connectivity_plus ^6.1.4, url_launcher ^6.3.1.
+- **UI revamp (Đợt 1, 2026-06-02):** google_fonts ^6.2.1 (Fraunces hero + Plus Jakarta Sans UI), flutter_animate ^4.5.2 (staggered entrance), shimmer ^3.0.0 (skeleton loaders), lucide_icons ^0.257.0 (bộ icon), confetti ^0.8.0 (chưa dùng — dành Đợt 2 invite reveal).
 - **Dev deps:** flutter_test, flutter_lints ^6.0.0, flutter_launcher_icons ^0.14.3, flutter_native_splash ^2.4.3, hive_generator ^2.0.1, build_runner ^2.4.9.
-- **Branding assets:** flutter_launcher_icons (màu #FF6B9D, web theme #FF4D6D, iOS flatten remove-alpha) + flutter_native_splash (nền hồng #FF6B9D, heart trắng). **google_fonts CHƯA có** (typography = system serif/sans, là việc nâng cấp tiềm năng).
+- **Branding assets:** flutter_launcher_icons (màu #FF6B9D, web theme #FF4D6D, iOS flatten remove-alpha) + flutter_native_splash (nền hồng #FF6B9D, heart trắng). **Typography đã swap sang google_fonts** (Fraunces + Plus Jakarta Sans) từ 2026-06-02 — runtime fetch (chưa bundle offline; first-launch có thể nháy font, việc Đợt sau).
 
 ---
 
@@ -177,7 +178,14 @@ Brand "Sunset Romance" — romantic minimalism, soft gradient hồng, glassmorph
 **Text:** textPrimary #1A1A2E (cũng là nút chính), textSecondary #6B6B7B, textTertiary #A0A0B0, textOnGradient #FFFFFF.
 **Status:** success #66BB6A, error #EF5350, warning #FFA726, info #A78BFA.
 
-**Typography:** display = system `serif`; body = platform sans. ⚠️ Chưa bundle custom font (ý định swap sang google_fonts DM Serif Display + Inter — việc dang dở). Hero serif: displayLarge 72/Medium 56/Small 40; `dayCountStyle()` = 76px serif w500 ls -2.4 + glow trắng. Sans UI: title 20/16/14, body 16/15/13, label 14/12/11. Quy ước letter-spacing: số serif âm, label/caps dương.
+**Typography (revamp Đợt 1, 2026-06-02):** display/hero = **Fraunces** (`GoogleFonts.fraunces`, hỗ trợ VN), body/UI = **Plus Jakarta Sans** (`GoogleFonts.plusJakartaSansTextTheme`). Wired tập trung ở `app_theme.dart` (`_displayBase/_bodyBase`); giữ nguyên size/weight/ls/glow cũ. Hero serif: displayLarge 72/Medium 56/Small 40; `dayCountStyle()` = 76px w500 ls -2.4 + glow trắng. Sans UI: title 20/16/14, body 16/15/13, label 14/12/11. Quy ước letter-spacing: số serif âm, label/caps dương.
+
+**Revamp Đợt 1 — hạ tầng mới (2026-06-02, → [`project/features/ui-revamp/`](project/features/ui-revamp/overview.md)):**
+- **Iconography:** Material `Icons.*` → **Lucide** (`lucide_icons`) toàn app; **giữ Material `favorite` cho heart brand** (Lucide không có filled heart).
+- **GlassCard** (`lib/widgets/glass_card.dart`): glass THẬT (ClipRRect+BackdropFilter blur 18+fill .16+viền highlight) — thay "glass giả" ở auth/setup/guest/home-hero. KHÔNG dùng cho list cuộn dài (hiệu năng) hay card trắng đặc (settings/profile/gallery feed).
+- **ShimmerSkeleton** (`lib/widgets/shimmer_skeleton.dart`, package `shimmer`): thay `CircularProgressIndicator` ở loader ảnh/nội dung; giữ spinner inline trong nút submit + splash.
+- **Motion:** `AppMotion` (`lib/theme/app_motion.dart`) token fast 200/base 280/slow 320/entrance 360/stagger 50ms, curve easeOutCubic. `flutter_animate` staggered entrance (fadeIn+slideY 8px) cho home/settings/gallery-feed(6 đầu)/reminders — chạy 1 lần (flag/`_OnceEntrance`). `HapticFeedback` ở đổi tab/đăng ảnh/submit/đổi ngày/toggle. Tile bấm → `InkWell` (ripple) thay `GestureDetector`.
+- **Trạng thái:** dev xong + analyze sạch + smoke-test simulator (guest landing) OK. **CHƯA submit/commit** (build 1.0(3) đang Apple review — phát hành revamp thành 1.1 sau khi 1.0 duyệt). Đợt 2 (splash/counter count-up/invite reveal/gallery shimmer-stagger) chưa làm.
 
 **Tokens:** radius card lớn = **28** (`cardRadius`); pill = **999**; input/nút phụ = 20; tile = 22-24; profile hero = 32. Spacing: 4 · 6-8 · 12-16 · 18-24 · 20. Nút: height **52**, ElevatedButton nền navy bo pill. Input: filled surfaceLight bo 20, focus viền accentLove 1.4. AppBar phẳng. FAB tròn accentLove. SnackBar floating navy bo 20.
 

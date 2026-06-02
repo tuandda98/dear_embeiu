@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 
@@ -15,6 +18,7 @@ import '../providers/custom_reminders_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 import '../widgets/language_toggle_button.dart';
 import 'custom_reminders_screen.dart';
 import 'milestone_reminders_screen.dart';
@@ -44,7 +48,7 @@ class SettingsScreen extends StatelessWidget {
           elevation: 0,
           leading: IconButton(
             icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
+              LucideIcons.chevronLeft,
               color: AppColors.accentRose,
             ),
             onPressed: () => Navigator.of(context).maybePop(),
@@ -78,24 +82,30 @@ class SettingsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildRemindersSection(
-                      context,
-                      couple: couple,
-                      lastPhotoDate: lastPhotoDate,
+                    _OnceEntrance(
+                      order: 0,
+                      child: _buildRemindersSection(
+                        context,
+                        couple: couple,
+                        lastPhotoDate: lastPhotoDate,
+                      ),
                     ),
                     const SizedBox(height: 18),
-                    _buildLanguageSection(context),
+                    _OnceEntrance(order: 1, child: _buildLanguageSection(context)),
                     const SizedBox(height: 18),
-                    _buildAccountSection(context),
+                    _OnceEntrance(order: 2, child: _buildAccountSection(context)),
                     const SizedBox(height: 18),
-                    _buildDangerZone(
-                      context,
-                      isUsingFirebase: authProvider.isUsingFirebase,
+                    _OnceEntrance(
+                      order: 3,
+                      child: _buildDangerZone(
+                        context,
+                        isUsingFirebase: authProvider.isUsingFirebase,
+                      ),
                     ),
                     const SizedBox(height: 18),
-                    _buildSignOutButton(context),
+                    _OnceEntrance(order: 4, child: _buildSignOutButton(context)),
                     const SizedBox(height: 12),
-                    _buildPrivacyPolicyLink(context),
+                    _OnceEntrance(order: 5, child: _buildPrivacyPolicyLink(context)),
                   ],
                 ),
               );
@@ -125,6 +135,7 @@ class SettingsScreen extends StatelessWidget {
         final customReminders = context.read<CustomRemindersProvider>();
 
         Future<void> handleToggle(bool value) async {
+          HapticFeedback.selectionClick();
           final granted = await reminderProvider.setEnabled(
             value,
             anniversaryDate: couple.anniversaryDate,
@@ -173,7 +184,7 @@ class SettingsScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Icon(
-                        Icons.notifications_active_rounded,
+                        LucideIcons.bell,
                         color: AppColors.accentRose,
                         size: 20,
                       ),
@@ -219,7 +230,8 @@ class SettingsScreen extends StatelessWidget {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOutCubic,
                 opacity: settings.enabled ? 1 : 0.45,
-                child: GestureDetector(
+                child: _InkTile(
+                  borderRadius: 22,
                   onTap: settings.enabled
                       ? () {
                           Navigator.of(context).push(
@@ -248,7 +260,7 @@ class SettingsScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(
-                            Icons.celebration_rounded,
+                            LucideIcons.partyPopper,
                             color: AppColors.accentRose,
                             size: 20,
                           ),
@@ -309,7 +321,7 @@ class SettingsScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Icon(
-                          Icons.chevron_right_rounded,
+                          LucideIcons.chevronRight,
                           color:
                               AppColors.textSecondary.withValues(alpha: 0.5),
                         ),
@@ -320,7 +332,8 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               // Our reminders (custom) entry — force-open gate (Dv6) preserved.
-              GestureDetector(
+              _InkTile(
+                borderRadius: 22,
                 onTap: () {
                   if (settings.enabled) {
                     Navigator.of(context).push(
@@ -358,7 +371,7 @@ class SettingsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Icon(
-                          Icons.event_note_rounded,
+                          LucideIcons.calendarClock,
                           color: AppColors.accentRose,
                           size: 20,
                         ),
@@ -417,7 +430,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Icon(
-                        Icons.chevron_right_rounded,
+                        LucideIcons.chevronRight,
                         color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
                     ],
@@ -461,7 +474,7 @@ class SettingsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
               ),
               child: const Icon(
-                Icons.notifications_active_rounded,
+                LucideIcons.bell,
                 color: AppColors.accentRose,
                 size: 24,
               ),
@@ -557,7 +570,8 @@ class SettingsScreen extends StatelessWidget {
     return _buildSectionCard(
       title: l10n.languageTitle,
       subtitle: l10n.languageSubtitle,
-      child: GestureDetector(
+      child: _InkTile(
+        borderRadius: 22,
         onTap: () => showLanguagePicker(context),
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -616,7 +630,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.chevron_right_rounded,
+                LucideIcons.chevronRight,
                 color: AppColors.textSecondary.withValues(alpha: 0.5),
               ),
             ],
@@ -636,7 +650,8 @@ class SettingsScreen extends StatelessWidget {
     return _buildSectionCard(
       title: l10n.settingsAccountModuleTitle,
       subtitle: l10n.settingsAccountModuleSubtitle,
-      child: GestureDetector(
+      child: _InkTile(
+        borderRadius: 22,
         onTap: () {
           final coupleProvider = context.read<CoupleProvider>();
           final currentUser = context.read<AuthProvider>().currentUser;
@@ -665,7 +680,7 @@ class SettingsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
-                  Icons.edit_rounded,
+                  LucideIcons.pencil,
                   color: AppColors.accentRose,
                   size: 20,
                 ),
@@ -696,7 +711,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.chevron_right_rounded,
+                LucideIcons.chevronRight,
                 color: AppColors.textSecondary.withValues(alpha: 0.5),
               ),
             ],
@@ -722,7 +737,7 @@ class SettingsScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
         ),
-        icon: const Icon(Icons.logout_rounded),
+        icon: const Icon(LucideIcons.logOut),
         label: Text(
           l10n.signOutBtn,
           style: const TextStyle(fontWeight: FontWeight.w600),
@@ -768,7 +783,7 @@ class SettingsScreen extends StatelessWidget {
                   color: AppColors.error.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.delete_sweep_rounded, color: AppColors.error),
+                child: const Icon(LucideIcons.trash2, color: AppColors.error),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -831,7 +846,7 @@ class SettingsScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                icon: const Icon(Icons.cleaning_services_rounded, size: 18),
+                icon: const Icon(LucideIcons.eraser, size: 18),
                 label: Text(l10n.clearLocalDataBtn),
               ),
             ),
@@ -864,7 +879,7 @@ class SettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              icon: const Icon(Icons.exit_to_app_rounded, size: 18),
+              icon: const Icon(LucideIcons.logOut, size: 18),
               label: Text(l10n.leaveCoupleBtn),
             ),
           ),
@@ -903,7 +918,7 @@ class SettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              icon: const Icon(Icons.delete_forever_rounded, size: 18),
+              icon: const Icon(LucideIcons.trash2, size: 18),
               label: Text(
                 l10n.deleteAccountBtn,
                 style: const TextStyle(fontWeight: FontWeight.w700),
@@ -974,7 +989,7 @@ class SettingsScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.shield_outlined,
+              LucideIcons.shield,
               size: 13,
               color: AppColors.textTertiary,
             ),
@@ -990,7 +1005,7 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.open_in_new_rounded, size: 11, color: AppColors.textTertiary),
+            Icon(LucideIcons.externalLink, size: 11, color: AppColors.textTertiary),
           ],
         ),
       ),
@@ -1170,5 +1185,103 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// A tap wrapper that shows a rounded ripple on top of a decorated tile.
+///
+/// The tile keeps its own background/border (passed as [child]); this overlays
+/// a transparent [Material] + [InkWell] clipped to [borderRadius] so the ripple
+/// renders above the fill colour and stays inside the rounded corners. A null
+/// [onTap] disables interaction (and the ripple) without changing layout.
+class _InkTile extends StatelessWidget {
+  const _InkTile({
+    required this.child,
+    required this.onTap,
+    required this.borderRadius,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final double borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(borderRadius);
+    return Stack(
+      children: [
+        child,
+        Positioned.fill(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: radius,
+              splashColor: AppColors.accentRose.withValues(alpha: 0.12),
+              highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Plays the shared fade+slide entrance once, the first time it is mounted,
+/// then keeps rendering its child statically. Because [SettingsScreen]'s body
+/// rebuilds whenever its providers change (e.g. toggling reminders), wrapping
+/// each section in this guard prevents the entrance from replaying on rebuild.
+class _OnceEntrance extends StatefulWidget {
+  const _OnceEntrance({required this.order, required this.child});
+
+  final int order;
+  final Widget child;
+
+  @override
+  State<_OnceEntrance> createState() => _OnceEntranceState();
+}
+
+class _OnceEntranceState extends State<_OnceEntrance> {
+  bool _played = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Mark the entrance finished only after it has fully run (entrance window
+    // + this item's stagger delay). Until then we keep the animated child so a
+    // mid-animation rebuild doesn't snap it to its static form.
+    _timer = Timer(
+      AppMotion.entrance + AppMotion.stagger * widget.order,
+      () {
+        if (mounted) {
+          setState(() => _played = true);
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_played) {
+      return widget.child;
+    }
+    return widget.child
+        .animate()
+        .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
+        .slideY(
+          begin: 0.08,
+          end: 0,
+          duration: AppMotion.entrance,
+          curve: AppMotion.curve,
+          delay: AppMotion.stagger * widget.order,
+        );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../l10n/l10n.dart';
 import '../theme/app_colors.dart';
@@ -73,7 +74,7 @@ class InviteActionButtons extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _Pill(
-          icon: Icons.copy_rounded,
+          icon: LucideIcons.copy,
           label: l10n.copyBtn,
           iconOnly: iconOnly,
           fgColor: _fgColor,
@@ -83,7 +84,7 @@ class InviteActionButtons extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         _Pill(
-          icon: Icons.ios_share_rounded,
+          icon: LucideIcons.share2,
           label: l10n.shareBtn,
           iconOnly: iconOnly,
           fgColor: _fgColor,

@@ -1,4 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +11,7 @@ import '../l10n/l10n.dart';
 import '../models/milestone_reminder.dart';
 import '../providers/reminder_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 
 /// Customization screen for the curated automatic reminders (Reminders v2 + Dv8).
 ///
@@ -33,7 +39,7 @@ class MilestoneRemindersScreen extends StatelessWidget {
           elevation: 0,
           leading: IconButton(
             icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
+              LucideIcons.chevronLeft,
               color: AppColors.accentRose,
             ),
             onPressed: () => Navigator.of(context).maybePop(),
@@ -68,8 +74,11 @@ class MilestoneRemindersScreen extends StatelessWidget {
                   ),
                   const _DefaultTimeTile(),
                   const SizedBox(height: 12),
-                  for (final type in order) ...[
-                    _MilestoneTile(type: type),
+                  for (var i = 0; i < order.length; i++) ...[
+                    _OnceEntrance(
+                      order: i,
+                      child: _MilestoneTile(type: order[i]),
+                    ),
                     const SizedBox(height: 12),
                   ],
                 ],
@@ -104,24 +113,25 @@ class _DefaultTimeTile extends StatelessWidget {
       if (picked == null || !context.mounted) {
         return;
       }
+      HapticFeedback.selectionClick();
       // The provider reschedules using the couple inputs cached by the last
       // sync (reminders are on to reach this screen), so no couple data is
       // needed here.
       await context.read<ReminderProvider>().setTime(picked.hour, picked.minute);
     }
 
-    return GestureDetector(
-      onTap: pick,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: AppColors.accentGold.withValues(alpha: 0.12),
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: AppColors.accentGold.withValues(alpha: 0.12),
+            ),
           ),
-        ),
-        child: Row(
+          child: Row(
           children: [
             Container(
               width: 44,
@@ -131,7 +141,7 @@ class _DefaultTimeTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Icon(
-                Icons.schedule_rounded,
+                LucideIcons.clock,
                 color: AppColors.accentGold,
                 size: 20,
               ),
@@ -172,12 +182,25 @@ class _DefaultTimeTile extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Icon(
-              Icons.chevron_right_rounded,
+              LucideIcons.chevronRight,
               color: AppColors.textSecondary.withValues(alpha: 0.5),
             ),
           ],
+          ),
         ),
-      ),
+        Positioned.fill(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: pick,
+              borderRadius: BorderRadius.circular(22),
+              splashColor: AppColors.accentGold.withValues(alpha: 0.14),
+              highlightColor: AppColors.accentGold.withValues(alpha: 0.06),
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -272,7 +295,10 @@ class _MilestoneTile extends StatelessWidget {
           Switch.adaptive(
             value: enabled,
             activeThumbColor: AppColors.accentRose,
-            onChanged: (value) => provider.toggleMilestone(type, value),
+            onChanged: (value) {
+              HapticFeedback.selectionClick();
+              provider.toggleMilestone(type, value);
+            },
           ),
         ],
       ),
@@ -397,19 +423,19 @@ class _MilestoneTile extends StatelessWidget {
   IconData _iconFor(MilestoneType type) {
     switch (type) {
       case MilestoneType.every100:
-        return Icons.looks_one_rounded;
+        return LucideIcons.infinity;
       case MilestoneType.d520:
-        return Icons.mark_email_read_rounded;
+        return LucideIcons.sparkles;
       case MilestoneType.d1000:
-        return Icons.emoji_events_rounded;
+        return LucideIcons.award;
       case MilestoneType.d1314:
         return Icons.favorite_rounded;
       case MilestoneType.halfYear:
-        return Icons.brightness_2_rounded;
+        return LucideIcons.moon;
       case MilestoneType.yearly:
-        return Icons.cake_rounded;
+        return LucideIcons.cake;
       case MilestoneType.inactivity:
-        return Icons.photo_camera_rounded;
+        return LucideIcons.camera;
     }
   }
 }
@@ -463,7 +489,7 @@ class _TimeChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.schedule_rounded,
+              LucideIcons.clock,
               size: 13,
               color: hasCustom ? AppColors.accentRose : AppColors.textTertiary,
             ),
@@ -493,7 +519,7 @@ class _TimeChip extends StatelessWidget {
                       vertical: 2,
                     ),
                     child: Icon(
-                      Icons.close_rounded,
+                      LucideIcons.x,
                       size: 14,
                       color: AppColors.accentRose.withValues(alpha: 0.6),
                     ),
@@ -513,5 +539,59 @@ class _TimeChip extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Plays the shared fade+slide entrance once, the first time it is mounted,
+/// then renders its child statically. The milestone list rebuilds whenever a
+/// toggle/time changes, so this guard stops the entrance replaying on rebuild.
+class _OnceEntrance extends StatefulWidget {
+  const _OnceEntrance({required this.order, required this.child});
+
+  final int order;
+  final Widget child;
+
+  @override
+  State<_OnceEntrance> createState() => _OnceEntranceState();
+}
+
+class _OnceEntranceState extends State<_OnceEntrance> {
+  bool _played = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(
+      AppMotion.entrance + AppMotion.stagger * widget.order,
+      () {
+        if (mounted) {
+          setState(() => _played = true);
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_played) {
+      return widget.child;
+    }
+    return widget.child
+        .animate()
+        .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
+        .slideY(
+          begin: 0.08,
+          end: 0,
+          duration: AppMotion.entrance,
+          curve: AppMotion.curve,
+          delay: AppMotion.stagger * widget.order,
+        );
   }
 }
