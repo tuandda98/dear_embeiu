@@ -1,0 +1,38 @@
+# <Tên feature>
+
+> File PO sở hữu. Nguồn sự thật chung cho cả feature. Designer/Dev/Tester đọc file này trước.
+
+- **Feature:** <ten-feature>
+- **Ưu tiên:** <P0 | P1 | P2>
+- **Trạng thái:** 📋 Spec
+- **Tạo ngày:** <YYYY-MM-DD>
+- **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · bối cảnh dự án [`../../../CLAUDE.md`](../../../CLAUDE.md)
+
+## 1. Vấn đề & giá trị
+- *Vấn đề người dùng:* <…>
+- *Giả thuyết giá trị:* <nếu làm X thì Y cải thiện…>
+- *Đối tượng:* <ai>
+- *Đo bằng gì (metric):* <…>
+
+## 2. Bối cảnh / nghiên cứu
+- <insight thị trường, đối thủ, best-practice, kèm nguồn nếu có>
+
+## 3. Phạm vi (scope)
+- **Trong phạm vi:** <…>
+- **Ngoài phạm vi:** <…>
+
+## 4. Quyết định đã chốt (decision log)
+> Đừng lật lại trừ khi user/PO đổi ý.
+- **D1 —** <quyết định> · *Lý do:* <…>
+
+## 5. Acceptance criteria (xong khi…)
+- [ ] <tiêu chí 1>
+- [ ] <tiêu chí 2>
+
+## 6. Giao việc 3 vai (tóm tắt — chi tiết ở file mỗi role)
+- 🎨 **Designer:** <làm gì> → *expect:* <deliverable>
+- 💻 **Dev:** <làm gì> → *expect:* <deliverable>
+- 🧪 **Tester:** <làm gì> → *expect:* <deliverable>
+
+## 7. Changelog feature
+- [<YYYY-MM-DD>] [PO] Tạo feature, viết spec.

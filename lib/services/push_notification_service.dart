@@ -327,6 +327,12 @@ class PushNotificationService {
       case 'partner_joined':
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;
+      case 'love_note':
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        break;
+      case 'daily_question':
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        break;
       default:
         // Unknown or absent type — leave the current tab untouched.
         break;

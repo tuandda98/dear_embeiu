@@ -710,6 +710,18 @@ abstract class AppLocalizations {
   /// **'Recent memories'**
   String get recentMemoriesTitle;
 
+  /// No description provided for @onThisDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'On this day, {count, plural, =1{1 year ago} other{{count} years ago}} 💞'**
+  String onThisDayTitle(int count);
+
+  /// No description provided for @onThisDaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A memory from this very day'**
+  String get onThisDaySubtitle;
+
   /// No description provided for @addPhotosPrompt.
   ///
   /// In en, this message translates to:
@@ -787,6 +799,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\"{count} days isn\'t just time — it\'s every soft moment, every choice to stay, every little kindness we share.\"'**
   String loveNoteQuote(int count);
+
+  /// No description provided for @loveNoteFromPartner.
+  ///
+  /// In en, this message translates to:
+  /// **'Note from {name}'**
+  String loveNoteFromPartner(String name);
+
+  /// No description provided for @loveNoteEmptyFromPartner.
+  ///
+  /// In en, this message translates to:
+  /// **'No note from {name} yet'**
+  String loveNoteEmptyFromPartner(String name);
+
+  /// No description provided for @loveNoteWriteCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a note'**
+  String get loveNoteWriteCta;
+
+  /// No description provided for @loveNoteEditCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit your note'**
+  String get loveNoteEditCta;
+
+  /// No description provided for @loveNoteWaitingPartner.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite your partner so you can leave little notes for each other.'**
+  String get loveNoteWaitingPartner;
+
+  /// No description provided for @loveNoteSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your love note'**
+  String get loveNoteSheetTitle;
+
+  /// No description provided for @loveNoteSheetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write something sweet for your partner…'**
+  String get loveNoteSheetHint;
+
+  /// No description provided for @loveNoteCharCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/140'**
+  String loveNoteCharCount(int count);
+
+  /// No description provided for @loveNoteSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Your note was sent 💞'**
+  String get loveNoteSaved;
+
+  /// No description provided for @loveNoteJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get loveNoteJustNow;
+
+  /// No description provided for @loveNoteMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute ago} other{{count} minutes ago}}'**
+  String loveNoteMinutesAgo(int count);
+
+  /// No description provided for @loveNoteHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour ago} other{{count} hours ago}}'**
+  String loveNoteHoursAgo(int count);
+
+  /// No description provided for @loveNoteDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day ago} other{{count} days ago}}'**
+  String loveNoteDaysAgo(int count);
+
+  /// No description provided for @dailyQuestionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s question'**
+  String get dailyQuestionLabel;
+
+  /// No description provided for @dailyQuestionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your answer…'**
+  String get dailyQuestionHint;
+
+  /// No description provided for @dailyQuestionCharCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/280'**
+  String dailyQuestionCharCount(int count);
+
+  /// No description provided for @dailyQuestionSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get dailyQuestionSend;
+
+  /// No description provided for @dailyQuestionYourAnswerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your answer'**
+  String get dailyQuestionYourAnswerLabel;
+
+  /// No description provided for @dailyQuestionAnsweredWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Answered ✓ — waiting for {name}'**
+  String dailyQuestionAnsweredWaiting(String name);
+
+  /// No description provided for @dailyQuestionPartnerAnswerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s answer'**
+  String dailyQuestionPartnerAnswerLabel(String name);
+
+  /// No description provided for @dailyQuestionWaitingPartner.
+  ///
+  /// In en, this message translates to:
+  /// **'It will unlock once your partner joins and answers too.'**
+  String get dailyQuestionWaitingPartner;
+
+  /// No description provided for @dailyQuestionRevealHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You both answered — here\'s what you each said 💞'**
+  String get dailyQuestionRevealHint;
+
+  /// No description provided for @dailyQuestionSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your answer was sent 💞'**
+  String get dailyQuestionSent;
 
   /// No description provided for @milestoneReached.
   ///

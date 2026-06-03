@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -13,6 +14,8 @@ import '../models/counter_data.dart';
 import '../models/photo.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
+import '../providers/daily_question_provider.dart';
+import '../providers/love_note_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../services/push_notification_service.dart';
@@ -484,6 +487,22 @@ class _HomeScreenState extends State<HomeScreen> {
     final nextMilestone = _getNextMilestone(totalDays);
     final progressToMilestone = totalDays / nextMilestone;
     final recentPhotos = photos.take(5).toList();
+    final onThisDayPhoto = _onThisDayPhoto(photos);
+
+    // Ensure the love-note stream is watching this couple. SessionResolver
+    // already starts it, but the couple may finish loading after Home mounts
+    // (or change), so re-arm here. watchForCouple no-ops when unchanged.
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    if (myUid != null && couple.id.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<LoveNoteProvider>().watchForCouple(couple.id, myUid);
+          context
+              .read<DailyQuestionProvider>()
+              .watchForCouple(couple.id, myUid);
+        }
+      });
+    }
 
     // After the first frame with real data, lock the entrance so future
     // rebuilds (provider updates, tab switches) don't replay it.
@@ -620,7 +639,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          _entrance(6, _buildQuoteCard(totalDays, couple, l10n)),
+          _entrance(6, _buildLoveNoteCard(couple, l10n)),
+          const SizedBox(height: 20),
+          _entrance(6, _buildDailyQuestionCard(couple, l10n)),
+          if (onThisDayPhoto != null) ...[
+            const SizedBox(height: 20),
+            _entrance(6, _buildOnThisDayCard(onThisDayPhoto, couple, l10n)),
+          ],
           const SizedBox(height: 20),
           _entrance(
             7,
@@ -1082,79 +1107,312 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuoteCard(int totalDays, Couple couple, AppLocalizations l10n) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.white.withValues(alpha: 0.24),
-            AppColors.white.withValues(alpha: 0.08),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  /// Resolves the partner's display name from the couple, given the partner's
+  /// uid. The couple creator is person1; everyone else maps to person2.
+  String _partnerName(Couple couple, String? partnerUid, AppLocalizations l10n) {
+    String name;
+    if (partnerUid != null && partnerUid == couple.createdByUserId) {
+      name = couple.person1Name;
+    } else {
+      name = couple.person2Name;
+    }
+    return name.trim().isNotEmpty ? name.trim() : l10n.posterNameFallback;
+  }
+
+  /// Localized "x minutes/hours/days ago" for a love note's [updatedAt].
+  String _relativeTime(DateTime? when, AppLocalizations l10n) {
+    if (when == null) {
+      return l10n.loveNoteJustNow;
+    }
+    final diff = DateTime.now().difference(when);
+    if (diff.inMinutes < 1) {
+      return l10n.loveNoteJustNow;
+    }
+    if (diff.inMinutes < 60) {
+      return l10n.loveNoteMinutesAgo(diff.inMinutes);
+    }
+    if (diff.inHours < 24) {
+      return l10n.loveNoteHoursAgo(diff.inHours);
+    }
+    return l10n.loveNoteDaysAgo(diff.inDays);
+  }
+
+  /// "Lời nhắn của người ấy" (feature #4). Shows the note the partner left for
+  /// the current user, plus a CTA to write/edit the user's own note.
+  Widget _buildLoveNoteCard(Couple couple, AppLocalizations l10n) {
+    return Consumer<LoveNoteProvider>(
+      builder: (context, loveNoteProvider, _) {
+        final partnerNote = loveNoteProvider.partnerNote;
+        final partnerName = _partnerName(couple, partnerNote?.authorUserId, l10n);
+        final hasNote = partnerNote != null && partnerNote.hasText;
+        final isWaiting = couple.isWaitingForPartner;
+        final hasMyNote = loveNoteProvider.myNote?.hasText == true;
+
+        return GlassCard(
+          borderRadius: 24,
+          fillAlpha: 0.16,
+          borderAlpha: 0.18,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(LucideIcons.quote, color: AppColors.white),
-              const SizedBox(width: 8),
-              Text(
-                l10n.loveNoteLabel,
-                style: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
+              Row(
+                children: [
+                  const Icon(LucideIcons.mailOpen, color: AppColors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      hasNote
+                          ? l10n.loveNoteFromPartner(partnerName)
+                          : l10n.loveNoteLabel,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 12),
+              if (isWaiting)
+                Text(
+                  l10n.loveNoteWaitingPartner,
+                  style: TextStyle(
+                    color: AppColors.white.withValues(alpha: 0.85),
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                )
+              else if (hasNote) ...[
+                Text(
+                  partnerNote.text,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    height: 1.55,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _relativeTime(partnerNote.updatedAt, l10n),
+                  style: TextStyle(
+                    color: AppColors.white.withValues(alpha: 0.72),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ] else
+                Text(
+                  l10n.loveNoteEmptyFromPartner(partnerName),
+                  style: TextStyle(
+                    color: AppColors.white.withValues(alpha: 0.78),
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
+              if (!isWaiting) ...[
+                const SizedBox(height: 16),
+                _buildWriteNoteButton(
+                  label: hasMyNote ? l10n.loveNoteEditCta : l10n.loveNoteWriteCta,
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.loveNoteQuote(totalDays),
-            style: const TextStyle(
-              color: AppColors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              height: 1.55,
+        );
+      },
+    );
+  }
+
+  Widget _buildWriteNoteButton({required String label}) {
+    return SizedBox(
+      width: double.infinity,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.white.withValues(alpha: 0.30)),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: _openLoveNoteSheet,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(LucideIcons.feather, color: AppColors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                '—',
-                style: TextStyle(
-                  color: AppColors.white.withValues(alpha: 0.82),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openLoveNoteSheet() async {
+    final l10n = context.l10n;
+    final loveNoteProvider = context.read<LoveNoteProvider>();
+    final controller =
+        TextEditingController(text: loveNoteProvider.myNote?.text ?? '');
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _LoveNoteSheet(
+        controller: controller,
+        l10n: l10n,
+      ),
+    );
+
+    controller.dispose();
+
+    if (saved != true || !mounted) {
+      return;
+    }
+
+    HapticFeedback.mediumImpact();
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.loveNoteSaved)),
+    );
+  }
+
+  /// "Câu hỏi hôm nay" (feature #5). One shared question per day; each partner
+  /// answers, and the partner's answer is revealed only once both have answered.
+  Widget _buildDailyQuestionCard(Couple couple, AppLocalizations l10n) {
+    final langCode = Localizations.localeOf(context).languageCode;
+    return Consumer<DailyQuestionProvider>(
+      builder: (context, provider, _) {
+        final partnerUid = provider.partnerAnswer?.authorUserId;
+        final partnerName = _partnerName(couple, partnerUid, l10n);
+        return _DailyQuestionCard(
+          // Key by couple + question text so the card's internal state (the
+          // one-shot confetti flag) resets cleanly on a couple/day change.
+          key: ValueKey('daily-${couple.id}-${provider.todayQuestion(langCode)}'),
+          provider: provider,
+          l10n: l10n,
+          question: provider.todayQuestion(langCode),
+          partnerName: partnerName,
+          isWaitingPartner: couple.isWaitingForPartner,
+        );
+      },
+    );
+  }
+
+  /// Nostalgia card surfaced only when an "On this day" memory exists.
+  /// Tapping opens the shared fullscreen preview (reused from the gallery).
+  Widget _buildOnThisDayCard(
+    Photo photo,
+    Couple couple,
+    AppLocalizations l10n,
+  ) {
+    final yearsAgo = DateTime.now().year - photo.uploadDate.year;
+    const heroTag = 'on-this-day-preview';
+    final caption = photo.caption?.trim();
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        GalleryScreen.openPreview(
+          context,
+          photos: [photo],
+          heroTags: const [heroTag],
+          initialIndex: 0,
+          couple: couple,
+        );
+      },
+      child: GlassCard(
+        borderRadius: 24,
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Hero(
+              tag: heroTag,
+              createRectTween: (begin, end) =>
+                  MaterialRectCenterArcTween(begin: begin, end: end),
+              transitionOnUserGestures: true,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: SizedBox(
+                  width: 64,
+                  height: 80,
+                  child: SharedPhotoView(
+                    photo: photo,
+                    fit: BoxFit.cover,
+                    placeholder: Container(color: AppColors.surfaceLight),
+                  ),
                 ),
               ),
-              AnimatedCoupleName(
-                person1Name: couple.person1Name,
-                person2Name: couple.person2Name,
-                spacing: 5,
-                runSpacing: 4,
-                heartSize: 12,
-                heartColor: AppColors.white,
-                textStyle: TextStyle(
-                  color: AppColors.white.withValues(alpha: 0.82),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        LucideIcons.calendarHeart,
+                        size: 16,
+                        color: AppColors.white.withValues(alpha: 0.92),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.onThisDayTitle(yearsAgo),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.1,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    caption?.isNotEmpty == true
+                        ? caption!
+                        : l10n.onThisDaySubtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.white.withValues(alpha: 0.82),
+                      fontSize: 12.5,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              LucideIcons.chevronRight,
+              color: AppColors.white.withValues(alpha: 0.7),
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1303,6 +1561,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Finds the "On this day" memory: a photo taken on the same month+day as
+  /// today but in an earlier year. When several match, returns the oldest one
+  /// (most years ago) so the "{n} years ago" headline is most striking.
+  /// Returns null when nothing matches — the card is then hidden entirely.
+  Photo? _onThisDayPhoto(List<Photo> photos) {
+    final now = DateTime.now();
+    Photo? best;
+    for (final photo in photos) {
+      final d = photo.uploadDate;
+      if (d.month == now.month && d.day == now.day && d.year < now.year) {
+        if (best == null || d.year < best.uploadDate.year) {
+          best = photo;
+        }
+      }
+    }
+    return best;
+  }
+
   int _getTotalDays(DateTime anniversaryDate) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -1369,4 +1645,468 @@ class _NavigationItem {
   final IconData icon;
   final IconData? selectedIcon;
   final Color color;
+}
+
+/// Bottom sheet for composing/editing the current user's love note (feature #4).
+/// Pops `true` after a successful save so the caller can confirm + haptic.
+class _LoveNoteSheet extends StatefulWidget {
+  const _LoveNoteSheet({
+    required this.controller,
+    required this.l10n,
+  });
+
+  final TextEditingController controller;
+  final AppLocalizations l10n;
+
+  @override
+  State<_LoveNoteSheet> createState() => _LoveNoteSheetState();
+}
+
+class _LoveNoteSheetState extends State<_LoveNoteSheet> {
+  static const int _maxChars = 140;
+  bool _saving = false;
+
+  Future<void> _save() async {
+    if (_saving) {
+      return;
+    }
+    setState(() => _saving = true);
+    final navigator = Navigator.of(context);
+    final saved =
+        await context.read<LoveNoteProvider>().setMyNote(widget.controller.text);
+    if (!mounted) {
+      return;
+    }
+    navigator.pop(saved);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+    final viewInsets = MediaQuery.of(context).viewInsets.bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: viewInsets),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            decoration: BoxDecoration(
+              color: AppColors.cardSurface,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.textTertiary.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    const Icon(LucideIcons.heart,
+                        color: AppColors.accentRose, size: 22),
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.loveNoteSheetTitle,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: widget.controller,
+                  maxLength: _maxChars,
+                  maxLines: 4,
+                  minLines: 2,
+                  autofocus: true,
+                  textInputAction: TextInputAction.newline,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: l10n.loveNoteSheetHint,
+                    counterText: l10n.loveNoteCharCount(
+                      widget.controller.text.characters.length,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: _saving ? null : _save,
+                    child: _saving
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.white),
+                            ),
+                          )
+                        : Text(l10n.save),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Home card for the shared "daily question" (feature #5). Owns its own state
+/// because it has (a) a text controller for the answer, (b) a confetti
+/// controller that fires once on reveal, and (c) a guard flag so the confetti
+/// never re-fires on rebuilds.
+class _DailyQuestionCard extends StatefulWidget {
+  const _DailyQuestionCard({
+    super.key,
+    required this.provider,
+    required this.l10n,
+    required this.question,
+    required this.partnerName,
+    required this.isWaitingPartner,
+  });
+
+  final DailyQuestionProvider provider;
+  final AppLocalizations l10n;
+  final String question;
+  final String partnerName;
+  final bool isWaitingPartner;
+
+  @override
+  State<_DailyQuestionCard> createState() => _DailyQuestionCardState();
+}
+
+class _DailyQuestionCardState extends State<_DailyQuestionCard> {
+  static const int _maxChars = 280;
+
+  final TextEditingController _controller = TextEditingController();
+  late final ConfettiController _confetti =
+      ConfettiController(duration: const Duration(milliseconds: 600));
+  bool _submitting = false;
+  // One-shot guard: the reveal confetti plays at most once per card lifetime.
+  bool _confettiPlayed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // If the card is built already in the revealed state (e.g. reopening Home
+    // after both answered), don't surprise the user with confetti — only
+    // celebrate a fresh reveal that happens while watching.
+    _confettiPlayed = widget.provider.hasRevealed;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _confetti.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty || _submitting) {
+      return;
+    }
+    setState(() => _submitting = true);
+    final l10n = widget.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    await widget.provider.submit(text);
+    HapticFeedback.mediumImpact();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _submitting = false);
+    messenger.showSnackBar(SnackBar(content: Text(l10n.dailyQuestionSent)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+    final provider = widget.provider;
+    final hasAnswered = provider.hasAnswered;
+    final hasRevealed = provider.hasRevealed;
+
+    // Fire confetti exactly once, the first build where we reach the revealed
+    // state (and weren't already revealed on init).
+    if (hasRevealed && !_confettiPlayed) {
+      _confettiPlayed = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _confetti.play();
+        }
+      });
+    }
+
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        GlassCard(
+          borderRadius: 24,
+          fillAlpha: 0.16,
+          borderAlpha: 0.18,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(LucideIcons.helpCircle,
+                      color: AppColors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.dailyQuestionLabel,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                widget.question,
+                style: AppTheme.displaySerif(
+                  size: 22,
+                  weight: FontWeight.w600,
+                  color: AppColors.white,
+                  height: 1.25,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ..._buildBody(l10n, provider, hasAnswered, hasRevealed),
+            ],
+          ),
+        ),
+        // Gentle one-shot celebration, centered above the card.
+        ConfettiWidget(
+          confettiController: _confetti,
+          blastDirectionality: BlastDirectionality.explosive,
+          numberOfParticles: 14,
+          maxBlastForce: 14,
+          minBlastForce: 6,
+          emissionFrequency: 0.0,
+          gravity: 0.25,
+          shouldLoop: false,
+          colors: const [
+            AppColors.accentRose,
+            AppColors.accentLavender,
+            AppColors.accentCoral,
+            AppColors.white,
+          ],
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildBody(
+    AppLocalizations l10n,
+    DailyQuestionProvider provider,
+    bool hasAnswered,
+    bool hasRevealed,
+  ) {
+    // Reveal: both answered — show both answers, labelled.
+    if (hasRevealed) {
+      final mine = provider.myAnswer?.text.trim() ?? '';
+      final theirs = provider.partnerAnswer?.text.trim() ?? '';
+      return [
+        Text(
+          l10n.dailyQuestionRevealHint,
+          style: TextStyle(
+            color: AppColors.white.withValues(alpha: 0.82),
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 14),
+        _answerBlock(l10n.dailyQuestionYourAnswerLabel, mine),
+        const SizedBox(height: 12),
+        _answerBlock(
+          l10n.dailyQuestionPartnerAnswerLabel(widget.partnerName),
+          theirs,
+        ),
+      ];
+    }
+
+    // Answered, waiting for partner.
+    if (hasAnswered) {
+      final mine = provider.myAnswer?.text.trim() ?? '';
+      final waitingFor = widget.isWaitingPartner
+          ? l10n.dailyQuestionWaitingPartner
+          : l10n.dailyQuestionAnsweredWaiting(widget.partnerName);
+      return [
+        _answerBlock(l10n.dailyQuestionYourAnswerLabel, mine),
+        const SizedBox(height: 12),
+        Text(
+          waitingFor,
+          style: TextStyle(
+            color: AppColors.white.withValues(alpha: 0.78),
+            fontSize: 13,
+            height: 1.45,
+          ),
+        ),
+      ];
+    }
+
+    // Not answered yet — input + send.
+    return [
+      if (widget.isWaitingPartner) ...[
+        Text(
+          l10n.dailyQuestionWaitingPartner,
+          style: TextStyle(
+            color: AppColors.white.withValues(alpha: 0.78),
+            fontSize: 13,
+            height: 1.45,
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+      ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: AppColors.white.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(16),
+              border:
+                  Border.all(color: AppColors.white.withValues(alpha: 0.22)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              child: TextField(
+                controller: _controller,
+                maxLength: _maxChars,
+                maxLines: 3,
+                minLines: 1,
+                cursorColor: AppColors.white,
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  hintText: l10n.dailyQuestionHint,
+                  hintStyle: TextStyle(
+                    color: AppColors.white.withValues(alpha: 0.6),
+                    fontSize: 14,
+                  ),
+                  counterText: l10n.dailyQuestionCharCount(
+                    _controller.text.characters.length,
+                  ),
+                  counterStyle: TextStyle(
+                    color: AppColors.white.withValues(alpha: 0.6),
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(height: 12),
+      SizedBox(
+        width: double.infinity,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.white.withValues(alpha: 0.30)),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: (_submitting || _controller.text.trim().isEmpty)
+                  ? null
+                  : _submit,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_submitting)
+                      const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(AppColors.white),
+                        ),
+                      )
+                    else ...[
+                      const Icon(LucideIcons.send,
+                          color: AppColors.white, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.dailyQuestionSend,
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  Widget _answerBlock(String label, String text) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: AppColors.white.withValues(alpha: 0.7),
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          text,
+          style: const TextStyle(
+            color: AppColors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            height: 1.5,
+          ),
+        ),
+      ],
+    );
+  }
 }

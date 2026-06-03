@@ -331,6 +331,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recentMemoriesTitle => 'Recent memories';
 
   @override
+  String onThisDayTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years ago',
+      one: '1 year ago',
+    );
+    return 'On this day, $_temp0 💞';
+  }
+
+  @override
+  String get onThisDaySubtitle => 'A memory from this very day';
+
+  @override
   String get addPhotosPrompt => 'Add a few photos to start your love letter';
 
   @override
@@ -379,6 +393,114 @@ class AppLocalizationsEn extends AppLocalizations {
   String loveNoteQuote(int count) {
     return '\"$count days isn\'t just time — it\'s every soft moment, every choice to stay, every little kindness we share.\"';
   }
+
+  @override
+  String loveNoteFromPartner(String name) {
+    return 'Note from $name';
+  }
+
+  @override
+  String loveNoteEmptyFromPartner(String name) {
+    return 'No note from $name yet';
+  }
+
+  @override
+  String get loveNoteWriteCta => 'Write a note';
+
+  @override
+  String get loveNoteEditCta => 'Edit your note';
+
+  @override
+  String get loveNoteWaitingPartner =>
+      'Invite your partner so you can leave little notes for each other.';
+
+  @override
+  String get loveNoteSheetTitle => 'Your love note';
+
+  @override
+  String get loveNoteSheetHint => 'Write something sweet for your partner…';
+
+  @override
+  String loveNoteCharCount(int count) {
+    return '$count/140';
+  }
+
+  @override
+  String get loveNoteSaved => 'Your note was sent 💞';
+
+  @override
+  String get loveNoteJustNow => 'just now';
+
+  @override
+  String loveNoteMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes ago',
+      one: '1 minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String loveNoteHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours ago',
+      one: '1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String loveNoteDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dailyQuestionLabel => 'Today\'s question';
+
+  @override
+  String get dailyQuestionHint => 'Write your answer…';
+
+  @override
+  String dailyQuestionCharCount(int count) {
+    return '$count/280';
+  }
+
+  @override
+  String get dailyQuestionSend => 'Send';
+
+  @override
+  String get dailyQuestionYourAnswerLabel => 'Your answer';
+
+  @override
+  String dailyQuestionAnsweredWaiting(String name) {
+    return 'Answered ✓ — waiting for $name';
+  }
+
+  @override
+  String dailyQuestionPartnerAnswerLabel(String name) {
+    return '$name\'s answer';
+  }
+
+  @override
+  String get dailyQuestionWaitingPartner =>
+      'It will unlock once your partner joins and answers too.';
+
+  @override
+  String get dailyQuestionRevealHint =>
+      'You both answered — here\'s what you each said 💞';
+
+  @override
+  String get dailyQuestionSent => 'Your answer was sent 💞';
 
   @override
   String get milestoneReached => 'You just reached a beautiful milestone ✨';

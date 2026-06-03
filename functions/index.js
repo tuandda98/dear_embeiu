@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 const {logger} = require("firebase-functions");
-const {onDocumentCreated, onDocumentUpdated} = require("firebase-functions/v2/firestore");
+const {onDocumentCreated, onDocumentUpdated, onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 
@@ -248,6 +248,191 @@ exports.notifyPartnerJoined = onDocumentUpdated(
   },
 );
 
+exports.notifyLoveNote = onDocumentWritten(
+  {document: "couples/{coupleId}/notes/{noteId}", region: "us-central1"},
+  async (event) => {
+    const after = event.data && event.data.after && event.data.after.exists ?
+      event.data.after.data() : null;
+    // Skip deletions (no `after`).
+    if (!after) {
+      return;
+    }
+
+    const before = event.data && event.data.before && event.data.before.exists ?
+      event.data.before.data() : null;
+
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    // noteId === the author's uid by convention.
+    const authorUserId = `${event.params.noteId || ""}`.trim();
+    const text = `${after.text || ""}`.trim();
+    const beforeText = `${(before && before.text) || ""}`.trim();
+
+    // Skip empty notes and no-op writes (text unchanged, e.g. a metadata-only
+    // merge or a re-save with the same content).
+    if (!text || text === beforeText) {
+      return;
+    }
+
+    if (!coupleId || !authorUserId) {
+      logger.warn("Love-note notification skipped because required fields are missing.", {
+        coupleId,
+        authorUserId,
+      });
+      return;
+    }
+
+    const coupleSnapshot = await db.collection("couples").doc(coupleId).get();
+    if (!coupleSnapshot.exists) {
+      logger.warn("Love-note notification skipped because couple document was not found.", {
+        coupleId,
+      });
+      return;
+    }
+
+    const memberIds = Array.isArray(coupleSnapshot.get("memberIds")) ?
+      coupleSnapshot.get("memberIds") : [];
+    const recipientIds = memberIds.filter(
+      (memberId) => typeof memberId === "string" && memberId.trim() && memberId !== authorUserId,
+    );
+
+    if (recipientIds.length === 0) {
+      logger.info("Love-note notification skipped because there is no partner to notify yet.", {
+        coupleId,
+      });
+      return;
+    }
+
+    // Author display name from their user profile (fallback "Người ấy").
+    let authorName = "";
+    try {
+      const authorSnap = await db.collection("users").doc(authorUserId).get();
+      authorName = `${(authorSnap.exists && authorSnap.get("displayName")) || ""}`.trim();
+    } catch (err) {
+      logger.warn("Could not load author profile for love-note notification.", {
+        coupleId,
+        authorUserId,
+        message: err && err.message,
+      });
+    }
+    authorName = normalizeActorName(authorName);
+
+    const result = await sendToRecipientDevices(
+      recipientIds,
+      (languageCode) => buildLoveNoteText(languageCode, authorName, text),
+      {
+        type: "love_note",
+        coupleId,
+      },
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("Love-note notification skipped because recipient has no active FCM tokens.", {
+        coupleId,
+      });
+      return;
+    }
+
+    if (result.failures.length > 0) {
+      logger.warn("Love-note notification had delivery failures.", {
+        coupleId,
+        failures: result.failures,
+      });
+    }
+
+    logger.info("Processed love-note notification.", {
+      coupleId,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
+// Daily question (feature #5): when a member submits their answer for the day,
+// notify the partner that today's question has been answered (a nudge to answer
+// and unlock the reveal). The reveal itself is client-side; this is just a ping.
+exports.notifyDailyAnswer = onDocumentCreated(
+  {document: "couples/{coupleId}/dailyAnswers/{date}/responses/{uid}", region: "us-central1"},
+  async (event) => {
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    // The responses doc id === the answering member's uid by convention.
+    const authorUserId = `${event.params.uid || ""}`.trim();
+
+    if (!coupleId || !authorUserId) {
+      logger.warn("Daily-answer notification skipped because required fields are missing.", {
+        coupleId,
+        authorUserId,
+      });
+      return;
+    }
+
+    const coupleSnapshot = await db.collection("couples").doc(coupleId).get();
+    if (!coupleSnapshot.exists) {
+      logger.warn("Daily-answer notification skipped because couple document was not found.", {
+        coupleId,
+      });
+      return;
+    }
+
+    const memberIds = Array.isArray(coupleSnapshot.get("memberIds")) ?
+      coupleSnapshot.get("memberIds") : [];
+    const recipientIds = memberIds.filter(
+      (memberId) => typeof memberId === "string" && memberId.trim() && memberId !== authorUserId,
+    );
+
+    if (recipientIds.length === 0) {
+      logger.info("Daily-answer notification skipped because there is no partner to notify yet.", {
+        coupleId,
+      });
+      return;
+    }
+
+    // Answering member's display name (fallback "Người ấy").
+    let authorName = "";
+    try {
+      const authorSnap = await db.collection("users").doc(authorUserId).get();
+      authorName = `${(authorSnap.exists && authorSnap.get("displayName")) || ""}`.trim();
+    } catch (err) {
+      logger.warn("Could not load author profile for daily-answer notification.", {
+        coupleId,
+        authorUserId,
+        message: err && err.message,
+      });
+    }
+    authorName = normalizeActorName(authorName);
+
+    const result = await sendToRecipientDevices(
+      recipientIds,
+      (languageCode) => buildDailyAnswerText(languageCode, authorName),
+      {
+        type: "daily_question",
+        coupleId,
+      },
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("Daily-answer notification skipped because recipient has no active FCM tokens.", {
+        coupleId,
+      });
+      return;
+    }
+
+    if (result.failures.length > 0) {
+      logger.warn("Daily-answer notification had delivery failures.", {
+        coupleId,
+        failures: result.failures,
+      });
+    }
+
+    logger.info("Processed daily-answer notification.", {
+      coupleId,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
 // Shared device-fan-out used by the partner-photo and partner-joined pushes.
 // Collects every notifications-enabled device token for the recipients, builds
 // one localized message per device (via `buildText(languageCode)`), sends them
@@ -470,6 +655,25 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
     tasks.push(photoDoc.ref.delete().catch(() => null));
   }
 
+  // Love notes subcollection (feature #4): one doc per member, no Storage.
+  const notesSnap = await coupleRef.collection("notes").get();
+  for (const noteDoc of notesSnap.docs) {
+    tasks.push(noteDoc.ref.delete().catch(() => null));
+  }
+
+  // Daily question answers (feature #5): nested subcollection
+  // (dailyAnswers/{date}/responses/{uid}). recursiveDelete handles the nesting
+  // and any phantom parent docs, so use it instead of a flat get().delete().
+  tasks.push(
+    db.recursiveDelete(coupleRef.collection("dailyAnswers")).catch((err) => {
+      logger.warn("Failed to recursively delete dailyAnswers during couple teardown.", {
+        coupleId: coupleRef.id,
+        message: err && err.message,
+      });
+      return null;
+    }),
+  );
+
   const coverPath = `${(coupleData && coupleData.couplePhotoStoragePath) || ""}`.trim();
   if (coverPath) {
     tasks.push(deleteStorageObject(coverPath));
@@ -553,6 +757,49 @@ function buildPartnerJoinedText(languageCode, joinerName) {
   const copy = PARTNER_JOINED_COPY[code] || PARTNER_JOINED_COPY.vi;
   return {
     title: copy.title(joinerName),
+    body: copy.body,
+  };
+}
+
+// Localized copy for the love-note push (feature #4), keyed by the recipient
+// device's languageCode. Unknown/missing codes fall back to Vietnamese.
+const LOVE_NOTE_COPY = {
+  vi: {
+    title: (author) => `${author} vừa để lại lời nhắn 💞`,
+  },
+  en: {
+    title: (name) => `${name} left you a love note 💞`,
+  },
+};
+
+function buildLoveNoteText(languageCode, authorName, noteText) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = LOVE_NOTE_COPY[code] || LOVE_NOTE_COPY.vi;
+  return {
+    title: copy.title(authorName),
+    body: truncateText(`${noteText || ""}`.trim(), 120),
+  };
+}
+
+// Localized copy for the daily-question push (feature #5), keyed by the
+// recipient device's languageCode. Unknown/missing codes fall back to
+// Vietnamese. Body is a gentle nudge to answer and unlock the reveal.
+const DAILY_QUESTION_COPY = {
+  vi: {
+    title: (author) => `${author} đã trả lời câu hỏi hôm nay 💞`,
+    body: "Trả lời câu hỏi của bạn để mở khoá câu trả lời của người ấy nhé.",
+  },
+  en: {
+    title: (name) => `${name} answered today's question 💞`,
+    body: "Answer yours to unlock your partner's reply.",
+  },
+};
+
+function buildDailyAnswerText(languageCode, authorName) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = DAILY_QUESTION_COPY[code] || DAILY_QUESTION_COPY.vi;
+  return {
+    title: copy.title(authorName),
     body: copy.body,
   };
 }

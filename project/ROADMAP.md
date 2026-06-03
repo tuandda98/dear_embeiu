@@ -28,6 +28,7 @@
 | Guest mode (fix Apple reject 5.1.1) | P0 | 🧪 Test PASS code-level — chờ user smoke-test thiết bị (5 case runtime) (2026-06-01) | [spec](features/guest-mode/overview.md) · [roadmap](features/guest-mode/roadmap.md) |
 | Invite sharing (copy/share mã mời — giảm ma sát ghép đôi) | P1 | 🧪 Test PASS code-level — chờ user smoke-test (Phase 1: copy/share cross-platform; QR=P2, link 1-chạm=P3 để sau) (2026-06-01) | [spec](features/invite-sharing/overview.md) · [roadmap](features/invite-sharing/roadmap.md) |
 | Home engagement (đẩy đăng ảnh từ Home — North Star) | P0 | 🧪 Test PASS code-level — chờ user smoke-test (Phase 1: CTA "Thêm kỷ niệm" + empty-state; partner-signal/streak=P2) (2026-06-01) | [spec](features/home-engagement/overview.md) · [roadmap](features/home-engagement/roadmap.md) |
+| Daily question (#5 — câu hỏi mỗi ngày kiểu SumOne, reveal sau khi trả lời) | P1 | 🚧 Dev xong — chờ test + deploy rules/functions (v1: ngày=local, reveal client-side, confetti, no-streak) (2026-06-02) | [dev](features/daily-question/dev.md) |
 
 ## Đã Done
 

@@ -130,6 +130,15 @@
   "milestoneProgressTitle": "Milestone progress",
   "milestoneProgressSubtitle": "Gently approaching the next sweet number",
   "recentMemoriesTitle": "Recent memories",
+  "onThisDayTitle": "On this day, {count, plural, =1{1 year ago} other{{count} years ago}} 💞",
+  "@onThisDayTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onThisDaySubtitle": "A memory from this very day",
   "addPhotosPrompt": "Add a few photos to start your love letter",
   "latestMomentsSubtitle": "A few of your latest moments together",
   "seeAll": "See all",
@@ -177,6 +186,92 @@
       }
     }
   },
+  "loveNoteFromPartner": "Note from {name}",
+  "@loveNoteFromPartner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveNoteEmptyFromPartner": "No note from {name} yet",
+  "@loveNoteEmptyFromPartner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveNoteWriteCta": "Write a note",
+  "loveNoteEditCta": "Edit your note",
+  "loveNoteWaitingPartner": "Invite your partner so you can leave little notes for each other.",
+  "loveNoteSheetTitle": "Your love note",
+  "loveNoteSheetHint": "Write something sweet for your partner…",
+  "loveNoteCharCount": "{count}/140",
+  "@loveNoteCharCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveNoteSaved": "Your note was sent 💞",
+  "loveNoteJustNow": "just now",
+  "loveNoteMinutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
+  "@loveNoteMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveNoteHoursAgo": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
+  "@loveNoteHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveNoteDaysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
+  "@loveNoteDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyQuestionLabel": "Today's question",
+  "dailyQuestionHint": "Write your answer…",
+  "dailyQuestionCharCount": "{count}/280",
+  "@dailyQuestionCharCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyQuestionSend": "Send",
+  "dailyQuestionYourAnswerLabel": "Your answer",
+  "dailyQuestionAnsweredWaiting": "Answered ✓ — waiting for {name}",
+  "@dailyQuestionAnsweredWaiting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyQuestionPartnerAnswerLabel": "{name}'s answer",
+  "@dailyQuestionPartnerAnswerLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyQuestionWaitingPartner": "It will unlock once your partner joins and answers too.",
+  "dailyQuestionRevealHint": "You both answered — here's what you each said 💞",
+  "dailyQuestionSent": "Your answer was sent 💞",
   "milestoneReached": "You just reached a beautiful milestone ✨",
   "onlyDaysUntilMilestone": "Only {count} days until your next milestone.",
   "@onlyDaysUntilMilestone": {

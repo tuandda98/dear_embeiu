@@ -2,6 +2,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'l10n/app_l10n.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -14,7 +15,9 @@ import 'app/app_routes.dart';
 import 'providers/auth_provider.dart';
 import 'providers/couple_provider.dart';
 import 'providers/custom_reminders_provider.dart';
+import 'providers/daily_question_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/love_note_provider.dart';
 import 'providers/photo_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'screens/auth_gate_screen.dart';
@@ -33,6 +36,20 @@ import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Draw edge-to-edge so the app's pink gradient fills the whole screen
+  // (incl. the bottom home-indicator / Android nav-bar area) instead of
+  // leaving a black bar there. System bars are made transparent with dark
+  // icons to suit the light pink backgrounds.
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.dark,
+  ));
+
   await Hive.initFlutter();
 
   // Initialise locale-aware date formatting once, up front. DateFormat.yMMMd
@@ -170,6 +187,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => CoupleProvider()),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
+        ChangeNotifierProvider(create: (_) => LoveNoteProvider()),
+        ChangeNotifierProvider(create: (_) => DailyQuestionProvider()),
         ChangeNotifierProvider(
           create: (_) => LocaleProvider(initialLocale: widget.initialLocale),
         ),

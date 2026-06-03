@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
+import '../providers/daily_question_provider.dart';
+import '../providers/love_note_provider.dart';
 import '../providers/photo_provider.dart';
 import 'app_routes.dart';
 
@@ -19,6 +21,8 @@ class SessionResolver {
     final authProvider = context.read<AuthProvider>();
     final coupleProvider = context.read<CoupleProvider>();
     final photoProvider = context.read<PhotoProvider>();
+    final loveNoteProvider = context.read<LoveNoteProvider>();
+    final dailyQuestionProvider = context.read<DailyQuestionProvider>();
 
     if (!authProvider.isInitialized) {
       await authProvider.initialize();
@@ -26,6 +30,8 @@ class SessionResolver {
 
     if (!authProvider.isAuthenticated) {
       await photoProvider.clearForSignOut();
+      loveNoteProvider.clear();
+      dailyQuestionProvider.clear();
       return AppRoutes.guest;
     }
 
@@ -36,8 +42,15 @@ class SessionResolver {
 
     if (hasCoupleData) {
       await photoProvider.syncForUser(currentUser);
+      loveNoteProvider.watchForCouple(currentUser!.coupleId!, currentUser.id);
+      dailyQuestionProvider.watchForCouple(
+        currentUser.coupleId!,
+        currentUser.id,
+      );
     } else {
       await photoProvider.clearForSignOut();
+      loveNoteProvider.clear();
+      dailyQuestionProvider.clear();
     }
 
     return hasCoupleData ? AppRoutes.home : AppRoutes.setup;

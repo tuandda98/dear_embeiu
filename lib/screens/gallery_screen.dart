@@ -30,6 +30,45 @@ class GalleryScreen extends StatefulWidget {
 
   final double bottomInset;
 
+  /// Opens the shared fullscreen photo preview (PageView + Hero) for a list of
+  /// [photos]. Reused outside the gallery (e.g. the Home "On this day" card) so
+  /// the preview UI lives in one place. [heroTags] must match [photos] length;
+  /// pass read-only previews without edit/report callbacks when appropriate.
+  static Future<void> openPreview(
+    BuildContext context, {
+    required List<Photo> photos,
+    required List<String> heroTags,
+    required int initialIndex,
+    Couple? couple,
+  }) async {
+    if (photos.isEmpty || initialIndex < 0 || initialIndex >= photos.length) {
+      return;
+    }
+
+    final photo = photos[initialIndex];
+    if (!(photo.hasLocalPath && File(photo.path).existsSync()) &&
+        !photo.hasRemoteUrl) {
+      return;
+    }
+
+    await Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierDismissible: true,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            _FullscreenPhotoPreview(
+          photos: photos,
+          heroTags: heroTags,
+          initialIndex: initialIndex,
+          couple: couple,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
+  }
+
   @override
   State<GalleryScreen> createState() => _GalleryScreenState();
 }

@@ -334,6 +334,19 @@ class AppLocalizationsVi extends AppLocalizations {
   String get recentMemoriesTitle => 'Kỷ niệm gần đây';
 
   @override
+  String onThisDayTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count năm trước',
+    );
+    return 'Ngày này $_temp0 💞';
+  }
+
+  @override
+  String get onThisDaySubtitle => 'Một kỷ niệm đúng vào ngày này';
+
+  @override
   String get addPhotosPrompt => 'Thêm vài ảnh để bắt đầu thư tình của hai bạn';
 
   @override
@@ -383,6 +396,114 @@ class AppLocalizationsVi extends AppLocalizations {
   String loveNoteQuote(int count) {
     return '\"$count ngày không chỉ là thời gian — đó là từng khoảnh khắc nhẹ nhàng, từng lựa chọn ở lại, từng điều nhỏ bé chúng mình chia sẻ.\"';
   }
+
+  @override
+  String loveNoteFromPartner(String name) {
+    return 'Lời nhắn từ $name';
+  }
+
+  @override
+  String loveNoteEmptyFromPartner(String name) {
+    return 'Chưa có lời nhắn từ $name';
+  }
+
+  @override
+  String get loveNoteWriteCta => 'Viết lời nhắn';
+
+  @override
+  String get loveNoteEditCta => 'Sửa lời nhắn';
+
+  @override
+  String get loveNoteWaitingPartner =>
+      'Mời người ấy để cùng để lại lời nhắn cho nhau.';
+
+  @override
+  String get loveNoteSheetTitle => 'Lời nhắn của bạn';
+
+  @override
+  String get loveNoteSheetHint => 'Viết điều gì đó ngọt ngào cho người ấy…';
+
+  @override
+  String loveNoteCharCount(int count) {
+    return '$count/140';
+  }
+
+  @override
+  String get loveNoteSaved => 'Đã gửi lời nhắn 💞';
+
+  @override
+  String get loveNoteJustNow => 'vừa xong';
+
+  @override
+  String loveNoteMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count phút trước',
+      one: '1 phút trước',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String loveNoteHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count giờ trước',
+      one: '1 giờ trước',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String loveNoteDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ngày trước',
+      one: '1 ngày trước',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dailyQuestionLabel => 'Câu hỏi hôm nay';
+
+  @override
+  String get dailyQuestionHint => 'Viết câu trả lời của bạn…';
+
+  @override
+  String dailyQuestionCharCount(int count) {
+    return '$count/280';
+  }
+
+  @override
+  String get dailyQuestionSend => 'Gửi';
+
+  @override
+  String get dailyQuestionYourAnswerLabel => 'Câu trả lời của bạn';
+
+  @override
+  String dailyQuestionAnsweredWaiting(String name) {
+    return 'Đã trả lời ✓ — đang chờ $name';
+  }
+
+  @override
+  String dailyQuestionPartnerAnswerLabel(String name) {
+    return 'Câu trả lời của $name';
+  }
+
+  @override
+  String get dailyQuestionWaitingPartner =>
+      'Sẽ mở khoá khi người ấy tham gia và trả lời nhé.';
+
+  @override
+  String get dailyQuestionRevealHint =>
+      'Cả hai đã trả lời — cùng xem hai bạn đã nói gì nhé 💞';
+
+  @override
+  String get dailyQuestionSent => 'Đã gửi câu trả lời của bạn 💞';
 
   @override
   String get milestoneReached => 'Hai bạn vừa đạt một cột mốc đẹp ✨';

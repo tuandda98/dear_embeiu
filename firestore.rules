@@ -356,6 +356,29 @@ service cloud.firestore {
         || isCoupleLeaveTransition();
 
       allow delete: if isSoleCoupleMember(coupleId);
+
+      // Love notes (feature #4): one short note per member, doc id == author uid.
+      // The author owns and overwrites their single note; both members can read.
+      match /notes/{noteId} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && noteId == request.auth.uid
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 140;
+      }
+
+      // Daily question answers (feature #5): one answer per member per day, doc
+      // id == author uid. Both members read both answers (the "answer first to
+      // reveal" rule is client-side UI only); each member writes only their own.
+      match /dailyAnswers/{date}/responses/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 280;
+      }
     }
 
     match /couples/{coupleId}/photos/{photoId} {

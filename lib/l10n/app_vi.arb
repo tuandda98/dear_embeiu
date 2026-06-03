@@ -130,6 +130,15 @@
   "milestoneProgressTitle": "Tiến trình cột mốc",
   "milestoneProgressSubtitle": "Nhẹ nhàng tiến về con số ngọt ngào tiếp theo",
   "recentMemoriesTitle": "Kỷ niệm gần đây",
+  "onThisDayTitle": "Ngày này {count, plural, other{{count} năm trước}} 💞",
+  "@onThisDayTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onThisDaySubtitle": "Một kỷ niệm đúng vào ngày này",
   "addPhotosPrompt": "Thêm vài ảnh để bắt đầu thư tình của hai bạn",
   "latestMomentsSubtitle": "Một vài khoảnh khắc mới nhất của hai bạn",
   "seeAll": "Xem tất cả",
@@ -177,6 +186,92 @@
       }
     }
   },
+  "loveNoteFromPartner": "Lời nhắn từ {name}",
+  "@loveNoteFromPartner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveNoteEmptyFromPartner": "Chưa có lời nhắn từ {name}",
+  "@loveNoteEmptyFromPartner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveNoteWriteCta": "Viết lời nhắn",
+  "loveNoteEditCta": "Sửa lời nhắn",
+  "loveNoteWaitingPartner": "Mời người ấy để cùng để lại lời nhắn cho nhau.",
+  "loveNoteSheetTitle": "Lời nhắn của bạn",
+  "loveNoteSheetHint": "Viết điều gì đó ngọt ngào cho người ấy…",
+  "loveNoteCharCount": "{count}/140",
+  "@loveNoteCharCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveNoteSaved": "Đã gửi lời nhắn 💞",
+  "loveNoteJustNow": "vừa xong",
+  "loveNoteMinutesAgo": "{count, plural, =1{1 phút trước} other{{count} phút trước}}",
+  "@loveNoteMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveNoteHoursAgo": "{count, plural, =1{1 giờ trước} other{{count} giờ trước}}",
+  "@loveNoteHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveNoteDaysAgo": "{count, plural, =1{1 ngày trước} other{{count} ngày trước}}",
+  "@loveNoteDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyQuestionLabel": "Câu hỏi hôm nay",
+  "dailyQuestionHint": "Viết câu trả lời của bạn…",
+  "dailyQuestionCharCount": "{count}/280",
+  "@dailyQuestionCharCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyQuestionSend": "Gửi",
+  "dailyQuestionYourAnswerLabel": "Câu trả lời của bạn",
+  "dailyQuestionAnsweredWaiting": "Đã trả lời ✓ — đang chờ {name}",
+  "@dailyQuestionAnsweredWaiting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyQuestionPartnerAnswerLabel": "Câu trả lời của {name}",
+  "@dailyQuestionPartnerAnswerLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyQuestionWaitingPartner": "Sẽ mở khoá khi người ấy tham gia và trả lời nhé.",
+  "dailyQuestionRevealHint": "Cả hai đã trả lời — cùng xem hai bạn đã nói gì nhé 💞",
+  "dailyQuestionSent": "Đã gửi câu trả lời của bạn 💞",
   "milestoneReached": "Hai bạn vừa đạt một cột mốc đẹp ✨",
   "onlyDaysUntilMilestone": "Chỉ còn {count} ngày tới cột mốc tiếp theo.",
   "@onlyDaysUntilMilestone": {
