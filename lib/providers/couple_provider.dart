@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/couple.dart';
+import '../services/analytics_service.dart';
 import '../services/couple_service.dart';
 import '../services/storage_service.dart';
 
@@ -81,6 +82,10 @@ class CoupleProvider extends ChangeNotifier {
       );
       _couple = result.couple;
       notifyListeners();
+      // Analytics — A created a couple (now waiting for a partner).
+      AnalyticsService.instance
+        ..logCoupleCreated()
+        ..setCoupleStatus('waiting_partner');
       return result;
     } on CoupleException catch (e) {
       _errorMessage = e.message;
@@ -105,13 +110,35 @@ class CoupleProvider extends ChangeNotifier {
       );
       _couple = result.couple;
       notifyListeners();
+      // Analytics — B joined successfully (⭐ activation). Log the attempt
+      // result + the join event + new couple status.
+      AnalyticsService.instance
+        ..logCoupleJoinAttempt(AnalyticsJoinResult.success)
+        ..logCoupleJoined()
+        ..setCoupleStatus('in_couple');
       return result;
     } on CoupleException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
+      // Analytics — failed attempt, bucketed by stable code (never PII).
+      AnalyticsService.instance.logCoupleJoinAttempt(_joinResultFor(e.code));
       rethrow;
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Maps a [CoupleErrorCode] from a failed join to the analytics `result`
+  /// bucket (contract: success | invalid_code | already_in_couple | error).
+  String _joinResultFor(CoupleErrorCode? code) {
+    switch (code) {
+      case CoupleErrorCode.inviteNotFound:
+        return AnalyticsJoinResult.invalidCode;
+      case CoupleErrorCode.alreadyHasCouple:
+      case CoupleErrorCode.alreadyInThis:
+        return AnalyticsJoinResult.alreadyInCouple;
+      default:
+        return AnalyticsJoinResult.error;
     }
   }
 
@@ -161,6 +188,8 @@ class CoupleProvider extends ChangeNotifier {
       _coupleSubscription = null;
       _couple = null;
       notifyListeners();
+      // Analytics — back to single after leaving the couple.
+      AnalyticsService.instance.setCoupleStatus('single');
       return updatedUser;
     } on CoupleException catch (e) {
       _errorMessage = e.message;

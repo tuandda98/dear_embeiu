@@ -148,6 +148,7 @@ class CustomRemindersScreen extends StatelessWidget {
     }
     Navigator.of(context).push(
       MaterialPageRoute<bool>(
+        settings: const RouteSettings(name: 'CustomReminderForm'),
         builder: (_) => const CustomReminderFormScreen(),
       ),
     );
@@ -626,6 +627,7 @@ class _ReminderCard extends StatelessWidget {
   void _openEdit(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<bool>(
+        settings: const RouteSettings(name: 'CustomReminderForm'),
         builder: (_) => CustomReminderFormScreen(existing: reminder),
       ),
     );

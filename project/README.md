@@ -72,12 +72,12 @@ project/
 
 > Chi tiết & ranh giới đầy đủ ở `../CLAUDE.md` mục 9. Tóm tắt:
 
-**🟦 Mode 1 — PO Orchestrator:** user **chỉ nói chuyện với PO**. PO tự spawn subagent Designer/Dev/Tester, điều phối cả pipeline, tự quyết câu hỏi nhỏ (theo spec/decision log/design system), chỉ hỏi user khi vượt thẩm quyền, rồi báo kết quả 1 lần khi xong.
+**🟦 Mode 1 — PO Orchestrator (mặc định):** user **chỉ nói chuyện với PO** (hoặc `/lead`). PO tự spawn subagent Designer/Dev/Tester, điều phối cả pipeline, tự quyết câu hỏi nhỏ (theo spec/decision log/design system), chỉ hỏi user khi vượt thẩm quyền, rồi báo kết quả 1 lần khi xong.
 - Kích hoạt: *"PO orchestrate feature X"* / *"PO tự điều phối làm feature X"*.
 - Subagent đọc `features/<ten>/` để lấy ngữ cảnh + ghi vào file role mình → vẫn theo đúng hệ thống file này.
 - **Quy tắc thực thi (để không giẫm chân, chính xác):** chạy **tuần tự 1 subagent/lúc** (Designer→Dev→Tester), không song song trong cùng feature; **1 file chỉ 1 agent chỉnh tại một thời điểm**; PO **gate verify giữa mỗi stage** bằng `flutter analyze` + đọc đĩa (đĩa là nguồn sự thật, không tin báo cáo suông); FAIL → 1 Dev-fix → re-verify (tối đa 2-3 vòng) → quá thì báo user. Đầy đủ ở `../CLAUDE.md` mục 9 ("Quy tắc thực thi orchestrator").
 
-**🟩 Mode 2 — User tự điều phối (mặc định):** user tự gắn từng role (1 tab đổi vai, hoặc 4 tab) và tự chuyển tiếp theo "Giao thức bàn giao đa-tab" dưới đây.
+**🟩 Mode 2 — User tự điều phối:** user tự gắn từng role (1 tab đổi vai, hoặc 4 tab) và tự chuyển tiếp theo "Giao thức bàn giao đa-tab" dưới đây.
 
 | | Mode 1 (PO Orchestrator) | Mode 2 (Manual) |
 |--|--------------------------|------------------|

@@ -22,6 +22,7 @@ import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/blocking_loading_overlay.dart';
+import '../widgets/love_lottie.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/shared_photo_view.dart';
 
@@ -1489,6 +1490,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   ],
                 ),
               const SizedBox(height: 10),
+              // Khoảnh khắc "empty gallery" (feature lottie-moments). Chưa có
+              // file → SizedBox 0px (layout y hệt cũ); có file → animation lặp êm.
+              const LoveLottie(
+                slot: LoveLottieSlot.emptyGallery,
+                height: 140,
+                repeat: true,
+              ),
               Text(
                 context.l10n.emptyFeedContent,
                 textAlign: TextAlign.center,

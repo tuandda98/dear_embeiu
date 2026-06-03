@@ -18,6 +18,7 @@ import '../providers/daily_question_provider.dart';
 import '../providers/love_note_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
+import '../services/analytics_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
@@ -26,6 +27,7 @@ import '../widgets/animated_couple_name.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/invite_action_buttons.dart';
+import '../widgets/love_lottie.dart';
 import '../widgets/shared_photo_view.dart';
 import '../widgets/shimmer_skeleton.dart';
 import 'profile_screen.dart';
@@ -123,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       if (_selectedIndex != requested) {
         setState(() => _selectedIndex = requested);
+        _logTabScreenView(requested);
       }
     });
   }
@@ -133,6 +136,21 @@ class _HomeScreenState extends State<HomeScreen> {
   void _applyPendingTab(int requested) {
     if (requested >= 0 && requested < _navigationItems.length) {
       _selectedIndex = requested;
+      // Cold-start deep-link straight to a tab: the '/home' route observer logs
+      // 'Home', so only emit the extra screen_view for Gallery/Profile.
+      if (requested > 0) {
+        _logTabScreenView(requested);
+      }
+    }
+  }
+
+  /// Logs a `screen_view` for the Home bottom-nav tabs (0=Home, 1=Gallery,
+  /// 2=Profile) — these are IndexedStack children, not routes, so the navigator
+  /// observer can't see them. (feature analytics)
+  void _logTabScreenView(int index) {
+    const names = ['Home', 'Gallery', 'Profile'];
+    if (index >= 0 && index < names.length) {
+      AnalyticsService.instance.logScreenView(names[index]);
     }
   }
 
@@ -418,6 +436,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (_selectedIndex == index) return;
             HapticFeedback.selectionClick();
             setState(() => _selectedIndex = index);
+            _logTabScreenView(index);
           },
           child: SizedBox.expand(
             child: Center(
@@ -568,7 +587,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => setState(() => _selectedIndex = 2),
+                  onTap: () {
+                    setState(() => _selectedIndex = 2);
+                    _logTabScreenView(2);
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -1917,6 +1939,16 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
             AppColors.white,
           ],
         ),
+        // Khoảnh khắc mở khoá Daily Question (feature lottie-moments). Chưa có
+        // file → SizedBox 0px (chỉ còn confetti như cũ); có file → accent thêm.
+        if (hasRevealed)
+          const Positioned(
+            top: -8,
+            child: LoveLottie(
+              slot: LoveLottieSlot.dailyReveal,
+              height: 120,
+            ),
+          ),
       ],
     );
   }

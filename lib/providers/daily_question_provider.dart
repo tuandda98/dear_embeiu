@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../data/daily_questions.dart';
 import '../models/daily_answer.dart';
+import '../services/analytics_service.dart';
 import '../services/daily_question_service.dart';
 
 /// State for the "Daily question" Home card (feature #5): streams both members'
@@ -22,6 +23,11 @@ class DailyQuestionProvider extends ChangeNotifier {
   String _dateKey = '';
   List<DailyAnswer> _answers = const <DailyAnswer>[];
   bool _isLoading = false;
+
+  // Analytics guard — `daily_question_revealed` must fire ONCE per (couple,
+  // day) reveal, not on every stream update once both have answered. Reset
+  // whenever we (re)subscribe for a new couple/uid/day.
+  bool _revealLogged = false;
 
   /// Today's shared question text in [langCode], resolved from the device-local
   /// date so both partners see the same prompt on the same day.
@@ -98,11 +104,19 @@ class DailyQuestionProvider extends ChangeNotifier {
     if (coupleId == null) {
       return;
     }
+    // New (couple, uid, day) window → allow the reveal event to fire once more.
+    _revealLogged = false;
     _subscription?.cancel();
     _subscription = _service.watchResponses(coupleId, _dateKey).listen(
       (answers) {
         _answers = answers;
         _isLoading = false;
+        // Analytics — fire `daily_question_revealed` exactly once, the first
+        // time both partners have answered today (no answer content logged).
+        if (!_revealLogged && hasRevealed) {
+          _revealLogged = true;
+          AnalyticsService.instance.logDailyQuestionRevealed();
+        }
         notifyListeners();
       },
       onError: (_) {
@@ -127,6 +141,9 @@ class DailyQuestionProvider extends ChangeNotifier {
       uid: uid,
       text: text,
     );
+
+    // Analytics — answered today (🔒 never the answer text).
+    AnalyticsService.instance.logDailyQuestionAnswered();
 
     // The Firebase stream pushes the new doc automatically; the local fallback
     // is a one-shot future, so re-read to reflect the just-saved answer.

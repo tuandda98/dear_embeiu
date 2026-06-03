@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
+import 'analytics_service.dart';
 import 'firebase_bootstrap_service.dart';
 import 'user_service.dart';
 
@@ -334,9 +335,13 @@ class PushNotificationService {
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;
       default:
-        // Unknown or absent type — leave the current tab untouched.
-        break;
+        // Unknown or absent type — leave the current tab untouched and don't
+        // log a malformed `notification_opened`.
+        return;
     }
+    // Analytics — log only the known, normalised push type (an enum string,
+    // never any notification content).
+    AnalyticsService.instance.logNotificationOpened(type as String);
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {

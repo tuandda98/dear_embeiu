@@ -53,9 +53,14 @@ enum CouplePhotoSyncWarningCode {
 }
 
 class CoupleException implements Exception {
-  const CoupleException(this.message);
+  const CoupleException(this.message, {this.code});
 
   final String message;
+
+  /// Optional stable, locale-independent reason. Used by callers (e.g. the
+  /// analytics layer) to bucket failures without parsing the localized
+  /// [message]. Null for throws that predate this tagging.
+  final CoupleErrorCode? code;
 
   @override
   String toString() => message;
@@ -279,7 +284,10 @@ class CoupleService {
   }) async {
     // Block only users who are actively paired with a partner
     if (currentUser.hasCouple && currentUser.status == 'in_couple') {
-      throw CoupleException(AppL10n.strings.coupleAlreadyInCouple);
+      throw CoupleException(
+        AppL10n.strings.coupleAlreadyInCouple,
+        code: CoupleErrorCode.alreadyHasCouple,
+      );
     }
 
     final normalizedCode = inviteCode.trim().toUpperCase();
@@ -303,7 +311,10 @@ class CoupleService {
 
         final accountInvite = await _userService.fetchAccountInvite(normalizedCode);
         if (accountInvite == null) {
-          throw CoupleException(AppL10n.strings.coupleInviteCodeInvalid);
+          throw CoupleException(
+            AppL10n.strings.coupleInviteCodeInvalid,
+            code: CoupleErrorCode.inviteNotFound,
+          );
         }
 
         if (accountInvite.userId == effectiveUser.id) {
@@ -332,11 +343,17 @@ class CoupleService {
           });
 
           if (!currentCouple.memberIds.contains(accountInvite.userId)) {
-            throw CoupleException(AppL10n.strings.coupleCodeNoLongerValid);
+            throw CoupleException(
+              AppL10n.strings.coupleCodeNoLongerValid,
+              code: CoupleErrorCode.inviteNotFound,
+            );
           }
 
           if (currentCouple.memberIds.contains(effectiveUser.id)) {
-            throw CoupleException(AppL10n.strings.coupleAlreadyInThisCouple);
+            throw CoupleException(
+              AppL10n.strings.coupleAlreadyInThisCouple,
+              code: CoupleErrorCode.alreadyInThis,
+            );
           }
 
           if (currentCouple.memberCount >= 2) {
@@ -425,7 +442,10 @@ class CoupleService {
 
     final localCouple = await StorageService.loadCouple();
     if (localCouple == null || localCouple.inviteCode != normalizedCode) {
-      throw CoupleException(AppL10n.strings.coupleCodeNotFoundLocal);
+      throw CoupleException(
+        AppL10n.strings.coupleCodeNotFoundLocal,
+        code: CoupleErrorCode.inviteNotFound,
+      );
     }
 
     if (localCouple.memberCount >= 2) {

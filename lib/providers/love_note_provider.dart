@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/love_note.dart';
+import '../services/analytics_service.dart';
 import '../services/love_note_service.dart';
 
 /// State for the "Love note" Home card: streams both members' notes for the
@@ -92,7 +93,14 @@ class LoveNoteProvider extends ChangeNotifier {
       return false;
     }
 
+    // Decide create vs update BEFORE saving — based only on whether a note
+    // already existed, never on its text (🔒 no content is logged).
+    final action = myNote == null ? 'create' : 'update';
+
     await _service.setMyNote(coupleId: coupleId, uid: uid, text: text);
+
+    // Analytics — success path only.
+    AnalyticsService.instance.logLoveNoteSet(action);
     return true;
   }
 

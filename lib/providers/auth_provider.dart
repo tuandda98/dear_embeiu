@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/app_user.dart';
 import '../models/auth_status.dart';
+import '../services/analytics_service.dart';
 import '../services/auth_service.dart';
 import '../services/push_notification_service.dart';
 
@@ -74,6 +75,11 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.authenticated;
       _isInitialized = true;
       await PushNotificationService.instance.syncForUser(_currentUser);
+      // Analytics — success path only.
+      await AnalyticsService.instance.setUserId(_currentUser?.id);
+      AnalyticsService.instance
+        ..setIsGuest(false)
+        ..logLogin();
       return true;
     } on AuthException catch (e) {
       _status = AuthStatus.unauthenticated;
@@ -105,6 +111,11 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.authenticated;
       _isInitialized = true;
       await PushNotificationService.instance.syncForUser(_currentUser);
+      // Analytics — success path only.
+      await AnalyticsService.instance.setUserId(_currentUser?.id);
+      AnalyticsService.instance
+        ..setIsGuest(false)
+        ..logSignUp();
       return true;
     } on AuthException catch (e) {
       _status = AuthStatus.unauthenticated;
@@ -130,6 +141,9 @@ class AuthProvider extends ChangeNotifier {
       _currentUser = null;
       _status = AuthStatus.unauthenticated;
       _isInitialized = true;
+      // Analytics — clear the user id (D2) and mark guest again.
+      await AnalyticsService.instance.setUserId(null);
+      AnalyticsService.instance.setIsGuest(true);
     } catch (e) {
       _errorMessage = 'Sign out failed: $e';
     } finally {
@@ -149,6 +163,9 @@ class AuthProvider extends ChangeNotifier {
       await _authService.deleteAccount(currentUser: user);
       _currentUser = null;
       _status = AuthStatus.unauthenticated;
+      // Analytics — success path only; log then clear the user id (D2).
+      AnalyticsService.instance.logAccountDeleted();
+      await AnalyticsService.instance.setUserId(null);
       return null;
     } on AuthException catch (e) {
       if (e.message == 'requires-recent-login') {

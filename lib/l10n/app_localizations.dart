@@ -2012,6 +2012,18 @@ abstract class AppLocalizations {
   /// **'Your story, data & account'**
   String get settingsAccountModuleSubtitle;
 
+  /// No description provided for @settingsAnalyticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share usage data'**
+  String get settingsAnalyticsTitle;
+
+  /// No description provided for @settingsAnalyticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help improve the app with anonymous data. We never collect your private content.'**
+  String get settingsAnalyticsSubtitle;
+
   /// No description provided for @settingsEditStorySubtitle.
   ///
   /// In en, this message translates to:

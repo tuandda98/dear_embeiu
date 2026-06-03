@@ -622,6 +622,8 @@
   "settingsRemindersModuleSubtitle": "Cột mốc, kỷ niệm & lời nhắc riêng",
   "settingsAccountModuleTitle": "Tài khoản & dữ liệu",
   "settingsAccountModuleSubtitle": "Câu chuyện, dữ liệu & tài khoản",
+  "settingsAnalyticsTitle": "Chia sẻ dữ liệu sử dụng",
+  "settingsAnalyticsSubtitle": "Giúp cải thiện app bằng dữ liệu ẩn danh. Không bao giờ thu thập nội dung riêng tư của bạn.",
   "settingsEditStorySubtitle": "Đổi tên, ngày yêu, ảnh đại diện",
   "settingsDefaultTimeLabel": "Giờ mặc định",
   "settingsDefaultTimeSubtitle": "Áp dụng cho mốc chưa đặt giờ riêng",

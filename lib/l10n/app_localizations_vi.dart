@@ -1126,6 +1126,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get settingsAccountModuleSubtitle => 'Câu chuyện, dữ liệu & tài khoản';
 
   @override
+  String get settingsAnalyticsTitle => 'Chia sẻ dữ liệu sử dụng';
+
+  @override
+  String get settingsAnalyticsSubtitle =>
+      'Giúp cải thiện app bằng dữ liệu ẩn danh. Không bao giờ thu thập nội dung riêng tư của bạn.';
+
+  @override
   String get settingsEditStorySubtitle => 'Đổi tên, ngày yêu, ảnh đại diện';
 
   @override

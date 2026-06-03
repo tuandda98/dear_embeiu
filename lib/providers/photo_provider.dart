@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/photo.dart';
+import '../services/analytics_service.dart';
 import '../services/photo_service.dart';
 import '../services/storage_service.dart';
 
@@ -91,6 +92,10 @@ class PhotoProvider extends ChangeNotifier {
     required AppUser currentUser,
     String? caption,
   }) async {
+    // Capture whether this couple had any photos BEFORE the upload, so we can
+    // report `is_first` to analytics (no caption / no PII is ever logged).
+    final wasFirstPhoto = _photos.isEmpty;
+
     _setLoading(true, message: AppL10n.strings.uploadingPhoto);
     _clearError(notify: false);
 
@@ -106,6 +111,12 @@ class PhotoProvider extends ChangeNotifier {
         await StorageService.savePhotos(_photos);
         notifyListeners();
       }
+
+      // Analytics — success path (⭐⭐ North Star). Mark the user as having
+      // posted at least one photo.
+      AnalyticsService.instance
+        ..logPhotoPosted(isFirst: wasFirstPhoto)
+        ..setHasPostedPhoto(true);
     } on PhotoSyncException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
@@ -132,6 +143,9 @@ class PhotoProvider extends ChangeNotifier {
         await StorageService.savePhotos(_photos);
         notifyListeners();
       }
+
+      // Analytics — success path.
+      AnalyticsService.instance.logPhotoDeleted();
     } on PhotoSyncException catch (e) {
       _errorMessage = e.message;
       notifyListeners();

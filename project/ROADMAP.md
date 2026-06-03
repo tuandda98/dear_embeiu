@@ -30,20 +30,23 @@
 | Home engagement (đẩy đăng ảnh từ Home — North Star) | P0 | 🧪 Test PASS code-level — chờ user smoke-test (Phase 1: CTA "Thêm kỷ niệm" + empty-state; partner-signal/streak=P2) (2026-06-01) | [spec](features/home-engagement/overview.md) · [roadmap](features/home-engagement/roadmap.md) |
 | Daily question (#5 — câu hỏi mỗi ngày kiểu SumOne, reveal sau khi trả lời) | P1 | 🚧 Dev xong — chờ test + deploy rules/functions (v1: ngày=local, reveal client-side, confetti, no-streak) (2026-06-02) | [dev](features/daily-question/dev.md) |
 
+| Lottie moments (animation "khoảnh khắc": ghép đôi / empty gallery / daily reveal — Đợt 2 polish) | P2 | 💻 Dev — `LoveLottie` + wire 3 moment, analyze sạch, **3/4 slot có file** (pháo hoa/tim/camera, placeholder); **chờ user smoke-test + preview-đổi tông**; milestone cần trigger (no-cờ, release theo branch) (2026-06-03) | [spec](features/lottie-moments/overview.md) · [dev](features/lottie-moments/dev.md) |
+| **Analytics (event funnel — North Star)** | P0 | 🧪 **Test PASS code-level** (2026-06-03) — `firebase_analytics` + AnalyticsService no-context (no-op khi Firebase chưa sẵn/opt-out), 14 event + user props + screen_view, toggle opt-out (default ON), privacy posture (no-tracking, xcprivacy/policy), **đóng Gap G language**. Chờ runtime GA4 DebugView + user điền form Play/Apple console. Phase 2, no-cờ | [spec](features/analytics/overview.md) · [dev](features/analytics/dev.md) · [test](features/analytics/test.md) |
+
 ## Đã Done
 
 | Feature | Ưu tiên | Trạng thái | Spec / Roadmap riêng |
 |---------|---------|-----------|----------------------|
 | Language (đa ngôn ngữ) | P0 | ✅ Done (2026-05-31) | [spec](features/language/overview.md) · [roadmap](features/language/roadmap.md) |
 
-> Còn nợ nhỏ: Gap G (analytics `language_changed`) hoãn theo feature analytics.
+> ✅ Gap G (analytics `language_changed`) đã đóng bởi feature **analytics** (2026-06-03).
 
 ## Backlog (chưa tạo folder — tạo khi bắt đầu làm)
 
 Theo `../CLAUDE.md` mục 11 (Product roadmap):
 
 **NOW**
-- Analytics + event funnel (install→couple→ảnh đầu→D7) — *nền cho mọi quyết định, P0*
+- ~~Analytics + event funnel~~ → đã có folder, **🧪 Test PASS code-level** (xem bảng "Đang làm").
 - Onboarding/tutorial (giảm rớt bước ghép đôi)
 - Reactions ❤️ trên ảnh (tận dụng push) — *mở rộng feature gallery*
 - Day streak (đã stubbed l10n)

@@ -18,6 +18,7 @@ import '../theme/app_theme.dart';
 import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/invite_action_buttons.dart';
+import '../widgets/love_lottie.dart';
 import '../widgets/shared_couple_photo_view.dart';
 
 enum _SetupMode { create, join }
@@ -240,6 +241,11 @@ class _SetupScreenState extends State<SetupScreen> {
         return;
       }
 
+      // Khoảnh khắc ghép đôi thành công (feature lottie-moments). Tự bỏ qua nếu
+      // chưa có file animation → giữ nguyên luồng snack + điều hướng như cũ.
+      await _showJoinCelebration();
+      if (!mounted) return;
+
       _showSnack(result.message ?? l10n.setupSuccessConnected);
       Navigator.of(context).pushReplacementNamed(AppRoutes.home);
     } on CoupleException catch (e) {
@@ -248,6 +254,40 @@ class _SetupScreenState extends State<SetupScreen> {
       if (!mounted) return;
       _showSnack(context.l10n.setupErrorJoinCouple('$e'));
     }
+  }
+
+  /// Hiện animation ăn mừng ghép đôi (feature lottie-moments), tự đóng sau
+  /// ~1.9s rồi mới điều hướng. Bỏ qua sạch nếu chưa bundle file của slot
+  /// (tránh dialog trống) → luồng cũ giữ nguyên.
+  Future<void> _showJoinCelebration() async {
+    if (!mounted) return;
+    try {
+      await rootBundle.load(LoveLottieSlot.coupleJoined.asset);
+    } catch (_) {
+      return; // chưa có file animation → không hiện gì
+    }
+    if (!mounted) return;
+
+    // Bắt NavigatorState đồng bộ TRƯỚC await để không dùng BuildContext qua
+    // async gap (lint use_build_context_synchronously).
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final dialogClosed = showDialog<void>(
+      context: context,
+      useRootNavigator: true,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.35),
+      builder: (_) => const Center(
+        child: LoveLottie(
+          slot: LoveLottieSlot.coupleJoined,
+          height: 220,
+        ),
+      ),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 1900));
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+    await dialogClosed;
   }
 
   Future<void> _showInviteCodeDialog(String inviteCode) async {

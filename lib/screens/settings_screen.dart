@@ -17,6 +17,7 @@ import '../providers/locale_provider.dart';
 import '../providers/custom_reminders_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
+import '../services/analytics_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../widgets/language_toggle_button.dart';
@@ -95,17 +96,19 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 18),
                     _OnceEntrance(order: 2, child: _buildAccountSection(context)),
                     const SizedBox(height: 18),
+                    _OnceEntrance(order: 3, child: _buildPrivacySection(context)),
+                    const SizedBox(height: 18),
                     _OnceEntrance(
-                      order: 3,
+                      order: 4,
                       child: _buildDangerZone(
                         context,
                         isUsingFirebase: authProvider.isUsingFirebase,
                       ),
                     ),
                     const SizedBox(height: 18),
-                    _OnceEntrance(order: 4, child: _buildSignOutButton(context)),
+                    _OnceEntrance(order: 5, child: _buildSignOutButton(context)),
                     const SizedBox(height: 12),
-                    _OnceEntrance(order: 5, child: _buildPrivacyPolicyLink(context)),
+                    _OnceEntrance(order: 6, child: _buildPrivacyPolicyLink(context)),
                   ],
                 ),
               );
@@ -236,6 +239,8 @@ class SettingsScreen extends StatelessWidget {
                       ? () {
                           Navigator.of(context).push(
                             MaterialPageRoute<void>(
+                              settings: const RouteSettings(
+                                  name: 'MilestoneReminders'),
                               builder: (_) => const MilestoneRemindersScreen(),
                             ),
                           );
@@ -338,6 +343,7 @@ class SettingsScreen extends StatelessWidget {
                   if (settings.enabled) {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
+                        settings: const RouteSettings(name: 'CustomReminders'),
                         builder: (_) => const CustomRemindersScreen(),
                       ),
                     );
@@ -537,6 +543,7 @@ class SettingsScreen extends StatelessWidget {
                 await customReminders.rescheduleAllEnabled();
                 navigator.push(
                   MaterialPageRoute<void>(
+                    settings: const RouteSettings(name: 'CustomReminders'),
                     builder: (_) => const CustomRemindersScreen(),
                   ),
                 );
@@ -717,6 +724,29 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Module: Privacy & data — usage-analytics opt-out (feature: analytics, D1c).
+  // Default ON; toggling off stops collection immediately. No new screen.
+  // ---------------------------------------------------------------------------
+  Widget _buildPrivacySection(BuildContext context) {
+    final l10n = context.l10n;
+    return _buildSectionCard(
+      title: l10n.privacyPolicyLabel,
+      subtitle: l10n.settingsAnalyticsSubtitle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: 0.72),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.accentRose.withValues(alpha: 0.10),
+          ),
+        ),
+        child: const _AnalyticsToggleTile(),
       ),
     );
   }
@@ -1224,6 +1254,69 @@ class _InkTile extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The usage-analytics opt-out switch (feature: analytics, D1c). Reads/writes
+/// [AnalyticsService] directly — analytics state lives in the service (Hive),
+/// not a provider, so a small local `setState` mirrors the toggle. Default ON.
+class _AnalyticsToggleTile extends StatefulWidget {
+  const _AnalyticsToggleTile();
+
+  @override
+  State<_AnalyticsToggleTile> createState() => _AnalyticsToggleTileState();
+}
+
+class _AnalyticsToggleTileState extends State<_AnalyticsToggleTile> {
+  late bool _enabled = AnalyticsService.instance.isEnabled;
+
+  Future<void> _onChanged(bool value) async {
+    HapticFeedback.selectionClick();
+    setState(() => _enabled = value);
+    await AnalyticsService.instance.setEnabled(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SwitchListTile.adaptive(
+      value: _enabled,
+      onChanged: _onChanged,
+      activeThumbColor: AppColors.accentRose,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      secondary: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: AppColors.accentRose.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(
+          LucideIcons.barChart3,
+          color: AppColors.accentRose,
+          size: 20,
+        ),
+      ),
+      title: Text(
+        l10n.settingsAnalyticsTitle,
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Text(
+          l10n.settingsAnalyticsSubtitle,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 12,
+            height: 1.4,
+          ),
+        ),
+      ),
     );
   }
 }

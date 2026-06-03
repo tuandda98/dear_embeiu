@@ -594,7 +594,10 @@ class ProfileScreen extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+                MaterialPageRoute<void>(
+                  settings: const RouteSettings(name: 'Settings'),
+                  builder: (_) => const SettingsScreen(),
+                ),
               ),
               borderRadius: BorderRadius.circular(22),
               splashColor: AppColors.accentRose.withValues(alpha: 0.12),

@@ -1124,6 +1124,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAccountModuleSubtitle => 'Your story, data & account';
 
   @override
+  String get settingsAnalyticsTitle => 'Share usage data';
+
+  @override
+  String get settingsAnalyticsSubtitle =>
+      'Help improve the app with anonymous data. We never collect your private content.';
+
+  @override
   String get settingsEditStorySubtitle => 'Edit names, anniversary date, photo';
 
   @override

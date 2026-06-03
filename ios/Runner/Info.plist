@@ -6,6 +6,8 @@
 		<true/>
 		<key>ITSAppUsesNonExemptEncryption</key>
 		<false/>
+		<key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS</key>
+		<false/>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Dear Embeiu cần truy cập thư viện ảnh để bạn chọn và chia sẻ ảnh kỷ niệm với người ấy.</string>
 		<key>CFBundleDevelopmentRegion</key>

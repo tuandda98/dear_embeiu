@@ -27,6 +27,7 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/setup_screen.dart';
 import 'screens/splash_screen.dart';
+import 'services/analytics_service.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_bootstrap_service.dart';
 import 'services/install_state_service.dart';
@@ -63,6 +64,10 @@ void main() async {
 
   final authService = AuthService();
   await FirebaseBootstrapService.initialize();
+  // Analytics (feature: analytics) — bind the SDK after Firebase is up. Safe
+  // no-op when Firebase isn't ready or the user opted out. Reads the opt-out
+  // toggle from the `app_settings` Hive box (already opened above via locale).
+  await AnalyticsService.instance.init();
   if (!kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS)) {
@@ -235,6 +240,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               return resolved;
             },
             home: const SplashScreen(),
+            // Auto screen_view logging (feature: analytics). Empty list when
+            // analytics is unavailable (Firebase not ready) so nothing breaks.
+            navigatorObservers: [
+              if (AnalyticsService.instance.observer != null)
+                AnalyticsService.instance.observer!,
+            ],
             debugShowCheckedModeBanner: false,
             routes: {
               AppRoutes.authGate: (_) => const AuthGateScreen(),

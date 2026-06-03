@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../services/analytics_service.dart';
+
 class LocaleProvider extends ChangeNotifier {
   static const _boxName = 'app_settings';
   static const _localeKey = 'locale';
@@ -22,6 +24,12 @@ class LocaleProvider extends ChangeNotifier {
       await box.put(_localeKey, locale.languageCode);
     }
     notifyListeners();
+
+    // Analytics — Gap G (`language_changed`) + the app_locale user property.
+    final code = locale == null ? 'system' : locale.languageCode;
+    AnalyticsService.instance
+      ..logLanguageChanged(code)
+      ..setAppLocale(code);
   }
 
   Future<void> useSystemLocale() => setLocale(null);
