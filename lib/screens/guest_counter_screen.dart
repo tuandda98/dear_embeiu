@@ -141,6 +141,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      extendBody: true,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -154,6 +155,8 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
         ],
       ),
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
         child: SafeArea(
           child: SingleChildScrollView(
