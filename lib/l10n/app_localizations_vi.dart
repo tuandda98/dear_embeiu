@@ -432,6 +432,20 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loveNoteSaved => 'Đã gửi lời nhắn 💞';
 
   @override
+  String get loveNoteHistoryCta => 'Xem lại lời nhắn cũ';
+
+  @override
+  String get loveNoteHistoryTitle => 'Nhật ký lời nhắn';
+
+  @override
+  String get loveNoteHistorySubtitle =>
+      'Tất cả những lời hai bạn đã để lại cho nhau.';
+
+  @override
+  String get loveNoteHistoryEmpty =>
+      'Chưa có lời nhắn nào được lưu. Những lời hai bạn gửi nhau sẽ được giữ ở đây.';
+
+  @override
   String get loveNoteJustNow => 'vừa xong';
 
   @override

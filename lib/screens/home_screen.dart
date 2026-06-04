@@ -38,6 +38,7 @@ import '../widgets/streak_sheet.dart';
 import 'profile_screen.dart';
 import 'gallery_screen.dart';
 import 'journal_screen.dart';
+import 'love_note_history_screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -1353,11 +1354,67 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildWriteNoteButton(
                   label: hasMyNote ? l10n.loveNoteEditCta : l10n.loveNoteWriteCta,
                 ),
+                _buildLoveNoteHistoryEntry(l10n),
               ],
             ],
           ),
         );
       },
+    );
+  }
+
+  /// Foot-of-card link into the love-note archive (feature love-note-history):
+  /// divider + tappable row. Home still shows only the latest note; the full
+  /// timeline lives behind this entry.
+  Widget _buildLoveNoteHistoryEntry(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: AppColors.textPrimary.withValues(alpha: 0.10),
+          ),
+        ),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  settings: const RouteSettings(name: 'LoveNoteHistory'),
+                  builder: (_) => const LoveNoteHistoryScreen(),
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.history,
+                      size: 18, color: AppColors.accentRose),
+                  const SizedBox(width: 10),
+                  Text(
+                    l10n.loveNoteHistoryCta,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  const Icon(LucideIcons.chevronRight,
+                      size: 16, color: AppColors.textTertiary),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

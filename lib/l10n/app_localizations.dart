@@ -854,6 +854,30 @@ abstract class AppLocalizations {
   /// **'Your note was sent 💞'**
   String get loveNoteSaved;
 
+  /// No description provided for @loveNoteHistoryCta.
+  ///
+  /// In en, this message translates to:
+  /// **'See past notes'**
+  String get loveNoteHistoryCta;
+
+  /// No description provided for @loveNoteHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Note journal'**
+  String get loveNoteHistoryTitle;
+
+  /// No description provided for @loveNoteHistorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every note you two have left for each other.'**
+  String get loveNoteHistorySubtitle;
+
+  /// No description provided for @loveNoteHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes saved yet. The ones you send each other will be kept here.'**
+  String get loveNoteHistoryEmpty;
+
   /// No description provided for @loveNoteJustNow.
   ///
   /// In en, this message translates to:

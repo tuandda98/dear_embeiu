@@ -216,6 +216,10 @@
     }
   },
   "loveNoteSaved": "Đã gửi lời nhắn 💞",
+  "loveNoteHistoryCta": "Xem lại lời nhắn cũ",
+  "loveNoteHistoryTitle": "Nhật ký lời nhắn",
+  "loveNoteHistorySubtitle": "Tất cả những lời hai bạn đã để lại cho nhau.",
+  "loveNoteHistoryEmpty": "Chưa có lời nhắn nào được lưu. Những lời hai bạn gửi nhau sẽ được giữ ở đây.",
   "loveNoteJustNow": "vừa xong",
   "loveNoteMinutesAgo": "{count, plural, =1{1 phút trước} other{{count} phút trước}}",
   "@loveNoteMinutesAgo": {

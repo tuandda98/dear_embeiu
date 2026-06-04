@@ -429,6 +429,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loveNoteSaved => 'Your note was sent 💞';
 
   @override
+  String get loveNoteHistoryCta => 'See past notes';
+
+  @override
+  String get loveNoteHistoryTitle => 'Note journal';
+
+  @override
+  String get loveNoteHistorySubtitle =>
+      'Every note you two have left for each other.';
+
+  @override
+  String get loveNoteHistoryEmpty =>
+      'No notes saved yet. The ones you send each other will be kept here.';
+
+  @override
   String get loveNoteJustNow => 'just now';
 
   @override

@@ -20,6 +20,7 @@ class LoveNoteService {
   final FirebaseFirestore? _firestore;
 
   static const String _localBoxName = 'love_notes_local';
+  static const String _localHistoryBoxName = 'love_note_history_local';
 
   bool get isUsingFirebase =>
       FirebaseBootstrapService.isFirebaseReady && Firebase.apps.isNotEmpty;
@@ -28,6 +29,10 @@ class LoveNoteService {
 
   CollectionReference<Map<String, dynamic>> _notesCollection(String coupleId) =>
       _db.collection('couples').doc(coupleId).collection('notes');
+
+  CollectionReference<Map<String, dynamic>> _historyCollection(
+          String coupleId) =>
+      _db.collection('couples').doc(coupleId).collection('noteHistory');
 
   /// Streams both members' notes for [coupleId] (at most two documents).
   ///
@@ -78,6 +83,60 @@ class LoveNoteService {
     );
   }
 
+  /// Appends an immutable entry to the couple's note history (the timeline of
+  /// every note ever sent). Additive to [setMyNote] — the latest-note surface
+  /// is unchanged. Caller is expected to skip no-op/unchanged saves. Empty text
+  /// is ignored (the security rule requires a non-empty string).
+  Future<void> appendHistory({
+    required String coupleId,
+    required String uid,
+    required String text,
+  }) async {
+    final trimmed = text.trim();
+    final clamped = trimmed.length > 140 ? trimmed.substring(0, 140) : trimmed;
+    if (coupleId.trim().isEmpty || uid.trim().isEmpty || clamped.isEmpty) {
+      return;
+    }
+
+    if (!isUsingFirebase) {
+      await _appendLocalHistory(coupleId, uid, clamped);
+      return;
+    }
+
+    await _historyCollection(coupleId).add({
+      'authorUserId': uid,
+      'text': clamped,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Streams the couple's note history newest-first (capped at [limit]). Maps
+  /// the `createdAt` field into [LoveNote.updatedAt] so the archive can reuse
+  /// the same model + relative-time formatting as the live notes.
+  Stream<List<LoveNote>> watchHistory(String coupleId, {int limit = 200}) {
+    if (coupleId.trim().isEmpty) {
+      return Stream<List<LoveNote>>.value(const <LoveNote>[]);
+    }
+
+    if (!isUsingFirebase) {
+      return Stream<List<LoveNote>>.fromFuture(_loadLocalHistory(coupleId));
+    }
+
+    return _historyCollection(coupleId)
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => LoveNote.fromDoc(doc.id, {
+                    'authorUserId': doc.data()['authorUserId'],
+                    'text': doc.data()['text'],
+                    'updatedAt': doc.data()['createdAt'],
+                  }))
+              .toList(),
+        );
+  }
+
   // ── Local fallback (Hive) ──────────────────────────────────────────────
   // Stores only this device's own note, keyed by "{coupleId}:{uid}". Any
   // failure is swallowed so the feature never crashes without Firebase.
@@ -112,6 +171,52 @@ class LoveNoteService {
       });
     } catch (_) {
       // Best-effort: ignore local persistence failures.
+    }
+  }
+
+  // ── Local fallback history ─────────────────────────────────────────────
+  // Append-only list per couple, keyed "{coupleId}:{isoTimestamp}". Best-effort.
+
+  Future<Box<dynamic>> _openLocalHistoryBox() =>
+      Hive.openBox<dynamic>(_localHistoryBoxName);
+
+  Future<void> _appendLocalHistory(
+      String coupleId, String uid, String text) async {
+    try {
+      final box = await _openLocalHistoryBox();
+      final now = DateTime.now();
+      await box.put('$coupleId:${now.toIso8601String()}', {
+        'authorUserId': uid,
+        'text': text,
+        'createdAt': now.toIso8601String(),
+      });
+    } catch (_) {
+      // Best-effort: ignore local persistence failures.
+    }
+  }
+
+  Future<List<LoveNote>> _loadLocalHistory(String coupleId) async {
+    try {
+      final box = await _openLocalHistoryBox();
+      final entries = <LoveNote>[];
+      for (final key in box.keys) {
+        if (key is String && key.startsWith('$coupleId:')) {
+          final raw = box.get(key);
+          if (raw is Map) {
+            final data = Map<String, dynamic>.from(raw);
+            entries.add(LoveNote(
+              authorUserId: data['authorUserId'] as String? ?? '',
+              text: data['text'] as String? ?? '',
+              updatedAt: DateTime.tryParse(data['createdAt'] as String? ?? ''),
+            ));
+          }
+        }
+      }
+      entries.sort((a, b) => (b.updatedAt ?? DateTime(0))
+          .compareTo(a.updatedAt ?? DateTime(0)));
+      return entries;
+    } catch (_) {
+      return const <LoveNote>[];
     }
   }
 }

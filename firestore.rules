@@ -370,6 +370,21 @@ service cloud.firestore {
           && request.resource.data.text.size() <= 140;
       }
 
+      // Love-note history (feature love-note-history): append-only archive of
+      // every note ever sent, so the couple keeps a timeline of their words.
+      // ADDITIVE — the latest-note surface above (notes/{uid}) is unchanged.
+      // Both members read; each member only creates their own entries; entries
+      // are immutable (no edit/delete) so the archive can't be rewritten.
+      match /noteHistory/{entryId} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 140;
+        allow update, delete: if false;
+      }
+
       // Daily question marker doc (feature couple-journal): one parent doc per
       // answered day so the journal can list days (the responses subcollection
       // alone leaves this parent un-listable). Holds a question-text snapshot

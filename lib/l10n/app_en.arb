@@ -216,6 +216,10 @@
     }
   },
   "loveNoteSaved": "Your note was sent 💞",
+  "loveNoteHistoryCta": "See past notes",
+  "loveNoteHistoryTitle": "Note journal",
+  "loveNoteHistorySubtitle": "Every note you two have left for each other.",
+  "loveNoteHistoryEmpty": "No notes saved yet. The ones you send each other will be kept here.",
   "loveNoteJustNow": "just now",
   "loveNoteMinutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
   "@loveNoteMinutesAgo": {
