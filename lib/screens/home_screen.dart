@@ -1248,7 +1248,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(LucideIcons.mailOpen, color: AppColors.white, size: 20),
+                  const Icon(LucideIcons.mailOpen,
+                      color: AppColors.accentRose, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1256,7 +1257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? l10n.loveNoteFromPartner(partnerName)
                           : l10n.loveNoteLabel,
                       style: const TextStyle(
-                        color: AppColors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -1278,8 +1279,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (isWaiting)
                       Text(
                         l10n.loveNoteWaitingPartner,
-                        style: TextStyle(
-                          color: AppColors.white.withValues(alpha: 0.85),
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
                           fontSize: 14,
                           height: 1.5,
                         ),
@@ -1288,7 +1289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         partnerNote.text,
                         style: const TextStyle(
-                          color: AppColors.white,
+                          color: AppColors.textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                           height: 1.55,
@@ -1297,8 +1298,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 8),
                       Text(
                         _relativeTime(partnerNote.updatedAt, l10n),
-                        style: TextStyle(
-                          color: AppColors.white.withValues(alpha: 0.72),
+                        style: const TextStyle(
+                          color: AppColors.textTertiary,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -1306,8 +1307,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ] else
                       Text(
                         l10n.loveNoteEmptyFromPartner(partnerName),
-                        style: TextStyle(
-                          color: AppColors.white.withValues(alpha: 0.78),
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
                           fontSize: 14,
                           height: 1.5,
                         ),
@@ -1320,13 +1321,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Divider(
                           height: 1,
                           thickness: 1,
-                          color: AppColors.white.withValues(alpha: 0.14),
+                          color: AppColors.textPrimary.withValues(alpha: 0.10),
                         ),
                       ),
                       Text(
                         l10n.loveNoteYourNoteLabel,
-                        style: TextStyle(
-                          color: AppColors.white.withValues(alpha: 0.65),
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.3,
@@ -1337,8 +1338,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         '${myNote.text} · ${_relativeTime(myNote.updatedAt, l10n)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: AppColors.white.withValues(alpha: 0.9),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -1365,9 +1366,8 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.18),
+          color: AppColors.accentRose,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.white.withValues(alpha: 0.30)),
         ),
         child: Material(
           color: Colors.transparent,
@@ -2054,13 +2054,13 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
               Row(
                 children: [
                   const Icon(LucideIcons.helpCircle,
-                      color: AppColors.white, size: 20),
+                      color: AppColors.accentRose, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       l10n.dailyQuestionLabel,
                       style: const TextStyle(
-                        color: AppColors.white,
+                        color: AppColors.textSecondary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -2074,7 +2074,7 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
                 style: AppTheme.displaySerif(
                   size: 22,
                   weight: FontWeight.w600,
-                  color: AppColors.white,
+                  color: AppColors.textPrimary,
                   height: 1.25,
                   letterSpacing: -0.2,
                 ),
@@ -2133,8 +2133,8 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
       return [
         Text(
           l10n.dailyQuestionRevealHint,
-          style: TextStyle(
-            color: AppColors.white.withValues(alpha: 0.82),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
             fontSize: 13,
             height: 1.4,
           ),
@@ -2160,8 +2160,8 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
         const SizedBox(height: 12),
         Text(
           waitingFor,
-          style: TextStyle(
-            color: AppColors.white.withValues(alpha: 0.78),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
             fontSize: 13,
             height: 1.45,
           ),
@@ -2174,8 +2174,8 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
       if (widget.isWaitingPartner) ...[
         Text(
           l10n.dailyQuestionWaitingPartner,
-          style: TextStyle(
-            color: AppColors.white.withValues(alpha: 0.78),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
             fontSize: 13,
             height: 1.45,
           ),
@@ -2188,10 +2188,10 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
           filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.14),
+              color: AppColors.white.withValues(alpha: 0.55),
               borderRadius: BorderRadius.circular(16),
-              border:
-                  Border.all(color: AppColors.white.withValues(alpha: 0.22)),
+              border: Border.all(
+                  color: AppColors.accentRose.withValues(alpha: 0.25)),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
@@ -2200,9 +2200,9 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
                 maxLength: _maxChars,
                 maxLines: 3,
                 minLines: 1,
-                cursorColor: AppColors.white,
+                cursorColor: AppColors.accentRose,
                 style: const TextStyle(
-                  color: AppColors.white,
+                  color: AppColors.textPrimary,
                   fontSize: 14,
                   height: 1.4,
                 ),
@@ -2211,15 +2211,15 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
                   isDense: true,
                   border: InputBorder.none,
                   hintText: l10n.dailyQuestionHint,
-                  hintStyle: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.6),
+                  hintStyle: const TextStyle(
+                    color: AppColors.textTertiary,
                     fontSize: 14,
                   ),
                   counterText: l10n.dailyQuestionCharCount(
                     _controller.text.characters.length,
                   ),
-                  counterStyle: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.6),
+                  counterStyle: const TextStyle(
+                    color: AppColors.textTertiary,
                     fontSize: 11,
                   ),
                 ),
@@ -2233,9 +2233,8 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
         width: double.infinity,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.18),
+            color: AppColors.accentRose,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.30)),
           ),
           child: Material(
             color: Colors.transparent,
@@ -2292,7 +2291,7 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
           child: Divider(
             height: 1,
             thickness: 1,
-            color: AppColors.white.withValues(alpha: 0.14),
+            color: AppColors.textPrimary.withValues(alpha: 0.10),
           ),
         ),
         Material(
@@ -2304,16 +2303,16 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     LucideIcons.bookOpen,
                     size: 18,
-                    color: AppColors.white.withValues(alpha: 0.85),
+                    color: AppColors.accentRose,
                   ),
                   const SizedBox(width: 10),
                   Text(
                     l10n.journalEntryCta,
-                    style: TextStyle(
-                      color: AppColors.white.withValues(alpha: 0.9),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -2322,7 +2321,7 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
                   Icon(
                     LucideIcons.chevronRight,
                     size: 16,
-                    color: AppColors.white.withValues(alpha: 0.6),
+                    color: AppColors.textTertiary,
                   ),
                 ],
               ),
@@ -2339,8 +2338,8 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: AppColors.white.withValues(alpha: 0.7),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
             fontSize: 12,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.2,
@@ -2350,7 +2349,7 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
         Text(
           text,
           style: const TextStyle(
-            color: AppColors.white,
+            color: AppColors.textPrimary,
             fontSize: 15,
             fontWeight: FontWeight.w500,
             height: 1.5,
