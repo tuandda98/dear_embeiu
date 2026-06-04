@@ -359,8 +359,16 @@ class PushNotificationService {
       return;
     }
 
+    // `flutter_local_notifications` requires the id to fit in a 32-bit int
+    // (validateId). millisecondsSinceEpoch (~1.7e12) overflows that, so mask the
+    // combined value down to a non-negative 31-bit int (0..2^31-1). Stays well
+    // clear of the reminder id ranges (1001–1099 / 2000–2999).
+    final notificationId =
+        (message.messageId.hashCode ^ DateTime.now().millisecondsSinceEpoch) &
+            0x7FFFFFFF;
+
     await _localNotifications.show(
-      message.messageId.hashCode ^ DateTime.now().millisecondsSinceEpoch,
+      notificationId,
       title,
       body,
       NotificationDetails(

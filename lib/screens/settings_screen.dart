@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../app/app_routes.dart';
 import '../app/app_urls.dart';
 import '../l10n/l10n.dart';
+import '../models/app_user.dart';
 import '../models/couple.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
@@ -739,11 +740,18 @@ class SettingsScreen extends StatelessWidget {
   // ---------------------------------------------------------------------------
   Widget _buildAccountSection(BuildContext context) {
     final l10n = context.l10n;
+    final currentUser = context.watch<AuthProvider>().currentUser;
 
     return _buildSectionCard(
       title: l10n.settingsAccountModuleTitle,
       subtitle: l10n.settingsAccountModuleSubtitle,
-      child: _InkTile(
+      child: Column(
+        children: [
+          if (currentUser != null) ...[
+            _buildAccountInfoCard(currentUser, l10n),
+            const SizedBox(height: 12),
+          ],
+          _InkTile(
         borderRadius: 22,
         onTap: () {
           final coupleProvider = context.read<CoupleProvider>();
@@ -810,6 +818,88 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+        ],
+      ),
+    );
+  }
+
+  /// Read-only account identity (display name + email) shown atop the account
+  /// module so the user can always see which account they're signed in as.
+  Widget _buildAccountInfoCard(AppUser user, AppLocalizations l10n) {
+    final name = user.displayName.trim();
+    final email = user.email.trim();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: AppColors.accentRose.withValues(alpha: 0.10),
+        ),
+      ),
+      child: Column(
+        children: [
+          _buildAccountInfoRow(
+            LucideIcons.user,
+            l10n.displayNameLabel,
+            name.isNotEmpty ? name : '—',
+          ),
+          if (email.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(left: 58),
+              child: Divider(
+                height: 1,
+                color: AppColors.textTertiary.withValues(alpha: 0.18),
+              ),
+            ),
+          if (email.isNotEmpty)
+            _buildAccountInfoRow(LucideIcons.mail, l10n.emailLabel, email),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccountInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.accentRose.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: AppColors.accentRose, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

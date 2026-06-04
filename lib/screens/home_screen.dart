@@ -82,18 +82,20 @@ class _HomeScreenState extends State<HomeScreen> {
   StreakProvider? _streakProvider;
   bool _celebratingMilestone = false;
 
-  // Staggered entrance for the Home tab should play once per screen lifetime,
-  // not on every provider rebuild/scroll. We mark it played after the first
-  // build that has real couple data, then build plain (un-animated) children.
-  bool _homeEntrancePlayed = false;
-
   /// Wraps a Home-tab block with the shared fade+slide entrance, staggered by
-  /// [order]. Returns the child unchanged once the entrance has already played
-  /// so rebuilds don't re-run it.
+  /// [order].
   Widget _entrance(int order, Widget child) {
-    if (_homeEntrancePlayed) {
-      return child;
-    }
+    // ALWAYS wrap with `.animate()` using CONSTANT params — never branch on a
+    // "played" flag. flutter_animate's `_AnimateState.didUpdateWidget` only
+    // re-inits the controller / replays when controller/duration/target/value
+    // change (animate.dart:294); with constant params a plain Home rebuild
+    // (e.g. the keyboard opening for the love-note sheet shifts MediaQuery →
+    // HomeScreen.build → whole tab rebuilds) is a no-op, so the entrance does
+    // NOT replay. Two earlier variants both crashed: returning the bare child
+    // once played changed the element-tree structure (→ `_dependents.isEmpty`),
+    // and swapping the duration to zero re-inited the controller and left a
+    // transition listening to a disposed animation (→ ChangeNotifier used after
+    // dispose). Keeping the wrapper + params stable avoids both.
     return child
         .animate()
         .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
@@ -576,16 +578,6 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
 
-    // After the first frame with real data, lock the entrance so future
-    // rebuilds (provider updates, tab switches) don't replay it.
-    if (!_homeEntrancePlayed) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _homeEntrancePlayed = true;
-        }
-      });
-    }
-
     return RefreshIndicator(
       onRefresh: _refreshHome,
       color: AppColors.accentRose,
@@ -799,6 +791,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   AnimatedCoupleName(
                     person1Name: couple.person1Name,
                     person2Name: couple.person2Name,
+                    creatorUserId: couple.createdByUserId,
                     spacing: 6,
                     runSpacing: 4,
                     heartSize: 18,
@@ -1407,21 +1400,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openLoveNoteSheet() async {
     final l10n = context.l10n;
-    final loveNoteProvider = context.read<LoveNoteProvider>();
-    final controller =
-        TextEditingController(text: loveNoteProvider.myNote?.text ?? '');
+    final initialText = context.read<LoveNoteProvider>().myNote?.text ?? '';
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      // The sheet OWNS its TextEditingController (created in its State, disposed
+      // in its dispose). Disposing it here in the parent right after the future
+      // resolves would free it while the sheet's close transition + keyboard
+      // dismissal are still rebuilding the still-mounted sheet → "controller
+      // used after disposed".
       builder: (sheetContext) => _LoveNoteSheet(
-        controller: controller,
+        initialText: initialText,
         l10n: l10n,
       ),
     );
-
-    controller.dispose();
 
     if (saved != true || !mounted) {
       return;
@@ -1820,11 +1814,11 @@ class _NavigationItem {
 /// Pops `true` after a successful save so the caller can confirm + haptic.
 class _LoveNoteSheet extends StatefulWidget {
   const _LoveNoteSheet({
-    required this.controller,
+    required this.initialText,
     required this.l10n,
   });
 
-  final TextEditingController controller;
+  final String initialText;
   final AppLocalizations l10n;
 
   @override
@@ -1833,7 +1827,15 @@ class _LoveNoteSheet extends StatefulWidget {
 
 class _LoveNoteSheetState extends State<_LoveNoteSheet> {
   static const int _maxChars = 140;
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.initialText);
   bool _saving = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   Future<void> _save() async {
     if (_saving) {
@@ -1842,7 +1844,7 @@ class _LoveNoteSheetState extends State<_LoveNoteSheet> {
     setState(() => _saving = true);
     final navigator = Navigator.of(context);
     final saved =
-        await context.read<LoveNoteProvider>().setMyNote(widget.controller.text);
+        await context.read<LoveNoteProvider>().setMyNote(_controller.text);
     if (!mounted) {
       return;
     }
@@ -1899,7 +1901,7 @@ class _LoveNoteSheetState extends State<_LoveNoteSheet> {
                 ),
                 const SizedBox(height: 16),
                 TextField(
-                  controller: widget.controller,
+                  controller: _controller,
                   maxLength: _maxChars,
                   maxLines: 4,
                   minLines: 2,
@@ -1909,7 +1911,7 @@ class _LoveNoteSheetState extends State<_LoveNoteSheet> {
                   decoration: InputDecoration(
                     hintText: l10n.loveNoteSheetHint,
                     counterText: l10n.loveNoteCharCount(
-                      widget.controller.text.characters.length,
+                      _controller.text.characters.length,
                     ),
                   ),
                 ),
@@ -1976,6 +1978,10 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
   bool _submitting = false;
   // One-shot guard: the reveal confetti plays at most once per card lifetime.
   bool _confettiPlayed = false;
+  // The reveal Lottie is a ONE-SHOT celebration: shown only briefly when the
+  // answers first unlock, then hidden. Gating it on `hasRevealed` instead left
+  // the animation frozen on its last frame (a star) permanently on the card.
+  bool _showRevealLottie = false;
 
   @override
   void initState() {
@@ -2021,9 +2027,16 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
     // state (and weren't already revealed on init).
     if (hasRevealed && !_confettiPlayed) {
       _confettiPlayed = true;
+      _showRevealLottie = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _confetti.play();
+        }
+      });
+      // Auto-hide the one-shot Lottie so it never sits frozen on its last frame.
+      Future.delayed(const Duration(milliseconds: 2600), () {
+        if (mounted) {
+          setState(() => _showRevealLottie = false);
         }
       });
     }
@@ -2092,9 +2105,10 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
             AppColors.white,
           ],
         ),
-        // Khoảnh khắc mở khoá Daily Question (feature lottie-moments). Chưa có
-        // file → SizedBox 0px (chỉ còn confetti như cũ); có file → accent thêm.
-        if (hasRevealed)
+        // Khoảnh khắc mở khoá Daily Question (feature lottie-moments) — ONE-SHOT.
+        // Chỉ hiện thoáng qua khi vừa mở khoá rồi tự ẩn (xem `_showRevealLottie`);
+        // KHÔNG gate theo `hasRevealed` vì state đó đứng yên → Lottie kẹt frame cuối.
+        if (_showRevealLottie)
           const Positioned(
             top: -8,
             child: LoveLottie(

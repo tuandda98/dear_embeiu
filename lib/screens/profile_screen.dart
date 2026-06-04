@@ -376,6 +376,7 @@ class ProfileScreen extends StatelessWidget {
                             AnimatedCoupleName(
                               person1Name: couple.person1Name,
                               person2Name: couple.person2Name,
+                              creatorUserId: couple.createdByUserId,
                               spacing: 8,
                               runSpacing: 6,
                               heartSize: 26,

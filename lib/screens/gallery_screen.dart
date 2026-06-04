@@ -811,6 +811,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           AnimatedCoupleName(
                             person1Name: couple.person1Name,
                             person2Name: couple.person2Name,
+                            creatorUserId: couple.createdByUserId,
                             spacing: 4,
                             runSpacing: 2,
                             heartSize: 13,
@@ -971,6 +972,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       AnimatedCoupleName(
                         person1Name: couple.person1Name,
                         person2Name: couple.person2Name,
+                        creatorUserId: couple.createdByUserId,
                         spacing: 5,
                         runSpacing: 4,
                         heartSize: 14,
@@ -1231,6 +1233,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           AnimatedCoupleName(
                             person1Name: couple.person1Name,
                             person2Name: couple.person2Name,
+                            creatorUserId: couple.createdByUserId,
                             spacing: 5,
                             runSpacing: 4,
                             heartSize: 14,
@@ -1628,6 +1631,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     AnimatedCoupleName(
                       person1Name: couple.person1Name,
                       person2Name: couple.person2Name,
+                      creatorUserId: couple.createdByUserId,
                       spacing: 6,
                       runSpacing: 4,
                       alignment: WrapAlignment.center,
@@ -2377,6 +2381,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                         AnimatedCoupleName(
                           person1Name: widget.couple!.person1Name,
                           person2Name: widget.couple!.person2Name,
+                          creatorUserId: widget.couple!.createdByUserId,
                           spacing: 6,
                           runSpacing: 4,
                           heartSize: 14,
