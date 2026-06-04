@@ -433,6 +433,113 @@ exports.notifyDailyAnswer = onDocumentCreated(
   },
 );
 
+// Reactions (feature: reactions ❤️): when a member reacts to a photo, notify the
+// photo's author (the partner) that their photo got a reaction. Fires ONLY on
+// the initial create (onDocumentCreated) — NOT on emoji changes — so swapping
+// reactions never spams a second push (PO "debounce push" decision). When the
+// reactor is the photo's own author, no push is sent (PO decision D3).
+exports.notifyPhotoReaction = onDocumentCreated(
+  {document: "couples/{coupleId}/photos/{photoId}/reactions/{uid}", region: "us-central1"},
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      logger.warn("Reaction notification skipped because snapshot is missing.");
+      return;
+    }
+
+    const reaction = snapshot.data() || {};
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const photoId = `${event.params.photoId || ""}`.trim();
+    // The reactions doc id === the reacting member's uid by convention.
+    const reactorUid = `${event.params.uid || ""}`.trim();
+    const emoji = `${reaction.emoji || "❤️"}`.trim() || "❤️";
+
+    if (!coupleId || !photoId || !reactorUid) {
+      logger.warn("Reaction notification skipped because required fields are missing.", {
+        coupleId,
+        photoId,
+        reactorUid,
+      });
+      return;
+    }
+
+    // Look up the photo to find its author (the recipient of the push).
+    const photoSnap = await db
+      .collection("couples").doc(coupleId)
+      .collection("photos").doc(photoId)
+      .get();
+    if (!photoSnap.exists) {
+      logger.info("Reaction notification skipped because the photo no longer exists.", {
+        coupleId,
+        photoId,
+      });
+      return;
+    }
+
+    const authorUserId = `${photoSnap.get("authorUserId") || ""}`.trim();
+    if (!authorUserId) {
+      logger.warn("Reaction notification skipped because the photo has no author.", {
+        coupleId,
+        photoId,
+      });
+      return;
+    }
+
+    // D3 — never push when someone reacts to their OWN photo.
+    if (reactorUid === authorUserId) {
+      return;
+    }
+
+    // Reacting member's display name (fallback "Người ấy").
+    let reactorName = "";
+    try {
+      const reactorSnap = await db.collection("users").doc(reactorUid).get();
+      reactorName = `${(reactorSnap.exists && reactorSnap.get("displayName")) || ""}`.trim();
+    } catch (err) {
+      logger.warn("Could not load reactor profile for reaction notification.", {
+        coupleId,
+        reactorUid,
+        message: err && err.message,
+      });
+    }
+    reactorName = normalizeActorName(reactorName);
+
+    const result = await sendToRecipientDevices(
+      [authorUserId],
+      (languageCode) => buildReactionText(languageCode, reactorName, emoji),
+      {
+        type: "photo_reaction",
+        coupleId,
+        photoId,
+      },
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("Reaction notification skipped because the author has no active FCM tokens.", {
+        coupleId,
+        photoId,
+      });
+      return;
+    }
+
+    if (result.failures.length > 0) {
+      logger.warn("Reaction notification had delivery failures.", {
+        coupleId,
+        photoId,
+        failures: result.failures,
+      });
+    }
+
+    logger.info("Processed reaction notification.", {
+      coupleId,
+      photoId,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
 // Shared device-fan-out used by the partner-photo and partner-joined pushes.
 // Collects every notifications-enabled device token for the recipients, builds
 // one localized message per device (via `buildText(languageCode)`), sends them
@@ -652,7 +759,21 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
     if (storagePath) {
       tasks.push(deleteStorageObject(storagePath));
     }
-    tasks.push(photoDoc.ref.delete().catch(() => null));
+    // Reactions (feature: reactions ❤️) live in a subcollection under each
+    // photo, so deleting the photo doc alone leaves them orphaned. recursiveDelete
+    // the reactions first, then delete the photo doc itself.
+    tasks.push(
+      db.recursiveDelete(photoDoc.ref.collection("reactions"))
+        .catch((err) => {
+          logger.warn("Failed to recursively delete photo reactions during couple teardown.", {
+            coupleId: coupleRef.id,
+            photoId: photoDoc.id,
+            message: err && err.message,
+          });
+          return null;
+        })
+        .then(() => photoDoc.ref.delete().catch(() => null)),
+    );
   }
 
   // Love notes subcollection (feature #4): one doc per member, no Storage.
@@ -801,6 +922,29 @@ function buildDailyAnswerText(languageCode, authorName) {
   return {
     title: copy.title(authorName),
     body: copy.body,
+  };
+}
+
+// Localized copy for the reaction push (feature: reactions ❤️), keyed by the
+// recipient device's languageCode. Unknown/missing codes fall back to
+// Vietnamese. The reactor's chosen emoji is baked into the body.
+const REACTION_COPY = {
+  vi: {
+    title: "Dear Embeiu",
+    body: (name, emoji) => `${name} đã thả ${emoji} vào ảnh của bạn`,
+  },
+  en: {
+    title: "Dear Embeiu",
+    body: (name, emoji) => `${name} reacted ${emoji} to your photo`,
+  },
+};
+
+function buildReactionText(languageCode, reactorName, emoji) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = REACTION_COPY[code] || REACTION_COPY.vi;
+  return {
+    title: copy.title,
+    body: copy.body(reactorName, `${emoji || "❤️"}`.trim() || "❤️"),
   };
 }
 

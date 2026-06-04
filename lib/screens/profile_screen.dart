@@ -226,6 +226,11 @@ class ProfileScreen extends StatelessWidget {
                           localPath: couple.couplePhotoPath,
                           remoteUrl: couple.couplePhotoUrl,
                           fit: BoxFit.cover,
+                          // Cover banner → cap at screen width (physical px);
+                          // it's blurred so this never costs visible quality.
+                          decodeWidth: (MediaQuery.of(context).size.width *
+                                  MediaQuery.of(context).devicePixelRatio)
+                              .round(),
                         ),
                       ),
                     )
@@ -352,7 +357,7 @@ class ProfileScreen extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      _buildAvatarBadge(couple),
+                      _buildAvatarBadge(context, couple),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
@@ -839,7 +844,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatarBadge(Couple couple) {
+  Widget _buildAvatarBadge(BuildContext context, Couple couple) {
     return Container(
       width: 72,
       height: 72,
@@ -869,6 +874,9 @@ class ProfileScreen extends StatelessWidget {
             localPath: couple.couplePhotoPath,
             remoteUrl: couple.couplePhotoUrl,
             fit: BoxFit.cover,
+            // 72px avatar → decode ≈ 72 * DPR.
+            decodeWidth:
+                (72 * MediaQuery.of(context).devicePixelRatio).round(),
             placeholder: Container(
               decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
               child: Center(

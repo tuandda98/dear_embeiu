@@ -325,6 +325,9 @@ class PushNotificationService {
       case 'photo_posted':
         NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
         break;
+      case 'photo_reaction':
+        NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
+        break;
       case 'partner_joined':
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;

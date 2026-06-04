@@ -29,6 +29,7 @@ class AnalyticsEvents {
 
   // --- Engagement loop ---
   static const String loveNoteSet = 'love_note_set';
+  static const String reactionSet = 'reaction_set';
   static const String dailyQuestionAnswered = 'daily_question_answered';
   static const String dailyQuestionRevealed = 'daily_question_revealed';
   static const String reminderCreated = 'reminder_created';
@@ -40,7 +41,7 @@ class AnalyticsEvents {
   static const String pMethod = 'method'; // sign_up/login/invite_shared
   static const String pResult = 'result'; // couple_join_attempt
   static const String pIsFirst = 'is_first'; // photo_posted
-  static const String pAction = 'action'; // love_note_set
+  static const String pAction = 'action'; // love_note_set / reaction_set
   static const String pRepeat = 'repeat'; // reminder_created
   static const String pType = 'type'; // notification_opened
   static const String pLocale = 'locale'; // language_changed
@@ -273,6 +274,12 @@ class AnalyticsService {
   /// [action] is `create` or `update` (NOT the note text).
   void logLoveNoteSet(String action) => logEvent(
         AnalyticsEvents.loveNoteSet,
+        params: {AnalyticsEvents.pAction: action},
+      );
+
+  /// [action] is `add` / `change` / `remove` (NOT which emoji or whose photo).
+  void logReactionSet(String action) => logEvent(
+        AnalyticsEvents.reactionSet,
         params: {AnalyticsEvents.pAction: action},
       );
 

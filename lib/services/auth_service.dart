@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -9,6 +10,7 @@ import 'package:uuid/uuid.dart';
 
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
+import '../models/couple.dart';
 import 'firebase_bootstrap_service.dart';
 import 'storage_service.dart';
 import 'user_service.dart';
@@ -67,13 +69,29 @@ class AuthService {
 
       await _ensureFirebaseSessionReady(firebaseUser);
 
-      final existingProfile = await _userService.fetchUserProfile(firebaseUser.uid);
+      // Robustness (app-robustness A5): bound the profile fetch so a slow/offline
+      // Firestore can't freeze the cold-start route resolution. On timeout we
+      // reconstruct a usable profile from the (already authenticated) Firebase
+      // user plus the locally cached couple, so the user still lands on the
+      // right screen (home if a cached couple includes this uid, else setup).
+      AppUser? existingProfile;
+      try {
+        existingProfile = await _userService
+            .fetchUserProfile(firebaseUser.uid)
+            .timeout(const Duration(seconds: 5));
+      } on TimeoutException {
+        return await _buildOfflineFallbackProfile(firebaseUser);
+      }
+
       if (existingProfile != null) {
         final refreshedProfile = await _ensureInviteCode(existingProfile.copyWith(
           lastSeenAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ));
-        await _userService.updateUserProfile(refreshedProfile);
+        // Robustness (app-robustness A4): the lastSeenAt/updatedAt refresh is
+        // pure housekeeping — it must not block the route. Fire-and-forget so
+        // these two Firestore writes happen off the cold-start critical path.
+        unawaited(_userService.updateUserProfile(refreshedProfile));
         return refreshedProfile;
       }
 
@@ -314,7 +332,17 @@ class AuthService {
     // it as admin also avoids the `requires-recent-login` challenge that a
     // client-side FirebaseUser.delete() would hit.
     try {
-      await _functions.httpsCallable('deleteAccount').call<dynamic>();
+      // Robustness (app-robustness C): bound the callable so the delete flow
+      // can't hang forever behind a stuck network. 60s is generous on purpose —
+      // the server runs recursiveDelete over the couple's subcollections + a
+      // Storage purge, which can legitimately take tens of seconds — so a
+      // shorter timeout would false-fail a deletion that is actually succeeding.
+      await _functions
+          .httpsCallable('deleteAccount')
+          .call<dynamic>()
+          .timeout(const Duration(seconds: 60));
+    } on TimeoutException {
+      throw AuthException(AppL10n.strings.authNetworkError);
     } on FirebaseFunctionsException catch (e) {
       if (e.code == 'unauthenticated') {
         throw AuthException('requires-recent-login');
@@ -396,6 +424,34 @@ class AuthService {
     }
   }
 
+  /// Builds a best-effort [AppUser] when the Firestore profile fetch times out
+  /// on cold start (app-robustness A5). The Firebase user is already
+  /// authenticated, so identity is trusted; we enrich it with the locally
+  /// cached couple (if its members include this uid) so route resolution still
+  /// sends the user to home rather than setup. inviteCode is left empty (it is
+  /// only needed on the setup/invite surface, which a coupled user won't see);
+  /// the real profile is reconciled on the next successful fetch/resume.
+  Future<AppUser> _buildOfflineFallbackProfile(User firebaseUser) async {
+    final base = _buildFirebaseProfile(firebaseUser);
+
+    Couple? cachedCouple;
+    try {
+      cachedCouple = await StorageService.loadCouple();
+    } catch (_) {
+      cachedCouple = null;
+    }
+
+    if (cachedCouple != null && cachedCouple.memberIds.contains(firebaseUser.uid)) {
+      final isActive = cachedCouple.memberIds.length >= 2;
+      return base.copyWith(
+        coupleId: cachedCouple.id,
+        status: isActive ? 'in_couple' : 'waiting_partner',
+      );
+    }
+
+    return base;
+  }
+
   AppUser _buildFirebaseProfile(User firebaseUser) {
     final now = DateTime.now();
     return AppUser(
@@ -461,9 +517,21 @@ class AuthService {
     final expectedUid = firebaseUser.uid;
 
     if (_auth.currentUser?.uid != expectedUid) {
-      await _auth.authStateChanges().firstWhere(
-        (user) => user?.uid == expectedUid,
-      );
+      // Robustness (app-robustness A2): never block cold start indefinitely.
+      // `firstWhere` on authStateChanges can hang forever if the stream never
+      // emits the expected uid (e.g. a network hiccup during token bootstrap).
+      // Bound it to 5s; on timeout we throw `authSessionNotReady` so the caller
+      // (getCurrentUser → AuthProvider.initialize) falls back to
+      // unauthenticated and routes the user to the guest screen instead of
+      // freezing on the splash.
+      await _auth
+          .authStateChanges()
+          .firstWhere((user) => user?.uid == expectedUid)
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () =>
+                throw AuthException(AppL10n.strings.authSessionNotReady),
+          );
     }
 
     final activeUser = _auth.currentUser;
@@ -471,7 +539,12 @@ class AuthService {
       throw AuthException(AppL10n.strings.authSessionNotReady);
     }
 
-    await activeUser.getIdToken(true);
+    // Robustness (app-robustness A1): don't force-refresh the ID token on every
+    // cold start. A cached token is valid for ~1h and is enough to resolve the
+    // route; forcing a refresh adds a mandatory network round-trip on launch
+    // (the main freeze source). Writes that need a fresh token still
+    // force-refresh on demand via their own permission-recovery paths.
+    await activeUser.getIdToken();
   }
 
   AppUser _buildSignInProfile({

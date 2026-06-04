@@ -92,6 +92,23 @@ class UserService {
     await _syncInviteCode(user);
   }
 
+  /// Writes ONLY the couple-membership fields of a user doc (coupleId, status,
+  /// updatedAt, lastSeenAt) with merge — never the immutable email/inviteCode.
+  /// Used by coupling ops (create/join/leave) so a stale local user copy can't
+  /// trip the immutable-field equality checks in `canUpdateOwnUser` and yield
+  /// permission-denied. The invite_code pointer is re-synced so it tracks the
+  /// new coupleId. Writes to [user.id] (callers pass the auth uid).
+  Future<void> updateCoupleMembership(AppUser user) async {
+    if (!isEnabled) {
+      return;
+    }
+
+    await _usersCollection
+        .doc(user.id)
+        .set(user.toCoupleMembershipPayload(), SetOptions(merge: true));
+    await _syncInviteCode(user);
+  }
+
   Future<void> saveDeviceRegistration({
     required String userId,
     required String deviceId,

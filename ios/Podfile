@@ -53,10 +53,20 @@ post_install do |installer|
   runner_project = Xcodeproj::Project.open(runner_project_path)
   runner_target = runner_project.targets.find { |t| t.name == 'Runner' }
   phase_name = 'Strip Invalid Architectures'
-  if runner_target && runner_target.shell_script_build_phases.none? { |p| p.name == phase_name }
-    phase = runner_target.new_shell_script_build_phase(phase_name)
+  if runner_target
+    # Find-or-create so the script is UPDATED on every re-install, not added once.
+    phase = runner_target.shell_script_build_phases.find { |p| p.name == phase_name }
+    phase ||= runner_target.new_shell_script_build_phase(phase_name)
     phase.shell_script = <<~'SCRIPT'
       set -e
+      # Simulator builds keep every slice — they are never uploaded to the App
+      # Store, and stripping the simulator slice (e.g. from objective_c.framework)
+      # makes the app fail to dlopen its FFI framework on the simulator. Only
+      # strip for device/archive builds (PLATFORM_NAME=iphoneos), where a
+      # simulator slice fails App Store validation.
+      if [ "${PLATFORM_NAME}" = "iphonesimulator" ]; then
+        exit 0
+      fi
       APP_FRAMEWORKS="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
       [ -d "$APP_FRAMEWORKS" ] || exit 0
       find "$APP_FRAMEWORKS" -name '*.framework' -type d | while read -r FRAMEWORK; do

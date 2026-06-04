@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/app_user.dart';
@@ -52,7 +54,12 @@ class AuthProvider extends ChangeNotifier {
       _status = _currentUser == null
           ? AuthStatus.unauthenticated
           : AuthStatus.authenticated;
-      await PushNotificationService.instance.syncForUser(_currentUser);
+      // Robustness (app-robustness A3): registering the FCM token / device doc
+      // is push plumbing, not part of deciding the start route. Awaiting it
+      // (permission prompt + getToken + Firestore writes) on cold start is a
+      // primary freeze source, so fire-and-forget — it completes off the
+      // critical path and is re-run on every app resume anyway.
+      unawaited(PushNotificationService.instance.syncForUser(_currentUser));
     } catch (e) {
       _status = AuthStatus.unauthenticated;
       _errorMessage = 'Could not initialize session: $e';
@@ -75,8 +82,9 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.authenticated;
       _isInitialized = true;
       await PushNotificationService.instance.syncForUser(_currentUser);
-      // Analytics — success path only.
-      await AnalyticsService.instance.setUserId(_currentUser?.id);
+      // Analytics — success path only. Don't block the success return on the
+      // analytics user-id write (app-robustness D); fire-and-forget.
+      unawaited(AnalyticsService.instance.setUserId(_currentUser?.id));
       AnalyticsService.instance
         ..setIsGuest(false)
         ..logLogin();
@@ -111,8 +119,9 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.authenticated;
       _isInitialized = true;
       await PushNotificationService.instance.syncForUser(_currentUser);
-      // Analytics — success path only.
-      await AnalyticsService.instance.setUserId(_currentUser?.id);
+      // Analytics — success path only. Don't block the success return on the
+      // analytics user-id write (app-robustness D); fire-and-forget.
+      unawaited(AnalyticsService.instance.setUserId(_currentUser?.id));
       AnalyticsService.instance
         ..setIsGuest(false)
         ..logSignUp();
@@ -130,22 +139,40 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> signOut() async {
+  /// Signs the current user out. Returns `true` when the auth session was
+  /// cleared, `false` only when the actual Firebase/local sign-out failed.
+  ///
+  /// Robustness (app-robustness B): leaving the partner's device list tidy
+  /// (unregisterForUser → a Firestore delete) is cleanup, not part of exiting
+  /// the session. It is bounded to 5s and, on failure/timeout, swallowed so a
+  /// flaky network can never trap the user in a half-logged-out state. The
+  /// device doc is also pruned server-side (pruneDeadDevices) as a backstop.
+  Future<bool> signOut() async {
     _setLoading(true);
     _clearError(notify: false);
 
+    final previousUser = _currentUser;
     try {
-      final previousUser = _currentUser;
-      await PushNotificationService.instance.unregisterForUser(previousUser);
+      await PushNotificationService.instance
+          .unregisterForUser(previousUser)
+          .timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Best-effort cleanup — never block the sign-out on it.
+    }
+
+    try {
       await _authService.signOut();
       _currentUser = null;
       _status = AuthStatus.unauthenticated;
       _isInitialized = true;
-      // Analytics — clear the user id (D2) and mark guest again.
-      await AnalyticsService.instance.setUserId(null);
+      // Analytics — clear the user id (D2) and mark guest again. Fire-and-forget
+      // so the analytics write can't delay returning to the auth gate.
+      unawaited(AnalyticsService.instance.setUserId(null));
       AnalyticsService.instance.setIsGuest(true);
+      return true;
     } catch (e) {
       _errorMessage = 'Sign out failed: $e';
+      return false;
     } finally {
       _setLoading(false);
     }
@@ -159,13 +186,22 @@ class AuthProvider extends ChangeNotifier {
     _clearError(notify: false);
 
     try {
-      await PushNotificationService.instance.unregisterForUser(user);
+      // Robustness (app-robustness B/C): unregistering this device is cleanup
+      // (the server-side deleteAccount also removes all device docs), so bound
+      // it to 5s and never let it block the deletion itself.
+      try {
+        await PushNotificationService.instance
+            .unregisterForUser(user)
+            .timeout(const Duration(seconds: 5));
+      } catch (_) {
+        // Best-effort — proceed to the authoritative server-side delete.
+      }
       await _authService.deleteAccount(currentUser: user);
       _currentUser = null;
       _status = AuthStatus.unauthenticated;
       // Analytics — success path only; log then clear the user id (D2).
       AnalyticsService.instance.logAccountDeleted();
-      await AnalyticsService.instance.setUserId(null);
+      unawaited(AnalyticsService.instance.setUserId(null));
       return null;
     } on AuthException catch (e) {
       if (e.message == 'requires-recent-login') {

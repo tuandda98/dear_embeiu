@@ -17,12 +17,14 @@ import '../models/photo.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
+import '../providers/reaction_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/love_lottie.dart';
+import '../widgets/reaction_bar.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/shared_photo_view.dart';
 
@@ -78,6 +80,30 @@ class _GalleryScreenState extends State<GalleryScreen> {
   static const double _floatingTopShowcaseMaxHeight = 340;
   static const double _floatingTopShowcaseMinHeight = 122;
 
+  // Per-photo heart-burst trigger counters; bump to replay the burst on a
+  // double-tap (feed card). Keyed by photo id.
+  final Map<String, int> _burstTriggers = <String, int>{};
+
+  /// Double-tap on a photo: drop a ❤️ (never a toggle-off — D2/§3) + burst.
+  /// No-ops when there's no active Firebase couple (reactions are hidden).
+  void _onDoubleTapPhoto(Photo photo) {
+    final reactionProvider = context.read<ReactionProvider>();
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    if (!reactionProvider.isReady || myUid == null) {
+      return;
+    }
+
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _burstTriggers[photo.id] = (_burstTriggers[photo.id] ?? 0) + 1;
+    });
+
+    // Double-tap only ever ADDS a heart; if the user already reacted ❤️ keep it.
+    if (reactionProvider.myReaction(photo.id, myUid) != '❤️') {
+      reactionProvider.setReaction(photo.id, '❤️');
+    }
+  }
+
 
   Future<String?> _showCaptionDialog({
     required String title,
@@ -121,6 +147,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1920,
+      maxHeight: 1920,
     );
     if (pickedFile == null || !mounted) {
       return;
@@ -174,40 +203,42 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
-    final pickedFiles = await ImagePicker().pickMultiImage();
-    if (pickedFiles.isNotEmpty) {
-      for (var file in pickedFiles) {
-        if (mounted) {
-          try {
-            await context.read<PhotoProvider>().addPhoto(
-              file.path,
-              currentUser: currentUser,
-            );
-          } catch (_) {
-            if (!mounted) {
-              return;
-            }
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  context.read<PhotoProvider>().errorMessage ?? context.l10n.photoAddError,
-                ),
-              ),
-            );
-            return;
-          }
-        }
-      }
-      if (mounted) {
-        HapticFeedback.mediumImpact();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.multiplePhotosAdded(pickedFiles.length)),
-          ),
-        );
-      }
+    final pickedFiles = await ImagePicker().pickMultiImage(
+      imageQuality: 85,
+      maxWidth: 1920,
+      maxHeight: 1920,
+    );
+    if (pickedFiles.isEmpty || !mounted) {
+      return;
     }
+
+    final l10n = context.l10n;
+    final total = pickedFiles.length;
+
+    // Single overlay across the whole batch (no per-photo flicker); one failed
+    // upload is skipped and counted, never aborts the rest.
+    final successCount = await context.read<PhotoProvider>().addPhotosBatch(
+          pickedFiles.map((f) => f.path).toList(),
+          currentUser: currentUser,
+          progress: (current, totalCount) =>
+              l10n.uploadingPhotoProgress(current, totalCount),
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    HapticFeedback.mediumImpact();
+    final failed = total - successCount;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          failed == 0
+              ? l10n.multiplePhotosAdded(successCount)
+              : l10n.multiPhotosResultPartial(successCount, total, failed),
+        ),
+      ),
+    );
   }
 
   Future<void> _editCaption(Photo photo) async {
@@ -563,6 +594,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
           localPath: couple?.couplePhotoPath,
           remoteUrl: couple?.couplePhotoUrl,
           fit: BoxFit.cover,
+          // Avatar-sized slot → decode at the circle's physical size, not full-res.
+          decodeWidth:
+              (size * MediaQuery.of(context).devicePixelRatio).round(),
           placeholder: Center(
             child: Text(
               _initialsFromCouple(couple),
@@ -1137,6 +1171,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         child: SharedPhotoView(
                           photo: photo,
                           fit: BoxFit.cover,
+                          // 96px slot → decode small (≈ 96 * DPR) to avoid
+                          // decoding a full-res bitmap for a strip thumbnail.
+                          decodeWidth: (96 *
+                                  MediaQuery.of(context).devicePixelRatio)
+                              .round(),
                           placeholder: Container(
                             color: AppColors.surfaceLight,
                           ),
@@ -1309,6 +1348,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   ),
                 ),
               ),
+              onDoubleTap: () => _onDoubleTapPhoto(photo),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(26),
                 child: Hero(
@@ -1318,18 +1358,35 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   transitionOnUserGestures: true,
                   child: AspectRatio(
                     aspectRatio: 4 / 5,
-                    child: SharedPhotoView(
-                      photo: photo,
-                      fit: BoxFit.cover,
-                      placeholder: Container(
-                        color: AppColors.surfaceLight.withValues(alpha: 0.94),
-                        alignment: Alignment.center,
-                        child: Icon(
-                          LucideIcons.imageOff,
-                          size: 40,
-                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        SharedPhotoView(
+                          photo: photo,
+                          fit: BoxFit.cover,
+                          // Full-width feed card → decode at screen width (in
+                          // physical px). With source already capped at 1920px
+                          // this is effectively native, but bounds older/legacy
+                          // full-res uploads to the visible size.
+                          decodeWidth: (MediaQuery.of(context).size.width *
+                                  MediaQuery.of(context).devicePixelRatio)
+                              .round(),
+                          placeholder: Container(
+                            color:
+                                AppColors.surfaceLight.withValues(alpha: 0.94),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              LucideIcons.imageOff,
+                              size: 40,
+                              color:
+                                  AppColors.textSecondary.withValues(alpha: 0.5),
+                            ),
+                          ),
                         ),
-                      ),
+                        HeartBurstOverlay(
+                          trigger: _burstTriggers[photo.id] ?? 0,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -1338,7 +1395,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           ),
           if (displayCaption.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
               child: Text(
                 displayCaption,
                 style: TextStyle(
@@ -1351,9 +1408,26 @@ class _GalleryScreenState extends State<GalleryScreen> {
               ),
             )
           else
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
+          _buildReactionBar(couple, photo),
         ],
       ),
+    );
+  }
+
+  /// The reaction surface under a feed card. Hidden entirely when there is no
+  /// active Firebase couple (guest / local) — no two-way loop to react into.
+  Widget _buildReactionBar(Couple? couple, Photo photo) {
+    final reactionProvider = context.watch<ReactionProvider>();
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    if (!reactionProvider.isReady || myUid == null || couple == null) {
+      return const SizedBox(height: 16);
+    }
+
+    return ReactionBar(
+      photo: photo,
+      couple: couple,
+      myUid: myUid,
     );
   }
 
@@ -1406,6 +1480,86 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Re-arms the Firestore photo stream (pull-to-refresh / "Try again").
+  Future<void> _retrySync() async {
+    final currentUser = context.read<AuthProvider>().currentUser;
+    await context.read<PhotoProvider>().syncForUser(currentUser);
+  }
+
+  // Distinct from the empty state: shown when the stream errored AND we have no
+  // photos to fall back on — so the user knows it's a load failure (not "no
+  // memories yet") and can retry.
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: _gallerySurfaceDecoration(
+            radius: 30,
+            fillAlpha: 0.92,
+            borderAlpha: 0.88,
+            shadowAlpha: 0.05,
+            blurRadius: 20,
+            offset: const Offset(0, 12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 82,
+                height: 82,
+                decoration: BoxDecoration(
+                  color: AppColors.accentRose.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  LucideIcons.cloudOff,
+                  color: AppColors.accentRose,
+                  size: 36,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                context.l10n.galleryLoadErrorTitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textPrimary.withValues(alpha: 0.92),
+                  fontSize: 20.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.35,
+                  height: 1.12,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                context.l10n.galleryLoadErrorSubtitle,
+                textAlign: TextAlign.center,
+                style: _galleryBodyStyle(size: 13.1, alpha: 0.82, height: 1.62),
+              ),
+              const SizedBox(height: 22),
+              FilledButton.icon(
+                onPressed:
+                    context.watch<PhotoProvider>().isLoading ? null : _retrySync,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.accentRose,
+                  foregroundColor: AppColors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                icon: const Icon(LucideIcons.refreshCw),
+                label: Text(context.l10n.galleryRetryBtn),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1532,6 +1686,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
           final photos = photoProvider.sortedPhotos;
           final couple = coupleProvider.couple;
           final feedItems = _buildFeedItems(photos);
+          // Stream errored AND nothing to show → it's a load failure, not an
+          // empty library. Render a retryable error state instead of "post your
+          // first photo" so the user never thinks their memories vanished.
+          final hasLoadError =
+              photoProvider.errorMessage != null && photos.isEmpty;
 
           return BlockingLoadingOverlay(
             isVisible: photoProvider.isLoading,
@@ -1540,9 +1699,14 @@ class _GalleryScreenState extends State<GalleryScreen> {
               decoration: const BoxDecoration(
                 gradient: AppColors.secondaryGradient,
               ),
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
+              child: RefreshIndicator(
+                onRefresh: _retrySync,
+                color: AppColors.accentRose,
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  slivers: [
                   SliverPersistentHeader(
                     floating: false,
                     pinned: true,
@@ -1560,7 +1724,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         child: _buildTodayCTACard(couple, photos),
                       ),
                     ),
-                  if (photos.isEmpty) ...[
+                  if (hasLoadError) ...[
+                    SliverToBoxAdapter(child: _buildErrorState()),
+                    SliverPadding(
+                      padding: EdgeInsets.only(bottom: widget.bottomInset + 24),
+                    ),
+                  ]
+                  else if (photos.isEmpty) ...[
                     SliverToBoxAdapter(child: _buildEmptyFeedState(couple)),
                     SliverPadding(
                       padding: EdgeInsets.only(bottom: widget.bottomInset + 24),
@@ -1596,7 +1766,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         }, childCount: feedItems.length),
                       ),
                     ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
@@ -1852,6 +2023,8 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
   // Tracks whether we've already buzzed for the current drag so the
   // light haptic fires only once, the moment the dismiss threshold is crossed.
   bool _dismissThresholdHapticFired = false;
+  // Per-photo heart-burst trigger counters (bump to replay) for double-tap.
+  final Map<String, int> _burstTriggers = <String, int>{};
 
   static const double _dismissDistanceThreshold = 140;
   static const double _dismissVelocityThreshold = 1000;
@@ -1911,6 +2084,55 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
 
   String _previewPostedByLabel(Photo photo) {
     return context.l10n.postedByLabel(photo.posterName);
+  }
+
+  /// Double-tap on the fullscreen image: drop a ❤️ + burst (never toggle-off).
+  /// No-ops without an active Firebase couple. InteractiveViewer does not
+  /// double-tap-zoom by default, so this gesture is exclusive to the burst.
+  void _onDoubleTapPhoto(Photo photo) {
+    final reactionProvider = context.read<ReactionProvider>();
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    if (!reactionProvider.isReady || myUid == null) {
+      return;
+    }
+
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _burstTriggers[photo.id] = (_burstTriggers[photo.id] ?? 0) + 1;
+    });
+
+    if (reactionProvider.myReaction(photo.id, myUid) != '❤️') {
+      reactionProvider.setReaction(photo.id, '❤️');
+    }
+  }
+
+  /// On-dark reaction row appended to the fullscreen info panel. Hidden when
+  /// there is no active Firebase couple (guest / local).
+  Widget _buildPreviewReactionRow(Photo photo) {
+    final reactionProvider = context.watch<ReactionProvider>();
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    if (!reactionProvider.isReady || myUid == null || widget.couple == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: 12),
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: AppColors.white.withValues(alpha: 0.12),
+        ),
+        ReactionBar(
+          photo: photo,
+          couple: widget.couple,
+          myUid: myUid,
+          onDark: true,
+          padding: const EdgeInsets.only(top: 10),
+        ),
+      ],
+    );
   }
 
   bool get _canDismissWithDrag => _pageScales[_currentIndex] <= 1.02;
@@ -2059,7 +2281,19 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                   ),
                 );
 
-                return child;
+                // Double-tap → ❤️ + burst, drawn over the image. The burst is
+                // pointer-ignoring so it never blocks pan/zoom underneath.
+                return GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onDoubleTap: () => _onDoubleTapPhoto(photo),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      child,
+                      HeartBurstOverlay(trigger: _burstTriggers[photo.id] ?? 0),
+                    ],
+                  ),
+                );
               },
             ),
           ),
@@ -2186,6 +2420,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                           ),
                         ),
                       ],
+                      _buildPreviewReactionRow(currentPhoto),
                     ],
                   ),
                 ),

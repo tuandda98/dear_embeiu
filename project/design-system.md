@@ -11,7 +11,7 @@ Màu (AppColors) — 3 gradient chủ đạo (topLeft→bottomRight):
 - `dawnBlush` = [#FFC1CC, #E8B4D8, #C8A8E9] — nền app & auth/main screen. Alias `secondaryGradient`.
 - `dreamyMint` = [#FFD6E0, #E0D4F7, #C6E5D9] — gallery/milestone. Alias `galleryGradient`.
 
-Accent: accentLove #FF4D6D (=accentRose), accentLoveDeep #E63956, accentLavender #A78BFA, accentCoral #FF8FA3, accentGold #E8B4D8.
+Accent: accentLove #FF4D6D (=accentRose), accentLoveDeep #E63956, accentLavender #A78BFA, accentLavenderDeep #7C5CD6 (label câu trả lời partner trên nền lavender tint .10 — feature couple-journal), accentCoral #FF8FA3, accentGold #E8B4D8.
 Surface: bgLight #FAFAFC, surfaceLight #F5F0F5, cardSurface #FFFFFF.
 Text: textPrimary #1A1A2E (cũng là nút chính), textSecondary #6B6B7B, textTertiary #A0A0B0, textOnGradient #FFFFFF.
 Status: success #66BB6A, error #EF5350, warning #FFA726, info #A78BFA.

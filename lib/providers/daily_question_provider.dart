@@ -30,9 +30,12 @@ class DailyQuestionProvider extends ChangeNotifier {
   bool _revealLogged = false;
 
   /// Today's shared question text in [langCode], resolved from the device-local
-  /// date so both partners see the same prompt on the same day.
+  /// date and the active couple so both partners see the same prompt on the same
+  /// day — while different couples get their own no-repeat ordering.
+  /// Falls back to seed 0 (still deterministic, never throws) before a couple is
+  /// known.
   String todayQuestion(String langCode) =>
-      questionTextForDate(DateTime.now(), langCode);
+      questionTextForCouple(DateTime.now(), _coupleId ?? '', langCode);
 
   /// The current user's own answer for today (author == current uid), or null.
   DailyAnswer? get myAnswer {

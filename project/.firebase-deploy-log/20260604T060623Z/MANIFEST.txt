@@ -1,0 +1,8 @@
+command : cd /Users/tony.tuando/StudioProjects/dear_embeiu
+npx firebase-tools deploy --only firestore:rules,firestore:indexes,functions:notifyPhotoReaction,functions:deleteCoupleCompletely --project tonyembeiu 2>&1 | tail -35
+time_utc: 20260604T060623Z
+git_head: d6a7157 (phase2)
+dirty   : 37 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout d6a7157)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout d6a7157 -- functions` rồi redeploy

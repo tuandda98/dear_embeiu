@@ -992,11 +992,18 @@ class _SetupScreenState extends State<SetupScreen> {
                       width: 100,
                       height: 100,
                       fit: BoxFit.cover,
+                      // 100px slot → decode at ~3x DPR, not the full-res source.
+                      cacheWidth: (100 *
+                              MediaQuery.of(context).devicePixelRatio)
+                          .round(),
                     )
                   : SharedCouplePhotoView(
                       localPath: existingCouple?.couplePhotoPath,
                       remoteUrl: existingCouple?.couplePhotoUrl,
                       fit: BoxFit.cover,
+                      decodeWidth: (100 *
+                              MediaQuery.of(context).devicePixelRatio)
+                          .round(),
                     ),
             ),
             Container(

@@ -20,8 +20,10 @@ import '../providers/reminder_provider.dart';
 import '../services/analytics_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
+import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/language_toggle_button.dart';
 import 'custom_reminders_screen.dart';
+import 'journal_screen.dart';
 import 'milestone_reminders_screen.dart';
 import 'setup_screen.dart';
 
@@ -63,7 +65,17 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
         ),
-        body: SafeArea(
+        // Robustness (app-robustness C): block the whole screen with the shared
+        // overlay while an auth op (sign-out / delete account) is in flight, so
+        // the user can't re-open a dialog or fire a second submit mid-delete.
+        body: Consumer<AuthProvider>(
+          builder: (context, authProvider, settingsBody) {
+            return BlockingLoadingOverlay(
+              isVisible: authProvider.isLoading,
+              child: settingsBody!,
+            );
+          },
+          child: SafeArea(
           top: false,
           child: Consumer2<CoupleProvider, PhotoProvider>(
             builder: (context, coupleProvider, photoProvider, _) {
@@ -94,25 +106,28 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 18),
                     _OnceEntrance(order: 1, child: _buildLanguageSection(context)),
                     const SizedBox(height: 18),
-                    _OnceEntrance(order: 2, child: _buildAccountSection(context)),
+                    _OnceEntrance(order: 2, child: _buildMemoriesSection(context)),
                     const SizedBox(height: 18),
-                    _OnceEntrance(order: 3, child: _buildPrivacySection(context)),
+                    _OnceEntrance(order: 3, child: _buildAccountSection(context)),
+                    const SizedBox(height: 18),
+                    _OnceEntrance(order: 4, child: _buildPrivacySection(context)),
                     const SizedBox(height: 18),
                     _OnceEntrance(
-                      order: 4,
+                      order: 5,
                       child: _buildDangerZone(
                         context,
                         isUsingFirebase: authProvider.isUsingFirebase,
                       ),
                     ),
                     const SizedBox(height: 18),
-                    _OnceEntrance(order: 5, child: _buildSignOutButton(context)),
+                    _OnceEntrance(order: 6, child: _buildSignOutButton(context)),
                     const SizedBox(height: 12),
-                    _OnceEntrance(order: 6, child: _buildPrivacyPolicyLink(context)),
+                    _OnceEntrance(order: 7, child: _buildPrivacyPolicyLink(context)),
                   ],
                 ),
               );
             },
+          ),
           ),
         ),
       ),
@@ -226,6 +241,10 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              // Daily-question nudge (b2). Independent of the master toggle
+              // above — turning milestone reminders off does not silence this.
+              const _DailyQuestionReminderTile(),
               const SizedBox(height: 12),
               // Milestones & anniversaries entry (Reminders v2). Dimmed and
               // non-interactive while the master toggle is off.
@@ -634,6 +653,73 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+              ),
+              Icon(
+                LucideIcons.chevronRight,
+                color: AppColors.textSecondary.withValues(alpha: 0.5),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Module: Memories — the couple journal entry (feature couple-journal).
+  // Placed above "Account & data" per design.
+  // ---------------------------------------------------------------------------
+  Widget _buildMemoriesSection(BuildContext context) {
+    final l10n = context.l10n;
+
+    return _buildSectionCard(
+      title: l10n.journalSettingsSection,
+      subtitle: l10n.journalScreenSubtitle,
+      child: _InkTile(
+        borderRadius: 22,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              settings: const RouteSettings(name: 'Journal'),
+              builder: (_) => const JournalScreen(),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: AppColors.accentRose.withValues(alpha: 0.10),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.accentRose.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  LucideIcons.bookOpen,
+                  color: AppColors.accentRose,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  l10n.journalSettingsTile,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               Icon(
@@ -1153,8 +1239,19 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              await context.read<AuthProvider>().signOut();
+              final messenger = ScaffoldMessenger.of(context);
+              final signedOut = await context.read<AuthProvider>().signOut();
               if (!context.mounted) return;
+              // Robustness (app-robustness B): only navigate on a real sign-out;
+              // a genuine failure shows a snackbar instead of a fake navigation.
+              if (!signedOut) {
+                messenger
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    SnackBar(content: Text(l10n.signOutFailedMsg)),
+                  );
+                return;
+              }
               Navigator.of(context).pushNamedAndRemoveUntil(
                 AppRoutes.authGate,
                 (route) => false,
@@ -1210,6 +1307,171 @@ class SettingsScreen extends StatelessWidget {
             child: Text(
               l10n.leaveCoupleActionBtn,
               style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The daily-question reminder control (b2): a switch plus a time row that is
+/// only interactive while the switch is on. Independent of the milestone master
+/// toggle — it drives [ReminderProvider.setDailyQuestionReminderEnabled] /
+/// [setDailyQuestionReminderTime] directly. Permission denial flips the switch
+/// back off and surfaces a snackbar.
+class _DailyQuestionReminderTile extends StatelessWidget {
+  const _DailyQuestionReminderTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final provider = context.read<ReminderProvider>();
+    final enabled = context.select<ReminderProvider, bool>(
+      (p) => p.dailyQuestionReminderEnabled,
+    );
+    final time = context.select<ReminderProvider, TimeOfDay>(
+      (p) => p.dailyQuestionReminderTime,
+    );
+
+    Future<void> handleToggle(bool value) async {
+      HapticFeedback.selectionClick();
+      final messenger = ScaffoldMessenger.of(context);
+      final granted =
+          await provider.setDailyQuestionReminderEnabled(value, l10n: l10n);
+      if (value && !granted) {
+        messenger
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(content: Text(l10n.remindersPermissionDeniedMsg)),
+          );
+      }
+    }
+
+    Future<void> pickTime() async {
+      final picked = await showTimePicker(
+        context: context,
+        initialTime: time,
+      );
+      if (picked == null || !context.mounted) {
+        return;
+      }
+      HapticFeedback.selectionClick();
+      await provider.setDailyQuestionReminderTime(
+        picked.hour,
+        picked.minute,
+        l10n: l10n,
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: AppColors.accentRose.withValues(alpha: 0.10),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.accentRose.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  LucideIcons.messageCircle,
+                  color: AppColors.accentRose,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.dailyQuestionReminderTitle,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.dailyQuestionReminderSubtitle,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Switch.adaptive(
+                value: enabled,
+                activeThumbColor: AppColors.accentRose,
+                onChanged: handleToggle,
+              ),
+            ],
+          ),
+          // Time row — only interactive while the nudge is on.
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            opacity: enabled ? 1 : 0.45,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: _InkTile(
+                borderRadius: 16,
+                onTap: enabled ? pickTime : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentRose.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        LucideIcons.clock,
+                        color: AppColors.accentRose,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l10n.dailyQuestionReminderTimeLabel,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        time.format(context),
+                        style: const TextStyle(
+                          color: AppColors.accentRose,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],

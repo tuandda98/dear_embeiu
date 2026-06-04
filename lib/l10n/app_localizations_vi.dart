@@ -468,6 +468,32 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String get reactionHint => 'Thả tim cho khoảnh khắc này';
+
+  @override
+  String get reactionYouLabel => 'Bạn';
+
+  @override
+  String get reactionAddTooltip => 'Thả tim';
+
+  @override
+  String get reactionChangeTooltip => 'Đổi cảm xúc';
+
+  @override
+  String get reactionRemoveTooltip => 'Gỡ cảm xúc';
+
+  @override
+  String get reactionErrorRetry => 'Chưa thả được tim, thử lại nhé';
+
+  @override
+  String reactionPartnerReacted(String name, String emoji) {
+    return '$name đã thả $emoji';
+  }
+
+  @override
+  String get reactionBothLabel => 'Cả hai đã thả tim 💞';
+
+  @override
   String get dailyQuestionLabel => 'Câu hỏi hôm nay';
 
   @override
@@ -504,6 +530,58 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get dailyQuestionSent => 'Đã gửi câu trả lời của bạn 💞';
+
+  @override
+  String get journalEntryCta => 'Xem lại nhật ký';
+
+  @override
+  String get journalScreenTitle => 'Nhật ký câu hỏi';
+
+  @override
+  String get journalScreenSubtitle => 'Những câu hỏi hai bạn đã cùng trả lời.';
+
+  @override
+  String get journalSettingsTile => 'Nhật ký câu hỏi';
+
+  @override
+  String get journalSettingsSection => 'Kỷ niệm';
+
+  @override
+  String get journalYourAnswerLabel => 'CÂU TRẢ LỜI CỦA BẠN';
+
+  @override
+  String journalPartnerAnswerLabel(String name) {
+    return 'CÂU TRẢ LỜI CỦA $name';
+  }
+
+  @override
+  String get journalLoadMore => 'Xem thêm';
+
+  @override
+  String get journalEmptyTitle => 'Chưa có kỷ niệm câu hỏi nào';
+
+  @override
+  String get journalEmptyBody =>
+      'Khi cả hai cùng trả lời câu hỏi trong ngày, khoảnh khắc đó sẽ được lưu vào đây.';
+
+  @override
+  String get journalEmptyCta => 'Trả lời câu hôm nay';
+
+  @override
+  String get journalEmptyNoPartnerBody =>
+      'Mời người ấy để cùng nhau bắt đầu viết nhật ký.';
+
+  @override
+  String get journalEmptyNoPartnerCta => 'Mời người ấy';
+
+  @override
+  String get journalErrorTitle => 'Chưa tải được nhật ký';
+
+  @override
+  String get journalRetry => 'Thử lại';
+
+  @override
+  String get loveNoteYourNoteLabel => 'LỜI NHẮN CỦA BẠN';
 
   @override
   String get milestoneReached => 'Hai bạn vừa đạt một cột mốc đẹp ✨';
@@ -746,10 +824,30 @@ class AppLocalizationsVi extends AppLocalizations {
   String get uploadingPhoto => 'Đang đăng ảnh...';
 
   @override
+  String uploadingPhotoProgress(int current, int total) {
+    return 'Đang đăng $current/$total...';
+  }
+
+  @override
   String get deletingPhoto => 'Đang xóa ảnh...';
 
   @override
   String get updatingCaption => 'Đang cập nhật chú thích...';
+
+  @override
+  String get galleryLoadErrorTitle => 'Chưa tải được ảnh';
+
+  @override
+  String get galleryLoadErrorSubtitle =>
+      'Kỷ niệm của bạn vẫn an toàn — chỉ là chưa kết nối tới được lúc này.';
+
+  @override
+  String get galleryRetryBtn => 'Thử lại';
+
+  @override
+  String multiPhotosResultPartial(int success, int total, int failed) {
+    return 'Đã đăng $success/$total, $failed ảnh lỗi';
+  }
 
   @override
   String get feedDateFormat => 'dd \'thg\' MM • HH:mm';
@@ -822,14 +920,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get yourInviteCodeLabel => 'Mã mời tài khoản của bạn';
-
-  @override
-  String get dayStreakLabel => 'Chuỗi ngày bên nhau';
-
-  @override
-  String dayStreakValue(int count) {
-    return '$count ngày và vẫn đang tiếp tục';
-  }
 
   @override
   String get memoryAlbumLabel => 'Thư viện kỷ niệm';
@@ -979,6 +1069,23 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get remindersPermissionDeniedMsg =>
       'Hãy bật thông báo trong Cài đặt để nhận lời nhắc.';
+
+  @override
+  String get dailyQuestionReminderTitle => 'Nhắc trả lời câu hỏi';
+
+  @override
+  String get dailyQuestionReminderSubtitle =>
+      'Một lời nhắc nhẹ mỗi ngày để hai bạn cùng trả lời.';
+
+  @override
+  String get dailyQuestionReminderTimeLabel => 'Nhắc lúc';
+
+  @override
+  String get dailyQuestionReminderNotifTitle => 'Câu hỏi hôm nay đang chờ 💌';
+
+  @override
+  String get dailyQuestionReminderNotifBody =>
+      'Ghé trả lời để mở khoá câu trả lời của người ấy nhé.';
 
   @override
   String get reminderDailyTitle => 'Thêm một ngày của chúng mình 💕';
@@ -1686,6 +1793,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get signOutDialogTitle => 'Đăng xuất?';
 
   @override
+  String get signOutFailedMsg =>
+      'Không thể đăng xuất. Vui lòng kiểm tra kết nối và thử lại.';
+
+  @override
   String get welcomeBackBadge => 'CHÀO MỪNG TRỞ LẠI';
 
   @override
@@ -1778,4 +1889,122 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get guestCtaRegister => 'Đăng ký';
+
+  @override
+  String get streakChipNoStreak => 'Bắt đầu chuỗi cùng nhau';
+
+  @override
+  String get streakChipRestart => 'Cùng bắt đầu chuỗi mới nhé 🌱';
+
+  @override
+  String streakChipActiveToday(int n) {
+    return '$n ngày kết nối · hôm nay xong rồi ✨';
+  }
+
+  @override
+  String streakChipInProgress(int n) {
+    return '$n ngày kết nối · tới lượt hôm nay 🌸';
+  }
+
+  @override
+  String streakChipAtRisk(int n) {
+    return 'Chuỗi $n ngày đang chờ hai đứa 🫶';
+  }
+
+  @override
+  String get streakSheetUnit => 'ngày kết nối liên tiếp';
+
+  @override
+  String get streakSheetNoStreakTitle => 'Thắp ngọn lửa đầu tiên';
+
+  @override
+  String get streakSheetNoStreakBody =>
+      'Mỗi ngày hai đứa cùng trả lời câu hỏi là chuỗi lại dài thêm. Cùng bắt đầu nhé 💞';
+
+  @override
+  String get streakSheetActiveTitle => 'Hai đứa đang giữ lửa 💞';
+
+  @override
+  String get streakSheetActiveBody =>
+      'Hôm nay xong rồi đó! Hẹn gặp ở câu hỏi ngày mai nha.';
+
+  @override
+  String get streakSheetInProgressTitle => 'Chuỗi vẫn đang cháy 🌸';
+
+  @override
+  String streakSheetInProgressBody(int n) {
+    return 'Trả lời câu hỏi hôm nay để hai đứa cùng nối tiếp chuỗi $n ngày nhé 💞';
+  }
+
+  @override
+  String get streakSheetAtRiskTitle => 'Còn một nhịp đệm thôi 🫶';
+
+  @override
+  String streakSheetAtRiskBody(int n) {
+    return 'Hôm qua hai đứa lỡ một nhịp — không sao cả! Trả lời hôm nay là chuỗi $n ngày tiếp tục liền.';
+  }
+
+  @override
+  String get streakSheetRestartBody =>
+      'Chuỗi cũ khép lại rồi, nhưng mỗi ngày mới là một khởi đầu. Cùng thắp lại nào 🌱';
+
+  @override
+  String streakSheetRecord(int m) {
+    return 'Kỷ lục của hai đứa: $m ngày 🌟';
+  }
+
+  @override
+  String streakNextMilestone(int n, int m) {
+    return 'Còn $n ngày tới mốc $m 🎉';
+  }
+
+  @override
+  String get streakCtaAnswerNow => 'Trả lời ngay';
+
+  @override
+  String get streakCtaKeepGoing => 'Giữ chuỗi nhé';
+
+  @override
+  String get streakMilestone3Title => '3 ngày rồi đó! 🌸';
+
+  @override
+  String get streakMilestone3Body =>
+      'Khởi đầu thật đáng yêu. Hai đứa đang làm tốt lắm 💞';
+
+  @override
+  String get streakMilestone7Title => 'Trọn một tuần! ✨';
+
+  @override
+  String get streakMilestone7Body =>
+      '7 ngày liền hai đứa không lỡ nhịp nào. Tự hào ghê!';
+
+  @override
+  String get streakMilestone30Title => '30 ngày bên nhau mỗi ngày! 🔥';
+
+  @override
+  String get streakMilestone30Body =>
+      'Một tháng giữ lửa — đây là thói quen của hai đứa rồi đấy 💞';
+
+  @override
+  String get streakMilestone100Title => '100 ngày! 💯';
+
+  @override
+  String get streakMilestone100Body =>
+      'Trăm ngày cùng nhau trả lời, cùng nhau lớn lên. Hiếm cặp nào làm được như hai đứa 🌟';
+
+  @override
+  String get streakMilestone365Title => 'Tròn một năm! 👑';
+
+  @override
+  String get streakMilestone365Body =>
+      '365 ngày không lỡ một nhịp kết nối. Đây là chuyện tình của riêng hai đứa 💞👑';
+
+  @override
+  String streakJournalSummary(int n, int m) {
+    return 'Chuỗi hiện tại $n ngày · Dài nhất $m';
+  }
+
+  @override
+  String get streakJournalSummaryNone =>
+      'Cùng trả lời mỗi ngày để bắt đầu chuỗi nhé 🌸';
 }

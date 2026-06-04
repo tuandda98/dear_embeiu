@@ -241,6 +241,46 @@
       }
     }
   },
+  "reactionHint": "React to this moment",
+  "@reactionHint": {
+    "description": "Faint hint shown on the reaction bar before anyone reacts"
+  },
+  "reactionYouLabel": "You",
+  "@reactionYouLabel": {
+    "description": "Label on the current user's own reaction chip"
+  },
+  "reactionAddTooltip": "React",
+  "@reactionAddTooltip": {
+    "description": "Tooltip / a11y label for the heart button when adding a reaction"
+  },
+  "reactionChangeTooltip": "Change reaction",
+  "@reactionChangeTooltip": {
+    "description": "Tooltip / a11y label for long-pressing to change the reaction emoji"
+  },
+  "reactionRemoveTooltip": "Remove reaction",
+  "@reactionRemoveTooltip": {
+    "description": "Tooltip / a11y label for the heart button when it would remove the user's reaction"
+  },
+  "reactionErrorRetry": "Couldn't react, try again",
+  "@reactionErrorRetry": {
+    "description": "SnackBar shown when writing a reaction fails and was rolled back"
+  },
+  "reactionPartnerReacted": "{name} reacted {emoji}",
+  "@reactionPartnerReacted": {
+    "description": "a11y label / tooltip for the partner's reaction chip",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "emoji": {
+        "type": "String"
+      }
+    }
+  },
+  "reactionBothLabel": "You both reacted 💞",
+  "@reactionBothLabel": {
+    "description": "a11y label when both members have reacted to a photo"
+  },
   "dailyQuestionLabel": "Today's question",
   "dailyQuestionHint": "Write your answer…",
   "dailyQuestionCharCount": "{count}/280",
@@ -272,6 +312,29 @@
   "dailyQuestionWaitingPartner": "It will unlock once your partner joins and answers too.",
   "dailyQuestionRevealHint": "You both answered — here's what you each said 💞",
   "dailyQuestionSent": "Your answer was sent 💞",
+  "journalEntryCta": "Open journal",
+  "journalScreenTitle": "Question journal",
+  "journalScreenSubtitle": "The questions you've both answered.",
+  "journalSettingsTile": "Question journal",
+  "journalSettingsSection": "Memories",
+  "journalYourAnswerLabel": "YOUR ANSWER",
+  "journalPartnerAnswerLabel": "{name}'S ANSWER",
+  "@journalPartnerAnswerLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "journalLoadMore": "Show more",
+  "journalEmptyTitle": "No question memories yet",
+  "journalEmptyBody": "When you both answer a daily question, that moment gets saved here.",
+  "journalEmptyCta": "Answer today's question",
+  "journalEmptyNoPartnerBody": "Invite your partner to start your journal together.",
+  "journalEmptyNoPartnerCta": "Invite partner",
+  "journalErrorTitle": "Couldn't load the journal",
+  "journalRetry": "Try again",
+  "loveNoteYourNoteLabel": "YOUR NOTE",
   "milestoneReached": "You just reached a beautiful milestone ✨",
   "onlyDaysUntilMilestone": "Only {count} days until your next milestone.",
   "@onlyDaysUntilMilestone": {
@@ -445,8 +508,36 @@
   "youTwoLabel": "You two",
   "syncingLibrary": "Syncing library...",
   "uploadingPhoto": "Uploading photo...",
+  "uploadingPhotoProgress": "Uploading {current}/{total}...",
+  "@uploadingPhotoProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "deletingPhoto": "Deleting photo...",
   "updatingCaption": "Updating caption...",
+  "galleryLoadErrorTitle": "Couldn't load photos",
+  "galleryLoadErrorSubtitle": "Your memories are safe — we just couldn't reach them right now.",
+  "galleryRetryBtn": "Try again",
+  "multiPhotosResultPartial": "Posted {success}/{total}, {failed} failed",
+  "@multiPhotosResultPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
   "feedDateFormat": "dd MMM • HH:mm",
   "fullDateFormat": "MMM d, y",
   "momentNumberFallback": "Moment #{index}",
@@ -489,15 +580,6 @@
   "infoAndRhythmSubtitle": "A clearer look at your start date, album, and upcoming milestones.",
   "loveStartDateLabel": "Love start date",
   "yourInviteCodeLabel": "Your account invite code",
-  "dayStreakLabel": "Day streak",
-  "dayStreakValue": "{count} days and still going",
-  "@dayStreakValue": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "memoryAlbumLabel": "Memory album",
   "memoryAlbumValue": "{count} photos saved in private album",
   "@memoryAlbumValue": {
@@ -563,6 +645,11 @@
   "remindersToggleDesc": "Reminds you of the milestones & anniversaries you choose. Required to use \"Our reminders\".",
   "remindersTimeLabel": "Reminder time",
   "remindersPermissionDeniedMsg": "Turn on notifications in Settings to receive reminders.",
+  "dailyQuestionReminderTitle": "Daily question reminder",
+  "dailyQuestionReminderSubtitle": "A gentle daily nudge to answer together.",
+  "dailyQuestionReminderTimeLabel": "Remind me at",
+  "dailyQuestionReminderNotifTitle": "Today's question is waiting 💌",
+  "dailyQuestionReminderNotifBody": "Answer it to unlock your partner's reply.",
   "reminderDailyTitle": "Another day of us 💕",
   "reminderDailyBody": "Open Dear Embeiu and count today together.",
   "reminderMilestoneApproachingTitle": "A milestone is near 💕",
@@ -1192,6 +1279,10 @@
   "@signOutDialogTitle": {
     "description": "signOutDialogTitle"
   },
+  "signOutFailedMsg": "Couldn't sign out. Please check your connection and try again.",
+  "@signOutFailedMsg": {
+    "description": "signOutFailedMsg"
+  },
   "welcomeBackBadge": "WELCOME BACK",
   "@welcomeBackBadge": {
     "description": "welcomeBackBadge"
@@ -1319,5 +1410,89 @@
   "guestCtaRegister": "Sign up",
   "@guestCtaRegister": {
     "description": "CTA button opening the register screen"
-  }
+  },
+
+  "streakChipNoStreak": "Start a streak together",
+  "@streakChipNoStreak": {
+    "description": "Streak chip — active couple with no streak yet (shame-free invite)"
+  },
+  "streakChipRestart": "Let's start a new streak 🌱",
+  "@streakChipRestart": {
+    "description": "Streak chip — after a reset, positive restart framing"
+  },
+  "streakChipActiveToday": "{n}-day streak · done for today ✨",
+  "@streakChipActiveToday": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "streakChipInProgress": "{n}-day streak · today's your turn 🌸",
+  "@streakChipInProgress": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "streakChipAtRisk": "Your {n}-day streak is waiting 🫶",
+  "@streakChipAtRisk": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+
+  "streakSheetUnit": "days connected in a row",
+  "streakSheetNoStreakTitle": "Light your first spark",
+  "streakSheetNoStreakBody": "Each day you both answer the question, your streak grows. Let's begin 💞",
+  "streakSheetActiveTitle": "You're keeping the spark alive 💞",
+  "streakSheetActiveBody": "All done today! See you at tomorrow's question.",
+  "streakSheetInProgressTitle": "Your streak's still glowing 🌸",
+  "streakSheetInProgressBody": "Answer today's question to keep your {n}-day streak going 💞",
+  "@streakSheetInProgressBody": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "streakSheetAtRiskTitle": "One soft day left 🫶",
+  "streakSheetAtRiskBody": "You missed a beat yesterday — totally okay! Answer today and your {n}-day streak picks right back up.",
+  "@streakSheetAtRiskBody": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "streakSheetRestartBody": "The old streak wrapped up, but every new day's a fresh start. Let's light it again 🌱",
+  "streakSheetRecord": "Your record: {m} days 🌟",
+  "@streakSheetRecord": {
+    "placeholders": {
+      "m": { "type": "int" }
+    }
+  },
+
+  "streakNextMilestone": "{n} days to your {m}-day milestone 🎉",
+  "@streakNextMilestone": {
+    "placeholders": {
+      "n": { "type": "int" },
+      "m": { "type": "int" }
+    }
+  },
+  "streakCtaAnswerNow": "Answer now",
+  "streakCtaKeepGoing": "Keep it going",
+
+  "streakMilestone3Title": "3 days already! 🌸",
+  "streakMilestone3Body": "What a sweet start. You two are doing great 💞",
+  "streakMilestone7Title": "A whole week! ✨",
+  "streakMilestone7Body": "7 days without missing a beat. So proud of you both!",
+  "streakMilestone30Title": "30 days, every single day! 🔥",
+  "streakMilestone30Body": "A month of keeping it lit — this is your ritual now 💞",
+  "streakMilestone100Title": "100 days! 💯",
+  "streakMilestone100Body": "A hundred days answering together, growing together. Few couples make it this far 🌟",
+  "streakMilestone365Title": "A full year! 👑",
+  "streakMilestone365Body": "365 days of never missing your connection. This is your love story 💞👑",
+
+  "streakJournalSummary": "{n}-day streak · longest {m}",
+  "@streakJournalSummary": {
+    "placeholders": {
+      "n": { "type": "int" },
+      "m": { "type": "int" }
+    }
+  },
+  "streakJournalSummaryNone": "Answer together each day to start a streak 🌸"
 }

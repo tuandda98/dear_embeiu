@@ -4,7 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../data/daily_questions.dart';
 import '../models/daily_answer.dart';
+import '../models/journal_day.dart';
 import 'firebase_bootstrap_service.dart';
 
 /// Reads/writes the per-couple, per-day "daily question" answers
@@ -36,16 +38,20 @@ class DailyQuestionService {
     return '$y-$m-$d';
   }
 
+  CollectionReference<Map<String, dynamic>> _dailyAnswers(String coupleId) =>
+      _db.collection('couples').doc(coupleId).collection('dailyAnswers');
+
   CollectionReference<Map<String, dynamic>> _responses(
     String coupleId,
     String dateKey,
   ) =>
-      _db
-          .collection('couples')
-          .doc(coupleId)
-          .collection('dailyAnswers')
-          .doc(dateKey)
-          .collection('responses');
+      _dailyAnswers(coupleId).doc(dateKey).collection('responses');
+
+  /// Parses a 'YYYY-MM-DD' [dateKey] back to a date-only [DateTime] (local).
+  /// Falls back to "now" when the key is malformed so a marker still gets a
+  /// sensible question snapshot.
+  static DateTime _dateFromKey(String dateKey) =>
+      DateTime.tryParse(dateKey) ?? DateTime.now();
 
   /// Streams both members' answers for [coupleId] on [dateKey] (≤ 2 docs).
   ///
@@ -96,6 +102,123 @@ class DailyQuestionService {
       'text': clamped,
       'answeredAt': FieldValue.serverTimestamp(),
     });
+
+    // Write a parent marker doc so the journal can list the days that have any
+    // answers (the responses subcollection alone leaves the parent "phantom" —
+    // un-listable). The question text is snapshotted HERE, from the bank, at the
+    // exact day it was answered (PO decision A: never re-derive — the bank may
+    // shift later). Best-effort: a marker failure must not fail answering.
+    final parsedDate = _dateFromKey(dateKey);
+    try {
+      await _dailyAnswers(coupleId).doc(dateKey).set({
+        'date': dateKey,
+        'questionVi': questionTextForCouple(parsedDate, coupleId, 'vi'),
+        'questionEn': questionTextForCouple(parsedDate, coupleId, 'en'),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {
+      // Ignore — the answer itself is already saved; the marker is auxiliary.
+    }
+
+    // Streak flag (feature streak, D-PO-2): once BOTH members have answered
+    // today, stamp `bothAnswered`/`revealedAt` on the marker so StreakProvider
+    // can list revealed days cheaply (filter client-side, no responses fan-out).
+    // Set client-side here (no Cloud Function) — additive to the marker so the
+    // member-write rule still validates (date/questionVi/questionEn stay present
+    // via merge). Best-effort: a failure must never fail answering.
+    try {
+      final responses = await _responses(coupleId, dateKey).get();
+      // `responses` holds at most two docs (one per member). Both present →
+      // today is revealed.
+      if (responses.docs.length >= 2) {
+        await _dailyAnswers(coupleId).doc(dateKey).set({
+          'bothAnswered': true,
+          'revealedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+    } catch (_) {
+      // Ignore — the streak flag is auxiliary; the answer is already saved.
+    }
+  }
+
+  /// Loads a page of revealed journal days for [coupleId], newest first.
+  ///
+  /// Lists `dailyAnswers` marker docs ordered by `date` desc (paged with
+  /// [startAfter]/[limit]); for each marker reads its ≤2 `responses` and keeps
+  /// ONLY days where BOTH members answered (= revealed). Returns the kept days
+  /// plus a cursor ([JournalPage.lastDoc]) for the next page and whether more
+  /// marker docs may remain ([JournalPage.hasMore]).
+  ///
+  /// Local fallback (no Firebase): journal is empty (markers are Firestore-only;
+  /// PO-accepted for v1).
+  Future<JournalPage> loadJournal({
+    required String coupleId,
+    required String myUid,
+    DocumentSnapshot<Map<String, dynamic>>? startAfter,
+    int limit = 30,
+  }) async {
+    if (!isUsingFirebase ||
+        coupleId.trim().isEmpty ||
+        myUid.trim().isEmpty) {
+      return const JournalPage(days: [], lastDoc: null, hasMore: false);
+    }
+
+    Query<Map<String, dynamic>> query =
+        _dailyAnswers(coupleId).orderBy('date', descending: true).limit(limit);
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
+    final snapshot = await query.get();
+    final markers = snapshot.docs;
+    // hasMore is page-level: if this page filled the limit, another page MAY
+    // exist (some markers may be filtered out, but there could still be more).
+    final hasMore = markers.length == limit;
+
+    // Read each day's responses in parallel (≤2 docs each).
+    final futures = markers.map((marker) async {
+      final data = marker.data();
+      final responsesSnap =
+          await _responses(coupleId, marker.id).get();
+      final answers = responsesSnap.docs
+          .map((d) => DailyAnswer.fromDoc(d.id, d.data()))
+          .where((a) => a.hasText)
+          .toList();
+
+      // Only fully-revealed days (both members answered) become journal entries.
+      DailyAnswer? mine;
+      DailyAnswer? theirs;
+      for (final a in answers) {
+        if (a.authorUserId == myUid) {
+          mine = a;
+        } else {
+          theirs = a;
+        }
+      }
+      if (mine == null || theirs == null) {
+        return null;
+      }
+
+      return JournalDay(
+        date: (data['date'] as String?)?.trim().isNotEmpty == true
+            ? data['date'] as String
+            : marker.id,
+        questionVi: data['questionVi'] as String? ?? '',
+        questionEn: data['questionEn'] as String? ?? '',
+        myAnswer: mine.text,
+        partnerAnswer: theirs.text,
+        partnerUid: theirs.authorUserId,
+      );
+    }).toList();
+
+    final resolved = await Future.wait(futures);
+    final days = resolved.whereType<JournalDay>().toList();
+
+    return JournalPage(
+      days: days,
+      lastDoc: markers.isEmpty ? null : markers.last,
+      hasMore: hasMore,
+    );
   }
 
   // ── Local fallback (Hive) ──────────────────────────────────────────────
@@ -143,4 +266,23 @@ class DailyQuestionService {
       // Best-effort: ignore local persistence failures.
     }
   }
+}
+
+/// One page of journal results from [DailyQuestionService.loadJournal].
+class JournalPage {
+  /// Revealed days in this page (newest first).
+  final List<JournalDay> days;
+
+  /// Cursor for the next page — pass as `startAfter`. Null when no markers were
+  /// read (end of list).
+  final DocumentSnapshot<Map<String, dynamic>>? lastDoc;
+
+  /// Whether another page of marker docs may exist (this page filled `limit`).
+  final bool hasMore;
+
+  const JournalPage({
+    required this.days,
+    required this.lastDoc,
+    required this.hasMore,
+  });
 }

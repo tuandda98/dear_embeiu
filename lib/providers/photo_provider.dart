@@ -126,6 +126,67 @@ class PhotoProvider extends ChangeNotifier {
     }
   }
 
+  /// Uploads a batch of photos under a single blocking overlay (no per-photo
+  /// on/off flicker). The overlay message advances "Uploading i/total" via
+  /// [progress] as each upload starts. A failed upload does NOT abort the batch
+  /// — it's skipped and counted, so the rest still go through. Returns the
+  /// number of successful uploads (caller can derive the failure count).
+  ///
+  /// Unlike [addPhoto], this owns the loading lifecycle for the whole batch and
+  /// never rethrows; surface the aggregate result to the user instead.
+  Future<int> addPhotosBatch(
+    List<String> imagePaths, {
+    required AppUser currentUser,
+    required String Function(int current, int total) progress,
+  }) async {
+    if (imagePaths.isEmpty) {
+      return 0;
+    }
+
+    final total = imagePaths.length;
+    final wasFirstPhoto = _photos.isEmpty;
+    var successCount = 0;
+
+    _setLoading(true, message: progress(1, total));
+    _clearError(notify: false);
+
+    try {
+      for (var i = 0; i < total; i++) {
+        // Keep the overlay visible; just advance its label per item.
+        _loadingMessage = progress(i + 1, total);
+        notifyListeners();
+
+        try {
+          final photo = await _photoService.addPhoto(
+            currentUser: currentUser,
+            localImagePath: imagePaths[i],
+          );
+
+          if (!_photoService.isUsingFirebase || !currentUser.hasCouple) {
+            _photos.add(photo);
+            await StorageService.savePhotos(_photos);
+            notifyListeners();
+          }
+
+          successCount++;
+        } on PhotoSyncException catch (e) {
+          // Remember the last failure reason but keep going through the batch.
+          _errorMessage = e.message;
+        }
+      }
+
+      if (successCount > 0) {
+        AnalyticsService.instance
+          ..logPhotoPosted(isFirst: wasFirstPhoto)
+          ..setHasPostedPhoto(true);
+      }
+    } finally {
+      _setLoading(false);
+    }
+
+    return successCount;
+  }
+
   Future<void> deletePhoto(
     String photoId, {
     required AppUser currentUser,

@@ -465,6 +465,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get reactionHint => 'React to this moment';
+
+  @override
+  String get reactionYouLabel => 'You';
+
+  @override
+  String get reactionAddTooltip => 'React';
+
+  @override
+  String get reactionChangeTooltip => 'Change reaction';
+
+  @override
+  String get reactionRemoveTooltip => 'Remove reaction';
+
+  @override
+  String get reactionErrorRetry => 'Couldn\'t react, try again';
+
+  @override
+  String reactionPartnerReacted(String name, String emoji) {
+    return '$name reacted $emoji';
+  }
+
+  @override
+  String get reactionBothLabel => 'You both reacted 💞';
+
+  @override
   String get dailyQuestionLabel => 'Today\'s question';
 
   @override
@@ -501,6 +527,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dailyQuestionSent => 'Your answer was sent 💞';
+
+  @override
+  String get journalEntryCta => 'Open journal';
+
+  @override
+  String get journalScreenTitle => 'Question journal';
+
+  @override
+  String get journalScreenSubtitle => 'The questions you\'ve both answered.';
+
+  @override
+  String get journalSettingsTile => 'Question journal';
+
+  @override
+  String get journalSettingsSection => 'Memories';
+
+  @override
+  String get journalYourAnswerLabel => 'YOUR ANSWER';
+
+  @override
+  String journalPartnerAnswerLabel(String name) {
+    return '$name\'S ANSWER';
+  }
+
+  @override
+  String get journalLoadMore => 'Show more';
+
+  @override
+  String get journalEmptyTitle => 'No question memories yet';
+
+  @override
+  String get journalEmptyBody =>
+      'When you both answer a daily question, that moment gets saved here.';
+
+  @override
+  String get journalEmptyCta => 'Answer today\'s question';
+
+  @override
+  String get journalEmptyNoPartnerBody =>
+      'Invite your partner to start your journal together.';
+
+  @override
+  String get journalEmptyNoPartnerCta => 'Invite partner';
+
+  @override
+  String get journalErrorTitle => 'Couldn\'t load the journal';
+
+  @override
+  String get journalRetry => 'Try again';
+
+  @override
+  String get loveNoteYourNoteLabel => 'YOUR NOTE';
 
   @override
   String get milestoneReached => 'You just reached a beautiful milestone ✨';
@@ -743,10 +821,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uploadingPhoto => 'Uploading photo...';
 
   @override
+  String uploadingPhotoProgress(int current, int total) {
+    return 'Uploading $current/$total...';
+  }
+
+  @override
   String get deletingPhoto => 'Deleting photo...';
 
   @override
   String get updatingCaption => 'Updating caption...';
+
+  @override
+  String get galleryLoadErrorTitle => 'Couldn\'t load photos';
+
+  @override
+  String get galleryLoadErrorSubtitle =>
+      'Your memories are safe — we just couldn\'t reach them right now.';
+
+  @override
+  String get galleryRetryBtn => 'Try again';
+
+  @override
+  String multiPhotosResultPartial(int success, int total, int failed) {
+    return 'Posted $success/$total, $failed failed';
+  }
 
   @override
   String get feedDateFormat => 'dd MMM • HH:mm';
@@ -819,14 +917,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get yourInviteCodeLabel => 'Your account invite code';
-
-  @override
-  String get dayStreakLabel => 'Day streak';
-
-  @override
-  String dayStreakValue(int count) {
-    return '$count days and still going';
-  }
 
   @override
   String get memoryAlbumLabel => 'Memory album';
@@ -975,6 +1065,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get remindersPermissionDeniedMsg =>
       'Turn on notifications in Settings to receive reminders.';
+
+  @override
+  String get dailyQuestionReminderTitle => 'Daily question reminder';
+
+  @override
+  String get dailyQuestionReminderSubtitle =>
+      'A gentle daily nudge to answer together.';
+
+  @override
+  String get dailyQuestionReminderTimeLabel => 'Remind me at';
+
+  @override
+  String get dailyQuestionReminderNotifTitle =>
+      'Today\'s question is waiting 💌';
+
+  @override
+  String get dailyQuestionReminderNotifBody =>
+      'Answer it to unlock your partner\'s reply.';
 
   @override
   String get reminderDailyTitle => 'Another day of us 💕';
@@ -1684,6 +1792,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signOutDialogTitle => 'Sign out?';
 
   @override
+  String get signOutFailedMsg =>
+      'Couldn\'t sign out. Please check your connection and try again.';
+
+  @override
   String get welcomeBackBadge => 'WELCOME BACK';
 
   @override
@@ -1776,4 +1888,122 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guestCtaRegister => 'Sign up';
+
+  @override
+  String get streakChipNoStreak => 'Start a streak together';
+
+  @override
+  String get streakChipRestart => 'Let\'s start a new streak 🌱';
+
+  @override
+  String streakChipActiveToday(int n) {
+    return '$n-day streak · done for today ✨';
+  }
+
+  @override
+  String streakChipInProgress(int n) {
+    return '$n-day streak · today\'s your turn 🌸';
+  }
+
+  @override
+  String streakChipAtRisk(int n) {
+    return 'Your $n-day streak is waiting 🫶';
+  }
+
+  @override
+  String get streakSheetUnit => 'days connected in a row';
+
+  @override
+  String get streakSheetNoStreakTitle => 'Light your first spark';
+
+  @override
+  String get streakSheetNoStreakBody =>
+      'Each day you both answer the question, your streak grows. Let\'s begin 💞';
+
+  @override
+  String get streakSheetActiveTitle => 'You\'re keeping the spark alive 💞';
+
+  @override
+  String get streakSheetActiveBody =>
+      'All done today! See you at tomorrow\'s question.';
+
+  @override
+  String get streakSheetInProgressTitle => 'Your streak\'s still glowing 🌸';
+
+  @override
+  String streakSheetInProgressBody(int n) {
+    return 'Answer today\'s question to keep your $n-day streak going 💞';
+  }
+
+  @override
+  String get streakSheetAtRiskTitle => 'One soft day left 🫶';
+
+  @override
+  String streakSheetAtRiskBody(int n) {
+    return 'You missed a beat yesterday — totally okay! Answer today and your $n-day streak picks right back up.';
+  }
+
+  @override
+  String get streakSheetRestartBody =>
+      'The old streak wrapped up, but every new day\'s a fresh start. Let\'s light it again 🌱';
+
+  @override
+  String streakSheetRecord(int m) {
+    return 'Your record: $m days 🌟';
+  }
+
+  @override
+  String streakNextMilestone(int n, int m) {
+    return '$n days to your $m-day milestone 🎉';
+  }
+
+  @override
+  String get streakCtaAnswerNow => 'Answer now';
+
+  @override
+  String get streakCtaKeepGoing => 'Keep it going';
+
+  @override
+  String get streakMilestone3Title => '3 days already! 🌸';
+
+  @override
+  String get streakMilestone3Body =>
+      'What a sweet start. You two are doing great 💞';
+
+  @override
+  String get streakMilestone7Title => 'A whole week! ✨';
+
+  @override
+  String get streakMilestone7Body =>
+      '7 days without missing a beat. So proud of you both!';
+
+  @override
+  String get streakMilestone30Title => '30 days, every single day! 🔥';
+
+  @override
+  String get streakMilestone30Body =>
+      'A month of keeping it lit — this is your ritual now 💞';
+
+  @override
+  String get streakMilestone100Title => '100 days! 💯';
+
+  @override
+  String get streakMilestone100Body =>
+      'A hundred days answering together, growing together. Few couples make it this far 🌟';
+
+  @override
+  String get streakMilestone365Title => 'A full year! 👑';
+
+  @override
+  String get streakMilestone365Body =>
+      '365 days of never missing your connection. This is your love story 💞👑';
+
+  @override
+  String streakJournalSummary(int n, int m) {
+    return '$n-day streak · longest $m';
+  }
+
+  @override
+  String get streakJournalSummaryNone =>
+      'Answer together each day to start a streak 🌸';
 }

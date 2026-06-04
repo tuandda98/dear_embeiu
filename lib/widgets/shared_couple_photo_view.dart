@@ -13,6 +13,8 @@ class SharedCouplePhotoView extends StatelessWidget {
     this.remoteUrl,
     this.fit = BoxFit.cover,
     this.placeholder,
+    this.decodeWidth,
+    this.decodeHeight,
   });
 
   final String? localPath;
@@ -20,8 +22,32 @@ class SharedCouplePhotoView extends StatelessWidget {
   final BoxFit fit;
   final Widget? placeholder;
 
+  /// Target decode width in *physical* pixels for avatar-sized call-sites
+  /// (pass `logicalSize * devicePixelRatio`). Avoids decoding a full-res couple
+  /// photo into a 42–80px circle. `null` keeps the image full-res.
+  final int? decodeWidth;
+  final int? decodeHeight;
+
   @override
   Widget build(BuildContext context) {
+    // Prefer the remote (cached) image when present — skips the synchronous
+    // existsSync() stat on every build for the common Firebase flow.
+    final normalizedRemoteUrl = remoteUrl?.trim();
+    if (normalizedRemoteUrl != null && normalizedRemoteUrl.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: normalizedRemoteUrl,
+        fit: fit,
+        memCacheWidth: decodeWidth,
+        memCacheHeight: decodeHeight,
+        placeholder: (context, url) => _buildLoading(),
+        errorWidget: (context, url, error) => _buildLocalOrFallback(),
+      );
+    }
+
+    return _buildLocalOrFallback();
+  }
+
+  Widget _buildLocalOrFallback() {
     final normalizedLocalPath = localPath?.trim();
     if (normalizedLocalPath != null &&
         normalizedLocalPath.isNotEmpty &&
@@ -29,17 +55,9 @@ class SharedCouplePhotoView extends StatelessWidget {
       return Image.file(
         File(normalizedLocalPath),
         fit: fit,
+        cacheWidth: decodeWidth,
+        cacheHeight: decodeHeight,
         errorBuilder: (context, error, stackTrace) => _buildFallback(),
-      );
-    }
-
-    final normalizedRemoteUrl = remoteUrl?.trim();
-    if (normalizedRemoteUrl != null && normalizedRemoteUrl.isNotEmpty) {
-      return CachedNetworkImage(
-        imageUrl: normalizedRemoteUrl,
-        fit: fit,
-        placeholder: (context, url) => _buildLoading(),
-        errorWidget: (context, url, error) => _buildFallback(),
       );
     }
 
@@ -63,4 +81,3 @@ class SharedCouplePhotoView extends StatelessWidget {
         );
   }
 }
-

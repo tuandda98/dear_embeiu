@@ -83,6 +83,7 @@ Hive box `reminder_settings` (chung với enabled/hour/minute), mỗi mốc 1 ke
 - Acceptance Dv8: [x] giờ riêng persist null=mặc định; [x] schedule dùng đúng giờ riêng/mặc định; [x] đổi mặc định reschedule chỉ mốc chưa-đặt-riêng; [x] ✕ về mặc định. ⏳ cần thiết bị xác nhận notification bắn đúng giờ mới.
 
 ## Nhật ký implement
+- [2026-06-04] [Dev] **b2 — daily-question reminder** dùng chung hạ tầng này: `ReminderService` thêm `scheduleDailyQuestion`/`cancelDailyQuestion` (id **1004**, lặp `DateTimeComponents.time`). id 1004 **ngoài `_autoIds`** ⇒ ĐỘC LẬP master toggle (`cancelAll`/`_reschedule` không đụng). State+UI ở `reminder_provider`/`settings_screen`, wire sync + cancel ở `session_resolver`. Chi tiết đầy đủ: `project/features/daily-question/dev.md` mục "b2". Thuần local, không deploy.
 - [2026-05-31] [Dev] **Dv8 — giờ theo mốc**: thêm `_milestoneTimes` + `milestoneTimeOf`/`effectiveTimeOf`/`setMilestoneTime` + persist Hive `milestone_<name>_hour/_minute` (null=mặc định); `_scheduleMilestone`/`nextFireForMilestone` dùng `effectiveTimeOf`; `setTime` fallback cached couple inputs. UI (tile "Giờ mặc định" + chip-giờ mỗi mốc) ở màn mốc — xem settings/dev.md. analyze sạch.
 - [2026-05-30] [PO] Khởi tạo doc.
 - [2026-05-31] [Dev] Fix biên: mốc one-shot/every100/halfYear rơi đúng hôm nay vẫn bắn nếu giờ nhắc chưa qua (so datetime thay vì ngày).
