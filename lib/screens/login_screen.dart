@@ -358,7 +358,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pushNamed(AppRoutes.register);
+                      // Swap login↔register in place (both sit directly on top
+                      // of /guest): keeps the stack at guest→[login|register],
+                      // so "back" always returns to guest and tapping the
+                      // cross-links repeatedly never piles up screens.
+                      Navigator.of(context)
+                          .pushReplacementNamed(AppRoutes.register);
                     },
                     child: Text(l10n.createAccountLink),
                   ),

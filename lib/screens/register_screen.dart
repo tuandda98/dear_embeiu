@@ -532,7 +532,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      // Always land on /login (not a bare pop): when register is
+                      // opened straight from /guest a pop would return to guest,
+                      // contradicting the "back to sign in" label. Swapping in
+                      // place keeps the stack at guest→[login|register].
+                      Navigator.of(context)
+                          .pushReplacementNamed(AppRoutes.login);
                     },
                     child: Text(l10n.backToSignIn),
                   ),

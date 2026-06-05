@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -65,8 +66,14 @@ class _SetupScreenState extends State<SetupScreen> {
       _person2Controller.text = existingCouple.person2Name;
       _selectedDate = existingCouple.anniversaryDate;
       _couplePhotoPath = existingCouple.couplePhotoPath;
-    } else if (currentUser != null && currentUser.displayName.trim().isNotEmpty) {
-      _person1Controller.text = currentUser.displayName.trim();
+    } else {
+      if (currentUser != null && currentUser.displayName.trim().isNotEmpty) {
+        _person1Controller.text = currentUser.displayName.trim();
+      }
+      // Carry the love date the user already set in guest mode into the very
+      // first couple they create, so the single-player → account funnel doesn't
+      // make them re-pick it. Best-effort & purely local: ignore any read miss.
+      _selectedDate ??= _readGuestAnniversary();
     }
 
     _didPrefill = true;
@@ -78,6 +85,23 @@ class _SetupScreenState extends State<SetupScreen> {
     _person2Controller.dispose();
     _inviteCodeController.dispose();
     super.dispose();
+  }
+
+  /// Reads the anniversary the user picked in guest mode (Hive `guest_settings`,
+  /// key `anniversary` as ms-since-epoch). Synchronous & guarded: only when the
+  /// guest box is already open (it is whenever the user passed through the guest
+  /// landing); returns null otherwise so cold-starting straight into setup is
+  /// unaffected. Keep these keys in sync with [GuestCounterScreen].
+  DateTime? _readGuestAnniversary() {
+    const boxName = 'guest_settings';
+    const anniversaryKey = 'anniversary';
+    if (!Hive.isBoxOpen(boxName)) {
+      return null;
+    }
+    final millis = Hive.box(boxName).get(anniversaryKey);
+    return millis is int
+        ? DateTime.fromMillisecondsSinceEpoch(millis)
+        : null;
   }
 
   Future<void> _pickDate() async {
