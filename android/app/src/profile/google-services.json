@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "529060310047",
+    "project_id": "tonyembeiu-dev",
+    "storage_bucket": "tonyembeiu-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529060310047:android:418f03002cf93b2342b92a",
+        "android_client_info": {
+          "package_name": "com.tony.dearembeiu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCOZ0l-SBh4c0cpL5zQu_klkBGejjZ-d8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529060310047:android:b6086166e9e4a63142b92a",
+        "android_client_info": {
+          "package_name": "com.tony.dearembeiu.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCOZ0l-SBh4c0cpL5zQu_klkBGejjZ-d8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

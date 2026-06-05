@@ -105,7 +105,7 @@ Với từng loại dữ liệu, khai báo:
 
 ## Các URL cần điền trong Play Console
 
-Sau khi deploy Firebase Hosting (`firebase deploy --only hosting`):
+Sau khi deploy Firebase Hosting (`firebase deploy --only hosting --project prod`):
 
 | Mục | URL |
 |-----|-----|
@@ -118,7 +118,7 @@ Sau khi deploy Firebase Hosting (`firebase deploy --only hosting`):
 
 ## Checklist cuối cùng trước khi Submit
 
-- [ ] `firebase deploy --only hosting` để host Privacy Policy + Account Deletion page
+- [ ] `firebase deploy --only hosting --project prod` để host Privacy Policy + Account Deletion page
 - [ ] Điền Privacy Policy URL vào Play Console > App content > Privacy policy
 - [ ] Điền Account Deletion URL vào Play Console > App content > Data safety > Account deletion
 - [ ] Chạy `assets/branding/export_assets.sh` để tạo PNG assets

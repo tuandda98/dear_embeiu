@@ -1,6 +1,7 @@
 {
   "projects": {
-    "default": "tonyembeiu"
+    "default": "tonyembeiu-dev",
+    "prod": "tonyembeiu",
+    "dev": "tonyembeiu-dev"
   }
 }
-

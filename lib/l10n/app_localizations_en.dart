@@ -1487,7 +1487,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authFirestorePermissionDenied =>
-      'Firestore is blocking writes to user data. This app connects to the Firebase project `tonyembeiu`, so check that project\'s Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.';
+      'Firestore is blocking writes to user data. Check this app\'s Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.';
 
   @override
   String get authFirestoreUnavailable =>
@@ -2020,4 +2020,82 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get streakJournalSummaryNone =>
       'Answer together each day to start a streak 🌸';
+
+  @override
+  String get forgotPasswordLink => 'Forgot password?';
+
+  @override
+  String get forgotPasswordBadge => 'RECOVER ACCESS';
+
+  @override
+  String get forgotPasswordTitle => 'Forgot your password?';
+
+  @override
+  String get forgotPasswordSubtitle =>
+      'Enter your email and we\'ll send you a link to reset your password.';
+
+  @override
+  String get forgotPasswordEmailHeading => 'Email';
+
+  @override
+  String get forgotPasswordSendBtn => 'Send reset email';
+
+  @override
+  String get forgotPasswordBackToLogin => 'Back to sign in';
+
+  @override
+  String get forgotPasswordSentTitle => 'Check your inbox';
+
+  @override
+  String forgotPasswordSentBody(String email) {
+    return 'We\'ve sent a password reset link to $email. Open the email and tap the link to reset it. Don\'t forget to check your spam folder.';
+  }
+
+  @override
+  String get forgotPasswordResendLink => 'Didn\'t get it? Resend';
+
+  @override
+  String get forgotPasswordNetworkError =>
+      'Couldn\'t send the email. Check your connection and try again.';
+
+  @override
+  String get forgotPasswordLocalFallback =>
+      'This feature needs an internet connection. Please connect and try again.';
+
+  @override
+  String get verifyEmailBadge => 'VERIFY EMAIL';
+
+  @override
+  String get verifyEmailTitle => 'Verify your email';
+
+  @override
+  String verifyEmailSubtitle(String email) {
+    return 'We\'ve sent a verification link to $email.';
+  }
+
+  @override
+  String get verifyEmailBody =>
+      'Open the email, tap the verification link, then come back here and tap \"I\'ve verified\".';
+
+  @override
+  String get verifyEmailCheckBtn => 'I\'ve verified';
+
+  @override
+  String get verifyEmailResend => 'Resend email';
+
+  @override
+  String verifyEmailResendCountdown(String time) {
+    return 'Resend in $time';
+  }
+
+  @override
+  String get verifyEmailNotYet =>
+      'Not verified yet — please check your inbox and try again.';
+
+  @override
+  String get verifyEmailSuccess => 'Verified! Taking you in...';
+
+  @override
+  String get verifyEmailResendError =>
+      'Couldn\'t resend the email. Check your connection and try again.';
 }

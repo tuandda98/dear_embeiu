@@ -16,3 +16,7 @@ npx firebase-tools deploy --only firestore:rules,firestore:indexes,functions:not
 npx firebase-tools deploy --only firestore:rules,firestore:indexes,functions:notifyPhotoReaction,functions:deleteAccount --project tonyembeiu 2>&1 | tail -30` · snapshot `20260604T060923Z/`
 - [20260604T083055Z] head=d6a7157 dirty=47 exit=? · `cd /Users/tony.tuando/StudioProjects/dear_embeiu
 npx firebase-tools deploy --only firestore:rules --project tonyembeiu 2>&1 | tail -8` · snapshot `20260604T083055Z/`
+- [20260605T060843Z] head=cd32f4d dirty=15 exit=? · `npx firebase-tools deploy --only firestore:rules,firestore:indexes,storage --project dev 2>&1 | grep -v "DeprecationWarning\|trace-deprecation\|punycode" | tail -40` · snapshot `20260605T060843Z/`
+- [20260605T105348Z] head=cd32f4d dirty=41 exit=? · `cd /Users/tony.tuando/StudioProjects/dear_embeiu
+npx firebase-tools deploy --only functions:sendCustomVerificationEmail --project dev 2>&1 | grep -v "punycode\|DeprecationWarning\|trace-deprecation" | tail -40
+echo "DEPLOY_EXIT=${PIPESTATUS[0]}"` · snapshot `20260605T105348Z/`

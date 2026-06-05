@@ -783,7 +783,7 @@
   "authFirebaseAuthGeneric": "Đã có lỗi Firebase Auth xảy ra.",
   "authFirebaseUserCreateFailed": "Không tạo được người dùng Firebase.",
   "authFirestoreGeneric": "Đã có lỗi Firestore xảy ra.",
-  "authFirestorePermissionDenied": "Firestore đang chặn quyền ghi dữ liệu người dùng. App này đang kết nối project Firebase `tonyembeiu`, nên bạn cần kiểm tra Firestore Rules của project đó và cho phép user đã đăng nhập tạo/ghi `users/<uid>` cùng `invite_codes/<code>` của chính họ.",
+  "authFirestorePermissionDenied": "Firestore đang chặn quyền ghi dữ liệu người dùng. Hãy kiểm tra Firestore Rules của project đang kết nối và cho phép user đã đăng nhập tạo/ghi `users/<uid>` cùng `invite_codes/<code>` của chính họ.",
   "authFirestoreUnavailable": "Firestore hiện chưa khả dụng hoặc mạng không ổn định. Bạn thử lại sau ít phút nhé.",
   "authInvalidCredential": "Email hoặc mật khẩu chưa đúng.",
   "authInvalidEmail": "Email chưa hợp lệ.",
@@ -978,5 +978,43 @@
       "m": { "type": "int" }
     }
   },
-  "streakJournalSummaryNone": "Cùng trả lời mỗi ngày để bắt đầu chuỗi nhé 🌸"
+  "streakJournalSummaryNone": "Cùng trả lời mỗi ngày để bắt đầu chuỗi nhé 🌸",
+
+  "forgotPasswordLink": "Quên mật khẩu?",
+  "forgotPasswordBadge": "KHÔI PHỤC TRUY CẬP",
+  "forgotPasswordTitle": "Quên mật khẩu?",
+  "forgotPasswordSubtitle": "Nhập email của bạn, mình sẽ gửi liên kết để đặt lại mật khẩu.",
+  "forgotPasswordEmailHeading": "Email",
+  "forgotPasswordSendBtn": "Gửi email đặt lại",
+  "forgotPasswordBackToLogin": "Quay lại đăng nhập",
+  "forgotPasswordSentTitle": "Kiểm tra hộp thư",
+  "forgotPasswordSentBody": "Đã gửi liên kết đặt lại mật khẩu tới {email}. Mở mail và bấm vào liên kết để đặt lại. Nhớ kiểm tra cả mục spam nhé.",
+  "@forgotPasswordSentBody": {
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "forgotPasswordResendLink": "Không nhận được? Gửi lại",
+  "forgotPasswordNetworkError": "Không gửi được email. Kiểm tra kết nối mạng rồi thử lại nhé.",
+  "forgotPasswordLocalFallback": "Tính năng này cần kết nối mạng. Bạn kết nối internet rồi thử lại nhé.",
+  "verifyEmailBadge": "XÁC THỰC EMAIL",
+  "verifyEmailTitle": "Xác thực email của bạn",
+  "verifyEmailSubtitle": "Mình đã gửi liên kết xác thực tới {email}.",
+  "@verifyEmailSubtitle": {
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "verifyEmailBody": "Mở email, bấm vào liên kết xác thực, rồi quay lại đây và bấm \"Tôi đã xác thực\".",
+  "verifyEmailCheckBtn": "Tôi đã xác thực",
+  "verifyEmailResend": "Gửi lại email",
+  "verifyEmailResendCountdown": "Gửi lại sau {time}",
+  "@verifyEmailResendCountdown": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "verifyEmailNotYet": "Chưa thấy xác thực — bạn kiểm tra lại hộp thư rồi thử lại nhé.",
+  "verifyEmailSuccess": "Đã xác thực! Đang đưa bạn vào...",
+  "verifyEmailResendError": "Không gửi lại được email. Kiểm tra kết nối rồi thử lại nhé."
 }

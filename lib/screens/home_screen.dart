@@ -2251,35 +2251,51 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
                   color: AppColors.accentRose.withValues(alpha: 0.25)),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-              child: TextField(
-                controller: _controller,
-                maxLength: _maxChars,
-                maxLines: 3,
-                minLines: 1,
-                cursorColor: AppColors.accentRose,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  hintText: l10n.dailyQuestionHint,
-                  hintStyle: const TextStyle(
-                    color: AppColors.textTertiary,
-                    fontSize: 14,
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _controller,
+                    maxLength: _maxChars,
+                    maxLines: 4,
+                    minLines: 2,
+                    textAlignVertical: TextAlignVertical.top,
+                    cursorColor: AppColors.accentRose,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      isCollapsed: true,
+                      border: InputBorder.none,
+                      hintText: l10n.dailyQuestionHint,
+                      hintStyle: const TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 14,
+                      ),
+                      // Counter rendered separately below so the field hugs its
+                      // text and the hint stays anchored top-left (no float).
+                      counterText: '',
+                    ),
                   ),
-                  counterText: l10n.dailyQuestionCharCount(
-                    _controller.text.characters.length,
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      l10n.dailyQuestionCharCount(
+                        _controller.text.characters.length,
+                      ),
+                      style: const TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 11,
+                      ),
+                    ),
                   ),
-                  counterStyle: const TextStyle(
-                    color: AppColors.textTertiary,
-                    fontSize: 11,
-                  ),
-                ),
+                ],
               ),
             ),
           ),

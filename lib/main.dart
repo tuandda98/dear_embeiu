@@ -25,12 +25,14 @@ import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/streak_provider.dart';
 import 'screens/auth_gate_screen.dart';
+import 'screens/forgot_password_screen.dart';
 import 'screens/guest_counter_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/setup_screen.dart';
 import 'screens/splash_screen.dart';
+import 'screens/verify_email_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_bootstrap_service.dart';
@@ -305,6 +307,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               AppRoutes.authGate: (_) => const AuthGateScreen(),
               AppRoutes.login: (_) => const LoginScreen(),
               AppRoutes.register: (_) => const RegisterScreen(),
+              AppRoutes.forgotPassword: (_) => const ForgotPasswordScreen(),
+              AppRoutes.verifyEmail: (_) => const VerifyEmailScreen(),
               AppRoutes.home: (_) => const HomeScreen(),
               AppRoutes.setup: (_) => const SetupScreen(),
               // Guest counter is a pure-local trial flow (Apple 5.1.1). It does

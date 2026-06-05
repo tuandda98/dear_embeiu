@@ -107,6 +107,21 @@ class SessionResolver {
       return AppRoutes.guest;
     }
 
+    // Email-verification gate (feature auth, Đợt 1 — D-auth2). A post-cutoff,
+    // unverified Firebase account must verify before it can reach setup/home.
+    // We return early BEFORE loading the couple or wiring any realtime watcher
+    // (a brand-new account has no couple yet anyway), so the user is sealed off
+    // until verified. Grandfathered / Google / Apple users return false here.
+    if (authProvider.requiresEmailVerification) {
+      await photoProvider.clearForSignOut();
+      loveNoteProvider.clear();
+      dailyQuestionProvider.clear();
+      reactionProvider.clear();
+      streakProvider.clear();
+      await reminderProvider.cancelDailyQuestionSchedule();
+      return AppRoutes.verifyEmail;
+    }
+
     final currentUser = authProvider.currentUser;
     await coupleProvider.loadCoupleForUser(currentUser);
     final hasCoupleData =

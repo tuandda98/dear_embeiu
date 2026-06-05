@@ -24,6 +24,14 @@ class AuthException implements Exception {
   String toString() => message;
 }
 
+/// Cutoff for mandatory email verification (feature auth, Đợt 1 — D-auth2).
+///
+/// Only accounts created on/after this instant are hard-gated behind email
+/// verification. Pre-cutoff accounts (existing v1.0 users) and providers that
+/// are verified on creation (Google/Apple, Đợt 2) are grandfathered in so the
+/// gate can never lock out users who already exist.
+final DateTime kEmailVerificationCutoff = DateTime.utc(2026, 6, 5);
+
 /// Sprint 1 local scaffold.
 ///
 /// Ở Sprint 2, file này có thể được thay bằng Firebase Auth + Firestore
@@ -168,6 +176,18 @@ class AuthService {
           throw AuthException(_mapFirestoreError(e));
         }
 
+        // Mandatory email verification (feature auth, Đợt 1). Send the link as
+        // part of sign-up so the new user lands on the verify screen with a mail
+        // already in their inbox. Custom branded email (Cách B) goes out via the
+        // `sendCustomVerificationEmail` callable (Resend) instead of Firebase's
+        // default template. Wrapped: a failed send must NOT break sign-up (the
+        // account exists, the user can still "Resend" from the gate).
+        try {
+          await _sendCustomVerificationEmail();
+        } catch (_) {
+          // Best-effort — verify screen exposes a manual "Resend" button.
+        }
+
         return user;
       } on FirebaseAuthException catch (e) {
         throw AuthException(_mapFirebaseAuthError(e));
@@ -290,6 +310,99 @@ class AuthService {
     }
 
     await _delete(_sessionStorageKey);
+  }
+
+  /// Email of the currently authenticated Firebase user (null in local mode or
+  /// when signed out). Used by the verify-email gate to show where the link
+  /// was sent.
+  String? get currentEmail => _auth.currentUser?.email;
+
+  /// True only when the current Firebase user is a post-cutoff account that has
+  /// NOT yet verified its email (D-auth2). Local-fallback always returns false
+  /// (no email infra, D-auth3); Google/Apple users are verified on creation so
+  /// they return false too. Grandfathered accounts (created before the cutoff)
+  /// also return false. Uses `!creationTime.isBefore(cutoff)` so the cutoff
+  /// instant itself counts as in-scope.
+  bool get requiresEmailVerification {
+    if (!isUsingFirebase) {
+      return false;
+    }
+    final user = _auth.currentUser;
+    if (user == null || user.emailVerified) {
+      return false;
+    }
+    final creationTime = user.metadata.creationTime;
+    if (creationTime == null) {
+      return false;
+    }
+    return !creationTime.isBefore(kEmailVerificationCutoff);
+  }
+
+  /// Sends a password-reset email (feature auth, Đợt 1). D-auth4: to avoid
+  /// leaking which emails are registered, a `user-not-found` is swallowed and
+  /// reported as success — the caller shows the neutral "we sent it" state
+  /// regardless. `invalid-email` is mapped to an exception (the UI validator
+  /// blocks it first, but we still map defensively); network/other errors throw.
+  Future<void> sendPasswordResetEmail(String email) async {
+    if (!isUsingFirebase) {
+      throw AuthException(AppL10n.strings.forgotPasswordLocalFallback);
+    }
+
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      // D-auth4 anti-enumeration: treat "no such account" as success.
+      if (e.code == 'user-not-found') {
+        return;
+      }
+      throw AuthException(_mapFirebaseAuthError(e));
+    }
+  }
+
+  /// Re-sends the verification email to the current user (feature auth, Đợt 1).
+  /// Custom branded email (Cách B) via the `sendCustomVerificationEmail`
+  /// callable; a failure throws [AuthException] so the verify screen can show
+  /// its resend-error state.
+  Future<void> resendEmailVerification() async {
+    try {
+      await _sendCustomVerificationEmail();
+    } on FirebaseFunctionsException catch (e) {
+      throw AuthException(e.message ?? AppL10n.strings.authNetworkError);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(_mapFirebaseAuthError(e));
+    }
+  }
+
+  /// Invokes the `sendCustomVerificationEmail` callable, which generates the
+  /// Firebase verification link server-side and delivers the on-brand HTML email
+  /// through Resend (feature auth — Cách B). The verification MECHANISM is
+  /// unchanged (same oobCode link, app still polls `reload()`); only the email
+  /// delivery channel differs from `FirebaseUser.sendEmailVerification()`.
+  /// Passes the active UI language so the email copy matches what the user sees.
+  Future<void> _sendCustomVerificationEmail() async {
+    await _functions.httpsCallable('sendCustomVerificationEmail').call<dynamic>(
+      <String, dynamic>{'languageCode': _activeLanguageCode},
+    );
+  }
+
+  /// Current UI language code ('vi' | 'en') without a BuildContext. Mirrors the
+  /// locale MaterialApp resolved (synced into [AppL10n] via
+  /// localeResolutionCallback); falls back to 'vi'.
+  String get _activeLanguageCode {
+    final code =
+        AppL10n.strings.localeName.split(RegExp('[_-]')).first.trim().toLowerCase();
+    return code.isNotEmpty ? code : 'vi';
+  }
+
+  /// Reloads the Firebase user (so a link tapped on another device/tab is
+  /// reflected) and returns whether the email is now verified.
+  Future<bool> reloadAndCheckEmailVerified() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return false;
+    }
+    await user.reload();
+    return _auth.currentUser?.emailVerified ?? false;
   }
 
   Future<void> purgePersistedSession({bool clearDeviceCache = true}) async {

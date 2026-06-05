@@ -44,6 +44,8 @@ android {
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Default app label; overridden per build type below (Dev gets " Dev").
+        manifestPlaceholders["appName"] = "Dear Embeiu"
     }
 
     signingConfigs {
@@ -69,6 +71,23 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+
+    // Side-by-side dev install: every non-release build (debug, profile) gets a
+    // `.dev` applicationId + "Dev" label so a `flutter run` build sits ALONGSIDE
+    // the Play Store app on a real device instead of overwriting it. Release
+    // keeps the production id (store builds unaffected). configureEach also
+    // covers the Flutter-created `profile` build type regardless of order.
+    // Pairs with src/{debug,profile}/google-services.json being registered for
+    // `com.tony.dearembeiu.dev` in the DEV Firebase project.
+    buildTypes.configureEach {
+        if (name == "release") {
+            manifestPlaceholders["appName"] = "Dear Embeiu"
+        } else {
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            manifestPlaceholders["appName"] = "Dear Embeiu Dev"
         }
     }
 }

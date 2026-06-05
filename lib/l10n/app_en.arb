@@ -923,7 +923,7 @@
   "@authFirestoreGeneric": {
     "description": "authFirestoreGeneric"
   },
-  "authFirestorePermissionDenied": "Firestore is blocking writes to user data. This app connects to the Firebase project `tonyembeiu`, so check that project's Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.",
+  "authFirestorePermissionDenied": "Firestore is blocking writes to user data. Check this app's Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.",
   "@authFirestorePermissionDenied": {
     "description": "authFirestorePermissionDenied"
   },
@@ -1498,5 +1498,103 @@
       "m": { "type": "int" }
     }
   },
-  "streakJournalSummaryNone": "Answer together each day to start a streak 🌸"
+  "streakJournalSummaryNone": "Answer together each day to start a streak 🌸",
+
+  "forgotPasswordLink": "Forgot password?",
+  "@forgotPasswordLink": {
+    "description": "forgotPasswordLink"
+  },
+  "forgotPasswordBadge": "RECOVER ACCESS",
+  "@forgotPasswordBadge": {
+    "description": "forgotPasswordBadge"
+  },
+  "forgotPasswordTitle": "Forgot your password?",
+  "@forgotPasswordTitle": {
+    "description": "forgotPasswordTitle"
+  },
+  "forgotPasswordSubtitle": "Enter your email and we'll send you a link to reset your password.",
+  "@forgotPasswordSubtitle": {
+    "description": "forgotPasswordSubtitle"
+  },
+  "forgotPasswordEmailHeading": "Email",
+  "@forgotPasswordEmailHeading": {
+    "description": "forgotPasswordEmailHeading"
+  },
+  "forgotPasswordSendBtn": "Send reset email",
+  "@forgotPasswordSendBtn": {
+    "description": "forgotPasswordSendBtn"
+  },
+  "forgotPasswordBackToLogin": "Back to sign in",
+  "@forgotPasswordBackToLogin": {
+    "description": "forgotPasswordBackToLogin"
+  },
+  "forgotPasswordSentTitle": "Check your inbox",
+  "@forgotPasswordSentTitle": {
+    "description": "forgotPasswordSentTitle"
+  },
+  "forgotPasswordSentBody": "We've sent a password reset link to {email}. Open the email and tap the link to reset it. Don't forget to check your spam folder.",
+  "@forgotPasswordSentBody": {
+    "description": "forgotPasswordSentBody",
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "forgotPasswordResendLink": "Didn't get it? Resend",
+  "@forgotPasswordResendLink": {
+    "description": "forgotPasswordResendLink"
+  },
+  "forgotPasswordNetworkError": "Couldn't send the email. Check your connection and try again.",
+  "@forgotPasswordNetworkError": {
+    "description": "forgotPasswordNetworkError"
+  },
+  "forgotPasswordLocalFallback": "This feature needs an internet connection. Please connect and try again.",
+  "@forgotPasswordLocalFallback": {
+    "description": "forgotPasswordLocalFallback"
+  },
+  "verifyEmailBadge": "VERIFY EMAIL",
+  "@verifyEmailBadge": {
+    "description": "verifyEmailBadge"
+  },
+  "verifyEmailTitle": "Verify your email",
+  "@verifyEmailTitle": {
+    "description": "verifyEmailTitle"
+  },
+  "verifyEmailSubtitle": "We've sent a verification link to {email}.",
+  "@verifyEmailSubtitle": {
+    "description": "verifyEmailSubtitle",
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "verifyEmailBody": "Open the email, tap the verification link, then come back here and tap \"I've verified\".",
+  "@verifyEmailBody": {
+    "description": "verifyEmailBody"
+  },
+  "verifyEmailCheckBtn": "I've verified",
+  "@verifyEmailCheckBtn": {
+    "description": "verifyEmailCheckBtn"
+  },
+  "verifyEmailResend": "Resend email",
+  "@verifyEmailResend": {
+    "description": "verifyEmailResend"
+  },
+  "verifyEmailResendCountdown": "Resend in {time}",
+  "@verifyEmailResendCountdown": {
+    "description": "verifyEmailResendCountdown",
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "verifyEmailNotYet": "Not verified yet — please check your inbox and try again.",
+  "@verifyEmailNotYet": {
+    "description": "verifyEmailNotYet"
+  },
+  "verifyEmailSuccess": "Verified! Taking you in...",
+  "@verifyEmailSuccess": {
+    "description": "verifyEmailSuccess"
+  },
+  "verifyEmailResendError": "Couldn't resend the email. Check your connection and try again.",
+  "@verifyEmailResendError": {
+    "description": "verifyEmailResendError"
+  }
 }

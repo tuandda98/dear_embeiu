@@ -2651,7 +2651,7 @@ abstract class AppLocalizations {
   /// authFirestorePermissionDenied
   ///
   /// In en, this message translates to:
-  /// **'Firestore is blocking writes to user data. This app connects to the Firebase project `tonyembeiu`, so check that project\'s Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.'**
+  /// **'Firestore is blocking writes to user data. Check this app\'s Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.'**
   String get authFirestorePermissionDenied;
 
   /// authFirestoreUnavailable
@@ -3505,6 +3505,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Answer together each day to start a streak 🌸'**
   String get streakJournalSummaryNone;
+
+  /// forgotPasswordLink
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get forgotPasswordLink;
+
+  /// forgotPasswordBadge
+  ///
+  /// In en, this message translates to:
+  /// **'RECOVER ACCESS'**
+  String get forgotPasswordBadge;
+
+  /// forgotPasswordTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot your password?'**
+  String get forgotPasswordTitle;
+
+  /// forgotPasswordSubtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email and we\'ll send you a link to reset your password.'**
+  String get forgotPasswordSubtitle;
+
+  /// forgotPasswordEmailHeading
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get forgotPasswordEmailHeading;
+
+  /// forgotPasswordSendBtn
+  ///
+  /// In en, this message translates to:
+  /// **'Send reset email'**
+  String get forgotPasswordSendBtn;
+
+  /// forgotPasswordBackToLogin
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get forgotPasswordBackToLogin;
+
+  /// forgotPasswordSentTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Check your inbox'**
+  String get forgotPasswordSentTitle;
+
+  /// forgotPasswordSentBody
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve sent a password reset link to {email}. Open the email and tap the link to reset it. Don\'t forget to check your spam folder.'**
+  String forgotPasswordSentBody(String email);
+
+  /// forgotPasswordResendLink
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t get it? Resend'**
+  String get forgotPasswordResendLink;
+
+  /// forgotPasswordNetworkError
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the email. Check your connection and try again.'**
+  String get forgotPasswordNetworkError;
+
+  /// forgotPasswordLocalFallback
+  ///
+  /// In en, this message translates to:
+  /// **'This feature needs an internet connection. Please connect and try again.'**
+  String get forgotPasswordLocalFallback;
+
+  /// verifyEmailBadge
+  ///
+  /// In en, this message translates to:
+  /// **'VERIFY EMAIL'**
+  String get verifyEmailBadge;
+
+  /// verifyEmailTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get verifyEmailTitle;
+
+  /// verifyEmailSubtitle
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve sent a verification link to {email}.'**
+  String verifyEmailSubtitle(String email);
+
+  /// verifyEmailBody
+  ///
+  /// In en, this message translates to:
+  /// **'Open the email, tap the verification link, then come back here and tap \"I\'ve verified\".'**
+  String get verifyEmailBody;
+
+  /// verifyEmailCheckBtn
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve verified'**
+  String get verifyEmailCheckBtn;
+
+  /// verifyEmailResend
+  ///
+  /// In en, this message translates to:
+  /// **'Resend email'**
+  String get verifyEmailResend;
+
+  /// verifyEmailResendCountdown
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {time}'**
+  String verifyEmailResendCountdown(String time);
+
+  /// verifyEmailNotYet
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified yet — please check your inbox and try again.'**
+  String get verifyEmailNotYet;
+
+  /// verifyEmailSuccess
+  ///
+  /// In en, this message translates to:
+  /// **'Verified! Taking you in...'**
+  String get verifyEmailSuccess;
+
+  /// verifyEmailResendError
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t resend the email. Check your connection and try again.'**
+  String get verifyEmailResendError;
 }
 
 class _AppLocalizationsDelegate

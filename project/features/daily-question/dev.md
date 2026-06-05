@@ -94,3 +94,4 @@
 
 ### Nhật ký
 - [2026-06-04] [Dev] Implement b2 local daily-question reminder (id 1004, độc lập master toggle). Service +2 method, provider +state/setter/wire sync, session_resolver cancel 2 nhánh no-couple, settings tile switch+time, 5 key l10n vi+en. analyze sạch, test cũ giữ nguyên (1 fail pre-existing widget_test login copy). Thuần local — không deploy.
+- [2026-06-05] [Dev] Fix UI: ô nhập câu trả lời ở `_DailyQuestionCard` (home_screen.dart) bị "lơ lửng" — hint nằm giữa, "0/280" rớt xuống đáy ô trống cao. Nguyên nhân: `maxLines:3 minLines:1` + `counterText` nội bộ (InputDecoration reserve hàng counter dưới field). Sửa: `isCollapsed:true` + `textAlignVertical.top` (neo hint trái-trên), `minLines:2 maxLines:4` (textarea cao chủ đích), ẩn counter nội bộ (`counterText:''`) → render char-count thành `Align.centerRight` Text riêng ngay dưới field trong `Column(mainAxisSize.min)`. Giữ glass blur cho nhất quán. analyze sạch.

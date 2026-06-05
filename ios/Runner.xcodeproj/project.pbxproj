@@ -206,6 +206,7 @@
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
 				0A18BE4BF02F84FE334FE2A7 /* [CP] Check Pods Manifest.lock */,
+				3F2B91956566EFE156AA780D /* Select GoogleService-Info (env) */,
 				9740EEB61CF901F6004384FC /* Run Script */,
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
@@ -348,6 +349,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
+		};
+		3F2B91956566EFE156AA780D /* Select GoogleService-Info (env) */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Select GoogleService-Info (env)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\nCONFIG_SRC=\"${SRCROOT}/config/prod/GoogleService-Info.plist\"\nif [ \"${CONFIGURATION}\" = \"Debug\" ] || [ \"${CONFIGURATION}\" = \"Profile\" ]; then\n  CONFIG_SRC=\"${SRCROOT}/config/dev/GoogleService-Info.plist\"\nfi\nDEST=\"${SRCROOT}/Runner/GoogleService-Info.plist\"\nif [ -f \"${CONFIG_SRC}\" ]; then\n  cp -f \"${CONFIG_SRC}\" \"${DEST}\"\n  echo \"Firebase config (${CONFIGURATION}) -> ${CONFIG_SRC}\"\nelse\n  echo \"warning: ${CONFIG_SRC} not found; keeping existing ${DEST}\"\nfi\n";
 		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;

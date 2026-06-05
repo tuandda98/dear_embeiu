@@ -77,8 +77,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     if (didSignUp) {
+      // A just-created Firebase account is, by definition, a brand-new
+      // unverified user — route it straight to the verify-email gate instead of
+      // bouncing through the resolver (whose creationTime check fails open when
+      // the SDK returns a null metadata.creationTime right after sign-up: F1).
+      // Local-fallback sign-up has no verify step (D-auth3) → keep authGate.
+      final nextRoute = authProvider.isUsingFirebase
+          ? AppRoutes.verifyEmail
+          : AppRoutes.authGate;
       Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRoutes.authGate,
+        nextRoute,
         (route) => false,
       );
       return;

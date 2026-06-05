@@ -30,6 +30,15 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated =>
       _status == AuthStatus.authenticated && _currentUser != null;
 
+  /// Email-verification gate (feature auth, Đợt 1). True only for post-cutoff
+  /// Firebase accounts that haven't verified yet — drives the SessionResolver
+  /// redirect to the verify screen and the gate UI. False for local-fallback,
+  /// grandfathered, and Google/Apple users.
+  bool get requiresEmailVerification => _authService.requiresEmailVerification;
+
+  /// Email of the signed-in Firebase user (for the verify-email gate copy).
+  String? get currentEmail => _authService.currentEmail;
+
   /// Re-register the current user's FCM token. Safe to call repeatedly — used
   /// on every app resume so the token never goes stale while the user stays
   /// logged in (previously it was only synced on login / token refresh, which
@@ -214,6 +223,51 @@ class AuthProvider extends ChangeNotifier {
       return _errorMessage;
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Sends a password-reset email (feature auth, Đợt 1). Returns true on
+  /// success (incl. the D-auth4 anti-enumeration "unknown email → success"
+  /// case); on failure sets [errorMessage] and returns false.
+  Future<bool> requestPasswordReset(String email) async {
+    _clearError(notify: false);
+    try {
+      await _authService.sendPasswordResetEmail(email);
+      return true;
+    } on AuthException catch (e) {
+      _errorMessage = e.message;
+      return false;
+    } catch (e) {
+      _errorMessage = 'Password reset failed: $e';
+      return false;
+    }
+  }
+
+  /// Re-sends the verification email to the current user (feature auth, Đợt 1).
+  /// Returns true on success; on failure sets [errorMessage] and returns false.
+  Future<bool> resendVerificationEmail() async {
+    _clearError(notify: false);
+    try {
+      await _authService.resendEmailVerification();
+      return true;
+    } on AuthException catch (e) {
+      _errorMessage = e.message;
+      return false;
+    } catch (e) {
+      _errorMessage = 'Resend verification failed: $e';
+      return false;
+    }
+  }
+
+  /// Reloads the Firebase user and reports whether the email is now verified
+  /// (feature auth, Đợt 1 — verify-email gate poll + manual check).
+  Future<bool> reloadAndCheckEmailVerified() async {
+    try {
+      return await _authService.reloadAndCheckEmailVerified();
+    } catch (_) {
+      // Treat a failed reload (offline) as "not verified yet" — the gate stays
+      // and the user can retry.
+      return false;
     }
   }
 

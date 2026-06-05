@@ -3,6 +3,16 @@ const {logger} = require("firebase-functions");
 const {onDocumentCreated, onDocumentUpdated, onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
+const {defineSecret} = require("firebase-functions/params");
+const {buildVerificationEmail} = require("./emails/verification_email");
+
+// Resend API key for the custom branded verification email (feature auth —
+// "Cách B"). Set before deploy:
+//   firebase functions:secrets:set RESEND_API_KEY --project <dev|prod>
+const RESEND_API_KEY = defineSecret("RESEND_API_KEY");
+
+// Sender identity — domain must be verified on Resend before sending works.
+const VERIFICATION_EMAIL_FROM = "Dear Embeiu <noreply@dearembeiu.com>";
 
 admin.initializeApp();
 
@@ -714,6 +724,110 @@ exports.deleteAccount = onCall(
 
     logger.info("Account deleted.", {uid, coupleId: coupleId || null});
     return {success: true};
+  },
+);
+
+// Custom branded verification email (feature auth — "Cách B"). Replaces the
+// default `FirebaseUser.sendEmailVerification()` so the user receives the
+// on-brand HTML email built in emails/verification_email.js, delivered through
+// Resend, instead of Firebase's plain template. The VERIFICATION MECHANISM is
+// unchanged — we generate the same Firebase verification link (oobCode) and the
+// app still auto-polls `reload()`; only the delivery channel differs.
+exports.sendCustomVerificationEmail = onCall(
+  {region: "us-central1", secrets: [RESEND_API_KEY]},
+  async (request) => {
+    const uid = request.auth && request.auth.uid;
+    if (!uid) {
+      throw new HttpsError(
+        "unauthenticated",
+        "Bạn cần đăng nhập để gửi email xác thực.",
+      );
+    }
+
+    // Pull the authoritative email/name/verified state from the Auth record
+    // (not from client-supplied data) so we never email an attacker-chosen
+    // address or skip the already-verified check.
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUser(uid);
+    } catch (err) {
+      logger.error("Custom verification email: could not load Auth user.", {
+        uid,
+        message: err && err.message,
+      });
+      throw new HttpsError("internal", "Không thể đọc thông tin tài khoản.");
+    }
+
+    const email = `${userRecord.email || ""}`.trim();
+    if (!email) {
+      throw new HttpsError("failed-precondition", "Tài khoản chưa có email.");
+    }
+
+    // Already verified — nothing to send. Tell the client so it can skip.
+    if (userRecord.emailVerified === true) {
+      return {skipped: true};
+    }
+
+    // Generate the standard Firebase verification link. We intentionally DON'T
+    // pass actionCodeSettings so Firebase uses the default action URL, avoiding
+    // the need to authorize a custom continue-domain.
+    let verifyUrl;
+    try {
+      verifyUrl = await admin.auth().generateEmailVerificationLink(email);
+    } catch (err) {
+      logger.error("Custom verification email: link generation failed.", {
+        uid,
+        message: err && err.message,
+      });
+      throw new HttpsError("internal", "Không thể tạo liên kết xác thực.");
+    }
+
+    // Language for the email copy comes from the client device locale (same
+    // pattern as the push copy), fallback vi.
+    const lang = `${(request.data && request.data.languageCode) || ""}`
+      .trim()
+      .toLowerCase() || "vi";
+    const name = `${userRecord.displayName || ""}`.trim();
+
+    const {subject, html} = buildVerificationEmail({name, verifyUrl, lang});
+
+    // Send via the Resend HTTP API (Node 20 has global fetch — no SDK dep).
+    let response;
+    try {
+      response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${RESEND_API_KEY.value()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: VERIFICATION_EMAIL_FROM,
+          to: [email],
+          subject,
+          html,
+        }),
+      });
+    } catch (err) {
+      logger.error("Custom verification email: Resend request threw.", {
+        uid,
+        message: err && err.message,
+      });
+      throw new HttpsError("internal", "Không gửi được email xác thực.");
+    }
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => "");
+      logger.error("Custom verification email: Resend returned an error.", {
+        uid,
+        status: response.status,
+        detail: detail.slice(0, 500),
+      });
+      // Surface as a failure so the client can show "Resend" / retry.
+      throw new HttpsError("internal", "Không gửi được email xác thực.");
+    }
+
+    logger.info("Custom verification email sent.", {uid, lang});
+    return {sent: true};
   },
 );
 

@@ -1488,7 +1488,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get authFirestorePermissionDenied =>
-      'Firestore đang chặn quyền ghi dữ liệu người dùng. App này đang kết nối project Firebase `tonyembeiu`, nên bạn cần kiểm tra Firestore Rules của project đó và cho phép user đã đăng nhập tạo/ghi `users/<uid>` cùng `invite_codes/<code>` của chính họ.';
+      'Firestore đang chặn quyền ghi dữ liệu người dùng. Hãy kiểm tra Firestore Rules của project đang kết nối và cho phép user đã đăng nhập tạo/ghi `users/<uid>` cùng `invite_codes/<code>` của chính họ.';
 
   @override
   String get authFirestoreUnavailable =>
@@ -2021,4 +2021,82 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get streakJournalSummaryNone =>
       'Cùng trả lời mỗi ngày để bắt đầu chuỗi nhé 🌸';
+
+  @override
+  String get forgotPasswordLink => 'Quên mật khẩu?';
+
+  @override
+  String get forgotPasswordBadge => 'KHÔI PHỤC TRUY CẬP';
+
+  @override
+  String get forgotPasswordTitle => 'Quên mật khẩu?';
+
+  @override
+  String get forgotPasswordSubtitle =>
+      'Nhập email của bạn, mình sẽ gửi liên kết để đặt lại mật khẩu.';
+
+  @override
+  String get forgotPasswordEmailHeading => 'Email';
+
+  @override
+  String get forgotPasswordSendBtn => 'Gửi email đặt lại';
+
+  @override
+  String get forgotPasswordBackToLogin => 'Quay lại đăng nhập';
+
+  @override
+  String get forgotPasswordSentTitle => 'Kiểm tra hộp thư';
+
+  @override
+  String forgotPasswordSentBody(String email) {
+    return 'Đã gửi liên kết đặt lại mật khẩu tới $email. Mở mail và bấm vào liên kết để đặt lại. Nhớ kiểm tra cả mục spam nhé.';
+  }
+
+  @override
+  String get forgotPasswordResendLink => 'Không nhận được? Gửi lại';
+
+  @override
+  String get forgotPasswordNetworkError =>
+      'Không gửi được email. Kiểm tra kết nối mạng rồi thử lại nhé.';
+
+  @override
+  String get forgotPasswordLocalFallback =>
+      'Tính năng này cần kết nối mạng. Bạn kết nối internet rồi thử lại nhé.';
+
+  @override
+  String get verifyEmailBadge => 'XÁC THỰC EMAIL';
+
+  @override
+  String get verifyEmailTitle => 'Xác thực email của bạn';
+
+  @override
+  String verifyEmailSubtitle(String email) {
+    return 'Mình đã gửi liên kết xác thực tới $email.';
+  }
+
+  @override
+  String get verifyEmailBody =>
+      'Mở email, bấm vào liên kết xác thực, rồi quay lại đây và bấm \"Tôi đã xác thực\".';
+
+  @override
+  String get verifyEmailCheckBtn => 'Tôi đã xác thực';
+
+  @override
+  String get verifyEmailResend => 'Gửi lại email';
+
+  @override
+  String verifyEmailResendCountdown(String time) {
+    return 'Gửi lại sau $time';
+  }
+
+  @override
+  String get verifyEmailNotYet =>
+      'Chưa thấy xác thực — bạn kiểm tra lại hộp thư rồi thử lại nhé.';
+
+  @override
+  String get verifyEmailSuccess => 'Đã xác thực! Đang đưa bạn vào...';
+
+  @override
+  String get verifyEmailResendError =>
+      'Không gửi lại được email. Kiểm tra kết nối rồi thử lại nhé.';
 }

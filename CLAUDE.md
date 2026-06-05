@@ -32,7 +32,7 @@ Ghép đôi qua mã mời (invite code): A tạo couple → nhận mã 6 ký t�
 Identity:
 - App id (Android & iOS): `com.tony.dearembeiu`
 - Firebase project: `tonyembeiu` (.firebaserc default, region us-central1)
-- Version: 1.0.0+1; Flutter SDK env `^3.11.4` (dev: Flutter 3.41.6 stable)
+- Version: 1.1.0+5 (1.0 đã live App Store; 1.1.0 đang chuẩn bị submit bản update — reactions/streak/journal/daily-question/love-note 2 chiều); Flutter SDK env `^3.11.4` (dev: Flutter 3.41.6 stable)
 - Ngôn ngữ: vi + en (supportedLocales). ARB ở `lib/l10n/app_en.arb`, `app_vi.arb`. Mặc định system locale.
 - GitHub: github.com/tuandda98/dear_embeiu; privacy policy host GitHub Pages (`docs/` qua Firebase Hosting).
 - Brand: "Sunset Romance", màu hồng #FF6B9D, chỉ light mode (`AppTheme.lightTheme`).
@@ -109,6 +109,8 @@ iOS (`ios/Runner/Info.plist`):
 ## 5. Firebase backend
 
 Firebase project `tonyembeiu` (us-central1). `firebase.json`: functions ở `functions/`, rules `firestore.rules` + `storage.rules`, hosting public=`docs/`.
+
+**🔀 Dev/Prod split (2026-06-05):** 2 project — **PROD `tonyembeiu`** (app live) + **DEV `tonyembeiu-dev`** (sandbox). Switch theo **build-config ở tầng native, KHÔNG flavor, KHÔNG sửa `lib/`**: **chỉ `--release` → PROD; debug + `--profile` → DEV** (prod = FALLBACK an toàn, release/config lạ không bao giờ ship config dev; profiling không đụng data prod). **Bundle id tách theo môi trường (2026-06-05, để cài cạnh nhau KHÔNG đè): release=`com.tony.dearembeiu` ("Dear Embeiu") · debug/profile=`com.tony.dearembeiu.dev` ("Dear Embeiu Dev")** — bản dev là app riêng trên device, không đè bản App Store. Suffix gắn native: iOS qua Podfile post_install (`PRODUCT_BUNDLE_IDENTIFIER`+`APP_DISPLAY_NAME` theo config, Info.plist dùng `$(APP_DISPLAY_NAME)`); Android qua `applicationIdSuffix=".dev"`+label `${appName}` (`build.gradle.kts` `configureEach`). ⚠️ Config dev phải đăng ký theo id `.dev` trong project dev (3 file: `src/{debug,profile}/google-services.json` + `ios/config/dev` plist) — thiếu thì build dev FAIL "No matching client" (release/prod KHÔNG ảnh hưởng). Android: Gradle plugin tự chọn `app/src/{debug,profile}/google-services.json` (dev) vs `app/google-services.json` (prod). iOS: build-phase `Select GoogleService-Info (env)` (Podfile post_install, chạy đầu tiên) copy `ios/config/{dev|prod}/GoogleService-Info.plist` theo `$CONFIGURATION` (Debug/Profile→dev, else→prod); file động `ios/Runner/GoogleService-Info.plist` đã untrack+gitignore (nguồn thật `ios/config/`). `.firebaserc` alias: **`default`=`tonyembeiu-dev` (dev = an toàn, bare deploy không trúng prod)**, `prod`/`dev`. Deploy prod PHẢI `--project prod` (kể cả hosting). ⚠️ Dev project cần bật console 1 lần (Firestore DB + Email/Password Auth + Storage bucket; Functions cần Blaze). **Chi tiết đầy đủ: [`DEV_PROD_SETUP.md`](DEV_PROD_SETUP.md).**
 
 Firestore data model:
 - `users/{uid}` — profile, `inviteCode`, `coupleId`, status. Rules: tạo own (schema chặt), email immutable, inviteCode immutable khi đã set; `allow delete: if false`.

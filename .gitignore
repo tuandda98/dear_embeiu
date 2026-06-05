@@ -57,3 +57,8 @@ android/key.properties
 # Apple keys / secrets — never commit these
 AuthKey_*.p8
 *.p8
+
+# Active iOS Firebase config is build-managed: the "Select GoogleService-Info (env)"
+# build phase overwrites it each build from ios/config/{dev,prod}/ by $CONFIGURATION.
+# Source of truth = ios/config/ (committed). Don't track the flip-flopping working copy.
+ios/Runner/GoogleService-Info.plist
