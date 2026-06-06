@@ -623,6 +623,7 @@
   "leaveCoupleDeleteAllTitle": "Xoá vĩnh viễn không gian của hai người?",
   "leaveCoupleDeleteAllContent": "Bạn là thành viên cuối cùng. Khi rời đi, TẤT CẢ kỷ niệm chung — ảnh, lời nhắn, nhật ký câu hỏi — sẽ bị xoá vĩnh viễn và KHÔNG THỂ khôi phục.",
   "leaveCoupleDeleteAllBtn": "Xoá tất cả",
+  "leaveCoupleError": "Chưa rời khỏi couple được lúc này. Kiểm tra kết nối mạng rồi thử lại nhé.",
   "localDataClearedMsg": "Đã xóa dữ liệu local trên máy này. Dữ liệu chung trên cloud vẫn được giữ nguyên.",
   "languageTitle": "Ngôn ngữ",
   "languageSubtitle": "Chọn ngôn ngữ hiển thị của ứng dụng",

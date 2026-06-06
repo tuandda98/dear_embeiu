@@ -1832,6 +1832,12 @@ abstract class AppLocalizations {
   /// **'Delete everything'**
   String get leaveCoupleDeleteAllBtn;
 
+  /// Snackbar shown when leaving the couple fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t leave the couple right now. Please check your connection and try again.'**
+  String get leaveCoupleError;
+
   /// No description provided for @localDataClearedMsg.
   ///
   /// In en, this message translates to:

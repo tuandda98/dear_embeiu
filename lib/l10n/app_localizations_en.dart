@@ -1021,6 +1021,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveCoupleDeleteAllBtn => 'Delete everything';
 
   @override
+  String get leaveCoupleError =>
+      'Couldn\'t leave the couple right now. Please check your connection and try again.';
+
+  @override
   String get localDataClearedMsg =>
       'Local data on this device has been cleared. Shared data on cloud is preserved.';
 

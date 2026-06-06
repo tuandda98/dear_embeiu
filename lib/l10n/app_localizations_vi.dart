@@ -1024,6 +1024,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get leaveCoupleDeleteAllBtn => 'Xoá tất cả';
 
   @override
+  String get leaveCoupleError =>
+      'Chưa rời khỏi couple được lúc này. Kiểm tra kết nối mạng rồi thử lại nhé.';
+
+  @override
   String get localDataClearedMsg =>
       'Đã xóa dữ liệu local trên máy này. Dữ liệu chung trên cloud vẫn được giữ nguyên.';
 

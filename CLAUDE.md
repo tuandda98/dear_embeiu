@@ -32,7 +32,7 @@ Ghép đôi qua mã mời (invite code): A tạo couple → nhận mã 6 ký t�
 Identity:
 - App id (Android & iOS): `com.tony.dearembeiu`
 - Firebase project: `tonyembeiu` (.firebaserc default, region us-central1)
-- Version: 1.1.0+5 (1.0 đã live App Store; 1.1.0 đang chuẩn bị submit bản update — reactions/streak/journal/daily-question/love-note 2 chiều); Flutter SDK env `^3.11.4` (dev: Flutter 3.41.6 stable)
+- Version: 1.1.1+6 (1.0 + 1.1.0 đã live App Store; **1.1.0 = reactions/streak/journal/daily-question/love-note 2 chiều — đã duyệt "Ready for Distribution" 2026-06-06**; **1.1.1+6 = bản patch đang chuẩn bị submit: fix login/logout/email-verify/xoá tài khoản + backend backward-compat**); Flutter SDK env `^3.11.4` (dev: Flutter 3.41.6 stable)
 - Ngôn ngữ: vi + en (supportedLocales). ARB ở `lib/l10n/app_en.arb`, `app_vi.arb`. Mặc định system locale.
 - GitHub: github.com/tuandda98/dear_embeiu; privacy policy host GitHub Pages (`docs/` qua Firebase Hosting).
 - Brand: "Sunset Romance", màu hồng #FF6B9D, chỉ light mode (`AppTheme.lightTheme`).

@@ -19,6 +19,11 @@ class CoupleProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _loadingMessage;
   String? _errorMessage;
+  // True only while leaveCouple() is tearing down. The live couple stream loses
+  // read access the instant this user is removed from memberIds, firing a
+  // permission-denied; we suppress that self-inflicted stream error so it can't
+  // leave a stale "Couldn't sync couple info" banner on the Setup screen.
+  bool _isLeaving = false;
 
   Couple? get couple => _couple;
   bool get hasCoupleData => _couple != null;
@@ -32,6 +37,10 @@ class CoupleProvider extends ChangeNotifier {
 
     if (currentUser == null || !currentUser.hasCouple) {
       _couple = null;
+      // Wipe any stale couple error (e.g. a permission-denied left by a couple
+      // stream that errored during a leave/demote) so the now-single user lands
+      // on Setup cleanly instead of seeing a leftover sync-error banner.
+      _clearError(notify: false);
       notifyListeners();
       return;
     }
@@ -49,6 +58,10 @@ class CoupleProvider extends ChangeNotifier {
             notifyListeners();
           },
           onError: (error) {
+            // Ignore the permission-denied this stream throws while we're
+            // leaving the couple ourselves — it's expected, not a real sync
+            // failure, and would otherwise surface on Setup after leaving.
+            if (_isLeaving) return;
             _errorMessage = AppL10n.strings.coupleSyncError('$error');
             notifyListeners();
           },
@@ -196,6 +209,11 @@ class CoupleProvider extends ChangeNotifier {
   Future<AppUser> leaveCouple({required AppUser currentUser}) async {
     _setLoading(true, message: AppL10n.strings.leavingCouple);
     _clearError(notify: false);
+    // Suppress the stream's self-inflicted permission-denied during teardown
+    // (see [_isLeaving]). We deliberately tear the subscription down only AFTER
+    // a successful leave so a failure (e.g. network) keeps the couple + live
+    // stream intact and the Settings UI doesn't go blank.
+    _isLeaving = true;
 
     try {
       final updatedUser = await _coupleService.leaveCouple(currentUser: currentUser);
@@ -211,6 +229,7 @@ class CoupleProvider extends ChangeNotifier {
       notifyListeners();
       rethrow;
     } finally {
+      _isLeaving = false;
       _setLoading(false);
     }
   }

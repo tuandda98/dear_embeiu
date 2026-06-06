@@ -623,6 +623,10 @@
   "leaveCoupleDeleteAllTitle": "Permanently delete your shared space?",
   "leaveCoupleDeleteAllContent": "You're the last member. Leaving will permanently delete ALL your shared memories — photos, love notes, and the question journal. This can't be undone.",
   "leaveCoupleDeleteAllBtn": "Delete everything",
+  "leaveCoupleError": "Couldn't leave the couple right now. Please check your connection and try again.",
+  "@leaveCoupleError": {
+    "description": "Snackbar shown when leaving the couple fails"
+  },
   "localDataClearedMsg": "Local data on this device has been cleared. Shared data on cloud is preserved.",
   "languageTitle": "Language",
   "languageSubtitle": "Choose the app display language",

@@ -36,12 +36,58 @@ import 'setup_screen.dart';
 /// so the reminders toggle/permission flow, language picker, danger zone
 /// (clear cache / leave couple / delete account), edit-story, sign-out and the
 /// privacy link all keep their original logic.
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  // Drives the SHARED blocking overlay during the leave-couple teardown. A local
+  // flag (not a provider flag) so the overlay stays up CONTINUOUSLY across the
+  // whole sequence (leaveCouple → updateCurrentUser → sync) with no dead gap.
+  bool _leaving = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+
+    // Leave-couple teardown: show the SAME full-screen transition loader the
+    // app uses while routing (SessionRouteScreen minimal — opaque gradient +
+    // white spinner). It fully covers Settings (no peek-through) and matches the
+    // very next screen (authGate → SessionResolver), so the handoff is seamless
+    // with no flash and the loader looks identical to the rest of the app.
+    if (_leaving) {
+      // Lock the system back button so the teardown can't be interrupted
+      // (popping mid-leave would strand the user on a stale screen).
+      return PopScope(
+        canPop: false,
+        child: Scaffold(
+          body: Container(
+            decoration:
+                const BoxDecoration(gradient: AppColors.secondaryGradient),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(color: AppColors.white),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.leavingCouple,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
@@ -1511,40 +1557,9 @@ class SettingsScreen extends StatelessWidget {
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () async {
-              final authProvider = screenContext.read<AuthProvider>();
-              final coupleProvider = screenContext.read<CoupleProvider>();
-              final photoProvider = screenContext.read<PhotoProvider>();
-              final currentUser = authProvider.currentUser;
-
+            onPressed: () {
               Navigator.pop(dialogContext);
-
-              if (currentUser == null) return;
-
-              try {
-                final updatedUser = await coupleProvider.leaveCouple(
-                  currentUser: currentUser,
-                );
-                // CRITICAL: refresh the in-memory session to the now-single
-                // user. Without this the stale currentUser still reports
-                // `in_couple` → re-joining is blocked with "This account already
-                // belongs to a couple", and the resolver misroutes back to Home.
-                await authProvider.updateCurrentUser(updatedUser);
-                unawaited(photoProvider.syncForUser(updatedUser));
-              } catch (_) {
-                return;
-              }
-
-              if (!screenContext.mounted) return;
-
-              // Route through the auth gate so SessionResolver clears the couple
-              // + love-note / daily-question / reaction / streak watchers for the
-              // now-single user (going straight to /setup left them running on
-              // the old coupleId) and lands on setup.
-              Navigator.of(screenContext).pushNamedAndRemoveUntil(
-                AppRoutes.authGate,
-                (route) => false,
-              );
+              _performLeaveCouple(screenContext);
             },
             child: Text(
               isSoleMember
@@ -1555,6 +1570,63 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// Runs the leave-couple teardown behind the SHARED full-screen blocking
+  /// overlay ([BlockingLoadingOverlay] — same loader as sign-out / delete
+  /// account, driven here by [_leaving]). The server-side teardown (callable
+  /// `leaveCoupleCleanup` doing a recursive delete + a possible Cloud Function
+  /// cold start) plus the session refresh can take a few seconds; the overlay
+  /// covers the WHOLE sequence (leaveCouple → updateCurrentUser → photo sync)
+  /// continuously so the screen never looks frozen, and failures surface a
+  /// snackbar instead of being swallowed.
+  Future<void> _performLeaveCouple(BuildContext screenContext) async {
+    final l10n = screenContext.l10n;
+    final authProvider = screenContext.read<AuthProvider>();
+    final coupleProvider = screenContext.read<CoupleProvider>();
+    final photoProvider = screenContext.read<PhotoProvider>();
+    final currentUser = authProvider.currentUser;
+
+    if (currentUser == null) return;
+
+    setState(() => _leaving = true);
+
+    try {
+      final updatedUser = await coupleProvider.leaveCouple(
+        currentUser: currentUser,
+      );
+      // CRITICAL: refresh the in-memory session to the now-single user. Without
+      // this the stale currentUser still reports `in_couple` → re-joining is
+      // blocked with "This account already belongs to a couple", and the
+      // resolver misroutes back to Home.
+      await authProvider.updateCurrentUser(updatedUser);
+      unawaited(photoProvider.syncForUser(updatedUser));
+    } catch (_) {
+      if (!mounted) return;
+      // Drop the overlay and tell the user it failed (was silently swallowed
+      // before — leaving felt like a no-op).
+      setState(() => _leaving = false);
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(coupleProvider.errorMessage ?? l10n.leaveCoupleError),
+          ),
+        );
+      return;
+    }
+
+    if (!mounted) return;
+
+    // Keep the overlay up through the navigation: route through the auth gate so
+    // SessionResolver clears the couple + love-note / daily-question / reaction
+    // / streak watchers for the now-single user (going straight to /setup left
+    // them running on the old coupleId) and lands on setup. The destination
+    // shows its own loader, so we hand off without a flash.
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.authGate,
+      (route) => false,
     );
   }
 }
