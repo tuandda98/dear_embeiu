@@ -620,6 +620,9 @@
   "leaveCoupleDialogTitle": "Leave couple",
   "leaveCoupleDialogContent": "You will leave the current couple space. The other person keeps the shared data. You cannot delete all shared data from one side.",
   "leaveCoupleActionBtn": "Leave couple",
+  "leaveCoupleDeleteAllTitle": "Permanently delete your shared space?",
+  "leaveCoupleDeleteAllContent": "You're the last member. Leaving will permanently delete ALL your shared memories — photos, love notes, and the question journal. This can't be undone.",
+  "leaveCoupleDeleteAllBtn": "Delete everything",
   "localDataClearedMsg": "Local data on this device has been cleared. Shared data on cloud is preserved.",
   "languageTitle": "Language",
   "languageSubtitle": "Choose the app display language",
@@ -1151,6 +1154,18 @@
   "@deleteAccountRequiresReloginMsg": {
     "description": "deleteAccountRequiresReloginMsg"
   },
+  "deleteAccountReauthTitle": "Confirm it's you",
+  "@deleteAccountReauthTitle": {
+    "description": "Title of the re-auth dialog shown when deleting an account needs a recent login"
+  },
+  "deleteAccountReauthBody": "For your security, re-enter your password to permanently delete your account.",
+  "@deleteAccountReauthBody": {
+    "description": "Body of the re-auth dialog before deleting an account"
+  },
+  "deleteAccountSessionExpiredMsg": "Your session has expired. Please sign in again, then delete your account.",
+  "@deleteAccountSessionExpiredMsg": {
+    "description": "Shown when re-auth can't proceed because there's no local session left"
+  },
   "deleteAccountSuccessMsg": "Account deleted",
   "@deleteAccountSuccessMsg": {
     "description": "deleteAccountSuccessMsg"
@@ -1596,5 +1611,10 @@
   "verifyEmailResendError": "Couldn't resend the email. Check your connection and try again.",
   "@verifyEmailResendError": {
     "description": "verifyEmailResendError"
-  }
+  },
+
+  "setupWaitingCoupleCodeTitle": "Share this code to connect",
+  "setupCoupleCodeDesc": "This is your couple's pairing code. Either of you can use it to reconnect.",
+  "setupCoupleCodeRejoinHint": "Save this code — you can use it to rejoin your space at any time.",
+  "galleryNeedsCoupleToUpload": "Connect with your partner first before sharing photos 💞"
 }

@@ -21,6 +21,9 @@ class UserService {
   CollectionReference<Map<String, dynamic>> get _inviteCodesCollection =>
       (_firestore ?? FirebaseFirestore.instance).collection('invite_codes');
 
+  CollectionReference<Map<String, dynamic>> get _coupleCodesCollection =>
+      (_firestore ?? FirebaseFirestore.instance).collection('couple_codes');
+
   CollectionReference<Map<String, dynamic>> _devicesCollection(String userId) =>
       _usersCollection.doc(userId).collection('devices');
 
@@ -38,6 +41,49 @@ class UserService {
       'id': snapshot.id,
       ...snapshot.data()!,
     });
+  }
+
+  /// Look up a couple_codes entry and return the coupleId it maps to.
+  /// Returns null if Firebase is disabled, code is empty, or the doc does not
+  /// exist. Used by [joinCoupleByCode] before falling back to invite_codes.
+  Future<String?> fetchCoupleCodeEntry(String code) async {
+    if (!isEnabled || code.trim().isEmpty) {
+      return null;
+    }
+
+    final snap = await _coupleCodesCollection.doc(code.trim().toUpperCase()).get();
+    if (!snap.exists || snap.data() == null) {
+      return null;
+    }
+    return snap.data()!['coupleId'] as String?;
+  }
+
+  /// Write a new couple_codes entry. Called right after the couple doc is
+  /// created. Best-effort — callers wrap in try/catch.
+  Future<void> createCoupleCodeEntry(String code, String coupleId) async {
+    if (!isEnabled || code.trim().isEmpty || coupleId.trim().isEmpty) {
+      return;
+    }
+
+    final now = DateTime.now();
+    await _coupleCodesCollection.doc(code.trim().toUpperCase()).set({
+      'coupleId': coupleId,
+      'createdAt': now,
+      'updatedAt': now,
+    });
+  }
+
+  /// Delete a couple_codes entry when the couple is cleaned up. Best-effort —
+  /// callers wrap in try/catch.
+  Future<void> deleteCoupleCodeEntry(String code) async {
+    if (!isEnabled || code.trim().isEmpty) {
+      return;
+    }
+    try {
+      await _coupleCodesCollection.doc(code.trim().toUpperCase()).delete();
+    } catch (_) {
+      // Deletion is best-effort; ignore any error.
+    }
   }
 
   Future<AccountInvite?> fetchAccountInvite(String inviteCode) async {
@@ -98,6 +144,27 @@ class UserService {
   /// trip the immutable-field equality checks in `canUpdateOwnUser` and yield
   /// permission-denied. The invite_code pointer is re-synced so it tracks the
   /// new coupleId. Writes to [user.id] (callers pass the auth uid).
+  /// Writes a new session token to the user doc (merge). Used for single-session
+  /// enforcement: every sign-in / cold-start mints a UUID here; other devices
+  /// watch this field and sign out when they see a token they don't own.
+  Future<void> updateSessionToken(String uid, String token) async {
+    if (!isEnabled || uid.trim().isEmpty || token.trim().isEmpty) return;
+    await _usersCollection.doc(uid).set({
+      'sessionToken': token,
+      'updatedAt': Timestamp.fromDate(DateTime.now()),
+    }, SetOptions(merge: true));
+  }
+
+  /// Streams the `sessionToken` field of the user doc. Emits whenever another
+  /// device overwrites the token (i.e. a new sign-in elsewhere).
+  Stream<String?> watchSessionToken(String uid) {
+    if (!isEnabled || uid.trim().isEmpty) return const Stream.empty();
+    return _usersCollection.doc(uid).snapshots().map((snap) {
+      if (!snap.exists || snap.data() == null) return null;
+      return snap.data()!['sessionToken'] as String?;
+    });
+  }
+
   Future<void> updateCoupleMembership(AppUser user) async {
     if (!isEnabled) {
       return;

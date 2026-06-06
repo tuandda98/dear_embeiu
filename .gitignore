@@ -35,6 +35,15 @@ migrate_working_dir/
 /coverage/
 /functions/node_modules/
 
+# Firebase rules unit tests (Node project) + emulator artifacts
+/firebase_rules_test/node_modules/
+firebase-debug.log
+firestore-debug.log
+storage-debug.log
+ui-debug.log
+firebase-export-*/
+.firebase_rules_test.cache
+
 # Symbolication related
 app.*.symbols
 

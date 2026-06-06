@@ -312,6 +312,49 @@ class AuthService {
     await _delete(_sessionStorageKey);
   }
 
+  /// Continuous session-presence stream (feature auth — session-liveness #3).
+  /// Emits `true` while a Firebase user is signed in and `false` the moment the
+  /// session ends — including EXTERNAL revocations the user didn't trigger here
+  /// (token revoked, account deleted on another device, password changed). The
+  /// [AuthProvider] subscribes once so a dead session is pushed back to the
+  /// guest gate instead of stranding the user on a stale /home. In local mode
+  /// there is no such stream, so we return an empty one (never emits).
+  Stream<bool> sessionActiveChanges() {
+    if (!isUsingFirebase) {
+      return const Stream<bool>.empty();
+    }
+    return _auth.authStateChanges().map((user) => user != null);
+  }
+
+  /// Re-authenticates the current Firebase user with their password so a
+  /// sensitive op (account deletion) can clear a stale-session
+  /// `unauthenticated` challenge (#2). Minting a fresh credential repairs the
+  /// ID token the callable needs. Firebase-only. Throws [AuthException]:
+  /// `'session-gone'` when there is no local user/email to re-auth (must do a
+  /// full re-login), otherwise a mapped message (e.g. wrong password).
+  Future<void> reauthenticateWithPassword(String password) async {
+    if (!isUsingFirebase) {
+      return;
+    }
+    final user = _auth.currentUser;
+    final email = user?.email?.trim();
+    if (user == null || email == null || email.isEmpty) {
+      throw const AuthException('session-gone');
+    }
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: password.trim(),
+      );
+      await user.reauthenticateWithCredential(credential);
+      // Force a fresh ID token so the next deleteAccount callable carries a
+      // valid auth context instead of re-hitting `unauthenticated`.
+      await user.getIdToken(true);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(_mapFirebaseAuthError(e));
+    }
+  }
+
   /// Email of the currently authenticated Firebase user (null in local mode or
   /// when signed out). Used by the verify-email gate to show where the link
   /// was sent.
@@ -349,13 +392,18 @@ class AuthService {
     }
 
     try {
-      await _auth.sendPasswordResetEmail(email: email.trim());
-    } on FirebaseAuthException catch (e) {
-      // D-auth4 anti-enumeration: treat "no such account" as success.
-      if (e.code == 'user-not-found') {
-        return;
-      }
-      throw AuthException(_mapFirebaseAuthError(e));
+      // Use custom CF so the email arrives from noreply@dearembeiu.com (Resend)
+      // instead of noreply@tonyembeiu.firebaseapp.com — avoids spam folder.
+      await _functions
+          .httpsCallable('sendCustomPasswordResetEmail')
+          .call<dynamic>(<String, dynamic>{
+        'email': email.trim().toLowerCase(),
+        'languageCode': _activeLanguageCode,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      // CF returns success for unknown email (anti-enumeration) so we only
+      // surface real errors (network failure, Resend down, etc.).
+      throw AuthException(e.message ?? AppL10n.strings.forgotPasswordNetworkError);
     }
   }
 
@@ -384,6 +432,37 @@ class AuthService {
       <String, dynamic>{'languageCode': _activeLanguageCode},
     );
   }
+
+  // ── Single-session enforcement ──────────────────────────────────────────────
+
+  static const String _sessionTokenKey = 'session_token_v2';
+
+  /// Generates a UUID, writes it to Firestore `users/{uid}.sessionToken` and
+  /// to secure local storage, then returns it. Any other device watching this
+  /// field will detect the mismatch and sign itself out.
+  Future<String> mintSessionToken(String uid) async {
+    if (!isUsingFirebase) return '';
+    final token = _uuid.v4();
+    await _userService.updateSessionToken(uid, token);
+    await _write(_sessionTokenKey, token);
+    return token;
+  }
+
+  /// Reads the session token we wrote locally on the last sign-in / cold-start.
+  Future<String?> readLocalSessionToken() async => _read(_sessionTokenKey);
+
+  /// Streams the `sessionToken` field from Firestore so the provider can react
+  /// immediately when another device mints a replacement token.
+  Stream<String?> watchSessionToken(String uid) {
+    if (!isUsingFirebase) return const Stream.empty();
+    return _userService.watchSessionToken(uid);
+  }
+
+  /// Clears the locally-stored session token (called on explicit sign-out so
+  /// a leftover token on this device can't cause false-positive kicks).
+  Future<void> clearLocalSessionToken() async => _delete(_sessionTokenKey);
+
+  // ────────────────────────────────────────────────────────────────────────────
 
   /// Current UI language code ('vi' | 'en') without a BuildContext. Mirrors the
   /// locale MaterialApp resolved (synced into [AppL10n] via

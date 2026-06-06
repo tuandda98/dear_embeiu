@@ -1814,6 +1814,24 @@ abstract class AppLocalizations {
   /// **'Leave couple'**
   String get leaveCoupleActionBtn;
 
+  /// No description provided for @leaveCoupleDeleteAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your shared space?'**
+  String get leaveCoupleDeleteAllTitle;
+
+  /// No description provided for @leaveCoupleDeleteAllContent.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re the last member. Leaving will permanently delete ALL your shared memories — photos, love notes, and the question journal. This can\'t be undone.'**
+  String get leaveCoupleDeleteAllContent;
+
+  /// No description provided for @leaveCoupleDeleteAllBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete everything'**
+  String get leaveCoupleDeleteAllBtn;
+
   /// No description provided for @localDataClearedMsg.
   ///
   /// In en, this message translates to:
@@ -2990,6 +3008,24 @@ abstract class AppLocalizations {
   /// **'Please sign out, sign in again, and retry to verify your identity'**
   String get deleteAccountRequiresReloginMsg;
 
+  /// Title of the re-auth dialog shown when deleting an account needs a recent login
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you'**
+  String get deleteAccountReauthTitle;
+
+  /// Body of the re-auth dialog before deleting an account
+  ///
+  /// In en, this message translates to:
+  /// **'For your security, re-enter your password to permanently delete your account.'**
+  String get deleteAccountReauthBody;
+
+  /// Shown when re-auth can't proceed because there's no local session left
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again, then delete your account.'**
+  String get deleteAccountSessionExpiredMsg;
+
   /// deleteAccountSuccessMsg
   ///
   /// In en, this message translates to:
@@ -3637,6 +3673,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t resend the email. Check your connection and try again.'**
   String get verifyEmailResendError;
+
+  /// No description provided for @setupWaitingCoupleCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this code to connect'**
+  String get setupWaitingCoupleCodeTitle;
+
+  /// No description provided for @setupCoupleCodeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your couple\'s pairing code. Either of you can use it to reconnect.'**
+  String get setupCoupleCodeDesc;
+
+  /// No description provided for @setupCoupleCodeRejoinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this code — you can use it to rejoin your space at any time.'**
+  String get setupCoupleCodeRejoinHint;
+
+  /// No description provided for @galleryNeedsCoupleToUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with your partner first before sharing photos 💞'**
+  String get galleryNeedsCoupleToUpload;
 }
 
 class _AppLocalizationsDelegate

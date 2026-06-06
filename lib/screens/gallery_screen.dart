@@ -144,6 +144,14 @@ class _GalleryScreenState extends State<GalleryScreen> {
     if (currentUser == null) {
       return;
     }
+    if (!currentUser.hasCouple) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.galleryNeedsCoupleToUpload)),
+        );
+      }
+      return;
+    }
 
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.gallery,
@@ -200,6 +208,14 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Future<void> _pickMultiplePhotos() async {
     final currentUser = context.read<AuthProvider>().currentUser;
     if (currentUser == null) {
+      return;
+    }
+    if (!currentUser.hasCouple) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.galleryNeedsCoupleToUpload)),
+        );
+      }
       return;
     }
 

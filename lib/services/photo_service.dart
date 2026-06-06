@@ -96,7 +96,15 @@ class PhotoService {
     final remoteStoragePath = 'couple_photos/$coupleId/$photoId$extension';
 
     try {
-      final uploadTask = await _bucket.ref(remoteStoragePath).putFile(file);
+      // Set an explicit image content-type. The Storage rule requires
+      // `request.resource.contentType.matches('image/.*')`; relying on
+      // putFile's auto-detection can yield `application/octet-stream` for a
+      // file with an unusual/missing extension (some HEIC / cache-dir temp
+      // paths) → the upload is rejected and the user "can't post a photo".
+      final uploadTask = await _bucket.ref(remoteStoragePath).putFile(
+            file,
+            SettableMetadata(contentType: _contentTypeForExtension(extension)),
+          );
       final remoteUrl = await uploadTask.ref.getDownloadURL();
 
       final photo = Photo(
@@ -209,6 +217,29 @@ class PhotoService {
       return '.jpg';
     }
     return extension;
+  }
+
+  /// Maps a file extension to an `image/*` content-type so the Storage rule's
+  /// `contentType.matches('image/.*')` always passes. Defaults to image/jpeg
+  /// (matches the `.jpg` fallback in [_guessFileExtension]).
+  String _contentTypeForExtension(String extension) {
+    switch (extension.toLowerCase()) {
+      case '.png':
+        return 'image/png';
+      case '.gif':
+        return 'image/gif';
+      case '.webp':
+        return 'image/webp';
+      case '.heic':
+      case '.heif':
+        return 'image/heic';
+      case '.bmp':
+        return 'image/bmp';
+      case '.jpg':
+      case '.jpeg':
+      default:
+        return 'image/jpeg';
+    }
   }
 
   String _mapFirebaseError(FirebaseException exception) {

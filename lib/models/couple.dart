@@ -7,6 +7,11 @@ class Couple {
   final String? couplePhotoUrl;
   final String? couplePhotoStoragePath;
   final String inviteCode;
+  // Separate couple-level entry code — independent from the personal inviteCode.
+  // Generated fresh when the couple is created. Used by setup screen and join
+  // flow instead of the personal inviteCode so leaving and rejoining works
+  // without resetting the personal code. Null on legacy couples (pre-feature).
+  final String? coupleCode;
   final List<String> memberIds;
   final int memberCount;
   final String createdByUserId;
@@ -23,6 +28,7 @@ class Couple {
     this.couplePhotoUrl,
     this.couplePhotoStoragePath,
     required this.inviteCode,
+    this.coupleCode,
     required this.memberIds,
     required this.memberCount,
     required this.createdByUserId,
@@ -43,6 +49,7 @@ class Couple {
     'couplePhotoUrl': couplePhotoUrl,
     'couplePhotoStoragePath': couplePhotoStoragePath,
     'inviteCode': inviteCode,
+    'coupleCode': coupleCode,
     'memberIds': memberIds,
     'memberCount': memberCount,
     'createdByUserId': createdByUserId,
@@ -59,6 +66,7 @@ class Couple {
     'couplePhotoUrl': couplePhotoUrl,
     'couplePhotoStoragePath': couplePhotoStoragePath,
     'inviteCode': inviteCode,
+    'coupleCode': coupleCode,
     'memberIds': memberIds,
     'memberCount': memberCount,
     'createdByUserId': createdByUserId,
@@ -124,6 +132,7 @@ class Couple {
     'couplePhotoUrl': couplePhotoUrl,
     'couplePhotoStoragePath': couplePhotoStoragePath,
     'inviteCode': inviteCode,
+    'coupleCode': coupleCode,
     'memberIds': memberIds,
     'memberCount': memberCount,
     'createdByUserId': createdByUserId,
@@ -141,6 +150,7 @@ class Couple {
     couplePhotoUrl: json['couplePhotoUrl'] as String?,
     couplePhotoStoragePath: json['couplePhotoStoragePath'] as String?,
     inviteCode: json['inviteCode'] as String? ?? '',
+    coupleCode: json['coupleCode'] as String?,
     memberIds: (json['memberIds'] as List?)?.map((e) => '$e').toList() ?? const [],
     memberCount: json['memberCount'] as int? ?? ((json['memberIds'] as List?)?.length ?? 0),
     createdByUserId: json['createdByUserId'] as String? ?? '',
@@ -159,6 +169,7 @@ class Couple {
     String? couplePhotoUrl,
     String? couplePhotoStoragePath,
     String? inviteCode,
+    String? coupleCode,
     List<String>? memberIds,
     int? memberCount,
     String? createdByUserId,
@@ -176,6 +187,7 @@ class Couple {
         couplePhotoStoragePath:
             couplePhotoStoragePath ?? this.couplePhotoStoragePath,
         inviteCode: inviteCode ?? this.inviteCode,
+        coupleCode: coupleCode ?? this.coupleCode,
         memberIds: memberIds ?? this.memberIds,
         memberCount: memberCount ?? this.memberCount,
         createdByUserId: createdByUserId ?? this.createdByUserId,

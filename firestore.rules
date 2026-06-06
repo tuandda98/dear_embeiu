@@ -53,7 +53,11 @@ service cloud.firestore {
         && isValidStatus(data.status)
         && data.createdAt is timestamp
         && data.updatedAt is timestamp
-        && isNullableTimestamp(data.lastSeenAt);
+        && isNullableTimestamp(data.lastSeenAt)
+        // sessionToken is optional: absent on CREATE (toFirestore omits it), only
+        // merge-written later by mintSessionToken. Use .get so an absent key
+        // returns null (→ valid) instead of erroring and denying the write.
+        && isNullableString(data.get('sessionToken', null));
     }
 
     function isStrictUserDocument(data) {
@@ -81,6 +85,7 @@ service cloud.firestore {
           'createdAt',
           'updatedAt',
           'lastSeenAt',
+          'sessionToken',
         ]);
     }
 
@@ -113,7 +118,10 @@ service cloud.firestore {
         && isNonEmptyString(data.token)
         && data.platform in ['ios', 'android', 'unknown']
         && data.notificationsEnabled is bool
-        && isNullableString(data.languageCode)
+        // languageCode added in 1.1: the old (1.0) app omits it, so read via
+        // .get (absent → null → valid). A bare data.languageCode errors on an
+        // absent key and would deny an old-app device write (→ push breaks).
+        && isNullableString(data.get('languageCode', null))
         && data.updatedAt is timestamp;
     }
 
@@ -175,6 +183,10 @@ service cloud.firestore {
         && isNullableString(data.couplePhotoUrl)
         && isNullableString(data.couplePhotoStoragePath)
         && isNonEmptyString(data.inviteCode)
+        // coupleCode added in 1.1: the old (1.0) app omits it, so read via .get
+        // (absent → null → valid). A bare data.coupleCode errors on an absent
+        // key and would deny an old-app couple write on the shared prod backend.
+        && isNullableString(data.get('coupleCode', null))
         && isValidMemberIds(data.memberIds)
         && data.memberCount is int
         && data.memberCount == data.memberIds.size()
@@ -193,6 +205,7 @@ service cloud.firestore {
           'couplePhotoUrl',
           'couplePhotoStoragePath',
           'inviteCode',
+          'coupleCode',
           'memberIds',
           'memberCount',
           'createdByUserId',
@@ -211,6 +224,7 @@ service cloud.firestore {
           'couplePhotoUrl',
           'couplePhotoStoragePath',
           'inviteCode',
+          'coupleCode',
           'memberIds',
           'memberCount',
           'createdByUserId',
@@ -451,6 +465,25 @@ service cloud.firestore {
     match /reports/{reportId} {
       allow create: if request.auth != null;
       allow read, update, delete: if false;
+    }
+
+    // Couple entry codes (feature couple-code). Each doc maps a 6-char code
+    // to a coupleId. Used by joinCoupleByCode as the primary lookup (before
+    // falling back to invite_codes for legacy couples). Created by the couple
+    // creator; deleted when the couple is cleaned up. No update path (codes
+    // are immutable once written — a new couple gets a new code).
+    match /couple_codes/{code} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['coupleId', 'createdAt', 'updatedAt'])
+        && isNonEmptyString(request.resource.data.coupleId)
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp
+        && isCoupleMember(request.resource.data.coupleId);
+      allow delete: if isSignedIn()
+        && exists(/databases/$(database)/documents/couples/$(resource.data.coupleId))
+        && request.auth.uid in get(/databases/$(database)/documents/couples/$(resource.data.coupleId)).data.memberIds;
+      allow update: if false;
     }
   }
 }

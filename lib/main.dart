@@ -24,14 +24,13 @@ import 'providers/photo_provider.dart';
 import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/streak_provider.dart';
-import 'screens/auth_gate_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/guest_counter_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
+import 'screens/session_route_screen.dart';
 import 'screens/setup_screen.dart';
-import 'screens/splash_screen.dart';
 import 'screens/verify_email_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/auth_service.dart';
@@ -216,17 +215,41 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final AuthProvider _authProvider =
       AuthProvider(authService: widget.authService);
 
+  // App-level navigator key (#3): lets the session-revocation listener route
+  // from outside the widget tree without threading a context around.
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _authProvider.addListener(_handleAuthProviderChanged);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _authProvider.removeListener(_handleAuthProviderChanged);
     _authProvider.dispose();
     super.dispose();
+  }
+
+  /// When the session is revoked out from under us (#3 — token revoked, account
+  /// deleted on another device, password changed), bounce back through the auth
+  /// gate; the resolver then drops the user on the guest screen instead of
+  /// leaving them stranded on a stale /home. Deferred to a post-frame callback
+  /// so we never drive Navigator during a build/notify.
+  void _handleAuthProviderChanged() {
+    if (!_authProvider.sessionRevoked) {
+      return;
+    }
+    _authProvider.acknowledgeSessionRevoked();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        AppRoutes.authGate,
+        (route) => false,
+      );
+    });
   }
 
   @override
@@ -261,6 +284,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
           return MaterialApp(
+            navigatorKey: _navigatorKey,
             onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
             theme: AppTheme.lightTheme,
             locale: localeProvider.locale,
@@ -295,7 +319,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               Intl.defaultLocale = resolved.languageCode;
               return resolved;
             },
-            home: const SplashScreen(),
+            home: const SessionRouteScreen(branded: true),
             // Auto screen_view logging (feature: analytics). Empty list when
             // analytics is unavailable (Firebase not ready) so nothing breaks.
             navigatorObservers: [
@@ -304,7 +328,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             ],
             debugShowCheckedModeBanner: false,
             routes: {
-              AppRoutes.authGate: (_) => const AuthGateScreen(),
+              AppRoutes.authGate: (_) => const SessionRouteScreen(),
               AppRoutes.login: (_) => const LoginScreen(),
               AppRoutes.register: (_) => const RegisterScreen(),
               AppRoutes.forgotPassword: (_) => const ForgotPasswordScreen(),

@@ -1,0 +1,11 @@
+command : (phiên fix photo/leave) 3 deploy — xem HISTORY
+time_utc: 20260605T144321Z
+git_head: 77a217e (phase2)
+exit    : 0 (tất cả Deploy complete!)
+deploys :
+  1) DEV  full: --only functions,firestore:rules,firestore:indexes,storage  (8 function mới: 2 thành công ngay + 6 Firestore-trigger fail do Eventarc first-time)
+  2) PROD     : --only functions:notifyPartnerLeft --force  (tạo mới OK)
+  3) DEV retry: --only functions:{sendPartnerPhotoNotification,notifyPartnerJoined,notifyPartnerLeft,notifyLoveNote,notifyDailyAnswer,notifyPhotoReaction} --force  (6/6 OK sau khi Eventarc propagate)
+result  : DEV = đủ 9 function (parity với prod). PROD = thêm notifyPartnerLeft.
+secret  : RESEND_API_KEY đã có sẵn 2 project.
+functions: restore = git checkout 77a217e -- functions rồi redeploy --project <dev|prod>

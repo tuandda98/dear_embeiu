@@ -68,7 +68,7 @@ Project dev mới tạo còn trống — để debug build chạy được phả
 
 1. **Firestore** — https://console.firebase.google.com/project/tonyembeiu-dev/firestore → **Create database** (chọn location, vd `nam5`/us). Sau đó deploy rules+indexes (lệnh trên).
 2. **Authentication** → **Sign-in method** → bật **Email/Password** (app dùng email/password). Bắt buộc, không có CLI.
-3. **Storage** (nếu test ảnh) → https://console.firebase.google.com/project/tonyembeiu-dev/storage → **Get started** tạo default bucket → deploy `storage` rules.
+3. **Storage** (nếu test ảnh) → https://console.firebase.google.com/project/tonyembeiu-dev/storage → **Get started** tạo default bucket → deploy `storage` rules → vào **Storage → Rules** tab trong Console, nếu thấy banner **"Your rules make use of cross-service database calls, but your project is not configured to execute those calls"** → click **"Fix issue"** để grant IAM permission cho Storage rules gọi Firestore (thiếu bước này → upload 403 dù rules đúng).
 4. **(Tuỳ chọn) Cloud Functions / Push ở dev** — Functions v2 cần **nâng Blaze (billing)**. Không nâng thì debug build vẫn chạy nhưng **không có push/callable** (`deleteAccount`…). Sandbox dev thường bỏ qua được.
 5. **(Tuỳ chọn) Push APNs ở dev iOS** — upload APNs key vào project dev (Cloud Messaging settings) nếu muốn test push trên iOS dev.
 

@@ -55,8 +55,23 @@ class CoupleProvider extends ChangeNotifier {
         );
       }
     } catch (e) {
-      _errorMessage = AppL10n.strings.coupleLoadError('$e');
       _couple = null;
+      final msg = '$e'.toLowerCase();
+      if (msg.contains('permission-denied') || msg.contains('permission_denied')) {
+        // Stale coupleId — user is no longer a member of that couple (partner
+        // left, couple was deleted, or cross-device Hive/session mismatch).
+        // Auto-heal: clear the stale ref so the user lands on Setup cleanly
+        // instead of seeing a cryptic error every time the app starts.
+        try {
+          await _coupleService.clearStaleCoupleRef(currentUser);
+        } catch (_) {
+          // Best-effort — even if Firestore write fails, _couple=null is
+          // enough for the session resolver to route to Setup.
+        }
+        // No error banner — the user just sees Setup, which is correct.
+      } else {
+        _errorMessage = AppL10n.strings.coupleLoadError('$e');
+      }
     } finally {
       _setLoading(false);
     }

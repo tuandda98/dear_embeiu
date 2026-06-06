@@ -1010,6 +1010,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveCoupleActionBtn => 'Leave couple';
 
   @override
+  String get leaveCoupleDeleteAllTitle =>
+      'Permanently delete your shared space?';
+
+  @override
+  String get leaveCoupleDeleteAllContent =>
+      'You\'re the last member. Leaving will permanently delete ALL your shared memories — photos, love notes, and the question journal. This can\'t be undone.';
+
+  @override
+  String get leaveCoupleDeleteAllBtn => 'Delete everything';
+
+  @override
   String get localDataClearedMsg =>
       'Local data on this device has been cleared. Shared data on cloud is preserved.';
 
@@ -1695,6 +1706,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please sign out, sign in again, and retry to verify your identity';
 
   @override
+  String get deleteAccountReauthTitle => 'Confirm it\'s you';
+
+  @override
+  String get deleteAccountReauthBody =>
+      'For your security, re-enter your password to permanently delete your account.';
+
+  @override
+  String get deleteAccountSessionExpiredMsg =>
+      'Your session has expired. Please sign in again, then delete your account.';
+
+  @override
   String get deleteAccountSuccessMsg => 'Account deleted';
 
   @override
@@ -2098,4 +2120,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get verifyEmailResendError =>
       'Couldn\'t resend the email. Check your connection and try again.';
+
+  @override
+  String get setupWaitingCoupleCodeTitle => 'Share this code to connect';
+
+  @override
+  String get setupCoupleCodeDesc =>
+      'This is your couple\'s pairing code. Either of you can use it to reconnect.';
+
+  @override
+  String get setupCoupleCodeRejoinHint =>
+      'Save this code — you can use it to rejoin your space at any time.';
+
+  @override
+  String get galleryNeedsCoupleToUpload =>
+      'Connect with your partner first before sharing photos 💞';
 }

@@ -194,18 +194,28 @@ class _SetupScreenState extends State<SetupScreen> {
       }
 
       if (!isEditing) {
-        await _showInviteCodeDialog(result.updatedUser.inviteCode);
+        await _showInviteCodeDialog(
+          result.couple.coupleCode ?? result.updatedUser.inviteCode,
+        );
         if (result.warningMessage != null && mounted) {
           _showSnack(result.warningMessage!);
         }
+        // A brand-new couple: route through the auth gate so SessionResolver
+        // wires the realtime couple watch + love-note / daily-question /
+        // reaction / streak watchers. Going straight to /home skipped all that,
+        // so the creator never saw their partner join (couple stayed
+        // waiting_partner, the invite code stayed stuck on Home, and notes
+        // couldn't sync) until a manual app restart.
+        navigator.pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
       } else {
+        // Editing is membership-neutral (the realtime watchers are already
+        // wired from the live session) — just return to wherever opened setup.
         _showSnack(_resolveCoupleResultMessage(result));
-      }
-
-      if (navigator.canPop()) {
-        navigator.pop();
-      } else {
-        navigator.pushReplacementNamed(AppRoutes.home);
+        if (navigator.canPop()) {
+          navigator.pop();
+        } else {
+          navigator.pushReplacementNamed(AppRoutes.home);
+        }
       }
     } on CoupleException catch (e) {
       _showSnack(e.message);
@@ -271,7 +281,14 @@ class _SetupScreenState extends State<SetupScreen> {
       if (!mounted) return;
 
       _showSnack(result.message ?? l10n.setupSuccessConnected);
-      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+      // Route through the auth gate so SessionResolver wires the realtime
+      // couple + love-note / daily-question / reaction / streak watchers — same
+      // reason as create. Going straight to /home skipped that wiring, so the
+      // joiner's notes/streak/reactions wouldn't sync until a manual restart.
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.authGate,
+        (route) => false,
+      );
     } on CoupleException catch (e) {
       _showSnack(e.message);
     } catch (e) {
@@ -419,6 +436,7 @@ class _SetupScreenState extends State<SetupScreen> {
                       if (hasInviteCode) ...[
                         _buildInviteCard(
                           inviteCode: currentUser!.inviteCode,
+                          coupleCode: existingCouple?.coupleCode,
                           hasCreatedCoupleSpace: currentUser.hasCouple,
                           isWaitingForPartner: editingCouple?.isWaitingForPartner ?? false,
                         ),
@@ -462,28 +480,72 @@ class _SetupScreenState extends State<SetupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isEditing ? LucideIcons.pencil : Icons.favorite_rounded,
-                size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
               ),
-              const SizedBox(width: 8),
-              Text(
-                isEditing ? l10n.editCoupleBadge : l10n.coupleOnboardingBadge,
-                style: AppTheme.pageEyebrowStyle(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isEditing ? LucideIcons.pencil : Icons.favorite_rounded,
+                    size: 14,
+                    color: AppColors.white.withValues(alpha: 0.92),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isEditing ? l10n.editCoupleBadge : l10n.coupleOnboardingBadge,
+                    style: AppTheme.pageEyebrowStyle(),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            const Spacer(),
+            if (!isEditing)
+              Tooltip(
+                message: l10n.signOutBtn,
+                child: InkWell(
+                  onTap: () async {
+                    await authProvider.signOut();
+                    if (mounted) {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        AppRoutes.authGate,
+                        (route) => false,
+                      );
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: AppColors.white.withValues(alpha: 0.15)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(LucideIcons.logOut, size: 13, color: AppColors.white.withValues(alpha: 0.70)),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.signOutBtn,
+                          style: TextStyle(
+                            color: AppColors.white.withValues(alpha: 0.70),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 18),
         Text(title, style: AppTheme.pageTitleStyle()),
@@ -627,21 +689,29 @@ class _SetupScreenState extends State<SetupScreen> {
 
   Widget _buildInviteCard({
     required String inviteCode,
+    String? coupleCode,
     required bool hasCreatedCoupleSpace,
     required bool isWaitingForPartner,
   }) {
     final l10n = context.l10n;
 
+    // When waiting for partner: show the couple-level code (not personal
+    // inviteCode), falling back to inviteCode for legacy couples that predate
+    // the coupleCode field. When not waiting, show the personal inviteCode as
+    // before (still useful for the partner to check their own code).
+    final displayCode =
+        isWaitingForPartner ? (coupleCode ?? inviteCode) : inviteCode;
+
     final title = !hasCreatedCoupleSpace
         ? l10n.yourInviteCodeTitle
         : isWaitingForPartner
-            ? l10n.sendToPartnerHint
+            ? l10n.setupWaitingCoupleCodeTitle
             : l10n.inviteCodeTiedToAccount;
 
     final description = !hasCreatedCoupleSpace
         ? l10n.inviteCodeDialogContent
         : isWaitingForPartner
-            ? l10n.inviteCodeDialogContent
+            ? l10n.setupCoupleCodeDesc
             : l10n.inviteCodeTiedToAccount;
 
     final statusIcon = isWaitingForPartner
@@ -687,7 +757,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            inviteCode,
+            displayCode,
             style: const TextStyle(
               color: AppColors.white,
               fontSize: 30,
@@ -697,7 +767,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           if (showInviteActions) ...[
             const SizedBox(height: 10),
-            InviteActionButtons(code: inviteCode, onDark: true),
+            InviteActionButtons(code: displayCode, onDark: true),
           ],
           const SizedBox(height: 8),
           Text(
@@ -708,6 +778,31 @@ class _SetupScreenState extends State<SetupScreen> {
               height: 1.45,
             ),
           ),
+          // Rejoin hint: remind both members they can use this code to
+          // reconnect if one leaves, so they don't lose access.
+          if (isWaitingForPartner) ...[
+            const SizedBox(height: 10),
+            Divider(thickness: 0.5, color: AppColors.white.withValues(alpha: 0.15)),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(LucideIcons.info, size: 12, color: AppColors.white.withValues(alpha: 0.45)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    l10n.setupCoupleCodeRejoinHint,
+                    style: TextStyle(
+                      color: AppColors.white.withValues(alpha: 0.50),
+                      fontSize: 11.5,
+                      fontStyle: FontStyle.italic,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
         ),
       ),

@@ -11,7 +11,7 @@
 
 | Feature | Ưu tiên | Trạng thái | Nợ kỹ thuật nổi bật | Spec / Roadmap riêng |
 |---------|---------|-----------|---------------------|----------------------|
-| Auth (tài khoản) | P0 | ✅ Shipped · 🧪 **Đợt 1 PASS code-level (2026-06-05): Quên mật khẩu + Xác thực email bắt buộc** (link Firebase, hard-gate có grandfather user cũ, anti-enumeration) — chờ 6 smoke-test runtime · ⏳ **Đợt 2: Google/Apple** (đã chốt, chờ user setup Console/Xcode 2× dev+prod; Apple bắt buộc kèm Google iOS — App Store 4.8) | 🔴 local password plaintext; validation yếu | [spec](features/auth/overview.md) · [test](features/auth/test.md) · [roadmap](features/auth/roadmap.md) |
+| Auth (tài khoản) | P0 | ✅ Shipped · 🧪 **Đợt 1 PASS code-level (2026-06-05): Quên mật khẩu + Xác thực email bắt buộc** (link Firebase, hard-gate có grandfather user cũ, anti-enumeration) — chờ 6 smoke-test runtime · ✅ **Flow hardening (2026-06-05): #2 re-auth tại chỗ khi xoá tài khoản · #3 listener auth-state (session thu hồi tự về guest) · #4 gộp Splash/AuthGate** — analyze sạch, chờ smoke-test · ⏳ **Đợt 2: Google/Apple** (đã chốt, chờ user setup Console/Xcode 2× dev+prod; Apple bắt buộc kèm Google iOS — App Store 4.8) | 🔴 local password plaintext; validation yếu · ✅ email verify (Resend callable) **đã deploy cả dev+prod** (2026-06-05, secret dùng chung) | [spec](features/auth/overview.md) · [test](features/auth/test.md) · [roadmap](features/auth/roadmap.md) |
 | Coupling (mã mời) | P0 | ✅ Shipped | 🔴 invite-code enumeration; coupleId sửa được · 🛡️ **Hardening 2026-06-04: chống `coupleSavePermissionDenied` cho user thật** (PO-gate PASS) — profile edit chỉ ghi 7 field sửa-được (`toProfileEditPayload`, không re-send memberIds/status/inviteCode cũ → hết fail `isCoupleProfileEdit` khi local stale); create/join/leave dùng `authUid` chuẩn + user-write narrow (`toCoupleMembershipPayload`); auto-recovery 1 lần (refresh token + re-fetch). KHÔNG đổi rules. | [spec](features/coupling/overview.md) · [dev](features/coupling/dev.md) |
 | Counter (đếm ngày yêu) | P0 | ✅ Shipped | 🔴 ngày không đổi theo ngôn ngữ (gap A) | [spec](features/counter/overview.md) · [roadmap](features/counter/roadmap.md) |
 | Gallery (ảnh chung + push) | P0 | ✅ Shipped | 🔴 push hardcode VI (gap B); 🟡 ai cũng xoá ảnh partner | [spec](features/gallery/overview.md) · [roadmap](features/gallery/roadmap.md) |
@@ -21,6 +21,7 @@
 
 | Feature | Ưu tiên | Trạng thái | Spec / Roadmap riêng |
 |---------|---------|-----------|----------------------|
+| **Couple code (mã ghép đôi riêng — fix rejoin flow)** | P0 | ✅ **Done (2026-06-05)** — tách `couple.coupleCode` khỏi `user.inviteCode`; fix Bug leaveCouple không update remaining member status; double-lookup join; rules `couple_codes` deployed dev+prod; 8/8 AC PASS | [spec](features/couple-code/overview.md) · [test](features/couple-code/test.md) |
 | Custom reminders (reminder tuỳ chỉnh, local) | P1 | 🧪 Test PASS (smoke on-device OK) — gate D7 đang đổi sang force-open theo Reminders v2 | [spec](features/custom-reminders/overview.md) · [roadmap](features/custom-reminders/roadmap.md) |
 | Reminders v2 (bỏ nudge hằng ngày + milestone tự bật/tắt + giờ-theo-mốc Dv8) | P1 | 🧪 Test PASS — chờ smoke-test thiết bị | [spec](features/reminders/overview.md) (5b) · [roadmap](features/reminders/roadmap.md) |
 | Settings (màn Cài đặt tổng, gom Profile + giờ theo mốc Dv8) | P1 | 🧪 Test PASS (29/30) — chờ user smoke-test thiết bị (2026-05-31) | [spec](features/settings/overview.md) · [roadmap](features/settings/roadmap.md) |
@@ -47,6 +48,12 @@
 | Language (đa ngôn ngữ) | P0 | ✅ Done (2026-05-31) | [spec](features/language/overview.md) · [roadmap](features/language/roadmap.md) |
 
 > ✅ Gap G (analytics `language_changed`) đã đóng bởi feature **analytics** (2026-06-03).
+
+## Hạ tầng & chất lượng (tooling, không phải feature sản phẩm)
+
+| Hạng mục | Trạng thái | Ghi chú |
+|----------|-----------|---------|
+| **Firebase rules unit tests** | ✅ **Done (2026-06-06)** | 123 test cho Firestore+Storage rules (`firebase_rules_test/`, `@firebase/rules-unit-testing`+Mocha trên emulator), phủ mọi match block + allow/deny theo catalog rủi ro Tester (IDOR, immutability, field-whitelist, transition couple, enumeration). Chạy: `scripts/test-firebase-rules.sh`. **Tự enforce:** Stop hook băm `firestore.rules`+`storage.rules`+`functions/index.js` → đổi thì chạy lại hết, FAIL thì chặn. Phát hiện: device doc bắt buộc có key `languageCode` (rules engine deny khi thiếu key). Chi tiết: [`firebase_rules_test/README.md`](../firebase_rules_test/README.md). |
 
 ## Backlog (chưa tạo folder — tạo khi bắt đầu làm)
 

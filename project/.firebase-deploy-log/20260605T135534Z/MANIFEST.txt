@@ -1,0 +1,8 @@
+command : npx firebase-tools deploy --only functions:sendCustomVerificationEmail --project prod
+time_utc: 20260605T135534Z
+git_head: 77a217e (phase2)
+dirty   : 16 file thay đổi ngoài commit
+exit    : 0 (Deploy complete! — sendCustomVerificationEmail created on prod tonyembeiu)
+note    : ghi VẾT thủ công (Lead) — hook trace-firebase-deploy.sh hard-code ROOT máy cty, không chạy ở máy nhà
+secret  : RESEND_API_KEY copy từ dev sang prod (version 1 ENABLED) — dùng chung
+functions: restore bằng `git checkout 77a217e -- functions` rồi redeploy --project prod

@@ -19,6 +19,31 @@ class AuthProvider extends ChangeNotifier {
   bool _isInitialized = false;
   String? _errorMessage;
 
+  /// Session-liveness listener (feature auth — #3). Subscribes once to the
+  /// service's session-presence stream; drives [sessionRevoked].
+  StreamSubscription<bool>? _sessionSub;
+
+  /// Single-session enforcement: watches `users/{uid}.sessionToken` in
+  /// Firestore so we detect when another device mints a new token (new login).
+  StreamSubscription<String?>? _tokenSub;
+
+  /// The session token we minted on this device's last sign-in / cold-start.
+  /// If the Firestore copy drifts from this, the session is displaced.
+  String? _localToken;
+
+  /// True while WE are intentionally ending the session (sign-out / successful
+  /// delete) so the resulting `false` emit on [sessionActiveChanges] is NOT
+  /// mistaken for an external revocation. Stays `true` until the next sign-in
+  /// resets it — this deliberately swallows the trailing emit that arrives
+  /// asynchronously after sign-out completes (avoids a double-navigation race).
+  bool _intentionalAuthClear = false;
+
+  /// Set when the session ended WITHOUT the user asking (token revoked, account
+  /// deleted elsewhere, password changed). The app shell watches this and
+  /// re-routes through the auth gate. One-shot: read then
+  /// [acknowledgeSessionRevoked].
+  bool _sessionRevoked = false;
+
   AuthStatus get status => _status;
   AppUser? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
@@ -38,6 +63,84 @@ class AuthProvider extends ChangeNotifier {
 
   /// Email of the signed-in Firebase user (for the verify-email gate copy).
   String? get currentEmail => _authService.currentEmail;
+
+  /// True when the session died on its own (external revocation) — see
+  /// [_sessionRevoked]. The app shell consumes this to bounce the user back to
+  /// the auth gate, then calls [acknowledgeSessionRevoked].
+  bool get sessionRevoked => _sessionRevoked;
+
+  /// Clears the one-shot [sessionRevoked] flag after the shell has navigated.
+  void acknowledgeSessionRevoked() => _sessionRevoked = false;
+
+  /// Subscribes once to the session-presence stream (#3). A `false` emit means
+  /// the session ended; we treat it as an EXTERNAL revocation only when we
+  /// weren't authenticated-by-our-own-doing about to end it. Intentional
+  /// sign-out / delete set [_intentionalAuthClear] so their trailing emit is
+  /// ignored. Emits while unauthenticated (e.g. the synchronous initial `false`
+  /// on a guest cold start) are ignored too via the status guard.
+  void _startSessionListener() {
+    if (_sessionSub != null || !isUsingFirebase) {
+      return;
+    }
+    _sessionSub = _authService.sessionActiveChanges().listen((active) {
+      if (active) {
+        return;
+      }
+      if (_intentionalAuthClear) {
+        return;
+      }
+      if (_status != AuthStatus.authenticated) {
+        return;
+      }
+      // Session was pulled out from under us — clear local state and flag the
+      // shell to re-route. Analytics: drop the user id like a sign-out.
+      _currentUser = null;
+      _status = AuthStatus.unauthenticated;
+      _sessionRevoked = true;
+      unawaited(AnalyticsService.instance.setUserId(null));
+      AnalyticsService.instance.setIsGuest(true);
+      notifyListeners();
+    });
+  }
+
+  /// Mints a fresh session token (writes to Firestore + local storage) then
+  /// starts watching for displacement by another device. Fire-and-forget safe.
+  Future<void> _mintAndWatchSessionToken(String uid) async {
+    _tokenSub?.cancel();
+    _tokenSub = null;
+    _localToken = null;
+    if (!_authService.isUsingFirebase) return;
+    try {
+      _localToken = await _authService.mintSessionToken(uid);
+    } catch (_) {
+      return; // Best-effort — never block the sign-in path.
+    }
+    _tokenSub = _authService.watchSessionToken(uid).listen((remoteToken) {
+      if (_localToken == null || remoteToken == null) return;
+      if (remoteToken == _localToken) return;
+      if (_intentionalAuthClear) return;
+      if (_status != AuthStatus.authenticated) return;
+      // Another device took over — clear state and re-route to auth gate.
+      _intentionalAuthClear = true; // Prevent _sessionSub from double-firing.
+      _currentUser = null;
+      _status = AuthStatus.unauthenticated;
+      _sessionRevoked = true;
+      unawaited(AnalyticsService.instance.setUserId(null));
+      AnalyticsService.instance.setIsGuest(true);
+      _tokenSub?.cancel();
+      _tokenSub = null;
+      _localToken = null;
+      unawaited(_authService.signOut());
+      notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    _sessionSub?.cancel();
+    _tokenSub?.cancel();
+    super.dispose();
+  }
 
   /// Re-register the current user's FCM token. Safe to call repeatedly — used
   /// on every app resume so the token never goes stale while the user stays
@@ -69,11 +172,18 @@ class AuthProvider extends ChangeNotifier {
       // primary freeze source, so fire-and-forget — it completes off the
       // critical path and is re-run on every app resume anyway.
       unawaited(PushNotificationService.instance.syncForUser(_currentUser));
+      // Single-session: cold-start counts as "taking over" the session.
+      // Fire-and-forget so Firestore latency never blocks route resolution.
+      if (_currentUser != null) {
+        unawaited(_mintAndWatchSessionToken(_currentUser!.id));
+      }
     } catch (e) {
       _status = AuthStatus.unauthenticated;
       _errorMessage = 'Could not initialize session: $e';
     } finally {
       _isInitialized = true;
+      // Start watching session liveness once the initial state is settled (#3).
+      _startSessionListener();
       _setLoading(false, notify: false);
       notifyListeners();
     }
@@ -85,12 +195,18 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setLoading(true);
     _clearError(notify: false);
+    // A fresh session is beginning — re-arm external-revocation detection.
+    _intentionalAuthClear = false;
 
     try {
       _currentUser = await _authService.signIn(email: email, password: password);
       _status = AuthStatus.authenticated;
       _isInitialized = true;
       await PushNotificationService.instance.syncForUser(_currentUser);
+      // Single-session: mint a new token — kicks any other active session.
+      if (_currentUser != null) {
+        await _mintAndWatchSessionToken(_currentUser!.id);
+      }
       // Analytics — success path only. Don't block the success return on the
       // analytics user-id write (app-robustness D); fire-and-forget.
       unawaited(AnalyticsService.instance.setUserId(_currentUser?.id));
@@ -118,6 +234,8 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setLoading(true);
     _clearError(notify: false);
+    // A fresh session is beginning — re-arm external-revocation detection.
+    _intentionalAuthClear = false;
 
     try {
       _currentUser = await _authService.signUp(
@@ -128,6 +246,10 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.authenticated;
       _isInitialized = true;
       await PushNotificationService.instance.syncForUser(_currentUser);
+      // Single-session: mint a new token — kicks any other active session.
+      if (_currentUser != null) {
+        await _mintAndWatchSessionToken(_currentUser!.id);
+      }
       // Analytics — success path only. Don't block the success return on the
       // analytics user-id write (app-robustness D); fire-and-forget.
       unawaited(AnalyticsService.instance.setUserId(_currentUser?.id));
@@ -169,6 +291,14 @@ class AuthProvider extends ChangeNotifier {
       // Best-effort cleanup — never block the sign-out on it.
     }
 
+    // We're intentionally ending the session — swallow the resulting `false`
+    // emit on the liveness stream so it isn't read as an external revocation
+    // (#3). Stays armed until the next sign-in.
+    _intentionalAuthClear = true;
+    _tokenSub?.cancel();
+    _tokenSub = null;
+    _localToken = null;
+    unawaited(_authService.clearLocalSessionToken());
     try {
       await _authService.signOut();
       _currentUser = null;
@@ -180,6 +310,8 @@ class AuthProvider extends ChangeNotifier {
       AnalyticsService.instance.setIsGuest(true);
       return true;
     } catch (e) {
+      // Sign-out failed — the session is still alive, so re-arm detection.
+      _intentionalAuthClear = false;
       _errorMessage = 'Sign out failed: $e';
       return false;
     } finally {
@@ -205,6 +337,12 @@ class AuthProvider extends ChangeNotifier {
       } catch (_) {
         // Best-effort — proceed to the authoritative server-side delete.
       }
+      // A successful delete ends the session server-side; swallow the liveness
+      // stream's trailing `false` emit so it isn't read as a revocation (#3).
+      _intentionalAuthClear = true;
+      _tokenSub?.cancel();
+      _tokenSub = null;
+      _localToken = null;
       await _authService.deleteAccount(currentUser: user);
       _currentUser = null;
       _status = AuthStatus.unauthenticated;
@@ -213,17 +351,44 @@ class AuthProvider extends ChangeNotifier {
       unawaited(AnalyticsService.instance.setUserId(null));
       return null;
     } on AuthException catch (e) {
+      // Deletion did NOT happen — the session is still alive, so re-arm
+      // external-revocation detection (#3).
+      _intentionalAuthClear = false;
       if (e.message == 'requires-recent-login') {
         return 'requires-recent-login';
       }
       _errorMessage = e.message;
       return e.message;
     } catch (e) {
+      _intentionalAuthClear = false;
       _errorMessage = 'Delete account failed: $e';
       return _errorMessage;
     } finally {
       _setLoading(false);
     }
+  }
+
+  /// Re-auth recovery for the delete-account dead-end (#2). When [deleteAccount]
+  /// returns `'requires-recent-login'` (the callable saw a stale/expired token),
+  /// the UI collects the password and calls this: it re-authenticates to mint a
+  /// fresh token, then retries the deletion. Returns `null` on success, or an
+  /// error string — notably `'session-gone'` when there's no local session left
+  /// to re-auth (the UI must then send the user through a full re-login).
+  Future<String?> reauthenticateAndDeleteAccount(String password) async {
+    _setLoading(true);
+    _clearError(notify: false);
+    try {
+      await _authService.reauthenticateWithPassword(password);
+    } on AuthException catch (e) {
+      _setLoading(false);
+      return e.message;
+    } catch (e) {
+      _setLoading(false);
+      return 'Reauth failed: $e';
+    }
+    _setLoading(false);
+    // Token is fresh now — retry the authoritative server-side delete.
+    return deleteAccount();
   }
 
   /// Sends a password-reset email (feature auth, Đợt 1). Returns true on

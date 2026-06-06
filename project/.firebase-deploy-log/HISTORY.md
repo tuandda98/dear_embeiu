@@ -20,3 +20,8 @@ npx firebase-tools deploy --only firestore:rules --project tonyembeiu 2>&1 | tai
 - [20260605T105348Z] head=cd32f4d dirty=41 exit=? · `cd /Users/tony.tuando/StudioProjects/dear_embeiu
 npx firebase-tools deploy --only functions:sendCustomVerificationEmail --project dev 2>&1 | grep -v "punycode\|DeprecationWarning\|trace-deprecation" | tail -40
 echo "DEPLOY_EXIT=${PIPESTATUS[0]}"` · snapshot `20260605T105348Z/`
+- [20260605T135534Z] head=77a217e dirty=16 exit=0 · `npx firebase-tools deploy --only functions:sendCustomVerificationEmail --project prod` · snapshot `20260605T135534Z/` · (manual trace — prod email-verify deploy + secret copy dev→prod)
+- [20260605T144321Z] head=77a217e branch=phase2 exit=0 · DEV `deploy --only functions,firestore:rules,firestore:indexes,storage --project dev` (full parity: tạo 8 function thiếu; 6 Firestore-trigger phải retry vì Eventarc first-time) · snapshot `20260605T144321Z/`
+- [20260605T144321Z] head=77a217e branch=phase2 exit=0 · PROD `deploy --only functions:notifyPartnerLeft --project prod --force` (CF mới báo partner rời couple) · snapshot `20260605T144321Z/`
+- [20260605T144321Z] head=77a217e branch=phase2 exit=0 · DEV retry `deploy --only functions:{6 Firestore-trigger} --project dev --force` → 6/6 OK · snapshot `20260605T144321Z/`
+- [20260605T150000Z] branch=phase2 exit=0 · DEV+PROD `deploy --only firestore:rules` · feature couple-code: thêm couple_codes collection rules + coupleCode field vào couple rules · snapshot `20260605T150000Z/`

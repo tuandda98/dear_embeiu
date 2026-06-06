@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
 
 import '../l10n/app_l10n.dart';
+import '../models/account_invite.dart';
 import '../models/app_user.dart';
 import '../models/couple.dart';
 import 'firebase_bootstrap_service.dart';
@@ -100,6 +103,8 @@ class CoupleService {
 
   FirebaseFirestore get _db => _firestore ?? FirebaseFirestore.instance;
   FirebaseStorage get _bucket => _storage ?? FirebaseStorage.instance;
+  // Default region (us-central1) matches the deployed couple callables.
+  FirebaseFunctions get _functions => FirebaseFunctions.instance;
 
   CollectionReference<Map<String, dynamic>> get _couplesCollection =>
       _db.collection('couples');
@@ -190,12 +195,17 @@ class CoupleService {
 
     final now = DateTime.now();
     final coupleId = isUsingFirebase ? _couplesCollection.doc().id : _uuid.v4();
+    // Generate a fresh couple-level entry code, distinct from the personal
+    // inviteCode. This code is shared with the partner and allows both to
+    // rejoin after leave without the personal code being reset or reused.
+    final coupleCode = await _generateCoupleCode();
     final baseCouple = Couple(
       id: coupleId,
       person1Name: person1Name.trim(),
       person2Name: person2Name.trim(),
       anniversaryDate: anniversaryDate,
       inviteCode: currentUser.inviteCode,
+      coupleCode: coupleCode,
       memberIds: [memberId],
       memberCount: 1,
       createdByUserId: memberId,
@@ -217,6 +227,15 @@ class CoupleService {
         await _ensureFirebaseSessionReady();
         await _couplesCollection.doc(baseCouple.id).set(baseCouple.toFirestore());
         await _userService.updateCoupleMembership(updatedUser);
+        // Write couple_codes entry so partner (or creator rejoining) can look
+        // up the couple by the shared code instead of the personal inviteCode.
+        // Best-effort: a couple_codes write failure must not roll back the couple.
+        try {
+          await _userService.createCoupleCodeEntry(coupleCode, coupleId);
+        } catch (_) {
+          // Ignore — couple already created; code entry will be missing but the
+          // old invite_codes fallback in joinCoupleByCode still works.
+        }
       } on FirebaseException catch (e) {
         throw CoupleException(_mapFirebaseError(e));
       }
@@ -353,21 +372,38 @@ class CoupleService {
           throw CoupleException(AppL10n.strings.coupleSessionNotReadyRelogin);
         }
 
-        final accountInvite = await _userService.fetchAccountInvite(normalizedCode);
-        if (accountInvite == null) {
-          throw CoupleException(
-            AppL10n.strings.coupleInviteCodeInvalid,
-            code: CoupleErrorCode.inviteNotFound,
-          );
-        }
+        // Double-lookup: try couple_codes first (new flow — no personal
+        // ownership check needed since the code is couple-level). Fall back to
+        // invite_codes for backward compatibility with couples created before
+        // this feature was deployed.
+        var isNewCoupleCodeFlow = false;
+        AccountInvite? accountInvite;
+        late final String targetCoupleId;
 
-        if (accountInvite.userId == authUid) {
-          throw CoupleException(AppL10n.strings.coupleCannotUseOwnCode);
-        }
-
-        final targetCoupleId = accountInvite.coupleId?.trim() ?? '';
-        if (targetCoupleId.isEmpty) {
-          throw CoupleException(AppL10n.strings.couplePartnerHasNoSpace);
+        final coupleCodeCoupleId =
+            await _userService.fetchCoupleCodeEntry(normalizedCode);
+        if (coupleCodeCoupleId != null &&
+            coupleCodeCoupleId.trim().isNotEmpty) {
+          targetCoupleId = coupleCodeCoupleId.trim();
+          isNewCoupleCodeFlow = true;
+        } else {
+          // Backward compat: look up invite_codes (old personal-code couples).
+          accountInvite =
+              await _userService.fetchAccountInvite(normalizedCode);
+          if (accountInvite == null) {
+            throw CoupleException(
+              AppL10n.strings.coupleInviteCodeInvalid,
+              code: CoupleErrorCode.inviteNotFound,
+            );
+          }
+          if (accountInvite.userId == authUid) {
+            throw CoupleException(AppL10n.strings.coupleCannotUseOwnCode);
+          }
+          final rawCoupleId = accountInvite.coupleId?.trim() ?? '';
+          if (rawCoupleId.isEmpty) {
+            throw CoupleException(AppL10n.strings.couplePartnerHasNoSpace);
+          }
+          targetCoupleId = rawCoupleId;
         }
 
         final docRef = _couplesCollection.doc(targetCoupleId);
@@ -392,7 +428,13 @@ class CoupleService {
             ...coupleData,
           });
 
-          if (!currentCouple.memberIds.contains(accountInvite.userId)) {
+          // For the old invite_codes flow, verify the creator is still a
+          // member (guards against the code pointing to a stale couple after
+          // the creator left). Skip this check for the new couple_codes flow
+          // because there is no single "owner" to verify.
+          if (!isNewCoupleCodeFlow &&
+              accountInvite != null &&
+              !currentCouple.memberIds.contains(accountInvite.userId)) {
             throw CoupleException(
               AppL10n.strings.coupleCodeNoLongerValid,
               code: CoupleErrorCode.inviteNotFound,
@@ -550,6 +592,21 @@ class CoupleService {
     );
   }
 
+  /// Clears a stale coupleId from the user doc when permission-denied is
+  /// detected on couple load (user removed from couple, or couple deleted).
+  /// Best-effort — callers must not fail if this throws.
+  Future<void> clearStaleCoupleRef(AppUser user) async {
+    if (!isUsingFirebase) return;
+    final cleared = user.copyWith(
+      coupleId: null,
+      status: 'single',
+      updatedAt: DateTime.now(),
+      lastSeenAt: DateTime.now(),
+    );
+    await _userService.updateCoupleMembership(cleared);
+    await StorageService.clearCouple();
+  }
+
   Future<AppUser> leaveCouple({required AppUser currentUser}) async {
     final now = DateTime.now();
 
@@ -579,8 +636,23 @@ class CoupleService {
                   .toList();
 
               if (remainingMembers.isEmpty) {
-                await _cleanupCoupleSharedData(currentCouple);
-                await docRef.delete();
+                // Sole member leaving → the couple is destroyed. Route through
+                // the server-side callable so the admin SDK recursively deletes
+                // EVERY subcollection (photos+reactions, notes, noteHistory,
+                // dailyAnswers) + couple_codes with no orphans. The old client
+                // cleanup could only reach photos + couple_codes.
+                try {
+                  await _functions
+                      .httpsCallable('leaveCoupleCleanup')
+                      .call<dynamic>(<String, dynamic>{'coupleId': currentCouple.id});
+                } catch (_) {
+                  // Fallback: callable unavailable (transient CF error). Do a
+                  // best-effort client teardown so the user can still leave —
+                  // may orphan notes/dailyAnswers, swept later by the next
+                  // account-deletion teardown.
+                  await _cleanupCoupleSharedData(currentCouple);
+                  await docRef.delete();
+                }
               } else {
                 final updatedCouple = currentCouple.copyWith(
                   memberIds: remainingMembers,
@@ -595,6 +667,23 @@ class CoupleService {
                   updatedCouple.toFirestoreUpdate(),
                   SetOptions(merge: true),
                 );
+                // Bug fix: the remaining member's user doc still has
+                // status='in_couple' because only the leaver's doc is updated
+                // by updateCoupleMembership below. Reset the remaining member
+                // to 'waiting_partner' so they can accept a new partner join.
+                final remainingUid = remainingMembers.first;
+                try {
+                  await _db.collection('users').doc(remainingUid).set(
+                    {
+                      'status': 'waiting_partner',
+                      'updatedAt': now,
+                    },
+                    SetOptions(merge: true),
+                  );
+                } catch (_) {
+                  // Best-effort — the couple update already succeeded; the
+                  // remaining member's status will correct itself on next login.
+                }
               }
             }
           },
@@ -627,6 +716,13 @@ class CoupleService {
   Future<void> _cleanupCoupleSharedData(Couple couple) async {
     if (!isUsingFirebase || couple.id.trim().isEmpty) {
       return;
+    }
+
+    // Remove the couple_codes entry BEFORE deleting the couple doc: the
+    // couple_codes delete rule verifies the couple still exists and that the
+    // requester is a member, so the couple doc must be present at this point.
+    if (couple.coupleCode != null && couple.coupleCode!.isNotEmpty) {
+      await _userService.deleteCoupleCodeEntry(couple.coupleCode!);
     }
 
     final photosSnapshot = await _couplesCollection
@@ -880,6 +976,30 @@ class CoupleService {
     }
 
     return extension;
+  }
+
+  /// Generate a unique 6-character couple entry code (distinct from the
+  /// personal inviteCode). Uses a secure random source and checks
+  /// couple_codes for collisions on up to 10 attempts before giving up.
+  Future<String> _generateCoupleCode() async {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final random = Random.secure();
+    for (var attempt = 0; attempt < 10; attempt++) {
+      final code = List.generate(
+        6,
+        (_) => chars[random.nextInt(chars.length)],
+      ).join();
+      if (isUsingFirebase) {
+        final existing = await _db.collection('couple_codes').doc(code).get();
+        if (!existing.exists) {
+          return code;
+        }
+      } else {
+        return code;
+      }
+    }
+    // Fallback: return a final random code even if we can't verify uniqueness.
+    return List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
 }

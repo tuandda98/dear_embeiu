@@ -1292,11 +1292,9 @@ class SettingsScreen extends StatelessWidget {
                   (route) => false,
                 );
               } else if (errorCode == 'requires-recent-login') {
-                ScaffoldMessenger.of(context)
-                  ..clearSnackBars()
-                  ..showSnackBar(
-                    SnackBar(content: Text(l10n.deleteAccountRequiresReloginMsg)),
-                  );
+                // Stale-session challenge — don't dead-end. Collect the password
+                // and re-auth + retry the delete in place (#2).
+                _showReauthToDeleteDialog(context);
               } else {
                 ScaffoldMessenger.of(context)
                   ..clearSnackBars()
@@ -1311,6 +1309,140 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Re-auth recovery for the delete-account dead-end (#2). When deletion hits a
+  /// stale-session `requires-recent-login`, we collect the password here,
+  /// re-authenticate to mint a fresh token, and retry the delete — keeping the
+  /// user inside the delete flow instead of stranding them on a snackbar. If the
+  /// session is fully gone (`session-gone`) we send them through the auth gate
+  /// to sign in again. Uses [StatefulBuilder] for the dialog's local
+  /// busy/error state.
+  void _showReauthToDeleteDialog(BuildContext context) {
+    final l10n = context.l10n;
+    final passwordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    var busy = false;
+    String? inlineError;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setLocalState) {
+            Future<void> submit() async {
+              if (busy) return;
+              if (!(formKey.currentState?.validate() ?? false)) return;
+              FocusScope.of(ctx).unfocus();
+              setLocalState(() {
+                busy = true;
+                inlineError = null;
+              });
+
+              final authProvider = ctx.read<AuthProvider>();
+              final result = await authProvider
+                  .reauthenticateAndDeleteAccount(passwordController.text);
+              if (!ctx.mounted) return;
+
+              if (result == null) {
+                // Deleted — close the dialog and reset to the auth gate.
+                Navigator.of(ctx).pop();
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.authGate,
+                  (route) => false,
+                );
+                return;
+              }
+
+              if (result == 'session-gone') {
+                // No local session left to re-auth — send them to sign in again.
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.deleteAccountSessionExpiredMsg),
+                    ),
+                  );
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.authGate,
+                  (route) => false,
+                );
+                return;
+              }
+
+              // Wrong password / other recoverable error — keep the dialog open
+              // and show the message inline under the field.
+              HapticFeedback.heavyImpact();
+              setLocalState(() {
+                busy = false;
+                inlineError = result;
+              });
+            }
+
+            return AlertDialog(
+              title: Text(
+                l10n.deleteAccountReauthTitle,
+                style: TextStyle(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.deleteAccountReauthBody),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: passwordController,
+                      obscureText: true,
+                      autofocus: true,
+                      enabled: !busy,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => submit(),
+                      decoration: InputDecoration(
+                        labelText: l10n.passwordLabel,
+                        errorText: inlineError,
+                      ),
+                      validator: (value) =>
+                          (value == null || value.trim().isEmpty)
+                              ? l10n.passwordRequired
+                              : null,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: busy ? null : () => Navigator.of(ctx).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                TextButton(
+                  onPressed: busy ? null : submit,
+                  child: busy
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          l10n.deleteAccountConfirmBtn,
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).whenComplete(passwordController.dispose);
   }
 
   void _showSignOutDialog(BuildContext context) {
@@ -1357,11 +1489,22 @@ class SettingsScreen extends StatelessWidget {
   void _showLeaveCoupleDialog(BuildContext screenContext) {
     final l10n = screenContext.l10n;
 
+    // When the leaving user is the SOLE remaining member (partner already left,
+    // or never joined), leaving DESTROYS the couple and ALL shared data with no
+    // recovery — warn explicitly. With a partner still present, the partner
+    // keeps everything, so the milder copy applies.
+    final couple = screenContext.read<CoupleProvider>().couple;
+    final isSoleMember = couple != null && couple.memberCount <= 1;
+
     showDialog(
       context: screenContext,
       builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.leaveCoupleDialogTitle),
-        content: Text(l10n.leaveCoupleDialogContent),
+        title: Text(isSoleMember
+            ? l10n.leaveCoupleDeleteAllTitle
+            : l10n.leaveCoupleDialogTitle),
+        content: Text(isSoleMember
+            ? l10n.leaveCoupleDeleteAllContent
+            : l10n.leaveCoupleDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -1382,6 +1525,11 @@ class SettingsScreen extends StatelessWidget {
                 final updatedUser = await coupleProvider.leaveCouple(
                   currentUser: currentUser,
                 );
+                // CRITICAL: refresh the in-memory session to the now-single
+                // user. Without this the stale currentUser still reports
+                // `in_couple` → re-joining is blocked with "This account already
+                // belongs to a couple", and the resolver misroutes back to Home.
+                await authProvider.updateCurrentUser(updatedUser);
                 unawaited(photoProvider.syncForUser(updatedUser));
               } catch (_) {
                 return;
@@ -1389,13 +1537,19 @@ class SettingsScreen extends StatelessWidget {
 
               if (!screenContext.mounted) return;
 
+              // Route through the auth gate so SessionResolver clears the couple
+              // + love-note / daily-question / reaction / streak watchers for the
+              // now-single user (going straight to /setup left them running on
+              // the old coupleId) and lands on setup.
               Navigator.of(screenContext).pushNamedAndRemoveUntil(
-                AppRoutes.setup,
+                AppRoutes.authGate,
                 (route) => false,
               );
             },
             child: Text(
-              l10n.leaveCoupleActionBtn,
+              isSoleMember
+                  ? l10n.leaveCoupleDeleteAllBtn
+                  : l10n.leaveCoupleActionBtn,
               style: TextStyle(color: AppColors.error),
             ),
           ),

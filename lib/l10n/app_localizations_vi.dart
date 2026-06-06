@@ -1013,6 +1013,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String get leaveCoupleActionBtn => 'Rời khỏi couple';
 
   @override
+  String get leaveCoupleDeleteAllTitle =>
+      'Xoá vĩnh viễn không gian của hai người?';
+
+  @override
+  String get leaveCoupleDeleteAllContent =>
+      'Bạn là thành viên cuối cùng. Khi rời đi, TẤT CẢ kỷ niệm chung — ảnh, lời nhắn, nhật ký câu hỏi — sẽ bị xoá vĩnh viễn và KHÔNG THỂ khôi phục.';
+
+  @override
+  String get leaveCoupleDeleteAllBtn => 'Xoá tất cả';
+
+  @override
   String get localDataClearedMsg =>
       'Đã xóa dữ liệu local trên máy này. Dữ liệu chung trên cloud vẫn được giữ nguyên.';
 
@@ -1696,6 +1707,17 @@ class AppLocalizationsVi extends AppLocalizations {
       'Vui lòng đăng xuất, đăng nhập lại và thử lại để xác nhận danh tính';
 
   @override
+  String get deleteAccountReauthTitle => 'Xác minh đó là bạn';
+
+  @override
+  String get deleteAccountReauthBody =>
+      'Vì lý do bảo mật, hãy nhập lại mật khẩu để xoá tài khoản vĩnh viễn.';
+
+  @override
+  String get deleteAccountSessionExpiredMsg =>
+      'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại rồi xoá tài khoản.';
+
+  @override
   String get deleteAccountSuccessMsg => 'Tài khoản đã được xóa';
 
   @override
@@ -2099,4 +2121,20 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get verifyEmailResendError =>
       'Không gửi lại được email. Kiểm tra kết nối rồi thử lại nhé.';
+
+  @override
+  String get setupWaitingCoupleCodeTitle =>
+      'Gửi mã này cho người ấy để ghép đôi';
+
+  @override
+  String get setupCoupleCodeDesc =>
+      'Đây là mã ghép đôi của hai bạn. Cả hai đều dùng mã này để kết nối lại nếu cần.';
+
+  @override
+  String get setupCoupleCodeRejoinHint =>
+      'Lưu mã lại — bạn có thể dùng nó để quay lại không gian này bất cứ lúc nào.';
+
+  @override
+  String get galleryNeedsCoupleToUpload =>
+      'Bạn cần ghép đôi trước để đăng ảnh chung nhé 💞';
 }
