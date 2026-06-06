@@ -141,6 +141,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      extendBody: true,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
