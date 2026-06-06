@@ -1,0 +1,5 @@
+deploy (manual trace — hook không wire trên máy nhà)
+ts=20260606T034810Z  head=16dd17b  branch=phase2  exit=0
+cmd: npx firebase-tools deploy --only firestore:rules,storage,functions:leaveCoupleCleanup --project prod
+nội dung: fix backward-compat firestore.rules (coupleCode + languageCode → data.get(...,null)); storage.rules đã up-to-date; tạo mới function leaveCoupleCleanup trên PROD tonyembeiu.
+restore: git checkout 16dd17b -- firestore.rules storage.rules && deploy lại; hoặc dùng file snapshot trong thư mục này.

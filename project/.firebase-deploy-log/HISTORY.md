@@ -25,3 +25,4 @@ echo "DEPLOY_EXIT=${PIPESTATUS[0]}"` · snapshot `20260605T105348Z/`
 - [20260605T144321Z] head=77a217e branch=phase2 exit=0 · PROD `deploy --only functions:notifyPartnerLeft --project prod --force` (CF mới báo partner rời couple) · snapshot `20260605T144321Z/`
 - [20260605T144321Z] head=77a217e branch=phase2 exit=0 · DEV retry `deploy --only functions:{6 Firestore-trigger} --project dev --force` → 6/6 OK · snapshot `20260605T144321Z/`
 - [20260605T150000Z] branch=phase2 exit=0 · DEV+PROD `deploy --only firestore:rules` · feature couple-code: thêm couple_codes collection rules + coupleCode field vào couple rules · snapshot `20260605T150000Z/`
+- [20260606T034810Z] head=16dd17b branch=phase2 exit=0 · PROD `deploy --only firestore:rules,storage,functions:leaveCoupleCleanup --project prod` · fix backward-compat (coupleCode+languageCode dùng data.get) + tạo CF leaveCoupleCleanup · snapshot `20260606T034810Z/`
