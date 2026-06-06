@@ -1,6 +1,8 @@
 # <Tên feature>
 
 > File PO sở hữu. Nguồn sự thật chung cho cả feature. Designer/Dev/Tester đọc file này trước.
+>
+> 💡 **Mẫu đã điền đầy đủ để bắt chước giọng văn & độ chi tiết:** xem một feature đã `✅ Done` gần nhất, vd [`../language/overview.md`](../language/overview.md) hoặc [`../daily-question/overview.md`](../daily-question/overview.md). Acceptance criteria phải viết RÕ & đo được (PO đóng Done dựa vào đây).
 
 - **Feature:** <ten-feature>
 - **Ưu tiên:** <P0 | P1 | P2>

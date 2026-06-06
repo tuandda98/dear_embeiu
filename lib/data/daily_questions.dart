@@ -1,8 +1,9 @@
 /// Curated bank of "daily questions" for couples (feature #5).
 ///
-/// One shared question per calendar day for both partners. The question is
-/// picked deterministically from the local day-of-year so both members — who
-/// resolve their own local date — land on the same prompt on the same day.
+/// One shared question per calendar day for both partners. Each couple gets its
+/// own deterministic order (no two partners ever disagree, but different couples
+/// see different sequences), and within one full cycle (== bank length) no
+/// question repeats. See [questionForCouple] for the selection algorithm.
 ///
 /// Each entry has a `vi` and `en` variant. Keep copy warm, light, and
 /// couple-friendly; avoid ICU braces `{}` or other markup so the strings are
@@ -10,6 +11,8 @@
 library;
 
 const List<Map<String, String>> dailyQuestions = [
+  // ── Original 58 (kept verbatim; do not reorder — call-site order no longer
+  //    matters for selection, but keeping them stable avoids churn) ──────────
   {
     'vi': 'Khoảnh khắc nào khiến bạn nhận ra mình thích người ấy?',
     'en': 'What moment made you realize you liked your partner?',
@@ -242,13 +245,844 @@ const List<Map<String, String>> dailyQuestions = [
     'vi': 'Nếu được gửi một lời nhắn tới người ấy của 10 năm sau, bạn nói gì?',
     'en': 'If you could message your partner 10 years from now, what would you say?',
   },
+
+  // ── Kỷ niệm & quá khứ (memories / the past) ──────────────────────────────
+  {
+    'vi': 'Lần đầu nắm tay nhau, bạn còn nhớ cảm giác lúc đó không?',
+    'en': 'Do you still remember how it felt the first time you held hands?',
+  },
+  {
+    'vi': 'Tin nhắn đầu tiên hai đứa gửi cho nhau có nội dung gì?',
+    'en': 'What did the very first message between you two say?',
+  },
+  {
+    'vi': 'Ngày hẹn hò nào khiến bạn nhớ vì một chuyện buồn cười xảy ra?',
+    'en': 'Which date stuck with you because something funny happened?',
+  },
+  {
+    'vi': 'Ấn tượng đầu tiên của bạn về người ấy là gì?',
+    'en': 'What was your very first impression of your partner?',
+  },
+  {
+    'vi': 'Chuyến đi nào của hai đứa bạn muốn được trải lại?',
+    'en': 'Which trip of yours would you love to do all over again?',
+  },
+  {
+    'vi': 'Có món đồ nhỏ nào lưu giữ kỷ niệm của hai đứa mà bạn vẫn giữ?',
+    'en': 'Is there a small keepsake from your story you still hold on to?',
+  },
+  {
+    'vi': 'Lần đầu người ấy giới thiệu bạn với bạn bè, bạn cảm thấy sao?',
+    'en': 'How did you feel when your partner first introduced you to friends?',
+  },
+  {
+    'vi': 'Khoảnh khắc nào khiến bạn biết người ấy là người đặc biệt?',
+    'en': 'What moment told you your partner was someone special?',
+  },
+  {
+    'vi': 'Bức ảnh chụp chung nào là bức bạn thích nhất, vì sao?',
+    'en': 'Which photo of the two of you is your favorite, and why?',
+  },
+  {
+    'vi': 'Câu chuyện nào về hai đứa bạn hay kể lại nhất cho người khác?',
+    'en': 'What story about the two of you do you tell others the most?',
+  },
+
+  // ── Biết ơn & trân trọng (gratitude / appreciation) ──────────────────────
+  {
+    'vi': 'Hôm nay người ấy làm điều gì khiến lòng bạn ấm lên?',
+    'en': 'What did your partner do today that warmed your heart?',
+  },
+  {
+    'vi': 'Bạn trân trọng điều gì ở người ấy mà ít khi nói thành lời?',
+    'en': 'What do you appreciate about your partner but rarely say out loud?',
+  },
+  {
+    'vi': 'Người ấy đã hy sinh điều gì cho bạn mà bạn luôn nhớ?',
+    'en': 'What has your partner given up for you that you always remember?',
+  },
+  {
+    'vi': 'Điều gì người ấy làm khiến cuộc sống của bạn dễ chịu hơn?',
+    'en': 'What does your partner do that makes your life a little easier?',
+  },
+  {
+    'vi': 'Khi mệt mỏi, điều gì ở người ấy giúp bạn thấy nhẹ lòng?',
+    'en': 'When you are worn out, what about your partner lifts your mood?',
+  },
+  {
+    'vi': 'Bạn biết ơn điều gì về cách người ấy lắng nghe bạn?',
+    'en': 'What are you grateful for in the way your partner listens to you?',
+  },
+  {
+    'vi': 'Người ấy đã tin tưởng bạn ở điều gì khiến bạn cảm động?',
+    'en': 'What did your partner trust you with that touched you?',
+  },
+  {
+    'vi': 'Có lần nào người ấy ở bên đúng lúc bạn cần nhất không?',
+    'en': 'Was there a time your partner showed up exactly when you needed them?',
+  },
+
+  // ── Tương lai chung (a shared future) ────────────────────────────────────
+  {
+    'vi': 'Ngôi nhà trong mơ của hai đứa sẽ trông như thế nào?',
+    'en': 'What would your dream home together look like?',
+  },
+  {
+    'vi': 'Bạn hình dung một buổi sáng cuối tuần lý tưởng của hai đứa ra sao?',
+    'en': 'How do you picture an ideal weekend morning for the two of you?',
+  },
+  {
+    'vi': 'Có nơi nào bạn ước mỗi năm hai đứa cùng quay lại một lần?',
+    'en': 'Is there a place you wish the two of you returned to once a year?',
+  },
+  {
+    'vi': 'Bạn muốn cùng người ấy tạo ra thói quen mới nào từ tuần này?',
+    'en': 'What new habit would you like to start with your partner this week?',
+  },
+  {
+    'vi': 'Mười năm nữa, bạn mong hai đứa vẫn cùng nhau làm điều gì?',
+    'en': 'Ten years from now, what do you hope you two still do together?',
+  },
+  {
+    'vi': 'Có kỹ năng nào bạn muốn hai đứa cùng thành thạo không?',
+    'en': 'Is there a skill you would love the two of you to master together?',
+  },
+  {
+    'vi': 'Bạn muốn cùng người ấy chinh phục thử thách nào một lần trong đời?',
+    'en': 'What challenge would you love to take on with your partner once?',
+  },
+  {
+    'vi': 'Nếu hai đứa mở một quán nhỏ cùng nhau, đó sẽ là quán gì?',
+    'en': 'If the two of you opened a little shop together, what would it be?',
+  },
+  {
+    'vi': 'Bạn mong dịp kỷ niệm năm sau của hai đứa diễn ra thế nào?',
+    'en': 'How do you hope your anniversary next year will go?',
+  },
+  {
+    'vi': 'Có một giấc mơ lớn nào bạn muốn cùng người ấy theo đuổi?',
+    'en': 'Is there a big dream you would like to chase together?',
+  },
+
+  // ── Sở thích & "thà rằng" (preferences / would you rather) ───────────────
+  {
+    'vi': 'Hai đứa thích ở nhà cùng nhau hay ra ngoài khám phá hơn?',
+    'en': 'Do you two prefer cozy nights in or going out to explore?',
+  },
+  {
+    'vi': 'Bạn thích buổi hẹn vào ban ngày hay buổi tối hơn, vì sao?',
+    'en': 'Do you prefer daytime or evening dates, and why?',
+  },
+  {
+    'vi': 'Cùng nhau đi biển hay lên núi, bạn chọn bên nào?',
+    'en': 'Beach or mountains together — which would you choose?',
+  },
+  {
+    'vi': 'Bạn thích được người ấy nấu cho ăn hay cùng nhau vào bếp hơn?',
+    'en': 'Do you prefer your partner cooking for you or cooking together?',
+  },
+  {
+    'vi': 'Một buổi tối yên tĩnh hay một buổi tiệc đông vui, bạn chọn gì?',
+    'en': 'A quiet evening or a lively party — which suits you two better?',
+  },
+  {
+    'vi': 'Bạn thích nhận hoa, đồ ăn vặt, hay một cái ôm bất ngờ hơn?',
+    'en': 'Flowers, a snack, or a surprise hug — which do you like most?',
+  },
+  {
+    'vi': 'Đi du lịch có kế hoạch chi tiết hay tùy hứng, bạn hợp kiểu nào?',
+    'en': 'A planned trip or a spontaneous one — which fits you two?',
+  },
+  {
+    'vi': 'Nhạc nhẹ hay nhạc sôi động khi đi chơi cùng nhau, bạn chọn gì?',
+    'en': 'Mellow tunes or upbeat songs on a drive together — your pick?',
+  },
+
+  // ── "Nếu..." & tưởng tượng (if / imagination) ────────────────────────────
+  {
+    'vi': 'Nếu hai đứa có một ngày tàng hình, bạn muốn cùng làm gì?',
+    'en': 'If the two of you were invisible for a day, what would you do?',
+  },
+  {
+    'vi': 'Nếu được sống ở bất kỳ thành phố nào, hai đứa chọn nơi nào?',
+    'en': 'If you could live in any city, which would the two of you pick?',
+  },
+  {
+    'vi': 'Nếu trúng một chuyến đi miễn phí, bạn muốn rủ người ấy đi đâu?',
+    'en': 'If you won a free trip, where would you take your partner?',
+  },
+  {
+    'vi': 'Nếu hai đứa hoán đổi vai trò một ngày, bạn nghĩ sẽ thế nào?',
+    'en': 'If you two swapped roles for a day, how do you think it would go?',
+  },
+  {
+    'vi': 'Nếu được tạm dừng thời gian, bạn muốn kéo dài khoảnh khắc nào bên nhau?',
+    'en': 'If you could pause time, which moment together would you stretch out?',
+  },
+  {
+    'vi': 'Nếu hai đứa cùng vào một show truyền hình, đó sẽ là show gì?',
+    'en': 'If the two of you joined a TV show together, which would it be?',
+  },
+  {
+    'vi': 'Nếu được đặt tên một vì sao theo hai đứa, bạn muốn gọi là gì?',
+    'en': 'If you could name a star after you two, what would you call it?',
+  },
+  {
+    'vi': 'Nếu hai đứa lạc trên hoang đảo, bạn tin tưởng người ấy lo việc gì?',
+    'en': 'If you were stranded on an island, what would you trust your partner with?',
+  },
+  {
+    'vi': 'Nếu có một siêu năng lực để giúp người ấy, bạn chọn năng lực nào?',
+    'en': 'If you had one superpower to help your partner, which would you pick?',
+  },
+  {
+    'vi': 'Nếu được viết kịch bản cho một ngày hoàn hảo của hai đứa, sẽ ra sao?',
+    'en': 'If you scripted one perfect day for the two of you, how would it look?',
+  },
+
+  // ── Thói quen nhỏ đáng yêu (sweet little habits) ─────────────────────────
+  {
+    'vi': 'Câu cửa miệng nào của người ấy mà bạn thấy dễ thương?',
+    'en': 'What catchphrase of your partner do you find adorable?',
+  },
+  {
+    'vi': 'Người ấy có cử chỉ nhỏ nào mỗi sáng khiến bạn vui cả ngày?',
+    'en': 'Does your partner have a small morning gesture that makes your day?',
+  },
+  {
+    'vi': 'Khi xem phim cùng nhau, người ấy thường có thói quen gì?',
+    'en': 'When you watch a movie together, what habit does your partner have?',
+  },
+  {
+    'vi': 'Người ấy hay làm điều gì khi vui mà bạn rất thích nhìn?',
+    'en': 'What does your partner do when happy that you love to watch?',
+  },
+  {
+    'vi': 'Có biểu cảm nào của người ấy chỉ bạn mới hiểu không?',
+    'en': 'Is there an expression of your partner only you can read?',
+  },
+  {
+    'vi': 'Người ấy hay nhắn tin kiểu gì khiến bạn bật cười?',
+    'en': 'How does your partner text in a way that always makes you laugh?',
+  },
+  {
+    'vi': 'Thói quen ăn uống nào của người ấy bạn thấy thú vị?',
+    'en': 'What eating habit of your partner do you find amusing?',
+  },
+  {
+    'vi': 'Khi buồn ngủ, người ấy thường làm gì đáng yêu?',
+    'en': 'When sleepy, what cute thing does your partner usually do?',
+  },
+
+  // ── Mơ ước cá nhân & chia sẻ (dreams shared) ─────────────────────────────
+  {
+    'vi': 'Có ước mơ tuổi nhỏ nào bạn muốn kể cho người ấy nghe hôm nay?',
+    'en': 'Is there a childhood dream you would like to share with your partner today?',
+  },
+  {
+    'vi': 'Điều gì bạn vẫn muốn thử nhưng chưa dám, và muốn người ấy ở bên?',
+    'en': 'What is something you still want to try but never dared, with your partner beside you?',
+  },
+  {
+    'vi': 'Nếu có một năm để làm bất cứ điều gì, bạn muốn dành cho việc gì?',
+    'en': 'If you had a year to do anything, what would you spend it on?',
+  },
+  {
+    'vi': 'Bạn muốn trở thành phiên bản nào của chính mình, và người ấy giúp ra sao?',
+    'en': 'Who do you want to become, and how does your partner help you get there?',
+  },
+  {
+    'vi': 'Có điều gì bạn luôn muốn học mà người ấy có thể dạy bạn?',
+    'en': 'Is there something you have always wanted to learn that your partner could teach you?',
+  },
+  {
+    'vi': 'Thành tựu nhỏ nào của bạn gần đây mà bạn muốn người ấy biết?',
+    'en': 'What small win of yours lately would you like your partner to know about?',
+  },
+
+  // ── Du lịch & nơi chốn (travel / places) ─────────────────────────────────
+  {
+    'vi': 'Nơi nào ở Việt Nam bạn muốn cùng người ấy ghé một lần?',
+    'en': 'Which place in Vietnam would you like to visit with your partner once?',
+  },
+  {
+    'vi': 'Bạn thích một chuyến phượt dài hay một kỳ nghỉ thư giãn hơn?',
+    'en': 'Do you prefer a long road trip or a relaxing getaway?',
+  },
+  {
+    'vi': 'Quán cà phê nào hai đứa hay hẹn, và vì sao bạn thích nơi đó?',
+    'en': 'Which café do you two often meet at, and why do you love it?',
+  },
+  {
+    'vi': 'Nếu được ở một khu vườn yên tĩnh cả ngày cùng nhau, bạn sẽ làm gì?',
+    'en': 'If you spent a whole day in a quiet garden together, what would you do?',
+  },
+  {
+    'vi': 'Con đường nào hai đứa hay đi mà bạn thấy đẹp nhất?',
+    'en': 'Which street that you two often walk feels the most beautiful?',
+  },
+  {
+    'vi': 'Bạn muốn cùng người ấy ngắm tuyết hay ngắm biển hơn?',
+    'en': 'Would you rather watch the snow or the sea with your partner?',
+  },
+  {
+    'vi': 'Có một góc nhỏ nào trở thành "địa điểm của riêng hai đứa" không?',
+    'en': 'Is there a little spot that became a place just for the two of you?',
+  },
+
+  // ── Đồ ăn & vị giác (food / taste) ───────────────────────────────────────
+  {
+    'vi': 'Món tráng miệng nào bạn muốn cùng người ấy chia đôi hôm nay?',
+    'en': 'What dessert would you love to split with your partner today?',
+  },
+  {
+    'vi': 'Nếu hai đứa nấu chung một bữa, bạn muốn nấu món gì?',
+    'en': 'If you two cooked one meal together, what would you make?',
+  },
+  {
+    'vi': 'Món ăn vặt nào hai đứa luôn mua khi đi chơi cùng nhau?',
+    'en': 'What snack do you two always grab when you go out together?',
+  },
+  {
+    'vi': 'Người ấy nấu món gì khiến bạn nhớ mãi hương vị?',
+    'en': 'Which dish your partner makes do you remember the taste of most?',
+  },
+  {
+    'vi': 'Bữa sáng lý tưởng của hai đứa vào ngày cuối tuần là gì?',
+    'en': 'What is your ideal weekend breakfast together?',
+  },
+  {
+    'vi': 'Có món nào bạn ghét nhưng vì người ấy mà bắt đầu thử không?',
+    'en': 'Is there a food you disliked but started trying because of your partner?',
+  },
+  {
+    'vi': 'Nếu mở một thực đơn cho hai đứa, món chủ đạo sẽ là gì?',
+    'en': 'If you wrote a menu just for you two, what would the signature dish be?',
+  },
+
+  // ── Âm nhạc & phim ảnh (music / movies) ──────────────────────────────────
+  {
+    'vi': 'Bài hát nào khiến bạn nghĩ ngay đến khoảng thời gian đầu yêu nhau?',
+    'en': 'What song instantly reminds you of when you two first fell for each other?',
+  },
+  {
+    'vi': 'Nếu hai đứa có một playlist chung, bài đầu tiên sẽ là gì?',
+    'en': 'If you two had a shared playlist, what would the first song be?',
+  },
+  {
+    'vi': 'Bộ phim nào bạn nghĩ phản chiếu chuyện tình của hai đứa?',
+    'en': 'Which movie do you think mirrors your love story?',
+  },
+  {
+    'vi': 'Nhân vật phim nào bạn thấy giống người ấy nhất?',
+    'en': 'Which movie character reminds you most of your partner?',
+  },
+  {
+    'vi': 'Có bài hát nào hai đứa từng hát cùng nhau mà bạn nhớ không?',
+    'en': 'Is there a song you two once sang together that you remember?',
+  },
+  {
+    'vi': 'Thể loại phim nào hai đứa luôn hợp gu khi xem chung?',
+    'en': 'Which movie genre do you two always agree on?',
+  },
+  {
+    'vi': 'Nếu cuộc đời hai đứa có nhạc nền, bạn muốn chọn giai điệu nào?',
+    'en': 'If your life together had a soundtrack, what melody would you pick?',
+  },
+
+  // ── Hài hước nhẹ (light humor) ───────────────────────────────────────────
+  {
+    'vi': 'Trò đùa nào của người ấy luôn khiến bạn dở khóc dở cười?',
+    'en': 'Which of your partner\'s jokes always leaves you half laughing, half groaning?',
+  },
+  {
+    'vi': 'Lần nào hai đứa cãi nhau vì chuyện nhỏ xíu rồi tự thấy buồn cười?',
+    'en': 'When did you two argue over something tiny and later find it hilarious?',
+  },
+  {
+    'vi': 'Nếu hai đứa thi một môn kỳ quặc, ai sẽ thắng và môn gì?',
+    'en': 'If you two competed in a quirky contest, who would win and at what?',
+  },
+  {
+    'vi': 'Biệt danh nào hai đứa gọi nhau mà người ngoài nghe sẽ thấy lạ?',
+    'en': 'What nickname do you two use that outsiders would find odd?',
+  },
+  {
+    'vi': 'Thói quen nào của bạn khiến người ấy hay trêu, mà bạn cũng chịu thua?',
+    'en': 'Which habit of yours does your partner tease you about, and you admit it?',
+  },
+  {
+    'vi': 'Nếu hai đứa lập một đội, tên đội bá đạo nhất sẽ là gì?',
+    'en': 'If you two formed a team, what is the most epic team name you would pick?',
+  },
+  {
+    'vi': 'Khoảnh khắc vụng về nào của hai đứa giờ nghĩ lại vẫn thấy đáng yêu?',
+    'en': 'What clumsy moment of yours still feels adorable when you look back?',
+  },
+
+  // ── "Anh/em nghĩ gì về..." (what do you think about) ─────────────────────
+  {
+    'vi': 'Bạn nghĩ điều gì làm nên một mối quan hệ bền lâu?',
+    'en': 'What do you think makes a relationship last?',
+  },
+  {
+    'vi': 'Theo bạn, "ở bên nhau" có nghĩa là gì trong những ngày bình thường?',
+    'en': 'What does "being together" mean to you on ordinary days?',
+  },
+  {
+    'vi': 'Bạn nghĩ hai đứa làm gì tốt nhất khi giận nhau rồi làm hòa?',
+    'en': 'What do you think you two do best when you make up after a quarrel?',
+  },
+  {
+    'vi': 'Bạn nghĩ điều gì giúp hai đứa hiểu nhau hơn theo thời gian?',
+    'en': 'What do you think helps the two of you understand each other better over time?',
+  },
+  {
+    'vi': 'Theo bạn, khoảng cách giữa hai người nên được lấp đầy bằng điều gì?',
+    'en': 'In your view, what should the space between two people be filled with?',
+  },
+  {
+    'vi': 'Bạn nghĩ tình yêu của hai đứa đã trưởng thành ra sao?',
+    'en': 'How do you think your love has grown up over time?',
+  },
+  {
+    'vi': 'Bạn nghĩ một lời xin lỗi chân thành nên bắt đầu thế nào?',
+    'en': 'How do you think a sincere apology should begin?',
+  },
+
+  // ── Cảm xúc & gần gũi (feelings / closeness) ─────────────────────────────
+  {
+    'vi': 'Hôm nay tâm trạng bạn thế nào, và bạn muốn người ấy biết điều gì?',
+    'en': 'How is your mood today, and what would you like your partner to know?',
+  },
+  {
+    'vi': 'Khi nào bạn cảm thấy gần gũi với người ấy nhất?',
+    'en': 'When do you feel closest to your partner?',
+  },
+  {
+    'vi': 'Điều gì khiến bạn cảm thấy được người ấy ưu tiên?',
+    'en': 'What makes you feel like a priority to your partner?',
+  },
+  {
+    'vi': 'Cách nào người ấy an ủi bạn mà bạn thấy hiệu quả nhất?',
+    'en': 'How does your partner comfort you in a way that works best?',
+  },
+  {
+    'vi': 'Có điều gì bạn muốn hai đứa nói với nhau nhiều hơn không?',
+    'en': 'Is there something you wish the two of you said to each other more?',
+  },
+  {
+    'vi': 'Khi xa nhau, điều gì giúp bạn thấy vẫn được kết nối với người ấy?',
+    'en': 'When apart, what helps you still feel connected to your partner?',
+  },
+  {
+    'vi': 'Bạn muốn được người ấy hỏi thăm về điều gì nhiều hơn?',
+    'en': 'What would you like your partner to ask you about more often?',
+  },
+  {
+    'vi': 'Điều gì khiến bạn cảm thấy được là chính mình khi ở bên người ấy?',
+    'en': 'What makes you feel free to be yourself around your partner?',
+  },
+
+  // ── Cùng nhau phát triển (growing together) ──────────────────────────────
+  {
+    'vi': 'Hai đứa đã cùng vượt qua thử thách nào và học được gì?',
+    'en': 'What challenge have you two overcome together, and what did you learn?',
+  },
+  {
+    'vi': 'Bạn thấy mình tốt lên ở điểm nào nhờ ở bên người ấy?',
+    'en': 'In what way have you become better because of your partner?',
+  },
+  {
+    'vi': 'Có thói quen tốt nào bạn học được từ người ấy không?',
+    'en': 'Is there a good habit you picked up from your partner?',
+  },
+  {
+    'vi': 'Hai đứa cân bằng giữa thời gian riêng và thời gian chung thế nào?',
+    'en': 'How do you two balance time alone and time together?',
+  },
+  {
+    'vi': 'Bạn muốn hai đứa cùng cố gắng hơn ở điều gì trong tháng này?',
+    'en': 'What would you like the two of you to work on together this month?',
+  },
+  {
+    'vi': 'Mục tiêu nào của người ấy mà bạn muốn ủng hộ hết mình?',
+    'en': 'Which goal of your partner do you want to support wholeheartedly?',
+  },
+
+  // ── Lãng mạn nhẹ nhàng (gentle romance) ──────────────────────────────────
+  {
+    'vi': 'Bạn muốn được người ấy ôm vào lúc nào trong ngày nhất?',
+    'en': 'At what point in the day do you most want a hug from your partner?',
+  },
+  {
+    'vi': 'Lời khen nào của người ấy khiến bạn nhớ mãi không quên?',
+    'en': 'Which compliment from your partner do you never forget?',
+  },
+  {
+    'vi': 'Nếu viết một lá thư tay cho người ấy, câu mở đầu sẽ là gì?',
+    'en': 'If you wrote a handwritten letter to your partner, how would it begin?',
+  },
+  {
+    'vi': 'Khoảnh khắc nào bạn thấy người ấy đẹp nhất, dù rất đời thường?',
+    'en': 'In what plain everyday moment does your partner look most beautiful to you?',
+  },
+  {
+    'vi': 'Bạn muốn cùng người ấy ngắm điều gì trong im lặng?',
+    'en': 'What would you love to watch in silence beside your partner?',
+  },
+  {
+    'vi': 'Câu nói nào của người ấy khiến tim bạn lỡ một nhịp?',
+    'en': 'What did your partner say that made your heart skip a beat?',
+  },
+  {
+    'vi': 'Bạn muốn lưu giữ cảm giác nào của hôm nay để nhớ về sau?',
+    'en': 'Which feeling from today would you like to keep for the future?',
+  },
+
+  // ── Khám phá lẫn nhau (getting to know each other) ───────────────────────
+  {
+    'vi': 'Có điều gì về tuổi thơ của người ấy bạn vẫn muốn biết thêm?',
+    'en': 'Is there something about your partner childhood you still want to know?',
+  },
+  {
+    'vi': 'Điều gì khiến người ấy cảm thấy được nạp lại năng lượng?',
+    'en': 'What makes your partner feel recharged?',
+  },
+  {
+    'vi': 'Bạn nghĩ người ấy sợ điều gì nhất, và muốn ở bên ra sao?',
+    'en': 'What do you think your partner fears most, and how do you want to be there?',
+  },
+  {
+    'vi': 'Có một câu hỏi nào bạn luôn muốn hỏi người ấy nhưng chưa hỏi?',
+    'en': 'Is there a question you have always wanted to ask your partner but never did?',
+  },
+  {
+    'vi': 'Điều gì khiến người ấy tự hào về bản thân mà bạn cũng tự hào lây?',
+    'en': 'What makes your partner proud of themselves that you feel proud of too?',
+  },
+  {
+    'vi': 'Bạn nghĩ điều gì là giá trị quan trọng nhất với người ấy?',
+    'en': 'What do you think is the value that matters most to your partner?',
+  },
+  {
+    'vi': 'Người ấy thư giãn kiểu gì sau một ngày dài?',
+    'en': 'How does your partner unwind after a long day?',
+  },
+
+  // ── Chăm sóc & hành động nhỏ (caring / small acts) ───────────────────────
+  {
+    'vi': 'Cách chăm sóc nhỏ nào của người ấy khiến bạn thấy được nâng niu?',
+    'en': 'What small act of care from your partner makes you feel cherished?',
+  },
+  {
+    'vi': 'Bạn có thể làm gì hôm nay để giảm bớt một nỗi lo của người ấy?',
+    'en': 'What could you do today to ease one of your partner worries?',
+  },
+  {
+    'vi': 'Khi ốm, bạn muốn được người ấy chăm theo cách nào?',
+    'en': 'When you are sick, how would you like your partner to take care of you?',
+  },
+  {
+    'vi': 'Có việc nhà nào hai đứa làm cùng nhau mà bạn thấy vui không?',
+    'en': 'Is there a chore you two do together that you actually enjoy?',
+  },
+  {
+    'vi': 'Lần nào người ấy bất ngờ giúp bạn một việc khiến bạn nhẹ cả người?',
+    'en': 'When did your partner surprise you with help that took a load off you?',
+  },
+  {
+    'vi': 'Bạn muốn dành một buổi chiều chăm sóc bản thân cùng người ấy thế nào?',
+    'en': 'How would you like to spend a self-care afternoon together?',
+  },
+
+  // ── Dịp đặc biệt & truyền thống (occasions / traditions) ─────────────────
+  {
+    'vi': 'Bạn muốn hai đứa có một nghi thức nhỏ nào mỗi dịp kỷ niệm?',
+    'en': 'What little ritual would you like the two of you to keep on each anniversary?',
+  },
+  {
+    'vi': 'Sinh nhật người ấy, bạn muốn làm một điều bất ngờ nào?',
+    'en': 'For your partner birthday, what surprise would you love to plan?',
+  },
+  {
+    'vi': 'Có ngày nào trong năm trở thành "ngày của riêng hai đứa" không?',
+    'en': 'Is there a day each year that became "your day" as a couple?',
+  },
+  {
+    'vi': 'Bạn muốn cùng người ấy đón mùa nào trong năm nhất, vì sao?',
+    'en': 'Which season would you most love to welcome with your partner, and why?',
+  },
+  {
+    'vi': 'Nếu lập một truyền thống ăn uống hằng tháng, đó sẽ là gì?',
+    'en': 'If you started a monthly food tradition, what would it be?',
+  },
+  {
+    'vi': 'Dịp lễ nào bạn thấy hai đứa hợp nhau khi cùng đón nhất?',
+    'en': 'Which holiday do you two enjoy celebrating together the most?',
+  },
+
+  // ── Lời nhắn nhủ & lời hứa nhẹ (gentle messages / soft promises) ─────────
+  {
+    'vi': 'Nếu được nhắn người ấy một câu trước khi ngủ, bạn muốn nói gì?',
+    'en': 'If you could send your partner one message before bed, what would it be?',
+  },
+  {
+    'vi': 'Có lời hứa nhỏ nào bạn muốn giữ với người ấy từ hôm nay?',
+    'en': 'Is there a small promise you would like to keep to your partner from today?',
+  },
+  {
+    'vi': 'Bạn muốn người ấy luôn nhớ điều gì trong những ngày khó khăn?',
+    'en': 'What would you like your partner to always remember on hard days?',
+  },
+  {
+    'vi': 'Một lời động viên nào bạn muốn dành cho người ấy lúc này?',
+    'en': 'What words of encouragement would you give your partner right now?',
+  },
+  {
+    'vi': 'Nếu hôm nay là dịp đặc biệt, bạn muốn cảm ơn người ấy vì điều gì?',
+    'en': 'If today were a special occasion, what would you thank your partner for?',
+  },
+  {
+    'vi': 'Bạn muốn nhắc người ấy nhớ về kỷ niệm nào để mỉm cười hôm nay?',
+    'en': 'Which memory would you remind your partner of to make them smile today?',
+  },
+
+  // ── Sự nghiệp & cuộc sống thường ngày (work / daily life, light) ─────────
+  {
+    'vi': 'Hôm nay điều gì khiến bạn thấy vui, và muốn kể người ấy nghe?',
+    'en': 'What made you happy today that you would like to tell your partner?',
+  },
+  {
+    'vi': 'Có chuyện nhỏ nào trong ngày bạn muốn người ấy cùng ăn mừng không?',
+    'en': 'Is there a little win today you would like your partner to celebrate with you?',
+  },
+  {
+    'vi': 'Khi bận rộn, hai đứa làm gì để vẫn dành chút thời gian cho nhau?',
+    'en': 'When busy, what do you two do to still make time for each other?',
+  },
+  {
+    'vi': 'Bạn muốn người ấy giúp nhắc bạn nhớ điều gì trong tuần này?',
+    'en': 'What would you like your partner to gently remind you about this week?',
+  },
+  {
+    'vi': 'Điều gì trong ngày khiến bạn nghĩ "ước gì có người ấy ở đây"?',
+    'en': 'What in your day made you think "I wish my partner were here"?',
+  },
+  {
+    'vi': 'Hai đứa có thói quen chia sẻ chuyện trong ngày vào lúc nào?',
+    'en': 'When do you two share how your days went?',
+  },
+
+  // ── Mơ mộng & tưởng tượng vui (playful daydreams) ────────────────────────
+  {
+    'vi': 'Nếu hai đứa có một ngôi nhà trên cây, bạn muốn trang trí thế nào?',
+    'en': 'If you two had a treehouse, how would you decorate it?',
+  },
+  {
+    'vi': 'Nếu hai đứa cùng nuôi một khu vườn, bạn muốn trồng gì đầu tiên?',
+    'en': 'If you two grew a garden together, what would you plant first?',
+  },
+  {
+    'vi': 'Nếu hai đứa có một chiếc thuyền nhỏ, bạn muốn chèo đi đâu?',
+    'en': 'If you two had a little boat, where would you row to?',
+  },
+  {
+    'vi': 'Nếu được vẽ một bức tranh về tương lai hai đứa, trong tranh có gì?',
+    'en': 'If you painted a picture of your future together, what would be in it?',
+  },
+  {
+    'vi': 'Nếu hai đứa có một cây cầu vồng, bạn muốn nó dẫn tới đâu?',
+    'en': 'If the two of you had a rainbow, where would you want it to lead?',
+  },
+  {
+    'vi': 'Nếu đặt một viên thời gian cho con cháu mở ra, hai đứa bỏ gì vào?',
+    'en': 'If you sealed a time capsule for the future, what would you two put inside?',
+  },
+
+  // ── Trân trọng khác biệt (appreciating differences) ──────────────────────
+  {
+    'vi': 'Điểm nào hai đứa khác nhau nhưng lại bổ sung cho nhau rất hay?',
+    'en': 'Where are you two different in a way that complements each other beautifully?',
+  },
+  {
+    'vi': 'Bạn học được điều gì từ cách nghĩ khác biệt của người ấy?',
+    'en': 'What have you learned from your partner different way of thinking?',
+  },
+  {
+    'vi': 'Có sở thích nào của người ấy mà bạn dần thấy hay theo không?',
+    'en': 'Is there a hobby of your partner you have slowly grown to enjoy too?',
+  },
+  {
+    'vi': 'Khi bất đồng, điều gì giúp hai đứa vẫn tôn trọng nhau?',
+    'en': 'When you disagree, what helps the two of you still respect each other?',
+  },
+  {
+    'vi': 'Bạn ngưỡng mộ điều gì ở cách người ấy đối xử với người khác?',
+    'en': 'What do you admire in how your partner treats other people?',
+  },
+  {
+    'vi': 'Có thế mạnh nào của người ấy mà bạn ước mình cũng có?',
+    'en': 'Is there a strength of your partner you wish you had too?',
+  },
+
+  // ── Niềm vui đời thường cùng nhau (everyday joys together) ────────────────
+  {
+    'vi': 'Hoạt động đơn giản nào bên nhau khiến bạn thấy hạnh phúc nhất?',
+    'en': 'What simple activity together makes you happiest?',
+  },
+  {
+    'vi': 'Bạn thích nhất khoảnh khắc nào trong một buổi đi chơi của hai đứa?',
+    'en': 'What is your favorite moment in one of your outings together?',
+  },
+  {
+    'vi': 'Trò chơi nào hai đứa có thể chơi cùng nhau hàng giờ không chán?',
+    'en': 'What game could the two of you play for hours without getting bored?',
+  },
+  {
+    'vi': 'Có bài tập thể dục hay đi dạo nào hai đứa thích làm cùng nhau không?',
+    'en': 'Is there a workout or a walk the two of you love doing together?',
+  },
+  {
+    'vi': 'Một buổi tối cuối tuần "không làm gì cả" của hai đứa trông ra sao?',
+    'en': 'What does a weekend evening of "doing nothing" look like for you two?',
+  },
+  {
+    'vi': 'Điều nhỏ nào trong ngày khiến cả hai đứa cùng bật cười?',
+    'en': 'What small thing in a day makes both of you laugh?',
+  },
+
+  // ── Hồi tưởng & nhìn lại (reflection / looking back) ─────────────────────
+  {
+    'vi': 'So với ngày đầu, bạn thấy hai đứa đã thay đổi điều gì đáng quý?',
+    'en': 'Compared to day one, what precious thing has changed between you two?',
+  },
+  {
+    'vi': 'Bài học lớn nhất tình yêu này dạy cho bạn là gì?',
+    'en': 'What is the biggest lesson this love has taught you?',
+  },
+  {
+    'vi': 'Có điều gì bạn từng lo lắng nhưng giờ thấy không còn đáng ngại?',
+    'en': 'Is there something you once worried about that no longer feels like a worry?',
+  },
+  {
+    'vi': 'Nếu kể cho người ấy của một năm trước, bạn muốn nói điều gì?',
+    'en': 'If you could tell your partner from a year ago one thing, what would it be?',
+  },
+  {
+    'vi': 'Khoảnh khắc nào năm nay khiến bạn thấy biết ơn vì có người ấy?',
+    'en': 'Which moment this year made you grateful to have your partner?',
+  },
+  {
+    'vi': 'Bạn muốn cảm ơn quá khứ của mình vì điều gì đã dẫn bạn tới người ấy?',
+    'en': 'What in your past would you thank for leading you to your partner?',
+  },
 ];
 
-/// Returns the shared question for [local] (the device-local date) in the given
-/// [langCode] ('vi'/'en', anything else falls back to English).
+// ── Selection ──────────────────────────────────────────────────────────────
+
+/// 32-bit FNV-1a hash of [input] as an unsigned int — a small, deterministic
+/// string hash that (unlike `String.hashCode`) is stable across runs, isolates
+/// and platforms. Used to seed a per-couple question order.
+int _fnv1a(String input) {
+  const int fnvPrime = 0x01000193;
+  const int mask = 0xFFFFFFFF;
+  int hash = 0x811C9DC5;
+  for (final unit in input.codeUnits) {
+    hash = (hash ^ unit) & mask;
+    hash = (hash * fnvPrime) & mask;
+  }
+  return hash & mask;
+}
+
+/// Whole-day index for [local]: number of calendar days since a fixed epoch
+/// (2020-01-01). Only the date part is used (time of day is ignored), so the
+/// value never jumps across new-year boundaries or leap years the way a
+/// day-of-year would. Both partners resolving the same local calendar day land
+/// on the same value.
+int _daysSinceEpoch(DateTime local) {
+  // Normalize to a date-only UTC instant to avoid DST/offset wobble.
+  final dateOnly = DateTime.utc(local.year, local.month, local.day);
+  final epoch = DateTime.utc(2020, 1, 1);
+  return dateOnly.difference(epoch).inDays;
+}
+
+/// Builds a deterministic permutation of `[0..n-1]` seeded by [seed].
 ///
-/// Selection is `dayOfYear % length`, so both partners resolving the same local
-/// day land on the same prompt. Robust against an empty bank.
+/// Uses a Fisher–Yates shuffle driven by a tiny LCG so the result is identical
+/// for the same (n, seed) on any device — giving each couple its own stable
+/// question order with no repeats within one cycle of length n.
+List<int> _permutation(int n, int seed) {
+  final order = List<int>.generate(n, (i) => i);
+  // LCG constants (Numerical Recipes); keep state in 32-bit space.
+  const int mask = 0xFFFFFFFF;
+  int state = (seed ^ 0x9E3779B9) & mask;
+  if (state == 0) {
+    state = 0x1; // avoid a stuck-at-zero LCG
+  }
+  for (int i = n - 1; i > 0; i--) {
+    state = (state * 1664525 + 1013904223) & mask;
+    final j = state % (i + 1);
+    final tmp = order[i];
+    order[i] = order[j];
+    order[j] = tmp;
+  }
+  return order;
+}
+
+/// Returns the shared question entry for [local] (device-local date) and
+/// [coupleId].
+///
+/// Algorithm: each couple gets a deterministic permutation of all question
+/// indices (seeded by a stable hash of [coupleId]); the day picks a slot in
+/// that permutation via `daysSinceEpoch % bankLength`. Properties:
+///   • Same couple + same local day ⇒ same question (both partners agree).
+///   • No question repeats within one full cycle (== bank length) of days.
+///   • Different couples get different orderings.
+///   • Stable mapping: appending questions does not reshuffle the bank (it only
+///     lengthens each couple's cycle — see [questionForCouple] notes below).
+///
+/// An empty or null [coupleId] falls back to seed 0 (still valid, never throws).
+/// Robust against an empty bank.
+Map<String, String> questionForCouple(
+  DateTime local,
+  String coupleId,
+  String langCode,
+) {
+  final n = dailyQuestions.length;
+  if (n == 0) {
+    return const {'vi': '', 'en': ''};
+  }
+  final id = coupleId.trim();
+  final seed = id.isEmpty ? 0 : _fnv1a(id);
+  final perm = _permutation(n, seed);
+  final day = _daysSinceEpoch(local);
+  // Positive modulo (daysSinceEpoch can be negative for pre-2020 dates).
+  final slot = ((day % n) + n) % n;
+  final index = perm[slot];
+  return dailyQuestions[index];
+}
+
+/// Convenience: the localized question text for [local] and [coupleId] in
+/// [langCode] ('vi'/'en'; anything else falls back to English).
+String questionTextForCouple(
+  DateTime local,
+  String coupleId,
+  String langCode,
+) {
+  final entry = questionForCouple(local, coupleId, langCode);
+  final code = langCode.trim().toLowerCase();
+  if (code.startsWith('vi')) {
+    return entry['vi'] ?? entry['en'] ?? '';
+  }
+  return entry['en'] ?? entry['vi'] ?? '';
+}
+
+/// Legacy global (couple-agnostic) selection, kept for compatibility.
+///
+/// Returns the shared question for [local] (the device-local date). Selection is
+/// `dayOfYear % length`. Prefer [questionForCouple] for per-couple variety.
+@Deprecated('Use questionForCouple for per-couple, no-repeat selection')
 Map<String, String> questionForDate(DateTime local, String langCode) {
   if (dailyQuestions.isEmpty) {
     return const {'vi': '', 'en': ''};
@@ -259,8 +1093,10 @@ Map<String, String> questionForDate(DateTime local, String langCode) {
   return dailyQuestions[index];
 }
 
-/// Convenience: the localized question text for [local] in [langCode].
+/// Legacy convenience text accessor. Prefer [questionTextForCouple].
+@Deprecated('Use questionTextForCouple for per-couple, no-repeat selection')
 String questionTextForDate(DateTime local, String langCode) {
+  // ignore: deprecated_member_use_from_same_package
   final entry = questionForDate(local, langCode);
   final code = langCode.trim().toLowerCase();
   if (code.startsWith('vi')) {

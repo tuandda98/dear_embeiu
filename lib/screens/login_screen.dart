@@ -315,7 +315,34 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed(
+                    AppRoutes.forgotPassword,
+                    arguments: _emailController.text.trim(),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                  foregroundColor: AppColors.accentRose,
+                ),
+                child: Text(
+                  l10n.forgotPasswordLink,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.accentRose,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
@@ -358,7 +385,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pushNamed(AppRoutes.register);
+                      // Swap login↔register in place (both sit directly on top
+                      // of /guest): keeps the stack at guest→[login|register],
+                      // so "back" always returns to guest and tapping the
+                      // cross-links repeatedly never piles up screens.
+                      Navigator.of(context)
+                          .pushReplacementNamed(AppRoutes.register);
                     },
                     child: Text(l10n.createAccountLink),
                   ),

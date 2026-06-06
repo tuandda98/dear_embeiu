@@ -22,6 +22,7 @@ class AppColors {
   static const Color accentLove = Color(0xFFFF4D6D);     // primary heart accent
   static const Color accentLoveDeep = Color(0xFFE63956); // active state
   static const Color accentLavender = Color(0xFFA78BFA); // secondary accent
+  static const Color accentLavenderDeep = Color(0xFF7C5CD6); // partner label on lavender tint
 
   // Backwards-compat aliases (so existing screens keep compiling).
   static const Color accentRose = accentLove;

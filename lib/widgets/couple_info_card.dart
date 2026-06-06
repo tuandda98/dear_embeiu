@@ -63,6 +63,9 @@ class CoupleInfoCard extends StatelessWidget {
                     localPath: couplePhotoPath,
                     remoteUrl: couplePhotoUrl,
                     fit: BoxFit.cover,
+                    // 64px avatar → decode ≈ 64 * DPR.
+                    decodeWidth:
+                        (64 * MediaQuery.of(context).devicePixelRatio).round(),
                     placeholder: Container(
                       color: AppColors.surfaceLight,
                       child: const Icon(

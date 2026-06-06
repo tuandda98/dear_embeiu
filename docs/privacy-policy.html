@@ -19,7 +19,7 @@
 </head>
 <body>
   <h1>Privacy Policy — dear embeiu</h1>
-  <p class="meta">Effective date: 28 May 2026 &nbsp;·&nbsp; Last updated: 28 May 2026</p>
+  <p class="meta">Effective date: 28 May 2026 &nbsp;·&nbsp; Last updated: 3 June 2026</p>
 
   <p>This Privacy Policy describes how the mobile application <strong>dear embeiu</strong> ("the App", "we", "us") collects, uses, and shares information when you use the App.</p>
 
@@ -30,6 +30,7 @@
     <li><strong>Photos and captions:</strong> images you upload to the in-app gallery and any captions you add. These are stored in Firebase Cloud Storage and visible only to you and your paired partner.</li>
     <li><strong>Device identifiers:</strong> Firebase Cloud Messaging (FCM) registration token used solely to deliver push notifications to your partner's device. We do not use this token for advertising.</li>
     <li><strong>Diagnostic data:</strong> crash logs and basic app-stability metrics collected automatically by Firebase Crashlytics.</li>
+    <li><strong>Usage / analytics data:</strong> anonymous, aggregated app-usage events (for example, that a photo was posted, a reminder was created, or the language was changed) collected by <strong>Firebase Analytics (Google)</strong> to help us understand how the App is used and improve it. These events <strong>never include the content of your private data</strong> — no email, name, note text, daily-question answers, photo captions, invite codes, photo URLs, or location are ever sent. You can turn this off at any time (see section&nbsp;10).</li>
     <li><strong>Local storage:</strong> the App uses an on-device database (Hive) to cache couple and photo data for offline access. This cache stays on your device and is cleared when you delete the App or clear its data.</li>
   </ul>
 
@@ -73,6 +74,12 @@
       <td>App stability</td>
     </tr>
     <tr>
+      <td>App usage / analytics (anonymous)</td>
+      <td><span class="badge">Yes</span></td>
+      <td>Google (Firebase Analytics)</td>
+      <td>Analytics — not used for advertising or tracking; opt-out available</td>
+    </tr>
+    <tr>
       <td>Precise location</td>
       <td>No</td>
       <td>—</td>
@@ -102,7 +109,7 @@
     <li>With your paired partner inside the App (couple profile, gallery, captions).</li>
     <li>With <strong>Google Firebase</strong> infrastructure services that process data on our behalf. Each service is governed by Google's privacy commitments:
       <ul>
-        <li>Firebase Authentication, Cloud Firestore, Cloud Storage, Cloud Messaging, Crashlytics — <a href="https://firebase.google.com/support/privacy" target="_blank">firebase.google.com/support/privacy</a></li>
+        <li>Firebase Authentication, Cloud Firestore, Cloud Storage, Cloud Messaging, Crashlytics, <strong>Analytics</strong> — <a href="https://firebase.google.com/support/privacy" target="_blank">firebase.google.com/support/privacy</a></li>
         <li>Google Play Services — <a href="https://policies.google.com/privacy" target="_blank">policies.google.com/privacy</a></li>
       </ul>
     </li>
@@ -135,10 +142,20 @@
   <h2>9. Security</h2>
   <p>We apply Firebase security rules to restrict data access to authenticated users only, and use TLS encryption for all data in transit. While no system is 100% secure, we follow industry-standard practices to protect your information.</p>
 
-  <h2>10. Changes to this policy</h2>
+  <h2>10. Analytics and international data transfer</h2>
+  <p>The App uses <strong>Firebase Analytics</strong>, a Google service, to collect anonymous usage statistics that help us understand which features are used and where the experience can be improved. We have configured Analytics so that it:</p>
+  <ul>
+    <li><strong>Never collects your private content</strong> — events carry only fixed, non-identifying values (for example "a photo was posted", "is this the first photo: yes/no", "language changed to Vietnamese"). No email, name, note text, daily-question answers, captions, invite codes, photo URLs or location are ever included.</li>
+    <li><strong>Is not used for advertising or cross-app tracking.</strong> Ad personalization and Google advertising identifiers (IDFA / Google signals) are disabled. We do not track you across other companies' apps or websites.</li>
+    <li>May associate events with your account using a non-public account identifier while you are signed in, solely to measure retention. This identifier is removed from Analytics when you sign out or delete your account.</li>
+  </ul>
+  <p>Analytics data is processed and stored on <strong>Google's servers, which may be located outside Vietnam</strong> (including in the United States and other countries). Google processes this data on our behalf under its privacy commitments — see <a href="https://firebase.google.com/support/privacy" target="_blank">firebase.google.com/support/privacy</a>.</p>
+  <p><strong>You can turn analytics off at any time</strong> in the App under <strong>Settings → "Share usage data"</strong>. When turned off, the App stops collecting and sending analytics events immediately. This setting is on by default and does not affect any other functionality.</p>
+
+  <h2>11. Changes to this policy</h2>
   <p>We may update this Privacy Policy from time to time. The "Last updated" date at the top will reflect the latest revision. For material changes, we will notify users via an in-app message. Continued use of the App after changes constitutes acceptance of the updated policy.</p>
 
-  <h2>11. Contact</h2>
+  <h2>12. Contact</h2>
   <p>If you have questions about this Privacy Policy or how we handle your data, contact us at:<br>
   <a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a></p>
 

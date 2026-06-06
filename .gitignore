@@ -27,12 +27,22 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
 /coverage/
 /functions/node_modules/
+
+# Firebase rules unit tests (Node project) + emulator artifacts
+/firebase_rules_test/node_modules/
+firebase-debug.log
+firestore-debug.log
+storage-debug.log
+ui-debug.log
+firebase-export-*/
+.firebase_rules_test.cache
 
 # Symbolication related
 app.*.symbols
@@ -52,3 +62,12 @@ app.*.map.json
 *.jks
 *.keystore
 android/key.properties
+
+# Apple keys / secrets — never commit these
+AuthKey_*.p8
+*.p8
+
+# Active iOS Firebase config is build-managed: the "Select GoogleService-Info (env)"
+# build phase overwrites it each build from ios/config/{dev,prod}/ by $CONFIGURATION.
+# Source of truth = ios/config/ (committed). Don't track the flip-flopping working copy.
+ios/Runner/GoogleService-Info.plist

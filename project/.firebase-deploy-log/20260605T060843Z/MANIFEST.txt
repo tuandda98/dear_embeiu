@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --only firestore:rules,firestore:indexes,storage --project dev 2>&1 | grep -v "DeprecationWarning\|trace-deprecation\|punycode" | tail -40
+time_utc: 20260605T060843Z
+git_head: cd32f4d (phase2)
+dirty   : 15 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout cd32f4d)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout cd32f4d -- functions` rồi redeploy

@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../l10n/l10n.dart';
+import '../services/analytics_service.dart';
 import '../theme/app_colors.dart';
 
 /// Reusable "Copy | Share" action cluster shown next to the invite code in all
@@ -42,6 +43,8 @@ class InviteActionButtons extends StatelessWidget {
 
   void _handleCopy(BuildContext context) {
     Clipboard.setData(ClipboardData(text: code));
+    // Analytics — `invite_shared` (the code value itself is NEVER logged).
+    AnalyticsService.instance.logInviteShared('copy');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.inviteCodeCopiedMsg),
@@ -57,6 +60,8 @@ class InviteActionButtons extends StatelessWidget {
     final origin = (box != null && box.hasSize)
         ? (box.localToGlobal(Offset.zero) & box.size)
         : null;
+    // Analytics — `invite_shared` via the OS share sheet (no code logged).
+    AnalyticsService.instance.logInviteShared('share_sheet');
     try {
       await SharePlus.instance.share(
         ShareParams(text: message, sharePositionOrigin: origin),

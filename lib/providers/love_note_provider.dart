@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/love_note.dart';
+import '../services/analytics_service.dart';
 import '../services/love_note_service.dart';
 
 /// State for the "Love note" Home card: streams both members' notes for the
@@ -92,8 +93,40 @@ class LoveNoteProvider extends ChangeNotifier {
       return false;
     }
 
+    // Decide create vs update BEFORE saving — based only on whether a note
+    // already existed, never on its text (🔒 no content is logged).
+    final action = myNote == null ? 'create' : 'update';
+    final previousText = myNote?.text.trim() ?? '';
+
     await _service.setMyNote(coupleId: coupleId, uid: uid, text: text);
+
+    // Append to the immutable history timeline — but only when the text is
+    // non-empty AND actually changed, so re-saving an unchanged note (or
+    // clearing it) doesn't spam duplicate archive entries. BEST-EFFORT: a
+    // history failure (e.g. offline, or rules not yet deployed) must never
+    // break the core note save above.
+    final trimmed = text.trim();
+    if (trimmed.isNotEmpty && trimmed != previousText) {
+      try {
+        await _service.appendHistory(coupleId: coupleId, uid: uid, text: text);
+      } catch (_) {
+        // Swallow — the note itself is already saved; the archive is additive.
+      }
+    }
+
+    // Analytics — success path only.
+    AnalyticsService.instance.logLoveNoteSet(action);
     return true;
+  }
+
+  /// Streams the couple's note history (newest-first) for the archive screen.
+  /// Returns an empty stream when there is no active couple.
+  Stream<List<LoveNote>> watchHistory() {
+    final coupleId = _coupleId;
+    if (coupleId == null || coupleId.trim().isEmpty) {
+      return Stream<List<LoveNote>>.value(const <LoveNote>[]);
+    }
+    return _service.watchHistory(coupleId);
   }
 
   /// Stops watching and resets state (e.g. on sign-out or leaving a couple).

@@ -1,0 +1,9 @@
+command : cd /Users/tony.tuando/StudioProjects/dear_embeiu
+npx firebase-tools deploy --only functions:sendCustomVerificationEmail --project dev 2>&1 | grep -v "punycode\|DeprecationWarning\|trace-deprecation" | tail -40
+echo "DEPLOY_EXIT=${PIPESTATUS[0]}"
+time_utc: 20260605T105348Z
+git_head: cd32f4d (phase2)
+dirty   : 41 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout cd32f4d)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout cd32f4d -- functions` rồi redeploy

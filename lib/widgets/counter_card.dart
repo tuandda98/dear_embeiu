@@ -15,6 +15,11 @@ class CounterCard extends StatelessWidget {
   final String? subtitle;
   final String? footer;
 
+  /// Optional widget rendered (centered) below the footer pill — the streak
+  /// chip integration point (feature streak). Null by default so every other
+  /// call-site is unaffected.
+  final Widget? footerExtra;
+
   /// When provided, the card displays a single hero number (total days)
   /// instead of the years/months/days breakdown.
   final int? totalDays;
@@ -29,6 +34,7 @@ class CounterCard extends StatelessWidget {
     this.title,
     this.subtitle,
     this.footer,
+    this.footerExtra,
   });
 
   @override
@@ -93,6 +99,10 @@ class CounterCard extends StatelessWidget {
                     if (footer != null) ...[
                       const SizedBox(height: 18),
                       _buildFooterPill(footer!),
+                    ],
+                    if (footerExtra != null) ...[
+                      const SizedBox(height: 14),
+                      Center(child: footerExtra!),
                     ],
                   ],
                 ),

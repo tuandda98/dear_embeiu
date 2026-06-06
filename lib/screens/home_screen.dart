@@ -17,7 +17,10 @@ import '../providers/couple_provider.dart';
 import '../providers/daily_question_provider.dart';
 import '../providers/love_note_provider.dart';
 import '../providers/photo_provider.dart';
+import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
+import '../providers/streak_provider.dart';
+import '../services/analytics_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
@@ -26,10 +29,16 @@ import '../widgets/animated_couple_name.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/invite_action_buttons.dart';
+import '../widgets/love_lottie.dart';
+import '../widgets/reaction_bar.dart';
 import '../widgets/shared_photo_view.dart';
 import '../widgets/shimmer_skeleton.dart';
+import '../widgets/streak_chip.dart';
+import '../widgets/streak_sheet.dart';
 import 'profile_screen.dart';
 import 'gallery_screen.dart';
+import 'journal_screen.dart';
+import 'love_note_history_screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -67,18 +76,27 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   String? _lastReminderKey;
 
-  // Staggered entrance for the Home tab should play once per screen lifetime,
-  // not on every provider rebuild/scroll. We mark it played after the first
-  // build that has real couple data, then build plain (un-animated) children.
-  bool _homeEntrancePlayed = false;
+  // Streak milestone celebration (feature streak): listen for a freshly-reached
+  // milestone and auto-show the StreakSheet in celebration mode, once. The
+  // provider's per-couple Hive guard prevents re-firing across launches; this
+  // session flag avoids re-entrancy while a celebration sheet is already up.
+  StreakProvider? _streakProvider;
+  bool _celebratingMilestone = false;
 
   /// Wraps a Home-tab block with the shared fade+slide entrance, staggered by
-  /// [order]. Returns the child unchanged once the entrance has already played
-  /// so rebuilds don't re-run it.
+  /// [order].
   Widget _entrance(int order, Widget child) {
-    if (_homeEntrancePlayed) {
-      return child;
-    }
+    // ALWAYS wrap with `.animate()` using CONSTANT params — never branch on a
+    // "played" flag. flutter_animate's `_AnimateState.didUpdateWidget` only
+    // re-inits the controller / replays when controller/duration/target/value
+    // change (animate.dart:294); with constant params a plain Home rebuild
+    // (e.g. the keyboard opening for the love-note sheet shifts MediaQuery →
+    // HomeScreen.build → whole tab rebuilds) is a no-op, so the entrance does
+    // NOT replay. Two earlier variants both crashed: returning the bare child
+    // once played changed the element-tree structure (→ `_dependents.isEmpty`),
+    // and swapping the duration to zero re-inited the controller and left a
+    // transition listening to a disposed animation (→ ChangeNotifier used after
+    // dispose). Keeping the wrapper + params stable avoids both.
     return child
         .animate()
         .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
@@ -100,13 +118,45 @@ class _HomeScreenState extends State<HomeScreen> {
     _applyPendingTab(NotificationTapRouter.pendingHomeTab.value);
     NotificationTapRouter.consumeHomeTabRequest();
     NotificationTapRouter.pendingHomeTab.addListener(_onNotificationTapRequest);
+
+    // Watch for a freshly-reached streak milestone to auto-celebrate.
+    _streakProvider = context.read<StreakProvider>();
+    _streakProvider!.addListener(_onStreakChanged);
   }
 
   @override
   void dispose() {
     NotificationTapRouter.pendingHomeTab
         .removeListener(_onNotificationTapRequest);
+    _streakProvider?.removeListener(_onStreakChanged);
     super.dispose();
+  }
+
+  /// Reacts to a streak update: when a milestone was just reached for the first
+  /// time, auto-show the StreakSheet in celebration mode after a short delay so
+  /// it doesn't collide with the Daily Question card's reveal confetti (§6).
+  void _onStreakChanged() {
+    final provider = _streakProvider;
+    if (provider == null || _celebratingMilestone) {
+      return;
+    }
+    final milestone = provider.justReachedMilestone;
+    if (milestone == null) {
+      return;
+    }
+    // Consume immediately so a rebuild can't queue a second celebration.
+    provider.consumeJustReachedMilestone();
+    _celebratingMilestone = true;
+    Future<void>.delayed(const Duration(milliseconds: 400), () async {
+      if (!mounted) {
+        _celebratingMilestone = false;
+        return;
+      }
+      await StreakSheet.showMilestone(context, milestone);
+      if (mounted) {
+        _celebratingMilestone = false;
+      }
+    });
   }
 
   /// Reacts to a warm tap (app already running) requesting a tab switch.
@@ -123,6 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       if (_selectedIndex != requested) {
         setState(() => _selectedIndex = requested);
+        _logTabScreenView(requested);
       }
     });
   }
@@ -133,6 +184,21 @@ class _HomeScreenState extends State<HomeScreen> {
   void _applyPendingTab(int requested) {
     if (requested >= 0 && requested < _navigationItems.length) {
       _selectedIndex = requested;
+      // Cold-start deep-link straight to a tab: the '/home' route observer logs
+      // 'Home', so only emit the extra screen_view for Gallery/Profile.
+      if (requested > 0) {
+        _logTabScreenView(requested);
+      }
+    }
+  }
+
+  /// Logs a `screen_view` for the Home bottom-nav tabs (0=Home, 1=Gallery,
+  /// 2=Profile) — these are IndexedStack children, not routes, so the navigator
+  /// observer can't see them. (feature analytics)
+  void _logTabScreenView(int index) {
+    const names = ['Home', 'Gallery', 'Profile'];
+    if (index >= 0 && index < names.length) {
+      AnalyticsService.instance.logScreenView(names[index]);
     }
   }
 
@@ -418,6 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (_selectedIndex == index) return;
             HapticFeedback.selectionClick();
             setState(() => _selectedIndex = index);
+            _logTabScreenView(index);
           },
           child: SizedBox.expand(
             child: Center(
@@ -500,27 +567,31 @@ class _HomeScreenState extends State<HomeScreen> {
           context
               .read<DailyQuestionProvider>()
               .watchForCouple(couple.id, myUid);
+          context.read<ReactionProvider>().watchForCouple(couple.id, myUid);
+          // Re-arm the streak too — it must flip from hidden→active the moment
+          // the partner joins while Home stays open. watchForCouple no-ops when
+          // (couple, active) is unchanged.
+          context.read<StreakProvider>().watchForCouple(
+                couple.id,
+                coupleActive: !couple.isWaitingForPartner,
+              );
         }
       });
     }
 
-    // After the first frame with real data, lock the entrance so future
-    // rebuilds (provider updates, tab switches) don't replay it.
-    if (!_homeEntrancePlayed) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _homeEntrancePlayed = true;
-        }
-      });
-    }
-
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 8),
-          _entrance(
+    return RefreshIndicator(
+      onRefresh: _refreshHome,
+      color: AppColors.accentRose,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            _entrance(
             0,
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -568,7 +639,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => setState(() => _selectedIndex = 2),
+                  onTap: () {
+                    setState(() => _selectedIndex = 2);
+                    _logTabScreenView(2);
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -606,6 +680,9 @@ class _HomeScreenState extends State<HomeScreen> {
               footer: daysUntilAnniversary == 0
                   ? l10n.todayIsAnniversary
                   : l10n.daysUntilNextAnniversary(daysUntilAnniversary),
+              // Couple streak chip (feature streak) — hides itself while
+              // waiting for a partner / on error (fail-soft).
+              footerExtra: const StreakChip(),
             ),
           ),
           const SizedBox(height: 20),
@@ -666,8 +743,17 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildRecentPhotosSection(recentPhotos, isUploadingPhoto, l10n),
           ),
         ],
+        ),
       ),
     );
+  }
+
+  Future<void> _refreshHome() async {
+    // Manual recovery when the photo stream stalls: re-arm the Firestore feed.
+    // The counter/couple data is local-first and always current, so nothing
+    // else needs forcing here.
+    final currentUser = context.read<AuthProvider>().currentUser;
+    await context.read<PhotoProvider>().syncForUser(currentUser);
   }
 
   Widget _buildHeroSection({
@@ -706,6 +792,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   AnimatedCoupleName(
                     person1Name: couple.person1Name,
                     person2Name: couple.person2Name,
+                    creatorUserId: couple.createdByUserId,
                     spacing: 6,
                     runSpacing: 4,
                     heartSize: 18,
@@ -956,6 +1043,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1920,
+      maxHeight: 1920,
     );
     if (pickedFile == null || !mounted) {
       return;
@@ -1148,6 +1238,8 @@ class _HomeScreenState extends State<HomeScreen> {
         final isWaiting = couple.isWaitingForPartner;
         final hasMyNote = loveNoteProvider.myNote?.hasText == true;
 
+        final myNote = loveNoteProvider.myNote;
+
         return GlassCard(
           borderRadius: 24,
           fillAlpha: 0.16,
@@ -1157,7 +1249,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(LucideIcons.mailOpen, color: AppColors.white, size: 20),
+                  const Icon(LucideIcons.mailOpen,
+                      color: AppColors.accentRose, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1165,7 +1258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? l10n.loveNoteFromPartner(partnerName)
                           : l10n.loveNoteLabel,
                       style: const TextStyle(
-                        color: AppColors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -1174,48 +1267,94 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              if (isWaiting)
-                Text(
-                  l10n.loveNoteWaitingPartner,
-                  style: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.85),
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                )
-              else if (hasNote) ...[
-                Text(
-                  partnerNote.text,
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    height: 1.55,
-                  ),
+              // Wrap the body (partner note + the user's own note block) in an
+              // AnimatedSize so the card grows/shrinks smoothly when myNote
+              // appears/disappears (design Phần 2).
+              AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.topCenter,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (isWaiting)
+                      Text(
+                        l10n.loveNoteWaitingPartner,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      )
+                    else if (hasNote) ...[
+                      Text(
+                        partnerNote.text,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          height: 1.55,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _relativeTime(partnerNote.updatedAt, l10n),
+                        style: const TextStyle(
+                          color: AppColors.textTertiary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ] else
+                      Text(
+                        l10n.loveNoteEmptyFromPartner(partnerName),
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                    // "Lời nhắn của bạn" — shown iff the user has their own note,
+                    // independent of partner state (design Phần 2, mục 6).
+                    if (hasMyNote && myNote != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: AppColors.textPrimary.withValues(alpha: 0.10),
+                        ),
+                      ),
+                      Text(
+                        l10n.loveNoteYourNoteLabel,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${myNote.text} · ${_relativeTime(myNote.updatedAt, l10n)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  _relativeTime(partnerNote.updatedAt, l10n),
-                  style: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.72),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ] else
-                Text(
-                  l10n.loveNoteEmptyFromPartner(partnerName),
-                  style: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.78),
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                ),
+              ),
               if (!isWaiting) ...[
                 const SizedBox(height: 16),
                 _buildWriteNoteButton(
                   label: hasMyNote ? l10n.loveNoteEditCta : l10n.loveNoteWriteCta,
                 ),
+                _buildLoveNoteHistoryEntry(l10n),
               ],
             ],
           ),
@@ -1224,14 +1363,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Foot-of-card link into the love-note archive (feature love-note-history):
+  /// divider + tappable row. Home still shows only the latest note; the full
+  /// timeline lives behind this entry.
+  Widget _buildLoveNoteHistoryEntry(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: AppColors.textPrimary.withValues(alpha: 0.10),
+          ),
+        ),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  settings: const RouteSettings(name: 'LoveNoteHistory'),
+                  builder: (_) => const LoveNoteHistoryScreen(),
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.history,
+                      size: 18, color: AppColors.accentRose),
+                  const SizedBox(width: 10),
+                  Text(
+                    l10n.loveNoteHistoryCta,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  const Icon(LucideIcons.chevronRight,
+                      size: 16, color: AppColors.textTertiary),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildWriteNoteButton({required String label}) {
     return SizedBox(
       width: double.infinity,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.18),
+          color: AppColors.accentRose,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.white.withValues(alpha: 0.30)),
         ),
         child: Material(
           color: Colors.transparent,
@@ -1264,21 +1457,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openLoveNoteSheet() async {
     final l10n = context.l10n;
-    final loveNoteProvider = context.read<LoveNoteProvider>();
-    final controller =
-        TextEditingController(text: loveNoteProvider.myNote?.text ?? '');
+    final initialText = context.read<LoveNoteProvider>().myNote?.text ?? '';
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      // The sheet OWNS its TextEditingController (created in its State, disposed
+      // in its dispose). Disposing it here in the parent right after the future
+      // resolves would free it while the sheet's close transition + keyboard
+      // dismissal are still rebuilding the still-mounted sheet → "controller
+      // used after disposed".
       builder: (sheetContext) => _LoveNoteSheet(
-        controller: controller,
+        initialText: initialText,
         l10n: l10n,
       ),
     );
-
-    controller.dispose();
 
     if (saved != true || !mounted) {
       return;
@@ -1310,6 +1504,15 @@ class _HomeScreenState extends State<HomeScreen> {
           question: provider.todayQuestion(langCode),
           partnerName: partnerName,
           isWaitingPartner: couple.isWaitingForPartner,
+          onOpenJournal: () {
+            HapticFeedback.selectionClick();
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                settings: const RouteSettings(name: 'Journal'),
+                builder: (_) => const JournalScreen(),
+              ),
+            );
+          },
         );
       },
     );
@@ -1355,6 +1558,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: SharedPhotoView(
                     photo: photo,
                     fit: BoxFit.cover,
+                    // 64px-wide thumbnail → decode ≈ 64 * DPR.
+                    decodeWidth:
+                        (64 * MediaQuery.of(context).devicePixelRatio).round(),
                     placeholder: Container(color: AppColors.surfaceLight),
                   ),
                 ),
@@ -1507,6 +1713,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     SharedPhotoView(
                       photo: photo,
                       fit: BoxFit.cover,
+                      // 140px-wide recent card → decode ≈ 140 * DPR.
+                      decodeWidth:
+                          (140 * MediaQuery.of(context).devicePixelRatio)
+                              .round(),
                       placeholder: Container(color: AppColors.surfaceLight),
                     ),
                     DecoratedBox(
@@ -1519,6 +1729,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             Colors.black.withValues(alpha: 0.7),
                           ],
                         ),
+                      ),
+                    ),
+                    // Read-only reaction badge (D4) — never reacts here.
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: ReactionCountBadge(
+                        reactions: context
+                            .watch<ReactionProvider>()
+                            .reactionsFor(photo.id),
                       ),
                     ),
                     Positioned(
@@ -1651,11 +1871,11 @@ class _NavigationItem {
 /// Pops `true` after a successful save so the caller can confirm + haptic.
 class _LoveNoteSheet extends StatefulWidget {
   const _LoveNoteSheet({
-    required this.controller,
+    required this.initialText,
     required this.l10n,
   });
 
-  final TextEditingController controller;
+  final String initialText;
   final AppLocalizations l10n;
 
   @override
@@ -1664,7 +1884,15 @@ class _LoveNoteSheet extends StatefulWidget {
 
 class _LoveNoteSheetState extends State<_LoveNoteSheet> {
   static const int _maxChars = 140;
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.initialText);
   bool _saving = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   Future<void> _save() async {
     if (_saving) {
@@ -1673,7 +1901,7 @@ class _LoveNoteSheetState extends State<_LoveNoteSheet> {
     setState(() => _saving = true);
     final navigator = Navigator.of(context);
     final saved =
-        await context.read<LoveNoteProvider>().setMyNote(widget.controller.text);
+        await context.read<LoveNoteProvider>().setMyNote(_controller.text);
     if (!mounted) {
       return;
     }
@@ -1730,7 +1958,7 @@ class _LoveNoteSheetState extends State<_LoveNoteSheet> {
                 ),
                 const SizedBox(height: 16),
                 TextField(
-                  controller: widget.controller,
+                  controller: _controller,
                   maxLength: _maxChars,
                   maxLines: 4,
                   minLines: 2,
@@ -1740,7 +1968,7 @@ class _LoveNoteSheetState extends State<_LoveNoteSheet> {
                   decoration: InputDecoration(
                     hintText: l10n.loveNoteSheetHint,
                     counterText: l10n.loveNoteCharCount(
-                      widget.controller.text.characters.length,
+                      _controller.text.characters.length,
                     ),
                   ),
                 ),
@@ -1784,6 +2012,7 @@ class _DailyQuestionCard extends StatefulWidget {
     required this.question,
     required this.partnerName,
     required this.isWaitingPartner,
+    required this.onOpenJournal,
   });
 
   final DailyQuestionProvider provider;
@@ -1791,6 +2020,7 @@ class _DailyQuestionCard extends StatefulWidget {
   final String question;
   final String partnerName;
   final bool isWaitingPartner;
+  final VoidCallback onOpenJournal;
 
   @override
   State<_DailyQuestionCard> createState() => _DailyQuestionCardState();
@@ -1805,6 +2035,10 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
   bool _submitting = false;
   // One-shot guard: the reveal confetti plays at most once per card lifetime.
   bool _confettiPlayed = false;
+  // The reveal Lottie is a ONE-SHOT celebration: shown only briefly when the
+  // answers first unlock, then hidden. Gating it on `hasRevealed` instead left
+  // the animation frozen on its last frame (a star) permanently on the card.
+  bool _showRevealLottie = false;
 
   @override
   void initState() {
@@ -1850,9 +2084,16 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
     // state (and weren't already revealed on init).
     if (hasRevealed && !_confettiPlayed) {
       _confettiPlayed = true;
+      _showRevealLottie = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _confetti.play();
+        }
+      });
+      // Auto-hide the one-shot Lottie so it never sits frozen on its last frame.
+      Future.delayed(const Duration(milliseconds: 2600), () {
+        if (mounted) {
+          setState(() => _showRevealLottie = false);
         }
       });
     }
@@ -1870,13 +2111,13 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
               Row(
                 children: [
                   const Icon(LucideIcons.helpCircle,
-                      color: AppColors.white, size: 20),
+                      color: AppColors.accentRose, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       l10n.dailyQuestionLabel,
                       style: const TextStyle(
-                        color: AppColors.white,
+                        color: AppColors.textSecondary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -1890,13 +2131,17 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
                 style: AppTheme.displaySerif(
                   size: 22,
                   weight: FontWeight.w600,
-                  color: AppColors.white,
+                  color: AppColors.textPrimary,
                   height: 1.25,
                   letterSpacing: -0.2,
                 ),
               ),
               const SizedBox(height: 16),
               ..._buildBody(l10n, provider, hasAnswered, hasRevealed),
+              // Journal entry at the foot of the card — the journal is a shared
+              // archive, shown in every today-state. Hidden while waiting for a
+              // partner (no shared memories possible yet).
+              if (!widget.isWaitingPartner) _buildJournalEntry(l10n),
             ],
           ),
         ),
@@ -1917,6 +2162,17 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
             AppColors.white,
           ],
         ),
+        // Khoảnh khắc mở khoá Daily Question (feature lottie-moments) — ONE-SHOT.
+        // Chỉ hiện thoáng qua khi vừa mở khoá rồi tự ẩn (xem `_showRevealLottie`);
+        // KHÔNG gate theo `hasRevealed` vì state đó đứng yên → Lottie kẹt frame cuối.
+        if (_showRevealLottie)
+          const Positioned(
+            top: -8,
+            child: LoveLottie(
+              slot: LoveLottieSlot.dailyReveal,
+              height: 120,
+            ),
+          ),
       ],
     );
   }
@@ -1934,8 +2190,8 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
       return [
         Text(
           l10n.dailyQuestionRevealHint,
-          style: TextStyle(
-            color: AppColors.white.withValues(alpha: 0.82),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
             fontSize: 13,
             height: 1.4,
           ),
@@ -1961,8 +2217,8 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
         const SizedBox(height: 12),
         Text(
           waitingFor,
-          style: TextStyle(
-            color: AppColors.white.withValues(alpha: 0.78),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
             fontSize: 13,
             height: 1.45,
           ),
@@ -1975,8 +2231,8 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
       if (widget.isWaitingPartner) ...[
         Text(
           l10n.dailyQuestionWaitingPartner,
-          style: TextStyle(
-            color: AppColors.white.withValues(alpha: 0.78),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
             fontSize: 13,
             height: 1.45,
           ),
@@ -1989,41 +2245,57 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
           filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.14),
+              color: AppColors.white.withValues(alpha: 0.55),
               borderRadius: BorderRadius.circular(16),
-              border:
-                  Border.all(color: AppColors.white.withValues(alpha: 0.22)),
+              border: Border.all(
+                  color: AppColors.accentRose.withValues(alpha: 0.25)),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-              child: TextField(
-                controller: _controller,
-                maxLength: _maxChars,
-                maxLines: 3,
-                minLines: 1,
-                cursorColor: AppColors.white,
-                style: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  hintText: l10n.dailyQuestionHint,
-                  hintStyle: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.6),
-                    fontSize: 14,
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _controller,
+                    maxLength: _maxChars,
+                    maxLines: 4,
+                    minLines: 2,
+                    textAlignVertical: TextAlignVertical.top,
+                    cursorColor: AppColors.accentRose,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      isCollapsed: true,
+                      border: InputBorder.none,
+                      hintText: l10n.dailyQuestionHint,
+                      hintStyle: const TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 14,
+                      ),
+                      // Counter rendered separately below so the field hugs its
+                      // text and the hint stays anchored top-left (no float).
+                      counterText: '',
+                    ),
                   ),
-                  counterText: l10n.dailyQuestionCharCount(
-                    _controller.text.characters.length,
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      l10n.dailyQuestionCharCount(
+                        _controller.text.characters.length,
+                      ),
+                      style: const TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 11,
+                      ),
+                    ),
                   ),
-                  counterStyle: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.6),
-                    fontSize: 11,
-                  ),
-                ),
+                ],
               ),
             ),
           ),
@@ -2034,9 +2306,8 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
         width: double.infinity,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.18),
+            color: AppColors.accentRose,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.30)),
           ),
           child: Material(
             color: Colors.transparent,
@@ -2083,14 +2354,65 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
     ];
   }
 
+  /// Foot-of-card "Open journal" entry: divider + tappable full-width row.
+  Widget _buildJournalEntry(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: AppColors.textPrimary.withValues(alpha: 0.10),
+          ),
+        ),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: widget.onOpenJournal,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  const Icon(
+                    LucideIcons.bookOpen,
+                    size: 18,
+                    color: AppColors.accentRose,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    l10n.journalEntryCta,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(
+                    LucideIcons.chevronRight,
+                    size: 16,
+                    color: AppColors.textTertiary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _answerBlock(String label, String text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: AppColors.white.withValues(alpha: 0.7),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
             fontSize: 12,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.2,
@@ -2100,7 +2422,7 @@ class _DailyQuestionCardState extends State<_DailyQuestionCard> {
         Text(
           text,
           style: const TextStyle(
-            color: AppColors.white,
+            color: AppColors.textPrimary,
             fontSize: 15,
             fontWeight: FontWeight.w500,
             height: 1.5,

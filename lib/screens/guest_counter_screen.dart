@@ -155,6 +155,11 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
         ],
       ),
       body: Container(
+        // `extendBodyBehindAppBar: true` gives the body loose height
+        // constraints, so a shrink-wrapping child (the scroll view) would only
+        // be as tall as its content — leaving the gradient short and exposing
+        // the black Scaffold background below. Force the gradient to fill the
+        // full available height.
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),

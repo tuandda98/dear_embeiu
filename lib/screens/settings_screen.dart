@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../app/app_routes.dart';
 import '../app/app_urls.dart';
 import '../l10n/l10n.dart';
+import '../models/app_user.dart';
 import '../models/couple.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
@@ -17,10 +18,13 @@ import '../providers/locale_provider.dart';
 import '../providers/custom_reminders_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
+import '../services/analytics_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
+import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/language_toggle_button.dart';
 import 'custom_reminders_screen.dart';
+import 'journal_screen.dart';
 import 'milestone_reminders_screen.dart';
 import 'setup_screen.dart';
 
@@ -32,12 +36,58 @@ import 'setup_screen.dart';
 /// so the reminders toggle/permission flow, language picker, danger zone
 /// (clear cache / leave couple / delete account), edit-story, sign-out and the
 /// privacy link all keep their original logic.
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  // Drives the SHARED blocking overlay during the leave-couple teardown. A local
+  // flag (not a provider flag) so the overlay stays up CONTINUOUSLY across the
+  // whole sequence (leaveCouple → updateCurrentUser → sync) with no dead gap.
+  bool _leaving = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+
+    // Leave-couple teardown: show the SAME full-screen transition loader the
+    // app uses while routing (SessionRouteScreen minimal — opaque gradient +
+    // white spinner). It fully covers Settings (no peek-through) and matches the
+    // very next screen (authGate → SessionResolver), so the handoff is seamless
+    // with no flash and the loader looks identical to the rest of the app.
+    if (_leaving) {
+      // Lock the system back button so the teardown can't be interrupted
+      // (popping mid-leave would strand the user on a stale screen).
+      return PopScope(
+        canPop: false,
+        child: Scaffold(
+          body: Container(
+            decoration:
+                const BoxDecoration(gradient: AppColors.secondaryGradient),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(color: AppColors.white),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.leavingCouple,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
@@ -62,7 +112,17 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
         ),
-        body: SafeArea(
+        // Robustness (app-robustness C): block the whole screen with the shared
+        // overlay while an auth op (sign-out / delete account) is in flight, so
+        // the user can't re-open a dialog or fire a second submit mid-delete.
+        body: Consumer<AuthProvider>(
+          builder: (context, authProvider, settingsBody) {
+            return BlockingLoadingOverlay(
+              isVisible: authProvider.isLoading,
+              child: settingsBody!,
+            );
+          },
+          child: SafeArea(
           top: false,
           child: Consumer2<CoupleProvider, PhotoProvider>(
             builder: (context, coupleProvider, photoProvider, _) {
@@ -93,23 +153,28 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 18),
                     _OnceEntrance(order: 1, child: _buildLanguageSection(context)),
                     const SizedBox(height: 18),
-                    _OnceEntrance(order: 2, child: _buildAccountSection(context)),
+                    _OnceEntrance(order: 2, child: _buildMemoriesSection(context)),
+                    const SizedBox(height: 18),
+                    _OnceEntrance(order: 3, child: _buildAccountSection(context)),
+                    const SizedBox(height: 18),
+                    _OnceEntrance(order: 4, child: _buildPrivacySection(context)),
                     const SizedBox(height: 18),
                     _OnceEntrance(
-                      order: 3,
+                      order: 5,
                       child: _buildDangerZone(
                         context,
                         isUsingFirebase: authProvider.isUsingFirebase,
                       ),
                     ),
                     const SizedBox(height: 18),
-                    _OnceEntrance(order: 4, child: _buildSignOutButton(context)),
+                    _OnceEntrance(order: 6, child: _buildSignOutButton(context)),
                     const SizedBox(height: 12),
-                    _OnceEntrance(order: 5, child: _buildPrivacyPolicyLink(context)),
+                    _OnceEntrance(order: 7, child: _buildPrivacyPolicyLink(context)),
                   ],
                 ),
               );
             },
+          ),
           ),
         ),
       ),
@@ -224,6 +289,10 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
+              // Daily-question nudge (b2). Independent of the master toggle
+              // above — turning milestone reminders off does not silence this.
+              const _DailyQuestionReminderTile(),
+              const SizedBox(height: 12),
               // Milestones & anniversaries entry (Reminders v2). Dimmed and
               // non-interactive while the master toggle is off.
               AnimatedOpacity(
@@ -236,6 +305,8 @@ class SettingsScreen extends StatelessWidget {
                       ? () {
                           Navigator.of(context).push(
                             MaterialPageRoute<void>(
+                              settings: const RouteSettings(
+                                  name: 'MilestoneReminders'),
                               builder: (_) => const MilestoneRemindersScreen(),
                             ),
                           );
@@ -338,6 +409,7 @@ class SettingsScreen extends StatelessWidget {
                   if (settings.enabled) {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
+                        settings: const RouteSettings(name: 'CustomReminders'),
                         builder: (_) => const CustomRemindersScreen(),
                       ),
                     );
@@ -537,6 +609,7 @@ class SettingsScreen extends StatelessWidget {
                 await customReminders.rescheduleAllEnabled();
                 navigator.push(
                   MaterialPageRoute<void>(
+                    settings: const RouteSettings(name: 'CustomReminders'),
                     builder: (_) => const CustomRemindersScreen(),
                   ),
                 );
@@ -641,16 +714,90 @@ class SettingsScreen extends StatelessWidget {
   }
 
   // ---------------------------------------------------------------------------
+  // Module: Memories — the couple journal entry (feature couple-journal).
+  // Placed above "Account & data" per design.
+  // ---------------------------------------------------------------------------
+  Widget _buildMemoriesSection(BuildContext context) {
+    final l10n = context.l10n;
+
+    return _buildSectionCard(
+      title: l10n.journalSettingsSection,
+      subtitle: l10n.journalScreenSubtitle,
+      child: _InkTile(
+        borderRadius: 22,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              settings: const RouteSettings(name: 'Journal'),
+              builder: (_) => const JournalScreen(),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: AppColors.accentRose.withValues(alpha: 0.10),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.accentRose.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  LucideIcons.bookOpen,
+                  color: AppColors.accentRose,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  l10n.journalSettingsTile,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Icon(
+                LucideIcons.chevronRight,
+                color: AppColors.textSecondary.withValues(alpha: 0.5),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Module: Account & data. "Edit our story" tile (moved from the old
   // FilledButton actions section) lives above the danger zone.
   // ---------------------------------------------------------------------------
   Widget _buildAccountSection(BuildContext context) {
     final l10n = context.l10n;
+    final currentUser = context.watch<AuthProvider>().currentUser;
 
     return _buildSectionCard(
       title: l10n.settingsAccountModuleTitle,
       subtitle: l10n.settingsAccountModuleSubtitle,
-      child: _InkTile(
+      child: Column(
+        children: [
+          if (currentUser != null) ...[
+            _buildAccountInfoCard(currentUser, l10n),
+            const SizedBox(height: 12),
+          ],
+          _InkTile(
         borderRadius: 22,
         onTap: () {
           final coupleProvider = context.read<CoupleProvider>();
@@ -717,6 +864,111 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+        ],
+      ),
+    );
+  }
+
+  /// Read-only account identity (display name + email) shown atop the account
+  /// module so the user can always see which account they're signed in as.
+  Widget _buildAccountInfoCard(AppUser user, AppLocalizations l10n) {
+    final name = user.displayName.trim();
+    final email = user.email.trim();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: AppColors.accentRose.withValues(alpha: 0.10),
+        ),
+      ),
+      child: Column(
+        children: [
+          _buildAccountInfoRow(
+            LucideIcons.user,
+            l10n.displayNameLabel,
+            name.isNotEmpty ? name : '—',
+          ),
+          if (email.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(left: 58),
+              child: Divider(
+                height: 1,
+                color: AppColors.textTertiary.withValues(alpha: 0.18),
+              ),
+            ),
+          if (email.isNotEmpty)
+            _buildAccountInfoRow(LucideIcons.mail, l10n.emailLabel, email),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccountInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.accentRose.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: AppColors.accentRose, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Module: Privacy & data — usage-analytics opt-out (feature: analytics, D1c).
+  // Default ON; toggling off stops collection immediately. No new screen.
+  // ---------------------------------------------------------------------------
+  Widget _buildPrivacySection(BuildContext context) {
+    final l10n = context.l10n;
+    return _buildSectionCard(
+      title: l10n.privacyPolicyLabel,
+      subtitle: l10n.settingsAnalyticsSubtitle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: 0.72),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.accentRose.withValues(alpha: 0.10),
+          ),
+        ),
+        child: const _AnalyticsToggleTile(),
       ),
     );
   }
@@ -1086,11 +1338,9 @@ class SettingsScreen extends StatelessWidget {
                   (route) => false,
                 );
               } else if (errorCode == 'requires-recent-login') {
-                ScaffoldMessenger.of(context)
-                  ..clearSnackBars()
-                  ..showSnackBar(
-                    SnackBar(content: Text(l10n.deleteAccountRequiresReloginMsg)),
-                  );
+                // Stale-session challenge — don't dead-end. Collect the password
+                // and re-auth + retry the delete in place (#2).
+                _showReauthToDeleteDialog(context);
               } else {
                 ScaffoldMessenger.of(context)
                   ..clearSnackBars()
@@ -1105,6 +1355,140 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Re-auth recovery for the delete-account dead-end (#2). When deletion hits a
+  /// stale-session `requires-recent-login`, we collect the password here,
+  /// re-authenticate to mint a fresh token, and retry the delete — keeping the
+  /// user inside the delete flow instead of stranding them on a snackbar. If the
+  /// session is fully gone (`session-gone`) we send them through the auth gate
+  /// to sign in again. Uses [StatefulBuilder] for the dialog's local
+  /// busy/error state.
+  void _showReauthToDeleteDialog(BuildContext context) {
+    final l10n = context.l10n;
+    final passwordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    var busy = false;
+    String? inlineError;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setLocalState) {
+            Future<void> submit() async {
+              if (busy) return;
+              if (!(formKey.currentState?.validate() ?? false)) return;
+              FocusScope.of(ctx).unfocus();
+              setLocalState(() {
+                busy = true;
+                inlineError = null;
+              });
+
+              final authProvider = ctx.read<AuthProvider>();
+              final result = await authProvider
+                  .reauthenticateAndDeleteAccount(passwordController.text);
+              if (!ctx.mounted) return;
+
+              if (result == null) {
+                // Deleted — close the dialog and reset to the auth gate.
+                Navigator.of(ctx).pop();
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.authGate,
+                  (route) => false,
+                );
+                return;
+              }
+
+              if (result == 'session-gone') {
+                // No local session left to re-auth — send them to sign in again.
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.deleteAccountSessionExpiredMsg),
+                    ),
+                  );
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.authGate,
+                  (route) => false,
+                );
+                return;
+              }
+
+              // Wrong password / other recoverable error — keep the dialog open
+              // and show the message inline under the field.
+              HapticFeedback.heavyImpact();
+              setLocalState(() {
+                busy = false;
+                inlineError = result;
+              });
+            }
+
+            return AlertDialog(
+              title: Text(
+                l10n.deleteAccountReauthTitle,
+                style: TextStyle(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.deleteAccountReauthBody),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: passwordController,
+                      obscureText: true,
+                      autofocus: true,
+                      enabled: !busy,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => submit(),
+                      decoration: InputDecoration(
+                        labelText: l10n.passwordLabel,
+                        errorText: inlineError,
+                      ),
+                      validator: (value) =>
+                          (value == null || value.trim().isEmpty)
+                              ? l10n.passwordRequired
+                              : null,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: busy ? null : () => Navigator.of(ctx).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                TextButton(
+                  onPressed: busy ? null : submit,
+                  child: busy
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          l10n.deleteAccountConfirmBtn,
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).whenComplete(passwordController.dispose);
   }
 
   void _showSignOutDialog(BuildContext context) {
@@ -1123,8 +1507,19 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              await context.read<AuthProvider>().signOut();
+              final messenger = ScaffoldMessenger.of(context);
+              final signedOut = await context.read<AuthProvider>().signOut();
               if (!context.mounted) return;
+              // Robustness (app-robustness B): only navigate on a real sign-out;
+              // a genuine failure shows a snackbar instead of a fake navigation.
+              if (!signedOut) {
+                messenger
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    SnackBar(content: Text(l10n.signOutFailedMsg)),
+                  );
+                return;
+              }
               Navigator.of(context).pushNamedAndRemoveUntil(
                 AppRoutes.authGate,
                 (route) => false,
@@ -1140,46 +1535,259 @@ class SettingsScreen extends StatelessWidget {
   void _showLeaveCoupleDialog(BuildContext screenContext) {
     final l10n = screenContext.l10n;
 
+    // When the leaving user is the SOLE remaining member (partner already left,
+    // or never joined), leaving DESTROYS the couple and ALL shared data with no
+    // recovery — warn explicitly. With a partner still present, the partner
+    // keeps everything, so the milder copy applies.
+    final couple = screenContext.read<CoupleProvider>().couple;
+    final isSoleMember = couple != null && couple.memberCount <= 1;
+
     showDialog(
       context: screenContext,
       builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.leaveCoupleDialogTitle),
-        content: Text(l10n.leaveCoupleDialogContent),
+        title: Text(isSoleMember
+            ? l10n.leaveCoupleDeleteAllTitle
+            : l10n.leaveCoupleDialogTitle),
+        content: Text(isSoleMember
+            ? l10n.leaveCoupleDeleteAllContent
+            : l10n.leaveCoupleDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () async {
-              final authProvider = screenContext.read<AuthProvider>();
-              final coupleProvider = screenContext.read<CoupleProvider>();
-              final photoProvider = screenContext.read<PhotoProvider>();
-              final currentUser = authProvider.currentUser;
-
+            onPressed: () {
               Navigator.pop(dialogContext);
-
-              if (currentUser == null) return;
-
-              try {
-                final updatedUser = await coupleProvider.leaveCouple(
-                  currentUser: currentUser,
-                );
-                unawaited(photoProvider.syncForUser(updatedUser));
-              } catch (_) {
-                return;
-              }
-
-              if (!screenContext.mounted) return;
-
-              Navigator.of(screenContext).pushNamedAndRemoveUntil(
-                AppRoutes.setup,
-                (route) => false,
-              );
+              _performLeaveCouple(screenContext);
             },
             child: Text(
-              l10n.leaveCoupleActionBtn,
+              isSoleMember
+                  ? l10n.leaveCoupleDeleteAllBtn
+                  : l10n.leaveCoupleActionBtn,
               style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Runs the leave-couple teardown behind the SHARED full-screen blocking
+  /// overlay ([BlockingLoadingOverlay] — same loader as sign-out / delete
+  /// account, driven here by [_leaving]). The server-side teardown (callable
+  /// `leaveCoupleCleanup` doing a recursive delete + a possible Cloud Function
+  /// cold start) plus the session refresh can take a few seconds; the overlay
+  /// covers the WHOLE sequence (leaveCouple → updateCurrentUser → photo sync)
+  /// continuously so the screen never looks frozen, and failures surface a
+  /// snackbar instead of being swallowed.
+  Future<void> _performLeaveCouple(BuildContext screenContext) async {
+    final l10n = screenContext.l10n;
+    final authProvider = screenContext.read<AuthProvider>();
+    final coupleProvider = screenContext.read<CoupleProvider>();
+    final photoProvider = screenContext.read<PhotoProvider>();
+    final currentUser = authProvider.currentUser;
+
+    if (currentUser == null) return;
+
+    setState(() => _leaving = true);
+
+    try {
+      final updatedUser = await coupleProvider.leaveCouple(
+        currentUser: currentUser,
+      );
+      // CRITICAL: refresh the in-memory session to the now-single user. Without
+      // this the stale currentUser still reports `in_couple` → re-joining is
+      // blocked with "This account already belongs to a couple", and the
+      // resolver misroutes back to Home.
+      await authProvider.updateCurrentUser(updatedUser);
+      unawaited(photoProvider.syncForUser(updatedUser));
+    } catch (_) {
+      if (!mounted) return;
+      // Drop the overlay and tell the user it failed (was silently swallowed
+      // before — leaving felt like a no-op).
+      setState(() => _leaving = false);
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(coupleProvider.errorMessage ?? l10n.leaveCoupleError),
+          ),
+        );
+      return;
+    }
+
+    if (!mounted) return;
+
+    // Keep the overlay up through the navigation: route through the auth gate so
+    // SessionResolver clears the couple + love-note / daily-question / reaction
+    // / streak watchers for the now-single user (going straight to /setup left
+    // them running on the old coupleId) and lands on setup. The destination
+    // shows its own loader, so we hand off without a flash.
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.authGate,
+      (route) => false,
+    );
+  }
+}
+
+/// The daily-question reminder control (b2): a switch plus a time row that is
+/// only interactive while the switch is on. Independent of the milestone master
+/// toggle — it drives [ReminderProvider.setDailyQuestionReminderEnabled] /
+/// [setDailyQuestionReminderTime] directly. Permission denial flips the switch
+/// back off and surfaces a snackbar.
+class _DailyQuestionReminderTile extends StatelessWidget {
+  const _DailyQuestionReminderTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final provider = context.read<ReminderProvider>();
+    final enabled = context.select<ReminderProvider, bool>(
+      (p) => p.dailyQuestionReminderEnabled,
+    );
+    final time = context.select<ReminderProvider, TimeOfDay>(
+      (p) => p.dailyQuestionReminderTime,
+    );
+
+    Future<void> handleToggle(bool value) async {
+      HapticFeedback.selectionClick();
+      final messenger = ScaffoldMessenger.of(context);
+      final granted =
+          await provider.setDailyQuestionReminderEnabled(value, l10n: l10n);
+      if (value && !granted) {
+        messenger
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(content: Text(l10n.remindersPermissionDeniedMsg)),
+          );
+      }
+    }
+
+    Future<void> pickTime() async {
+      final picked = await showTimePicker(
+        context: context,
+        initialTime: time,
+      );
+      if (picked == null || !context.mounted) {
+        return;
+      }
+      HapticFeedback.selectionClick();
+      await provider.setDailyQuestionReminderTime(
+        picked.hour,
+        picked.minute,
+        l10n: l10n,
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: AppColors.accentRose.withValues(alpha: 0.10),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.accentRose.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  LucideIcons.messageCircle,
+                  color: AppColors.accentRose,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.dailyQuestionReminderTitle,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.dailyQuestionReminderSubtitle,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Switch.adaptive(
+                value: enabled,
+                activeThumbColor: AppColors.accentRose,
+                onChanged: handleToggle,
+              ),
+            ],
+          ),
+          // Time row — only interactive while the nudge is on.
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            opacity: enabled ? 1 : 0.45,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: _InkTile(
+                borderRadius: 16,
+                onTap: enabled ? pickTime : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentRose.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        LucideIcons.clock,
+                        color: AppColors.accentRose,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l10n.dailyQuestionReminderTimeLabel,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        time.format(context),
+                        style: const TextStyle(
+                          color: AppColors.accentRose,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -1224,6 +1832,69 @@ class _InkTile extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The usage-analytics opt-out switch (feature: analytics, D1c). Reads/writes
+/// [AnalyticsService] directly — analytics state lives in the service (Hive),
+/// not a provider, so a small local `setState` mirrors the toggle. Default ON.
+class _AnalyticsToggleTile extends StatefulWidget {
+  const _AnalyticsToggleTile();
+
+  @override
+  State<_AnalyticsToggleTile> createState() => _AnalyticsToggleTileState();
+}
+
+class _AnalyticsToggleTileState extends State<_AnalyticsToggleTile> {
+  late bool _enabled = AnalyticsService.instance.isEnabled;
+
+  Future<void> _onChanged(bool value) async {
+    HapticFeedback.selectionClick();
+    setState(() => _enabled = value);
+    await AnalyticsService.instance.setEnabled(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SwitchListTile.adaptive(
+      value: _enabled,
+      onChanged: _onChanged,
+      activeThumbColor: AppColors.accentRose,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      secondary: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: AppColors.accentRose.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(
+          LucideIcons.barChart3,
+          color: AppColors.accentRose,
+          size: 20,
+        ),
+      ),
+      title: Text(
+        l10n.settingsAnalyticsTitle,
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Text(
+          l10n.settingsAnalyticsSubtitle,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 12,
+            height: 1.4,
+          ),
+        ),
+      ),
     );
   }
 }

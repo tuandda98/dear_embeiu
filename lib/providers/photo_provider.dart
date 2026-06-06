@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/photo.dart';
+import '../services/analytics_service.dart';
 import '../services/photo_service.dart';
 import '../services/storage_service.dart';
 
@@ -91,6 +92,10 @@ class PhotoProvider extends ChangeNotifier {
     required AppUser currentUser,
     String? caption,
   }) async {
+    // Capture whether this couple had any photos BEFORE the upload, so we can
+    // report `is_first` to analytics (no caption / no PII is ever logged).
+    final wasFirstPhoto = _photos.isEmpty;
+
     _setLoading(true, message: AppL10n.strings.uploadingPhoto);
     _clearError(notify: false);
 
@@ -106,6 +111,12 @@ class PhotoProvider extends ChangeNotifier {
         await StorageService.savePhotos(_photos);
         notifyListeners();
       }
+
+      // Analytics — success path (⭐⭐ North Star). Mark the user as having
+      // posted at least one photo.
+      AnalyticsService.instance
+        ..logPhotoPosted(isFirst: wasFirstPhoto)
+        ..setHasPostedPhoto(true);
     } on PhotoSyncException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
@@ -113,6 +124,67 @@ class PhotoProvider extends ChangeNotifier {
     } finally {
       _setLoading(false);
     }
+  }
+
+  /// Uploads a batch of photos under a single blocking overlay (no per-photo
+  /// on/off flicker). The overlay message advances "Uploading i/total" via
+  /// [progress] as each upload starts. A failed upload does NOT abort the batch
+  /// — it's skipped and counted, so the rest still go through. Returns the
+  /// number of successful uploads (caller can derive the failure count).
+  ///
+  /// Unlike [addPhoto], this owns the loading lifecycle for the whole batch and
+  /// never rethrows; surface the aggregate result to the user instead.
+  Future<int> addPhotosBatch(
+    List<String> imagePaths, {
+    required AppUser currentUser,
+    required String Function(int current, int total) progress,
+  }) async {
+    if (imagePaths.isEmpty) {
+      return 0;
+    }
+
+    final total = imagePaths.length;
+    final wasFirstPhoto = _photos.isEmpty;
+    var successCount = 0;
+
+    _setLoading(true, message: progress(1, total));
+    _clearError(notify: false);
+
+    try {
+      for (var i = 0; i < total; i++) {
+        // Keep the overlay visible; just advance its label per item.
+        _loadingMessage = progress(i + 1, total);
+        notifyListeners();
+
+        try {
+          final photo = await _photoService.addPhoto(
+            currentUser: currentUser,
+            localImagePath: imagePaths[i],
+          );
+
+          if (!_photoService.isUsingFirebase || !currentUser.hasCouple) {
+            _photos.add(photo);
+            await StorageService.savePhotos(_photos);
+            notifyListeners();
+          }
+
+          successCount++;
+        } on PhotoSyncException catch (e) {
+          // Remember the last failure reason but keep going through the batch.
+          _errorMessage = e.message;
+        }
+      }
+
+      if (successCount > 0) {
+        AnalyticsService.instance
+          ..logPhotoPosted(isFirst: wasFirstPhoto)
+          ..setHasPostedPhoto(true);
+      }
+    } finally {
+      _setLoading(false);
+    }
+
+    return successCount;
   }
 
   Future<void> deletePhoto(
@@ -132,6 +204,9 @@ class PhotoProvider extends ChangeNotifier {
         await StorageService.savePhotos(_photos);
         notifyListeners();
       }
+
+      // Analytics — success path.
+      AnalyticsService.instance.logPhotoDeleted();
     } on PhotoSyncException catch (e) {
       _errorMessage = e.message;
       notifyListeners();

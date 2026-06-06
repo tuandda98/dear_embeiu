@@ -1,0 +1,7 @@
+{
+  "require": "./test/_hooks.js",
+  "spec": "test/**/*.test.js",
+  "timeout": 15000,
+  "slow": 2000,
+  "exit": true
+}

@@ -7,6 +7,11 @@ class Couple {
   final String? couplePhotoUrl;
   final String? couplePhotoStoragePath;
   final String inviteCode;
+  // Separate couple-level entry code — independent from the personal inviteCode.
+  // Generated fresh when the couple is created. Used by setup screen and join
+  // flow instead of the personal inviteCode so leaving and rejoining works
+  // without resetting the personal code. Null on legacy couples (pre-feature).
+  final String? coupleCode;
   final List<String> memberIds;
   final int memberCount;
   final String createdByUserId;
@@ -23,6 +28,7 @@ class Couple {
     this.couplePhotoUrl,
     this.couplePhotoStoragePath,
     required this.inviteCode,
+    this.coupleCode,
     required this.memberIds,
     required this.memberCount,
     required this.createdByUserId,
@@ -43,6 +49,7 @@ class Couple {
     'couplePhotoUrl': couplePhotoUrl,
     'couplePhotoStoragePath': couplePhotoStoragePath,
     'inviteCode': inviteCode,
+    'coupleCode': coupleCode,
     'memberIds': memberIds,
     'memberCount': memberCount,
     'createdByUserId': createdByUserId,
@@ -59,6 +66,7 @@ class Couple {
     'couplePhotoUrl': couplePhotoUrl,
     'couplePhotoStoragePath': couplePhotoStoragePath,
     'inviteCode': inviteCode,
+    'coupleCode': coupleCode,
     'memberIds': memberIds,
     'memberCount': memberCount,
     'createdByUserId': createdByUserId,
@@ -67,11 +75,55 @@ class Couple {
     'updatedAt': updatedAt,
   };
 
+  // Payload for a profile edit (name/anniversary/photo) of an EXISTING couple.
+  // Deliberately sends ONLY the seven user-editable fields and NOT the
+  // structural/immutable ones (memberIds, memberCount, status, inviteCode,
+  // createdByUserId, createdAt). Written with SetOptions(merge: true) so the
+  // server's stored structural fields are preserved untouched.
+  //
+  // This is the fix for `coupleSavePermissionDenied`: the rule
+  // `isCoupleProfileEdit` requires
+  //   request.resource.data.memberIds  == resource.data.memberIds
+  //   request.resource.data.memberCount == resource.data.memberCount
+  //   request.resource.data.status      == resource.data.status
+  //   + coupleMetadataIsImmutable() (inviteCode/createdByUserId/createdAt)
+  // If we re-send these from a possibly-stale LOCAL couple (e.g. local status
+  // still 'waiting_partner' while the server is 'active', or local memberIds
+  // out of sync), the equality checks fail → permission-denied. By omitting
+  // them entirely, merge leaves the server values in place so both sides of
+  // every equality are the server value → the rule always passes regardless
+  // of how stale the local copy is.
+  Map<String, dynamic> toProfileEditPayload() => {
+    'person1Name': person1Name,
+    'person2Name': person2Name,
+    'anniversaryDate': anniversaryDate,
+    'couplePhotoPath': '',
+    'couplePhotoUrl': couplePhotoUrl,
+    'couplePhotoStoragePath': couplePhotoStoragePath,
+    'updatedAt': updatedAt,
+  };
+
+  // Narrow payload for writing ONLY the hero-photo fields of an existing
+  // couple (used right after creation when the cover upload finishes). Same
+  // rationale as [toProfileEditPayload]: never re-send structural/immutable
+  // fields, so the `isCoupleProfileEdit` equality checks pass via merge.
+  Map<String, dynamic> toPhotoEditPayload() => {
+    'couplePhotoPath': '',
+    'couplePhotoUrl': couplePhotoUrl,
+    'couplePhotoStoragePath': couplePhotoStoragePath,
+    'updatedAt': updatedAt,
+  };
+
   // Payload for merge-updates of an existing couple. Omits the immutable
   // `createdAt`: re-sending it round-trips through DateTime and on iOS the
   // DateTime→Timestamp conversion drifts by a few nanoseconds, breaking the
   // exact-equality `createdAt` check in firestore.rules (permission-denied).
   // Merge keeps the stored value.
+  //
+  // Still used for the JOIN / LEAVE couple transitions, which MUST change
+  // memberIds/memberCount/status (rules `isCoupleJoinTransition` /
+  // `isCoupleLeaveTransition` require the new values). Do NOT use this for a
+  // plain profile edit — use [toProfileEditPayload] instead.
   Map<String, dynamic> toFirestoreUpdate() => {
     'person1Name': person1Name,
     'person2Name': person2Name,
@@ -80,6 +132,7 @@ class Couple {
     'couplePhotoUrl': couplePhotoUrl,
     'couplePhotoStoragePath': couplePhotoStoragePath,
     'inviteCode': inviteCode,
+    'coupleCode': coupleCode,
     'memberIds': memberIds,
     'memberCount': memberCount,
     'createdByUserId': createdByUserId,
@@ -97,6 +150,7 @@ class Couple {
     couplePhotoUrl: json['couplePhotoUrl'] as String?,
     couplePhotoStoragePath: json['couplePhotoStoragePath'] as String?,
     inviteCode: json['inviteCode'] as String? ?? '',
+    coupleCode: json['coupleCode'] as String?,
     memberIds: (json['memberIds'] as List?)?.map((e) => '$e').toList() ?? const [],
     memberCount: json['memberCount'] as int? ?? ((json['memberIds'] as List?)?.length ?? 0),
     createdByUserId: json['createdByUserId'] as String? ?? '',
@@ -115,6 +169,7 @@ class Couple {
     String? couplePhotoUrl,
     String? couplePhotoStoragePath,
     String? inviteCode,
+    String? coupleCode,
     List<String>? memberIds,
     int? memberCount,
     String? createdByUserId,
@@ -132,6 +187,7 @@ class Couple {
         couplePhotoStoragePath:
             couplePhotoStoragePath ?? this.couplePhotoStoragePath,
         inviteCode: inviteCode ?? this.inviteCode,
+        coupleCode: coupleCode ?? this.coupleCode,
         memberIds: memberIds ?? this.memberIds,
         memberCount: memberCount ?? this.memberCount,
         createdByUserId: createdByUserId ?? this.createdByUserId,

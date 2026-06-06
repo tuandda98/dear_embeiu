@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -18,6 +19,7 @@ import '../theme/app_theme.dart';
 import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/invite_action_buttons.dart';
+import '../widgets/love_lottie.dart';
 import '../widgets/shared_couple_photo_view.dart';
 
 enum _SetupMode { create, join }
@@ -64,8 +66,14 @@ class _SetupScreenState extends State<SetupScreen> {
       _person2Controller.text = existingCouple.person2Name;
       _selectedDate = existingCouple.anniversaryDate;
       _couplePhotoPath = existingCouple.couplePhotoPath;
-    } else if (currentUser != null && currentUser.displayName.trim().isNotEmpty) {
-      _person1Controller.text = currentUser.displayName.trim();
+    } else {
+      if (currentUser != null && currentUser.displayName.trim().isNotEmpty) {
+        _person1Controller.text = currentUser.displayName.trim();
+      }
+      // Carry the love date the user already set in guest mode into the very
+      // first couple they create, so the single-player → account funnel doesn't
+      // make them re-pick it. Best-effort & purely local: ignore any read miss.
+      _selectedDate ??= _readGuestAnniversary();
     }
 
     _didPrefill = true;
@@ -77,6 +85,23 @@ class _SetupScreenState extends State<SetupScreen> {
     _person2Controller.dispose();
     _inviteCodeController.dispose();
     super.dispose();
+  }
+
+  /// Reads the anniversary the user picked in guest mode (Hive `guest_settings`,
+  /// key `anniversary` as ms-since-epoch). Synchronous & guarded: only when the
+  /// guest box is already open (it is whenever the user passed through the guest
+  /// landing); returns null otherwise so cold-starting straight into setup is
+  /// unaffected. Keep these keys in sync with [GuestCounterScreen].
+  DateTime? _readGuestAnniversary() {
+    const boxName = 'guest_settings';
+    const anniversaryKey = 'anniversary';
+    if (!Hive.isBoxOpen(boxName)) {
+      return null;
+    }
+    final millis = Hive.box(boxName).get(anniversaryKey);
+    return millis is int
+        ? DateTime.fromMillisecondsSinceEpoch(millis)
+        : null;
   }
 
   Future<void> _pickDate() async {
@@ -169,18 +194,28 @@ class _SetupScreenState extends State<SetupScreen> {
       }
 
       if (!isEditing) {
-        await _showInviteCodeDialog(result.updatedUser.inviteCode);
+        await _showInviteCodeDialog(
+          result.couple.coupleCode ?? result.updatedUser.inviteCode,
+        );
         if (result.warningMessage != null && mounted) {
           _showSnack(result.warningMessage!);
         }
+        // A brand-new couple: route through the auth gate so SessionResolver
+        // wires the realtime couple watch + love-note / daily-question /
+        // reaction / streak watchers. Going straight to /home skipped all that,
+        // so the creator never saw their partner join (couple stayed
+        // waiting_partner, the invite code stayed stuck on Home, and notes
+        // couldn't sync) until a manual app restart.
+        navigator.pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
       } else {
+        // Editing is membership-neutral (the realtime watchers are already
+        // wired from the live session) — just return to wherever opened setup.
         _showSnack(_resolveCoupleResultMessage(result));
-      }
-
-      if (navigator.canPop()) {
-        navigator.pop();
-      } else {
-        navigator.pushReplacementNamed(AppRoutes.home);
+        if (navigator.canPop()) {
+          navigator.pop();
+        } else {
+          navigator.pushReplacementNamed(AppRoutes.home);
+        }
       }
     } on CoupleException catch (e) {
       _showSnack(e.message);
@@ -240,14 +275,60 @@ class _SetupScreenState extends State<SetupScreen> {
         return;
       }
 
+      // Khoảnh khắc ghép đôi thành công (feature lottie-moments). Tự bỏ qua nếu
+      // chưa có file animation → giữ nguyên luồng snack + điều hướng như cũ.
+      await _showJoinCelebration();
+      if (!mounted) return;
+
       _showSnack(result.message ?? l10n.setupSuccessConnected);
-      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+      // Route through the auth gate so SessionResolver wires the realtime
+      // couple + love-note / daily-question / reaction / streak watchers — same
+      // reason as create. Going straight to /home skipped that wiring, so the
+      // joiner's notes/streak/reactions wouldn't sync until a manual restart.
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.authGate,
+        (route) => false,
+      );
     } on CoupleException catch (e) {
       _showSnack(e.message);
     } catch (e) {
       if (!mounted) return;
       _showSnack(context.l10n.setupErrorJoinCouple('$e'));
     }
+  }
+
+  /// Hiện animation ăn mừng ghép đôi (feature lottie-moments), tự đóng sau
+  /// ~1.9s rồi mới điều hướng. Bỏ qua sạch nếu chưa bundle file của slot
+  /// (tránh dialog trống) → luồng cũ giữ nguyên.
+  Future<void> _showJoinCelebration() async {
+    if (!mounted) return;
+    try {
+      await rootBundle.load(LoveLottieSlot.coupleJoined.asset);
+    } catch (_) {
+      return; // chưa có file animation → không hiện gì
+    }
+    if (!mounted) return;
+
+    // Bắt NavigatorState đồng bộ TRƯỚC await để không dùng BuildContext qua
+    // async gap (lint use_build_context_synchronously).
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final dialogClosed = showDialog<void>(
+      context: context,
+      useRootNavigator: true,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.35),
+      builder: (_) => const Center(
+        child: LoveLottie(
+          slot: LoveLottieSlot.coupleJoined,
+          height: 220,
+        ),
+      ),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 1900));
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+    await dialogClosed;
   }
 
   Future<void> _showInviteCodeDialog(String inviteCode) async {
@@ -355,6 +436,7 @@ class _SetupScreenState extends State<SetupScreen> {
                       if (hasInviteCode) ...[
                         _buildInviteCard(
                           inviteCode: currentUser!.inviteCode,
+                          coupleCode: existingCouple?.coupleCode,
                           hasCreatedCoupleSpace: currentUser.hasCouple,
                           isWaitingForPartner: editingCouple?.isWaitingForPartner ?? false,
                         ),
@@ -398,28 +480,72 @@ class _SetupScreenState extends State<SetupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isEditing ? LucideIcons.pencil : Icons.favorite_rounded,
-                size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
               ),
-              const SizedBox(width: 8),
-              Text(
-                isEditing ? l10n.editCoupleBadge : l10n.coupleOnboardingBadge,
-                style: AppTheme.pageEyebrowStyle(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isEditing ? LucideIcons.pencil : Icons.favorite_rounded,
+                    size: 14,
+                    color: AppColors.white.withValues(alpha: 0.92),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isEditing ? l10n.editCoupleBadge : l10n.coupleOnboardingBadge,
+                    style: AppTheme.pageEyebrowStyle(),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            const Spacer(),
+            if (!isEditing)
+              Tooltip(
+                message: l10n.signOutBtn,
+                child: InkWell(
+                  onTap: () async {
+                    await authProvider.signOut();
+                    if (mounted) {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        AppRoutes.authGate,
+                        (route) => false,
+                      );
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: AppColors.white.withValues(alpha: 0.15)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(LucideIcons.logOut, size: 13, color: AppColors.white.withValues(alpha: 0.70)),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.signOutBtn,
+                          style: TextStyle(
+                            color: AppColors.white.withValues(alpha: 0.70),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 18),
         Text(title, style: AppTheme.pageTitleStyle()),
@@ -563,21 +689,29 @@ class _SetupScreenState extends State<SetupScreen> {
 
   Widget _buildInviteCard({
     required String inviteCode,
+    String? coupleCode,
     required bool hasCreatedCoupleSpace,
     required bool isWaitingForPartner,
   }) {
     final l10n = context.l10n;
 
+    // When waiting for partner: show the couple-level code (not personal
+    // inviteCode), falling back to inviteCode for legacy couples that predate
+    // the coupleCode field. When not waiting, show the personal inviteCode as
+    // before (still useful for the partner to check their own code).
+    final displayCode =
+        isWaitingForPartner ? (coupleCode ?? inviteCode) : inviteCode;
+
     final title = !hasCreatedCoupleSpace
         ? l10n.yourInviteCodeTitle
         : isWaitingForPartner
-            ? l10n.sendToPartnerHint
+            ? l10n.setupWaitingCoupleCodeTitle
             : l10n.inviteCodeTiedToAccount;
 
     final description = !hasCreatedCoupleSpace
         ? l10n.inviteCodeDialogContent
         : isWaitingForPartner
-            ? l10n.inviteCodeDialogContent
+            ? l10n.setupCoupleCodeDesc
             : l10n.inviteCodeTiedToAccount;
 
     final statusIcon = isWaitingForPartner
@@ -623,7 +757,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            inviteCode,
+            displayCode,
             style: const TextStyle(
               color: AppColors.white,
               fontSize: 30,
@@ -633,7 +767,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           if (showInviteActions) ...[
             const SizedBox(height: 10),
-            InviteActionButtons(code: inviteCode, onDark: true),
+            InviteActionButtons(code: displayCode, onDark: true),
           ],
           const SizedBox(height: 8),
           Text(
@@ -644,6 +778,31 @@ class _SetupScreenState extends State<SetupScreen> {
               height: 1.45,
             ),
           ),
+          // Rejoin hint: remind both members they can use this code to
+          // reconnect if one leaves, so they don't lose access.
+          if (isWaitingForPartner) ...[
+            const SizedBox(height: 10),
+            Divider(thickness: 0.5, color: AppColors.white.withValues(alpha: 0.15)),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(LucideIcons.info, size: 12, color: AppColors.white.withValues(alpha: 0.45)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    l10n.setupCoupleCodeRejoinHint,
+                    style: TextStyle(
+                      color: AppColors.white.withValues(alpha: 0.50),
+                      fontSize: 11.5,
+                      fontStyle: FontStyle.italic,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
         ),
       ),
@@ -952,11 +1111,18 @@ class _SetupScreenState extends State<SetupScreen> {
                       width: 100,
                       height: 100,
                       fit: BoxFit.cover,
+                      // 100px slot → decode at ~3x DPR, not the full-res source.
+                      cacheWidth: (100 *
+                              MediaQuery.of(context).devicePixelRatio)
+                          .round(),
                     )
                   : SharedCouplePhotoView(
                       localPath: existingCouple?.couplePhotoPath,
                       remoteUrl: existingCouple?.couplePhotoUrl,
                       fit: BoxFit.cover,
+                      decodeWidth: (100 *
+                              MediaQuery.of(context).devicePixelRatio)
+                          .round(),
                     ),
             ),
             Container(

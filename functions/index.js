@@ -3,6 +3,17 @@ const {logger} = require("firebase-functions");
 const {onDocumentCreated, onDocumentUpdated, onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
+const {defineSecret} = require("firebase-functions/params");
+const {buildVerificationEmail} = require("./emails/verification_email");
+const {buildPasswordResetEmail} = require("./emails/password_reset_email");
+
+// Resend API key — used by both sendCustomVerificationEmail and
+// sendCustomPasswordResetEmail. Set before deploy:
+//   firebase functions:secrets:set RESEND_API_KEY --project <dev|prod>
+const RESEND_API_KEY = defineSecret("RESEND_API_KEY");
+
+// Sender identity — domain must be verified on Resend before sending works.
+const VERIFICATION_EMAIL_FROM = "Dear Embeiu <noreply@dearembeiu.com>";
 
 admin.initializeApp();
 
@@ -248,6 +259,100 @@ exports.notifyPartnerJoined = onDocumentUpdated(
   },
 );
 
+exports.notifyPartnerLeft = onDocumentUpdated(
+  {document: "couples/{coupleId}", region: "us-central1"},
+  async (event) => {
+    const before = event.data && event.data.before && event.data.before.data();
+    const after = event.data && event.data.after && event.data.after.data();
+    if (!before || !after) {
+      logger.warn("Partner-left notification skipped because a snapshot is missing.");
+      return;
+    }
+
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+
+    const beforeMembers = Array.isArray(before.memberIds)
+      ? before.memberIds.filter((id) => typeof id === "string" && id.trim())
+      : [];
+    const afterMembers = Array.isArray(after.memberIds)
+      ? after.memberIds.filter((id) => typeof id === "string" && id.trim())
+      : [];
+
+    // Guard — fire only on the exact "partner left" transition: a 2-member
+    // active couple demoted to a single waiting member. Every other update
+    // (join, cover photo change, name edit) returns early. A sole member
+    // leaving deletes the couple (onDocumentDeleted), so it never reaches here.
+    const isLeaveTransition =
+      beforeMembers.length === 2 &&
+      afterMembers.length === 1 &&
+      `${after.status || ""}`.trim() === "waiting_partner";
+    if (!isLeaveTransition) {
+      return;
+    }
+
+    // leaver = uid present before but not after; recipient = the member who stayed.
+    const leaverUid = beforeMembers.find((id) => !afterMembers.includes(id));
+    const recipientIds = afterMembers;
+    if (!leaverUid || recipientIds.length === 0) {
+      logger.warn("Partner-left notification skipped because leaver/recipient are unclear.", {
+        coupleId,
+        beforeMembers,
+        afterMembers,
+      });
+      return;
+    }
+
+    // Leaver display name: prefer their user profile (still exists — they only
+    // left the couple), fall back to "Người ấy" via normalizeActorName.
+    let leaverName = "";
+    try {
+      const leaverSnap = await db.collection("users").doc(leaverUid).get();
+      leaverName = `${(leaverSnap.exists && leaverSnap.get("displayName")) || ""}`.trim();
+    } catch (err) {
+      logger.warn("Could not load leaver profile for partner-left notification.", {
+        coupleId,
+        leaverUid,
+        message: err && err.message,
+      });
+    }
+    leaverName = normalizeActorName(leaverName);
+
+    const result = await sendToRecipientDevices(
+      recipientIds,
+      (languageCode) => buildPartnerLeftText(languageCode, leaverName),
+      {
+        type: "partner_left",
+        coupleId,
+        leaverUserId: leaverUid,
+      },
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("Partner-left notification skipped because recipient has no active FCM tokens.", {
+        coupleId,
+        leaverUid,
+      });
+      return;
+    }
+
+    if (result.failures.length > 0) {
+      logger.warn("Partner-left notification had delivery failures.", {
+        coupleId,
+        leaverUid,
+        failures: result.failures,
+      });
+    }
+
+    logger.info("Processed partner-left notification.", {
+      coupleId,
+      leaverUid,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
 exports.notifyLoveNote = onDocumentWritten(
   {document: "couples/{coupleId}/notes/{noteId}", region: "us-central1"},
   async (event) => {
@@ -433,6 +538,113 @@ exports.notifyDailyAnswer = onDocumentCreated(
   },
 );
 
+// Reactions (feature: reactions ❤️): when a member reacts to a photo, notify the
+// photo's author (the partner) that their photo got a reaction. Fires ONLY on
+// the initial create (onDocumentCreated) — NOT on emoji changes — so swapping
+// reactions never spams a second push (PO "debounce push" decision). When the
+// reactor is the photo's own author, no push is sent (PO decision D3).
+exports.notifyPhotoReaction = onDocumentCreated(
+  {document: "couples/{coupleId}/photos/{photoId}/reactions/{uid}", region: "us-central1"},
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      logger.warn("Reaction notification skipped because snapshot is missing.");
+      return;
+    }
+
+    const reaction = snapshot.data() || {};
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const photoId = `${event.params.photoId || ""}`.trim();
+    // The reactions doc id === the reacting member's uid by convention.
+    const reactorUid = `${event.params.uid || ""}`.trim();
+    const emoji = `${reaction.emoji || "❤️"}`.trim() || "❤️";
+
+    if (!coupleId || !photoId || !reactorUid) {
+      logger.warn("Reaction notification skipped because required fields are missing.", {
+        coupleId,
+        photoId,
+        reactorUid,
+      });
+      return;
+    }
+
+    // Look up the photo to find its author (the recipient of the push).
+    const photoSnap = await db
+      .collection("couples").doc(coupleId)
+      .collection("photos").doc(photoId)
+      .get();
+    if (!photoSnap.exists) {
+      logger.info("Reaction notification skipped because the photo no longer exists.", {
+        coupleId,
+        photoId,
+      });
+      return;
+    }
+
+    const authorUserId = `${photoSnap.get("authorUserId") || ""}`.trim();
+    if (!authorUserId) {
+      logger.warn("Reaction notification skipped because the photo has no author.", {
+        coupleId,
+        photoId,
+      });
+      return;
+    }
+
+    // D3 — never push when someone reacts to their OWN photo.
+    if (reactorUid === authorUserId) {
+      return;
+    }
+
+    // Reacting member's display name (fallback "Người ấy").
+    let reactorName = "";
+    try {
+      const reactorSnap = await db.collection("users").doc(reactorUid).get();
+      reactorName = `${(reactorSnap.exists && reactorSnap.get("displayName")) || ""}`.trim();
+    } catch (err) {
+      logger.warn("Could not load reactor profile for reaction notification.", {
+        coupleId,
+        reactorUid,
+        message: err && err.message,
+      });
+    }
+    reactorName = normalizeActorName(reactorName);
+
+    const result = await sendToRecipientDevices(
+      [authorUserId],
+      (languageCode) => buildReactionText(languageCode, reactorName, emoji),
+      {
+        type: "photo_reaction",
+        coupleId,
+        photoId,
+      },
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("Reaction notification skipped because the author has no active FCM tokens.", {
+        coupleId,
+        photoId,
+      });
+      return;
+    }
+
+    if (result.failures.length > 0) {
+      logger.warn("Reaction notification had delivery failures.", {
+        coupleId,
+        photoId,
+        failures: result.failures,
+      });
+    }
+
+    logger.info("Processed reaction notification.", {
+      coupleId,
+      photoId,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
 // Shared device-fan-out used by the partner-photo and partner-joined pushes.
 // Collects every notifications-enabled device token for the recipients, builds
 // one localized message per device (via `buildText(languageCode)`), sends them
@@ -610,6 +822,159 @@ exports.deleteAccount = onCall(
   },
 );
 
+// Couple teardown when a member LEAVES (not account deletion). The client used
+// to do this teardown itself, but it could only delete the photos subcollection
+// + couple_codes — notes, noteHistory, dailyAnswers and per-photo reactions were
+// left orphaned in Firestore (subcollections don't cascade when the parent doc
+// is deleted, and the client SDK has no recursiveDelete). Routing the
+// sole-member case through this callable lets the admin SDK recursively delete
+// EVERYTHING with no orphans. Mirrors the account-deletion teardown.
+exports.leaveCoupleCleanup = onCall(
+  {region: "us-central1"},
+  async (request) => {
+    const uid = request.auth && request.auth.uid;
+    if (!uid) {
+      throw new HttpsError(
+        "unauthenticated",
+        "Bạn cần đăng nhập để rời khỏi không gian này.",
+      );
+    }
+
+    const coupleId = `${(request.data && request.data.coupleId) || ""}`.trim();
+    if (!coupleId) {
+      throw new HttpsError("invalid-argument", "Thiếu coupleId.");
+    }
+
+    const coupleRef = db.collection("couples").doc(coupleId);
+    const snap = await coupleRef.get();
+    if (!snap.exists) {
+      // Already gone — nothing to tear down. Idempotent success.
+      return {success: true, alreadyGone: true};
+    }
+
+    const data = snap.data() || {};
+    const memberIds = Array.isArray(data.memberIds) ? data.memberIds : [];
+
+    // SECURITY: only an actual member may tear down / demote this couple, so a
+    // caller can't pass someone else's coupleId to destroy or demote it.
+    if (!memberIds.includes(uid)) {
+      throw new HttpsError(
+        "permission-denied",
+        "Bạn không phải thành viên của không gian này.",
+      );
+    }
+
+    // Same semantics as account deletion: removing uid; if that empties the
+    // couple, recursiveDelete everything; otherwise demote to waiting_partner.
+    await handleCoupleOnAccountDeletion(coupleId, uid);
+    return {success: true};
+  },
+);
+
+// Custom branded verification email (feature auth — "Cách B"). Replaces the
+// default `FirebaseUser.sendEmailVerification()` so the user receives the
+// on-brand HTML email built in emails/verification_email.js, delivered through
+// Resend, instead of Firebase's plain template. The VERIFICATION MECHANISM is
+// unchanged — we generate the same Firebase verification link (oobCode) and the
+// app still auto-polls `reload()`; only the delivery channel differs.
+exports.sendCustomVerificationEmail = onCall(
+  {region: "us-central1", secrets: [RESEND_API_KEY]},
+  async (request) => {
+    const uid = request.auth && request.auth.uid;
+    if (!uid) {
+      throw new HttpsError(
+        "unauthenticated",
+        "Bạn cần đăng nhập để gửi email xác thực.",
+      );
+    }
+
+    // Pull the authoritative email/name/verified state from the Auth record
+    // (not from client-supplied data) so we never email an attacker-chosen
+    // address or skip the already-verified check.
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUser(uid);
+    } catch (err) {
+      logger.error("Custom verification email: could not load Auth user.", {
+        uid,
+        message: err && err.message,
+      });
+      throw new HttpsError("internal", "Không thể đọc thông tin tài khoản.");
+    }
+
+    const email = `${userRecord.email || ""}`.trim();
+    if (!email) {
+      throw new HttpsError("failed-precondition", "Tài khoản chưa có email.");
+    }
+
+    // Already verified — nothing to send. Tell the client so it can skip.
+    if (userRecord.emailVerified === true) {
+      return {skipped: true};
+    }
+
+    // Generate the standard Firebase verification link. We intentionally DON'T
+    // pass actionCodeSettings so Firebase uses the default action URL, avoiding
+    // the need to authorize a custom continue-domain.
+    let verifyUrl;
+    try {
+      verifyUrl = await admin.auth().generateEmailVerificationLink(email);
+    } catch (err) {
+      logger.error("Custom verification email: link generation failed.", {
+        uid,
+        message: err && err.message,
+      });
+      throw new HttpsError("internal", "Không thể tạo liên kết xác thực.");
+    }
+
+    // Language for the email copy comes from the client device locale (same
+    // pattern as the push copy), fallback vi.
+    const lang = `${(request.data && request.data.languageCode) || ""}`
+      .trim()
+      .toLowerCase() || "vi";
+    const name = `${userRecord.displayName || ""}`.trim();
+
+    const {subject, html} = buildVerificationEmail({name, verifyUrl, lang});
+
+    // Send via the Resend HTTP API (Node 20 has global fetch — no SDK dep).
+    let response;
+    try {
+      response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${RESEND_API_KEY.value()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: VERIFICATION_EMAIL_FROM,
+          to: [email],
+          subject,
+          html,
+        }),
+      });
+    } catch (err) {
+      logger.error("Custom verification email: Resend request threw.", {
+        uid,
+        message: err && err.message,
+      });
+      throw new HttpsError("internal", "Không gửi được email xác thực.");
+    }
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => "");
+      logger.error("Custom verification email: Resend returned an error.", {
+        uid,
+        status: response.status,
+        detail: detail.slice(0, 500),
+      });
+      // Surface as a failure so the client can show "Resend" / retry.
+      throw new HttpsError("internal", "Không gửi được email xác thực.");
+    }
+
+    logger.info("Custom verification email sent.", {uid, lang});
+    return {sent: true};
+  },
+);
+
 // Mirror of the client-side leaveCouple semantics: if the leaving user is the
 // only remaining member, the couple (with all its photos + Storage objects) is
 // destroyed; otherwise the partner is kept and the couple is demoted back to
@@ -652,7 +1017,21 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
     if (storagePath) {
       tasks.push(deleteStorageObject(storagePath));
     }
-    tasks.push(photoDoc.ref.delete().catch(() => null));
+    // Reactions (feature: reactions ❤️) live in a subcollection under each
+    // photo, so deleting the photo doc alone leaves them orphaned. recursiveDelete
+    // the reactions first, then delete the photo doc itself.
+    tasks.push(
+      db.recursiveDelete(photoDoc.ref.collection("reactions"))
+        .catch((err) => {
+          logger.warn("Failed to recursively delete photo reactions during couple teardown.", {
+            coupleId: coupleRef.id,
+            photoId: photoDoc.id,
+            message: err && err.message,
+          });
+          return null;
+        })
+        .then(() => photoDoc.ref.delete().catch(() => null)),
+    );
   }
 
   // Love notes subcollection (feature #4): one doc per member, no Storage.
@@ -660,6 +1039,18 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
   for (const noteDoc of notesSnap.docs) {
     tasks.push(noteDoc.ref.delete().catch(() => null));
   }
+
+  // Love-note history (feature love-note-history): append-only archive. Without
+  // this the entries linger as orphans after the couple doc is gone.
+  tasks.push(
+    db.recursiveDelete(coupleRef.collection("noteHistory")).catch((err) => {
+      logger.warn("Failed to recursively delete noteHistory during couple teardown.", {
+        coupleId: coupleRef.id,
+        message: err && err.message,
+      });
+      return null;
+    }),
+  );
 
   // Daily question answers (feature #5): nested subcollection
   // (dailyAnswers/{date}/responses/{uid}). recursiveDelete handles the nesting
@@ -673,6 +1064,17 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
       return null;
     }),
   );
+
+  // Couple entry code (feature couple-code): the couple_codes/{code} pointer is
+  // a TOP-LEVEL doc, not a subcollection, so recursiveDelete on the couple won't
+  // touch it. Remove it explicitly or the 6-char code stays mapped to a dead
+  // couple (and can't be reused).
+  const coupleCode = `${(coupleData && coupleData.coupleCode) || ""}`.trim().toUpperCase();
+  if (coupleCode) {
+    tasks.push(
+      db.collection("couple_codes").doc(coupleCode).delete().catch(() => null),
+    );
+  }
 
   const coverPath = `${(coupleData && coupleData.couplePhotoStoragePath) || ""}`.trim();
   if (coverPath) {
@@ -761,6 +1163,28 @@ function buildPartnerJoinedText(languageCode, joinerName) {
   };
 }
 
+// Localized copy for the partner-left push, keyed by the recipient device's
+// languageCode. Unknown/missing codes fall back to Vietnamese.
+const PARTNER_LEFT_COPY = {
+  vi: {
+    title: (name) => `${name} đã rời khỏi không gian của hai người`,
+    body: "Hai bạn đã ngắt kết nối. Mở app để xem lại nhé.",
+  },
+  en: {
+    title: (name) => `${name} has left your shared space`,
+    body: "You're no longer connected. Open the app to take a look.",
+  },
+};
+
+function buildPartnerLeftText(languageCode, leaverName) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = PARTNER_LEFT_COPY[code] || PARTNER_LEFT_COPY.vi;
+  return {
+    title: copy.title(leaverName),
+    body: copy.body,
+  };
+}
+
 // Localized copy for the love-note push (feature #4), keyed by the recipient
 // device's languageCode. Unknown/missing codes fall back to Vietnamese.
 const LOVE_NOTE_COPY = {
@@ -804,6 +1228,29 @@ function buildDailyAnswerText(languageCode, authorName) {
   };
 }
 
+// Localized copy for the reaction push (feature: reactions ❤️), keyed by the
+// recipient device's languageCode. Unknown/missing codes fall back to
+// Vietnamese. The reactor's chosen emoji is baked into the body.
+const REACTION_COPY = {
+  vi: {
+    title: "Dear Embeiu",
+    body: (name, emoji) => `${name} đã thả ${emoji} vào ảnh của bạn`,
+  },
+  en: {
+    title: "Dear Embeiu",
+    body: (name, emoji) => `${name} reacted ${emoji} to your photo`,
+  },
+};
+
+function buildReactionText(languageCode, reactorName, emoji) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = REACTION_COPY[code] || REACTION_COPY.vi;
+  return {
+    title: copy.title,
+    body: copy.body(reactorName, `${emoji || "❤️"}`.trim() || "❤️"),
+  };
+}
+
 function truncateText(value, maxLength) {
   if (value.length <= maxLength) {
     return value;
@@ -811,4 +1258,94 @@ function truncateText(value, maxLength) {
 
   return `${value.slice(0, maxLength - 1).trimEnd()}…`;
 }
+
+// Custom branded password reset email via Resend (feature auth).
+// Replaces Firebase's default sendPasswordResetEmail (which sends from
+// noreply@tonyembeiu.firebaseapp.com → goes to spam). This callable generates
+// the official Firebase reset link via Admin SDK, then delivers it through
+// Resend from noreply@dearembeiu.com — a trusted, on-brand sender.
+//
+// Anti-enumeration: unknown email → return {sent: true} (same as known email)
+// so callers can't probe whether an address is registered.
+exports.sendCustomPasswordResetEmail = onCall(
+  {region: "us-central1", secrets: [RESEND_API_KEY]},
+  async (request) => {
+    const email = `${(request.data && request.data.email) || ""}`.trim().toLowerCase();
+    if (!email) {
+      throw new HttpsError("invalid-argument", "Email không hợp lệ.");
+    }
+
+    const lang = `${(request.data && request.data.languageCode) || ""}`
+      .trim()
+      .toLowerCase() || "vi";
+
+    // Fetch user record to get displayName for the greeting.
+    // If user not found, silently return success (anti-enumeration).
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUserByEmail(email);
+    } catch (err) {
+      if (err && err.code === "auth/user-not-found") {
+        logger.info("Password reset: email not found (anti-enum).", {email});
+        return {sent: true};
+      }
+      logger.error("Password reset: getUserByEmail failed.", {
+        email,
+        message: err && err.message,
+      });
+      throw new HttpsError("internal", "Không thể xử lý yêu cầu.");
+    }
+
+    // Generate the official Firebase password reset link.
+    let resetUrl;
+    try {
+      resetUrl = await admin.auth().generatePasswordResetLink(email);
+    } catch (err) {
+      logger.error("Password reset: link generation failed.", {
+        email,
+        message: err && err.message,
+      });
+      throw new HttpsError("internal", "Không thể tạo liên kết đặt lại mật khẩu.");
+    }
+
+    const name = `${userRecord.displayName || ""}`.trim();
+    const {subject, html} = buildPasswordResetEmail({name, resetUrl, lang});
+
+    let response;
+    try {
+      response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${RESEND_API_KEY.value()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: VERIFICATION_EMAIL_FROM,
+          to: [email],
+          subject,
+          html,
+        }),
+      });
+    } catch (err) {
+      logger.error("Password reset: Resend request threw.", {
+        email,
+        message: err && err.message,
+      });
+      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu.");
+    }
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => "");
+      logger.error("Password reset: Resend returned an error.", {
+        email,
+        status: response.status,
+        detail: detail.slice(0, 500),
+      });
+      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu.");
+    }
+
+    logger.info("Password reset email sent.", {email, lang});
+    return {sent: true};
+  },
+);
 

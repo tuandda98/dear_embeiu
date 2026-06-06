@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -19,14 +21,18 @@ import 'providers/daily_question_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/love_note_provider.dart';
 import 'providers/photo_provider.dart';
+import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
-import 'screens/auth_gate_screen.dart';
+import 'providers/streak_provider.dart';
+import 'screens/forgot_password_screen.dart';
 import 'screens/guest_counter_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
+import 'screens/session_route_screen.dart';
 import 'screens/setup_screen.dart';
-import 'screens/splash_screen.dart';
+import 'screens/verify_email_screen.dart';
+import 'services/analytics_service.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_bootstrap_service.dart';
 import 'services/install_state_service.dart';
@@ -62,35 +68,17 @@ void main() async {
   final initialLocale = await _readSavedLocale();
 
   final authService = AuthService();
+
+  // Robustness (app-robustness A7): only the work the very first frame depends
+  // on runs before runApp — Firebase (for the Crashlytics hook + so providers
+  // see it ready), the FCM background-message handler (must be registered early
+  // on the main isolate or terminated-state pushes are dropped), and the
+  // fresh-install purge (must finish BEFORE the splash resolves a route, or a
+  // reinstall could restore the previous install's session). Everything else —
+  // analytics binding, push permission/token sync, the local-notification
+  // engine, custom-reminder rescheduling — is deferred to just after the first
+  // frame so the splash paints immediately instead of waiting on a slow network.
   await FirebaseBootstrapService.initialize();
-  if (!kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS)) {
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-    await PushNotificationService.instance.initialize();
-  }
-  // Prepare local scheduled-notification infrastructure (timezone + channel)
-  // for the retention "love reminders" feature.
-  await ReminderService.instance.initialize();
-
-  // Restore user-created custom reminders and re-arm their OS schedule on cold
-  // start. Built here (rather than lazily in MultiProvider) so the reschedule
-  // happens once at launch; AppL10n is already set up for the fallback body.
-  final customRemindersProvider = CustomRemindersProvider();
-  await customRemindersProvider.load();
-  // D7 — custom reminders may only be (re)armed while the master "love
-  // reminders" toggle is on (which is when OS permission was granted). When the
-  // master toggle is off their schedule was already cancelled, so on cold start
-  // we must NOT re-arm them; otherwise they'd silently fire again.
-  if (await _readMasterRemindersEnabled()) {
-    await customRemindersProvider.rescheduleAllEnabled();
-  } else {
-    await customRemindersProvider.cancelAllSchedules();
-  }
-
-  await InstallStateService().handleFreshInstall(
-    onFreshInstall: () => authService.purgePersistedSession(),
-  );
 
   if (!kIsWeb && FirebaseBootstrapService.isFirebaseReady) {
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -100,11 +88,81 @@ void main() async {
     };
   }
 
+  final bool isMobile = !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+  if (isMobile) {
+    // Register synchronously (no network) before runApp so a tap-to-open from a
+    // terminated state isn't missed; the heavier PushNotificationService.init
+    // (permission prompt + getToken) is deferred below.
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  }
+
+  // Built here (not lazily) so it survives into MyApp; loaded/rescheduled after
+  // the first frame so it never blocks cold start.
+  final customRemindersProvider = CustomRemindersProvider();
+
+  // Correctness-critical: the reinstall purge must complete before the splash
+  // resolves a route, so it stays on the pre-runApp path.
+  await InstallStateService().handleFreshInstall(
+    onFreshInstall: () => authService.purgePersistedSession(),
+  );
+
   runApp(MyApp(
     authService: authService,
     initialLocale: initialLocale,
     customRemindersProvider: customRemindersProvider,
   ));
+
+  // Deferred, non-route-critical bootstrap — runs after the first frame so the
+  // splash is already on screen. Each step is best-effort and self-contained.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(_initDeferredServices(
+      customRemindersProvider: customRemindersProvider,
+      isMobile: isMobile,
+    ));
+  });
+}
+
+/// Runs the bootstrap work that the first frame doesn't depend on (analytics,
+/// push permission/token sync, the local-notification engine, custom-reminder
+/// rescheduling). Kept sequential to preserve any ordering, but off the
+/// cold-start critical path. Failures are isolated so one slow/failed step
+/// can't stall the rest (app-robustness A7).
+Future<void> _initDeferredServices({
+  required CustomRemindersProvider customRemindersProvider,
+  required bool isMobile,
+}) async {
+  // Analytics (feature: analytics) — bind the SDK after Firebase is up. Safe
+  // no-op when Firebase isn't ready or the user opted out.
+  try {
+    await AnalyticsService.instance.init();
+  } catch (_) {/* analytics is best-effort */}
+
+  if (isMobile) {
+    try {
+      await PushNotificationService.instance.initialize();
+    } catch (_) {/* push stays disabled; re-tried on resume */}
+  }
+
+  // Prepare local scheduled-notification infrastructure (timezone + channel)
+  // for the retention "love reminders" feature.
+  try {
+    await ReminderService.instance.initialize();
+  } catch (_) {/* reminders engine unavailable this session */}
+
+  // Restore user-created custom reminders and re-arm their OS schedule.
+  // D7 — only (re)arm while the master "love reminders" toggle is on (which is
+  // when OS permission was granted); otherwise cancel any lingering schedule so
+  // they don't silently fire.
+  try {
+    await customRemindersProvider.load();
+    if (await _readMasterRemindersEnabled()) {
+      await customRemindersProvider.rescheduleAllEnabled();
+    } else {
+      await customRemindersProvider.cancelAllSchedules();
+    }
+  } catch (_) {/* custom reminders left as-is */}
 }
 
 /// Reads the persisted locale from the `app_settings` Hive box (key `locale`)
@@ -157,17 +215,41 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final AuthProvider _authProvider =
       AuthProvider(authService: widget.authService);
 
+  // App-level navigator key (#3): lets the session-revocation listener route
+  // from outside the widget tree without threading a context around.
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _authProvider.addListener(_handleAuthProviderChanged);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _authProvider.removeListener(_handleAuthProviderChanged);
     _authProvider.dispose();
     super.dispose();
+  }
+
+  /// When the session is revoked out from under us (#3 — token revoked, account
+  /// deleted on another device, password changed), bounce back through the auth
+  /// gate; the resolver then drops the user on the guest screen instead of
+  /// leaving them stranded on a stale /home. Deferred to a post-frame callback
+  /// so we never drive Navigator during a build/notify.
+  void _handleAuthProviderChanged() {
+    if (!_authProvider.sessionRevoked) {
+      return;
+    }
+    _authProvider.acknowledgeSessionRevoked();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        AppRoutes.authGate,
+        (route) => false,
+      );
+    });
   }
 
   @override
@@ -187,8 +269,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => CoupleProvider()),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
+        ChangeNotifierProvider(create: (_) => ReactionProvider()),
         ChangeNotifierProvider(create: (_) => LoveNoteProvider()),
         ChangeNotifierProvider(create: (_) => DailyQuestionProvider()),
+        ChangeNotifierProvider(create: (_) => StreakProvider()),
         ChangeNotifierProvider(
           create: (_) => LocaleProvider(initialLocale: widget.initialLocale),
         ),
@@ -200,6 +284,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
           return MaterialApp(
+            navigatorKey: _navigatorKey,
             onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
             theme: AppTheme.lightTheme,
             locale: localeProvider.locale,
@@ -234,12 +319,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               Intl.defaultLocale = resolved.languageCode;
               return resolved;
             },
-            home: const SplashScreen(),
+            home: const SessionRouteScreen(branded: true),
+            // Auto screen_view logging (feature: analytics). Empty list when
+            // analytics is unavailable (Firebase not ready) so nothing breaks.
+            navigatorObservers: [
+              if (AnalyticsService.instance.observer != null)
+                AnalyticsService.instance.observer!,
+            ],
             debugShowCheckedModeBanner: false,
             routes: {
-              AppRoutes.authGate: (_) => const AuthGateScreen(),
+              AppRoutes.authGate: (_) => const SessionRouteScreen(),
               AppRoutes.login: (_) => const LoginScreen(),
               AppRoutes.register: (_) => const RegisterScreen(),
+              AppRoutes.forgotPassword: (_) => const ForgotPasswordScreen(),
+              AppRoutes.verifyEmail: (_) => const VerifyEmailScreen(),
               AppRoutes.home: (_) => const HomeScreen(),
               AppRoutes.setup: (_) => const SetupScreen(),
               // Guest counter is a pure-local trial flow (Apple 5.1.1). It does

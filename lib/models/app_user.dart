@@ -53,6 +53,27 @@ class AppUser {
         'lastSeenAt': lastSeenAt,
       };
 
+  // Narrow payload for a couple membership change (create/join/leave). Sends
+  // ONLY the fields that legitimately change when (un)pairing — never the
+  // immutable `email`/`inviteCode`/`createdAt`. Written with merge so the
+  // server keeps those stored values.
+  //
+  // Fix for `coupleSavePermissionDenied` on the user write: the rule
+  // `canUpdateOwnUser` enforces
+  //   request.resource.data.email      == resource.data.email
+  //   request.resource.data.inviteCode == resource.data.inviteCode (once set)
+  // If the local user copy is stale (e.g. its inviteCode/email drifted) and we
+  // re-send those, the equality fails → permission-denied. Omitting them and
+  // relying on merge means both sides of the check are the server value, so it
+  // always passes. (`displayName`/`avatarUrl` are also intentionally omitted —
+  // a coupling op should not touch them.)
+  Map<String, dynamic> toCoupleMembershipPayload() => {
+        'coupleId': coupleId,
+        'status': status,
+        'updatedAt': updatedAt,
+        'lastSeenAt': lastSeenAt,
+      };
+
   // Payload for merge-updates of an existing doc. Intentionally omits the
   // immutable `createdAt`: re-sending it round-trips the value through
   // DateTime, and on iOS the DateTime→Timestamp conversion drifts by a few

@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../l10n/app_l10n.dart';
 import '../models/custom_reminder.dart';
+import '../services/analytics_service.dart';
 import '../services/reminder_service.dart';
 
 /// CRUD + persistence + scheduling for user-created custom reminders (D1–D9).
@@ -119,6 +120,9 @@ class CustomRemindersProvider extends ChangeNotifier {
     await _persist(reminder);
     await _schedule(reminder);
     notifyListeners();
+    // Analytics — a custom reminder was created (only the recurrence kind, no
+    // name/note is ever logged).
+    AnalyticsService.instance.logReminderCreated(recurrence.name);
     return reminder;
   }
 

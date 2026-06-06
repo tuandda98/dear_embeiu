@@ -854,6 +854,30 @@ abstract class AppLocalizations {
   /// **'Your note was sent 💞'**
   String get loveNoteSaved;
 
+  /// No description provided for @loveNoteHistoryCta.
+  ///
+  /// In en, this message translates to:
+  /// **'See past notes'**
+  String get loveNoteHistoryCta;
+
+  /// No description provided for @loveNoteHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Note journal'**
+  String get loveNoteHistoryTitle;
+
+  /// No description provided for @loveNoteHistorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every note you two have left for each other.'**
+  String get loveNoteHistorySubtitle;
+
+  /// No description provided for @loveNoteHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes saved yet. The ones you send each other will be kept here.'**
+  String get loveNoteHistoryEmpty;
+
   /// No description provided for @loveNoteJustNow.
   ///
   /// In en, this message translates to:
@@ -877,6 +901,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 day ago} other{{count} days ago}}'**
   String loveNoteDaysAgo(int count);
+
+  /// Faint hint shown on the reaction bar before anyone reacts
+  ///
+  /// In en, this message translates to:
+  /// **'React to this moment'**
+  String get reactionHint;
+
+  /// Label on the current user's own reaction chip
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get reactionYouLabel;
+
+  /// Tooltip / a11y label for the heart button when adding a reaction
+  ///
+  /// In en, this message translates to:
+  /// **'React'**
+  String get reactionAddTooltip;
+
+  /// Tooltip / a11y label for long-pressing to change the reaction emoji
+  ///
+  /// In en, this message translates to:
+  /// **'Change reaction'**
+  String get reactionChangeTooltip;
+
+  /// Tooltip / a11y label for the heart button when it would remove the user's reaction
+  ///
+  /// In en, this message translates to:
+  /// **'Remove reaction'**
+  String get reactionRemoveTooltip;
+
+  /// SnackBar shown when writing a reaction fails and was rolled back
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t react, try again'**
+  String get reactionErrorRetry;
+
+  /// a11y label / tooltip for the partner's reaction chip
+  ///
+  /// In en, this message translates to:
+  /// **'{name} reacted {emoji}'**
+  String reactionPartnerReacted(String name, String emoji);
+
+  /// a11y label when both members have reacted to a photo
+  ///
+  /// In en, this message translates to:
+  /// **'You both reacted 💞'**
+  String get reactionBothLabel;
 
   /// No description provided for @dailyQuestionLabel.
   ///
@@ -937,6 +1009,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your answer was sent 💞'**
   String get dailyQuestionSent;
+
+  /// No description provided for @journalEntryCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Open journal'**
+  String get journalEntryCta;
+
+  /// No description provided for @journalScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Question journal'**
+  String get journalScreenTitle;
+
+  /// No description provided for @journalScreenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The questions you\'ve both answered.'**
+  String get journalScreenSubtitle;
+
+  /// No description provided for @journalSettingsTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Question journal'**
+  String get journalSettingsTile;
+
+  /// No description provided for @journalSettingsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Memories'**
+  String get journalSettingsSection;
+
+  /// No description provided for @journalYourAnswerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR ANSWER'**
+  String get journalYourAnswerLabel;
+
+  /// No description provided for @journalPartnerAnswerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'S ANSWER'**
+  String journalPartnerAnswerLabel(String name);
+
+  /// No description provided for @journalLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get journalLoadMore;
+
+  /// No description provided for @journalEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No question memories yet'**
+  String get journalEmptyTitle;
+
+  /// No description provided for @journalEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When you both answer a daily question, that moment gets saved here.'**
+  String get journalEmptyBody;
+
+  /// No description provided for @journalEmptyCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer today\'s question'**
+  String get journalEmptyCta;
+
+  /// No description provided for @journalEmptyNoPartnerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite your partner to start your journal together.'**
+  String get journalEmptyNoPartnerBody;
+
+  /// No description provided for @journalEmptyNoPartnerCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite partner'**
+  String get journalEmptyNoPartnerCta;
+
+  /// No description provided for @journalErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the journal'**
+  String get journalErrorTitle;
+
+  /// No description provided for @journalRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get journalRetry;
+
+  /// No description provided for @loveNoteYourNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR NOTE'**
+  String get loveNoteYourNoteLabel;
 
   /// No description provided for @milestoneReached.
   ///
@@ -1346,6 +1514,12 @@ abstract class AppLocalizations {
   /// **'Uploading photo...'**
   String get uploadingPhoto;
 
+  /// No description provided for @uploadingPhotoProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading {current}/{total}...'**
+  String uploadingPhotoProgress(int current, int total);
+
   /// No description provided for @deletingPhoto.
   ///
   /// In en, this message translates to:
@@ -1357,6 +1531,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Updating caption...'**
   String get updatingCaption;
+
+  /// No description provided for @galleryLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load photos'**
+  String get galleryLoadErrorTitle;
+
+  /// No description provided for @galleryLoadErrorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your memories are safe — we just couldn\'t reach them right now.'**
+  String get galleryLoadErrorSubtitle;
+
+  /// No description provided for @galleryRetryBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get galleryRetryBtn;
+
+  /// No description provided for @multiPhotosResultPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Posted {success}/{total}, {failed} failed'**
+  String multiPhotosResultPartial(int success, int total, int failed);
 
   /// No description provided for @feedDateFormat.
   ///
@@ -1483,18 +1681,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your account invite code'**
   String get yourInviteCodeLabel;
-
-  /// No description provided for @dayStreakLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Day streak'**
-  String get dayStreakLabel;
-
-  /// No description provided for @dayStreakValue.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} days and still going'**
-  String dayStreakValue(int count);
 
   /// No description provided for @memoryAlbumLabel.
   ///
@@ -1628,6 +1814,30 @@ abstract class AppLocalizations {
   /// **'Leave couple'**
   String get leaveCoupleActionBtn;
 
+  /// No description provided for @leaveCoupleDeleteAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your shared space?'**
+  String get leaveCoupleDeleteAllTitle;
+
+  /// No description provided for @leaveCoupleDeleteAllContent.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re the last member. Leaving will permanently delete ALL your shared memories — photos, love notes, and the question journal. This can\'t be undone.'**
+  String get leaveCoupleDeleteAllContent;
+
+  /// No description provided for @leaveCoupleDeleteAllBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete everything'**
+  String get leaveCoupleDeleteAllBtn;
+
+  /// Snackbar shown when leaving the couple fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t leave the couple right now. Please check your connection and try again.'**
+  String get leaveCoupleError;
+
   /// No description provided for @localDataClearedMsg.
   ///
   /// In en, this message translates to:
@@ -1759,6 +1969,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn on notifications in Settings to receive reminders.'**
   String get remindersPermissionDeniedMsg;
+
+  /// No description provided for @dailyQuestionReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily question reminder'**
+  String get dailyQuestionReminderTitle;
+
+  /// No description provided for @dailyQuestionReminderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A gentle daily nudge to answer together.'**
+  String get dailyQuestionReminderSubtitle;
+
+  /// No description provided for @dailyQuestionReminderTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me at'**
+  String get dailyQuestionReminderTimeLabel;
+
+  /// No description provided for @dailyQuestionReminderNotifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s question is waiting 💌'**
+  String get dailyQuestionReminderNotifTitle;
+
+  /// No description provided for @dailyQuestionReminderNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer it to unlock your partner\'s reply.'**
+  String get dailyQuestionReminderNotifBody;
 
   /// No description provided for @reminderDailyTitle.
   ///
@@ -2011,6 +2251,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your story, data & account'**
   String get settingsAccountModuleSubtitle;
+
+  /// No description provided for @settingsAnalyticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share usage data'**
+  String get settingsAnalyticsTitle;
+
+  /// No description provided for @settingsAnalyticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help improve the app with anonymous data. We never collect your private content.'**
+  String get settingsAnalyticsSubtitle;
 
   /// No description provided for @settingsEditStorySubtitle.
   ///
@@ -2423,7 +2675,7 @@ abstract class AppLocalizations {
   /// authFirestorePermissionDenied
   ///
   /// In en, this message translates to:
-  /// **'Firestore is blocking writes to user data. This app connects to the Firebase project `tonyembeiu`, so check that project\'s Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.'**
+  /// **'Firestore is blocking writes to user data. Check this app\'s Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.'**
   String get authFirestorePermissionDenied;
 
   /// authFirestoreUnavailable
@@ -2762,6 +3014,24 @@ abstract class AppLocalizations {
   /// **'Please sign out, sign in again, and retry to verify your identity'**
   String get deleteAccountRequiresReloginMsg;
 
+  /// Title of the re-auth dialog shown when deleting an account needs a recent login
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you'**
+  String get deleteAccountReauthTitle;
+
+  /// Body of the re-auth dialog before deleting an account
+  ///
+  /// In en, this message translates to:
+  /// **'For your security, re-enter your password to permanently delete your account.'**
+  String get deleteAccountReauthBody;
+
+  /// Shown when re-auth can't proceed because there's no local session left
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again, then delete your account.'**
+  String get deleteAccountSessionExpiredMsg;
+
   /// deleteAccountSuccessMsg
   ///
   /// In en, this message translates to:
@@ -2960,6 +3230,12 @@ abstract class AppLocalizations {
   /// **'Sign out?'**
   String get signOutDialogTitle;
 
+  /// signOutFailedMsg
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign out. Please check your connection and try again.'**
+  String get signOutFailedMsg;
+
   /// welcomeBackBadge
   ///
   /// In en, this message translates to:
@@ -3085,6 +3361,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign up'**
   String get guestCtaRegister;
+
+  /// Streak chip — active couple with no streak yet (shame-free invite)
+  ///
+  /// In en, this message translates to:
+  /// **'Start a streak together'**
+  String get streakChipNoStreak;
+
+  /// Streak chip — after a reset, positive restart framing
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s start a new streak 🌱'**
+  String get streakChipRestart;
+
+  /// No description provided for @streakChipActiveToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}-day streak · done for today ✨'**
+  String streakChipActiveToday(int n);
+
+  /// No description provided for @streakChipInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}-day streak · today\'s your turn 🌸'**
+  String streakChipInProgress(int n);
+
+  /// No description provided for @streakChipAtRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {n}-day streak is waiting 🫶'**
+  String streakChipAtRisk(int n);
+
+  /// No description provided for @streakSheetUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'days connected in a row'**
+  String get streakSheetUnit;
+
+  /// No description provided for @streakSheetNoStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Light your first spark'**
+  String get streakSheetNoStreakTitle;
+
+  /// No description provided for @streakSheetNoStreakBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each day you both answer the question, your streak grows. Let\'s begin 💞'**
+  String get streakSheetNoStreakBody;
+
+  /// No description provided for @streakSheetActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re keeping the spark alive 💞'**
+  String get streakSheetActiveTitle;
+
+  /// No description provided for @streakSheetActiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All done today! See you at tomorrow\'s question.'**
+  String get streakSheetActiveBody;
+
+  /// No description provided for @streakSheetInProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak\'s still glowing 🌸'**
+  String get streakSheetInProgressTitle;
+
+  /// No description provided for @streakSheetInProgressBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer today\'s question to keep your {n}-day streak going 💞'**
+  String streakSheetInProgressBody(int n);
+
+  /// No description provided for @streakSheetAtRiskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One soft day left 🫶'**
+  String get streakSheetAtRiskTitle;
+
+  /// No description provided for @streakSheetAtRiskBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You missed a beat yesterday — totally okay! Answer today and your {n}-day streak picks right back up.'**
+  String streakSheetAtRiskBody(int n);
+
+  /// No description provided for @streakSheetRestartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The old streak wrapped up, but every new day\'s a fresh start. Let\'s light it again 🌱'**
+  String get streakSheetRestartBody;
+
+  /// No description provided for @streakSheetRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Your record: {m} days 🌟'**
+  String streakSheetRecord(int m);
+
+  /// No description provided for @streakNextMilestone.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days to your {m}-day milestone 🎉'**
+  String streakNextMilestone(int n, int m);
+
+  /// No description provided for @streakCtaAnswerNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer now'**
+  String get streakCtaAnswerNow;
+
+  /// No description provided for @streakCtaKeepGoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it going'**
+  String get streakCtaKeepGoing;
+
+  /// No description provided for @streakMilestone3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'3 days already! 🌸'**
+  String get streakMilestone3Title;
+
+  /// No description provided for @streakMilestone3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'What a sweet start. You two are doing great 💞'**
+  String get streakMilestone3Body;
+
+  /// No description provided for @streakMilestone7Title.
+  ///
+  /// In en, this message translates to:
+  /// **'A whole week! ✨'**
+  String get streakMilestone7Title;
+
+  /// No description provided for @streakMilestone7Body.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days without missing a beat. So proud of you both!'**
+  String get streakMilestone7Body;
+
+  /// No description provided for @streakMilestone30Title.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days, every single day! 🔥'**
+  String get streakMilestone30Title;
+
+  /// No description provided for @streakMilestone30Body.
+  ///
+  /// In en, this message translates to:
+  /// **'A month of keeping it lit — this is your ritual now 💞'**
+  String get streakMilestone30Body;
+
+  /// No description provided for @streakMilestone100Title.
+  ///
+  /// In en, this message translates to:
+  /// **'100 days! 💯'**
+  String get streakMilestone100Title;
+
+  /// No description provided for @streakMilestone100Body.
+  ///
+  /// In en, this message translates to:
+  /// **'A hundred days answering together, growing together. Few couples make it this far 🌟'**
+  String get streakMilestone100Body;
+
+  /// No description provided for @streakMilestone365Title.
+  ///
+  /// In en, this message translates to:
+  /// **'A full year! 👑'**
+  String get streakMilestone365Title;
+
+  /// No description provided for @streakMilestone365Body.
+  ///
+  /// In en, this message translates to:
+  /// **'365 days of never missing your connection. This is your love story 💞👑'**
+  String get streakMilestone365Body;
+
+  /// No description provided for @streakJournalSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}-day streak · longest {m}'**
+  String streakJournalSummary(int n, int m);
+
+  /// No description provided for @streakJournalSummaryNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer together each day to start a streak 🌸'**
+  String get streakJournalSummaryNone;
+
+  /// forgotPasswordLink
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get forgotPasswordLink;
+
+  /// forgotPasswordBadge
+  ///
+  /// In en, this message translates to:
+  /// **'RECOVER ACCESS'**
+  String get forgotPasswordBadge;
+
+  /// forgotPasswordTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot your password?'**
+  String get forgotPasswordTitle;
+
+  /// forgotPasswordSubtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email and we\'ll send you a link to reset your password.'**
+  String get forgotPasswordSubtitle;
+
+  /// forgotPasswordEmailHeading
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get forgotPasswordEmailHeading;
+
+  /// forgotPasswordSendBtn
+  ///
+  /// In en, this message translates to:
+  /// **'Send reset email'**
+  String get forgotPasswordSendBtn;
+
+  /// forgotPasswordBackToLogin
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get forgotPasswordBackToLogin;
+
+  /// forgotPasswordSentTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Check your inbox'**
+  String get forgotPasswordSentTitle;
+
+  /// forgotPasswordSentBody
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve sent a password reset link to {email}. Open the email and tap the link to reset it. Don\'t forget to check your spam folder.'**
+  String forgotPasswordSentBody(String email);
+
+  /// forgotPasswordResendLink
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t get it? Resend'**
+  String get forgotPasswordResendLink;
+
+  /// forgotPasswordNetworkError
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the email. Check your connection and try again.'**
+  String get forgotPasswordNetworkError;
+
+  /// forgotPasswordLocalFallback
+  ///
+  /// In en, this message translates to:
+  /// **'This feature needs an internet connection. Please connect and try again.'**
+  String get forgotPasswordLocalFallback;
+
+  /// verifyEmailBadge
+  ///
+  /// In en, this message translates to:
+  /// **'VERIFY EMAIL'**
+  String get verifyEmailBadge;
+
+  /// verifyEmailTitle
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get verifyEmailTitle;
+
+  /// verifyEmailSubtitle
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve sent a verification link to {email}.'**
+  String verifyEmailSubtitle(String email);
+
+  /// verifyEmailBody
+  ///
+  /// In en, this message translates to:
+  /// **'Open the email, tap the verification link, then come back here and tap \"I\'ve verified\".'**
+  String get verifyEmailBody;
+
+  /// verifyEmailCheckBtn
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve verified'**
+  String get verifyEmailCheckBtn;
+
+  /// verifyEmailResend
+  ///
+  /// In en, this message translates to:
+  /// **'Resend email'**
+  String get verifyEmailResend;
+
+  /// verifyEmailResendCountdown
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {time}'**
+  String verifyEmailResendCountdown(String time);
+
+  /// verifyEmailNotYet
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified yet — please check your inbox and try again.'**
+  String get verifyEmailNotYet;
+
+  /// verifyEmailSuccess
+  ///
+  /// In en, this message translates to:
+  /// **'Verified! Taking you in...'**
+  String get verifyEmailSuccess;
+
+  /// verifyEmailResendError
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t resend the email. Check your connection and try again.'**
+  String get verifyEmailResendError;
+
+  /// No description provided for @setupWaitingCoupleCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this code to connect'**
+  String get setupWaitingCoupleCodeTitle;
+
+  /// No description provided for @setupCoupleCodeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your couple\'s pairing code. Either of you can use it to reconnect.'**
+  String get setupCoupleCodeDesc;
+
+  /// No description provided for @setupCoupleCodeRejoinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this code — you can use it to rejoin your space at any time.'**
+  String get setupCoupleCodeRejoinHint;
+
+  /// No description provided for @galleryNeedsCoupleToUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with your partner first before sharing photos 💞'**
+  String get galleryNeedsCoupleToUpload;
 }
 
 class _AppLocalizationsDelegate

@@ -53,10 +53,20 @@ post_install do |installer|
   runner_project = Xcodeproj::Project.open(runner_project_path)
   runner_target = runner_project.targets.find { |t| t.name == 'Runner' }
   phase_name = 'Strip Invalid Architectures'
-  if runner_target && runner_target.shell_script_build_phases.none? { |p| p.name == phase_name }
-    phase = runner_target.new_shell_script_build_phase(phase_name)
+  if runner_target
+    # Find-or-create so the script is UPDATED on every re-install, not added once.
+    phase = runner_target.shell_script_build_phases.find { |p| p.name == phase_name }
+    phase ||= runner_target.new_shell_script_build_phase(phase_name)
     phase.shell_script = <<~'SCRIPT'
       set -e
+      # Simulator builds keep every slice — they are never uploaded to the App
+      # Store, and stripping the simulator slice (e.g. from objective_c.framework)
+      # makes the app fail to dlopen its FFI framework on the simulator. Only
+      # strip for device/archive builds (PLATFORM_NAME=iphoneos), where a
+      # simulator slice fails App Store validation.
+      if [ "${PLATFORM_NAME}" = "iphonesimulator" ]; then
+        exit 0
+      fi
       APP_FRAMEWORKS="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
       [ -d "$APP_FRAMEWORKS" ] || exit 0
       find "$APP_FRAMEWORKS" -name '*.framework' -type d | while read -r FRAMEWORK; do
@@ -75,6 +85,52 @@ post_install do |installer|
         fi
       done
     SCRIPT
+
+    # Pick the Firebase environment by build configuration:
+    #   Debug / Profile -> dev  (tonyembeiu-dev)   — `flutter run` (+ --profile)
+    #   Release (+ any)  -> prod (tonyembeiu)       — store/archive builds
+    # Prod is the SAFE FALLBACK: only Debug/Profile swap in ios/config/dev, so a
+    # release (or any unexpected config) can never ship the dev config. Runs
+    # FIRST so the fresh plist is the one bundled by "Copy Bundle Resources".
+    gs_phase_name = 'Select GoogleService-Info (env)'
+    gs_phase = runner_target.shell_script_build_phases.find { |p| p.name == gs_phase_name }
+    gs_phase ||= runner_target.new_shell_script_build_phase(gs_phase_name)
+    gs_phase.shell_script = <<~'SCRIPT'
+      set -e
+      CONFIG_SRC="${SRCROOT}/config/prod/GoogleService-Info.plist"
+      if [ "${CONFIGURATION}" = "Debug" ] || [ "${CONFIGURATION}" = "Profile" ]; then
+        CONFIG_SRC="${SRCROOT}/config/dev/GoogleService-Info.plist"
+      fi
+      DEST="${SRCROOT}/Runner/GoogleService-Info.plist"
+      if [ -f "${CONFIG_SRC}" ]; then
+        cp -f "${CONFIG_SRC}" "${DEST}"
+        echo "Firebase config (${CONFIGURATION}) -> ${CONFIG_SRC}"
+      else
+        echo "warning: ${CONFIG_SRC} not found; keeping existing ${DEST}"
+      fi
+    SCRIPT
+    # Force-run every build (no input/output caching) and move to run first.
+    gs_phase.always_out_of_date = '1'
+    runner_target.build_phases.delete(gs_phase)
+    runner_target.build_phases.unshift(gs_phase)
+
+    # Side-by-side dev install: give Debug/Profile a `.dev` bundle id + "Dev"
+    # display name so a `flutter run` build installs ALONGSIDE the App Store
+    # build on a real device instead of overwriting it. Release keeps the
+    # production id (store/archive builds unaffected). Idempotent; survives
+    # `pod install`. Pairs with ios/config/dev/GoogleService-Info.plist being
+    # registered for `com.tony.dearembeiu.dev` in the DEV Firebase project.
+    base_bundle_id = 'com.tony.dearembeiu'
+    runner_target.build_configurations.each do |bc|
+      if bc.name == 'Debug' || bc.name == 'Profile'
+        bc.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = "#{base_bundle_id}.dev"
+        bc.build_settings['APP_DISPLAY_NAME'] = 'Dear Embeiu Dev'
+      else
+        bc.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = base_bundle_id
+        bc.build_settings['APP_DISPLAY_NAME'] = 'Dear Embeiu'
+      end
+    end
+
     runner_project.save
   end
 end

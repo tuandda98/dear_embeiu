@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -9,6 +10,7 @@ import 'package:uuid/uuid.dart';
 
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
+import '../models/couple.dart';
 import 'firebase_bootstrap_service.dart';
 import 'storage_service.dart';
 import 'user_service.dart';
@@ -21,6 +23,14 @@ class AuthException implements Exception {
   @override
   String toString() => message;
 }
+
+/// Cutoff for mandatory email verification (feature auth, Đợt 1 — D-auth2).
+///
+/// Only accounts created on/after this instant are hard-gated behind email
+/// verification. Pre-cutoff accounts (existing v1.0 users) and providers that
+/// are verified on creation (Google/Apple, Đợt 2) are grandfathered in so the
+/// gate can never lock out users who already exist.
+final DateTime kEmailVerificationCutoff = DateTime.utc(2026, 6, 5);
 
 /// Sprint 1 local scaffold.
 ///
@@ -67,13 +77,29 @@ class AuthService {
 
       await _ensureFirebaseSessionReady(firebaseUser);
 
-      final existingProfile = await _userService.fetchUserProfile(firebaseUser.uid);
+      // Robustness (app-robustness A5): bound the profile fetch so a slow/offline
+      // Firestore can't freeze the cold-start route resolution. On timeout we
+      // reconstruct a usable profile from the (already authenticated) Firebase
+      // user plus the locally cached couple, so the user still lands on the
+      // right screen (home if a cached couple includes this uid, else setup).
+      AppUser? existingProfile;
+      try {
+        existingProfile = await _userService
+            .fetchUserProfile(firebaseUser.uid)
+            .timeout(const Duration(seconds: 5));
+      } on TimeoutException {
+        return await _buildOfflineFallbackProfile(firebaseUser);
+      }
+
       if (existingProfile != null) {
         final refreshedProfile = await _ensureInviteCode(existingProfile.copyWith(
           lastSeenAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ));
-        await _userService.updateUserProfile(refreshedProfile);
+        // Robustness (app-robustness A4): the lastSeenAt/updatedAt refresh is
+        // pure housekeeping — it must not block the route. Fire-and-forget so
+        // these two Firestore writes happen off the cold-start critical path.
+        unawaited(_userService.updateUserProfile(refreshedProfile));
         return refreshedProfile;
       }
 
@@ -148,6 +174,18 @@ class AuthService {
         } on FirebaseException catch (e) {
           await firebaseUser.delete();
           throw AuthException(_mapFirestoreError(e));
+        }
+
+        // Mandatory email verification (feature auth, Đợt 1). Send the link as
+        // part of sign-up so the new user lands on the verify screen with a mail
+        // already in their inbox. Custom branded email (Cách B) goes out via the
+        // `sendCustomVerificationEmail` callable (Resend) instead of Firebase's
+        // default template. Wrapped: a failed send must NOT break sign-up (the
+        // account exists, the user can still "Resend" from the gate).
+        try {
+          await _sendCustomVerificationEmail();
+        } catch (_) {
+          // Best-effort — verify screen exposes a manual "Resend" button.
         }
 
         return user;
@@ -274,6 +312,178 @@ class AuthService {
     await _delete(_sessionStorageKey);
   }
 
+  /// Continuous session-presence stream (feature auth — session-liveness #3).
+  /// Emits `true` while a Firebase user is signed in and `false` the moment the
+  /// session ends — including EXTERNAL revocations the user didn't trigger here
+  /// (token revoked, account deleted on another device, password changed). The
+  /// [AuthProvider] subscribes once so a dead session is pushed back to the
+  /// guest gate instead of stranding the user on a stale /home. In local mode
+  /// there is no such stream, so we return an empty one (never emits).
+  Stream<bool> sessionActiveChanges() {
+    if (!isUsingFirebase) {
+      return const Stream<bool>.empty();
+    }
+    return _auth.authStateChanges().map((user) => user != null);
+  }
+
+  /// Re-authenticates the current Firebase user with their password so a
+  /// sensitive op (account deletion) can clear a stale-session
+  /// `unauthenticated` challenge (#2). Minting a fresh credential repairs the
+  /// ID token the callable needs. Firebase-only. Throws [AuthException]:
+  /// `'session-gone'` when there is no local user/email to re-auth (must do a
+  /// full re-login), otherwise a mapped message (e.g. wrong password).
+  Future<void> reauthenticateWithPassword(String password) async {
+    if (!isUsingFirebase) {
+      return;
+    }
+    final user = _auth.currentUser;
+    final email = user?.email?.trim();
+    if (user == null || email == null || email.isEmpty) {
+      throw const AuthException('session-gone');
+    }
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: password.trim(),
+      );
+      await user.reauthenticateWithCredential(credential);
+      // Force a fresh ID token so the next deleteAccount callable carries a
+      // valid auth context instead of re-hitting `unauthenticated`.
+      await user.getIdToken(true);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(_mapFirebaseAuthError(e));
+    }
+  }
+
+  /// Email of the currently authenticated Firebase user (null in local mode or
+  /// when signed out). Used by the verify-email gate to show where the link
+  /// was sent.
+  String? get currentEmail => _auth.currentUser?.email;
+
+  /// True only when the current Firebase user is a post-cutoff account that has
+  /// NOT yet verified its email (D-auth2). Local-fallback always returns false
+  /// (no email infra, D-auth3); Google/Apple users are verified on creation so
+  /// they return false too. Grandfathered accounts (created before the cutoff)
+  /// also return false. Uses `!creationTime.isBefore(cutoff)` so the cutoff
+  /// instant itself counts as in-scope.
+  bool get requiresEmailVerification {
+    if (!isUsingFirebase) {
+      return false;
+    }
+    final user = _auth.currentUser;
+    if (user == null || user.emailVerified) {
+      return false;
+    }
+    final creationTime = user.metadata.creationTime;
+    if (creationTime == null) {
+      return false;
+    }
+    return !creationTime.isBefore(kEmailVerificationCutoff);
+  }
+
+  /// Sends a password-reset email (feature auth, Đợt 1). D-auth4: to avoid
+  /// leaking which emails are registered, a `user-not-found` is swallowed and
+  /// reported as success — the caller shows the neutral "we sent it" state
+  /// regardless. `invalid-email` is mapped to an exception (the UI validator
+  /// blocks it first, but we still map defensively); network/other errors throw.
+  Future<void> sendPasswordResetEmail(String email) async {
+    if (!isUsingFirebase) {
+      throw AuthException(AppL10n.strings.forgotPasswordLocalFallback);
+    }
+
+    try {
+      // Use custom CF so the email arrives from noreply@dearembeiu.com (Resend)
+      // instead of noreply@tonyembeiu.firebaseapp.com — avoids spam folder.
+      await _functions
+          .httpsCallable('sendCustomPasswordResetEmail')
+          .call<dynamic>(<String, dynamic>{
+        'email': email.trim().toLowerCase(),
+        'languageCode': _activeLanguageCode,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      // CF returns success for unknown email (anti-enumeration) so we only
+      // surface real errors (network failure, Resend down, etc.).
+      throw AuthException(e.message ?? AppL10n.strings.forgotPasswordNetworkError);
+    }
+  }
+
+  /// Re-sends the verification email to the current user (feature auth, Đợt 1).
+  /// Custom branded email (Cách B) via the `sendCustomVerificationEmail`
+  /// callable; a failure throws [AuthException] so the verify screen can show
+  /// its resend-error state.
+  Future<void> resendEmailVerification() async {
+    try {
+      await _sendCustomVerificationEmail();
+    } on FirebaseFunctionsException catch (e) {
+      throw AuthException(e.message ?? AppL10n.strings.authNetworkError);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(_mapFirebaseAuthError(e));
+    }
+  }
+
+  /// Invokes the `sendCustomVerificationEmail` callable, which generates the
+  /// Firebase verification link server-side and delivers the on-brand HTML email
+  /// through Resend (feature auth — Cách B). The verification MECHANISM is
+  /// unchanged (same oobCode link, app still polls `reload()`); only the email
+  /// delivery channel differs from `FirebaseUser.sendEmailVerification()`.
+  /// Passes the active UI language so the email copy matches what the user sees.
+  Future<void> _sendCustomVerificationEmail() async {
+    await _functions.httpsCallable('sendCustomVerificationEmail').call<dynamic>(
+      <String, dynamic>{'languageCode': _activeLanguageCode},
+    );
+  }
+
+  // ── Single-session enforcement ──────────────────────────────────────────────
+
+  static const String _sessionTokenKey = 'session_token_v2';
+
+  /// Generates a UUID, writes it to Firestore `users/{uid}.sessionToken` and
+  /// to secure local storage, then returns it. Any other device watching this
+  /// field will detect the mismatch and sign itself out.
+  Future<String> mintSessionToken(String uid) async {
+    if (!isUsingFirebase) return '';
+    final token = _uuid.v4();
+    await _userService.updateSessionToken(uid, token);
+    await _write(_sessionTokenKey, token);
+    return token;
+  }
+
+  /// Reads the session token we wrote locally on the last sign-in / cold-start.
+  Future<String?> readLocalSessionToken() async => _read(_sessionTokenKey);
+
+  /// Streams the `sessionToken` field from Firestore so the provider can react
+  /// immediately when another device mints a replacement token.
+  Stream<String?> watchSessionToken(String uid) {
+    if (!isUsingFirebase) return const Stream.empty();
+    return _userService.watchSessionToken(uid);
+  }
+
+  /// Clears the locally-stored session token (called on explicit sign-out so
+  /// a leftover token on this device can't cause false-positive kicks).
+  Future<void> clearLocalSessionToken() async => _delete(_sessionTokenKey);
+
+  // ────────────────────────────────────────────────────────────────────────────
+
+  /// Current UI language code ('vi' | 'en') without a BuildContext. Mirrors the
+  /// locale MaterialApp resolved (synced into [AppL10n] via
+  /// localeResolutionCallback); falls back to 'vi'.
+  String get _activeLanguageCode {
+    final code =
+        AppL10n.strings.localeName.split(RegExp('[_-]')).first.trim().toLowerCase();
+    return code.isNotEmpty ? code : 'vi';
+  }
+
+  /// Reloads the Firebase user (so a link tapped on another device/tab is
+  /// reflected) and returns whether the email is now verified.
+  Future<bool> reloadAndCheckEmailVerified() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return false;
+    }
+    await user.reload();
+    return _auth.currentUser?.emailVerified ?? false;
+  }
+
   Future<void> purgePersistedSession({bool clearDeviceCache = true}) async {
     if (_firebaseAuth != null || Firebase.apps.isNotEmpty) {
       try {
@@ -314,7 +524,17 @@ class AuthService {
     // it as admin also avoids the `requires-recent-login` challenge that a
     // client-side FirebaseUser.delete() would hit.
     try {
-      await _functions.httpsCallable('deleteAccount').call<dynamic>();
+      // Robustness (app-robustness C): bound the callable so the delete flow
+      // can't hang forever behind a stuck network. 60s is generous on purpose —
+      // the server runs recursiveDelete over the couple's subcollections + a
+      // Storage purge, which can legitimately take tens of seconds — so a
+      // shorter timeout would false-fail a deletion that is actually succeeding.
+      await _functions
+          .httpsCallable('deleteAccount')
+          .call<dynamic>()
+          .timeout(const Duration(seconds: 60));
+    } on TimeoutException {
+      throw AuthException(AppL10n.strings.authNetworkError);
     } on FirebaseFunctionsException catch (e) {
       if (e.code == 'unauthenticated') {
         throw AuthException('requires-recent-login');
@@ -396,6 +616,34 @@ class AuthService {
     }
   }
 
+  /// Builds a best-effort [AppUser] when the Firestore profile fetch times out
+  /// on cold start (app-robustness A5). The Firebase user is already
+  /// authenticated, so identity is trusted; we enrich it with the locally
+  /// cached couple (if its members include this uid) so route resolution still
+  /// sends the user to home rather than setup. inviteCode is left empty (it is
+  /// only needed on the setup/invite surface, which a coupled user won't see);
+  /// the real profile is reconciled on the next successful fetch/resume.
+  Future<AppUser> _buildOfflineFallbackProfile(User firebaseUser) async {
+    final base = _buildFirebaseProfile(firebaseUser);
+
+    Couple? cachedCouple;
+    try {
+      cachedCouple = await StorageService.loadCouple();
+    } catch (_) {
+      cachedCouple = null;
+    }
+
+    if (cachedCouple != null && cachedCouple.memberIds.contains(firebaseUser.uid)) {
+      final isActive = cachedCouple.memberIds.length >= 2;
+      return base.copyWith(
+        coupleId: cachedCouple.id,
+        status: isActive ? 'in_couple' : 'waiting_partner',
+      );
+    }
+
+    return base;
+  }
+
   AppUser _buildFirebaseProfile(User firebaseUser) {
     final now = DateTime.now();
     return AppUser(
@@ -461,9 +709,21 @@ class AuthService {
     final expectedUid = firebaseUser.uid;
 
     if (_auth.currentUser?.uid != expectedUid) {
-      await _auth.authStateChanges().firstWhere(
-        (user) => user?.uid == expectedUid,
-      );
+      // Robustness (app-robustness A2): never block cold start indefinitely.
+      // `firstWhere` on authStateChanges can hang forever if the stream never
+      // emits the expected uid (e.g. a network hiccup during token bootstrap).
+      // Bound it to 5s; on timeout we throw `authSessionNotReady` so the caller
+      // (getCurrentUser → AuthProvider.initialize) falls back to
+      // unauthenticated and routes the user to the guest screen instead of
+      // freezing on the splash.
+      await _auth
+          .authStateChanges()
+          .firstWhere((user) => user?.uid == expectedUid)
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () =>
+                throw AuthException(AppL10n.strings.authSessionNotReady),
+          );
     }
 
     final activeUser = _auth.currentUser;
@@ -471,7 +731,12 @@ class AuthService {
       throw AuthException(AppL10n.strings.authSessionNotReady);
     }
 
-    await activeUser.getIdToken(true);
+    // Robustness (app-robustness A1): don't force-refresh the ID token on every
+    // cold start. A cached token is valid for ~1h and is enough to resolve the
+    // route; forcing a refresh adds a mandatory network round-trip on launch
+    // (the main freeze source). Writes that need a fresh token still
+    // force-refresh on demand via their own permission-recovery paths.
+    await activeUser.getIdToken();
   }
 
   AppUser _buildSignInProfile({

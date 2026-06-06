@@ -34,6 +34,10 @@ class ReminderService {
   static const int _idLegacyDaily = 1001;
   static const int _idAnniversary = 1002; // yearly milestone
   static const int _idMilestoneEvery100 = 1003;
+  // Daily-question nudge (b2). Lives in the auto band but is intentionally NOT
+  // part of [_autoIds]: it is independent of the master milestone toggle, so
+  // [cancelAll] (master off / full reschedule) must never cancel it.
+  static const int _idDailyQuestion = 1004;
   static const int _idInactivity = 1005;
   static const int _idMilestoneHalfYear = 1006;
   static const int _idMilestone520 = 1010;
@@ -256,6 +260,59 @@ class ReminderService {
     try {
       await _plugin.cancel(_idInactivity);
     } catch (_) {}
+  }
+
+  // ---------------------------------------------------------------------------
+  // Daily-question reminder (b2). A single repeating-daily nudge that pulls both
+  // partners in to answer the day's question. Independent of the milestone
+  // master toggle — it owns id 1004, which is deliberately outside [_autoIds].
+  // ---------------------------------------------------------------------------
+
+  /// Schedule the daily-question nudge to fire every day at [hour]:[minute].
+  ///
+  /// Repeats daily via [DateTimeComponents.time], so a single schedule keeps
+  /// firing without rescheduling. Replaces any previous daily-question schedule
+  /// (stable id 1004).
+  Future<void> scheduleDailyQuestion({
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+  }) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    final when = _nextDaily(hour, minute);
+    await _scheduleAt(
+      id: _idDailyQuestion,
+      when: when,
+      title: title,
+      body: body,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  /// Cancel the daily-question nudge. Safe to call when nothing is scheduled.
+  Future<void> cancelDailyQuestion() async {
+    if (!_initialized) {
+      return;
+    }
+    try {
+      await _plugin.cancel(_idDailyQuestion);
+    } catch (_) {
+      // Already in the desired state.
+    }
+  }
+
+  /// The next [hour]:[minute] today, or tomorrow if that moment has passed.
+  tz.TZDateTime _nextDaily(int hour, int minute) {
+    final now = tz.TZDateTime.now(tz.local);
+    var when = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    if (!when.isAfter(now)) {
+      when = when.add(const Duration(days: 1));
+    }
+    return when;
   }
 
   // ---------------------------------------------------------------------------

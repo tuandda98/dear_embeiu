@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 
 class AnimatedHeartIcon extends StatefulWidget {
@@ -58,6 +60,7 @@ class AnimatedCoupleName extends StatelessWidget {
     super.key,
     required this.person1Name,
     required this.person2Name,
+    this.creatorUserId,
     this.textStyle,
     this.heartColor,
     this.heartSize = 18,
@@ -66,8 +69,15 @@ class AnimatedCoupleName extends StatelessWidget {
     this.alignment = WrapAlignment.start,
   });
 
+  /// person1 is always the couple creator; person2 is the partner who joined.
   final String person1Name;
   final String person2Name;
+
+  /// The couple creator's uid (`couple.createdByUserId`). When provided, the
+  /// name belonging to the CURRENT signed-in user is shown first ("me ♥ you"),
+  /// regardless of who created the couple. Omit it (e.g. raw/anonymous display)
+  /// to keep the fixed person1 ♥ person2 order.
+  final String? creatorUserId;
   final TextStyle? textStyle;
   final Color? heartColor;
   final double heartSize;
@@ -77,8 +87,20 @@ class AnimatedCoupleName extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final first = person1Name.trim();
-    final second = person2Name.trim();
+    // Put the viewer's own name first when we can tell who they are. person1 is
+    // the creator; if the signed-in uid is NOT the creator, they're person2, so
+    // swap. Falls back to the original order when the creator/viewer is unknown.
+    var first = person1Name.trim();
+    var second = person2Name.trim();
+    final creator = creatorUserId?.trim();
+    if (creator != null && creator.isNotEmpty) {
+      final myUid = context.read<AuthProvider>().currentUser?.id;
+      if (myUid != null && myUid != creator) {
+        final tmp = first;
+        first = second;
+        second = tmp;
+      }
+    }
     final style = textStyle ?? const TextStyle();
 
     if (first.isEmpty && second.isEmpty) {

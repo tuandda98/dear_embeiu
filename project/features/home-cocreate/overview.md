@@ -33,3 +33,4 @@
 
 ## Changelog
 - [2026-06-02] [PO] Chốt scope + decisions. Bắt đầu orchestrate autonomous.
+- [2026-06-04] [Dev] FIX tương phản chữ ở card Lời nhắn + Câu hỏi hôm nay (user báo "màu chữ trùng nền, không thấy chữ"). Root cause: cả nội dung dùng `AppColors.white` trên GlassCard mờ phủ gradient dawnBlush (hồng/lavender NHẠT) → white-on-light contrast ~1.4:1 (trượt WCAG). User chốt hướng **chữ navy đậm**. Đổi: tiêu đề/nội dung/câu trả lời/ô nhập → `textPrimary`; label/timestamp/hint phụ → `textSecondary`/`textTertiary`; icon header → `accentRose`; CTA (Sửa/Viết lời nhắn, Gửi) → nút **filled accentRose chữ trắng** (nổi bật + nhất quán nút rose ở login/guest); ô nhập daily-question → well `white .55` + viền/cursor `accentRose` + chữ navy. `home_screen.dart` (`_buildLoveNoteCard`/`_buildWriteNoteButton`/`_buildDailyQuestionCard`/`_buildBody`/`_answerBlock`/`_buildJournalEntry`). VERIFY runtime Pixel 10: cả 2 card đọc rõ, CTA rose nổi. analyze sạch.

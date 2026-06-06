@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/couple.dart';
+import '../services/analytics_service.dart';
 import '../services/couple_service.dart';
 import '../services/storage_service.dart';
 
@@ -18,6 +19,11 @@ class CoupleProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _loadingMessage;
   String? _errorMessage;
+  // True only while leaveCouple() is tearing down. The live couple stream loses
+  // read access the instant this user is removed from memberIds, firing a
+  // permission-denied; we suppress that self-inflicted stream error so it can't
+  // leave a stale "Couldn't sync couple info" banner on the Setup screen.
+  bool _isLeaving = false;
 
   Couple? get couple => _couple;
   bool get hasCoupleData => _couple != null;
@@ -31,6 +37,10 @@ class CoupleProvider extends ChangeNotifier {
 
     if (currentUser == null || !currentUser.hasCouple) {
       _couple = null;
+      // Wipe any stale couple error (e.g. a permission-denied left by a couple
+      // stream that errored during a leave/demote) so the now-single user lands
+      // on Setup cleanly instead of seeing a leftover sync-error banner.
+      _clearError(notify: false);
       notifyListeners();
       return;
     }
@@ -48,14 +58,33 @@ class CoupleProvider extends ChangeNotifier {
             notifyListeners();
           },
           onError: (error) {
+            // Ignore the permission-denied this stream throws while we're
+            // leaving the couple ourselves — it's expected, not a real sync
+            // failure, and would otherwise surface on Setup after leaving.
+            if (_isLeaving) return;
             _errorMessage = AppL10n.strings.coupleSyncError('$error');
             notifyListeners();
           },
         );
       }
     } catch (e) {
-      _errorMessage = AppL10n.strings.coupleLoadError('$e');
       _couple = null;
+      final msg = '$e'.toLowerCase();
+      if (msg.contains('permission-denied') || msg.contains('permission_denied')) {
+        // Stale coupleId — user is no longer a member of that couple (partner
+        // left, couple was deleted, or cross-device Hive/session mismatch).
+        // Auto-heal: clear the stale ref so the user lands on Setup cleanly
+        // instead of seeing a cryptic error every time the app starts.
+        try {
+          await _coupleService.clearStaleCoupleRef(currentUser);
+        } catch (_) {
+          // Best-effort — even if Firestore write fails, _couple=null is
+          // enough for the session resolver to route to Setup.
+        }
+        // No error banner — the user just sees Setup, which is correct.
+      } else {
+        _errorMessage = AppL10n.strings.coupleLoadError('$e');
+      }
     } finally {
       _setLoading(false);
     }
@@ -81,6 +110,10 @@ class CoupleProvider extends ChangeNotifier {
       );
       _couple = result.couple;
       notifyListeners();
+      // Analytics — A created a couple (now waiting for a partner).
+      AnalyticsService.instance
+        ..logCoupleCreated()
+        ..setCoupleStatus('waiting_partner');
       return result;
     } on CoupleException catch (e) {
       _errorMessage = e.message;
@@ -105,13 +138,35 @@ class CoupleProvider extends ChangeNotifier {
       );
       _couple = result.couple;
       notifyListeners();
+      // Analytics — B joined successfully (⭐ activation). Log the attempt
+      // result + the join event + new couple status.
+      AnalyticsService.instance
+        ..logCoupleJoinAttempt(AnalyticsJoinResult.success)
+        ..logCoupleJoined()
+        ..setCoupleStatus('in_couple');
       return result;
     } on CoupleException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
+      // Analytics — failed attempt, bucketed by stable code (never PII).
+      AnalyticsService.instance.logCoupleJoinAttempt(_joinResultFor(e.code));
       rethrow;
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Maps a [CoupleErrorCode] from a failed join to the analytics `result`
+  /// bucket (contract: success | invalid_code | already_in_couple | error).
+  String _joinResultFor(CoupleErrorCode? code) {
+    switch (code) {
+      case CoupleErrorCode.inviteNotFound:
+        return AnalyticsJoinResult.invalidCode;
+      case CoupleErrorCode.alreadyHasCouple:
+      case CoupleErrorCode.alreadyInThis:
+        return AnalyticsJoinResult.alreadyInCouple;
+      default:
+        return AnalyticsJoinResult.error;
     }
   }
 
@@ -154,6 +209,11 @@ class CoupleProvider extends ChangeNotifier {
   Future<AppUser> leaveCouple({required AppUser currentUser}) async {
     _setLoading(true, message: AppL10n.strings.leavingCouple);
     _clearError(notify: false);
+    // Suppress the stream's self-inflicted permission-denied during teardown
+    // (see [_isLeaving]). We deliberately tear the subscription down only AFTER
+    // a successful leave so a failure (e.g. network) keeps the couple + live
+    // stream intact and the Settings UI doesn't go blank.
+    _isLeaving = true;
 
     try {
       final updatedUser = await _coupleService.leaveCouple(currentUser: currentUser);
@@ -161,12 +221,15 @@ class CoupleProvider extends ChangeNotifier {
       _coupleSubscription = null;
       _couple = null;
       notifyListeners();
+      // Analytics — back to single after leaving the couple.
+      AnalyticsService.instance.setCoupleStatus('single');
       return updatedUser;
     } on CoupleException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
       rethrow;
     } finally {
+      _isLeaving = false;
       _setLoading(false);
     }
   }
