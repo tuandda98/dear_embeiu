@@ -2141,4 +2141,63 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get galleryNeedsCoupleToUpload =>
       'Bạn cần ghép đôi trước để đăng ảnh chung nhé 💞';
+
+  @override
+  String get notifCenterTitle => 'Thông báo';
+
+  @override
+  String get notifCenterEmptyTitle => 'Chưa có thông báo';
+
+  @override
+  String get notifCenterEmptyBody =>
+      'Hoạt động của hai bạn sẽ xuất hiện ở đây.';
+
+  @override
+  String get notifMarkAllRead => 'Đánh dấu đã đọc';
+
+  @override
+  String get notifClearAll => 'Xoá tất cả';
+
+  @override
+  String get notifClearAllConfirmTitle => 'Xoá tất cả thông báo?';
+
+  @override
+  String get notifClearAllConfirmBody =>
+      'Bạn sẽ không xem lại được những thông báo này.';
+
+  @override
+  String get notifDismiss => 'Xoá';
+
+  @override
+  String get notifGeneric => 'Bạn có thông báo mới';
+
+  @override
+  String notifPhotoPosted(String name) {
+    return '$name vừa đăng ảnh mới';
+  }
+
+  @override
+  String notifPhotoReaction(String name, String emoji) {
+    return '$name đã thả $emoji vào ảnh của bạn';
+  }
+
+  @override
+  String notifPartnerJoined(String name) {
+    return '$name đã ghép đôi cùng bạn';
+  }
+
+  @override
+  String notifPartnerLeft(String name) {
+    return '$name đã rời khỏi không gian của hai người';
+  }
+
+  @override
+  String notifLoveNote(String name) {
+    return '$name vừa để lại lời nhắn';
+  }
+
+  @override
+  String notifDailyQuestion(String name) {
+    return '$name đã trả lời câu hỏi hôm nay';
+  }
 }

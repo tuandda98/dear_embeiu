@@ -120,6 +120,15 @@ exports.sendPartnerPhotoNotification = onDocumentCreated(
     // the language THEIR device registered (falls back to Vietnamese). Sent via
     // sendEach (not multicast) because the notification text now varies by token.
     // TODO deploy: cần `firebase deploy --only functions` để áp dụng thay đổi này.
+    await writeInboxNotifications(partnerIds, {
+      type: "photo_posted",
+      coupleId,
+      actorUserId: authorUserId,
+      actorName: authorName,
+      photoId,
+      caption: truncateText(caption, 140),
+    });
+
     const result = await sendToRecipientDevices(
       partnerIds,
       (languageCode) => buildPhotoNotificationText(languageCode, authorName, caption),
@@ -220,6 +229,13 @@ exports.notifyPartnerJoined = onDocumentUpdated(
     }
     joinerName = normalizeActorName(joinerName);
 
+    await writeInboxNotifications(recipientIds, {
+      type: "partner_joined",
+      coupleId,
+      actorUserId: joinerUid,
+      actorName: joinerName,
+    });
+
     const result = await sendToRecipientDevices(
       recipientIds,
       (languageCode) => buildPartnerJoinedText(languageCode, joinerName),
@@ -316,6 +332,13 @@ exports.notifyPartnerLeft = onDocumentUpdated(
       });
     }
     leaverName = normalizeActorName(leaverName);
+
+    await writeInboxNotifications(recipientIds, {
+      type: "partner_left",
+      coupleId,
+      actorUserId: leaverUid,
+      actorName: leaverName,
+    });
 
     const result = await sendToRecipientDevices(
       recipientIds,
@@ -421,6 +444,14 @@ exports.notifyLoveNote = onDocumentWritten(
     }
     authorName = normalizeActorName(authorName);
 
+    await writeInboxNotifications(recipientIds, {
+      type: "love_note",
+      coupleId,
+      actorUserId: authorUserId,
+      actorName: authorName,
+      noteExcerpt: truncateText(text, 140),
+    });
+
     const result = await sendToRecipientDevices(
       recipientIds,
       (languageCode) => buildLoveNoteText(languageCode, authorName, text),
@@ -505,6 +536,14 @@ exports.notifyDailyAnswer = onDocumentCreated(
       });
     }
     authorName = normalizeActorName(authorName);
+
+    await writeInboxNotifications(recipientIds, {
+      type: "daily_question",
+      coupleId,
+      actorUserId: authorUserId,
+      actorName: authorName,
+      date: `${event.params.date || ""}`.trim(),
+    });
 
     const result = await sendToRecipientDevices(
       recipientIds,
@@ -608,6 +647,15 @@ exports.notifyPhotoReaction = onDocumentCreated(
       });
     }
     reactorName = normalizeActorName(reactorName);
+
+    await writeInboxNotifications([authorUserId], {
+      type: "photo_reaction",
+      coupleId,
+      actorUserId: reactorUid,
+      actorName: reactorName,
+      photoId,
+      emoji,
+    });
 
     const result = await sendToRecipientDevices(
       [authorUserId],
@@ -751,6 +799,69 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra) {
   };
 }
 
+// Inbox (notification center): every push ALSO writes a durable record to each
+// recipient's users/{uid}/notifications subcollection. The push itself is
+// ephemeral — this doc is the source of truth the in-app notification center
+// reads, so the list survives app-kill / reinstall / a missed push, completely
+// independent of FCM delivery (or whether notifications are even enabled).
+//
+// Stored as STRUCTURED data (type + actorName + ids), NOT a pre-rendered
+// sentence, so the client renders the text in the user's CURRENT app language —
+// the inbox is never frozen in the send-time locale.
+//
+// Resilient by design: any failure here is logged and swallowed so it can never
+// break the push send. Admin SDK writes bypass security rules (clients are
+// create:forbidden on this subcollection — they may only read / mark-read /
+// delete their own).
+async function writeInboxNotifications(recipientIds, payload) {
+  const ids = (recipientIds || []).filter(
+    (id) => typeof id === "string" && id.trim(),
+  );
+  if (ids.length === 0) {
+    return;
+  }
+
+  const doc = {
+    ...sanitizeInboxPayload(payload),
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    read: false,
+  };
+
+  await Promise.all(
+    ids.map((uid) =>
+      db
+        .collection("users").doc(uid)
+        .collection("notifications")
+        .add(doc)
+        .catch((err) => {
+          logger.warn("Failed to write inbox notification.", {
+            uid,
+            type: payload && payload.type,
+            message: err && err.message,
+          });
+          return null;
+        }),
+    ),
+  );
+}
+
+// Drop undefined/null and empty-string fields (Firestore rejects undefined; we
+// never want to persist empty optional ids/excerpts that the client would have
+// to special-case).
+function sanitizeInboxPayload(payload) {
+  const out = {};
+  for (const [key, value] of Object.entries(payload || {})) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+    if (typeof value === "string" && !value.trim()) {
+      continue;
+    }
+    out[key] = value;
+  }
+  return out;
+}
+
 // Callable that fully erases the signed-in user's account. It runs with admin
 // privileges so it can remove the things the client is forbidden to delete
 // directly under the Firestore security rules (`users/{uid}` and
@@ -791,6 +902,18 @@ exports.deleteAccount = onCall(
     // 2) Device tokens (FCM) for this user.
     const devicesSnap = await userRef.collection("devices").get();
     await Promise.all(devicesSnap.docs.map((doc) => doc.ref.delete().catch(() => null)));
+
+    // 2b) Notification inbox (notification center) for this user — a per-user
+    //     subcollection, so it does NOT cascade when the user doc is deleted.
+    //     Erase it explicitly to satisfy account-deletion completeness
+    //     (App Store 5.1.1(v) / Google Play) and avoid orphaned records.
+    await db.recursiveDelete(userRef.collection("notifications")).catch((err) => {
+      logger.warn("Failed to delete notification inbox during account deletion.", {
+        uid,
+        message: err && err.message,
+      });
+      return null;
+    });
 
     // 3) The invite_code pointer — only if it still points at this user, so we
     //    never clobber a code that has since been reassigned.

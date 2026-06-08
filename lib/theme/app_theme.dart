@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
-  // Typography — google_fonts. Both families ship full Vietnamese (Latin
-  // Extended) coverage, so diacritics render correctly.
-  //   Display / hero  → Fraunces  (romantic serif)
-  //   Body / UI       → Plus Jakarta Sans
-  // Kept as helper getters so every existing style helper just swaps family
-  // while preserving its size / weight / spacing / shadow exactly.
-  static TextStyle get _displayBase => GoogleFonts.fraunces();
-  static TextStyle get _bodyBase => GoogleFonts.plusJakartaSans();
+  // Typography — Be Vietnam Pro (bundled in assets/fonts, declared in
+  // pubspec.yaml). One family for the WHOLE app. Be Vietnam Pro is designed by
+  // a Vietnamese type foundry specifically for Vietnamese: precise stacked-tone
+  // diacritics (ấ ề ộ ữ …). Bundled (not fetched at runtime) so there is no
+  // first-launch font flash and diacritics render identically offline + on iOS.
+  //   Display / hero  → heavy weights (w700/w800)
+  //   Body / UI       → regular / medium (w400/w500)
+  static const String fontFamily = 'Be Vietnam Pro';
+  static TextStyle get _displayBase => const TextStyle(fontFamily: fontFamily);
+  static TextStyle get _bodyBase => const TextStyle(fontFamily: fontFamily);
 
   static const double cardRadius = 28;
   static const double pillRadius = 999;
@@ -18,6 +19,7 @@ class AppTheme {
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
+    fontFamily: fontFamily,
     textTheme: _buildTextTheme(),
     colorScheme: const ColorScheme.light(
       primary: AppColors.accentLove,
@@ -36,6 +38,7 @@ class AppTheme {
       scrolledUnderElevation: 0,
       centerTitle: true,
       titleTextStyle: TextStyle(
+        fontFamily: fontFamily,
         color: AppColors.textPrimary,
         fontSize: 18,
         fontWeight: FontWeight.w600,
@@ -85,6 +88,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(pillRadius),
         ),
         textStyle: const TextStyle(
+          fontFamily: fontFamily,
           fontSize: 15,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.3,
@@ -100,6 +104,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(pillRadius),
         ),
         textStyle: const TextStyle(
+          fontFamily: fontFamily,
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
@@ -109,6 +114,7 @@ class AppTheme {
       style: TextButton.styleFrom(
         foregroundColor: AppColors.accentLove,
         textStyle: const TextStyle(
+          fontFamily: fontFamily,
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
@@ -121,7 +127,10 @@ class AppTheme {
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: AppColors.textPrimary,
-      contentTextStyle: const TextStyle(color: AppColors.white),
+      contentTextStyle: const TextStyle(
+        fontFamily: fontFamily,
+        color: AppColors.white,
+      ),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
@@ -131,13 +140,17 @@ class AppTheme {
 
   // ---------------------------------------------------------------------------
   // Typography helpers
+  //
+  // displaySerif() keeps its historical name (called across the app) but now
+  // resolves to Be Vietnam Pro at a heavy display weight — the romantic "hero"
+  // role is carried by weight + size + tracking rather than a serif family.
   static TextStyle displaySerif({
     double size = 72,
-    FontWeight weight = FontWeight.w500,
+    FontWeight weight = FontWeight.w700,
     Color color = AppColors.textPrimary,
     FontStyle style = FontStyle.normal,
     double height = 1.02,
-    double letterSpacing = -1.2,
+    double letterSpacing = -1.0,
   }) {
     return _displayBase.copyWith(
       fontSize: size,
@@ -150,33 +163,32 @@ class AppTheme {
   }
 
   static TextTheme _buildTextTheme() {
-    final base = GoogleFonts.plusJakartaSansTextTheme();
-    return base.copyWith(
-      // Serif display — the day count is the hero
-      displayLarge: displaySerif(size: 72, height: 1, letterSpacing: -1.5),
-      displayMedium: displaySerif(size: 56, height: 1.02, letterSpacing: -1.2),
-      displaySmall: displaySerif(size: 40, height: 1.05, letterSpacing: -0.8),
+    return TextTheme(
+      // Display — the day count is the hero
+      displayLarge: displaySerif(size: 72, height: 1, letterSpacing: -1.2),
+      displayMedium: displaySerif(size: 56, height: 1.02, letterSpacing: -0.8),
+      displaySmall: displaySerif(size: 40, height: 1.05, letterSpacing: -0.6),
 
-      // Serif headlines, lighter weight to feel romantic
+      // Headlines — slightly lighter than the hero, still confident
       headlineLarge: displaySerif(
         size: 32,
-        weight: FontWeight.w500,
+        weight: FontWeight.w600,
         height: 1.15,
         letterSpacing: -0.4,
       ),
       headlineMedium: displaySerif(
         size: 26,
-        weight: FontWeight.w500,
+        weight: FontWeight.w600,
         height: 1.2,
         letterSpacing: -0.2,
       ),
       headlineSmall: displaySerif(
         size: 22,
-        weight: FontWeight.w500,
+        weight: FontWeight.w600,
         height: 1.25,
       ),
 
-      // Sans titles for UI
+      // Titles for UI
       titleLarge: _bodyBase.copyWith(
         fontSize: 20,
         fontWeight: FontWeight.w600,
@@ -194,7 +206,7 @@ class AppTheme {
         color: AppColors.textPrimary,
       ),
 
-      // Sans body
+      // Body
       bodyLarge: _bodyBase.copyWith(
         fontSize: 16,
         fontWeight: FontWeight.w400,
@@ -253,7 +265,7 @@ class AppTheme {
     return _displayBase.copyWith(
       color: color,
       fontSize: 32,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w700,
       letterSpacing: -0.5,
       height: 1.05,
     );
@@ -276,7 +288,7 @@ class AppTheme {
     return _displayBase.copyWith(
       color: color,
       fontSize: 22,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w700,
       letterSpacing: -0.2,
       height: 1.15,
     );
@@ -295,14 +307,14 @@ class AppTheme {
     );
   }
 
-  // Hero day-count numerals — large serif, used on gradient cards.
+  // Hero day-count numerals — large, heavy, used on gradient cards.
   static TextStyle dayCountStyle({Color color = AppColors.white}) {
     return _displayBase.copyWith(
       color: color,
       fontSize: 76,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w800,
       height: 1,
-      letterSpacing: -2.4,
+      letterSpacing: -1.6,
       shadows: [
         Shadow(
           color: Colors.white.withValues(alpha: 0.45),

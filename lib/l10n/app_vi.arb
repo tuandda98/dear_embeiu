@@ -1028,5 +1028,39 @@
   "setupWaitingCoupleCodeTitle": "Gửi mã này cho người ấy để ghép đôi",
   "setupCoupleCodeDesc": "Đây là mã ghép đôi của hai bạn. Cả hai đều dùng mã này để kết nối lại nếu cần.",
   "setupCoupleCodeRejoinHint": "Lưu mã lại — bạn có thể dùng nó để quay lại không gian này bất cứ lúc nào.",
-  "galleryNeedsCoupleToUpload": "Bạn cần ghép đôi trước để đăng ảnh chung nhé 💞"
+  "galleryNeedsCoupleToUpload": "Bạn cần ghép đôi trước để đăng ảnh chung nhé 💞",
+
+  "notifCenterTitle": "Thông báo",
+  "notifCenterEmptyTitle": "Chưa có thông báo",
+  "notifCenterEmptyBody": "Hoạt động của hai bạn sẽ xuất hiện ở đây.",
+  "notifMarkAllRead": "Đánh dấu đã đọc",
+  "notifClearAll": "Xoá tất cả",
+  "notifClearAllConfirmTitle": "Xoá tất cả thông báo?",
+  "notifClearAllConfirmBody": "Bạn sẽ không xem lại được những thông báo này.",
+  "notifDismiss": "Xoá",
+  "notifGeneric": "Bạn có thông báo mới",
+  "notifPhotoPosted": "{name} vừa đăng ảnh mới",
+  "@notifPhotoPosted": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "notifPhotoReaction": "{name} đã thả {emoji} vào ảnh của bạn",
+  "@notifPhotoReaction": {
+    "placeholders": { "name": { "type": "String" }, "emoji": { "type": "String" } }
+  },
+  "notifPartnerJoined": "{name} đã ghép đôi cùng bạn",
+  "@notifPartnerJoined": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "notifPartnerLeft": "{name} đã rời khỏi không gian của hai người",
+  "@notifPartnerLeft": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "notifLoveNote": "{name} vừa để lại lời nhắn",
+  "@notifLoveNote": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "notifDailyQuestion": "{name} đã trả lời câu hỏi hôm nay",
+  "@notifDailyQuestion": {
+    "placeholders": { "name": { "type": "String" } }
+  }
 }

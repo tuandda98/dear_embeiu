@@ -1428,25 +1428,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
             )
           else
             const SizedBox(height: 14),
-          _buildReactionBar(couple, photo),
+          _FeedReactionBar(couple: couple, photo: photo),
         ],
       ),
-    );
-  }
-
-  /// The reaction surface under a feed card. Hidden entirely when there is no
-  /// active Firebase couple (guest / local) — no two-way loop to react into.
-  Widget _buildReactionBar(Couple? couple, Photo photo) {
-    final reactionProvider = context.watch<ReactionProvider>();
-    final myUid = context.read<AuthProvider>().currentUser?.id;
-    if (!reactionProvider.isReady || myUid == null || couple == null) {
-      return const SizedBox(height: 16);
-    }
-
-    return ReactionBar(
-      photo: photo,
-      couple: couple,
-      myUid: myUid,
     );
   }
 
@@ -1797,6 +1781,27 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 }
 
+/// Isolated widget so only the reaction bar rebuilds on ReactionProvider changes,
+/// not the entire GalleryScreen (prevents "dirty widget in wrong build scope" crash
+/// caused by context.watch inside _GalleryScreenState conflicting with the
+/// _MarqueeRow animation layout callback).
+class _FeedReactionBar extends StatelessWidget {
+  const _FeedReactionBar({required this.couple, required this.photo});
+
+  final Couple? couple;
+  final Photo photo;
+
+  @override
+  Widget build(BuildContext context) {
+    final reactionProvider = context.watch<ReactionProvider>();
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    if (!reactionProvider.isReady || myUid == null || couple == null) {
+      return const SizedBox(height: 16);
+    }
+    return ReactionBar(photo: photo, couple: couple!, myUid: myUid);
+  }
+}
+
 enum _PhotoFeedAction { editCaption, delete, report }
 
 sealed class _FeedItem {}
@@ -1820,64 +1825,77 @@ class _MarqueeRow extends StatefulWidget {
   State<_MarqueeRow> createState() => _MarqueeRowState();
 }
 
-class _MarqueeRowState extends State<_MarqueeRow> {
-  final ScrollController _controller = ScrollController();
-  static const double _speed = 45.0; // pixels per second
-  static const int _repeatFactor = 300;
+// AnimationController + Transform.translate: no ScrollController, no SliverList,
+// no GlobalKey, no LayoutBuilder.
+// LayoutBuilder was removed because it creates an invokeLayoutCallback scope that
+// conflicts with SliverList's layout scope whenever ReactionProvider rebuilds
+// _FeedReactionBar — causing "dirty widget in wrong build scope" →
+// "each child must be laid out exactly once" → semantics.parentDataDirty cascade.
+// MediaQuery supplies containerWidth from the build phase (no locked scope).
+class _MarqueeRowState extends State<_MarqueeRow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animation;
+
+  static const double _speed = 45.0;
+  // Enough repeats so the Row is always much wider than the container.
+  static const int _repeatFactor = 8;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loop());
+    _animation = AnimationController(vsync: this, duration: const Duration(seconds: 10));
+    // Start after first frame so MediaQuery width is available.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStart());
   }
 
-  Future<void> _loop() async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    while (mounted && _controller.hasClients) {
-      final max = _controller.position.maxScrollExtent;
-      if (max <= 0) {
-        await Future.delayed(const Duration(milliseconds: 300));
-        continue;
-      }
-      final remaining = max - _controller.offset;
-      final durationMs = (remaining / _speed * 1000).round();
-      if (durationMs <= 0) {
-        _controller.jumpTo(0);
-        continue;
-      }
-      await _controller.animateTo(
-        max,
-        duration: Duration(milliseconds: durationMs),
-        curve: Curves.linear,
-      );
-      if (!mounted) break;
-      _controller.jumpTo(0);
-    }
+  void _maybeStart() {
+    if (!mounted || _animation.isAnimating) return;
+    _animation.repeat();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _animation.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Use screen width — close enough for timing (this is a full-width header).
+    // Avoids LayoutBuilder which would create an invokeLayoutCallback scope.
+    final containerWidth = MediaQuery.of(context).size.width;
+
+    if (!_animation.isAnimating && containerWidth > 0) {
+      _animation.duration = Duration(
+        milliseconds: (containerWidth / _speed * 1000).round().clamp(500, 20000),
+      );
+    }
+
     final count = widget.children.length;
+    final items = List.generate(
+      count * _repeatFactor,
+      (i) => Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: widget.children[i % count],
+      ),
+    );
     return SizedBox(
       height: 30,
-      child: ListView.builder(
-        controller: _controller,
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: count * _repeatFactor,
-        itemBuilder: (_, i) {
-          final child = widget.children[i % count];
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: child,
-          );
-        },
+      child: ExcludeSemantics(
+        child: ClipRect(
+          child: OverflowBox(
+            alignment: Alignment.centerLeft,
+            maxWidth: double.infinity,
+            child: AnimatedBuilder(
+              animation: _animation,
+              child: Row(mainAxisSize: MainAxisSize.min, children: items),
+              builder: (_, child) => Transform.translate(
+                offset: Offset(-_animation.value * containerWidth, 0),
+                child: child,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -2124,35 +2142,6 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
     if (reactionProvider.myReaction(photo.id, myUid) != '❤️') {
       reactionProvider.setReaction(photo.id, '❤️');
     }
-  }
-
-  /// On-dark reaction row appended to the fullscreen info panel. Hidden when
-  /// there is no active Firebase couple (guest / local).
-  Widget _buildPreviewReactionRow(Photo photo) {
-    final reactionProvider = context.watch<ReactionProvider>();
-    final myUid = context.read<AuthProvider>().currentUser?.id;
-    if (!reactionProvider.isReady || myUid == null || widget.couple == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(height: 12),
-        Divider(
-          height: 1,
-          thickness: 1,
-          color: AppColors.white.withValues(alpha: 0.12),
-        ),
-        ReactionBar(
-          photo: photo,
-          couple: widget.couple,
-          myUid: myUid,
-          onDark: true,
-          padding: const EdgeInsets.only(top: 10),
-        ),
-      ],
-    );
   }
 
   bool get _canDismissWithDrag => _pageScales[_currentIndex] <= 1.02;
@@ -2441,7 +2430,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                           ),
                         ),
                       ],
-                      _buildPreviewReactionRow(currentPhoto),
+                      _PreviewReactionRow(photo: currentPhoto, couple: widget.couple),
                     ],
                   ),
                 ),
@@ -2479,6 +2468,42 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Isolated widget so only the on-dark reaction row rebuilds on ReactionProvider
+/// changes, not the entire _FullscreenPhotoPreviewState.
+class _PreviewReactionRow extends StatelessWidget {
+  const _PreviewReactionRow({required this.photo, required this.couple});
+
+  final Photo photo;
+  final Couple? couple;
+
+  @override
+  Widget build(BuildContext context) {
+    final reactionProvider = context.watch<ReactionProvider>();
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    if (!reactionProvider.isReady || myUid == null || couple == null) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: 12),
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: AppColors.white.withValues(alpha: 0.12),
+        ),
+        ReactionBar(
+          photo: photo,
+          couple: couple!,
+          myUid: myUid,
+          onDark: true,
+          padding: const EdgeInsets.only(top: 10),
+        ),
+      ],
     );
   }
 }

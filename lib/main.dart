@@ -20,6 +20,7 @@ import 'providers/custom_reminders_provider.dart';
 import 'providers/daily_question_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/love_note_provider.dart';
+import 'providers/notification_inbox_provider.dart';
 import 'providers/photo_provider.dart';
 import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
@@ -273,6 +274,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => LoveNoteProvider()),
         ChangeNotifierProvider(create: (_) => DailyQuestionProvider()),
         ChangeNotifierProvider(create: (_) => StreakProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationInboxProvider()),
         ChangeNotifierProvider(
           create: (_) => LocaleProvider(initialLocale: widget.initialLocale),
         ),

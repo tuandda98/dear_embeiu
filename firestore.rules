@@ -328,6 +328,22 @@ service cloud.firestore {
           && request.auth.uid == userId
           && isValidDeviceDocument(request.resource.data);
       }
+
+      // Notification inbox / center (feature notifications): durable records of
+      // the pushes a user receives, written ONLY by Cloud Functions through the
+      // Admin SDK (which bypasses these rules). The client may read its own,
+      // toggle the `read` flag (mark read), and delete (dismiss / clear) — but
+      // never CREATE or forge a notification, and never edit any field other
+      // than `read`. ADDITIVE: old app versions simply ignore this subcollection.
+      match /notifications/{notificationId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow update: if isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+          && request.resource.data.read is bool;
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+        allow create: if false;
+      }
     }
 
     match /invite_codes/{inviteCode} {

@@ -1620,5 +1620,39 @@
   "setupWaitingCoupleCodeTitle": "Share this code to connect",
   "setupCoupleCodeDesc": "This is your couple's pairing code. Either of you can use it to reconnect.",
   "setupCoupleCodeRejoinHint": "Save this code — you can use it to rejoin your space at any time.",
-  "galleryNeedsCoupleToUpload": "Connect with your partner first before sharing photos 💞"
+  "galleryNeedsCoupleToUpload": "Connect with your partner first before sharing photos 💞",
+
+  "notifCenterTitle": "Notifications",
+  "notifCenterEmptyTitle": "No notifications yet",
+  "notifCenterEmptyBody": "Activity from the two of you will appear here.",
+  "notifMarkAllRead": "Mark all read",
+  "notifClearAll": "Clear all",
+  "notifClearAllConfirmTitle": "Clear all notifications?",
+  "notifClearAllConfirmBody": "You won't be able to see these again.",
+  "notifDismiss": "Dismiss",
+  "notifGeneric": "You have a new notification",
+  "notifPhotoPosted": "{name} shared a new photo",
+  "@notifPhotoPosted": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "notifPhotoReaction": "{name} reacted {emoji} to your photo",
+  "@notifPhotoReaction": {
+    "placeholders": { "name": { "type": "String" }, "emoji": { "type": "String" } }
+  },
+  "notifPartnerJoined": "{name} paired up with you",
+  "@notifPartnerJoined": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "notifPartnerLeft": "{name} left your shared space",
+  "@notifPartnerLeft": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "notifLoveNote": "{name} left you a love note",
+  "@notifLoveNote": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "notifDailyQuestion": "{name} answered today's question",
+  "@notifDailyQuestion": {
+    "placeholders": { "name": { "type": "String" } }
+  }
 }

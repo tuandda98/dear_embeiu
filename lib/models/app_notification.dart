@@ -1,0 +1,149 @@
+/// A single entry in the in-app notification center.
+///
+/// These docs are written ONLY by Cloud Functions (one per push, into
+/// `users/{uid}/notifications`). They are stored as STRUCTURED data (type +
+/// actor + ids) rather than a pre-rendered sentence, so the UI renders the
+/// human text in the user's CURRENT app language — the list is never frozen in
+/// the language the push was sent in.
+enum AppNotificationType {
+  photoPosted,
+  photoReaction,
+  partnerJoined,
+  partnerLeft,
+  loveNote,
+  dailyQuestion,
+
+  /// A type this app build doesn't recognise (forward-compat: a newer backend
+  /// could send a new type). Rendered with a generic fallback, routes to Home.
+  unknown,
+}
+
+AppNotificationType appNotificationTypeFromString(String? raw) {
+  switch ((raw ?? '').trim()) {
+    case 'photo_posted':
+      return AppNotificationType.photoPosted;
+    case 'photo_reaction':
+      return AppNotificationType.photoReaction;
+    case 'partner_joined':
+      return AppNotificationType.partnerJoined;
+    case 'partner_left':
+      return AppNotificationType.partnerLeft;
+    case 'love_note':
+      return AppNotificationType.loveNote;
+    case 'daily_question':
+      return AppNotificationType.dailyQuestion;
+    default:
+      return AppNotificationType.unknown;
+  }
+}
+
+class AppNotification {
+  const AppNotification({
+    required this.id,
+    required this.type,
+    required this.rawType,
+    required this.coupleId,
+    required this.actorUserId,
+    required this.actorName,
+    required this.read,
+    this.photoId,
+    this.emoji,
+    this.noteExcerpt,
+    this.caption,
+    this.date,
+    this.createdAt,
+  });
+
+  final String id;
+  final AppNotificationType type;
+
+  /// The raw `type` string from Firestore (kept for forward-compat / analytics).
+  final String rawType;
+  final String coupleId;
+  final String actorUserId;
+  final String actorName;
+  final bool read;
+
+  // Type-specific optional fields (only some are present per type).
+  final String? photoId; // photo_posted, photo_reaction
+  final String? emoji; // photo_reaction
+  final String? noteExcerpt; // love_note
+  final String? caption; // photo_posted
+  final String? date; // daily_question (yyyy-mm-dd key)
+  final DateTime? createdAt;
+
+  /// Which Home bottom-nav tab this notification should open when tapped.
+  /// Photo-related → Gallery (1); everything else → Home (0). This is also the
+  /// single source of truth that gives `partner_left` a destination.
+  int get targetHomeTab {
+    switch (type) {
+      case AppNotificationType.photoPosted:
+      case AppNotificationType.photoReaction:
+        return 1; // Gallery
+      case AppNotificationType.partnerJoined:
+      case AppNotificationType.partnerLeft:
+      case AppNotificationType.loveNote:
+      case AppNotificationType.dailyQuestion:
+      case AppNotificationType.unknown:
+        return 0; // Home
+    }
+  }
+
+  factory AppNotification.fromDoc(String id, Map<String, dynamic> data) {
+    return AppNotification(
+      id: id,
+      rawType: (data['type'] as String?)?.trim() ?? '',
+      type: appNotificationTypeFromString(data['type'] as String?),
+      coupleId: (data['coupleId'] as String?)?.trim() ?? '',
+      actorUserId: (data['actorUserId'] as String?)?.trim() ?? '',
+      actorName: (data['actorName'] as String?)?.trim() ?? '',
+      photoId: _nullableString(data['photoId']),
+      emoji: _nullableString(data['emoji']),
+      noteExcerpt: _nullableString(data['noteExcerpt']),
+      caption: _nullableString(data['caption']),
+      date: _nullableString(data['date']),
+      createdAt: _parseTimestamp(data['createdAt']),
+      read: data['read'] == true,
+    );
+  }
+
+  AppNotification copyWith({bool? read}) {
+    return AppNotification(
+      id: id,
+      type: type,
+      rawType: rawType,
+      coupleId: coupleId,
+      actorUserId: actorUserId,
+      actorName: actorName,
+      read: read ?? this.read,
+      photoId: photoId,
+      emoji: emoji,
+      noteExcerpt: noteExcerpt,
+      caption: caption,
+      date: date,
+      createdAt: createdAt,
+    );
+  }
+
+  static String? _nullableString(dynamic value) {
+    if (value is String) {
+      final trimmed = value.trim();
+      return trimmed.isEmpty ? null : trimmed;
+    }
+    return null;
+  }
+
+  // Accepts a Firestore Timestamp (duck-typed via toDate()), a DateTime, or an
+  // ISO string — without importing cloud_firestore into the model layer.
+  static DateTime? _parseTimestamp(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    try {
+      final dynamic d = (value as dynamic).toDate();
+      return d is DateTime ? d : null;
+    } catch (_) {
+      return null;
+    }
+  }
+}

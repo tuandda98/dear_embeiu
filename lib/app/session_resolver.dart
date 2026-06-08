@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/daily_question_provider.dart';
 import '../providers/love_note_provider.dart';
+import '../providers/notification_inbox_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
@@ -38,6 +39,7 @@ class SessionResolver {
     final dailyQuestionProvider = context.read<DailyQuestionProvider>();
     final reactionProvider = context.read<ReactionProvider>();
     final streakProvider = context.read<StreakProvider>();
+    final notificationInboxProvider = context.read<NotificationInboxProvider>();
     final reminderProvider = context.read<ReminderProvider>();
 
     try {
@@ -49,6 +51,7 @@ class SessionResolver {
         dailyQuestionProvider: dailyQuestionProvider,
         reactionProvider: reactionProvider,
         streakProvider: streakProvider,
+        notificationInboxProvider: notificationInboxProvider,
         reminderProvider: reminderProvider,
       ).timeout(_globalResolveTimeout);
     } catch (_) {
@@ -89,6 +92,7 @@ class SessionResolver {
     required DailyQuestionProvider dailyQuestionProvider,
     required ReactionProvider reactionProvider,
     required StreakProvider streakProvider,
+    required NotificationInboxProvider notificationInboxProvider,
     required ReminderProvider reminderProvider,
   }) async {
     if (!authProvider.isInitialized) {
@@ -101,6 +105,7 @@ class SessionResolver {
       dailyQuestionProvider.clear();
       reactionProvider.clear();
       streakProvider.clear();
+      notificationInboxProvider.clear();
       // No active couple: drop the daily-question nudge (b2). The on/off
       // preference is kept so it re-arms on the next sync once a couple loads.
       await reminderProvider.cancelDailyQuestionSchedule();
@@ -118,6 +123,7 @@ class SessionResolver {
       dailyQuestionProvider.clear();
       reactionProvider.clear();
       streakProvider.clear();
+      notificationInboxProvider.clear();
       await reminderProvider.cancelDailyQuestionSchedule();
       return AppRoutes.verifyEmail;
     }
@@ -141,12 +147,19 @@ class SessionResolver {
         currentUser.coupleId!,
         coupleActive: !(coupleProvider.couple?.isWaitingForPartner ?? true),
       );
+      // Notification center (feature notifications) — stream this couple's
+      // inbox so the AppBar bell badge + center are live.
+      notificationInboxProvider.watchForCouple(
+        currentUser.coupleId!,
+        currentUser.id,
+      );
     } else {
       await photoProvider.clearForSignOut();
       loveNoteProvider.clear();
       dailyQuestionProvider.clear();
       reactionProvider.clear();
       streakProvider.clear();
+      notificationInboxProvider.clear();
       // Authenticated but no couple yet — cancel the daily-question nudge (b2)
       // until a partner joins; the preference persists for re-arming via sync.
       await reminderProvider.cancelDailyQuestionSchedule();

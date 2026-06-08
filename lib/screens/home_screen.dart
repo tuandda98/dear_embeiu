@@ -16,6 +16,7 @@ import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/daily_question_provider.dart';
 import '../providers/love_note_provider.dart';
+import '../providers/notification_inbox_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
@@ -39,6 +40,7 @@ import 'profile_screen.dart';
 import 'gallery_screen.dart';
 import 'journal_screen.dart';
 import 'love_note_history_screen.dart';
+import 'notification_center_screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -575,6 +577,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 couple.id,
                 coupleActive: !couple.isWaitingForPartner,
               );
+          // Notification center stream — re-arm so the bell badge stays live
+          // even if the couple finished loading after Home mounted.
+          context
+              .read<NotificationInboxProvider>()
+              .watchForCouple(couple.id, myUid);
         }
       });
     }
@@ -638,25 +645,32 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedIndex = 2);
-                    _logTabScreenView(2);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.16),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: AppColors.white.withValues(alpha: 0.18),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildNotificationBell(),
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() => _selectedIndex = 2);
+                        _logTabScreenView(2);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: AppColors.white.withValues(alpha: 0.18),
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.favorite_rounded,
+                          color: AppColors.white,
+                        ),
                       ),
                     ),
-                    child: const Icon(
-                      Icons.favorite_rounded,
-                      color: AppColors.white,
-                    ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -754,6 +768,68 @@ class _HomeScreenState extends State<HomeScreen> {
     // else needs forcing here.
     final currentUser = context.read<AuthProvider>().currentUser;
     await context.read<PhotoProvider>().syncForUser(currentUser);
+  }
+
+  /// Header bell that opens the notification center, with an unread-count badge
+  /// (feature notifications). The count comes from the live Firestore-backed
+  /// inbox stream, so it updates even when a push arrives while the app is open.
+  Widget _buildNotificationBell() {
+    final unread = context.watch<NotificationInboxProvider>().unreadCount;
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            settings: const RouteSettings(name: 'NotificationCenter'),
+            builder: (_) => const NotificationCenterScreen(),
+          ),
+        );
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: AppColors.white.withValues(alpha: 0.18),
+              ),
+            ),
+            child: const Icon(
+              Icons.notifications_none_rounded,
+              color: AppColors.white,
+            ),
+          ),
+          if (unread > 0)
+            Positioned(
+              right: 2,
+              top: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                decoration: BoxDecoration(
+                  color: AppColors.accentLoveDeep,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: AppColors.white, width: 1.5),
+                ),
+                child: Center(
+                  child: Text(
+                    unread > 99 ? '99+' : '$unread',
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      height: 1,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _buildHeroSection({

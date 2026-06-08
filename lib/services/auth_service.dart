@@ -736,7 +736,13 @@ class AuthService {
     // route; forcing a refresh adds a mandatory network round-trip on launch
     // (the main freeze source). Writes that need a fresh token still
     // force-refresh on demand via their own permission-recovery paths.
-    await activeUser.getIdToken();
+    // Timeout guard: getIdToken() can make a network call when the token is
+    // close to expiry; without a bound this freezes the cold-start route on iOS
+    // when the simulator has degraded connectivity.
+    await activeUser.getIdToken().timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => throw AuthException(AppL10n.strings.authSessionNotReady),
+    );
   }
 
   AppUser _buildSignInProfile({

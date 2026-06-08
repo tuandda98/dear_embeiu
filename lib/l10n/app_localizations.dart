@@ -3703,6 +3703,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect with your partner first before sharing photos 💞'**
   String get galleryNeedsCoupleToUpload;
+
+  /// No description provided for @notifCenterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifCenterTitle;
+
+  /// No description provided for @notifCenterEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get notifCenterEmptyTitle;
+
+  /// No description provided for @notifCenterEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity from the two of you will appear here.'**
+  String get notifCenterEmptyBody;
+
+  /// No description provided for @notifMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get notifMarkAllRead;
+
+  /// No description provided for @notifClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get notifClearAll;
+
+  /// No description provided for @notifClearAllConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all notifications?'**
+  String get notifClearAllConfirmTitle;
+
+  /// No description provided for @notifClearAllConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You won\'t be able to see these again.'**
+  String get notifClearAllConfirmBody;
+
+  /// No description provided for @notifDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get notifDismiss;
+
+  /// No description provided for @notifGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'You have a new notification'**
+  String get notifGeneric;
+
+  /// No description provided for @notifPhotoPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} shared a new photo'**
+  String notifPhotoPosted(String name);
+
+  /// No description provided for @notifPhotoReaction.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} reacted {emoji} to your photo'**
+  String notifPhotoReaction(String name, String emoji);
+
+  /// No description provided for @notifPartnerJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} paired up with you'**
+  String notifPartnerJoined(String name);
+
+  /// No description provided for @notifPartnerLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} left your shared space'**
+  String notifPartnerLeft(String name);
+
+  /// No description provided for @notifLoveNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} left you a love note'**
+  String notifLoveNote(String name);
+
+  /// No description provided for @notifDailyQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} answered today\'s question'**
+  String notifDailyQuestion(String name);
 }
 
 class _AppLocalizationsDelegate

@@ -2139,4 +2139,63 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get galleryNeedsCoupleToUpload =>
       'Connect with your partner first before sharing photos 💞';
+
+  @override
+  String get notifCenterTitle => 'Notifications';
+
+  @override
+  String get notifCenterEmptyTitle => 'No notifications yet';
+
+  @override
+  String get notifCenterEmptyBody =>
+      'Activity from the two of you will appear here.';
+
+  @override
+  String get notifMarkAllRead => 'Mark all read';
+
+  @override
+  String get notifClearAll => 'Clear all';
+
+  @override
+  String get notifClearAllConfirmTitle => 'Clear all notifications?';
+
+  @override
+  String get notifClearAllConfirmBody =>
+      'You won\'t be able to see these again.';
+
+  @override
+  String get notifDismiss => 'Dismiss';
+
+  @override
+  String get notifGeneric => 'You have a new notification';
+
+  @override
+  String notifPhotoPosted(String name) {
+    return '$name shared a new photo';
+  }
+
+  @override
+  String notifPhotoReaction(String name, String emoji) {
+    return '$name reacted $emoji to your photo';
+  }
+
+  @override
+  String notifPartnerJoined(String name) {
+    return '$name paired up with you';
+  }
+
+  @override
+  String notifPartnerLeft(String name) {
+    return '$name left your shared space';
+  }
+
+  @override
+  String notifLoveNote(String name) {
+    return '$name left you a love note';
+  }
+
+  @override
+  String notifDailyQuestion(String name) {
+    return '$name answered today\'s question';
+  }
 }
