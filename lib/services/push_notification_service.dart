@@ -13,6 +13,7 @@ import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import 'analytics_service.dart';
 import 'firebase_bootstrap_service.dart';
+import 'notification_settings_service.dart';
 import 'user_service.dart';
 
 @pragma('vm:entry-point')
@@ -46,10 +47,38 @@ class NotificationTapRouter {
   /// pending request"; HomeScreen ignores it and keeps its current tab.
   static final ValueNotifier<int> pendingHomeTab = ValueNotifier<int>(-1);
 
+  /// Photo id a tapped photo/reaction notification wants the Gallery to open
+  /// fullscreen (deep-link to the exact item, not just the tab). null = none.
+  /// [GalleryScreen] consumes it when it builds and the photo is loaded; if the
+  /// photo is gone (deleted) it's simply cleared and the user lands on the grid.
+  static final ValueNotifier<String?> pendingPhotoId =
+      ValueNotifier<String?>(null);
+
   /// Marks the current request as handled so it won't be reapplied later.
   static void consumeHomeTabRequest() {
     if (pendingHomeTab.value != -1) {
       pendingHomeTab.value = -1;
+    }
+  }
+
+  /// Marks the pending photo deep-link as handled.
+  static void consumePhotoRequest() {
+    if (pendingPhotoId.value != null) {
+      pendingPhotoId.value = null;
+    }
+  }
+
+  /// A specific card on the Home tab a tapped notification wants brought into
+  /// view (deep-link within Home). Carries the notification `type` string
+  /// (e.g. 'daily_question'); [HomeScreen] scrolls that card into view. null =
+  /// no focus request (just land on the tab).
+  static final ValueNotifier<String?> pendingHomeFocus =
+      ValueNotifier<String?>(null);
+
+  /// Marks the pending Home-focus request as handled.
+  static void consumeHomeFocusRequest() {
+    if (pendingHomeFocus.value != null) {
+      pendingHomeFocus.value = null;
     }
   }
 }
@@ -98,6 +127,10 @@ class PushNotificationService {
     _isInitialized = true;
 
     try {
+      // Open the per-type prefs box early so device registration writes the
+      // user's real choices (not defaults) from the first sync (D-notif-4).
+      await NotificationSettingsService.instance.ensureLoaded();
+
       const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
       const iosSettings = DarwinInitializationSettings(
         requestAlertPermission: false,
@@ -183,6 +216,26 @@ class PushNotificationService {
     }
   }
 
+  /// Re-writes the active user's device doc with the CURRENT per-type prefs
+  /// (D-notif-4) — called right after the user toggles a notification type in
+  /// Settings so the Cloud Functions fan-out sees the change. No-ops when there
+  /// is no signed-in user / Firebase.
+  Future<void> refreshDeviceRegistration() async {
+    final userId = _activeUserId;
+    if (userId == null || !_canUseFirebaseMessaging) {
+      return;
+    }
+    try {
+      final token = await _readCurrentToken();
+      if (token == null || token.isEmpty) {
+        return;
+      }
+      await _saveDeviceToken(userId: userId, token: token);
+    } catch (e) {
+      debugPrint('Push prefs refresh failed: $e');
+    }
+  }
+
   Future<void> unregisterForUser(AppUser? user) async {
     final userId = user?.id;
     if (userId == null || !_canUseFirebaseMessaging) {
@@ -248,6 +301,8 @@ class PushNotificationService {
         platform: _platformLabel,
         notificationsEnabled: true,
         languageCode: _currentLanguageCode,
+        // Mirror the per-type mute prefs so the CF can honour them (D-notif-4).
+        pushTypePrefs: NotificationSettingsService.instance.currentOrDefault(),
       );
       // Keep this user's device list from accumulating stale registrations.
       await _userService.pruneStaleDevices(userId: userId, keepDeviceId: deviceId);
@@ -321,12 +376,20 @@ class PushNotificationService {
   /// Unknown/missing types are ignored (no tab change, no error).
   void _handleNotificationTap(RemoteMessage message) {
     final type = message.data['type'];
+    // Photo deep-link: carry the photoId so the Gallery opens the exact photo.
+    final photoId = (message.data['photoId'] as String?)?.trim();
     switch (type) {
       case 'photo_posted':
         NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
+        if (photoId != null && photoId.isNotEmpty) {
+          NotificationTapRouter.pendingPhotoId.value = photoId;
+        }
         break;
       case 'photo_reaction':
         NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
+        if (photoId != null && photoId.isNotEmpty) {
+          NotificationTapRouter.pendingPhotoId.value = photoId;
+        }
         break;
       case 'partner_joined':
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
@@ -339,6 +402,8 @@ class PushNotificationService {
         break;
       case 'daily_question':
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        // Deep-link within Home: scroll the daily-question card into view.
+        NotificationTapRouter.pendingHomeFocus.value = 'daily_question';
         break;
       default:
         // Unknown or absent type — leave the current tab untouched and don't

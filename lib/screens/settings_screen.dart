@@ -19,6 +19,8 @@ import '../providers/custom_reminders_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../services/analytics_service.dart';
+import '../services/notification_settings_service.dart';
+import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../widgets/blocking_loading_overlay.dart';
@@ -151,16 +153,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    _OnceEntrance(order: 1, child: _buildLanguageSection(context)),
+                    _OnceEntrance(
+                      order: 1,
+                      child: _buildNotificationTypesSection(context),
+                    ),
                     const SizedBox(height: 18),
-                    _OnceEntrance(order: 2, child: _buildMemoriesSection(context)),
+                    _OnceEntrance(order: 2, child: _buildLanguageSection(context)),
                     const SizedBox(height: 18),
-                    _OnceEntrance(order: 3, child: _buildAccountSection(context)),
+                    _OnceEntrance(order: 3, child: _buildMemoriesSection(context)),
                     const SizedBox(height: 18),
-                    _OnceEntrance(order: 4, child: _buildPrivacySection(context)),
+                    _OnceEntrance(order: 4, child: _buildAccountSection(context)),
+                    const SizedBox(height: 18),
+                    _OnceEntrance(order: 5, child: _buildPrivacySection(context)),
                     const SizedBox(height: 18),
                     _OnceEntrance(
-                      order: 5,
+                      order: 6,
                       child: _buildDangerZone(
                         context,
                         isUsingFirebase: authProvider.isUsingFirebase,
@@ -969,6 +976,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         child: const _AnalyticsToggleTile(),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Module: Notification types — per-type push mute (feature notifications,
+  // D-notif-4). Photo / reaction / daily-question can be silenced on THIS
+  // device; love note + partner joined/left are always-on (too important to
+  // mute) so they're not listed. Push-only: muted types still log to the center.
+  // ---------------------------------------------------------------------------
+  Widget _buildNotificationTypesSection(BuildContext context) {
+    final l10n = context.l10n;
+    return _buildSectionCard(
+      title: l10n.settingsNotifTypesTitle,
+      subtitle: l10n.settingsNotifTypesSubtitle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: 0.72),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.accentRose.withValues(alpha: 0.10),
+          ),
+        ),
+        child: const _NotificationTypeToggles(),
       ),
     );
   }
@@ -1888,6 +1920,117 @@ class _AnalyticsToggleTileState extends State<_AnalyticsToggleTile> {
         padding: const EdgeInsets.only(top: 4),
         child: Text(
           l10n.settingsAnalyticsSubtitle,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 12,
+            height: 1.4,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Per-type push mute switches (feature notifications, D-notif-4). Reads/writes
+/// [NotificationSettingsService] (Hive) then re-registers the device doc so the
+/// Cloud Functions fan-out honours the change. Default ON for all three; muting
+/// only silences the PUSH — the type still logs to the notification center.
+class _NotificationTypeToggles extends StatefulWidget {
+  const _NotificationTypeToggles();
+
+  @override
+  State<_NotificationTypeToggles> createState() =>
+      _NotificationTypeTogglesState();
+}
+
+class _NotificationTypeTogglesState extends State<_NotificationTypeToggles> {
+  Map<String, bool> _prefs = {
+    for (final k in NotificationSettingsService.allKeys) k: true,
+  };
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await NotificationSettingsService.instance.load();
+    if (!mounted) return;
+    setState(() {
+      _prefs = prefs;
+      _loaded = true;
+    });
+  }
+
+  Future<void> _onChanged(String prefKey, bool value) async {
+    HapticFeedback.selectionClick();
+    setState(() => _prefs = {..._prefs, prefKey: value});
+    await NotificationSettingsService.instance.set(prefKey, value);
+    // Mirror to the device doc so the CF stops/starts sending this type.
+    await PushNotificationService.instance.refreshDeviceRegistration();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      children: [
+        _tile(
+          icon: LucideIcons.image,
+          title: l10n.settingsNotifTypePhoto,
+          subtitle: l10n.settingsNotifTypePhotoSubtitle,
+          prefKey: NotificationSettingsService.keyPhoto,
+        ),
+        _tile(
+          icon: LucideIcons.heart,
+          title: l10n.settingsNotifTypeReaction,
+          subtitle: l10n.settingsNotifTypeReactionSubtitle,
+          prefKey: NotificationSettingsService.keyReaction,
+        ),
+        _tile(
+          icon: LucideIcons.messageCircle,
+          title: l10n.settingsNotifTypeDailyQuestion,
+          subtitle: l10n.settingsNotifTypeDailyQuestionSubtitle,
+          prefKey: NotificationSettingsService.keyDailyQuestion,
+        ),
+      ],
+    );
+  }
+
+  Widget _tile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String prefKey,
+  }) {
+    return SwitchListTile.adaptive(
+      value: _prefs[prefKey] ?? true,
+      onChanged: _loaded ? (v) => _onChanged(prefKey, v) : null,
+      activeThumbColor: AppColors.accentRose,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      secondary: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: AppColors.accentRose.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Icon(icon, color: AppColors.accentRose, size: 20),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Text(
+          subtitle,
           style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 12,

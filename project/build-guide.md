@@ -20,6 +20,11 @@
 
 **Workaround:** dùng `scripts/ios-sim.sh` thay `flutter run` — script tự compile đúng trước khi run. Sau `flutter clean` thì `build/native_assets/ios/` bị xoá → cần chạy `scripts/fix-simulator-native-assets.sh` (hoặc `ios-sim.sh --clean`) trước khi run lại.
 
+**3 gotcha gặp khi chạy lại trên máy mới (2026-06-08) — đã vá tận gốc trong script:**
+1. **`Build input file cannot be found: Runner/GoogleService-Info.plist`** — file đã `git mv` ra `ios/config/{dev,prod}/` + gitignore; Xcode kiểm tra input tồn tại TRƯỚC khi script phase copy. **Vá:** `ios/Podfile` post_install **seed** file từ `config/prod` (fallback an toàn) nếu thiếu. Gỡ tay: `cp ios/config/prod/GoogleService-Info.plist ios/Runner/GoogleService-Info.plist`.
+2. **`Source not found: objective_c-<ver>/src` → "Run: flutter pub get"** (dù đã pub get) — `fix-simulator-native-assets.sh` hardcode `hosted/pub.dev/`, nhưng package tải từ **mirror** (vd `pub.flutter-io.cn`) nên nằm ở `hosted/<mirror>/`. **Vá:** script dò mọi host dưới `$PUB_CACHE/hosted/*/objective_c-<ver>/src`.
+3. **`Package(s) objective_c require the native assets feature to be enabled`** (lặp dù đã bật cờ) — `ios-sim.sh` hardcode **bare `flutter`** (subprocess né hook ép-fvm → chạy nhầm 3.5.4, đọc config cũ). **Vá:** script tự chọn toolchain (`fvm flutter` nếu có `.fvmrc`/`.fvm/`, ngược lại `flutter`). Ngoài ra phải bật cờ 1 lần: `fvm flutter config --enable-native-assets`.
+
 ## iOS Strip Invalid Architectures
 
 Build-phase "Strip Invalid Architectures" (thêm vào target Runner qua `ios/Podfile` post_install bằng Xcodeproj, 2026-06-01): lipo remove `i386/x86_64` khỏi mọi embedded framework + re-sign. Bắt buộc vì `objective_c.framework` (transitive native FFI) ship fat binary có slice simulator → Transporter báo *Validation failed (409) Invalid executable … x86_64 slice*. Idempotent, sống qua `pod install`.

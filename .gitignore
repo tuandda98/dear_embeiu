@@ -71,3 +71,7 @@ AuthKey_*.p8
 # build phase overwrites it each build from ios/config/{dev,prod}/ by $CONFIGURATION.
 # Source of truth = ios/config/ (committed). Don't track the flip-flopping working copy.
 ios/Runner/GoogleService-Info.plist
+
+# Figma integration — chứa API token, không commit
+.env.figma
+figma_screenshots/

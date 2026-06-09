@@ -9,6 +9,9 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get back => 'Back';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
@@ -1268,6 +1271,34 @@ class AppLocalizationsEn extends AppLocalizations {
       'Help improve the app with anonymous data. We never collect your private content.';
 
   @override
+  String get settingsNotifTypesTitle => 'Notification types';
+
+  @override
+  String get settingsNotifTypesSubtitle =>
+      'Mute the push types you\'d rather not be interrupted by. They still appear in your notification center.';
+
+  @override
+  String get settingsNotifTypePhoto => 'New photos';
+
+  @override
+  String get settingsNotifTypePhotoSubtitle =>
+      'When your partner posts a photo';
+
+  @override
+  String get settingsNotifTypeReaction => 'Photo reactions';
+
+  @override
+  String get settingsNotifTypeReactionSubtitle =>
+      'When your partner reacts to your photo';
+
+  @override
+  String get settingsNotifTypeDailyQuestion => 'Daily question';
+
+  @override
+  String get settingsNotifTypeDailyQuestionSubtitle =>
+      'When your partner answers today\'s question';
+
+  @override
   String get settingsEditStorySubtitle => 'Edit names, anniversary date, photo';
 
   @override
@@ -2149,6 +2180,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notifCenterEmptyBody =>
       'Activity from the two of you will appear here.';
+
+  @override
+  String get notifGroupToday => 'Today';
+
+  @override
+  String get notifGroupEarlier => 'Earlier';
+
+  @override
+  String notifUnreadCount(int count) {
+    return '$count unread';
+  }
+
+  @override
+  String get notifAllCaughtUp => 'You\'re all caught up 💛';
 
   @override
   String get notifMarkAllRead => 'Mark all read';

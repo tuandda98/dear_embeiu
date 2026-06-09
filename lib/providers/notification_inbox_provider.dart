@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/app_notification.dart';
+import '../services/app_badge.dart';
 import '../services/notification_inbox_service.dart';
 
 /// State for the in-app notification center: streams the current couple's
@@ -25,6 +26,10 @@ class NotificationInboxProvider extends ChangeNotifier {
   bool get isEmpty => _items.isEmpty;
   int get unreadCount => _items.where((n) => !n.read).length;
   bool get hasUnread => unreadCount > 0;
+
+  /// Unread notifications whose tap target is [tab] (drives auto-read on tab open).
+  int unreadForTab(int tab) =>
+      _items.where((n) => !n.read && n.targetHomeTab == tab).length;
 
   /// Begins watching notifications for [coupleId] on behalf of [myUid]. Safe to
   /// call repeatedly: no-ops when the (couple, uid) pair is unchanged and
@@ -51,6 +56,10 @@ class NotificationInboxProvider extends ChangeNotifier {
         _items = items;
         _isLoading = false;
         notifyListeners();
+        // Keep the iOS app-icon badge in sync with the real unread count. The
+        // stream re-emits after every mark-read/delete (Firestore round-trip),
+        // so syncing here covers optimistic mutations too (D-notif-2).
+        AppBadge.set(unreadCount);
       },
       onError: (_) {
         _isLoading = false;
@@ -67,6 +76,28 @@ class NotificationInboxProvider extends ChangeNotifier {
     ];
     notifyListeners();
     await _service.markRead(uid, id);
+  }
+
+  /// Auto-read: marks every UNREAD notification whose [AppNotification.targetHomeTab]
+  /// equals [tab] as read — called when the user opens that Home tab, since
+  /// landing on the tab means they've "seen" the new activity surfaced there
+  /// (photos on Gallery, notes/answers/pairing on Home). Keeps the bell badge
+  /// honest instead of counting content the user already viewed in-app.
+  /// Optimistic + best-effort batch; no-ops when nothing matches.
+  Future<void> markReadForTab(int tab) async {
+    final uid = _uid;
+    if (uid == null) return;
+    final ids = [
+      for (final n in _items)
+        if (!n.read && n.targetHomeTab == tab) n.id,
+    ];
+    if (ids.isEmpty) return;
+    _items = [
+      for (final n in _items)
+        (!n.read && n.targetHomeTab == tab) ? n.copyWith(read: true) : n,
+    ];
+    notifyListeners();
+    await _service.markAllRead(uid, ids);
   }
 
   Future<void> markAllRead() async {
@@ -106,6 +137,8 @@ class NotificationInboxProvider extends ChangeNotifier {
     _items = const <AppNotification>[];
     _isLoading = false;
     notifyListeners();
+    // Sign-out / no couple → clear the icon badge.
+    AppBadge.set(0);
   }
 
   @override

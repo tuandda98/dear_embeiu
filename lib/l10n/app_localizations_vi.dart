@@ -9,6 +9,9 @@ class AppLocalizationsVi extends AppLocalizations {
   AppLocalizationsVi([String locale = 'vi']) : super(locale);
 
   @override
+  String get back => 'Quay lại';
+
+  @override
   String get cancel => 'Hủy';
 
   @override
@@ -1269,6 +1272,33 @@ class AppLocalizationsVi extends AppLocalizations {
       'Giúp cải thiện app bằng dữ liệu ẩn danh. Không bao giờ thu thập nội dung riêng tư của bạn.';
 
   @override
+  String get settingsNotifTypesTitle => 'Loại thông báo';
+
+  @override
+  String get settingsNotifTypesSubtitle =>
+      'Tắt loại push bạn không muốn bị làm phiền. Chúng vẫn xuất hiện trong trung tâm thông báo.';
+
+  @override
+  String get settingsNotifTypePhoto => 'Ảnh mới';
+
+  @override
+  String get settingsNotifTypePhotoSubtitle => 'Khi người ấy đăng ảnh mới';
+
+  @override
+  String get settingsNotifTypeReaction => 'Thả tim ảnh';
+
+  @override
+  String get settingsNotifTypeReactionSubtitle =>
+      'Khi người ấy thả cảm xúc vào ảnh của bạn';
+
+  @override
+  String get settingsNotifTypeDailyQuestion => 'Câu hỏi hôm nay';
+
+  @override
+  String get settingsNotifTypeDailyQuestionSubtitle =>
+      'Khi người ấy trả lời câu hỏi hôm nay';
+
+  @override
   String get settingsEditStorySubtitle => 'Đổi tên, ngày yêu, ảnh đại diện';
 
   @override
@@ -2153,6 +2183,20 @@ class AppLocalizationsVi extends AppLocalizations {
       'Hoạt động của hai bạn sẽ xuất hiện ở đây.';
 
   @override
+  String get notifGroupToday => 'Hôm nay';
+
+  @override
+  String get notifGroupEarlier => 'Trước đó';
+
+  @override
+  String notifUnreadCount(int count) {
+    return '$count chưa đọc';
+  }
+
+  @override
+  String get notifAllCaughtUp => 'Hai bạn đã xem hết rồi 💛';
+
+  @override
   String get notifMarkAllRead => 'Đánh dấu đã đọc';
 
   @override
@@ -2188,7 +2232,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String notifPartnerLeft(String name) {
-    return '$name đã rời khỏi không gian của hai người';
+    return '$name đã rời khỏi không gian chung';
   }
 
   @override

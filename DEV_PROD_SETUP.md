@@ -30,6 +30,8 @@
 
 Idempotent, sống qua `pod install` (find-or-create như phase "Strip Invalid Architectures").
 
+> ⚠️ **Gotcha "Build input file cannot be found: …/Runner/GoogleService-Info.plist"** (cây sạch / clone mới): `ios/Runner/GoogleService-Info.plist` đã **untrack + gitignore** (nguồn thật ở `ios/config/{dev,prod}/`). Build-phase trên copy đúng bản theo môi trường, NHƯNG Xcode kiểm tra file input tồn tại **TRƯỚC** khi chạy bất kỳ script phase nào → cây sạch (file chưa từng tạo) thì build đầu tiên chết. **Đã vá:** `Podfile` post_install **seed** `Runner/GoogleService-Info.plist` từ `config/prod` (fallback an toàn) nếu file thiếu — chạy mỗi `pod install`, chỉ ghi khi vắng; Debug/Profile sau đó được phase in-build swap sang dev. Nếu vẫn kẹt: `cp ios/config/prod/GoogleService-Info.plist ios/Runner/GoogleService-Info.plist` rồi build lại (hoặc `pod install` để seed tự chạy).
+
 ## Lệnh chạy / build
 
 ```bash

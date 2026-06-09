@@ -700,9 +700,35 @@ exports.notifyPhotoReaction = onDocumentCreated(
 // `dataExtra` is merged into each message's data payload; `title`/`body` from
 // buildText are also mirrored into data (kept consistent with the original
 // photo-notification payload shape).
+// Per-type mute prefs (D-notif-4): maps a push `type` to the device-doc field
+// the user can switch off. Types not listed (love_note, partner_joined/left)
+// are always-on and never filtered. Absent field on a device → not muted.
+const PUSH_TYPE_PREF_FIELD = {
+  photo_posted: "pushPhoto",
+  photo_reaction: "pushReaction",
+  daily_question: "pushDailyQuestion",
+};
+
 async function sendToRecipientDevices(recipientIds, buildText, dataExtra) {
+  const muteField = PUSH_TYPE_PREF_FIELD[dataExtra && dataExtra.type];
   const deviceDocs = [];
+  // Real iOS app-icon badge (D-notif-2): per recipient, how many unread inbox
+  // notifications they have right now. The inbox doc for THIS event was already
+  // written by the sender before this runs, so it's included → the badge equals
+  // the true unread total. Replaces the old hardcoded `badge: 1`.
+  const unreadByRecipient = {};
   for (const recipientId of recipientIds) {
+    try {
+      const countSnap = await db
+        .collection("users").doc(recipientId)
+        .collection("notifications")
+        .where("read", "==", false)
+        .count().get();
+      unreadByRecipient[recipientId] = countSnap.data().count || 1;
+    } catch (err) {
+      unreadByRecipient[recipientId] = 1;
+    }
+
     const devicesSnapshot = await db
       .collection("users")
       .doc(recipientId)
@@ -713,6 +739,13 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra) {
     for (const doc of devicesSnapshot.docs) {
       const token = `${doc.get("token") || ""}`.trim();
       if (!token) {
+        continue;
+      }
+
+      // Skip this device when the user muted this push type on it. Only the
+      // PUSH is suppressed — the durable inbox record is still written, so the
+      // notification center stays a complete history.
+      if (muteField && doc.get(muteField) === false) {
         continue;
       }
 
@@ -755,7 +788,7 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra) {
         payload: {
           aps: {
             sound: "default",
-            badge: 1,
+            badge: unreadByRecipient[device.recipientId] || 1,
           },
         },
       },
@@ -1290,12 +1323,12 @@ function buildPartnerJoinedText(languageCode, joinerName) {
 // languageCode. Unknown/missing codes fall back to Vietnamese.
 const PARTNER_LEFT_COPY = {
   vi: {
-    title: (name) => `${name} đã rời khỏi không gian của hai người`,
-    body: "Hai bạn đã ngắt kết nối. Mở app để xem lại nhé.",
+    title: (name) => `${name} đã rời khỏi không gian chung`,
+    body: "Khi nào sẵn sàng, hai bạn có thể kết nối lại nhé 💛",
   },
   en: {
     title: (name) => `${name} has left your shared space`,
-    body: "You're no longer connected. Open the app to take a look.",
+    body: "You can reconnect whenever you're both ready 💛",
   },
 };
 

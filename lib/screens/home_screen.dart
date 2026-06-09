@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../l10n/l10n.dart';
 import '../models/couple.dart';
@@ -78,6 +79,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   String? _lastReminderKey;
 
+  /// Anchor for the daily-question card so a tapped `daily_question`
+  /// notification can scroll it into view (deep-link within Home).
+  final GlobalKey _dailyQuestionKey = GlobalKey();
+
   // Streak milestone celebration (feature streak): listen for a freshly-reached
   // milestone and auto-show the StreakSheet in celebration mode, once. The
   // provider's per-couple Hive guard prevents re-firing across launches; this
@@ -121,6 +126,11 @@ class _HomeScreenState extends State<HomeScreen> {
     NotificationTapRouter.consumeHomeTabRequest();
     NotificationTapRouter.pendingHomeTab.addListener(_onNotificationTapRequest);
 
+    // Cold-start / warm deep-link to a specific Home card (e.g. daily question).
+    _applyPendingFocus(NotificationTapRouter.pendingHomeFocus.value);
+    NotificationTapRouter.consumeHomeFocusRequest();
+    NotificationTapRouter.pendingHomeFocus.addListener(_onNotificationFocusRequest);
+
     // Watch for a freshly-reached streak milestone to auto-celebrate.
     _streakProvider = context.read<StreakProvider>();
     _streakProvider!.addListener(_onStreakChanged);
@@ -130,6 +140,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     NotificationTapRouter.pendingHomeTab
         .removeListener(_onNotificationTapRequest);
+    NotificationTapRouter.pendingHomeFocus
+        .removeListener(_onNotificationFocusRequest);
     _streakProvider?.removeListener(_onStreakChanged);
     super.dispose();
   }
@@ -192,6 +204,46 @@ class _HomeScreenState extends State<HomeScreen> {
         _logTabScreenView(requested);
       }
     }
+  }
+
+  /// Reacts to a warm focus request (app already running) — e.g. a tapped
+  /// daily-question notification wants its card scrolled into view.
+  void _onNotificationFocusRequest() {
+    final focus = NotificationTapRouter.pendingHomeFocus.value;
+    if (focus == null) {
+      return;
+    }
+    NotificationTapRouter.consumeHomeFocusRequest();
+    _applyPendingFocus(focus);
+  }
+
+  /// Routes a Home-focus request to the matching card. Currently only the
+  /// daily-question card; add more `case`s as other Home cards get deep-links.
+  void _applyPendingFocus(String? focus) {
+    if (focus == 'daily_question') {
+      _scrollToCard(_dailyQuestionKey);
+    }
+  }
+
+  /// Smoothly scrolls the Home tab so the [key]'d card is in view. Deferred so
+  /// the tab has switched to Home and the card is laid out first; safe no-op if
+  /// the card isn't mounted (e.g. guest/waiting-partner states hide it).
+  void _scrollToCard(GlobalKey key) {
+    Future<void>.delayed(const Duration(milliseconds: 350), () {
+      if (!mounted) {
+        return;
+      }
+      final ctx = key.currentContext;
+      if (ctx == null || !ctx.mounted) {
+        return;
+      }
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOutCubic,
+        alignment: 0.1,
+      );
+    });
   }
 
   /// Logs a `screen_view` for the Home bottom-nav tabs (0=Home, 1=Gallery,
@@ -293,6 +345,20 @@ class _HomeScreenState extends State<HomeScreen> {
         _floatingNavHeight +
         (_floatingNavMargin * 2) +
         _floatingNavSpacing;
+
+    // Auto-read: landing on a tab "consumes" the activity surfaced there, so
+    // mark its unread inbox notifications read (keeps the bell badge honest).
+    // Watching here means it also fires when items stream in while we're already
+    // on the tab. Gated + idempotent (markReadForTab no-ops once nothing matches)
+    // so it converges in one frame and never loops.
+    final inbox = context.watch<NotificationInboxProvider>();
+    if (inbox.unreadForTab(_selectedIndex) > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<NotificationInboxProvider>().markReadForTab(_selectedIndex);
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -645,33 +711,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildNotificationBell(),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() => _selectedIndex = 2);
-                        _logTabScreenView(2);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.white.withValues(alpha: 0.16),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: AppColors.white.withValues(alpha: 0.18),
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.favorite_rounded,
-                          color: AppColors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                _buildNotificationBell(),
               ],
             ),
           ),
@@ -732,7 +772,10 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 20),
           _entrance(6, _buildLoveNoteCard(couple, l10n)),
           const SizedBox(height: 20),
-          _entrance(6, _buildDailyQuestionCard(couple, l10n)),
+          KeyedSubtree(
+            key: _dailyQuestionKey,
+            child: _entrance(6, _buildDailyQuestionCard(couple, l10n)),
+          ),
           if (onThisDayPhoto != null) ...[
             const SizedBox(height: 20),
             _entrance(6, _buildOnThisDayCard(onThisDayPhoto, couple, l10n)),
@@ -797,10 +840,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppColors.white.withValues(alpha: 0.18),
               ),
             ),
-            child: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColors.white,
-            ),
+            child: _buildBellGlyph(unread),
           ),
           if (unread > 0)
             Positioned(
@@ -828,6 +868,40 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  /// Bell glyph for the header pill. Renders an animated Lottie bell when the
+  /// asset is present (rings — loops — while there are unread notifications,
+  /// rests as a single frame otherwise). Falls back to the static rounded bell
+  /// icon if the Lottie file is missing/broken, so the header never breaks.
+  ///
+  /// Drop a bell animation at `assets/lottie/notification_bell.json` to enable
+  /// it (the assets/lottie/ folder is already bundled). It's tinted white via a
+  /// [ColorFiltered] so any palette matches the white header chrome — remove
+  /// that wrapper if you want the Lottie's own colours.
+  Widget _buildBellGlyph(int unread) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: ColorFiltered(
+        colorFilter: const ColorFilter.mode(
+          AppColors.white,
+          BlendMode.srcATop,
+        ),
+        child: Lottie.asset(
+          'assets/lottie/notification_bell.json',
+          width: 24,
+          height: 24,
+          fit: BoxFit.contain,
+          repeat: unread > 0,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.notifications_none_rounded,
+            color: AppColors.white,
+            size: 24,
+          ),
+        ),
       ),
     );
   }

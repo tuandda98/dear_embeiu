@@ -1,0 +1,9 @@
+command : cd /Users/tony.tuando/StudioProjects/dear_embeiu
+npx firebase-tools deploy --only firestore:rules,functions --project dev 2>&1 | grep -vE "DeprecationWarning|trace-deprecation|punycode" | tail -50
+echo "DEPLOY_EXIT=${PIPESTATUS[0]}"
+time_utc: 20260608T064709Z
+git_head: 5d606eb (release/1.1.6)
+dirty   : 32 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 5d606eb)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 5d606eb -- functions` rồi redeploy

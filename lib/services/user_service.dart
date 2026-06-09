@@ -183,6 +183,7 @@ class UserService {
     required String platform,
     required bool notificationsEnabled,
     String? languageCode,
+    Map<String, bool> pushTypePrefs = const {},
   }) async {
     if (!isEnabled || userId.trim().isEmpty || deviceId.trim().isEmpty) {
       return;
@@ -198,6 +199,9 @@ class UserService {
       // partner-photo push per recipient device (Gap B).
       if (normalizedLanguageCode != null && normalizedLanguageCode.isNotEmpty)
         'languageCode': normalizedLanguageCode,
+      // Per-type mute prefs (D-notif-4). The CF reads these (default ON when
+      // absent) to skip low-stakes pushes the user muted on this device.
+      ...pushTypePrefs,
       'updatedAt': DateTime.now(),
     }, SetOptions(merge: true));
   }

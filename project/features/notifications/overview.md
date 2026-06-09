@@ -40,3 +40,19 @@
 - `partner_left` trước đây thiếu nhánh tap trong push handler → đã vá.
 - Notifications couple cũ còn nằm Firestore sau khi rời (ẩn bởi filter coupleId, dọn khi xoá tài khoản) — v2 có thể dọn server-side khi leave.
 - Local reminders chưa vào inbox (v2).
+
+## 7. Review flow A/B (2026-06-08) + lộ trình cải thiện
+Đóng vai A/B đi hết vòng đời → finding (đã chốt với user). Decision log:
+- **D-notif-1 (auto-read):** mở tab Gallery → mark read `photo_posted`+`photo_reaction`; tab Home → `love_note`+`daily_question`+`partner_joined/left`. Mở tab = "đã thấy đồ ở đó" → badge chỉ đếm cái thực sự chưa xem.
+- **D-notif-2 (badge):** server set `aps.badge` = số chưa-đọc thật của recipient (CF query); client set app-badge = `unreadCount`, clear=0 khi đọc. (Thay `badge:1` hardcode.)
+- **D-notif-3 (deep-link item):** tap photo_posted/photo_reaction → mở ĐÚNG ảnh (Gallery preview by photoId); **daily_question → cuộn Home tới đúng card câu hỏi** (`pendingHomeFocus` + `GlobalKey` + `Scrollable.ensureVisible`, 2026-06-08); love_note vẫn tab Home (card sẵn ngay đầu).
+- **D-notif-4 (per-type settings):** toggle `photo`/`reaction`/`daily_question` ở Settings; `love_note`+`partner_joined/left` LUÔN bật. Lưu prefs vào device doc → CF tôn trọng. ⚠️ cần mở rộng `hasOnly` của rules `users/{uid}/devices` (thiếu field = push hỏng âm thầm) → rules-test + deploy.
+- **D-notif-5 (polish):** đăng ≥2 ảnh/60s không spam; sửa note nhỏ không re-push; dịu tone `partner_left`.
+
+**Lộ trình cột mốc (đang làm — Lead solo):**
+- ✅ **M1 — Auto-read (D-notif-1)** [2026-06-08]: `NotificationInboxProvider.markReadForTab` + getter `unreadForTab`; hook trong `home_screen.dart build` (gated, post-frame, idempotent). Client-only, KHÔNG cần deploy. `analyze` sạch.
+- ✅ **M2 — Deep-link ảnh (D-notif-3)** [2026-06-08]: `NotificationTapRouter.pendingPhotoId` + `consumePhotoRequest`; push handler (`_handleNotificationTap`) + inbox tile set photoId; `GalleryScreen` (initState/listener + build post-frame) → `GalleryScreen.openPreview` đúng ảnh, gone→về grid. Client-only. analyze sạch.
+- ✅ **M3 — Per-type settings (D-notif-4)** [2026-06-08]: `NotificationSettingsService` (Hive `notification_settings`) + mirror device doc qua `saveDeviceRegistration(pushTypePrefs)` + `PushNotificationService.refreshDeviceRegistration`; **rules** `isValidDeviceDocument` thêm `pushPhoto/pushReaction/pushDailyQuestion` (đọc `.get(.,true)` additive); CF `PUSH_TYPE_PREF_FIELD` lọc device trong `sendToRecipientDevices` (mute = chỉ tắt PUSH, inbox vẫn ghi). UI Settings section "Loại thông báo" (3 switch, love_note/partner luôn bật). l10n 8 key. rules-test 140 pass.
+- ✅ **M4 — Badge thật + dịu tone (D-notif-2 + tone)** [2026-06-08]: CF `sendToRecipientDevices` set `aps.badge` = count chưa-đọc thật của recipient (Firestore `count()`), thay `badge:1`; client clear badge qua MethodChannel `app/badge` (AppDelegate.swift + `AppBadge.set`, gọi từ inbox provider stream + clear). Dịu copy `partner_left` ("đã ngắt kết nối" → "có thể kết nối lại 💛", VI title "không gian chung").
+- ⏸️ **HOÃN (fast-follow, có chủ đích):** *throttle ảnh-loạt* (cần index `(type,createdAt)` mới + query/photo, rủi ro chặn nhầm) + *no-repush khi sửa note nhỏ* (heuristic mờ — Levenshtein/length dễ nuốt nhầm love-note thật). Để lại làm riêng khi cần, không ship heuristic janky.
+- 🚀 **Deploy:** **DEV** rules+functions (user duyệt DEV-only, **KHÔNG prod**). PROD chờ lệnh sau.

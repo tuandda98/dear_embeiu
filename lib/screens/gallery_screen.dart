@@ -17,6 +17,7 @@ import '../models/photo.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
+import '../services/push_notification_service.dart';
 import '../providers/reaction_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
@@ -83,6 +84,52 @@ class _GalleryScreenState extends State<GalleryScreen> {
   // Per-photo heart-burst trigger counters; bump to replay the burst on a
   // double-tap (feed card). Keyed by photo id.
   final Map<String, int> _burstTriggers = <String, int>{};
+
+  // Deep-link target: a tapped photo/reaction notification wants this exact
+  // photo opened fullscreen. Set from [NotificationTapRouter.pendingPhotoId]
+  // (cold-start in initState, warm via listener); consumed in build once the
+  // photo list has loaded. Cleared when handled or when the photo is gone.
+  String? _pendingDeepLinkPhotoId;
+
+  @override
+  void initState() {
+    super.initState();
+    _pendingDeepLinkPhotoId = NotificationTapRouter.pendingPhotoId.value;
+    NotificationTapRouter.consumePhotoRequest();
+    NotificationTapRouter.pendingPhotoId.addListener(_onDeepLinkPhotoRequest);
+  }
+
+  @override
+  void dispose() {
+    NotificationTapRouter.pendingPhotoId.removeListener(_onDeepLinkPhotoRequest);
+    super.dispose();
+  }
+
+  /// Warm deep-link: a tap arrived while the app is running.
+  void _onDeepLinkPhotoRequest() {
+    final id = NotificationTapRouter.pendingPhotoId.value;
+    if (id == null) return;
+    NotificationTapRouter.consumePhotoRequest();
+    if (!mounted) return;
+    setState(() => _pendingDeepLinkPhotoId = id);
+  }
+
+  /// Opens the pending deep-link photo once [photos] is available. No-ops if
+  /// already handled; silently lands on the grid if the photo was deleted.
+  void _openDeepLinkPhoto(String id, List<Photo> photos, Couple? couple) {
+    if (_pendingDeepLinkPhotoId != id) return;
+    _pendingDeepLinkPhotoId = null;
+    final idx = photos.indexWhere((p) => p.id == id);
+    if (idx < 0) return;
+    final heroTags = [for (var i = 0; i < photos.length; i++) 'deeplink-$i'];
+    GalleryScreen.openPreview(
+      context,
+      photos: photos,
+      heroTags: heroTags,
+      initialIndex: idx,
+      couple: couple,
+    );
+  }
 
   /// Double-tap on a photo: drop a ❤️ (never a toggle-off — D2/§3) + burst.
   /// No-ops when there's no active Firebase couple (reactions are hidden).
@@ -1689,6 +1736,17 @@ class _GalleryScreenState extends State<GalleryScreen> {
         builder: (context, photoProvider, coupleProvider, _) {
           final photos = photoProvider.sortedPhotos;
           final couple = coupleProvider.couple;
+
+          // Deep-link: open the exact photo a tapped notification asked for,
+          // once the list has loaded (handles cold-start where photos arrive
+          // after the tap). Gated + self-clearing so it fires at most once.
+          final deepLinkId = _pendingDeepLinkPhotoId;
+          if (deepLinkId != null && !photoProvider.isLoading) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _openDeepLinkPhoto(deepLinkId, photos, couple);
+            });
+          }
+
           final feedItems = _buildFeedItems(photos);
           // Stream errored AND nothing to show → it's a load failure, not an
           // empty library. Render a retryable error state instead of "post your
@@ -2561,4 +2619,5 @@ class _OnceEntranceState extends State<_OnceEntrance> {
         );
   }
 }
+
 

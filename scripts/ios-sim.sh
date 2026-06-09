@@ -13,6 +13,19 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# ── Toolchain: dùng đúng Flutter của máy ──────────────────────────────────────
+# Một số máy (vd máy cty) có bare `flutter` SAI version (3.5.4) → phải qua fvm;
+# máy khác (bare flutter đúng version, vd máy nhà) dùng trực tiếp. Tự chọn: có
+# `fvm` + repo pin version (`.fvmrc`/`.fvm/`) → `fvm flutter`, ngược lại `flutter`.
+# ⚠️ Subprocess trong script KHÔNG bị hook ép-fvm chặn, nên phải tự chọn ở đây —
+# nếu để bare `flutter` thì máy cty chạy nhầm 3.5.4 (đọc config cũ, native-assets
+# off → "require the native assets feature to be enabled").
+if command -v fvm >/dev/null 2>&1 && { [[ -f "$PROJECT_DIR/.fvmrc" ]] || [[ -d "$PROJECT_DIR/.fvm" ]]; }; then
+  FLUTTER="fvm flutter"
+else
+  FLUTTER="flutter"
+fi
+
 CLEAN=false
 DEVICE_ID=""
 
@@ -43,14 +56,15 @@ if [[ -z "$DEVICE_ID" ]]; then
 fi
 
 echo "📱 Simulator: $DEVICE_ID"
+echo "🛠  Toolchain: $FLUTTER"
 
 cd "$PROJECT_DIR"
 
 # ── flutter clean nếu cần ─────────────────────────────────────────────────────
 if [[ "$CLEAN" == true ]]; then
-  echo "🧹 flutter clean..."
-  flutter clean
-  flutter pub get
+  echo "🧹 $FLUTTER clean..."
+  $FLUTTER clean
+  $FLUTTER pub get
 fi
 
 # ── Fix native_assets simulator bug ───────────────────────────────────────────
@@ -58,5 +72,5 @@ echo "🔧 Fix simulator native_assets..."
 bash "$SCRIPT_DIR/fix-simulator-native-assets.sh"
 
 # ── Run ────────────────────────────────────────────────────────────────────────
-echo "🚀 flutter run -d $DEVICE_ID"
-flutter run -d "$DEVICE_ID" --no-pub
+echo "🚀 $FLUTTER run -d $DEVICE_ID"
+$FLUTTER run -d "$DEVICE_ID" --no-pub

@@ -19,6 +19,7 @@ class GlassCard extends StatelessWidget {
     this.blur = 18,
     this.fillAlpha = 0.16,
     this.borderAlpha = 0.32,
+    this.borderColor,
     this.padding = const EdgeInsets.all(20),
   });
 
@@ -34,8 +35,12 @@ class GlassCard extends StatelessWidget {
   /// Opacity of the white fill layer.
   final double fillAlpha;
 
-  /// Opacity of the white highlight border.
+  /// Opacity of the highlight border.
   final double borderAlpha;
+
+  /// Border tint. Defaults to the white highlight; pass an accent (e.g. for an
+  /// "unread" emphasis) to ring the tile in that colour instead.
+  final Color? borderColor;
 
   /// Inner padding around [child].
   final EdgeInsetsGeometry padding;
@@ -53,7 +58,7 @@ class GlassCard extends StatelessWidget {
             color: AppColors.white.withValues(alpha: fillAlpha),
             borderRadius: radius,
             border: Border.all(
-              color: AppColors.white.withValues(alpha: borderAlpha),
+              color: (borderColor ?? AppColors.white).withValues(alpha: borderAlpha),
             ),
           ),
           child: child,

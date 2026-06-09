@@ -31,9 +31,18 @@ if [[ -z "$PKG_VERSION" ]]; then
   exit 1
 fi
 
-SRC_DIR="$HOME/.pub-cache/hosted/pub.dev/objective_c-${PKG_VERSION}/src"
-if [[ ! -d "$SRC_DIR" ]]; then
-  echo "❌ Source not found: $SRC_DIR" >&2
+# Locate the package src under whichever pub host mirror cached it. Packages may
+# come from pub.dev OR a mirror (e.g. pub.flutter-io.cn) depending on
+# PUB_HOSTED_URL at `pub get` time — the lock records the mirror url, and the
+# cache lands in hosted/<mirror>/ not hosted/pub.dev/. Search all hosts and
+# respect PUB_CACHE if the env overrides the default location.
+PUB_CACHE_DIR="${PUB_CACHE:-$HOME/.pub-cache}"
+SRC_DIR=""
+for cand in "$PUB_CACHE_DIR"/hosted/*/objective_c-"${PKG_VERSION}"/src; do
+  if [[ -d "$cand" ]]; then SRC_DIR="$cand"; break; fi
+done
+if [[ -z "$SRC_DIR" ]]; then
+  echo "❌ Source not found under $PUB_CACHE_DIR/hosted/*/objective_c-${PKG_VERSION}/src" >&2
   echo "   Run: flutter pub get" >&2
   exit 1
 fi

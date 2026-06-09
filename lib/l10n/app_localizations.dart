@@ -98,6 +98,12 @@ abstract class AppLocalizations {
     Locale('vi'),
   ];
 
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:
@@ -2264,6 +2270,54 @@ abstract class AppLocalizations {
   /// **'Help improve the app with anonymous data. We never collect your private content.'**
   String get settingsAnalyticsSubtitle;
 
+  /// No description provided for @settingsNotifTypesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification types'**
+  String get settingsNotifTypesTitle;
+
+  /// No description provided for @settingsNotifTypesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute the push types you\'d rather not be interrupted by. They still appear in your notification center.'**
+  String get settingsNotifTypesSubtitle;
+
+  /// No description provided for @settingsNotifTypePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'New photos'**
+  String get settingsNotifTypePhoto;
+
+  /// No description provided for @settingsNotifTypePhotoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When your partner posts a photo'**
+  String get settingsNotifTypePhotoSubtitle;
+
+  /// No description provided for @settingsNotifTypeReaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo reactions'**
+  String get settingsNotifTypeReaction;
+
+  /// No description provided for @settingsNotifTypeReactionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When your partner reacts to your photo'**
+  String get settingsNotifTypeReactionSubtitle;
+
+  /// No description provided for @settingsNotifTypeDailyQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily question'**
+  String get settingsNotifTypeDailyQuestion;
+
+  /// No description provided for @settingsNotifTypeDailyQuestionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When your partner answers today\'s question'**
+  String get settingsNotifTypeDailyQuestionSubtitle;
+
   /// No description provided for @settingsEditStorySubtitle.
   ///
   /// In en, this message translates to:
@@ -3721,6 +3775,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Activity from the two of you will appear here.'**
   String get notifCenterEmptyBody;
+
+  /// No description provided for @notifGroupToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get notifGroupToday;
+
+  /// No description provided for @notifGroupEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get notifGroupEarlier;
+
+  /// No description provided for @notifUnreadCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unread'**
+  String notifUnreadCount(int count);
+
+  /// No description provided for @notifAllCaughtUp.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up 💛'**
+  String get notifAllCaughtUp;
 
   /// No description provided for @notifMarkAllRead.
   ///

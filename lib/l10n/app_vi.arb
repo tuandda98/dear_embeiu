@@ -1,5 +1,6 @@
 {
   "@@locale": "vi",
+  "back": "Quay lại",
   "cancel": "Hủy",
   "save": "Lưu",
   "delete": "Xóa",
@@ -719,6 +720,14 @@
   "settingsAccountModuleSubtitle": "Câu chuyện, dữ liệu & tài khoản",
   "settingsAnalyticsTitle": "Chia sẻ dữ liệu sử dụng",
   "settingsAnalyticsSubtitle": "Giúp cải thiện app bằng dữ liệu ẩn danh. Không bao giờ thu thập nội dung riêng tư của bạn.",
+  "settingsNotifTypesTitle": "Loại thông báo",
+  "settingsNotifTypesSubtitle": "Tắt loại push bạn không muốn bị làm phiền. Chúng vẫn xuất hiện trong trung tâm thông báo.",
+  "settingsNotifTypePhoto": "Ảnh mới",
+  "settingsNotifTypePhotoSubtitle": "Khi người ấy đăng ảnh mới",
+  "settingsNotifTypeReaction": "Thả tim ảnh",
+  "settingsNotifTypeReactionSubtitle": "Khi người ấy thả cảm xúc vào ảnh của bạn",
+  "settingsNotifTypeDailyQuestion": "Câu hỏi hôm nay",
+  "settingsNotifTypeDailyQuestionSubtitle": "Khi người ấy trả lời câu hỏi hôm nay",
   "settingsEditStorySubtitle": "Đổi tên, ngày yêu, ảnh đại diện",
   "settingsDefaultTimeLabel": "Giờ mặc định",
   "settingsDefaultTimeSubtitle": "Áp dụng cho mốc chưa đặt giờ riêng",
@@ -1033,6 +1042,13 @@
   "notifCenterTitle": "Thông báo",
   "notifCenterEmptyTitle": "Chưa có thông báo",
   "notifCenterEmptyBody": "Hoạt động của hai bạn sẽ xuất hiện ở đây.",
+  "notifGroupToday": "Hôm nay",
+  "notifGroupEarlier": "Trước đó",
+  "notifUnreadCount": "{count} chưa đọc",
+  "@notifUnreadCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "notifAllCaughtUp": "Hai bạn đã xem hết rồi 💛",
   "notifMarkAllRead": "Đánh dấu đã đọc",
   "notifClearAll": "Xoá tất cả",
   "notifClearAllConfirmTitle": "Xoá tất cả thông báo?",
@@ -1051,7 +1067,7 @@
   "@notifPartnerJoined": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "notifPartnerLeft": "{name} đã rời khỏi không gian của hai người",
+  "notifPartnerLeft": "{name} đã rời khỏi không gian chung",
   "@notifPartnerLeft": {
     "placeholders": { "name": { "type": "String" } }
   },
