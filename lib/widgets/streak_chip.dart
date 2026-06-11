@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
@@ -54,10 +54,7 @@ class StreakChip extends StatelessWidget {
     }
 
     final l10n = context.l10n;
-    final streak = provider.currentStreak;
     final text = _chipText(provider, l10n);
-    final flameColor = StreakVisuals.flameColor(streak);
-    final glow = _glow(provider.state, streak);
 
     return Material(
       color: Colors.transparent,
@@ -75,16 +72,26 @@ class StreakChip extends StatelessWidget {
             color: AppColors.white.withValues(alpha: 0.18),
             borderRadius: BorderRadius.circular(999),
             border: Border.all(color: AppColors.white.withValues(alpha: 0.30)),
-            boxShadow: glow == null ? null : [glow],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                LucideIcons.flame,
-                size: 16,
-                color: flameColor,
-              ),
+              const Text('✨', style: TextStyle(fontSize: 13, height: 1))
+                  .animate(
+                    onPlay: (controller) => controller.repeat(reverse: true),
+                  )
+                  .fade(
+                    begin: 0.35,
+                    end: 1.0,
+                    duration: const Duration(milliseconds: 900),
+                    curve: Curves.easeInOut,
+                  )
+                  .scale(
+                    begin: const Offset(0.78, 0.78),
+                    end: const Offset(1.15, 1.15),
+                    duration: const Duration(milliseconds: 900),
+                    curve: Curves.easeInOut,
+                  ),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
@@ -99,6 +106,7 @@ class StreakChip extends StatelessWidget {
                   ),
                 ),
               ),
+
             ],
           ),
         ),
@@ -123,30 +131,4 @@ class StreakChip extends StatelessWidget {
     }
   }
 
-  /// Soft glow by state (design §7) — no warning red, no glow at rest.
-  BoxShadow? _glow(StreakState state, int streak) {
-    switch (state) {
-      case StreakState.activeToday:
-        return BoxShadow(
-          color: StreakVisuals.flameColor(streak).withValues(alpha: 0.35),
-          blurRadius: 16,
-          offset: const Offset(0, 4),
-        );
-      case StreakState.inProgress:
-        return BoxShadow(
-          color: StreakVisuals.flameColor(streak).withValues(alpha: 0.18),
-          blurRadius: 14,
-          offset: const Offset(0, 4),
-        );
-      case StreakState.atRisk:
-        return BoxShadow(
-          color: AppColors.accentCoral.withValues(alpha: 0.25),
-          blurRadius: 14,
-          offset: const Offset(0, 4),
-        );
-      case StreakState.noStreak:
-      case StreakState.hidden:
-        return null;
-    }
-  }
 }

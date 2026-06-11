@@ -37,6 +37,19 @@ class _AnimatedHeartIconState extends State<AnimatedHeartIcon>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reduce Motion: park the heart at full size instead of pulsing forever.
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (reduce && _controller.isAnimating) {
+      _controller.stop();
+      _controller.value = 1;
+    } else if (!reduce && !_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();

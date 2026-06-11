@@ -566,6 +566,174 @@ abstract class AppLocalizations {
   /// **'A good day to look back at your love story.'**
   String get homeSubtitle;
 
+  /// No description provided for @homeGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning,'**
+  String get homeGreetingMorning;
+
+  /// No description provided for @homeGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon,'**
+  String get homeGreetingAfternoon;
+
+  /// No description provided for @homeGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening,'**
+  String get homeGreetingEvening;
+
+  /// No description provided for @homeTodaySectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today, together'**
+  String get homeTodaySectionTitle;
+
+  /// No description provided for @dailyTapToAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to answer…'**
+  String get dailyTapToAnswer;
+
+  /// No description provided for @dailyPartnerAnsweredTeaser.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has answered 👀'**
+  String dailyPartnerAnsweredTeaser(String name);
+
+  /// No description provided for @dailyAnswerToReveal.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer to unlock their reply'**
+  String get dailyAnswerToReveal;
+
+  /// No description provided for @dailyBothAnsweredToday.
+  ///
+  /// In en, this message translates to:
+  /// **'You both answered today'**
+  String get dailyBothAnsweredToday;
+
+  /// No description provided for @dailyReadAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Read again'**
+  String get dailyReadAgain;
+
+  /// No description provided for @dailyCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse'**
+  String get dailyCollapse;
+
+  /// No description provided for @loveNoteSealedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A new note from {name}'**
+  String loveNoteSealedTitle(String name);
+
+  /// No description provided for @loveNoteSealedTap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to open 💌'**
+  String get loveNoteSealedTap;
+
+  /// No description provided for @loveNoteNewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW'**
+  String get loveNoteNewBadge;
+
+  /// No description provided for @loveNoteComposeCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Compose a message'**
+  String get loveNoteComposeCta;
+
+  /// No description provided for @loveNoteSheetTitleTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a note to {name}'**
+  String loveNoteSheetTitleTo(String name);
+
+  /// No description provided for @journalLinkShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal'**
+  String get journalLinkShort;
+
+  /// No description provided for @milestoneNextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestone: {label}'**
+  String milestoneNextLabel(String label);
+
+  /// No description provided for @milestoneDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days left'**
+  String milestoneDaysLeft(int count);
+
+  /// No description provided for @milestoneTodayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'today 🎉'**
+  String get milestoneTodayLabel;
+
+  /// No description provided for @onThisDayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 year ago 💞} other{{count} years ago 💞}}'**
+  String onThisDayShort(int count);
+
+  /// No description provided for @counterBgSwipeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe to change the photo'**
+  String get counterBgSwipeHint;
+
+  /// No description provided for @dailyQuestionPairedFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Once you\'re paired, you\'ll answer a question like this together every day 💞'**
+  String get dailyQuestionPairedFirst;
+
+  /// No description provided for @loveNoteHistoryLinkShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Past notes'**
+  String get loveNoteHistoryLinkShort;
+
+  /// No description provided for @loveNoteReplyCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply…'**
+  String get loveNoteReplyCta;
+
+  /// No description provided for @loveNoteSendFirstCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the first note…'**
+  String get loveNoteSendFirstCta;
+
+  /// No description provided for @loveNoteStartChat.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet — send each other the first one 💌'**
+  String get loveNoteStartChat;
+
+  /// No description provided for @loveNoteYouLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get loveNoteYouLabel;
+
+  /// No description provided for @notificationBellLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications, {count} unread'**
+  String notificationBellLabel(int count);
+
   /// No description provided for @youveBeenTogetherFor.
   ///
   /// In en, this message translates to:
@@ -613,6 +781,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Post a new photo for you both to keep'**
   String get addMemoryCtaSubtitle;
+
+  /// No description provided for @cinemaCardSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory: {caption}, photo {index} of {total}. Tap to view full screen.'**
+  String cinemaCardSemantics(String caption, int index, int total);
 
   /// No description provided for @memoriesCardTitle.
   ///
@@ -667,6 +841,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'days'**
   String get daysUnit;
+
+  /// No description provided for @hoursShort.
+  ///
+  /// In en, this message translates to:
+  /// **'hr'**
+  String get hoursShort;
+
+  /// No description provided for @minutesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get minutesShort;
+
+  /// No description provided for @secondsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'sec'**
+  String get secondsShort;
 
   /// No description provided for @memoriesSaved.
   ///
@@ -3431,7 +3623,7 @@ abstract class AppLocalizations {
   /// No description provided for @streakChipActiveToday.
   ///
   /// In en, this message translates to:
-  /// **'{n}-day streak · done for today ✨'**
+  /// **'{n}-day streak · done for today'**
   String streakChipActiveToday(int n);
 
   /// No description provided for @streakChipInProgress.

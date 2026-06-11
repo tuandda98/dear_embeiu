@@ -255,6 +255,112 @@ class AppLocalizationsVi extends AppLocalizations {
       'Hôm nay là ngày tốt để nhìn lại câu chuyện tình yêu.';
 
   @override
+  String get homeGreetingMorning => 'Chào buổi sáng,';
+
+  @override
+  String get homeGreetingAfternoon => 'Chào buổi chiều,';
+
+  @override
+  String get homeGreetingEvening => 'Chào buổi tối,';
+
+  @override
+  String get homeTodaySectionTitle => 'Hôm nay của hai đứa';
+
+  @override
+  String get dailyTapToAnswer => 'Chạm để trả lời…';
+
+  @override
+  String dailyPartnerAnsweredTeaser(String name) {
+    return '$name đã trả lời rồi đó 👀';
+  }
+
+  @override
+  String get dailyAnswerToReveal =>
+      'Trả lời để mở khoá câu trả lời của người ấy';
+
+  @override
+  String get dailyBothAnsweredToday => 'Hôm nay cả hai đã trả lời';
+
+  @override
+  String get dailyReadAgain => 'Đọc lại';
+
+  @override
+  String get dailyCollapse => 'Thu gọn';
+
+  @override
+  String loveNoteSealedTitle(String name) {
+    return 'Lời nhắn mới từ $name';
+  }
+
+  @override
+  String get loveNoteSealedTap => 'Chạm để mở 💌';
+
+  @override
+  String get loveNoteNewBadge => 'MỚI';
+
+  @override
+  String get loveNoteComposeCta => 'Soạn tin nhắn';
+
+  @override
+  String loveNoteSheetTitleTo(String name) {
+    return 'Gửi lời nhắn cho $name';
+  }
+
+  @override
+  String get journalLinkShort => 'Nhật ký';
+
+  @override
+  String milestoneNextLabel(String label) {
+    return 'Cột mốc $label';
+  }
+
+  @override
+  String milestoneDaysLeft(int count) {
+    return 'còn $count ngày';
+  }
+
+  @override
+  String get milestoneTodayLabel => 'hôm nay 🎉';
+
+  @override
+  String onThisDayShort(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count năm trước 💞',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get counterBgSwipeHint => 'Vuốt ngang để đổi ảnh nền';
+
+  @override
+  String get dailyQuestionPairedFirst =>
+      'Ghép đôi xong là hai đứa sẽ cùng trả lời một câu hỏi như vầy mỗi ngày 💞';
+
+  @override
+  String get loveNoteHistoryLinkShort => 'Lời nhắn cũ';
+
+  @override
+  String get loveNoteReplyCta => 'Nhắn lại…';
+
+  @override
+  String get loveNoteSendFirstCta => 'Gửi lời nhắn đầu tiên…';
+
+  @override
+  String get loveNoteStartChat =>
+      'Chưa có lời nhắn nào — gửi cho nhau lời đầu tiên nhé 💌';
+
+  @override
+  String get loveNoteYouLabel => 'Bạn';
+
+  @override
+  String notificationBellLabel(int count) {
+    return 'Thông báo, $count chưa đọc';
+  }
+
+  @override
   String get youveBeenTogetherFor => 'HAI BẠN ĐÃ BÊN NHAU';
 
   @override
@@ -284,6 +390,11 @@ class AppLocalizationsVi extends AppLocalizations {
   String get addMemoryCtaSubtitle => 'Đăng một tấm ảnh mới cho cả hai cùng xem';
 
   @override
+  String cinemaCardSemantics(String caption, int index, int total) {
+    return 'Kỷ niệm: $caption, ảnh $index trên $total. Chạm để xem toàn màn hình.';
+  }
+
+  @override
   String get memoriesCardTitle => 'Kỷ niệm';
 
   @override
@@ -310,6 +421,15 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get daysUnit => 'ngày';
+
+  @override
+  String get hoursShort => 'giờ';
+
+  @override
+  String get minutesShort => 'phút';
+
+  @override
+  String get secondsShort => 'giây';
 
   @override
   String get memoriesSaved => 'Kỷ niệm đã lưu';
@@ -1968,7 +2088,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String streakChipActiveToday(int n) {
-    return '$n ngày kết nối · hôm nay xong rồi ✨';
+    return '$n ngày kết nối · hôm nay xong rồi';
   }
 
   @override

@@ -72,9 +72,9 @@ Dart SDK env `^3.11.4` (pubspec.yaml đầy đủ, khỏi grep)
 - Notifications: flutter_local_notifications ^19.4.0, timezone ^0.10.1, flutter_timezone ^4.1.1.
 - Media/UI: image_picker ^1.1.0, cached_network_image ^3.3.1, flutter_staggered_grid_view ^0.7.0 (masonry), cupertino_icons ^1.0.8.
 - Misc: intl ^0.20.2, uuid ^4.0.0, connectivity_plus ^6.1.4, url_launcher ^6.3.1.
-- UI revamp (Đợt 1, 2026-06-02): flutter_animate ^4.5.2 (staggered entrance), shimmer ^3.0.0 (skeleton loaders), lucide_icons ^0.257.0 (bộ icon), confetti ^0.8.0 (**chưa dùng** — dành Đợt 2 invite reveal). **Font: Be Vietnam Pro bundled ở `assets/fonts/` (weight 300–800); ĐÃ GỠ `google_fonts` 2026-06-06.**
+- UI revamp (Đợt 1, 2026-06-02): flutter_animate ^4.5.2 (staggered entrance), shimmer ^3.0.0 (skeleton loaders), lucide_icons ^0.257.0 (bộ icon), confetti ^0.8.0 (**chưa dùng** — dành Đợt 2 invite reveal). **Font: QUICKSAND bundled ở `assets/fonts/` (static 300–700, w800 map Bold — đổi 2026-06-10, "mịn màng nhẹ nhàng"); Be Vietnam Pro giữ bundle làm rollback; ĐÃ GỠ `google_fonts` 2026-06-06.**
 - Dev deps: flutter_test, flutter_lints ^6.0.0, flutter_launcher_icons ^0.14.3, flutter_native_splash ^2.4.3, hive_generator ^2.0.1, build_runner ^2.4.9.
-- Branding assets: flutter_launcher_icons (màu #FF6B9D, web theme #FF4D6D, iOS flatten remove-alpha) + flutter_native_splash (nền hồng #FF6B9D, heart trắng). **Typography (2026-06-06): TOÀN APP dùng 1 phông Be Vietnam Pro bundled — bỏ Fraunces + Plus Jakarta Sans + google_fonts. Lý do: google_fonts fetch runtime gây VỠ DẤU tiếng Việt + nháy font trên iOS; Be Vietnam Pro Việt-first, bundled = offline ổn + dấu chuẩn. Hero/số đếm w700/800, body w400/500; `ThemeData.fontFamily` + mọi helper ở `app_theme.dart`.**
+- Branding assets: flutter_launcher_icons (màu #FF6B9D, web theme #FF4D6D, iOS flatten remove-alpha) + flutter_native_splash (nền hồng #FF6B9D, heart trắng). **Typography (2026-06-10): TOÀN APP dùng 1 phông QUICKSAND bundled (rounded — "mịn màng nhẹ nhàng", user chốt; static 300–700, w800 khai báo trỏ file Bold; đủ glyph dấu TV — verify fontTools). Be Vietnam Pro GIỮ bundle làm rollback (đổi 1 hằng `AppTheme.fontFamily`). Bundled offline = không nháy font/vỡ dấu (bài học google_fonts 2026-06-06). Hero/số đếm w700/800, body w400/500; `ThemeData.fontFamily` + mọi helper ở `app_theme.dart`.**
 
 ---
 
@@ -116,6 +116,7 @@ Firebase project `tonyembeiu` (us-central1). `.firebaserc`: `default`=`tonyembei
 - `couples/{coupleId}/photos/{photoId}` — authorUserId+uploadDate immutable.
 - `couples/{coupleId}/photos/{photoId}/reactions/{uid}` — 6 emoji; collectionGroup index deployed.
 - `couples/{coupleId}/notes/{uid}` — Love Note, text ≤140.
+- `couples/{coupleId}/prefs/home` — prefs chung của couple (2026-06-10): `counterBgPhotoId` ≤200 (ảnh nền CounterCard sync 2 máy); member read/write, hasOnly 1 field. ✅ DEV; **prod chờ lệnh**.
 - `couples/{coupleId}/dailyAnswers/{date}/responses/{uid}` — Daily Question, text ≤280. Marker doc cha: `bothAnswered` (streak) + `questionVi/En` (journal permanent).
 - `users/{uid}/devices/{...}` — FCM tokens + `languageCode`. ⚠️ `hasOnly` rule phải liệt kê đủ field (push hỏng âm thầm nếu thiếu).
 - `users/{uid}/notifications/{autoId}` — Notification center; CHỈ CF ghi, client read/mark-read/delete. ✅ DEV; **prod chờ lệnh**.

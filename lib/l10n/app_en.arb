@@ -92,6 +92,83 @@
   "ourStoryBadge": "OUR STORY",
   "helloGreeting": "Hello,",
   "homeSubtitle": "A good day to look back at your love story.",
+  "homeGreetingMorning": "Good morning,",
+  "homeGreetingAfternoon": "Good afternoon,",
+  "homeGreetingEvening": "Good evening,",
+  "homeTodaySectionTitle": "Today, together",
+  "dailyTapToAnswer": "Tap to answer…",
+  "dailyPartnerAnsweredTeaser": "{name} has answered 👀",
+  "@dailyPartnerAnsweredTeaser": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyAnswerToReveal": "Answer to unlock their reply",
+  "dailyBothAnsweredToday": "You both answered today",
+  "dailyReadAgain": "Read again",
+  "dailyCollapse": "Collapse",
+  "loveNoteSealedTitle": "A new note from {name}",
+  "@loveNoteSealedTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveNoteSealedTap": "Tap to open 💌",
+  "loveNoteNewBadge": "NEW",
+  "loveNoteComposeCta": "Compose a message",
+  "loveNoteSheetTitleTo": "Send a note to {name}",
+  "@loveNoteSheetTitleTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "journalLinkShort": "Journal",
+  "milestoneNextLabel": "Milestone: {label}",
+  "@milestoneNextLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "milestoneDaysLeft": "{count} days left",
+  "@milestoneDaysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneTodayLabel": "today 🎉",
+  "onThisDayShort": "{count, plural, =1{1 year ago 💞} other{{count} years ago 💞}}",
+  "@onThisDayShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "counterBgSwipeHint": "Swipe to change the photo",
+  "dailyQuestionPairedFirst": "Once you're paired, you'll answer a question like this together every day 💞",
+  "loveNoteHistoryLinkShort": "Past notes",
+  "loveNoteReplyCta": "Reply…",
+  "loveNoteSendFirstCta": "Send the first note…",
+  "loveNoteStartChat": "No notes yet — send each other the first one 💌",
+  "loveNoteYouLabel": "You",
+  "notificationBellLabel": "Notifications, {count} unread",
+  "@notificationBellLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "youveBeenTogetherFor": "YOU'VE BEEN TOGETHER FOR",
   "daysOfUsSince": "days of us · since {date}",
   "@daysOfUsSince": {
@@ -114,6 +191,20 @@
   "quickMomentsSubtitle": "Shortcuts to revisit your story",
   "addMemoryCta": "Add a memory",
   "addMemoryCtaSubtitle": "Post a new photo for you both to keep",
+  "cinemaCardSemantics": "Memory: {caption}, photo {index} of {total}. Tap to view full screen.",
+  "@cinemaCardSemantics": {
+    "placeholders": {
+      "caption": {
+        "type": "String"
+      },
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "memoriesCardTitle": "Memories",
   "viewAllPhotos": "View all photos",
   "profileCardTitle": "Profile",
@@ -123,6 +214,9 @@
   "loveInNumbersSubtitle": "Little stats from your journey",
   "daysTogether": "Days together",
   "daysUnit": "days",
+  "hoursShort": "hr",
+  "minutesShort": "min",
+  "secondsShort": "sec",
   "memoriesSaved": "Memories saved",
   "photosUnit": "photos",
   "nextAnniversaryLabel": "Next anniversary",
@@ -1452,7 +1546,7 @@
   "@streakChipRestart": {
     "description": "Streak chip — after a reset, positive restart framing"
   },
-  "streakChipActiveToday": "{n}-day streak · done for today ✨",
+  "streakChipActiveToday": "{n}-day streak · done for today",
   "@streakChipActiveToday": {
     "placeholders": {
       "n": { "type": "int" }

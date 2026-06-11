@@ -16,6 +16,53 @@ describe('firestore: couple subcollections', () => {
     await seedActiveCouple('c1', 'alice', 'bob');
   });
 
+  describe('/couples/{id}/prefs/home (shared home prefs — counter bg)', () => {
+    it('lets a member set the shared counter background', async () => {
+      await assertSucceeds(
+        setDoc(doc(authedDb('alice'), 'couples/c1/prefs/home'), {
+          counterBgPhotoId: 'photo-123',
+        }),
+      );
+    });
+
+    it('lets the partner read it', async () => {
+      await seedDoc('couples/c1/prefs/home', { counterBgPhotoId: 'photo-123' });
+      await assertSucceeds(
+        getDoc(doc(authedDb('bob'), 'couples/c1/prefs/home')),
+      );
+    });
+
+    it('denies an outsider reading or writing', async () => {
+      await assertFails(
+        getDoc(doc(authedDb('dave'), 'couples/c1/prefs/home')),
+      );
+      await assertFails(
+        setDoc(doc(authedDb('dave'), 'couples/c1/prefs/home'), {
+          counterBgPhotoId: 'photo-123',
+        }),
+      );
+    });
+
+    it('denies extra fields, wrong doc id, and oversized values', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/prefs/home'), {
+          counterBgPhotoId: 'photo-123',
+          sneaky: true,
+        }),
+      );
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/prefs/other'), {
+          counterBgPhotoId: 'photo-123',
+        }),
+      );
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/prefs/home'), {
+          counterBgPhotoId: tooLong(201),
+        }),
+      );
+    });
+  });
+
   describe('/couples/{id}/notes/{noteId} (latest love note, doc id == author)', () => {
     it('lets a member write their own note', async () => {
       await assertSucceeds(

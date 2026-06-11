@@ -92,6 +92,83 @@
   "ourStoryBadge": "CÂU CHUYỆN CỦA CHÚNG MÌNH",
   "helloGreeting": "Xin chào,",
   "homeSubtitle": "Hôm nay là ngày tốt để nhìn lại câu chuyện tình yêu.",
+  "homeGreetingMorning": "Chào buổi sáng,",
+  "homeGreetingAfternoon": "Chào buổi chiều,",
+  "homeGreetingEvening": "Chào buổi tối,",
+  "homeTodaySectionTitle": "Hôm nay của hai đứa",
+  "dailyTapToAnswer": "Chạm để trả lời…",
+  "dailyPartnerAnsweredTeaser": "{name} đã trả lời rồi đó 👀",
+  "@dailyPartnerAnsweredTeaser": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyAnswerToReveal": "Trả lời để mở khoá câu trả lời của người ấy",
+  "dailyBothAnsweredToday": "Hôm nay cả hai đã trả lời",
+  "dailyReadAgain": "Đọc lại",
+  "dailyCollapse": "Thu gọn",
+  "loveNoteSealedTitle": "Lời nhắn mới từ {name}",
+  "@loveNoteSealedTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveNoteSealedTap": "Chạm để mở 💌",
+  "loveNoteNewBadge": "MỚI",
+  "loveNoteComposeCta": "Soạn tin nhắn",
+  "loveNoteSheetTitleTo": "Gửi lời nhắn cho {name}",
+  "@loveNoteSheetTitleTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "journalLinkShort": "Nhật ký",
+  "milestoneNextLabel": "Cột mốc {label}",
+  "@milestoneNextLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "milestoneDaysLeft": "còn {count} ngày",
+  "@milestoneDaysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneTodayLabel": "hôm nay 🎉",
+  "onThisDayShort": "{count, plural, other{{count} năm trước 💞}}",
+  "@onThisDayShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "counterBgSwipeHint": "Vuốt ngang để đổi ảnh nền",
+  "dailyQuestionPairedFirst": "Ghép đôi xong là hai đứa sẽ cùng trả lời một câu hỏi như vầy mỗi ngày 💞",
+  "loveNoteHistoryLinkShort": "Lời nhắn cũ",
+  "loveNoteReplyCta": "Nhắn lại…",
+  "loveNoteSendFirstCta": "Gửi lời nhắn đầu tiên…",
+  "loveNoteStartChat": "Chưa có lời nhắn nào — gửi cho nhau lời đầu tiên nhé 💌",
+  "loveNoteYouLabel": "Bạn",
+  "notificationBellLabel": "Thông báo, {count} chưa đọc",
+  "@notificationBellLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "youveBeenTogetherFor": "HAI BẠN ĐÃ BÊN NHAU",
   "daysOfUsSince": "ngày · từ {date}",
   "@daysOfUsSince": {
@@ -114,6 +191,20 @@
   "quickMomentsSubtitle": "Lối tắt để xem lại câu chuyện của hai bạn",
   "addMemoryCta": "Thêm kỷ niệm",
   "addMemoryCtaSubtitle": "Đăng một tấm ảnh mới cho cả hai cùng xem",
+  "cinemaCardSemantics": "Kỷ niệm: {caption}, ảnh {index} trên {total}. Chạm để xem toàn màn hình.",
+  "@cinemaCardSemantics": {
+    "placeholders": {
+      "caption": {
+        "type": "String"
+      },
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "memoriesCardTitle": "Kỷ niệm",
   "viewAllPhotos": "Xem tất cả ảnh",
   "profileCardTitle": "Hồ sơ",
@@ -123,6 +214,9 @@
   "loveInNumbersSubtitle": "Những thống kê nhỏ từ hành trình của hai bạn",
   "daysTogether": "Ngày bên nhau",
   "daysUnit": "ngày",
+  "hoursShort": "giờ",
+  "minutesShort": "phút",
+  "secondsShort": "giây",
   "memoriesSaved": "Kỷ niệm đã lưu",
   "photosUnit": "ảnh",
   "nextAnniversaryLabel": "Kỷ niệm tiếp theo",
@@ -920,7 +1014,7 @@
   "@streakChipRestart": {
     "description": "Streak chip — sau khi reset, khung khởi động lại tích cực"
   },
-  "streakChipActiveToday": "{n} ngày kết nối · hôm nay xong rồi ✨",
+  "streakChipActiveToday": "{n} ngày kết nối · hôm nay xong rồi",
   "@streakChipActiveToday": {
     "placeholders": {
       "n": { "type": "int" }

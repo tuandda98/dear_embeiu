@@ -254,6 +254,112 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSubtitle => 'A good day to look back at your love story.';
 
   @override
+  String get homeGreetingMorning => 'Good morning,';
+
+  @override
+  String get homeGreetingAfternoon => 'Good afternoon,';
+
+  @override
+  String get homeGreetingEvening => 'Good evening,';
+
+  @override
+  String get homeTodaySectionTitle => 'Today, together';
+
+  @override
+  String get dailyTapToAnswer => 'Tap to answer…';
+
+  @override
+  String dailyPartnerAnsweredTeaser(String name) {
+    return '$name has answered 👀';
+  }
+
+  @override
+  String get dailyAnswerToReveal => 'Answer to unlock their reply';
+
+  @override
+  String get dailyBothAnsweredToday => 'You both answered today';
+
+  @override
+  String get dailyReadAgain => 'Read again';
+
+  @override
+  String get dailyCollapse => 'Collapse';
+
+  @override
+  String loveNoteSealedTitle(String name) {
+    return 'A new note from $name';
+  }
+
+  @override
+  String get loveNoteSealedTap => 'Tap to open 💌';
+
+  @override
+  String get loveNoteNewBadge => 'NEW';
+
+  @override
+  String get loveNoteComposeCta => 'Compose a message';
+
+  @override
+  String loveNoteSheetTitleTo(String name) {
+    return 'Send a note to $name';
+  }
+
+  @override
+  String get journalLinkShort => 'Journal';
+
+  @override
+  String milestoneNextLabel(String label) {
+    return 'Milestone: $label';
+  }
+
+  @override
+  String milestoneDaysLeft(int count) {
+    return '$count days left';
+  }
+
+  @override
+  String get milestoneTodayLabel => 'today 🎉';
+
+  @override
+  String onThisDayShort(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years ago 💞',
+      one: '1 year ago 💞',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get counterBgSwipeHint => 'Swipe to change the photo';
+
+  @override
+  String get dailyQuestionPairedFirst =>
+      'Once you\'re paired, you\'ll answer a question like this together every day 💞';
+
+  @override
+  String get loveNoteHistoryLinkShort => 'Past notes';
+
+  @override
+  String get loveNoteReplyCta => 'Reply…';
+
+  @override
+  String get loveNoteSendFirstCta => 'Send the first note…';
+
+  @override
+  String get loveNoteStartChat =>
+      'No notes yet — send each other the first one 💌';
+
+  @override
+  String get loveNoteYouLabel => 'You';
+
+  @override
+  String notificationBellLabel(int count) {
+    return 'Notifications, $count unread';
+  }
+
+  @override
   String get youveBeenTogetherFor => 'YOU\'VE BEEN TOGETHER FOR';
 
   @override
@@ -282,6 +388,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addMemoryCtaSubtitle => 'Post a new photo for you both to keep';
 
   @override
+  String cinemaCardSemantics(String caption, int index, int total) {
+    return 'Memory: $caption, photo $index of $total. Tap to view full screen.';
+  }
+
+  @override
   String get memoriesCardTitle => 'Memories';
 
   @override
@@ -307,6 +418,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daysUnit => 'days';
+
+  @override
+  String get hoursShort => 'hr';
+
+  @override
+  String get minutesShort => 'min';
+
+  @override
+  String get secondsShort => 'sec';
 
   @override
   String get memoriesSaved => 'Memories saved';
@@ -1968,7 +2088,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String streakChipActiveToday(int n) {
-    return '$n-day streak · done for today ✨';
+    return '$n-day streak · done for today';
   }
 
   @override

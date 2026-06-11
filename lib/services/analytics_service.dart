@@ -35,6 +35,9 @@ class AnalyticsEvents {
   static const String reminderCreated = 'reminder_created';
   static const String notificationOpened = 'notification_opened';
   static const String languageChanged = 'language_changed';
+  static const String counterBgSwiped = 'counter_bg_swiped';
+  static const String memoryCinemaOpened = 'memory_cinema_opened';
+  static const String loveNoteEnvelopeOpened = 'love_note_envelope_opened';
   static const String accountDeleted = 'account_deleted';
 
   // --- Param keys ---
@@ -303,6 +306,17 @@ class AnalyticsService {
       );
 
   /// [locale] is `en`, `vi` or `system`.
+  /// Swiped the home counter-card background photo (feature home).
+  void logCounterBgSwiped() => logEvent(AnalyticsEvents.counterBgSwiped);
+
+  /// Opened the Memory Cinema viewer on Home (feature home).
+  void logMemoryCinemaOpened() =>
+      logEvent(AnalyticsEvents.memoryCinemaOpened);
+
+  /// Opened (unsealed) an unread love-note envelope on Home (feature home).
+  void logLoveNoteEnvelopeOpened() =>
+      logEvent(AnalyticsEvents.loveNoteEnvelopeOpened);
+
   void logLanguageChanged(String locale) => logEvent(
         AnalyticsEvents.languageChanged,
         params: {AnalyticsEvents.pLocale: locale},

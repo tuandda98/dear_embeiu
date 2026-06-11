@@ -40,6 +40,10 @@ Feed ảnh; members CRUD; tạo phải đúng author; authorUserId + uploadDate 
 ### `couples/{coupleId}/photos/{photoId}/reactions/{uid}`
 Reactions ❤️ (feature reactions b1, 2026-06-04). 1 doc/người/ảnh (id=uid), `{emoji, reactedAt, authorUserId, coupleId}`; 6 emoji hợp lệ `❤️😍😂🥹🔥👍`. Watch qua **collectionGroup('reactions').where(coupleId)** (cần collection-group index `reactions.coupleId` — đã ở `firestore.indexes.json`, đã deploy). Rules ADDITIVE (write: uid==auth.uid && authorUserId==auth.uid && emoji∈6 && coupleId khớp). CF `notifyPhotoReaction` push tác giả ảnh (skip khi tự react). 3 surface: feed bar / fullscreen on-dark / Home badge read-only.
 
+### `couples/{coupleId}/prefs/{prefId}` (feature home, 2026-06-10)
+
+Prefs chung của couple — 1 doc duy nhất `prefs/home`, hiện chỉ field `counterBgPhotoId` (string ≤200): ảnh nền CounterCard sync giữa 2 máy (vuốt ở máy này, máy kia đổi theo). Rules: member read/write, ép `prefId == 'home'` + `hasOnly(['counterBgPhotoId'])`. ADDITIVE — app cũ không đụng path này. Client: `home_prefs_service.dart` (fail-soft khi không Firebase). Test: 4 ca trong `firestore.couples-sub.test.js`. ✅ Deploy DEV; **prod chờ lệnh**.
+
 ### `couples/{coupleId}/notes/{uid}`
 Love Note (feature #4, 2026-06-02). 1 doc/người (doc id = author uid), `{authorUserId, text ≤140, updatedAt}`, ghi đè (chưa lịch sử). Rules ADDITIVE: read if member; write if member && noteId==auth.uid && authorUserId==auth.uid && text ≤140. Hiện trên Home đối phương (thay card tĩnh `_buildQuoteCard`); CF `notifyLoveNote` push khi đổi.
 

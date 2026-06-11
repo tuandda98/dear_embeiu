@@ -129,11 +129,26 @@ flutter:
   assets:
     - assets/lottie/
 
-  # Bundled app font — Be Vietnam Pro (OFL, designed for Vietnamese). One family
-  # for the whole app; weights carry the visual hierarchy (hero = w700/w800,
-  # body = w400/w500). Bundled (not fetched at runtime) for offline reliability
-  # and correct Vietnamese diacritic rendering on iOS.
+  # Bundled app fonts (OFL, full Vietnamese, offline — never fetched at
+  # runtime). Active family: Quicksand (rounded, "mịn màng nhẹ nhàng",
+  # 2026-06-10). Max real weight is 700 — w800 call-sites resolve to the Bold
+  # file (declared twice on purpose). Be Vietnam Pro stays bundled as the
+  # previous family for a cheap rollback.
   fonts:
+    - family: Quicksand
+      fonts:
+        - asset: assets/fonts/Quicksand-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Quicksand-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Quicksand-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Quicksand-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Quicksand-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Quicksand-Bold.ttf
+          weight: 800
     - family: Be Vietnam Pro
       fonts:
         - asset: assets/fonts/BeVietnamPro-Light.ttf

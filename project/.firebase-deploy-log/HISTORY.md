@@ -30,3 +30,4 @@ echo "DEPLOY_EXIT=${PIPESTATUS[0]}"` · snapshot `20260605T105348Z/`
 - [20260608T064709Z] head=5d606eb dirty=32 exit=? · `cd /Users/tony.tuando/StudioProjects/dear_embeiu
 npx firebase-tools deploy --only firestore:rules,functions --project dev 2>&1 | grep -vE "DeprecationWarning|trace-deprecation|punycode" | tail -50
 echo "DEPLOY_EXIT=${PIPESTATUS[0]}"` · snapshot `20260608T064709Z/`
+- [20260610T080702Z] head=454983e dirty=28 exit=? · `npx firebase-tools deploy --only firestore:rules 2>&1 | tail -5` · snapshot `20260610T080702Z/`

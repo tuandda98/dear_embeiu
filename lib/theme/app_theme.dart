@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 class AppTheme {
-  // Typography — Be Vietnam Pro (bundled in assets/fonts, declared in
-  // pubspec.yaml). One family for the WHOLE app. Be Vietnam Pro is designed by
-  // a Vietnamese type foundry specifically for Vietnamese: precise stacked-tone
+  // Typography — Quicksand (bundled in assets/fonts, declared in pubspec.yaml,
+  // 2026-06-10). One family for the WHOLE app: rounded terminals carry the
+  // soft "mịn màng nhẹ nhàng" brand feel; full Vietnamese stacked-tone
   // diacritics (ấ ề ộ ữ …). Bundled (not fetched at runtime) so there is no
   // first-launch font flash and diacritics render identically offline + on iOS.
-  //   Display / hero  → heavy weights (w700/w800)
+  //   Display / hero  → heavy weights (w700; w800 resolves to the Bold file)
   //   Body / UI       → regular / medium (w400/w500)
-  static const String fontFamily = 'Be Vietnam Pro';
+  // (Previous family Be Vietnam Pro stays bundled for a cheap rollback.)
+  static const String fontFamily = 'Quicksand';
   static TextStyle get _displayBase => const TextStyle(fontFamily: fontFamily);
   static TextStyle get _bodyBase => const TextStyle(fontFamily: fontFamily);
 
@@ -254,7 +255,9 @@ class AppTheme {
   }) {
     return _bodyBase.copyWith(
       color: color.withValues(alpha: alpha),
-      fontSize: 10,
+      // 11 matches the a11y floor used for nav labels — the Home eyebrow now
+      // carries real content (today's date), not just a static label.
+      fontSize: 11,
       fontWeight: FontWeight.w700,
       letterSpacing: 1.4,
       height: 1,

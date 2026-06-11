@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 
 import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
-import '../models/counter_data.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/counter_card.dart';
@@ -301,7 +300,6 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   }
 
   Widget _buildDateContent(AppLocalizations l10n, DateTime date) {
-    final counter = CounterData.calculateFromAnniversary(date);
     final totalDays = _getTotalDays(date);
     final nextAnniversary = _getNextAnniversary(date);
     final daysUntilAnniversary = _daysUntil(nextAnniversary);
@@ -313,9 +311,9 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         CounterCard(
-          years: counter.years,
-          months: counter.months,
-          days: counter.days,
+          // Days-only hero + live clock — matches the Home card (2026-06-10).
+          totalDays: totalDays,
+          liveSince: date,
           subtitle: l10n.guestCounterStartFrom(_formatDate(date)),
           footer: daysUntilAnniversary == 0
               ? l10n.todayIsAnniversary

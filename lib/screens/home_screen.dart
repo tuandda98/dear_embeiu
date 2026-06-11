@@ -1,13 +1,13 @@
+import 'dart:async';
 import 'dart:ui';
 
-import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../l10n/l10n.dart';
 import '../models/couple.dart';
@@ -23,24 +23,21 @@ import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/analytics_service.dart';
+import '../services/home_prefs_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/counter_card.dart';
-import '../widgets/glass_card.dart';
 import '../widgets/invite_action_buttons.dart';
-import '../widgets/love_lottie.dart';
-import '../widgets/reaction_bar.dart';
-import '../widgets/shared_photo_view.dart';
+import '../widgets/memory_cinema_card.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/streak_chip.dart';
+import '../widgets/today_ritual_card.dart';
 import '../widgets/streak_sheet.dart';
 import 'profile_screen.dart';
 import 'gallery_screen.dart';
-import 'journal_screen.dart';
-import 'love_note_history_screen.dart';
 import 'notification_center_screen.dart';
 
 
@@ -79,6 +76,121 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   String? _lastReminderKey;
 
+  /// Counter-card background selection (swipe ←/→ on the hero card cycles
+  /// through the couple photo + recent gallery photos). Persisted per couple
+  /// in the `app_settings` Hive box, keyed by photo id so the choice survives
+  /// new uploads shifting the list.
+  String? _counterBgKey;
+  String? _counterBgCouple;
+
+  /// One-time "swipe to change photo" coach-mark over the counter card.
+  bool _showBgHint = false;
+  Timer? _bgHintTimer;
+
+  /// Direction of the last background swipe (+1 next / -1 previous) — drives
+  /// the slide-in side of the photo transition.
+  int _bgSwipeDirection = 1;
+
+  /// Couple-shared background selection (couples/{id}/prefs/home): a swipe on
+  /// either phone moves BOTH cards. Hive stays as the offline/local cache.
+  final HomePrefsService _homePrefs = HomePrefsService();
+  StreamSubscription<String?>? _bgSyncSub;
+
+  void _ensureCounterBgLoaded(String coupleId) {
+    if (_counterBgCouple == coupleId) {
+      return;
+    }
+    _counterBgCouple = coupleId;
+    try {
+      final box = Hive.box<String>('app_settings');
+      _counterBgKey = box.get('counter_bg_$coupleId');
+      _showBgHint = box.get('counter_bg_hint_done') == null;
+    } catch (_) {
+      _counterBgKey = null; // Box unavailable → session-only selection.
+      _showBgHint = false;
+    }
+    // Follow the couple-shared selection (fires for the partner's swipes —
+    // and echoes ours, which the equality guard ignores).
+    _bgSyncSub?.cancel();
+    _bgSyncSub = _homePrefs.watchCounterBg(coupleId).listen((remoteKey) {
+      if (remoteKey == null || remoteKey == _counterBgKey || !mounted) {
+        return;
+      }
+      setState(() {
+        _bgSwipeDirection = 1;
+        _counterBgKey = remoteKey;
+      });
+      try {
+        Hive.box<String>('app_settings').put('counter_bg_$coupleId', remoteKey);
+      } catch (_) {
+        // Cache only — the in-memory value is already set.
+      }
+    });
+  }
+
+  void _dismissBgHint() {
+    _bgHintTimer?.cancel();
+    _bgHintTimer = null;
+    if (_showBgHint && mounted) {
+      setState(() => _showBgHint = false);
+    } else {
+      _showBgHint = false;
+    }
+    try {
+      Hive.box<String>('app_settings').put('counter_bg_hint_done', '1');
+    } catch (_) {
+      // Best-effort persistence only.
+    }
+  }
+
+  List<({String key, String? local, String? remote})> _counterBgCandidates(
+    Couple couple,
+    List<Photo> photos,
+  ) {
+    return [
+      if ((couple.couplePhotoUrl?.trim().isNotEmpty ?? false) ||
+          (couple.couplePhotoPath?.trim().isNotEmpty ?? false))
+        (
+          key: 'couple',
+          local: couple.couplePhotoPath,
+          remote: couple.couplePhotoUrl,
+        ),
+      for (final p in photos.take(12))
+        if (p.hasLocalPath || p.hasRemoteUrl)
+          (key: p.id, local: p.path, remote: p.remoteUrl),
+    ];
+  }
+
+  void _swipeCounterBg(
+    int delta,
+    List<({String key, String? local, String? remote})> candidates,
+    String coupleId,
+  ) {
+    if (candidates.length < 2) {
+      return;
+    }
+    var index = candidates.indexWhere((c) => c.key == _counterBgKey);
+    if (index < 0) {
+      index = 0;
+    }
+    final next = (index + delta + candidates.length) % candidates.length;
+    HapticFeedback.selectionClick();
+    _dismissBgHint();
+    AnalyticsService.instance.logCounterBgSwiped();
+    setState(() {
+      _bgSwipeDirection = delta;
+      _counterBgKey = candidates[next].key;
+    });
+    try {
+      Hive.box<String>('app_settings')
+          .put('counter_bg_$coupleId', candidates[next].key);
+    } catch (_) {
+      // Best-effort persistence only.
+    }
+    // Share with the partner (fail-soft inside the service).
+    unawaited(_homePrefs.setCounterBg(coupleId, candidates[next].key));
+  }
+
   /// Anchor for the daily-question card so a tapped `daily_question`
   /// notification can scroll it into view (deep-link within Home).
   final GlobalKey _dailyQuestionKey = GlobalKey();
@@ -90,9 +202,22 @@ class _HomeScreenState extends State<HomeScreen> {
   StreakProvider? _streakProvider;
   bool _celebratingMilestone = false;
 
+  /// Standard 16px page gutter, applied PER BLOCK (the scroll view itself has
+  /// no horizontal padding) so the memory cinema can run full-bleed.
+  Widget _gutter(Widget child) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: child,
+    );
+  }
+
   /// Wraps a Home-tab block with the shared fade+slide entrance, staggered by
   /// [order].
   Widget _entrance(int order, Widget child) {
+    // Reduce Motion: no entrance choreography — content just appears.
+    if (AppMotion.reduceMotion(context)) {
+      return child;
+    }
     // ALWAYS wrap with `.animate()` using CONSTANT params — never branch on a
     // "played" flag. flutter_animate's `_AnimateState.didUpdateWidget` only
     // re-inits the controller / replays when controller/duration/target/value
@@ -143,6 +268,8 @@ class _HomeScreenState extends State<HomeScreen> {
     NotificationTapRouter.pendingHomeFocus
         .removeListener(_onNotificationFocusRequest);
     _streakProvider?.removeListener(_onStreakChanged);
+    _bgHintTimer?.cancel();
+    _bgSyncSub?.cancel();
     super.dispose();
   }
 
@@ -311,27 +438,41 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHomeLoadingSkeleton(double topPadding) {
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(20, topPadding + 20, 20, 20),
+      // Gutter per block (matches the live layout) — the memory cinema
+      // skeleton runs full-bleed like the real card.
+      padding: EdgeInsets.fromLTRB(0, topPadding + 20, 0, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header line.
-          const ShimmerSkeleton(width: 160, height: 22, borderRadius: 8),
-          const SizedBox(height: 24),
-          // Hero counter card (matches CounterCard radius 28).
-          const ShimmerSkeleton(height: 220, borderRadius: 28),
-          const SizedBox(height: 24),
-          // Quick-action cards row.
-          Row(
-            children: const [
-              Expanded(child: ShimmerSkeleton(height: 96, borderRadius: 22)),
-              SizedBox(width: 14),
-              Expanded(child: ShimmerSkeleton(height: 96, borderRadius: 22)),
-            ],
+          // Header row: calendar leaf (boxless number + stacked lines) + bell.
+          _gutter(
+            Row(
+              children: const [
+                ShimmerSkeleton(width: 48, height: 40, borderRadius: 10),
+                SizedBox(width: 12),
+                ShimmerSkeleton(width: 110, height: 32, borderRadius: 8),
+                Spacer(),
+                ShimmerSkeleton(width: 45, height: 45, borderRadius: 999),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
-          // Quote / banner block.
-          const ShimmerSkeleton(height: 120, borderRadius: 24),
+          const SizedBox(height: 20),
+          // Hero counter card (photo bg + clock line + milestone + streak).
+          _gutter(const ShimmerSkeleton(height: 380, borderRadius: 28)),
+          const SizedBox(height: 28),
+          _gutter(
+            const ShimmerSkeleton(width: 190, height: 22, borderRadius: 8),
+          ),
+          const SizedBox(height: 12),
+          // Merged "today ritual" card (question + love note).
+          _gutter(const ShimmerSkeleton(height: 230, borderRadius: 24)),
+          const SizedBox(height: 28),
+          _gutter(
+            const ShimmerSkeleton(width: 170, height: 22, borderRadius: 8),
+          ),
+          const SizedBox(height: 12),
+          // Memory cinema card (full-bleed, square).
+          const ShimmerSkeleton(height: 240, borderRadius: 0),
         ],
       ),
     );
@@ -383,16 +524,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   bottom: false,
                   child: IndexedStack(
                     index: _selectedIndex,
+                    // TickerMode: IndexedStack keeps every tab alive, but the
+                    // hidden tabs must not keep animating (aurora, Ken Burns,
+                    // pulses) or ticking their timers — battery + jank.
                     children: [
-                      _buildHomeTab(
-                        couple,
-                        counterData,
-                        photoProvider.sortedPhotos,
-                        photoProvider.isLoading,
-                        bottomInset,
+                      TickerMode(
+                        enabled: _selectedIndex == 0,
+                        child: _buildHomeTab(
+                          couple,
+                          counterData,
+                          photoProvider.sortedPhotos,
+                          photoProvider.isLoading,
+                          bottomInset,
+                        ),
                       ),
-                      GalleryScreen(bottomInset: bottomInset),
-                      ProfileScreen(bottomInset: bottomInset),
+                      TickerMode(
+                        enabled: _selectedIndex == 1,
+                        child: GalleryScreen(bottomInset: bottomInset),
+                      ),
+                      TickerMode(
+                        enabled: _selectedIndex == 2,
+                        child: ProfileScreen(bottomInset: bottomInset),
+                      ),
                     ],
                   ),
                 ),
@@ -570,9 +723,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         isSelected ? (item.selectedIcon ?? item.icon) : item.icon,
                         key: ValueKey('icon-$index-$isSelected'),
                         size: 22,
+                        // .75, not .55 — unselected icons on the light glass
+                        // were dropping out of sight (design H6/A5).
                         color: isSelected
                             ? AppColors.white
-                            : AppColors.white.withValues(alpha: 0.55),
+                            : AppColors.white.withValues(alpha: 0.75),
                       ),
                     ),
                   ),
@@ -589,7 +744,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 color: AppColors.white,
-                                fontSize: 10,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.2,
                                 height: 1,
@@ -616,9 +771,17 @@ class _HomeScreenState extends State<HomeScreen> {
     double bottomInset,
   ) {
     final l10n = context.l10n;
+    _ensureCounterBgLoaded(couple.id);
+    final bgCandidates = _counterBgCandidates(couple, photos);
+    var bgIndex = bgCandidates.indexWhere((c) => c.key == _counterBgKey);
+    if (bgIndex < 0) {
+      bgIndex = 0;
+    }
+    final counterBg = bgCandidates.isEmpty ? null : bgCandidates[bgIndex];
+    if (_showBgHint && bgCandidates.length >= 2 && _bgHintTimer == null) {
+      _bgHintTimer = Timer(const Duration(milliseconds: 4500), _dismissBgHint);
+    }
     final totalDays = _getTotalDays(couple.anniversaryDate);
-    final nextAnniversary = _getNextAnniversary(couple.anniversaryDate);
-    final daysUntilAnniversary = _daysUntil(nextAnniversary);
     final nextMilestone = _getNextMilestone(totalDays);
     final progressToMilestone = totalDays / nextMilestone;
     final recentPhotos = photos.take(5).toList();
@@ -655,149 +818,183 @@ class _HomeScreenState extends State<HomeScreen> {
     return RefreshIndicator(
       onRefresh: _refreshHome,
       color: AppColors.accentRose,
+      // White disc so the rose spinner stays visible on the pink gradient.
+      backgroundColor: AppColors.white,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset),
+        // Horizontal gutter moved DOWN onto each block (`_gutter`) so the
+        // memory cinema can run full-bleed edge to edge (user 2026-06-10).
+        padding: EdgeInsets.fromLTRB(0, 16, 0, bottomInset),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
-            _entrance(
+            _gutter(_entrance(
             0,
+            // Slim header: badge chip + bell only — the greeting was dropped
+            // and the couple name moved INTO the CounterCard (user 2026-06-10).
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: AppColors.white.withValues(alpha: 0.18),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.sparkles,
-                              size: 14,
-                              color: AppColors.white.withValues(alpha: 0.92),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              l10n.loveHomeBadge,
-                              style: AppTheme.pageEyebrowStyle(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Text(l10n.navHome, style: AppTheme.pageTitleStyle()),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.homeSubtitle,
-                        style: AppTheme.pageSubtitleStyle(),
-                      ),
-                    ],
-                  ),
-                ),
+                // "Calendar leaf" date (redesign user 2026-06-10, third take):
+                // a big airy day number + stacked weekday/month behind a
+                // glowing vertical hairline — the bloc-calendar page that
+                // mirrors the day count in the hero card below. Quietly
+                // unconventional: no chip, no label, just today as an object.
+                Expanded(child: _buildCalendarLeaf()),
+                const SizedBox(width: 12),
                 _buildNotificationBell(),
               ],
             ),
-          ),
+          )),
           const SizedBox(height: 20),
-          _entrance(1, _buildHeroSection(couple: couple, l10n: l10n)),
+          _gutter(_entrance(
+            1,
+            GestureDetector(
+              // Swipe ←/→ on the hero card cycles its background photo
+              // (couple photo + recent gallery). Horizontal-only, so vertical
+              // page scrolling and the chip's tap are untouched.
+              onHorizontalDragEnd: (details) {
+                final velocity = details.primaryVelocity ?? 0;
+                if (velocity.abs() < 150) {
+                  return;
+                }
+                _swipeCounterBg(velocity < 0 ? 1 : -1, bgCandidates, couple.id);
+              },
+              child: Stack(
+                children: [
+                  CounterCard(
+              // Days-only hero + live hh:mm:ss clock (user 2026-06-10):
+              // the years/months breakdown is gone — one big day count.
+              totalDays: totalDays,
+              liveSince: couple.anniversaryDate,
+              // Swipeable card background (falls back to the couple photo).
+              photoLocalPath: counterBg?.local,
+              photoRemoteUrl: counterBg?.remote,
+              photoSwipeDirection: _bgSwipeDirection,
+              // Couple name lives inside the hero card (user 2026-06-10).
+              headerExtra: AnimatedCoupleName(
+                person1Name: couple.person1Name,
+                person2Name: couple.person2Name,
+                creatorUserId: couple.createdByUserId,
+                alignment: WrapAlignment.center,
+                spacing: 6,
+                runSpacing: 4,
+                heartSize: 18,
+                heartColor: AppColors.white,
+                textStyle: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              // No "started from {date}" subtitle on Home (design 3.7/L1):
+              // static info already on the Profile hero — every line trimmed
+              // here pulls the "today" ritual card closer to the fold.
+              // No anniversary-countdown pill (user 2026-06-10): it doubled
+              // the milestone countdown right below. Milestone progress +
+              // streak chip close the card, with the chip at the very bottom.
+              progressFooter: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInlineMilestoneProgress(
+                    totalDays: totalDays,
+                    nextMilestone: nextMilestone,
+                    progress: progressToMilestone.clamp(0, 1),
+                    l10n: l10n,
+                  ),
+                  const SizedBox(height: 14),
+                  // Couple streak chip (feature streak) — hides itself while
+                  // waiting for a partner / on error (fail-soft).
+                  const Center(child: StreakChip()),
+                ],
+              ),
+              ),
+                  // …plus a one-time coach-mark (auto-hides, never returns).
+                  if (_showBgHint && bgCandidates.length >= 2)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 9),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.45),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(LucideIcons.chevronLeft,
+                                    size: 14, color: AppColors.white),
+                                const SizedBox(width: 6),
+                                Text(
+                                  l10n.counterBgSwipeHint,
+                                  style: const TextStyle(
+                                    color: AppColors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Icon(LucideIcons.chevronRight,
+                                    size: 14, color: AppColors.white),
+                              ],
+                            ),
+                          ).animate().fadeIn(
+                                duration: const Duration(milliseconds: 400),
+                              ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          )),
           if (couple.isWaitingForPartner) ...[
             const SizedBox(height: 16),
-            _entrance(2, _buildWaitingForPartnerBanner(couple)),
+            _gutter(_entrance(2, _buildWaitingForPartnerBanner(couple))),
           ],
-          const SizedBox(height: 20),
-          _entrance(
+          // ── Nhóm 1: Hôm nay của hai đứa — daily actions first (habit loop).
+          const SizedBox(height: 28),
+          _gutter(_entrance(
             3,
-            CounterCard(
-              years: counterData.years,
-              months: counterData.months,
-              days: counterData.days,
-              subtitle: l10n.homeCounterStartFrom(
-                _formatDate(context, couple.anniversaryDate),
-              ),
-              footer: daysUntilAnniversary == 0
-                  ? l10n.todayIsAnniversary
-                  : l10n.daysUntilNextAnniversary(daysUntilAnniversary),
-              // Couple streak chip (feature streak) — hides itself while
-              // waiting for a partner / on error (fail-soft).
-              footerExtra: const StreakChip(),
-            ),
-          ),
-          const SizedBox(height: 20),
-          _entrance(
-            4,
-            _buildSectionTitle(
-              title: l10n.quickMomentsTitle,
-              subtitle: l10n.addPhotosPrompt,
-              actionLabel: l10n.viewAllPhotos,
-              onActionTap: () => setState(() => _selectedIndex = 1),
-            ),
-          ),
+            _buildSectionTitle(title: l10n.homeTodaySectionTitle),
+          )),
           const SizedBox(height: 12),
-          _entrance(4, _buildAddMemoryCta(l10n, isUploadingPhoto)),
-          const SizedBox(height: 20),
-          _entrance(
-            5,
-            _buildSectionTitle(
-              title: l10n.milestoneProgressTitle,
-              subtitle: l10n.milestoneProgressSubtitle,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _entrance(
-            5,
-            _buildMilestoneSection(
-              totalDays: totalDays,
-              nextMilestone: nextMilestone,
-              progress: progressToMilestone.clamp(0, 1),
-              l10n: l10n,
-            ),
-          ),
-          const SizedBox(height: 20),
-          _entrance(6, _buildLoveNoteCard(couple, l10n)),
-          const SizedBox(height: 20),
           KeyedSubtree(
             key: _dailyQuestionKey,
-            child: _entrance(6, _buildDailyQuestionCard(couple, l10n)),
+            // Merged "today ritual" card: question + love note in ONE card
+            // (tap-to-compose, blur teaser, collapsing done-state, envelope).
+            child: _gutter(_entrance(3, _buildTodayRitualCard(couple))),
           ),
-          if (onThisDayPhoto != null) ...[
-            const SizedBox(height: 20),
-            _entrance(6, _buildOnThisDayCard(onThisDayPhoto, couple, l10n)),
-          ],
-          const SizedBox(height: 20),
-          _entrance(
-            7,
+          // ── Nhóm 2: Kỷ niệm — create + browse.
+          const SizedBox(height: 28),
+          _gutter(_entrance(
+            5,
             _buildSectionTitle(
               title: l10n.recentMemoriesTitle,
-              subtitle: photos.isEmpty
-                  ? l10n.addPhotosPrompt
-                  : l10n.latestMomentsSubtitle,
+              subtitle: photos.isEmpty ? l10n.addPhotosPrompt : null,
               actionLabel: photos.isEmpty ? null : l10n.seeAll,
               onActionTap: photos.isEmpty
                   ? null
                   : () => setState(() => _selectedIndex = 1),
             ),
-          ),
+          )),
           const SizedBox(height: 12),
+          // Full-bleed: the memory cinema escapes the gutter on purpose —
+          // the add pill / empty state re-pad themselves inside.
           _entrance(
-            7,
-            _buildRecentPhotosSection(recentPhotos, isUploadingPhoto, l10n),
+            6,
+            _buildRecentPhotosSection(
+              recentPhotos,
+              isUploadingPhoto,
+              couple,
+              l10n,
+              onThisDay: onThisDayPhoto,
+            ),
           ),
         ],
         ),
@@ -816,31 +1013,159 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Header bell that opens the notification center, with an unread-count badge
   /// (feature notifications). The count comes from the live Firestore-backed
   /// inbox stream, so it updates even when a push arrives while the app is open.
+  void _openNotificationCenter() {
+    HapticFeedback.selectionClick();
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        settings: const RouteSettings(name: 'NotificationCenter'),
+        builder: (_) => const NotificationCenterScreen(),
+      ),
+    );
+  }
+
+  /// Header "calendar leaf": today's day number, airy and light, with the
+  /// weekday/month stacked behind a glowing vertical hairline. Echoes the
+  /// big day count in the CounterCard — today's page in the couple's story.
+  Widget _buildCalendarLeaf() {
+    final now = DateTime.now();
+    final locale = Localizations.localeOf(context).toString();
+    return Row(
+      children: [
+        Text(
+          '${now.day}',
+          style: TextStyle(
+            color: AppColors.white,
+            fontSize: 40,
+            fontWeight: FontWeight.w600,
+            height: 1,
+            // Soft DARK shadow, not a white halo: white-on-blush measures
+            // ~1.5:1 on its own, and a light glow around light glyphs only
+            // sinks them further. A dark drop is the standard treatment for
+            // white type on a light ground (same as captions on photos).
+            shadows: [
+              Shadow(
+                color: Colors.black.withValues(alpha: 0.32),
+                blurRadius: 10,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Vertical hairline, fading at both ends — the "torn edge".
+        Container(
+          width: 1.2,
+          height: 36,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.white.withValues(alpha: 0.0),
+                AppColors.white.withValues(alpha: 0.65),
+                AppColors.white.withValues(alpha: 0.0),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                DateFormat.EEEE(locale).format(now).toUpperCase(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2.0,
+                  height: 1,
+                  shadows: [
+                    Shadow(
+                      color: Color(0x47000000), // black .28 — see day number
+                      blurRadius: 8,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                DateFormat.MMMM(locale).format(now).toUpperCase(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppColors.white.withValues(alpha: 0.92),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 2.0,
+                  height: 1,
+                  shadows: const [
+                    Shadow(
+                      color: Color(0x47000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildNotificationBell() {
     final unread = context.watch<NotificationInboxProvider>().unreadCount;
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            settings: const RouteSettings(name: 'NotificationCenter'),
-            builder: (_) => const NotificationCenterScreen(),
-          ),
-        );
-      },
+    // excludeSemantics: the badge digit carries no meaning on its own — the
+    // label already announces the unread count, and onTap on the Semantics
+    // node keeps double-tap activation working.
+    return Semantics(
+      label: context.l10n.notificationBellLabel(unread),
+      button: true,
+      excludeSemantics: true,
+      onTap: _openNotificationCenter,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
+          // Solid white disc + rose bell (redesign user 2026-06-10): the one
+          // tappable thing in the header gets the one solid surface — light
+          // surface → rose ink, per the design-system rule. The soft rose
+          // shadow lifts it off the gradient without shouting.
+          DecoratedBox(
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: AppColors.white.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+              color: AppColors.white.withValues(alpha: 0.92),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.accentLove.withValues(alpha: 0.25),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                splashColor: AppColors.accentRose.withValues(alpha: 0.12),
+                onTap: _openNotificationCenter,
+                child: const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Icon(
+                    LucideIcons.bell,
+                    size: 21,
+                    color: AppColors.accentLoveDeep,
+                  ),
+                ),
               ),
             ),
-            child: _buildBellGlyph(unread),
           ),
           if (unread > 0)
             Positioned(
@@ -872,114 +1197,36 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Bell glyph for the header pill. Renders an animated Lottie bell when the
-  /// asset is present (rings — loops — while there are unread notifications,
-  /// rests as a single frame otherwise). Falls back to the static rounded bell
-  /// icon if the Lottie file is missing/broken, so the header never breaks.
-  ///
-  /// Drop a bell animation at `assets/lottie/notification_bell.json` to enable
-  /// it (the assets/lottie/ folder is already bundled). It's tinted white via a
-  /// [ColorFiltered] so any palette matches the white header chrome — remove
-  /// that wrapper if you want the Lottie's own colours.
-  Widget _buildBellGlyph(int unread) {
-    return SizedBox(
-      width: 24,
-      height: 24,
-      child: ColorFiltered(
-        colorFilter: const ColorFilter.mode(
-          AppColors.white,
-          BlendMode.srcATop,
-        ),
-        child: Lottie.asset(
-          'assets/lottie/notification_bell.json',
-          width: 24,
-          height: 24,
-          fit: BoxFit.contain,
-          repeat: unread > 0,
-          errorBuilder: (context, error, stackTrace) => const Icon(
-            Icons.notifications_none_rounded,
-            color: AppColors.white,
-            size: 24,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeroSection({
-    required Couple couple,
-    required AppLocalizations l10n,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      child: GlassCard(
-        borderRadius: 28,
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.16),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Icon(LucideIcons.sun, color: AppColors.white),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    l10n.helloGreeting,
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  AnimatedCoupleName(
-                    person1Name: couple.person1Name,
-                    person2Name: couple.person2Name,
-                    creatorUserId: couple.createdByUserId,
-                    spacing: 6,
-                    runSpacing: 4,
-                    heartSize: 18,
-                    heartColor: AppColors.white,
-                    textStyle: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildWaitingForPartnerBanner(Couple couple) {
+    // Light card + dark ink — the white-on-white glass version washed out on
+    // the blush gradient (contrast-debt cleanup, 2026-06-10).
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.18),
+        color: AppColors.white.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.32)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.20),
+              color: AppColors.accentLove.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(LucideIcons.link, color: AppColors.white, size: 20),
+            child: const Icon(
+              LucideIcons.link,
+              color: AppColors.accentLove,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -989,7 +1236,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   context.l10n.homeWaitingPartnerTitle,
                   style: const TextStyle(
-                    color: AppColors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     height: 1.2,
@@ -998,8 +1245,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 4),
                 Text(
                   context.l10n.homeWaitingPartnerSubtitle,
-                  style: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.80),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                     height: 1.4,
                   ),
@@ -1015,13 +1262,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.white.withValues(alpha: 0.22),
+                          color: AppColors.accentLove.withValues(alpha: 0.10),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           couple.inviteCode,
                           style: const TextStyle(
-                            color: AppColors.white,
+                            color: AppColors.accentLoveDeep,
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 3,
@@ -1030,7 +1277,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       InviteActionButtons(
                         code: couple.inviteCode,
-                        onDark: true,
+                        onDark: false,
                         iconOnly: true,
                       ),
                     ],
@@ -1046,7 +1293,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSectionTitle({
     required String title,
-    required String subtitle,
+    String? subtitle,
     String? actionLabel,
     VoidCallback? onActionTap,
   }) {
@@ -1061,11 +1308,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 title,
                 style: AppTheme.sectionTitleStyle(),
               ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: AppTheme.sectionSubtitleStyle(),
-              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: AppTheme.sectionSubtitleStyle(),
+                ),
+              ],
             ],
           ),
         ),
@@ -1073,82 +1322,19 @@ class _HomeScreenState extends State<HomeScreen> {
           TextButton(
             onPressed: onActionTap,
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.white,
+              // Real ink: even accentLoveDeep only reaches ~2.7:1 on the blush
+              // gradient — 14px text needs textPrimary. Weight keeps the
+              // link affordance.
+              foregroundColor: AppColors.textPrimary,
               padding: EdgeInsets.zero,
+              textStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             child: Text(actionLabel),
           ),
       ],
-    );
-  }
-
-  Widget _buildAddMemoryCta(AppLocalizations l10n, bool isLoading) {
-    final card = Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.accentRose,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accentRose.withValues(alpha: 0.28),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              LucideIcons.camera,
-              color: AppColors.white,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.addMemoryCta,
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  l10n.addMemoryCtaSubtitle,
-                  style: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.85),
-                    fontSize: 12,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            LucideIcons.chevronRight,
-            color: AppColors.white.withValues(alpha: 0.7),
-            size: 22,
-          ),
-        ],
-      ),
-    );
-
-    return GestureDetector(
-      onTap: isLoading ? null : _pickAndAddPhoto,
-      child: isLoading ? Opacity(opacity: 0.6, child: card) : card,
     );
   }
 
@@ -1244,7 +1430,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMilestoneSection({
+  /// Compact milestone progress rendered INSIDE the hero CounterCard
+  /// (white-on-gradient, via [CounterCard.progressFooter]) — replaces the old
+  /// standalone white "Cột mốc" card at the bottom of the tab.
+  Widget _buildInlineMilestoneProgress({
     required int totalDays,
     required int nextMilestone,
     required double progress,
@@ -1252,555 +1441,166 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     final daysLeft = nextMilestone - totalDays;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.accentGold.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  LucideIcons.award,
-                  color: AppColors.accentGold,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.nextMilestonePrefix(_milestoneLabel(nextMilestone, l10n)),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      daysLeft <= 0
-                          ? l10n.milestoneReached
-                          : l10n.onlyDaysUntilMilestone(daysLeft),
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 10,
-              backgroundColor: AppColors.surfaceLight,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accentRose),
+    // Two rows, human copy: "Cột mốc 1 tháng ... còn 26 ngày" + the bar.
+    // (The old version said the same thing three times — "Tiếp:", "13% rồi"
+    // and a trailing sentence — in label-speak.)
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              LucideIcons.flag,
+              size: 15,
+              color: AppColors.white.withValues(alpha: 0.92),
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.daysCountLabel(totalDays),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                l10n.milestoneNextLabel(_milestoneLabel(nextMilestone, l10n)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  color: AppColors.textPrimary,
+                  color: AppColors.white,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
                 ),
-              ),
-              Text(
-                l10n.percentThere((progress * 100).toStringAsFixed(0)),
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Resolves the partner's display name from the couple, given the partner's
-  /// uid. The couple creator is person1; everyone else maps to person2.
-  String _partnerName(Couple couple, String? partnerUid, AppLocalizations l10n) {
-    String name;
-    if (partnerUid != null && partnerUid == couple.createdByUserId) {
-      name = couple.person1Name;
-    } else {
-      name = couple.person2Name;
-    }
-    return name.trim().isNotEmpty ? name.trim() : l10n.posterNameFallback;
-  }
-
-  /// Localized "x minutes/hours/days ago" for a love note's [updatedAt].
-  String _relativeTime(DateTime? when, AppLocalizations l10n) {
-    if (when == null) {
-      return l10n.loveNoteJustNow;
-    }
-    final diff = DateTime.now().difference(when);
-    if (diff.inMinutes < 1) {
-      return l10n.loveNoteJustNow;
-    }
-    if (diff.inMinutes < 60) {
-      return l10n.loveNoteMinutesAgo(diff.inMinutes);
-    }
-    if (diff.inHours < 24) {
-      return l10n.loveNoteHoursAgo(diff.inHours);
-    }
-    return l10n.loveNoteDaysAgo(diff.inDays);
-  }
-
-  /// "Lời nhắn của người ấy" (feature #4). Shows the note the partner left for
-  /// the current user, plus a CTA to write/edit the user's own note.
-  Widget _buildLoveNoteCard(Couple couple, AppLocalizations l10n) {
-    return Consumer<LoveNoteProvider>(
-      builder: (context, loveNoteProvider, _) {
-        final partnerNote = loveNoteProvider.partnerNote;
-        final partnerName = _partnerName(couple, partnerNote?.authorUserId, l10n);
-        final hasNote = partnerNote != null && partnerNote.hasText;
-        final isWaiting = couple.isWaitingForPartner;
-        final hasMyNote = loveNoteProvider.myNote?.hasText == true;
-
-        final myNote = loveNoteProvider.myNote;
-
-        return GlassCard(
-          borderRadius: 24,
-          fillAlpha: 0.16,
-          borderAlpha: 0.18,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(LucideIcons.mailOpen,
-                      color: AppColors.accentRose, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      hasNote
-                          ? l10n.loveNoteFromPartner(partnerName)
-                          : l10n.loveNoteLabel,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Wrap the body (partner note + the user's own note block) in an
-              // AnimatedSize so the card grows/shrinks smoothly when myNote
-              // appears/disappears (design Phần 2).
-              AnimatedSize(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOutCubic,
-                alignment: Alignment.topCenter,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (isWaiting)
-                      Text(
-                        l10n.loveNoteWaitingPartner,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 14,
-                          height: 1.5,
-                        ),
-                      )
-                    else if (hasNote) ...[
-                      Text(
-                        partnerNote.text,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          height: 1.55,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _relativeTime(partnerNote.updatedAt, l10n),
-                        style: const TextStyle(
-                          color: AppColors.textTertiary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ] else
-                      Text(
-                        l10n.loveNoteEmptyFromPartner(partnerName),
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 14,
-                          height: 1.5,
-                        ),
-                      ),
-                    // "Lời nhắn của bạn" — shown iff the user has their own note,
-                    // independent of partner state (design Phần 2, mục 6).
-                    if (hasMyNote && myNote != null) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: AppColors.textPrimary.withValues(alpha: 0.10),
-                        ),
-                      ),
-                      Text(
-                        l10n.loveNoteYourNoteLabel,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${myNote.text} · ${_relativeTime(myNote.updatedAt, l10n)}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (!isWaiting) ...[
-                const SizedBox(height: 16),
-                _buildWriteNoteButton(
-                  label: hasMyNote ? l10n.loveNoteEditCta : l10n.loveNoteWriteCta,
-                ),
-                _buildLoveNoteHistoryEntry(l10n),
-              ],
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  /// Foot-of-card link into the love-note archive (feature love-note-history):
-  /// divider + tappable row. Home still shows only the latest note; the full
-  /// timeline lives behind this entry.
-  Widget _buildLoveNoteHistoryEntry(AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: AppColors.textPrimary.withValues(alpha: 0.10),
-          ),
-        ),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: () {
-              HapticFeedback.selectionClick();
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  settings: const RouteSettings(name: 'LoveNoteHistory'),
-                  builder: (_) => const LoveNoteHistoryScreen(),
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  const Icon(LucideIcons.history,
-                      size: 18, color: AppColors.accentRose),
-                  const SizedBox(width: 10),
-                  Text(
-                    l10n.loveNoteHistoryCta,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  const Icon(LucideIcons.chevronRight,
-                      size: 16, color: AppColors.textTertiary),
-                ],
               ),
             ),
+            const SizedBox(width: 8),
+            Text(
+              daysLeft <= 0
+                  ? l10n.milestoneTodayLabel
+                  : l10n.milestoneDaysLeft(daysLeft),
+              style: TextStyle(
+                color: AppColors.white.withValues(alpha: 0.85),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 8,
+            backgroundColor: AppColors.white.withValues(alpha: 0.25),
+            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.white),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildWriteNoteButton({required String label}) {
-    return SizedBox(
-      width: double.infinity,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppColors.accentRose,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: _openLoveNoteSheet,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(LucideIcons.feather, color: AppColors.white, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    label,
+  /// The merged "Hôm nay của hai đứa" ritual card (question + love note).
+  /// Keyed by couple + today's question so its one-shot state (confetti,
+  /// collapsed reveal, envelope) resets cleanly on a couple/day change.
+  Widget _buildTodayRitualCard(Couple couple) {
+    final langCode = Localizations.localeOf(context).languageCode;
+    final question =
+        context.read<DailyQuestionProvider>().todayQuestion(langCode);
+    return TodayRitualCard(
+      key: ValueKey('today-${couple.id}-$question'),
+      couple: couple,
+    );
+  }
+
+  /// Leading tile of the polaroid strip — a blank polaroid waiting to be
+  /// filled (the add-photo CTA living inside the content it creates).
+  Widget _buildAddMemoryTile(AppLocalizations l10n, bool isLoading) {
+    final tile = Container(
+      width: 140,
+      padding: const EdgeInsets.fromLTRB(7, 7, 7, 0),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(6),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 14,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isLoading ? null : _pickAndAddPhoto,
+          child: Column(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: Container(
+                    width: double.infinity,
+                    color: AppColors.accentLove.withValues(alpha: 0.07),
+                    child: Center(
+                      child: Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.accentRose,
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  AppColors.accentRose.withValues(alpha: 0.35),
+                              blurRadius: 14,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          LucideIcons.camera,
+                          color: AppColors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 32,
+                child: Center(
+                  child: Text(
+                    l10n.addMemoryCta,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 14,
+                      color: AppColors.accentLoveDeep,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
-  }
 
-  Future<void> _openLoveNoteSheet() async {
-    final l10n = context.l10n;
-    final initialText = context.read<LoveNoteProvider>().myNote?.text ?? '';
-
-    final saved = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      // The sheet OWNS its TextEditingController (created in its State, disposed
-      // in its dispose). Disposing it here in the parent right after the future
-      // resolves would free it while the sheet's close transition + keyboard
-      // dismissal are still rebuilding the still-mounted sheet → "controller
-      // used after disposed".
-      builder: (sheetContext) => _LoveNoteSheet(
-        initialText: initialText,
-        l10n: l10n,
-      ),
-    );
-
-    if (saved != true || !mounted) {
-      return;
-    }
-
-    HapticFeedback.mediumImpact();
-    if (!mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.loveNoteSaved)),
-    );
-  }
-
-  /// "Câu hỏi hôm nay" (feature #5). One shared question per day; each partner
-  /// answers, and the partner's answer is revealed only once both have answered.
-  Widget _buildDailyQuestionCard(Couple couple, AppLocalizations l10n) {
-    final langCode = Localizations.localeOf(context).languageCode;
-    return Consumer<DailyQuestionProvider>(
-      builder: (context, provider, _) {
-        final partnerUid = provider.partnerAnswer?.authorUserId;
-        final partnerName = _partnerName(couple, partnerUid, l10n);
-        return _DailyQuestionCard(
-          // Key by couple + question text so the card's internal state (the
-          // one-shot confetti flag) resets cleanly on a couple/day change.
-          key: ValueKey('daily-${couple.id}-${provider.todayQuestion(langCode)}'),
-          provider: provider,
-          l10n: l10n,
-          question: provider.todayQuestion(langCode),
-          partnerName: partnerName,
-          isWaitingPartner: couple.isWaitingForPartner,
-          onOpenJournal: () {
-            HapticFeedback.selectionClick();
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                settings: const RouteSettings(name: 'Journal'),
-                builder: (_) => const JournalScreen(),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  /// Nostalgia card surfaced only when an "On this day" memory exists.
-  /// Tapping opens the shared fullscreen preview (reused from the gallery).
-  Widget _buildOnThisDayCard(
-    Photo photo,
-    Couple couple,
-    AppLocalizations l10n,
-  ) {
-    final yearsAgo = DateTime.now().year - photo.uploadDate.year;
-    const heroTag = 'on-this-day-preview';
-    final caption = photo.caption?.trim();
-
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        GalleryScreen.openPreview(
-          context,
-          photos: [photo],
-          heroTags: const [heroTag],
-          initialIndex: 0,
-          couple: couple,
-        );
-      },
-      child: GlassCard(
-        borderRadius: 24,
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            Hero(
-              tag: heroTag,
-              createRectTween: (begin, end) =>
-                  MaterialRectCenterArcTween(begin: begin, end: end),
-              transitionOnUserGestures: true,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: SizedBox(
-                  width: 64,
-                  height: 80,
-                  child: SharedPhotoView(
-                    photo: photo,
-                    fit: BoxFit.cover,
-                    // 64px-wide thumbnail → decode ≈ 64 * DPR.
-                    decodeWidth:
-                        (64 * MediaQuery.of(context).devicePixelRatio).round(),
-                    placeholder: Container(color: AppColors.surfaceLight),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        LucideIcons.calendarHeart,
-                        size: 16,
-                        color: AppColors.white.withValues(alpha: 0.92),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          l10n.onThisDayTitle(yearsAgo),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.1,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    caption?.isNotEmpty == true
-                        ? caption!
-                        : l10n.onThisDaySubtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: AppColors.white.withValues(alpha: 0.82),
-                      fontSize: 12.5,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              LucideIcons.chevronRight,
-              color: AppColors.white.withValues(alpha: 0.7),
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
+    return isLoading ? Opacity(opacity: 0.6, child: tile) : tile;
   }
 
   Widget _buildRecentPhotosSection(
     List<Photo> photos,
     bool isLoading,
-    AppLocalizations l10n,
-  ) {
+    Couple couple,
+    AppLocalizations l10n, {
+    Photo? onThisDay,
+  }) {
     if (photos.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 16,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Column(
+      // One blank polaroid waiting for the first photo — same scrapbook
+      // language as the filled strip (the old white card + button read as a
+      // generic form).
+      return _gutter(
+        Column(
           children: [
-            Icon(
-              LucideIcons.image,
-              color: AppColors.textSecondary.withValues(alpha: 0.5),
-              size: 42,
-            ),
-            const SizedBox(height: 12),
             Text(
               l10n.addPhotosEmpty,
               textAlign: TextAlign.center,
@@ -1810,124 +1610,48 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 1.45,
               ),
             ),
-            const SizedBox(height: 18),
-            FilledButton.icon(
-              onPressed: isLoading ? null : _pickAndAddPhoto,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.accentRose,
-                foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
+            const SizedBox(height: 14),
+            SizedBox(
+              height: 200,
+              child: Transform.rotate(
+                angle: -0.02,
+                child: _buildAddMemoryTile(l10n, isLoading),
               ),
-              icon: const Icon(LucideIcons.imagePlus),
-              label: Text(l10n.postFirstPhotoBtn),
             ),
           ],
         ),
       );
     }
 
-    return SizedBox(
-      height: 176,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: photos.length,
-        separatorBuilder: (_, index) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final photo = photos[index];
-          return GestureDetector(
-            onTap: () => setState(() => _selectedIndex = 1),
-            child: Container(
-              width: 140,
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 16,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(22),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    SharedPhotoView(
-                      photo: photo,
-                      fit: BoxFit.cover,
-                      // 140px-wide recent card → decode ≈ 140 * DPR.
-                      decodeWidth:
-                          (140 * MediaQuery.of(context).devicePixelRatio)
-                              .round(),
-                      placeholder: Container(color: AppColors.surfaceLight),
-                    ),
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.7),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Read-only reaction badge (D4) — never reacts here.
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: ReactionCountBadge(
-                        reactions: context
-                            .watch<ReactionProvider>()
-                            .reactionsFor(photo.id),
-                      ),
-                    ),
-                    Positioned(
-                      left: 12,
-                      right: 12,
-                      bottom: 12,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            photo.caption?.trim().isNotEmpty == true
-                                ? photo.caption!
-                                : l10n.momentNumberFallback(index + 1),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _formatDate(context, photo.uploadDate),
-                            style: TextStyle(
-                              color: AppColors.white.withValues(alpha: 0.82),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+    // "Memory cinema" (user 2026-06-10, replaces the polaroid strip): slides
+    // lead with the "on this day" memory, then recents (deduped). The photo
+    // currently serving as the CounterCard background is skipped so one
+    // screen never shows the same memory twice — unless it's all we have.
+    final slides = <Photo>[
+      ?onThisDay,
+      for (final p in photos)
+        if (p.id != onThisDay?.id && p.id != _counterBgKey) p,
+    ];
+    if (slides.isEmpty) {
+      slides.addAll(photos);
+    }
+
+    // No add-CTA here anymore (user 2026-06-10) — posting lives in the
+    // Gallery tab composer + the quiet camera in the section header; Home
+    // only *plays* the memories.
+    return MemoryCinemaCard(
+      photos: slides,
+      onThisDayId: onThisDay?.id,
+      onPhotoTap: (index) {
+        AnalyticsService.instance.logMemoryCinemaOpened();
+        return GalleryScreen.openPreview(
+          context,
+          photos: slides,
+          heroTags: [for (final p in slides) 'cinema-photo-${p.id}'],
+          initialIndex: index,
+          couple: couple,
+        );
+      },
     );
   }
 
@@ -1958,28 +1682,6 @@ class _HomeScreenState extends State<HomeScreen> {
       anniversaryDate.day,
     );
     return today.difference(start).inDays;
-  }
-
-  String _formatDate(BuildContext context, DateTime date) {
-    return DateFormat(context.l10n.fullDateFormat).format(date);
-  }
-
-  DateTime _getNextAnniversary(DateTime anniversaryDate) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    var next = DateTime(now.year, anniversaryDate.month, anniversaryDate.day);
-
-    if (!next.isAfter(today)) {
-      next = DateTime(now.year + 1, anniversaryDate.month, anniversaryDate.day);
-    }
-
-    return next;
-  }
-
-  int _daysUntil(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return date.difference(today).inDays;
   }
 
   int _getNextMilestone(int totalDays) {
@@ -2015,570 +1717,4 @@ class _NavigationItem {
   final IconData icon;
   final IconData? selectedIcon;
   final Color color;
-}
-
-/// Bottom sheet for composing/editing the current user's love note (feature #4).
-/// Pops `true` after a successful save so the caller can confirm + haptic.
-class _LoveNoteSheet extends StatefulWidget {
-  const _LoveNoteSheet({
-    required this.initialText,
-    required this.l10n,
-  });
-
-  final String initialText;
-  final AppLocalizations l10n;
-
-  @override
-  State<_LoveNoteSheet> createState() => _LoveNoteSheetState();
-}
-
-class _LoveNoteSheetState extends State<_LoveNoteSheet> {
-  static const int _maxChars = 140;
-  late final TextEditingController _controller =
-      TextEditingController(text: widget.initialText);
-  bool _saving = false;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    if (_saving) {
-      return;
-    }
-    setState(() => _saving = true);
-    final navigator = Navigator.of(context);
-    final saved =
-        await context.read<LoveNoteProvider>().setMyNote(_controller.text);
-    if (!mounted) {
-      return;
-    }
-    navigator.pop(saved);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = widget.l10n;
-    final viewInsets = MediaQuery.of(context).viewInsets.bottom;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: viewInsets),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            decoration: BoxDecoration(
-              color: AppColors.cardSurface,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(28)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.textTertiary.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    const Icon(LucideIcons.heart,
-                        color: AppColors.accentRose, size: 22),
-                    const SizedBox(width: 8),
-                    Text(
-                      l10n.loveNoteSheetTitle,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _controller,
-                  maxLength: _maxChars,
-                  maxLines: 4,
-                  minLines: 2,
-                  autofocus: true,
-                  textInputAction: TextInputAction.newline,
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: l10n.loveNoteSheetHint,
-                    counterText: l10n.loveNoteCharCount(
-                      _controller.text.characters.length,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _saving ? null : _save,
-                    child: _saving
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.4,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.white),
-                            ),
-                          )
-                        : Text(l10n.save),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Home card for the shared "daily question" (feature #5). Owns its own state
-/// because it has (a) a text controller for the answer, (b) a confetti
-/// controller that fires once on reveal, and (c) a guard flag so the confetti
-/// never re-fires on rebuilds.
-class _DailyQuestionCard extends StatefulWidget {
-  const _DailyQuestionCard({
-    super.key,
-    required this.provider,
-    required this.l10n,
-    required this.question,
-    required this.partnerName,
-    required this.isWaitingPartner,
-    required this.onOpenJournal,
-  });
-
-  final DailyQuestionProvider provider;
-  final AppLocalizations l10n;
-  final String question;
-  final String partnerName;
-  final bool isWaitingPartner;
-  final VoidCallback onOpenJournal;
-
-  @override
-  State<_DailyQuestionCard> createState() => _DailyQuestionCardState();
-}
-
-class _DailyQuestionCardState extends State<_DailyQuestionCard> {
-  static const int _maxChars = 280;
-
-  final TextEditingController _controller = TextEditingController();
-  late final ConfettiController _confetti =
-      ConfettiController(duration: const Duration(milliseconds: 600));
-  bool _submitting = false;
-  // One-shot guard: the reveal confetti plays at most once per card lifetime.
-  bool _confettiPlayed = false;
-  // The reveal Lottie is a ONE-SHOT celebration: shown only briefly when the
-  // answers first unlock, then hidden. Gating it on `hasRevealed` instead left
-  // the animation frozen on its last frame (a star) permanently on the card.
-  bool _showRevealLottie = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // If the card is built already in the revealed state (e.g. reopening Home
-    // after both answered), don't surprise the user with confetti — only
-    // celebrate a fresh reveal that happens while watching.
-    _confettiPlayed = widget.provider.hasRevealed;
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _confetti.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    final text = _controller.text.trim();
-    if (text.isEmpty || _submitting) {
-      return;
-    }
-    setState(() => _submitting = true);
-    final l10n = widget.l10n;
-    final messenger = ScaffoldMessenger.of(context);
-    await widget.provider.submit(text);
-    HapticFeedback.mediumImpact();
-    if (!mounted) {
-      return;
-    }
-    setState(() => _submitting = false);
-    messenger.showSnackBar(SnackBar(content: Text(l10n.dailyQuestionSent)));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = widget.l10n;
-    final provider = widget.provider;
-    final hasAnswered = provider.hasAnswered;
-    final hasRevealed = provider.hasRevealed;
-
-    // Fire confetti exactly once, the first build where we reach the revealed
-    // state (and weren't already revealed on init).
-    if (hasRevealed && !_confettiPlayed) {
-      _confettiPlayed = true;
-      _showRevealLottie = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _confetti.play();
-        }
-      });
-      // Auto-hide the one-shot Lottie so it never sits frozen on its last frame.
-      Future.delayed(const Duration(milliseconds: 2600), () {
-        if (mounted) {
-          setState(() => _showRevealLottie = false);
-        }
-      });
-    }
-
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        GlassCard(
-          borderRadius: 24,
-          fillAlpha: 0.16,
-          borderAlpha: 0.18,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(LucideIcons.helpCircle,
-                      color: AppColors.accentRose, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.dailyQuestionLabel,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                widget.question,
-                style: AppTheme.displaySerif(
-                  size: 22,
-                  weight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                  height: 1.25,
-                  letterSpacing: -0.2,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ..._buildBody(l10n, provider, hasAnswered, hasRevealed),
-              // Journal entry at the foot of the card — the journal is a shared
-              // archive, shown in every today-state. Hidden while waiting for a
-              // partner (no shared memories possible yet).
-              if (!widget.isWaitingPartner) _buildJournalEntry(l10n),
-            ],
-          ),
-        ),
-        // Gentle one-shot celebration, centered above the card.
-        ConfettiWidget(
-          confettiController: _confetti,
-          blastDirectionality: BlastDirectionality.explosive,
-          numberOfParticles: 14,
-          maxBlastForce: 14,
-          minBlastForce: 6,
-          emissionFrequency: 0.0,
-          gravity: 0.25,
-          shouldLoop: false,
-          colors: const [
-            AppColors.accentRose,
-            AppColors.accentLavender,
-            AppColors.accentCoral,
-            AppColors.white,
-          ],
-        ),
-        // Khoảnh khắc mở khoá Daily Question (feature lottie-moments) — ONE-SHOT.
-        // Chỉ hiện thoáng qua khi vừa mở khoá rồi tự ẩn (xem `_showRevealLottie`);
-        // KHÔNG gate theo `hasRevealed` vì state đó đứng yên → Lottie kẹt frame cuối.
-        if (_showRevealLottie)
-          const Positioned(
-            top: -8,
-            child: LoveLottie(
-              slot: LoveLottieSlot.dailyReveal,
-              height: 120,
-            ),
-          ),
-      ],
-    );
-  }
-
-  List<Widget> _buildBody(
-    AppLocalizations l10n,
-    DailyQuestionProvider provider,
-    bool hasAnswered,
-    bool hasRevealed,
-  ) {
-    // Reveal: both answered — show both answers, labelled.
-    if (hasRevealed) {
-      final mine = provider.myAnswer?.text.trim() ?? '';
-      final theirs = provider.partnerAnswer?.text.trim() ?? '';
-      return [
-        Text(
-          l10n.dailyQuestionRevealHint,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 13,
-            height: 1.4,
-          ),
-        ),
-        const SizedBox(height: 14),
-        _answerBlock(l10n.dailyQuestionYourAnswerLabel, mine),
-        const SizedBox(height: 12),
-        _answerBlock(
-          l10n.dailyQuestionPartnerAnswerLabel(widget.partnerName),
-          theirs,
-        ),
-      ];
-    }
-
-    // Answered, waiting for partner.
-    if (hasAnswered) {
-      final mine = provider.myAnswer?.text.trim() ?? '';
-      final waitingFor = widget.isWaitingPartner
-          ? l10n.dailyQuestionWaitingPartner
-          : l10n.dailyQuestionAnsweredWaiting(widget.partnerName);
-      return [
-        _answerBlock(l10n.dailyQuestionYourAnswerLabel, mine),
-        const SizedBox(height: 12),
-        Text(
-          waitingFor,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 13,
-            height: 1.45,
-          ),
-        ),
-      ];
-    }
-
-    // Not answered yet — input + send.
-    return [
-      if (widget.isWaitingPartner) ...[
-        Text(
-          l10n.dailyQuestionWaitingPartner,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 13,
-            height: 1.45,
-          ),
-        ),
-        const SizedBox(height: 12),
-      ],
-      ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.55),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                  color: AppColors.accentRose.withValues(alpha: 0.25)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: _controller,
-                    maxLength: _maxChars,
-                    maxLines: 4,
-                    minLines: 2,
-                    textAlignVertical: TextAlignVertical.top,
-                    cursorColor: AppColors.accentRose,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                      height: 1.4,
-                    ),
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      isCollapsed: true,
-                      border: InputBorder.none,
-                      hintText: l10n.dailyQuestionHint,
-                      hintStyle: const TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 14,
-                      ),
-                      // Counter rendered separately below so the field hugs its
-                      // text and the hint stays anchored top-left (no float).
-                      counterText: '',
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      l10n.dailyQuestionCharCount(
-                        _controller.text.characters.length,
-                      ),
-                      style: const TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-      const SizedBox(height: 12),
-      SizedBox(
-        width: double.infinity,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: AppColors.accentRose,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: (_submitting || _controller.text.trim().isEmpty)
-                  ? null
-                  : _submit,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (_submitting)
-                      const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(AppColors.white),
-                        ),
-                      )
-                    else ...[
-                      const Icon(LucideIcons.send,
-                          color: AppColors.white, size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.dailyQuestionSend,
-                        style: const TextStyle(
-                          color: AppColors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ];
-  }
-
-  /// Foot-of-card "Open journal" entry: divider + tappable full-width row.
-  Widget _buildJournalEntry(AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: AppColors.textPrimary.withValues(alpha: 0.10),
-          ),
-        ),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: widget.onOpenJournal,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  const Icon(
-                    LucideIcons.bookOpen,
-                    size: 18,
-                    color: AppColors.accentRose,
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    l10n.journalEntryCta,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  Icon(
-                    LucideIcons.chevronRight,
-                    size: 16,
-                    color: AppColors.textTertiary,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _answerBlock(String label, String text) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          text,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            height: 1.5,
-          ),
-        ),
-      ],
-    );
-  }
 }

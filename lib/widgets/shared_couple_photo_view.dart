@@ -13,6 +13,7 @@ class SharedCouplePhotoView extends StatelessWidget {
     this.remoteUrl,
     this.fit = BoxFit.cover,
     this.placeholder,
+    this.loading,
     this.decodeWidth,
     this.decodeHeight,
   });
@@ -21,6 +22,11 @@ class SharedCouplePhotoView extends StatelessWidget {
   final String? remoteUrl;
   final BoxFit fit;
   final Widget? placeholder;
+
+  /// Shown while the remote image downloads. Defaults to the gray shimmer —
+  /// pass e.g. `SizedBox.shrink()` when the surface behind (gradient) should
+  /// stay visible instead (CounterCard backdrop).
+  final Widget? loading;
 
   /// Target decode width in *physical* pixels for avatar-sized call-sites
   /// (pass `logicalSize * devicePixelRatio`). Avoids decoding a full-res couple
@@ -66,7 +72,7 @@ class SharedCouplePhotoView extends StatelessWidget {
 
   Widget _buildLoading() {
     // Content-shaped shimmer; the parent clip (ClipOval) enforces the shape.
-    return const ShimmerSkeleton.fill();
+    return loading ?? const ShimmerSkeleton.fill();
   }
 
   Widget _buildFallback() {
