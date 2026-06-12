@@ -10,6 +10,7 @@ import '../l10n/l10n.dart';
 import '../models/photo.dart';
 import '../providers/reaction_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 import 'reaction_bar.dart';
 import 'shared_photo_view.dart';
 
@@ -55,10 +56,30 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
   int _index = 0;
   Timer? _timer;
 
+  /// Whether auto-play may run right now. False while the OS Reduce Motion
+  /// setting is on (WCAG 2.3.3 — manual swipe stays available) OR while this
+  /// tab is hidden: TickerMode only mutes `.animate` tickers, it does NOT
+  /// stop a `Timer.periodic`, so the gate is read here and re-checked in
+  /// [didChangeDependencies] (both TickerMode.valuesOf and MediaQuery
+  /// register dependencies, so visibility/setting flips re-run it).
+  bool _autoPlayAllowed = false;
+
+  // No initState timer: TickerMode/MediaQuery can't be read there —
+  // didChangeDependencies runs before the first build and starts auto-play.
+
   @override
-  void initState() {
-    super.initState();
-    _restartTimer();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final allowed = TickerMode.valuesOf(context).enabled &&
+        !AppMotion.reduceMotion(context);
+    // Only touch the timer when the gate actually flips: this method also
+    // re-runs for unrelated inherited widgets (e.g. provider watches higher in
+    // build), and restarting on each of those would keep resetting the 7s
+    // auto-advance window so the slide never moves.
+    if (allowed != _autoPlayAllowed || (allowed && _timer == null)) {
+      _autoPlayAllowed = allowed;
+      _restartTimer();
+    }
   }
 
   @override
@@ -82,7 +103,7 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
   void _restartTimer() {
     _timer?.cancel();
     _timer = null;
-    if (widget.photos.length > 1) {
+    if (_autoPlayAllowed && widget.photos.length > 1) {
       _timer = Timer.periodic(_slideDuration, (_) => _advance(1));
     }
   }
@@ -129,9 +150,11 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
       child: Container(
         height: widget.height,
         width: double.infinity,
-        // Square corners — the card runs full-bleed, so rounding would just
-        // nibble the photo at the screen edges (user 2026-06-10).
+        // Card-radius 28 — sits inside the standard 16px page gutter like
+        // every other Home card (user 2026-06-11, reverting the full-bleed
+        // take from 2026-06-10).
         decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.12),
@@ -141,7 +164,7 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.zero,
+          borderRadius: BorderRadius.circular(28),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -197,12 +220,34 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
   }
 
   /// Current slide: crossfade between photos, slow Ken Burns zoom on each.
+  /// Reduce Motion drops both the Ken Burns zoom and the crossfade — slides
+  /// (manual swipes) cut instantly to a static frame.
   Widget _buildSlide(Photo photo) {
+    final reduceMotion = AppMotion.reduceMotion(context);
     final decodeWidth = (MediaQuery.of(context).size.width *
             MediaQuery.of(context).devicePixelRatio)
         .round();
+    final slide = SizedBox.expand(
+      key: ValueKey('cinema-slide-${photo.id}'),
+      child: Hero(
+        tag: 'cinema-photo-${photo.id}',
+        createRectTween: (begin, end) =>
+            MaterialRectCenterArcTween(begin: begin, end: end),
+        transitionOnUserGestures: true,
+        child: _withKenBurns(
+          reduceMotion: reduceMotion,
+          photo: photo,
+          child: SharedPhotoView(
+            photo: photo,
+            fit: BoxFit.cover,
+            decodeWidth: decodeWidth,
+            placeholder: Container(color: AppColors.surfaceLight),
+          ),
+        ),
+      ),
+    );
     return AnimatedSwitcher(
-      duration: _crossfade,
+      duration: reduceMotion ? Duration.zero : _crossfade,
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
       // Tight constraints — the default layoutBuilder centers loose children,
@@ -214,32 +259,27 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
           ?currentChild,
         ],
       ),
-      child: SizedBox.expand(
-        key: ValueKey('cinema-slide-${photo.id}'),
-        child: Hero(
-          tag: 'cinema-photo-${photo.id}',
-          createRectTween: (begin, end) =>
-              MaterialRectCenterArcTween(begin: begin, end: end),
-          transitionOnUserGestures: true,
-          child: SharedPhotoView(
-            photo: photo,
-            fit: BoxFit.cover,
-            decodeWidth: decodeWidth,
-            placeholder: Container(color: AppColors.surfaceLight),
-          )
-              // Ken Burns: a zoom slightly LONGER than the slide, so motion
-              // never visibly stops before the crossfade. New slide → new
-              // switcher key → fresh one-shot controller.
-              .animate(key: ValueKey('kenburns-${photo.id}'))
-              .scale(
-                begin: const Offset(1.0, 1.0),
-                end: const Offset(1.10, 1.10),
-                duration: _slideDuration + const Duration(seconds: 2),
-                curve: Curves.linear,
-              ),
-        ),
-      ),
+      child: slide,
     );
+  }
+
+  /// Ken Burns: a zoom slightly LONGER than the slide, so motion never
+  /// visibly stops before the crossfade. New slide → new switcher key →
+  /// fresh one-shot controller. Reduce Motion returns the photo untouched.
+  Widget _withKenBurns({
+    required bool reduceMotion,
+    required Photo photo,
+    required Widget child,
+  }) {
+    if (reduceMotion) {
+      return child;
+    }
+    return child.animate(key: ValueKey('kenburns-${photo.id}')).scale(
+          begin: const Offset(1.0, 1.0),
+          end: const Offset(1.10, 1.10),
+          duration: _slideDuration + const Duration(seconds: 2),
+          curve: Curves.linear,
+        );
   }
 
   Widget _buildOnThisDayBadge(Photo photo) {

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
@@ -6,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -23,11 +21,14 @@ import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/blocking_loading_overlay.dart';
+import '../widgets/entrance_reveal.dart';
 import '../widgets/love_lottie.dart';
 import '../widgets/reaction_bar.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/shared_photo_view.dart';
+import '../widgets/shimmer_skeleton.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key, this.bottomInset = 0});
@@ -481,7 +482,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 Text(
                   l10n.reportPhotoSubtitle,
                   style: const TextStyle(
-                    fontSize: 13.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textSecondary,
                     height: 1.45,
@@ -675,18 +676,19 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
+  // Gallery content surface (design-unify C7): SOLID white like every other
+  // content card (B4) — no more translucent .84–.94 fills + white hairline
+  // borders. Shadow defaults to the standard black .06 blur 16 offset(0,10);
+  // the feed card keeps its slightly softer/longer shadow via the params.
   BoxDecoration _gallerySurfaceDecoration({
     required double radius,
-    double fillAlpha = 0.9,
-    double borderAlpha = 0.82,
-    double shadowAlpha = 0.045,
-    double blurRadius = 18,
+    double shadowAlpha = 0.06,
+    double blurRadius = 16,
     Offset offset = const Offset(0, 10),
   }) {
     return BoxDecoration(
-      color: AppColors.white.withValues(alpha: fillAlpha),
+      color: AppColors.cardSurface,
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: AppColors.white.withValues(alpha: borderAlpha)),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withValues(alpha: shadowAlpha),
@@ -740,32 +742,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Widget _buildGalleryEyebrow(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            LucideIcons.sparkles,
-            size: 12,
-            color: AppColors.white.withValues(alpha: 0.72),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-                style: AppTheme.pageEyebrowStyle(alpha: 0.88),
-          ),
-        ],
-      ),
-    );
+    // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink recolor
+    // of the original (user request 2026-06-11).
+    return EyebrowChip(label: label, icon: LucideIcons.sparkles);
   }
 
-  TextStyle _galleryCardTitleStyle({double size = 16.5}) {
+  TextStyle _galleryCardTitleStyle({double size = 16}) {
     return TextStyle(
       color: AppColors.textPrimary.withValues(alpha: 0.90),
       fontSize: size,
@@ -839,7 +821,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget _buildComposerCard(Couple? couple, int photoCount) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: _gallerySurfaceDecoration(radius: 24, fillAlpha: 0.84),
+      decoration: _gallerySurfaceDecoration(radius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -859,7 +841,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         context.l10n.addNewMemoryTitle,
                         style: TextStyle(
                           color: AppColors.textPrimary.withValues(alpha: 0.88),
-                          fontSize: 14.5,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.15,
                           height: 1.2,
@@ -881,7 +863,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             heartColor: AppColors.accentRose,
                             textStyle: TextStyle(
                               color: AppColors.textPrimary.withValues(alpha: 0.88),
-                              fontSize: 14.5,
+                              fontSize: 15,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.15,
                               height: 1.2,
@@ -891,7 +873,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             context.l10n.whatNewToday,
                             style: TextStyle(
                               color: AppColors.textPrimary.withValues(alpha: 0.88),
-                              fontSize: 14.5,
+                              fontSize: 15,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.15,
                               height: 1.2,
@@ -904,7 +886,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       context.l10n.composerSubtitle,
                       style: _galleryBodyStyle(
                         color: AppColors.textPrimary,
-                        size: 11.5,
+                        size: 12,
                         alpha: 0.58,
                         weight: FontWeight.w500,
                         height: 1.4,
@@ -941,8 +923,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     foregroundColor: AppColors.white,
                     padding: const EdgeInsets.symmetric(vertical: 11),
                     minimumSize: Size.zero,
+                    // r16 = in-card button token (C7.8).
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
@@ -959,8 +942,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     side: BorderSide(color: AppColors.accentRose.withValues(alpha: 0.24)),
                     padding: const EdgeInsets.symmetric(vertical: 11),
                     minimumSize: Size.zero,
+                    // r16 = in-card button token (C7.8).
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
@@ -1007,14 +991,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: _gallerySurfaceDecoration(
-          radius: 24,
-          fillAlpha: 0.9,
-          borderAlpha: 0.86,
-          shadowAlpha: 0.035,
-          blurRadius: 16,
-          offset: const Offset(0, 8),
-        ),
+        decoration: _gallerySurfaceDecoration(radius: 24),
         child: Row(
           children: [
             _buildCoupleAvatar(couple, size: 42),
@@ -1029,7 +1006,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         context.l10n.addNewMemoryTitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: _galleryCardTitleStyle(size: 15.3),
+                        style: _galleryCardTitleStyle(size: 15),
                       )
                     else
                       AnimatedCoupleName(
@@ -1040,7 +1017,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         runSpacing: 4,
                         heartSize: 14,
                         heartColor: AppColors.accentRose,
-                        textStyle: _galleryCardTitleStyle(size: 15.3),
+                        textStyle: _galleryCardTitleStyle(size: 15),
                       ),
                   const SizedBox(height: 4),
                   Text(
@@ -1049,7 +1026,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: _galleryMetaStyle(
                       color: AppColors.textSecondary,
-                      size: 11.1,
+                      size: 11,
                       alpha: 0.82,
                       weight: FontWeight.w600,
                     ),
@@ -1094,7 +1071,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget _buildAddTodayPromptCard(Couple? couple) {
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: _gallerySurfaceDecoration(radius: 24, fillAlpha: 0.9),
+      decoration: _gallerySurfaceDecoration(radius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -1121,7 +1098,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   children: [
                     Text(
                       context.l10n.galleryTodayEmptyTitle,
-                      style: _galleryCardTitleStyle(size: 14.5),
+                      style: _galleryCardTitleStyle(size: 15),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -1153,7 +1130,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 textStyle: const TextStyle(
-                  fontSize: 13.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1174,7 +1151,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _gallerySurfaceDecoration(radius: 24, fillAlpha: 0.9),
+      decoration: _gallerySurfaceDecoration(radius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -1197,7 +1174,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               Expanded(
                 child: Text(
                   context.l10n.galleryTodayMomentsCount(todayPhotos.length),
-                  style: _galleryCardTitleStyle(size: 14.5),
+                  style: _galleryCardTitleStyle(size: 15),
                 ),
               ),
               _buildPastelStoryBadge(
@@ -1217,34 +1194,47 @@ class _GalleryScreenState extends State<GalleryScreen> {
               separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final photo = todayPhotos[index];
-                return GestureDetector(
-                  onTap: () => _openPhotoPreview(
-                    todayPhotos,
-                    initialIndex: index,
-                    couple: couple,
-                    heroTags: heroTags,
-                  ),
-                  child: Hero(
-                    tag: heroTags[index],
-                    createRectTween: (begin, end) =>
-                        MaterialRectCenterArcTween(begin: begin, end: end),
-                    transitionOnUserGestures: true,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: SizedBox(
-                        width: 96,
-                        child: SharedPhotoView(
-                          photo: photo,
-                          fit: BoxFit.cover,
-                          // 96px slot → decode small (≈ 96 * DPR) to avoid
-                          // decoding a full-res bitmap for a strip thumbnail.
-                          decodeWidth: (96 *
-                                  MediaQuery.of(context).devicePixelRatio)
-                              .round(),
-                          placeholder: Container(
-                            color: AppColors.surfaceLight,
+                return Hero(
+                  tag: heroTags[index],
+                  createRectTween: (begin, end) =>
+                      MaterialRectCenterArcTween(begin: begin, end: end),
+                  transitionOnUserGestures: true,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: SizedBox(
+                      width: 96,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          SharedPhotoView(
+                            photo: photo,
+                            fit: BoxFit.cover,
+                            // 96px slot → decode small (≈ 96 * DPR) to avoid
+                            // decoding a full-res bitmap for a strip thumbnail.
+                            decodeWidth: (96 *
+                                    MediaQuery.of(context).devicePixelRatio)
+                                .round(),
+                            placeholder: Container(
+                              color: AppColors.surfaceLight,
+                            ),
                           ),
-                        ),
+                          // Ripple over the photo (white .12 on imagery, like
+                          // the cinema card) — replaces the bare
+                          // GestureDetector (C7.7).
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              splashColor:
+                                  AppColors.white.withValues(alpha: 0.12),
+                              onTap: () => _openPhotoPreview(
+                                todayPhotos,
+                                initialIndex: index,
+                                couple: couple,
+                                heroTags: heroTags,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -1266,9 +1256,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
       decoration: _gallerySurfaceDecoration(
-        radius: 30,
-        fillAlpha: 0.94,
-        borderAlpha: 0.9,
+        radius: 28,
         shadowAlpha: 0.05,
         blurRadius: 20,
         offset: const Offset(0, 12),
@@ -1290,7 +1278,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         if (couple == null)
                           Text(
                             context.l10n.youTwoLabel,
-                            style: _galleryCardTitleStyle(size: 15.6),
+                            style: _galleryCardTitleStyle(size: 16),
                           )
                         else
                           AnimatedCoupleName(
@@ -1301,7 +1289,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             runSpacing: 4,
                             heartSize: 14,
                             heartColor: AppColors.accentRose,
-                            textStyle: _galleryCardTitleStyle(size: 15.6),
+                            textStyle: _galleryCardTitleStyle(size: 16),
                           ),
                       const SizedBox(height: 4),
                       Row(
@@ -1318,7 +1306,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                               overflow: TextOverflow.ellipsis,
                               style: _galleryMetaStyle(
                                 color: AppColors.textSecondary,
-                                size: 11.7,
+                                size: 12,
                                 alpha: 0.72,
                                 weight: FontWeight.w700,
                               ),
@@ -1335,7 +1323,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             _formatFeedDate(photo.uploadDate),
                             style: _galleryMetaStyle(
                               color: AppColors.textSecondary,
-                              size: 11.7,
+                              size: 12,
                               alpha: 0.68,
                               weight: FontWeight.w600,
                             ),
@@ -1403,20 +1391,21 @@ class _GalleryScreenState extends State<GalleryScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: GestureDetector(
               onTap: () => _openPhotoPreview(
-                context.read<PhotoProvider>().sortedPhotos,
+                context.read<PhotoProvider>().feedPhotos,
                 initialIndex: index,
                 couple: couple,
                 heroTags: List.generate(
-                  context.read<PhotoProvider>().sortedPhotos.length,
+                  context.read<PhotoProvider>().feedPhotos.length,
                   (photoIndex) => _feedHeroTag(
-                    context.read<PhotoProvider>().sortedPhotos[photoIndex],
+                    context.read<PhotoProvider>().feedPhotos[photoIndex],
                     photoIndex,
                   ),
                 ),
               ),
               onDoubleTap: () => _onDoubleTapPhoto(photo),
+              // Card 28 − 4 = 24: keeps the −4 nested-radius ratio (C7.3).
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(26),
+                borderRadius: BorderRadius.circular(24),
                 child: Hero(
                   tag: heroTag,
                   createRectTween: (begin, end) =>
@@ -1466,7 +1455,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 displayCaption,
                 style: TextStyle(
                   color: AppColors.textPrimary.withValues(alpha: 0.84),
-                  fontSize: 14.2,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
                   height: 1.62,
                   letterSpacing: 0.02,
@@ -1507,15 +1496,17 @@ class _GalleryScreenState extends State<GalleryScreen> {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            // Header ink vòng 4 (2026-06-11): near-solid white chip + navy ink
+            // — the thin glass chip with white type failed contrast on blush.
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.16),
+              color: AppColors.white.withValues(alpha: 0.72),
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+              border: Border.all(color: AppColors.white.withValues(alpha: 0.65)),
             ),
             child: Text(
               label,
               style: TextStyle(
-                color: AppColors.white.withValues(alpha: 0.82),
+                color: AppColors.textPrimary.withValues(alpha: 0.75),
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.4,
@@ -1549,14 +1540,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         padding: const EdgeInsets.all(24),
         child: Container(
           padding: const EdgeInsets.all(24),
-          decoration: _gallerySurfaceDecoration(
-            radius: 30,
-            fillAlpha: 0.92,
-            borderAlpha: 0.88,
-            shadowAlpha: 0.05,
-            blurRadius: 20,
-            offset: const Offset(0, 12),
-          ),
+          decoration: _gallerySurfaceDecoration(radius: 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1579,7 +1563,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.textPrimary.withValues(alpha: 0.92),
-                  fontSize: 20.5,
+                  fontSize: 20,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.35,
                   height: 1.12,
@@ -1589,7 +1573,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               Text(
                 context.l10n.galleryLoadErrorSubtitle,
                 textAlign: TextAlign.center,
-                style: _galleryBodyStyle(size: 13.1, alpha: 0.82, height: 1.62),
+                style: _galleryBodyStyle(size: 13, alpha: 0.82, height: 1.62),
               ),
               const SizedBox(height: 22),
               FilledButton.icon(
@@ -1600,8 +1584,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   foregroundColor: AppColors.white,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  // r16 = in-card button token (C7.8).
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
                 icon: const Icon(LucideIcons.refreshCw),
@@ -1620,14 +1605,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         padding: const EdgeInsets.all(24),
         child: Container(
           padding: const EdgeInsets.all(24),
-            decoration: _gallerySurfaceDecoration(
-              radius: 30,
-              fillAlpha: 0.92,
-              borderAlpha: 0.88,
-              shadowAlpha: 0.05,
-              blurRadius: 20,
-              offset: const Offset(0, 12),
-            ),
+            decoration: _gallerySurfaceDecoration(radius: 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1651,7 +1629,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textPrimary.withValues(alpha: 0.92),
-                    fontSize: 20.5,
+                    fontSize: 20,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.35,
                     height: 1.12,
@@ -1669,7 +1647,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: AppColors.textPrimary.withValues(alpha: 0.92),
-                        fontSize: 20.5,
+                        fontSize: 20,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.35,
                         height: 1.12,
@@ -1686,7 +1664,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       heartColor: AppColors.accentRose,
                       textStyle: TextStyle(
                         color: AppColors.textPrimary.withValues(alpha: 0.92),
-                        fontSize: 20.5,
+                        fontSize: 20,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.35,
                         height: 1.12,
@@ -1705,7 +1683,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               Text(
                 context.l10n.emptyFeedContent,
                 textAlign: TextAlign.center,
-                style: _galleryBodyStyle(size: 13.1, alpha: 0.82, height: 1.62),
+                style: _galleryBodyStyle(size: 13, alpha: 0.82, height: 1.62),
               ),
               const SizedBox(height: 22),
               FilledButton.icon(
@@ -1714,8 +1692,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   backgroundColor: AppColors.accentRose,
                   foregroundColor: AppColors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  // r16 = in-card button token (C7.8).
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
                 icon: const Icon(LucideIcons.imagePlus),
@@ -1734,7 +1713,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
       backgroundColor: Colors.transparent,
       body: Consumer2<PhotoProvider, CoupleProvider>(
         builder: (context, photoProvider, coupleProvider, _) {
-          final photos = photoProvider.sortedPhotos;
+          // Feed = the contiguous paginated prefix (pagination D1); on-this-day
+          // extras live only in `sortedPhotos` so the timeline has no holes.
+          final photos = photoProvider.feedPhotos;
           final couple = coupleProvider.couple;
 
           // Deep-link: open the exact photo a tapped notification asked for,
@@ -1764,7 +1745,21 @@ class _GalleryScreenState extends State<GalleryScreen> {
               child: RefreshIndicator(
                 onRefresh: _retrySync,
                 color: AppColors.accentRose,
-                child: CustomScrollView(
+                backgroundColor: AppColors.white,
+                // Infinite scroll (pagination D1): nearing the bottom of the
+                // OUTER feed scrollable (depth 0 — ignore nested horizontal
+                // scrollers) fetches the next page of older photos. The
+                // provider guards re-entrancy, so spamming this is safe.
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (notification) {
+                    if (notification.depth == 0 &&
+                        notification.metrics.axis == Axis.vertical &&
+                        notification.metrics.extentAfter < 600) {
+                      photoProvider.loadMorePhotos();
+                    }
+                    return false;
+                  },
+                  child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
                   ),
@@ -1775,8 +1770,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     delegate: _GalleryFloatingShowcaseHeaderDelegate(
                       minHeaderExtent: _floatingTopShowcaseMinHeight,
                       maxHeaderExtent: _floatingTopShowcaseMaxHeight,
-                      compactChild: _buildCompactTopShowcase(couple, photos.length),
-                      expandedChild: _buildFloatingTopShowcase(couple, photos.length),
+                      // D2: show the aggregate TOTAL, not just the loaded page.
+                      compactChild:
+                          _buildCompactTopShowcase(couple, photoProvider.photoCount),
+                      expandedChild:
+                          _buildFloatingTopShowcase(couple, photoProvider.photoCount),
                     ),
                   ),
                   if (photos.isNotEmpty)
@@ -1798,14 +1796,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       padding: EdgeInsets.only(bottom: widget.bottomInset + 24),
                     ),
                   ]
-                  else
+                  else ...[
                     SliverPadding(
-                      padding: EdgeInsets.fromLTRB(
-                        16,
-                        0,
-                        16,
-                        widget.bottomInset + 32,
-                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate((context, index) {
                           final item = feedItems[index];
@@ -1819,7 +1812,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           // deeper cards (revealed by scrolling) appear normally
                           // so a long feed never lags or re-animates on recycle.
                           if (p.originalIndex < 6) {
-                            return _OnceEntrance(
+                            return EntranceReveal(
                               order: p.originalIndex,
                               child: card,
                             );
@@ -1828,7 +1821,41 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         }, childCount: feedItems.length),
                       ),
                     ),
+                    // Pagination footer: shimmer while the next page loads;
+                    // a gentle sign-off once a LONG feed (>1 page) is fully
+                    // loaded. Short feeds get neither.
+                    if (photoProvider.isLoadingMore)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
+                          child: ShimmerSkeleton(
+                            width: double.infinity,
+                            height: 120,
+                            borderRadius: 24,
+                          ),
+                        ),
+                      )
+                    else if (!photoProvider.hasMorePhotos && photos.length > 30)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                          child: Text(
+                            context.l10n.galleryEndOfFeed,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 13,
+                              height: 1.45,
+                            ),
+                          ),
+                        ),
+                      ),
+                    SliverPadding(
+                      padding: EdgeInsets.only(bottom: widget.bottomInset + 32),
+                    ),
                   ],
+                  ],
+                ),
                 ),
               ),
             ),
@@ -1908,6 +1935,9 @@ class _MarqueeRowState extends State<_MarqueeRow>
 
   void _maybeStart() {
     if (!mounted || _animation.isAnimating) return;
+    // Reduce Motion (A8.3): never start the marquee — build renders the chip
+    // row statically instead.
+    if (AppMotion.reduceMotion(context)) return;
     _animation.repeat();
   }
 
@@ -1919,6 +1949,35 @@ class _MarqueeRowState extends State<_MarqueeRow>
 
   @override
   Widget build(BuildContext context) {
+    // Reduce Motion (WCAG 2.3.3, A8.3): render the chip row statically — same
+    // frame (ClipRect + OverflowBox), no repeat, no Transform sweep.
+    if (AppMotion.reduceMotion(context)) {
+      if (_animation.isAnimating) {
+        _animation.stop();
+      }
+      return SizedBox(
+        height: 30,
+        child: ExcludeSemantics(
+          child: ClipRect(
+            child: OverflowBox(
+              alignment: Alignment.centerLeft,
+              maxWidth: double.infinity,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final chip in widget.children)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: chip,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     // Use screen width — close enough for timing (this is a full-width header).
     // Avoids LayoutBuilder which would create an invokeLayoutCallback scope.
     final containerWidth = MediaQuery.of(context).size.width;
@@ -1927,6 +1986,9 @@ class _MarqueeRowState extends State<_MarqueeRow>
       _animation.duration = Duration(
         milliseconds: (containerWidth / _speed * 1000).round().clamp(500, 20000),
       );
+      // (Re)start after this frame — covers both first build and Reduce
+      // Motion being switched back off mid-session.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStart());
     }
 
     final count = widget.children.length;
@@ -2435,7 +2497,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                           context.l10n.youTwoLabel,
                           style: TextStyle(
                             color: AppColors.white.withValues(alpha: 0.96),
-                            fontSize: 15.6,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.15,
                           ),
@@ -2451,7 +2513,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                           heartColor: AppColors.white,
                           textStyle: TextStyle(
                             color: AppColors.white.withValues(alpha: 0.96),
-                            fontSize: 15.6,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.15,
                           ),
@@ -2461,7 +2523,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                         _previewPostedByLabel(currentPhoto),
                         style: TextStyle(
                           color: AppColors.white.withValues(alpha: 0.82),
-                          fontSize: 12.4,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.06,
                         ),
@@ -2471,7 +2533,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                         _formatFeedDate(currentPhoto.uploadDate),
                         style: TextStyle(
                           color: AppColors.white.withValues(alpha: 0.72),
-                          fontSize: 12.1,
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.06,
                         ),
@@ -2482,7 +2544,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                           currentPhoto.caption!.trim(),
                           style: TextStyle(
                             color: AppColors.white.withValues(alpha: 0.94),
-                            fontSize: 14.2,
+                            fontSize: 14,
                             fontWeight: FontWeight.w500,
                             height: 1.58,
                           ),
@@ -2563,60 +2625,6 @@ class _PreviewReactionRow extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-/// Plays the shared fade+slide entrance once, the first time it is mounted,
-/// then renders its child statically. Used for the first few feed cards so the
-/// gallery enters smoothly without re-animating on rebuild or scroll-recycle.
-class _OnceEntrance extends StatefulWidget {
-  const _OnceEntrance({required this.order, required this.child});
-
-  final int order;
-  final Widget child;
-
-  @override
-  State<_OnceEntrance> createState() => _OnceEntranceState();
-}
-
-class _OnceEntranceState extends State<_OnceEntrance> {
-  bool _played = false;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer(
-      AppMotion.entrance + AppMotion.stagger * widget.order,
-      () {
-        if (mounted) {
-          setState(() => _played = true);
-        }
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_played) {
-      return widget.child;
-    }
-    return widget.child
-        .animate()
-        .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
-        .slideY(
-          begin: 0.08,
-          end: 0,
-          duration: AppMotion.entrance,
-          curve: AppMotion.curve,
-          delay: AppMotion.stagger * widget.order,
-        );
   }
 }
 

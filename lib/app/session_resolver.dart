@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../providers/chat_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/daily_question_provider.dart';
 import '../providers/love_note_provider.dart';
@@ -36,6 +39,7 @@ class SessionResolver {
     final coupleProvider = context.read<CoupleProvider>();
     final photoProvider = context.read<PhotoProvider>();
     final loveNoteProvider = context.read<LoveNoteProvider>();
+    final chatProvider = context.read<ChatProvider>();
     final dailyQuestionProvider = context.read<DailyQuestionProvider>();
     final reactionProvider = context.read<ReactionProvider>();
     final streakProvider = context.read<StreakProvider>();
@@ -48,6 +52,7 @@ class SessionResolver {
         coupleProvider: coupleProvider,
         photoProvider: photoProvider,
         loveNoteProvider: loveNoteProvider,
+        chatProvider: chatProvider,
         dailyQuestionProvider: dailyQuestionProvider,
         reactionProvider: reactionProvider,
         streakProvider: streakProvider,
@@ -89,6 +94,7 @@ class SessionResolver {
     required CoupleProvider coupleProvider,
     required PhotoProvider photoProvider,
     required LoveNoteProvider loveNoteProvider,
+    required ChatProvider chatProvider,
     required DailyQuestionProvider dailyQuestionProvider,
     required ReactionProvider reactionProvider,
     required StreakProvider streakProvider,
@@ -102,6 +108,7 @@ class SessionResolver {
     if (!authProvider.isAuthenticated) {
       await photoProvider.clearForSignOut();
       loveNoteProvider.clear();
+      chatProvider.clear();
       dailyQuestionProvider.clear();
       reactionProvider.clear();
       streakProvider.clear();
@@ -120,6 +127,7 @@ class SessionResolver {
     if (authProvider.requiresEmailVerification) {
       await photoProvider.clearForSignOut();
       loveNoteProvider.clear();
+      chatProvider.clear();
       dailyQuestionProvider.clear();
       reactionProvider.clear();
       streakProvider.clear();
@@ -135,7 +143,17 @@ class SessionResolver {
 
     if (hasCoupleData) {
       await photoProvider.syncForUser(currentUser);
+      // "On this day" memories (pagination D3): fetched via dedicated queries
+      // so the Home cinema works even when the photo predates the realtime
+      // window. Fire-and-forget — never blocks route resolution.
+      final anniversary = coupleProvider.couple?.anniversaryDate;
+      if (anniversary != null) {
+        unawaited(photoProvider.refreshOnThisDay(anniversary: anniversary));
+      }
       loveNoteProvider.watchForCouple(currentUser!.coupleId!, currentUser.id);
+      // Chat (feature chat): the realtime window runs for the whole session so
+      // the bottom-nav unread dot stays live on every tab.
+      chatProvider.watchForCouple(currentUser.coupleId!, currentUser.id);
       dailyQuestionProvider.watchForCouple(
         currentUser.coupleId!,
         currentUser.id,
@@ -156,6 +174,7 @@ class SessionResolver {
     } else {
       await photoProvider.clearForSignOut();
       loveNoteProvider.clear();
+      chatProvider.clear();
       dailyQuestionProvider.clear();
       reactionProvider.clear();
       streakProvider.clear();

@@ -96,6 +96,7 @@ dependencies:
   # Dùng có chọn lọc ở vài khoảnh khắc cảm xúc; slot thiếu file tự fallback.
   lottie: ^3.3.3
   firebase_analytics: ^12.4.2
+  package_info_plus: ^9.0.1
 
 dev_dependencies:
   flutter_test:

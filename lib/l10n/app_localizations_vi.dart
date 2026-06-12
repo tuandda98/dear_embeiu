@@ -239,10 +239,48 @@ class AppLocalizationsVi extends AppLocalizations {
   String get navHome => 'Trang chủ';
 
   @override
+  String get navChat => 'Trò chuyện';
+
+  @override
   String get navMemories => 'Kỷ niệm';
 
   @override
   String get navProfile => 'Hồ sơ';
+
+  @override
+  String get chatBadge => 'CHUYỆN CỦA CHÚNG MÌNH';
+
+  @override
+  String get chatHeaderSubtitle => 'Nơi hai đứa nói đủ thứ chuyện trên đời.';
+
+  @override
+  String get chatEmptyHint =>
+      'Chưa có tin nhắn nào — gửi lời đầu tiên cho người ấy nhé 💬';
+
+  @override
+  String get chatComposerHint => 'Nhắn gì đó cho người ấy…';
+
+  @override
+  String get chatSendFailed => 'Chưa gửi được tin nhắn. Thử lại nhé.';
+
+  @override
+  String get chatSendSemantics => 'Gửi tin nhắn';
+
+  @override
+  String get chatSending => 'Đang gửi…';
+
+  @override
+  String get chatUnreadDotSemantics => 'Có tin nhắn mới';
+
+  @override
+  String get chatWaitingPartnerTitle => 'Còn thiếu một người nè';
+
+  @override
+  String get chatWaitingPartnerBody =>
+      'Mời người ấy ghép đôi để bắt đầu cuộc trò chuyện riêng của hai đứa.';
+
+  @override
+  String get chatWaitingPartnerCta => 'Mời ghép đôi';
 
   @override
   String get ourStoryBadge => 'CÂU CHUYỆN CỦA CHÚNG MÌNH';
@@ -262,6 +300,45 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get homeGreetingEvening => 'Chào buổi tối,';
+
+  @override
+  String get homeGreetingNight => 'Khuya rồi đó,';
+
+  @override
+  String get homeGreetingTeaser1 => 'Bạn đã chúc người ấy chưa? 💌';
+
+  @override
+  String get homeGreetingTeaser2 => 'Hôm nay đã nói yêu người ấy chưa? 💕';
+
+  @override
+  String get homeGreetingTeaser3 => 'Gửi người ấy một tấm ảnh xinh nhé 📸';
+
+  @override
+  String get homeGreetingTeaser4 => 'Người ấy đang chờ tin của bạn đó 🕊️';
+
+  @override
+  String get homeGreetingTeaser5 => 'Đừng quên câu hỏi hôm nay nha ✨';
+
+  @override
+  String get homeGreetingTeaser6 => 'Một lời ngọt ngào cho người ấy nào 🍯';
+
+  @override
+  String get homeGreetingTeaser7 => 'Hai đứa hôm nay thế nào rồi? 🌷';
+
+  @override
+  String get homeGreetingTeaser8 => 'Lưu lại một khoảnh khắc hôm nay nhé 📷';
+
+  @override
+  String get homeGreetingTeaser9 => 'Một ngày thật đẹp để yêu thương 💖';
+
+  @override
+  String get homeGreetingTeaser10 => 'Nhắn người ấy là bạn đang nhớ họ nha 💭';
+
+  @override
+  String get homeGreetingTeaser11 => 'Viết cho người ấy một lời nhắn nhỏ 💬';
+
+  @override
+  String get homeGreetingTeaser12 => 'Cùng nhau giữ chuỗi ngày yêu nhé 🔥';
 
   @override
   String get homeTodaySectionTitle => 'Hôm nay của hai đứa';
@@ -555,6 +632,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loveNoteSaved => 'Đã gửi lời nhắn 💞';
 
   @override
+  String get loveNoteSendFailed => 'Chưa gửi được lời nhắn — thử lại nhé.';
+
+  @override
   String get loveNoteHistoryCta => 'Xem lại lời nhắn cũ';
 
   @override
@@ -563,6 +643,13 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get loveNoteHistorySubtitle =>
       'Tất cả những lời hai bạn đã để lại cho nhau.';
+
+  @override
+  String get loveNoteHistoryBadge => 'LỜI NHẮN YÊU THƯƠNG';
+
+  @override
+  String get loveNoteHistoryHeaderSubtitle =>
+      'Tất cả lời nhắn hai bạn đã gửi nhau.';
 
   @override
   String get loveNoteHistoryEmpty =>
@@ -678,6 +765,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get journalScreenSubtitle => 'Những câu hỏi hai bạn đã cùng trả lời.';
 
   @override
+  String get journalBadge => 'HỎI ĐÁP MỖI NGÀY';
+
+  @override
+  String get journalHeaderSubtitle => 'Những câu hỏi hai bạn đã cùng trả lời.';
+
+  @override
   String get journalSettingsTile => 'Nhật ký câu hỏi';
 
   @override
@@ -772,7 +865,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get privateGalleryBadge => 'THƯ VIỆN RIÊNG TƯ';
 
   @override
-  String get galleryTitle => 'Thư Viện Ảnh';
+  String get galleryTitle => 'Thư viện ảnh';
 
   @override
   String get gallerySubtitle =>
@@ -1088,6 +1181,36 @@ class AppLocalizationsVi extends AppLocalizations {
   String get editOurStoryBtn => 'Chỉnh sửa câu chuyện';
 
   @override
+  String get profileChipDaysLabel => 'ngày bên nhau';
+
+  @override
+  String get profileChipAnniversaryLabel => 'ngày tới kỷ niệm';
+
+  @override
+  String get profileChipAnniversaryTodayLabel => 'kỷ niệm là hôm nay!';
+
+  @override
+  String get profileChipPhotosLabel => 'kỷ niệm đã lưu';
+
+  @override
+  String get profileMemoryChestTitle => 'Tủ kỷ niệm';
+
+  @override
+  String get profileStreakTile => 'Chuỗi kết nối';
+
+  @override
+  String get settingsSectionAccount => 'Tài khoản';
+
+  @override
+  String get settingsSectionNotifications => 'Thông báo';
+
+  @override
+  String get settingsSectionGeneral => 'Chung';
+
+  @override
+  String get settingsPushGroupLabel => 'Đẩy từ người ấy';
+
+  @override
   String get proTipLabel => 'Mẹo nhỏ';
 
   @override
@@ -1295,6 +1418,13 @@ class AppLocalizationsVi extends AppLocalizations {
       'Chọn cột mốc muốn được nhắc và giờ nhắc.';
 
   @override
+  String get milestoneBadge => 'NHỮNG NGÀY ĐẶC BIỆT';
+
+  @override
+  String get milestoneHeaderSubtitle =>
+      'Chọn cột mốc muốn được nhắc và đặt giờ riêng.';
+
+  @override
   String remindersV2MilestoneNext(String date) {
     return 'Sắp tới: $date';
   }
@@ -1367,6 +1497,13 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Cài đặt';
+
+  @override
+  String get settingsBadge => 'TUỲ CHỈNH ỨNG DỤNG';
+
+  @override
+  String get settingsHeaderSubtitle =>
+      'Nhắc nhở, thông báo, ngôn ngữ và tài khoản của hai bạn.';
 
   @override
   String get settingsProfileTileSubtitle => 'Nhắc nhở, ngôn ngữ, tài khoản';
@@ -1466,6 +1603,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get customRemindersScreenTitle => 'Lời nhắc của chúng mình';
 
   @override
+  String get customRemindersBadge => 'MỐC RIÊNG CỦA HAI BẠN';
+
+  @override
+  String get customRemindersHeaderSubtitle =>
+      'Tự tạo lời nhắc cho những dịp riêng của hai bạn.';
+
+  @override
   String customRemindersCount(int count) {
     return '$count/20';
   }
@@ -1516,6 +1660,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get customRemindersEditTitle => 'Sửa lời nhắc';
+
+  @override
+  String get customReminderFormBadge => 'LỜI NHẮC RIÊNG';
 
   @override
   String get customRemindersSave => 'Lưu';
@@ -1878,7 +2025,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get deleteAccountTitle => 'Xóa tài khoản';
 
   @override
-  String get editCoupleBadge => 'CHỈNH SỬA';
+  String get editCoupleBadge => 'HỒ SƠ CẶP ĐÔI';
 
   @override
   String get galleryEditCaptionTooltip => 'Sửa chú thích';
@@ -2023,6 +2170,10 @@ class AppLocalizationsVi extends AppLocalizations {
     });
     return '$_temp0';
   }
+
+  @override
+  String get galleryEndOfFeed =>
+      'Đã hết kỷ niệm 💕, hãy tạo thêm kỷ niệm mới cùng nhau nhé';
 
   @override
   String galleryTodayMomentsCount(int count) {
@@ -2296,6 +2447,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get notifCenterTitle => 'Thông báo';
 
   @override
+  String get notifCenterBadge => 'TIN MỚI CỦA HAI BẠN';
+
+  @override
   String get notifCenterEmptyTitle => 'Chưa có thông báo';
 
   @override
@@ -2363,5 +2517,10 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String notifDailyQuestion(String name) {
     return '$name đã trả lời câu hỏi hôm nay';
+  }
+
+  @override
+  String notifChatMessage(String name) {
+    return '$name vừa gửi cho bạn một tin nhắn 💬';
   }
 }

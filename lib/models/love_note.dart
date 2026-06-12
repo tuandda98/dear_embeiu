@@ -5,11 +5,17 @@
 /// overwrites their single note. The partner sees the note whose
 /// [authorUserId] is not their own uid.
 class LoveNote {
+  /// Source Firestore document id, when known. For the live notes collection
+  /// it equals the author's uid; for `noteHistory` entries it's the auto-id —
+  /// used to dedup the realtime window against paginated pages (feature
+  /// pagination D5). Null for locally-built notes.
+  final String? id;
   final String authorUserId;
   final String text;
   final DateTime? updatedAt;
 
   const LoveNote({
+    this.id,
     required this.authorUserId,
     required this.text,
     this.updatedAt,
@@ -33,6 +39,7 @@ class LoveNote {
   /// convention equals the author's uid; it is used as a fallback when the
   /// stored `authorUserId` field is missing.
   factory LoveNote.fromDoc(String id, Map<String, dynamic> data) => LoveNote(
+        id: id,
         authorUserId: (data['authorUserId'] as String?)?.trim().isNotEmpty == true
             ? data['authorUserId'] as String
             : id,
@@ -41,11 +48,13 @@ class LoveNote {
       );
 
   LoveNote copyWith({
+    String? id,
     String? authorUserId,
     String? text,
     DateTime? updatedAt,
   }) =>
       LoveNote(
+        id: id ?? this.id,
         authorUserId: authorUserId ?? this.authorUserId,
         text: text ?? this.text,
         updatedAt: updatedAt ?? this.updatedAt,

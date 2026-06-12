@@ -31,3 +31,5 @@ echo "DEPLOY_EXIT=${PIPESTATUS[0]}"` · snapshot `20260605T105348Z/`
 npx firebase-tools deploy --only firestore:rules,functions --project dev 2>&1 | grep -vE "DeprecationWarning|trace-deprecation|punycode" | tail -50
 echo "DEPLOY_EXIT=${PIPESTATUS[0]}"` · snapshot `20260608T064709Z/`
 - [20260610T080702Z] head=454983e dirty=28 exit=? · `npx firebase-tools deploy --only firestore:rules 2>&1 | tail -5` · snapshot `20260610T080702Z/`
+- [20260611T113157Z] head=5bf467c dirty=68 exit=? · `npx firebase-tools deploy --only firestore:rules 2>&1 | tail -10` · snapshot `20260611T113157Z/`
+- [20260611T113415Z] head=5bf467c dirty=68 exit=? · `npx firebase-tools deploy --only functions:notifyChatMessage 2>&1 | tail -15` · snapshot `20260611T113415Z/`

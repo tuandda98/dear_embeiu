@@ -1,4 +1,11 @@
-const { doc, setDoc, getDoc, updateDoc, deleteDoc } = require('firebase/firestore');
+const {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+} = require('firebase/firestore');
 const {
   assertSucceeds,
   assertFails,
@@ -152,6 +159,99 @@ describe('firestore: couple subcollections', () => {
         updateDoc(doc(authedDb('alice'), 'couples/c1/noteHistory/e1'), { text: 'edited' }),
       );
       await assertFails(deleteDoc(doc(authedDb('alice'), 'couples/c1/noteHistory/e1')));
+    });
+  });
+
+  describe('/couples/{id}/messages/{messageId} (couple chat — feature chat D2/D3)', () => {
+    // The rule requires createdAt == request.time → only serverTimestamp()
+    // passes (exactly what the app sends).
+    const validMessage = (uid, overrides = {}) => ({
+      authorUserId: uid,
+      text: 'hello you',
+      createdAt: serverTimestamp(),
+      ...overrides,
+    });
+
+    it('lets a member send their own message', async () => {
+      await assertSucceeds(
+        setDoc(doc(authedDb('alice'), 'couples/c1/messages/m1'), validMessage('alice')),
+      );
+    });
+
+    it('accepts text at exactly 1000 chars', async () => {
+      await assertSucceeds(
+        setDoc(
+          doc(authedDb('alice'), 'couples/c1/messages/m1'),
+          validMessage('alice', { text: tooLong(1000) }),
+        ),
+      );
+    });
+
+    it('rejects text over 1000 chars', async () => {
+      await assertFails(
+        setDoc(
+          doc(authedDb('alice'), 'couples/c1/messages/m1'),
+          validMessage('alice', { text: tooLong(1001) }),
+        ),
+      );
+    });
+
+    it('rejects an empty message', async () => {
+      await assertFails(
+        setDoc(
+          doc(authedDb('alice'), 'couples/c1/messages/m1'),
+          validMessage('alice', { text: '' }),
+        ),
+      );
+    });
+
+    it('forbids spoofing authorUserId', async () => {
+      await assertFails(
+        setDoc(
+          doc(authedDb('alice'), 'couples/c1/messages/m1'),
+          validMessage('bob'),
+        ),
+      );
+    });
+
+    it('rejects extra fields', async () => {
+      await assertFails(
+        setDoc(
+          doc(authedDb('alice'), 'couples/c1/messages/m1'),
+          validMessage('alice', { sneaky: true }),
+        ),
+      );
+    });
+
+    it('rejects a client-fixed createdAt (must be request.time)', async () => {
+      await assertFails(
+        setDoc(
+          doc(authedDb('alice'), 'couples/c1/messages/m1'),
+          validMessage('alice', { createdAt: TS }),
+        ),
+      );
+    });
+
+    it('forbids a non-member sending or reading', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('dave'), 'couples/c1/messages/m1'), validMessage('dave')),
+      );
+      await seedDoc('couples/c1/messages/m1', { authorUserId: 'alice', text: 'hi', createdAt: TS });
+      await assertFails(getDoc(doc(authedDb('dave'), 'couples/c1/messages/m1')));
+    });
+
+    it('lets the partner read a message', async () => {
+      await seedDoc('couples/c1/messages/m1', { authorUserId: 'alice', text: 'hi', createdAt: TS });
+      await assertSucceeds(getDoc(doc(authedDb('bob'), 'couples/c1/messages/m1')));
+    });
+
+    it('is immutable: no update, no delete (even by the author)', async () => {
+      await seedDoc('couples/c1/messages/m1', { authorUserId: 'alice', text: 'hi', createdAt: TS });
+      await assertFails(
+        updateDoc(doc(authedDb('alice'), 'couples/c1/messages/m1'), { text: 'edited' }),
+      );
+      await assertFails(deleteDoc(doc(authedDb('alice'), 'couples/c1/messages/m1')));
+      await assertFails(deleteDoc(doc(authedDb('bob'), 'couples/c1/messages/m1')));
     });
   });
 

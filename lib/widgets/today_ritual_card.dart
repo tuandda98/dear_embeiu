@@ -1,41 +1,35 @@
-import 'dart:async';
 import 'dart:ui';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
 import '../models/couple.dart';
-import '../models/love_note.dart';
 import '../providers/auth_provider.dart';
 import '../providers/daily_question_provider.dart';
-import '../providers/love_note_provider.dart';
-import '../services/analytics_service.dart';
-import '../screens/journal_screen.dart';
-import '../screens/love_note_history_screen.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import 'animated_couple_name.dart';
+import 'compose_pill.dart';
+import 'content_card.dart';
 import 'love_lottie.dart';
 
-/// The merged "Hôm nay của hai đứa" ritual card (Home v3, 2026-06-10): ONE
-/// glass card carrying today's question AND the love-note exchange, replacing
-/// the two stacked form-cards. Design principles applied:
+/// The "Hôm nay của hai đứa" ritual card (Home v3, 2026-06-10): today's
+/// question, tap-to-compose. Design principles applied:
 ///
 /// 1. Question = tap-to-compose — a pill opens the answer bottom sheet.
 /// 2. Blur-teaser — when the partner answered first, their answer shows
 ///    BLURRED with an unlock hint (the strongest answer motivator).
 /// 3. Collapsing done-state — after a (stale) reveal the question block
 ///    shrinks to one line; a fresh reveal stays expanded and celebrates.
-/// 4. Love note: an unread partner message shows its content IMMEDIATELY,
-///    flagged with a "NEW" badge + rose outline that clear themselves a few
-///    seconds later (seen-marker persisted per couple in Hive). Full
-///    history is shared.
-/// 5. One footer row links the journal + note history archives.
+///
+/// The love-note section was REMOVED (user 2026-06-11) — messaging now lives
+/// entirely in the messenger-style chat (LoveNoteHistoryScreen, reached via
+/// the Profile memory chest); the journal/history archive links moved there
+/// too (Profile v2, 2026-06-11). Home only carries today's question ritual.
 class TodayRitualCard extends StatefulWidget {
   const TodayRitualCard({super.key, required this.couple});
 
@@ -60,55 +54,18 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
   /// fresh reveal so the user reads the answers in the moment.
   bool _revealExpanded = false;
 
-  // ── Love-note seen tracking (envelope) ────────────────────────────────────
-  // Marker = updatedAt millis (or text hash when missing); stored per couple
-  // in the existing `app_settings` Hive box. Until loaded we render the
-  // plain-note state so read notes never flash an envelope.
-  String? _seenMarker;
-  bool _seenLoaded = false;
-
-  /// Auto-clears the "NEW" flag shortly after an unread note is shown.
-  Timer? _noteSeenTimer;
-
-  String get _seenKey => 'love_note_seen_${widget.couple.id}';
-
   @override
   void initState() {
     super.initState();
     final daily = context.read<DailyQuestionProvider>();
     _confettiPlayed = daily.hasRevealed;
     _revealExpanded = !daily.hasRevealed;
-    _loadSeenMarker();
   }
 
   @override
   void dispose() {
     _confetti.dispose();
-    _noteSeenTimer?.cancel();
     super.dispose();
-  }
-
-  Future<void> _loadSeenMarker() async {
-    final box = await Hive.openBox<String>('app_settings');
-    if (mounted) {
-      setState(() {
-        _seenMarker = box.get(_seenKey);
-        _seenLoaded = true;
-      });
-    }
-  }
-
-  String _markerFor(LoveNote note) =>
-      '${note.updatedAt?.millisecondsSinceEpoch ?? note.text.hashCode}';
-
-  bool _isUnread(LoveNote note) =>
-      _seenLoaded && _seenMarker != _markerFor(note);
-
-  Future<void> _markSeen(LoveNote note) async {
-    final marker = _markerFor(note);
-    setState(() => _seenMarker = marker);
-    final box = await Hive.openBox<String>('app_settings');
-    await box.put(_seenKey, marker);
   }
 
   /// Partner's display name: the viewer's counterpart in the couple, resolved
@@ -123,28 +80,10 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     return trimmed.isNotEmpty ? trimmed : l10n.posterNameFallback;
   }
 
-  String _relativeTime(DateTime? when, AppLocalizations l10n) {
-    if (when == null) {
-      return l10n.loveNoteJustNow;
-    }
-    final diff = DateTime.now().difference(when);
-    if (diff.inMinutes < 1) {
-      return l10n.loveNoteJustNow;
-    }
-    if (diff.inMinutes < 60) {
-      return l10n.loveNoteMinutesAgo(diff.inMinutes);
-    }
-    if (diff.inHours < 24) {
-      return l10n.loveNoteHoursAgo(diff.inHours);
-    }
-    return l10n.loveNoteDaysAgo(diff.inDays);
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final daily = context.watch<DailyQuestionProvider>();
-    final love = context.watch<LoveNoteProvider>();
     final langCode = Localizations.localeOf(context).languageCode;
     final isWaiting = widget.couple.isWaitingForPartner;
     final partnerName = _partnerName(l10n);
@@ -169,22 +108,9 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        // Solid white reading surface (gallery/settings style) — the design
-        // system reserves glass for decorative blocks, not content-heavy cards.
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 16,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
+        // Solid white reading surface (ContentCard, B4) — the design system
+        // reserves glass for decorative blocks, not content-heavy cards.
+        ContentCard(
           child: AnimatedSize(
             duration: const Duration(milliseconds: 240),
             curve: Curves.easeOutCubic,
@@ -194,12 +120,6 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
               children: [
                 ..._buildQuestionSection(l10n, daily, langCode, partnerName,
                     isWaiting),
-                _divider(),
-                ..._buildLoveNoteSection(l10n, love, partnerName, isWaiting),
-                if (!isWaiting) ...[
-                  _divider(),
-                  _buildArchiveLinks(l10n),
-                ],
               ],
             ),
           ),
@@ -234,16 +154,6 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     );
   }
 
-  Widget _divider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      child: Divider(
-        height: 1,
-        thickness: 1,
-        color: AppColors.textPrimary.withValues(alpha: 0.10),
-      ),
-    );
-  }
 
   // ── Daily question ─────────────────────────────────────────────────────────
 
@@ -414,7 +324,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
           ),
         ),
         const SizedBox(height: 12),
-        _composePill(
+        ComposePill(
           label: l10n.dailyAnswerToReveal,
           emphasized: true,
           onTap: _openAnswerSheet,
@@ -440,7 +350,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
 
     // A. Nobody answered yet — quiet compose pill (no raw form on Home).
     return [
-      _composePill(
+      ComposePill(
         label: l10n.dailyTapToAnswer,
         onTap: _openAnswerSheet,
       ),
@@ -472,383 +382,8 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     );
   }
 
-  // ── Love note ──────────────────────────────────────────────────────────────
-
-  List<Widget> _buildLoveNoteSection(
-    AppLocalizations l10n,
-    LoveNoteProvider love,
-    String partnerName,
-    bool isWaiting,
-  ) {
-    // Classic layout (user 2026-06-10): partner's note + "your note" line +
-    // ONE compose button. Chat semantics live underneath: "Soạn tin nhắn"
-    // opens an EMPTY sheet (a new message, not an edit); sending identical /
-    // empty text keeps everything unchanged. History stays the shared log.
-    final partnerNote = love.partnerNote;
-    final hasNote = partnerNote != null && partnerNote.hasText;
-    final myNote = love.myNote;
-    final hasMyNote = myNote?.hasText == true;
-    final isNew = hasNote && _isUnread(partnerNote);
-    // The content shows right away (no envelope to tap since 2026-06-10);
-    // the NEW badge clears itself after the note has been on screen a bit.
-    if (isNew && _noteSeenTimer == null) {
-      _noteSeenTimer = Timer(const Duration(seconds: 6), () {
-        _noteSeenTimer = null;
-        if (!mounted) {
-          return;
-        }
-        final note = context.read<LoveNoteProvider>().partnerNote;
-        if (note != null && note.hasText && _isUnread(note)) {
-          AnalyticsService.instance.logLoveNoteEnvelopeOpened();
-          _markSeen(note);
-        }
-      });
-    }
-
-    return [
-      Row(
-        children: [
-          const Icon(LucideIcons.mails,
-              color: AppColors.accentRose, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              l10n.loveNoteLabel,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.2,
-              ),
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 12),
-      AnimatedSwitcher(
-        duration: const Duration(milliseconds: 280),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, animation) => FadeTransition(
-          opacity: animation,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.96, end: 1).animate(animation),
-            child: child,
-          ),
-        ),
-        child: _buildNoteBody(
-          l10n,
-          partnerNote: partnerNote,
-          isNew: isNew,
-          partnerName: partnerName,
-          isWaiting: isWaiting,
-        ),
-      ),
-      if (hasMyNote && myNote != null) ...[
-        const SizedBox(height: 10),
-        _noteBlock(
-          title:
-              '${l10n.loveNoteYouLabel} · ${_relativeTime(myNote.updatedAt, l10n)}',
-          text: myNote.text,
-          mine: true,
-        ),
-      ],
-      if (!isWaiting) ...[
-        const SizedBox(height: 14),
-        _composePill(
-          label: l10n.loveNoteComposeCta,
-          icon: LucideIcons.feather,
-          onTap: _openLoveNoteSheet,
-        ),
-      ],
-    ];
-  }
-
-  /// The note body cycles between: waiting text → empty state → the
-  /// partner's note (flagged while NEW).
-  Widget _buildNoteBody(
-    AppLocalizations l10n, {
-    required LoveNote? partnerNote,
-    required bool isNew,
-    required String partnerName,
-    required bool isWaiting,
-  }) {
-    if (isWaiting) {
-      return Text(
-        l10n.loveNoteWaitingPartner,
-        key: const ValueKey('note-waiting'),
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 14,
-          height: 1.5,
-        ),
-      );
-    }
-
-    if (partnerNote == null || !partnerNote.hasText) {
-      return Text(
-        l10n.loveNoteEmptyFromPartner(partnerName),
-        key: const ValueKey('note-empty'),
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 14,
-          height: 1.5,
-        ),
-      );
-    }
-
-    return KeyedSubtree(
-      key: ValueKey('note-open-${_markerFor(partnerNote)}-$isNew'),
-      child: _noteBlock(
-        title: '$partnerName · ${_relativeTime(partnerNote.updatedAt, l10n)}',
-        text: partnerNote.text,
-        mine: false,
-        isNew: isNew,
-      ),
-    );
-  }
-
-  /// Note block — the SAME two-tone language as the answer blocks above it
-  /// (one card, one language): mine = surfaceLight + rose label, partner =
-  /// lavender tint + lavender label.
-  Widget _noteBlock({
-    required String title,
-    required String text,
-    required bool mine,
-    bool isNew = false,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: mine
-            ? AppColors.surfaceLight
-            : AppColors.accentLavender.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(16),
-        // Rose outline marks a just-arrived message (clears with the badge).
-        border: isNew
-            ? Border.all(
-                color: AppColors.accentLove.withValues(alpha: 0.45),
-                width: 1.2,
-              )
-            : null,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Flexible(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: mine
-                        ? AppColors.accentLoveDeep
-                        : AppColors.accentLavenderDeep,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ),
-              if (isNew) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.accentLoveDeep,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    context.l10n.loveNoteNewBadge,
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                      height: 1.2,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            text,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _openLoveNoteSheet() async {
-    HapticFeedback.selectionClick();
-    final l10n = context.l10n;
-    final currentText = context.read<LoveNoteProvider>().myNote?.text ?? '';
-
-    final saved = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      // The field starts EMPTY (composing a new message, not editing); the
-      // sheet only saves when the content actually differs from the current
-      // note — identical/empty input keeps everything unchanged.
-      builder: (_) => _LoveNoteSheet(
-        currentText: currentText,
-        partnerName: _partnerName(l10n),
-        l10n: l10n,
-      ),
-    );
-
-    if (saved != true || !mounted) {
-      return;
-    }
-    HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.loveNoteSaved)),
-    );
-  }
-
-  // ── Footer archive links ───────────────────────────────────────────────────
-
-  Widget _buildArchiveLinks(AppLocalizations l10n) {
-    return Row(
-      children: [
-        Expanded(
-          child: _archiveLink(
-            icon: LucideIcons.bookOpen,
-            label: l10n.journalLinkShort,
-            onTap: () => _push(const JournalScreen(), 'Journal'),
-          ),
-        ),
-        Container(
-          width: 1,
-          height: 22,
-          color: AppColors.textPrimary.withValues(alpha: 0.10),
-        ),
-        Expanded(
-          child: _archiveLink(
-            icon: LucideIcons.history,
-            label: l10n.loveNoteHistoryLinkShort,
-            onTap: () =>
-                _push(const LoveNoteHistoryScreen(), 'LoveNoteHistory'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _push(Widget screen, String routeName) {
-    HapticFeedback.selectionClick();
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        settings: RouteSettings(name: routeName),
-        builder: (_) => screen,
-      ),
-    );
-  }
-
-  Widget _archiveLink({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 16, color: AppColors.accentRose),
-              const SizedBox(width: 7),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   // ── Shared bits ────────────────────────────────────────────────────────────
-
-  /// Tap-to-compose pill: looks like a quiet input, opens a bottom sheet.
-  /// [emphasized] = rose-tinted (the unlock CTA under the blur teaser).
-  Widget _composePill({
-    required String label,
-    required VoidCallback onTap,
-    IconData icon = LucideIcons.edit3,
-    bool emphasized = false,
-  }) {
-    final fill = emphasized
-        ? AppColors.accentLove.withValues(alpha: 0.10)
-        : AppColors.surfaceLight;
-    final border = AppColors.accentRose.withValues(alpha: emphasized ? 0.30 : 0.25);
-    final textColor =
-        emphasized ? AppColors.accentLoveDeep : AppColors.textSecondary;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: fill,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: border),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          splashColor: AppColors.accentRose.withValues(alpha: 0.08),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-            child: Row(
-              children: [
-                Icon(icon, size: 17, color: AppColors.accentRose),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 14,
-                      fontWeight:
-                          emphasized ? FontWeight.w700 : FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // (The tap-to-compose pill moved to the shared ComposePill widget, B8.)
 
   /// Compact done-state row: pulsing heart + label + trailing action.
   Widget _inlineRow({
@@ -1061,161 +596,6 @@ class _DailyAnswerSheetState extends State<_DailyAnswerSheet> {
                           ? null
                           : _submit,
                   child: _submitting
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.4,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(AppColors.white),
-                          ),
-                        )
-                      : Text(l10n.dailyQuestionSend),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Bottom sheet for composing a love-note message. The field starts EMPTY —
-/// it composes a NEW message rather than editing the old one. Pops `true`
-/// only when the note actually changed; identical or empty input pops `false`
-/// and keeps the current note untouched (user rule 2026-06-10).
-class _LoveNoteSheet extends StatefulWidget {
-  const _LoveNoteSheet({
-    required this.currentText,
-    required this.partnerName,
-    required this.l10n,
-  });
-
-  /// The user's current note, used for the keep-if-unchanged rule.
-  final String currentText;
-  final String partnerName;
-  final AppLocalizations l10n;
-
-  @override
-  State<_LoveNoteSheet> createState() => _LoveNoteSheetState();
-}
-
-class _LoveNoteSheetState extends State<_LoveNoteSheet> {
-  static const int _maxChars = 140;
-  final TextEditingController _controller = TextEditingController();
-  bool _saving = false;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    if (_saving) {
-      return;
-    }
-    final text = _controller.text.trim();
-    // Keep-as-is rule: empty input or the exact same content as the current
-    // note → close without touching anything.
-    if (text.isEmpty || text == widget.currentText.trim()) {
-      Navigator.of(context).pop(false);
-      return;
-    }
-    setState(() => _saving = true);
-    final navigator = Navigator.of(context);
-    final saved = await context.read<LoveNoteProvider>().setMyNote(text);
-    if (!mounted) {
-      return;
-    }
-    navigator.pop(saved);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = widget.l10n;
-    final viewInsets = MediaQuery.of(context).viewInsets.bottom;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: viewInsets),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          color: AppColors.cardSurface,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.textTertiary.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  const Icon(LucideIcons.heart,
-                      color: AppColors.accentRose, size: 22),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.loveNoteSheetTitleTo(widget.partnerName),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _controller,
-                maxLength: _maxChars,
-                maxLines: 4,
-                minLines: 2,
-                autofocus: true,
-                textInputAction: TextInputAction.newline,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: l10n.loveNoteSheetHint,
-                  counterText: l10n.loveNoteCharCount(
-                    _controller.text.characters.length,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    // Rose, not the generic navy: this is a romantic SEND,
-                    // matching the compose pill that opened the sheet.
-                    backgroundColor: AppColors.accentRose,
-                    foregroundColor: AppColors.white,
-                    disabledBackgroundColor:
-                        AppColors.accentRose.withValues(alpha: 0.35),
-                    disabledForegroundColor:
-                        AppColors.white.withValues(alpha: 0.8),
-                  ),
-                  onPressed: (_saving || _controller.text.trim().isEmpty)
-                      ? null
-                      : _save,
-                  icon: _saving
-                      ? const SizedBox.shrink()
-                      : const Icon(LucideIcons.send, size: 18),
-                  label: _saving
                       ? const SizedBox(
                           width: 22,
                           height: 22,

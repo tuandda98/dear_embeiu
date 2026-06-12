@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -13,16 +12,20 @@ import '../providers/couple_provider.dart';
 import '../providers/journal_provider.dart';
 import '../providers/streak_provider.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
+import '../widgets/content_card.dart';
+import '../widgets/entrance_reveal.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/shimmer_skeleton.dart';
+import '../widgets/sub_screen_app_bar.dart';
 import 'setup_screen.dart';
 
 /// The "Question journal" screen (feature couple-journal, Phần 1).
 ///
 /// Lists revealed daily-question days (both members answered) newest-first on
-/// the dreamy-mint gradient, each as a solid white day-card with the question
-/// and two labelled answer blocks. Loads once + "Show more" paging (no stream).
+/// the dawn-blush gradient (design-unify C9 — one background for every
+/// screen), each as a solid white day-card with the question and two labelled
+/// answer blocks. Loads once + "Show more" paging (no stream).
 class JournalScreen extends StatelessWidget {
   const JournalScreen({super.key});
 
@@ -48,60 +51,18 @@ class _JournalView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-
     return Container(
-      decoration: const BoxDecoration(gradient: AppColors.dreamyMint),
+      decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(
-              LucideIcons.chevronLeft,
-              size: 24,
-              color: AppColors.textPrimary,
-            ),
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
-          title: Text(
-            l10n.journalScreenTitle,
-            style: AppTheme.displaySerif(
-              size: 20,
-              weight: FontWeight.w700,
-              color: AppColors.textPrimary,
-              height: 1.1,
-              letterSpacing: -0.2,
-            ),
-          ),
-        ),
+        // Header vòng 5c (2026-06-11): the bar keeps only the back squircle —
+        // the landing-style large header (EyebrowChip + pageTitle + subtitle)
+        // lives in the body and scrolls with the content, like Settings.
+        appBar: subScreenAppBar(context),
         body: SafeArea(
           top: false,
           child: Consumer<JournalProvider>(
-            builder: (context, provider, _) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                    child: Text(
-                      l10n.journalScreenSubtitle,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                  // Streak summary (feature streak) — read-only single line, the
-                  // only place "longest" is shown. Hidden while waiting for a
-                  // partner / on error (fail-soft).
-                  const _JournalStreakSummary(),
-                  Expanded(child: _buildBody(context, provider)),
-                ],
-              );
-            },
+            builder: (context, provider, _) => _buildBody(context, provider),
           ),
         ),
       ),
@@ -114,13 +75,54 @@ class _JournalView extends StatelessWidget {
       case JournalStatus.loading:
         return const _JournalLoading();
       case JournalStatus.error:
-        return _JournalError(onRetry: provider.load);
+        return _withFixedHeader(_JournalError(onRetry: provider.load));
       case JournalStatus.ready:
         if (provider.isEmpty) {
-          return _JournalEmpty(couple: couple);
+          return _withFixedHeader(_JournalEmpty(couple: couple));
         }
         return _JournalList(couple: couple, provider: provider);
     }
+  }
+
+  /// Centered states (error / empty) keep the large header pinned at the top —
+  /// nothing scrolls there, so fixed vs scrolling makes no visual difference.
+  Widget _withFixedHeader(Widget child) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(20, 4, 20, 0),
+          child: _JournalHeader(),
+        ),
+        Expanded(child: child),
+      ],
+    );
+  }
+}
+
+/// Landing-style page header (vòng 5c): chip + large title + subtitle, plus
+/// the streak summary line that always travelled with the journal header.
+class _JournalHeader extends StatelessWidget {
+  const _JournalHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        EyebrowChip(label: l10n.journalBadge, icon: LucideIcons.bookOpen),
+        const SizedBox(height: 14),
+        Text(l10n.journalScreenTitle, style: AppTheme.pageTitleStyle()),
+        const SizedBox(height: 8),
+        Text(l10n.journalHeaderSubtitle, style: AppTheme.pageSubtitleStyle()),
+        const SizedBox(height: 20),
+        // Streak summary (feature streak) — read-only single line, the only
+        // place "longest" is shown. Hidden while waiting for a partner / on
+        // error (fail-soft).
+        const _JournalStreakSummary(),
+      ],
+    );
   }
 }
 
@@ -135,43 +137,44 @@ class _JournalList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final days = provider.days;
-    // +1 trailing slot for the "Show more" button (only when more remains).
+    // +1 leading slot for the scrolling page header, +1 trailing slot for the
+    // "Show more" button (only when more remains).
     final showMore = provider.hasMore;
-    final itemCount = days.length + (showMore ? 1 : 0);
+    final itemCount = 1 + days.length + (showMore ? 1 : 0);
 
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
       itemCount: itemCount,
       separatorBuilder: (_, index) {
+        // The header carries its own bottom spacing (vòng 5c).
+        if (index == 0) {
+          return const SizedBox.shrink();
+        }
         // No gap before the "Show more" button (it carries its own top margin).
-        if (showMore && index == days.length - 1) {
+        if (showMore && index == days.length) {
           return const SizedBox.shrink();
         }
         return const SizedBox(height: 14);
       },
       itemBuilder: (context, index) {
-        if (showMore && index == days.length) {
+        if (index == 0) {
+          return const _JournalHeader();
+        }
+        if (showMore && index == days.length + 1) {
           return _LoadMoreButton(
             isLoading: provider.isLoadingMore,
             onTap: provider.loadMore,
           );
         }
 
-        final card = _JournalDayCard(day: days[index], couple: couple);
+        final dayIndex = index - 1;
+        final card = _JournalDayCard(day: days[dayIndex], couple: couple);
         // Staggered entrance for the first six cards only (like the gallery
-        // feed); deeper cards revealed by scrolling appear plainly.
-        if (index < 6) {
-          return card
-              .animate()
-              .fadeIn(duration: AppMotion.base, curve: AppMotion.curve)
-              .slideY(
-                begin: 0.08,
-                end: 0,
-                duration: AppMotion.base,
-                curve: AppMotion.curve,
-                delay: AppMotion.stagger * index,
-              );
+        // feed); deeper cards revealed by scrolling appear plainly. B9 plays
+        // once and honours Reduce Motion.
+        if (dayIndex < 6) {
+          return EntranceReveal(order: dayIndex, child: card);
         }
         return card;
       },
@@ -214,20 +217,10 @@ class _JournalDayCard extends StatelessWidget {
     final langCode = Localizations.localeOf(context).languageCode;
     final question = day.questionFor(langCode);
 
-    return Container(
-      width: double.infinity,
+    // B4 surface: solid white r24 + the standard black .06 content shadow
+    // (design-unify C9 — was r28 with a rose-tinted shadow).
+    return ContentCard(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accentLove.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -405,10 +398,14 @@ class _JournalLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-      itemCount: 3,
-      separatorBuilder: (_, _) => const SizedBox(height: 14),
-      itemBuilder: (_, _) => Container(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+      // +1 leading slot for the page header (vòng 5c).
+      itemCount: 4,
+      separatorBuilder: (_, index) =>
+          index == 0 ? const SizedBox.shrink() : const SizedBox(height: 14),
+      itemBuilder: (_, index) => index == 0
+          ? const _JournalHeader()
+          : Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: AppColors.cardSurface,
@@ -526,10 +523,10 @@ class _JournalStreakSummary extends StatelessWidget {
     final l10n = context.l10n;
     final streak = context.watch<StreakProvider>();
 
-    // Hidden (no partner) or error → render nothing (fail-soft); collapse the
-    // gap so the header stays tight.
+    // Hidden (no partner) or error → render nothing (fail-soft); the header's
+    // own 20px gap already separates it from the content.
     if (!streak.isVisible) {
-      return const SizedBox(height: 4);
+      return const SizedBox.shrink();
     }
 
     // Show the numbers once a streak/record exists; otherwise an inviting line.
@@ -539,7 +536,8 @@ class _JournalStreakSummary extends StatelessWidget {
         : l10n.streakJournalSummaryNone;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+      // Sits inside the (already 20px-padded) page header (vòng 5c).
+      padding: const EdgeInsets.only(bottom: 14),
       child: Row(
         children: [
           Icon(

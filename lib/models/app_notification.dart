@@ -12,6 +12,7 @@ enum AppNotificationType {
   partnerLeft,
   loveNote,
   dailyQuestion,
+  chatMessage,
 
   /// A type this app build doesn't recognise (forward-compat: a newer backend
   /// could send a new type). Rendered with a generic fallback, routes to Home.
@@ -32,6 +33,8 @@ AppNotificationType appNotificationTypeFromString(String? raw) {
       return AppNotificationType.loveNote;
     case 'daily_question':
       return AppNotificationType.dailyQuestion;
+    case 'chat_message':
+      return AppNotificationType.chatMessage;
     default:
       return AppNotificationType.unknown;
   }
@@ -73,13 +76,18 @@ class AppNotification {
   final DateTime? createdAt;
 
   /// Which Home bottom-nav tab this notification should open when tapped.
-  /// Photo-related → Gallery (1); everything else → Home (0). This is also the
-  /// single source of truth that gives `partner_left` a destination.
+  /// Photo-related → Gallery (2); chat → Chat (1); everything else → Home (0).
+  /// ⚠️ Indices shifted when the chat tab landed at 1 (feature chat,
+  /// 2026-06-11) — keep in sync with HomeScreen._navigationItems and the push
+  /// deep-link map in push_notification_service.dart. This is also the single
+  /// source of truth that gives `partner_left` a destination.
   int get targetHomeTab {
     switch (type) {
       case AppNotificationType.photoPosted:
       case AppNotificationType.photoReaction:
-        return 1; // Gallery
+        return 2; // Gallery
+      case AppNotificationType.chatMessage:
+        return 1; // Chat
       case AppNotificationType.partnerJoined:
       case AppNotificationType.partnerLeft:
       case AppNotificationType.loveNote:

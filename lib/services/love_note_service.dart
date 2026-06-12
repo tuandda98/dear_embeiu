@@ -110,10 +110,12 @@ class LoveNoteService {
     });
   }
 
-  /// Streams the couple's note history newest-first (capped at [limit]). Maps
-  /// the `createdAt` field into [LoveNote.updatedAt] so the archive can reuse
-  /// the same model + relative-time formatting as the live notes.
-  Stream<List<LoveNote>> watchHistory(String coupleId, {int limit = 200}) {
+  /// Streams the couple's note history newest-first (capped at [limit] — the
+  /// realtime "window", pagination D5; older entries are fetched on demand via
+  /// [fetchOlderHistory]). Maps the `createdAt` field into [LoveNote.updatedAt]
+  /// so the archive can reuse the same model + relative-time formatting as the
+  /// live notes.
+  Stream<List<LoveNote>> watchHistory(String coupleId, {int limit = 50}) {
     if (coupleId.trim().isEmpty) {
       return Stream<List<LoveNote>>.value(const <LoveNote>[]);
     }
@@ -127,15 +129,40 @@ class LoveNoteService {
         .limit(limit)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => LoveNote.fromDoc(doc.id, {
-                    'authorUserId': doc.data()['authorUserId'],
-                    'text': doc.data()['text'],
-                    'updatedAt': doc.data()['createdAt'],
-                  }))
-              .toList(),
+          (snapshot) =>
+              snapshot.docs.map(_historyNoteFromDoc).toList(),
         );
   }
+
+  /// One-shot page of history entries strictly older than
+  /// [startAfterCreatedAt], newest first (pagination D5). `createdAt` is a
+  /// server Timestamp; [LoveNote.updatedAt] reads it back with microsecond
+  /// precision, so `Timestamp.fromDate` reconstructs the exact cursor.
+  /// Local mode has no pagination (the archive is loaded whole) → empty.
+  Future<List<LoveNote>> fetchOlderHistory(
+    String coupleId, {
+    required DateTime startAfterCreatedAt,
+    int limit = 50,
+  }) async {
+    if (!isUsingFirebase || coupleId.trim().isEmpty) {
+      return const <LoveNote>[];
+    }
+
+    final snapshot = await _historyCollection(coupleId)
+        .orderBy('createdAt', descending: true)
+        .startAfter([Timestamp.fromDate(startAfterCreatedAt)])
+        .limit(limit)
+        .get();
+    return snapshot.docs.map(_historyNoteFromDoc).toList();
+  }
+
+  LoveNote _historyNoteFromDoc(
+          QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+      LoveNote.fromDoc(doc.id, {
+        'authorUserId': doc.data()['authorUserId'],
+        'text': doc.data()['text'],
+        'updatedAt': doc.data()['createdAt'],
+      });
 
   // ── Local fallback (Hive) ──────────────────────────────────────────────
   // Stores only this device's own note, keyed by "{coupleId}:{uid}". Any

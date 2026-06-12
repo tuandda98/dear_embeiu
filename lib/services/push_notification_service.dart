@@ -84,8 +84,12 @@ class NotificationTapRouter {
 }
 
 /// Home tab indices a deep-link can target (mirror HomeScreen's IndexedStack).
+/// ⚠️ Feature chat (2026-06-11) inserted the chat tab at 1 — Gallery moved
+/// 1→2, Profile 2→3. Keep in sync with HomeScreen._navigationItems AND
+/// AppNotification.targetHomeTab (notification center taps).
 const int _homeTabIndex = 0;
-const int _galleryTabIndex = 1;
+const int _chatTabIndex = 1;
+const int _galleryTabIndex = 2;
 
 class PushNotificationService {
   PushNotificationService._();
@@ -390,6 +394,9 @@ class PushNotificationService {
         if (photoId != null && photoId.isNotEmpty) {
           NotificationTapRouter.pendingPhotoId.value = photoId;
         }
+        break;
+      case 'chat_message':
+        NotificationTapRouter.pendingHomeTab.value = _chatTabIndex;
         break;
       case 'partner_joined':
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;

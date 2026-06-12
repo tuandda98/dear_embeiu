@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -17,6 +18,8 @@ import '../services/couple_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/blocking_loading_overlay.dart';
+import '../widgets/content_card.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/invite_action_buttons.dart';
 import '../widgets/love_lottie.dart';
@@ -395,10 +398,10 @@ class _SetupScreenState extends State<SetupScreen> {
     return result.warningMessage ?? result.message ?? '';
   }
 
+  // Locale-aware display format (design-unify C6, decision D3 — display-only:
+  // the stored DateTime is untouched, only how it reads on screen changes).
   String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    return '$day/$month/${date.year}';
+    return DateFormat(context.l10n.fullDateFormat).format(date);
   }
 
   @override
@@ -482,28 +485,12 @@ class _SetupScreenState extends State<SetupScreen> {
       children: [
         Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    isEditing ? LucideIcons.pencil : Icons.favorite_rounded,
-                    size: 14,
-                    color: AppColors.white.withValues(alpha: 0.92),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isEditing ? l10n.editCoupleBadge : l10n.coupleOnboardingBadge,
-                    style: AppTheme.pageEyebrowStyle(),
-                  ),
-                ],
-              ),
+            // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
+            // recolor of the original (user request 2026-06-11).
+            EyebrowChip(
+              label:
+                  isEditing ? l10n.editCoupleBadge : l10n.coupleOnboardingBadge,
+              icon: isEditing ? LucideIcons.pencil : Icons.favorite_rounded,
             ),
             const Spacer(),
             if (!isEditing)
@@ -522,20 +509,23 @@ class _SetupScreenState extends State<SetupScreen> {
                   borderRadius: BorderRadius.circular(999),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    // Header ink vòng 4 (2026-06-11): navy ink on a near-solid
+                    // white pill (same .72 fill as the light row tiles) — the
+                    // frosted-glass + white-text version failed contrast.
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.10),
+                      color: AppColors.white.withValues(alpha: 0.72),
                       borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColors.white.withValues(alpha: 0.15)),
+                      border: Border.all(color: AppColors.white.withValues(alpha: 0.65)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(LucideIcons.logOut, size: 13, color: AppColors.white.withValues(alpha: 0.70)),
+                        Icon(LucideIcons.logOut, size: 13, color: AppColors.textPrimary.withValues(alpha: 0.85)),
                         const SizedBox(width: 6),
                         Text(
                           l10n.signOutBtn,
                           style: TextStyle(
-                            color: AppColors.white.withValues(alpha: 0.70),
+                            color: AppColors.textPrimary.withValues(alpha: 0.85),
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -550,22 +540,24 @@ class _SetupScreenState extends State<SetupScreen> {
         const SizedBox(height: 18),
         Text(title, style: AppTheme.pageTitleStyle()),
         const SizedBox(height: 10),
-        Text(subtitle, style: AppTheme.pageSubtitleStyle(alpha: 0.84)),
+        Text(subtitle, style: AppTheme.pageSubtitleStyle()),
         if (coupleProvider.errorMessage != null) ...[
           const SizedBox(height: 12),
+          // Light card + dark ink (design-unify C6) — white text on a thin
+          // warning tint failed contrast on the blush gradient.
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(14),
+              color: AppColors.white.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.warning.withValues(alpha: 0.30)),
             ),
             child: Text(
               coupleProvider.errorMessage!,
               style: const TextStyle(
-                color: AppColors.white,
-                fontSize: 12.5,
+                color: AppColors.textPrimary,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 height: 1.4,
               ),
@@ -649,11 +641,18 @@ class _SetupScreenState extends State<SetupScreen> {
     required VoidCallback onTap,
   }) {
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: SizedBox.expand(
-          child: Row(
+      // InkWell (not a bare GestureDetector) so the tap ripples — white .12 on
+      // the dark-ish glass track (design-unify C6 / A8 ripple rule). The
+      // sliding pill underneath is untouched.
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          splashColor: AppColors.white.withValues(alpha: 0.12),
+          highlightColor: Colors.transparent,
+          child: SizedBox.expand(
+            child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AnimatedSwitcher(
@@ -662,9 +661,11 @@ class _SetupScreenState extends State<SetupScreen> {
                   icon,
                   key: ValueKey('$icon-$selected'),
                   size: 15,
+                  // Header ink vòng 4: unselected tab reads navy .60 — white
+                  // type on the glass track failed contrast on blush.
                   color: selected
                       ? AppColors.accentRose
-                      : AppColors.white.withValues(alpha: 0.75),
+                      : AppColors.textPrimary.withValues(alpha: 0.60),
                 ),
               ),
               const SizedBox(width: 6),
@@ -674,13 +675,14 @@ class _SetupScreenState extends State<SetupScreen> {
                 style: TextStyle(
                   color: selected
                       ? AppColors.textPrimary
-                      : AppColors.white.withValues(alpha: 0.75),
+                      : AppColors.textPrimary.withValues(alpha: 0.60),
                   fontWeight: FontWeight.w700,
-                  fontSize: 13.5,
+                  fontSize: 13,
                 ),
                 child: Text(label),
               ),
             ],
+            ),
           ),
         ),
       ),
@@ -708,11 +710,14 @@ class _SetupScreenState extends State<SetupScreen> {
             ? l10n.setupWaitingCoupleCodeTitle
             : l10n.inviteCodeTiedToAccount;
 
-    final description = !hasCreatedCoupleSpace
+    // Couple-active branch: `inviteCodeTiedToAccount` already serves as the
+    // title — repeating it as the description read as a copy bug, so that
+    // branch renders no description at all (vòng 4).
+    final String? description = !hasCreatedCoupleSpace
         ? l10n.inviteCodeDialogContent
         : isWaitingForPartner
             ? l10n.setupCoupleCodeDesc
-            : l10n.inviteCodeTiedToAccount;
+            : null;
 
     final statusIcon = isWaitingForPartner
         ? LucideIcons.hourglass
@@ -724,32 +729,32 @@ class _SetupScreenState extends State<SetupScreen> {
         ? AppColors.warning
         : hasCreatedCoupleSpace
             ? AppColors.accentRose
-            : AppColors.white;
+            : AppColors.textSecondary;
 
     // Cụm Copy/Share chỉ có nghĩa khi couple đang chờ partner: mã mời còn
     // join được. Khi couple đã active (đã tạo space & không còn waiting),
     // ẩn cụm nút vì không ai join bằng mã này nữa.
     final showInviteActions = !hasCreatedCoupleSpace || isWaitingForPartner;
 
-    return SizedBox(
-      width: double.infinity,
-      child: GlassCard(
-        borderRadius: 24,
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(statusIcon, size: 14, color: statusColor),
+    // Header ink vòng 4 (2026-06-11): solid white ContentCard + navy/rose ink
+    // — the glass card with white type failed contrast on the blush gradient.
+    return ContentCard(
+      radius: 24,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(statusIcon, size: 14, color: statusColor),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   title,
-                  style: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.80),
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -759,7 +764,7 @@ class _SetupScreenState extends State<SetupScreen> {
           Text(
             displayCode,
             style: const TextStyle(
-              color: AppColors.white,
+              color: AppColors.accentLoveDeep,
               fontSize: 30,
               fontWeight: FontWeight.w900,
               letterSpacing: 4,
@@ -767,34 +772,43 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           if (showInviteActions) ...[
             const SizedBox(height: 10),
-            InviteActionButtons(code: displayCode, onDark: true),
+            InviteActionButtons(code: displayCode, onDark: false),
           ],
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: TextStyle(
-              color: AppColors.white.withValues(alpha: 0.65),
-              fontSize: 12,
-              height: 1.45,
+          if (description != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.45,
+              ),
             ),
-          ),
+          ],
           // Rejoin hint: remind both members they can use this code to
           // reconnect if one leaves, so they don't lose access.
           if (isWaitingForPartner) ...[
             const SizedBox(height: 10),
-            Divider(thickness: 0.5, color: AppColors.white.withValues(alpha: 0.15)),
+            Divider(
+              thickness: 0.5,
+              color: AppColors.textPrimary.withValues(alpha: 0.10),
+            ),
             const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(LucideIcons.info, size: 12, color: AppColors.white.withValues(alpha: 0.45)),
+                const Icon(
+                  LucideIcons.info,
+                  size: 12,
+                  color: AppColors.textTertiary,
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     l10n.setupCoupleCodeRejoinHint,
-                    style: TextStyle(
-                      color: AppColors.white.withValues(alpha: 0.50),
-                      fontSize: 11.5,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
                       fontStyle: FontStyle.italic,
                       height: 1.4,
                     ),
@@ -804,7 +818,6 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ],
         ],
-        ),
       ),
     );
   }
@@ -943,16 +956,17 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
           const SizedBox(height: 20),
+          // Primary CTA token (design-unify B10): pill r999, height 52, rose.
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: FilledButton.icon(
               onPressed: isLoading ? null : _submitCreateOrUpdate,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               icon: isLoading
@@ -1011,16 +1025,17 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
           const SizedBox(height: 20),
+          // Primary CTA token (design-unify B10): pill r999, height 52, rose.
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: FilledButton.icon(
               onPressed: isLoading ? null : _submitJoin,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               icon: isLoading

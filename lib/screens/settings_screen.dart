@@ -3,14 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 
 import '../app/app_routes.dart';
 import '../app/app_urls.dart';
 import '../l10n/l10n.dart';
-import '../models/app_user.dart';
 import '../models/couple.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
@@ -22,22 +21,31 @@ import '../services/analytics_service.dart';
 import '../services/notification_settings_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_motion.dart';
+import '../theme/app_theme.dart';
 import '../widgets/blocking_loading_overlay.dart';
+import '../widgets/content_card.dart';
+import '../widgets/entrance_reveal.dart';
+import '../widgets/eyebrow_chip.dart';
+import '../widgets/icon_badge.dart';
+import '../widgets/ink_tile.dart';
 import '../widgets/language_toggle_button.dart';
+import '../widgets/section_header.dart';
+import '../widgets/sub_screen_app_bar.dart';
 import 'custom_reminders_screen.dart';
-import 'journal_screen.dart';
 import 'milestone_reminders_screen.dart';
-import 'setup_screen.dart';
 
-/// The app-wide Settings screen (feature: settings).
+/// The app-wide Settings screen (feature: settings — v2 redesign 2026-06-11).
 ///
-/// Gathers the controls that previously lived scattered across the Profile
-/// screen into structured modules: reminders, language and account & data.
-/// The behaviour of every moved control is unchanged — only its location is —
-/// so the reminders toggle/permission flow, language picker, danger zone
-/// (clear cache / leave couple / delete account), edit-story, sign-out and the
-/// privacy link all keep their original logic.
+/// Settings is the CONTROL ROOM: controls only, no content. The structure is a
+/// flat grouped list (iOS-style): a bare [SectionHeader] per group, ONE
+/// [ContentCard] per group, rows separated by hairline dividers — no
+/// card-in-card nesting. Groups: Account (identity + sign-out) → Notifications
+/// (local reminders + push types merged) → General (language / analytics /
+/// privacy policy) → danger zone → version footer.
+///
+/// The journal entry and edit-story tile moved to the Profile tab (memory
+/// chest / hero tap-to-edit — Profile v2); every remaining control keeps its
+/// original logic (permission flows, force-open gate, danger dialogs).
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -95,25 +103,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(
-              LucideIcons.chevronLeft,
-              color: AppColors.accentRose,
-            ),
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
-          title: Text(
-            l10n.settingsTitle,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
+        // Header vòng 5: Settings carries the landing-style large header
+        // (EyebrowChip + pageTitle in the body below) — the bar keeps only the
+        // back squircle. Behaviour (maybePop) unchanged.
+        appBar: subScreenAppBar(context),
         // Robustness (app-robustness C): block the whole screen with the shared
         // overlay while an auth op (sign-out / delete account) is in flight, so
         // the user can't re-open a dialog or fire a second submit mid-delete.
@@ -125,63 +118,77 @@ class _SettingsScreenState extends State<SettingsScreen> {
             );
           },
           child: SafeArea(
-          top: false,
-          child: Consumer2<CoupleProvider, PhotoProvider>(
-            builder: (context, coupleProvider, photoProvider, _) {
-              final couple = coupleProvider.couple;
-              if (couple == null) {
-                // No couple loaded — nothing to configure yet.
-                return const SizedBox.shrink();
-              }
-              final authProvider = context.watch<AuthProvider>();
-              final lastPhotoDate = photoProvider.sortedPhotos.isEmpty
-                  ? null
-                  : photoProvider.sortedPhotos.first.uploadDate;
+            top: false,
+            child: Consumer2<CoupleProvider, PhotoProvider>(
+              builder: (context, coupleProvider, photoProvider, _) {
+                final couple = coupleProvider.couple;
+                if (couple == null) {
+                  // No couple loaded — nothing to configure yet.
+                  return const SizedBox.shrink();
+                }
+                final authProvider = context.watch<AuthProvider>();
+                final lastPhotoDate = photoProvider.sortedPhotos.isEmpty
+                    ? null
+                    : photoProvider.sortedPhotos.first.uploadDate;
 
-              return SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _OnceEntrance(
-                      order: 0,
-                      child: _buildRemindersSection(
-                        context,
-                        couple: couple,
-                        lastPhotoDate: lastPhotoDate,
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Landing-style page header — chip + large title, no
+                      // subtitle (v2: same trim as Profile).
+                      EyebrowChip(
+                        label: l10n.settingsBadge,
+                        icon: LucideIcons.settings,
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    _OnceEntrance(
-                      order: 1,
-                      child: _buildNotificationTypesSection(context),
-                    ),
-                    const SizedBox(height: 18),
-                    _OnceEntrance(order: 2, child: _buildLanguageSection(context)),
-                    const SizedBox(height: 18),
-                    _OnceEntrance(order: 3, child: _buildMemoriesSection(context)),
-                    const SizedBox(height: 18),
-                    _OnceEntrance(order: 4, child: _buildAccountSection(context)),
-                    const SizedBox(height: 18),
-                    _OnceEntrance(order: 5, child: _buildPrivacySection(context)),
-                    const SizedBox(height: 18),
-                    _OnceEntrance(
-                      order: 6,
-                      child: _buildDangerZone(
-                        context,
-                        isUsingFirebase: authProvider.isUsingFirebase,
+                      const SizedBox(height: 14),
+                      Text(l10n.settingsTitle,
+                          style: AppTheme.pageTitleStyle()),
+                      const SizedBox(height: 20),
+                      // Account first: "who am I signed in as" orients every
+                      // control below (standard OS-settings order).
+                      EntranceReveal(
+                        order: 0,
+                        child: _buildAccountSection(context),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    _OnceEntrance(order: 6, child: _buildSignOutButton(context)),
-                    const SizedBox(height: 12),
-                    _OnceEntrance(order: 7, child: _buildPrivacyPolicyLink(context)),
-                  ],
-                ),
-              );
-            },
-          ),
+                      const SizedBox(height: 24),
+                      EntranceReveal(
+                        order: 1,
+                        child: _buildNotificationsSection(
+                          context,
+                          couple: couple,
+                          lastPhotoDate: lastPhotoDate,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      EntranceReveal(
+                        order: 2,
+                        child: _buildGeneralSection(context),
+                      ),
+                      const SizedBox(height: 24),
+                      EntranceReveal(
+                        order: 3,
+                        child: _buildDangerZone(
+                          context,
+                          isUsingFirebase: authProvider.isUsingFirebase,
+                        ),
+                      ),
+                      // Sign-out closes the page — the universal settings
+                      // convention: scan order runs frequent → rare → leave.
+                      const SizedBox(height: 18),
+                      EntranceReveal(
+                        order: 4,
+                        child: _buildSignOutButton(context),
+                      ),
+                      const SizedBox(height: 14),
+                      EntranceReveal(order: 4, child: _buildVersionFooter()),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -189,11 +196,224 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // Module: Reminders (moved from ProfileScreen, behaviour unchanged).
-  // The standalone "Reminder time" tile is dropped here — the time now lives in
-  // the milestone screen as the "Default time" (Dv8).
+  // Shared row primitives for the flat grouped list.
   // ---------------------------------------------------------------------------
-  Widget _buildRemindersSection(
+
+  /// Hairline between rows, indented past the icon column (same treatment the
+  /// old account-info card used).
+  Widget _rowDivider() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 58),
+      child: Divider(
+        height: 1,
+        color: AppColors.textTertiary.withValues(alpha: 0.18),
+      ),
+    );
+  }
+
+  /// One settings row: icon squircle + title (+subtitle), optional trailing
+  /// widget (count badge…) and trailing icon. Ripples when tappable.
+  Widget _navRow({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    IconData? trailingIcon = LucideIcons.chevronRight,
+    VoidCallback? onTap,
+  }) {
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          IconBadge(icon),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            trailing,
+          ],
+          if (trailingIcon != null) ...[
+            const SizedBox(width: 4),
+            Icon(
+              trailingIcon,
+              size: trailingIcon == LucideIcons.chevronRight ? 24 : 16,
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
+            ),
+          ],
+        ],
+      ),
+    );
+    if (onTap == null) {
+      return row;
+    }
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        splashColor: AppColors.accentRose.withValues(alpha: 0.08),
+        highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+        child: row,
+      ),
+    );
+  }
+
+  /// Rose pill with a count, used by the milestone / custom-reminder rows.
+  Widget _countBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.accentRose.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: AppColors.accentRose,
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Group: Account — read-only identity card only ("who am I signed in as").
+  // Sign-out is NOT here: exit actions close the page (bottom, after the
+  // danger zone) per the universal settings convention (user 2026-06-11).
+  // ---------------------------------------------------------------------------
+  Widget _buildAccountSection(BuildContext context) {
+    final l10n = context.l10n;
+    final currentUser = context.watch<AuthProvider>().currentUser;
+    final name = currentUser?.displayName.trim() ?? '';
+    final email = currentUser?.email.trim() ?? '';
+
+    if (currentUser == null) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(title: l10n.settingsSectionAccount),
+        const SizedBox(height: 12),
+        ContentCard(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          child: Column(
+            children: [
+              _buildAccountInfoRow(
+                LucideIcons.user,
+                l10n.displayNameLabel,
+                name.isNotEmpty ? name : '—',
+              ),
+              if (email.isNotEmpty) ...[
+                _rowDivider(),
+                _buildAccountInfoRow(LucideIcons.mail, l10n.emailLabel, email),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Sign-out as a real BUTTON (design-unify C12/B10 token: pill r999 h52,
+  /// textPrimary ink + white .72 fill so it reads on the blush gradient).
+  Widget _buildSignOutButton(BuildContext context) {
+    final l10n = context.l10n;
+
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton.icon(
+        onPressed: () => _showSignOutDialog(context),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.textPrimary,
+          side: BorderSide(color: AppColors.white.withValues(alpha: 0.60)),
+          backgroundColor: AppColors.white.withValues(alpha: 0.72),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
+          ),
+        ),
+        icon: const Icon(LucideIcons.logOut),
+        label: Text(
+          l10n.signOutBtn,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+
+  /// Read-only account identity row (label over value).
+  Widget _buildAccountInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          IconBadge(icon),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Group: Notifications — the old "Reminders" and "Notification types"
+  // sections merged: users think by TOPIC ("what does this app ping me about"),
+  // not by mechanism (local vs push). The push toggles sit under a micro-caps
+  // sub-label inside the same card. All behaviour is unchanged: master-toggle
+  // permission flow, custom lock-step (D7), milestone dim-when-off, force-open
+  // gate (Dv6), per-type device-doc refresh.
+  // ---------------------------------------------------------------------------
+  Widget _buildNotificationsSection(
     BuildContext context, {
     required Couple couple,
     required DateTime? lastPhotoDate,
@@ -231,125 +451,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
           }
         }
 
-        return _buildSectionCard(
-          title: l10n.settingsRemindersModuleTitle,
-          subtitle: l10n.settingsRemindersModuleSubtitle,
-          child: Column(
-            children: [
-              // Master toggle.
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.72),
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: AppColors.accentRose.withValues(alpha: 0.10),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.accentRose.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        LucideIcons.bell,
-                        color: AppColors.accentRose,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.remindersToggleLabel,
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            l10n.remindersToggleDesc,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 12,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Switch.adaptive(
-                      value: settings.enabled,
-                      activeThumbColor: AppColors.accentRose,
-                      onChanged: handleToggle,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Daily-question nudge (b2). Independent of the master toggle
-              // above — turning milestone reminders off does not silence this.
-              const _DailyQuestionReminderTile(),
-              const SizedBox(height: 12),
-              // Milestones & anniversaries entry (Reminders v2). Dimmed and
-              // non-interactive while the master toggle is off.
-              AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOutCubic,
-                opacity: settings.enabled ? 1 : 0.45,
-                child: _InkTile(
-                  borderRadius: 22,
-                  onTap: settings.enabled
-                      ? () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              settings: const RouteSettings(
-                                  name: 'MilestoneReminders'),
-                              builder: (_) => const MilestoneRemindersScreen(),
-                            ),
-                          );
-                        }
-                      : null,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.72),
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(
-                        color: AppColors.accentRose.withValues(alpha: 0.10),
-                      ),
-                    ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SectionHeader(title: l10n.settingsSectionNotifications),
+            const SizedBox(height: 12),
+            ContentCard(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+              child: Column(
+                children: [
+                  // Master reminders toggle.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Row(
                       children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.accentRose.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(
-                            LucideIcons.partyPopper,
-                            color: AppColors.accentRose,
-                            size: 20,
-                          ),
-                        ),
+                        const IconBadge(LucideIcons.bell),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                l10n.remindersV2MilestoneEntryTitle,
+                                l10n.remindersToggleLabel,
                                 style: const TextStyle(
                                   color: AppColors.textPrimary,
                                   fontSize: 15,
@@ -358,7 +481,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                l10n.remindersV2MilestoneEntrySubtitle,
+                                l10n.remindersToggleDesc,
                                 style: const TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 12,
@@ -369,155 +492,107 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Builder(
-                          builder: (context) {
-                            final count =
-                                reminderProvider.enabledMilestoneCount;
-                            if (count == 0) {
-                              return const SizedBox.shrink();
-                            }
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.accentRose
-                                    .withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Text(
-                                l10n.remindersV2MilestoneCountBadge(count),
-                                style: const TextStyle(
-                                  color: AppColors.accentRose,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          LucideIcons.chevronRight,
-                          color:
-                              AppColors.textSecondary.withValues(alpha: 0.5),
+                        Switch.adaptive(
+                          value: settings.enabled,
+                          activeThumbColor: AppColors.accentRose,
+                          onChanged: handleToggle,
                         ),
                       ],
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Our reminders (custom) entry — force-open gate (Dv6) preserved.
-              _InkTile(
-                borderRadius: 22,
-                onTap: () {
-                  if (settings.enabled) {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        settings: const RouteSettings(name: 'CustomReminders'),
-                        builder: (_) => const CustomRemindersScreen(),
-                      ),
-                    );
-                  } else {
-                    _showForceOpenDialog(
-                      context,
-                      reminderProvider: reminderProvider,
-                      customReminders: customReminders,
-                      couple: couple,
-                      lastPhotoDate: lastPhotoDate,
-                      l10n: l10n,
-                    );
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withValues(alpha: 0.72),
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(
-                      color: AppColors.accentRose.withValues(alpha: 0.10),
+                  _rowDivider(),
+                  // Daily-question nudge (b2). Independent of the master toggle
+                  // above — turning milestone reminders off does not silence it.
+                  const _DailyQuestionReminderTile(),
+                  _rowDivider(),
+                  // Milestones & anniversaries entry (Reminders v2). Dimmed and
+                  // non-interactive while the master toggle is off.
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOutCubic,
+                    opacity: settings.enabled ? 1 : 0.45,
+                    child: _navRow(
+                      icon: LucideIcons.partyPopper,
+                      title: l10n.remindersV2MilestoneEntryTitle,
+                      subtitle: l10n.remindersV2MilestoneEntrySubtitle,
+                      trailing: reminderProvider.enabledMilestoneCount == 0
+                          ? null
+                          : _countBadge(
+                              l10n.remindersV2MilestoneCountBadge(
+                                reminderProvider.enabledMilestoneCount,
+                              ),
+                            ),
+                      onTap: settings.enabled
+                          ? () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  settings: const RouteSettings(
+                                      name: 'MilestoneReminders'),
+                                  builder: (_) =>
+                                      const MilestoneRemindersScreen(),
+                                ),
+                              );
+                            }
+                          : null,
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.accentRose.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(
-                          LucideIcons.calendarClock,
-                          color: AppColors.accentRose,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.customRemindersEntryTitle,
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              l10n.customRemindersEntrySubtitle,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 12,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Consumer<CustomRemindersProvider>(
-                        builder: (context, customProvider, _) {
-                          if (customProvider.count == 0) {
-                            return const SizedBox.shrink();
-                          }
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  AppColors.accentRose.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              '${customProvider.count}',
-                              style: const TextStyle(
-                                color: AppColors.accentRose,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                              ),
+                  _rowDivider(),
+                  // Our reminders (custom) entry — force-open gate (Dv6).
+                  Consumer<CustomRemindersProvider>(
+                    builder: (context, customProvider, _) => _navRow(
+                      icon: LucideIcons.calendarClock,
+                      title: l10n.customRemindersEntryTitle,
+                      subtitle: l10n.customRemindersEntrySubtitle,
+                      trailing: customProvider.count == 0
+                          ? null
+                          : _countBadge('${customProvider.count}'),
+                      onTap: () {
+                        if (settings.enabled) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              settings:
+                                  const RouteSettings(name: 'CustomReminders'),
+                              builder: (_) => const CustomRemindersScreen(),
                             ),
                           );
-                        },
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        LucideIcons.chevronRight,
-                        color: AppColors.textSecondary.withValues(alpha: 0.5),
-                      ),
-                    ],
+                        } else {
+                          _showForceOpenDialog(
+                            context,
+                            reminderProvider: reminderProvider,
+                            customReminders: customReminders,
+                            couple: couple,
+                            lastPhotoDate: lastPhotoDate,
+                            l10n: l10n,
+                          );
+                        }
+                      },
+                    ),
                   ),
-                ),
+                  // Push types (feature notifications, D-notif-4): photo /
+                  // reaction / daily-question, mutable on THIS device. Love
+                  // note + partner joined/left are always-on (too important)
+                  // so they're not listed. Muting only silences the push — the
+                  // type still logs to the notification center.
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16, bottom: 2),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        l10n.settingsPushGroupLabel.toUpperCase(),
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const _NotificationTypeToggles(),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
@@ -641,397 +716,112 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // Module: Language (moved from ProfileScreen, behaviour unchanged).
+  // Group: General — language, analytics opt-out (D1c) and the privacy-policy
+  // link (promoted from the old 12px footer link: a compliance touchpoint
+  // should be findable, not decorative).
   // ---------------------------------------------------------------------------
-  Widget _buildLanguageSection(BuildContext context) {
+  Widget _buildGeneralSection(BuildContext context) {
     final l10n = context.l10n;
     final current = currentAppLanguage(context.watch<LocaleProvider>().locale);
 
-    return _buildSectionCard(
-      title: l10n.languageTitle,
-      subtitle: l10n.languageSubtitle,
-      child: _InkTile(
-        borderRadius: 22,
-        onTap: () => showLanguagePicker(context),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.72),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: AppColors.accentRose.withValues(alpha: 0.12),
-            ),
-          ),
-          child: Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(title: l10n.settingsSectionGeneral),
+        const SizedBox(height: 12),
+        ContentCard(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          child: Column(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.accentRose.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: current.code == null
-                    ? const Text('🌐', style: TextStyle(fontSize: 20))
-                    : Text(
-                        current.code!.toUpperCase(),
-                        style: const TextStyle(
-                          color: AppColors.accentLove,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
+              // Language row — leading shows the current language code.
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => showLanguagePicker(context),
+                  splashColor: AppColors.accentRose.withValues(alpha: 0.08),
+                  highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.accentRose.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: current.code == null
+                              ? const Text('🌐', style: TextStyle(fontSize: 20))
+                              : Text(
+                                  current.code!.toUpperCase(),
+                                  style: const TextStyle(
+                                    color: AppColors.accentLove,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
                         ),
-                      ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.languageTitle,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.languageTitle,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                appLanguageLabel(current, l10n),
+                                style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          LucideIcons.chevronRight,
+                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      appLanguageLabel(current, l10n),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-              Icon(
-                LucideIcons.chevronRight,
-                color: AppColors.textSecondary.withValues(alpha: 0.5),
+              _rowDivider(),
+              // Usage-analytics opt-out (feature: analytics, D1c). Default ON;
+              // toggling off stops collection immediately.
+              const _AnalyticsToggleTile(),
+              _rowDivider(),
+              _navRow(
+                icon: LucideIcons.shield,
+                title: l10n.privacyPolicyLabel,
+                trailingIcon: LucideIcons.externalLink,
+                onTap: () => launchUrl(
+                  Uri.parse(AppUrls.privacyPolicy),
+                  mode: LaunchMode.externalApplication,
+                ),
               ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Module: Memories — the couple journal entry (feature couple-journal).
-  // Placed above "Account & data" per design.
-  // ---------------------------------------------------------------------------
-  Widget _buildMemoriesSection(BuildContext context) {
-    final l10n = context.l10n;
-
-    return _buildSectionCard(
-      title: l10n.journalSettingsSection,
-      subtitle: l10n.journalScreenSubtitle,
-      child: _InkTile(
-        borderRadius: 22,
-        onTap: () {
-          HapticFeedback.selectionClick();
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              settings: const RouteSettings(name: 'Journal'),
-              builder: (_) => const JournalScreen(),
-            ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.72),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: AppColors.accentRose.withValues(alpha: 0.10),
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.accentRose.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  LucideIcons.bookOpen,
-                  color: AppColors.accentRose,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  l10n.journalSettingsTile,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Icon(
-                LucideIcons.chevronRight,
-                color: AppColors.textSecondary.withValues(alpha: 0.5),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Module: Account & data. "Edit our story" tile (moved from the old
-  // FilledButton actions section) lives above the danger zone.
-  // ---------------------------------------------------------------------------
-  Widget _buildAccountSection(BuildContext context) {
-    final l10n = context.l10n;
-    final currentUser = context.watch<AuthProvider>().currentUser;
-
-    return _buildSectionCard(
-      title: l10n.settingsAccountModuleTitle,
-      subtitle: l10n.settingsAccountModuleSubtitle,
-      child: Column(
-        children: [
-          if (currentUser != null) ...[
-            _buildAccountInfoCard(currentUser, l10n),
-            const SizedBox(height: 12),
-          ],
-          _InkTile(
-        borderRadius: 22,
-        onTap: () {
-          final coupleProvider = context.read<CoupleProvider>();
-          final currentUser = context.read<AuthProvider>().currentUser;
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => const SetupScreen()))
-              .then((_) {
-            coupleProvider.loadCoupleForUser(currentUser);
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.72),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: AppColors.accentRose.withValues(alpha: 0.10),
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.accentRose.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  LucideIcons.pencil,
-                  color: AppColors.accentRose,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.editOurStoryBtn,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.settingsEditStorySubtitle,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                LucideIcons.chevronRight,
-                color: AppColors.textSecondary.withValues(alpha: 0.5),
-              ),
-            ],
-          ),
-        ),
-      ),
-        ],
-      ),
-    );
-  }
-
-  /// Read-only account identity (display name + email) shown atop the account
-  /// module so the user can always see which account they're signed in as.
-  Widget _buildAccountInfoCard(AppUser user, AppLocalizations l10n) {
-    final name = user.displayName.trim();
-    final email = user.email.trim();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: AppColors.accentRose.withValues(alpha: 0.10),
-        ),
-      ),
-      child: Column(
-        children: [
-          _buildAccountInfoRow(
-            LucideIcons.user,
-            l10n.displayNameLabel,
-            name.isNotEmpty ? name : '—',
-          ),
-          if (email.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: 58),
-              child: Divider(
-                height: 1,
-                color: AppColors.textTertiary.withValues(alpha: 0.18),
-              ),
-            ),
-          if (email.isNotEmpty)
-            _buildAccountInfoRow(LucideIcons.mail, l10n.emailLabel, email),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccountInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.accentRose.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: AppColors.accentRose, size: 20),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Module: Privacy & data — usage-analytics opt-out (feature: analytics, D1c).
-  // Default ON; toggling off stops collection immediately. No new screen.
-  // ---------------------------------------------------------------------------
-  Widget _buildPrivacySection(BuildContext context) {
-    final l10n = context.l10n;
-    return _buildSectionCard(
-      title: l10n.privacyPolicyLabel,
-      subtitle: l10n.settingsAnalyticsSubtitle,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: AppColors.accentRose.withValues(alpha: 0.10),
-          ),
-        ),
-        child: const _AnalyticsToggleTile(),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Module: Notification types — per-type push mute (feature notifications,
-  // D-notif-4). Photo / reaction / daily-question can be silenced on THIS
-  // device; love note + partner joined/left are always-on (too important to
-  // mute) so they're not listed. Push-only: muted types still log to the center.
-  // ---------------------------------------------------------------------------
-  Widget _buildNotificationTypesSection(BuildContext context) {
-    final l10n = context.l10n;
-    return _buildSectionCard(
-      title: l10n.settingsNotifTypesTitle,
-      subtitle: l10n.settingsNotifTypesSubtitle,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: AppColors.accentRose.withValues(alpha: 0.10),
-          ),
-        ),
-        child: const _NotificationTypeToggles(),
-      ),
-    );
-  }
-
-  Widget _buildSignOutButton(BuildContext context) {
-    final l10n = context.l10n;
-
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () => _showSignOutDialog(context),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.textSecondary,
-          side: BorderSide(color: AppColors.white.withValues(alpha: 0.60)),
-          backgroundColor: AppColors.white.withValues(alpha: 0.22),
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-        ),
-        icon: const Icon(LucideIcons.logOut),
-        label: Text(
-          l10n.signOutBtn,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Danger zone (moved from ProfileScreen, behaviour & dialogs unchanged).
+  // Danger zone (unchanged — compliance-sensitive block, three severity tiers).
   // ---------------------------------------------------------------------------
   Widget _buildDangerZone(
     BuildContext context, {
@@ -1039,21 +829,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final l10n = context.l10n;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.14)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+    // Card surface → solid-white ContentCard (design-unify C12/B4); structure
+    // and the error palette of everything inside stay as-is.
+    return ContentCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1214,84 +992,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required String subtitle,
-    required Widget child,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.84),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.82)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.045),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 18),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPrivacyPolicyLink(BuildContext context) {
-    return GestureDetector(
-      onTap: () => launchUrl(
-        Uri.parse(AppUrls.privacyPolicy),
-        mode: LaunchMode.externalApplication,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              LucideIcons.shield,
-              size: 13,
+  /// Quiet brand + version footer — the standard place users (and we, when
+  /// debugging) look the build number up.
+  Widget _buildVersionFooter() {
+    return Center(
+      child: FutureBuilder<PackageInfo>(
+        future: PackageInfo.fromPlatform(),
+        builder: (context, snapshot) {
+          final info = snapshot.data;
+          if (info == null) {
+            return const SizedBox(height: 16);
+          }
+          return Text(
+            'Dear Embeiu · v${info.version} (${info.buildNumber})',
+            style: const TextStyle(
               color: AppColors.textTertiary,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(width: 6),
-            Text(
-              context.l10n.privacyPolicyLabel,
-              style: TextStyle(
-                color: AppColors.textTertiary,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                decoration: TextDecoration.underline,
-                decorationColor: AppColors.textTertiary,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(LucideIcons.externalLink, size: 11, color: AppColors.textTertiary),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -1667,7 +1387,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 /// only interactive while the switch is on. Independent of the milestone master
 /// toggle — it drives [ReminderProvider.setDailyQuestionReminderEnabled] /
 /// [setDailyQuestionReminderTime] directly. Permission denial flips the switch
-/// back off and surfaces a snackbar.
+/// back off and surfaces a snackbar. Renders as a bare row (Settings v2): the
+/// enclosing group card owns the surface.
 class _DailyQuestionReminderTile extends StatelessWidget {
   const _DailyQuestionReminderTile();
 
@@ -1712,32 +1433,13 @@ class _DailyQuestionReminderTile extends StatelessWidget {
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: AppColors.accentRose.withValues(alpha: 0.10),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         children: [
           Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.accentRose.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  LucideIcons.messageCircle,
-                  color: AppColors.accentRose,
-                  size: 20,
-                ),
-              ),
+              const IconBadge(LucideIcons.messageCircle),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -1778,7 +1480,7 @@ class _DailyQuestionReminderTile extends StatelessWidget {
             opacity: enabled ? 1 : 0.45,
             child: Padding(
               padding: const EdgeInsets.only(top: 12),
-              child: _InkTile(
+              child: InkTile(
                 borderRadius: 16,
                 onTap: enabled ? pickTime : null,
                 child: Container(
@@ -1828,46 +1530,6 @@ class _DailyQuestionReminderTile extends StatelessWidget {
   }
 }
 
-/// A tap wrapper that shows a rounded ripple on top of a decorated tile.
-///
-/// The tile keeps its own background/border (passed as [child]); this overlays
-/// a transparent [Material] + [InkWell] clipped to [borderRadius] so the ripple
-/// renders above the fill colour and stays inside the rounded corners. A null
-/// [onTap] disables interaction (and the ripple) without changing layout.
-class _InkTile extends StatelessWidget {
-  const _InkTile({
-    required this.child,
-    required this.onTap,
-    required this.borderRadius,
-  });
-
-  final Widget child;
-  final VoidCallback? onTap;
-  final double borderRadius;
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(borderRadius);
-    return Stack(
-      children: [
-        child,
-        Positioned.fill(
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: radius,
-              splashColor: AppColors.accentRose.withValues(alpha: 0.12),
-              highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
-              child: const SizedBox.expand(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 /// The usage-analytics opt-out switch (feature: analytics, D1c). Reads/writes
 /// [AnalyticsService] directly — analytics state lives in the service (Hive),
 /// not a provider, so a small local `setState` mirrors the toggle. Default ON.
@@ -1894,20 +1556,8 @@ class _AnalyticsToggleTileState extends State<_AnalyticsToggleTile> {
       value: _enabled,
       onChanged: _onChanged,
       activeThumbColor: AppColors.accentRose,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      secondary: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.accentRose.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Icon(
-          LucideIcons.barChart3,
-          color: AppColors.accentRose,
-          size: 20,
-        ),
-      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 4),
+      secondary: const IconBadge(LucideIcons.barChart3),
       title: Text(
         l10n.settingsAnalyticsTitle,
         style: const TextStyle(
@@ -2009,16 +1659,8 @@ class _NotificationTypeTogglesState extends State<_NotificationTypeToggles> {
       value: _prefs[prefKey] ?? true,
       onChanged: _loaded ? (v) => _onChanged(prefKey, v) : null,
       activeThumbColor: AppColors.accentRose,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      secondary: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.accentRose.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Icon(icon, color: AppColors.accentRose, size: 20),
-      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 2),
+      secondary: IconBadge(icon),
       title: Text(
         title,
         style: const TextStyle(
@@ -2039,63 +1681,5 @@ class _NotificationTypeTogglesState extends State<_NotificationTypeToggles> {
         ),
       ),
     );
-  }
-}
-
-/// Plays the shared fade+slide entrance once, the first time it is mounted,
-/// then keeps rendering its child statically. Because [SettingsScreen]'s body
-/// rebuilds whenever its providers change (e.g. toggling reminders), wrapping
-/// each section in this guard prevents the entrance from replaying on rebuild.
-class _OnceEntrance extends StatefulWidget {
-  const _OnceEntrance({required this.order, required this.child});
-
-  final int order;
-  final Widget child;
-
-  @override
-  State<_OnceEntrance> createState() => _OnceEntranceState();
-}
-
-class _OnceEntranceState extends State<_OnceEntrance> {
-  bool _played = false;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    // Mark the entrance finished only after it has fully run (entrance window
-    // + this item's stagger delay). Until then we keep the animated child so a
-    // mid-animation rebuild doesn't snap it to its static form.
-    _timer = Timer(
-      AppMotion.entrance + AppMotion.stagger * widget.order,
-      () {
-        if (mounted) {
-          setState(() => _played = true);
-        }
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_played) {
-      return widget.child;
-    }
-    return widget.child
-        .animate()
-        .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
-        .slideY(
-          begin: 0.08,
-          end: 0,
-          duration: AppMotion.entrance,
-          curve: AppMotion.curve,
-          delay: AppMotion.stagger * widget.order,
-        );
   }
 }

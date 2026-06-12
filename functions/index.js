@@ -484,6 +484,113 @@ exports.notifyLoveNote = onDocumentWritten(
   },
 );
 
+// Couple chat (feature chat, D4): when a member sends a chat message, ping the
+// partner. PRIVACY: the push (and the inbox record) carries NO message content
+// — lock screens stay clean ("Người ấy vừa nhắn cho bạn"), aligned with the
+// app's no-tracking posture. Skip-self via the memberIds filter, localized
+// vi/en per recipient device, plus a durable inbox entry (type chat_message).
+exports.notifyChatMessage = onDocumentCreated(
+  {document: "couples/{coupleId}/messages/{messageId}", region: "us-central1"},
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      logger.warn("Chat-message notification skipped because snapshot is missing.");
+      return;
+    }
+
+    const message = snapshot.data() || {};
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const authorUserId = `${message.authorUserId || ""}`.trim();
+    const text = `${message.text || ""}`.trim();
+
+    // Skip empty messages (the security rule forbids them anyway).
+    if (!text) {
+      return;
+    }
+
+    if (!coupleId || !authorUserId) {
+      logger.warn("Chat-message notification skipped because required fields are missing.", {
+        coupleId,
+        authorUserId,
+      });
+      return;
+    }
+
+    const coupleSnapshot = await db.collection("couples").doc(coupleId).get();
+    if (!coupleSnapshot.exists) {
+      logger.warn("Chat-message notification skipped because couple document was not found.", {
+        coupleId,
+      });
+      return;
+    }
+
+    const memberIds = Array.isArray(coupleSnapshot.get("memberIds")) ?
+      coupleSnapshot.get("memberIds") : [];
+    const recipientIds = memberIds.filter(
+      (memberId) => typeof memberId === "string" && memberId.trim() && memberId !== authorUserId,
+    );
+
+    if (recipientIds.length === 0) {
+      logger.info("Chat-message notification skipped because there is no partner to notify yet.", {
+        coupleId,
+      });
+      return;
+    }
+
+    // Author display name from their user profile (fallback "Người ấy").
+    let authorName = "";
+    try {
+      const authorSnap = await db.collection("users").doc(authorUserId).get();
+      authorName = `${(authorSnap.exists && authorSnap.get("displayName")) || ""}`.trim();
+    } catch (err) {
+      logger.warn("Could not load author profile for chat-message notification.", {
+        coupleId,
+        authorUserId,
+        message: err && err.message,
+      });
+    }
+    authorName = normalizeActorName(authorName);
+
+    // Inbox record: structured, content-free (no excerpt — privacy by design).
+    await writeInboxNotifications(recipientIds, {
+      type: "chat_message",
+      coupleId,
+      actorUserId: authorUserId,
+      actorName: authorName,
+    });
+
+    const result = await sendToRecipientDevices(
+      recipientIds,
+      (languageCode) => buildChatMessageText(languageCode, authorName),
+      {
+        type: "chat_message",
+        coupleId,
+      },
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("Chat-message notification skipped because recipient has no active FCM tokens.", {
+        coupleId,
+      });
+      return;
+    }
+
+    if (result.failures.length > 0) {
+      logger.warn("Chat-message notification had delivery failures.", {
+        coupleId,
+        failures: result.failures,
+      });
+    }
+
+    logger.info("Processed chat-message notification.", {
+      coupleId,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
 // Daily question (feature #5): when a member submits their answer for the day,
 // notify the partner that today's question has been answered (a nudge to answer
 // and unlock the reveal). The reveal itself is client-side; this is just a ping.
@@ -1358,6 +1465,30 @@ function buildLoveNoteText(languageCode, authorName, noteText) {
   return {
     title: copy.title(authorName),
     body: truncateText(`${noteText || ""}`.trim(), 120),
+  };
+}
+
+// Localized copy for the chat-message push (feature chat, D4), keyed by the
+// recipient device's languageCode. Unknown/missing codes fall back to
+// Vietnamese. DELIBERATELY content-free (design §C): the lock screen never
+// previews the message text — only that the partner wrote.
+const CHAT_MESSAGE_COPY = {
+  vi: {
+    title: "Tin nhắn mới 💬",
+    body: (author) => `${author} vừa gửi cho bạn một tin nhắn 💌`,
+  },
+  en: {
+    title: "New message 💬",
+    body: (name) => `${name} just sent you a message 💌`,
+  },
+};
+
+function buildChatMessageText(languageCode, authorName) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = CHAT_MESSAGE_COPY[code] || CHAT_MESSAGE_COPY.vi;
+  return {
+    title: copy.title,
+    body: copy.body(authorName),
   };
 }
 

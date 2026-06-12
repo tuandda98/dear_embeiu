@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 
 import 'app/app_routes.dart';
 import 'providers/auth_provider.dart';
+import 'providers/chat_provider.dart';
 import 'providers/couple_provider.dart';
 import 'providers/custom_reminders_provider.dart';
 import 'providers/daily_question_provider.dart';
@@ -272,6 +273,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
         ChangeNotifierProvider(create: (_) => ReactionProvider()),
         ChangeNotifierProvider(create: (_) => LoveNoteProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => DailyQuestionProvider()),
         ChangeNotifierProvider(create: (_) => StreakProvider()),
         ChangeNotifierProvider(create: (_) => NotificationInboxProvider()),

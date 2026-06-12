@@ -69,7 +69,7 @@ class BlockingLoadingOverlay extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: AppColors.textPrimary,
-                          fontSize: 13.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           height: 1.35,
                         ),

@@ -10,6 +10,7 @@ import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/language_toggle_button.dart';
 
@@ -133,11 +134,12 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
       // the manual "I've verified" tap and the background poll/resume path.
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
-        ..showSnackBar(SnackBar(content: Text(context.l10n.verifyEmailSuccess)));
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRoutes.authGate,
-        (route) => false,
-      );
+        ..showSnackBar(
+          SnackBar(content: Text(context.l10n.verifyEmailSuccess)),
+        );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
       return;
     }
 
@@ -171,8 +173,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
       _startCooldown();
     } else {
       final l10n = context.l10n;
-      final message =
-          authProvider.errorMessage ?? l10n.verifyEmailResendError;
+      final message = authProvider.errorMessage ?? l10n.verifyEmailResendError;
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
         ..showSnackBar(SnackBar(content: Text(message)));
@@ -187,10 +188,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
       return;
     }
     _navigated = true;
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.authGate,
-      (route) => false,
-    );
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
   }
 
   @override
@@ -203,8 +203,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
       canPop: false,
       child: Scaffold(
         body: Container(
-          decoration:
-              const BoxDecoration(gradient: AppColors.secondaryGradient),
+          decoration: const BoxDecoration(
+            gradient: AppColors.secondaryGradient,
+          ),
           child: SafeArea(
             child: Stack(
               children: [
@@ -245,38 +246,15 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                LucideIcons.mailCheck,
-                size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.verifyEmailBadge,
-                style: AppTheme.pageEyebrowStyle(),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          l10n.verifyEmailTitle,
-          style: AppTheme.pageTitleStyle(),
-        ),
+        // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
+        // recolor of the original (user request 2026-06-11).
+        EyebrowChip(label: l10n.verifyEmailBadge, icon: LucideIcons.mailCheck),
+        const SizedBox(height: 14),
+        Text(l10n.verifyEmailTitle, style: AppTheme.pageTitleStyle()),
         const SizedBox(height: 10),
         Text(
           l10n.verifyEmailSubtitle(email),
-          style: AppTheme.pageSubtitleStyle(alpha: 0.84),
+          style: AppTheme.pageSubtitleStyle(),
         ),
       ],
     );
@@ -330,14 +308,14 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
           // Primary: I've verified.
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: FilledButton(
               onPressed: _checking ? null : () => _checkVerified(manual: true),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               child: _checking
@@ -375,7 +353,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               icon: _resending
@@ -447,7 +425,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
               l10n.verifyEmailNotYet,
               style: const TextStyle(
                 color: AppColors.textPrimary,
-                fontSize: 12.5,
+                fontSize: 13,
                 height: 1.45,
                 fontWeight: FontWeight.w500,
               ),

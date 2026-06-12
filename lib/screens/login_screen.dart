@@ -8,7 +8,9 @@ import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/header_icon_button.dart';
 import '../widgets/language_toggle_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -58,10 +60,9 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (didSignIn) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRoutes.authGate,
-        (route) => false,
-      );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
       return;
     }
 
@@ -103,14 +104,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               Positioned(
-                top: 4,
-                left: 4,
-                child: IconButton(
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  icon: const Icon(
-                    LucideIcons.arrowLeft,
-                    color: AppColors.white,
-                  ),
+                top: 8,
+                left: 16,
+                child: HeaderIconButton(
+                  icon: LucideIcons.arrowLeft,
+                  onTap: () => Navigator.of(context).maybePop(),
+                  semanticsLabel: context.l10n.back,
                 ),
               ),
               const Positioned(
@@ -131,40 +130,17 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                LucideIcons.lock,
-                size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.welcomeBackBadge,
-                style: AppTheme.pageEyebrowStyle(),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          l10n.loginTitle,
-          style: AppTheme.pageTitleStyle(),
-        ),
+        // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
+        // recolor of the original (user request 2026-06-11).
+        EyebrowChip(label: l10n.welcomeBackBadge, icon: LucideIcons.lock),
+        const SizedBox(height: 14),
+        Text(l10n.loginTitle, style: AppTheme.pageTitleStyle()),
         const SizedBox(height: 10),
         Text(
           authProvider.isUsingFirebase
               ? l10n.loginSubtitle
               : l10n.loginLocalFallback,
-          style: AppTheme.pageSubtitleStyle(alpha: 0.84),
+          style: AppTheme.pageSubtitleStyle(),
         ),
         if (authProvider.bootstrapMessage != null) ...[
           const SizedBox(height: 14),
@@ -193,9 +169,11 @@ class _LoginScreenState extends State<LoginScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.16),
+        // Light card + dark ink (C1.4): white-on-glass failed contrast on the
+        // blush gradient — match the Home waiting-banner language instead.
+        color: AppColors.white.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   label,
                   style: const TextStyle(
-                    color: AppColors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -226,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   message,
                   style: const TextStyle(
-                    color: AppColors.white,
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                     height: 1.45,
                   ),
@@ -296,9 +274,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       setState(() => _obscurePassword = !_obscurePassword);
                     },
                     icon: Icon(
-                      _obscurePassword
-                          ? LucideIcons.eye
-                          : LucideIcons.eyeOff,
+                      _obscurePassword ? LucideIcons.eye : LucideIcons.eyeOff,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -345,14 +321,14 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
+              height: 52,
               child: FilledButton(
                 onPressed: authProvider.isLoading ? null : _submit,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accentRose,
                   foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(999),
                   ),
                 ),
                 child: authProvider.isLoading
@@ -389,8 +365,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       // of /guest): keeps the stack at guest→[login|register],
                       // so "back" always returns to guest and tapping the
                       // cross-links repeatedly never piles up screens.
-                      Navigator.of(context)
-                          .pushReplacementNamed(AppRoutes.register);
+                      Navigator.of(
+                        context,
+                      ).pushReplacementNamed(AppRoutes.register);
                     },
                     child: Text(l10n.createAccountLink),
                   ),
@@ -403,10 +380,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildFieldBlock({
-    required String label,
-    required Widget child,
-  }) {
+  Widget _buildFieldBlock({required String label, required Widget child}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -437,9 +411,9 @@ class _LoginScreenState extends State<LoginScreen> {
       filled: true,
       fillColor: AppColors.white.withValues(alpha: 0.92),
       hintStyle: const TextStyle(
-        color: AppColors.textPrimary,
+        color: AppColors.textSecondary,
         fontSize: 14,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w500,
       ),
       errorMaxLines: 2,
       errorStyle: const TextStyle(

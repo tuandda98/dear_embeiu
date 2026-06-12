@@ -5,8 +5,10 @@ import 'dart:ui' as ui;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart';
 import '../l10n/l10n.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import 'shared_couple_photo_view.dart';
 
@@ -89,6 +91,9 @@ class CounterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    // Reduce Motion (WCAG 2.3.3): the aurora layers render a static frame —
+    // the glow stays (it's part of the surface), only the breathing stops.
+    final reduceMotion = AppMotion.reduceMotion(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -137,12 +142,14 @@ class CounterCard extends StatelessWidget {
                 alignment: Alignment.topLeft,
                 opacity: 0.42,
                 breatheMs: 3200,
+                animated: !reduceMotion,
               ),
               _buildGlow(
                 alignment: Alignment.bottomRight,
                 opacity: 0.30,
                 color: AppColors.accentLavender,
                 breatheMs: 4000,
+                animated: !reduceMotion,
               ),
               _buildGlow(
                 alignment: Alignment.topRight,
@@ -150,6 +157,7 @@ class CounterCard extends StatelessWidget {
                 color: AppColors.accentCoral,
                 size: 160,
                 breatheMs: 3600,
+                animated: !reduceMotion,
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 28, 24, 26),
@@ -397,56 +405,66 @@ class CounterCard extends StatelessWidget {
 
   /// One aurora layer: a radial glow that slowly "breathes" (scale + fade on
   /// an offset period per layer, so the motion never reads as a loop).
+  /// [animated] = false (OS Reduce Motion) renders the same glow as a static
+  /// frame — no repeating controller at all.
   Widget _buildGlow({
     required Alignment alignment,
     required double opacity,
     Color color = AppColors.white,
     double size = 220,
     required int breatheMs,
+    bool animated = true,
   }) {
+    final glow = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color.withValues(alpha: opacity),
+            color.withValues(alpha: 0),
+          ],
+        ),
+      ),
+    );
     return Positioned.fill(
       child: IgnorePointer(
         child: Align(
           alignment: alignment,
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  color.withValues(alpha: opacity),
-                  color.withValues(alpha: 0),
-                ],
-              ),
-            ),
-          )
-              .animate(onPlay: (controller) => controller.repeat(reverse: true))
-              .scale(
-                begin: const Offset(1, 1),
-                end: const Offset(1.12, 1.12),
-                duration: Duration(milliseconds: breatheMs),
-                curve: Curves.easeInOut,
-              )
-              .fade(
-                begin: 0.85,
-                end: 1.0,
-                duration: Duration(milliseconds: breatheMs),
-                curve: Curves.easeInOut,
-              ),
+          child: !animated
+              ? glow
+              : glow
+                  .animate(
+                      onPlay: (controller) => controller.repeat(reverse: true))
+                  .scale(
+                    begin: const Offset(1, 1),
+                    end: const Offset(1.12, 1.12),
+                    duration: Duration(milliseconds: breatheMs),
+                    curve: Curves.easeInOut,
+                  )
+                  .fade(
+                    begin: 0.85,
+                    end: 1.0,
+                    duration: Duration(milliseconds: breatheMs),
+                    curve: Curves.easeInOut,
+                  ),
         ),
       ),
     );
   }
 }
 
-/// Live hh:mm:ss clock under the hero day count — the "counting right now"
-/// heartbeat of the card. Recomputes from the wall clock every tick (never
-/// accumulates drift, survives backgrounding) and anchors to the START of
-/// [since]'s day so it always agrees with the date-only total-days number
-/// above it. Only this tiny subtree rebuilds each second — the aurora layers
-/// and photo backdrop are separate subtrees with constant animate params, so
-/// the tick never touches them.
+/// Live "time together" clock under the hero day count — TOTAL hours :
+/// minutes : seconds elapsed since the anniversary (user 2026-06-11: "đếm số
+/// giờ bên nhau chứ không phải thời gian thực" — the previous `% 24` made the
+/// hours column equal the wall clock, which read as a plain real-time clock).
+/// Recomputes from the wall clock every tick (never accumulates drift,
+/// survives backgrounding) and anchors to the START of [since]'s day so it
+/// always agrees with the date-only total-days number above it. Only this
+/// tiny subtree rebuilds each second — the aurora layers and photo backdrop
+/// are separate subtrees with constant animate params, so the tick never
+/// touches them.
 class _LiveElapsedClock extends StatefulWidget {
   const _LiveElapsedClock({required this.since});
 
@@ -463,7 +481,9 @@ class _LiveElapsedClockState extends State<_LiveElapsedClock> {
   void initState() {
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) {
+      // Skip ticks while this tab is hidden (TickerMode rule §design-system):
+      // Timer.periodic is not muted by TickerMode, so gate it by hand.
+      if (mounted && TickerMode.valuesOf(context).enabled) {
         setState(() {});
       }
     });
@@ -487,7 +507,11 @@ class _LiveElapsedClockState extends State<_LiveElapsedClock> {
     if (elapsed.isNegative) {
       elapsed = Duration.zero;
     }
-    final hours = elapsed.inHours % 24;
+    // TOTAL hours together (no % 24) — grows past 24 and keeps counting for
+    // the whole relationship; minutes/seconds stay positional.
+    final locale = Localizations.localeOf(context).toString();
+    final hoursText =
+        NumberFormat.decimalPattern(locale).format(elapsed.inHours);
     final minutes = elapsed.inMinutes % 60;
     final seconds = elapsed.inSeconds % 60;
 
@@ -502,24 +526,28 @@ class _LiveElapsedClockState extends State<_LiveElapsedClock> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSegment(hours, l10n.hoursShort),
+          // Hours column sizes to its content (can be 5–6 digits, e.g.
+          // "17.640"); minutes/seconds keep the fixed 2-digit width.
+          _buildSegment(hoursText, l10n.hoursShort, fixedWidth: false),
           _buildSeparator(),
-          _buildSegment(minutes, l10n.minutesShort),
+          _buildSegment(minutes.toString().padLeft(2, '0'), l10n.minutesShort),
           _buildSeparator(),
-          _buildSegment(seconds, l10n.secondsShort),
+          _buildSegment(seconds.toString().padLeft(2, '0'), l10n.secondsShort),
         ],
       ),
     );
   }
 
-  Widget _buildSegment(int value, String label) {
-    // Fixed width so digits flipping every second never shifts the layout.
+  Widget _buildSegment(String value, String label, {bool fixedWidth = true}) {
+    // Fixed width so digits flipping every second never shifts the layout
+    // (minutes/seconds); the hours column grows with its digit count and only
+    // changes once an hour, so layout shifts there are a non-issue.
     return SizedBox(
-      width: 40,
+      width: fixedWidth ? 40 : null,
       child: Column(
         children: [
           Text(
-            value.toString().padLeft(2, '0'),
+            value,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.white,
@@ -540,7 +568,7 @@ class _LiveElapsedClockState extends State<_LiveElapsedClock> {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.white.withValues(alpha: 0.70),
-              fontSize: 9.5,
+              fontSize: 10,
               fontWeight: FontWeight.w600,
               letterSpacing: 1.1,
               height: 1,

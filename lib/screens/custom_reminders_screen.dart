@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -11,8 +8,11 @@ import '../models/custom_reminder.dart';
 import '../providers/custom_reminders_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_motion.dart';
+import '../theme/app_theme.dart';
+import '../widgets/entrance_reveal.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/shimmer_skeleton.dart';
+import '../widgets/sub_screen_app_bar.dart';
 import 'custom_reminder_form_screen.dart';
 
 /// Manage screen for user-created custom reminders (D1–D9): list / empty /
@@ -38,24 +38,12 @@ class CustomRemindersScreen extends StatelessWidget {
           decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
           child: Scaffold(
             backgroundColor: Colors.transparent,
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(
-                  LucideIcons.chevronLeft,
-                  color: AppColors.accentRose,
-                ),
-                onPressed: () => Navigator.of(context).maybePop(),
-              ),
-              title: Text(
-                l10n.customRemindersScreenTitle,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
+            // Header vòng 5c (2026-06-11): the bar keeps only the back
+            // squircle + the x/20 counter — the landing-style large header
+            // sits in the body, pinned above the 4-state switch (loading /
+            // disabled / empty / list) so it shows in every state.
+            appBar: subScreenAppBar(
+              context,
               actions: [
                 if (remindersEnabled)
                   Padding(
@@ -63,10 +51,13 @@ class CustomRemindersScreen extends StatelessWidget {
                     child: Center(
                       child: Text(
                         l10n.customRemindersCount(count),
+                        // Header ink vòng 4 (2026-06-11): navy textPrimary,
+                        // no shadow — white-on-blush failed contrast on real
+                        // screenshots; warning stays semantic at capacity.
                         style: TextStyle(
                           color: atCapacity
                               ? AppColors.warning
-                              : AppColors.accentRose,
+                              : AppColors.textPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                         ),
@@ -91,11 +82,22 @@ class CustomRemindersScreen extends StatelessWidget {
                 : null,
             body: SafeArea(
               top: false,
-              child: _buildBody(
-                context,
-                customProvider: customProvider,
-                remindersEnabled: remindersEnabled,
-                reminders: reminders,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 4, 16, 0),
+                    child: _ScreenHeader(),
+                  ),
+                  Expanded(
+                    child: _buildBody(
+                      context,
+                      customProvider: customProvider,
+                      remindersEnabled: remindersEnabled,
+                      reminders: reminders,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -113,7 +115,7 @@ class CustomRemindersScreen extends StatelessWidget {
     if (!customProvider.isLoaded) {
       // Content-shaped shimmer mirroring the reminder list rows.
       return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         itemCount: 5,
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) =>
@@ -151,6 +153,39 @@ class CustomRemindersScreen extends StatelessWidget {
         settings: const RouteSettings(name: 'CustomReminderForm'),
         builder: (_) => const CustomReminderFormScreen(),
       ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Page header (vòng 5c)
+// -----------------------------------------------------------------------------
+
+/// Landing-style page header: chip + large title + subtitle — same pattern
+/// (and 14/8/20 spacing) as Settings. Pinned above the state switch so it
+/// shows in every state (loading / disabled / empty / list).
+class _ScreenHeader extends StatelessWidget {
+  const _ScreenHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        EyebrowChip(
+          label: l10n.customRemindersBadge,
+          icon: LucideIcons.bellRing,
+        ),
+        const SizedBox(height: 14),
+        Text(l10n.customRemindersScreenTitle, style: AppTheme.pageTitleStyle()),
+        const SizedBox(height: 8),
+        Text(
+          l10n.customRemindersHeaderSubtitle,
+          style: AppTheme.pageSubtitleStyle(),
+        ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 }
@@ -246,13 +281,13 @@ class _DisabledState extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       children: [
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: AppColors.white.withValues(alpha: 0.72),
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: AppColors.warning.withValues(alpha: 0.25),
             ),
@@ -343,7 +378,7 @@ class _ReminderList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
       itemCount: reminders.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
@@ -363,7 +398,7 @@ class _ReminderList extends StatelessWidget {
             child: const Icon(LucideIcons.trash2, color: AppColors.white),
           ),
           confirmDismiss: (_) => _confirmDelete(context, reminder),
-          child: _OnceEntrance(
+          child: EntranceReveal(
             order: index,
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 200),
@@ -463,7 +498,7 @@ class _ReminderCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: interactive ? () => _openEdit(context) : null,
-        splashColor: AppColors.accentRose.withValues(alpha: 0.12),
+        splashColor: AppColors.accentRose.withValues(alpha: 0.08),
         highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -571,8 +606,9 @@ class _ReminderCard extends StatelessWidget {
         ),
       );
     }
+    final locale = Localizations.localeOf(context).toString();
     return Text(
-      l10n.customRemindersNextFire(DateFormat.yMMMd().format(next)),
+      l10n.customRemindersNextFire(DateFormat.yMMMd(locale).format(next)),
       style: const TextStyle(
         color: AppColors.accentRose,
         fontSize: 12,
@@ -586,24 +622,25 @@ class _ReminderCard extends StatelessWidget {
     AppLocalizations l10n,
     String timeLabel,
   ) {
+    final locale = Localizations.localeOf(context).toString();
     switch (reminder.recurrence) {
       case ReminderRecurrence.once:
         return l10n.customRemindersMetaOnce(
-          DateFormat.yMMMd().format(reminder.date),
+          DateFormat.yMMMd(locale).format(reminder.date),
           timeLabel,
         );
       case ReminderRecurrence.daily:
         return l10n.customRemindersMetaDaily(timeLabel);
       case ReminderRecurrence.weekly:
         return l10n.customRemindersMetaWeekly(
-          DateFormat.EEEE().format(reminder.date),
+          DateFormat.EEEE(locale).format(reminder.date),
           timeLabel,
         );
       case ReminderRecurrence.monthly:
         return l10n.customRemindersMetaMonthly(reminder.date.day, timeLabel);
       case ReminderRecurrence.yearly:
         return l10n.customRemindersMetaYearly(
-          DateFormat.MMMd().format(reminder.date),
+          DateFormat.MMMd(locale).format(reminder.date),
           timeLabel,
         );
     }
@@ -730,59 +767,5 @@ class _ReminderCard extends StatelessWidget {
     messenger
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(deletedMsg)));
-  }
-}
-
-/// Plays the shared fade+slide entrance once, the first time it is mounted,
-/// then renders its child statically (the list rebuilds on toggle/delete, so
-/// this guard stops the entrance replaying).
-class _OnceEntrance extends StatefulWidget {
-  const _OnceEntrance({required this.order, required this.child});
-
-  final int order;
-  final Widget child;
-
-  @override
-  State<_OnceEntrance> createState() => _OnceEntranceState();
-}
-
-class _OnceEntranceState extends State<_OnceEntrance> {
-  bool _played = false;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer(
-      AppMotion.entrance + AppMotion.stagger * widget.order,
-      () {
-        if (mounted) {
-          setState(() => _played = true);
-        }
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_played) {
-      return widget.child;
-    }
-    return widget.child
-        .animate()
-        .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
-        .slideY(
-          begin: 0.08,
-          end: 0,
-          duration: AppMotion.entrance,
-          curve: AppMotion.curve,
-          delay: AppMotion.stagger * widget.order,
-        );
   }
 }

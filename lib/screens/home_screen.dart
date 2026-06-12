@@ -7,13 +7,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../l10n/l10n.dart';
 import '../models/couple.dart';
 import '../models/counter_data.dart';
 import '../models/photo.dart';
 import '../providers/auth_provider.dart';
+import '../providers/chat_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/daily_question_provider.dart';
 import '../providers/love_note_provider.dart';
@@ -27,15 +27,17 @@ import '../services/home_prefs_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
-import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/counter_card.dart';
+import '../widgets/icon_badge.dart';
 import '../widgets/invite_action_buttons.dart';
 import '../widgets/memory_cinema_card.dart';
+import '../widgets/section_header.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/streak_chip.dart';
 import '../widgets/today_ritual_card.dart';
 import '../widgets/streak_sheet.dart';
+import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'gallery_screen.dart';
 import 'notification_center_screen.dart';
@@ -55,10 +57,17 @@ class _HomeScreenState extends State<HomeScreen> {
   static const double _floatingNavInnerPadding = 6;
   static const double _floatingNavPillInset = 5;
 
+  // 4 tabs (feature chat, D1): Home · Chat · Gallery · Profile. The chat tab
+  // sits beside Home (thumb position); deep-link indices follow this order.
   static const List<_NavigationItem> _navigationItems = [
     _NavigationItem(
       icon: Icons.favorite_border_rounded,
       selectedIcon: Icons.favorite_rounded,
+      color: AppColors.accentRose,
+    ),
+    _NavigationItem(
+      icon: LucideIcons.messageCircle,
+      selectedIcon: LucideIcons.messageCircle,
       color: AppColors.accentRose,
     ),
     _NavigationItem(
@@ -72,6 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
       color: AppColors.accentRose,
     ),
   ];
+
+  /// IndexedStack position of the chat tab (unread dot + seen marker logic).
+  static const int _chatTabIndex = 1;
 
   int _selectedIndex = 0;
   String? _lastReminderKey;
@@ -203,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _celebratingMilestone = false;
 
   /// Standard 16px page gutter, applied PER BLOCK (the scroll view itself has
-  /// no horizontal padding) so the memory cinema can run full-bleed.
+  /// no horizontal padding).
   Widget _gutter(Widget child) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -373,11 +385,11 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  /// Logs a `screen_view` for the Home bottom-nav tabs (0=Home, 1=Gallery,
-  /// 2=Profile) — these are IndexedStack children, not routes, so the navigator
-  /// observer can't see them. (feature analytics)
+  /// Logs a `screen_view` for the Home bottom-nav tabs (0=Home, 1=Chat,
+  /// 2=Gallery, 3=Profile) — these are IndexedStack children, not routes, so
+  /// the navigator observer can't see them. (feature analytics)
   void _logTabScreenView(int index) {
-    const names = ['Home', 'Gallery', 'Profile'];
+    const names = ['Home', 'Chat', 'Gallery', 'Profile'];
     if (index >= 0 && index < names.length) {
       AnalyticsService.instance.logScreenView(names[index]);
     }
@@ -425,8 +437,10 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return l10n.navHome;
       case 1:
-        return l10n.navMemories;
+        return l10n.navChat;
       case 2:
+        return l10n.navMemories;
+      case 3:
         return l10n.navProfile;
       default:
         return '';
@@ -438,21 +452,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHomeLoadingSkeleton(double topPadding) {
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
-      // Gutter per block (matches the live layout) — the memory cinema
-      // skeleton runs full-bleed like the real card.
+      // Gutter per block (matches the live layout).
       padding: EdgeInsets.fromLTRB(0, topPadding + 20, 0, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row: calendar leaf (boxless number + stacked lines) + bell.
+          // Header row: greeting (two stacked text lines) + bell squircle.
           _gutter(
             Row(
               children: const [
-                ShimmerSkeleton(width: 48, height: 40, borderRadius: 10),
-                SizedBox(width: 12),
-                ShimmerSkeleton(width: 110, height: 32, borderRadius: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerSkeleton(width: 180, height: 21, borderRadius: 8),
+                    SizedBox(height: 7),
+                    ShimmerSkeleton(width: 220, height: 13, borderRadius: 6),
+                  ],
+                ),
                 Spacer(),
-                ShimmerSkeleton(width: 45, height: 45, borderRadius: 999),
+                ShimmerSkeleton(width: 48, height: 48, borderRadius: 17),
               ],
             ),
           ),
@@ -471,8 +489,8 @@ class _HomeScreenState extends State<HomeScreen> {
             const ShimmerSkeleton(width: 170, height: 22, borderRadius: 8),
           ),
           const SizedBox(height: 12),
-          // Memory cinema card (full-bleed, square).
-          const ShimmerSkeleton(height: 240, borderRadius: 0),
+          // Memory cinema card (gutter + card radius, like every other card).
+          _gutter(const ShimmerSkeleton(height: 240, borderRadius: 28)),
         ],
       ),
     );
@@ -497,6 +515,19 @@ class _HomeScreenState extends State<HomeScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.read<NotificationInboxProvider>().markReadForTab(_selectedIndex);
+        }
+      });
+    }
+
+    // Chat seen marker (feature chat, D7): sitting on the chat tab consumes
+    // unread messages — covers landing on the tab AND a partner message
+    // arriving while the tab is already open. Watching makes it re-fire on
+    // every chat stream emission; markSeen is idempotent so it converges.
+    final chat = context.watch<ChatProvider>();
+    if (_selectedIndex == _chatTabIndex && chat.hasUnread) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<ChatProvider>().markSeen();
         }
       });
     }
@@ -540,10 +571,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TickerMode(
                         enabled: _selectedIndex == 1,
-                        child: GalleryScreen(bottomInset: bottomInset),
+                        child: ChatScreen(
+                          // HomeScreen's context sits ABOVE the Scaffold, so
+                          // it still sees the raw keyboard inset the Scaffold
+                          // strips from its body's MediaQuery.
+                          keyboardVisible: mediaQuery.viewInsets.bottom > 0,
+                          onRequestTab: (index) {
+                            if (index >= 0 &&
+                                index < _navigationItems.length &&
+                                index != _selectedIndex) {
+                              setState(() => _selectedIndex = index);
+                              _logTabScreenView(index);
+                            }
+                          },
+                        ),
                       ),
                       TickerMode(
                         enabled: _selectedIndex == 2,
+                        child: GalleryScreen(bottomInset: bottomInset),
+                      ),
+                      TickerMode(
+                        enabled: _selectedIndex == 3,
                         child: ProfileScreen(bottomInset: bottomInset),
                       ),
                     ],
@@ -566,6 +614,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildFloatingNavigationBar() {
     final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
     final l10n = context.l10n;
+    // Unread dot on the chat tab (D7) — partner messages newer than the seen
+    // marker. Watched here so the dot pops/falls live with the chat stream.
+    final chatHasUnread = context.watch<ChatProvider>().hasUnread;
 
     return AnimatedSlide(
       duration: const Duration(milliseconds: 260),
@@ -663,12 +714,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               final isSelected = index == _selectedIndex;
                               final label = _navLabel(index, l10n);
 
+                              // Dot only when the chat tab is NOT active
+                              // (landing on it marks seen immediately).
+                              final showUnreadDot = index == _chatTabIndex &&
+                                  !isSelected &&
+                                  chatHasUnread;
+
                               return Expanded(
                                 child: _buildNavigationItem(
                                   item: item,
                                   index: index,
                                   isSelected: isSelected,
                                   label: label,
+                                  showUnreadDot: showUnreadDot,
                                 ),
                               );
                             },
@@ -691,9 +749,16 @@ class _HomeScreenState extends State<HomeScreen> {
     required int index,
     required bool isSelected,
     required String label,
+    bool showUnreadDot = false,
   }) {
+    // VoiceOver announces the waiting message alongside the tab name when the
+    // dot is up (design §A).
+    final semanticsLabel = showUnreadDot
+        ? '$label, ${context.l10n.chatUnreadDotSemantics}'
+        : label;
+
     return Tooltip(
-      message: label,
+      message: semanticsLabel,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -713,23 +778,58 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  AnimatedScale(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOutCubic,
-                    scale: isSelected ? 1.12 : 1.0,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: Icon(
-                        isSelected ? (item.selectedIcon ?? item.icon) : item.icon,
-                        key: ValueKey('icon-$index-$isSelected'),
-                        size: 22,
-                        // .75, not .55 — unselected icons on the light glass
-                        // were dropping out of sight (design H6/A5).
-                        color: isSelected
-                            ? AppColors.white
-                            : AppColors.white.withValues(alpha: 0.75),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      AnimatedScale(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOutCubic,
+                        scale: isSelected ? 1.12 : 1.0,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            isSelected ? (item.selectedIcon ?? item.icon) : item.icon,
+                            key: ValueKey('icon-$index-$isSelected'),
+                            size: 22,
+                            // .75, not .55 — unselected icons on the light glass
+                            // were dropping out of sight (design H6/A5).
+                            color: isSelected
+                                ? AppColors.white
+                                : AppColors.white.withValues(alpha: 0.75),
+                          ),
+                        ),
                       ),
-                    ),
+                      // Chat unread dot (D7): 10px total — 7px accentLoveDeep
+                      // core + 1.5 solid white ring (separates it from the
+                      // icon and the glass). Scales in/out 200ms; Reduce
+                      // Motion shows/hides it instantly.
+                      if (index == _chatTabIndex)
+                        Positioned(
+                          top: -3,
+                          right: -4,
+                          child: IgnorePointer(
+                            child: AnimatedScale(
+                              duration: AppMotion.reduceMotion(context)
+                                  ? Duration.zero
+                                  : const Duration(milliseconds: 200),
+                              curve: Curves.easeOutCubic,
+                              scale: showUnreadDot ? 1.0 : 0.0,
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: AppColors.accentLoveDeep,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.white,
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   AnimatedSize(
                     duration: const Duration(milliseconds: 260),
@@ -785,7 +885,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final nextMilestone = _getNextMilestone(totalDays);
     final progressToMilestone = totalDays / nextMilestone;
     final recentPhotos = photos.take(5).toList();
-    final onThisDayPhoto = _onThisDayPhoto(photos);
+    // Pagination D3: on-this-day comes from the provider's dedicated query —
+    // the realtime window only holds the newest 30 photos, so filtering the
+    // visible list would miss older memories.
+    final onThisDayPhoto =
+        _onThisDayPhoto(context.read<PhotoProvider>().onThisDayPhotos);
 
     // Ensure the love-note stream is watching this couple. SessionResolver
     // already starts it, but the couple may finish loading after Home mounts
@@ -795,10 +899,19 @@ class _HomeScreenState extends State<HomeScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.read<LoveNoteProvider>().watchForCouple(couple.id, myUid);
+          // On-this-day memories (pagination D3) — deduped per calendar day
+          // inside the provider, so this re-arm is cheap. Also covers the
+          // date rolling over while the app stays open.
+          context
+              .read<PhotoProvider>()
+              .refreshOnThisDay(anniversary: couple.anniversaryDate);
           context
               .read<DailyQuestionProvider>()
               .watchForCouple(couple.id, myUid);
           context.read<ReactionProvider>().watchForCouple(couple.id, myUid);
+          // Chat stream (feature chat) — must run from Home so the unread dot
+          // works on every tab. watchForCouple no-ops when unchanged.
+          context.read<ChatProvider>().watchForCouple(couple.id, myUid);
           // Re-arm the streak too — it must flip from hidden→active the moment
           // the partner joins while Home stays open. watchForCouple no-ops when
           // (couple, active) is unchanged.
@@ -824,8 +937,7 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        // Horizontal gutter moved DOWN onto each block (`_gutter`) so the
-        // memory cinema can run full-bleed edge to edge (user 2026-06-10).
+        // Horizontal gutter applied per block (`_gutter`).
         padding: EdgeInsets.fromLTRB(0, 16, 0, bottomInset),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -838,12 +950,12 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // "Calendar leaf" date (redesign user 2026-06-10, third take):
-                // a big airy day number + stacked weekday/month behind a
-                // glowing vertical hairline — the bloc-calendar page that
-                // mirrors the day count in the hero card below. Quietly
-                // unconventional: no chip, no label, just today as an object.
-                Expanded(child: _buildCalendarLeaf()),
+                // Personal greeting (redesign user 2026-06-11): time-of-day
+                // hello + the user's name over a rotating nudge line — warmer
+                // than the calendar-leaf date it replaced, and it points at a
+                // daily action ("đã chúc người ấy chưa?") instead of stating
+                // a fact the hero card below already implies.
+                Expanded(child: _buildGreetingHeader()),
                 const SizedBox(width: 12),
                 _buildNotificationBell(),
               ],
@@ -961,7 +1073,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 28),
           _gutter(_entrance(
             3,
-            _buildSectionTitle(title: l10n.homeTodaySectionTitle),
+            SectionHeader(title: l10n.homeTodaySectionTitle),
           )),
           const SizedBox(height: 12),
           KeyedSubtree(
@@ -974,18 +1086,19 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 28),
           _gutter(_entrance(
             5,
-            _buildSectionTitle(
+            SectionHeader(
               title: l10n.recentMemoriesTitle,
               subtitle: photos.isEmpty ? l10n.addPhotosPrompt : null,
               actionLabel: photos.isEmpty ? null : l10n.seeAll,
+              // Gallery moved to index 2 when the chat tab landed (feature chat).
               onActionTap: photos.isEmpty
                   ? null
-                  : () => setState(() => _selectedIndex = 1),
+                  : () => setState(() => _selectedIndex = 2),
             ),
           )),
           const SizedBox(height: 12),
-          // Full-bleed: the memory cinema escapes the gutter on purpose —
-          // the add pill / empty state re-pad themselves inside.
+          // Memory cinema sits in the standard gutter like every other card
+          // (user 2026-06-11) — the section pads itself inside.
           _entrance(
             6,
             _buildRecentPhotosSection(
@@ -1023,97 +1136,84 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Header "calendar leaf": today's day number, airy and light, with the
-  /// weekday/month stacked behind a glowing vertical hairline. Echoes the
-  /// big day count in the CounterCard — today's page in the couple's story.
-  Widget _buildCalendarLeaf() {
+  /// Header greeting: time-of-day hello + the user's name, over a rotating
+  /// one-line nudge toward a daily action. The nudge is picked from a
+  /// 12-string pool deterministically by (day of year, time bucket) so it
+  /// rotates through the day without flickering across rebuilds, and rarely
+  /// repeats two sessions in a row.
+  Widget _buildGreetingHeader() {
+    final l10n = context.l10n;
     final now = DateTime.now();
-    final locale = Localizations.localeOf(context).toString();
-    return Row(
+    final hour = now.hour;
+    // 0 sáng · 1 chiều · 2 tối · 3 khuya.
+    final int bucket;
+    final String greeting;
+    if (hour >= 5 && hour < 12) {
+      bucket = 0;
+      greeting = l10n.homeGreetingMorning;
+    } else if (hour >= 12 && hour < 18) {
+      bucket = 1;
+      greeting = l10n.homeGreetingAfternoon;
+    } else if (hour >= 18 && hour < 22) {
+      bucket = 2;
+      greeting = l10n.homeGreetingEvening;
+    } else {
+      bucket = 3;
+      greeting = l10n.homeGreetingNight;
+    }
+    final name =
+        context.read<AuthProvider>().currentUser?.displayName.trim() ?? '';
+    // Greeting strings end with a comma ("Chào buổi sáng,") so the name slots
+    // in naturally; with no name we drop the dangling comma instead.
+    final title = name.isEmpty
+        ? greeting.replaceAll(RegExp(r',\s*$'), '')
+        : '$greeting $name';
+    final teasers = [
+      l10n.homeGreetingTeaser1,
+      l10n.homeGreetingTeaser2,
+      l10n.homeGreetingTeaser3,
+      l10n.homeGreetingTeaser4,
+      l10n.homeGreetingTeaser5,
+      l10n.homeGreetingTeaser6,
+      l10n.homeGreetingTeaser7,
+      l10n.homeGreetingTeaser8,
+      l10n.homeGreetingTeaser9,
+      l10n.homeGreetingTeaser10,
+      l10n.homeGreetingTeaser11,
+      l10n.homeGreetingTeaser12,
+    ];
+    final dayOfYear = now.difference(DateTime(now.year)).inDays;
+    // 7 and 5 are coprime with 12: +7/day walks the whole pool over 12 days,
+    // +5/bucket keeps the 4 buckets of one day on distinct lines.
+    final teaser = teasers[(dayOfYear * 7 + bucket * 5) % teasers.length];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${now.day}',
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          // Header ink vòng 4 (2026-06-11): navy textPrimary, no shadow —
+          // white+dark-drop still sank into the bright end of dawnBlush on
+          // real screenshots (~1.7:1); the gradient carries the brand, the
+          // ink carries the reading.
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 21,
+            fontWeight: FontWeight.w800,
+            height: 1.15,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          teaser,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: AppColors.white,
-            fontSize: 40,
-            fontWeight: FontWeight.w600,
-            height: 1,
-            // Soft DARK shadow, not a white halo: white-on-blush measures
-            // ~1.5:1 on its own, and a light glow around light glyphs only
-            // sinks them further. A dark drop is the standard treatment for
-            // white type on a light ground (same as captions on photos).
-            shadows: [
-              Shadow(
-                color: Colors.black.withValues(alpha: 0.32),
-                blurRadius: 10,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        // Vertical hairline, fading at both ends — the "torn edge".
-        Container(
-          width: 1.2,
-          height: 36,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppColors.white.withValues(alpha: 0.0),
-                AppColors.white.withValues(alpha: 0.65),
-                AppColors.white.withValues(alpha: 0.0),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                DateFormat.EEEE(locale).format(now).toUpperCase(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2.0,
-                  height: 1,
-                  shadows: [
-                    Shadow(
-                      color: Color(0x47000000), // black .28 — see day number
-                      blurRadius: 8,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                DateFormat.MMMM(locale).format(now).toUpperCase(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: AppColors.white.withValues(alpha: 0.92),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 2.0,
-                  height: 1,
-                  shadows: const [
-                    Shadow(
-                      color: Color(0x47000000),
-                      blurRadius: 8,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            color: AppColors.textPrimary.withValues(alpha: 0.62),
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            height: 1.3,
           ),
         ),
       ],
@@ -1133,51 +1233,49 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Solid white disc + rose bell (redesign user 2026-06-10): the one
-          // tappable thing in the header gets the one solid surface — light
-          // surface → rose ink, per the design-system rule. The soft rose
-          // shadow lifts it off the gradient without shouting.
-          DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.white.withValues(alpha: 0.92),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.accentLove.withValues(alpha: 0.25),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
+          // Bare bell, dark ink (user 2026-06-11: bare header icons app-wide —
+          // the frosted white squircle was dropped everywhere). 48px touch
+          // target unchanged; flips to bell-ring while anything is unread.
+          SizedBox(
+            width: 48,
+            height: 48,
             child: Material(
               color: Colors.transparent,
-              shape: const CircleBorder(),
               child: InkWell(
-                customBorder: const CircleBorder(),
+                borderRadius: BorderRadius.circular(17),
                 splashColor: AppColors.accentRose.withValues(alpha: 0.12),
                 onTap: _openNotificationCenter,
-                child: const Padding(
-                  padding: EdgeInsets.all(12),
+                child: Center(
                   child: Icon(
-                    LucideIcons.bell,
-                    size: 21,
-                    color: AppColors.accentLoveDeep,
+                    unread > 0 ? LucideIcons.bellRing : LucideIcons.bell,
+                    size: 26,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
             ),
           ),
           if (unread > 0)
+            // Anchored to the bare glyph (was -4/-4 against the old 48 box).
             Positioned(
               right: 2,
               top: 2,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                constraints: const BoxConstraints(minWidth: 19, minHeight: 19),
                 decoration: BoxDecoration(
-                  color: AppColors.accentLoveDeep,
+                  gradient: const LinearGradient(
+                    colors: [AppColors.accentLove, AppColors.accentLoveDeep],
+                  ),
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(color: AppColors.white, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.accentLoveDeep.withValues(alpha: 0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Center(
                   child: Text(
@@ -1216,17 +1314,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.accentLove.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              LucideIcons.link,
-              color: AppColors.accentLove,
-              size: 20,
-            ),
+          // IconBadge (B6) at the banner's original metrics — 40 (= icon 20 +
+          // 2×10 padding), r14, tint .10 — so the swap is pixel-identical.
+          const IconBadge(
+            LucideIcons.link,
+            tint: AppColors.accentLove,
+            size: 40,
+            radius: 14,
+            tintAlpha: 0.10,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1288,53 +1383,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSectionTitle({
-    required String title,
-    String? subtitle,
-    String? actionLabel,
-    VoidCallback? onActionTap,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: AppTheme.sectionTitleStyle(),
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: AppTheme.sectionSubtitleStyle(),
-                ),
-              ],
-            ],
-          ),
-        ),
-        if (actionLabel != null && onActionTap != null)
-          TextButton(
-            onPressed: onActionTap,
-            style: TextButton.styleFrom(
-              // Real ink: even accentLoveDeep only reaches ~2.7:1 on the blush
-              // gradient — 14px text needs textPrimary. Weight keeps the
-              // link affordance.
-              foregroundColor: AppColors.textPrimary,
-              padding: EdgeInsets.zero,
-              textStyle: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            child: Text(actionLabel),
-          ),
-      ],
     );
   }
 
@@ -1572,7 +1620,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: AppColors.accentLoveDeep,
-                      fontSize: 11.5,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -1639,7 +1687,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // No add-CTA here anymore (user 2026-06-10) — posting lives in the
     // Gallery tab composer + the quiet camera in the section header; Home
     // only *plays* the memories.
-    return MemoryCinemaCard(
+    return _gutter(MemoryCinemaCard(
       photos: slides,
       onThisDayId: onThisDay?.id,
       onPhotoTap: (index) {
@@ -1652,7 +1700,7 @@ class _HomeScreenState extends State<HomeScreen> {
           couple: couple,
         );
       },
-    );
+    ));
   }
 
   /// Finds the "On this day" memory: a photo taken on the same month+day as

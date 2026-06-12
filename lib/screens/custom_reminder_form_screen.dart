@@ -8,6 +8,10 @@ import '../l10n/l10n.dart';
 import '../models/custom_reminder.dart';
 import '../providers/custom_reminders_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
+import '../widgets/content_card.dart';
+import '../widgets/eyebrow_chip.dart';
+import '../widgets/sub_screen_app_bar.dart';
 
 /// Add / edit form for a single custom reminder (full screen, push route).
 ///
@@ -224,33 +228,20 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final dateLabel = DateFormat.yMMMd().format(_date);
+    final dateLabel =
+        DateFormat.yMMMd(Localizations.localeOf(context).toString())
+            .format(_date);
     final timeLabel = _time.format(context);
 
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(
-              LucideIcons.chevronLeft,
-              color: AppColors.accentRose,
-            ),
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
-          title: Text(
-            widget.isEditing
-                ? l10n.customRemindersEditTitle
-                : l10n.customRemindersAddTitle,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+        // Header vòng 5c (2026-06-11): the bar keeps only the back squircle +
+        // Save — the landing-style header (chip + dynamic title, NO subtitle
+        // to save room for the keyboard) scrolls with the form below.
+        appBar: subScreenAppBar(
+          context,
           actions: [
             Opacity(
               opacity: _canSave ? 1 : 0.4,
@@ -258,8 +249,10 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
                 onPressed: _canSave ? _save : null,
                 child: Text(
                   l10n.customRemindersSave,
+                  // Header ink vòng 4 (2026-06-11): navy textPrimary, no
+                  // shadow — white-on-blush failed contrast on real shots.
                   style: const TextStyle(
-                    color: AppColors.accentRose,
+                    color: AppColors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
@@ -271,10 +264,27 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
         body: SafeArea(
           top: false,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    EyebrowChip(
+                      label: l10n.customReminderFormBadge,
+                      icon: LucideIcons.bellPlus,
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      widget.isEditing
+                          ? l10n.customRemindersEditTitle
+                          : l10n.customRemindersAddTitle,
+                      style: AppTheme.pageTitleStyle(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
                 _buildFormCard(l10n, dateLabel, timeLabel),
                 if (widget.isEditing) ...[
                   const SizedBox(height: 24),
@@ -290,20 +300,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
 
   Widget _buildFormCard(AppLocalizations l10n, String dateLabel,
       String timeLabel) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.84),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.82)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.045),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+    return ContentCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -473,18 +470,23 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
     required String value,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.accentRose.withValues(alpha: 0.10),
+    return Material(
+      color: AppColors.white.withValues(alpha: 0.72),
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: AppColors.accentRose.withValues(alpha: 0.08),
+        highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: AppColors.accentRose.withValues(alpha: 0.10),
+            ),
           ),
-        ),
-        child: Column(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -501,15 +503,16 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                color: AppColors.accentRose,
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
+              Text(
+                value,
+                style: const TextStyle(
+                  color: AppColors.accentRose,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -517,28 +520,38 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
 
   Widget _repeatChip(ReminderRecurrence recurrence, AppLocalizations l10n) {
     final selected = _recurrence == recurrence;
-    return GestureDetector(
-      onTap: () => setState(() => _recurrence = recurrence),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          gradient: selected ? AppColors.sunsetRomance : null,
-          color: selected ? null : AppColors.white.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: selected
-                ? Colors.transparent
-                : AppColors.accentRose.withValues(alpha: 0.12),
-          ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        gradient: selected ? AppColors.sunsetRomance : null,
+        color: selected ? null : AppColors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: selected
+              ? Colors.transparent
+              : AppColors.accentRose.withValues(alpha: 0.12),
         ),
-        child: Text(
-          _recurrenceLabel(recurrence, l10n),
-          style: TextStyle(
-            color: selected ? AppColors.white : AppColors.textSecondary,
-            fontSize: 13,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => setState(() => _recurrence = recurrence),
+          borderRadius: BorderRadius.circular(999),
+          splashColor: selected
+              ? AppColors.white.withValues(alpha: 0.12)
+              : AppColors.accentRose.withValues(alpha: 0.08),
+          highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Text(
+              _recurrenceLabel(recurrence, l10n),
+              style: TextStyle(
+                color: selected ? AppColors.white : AppColors.textSecondary,
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+              ),
+            ),
           ),
         ),
       ),

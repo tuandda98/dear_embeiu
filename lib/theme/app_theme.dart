@@ -248,10 +248,43 @@ class AppTheme {
   }
 
   // ---------------------------------------------------------------------------
-  // Reusable text styles for screen eyebrows / titles on gradient surfaces
+  // Reusable text styles for screen eyebrows / titles on gradient surfaces.
+  //
+  // Header ink (design-unify vòng 4, 2026-06-11): header type is NAVY
+  // [AppColors.textPrimary] by default — white-on-dawnBlush only measured
+  // ~1.7:1 even with a dark drop shadow (real screenshots: text sank into the
+  // bright end of the gradient). The pink gradient carries the brand; the ink
+  // carries the reading (SumOne treatment). White text remains legal ONLY on
+  // dark scrims/photos (CounterCard, Profile hero, photo overlays, deep
+  // gradient pills, bottom nav) — those callers pass `color: AppColors.white`
+  // explicitly and still get the dark drop shadow below.
+  //
+  // The shadow is applied only while [shadowed] is true AND the color is
+  // white — the navy default never ships a shadow, so dark-on-light usages
+  // stay clean.
+
+  /// Title-sized drop shadow (≈ black .32, blur 10) — Home greeting spec.
+  static const List<Shadow> _pageTitleShadows = [
+    Shadow(color: Color(0x52000000), blurRadius: 10, offset: Offset(0, 1)),
+  ];
+
+  /// Small-type drop shadow (≈ black .28, blur 8) for eyebrows/subtitles.
+  static const List<Shadow> _pageSmallShadows = [
+    Shadow(color: Color(0x47000000), blurRadius: 8, offset: Offset(0, 1)),
+  ];
+
+  static List<Shadow>? _onGradientShadows(
+    bool shadowed,
+    Color color,
+    List<Shadow> shadows,
+  ) {
+    return (shadowed && color == AppColors.white) ? shadows : null;
+  }
+
   static TextStyle pageEyebrowStyle({
-    Color color = AppColors.white,
-    double alpha = 0.92,
+    Color color = AppColors.textPrimary,
+    double alpha = 0.55,
+    bool shadowed = true,
   }) {
     return _bodyBase.copyWith(
       color: color.withValues(alpha: alpha),
@@ -261,22 +294,28 @@ class AppTheme {
       fontWeight: FontWeight.w700,
       letterSpacing: 1.4,
       height: 1,
+      shadows: _onGradientShadows(shadowed, color, _pageSmallShadows),
     );
   }
 
-  static TextStyle pageTitleStyle({Color color = AppColors.white}) {
+  static TextStyle pageTitleStyle({
+    Color color = AppColors.textPrimary,
+    bool shadowed = true,
+  }) {
     return _displayBase.copyWith(
       color: color,
       fontSize: 32,
       fontWeight: FontWeight.w700,
       letterSpacing: -0.5,
       height: 1.05,
+      shadows: _onGradientShadows(shadowed, color, _pageTitleShadows),
     );
   }
 
   static TextStyle pageSubtitleStyle({
-    Color color = AppColors.white,
-    double alpha = 0.82,
+    Color color = AppColors.textPrimary,
+    double alpha = 0.62,
+    bool shadowed = true,
   }) {
     return _bodyBase.copyWith(
       color: color.withValues(alpha: alpha),
@@ -284,6 +323,7 @@ class AppTheme {
       fontWeight: FontWeight.w400,
       height: 1.5,
       letterSpacing: 0.05,
+      shadows: _onGradientShadows(shadowed, color, _pageSmallShadows),
     );
   }
 

@@ -9,8 +9,15 @@ import '../theme/app_theme.dart';
 /// it ([BackdropFilter]), then layers a translucent white fill plus a soft
 /// white highlight border on top.
 ///
-/// This replaces the "fake glass" (flat translucent [Container]) used across
-/// the auth/main screens — adopt it screen-by-screen in a later pass.
+/// ⚠️ Usage rule B11 (design-unify, 2026-06-11) — glass is ONLY for:
+/// - the auth / setup / guest form containers,
+/// - the floating bottom navigation bar,
+/// - overlays sitting ON TOP of a photo (scrim chips, preview controls).
+///
+/// It is BANNED for long scrolling lists and content-heavy reading cards
+/// (one BackdropFilter per tile = jank, and translucent fills wash out body
+/// text on the blush gradient) — those use the solid-white [ContentCard]
+/// (r24, black .06 shadow) instead.
 class GlassCard extends StatelessWidget {
   const GlassCard({
     super.key,

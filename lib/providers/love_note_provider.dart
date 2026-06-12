@@ -15,11 +15,31 @@ class LoveNoteProvider extends ChangeNotifier {
 
   final LoveNoteService _service;
 
+  /// Realtime window size AND "show more" page size for the note history
+  /// archive (feature pagination D5).
+  static const int _historyPageSize = 50;
+
   StreamSubscription<List<LoveNote>>? _subscription;
   String? _coupleId;
   String? _myUid;
   List<LoveNote> _notes = const <LoveNote>[];
   bool _isLoading = false;
+
+  // ── History archive state (pagination D5) ────────────────────────────────
+  // Active only while the history screen is open ([startHistory] /
+  // [stopHistory]). Firebase mode: the realtime stream watches the newest 50
+  // entries; older pages are fetched once and ACCUMULATED in an id-keyed map
+  // (history is append-only, so entries never need removing). Local mode: the
+  // Hive archive is loaded whole (small data, no doc ids) — no pagination.
+  StreamSubscription<List<LoveNote>>? _historySubscription;
+  final Map<String, LoveNote> _historyById = <String, LoveNote>{};
+  List<LoveNote> _localHistoryEntries = const <LoveNote>[];
+  bool _historyLoading = false;
+  bool _historyHasMore = false;
+  bool _historyLoadingMore = false;
+
+  /// Oldest `createdAt` of the contiguous loaded prefix (window + pages).
+  DateTime? _historyCursor;
 
   /// The partner's note (author != current uid), or null when none exists yet.
   LoveNote? get partnerNote {
@@ -68,6 +88,11 @@ class LoveNoteProvider extends ChangeNotifier {
     _myUid = myUid;
     _notes = const <LoveNote>[];
     _isLoading = true;
+    // Couple (or uid) changed: any open history stream belongs to the old
+    // couple — drop it. The archive screen re-arms via startHistory if open.
+    _historySubscription?.cancel();
+    _historySubscription = null;
+    _resetHistoryState();
     notifyListeners();
 
     _subscription?.cancel();
@@ -96,17 +121,18 @@ class LoveNoteProvider extends ChangeNotifier {
     // Decide create vs update BEFORE saving — based only on whether a note
     // already existed, never on its text (🔒 no content is logged).
     final action = myNote == null ? 'create' : 'update';
-    final previousText = myNote?.text.trim() ?? '';
 
     await _service.setMyNote(coupleId: coupleId, uid: uid, text: text);
 
-    // Append to the immutable history timeline — but only when the text is
-    // non-empty AND actually changed, so re-saving an unchanged note (or
-    // clearing it) doesn't spam duplicate archive entries. BEST-EFFORT: a
-    // history failure (e.g. offline, or rules not yet deployed) must never
-    // break the core note save above.
+    // Append every non-empty send to the immutable history timeline —
+    // INCLUDING repeats ("yêu em" ×2 is a real chat message; user 2026-06-11,
+    // after the chat composer landed). The old same-text dedupe predates the
+    // chat — and the Home ritual sheet still gates identical re-saves itself
+    // (pops false) before ever calling here, so its flow stays duplicate-free.
+    // BEST-EFFORT: a history failure (e.g. offline, or rules not yet deployed)
+    // must never break the core note save above.
     final trimmed = text.trim();
-    if (trimmed.isNotEmpty && trimmed != previousText) {
+    if (trimmed.isNotEmpty) {
       try {
         await _service.appendHistory(coupleId: coupleId, uid: uid, text: text);
       } catch (_) {
@@ -119,20 +145,135 @@ class LoveNoteProvider extends ChangeNotifier {
     return true;
   }
 
-  /// Streams the couple's note history (newest-first) for the archive screen.
-  /// Returns an empty stream when there is no active couple.
-  Stream<List<LoveNote>> watchHistory() {
+  // ── History archive (pagination D5) ──────────────────────────────────────
+
+  /// Merged history entries, newest first.
+  List<LoveNote> get historyEntries {
+    if (!_service.isUsingFirebase) {
+      return _localHistoryEntries;
+    }
+    return _historyById.values.toList()
+      ..sort((a, b) => (b.updatedAt ?? DateTime(0))
+          .compareTo(a.updatedAt ?? DateTime(0)));
+  }
+
+  /// True while the FIRST history page is loading (skeleton state).
+  bool get historyLoading => _historyLoading;
+  bool get historyHasMore => _historyHasMore;
+  bool get historyLoadingMore => _historyLoadingMore;
+
+  /// Starts streaming the newest history page for the archive screen. Safe to
+  /// call from `initState` — it never notifies synchronously (the stream
+  /// callbacks do). No-ops when already streaming or without an active couple.
+  void startHistory() {
     final coupleId = _coupleId;
     if (coupleId == null || coupleId.trim().isEmpty) {
-      return Stream<List<LoveNote>>.value(const <LoveNote>[]);
+      return;
     }
-    return _service.watchHistory(coupleId);
+    if (_historySubscription != null) {
+      return;
+    }
+
+    _historyLoading = _historyById.isEmpty && _localHistoryEntries.isEmpty;
+    _historySubscription = _service.watchHistory(coupleId).listen(
+      (entries) {
+        if (!_service.isUsingFirebase) {
+          // Local archive arrives whole — nothing more to page in.
+          _localHistoryEntries = entries;
+          _historyHasMore = false;
+        } else {
+          for (final note in entries) {
+            final id = note.id;
+            if (id != null) {
+              _historyById[id] = note;
+            }
+          }
+          // First emission initializes the cursor + hasMore; later emissions
+          // only carry NEWER entries (the window), so the cursor stays put.
+          if (_historyCursor == null && entries.isNotEmpty) {
+            _historyCursor = entries.last.updatedAt;
+            _historyHasMore = entries.length >= _historyPageSize;
+          }
+        }
+        _historyLoading = false;
+        notifyListeners();
+      },
+      onError: (_) {
+        _historyLoading = false;
+        notifyListeners();
+      },
+    );
+  }
+
+  /// Stops the history stream and frees the archive state (screen closed).
+  void stopHistory() {
+    _historySubscription?.cancel();
+    _historySubscription = null;
+    _resetHistoryState();
+  }
+
+  /// Fetches the next (older) history page. Re-entrancy guarded; no-op when
+  /// nothing more remains.
+  Future<void> loadMoreHistory() async {
+    final coupleId = _coupleId;
+    final cursor = _historyCursor;
+    if (_historyLoadingMore ||
+        !_historyHasMore ||
+        coupleId == null ||
+        cursor == null) {
+      return;
+    }
+
+    _historyLoadingMore = true;
+    notifyListeners();
+
+    try {
+      final older = await _service.fetchOlderHistory(
+        coupleId,
+        startAfterCreatedAt: cursor,
+        limit: _historyPageSize,
+      );
+      // Re-check the couple AFTER the await (same race as
+      // PhotoProvider.loadMorePhotos): a sign-out or couple switch while the
+      // fetch was in flight must not leak the previous couple's notes into
+      // the new session's archive — drop the stale page entirely.
+      if (coupleId == _coupleId) {
+        for (final note in older) {
+          final id = note.id;
+          if (id != null) {
+            _historyById[id] = note;
+          }
+        }
+        final oldest = older.isEmpty ? null : older.last.updatedAt;
+        if (oldest != null) {
+          _historyCursor = oldest;
+        }
+        _historyHasMore = older.length >= _historyPageSize;
+      }
+    } catch (_) {
+      // Keep hasMore so the "show more" button stays available for a retry.
+    }
+
+    _historyLoadingMore = false;
+    notifyListeners();
+  }
+
+  void _resetHistoryState() {
+    _historyById.clear();
+    _localHistoryEntries = const <LoveNote>[];
+    _historyLoading = false;
+    _historyHasMore = false;
+    _historyLoadingMore = false;
+    _historyCursor = null;
   }
 
   /// Stops watching and resets state (e.g. on sign-out or leaving a couple).
   void clear() {
     _subscription?.cancel();
     _subscription = null;
+    _historySubscription?.cancel();
+    _historySubscription = null;
+    _resetHistoryState();
     _coupleId = null;
     _myUid = null;
     _notes = const <LoveNote>[];
@@ -143,6 +284,7 @@ class LoveNoteProvider extends ChangeNotifier {
   @override
   void dispose() {
     _subscription?.cancel();
+    _historySubscription?.cancel();
     super.dispose();
   }
 }

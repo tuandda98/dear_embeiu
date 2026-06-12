@@ -8,7 +8,10 @@ import '../providers/notification_inbox_provider.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
-import '../widgets/glass_card.dart';
+import '../widgets/content_card.dart';
+import '../widgets/eyebrow_chip.dart';
+import '../widgets/header_icon_button.dart';
+import '../widgets/shimmer_skeleton.dart';
 
 /// In-app notification center (feature notifications). Lists the current
 /// couple's notifications newest-first, grouped into "Today" / "Earlier", lets
@@ -16,8 +19,8 @@ import '../widgets/glass_card.dart';
 /// tab (reusing the same [NotificationTapRouter] plumbing as a real push tap).
 ///
 /// Visually it lives in the "Sunset Romance" world: the dawn-blush gradient
-/// background + glassmorphism tiles, matching Home/Gallery instead of the plain
-/// Material list it used to be.
+/// background + solid white content tiles (design-unify C11 — glass is banned
+/// in long scrolling lists, B11), matching Home/Gallery.
 class NotificationCenterScreen extends StatelessWidget {
   const NotificationCenterScreen({super.key});
 
@@ -39,14 +42,20 @@ class NotificationCenterScreen extends StatelessWidget {
               _Header(provider: provider, l10n: l10n),
               Expanded(
                 child: provider.isLoading && items.isEmpty
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.accentLoveDeep,
-                        ),
+                    // Content-shaped skeleton tiles instead of a centered
+                    // spinner (design-unify C11) — same gutter/radius as the
+                    // real tiles so nothing jumps when items arrive.
+                    ? ListView.separated(
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 9),
+                        itemCount: 5,
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
+                        itemBuilder: (_, _) =>
+                            const ShimmerSkeleton(height: 84, borderRadius: 22),
                       )
                     : items.isEmpty
-                        ? _EmptyState(l10n: l10n)
-                        : _NotificationList(items: items, l10n: l10n),
+                    ? _EmptyState(l10n: l10n)
+                    : _NotificationList(items: items, l10n: l10n),
               ),
             ],
           ),
@@ -56,8 +65,9 @@ class NotificationCenterScreen extends StatelessWidget {
   }
 }
 
-/// Brand header: a glass back button + overflow menu over the gradient, with
-/// the page title and a live unread summary — same type styles as Home.
+/// Brand header: the standard white squircle back button (B3) + overflow menu
+/// over the gradient, with the page title and a live unread summary — same
+/// type styles as Home.
 class _Header extends StatelessWidget {
   const _Header({required this.provider, required this.l10n});
 
@@ -68,30 +78,37 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final unread = provider.unreadCount;
     final hasItems = provider.items.isNotEmpty;
-    final subtitle = unread > 0 ? l10n.notifUnreadCount(unread) : l10n.notifAllCaughtUp;
+    final subtitle = unread > 0
+        ? l10n.notifUnreadCount(unread)
+        : l10n.notifAllCaughtUp;
 
+    // Header vòng 5c (2026-06-11): landing-style large header (EyebrowChip +
+    // pageTitle + the live unread line as the subtitle) — same pattern as
+    // Settings. The top row keeps only the back squircle + overflow menu; the
+    // header stays FIXED above the list (the Dismissible list below is too
+    // involved to absorb it as a scrolling first item).
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              _GlassIconButton(
+              HeaderIconButton(
                 icon: LucideIcons.arrowLeft,
-                tooltip: l10n.back,
+                semanticsLabel: l10n.back,
                 onTap: () => Navigator.of(context).maybePop(),
               ),
               const Spacer(),
               if (hasItems) _OverflowMenu(provider: provider, l10n: l10n),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+          EyebrowChip(label: l10n.notifCenterBadge, icon: LucideIcons.bell),
+          const SizedBox(height: 14),
           Text(l10n.notifCenterTitle, style: AppTheme.pageTitleStyle()),
-          if (hasItems) ...[
-            const SizedBox(height: 6),
-            Text(subtitle, style: AppTheme.pageSubtitleStyle()),
-          ],
+          const SizedBox(height: 8),
+          Text(subtitle, style: AppTheme.pageSubtitleStyle()),
         ],
       ),
     );
@@ -126,11 +143,15 @@ class _NotificationList extends StatelessWidget {
     final children = <Widget>[];
     if (today.isNotEmpty) {
       children.add(_SectionHeader(label: l10n.notifGroupToday));
-      children.addAll(today.map((n) => _DismissibleTile(notification: n, l10n: l10n)));
+      children.addAll(
+        today.map((n) => _DismissibleTile(notification: n, l10n: l10n)),
+      );
     }
     if (earlier.isNotEmpty) {
       children.add(_SectionHeader(label: l10n.notifGroupEarlier));
-      children.addAll(earlier.map((n) => _DismissibleTile(notification: n, l10n: l10n)));
+      children.addAll(
+        earlier.map((n) => _DismissibleTile(notification: n, l10n: l10n)),
+      );
     }
 
     return ListView(
@@ -154,9 +175,11 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(22, 14, 16, 8),
       child: Text(
         label.toUpperCase(),
+        // Header ink vòng 4: navy at .55 on the blush gradient — same recipe
+        // as the page eyebrow; no shadow (that was the white-ink treatment).
         style: TextStyle(
-          color: AppColors.white.withValues(alpha: 0.92),
-          fontSize: 11.5,
+          color: AppColors.textPrimary.withValues(alpha: 0.55),
+          fontSize: 12,
           fontWeight: FontWeight.w800,
           letterSpacing: 1.1,
         ),
@@ -175,21 +198,39 @@ class _DismissibleTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 5, 16, 5),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Dismissible(
-          key: ValueKey('notif-${notification.id}'),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            color: AppColors.accentLove.withValues(alpha: 0.20),
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 22),
-            child: const Icon(LucideIcons.trash2, color: AppColors.accentLoveDeep),
+      // The B4 content shadow lives OUTSIDE the ClipRRect (the clip exists to
+      // round the red swipe background and would swallow the tile's own
+      // shadow otherwise).
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: Dismissible(
+            key: ValueKey('notif-${notification.id}'),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              color: AppColors.accentLove.withValues(alpha: 0.20),
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 22),
+              child: const Icon(
+                LucideIcons.trash2,
+                color: AppColors.accentLoveDeep,
+              ),
+            ),
+            onDismissed: (_) {
+              context.read<NotificationInboxProvider>().remove(notification.id);
+            },
+            child: _NotificationTile(notification: notification, l10n: l10n),
           ),
-          onDismissed: (_) {
-            context.read<NotificationInboxProvider>().remove(notification.id);
-          },
-          child: _NotificationTile(notification: notification, l10n: l10n),
         ),
       ),
     );
@@ -208,92 +249,109 @@ class _NotificationTile extends StatelessWidget {
     final subtitle = _subtitleFor(n);
     final unread = !n.read;
 
-    return GlassCard(
-      borderRadius: 22,
-      blur: 14,
-      padding: EdgeInsets.zero,
-      fillAlpha: unread ? 0.30 : 0.18,
-      borderAlpha: unread ? 0.75 : 0.30,
-      borderColor: unread ? AppColors.accentLove : null,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(22),
-          onTap: () {
-            // Mark read, then route to the relevant Home tab via the shared
-            // notification-tap plumbing and close the center. Home is already
-            // mounted and listening, so it switches tab on the next frame.
-            context.read<NotificationInboxProvider>().markRead(n.id);
-            // Photo/reaction → deep-link to the exact photo; else just the tab.
-            final photoId = n.photoId;
-            if (photoId != null && photoId.isNotEmpty) {
-              NotificationTapRouter.pendingPhotoId.value = photoId;
-            }
-            // Daily question → scroll its card into view on Home.
-            if (n.type == AppNotificationType.dailyQuestion) {
-              NotificationTapRouter.pendingHomeFocus.value = 'daily_question';
-            }
-            NotificationTapRouter.pendingHomeTab.value = n.targetHomeTab;
-            Navigator.of(context).maybePop();
-          },
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _Avatar(type: n.type),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _titleFor(n, l10n),
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14.5,
-                          height: 1.35,
-                          fontWeight: unread ? FontWeight.w700 : FontWeight.w600,
-                        ),
-                      ),
-                      if (subtitle != null && subtitle.trim().isNotEmpty) ...[
-                        const SizedBox(height: 3),
+    // Solid white reading surface (B4, r22 tile variant) — glass is banned in
+    // long scrolling lists (B11). Unread keeps its "NEW" language as a rose
+    // outline + dot (same as the love-note card).
+    return Container(
+      foregroundDecoration: unread
+          ? BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: AppColors.accentLove.withValues(alpha: 0.45),
+                width: 1.2,
+              ),
+            )
+          : null,
+      child: ContentCard(
+        radius: 22,
+        padding: EdgeInsets.zero,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(22),
+            splashColor: AppColors.accentRose.withValues(alpha: 0.08),
+            onTap: () {
+              // Mark read, then route to the relevant Home tab via the shared
+              // notification-tap plumbing and close the center. Home is already
+              // mounted and listening, so it switches tab on the next frame.
+              context.read<NotificationInboxProvider>().markRead(n.id);
+              // Photo/reaction → deep-link to the exact photo; else just the tab.
+              final photoId = n.photoId;
+              if (photoId != null && photoId.isNotEmpty) {
+                NotificationTapRouter.pendingPhotoId.value = photoId;
+              }
+              // Daily question → scroll its card into view on Home.
+              if (n.type == AppNotificationType.dailyQuestion) {
+                NotificationTapRouter.pendingHomeFocus.value = 'daily_question';
+              }
+              NotificationTapRouter.pendingHomeTab.value = n.targetHomeTab;
+              Navigator.of(context).maybePop();
+            },
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Avatar(type: n.type),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          subtitle.trim(),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          _titleFor(n, l10n),
                           style: TextStyle(
-                            color: AppColors.textPrimary.withValues(alpha: 0.70),
-                            fontSize: 13,
-                            height: 1.4,
+                            color: AppColors.textPrimary,
+                            fontSize: 15,
+                            height: 1.35,
+                            fontWeight: unread
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                          ),
+                        ),
+                        if (subtitle != null && subtitle.trim().isNotEmpty) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            subtitle.trim(),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: AppColors.textPrimary.withValues(
+                                alpha: 0.70,
+                              ),
+                              fontSize: 13,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 5),
+                        Text(
+                          _relativeTime(n.createdAt, l10n),
+                          style: TextStyle(
+                            color: AppColors.textPrimary.withValues(
+                              alpha: 0.50,
+                            ),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
-                      const SizedBox(height: 5),
-                      Text(
-                        _relativeTime(n.createdAt, l10n),
-                        style: TextStyle(
-                          color: AppColors.textPrimary.withValues(alpha: 0.50),
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (unread) ...[
-                  const SizedBox(width: 10),
-                  Container(
-                    margin: const EdgeInsets.only(top: 5),
-                    width: 9,
-                    height: 9,
-                    decoration: const BoxDecoration(
-                      color: AppColors.accentLove,
-                      shape: BoxShape.circle,
                     ),
                   ),
+                  if (unread) ...[
+                    const SizedBox(width: 10),
+                    Container(
+                      margin: const EdgeInsets.only(top: 5),
+                      width: 9,
+                      height: 9,
+                      decoration: const BoxDecoration(
+                        color: AppColors.accentLove,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),
@@ -316,6 +374,8 @@ class _NotificationTile extends StatelessWidget {
         return l10n.notifLoveNote(name);
       case AppNotificationType.dailyQuestion:
         return l10n.notifDailyQuestion(name);
+      case AppNotificationType.chatMessage:
+        return l10n.notifChatMessage(name);
       case AppNotificationType.unknown:
         return l10n.notifGeneric;
     }
@@ -385,45 +445,18 @@ class _Avatar extends StatelessWidget {
         return (LucideIcons.mail, AppColors.accentLove);
       case AppNotificationType.dailyQuestion:
         return (LucideIcons.messageCircle, AppColors.accentLavenderDeep);
+      case AppNotificationType.chatMessage:
+        return (LucideIcons.messageCircle, AppColors.accentLove);
       case AppNotificationType.unknown:
         return (LucideIcons.bell, AppColors.textSecondary);
     }
   }
 }
 
-/// Glass header button matching the Home header pills (translucent fill +
-/// highlight border, white icon).
-class _GlassIconButton extends StatelessWidget {
-  const _GlassIconButton({
-    required this.icon,
-    required this.onTap,
-    this.tooltip,
-  });
-
-  final IconData icon;
-  final VoidCallback onTap;
-  final String? tooltip;
-
-  @override
-  Widget build(BuildContext context) {
-    final button = GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(11),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-        ),
-        child: Icon(icon, color: AppColors.white, size: 22),
-      ),
-    );
-    if (tooltip == null) return button;
-    return Tooltip(message: tooltip, child: button);
-  }
-}
-
-/// Overflow menu (mark all read / clear all) rendered as a glass pill.
+/// Overflow menu (mark all read / clear all) behind the standard white
+/// header squircle (B3). Opens via [showMenu] anchored to the button (a
+/// [PopupMenuButton] can't host [HeaderIconButton] — its inner InkWell would
+/// swallow the tap); the menu items and actions are unchanged.
 class _OverflowMenu extends StatelessWidget {
   const _OverflowMenu({required this.provider, required this.l10n});
 
@@ -432,34 +465,43 @@ class _OverflowMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      tooltip: '',
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      icon: Container(
-        padding: const EdgeInsets.all(11),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+    return HeaderIconButton(
+      icon: LucideIcons.moreHorizontal,
+      onTap: () => _showOverflowMenu(context),
+    );
+  }
+
+  Future<void> _showOverflowMenu(BuildContext context) async {
+    // Anchor the menu under the squircle, like PopupMenuButton would.
+    final button = context.findRenderObject()! as RenderBox;
+    final overlay =
+        Overlay.of(context).context.findRenderObject()! as RenderBox;
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        button.localToGlobal(Offset.zero, ancestor: overlay),
+        button.localToGlobal(
+          button.size.bottomRight(Offset.zero),
+          ancestor: overlay,
         ),
-        child: const Icon(LucideIcons.moreHorizontal,
-            color: AppColors.white, size: 22),
       ),
-      onSelected: (value) async {
-        if (value == 'read') {
-          await context.read<NotificationInboxProvider>().markAllRead();
-        } else if (value == 'clear') {
-          await _confirmClearAll(context);
-        }
-      },
-      itemBuilder: (context) => [
+      Offset.zero & overlay.size,
+    );
+
+    final value = await showMenu<String>(
+      context: context,
+      position: position,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      items: [
         if (provider.hasUnread)
           PopupMenuItem<String>(
             value: 'read',
             child: Row(
               children: [
-                const Icon(LucideIcons.checkCheck,
-                    size: 20, color: AppColors.textSecondary),
+                const Icon(
+                  LucideIcons.checkCheck,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 12),
                 Text(l10n.notifMarkAllRead),
               ],
@@ -477,6 +519,13 @@ class _OverflowMenu extends StatelessWidget {
         ),
       ],
     );
+
+    if (!context.mounted) return;
+    if (value == 'read') {
+      await context.read<NotificationInboxProvider>().markAllRead();
+    } else if (value == 'clear') {
+      await _confirmClearAll(context);
+    }
   }
 
   Future<void> _confirmClearAll(BuildContext context) async {
@@ -514,8 +563,9 @@ class _EmptyState extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(32, 0, 32, 60),
-        child: GlassCard(
-          borderRadius: 28,
+        // Solid white content card (B4) — was glass, banned for reading
+        // surfaces (B11).
+        child: ContentCard(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 34),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -538,7 +588,7 @@ class _EmptyState extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -546,8 +596,8 @@ class _EmptyState extends StatelessWidget {
               Text(
                 l10n.notifCenterEmptyBody,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.textPrimary.withValues(alpha: 0.70),
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
                   fontSize: 14,
                   height: 1.5,
                 ),

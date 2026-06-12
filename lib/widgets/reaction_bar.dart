@@ -165,7 +165,7 @@ class _ReactionBarState extends State<ReactionBar> {
                     context.l10n.reactionHint,
                     style: TextStyle(
                       color: hintColor,
-                      fontSize: 11.5,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
                   )
@@ -375,7 +375,7 @@ class ReactionChip extends StatelessWidget {
             label,
             style: TextStyle(
               color: textColor,
-              fontSize: 11.5,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
           ),

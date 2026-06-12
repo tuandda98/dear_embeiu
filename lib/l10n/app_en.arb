@@ -87,14 +87,39 @@
   },
   "setupSuccessConnected": "Connected successfully 💞",
   "navHome": "Home",
+  "navChat": "Chat",
   "navMemories": "Memories",
   "navProfile": "Profile",
+  "chatBadge": "JUST THE TWO OF US",
+  "chatHeaderSubtitle": "Where the two of you talk about everything.",
+  "chatEmptyHint": "No messages yet — send your love the first one 💬",
+  "chatComposerHint": "Message your love…",
+  "chatSendFailed": "Couldn't send your message. Please try again.",
+  "chatSendSemantics": "Send message",
+  "chatSending": "Sending…",
+  "chatUnreadDotSemantics": "New message waiting",
+  "chatWaitingPartnerTitle": "One seat is still empty",
+  "chatWaitingPartnerBody": "Invite your partner to pair up and start your private chat.",
+  "chatWaitingPartnerCta": "Invite to pair",
   "ourStoryBadge": "OUR STORY",
   "helloGreeting": "Hello,",
   "homeSubtitle": "A good day to look back at your love story.",
   "homeGreetingMorning": "Good morning,",
   "homeGreetingAfternoon": "Good afternoon,",
   "homeGreetingEvening": "Good evening,",
+  "homeGreetingNight": "Up late,",
+  "homeGreetingTeaser1": "Have you greeted your love yet? 💌",
+  "homeGreetingTeaser2": "Said \"I love you\" today? 💕",
+  "homeGreetingTeaser3": "Send them a cute photo 📸",
+  "homeGreetingTeaser4": "They can't wait to hear from you 🕊️",
+  "homeGreetingTeaser5": "Don't forget today's question ✨",
+  "homeGreetingTeaser6": "Send something sweet their way 🍯",
+  "homeGreetingTeaser7": "How are you two doing today? 🌷",
+  "homeGreetingTeaser8": "Capture a little moment today 📷",
+  "homeGreetingTeaser9": "A beautiful day to love 💖",
+  "homeGreetingTeaser10": "Tell them you miss them 💭",
+  "homeGreetingTeaser11": "Leave them a little note 💬",
+  "homeGreetingTeaser12": "Keep your love streak going 🔥",
   "homeTodaySectionTitle": "Today, together",
   "dailyTapToAnswer": "Tap to answer…",
   "dailyPartnerAnsweredTeaser": "{name} has answered 👀",
@@ -311,9 +336,12 @@
     }
   },
   "loveNoteSaved": "Your note was sent 💞",
+  "loveNoteSendFailed": "Couldn't send the note — please try again.",
   "loveNoteHistoryCta": "See past notes",
   "loveNoteHistoryTitle": "Note journal",
   "loveNoteHistorySubtitle": "Every note you two have left for each other.",
+  "loveNoteHistoryBadge": "LOVE NOTES",
+  "loveNoteHistoryHeaderSubtitle": "Every note the two of you have sent.",
   "loveNoteHistoryEmpty": "No notes saved yet. The ones you send each other will be kept here.",
   "loveNoteJustNow": "just now",
   "loveNoteMinutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
@@ -414,6 +442,8 @@
   "journalEntryCta": "Open journal",
   "journalScreenTitle": "Question journal",
   "journalScreenSubtitle": "The questions you've both answered.",
+  "journalBadge": "DAILY Q&A",
+  "journalHeaderSubtitle": "The questions you two have answered together.",
   "journalSettingsTile": "Question journal",
   "journalSettingsSection": "Memories",
   "journalYourAnswerLabel": "YOUR ANSWER",
@@ -701,6 +731,16 @@
   "customizeProfileTitle": "Customize profile",
   "customizeProfileSubtitle": "Update names, anniversary date, and couple photo so the profile always reflects your current journey.",
   "editOurStoryBtn": "Edit our story",
+  "profileChipDaysLabel": "days together",
+  "profileChipAnniversaryLabel": "days to anniversary",
+  "profileChipAnniversaryTodayLabel": "anniversary is today!",
+  "profileChipPhotosLabel": "memories saved",
+  "profileMemoryChestTitle": "Memory chest",
+  "profileStreakTile": "Connection streak",
+  "settingsSectionAccount": "Account",
+  "settingsSectionNotifications": "Notifications",
+  "settingsSectionGeneral": "General",
+  "settingsPushGroupLabel": "Push from your partner",
   "proTipLabel": "Pro tip",
   "proTipContent": "A bright, close-up couple photo with good breathing room will make the hero section look much more polished.",
   "dataManagementTitle": "Data management",
@@ -795,6 +835,8 @@
   },
   "remindersV2MilestoneScreenTitle": "Milestones & anniversaries",
   "remindersV2MilestoneScreenCaption": "Choose the milestones you want and when to be reminded.",
+  "milestoneBadge": "SPECIAL DAYS",
+  "milestoneHeaderSubtitle": "Pick milestones to be reminded of, with their own times.",
   "remindersV2MilestoneNext": "Next: {date}",
   "@remindersV2MilestoneNext": {
     "placeholders": {
@@ -848,6 +890,8 @@
   "milestoneInactivityDesc": "A gentle nudge after 7 days without a new photo",
   "milestoneInactivitySub": "Reminds you after 7 photo-free days",
   "settingsTitle": "Settings",
+  "settingsBadge": "APP PREFERENCES",
+  "settingsHeaderSubtitle": "Reminders, notifications, language and your account.",
   "settingsProfileTileSubtitle": "Reminders, language, account",
   "settingsRemindersModuleTitle": "Reminders",
   "settingsRemindersModuleSubtitle": "Milestones, anniversaries & your own reminders",
@@ -884,6 +928,8 @@
   "customRemindersEntryTitle": "Our reminders",
   "customRemindersEntrySubtitle": "Create your own special dates",
   "customRemindersScreenTitle": "Our reminders",
+  "customRemindersBadge": "YOUR OWN MOMENTS",
+  "customRemindersHeaderSubtitle": "Create reminders for your own special moments.",
   "customRemindersCount": "{count}/20",
   "@customRemindersCount": {
     "placeholders": {
@@ -913,6 +959,7 @@
   "customRemindersLimitMsg": "You've reached the max of 20 reminders. Delete one to add more.",
   "customRemindersAddTitle": "New reminder",
   "customRemindersEditTitle": "Edit reminder",
+  "customReminderFormBadge": "YOUR REMINDER",
   "customRemindersSave": "Save",
   "customRemindersCancel": "Cancel",
   "customRemindersSavedMsg": "Reminder saved 💌",
@@ -1281,7 +1328,7 @@
   "@deleteAccountTitle": {
     "description": "deleteAccountTitle"
   },
-  "editCoupleBadge": "EDIT COUPLE",
+  "editCoupleBadge": "COUPLE PROFILE",
   "@editCoupleBadge": {
     "description": "editCoupleBadge"
   },
@@ -1458,6 +1505,7 @@
       }
     }
   },
+  "galleryEndOfFeed": "That's every memory 💕 — go make some new ones together",
   "galleryTodayMomentsCount": "{count} moments today",
   "@galleryTodayMomentsCount": {
     "description": "Count of moments posted today",
@@ -1726,6 +1774,7 @@
   "galleryNeedsCoupleToUpload": "Connect with your partner first before sharing photos 💞",
 
   "notifCenterTitle": "Notifications",
+  "notifCenterBadge": "WHAT'S NEW",
   "notifCenterEmptyTitle": "No notifications yet",
   "notifCenterEmptyBody": "Activity from the two of you will appear here.",
   "notifGroupToday": "Today",
@@ -1763,6 +1812,10 @@
   },
   "notifDailyQuestion": "{name} answered today's question",
   "@notifDailyQuestion": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "notifChatMessage": "{name} sent you a message 💬",
+  "@notifChatMessage": {
     "placeholders": { "name": { "type": "String" } }
   }
 }
