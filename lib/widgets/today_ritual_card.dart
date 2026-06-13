@@ -17,7 +17,7 @@ import 'compose_pill.dart';
 import 'content_card.dart';
 import 'love_lottie.dart';
 
-/// The "Hôm nay của hai đứa" ritual card (Home v3, 2026-06-10): today's
+/// The "Hôm nay của chúng mình" ritual card (Home v3, 2026-06-10): today's
 /// question, tap-to-compose. Design principles applied:
 ///
 /// 1. Question = tap-to-compose — a pill opens the answer bottom sheet.

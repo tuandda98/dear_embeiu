@@ -128,7 +128,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get setupCreateTitle => 'Bắt đầu\ncâu chuyện của hai mình';
 
   @override
-  String get setupEditTitle => 'Chỉnh sửa\ncâu chuyện của hai mình';
+  String setupEditTitle(String me, String partner) {
+    return 'Chỉnh sửa câu chuyện của\n$me ❤️ $partner';
+  }
+
+  @override
+  String get setupEditTitleGeneric => 'Chỉnh sửa\ncâu chuyện của chúng mình';
 
   @override
   String get setupTabCreate => 'Tạo mới';
@@ -251,7 +256,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chatBadge => 'CHUYỆN CỦA CHÚNG MÌNH';
 
   @override
-  String get chatHeaderSubtitle => 'Nơi hai đứa nói đủ thứ chuyện trên đời.';
+  String get chatHeaderSubtitle => 'Nơi chúng mình nói đủ thứ chuyện trên đời.';
 
   @override
   String get chatEmptyHint =>
@@ -277,7 +282,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get chatWaitingPartnerBody =>
-      'Mời người ấy ghép đôi để bắt đầu cuộc trò chuyện riêng của hai đứa.';
+      'Mời người ấy ghép đôi để bắt đầu cuộc trò chuyện riêng của chúng mình.';
 
   @override
   String get chatWaitingPartnerCta => 'Mời ghép đôi';
@@ -305,7 +310,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get homeGreetingNight => 'Khuya rồi đó,';
 
   @override
-  String get homeGreetingTeaser1 => 'Bạn đã chúc người ấy chưa? 💌';
+  String get homeGreetingTeaser1 => 'Gửi người ấy một cái ôm thật chặt 🤗';
 
   @override
   String get homeGreetingTeaser2 => 'Hôm nay đã nói yêu người ấy chưa? 💕';
@@ -323,10 +328,11 @@ class AppLocalizationsVi extends AppLocalizations {
   String get homeGreetingTeaser6 => 'Một lời ngọt ngào cho người ấy nào 🍯';
 
   @override
-  String get homeGreetingTeaser7 => 'Hai đứa hôm nay thế nào rồi? 🌷';
+  String get homeGreetingTeaser7 => 'Nói một lời cảm ơn nhỏ xíu hôm nay nhé 💞';
 
   @override
-  String get homeGreetingTeaser8 => 'Lưu lại một khoảnh khắc hôm nay nhé 📷';
+  String get homeGreetingTeaser8 =>
+      'Một khoảnh khắc bình yên bên nhau là đủ rồi 🍃';
 
   @override
   String get homeGreetingTeaser9 => 'Một ngày thật đẹp để yêu thương 💖';
@@ -335,13 +341,14 @@ class AppLocalizationsVi extends AppLocalizations {
   String get homeGreetingTeaser10 => 'Nhắn người ấy là bạn đang nhớ họ nha 💭';
 
   @override
-  String get homeGreetingTeaser11 => 'Viết cho người ấy một lời nhắn nhỏ 💬';
+  String get homeGreetingTeaser11 =>
+      'Cùng nhau viết tiếp chuyện tình của chúng mình ✍️';
 
   @override
   String get homeGreetingTeaser12 => 'Cùng nhau giữ chuỗi ngày yêu nhé 🔥';
 
   @override
-  String get homeTodaySectionTitle => 'Hôm nay của hai đứa';
+  String get homeTodaySectionTitle => 'Hôm nay của chúng mình';
 
   @override
   String get dailyTapToAnswer => 'Chạm để trả lời…';
@@ -414,7 +421,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get dailyQuestionPairedFirst =>
-      'Ghép đôi xong là hai đứa sẽ cùng trả lời một câu hỏi như vầy mỗi ngày 💞';
+      'Ghép đôi xong là chúng mình sẽ cùng trả lời một câu hỏi như vầy mỗi ngày 💞';
 
   @override
   String get loveNoteHistoryLinkShort => 'Lời nhắn cũ';
@@ -934,7 +941,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get composerSubtitle =>
-      'Biến thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.';
+      'Để thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.';
 
   @override
   String compactCaption(int count) {
@@ -1121,10 +1128,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get journeySnapshotTitle => 'Bức tranh hành trình';
-
-  @override
-  String get journeySnapshotSubtitle =>
-      'Các con số nổi bật của mối quan hệ được trình bày gọn gàng, hiện đại và dễ nhìn.';
 
   @override
   String get yearsTogether => 'Năm bên nhau';
@@ -2044,7 +2047,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get galleryTodayEmptySubtitle =>
-      'Đừng để ngày này trôi qua không dấu vết.';
+      'Mỗi tấm ảnh là một kỷ niệm chung của nhau.';
 
   @override
   String get galleryTodayEmptyTitle => 'Hôm nay chưa có khoảnh khắc nào';
@@ -2249,7 +2252,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String streakChipAtRisk(int n) {
-    return 'Chuỗi $n ngày đang chờ hai đứa 🫶';
+    return 'Chuỗi $n ngày đang chờ chúng mình 🫶';
   }
 
   @override
@@ -2260,10 +2263,10 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get streakSheetNoStreakBody =>
-      'Mỗi ngày hai đứa cùng trả lời câu hỏi là chuỗi lại dài thêm. Cùng bắt đầu nhé 💞';
+      'Mỗi ngày chúng mình cùng trả lời câu hỏi là chuỗi lại dài thêm. Cùng bắt đầu nhé 💞';
 
   @override
-  String get streakSheetActiveTitle => 'Hai đứa đang giữ lửa 💞';
+  String get streakSheetActiveTitle => 'Chúng mình đang giữ lửa 💞';
 
   @override
   String get streakSheetActiveBody =>
@@ -2274,7 +2277,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String streakSheetInProgressBody(int n) {
-    return 'Trả lời câu hỏi hôm nay để hai đứa cùng nối tiếp chuỗi $n ngày nhé 💞';
+    return 'Trả lời câu hỏi hôm nay để chúng mình cùng nối tiếp chuỗi $n ngày nhé 💞';
   }
 
   @override
@@ -2282,7 +2285,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String streakSheetAtRiskBody(int n) {
-    return 'Hôm qua hai đứa lỡ một nhịp — không sao cả! Trả lời hôm nay là chuỗi $n ngày tiếp tục liền.';
+    return 'Hôm qua chúng mình lỡ một nhịp — không sao cả! Trả lời hôm nay là chuỗi $n ngày tiếp tục liền.';
   }
 
   @override
@@ -2291,7 +2294,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String streakSheetRecord(int m) {
-    return 'Kỷ lục của hai đứa: $m ngày 🌟';
+    return 'Kỷ lục của chúng mình: $m ngày 🌟';
   }
 
   @override
@@ -2310,35 +2313,35 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get streakMilestone3Body =>
-      'Khởi đầu thật đáng yêu. Hai đứa đang làm tốt lắm 💞';
+      'Khởi đầu thật đáng yêu. Chúng mình đang làm tốt lắm 💞';
 
   @override
   String get streakMilestone7Title => 'Trọn một tuần! ✨';
 
   @override
   String get streakMilestone7Body =>
-      '7 ngày liền hai đứa không lỡ nhịp nào. Tự hào ghê!';
+      '7 ngày liền chúng mình không lỡ nhịp nào. Tự hào ghê!';
 
   @override
   String get streakMilestone30Title => '30 ngày bên nhau mỗi ngày! 🔥';
 
   @override
   String get streakMilestone30Body =>
-      'Một tháng giữ lửa — đây là thói quen của hai đứa rồi đấy 💞';
+      'Một tháng giữ lửa — đây là thói quen của chúng mình rồi đấy 💞';
 
   @override
   String get streakMilestone100Title => '100 ngày! 💯';
 
   @override
   String get streakMilestone100Body =>
-      'Trăm ngày cùng nhau trả lời, cùng nhau lớn lên. Hiếm cặp nào làm được như hai đứa 🌟';
+      'Trăm ngày cùng nhau trả lời, cùng nhau lớn lên. Hiếm cặp nào làm được như chúng mình 🌟';
 
   @override
   String get streakMilestone365Title => 'Tròn một năm! 👑';
 
   @override
   String get streakMilestone365Body =>
-      '365 ngày không lỡ một nhịp kết nối. Đây là chuyện tình của riêng hai đứa 💞👑';
+      '365 ngày không lỡ một nhịp kết nối. Đây là chuyện tình của riêng chúng mình 💞👑';
 
   @override
   String streakJournalSummary(int n, int m) {

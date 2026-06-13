@@ -46,7 +46,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'If you described your partner in one word, what would it be?',
   },
   {
-    'vi': 'Bạn mong hai đứa cùng nhau làm gì trong năm nay?',
+    'vi': 'Bạn mong chúng mình cùng nhau làm gì trong năm nay?',
     'en': 'What do you hope the two of you do together this year?',
   },
   {
@@ -86,8 +86,8 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'If the two of you had a whole day off, what would you do?',
   },
   {
-    'vi': 'Điều gì ở mối quan hệ này khiến bạn tự hào?',
-    'en': 'What about this relationship makes you proud?',
+    'vi': 'Điều gì ở chuyện tình của chúng mình khiến bạn thấy tự hào?',
+    'en': 'What about your love story makes you proud?',
   },
   {
     'vi': 'Bạn muốn nói lời cảm ơn nào với người ấy mà chưa kịp nói?',
@@ -106,8 +106,8 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What makes you believe the two of you are a good match?',
   },
   {
-    'vi': 'Bạn muốn giữ truyền thống nhỏ nào của riêng hai đứa?',
-    'en': 'What little tradition would you like just the two of you to keep?',
+    'vi': 'Có thói quen nhỏ nào của riêng chúng mình mà bạn muốn giữ mãi không?',
+    'en': 'Is there a little habit of ours you’d love to keep forever?',
   },
   {
     'vi': 'Lần đầu hẹn hò, điều gì khiến bạn nhớ nhất?',
@@ -126,12 +126,12 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'If you could relive one moment together, which would it be?',
   },
   {
-    'vi': 'Bạn thấy hai đứa giống nhau ở điểm nào nhất?',
+    'vi': 'Bạn thấy chúng mình giống nhau ở điểm nào nhất?',
     'en': 'In what way do you think the two of you are most alike?',
   },
   {
-    'vi': 'Người ấy khiến bạn cảm thấy can đảm hơn ở điều gì?',
-    'en': 'In what way does your partner make you feel braver?',
+    'vi': 'Có việc gì nhờ có người ấy mà bạn thấy mình can đảm hơn?',
+    'en': 'Is there something you feel braver doing because of your partner?',
   },
   {
     'vi': 'Bạn muốn dành buổi tối hôm nay bên người ấy như thế nào?',
@@ -158,8 +158,8 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What unusual dish would you like to try with your partner?',
   },
   {
-    'vi': 'Điều gì khiến bạn cảm thấy được người ấy thấu hiểu?',
-    'en': 'What makes you feel understood by your partner?',
+    'vi': 'Người ấy làm điều gì khiến bạn thấy mình được thấu hiểu?',
+    'en': 'What does your partner do that makes you feel understood?',
   },
   {
     'vi': 'Nếu được hẹn hò ở một thời đại khác, bạn chọn thời nào?',
@@ -210,8 +210,8 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What makes an ordinary day special when your partner is around?',
   },
   {
-    'vi': 'Bạn mong hai đứa luôn giữ được điều gì dù thời gian trôi qua?',
-    'en': 'What do you hope the two of you always keep, no matter the time?',
+    'vi': 'Bạn mong điều gì giữa hai người sẽ không bao giờ thay đổi?',
+    'en': 'What do you hope never changes between the two of you?',
   },
   {
     'vi': 'Nếu cùng nhau viết một danh sách ước mơ, điều đầu tiên là gì?',
@@ -252,7 +252,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Do you still remember how it felt the first time you held hands?',
   },
   {
-    'vi': 'Tin nhắn đầu tiên hai đứa gửi cho nhau có nội dung gì?',
+    'vi': 'Tin nhắn đầu tiên chúng mình gửi cho nhau có nội dung gì?',
     'en': 'What did the very first message between you two say?',
   },
   {
@@ -264,11 +264,11 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What was your very first impression of your partner?',
   },
   {
-    'vi': 'Chuyến đi nào của hai đứa bạn muốn được trải lại?',
+    'vi': 'Chuyến đi nào của chúng mình bạn muốn được trải lại?',
     'en': 'Which trip of yours would you love to do all over again?',
   },
   {
-    'vi': 'Có món đồ nhỏ nào lưu giữ kỷ niệm của hai đứa mà bạn vẫn giữ?',
+    'vi': 'Có món đồ nhỏ nào lưu giữ kỷ niệm của chúng mình mà bạn vẫn giữ?',
     'en': 'Is there a small keepsake from your story you still hold on to?',
   },
   {
@@ -284,7 +284,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Which photo of the two of you is your favorite, and why?',
   },
   {
-    'vi': 'Câu chuyện nào về hai đứa bạn hay kể lại nhất cho người khác?',
+    'vi': 'Câu chuyện nào về chúng mình bạn hay kể lại nhất cho người khác?',
     'en': 'What story about the two of you do you tell others the most?',
   },
 
@@ -324,15 +324,15 @@ const List<Map<String, String>> dailyQuestions = [
 
   // ── Tương lai chung (a shared future) ────────────────────────────────────
   {
-    'vi': 'Ngôi nhà trong mơ của hai đứa sẽ trông như thế nào?',
+    'vi': 'Ngôi nhà trong mơ của chúng mình sẽ trông như thế nào?',
     'en': 'What would your dream home together look like?',
   },
   {
-    'vi': 'Bạn hình dung một buổi sáng cuối tuần lý tưởng của hai đứa ra sao?',
+    'vi': 'Bạn hình dung một buổi sáng cuối tuần lý tưởng của chúng mình ra sao?',
     'en': 'How do you picture an ideal weekend morning for the two of you?',
   },
   {
-    'vi': 'Có nơi nào bạn ước mỗi năm hai đứa cùng quay lại một lần?',
+    'vi': 'Có nơi nào bạn ước mỗi năm chúng mình cùng quay lại một lần?',
     'en': 'Is there a place you wish the two of you returned to once a year?',
   },
   {
@@ -340,11 +340,11 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What new habit would you like to start with your partner this week?',
   },
   {
-    'vi': 'Mười năm nữa, bạn mong hai đứa vẫn cùng nhau làm điều gì?',
+    'vi': 'Mười năm nữa, bạn mong chúng mình vẫn cùng nhau làm điều gì?',
     'en': 'Ten years from now, what do you hope you two still do together?',
   },
   {
-    'vi': 'Có kỹ năng nào bạn muốn hai đứa cùng thành thạo không?',
+    'vi': 'Có kỹ năng nào bạn muốn chúng mình cùng thành thạo không?',
     'en': 'Is there a skill you would love the two of you to master together?',
   },
   {
@@ -352,11 +352,11 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What challenge would you love to take on with your partner once?',
   },
   {
-    'vi': 'Nếu hai đứa mở một quán nhỏ cùng nhau, đó sẽ là quán gì?',
+    'vi': 'Nếu chúng mình mở một quán nhỏ cùng nhau, đó sẽ là quán gì?',
     'en': 'If the two of you opened a little shop together, what would it be?',
   },
   {
-    'vi': 'Bạn mong dịp kỷ niệm năm sau của hai đứa diễn ra thế nào?',
+    'vi': 'Bạn mong dịp kỷ niệm năm sau của chúng mình diễn ra thế nào?',
     'en': 'How do you hope your anniversary next year will go?',
   },
   {
@@ -366,7 +366,7 @@ const List<Map<String, String>> dailyQuestions = [
 
   // ── Sở thích & "thà rằng" (preferences / would you rather) ───────────────
   {
-    'vi': 'Hai đứa thích ở nhà cùng nhau hay ra ngoài khám phá hơn?',
+    'vi': 'Chúng mình thích ở nhà cùng nhau hay ra ngoài khám phá hơn?',
     'en': 'Do you two prefer cozy nights in or going out to explore?',
   },
   {
@@ -400,11 +400,11 @@ const List<Map<String, String>> dailyQuestions = [
 
   // ── "Nếu..." & tưởng tượng (if / imagination) ────────────────────────────
   {
-    'vi': 'Nếu hai đứa có một ngày tàng hình, bạn muốn cùng làm gì?',
+    'vi': 'Nếu chúng mình có một ngày tàng hình, bạn muốn cùng làm gì?',
     'en': 'If the two of you were invisible for a day, what would you do?',
   },
   {
-    'vi': 'Nếu được sống ở bất kỳ thành phố nào, hai đứa chọn nơi nào?',
+    'vi': 'Nếu được sống ở bất kỳ thành phố nào, chúng mình chọn nơi nào?',
     'en': 'If you could live in any city, which would the two of you pick?',
   },
   {
@@ -412,7 +412,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'If you won a free trip, where would you take your partner?',
   },
   {
-    'vi': 'Nếu hai đứa hoán đổi vai trò một ngày, bạn nghĩ sẽ thế nào?',
+    'vi': 'Nếu chúng mình hoán đổi vai trò một ngày, bạn nghĩ sẽ thế nào?',
     'en': 'If you two swapped roles for a day, how do you think it would go?',
   },
   {
@@ -420,15 +420,15 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'If you could pause time, which moment together would you stretch out?',
   },
   {
-    'vi': 'Nếu hai đứa cùng vào một show truyền hình, đó sẽ là show gì?',
+    'vi': 'Nếu chúng mình cùng vào một show truyền hình, đó sẽ là show gì?',
     'en': 'If the two of you joined a TV show together, which would it be?',
   },
   {
-    'vi': 'Nếu được đặt tên một vì sao theo hai đứa, bạn muốn gọi là gì?',
+    'vi': 'Nếu được đặt tên một vì sao theo chúng mình, bạn muốn gọi là gì?',
     'en': 'If you could name a star after you two, what would you call it?',
   },
   {
-    'vi': 'Nếu hai đứa lạc trên hoang đảo, bạn tin tưởng người ấy lo việc gì?',
+    'vi': 'Nếu chúng mình lạc trên hoang đảo, bạn tin tưởng người ấy lo việc gì?',
     'en': 'If you were stranded on an island, what would you trust your partner with?',
   },
   {
@@ -436,7 +436,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'If you had one superpower to help your partner, which would you pick?',
   },
   {
-    'vi': 'Nếu được viết kịch bản cho một ngày hoàn hảo của hai đứa, sẽ ra sao?',
+    'vi': 'Nếu được viết kịch bản cho một ngày hoàn hảo của chúng mình, sẽ ra sao?',
     'en': 'If you scripted one perfect day for the two of you, how would it look?',
   },
 
@@ -488,8 +488,8 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'If you had a year to do anything, what would you spend it on?',
   },
   {
-    'vi': 'Bạn muốn trở thành phiên bản nào của chính mình, và người ấy giúp ra sao?',
-    'en': 'Who do you want to become, and how does your partner help you get there?',
+    'vi': 'Bạn muốn mình ngày càng tốt hơn ở điểm nào, và người ấy giúp được gì?',
+    'en': 'What do you want to get better at, and how does your partner help?',
   },
   {
     'vi': 'Có điều gì bạn luôn muốn học mà người ấy có thể dạy bạn?',
@@ -510,7 +510,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Do you prefer a long road trip or a relaxing getaway?',
   },
   {
-    'vi': 'Quán cà phê nào hai đứa hay hẹn, và vì sao bạn thích nơi đó?',
+    'vi': 'Quán cà phê nào chúng mình hay hẹn, và vì sao bạn thích nơi đó?',
     'en': 'Which café do you two often meet at, and why do you love it?',
   },
   {
@@ -518,7 +518,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'If you spent a whole day in a quiet garden together, what would you do?',
   },
   {
-    'vi': 'Con đường nào hai đứa hay đi mà bạn thấy đẹp nhất?',
+    'vi': 'Con đường nào chúng mình hay đi mà bạn thấy đẹp nhất?',
     'en': 'Which street that you two often walk feels the most beautiful?',
   },
   {
@@ -526,7 +526,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Would you rather watch the snow or the sea with your partner?',
   },
   {
-    'vi': 'Có một góc nhỏ nào trở thành "địa điểm của riêng hai đứa" không?',
+    'vi': 'Có một góc nhỏ nào trở thành "địa điểm của riêng chúng mình" không?',
     'en': 'Is there a little spot that became a place just for the two of you?',
   },
 
@@ -536,11 +536,11 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What dessert would you love to split with your partner today?',
   },
   {
-    'vi': 'Nếu hai đứa nấu chung một bữa, bạn muốn nấu món gì?',
+    'vi': 'Nếu chúng mình nấu chung một bữa, bạn muốn nấu món gì?',
     'en': 'If you two cooked one meal together, what would you make?',
   },
   {
-    'vi': 'Món ăn vặt nào hai đứa luôn mua khi đi chơi cùng nhau?',
+    'vi': 'Món ăn vặt nào chúng mình luôn mua khi đi chơi cùng nhau?',
     'en': 'What snack do you two always grab when you go out together?',
   },
   {
@@ -548,7 +548,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Which dish your partner makes do you remember the taste of most?',
   },
   {
-    'vi': 'Bữa sáng lý tưởng của hai đứa vào ngày cuối tuần là gì?',
+    'vi': 'Bữa sáng lý tưởng của chúng mình vào ngày cuối tuần là gì?',
     'en': 'What is your ideal weekend breakfast together?',
   },
   {
@@ -556,7 +556,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Is there a food you disliked but started trying because of your partner?',
   },
   {
-    'vi': 'Nếu mở một thực đơn cho hai đứa, món chủ đạo sẽ là gì?',
+    'vi': 'Nếu mở một thực đơn cho chúng mình, món chủ đạo sẽ là gì?',
     'en': 'If you wrote a menu just for you two, what would the signature dish be?',
   },
 
@@ -566,11 +566,11 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What song instantly reminds you of when you two first fell for each other?',
   },
   {
-    'vi': 'Nếu hai đứa có một playlist chung, bài đầu tiên sẽ là gì?',
+    'vi': 'Nếu chúng mình có một playlist chung, bài đầu tiên sẽ là gì?',
     'en': 'If you two had a shared playlist, what would the first song be?',
   },
   {
-    'vi': 'Bộ phim nào bạn nghĩ phản chiếu chuyện tình của hai đứa?',
+    'vi': 'Bộ phim nào bạn nghĩ phản chiếu chuyện tình của chúng mình?',
     'en': 'Which movie do you think mirrors your love story?',
   },
   {
@@ -578,15 +578,15 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Which movie character reminds you most of your partner?',
   },
   {
-    'vi': 'Có bài hát nào hai đứa từng hát cùng nhau mà bạn nhớ không?',
+    'vi': 'Có bài hát nào chúng mình từng hát cùng nhau mà bạn nhớ không?',
     'en': 'Is there a song you two once sang together that you remember?',
   },
   {
-    'vi': 'Thể loại phim nào hai đứa luôn hợp gu khi xem chung?',
+    'vi': 'Thể loại phim nào chúng mình luôn hợp gu khi xem chung?',
     'en': 'Which movie genre do you two always agree on?',
   },
   {
-    'vi': 'Nếu cuộc đời hai đứa có nhạc nền, bạn muốn chọn giai điệu nào?',
+    'vi': 'Nếu cuộc đời chúng mình có nhạc nền, bạn muốn chọn giai điệu nào?',
     'en': 'If your life together had a soundtrack, what melody would you pick?',
   },
 
@@ -596,15 +596,15 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Which of your partner\'s jokes always leaves you half laughing, half groaning?',
   },
   {
-    'vi': 'Lần nào hai đứa cãi nhau vì chuyện nhỏ xíu rồi tự thấy buồn cười?',
+    'vi': 'Lần nào chúng mình cãi nhau vì chuyện nhỏ xíu rồi tự thấy buồn cười?',
     'en': 'When did you two argue over something tiny and later find it hilarious?',
   },
   {
-    'vi': 'Nếu hai đứa thi một môn kỳ quặc, ai sẽ thắng và môn gì?',
+    'vi': 'Nếu chúng mình thi một môn kỳ quặc, ai sẽ thắng và môn gì?',
     'en': 'If you two competed in a quirky contest, who would win and at what?',
   },
   {
-    'vi': 'Biệt danh nào hai đứa gọi nhau mà người ngoài nghe sẽ thấy lạ?',
+    'vi': 'Biệt danh nào chúng mình gọi nhau mà người ngoài nghe sẽ thấy lạ?',
     'en': 'What nickname do you two use that outsiders would find odd?',
   },
   {
@@ -612,11 +612,11 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Which habit of yours does your partner tease you about, and you admit it?',
   },
   {
-    'vi': 'Nếu hai đứa lập một đội, tên đội bá đạo nhất sẽ là gì?',
+    'vi': 'Nếu chúng mình lập một đội, tên đội bá đạo nhất sẽ là gì?',
     'en': 'If you two formed a team, what is the most epic team name you would pick?',
   },
   {
-    'vi': 'Khoảnh khắc vụng về nào của hai đứa giờ nghĩ lại vẫn thấy đáng yêu?',
+    'vi': 'Khoảnh khắc vụng về nào của chúng mình giờ nghĩ lại vẫn thấy đáng yêu?',
     'en': 'What clumsy moment of yours still feels adorable when you look back?',
   },
 
@@ -626,28 +626,28 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What do you think makes a relationship last?',
   },
   {
-    'vi': 'Theo bạn, "ở bên nhau" có nghĩa là gì trong những ngày bình thường?',
-    'en': 'What does "being together" mean to you on ordinary days?',
+    'vi': 'Với bạn, một ngày bình thường có nhau trông như thế nào?',
+    'en': 'What does an ordinary day together look like to you?',
   },
   {
-    'vi': 'Bạn nghĩ hai đứa làm gì tốt nhất khi giận nhau rồi làm hòa?',
+    'vi': 'Bạn nghĩ chúng mình làm gì tốt nhất khi giận nhau rồi làm hòa?',
     'en': 'What do you think you two do best when you make up after a quarrel?',
   },
   {
-    'vi': 'Bạn nghĩ điều gì giúp hai đứa hiểu nhau hơn theo thời gian?',
+    'vi': 'Bạn nghĩ điều gì giúp chúng mình hiểu nhau hơn theo thời gian?',
     'en': 'What do you think helps the two of you understand each other better over time?',
   },
   {
-    'vi': 'Theo bạn, khoảng cách giữa hai người nên được lấp đầy bằng điều gì?',
-    'en': 'In your view, what should the space between two people be filled with?',
+    'vi': 'Khi hai người xa nhau, điều gì giúp tình cảm vẫn gần gũi?',
+    'en': 'When you’re apart, what keeps the two of you feeling close?',
   },
   {
-    'vi': 'Bạn nghĩ tình yêu của hai đứa đã trưởng thành ra sao?',
+    'vi': 'Bạn nghĩ tình yêu của chúng mình đã trưởng thành ra sao?',
     'en': 'How do you think your love has grown up over time?',
   },
   {
-    'vi': 'Bạn nghĩ một lời xin lỗi chân thành nên bắt đầu thế nào?',
-    'en': 'How do you think a sincere apology should begin?',
+    'vi': 'Khi cần làm hòa, bạn nghĩ nên mở lời xin lỗi thế nào cho chân thành?',
+    'en': 'When making up, how do you think a sincere apology should start?',
   },
 
   // ── Cảm xúc & gần gũi (feelings / closeness) ─────────────────────────────
@@ -660,15 +660,15 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'When do you feel closest to your partner?',
   },
   {
-    'vi': 'Điều gì khiến bạn cảm thấy được người ấy ưu tiên?',
-    'en': 'What makes you feel like a priority to your partner?',
+    'vi': 'Người ấy làm điều gì khiến bạn thấy mình quan trọng với họ?',
+    'en': 'What does your partner do that makes you feel important to them?',
   },
   {
     'vi': 'Cách nào người ấy an ủi bạn mà bạn thấy hiệu quả nhất?',
     'en': 'How does your partner comfort you in a way that works best?',
   },
   {
-    'vi': 'Có điều gì bạn muốn hai đứa nói với nhau nhiều hơn không?',
+    'vi': 'Có điều gì bạn muốn chúng mình nói với nhau nhiều hơn không?',
     'en': 'Is there something you wish the two of you said to each other more?',
   },
   {
@@ -680,13 +680,13 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What would you like your partner to ask you about more often?',
   },
   {
-    'vi': 'Điều gì khiến bạn cảm thấy được là chính mình khi ở bên người ấy?',
-    'en': 'What makes you feel free to be yourself around your partner?',
+    'vi': 'Khi ở bên người ấy, điều gì khiến bạn thoải mái được là chính mình?',
+    'en': 'When you’re with your partner, what lets you feel free to be yourself?',
   },
 
   // ── Cùng nhau phát triển (growing together) ──────────────────────────────
   {
-    'vi': 'Hai đứa đã cùng vượt qua thử thách nào và học được gì?',
+    'vi': 'Chúng mình đã cùng vượt qua thử thách nào và học được gì?',
     'en': 'What challenge have you two overcome together, and what did you learn?',
   },
   {
@@ -698,11 +698,11 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Is there a good habit you picked up from your partner?',
   },
   {
-    'vi': 'Hai đứa cân bằng giữa thời gian riêng và thời gian chung thế nào?',
+    'vi': 'Chúng mình cân bằng giữa thời gian riêng và thời gian chung thế nào?',
     'en': 'How do you two balance time alone and time together?',
   },
   {
-    'vi': 'Bạn muốn hai đứa cùng cố gắng hơn ở điều gì trong tháng này?',
+    'vi': 'Bạn muốn chúng mình cùng cố gắng hơn ở điều gì trong tháng này?',
     'en': 'What would you like the two of you to work on together this month?',
   },
   {
@@ -728,16 +728,16 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'In what plain everyday moment does your partner look most beautiful to you?',
   },
   {
-    'vi': 'Bạn muốn cùng người ấy ngắm điều gì trong im lặng?',
-    'en': 'What would you love to watch in silence beside your partner?',
+    'vi': 'Có khung cảnh nào bạn muốn cùng người ấy lặng lẽ ngắm cùng nhau không?',
+    'en': 'Is there a view you’d love to quietly take in beside your partner?',
   },
   {
     'vi': 'Câu nói nào của người ấy khiến tim bạn lỡ một nhịp?',
     'en': 'What did your partner say that made your heart skip a beat?',
   },
   {
-    'vi': 'Bạn muốn lưu giữ cảm giác nào của hôm nay để nhớ về sau?',
-    'en': 'Which feeling from today would you like to keep for the future?',
+    'vi': 'Hôm nay có khoảnh khắc nào bạn muốn ghi nhớ thật lâu không?',
+    'en': 'Is there a moment from today you’d like to remember for a long time?',
   },
 
   // ── Khám phá lẫn nhau (getting to know each other) ───────────────────────
@@ -784,7 +784,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'When you are sick, how would you like your partner to take care of you?',
   },
   {
-    'vi': 'Có việc nhà nào hai đứa làm cùng nhau mà bạn thấy vui không?',
+    'vi': 'Có việc nhà nào chúng mình làm cùng nhau mà bạn thấy vui không?',
     'en': 'Is there a chore you two do together that you actually enjoy?',
   },
   {
@@ -798,7 +798,7 @@ const List<Map<String, String>> dailyQuestions = [
 
   // ── Dịp đặc biệt & truyền thống (occasions / traditions) ─────────────────
   {
-    'vi': 'Bạn muốn hai đứa có một nghi thức nhỏ nào mỗi dịp kỷ niệm?',
+    'vi': 'Bạn muốn chúng mình có một nghi thức nhỏ nào mỗi dịp kỷ niệm?',
     'en': 'What little ritual would you like the two of you to keep on each anniversary?',
   },
   {
@@ -806,7 +806,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'For your partner birthday, what surprise would you love to plan?',
   },
   {
-    'vi': 'Có ngày nào trong năm trở thành "ngày của riêng hai đứa" không?',
+    'vi': 'Có ngày nào trong năm trở thành "ngày của riêng chúng mình" không?',
     'en': 'Is there a day each year that became "your day" as a couple?',
   },
   {
@@ -818,7 +818,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'If you started a monthly food tradition, what would it be?',
   },
   {
-    'vi': 'Dịp lễ nào bạn thấy hai đứa hợp nhau khi cùng đón nhất?',
+    'vi': 'Dịp lễ nào bạn thấy chúng mình hợp nhau khi cùng đón nhất?',
     'en': 'Which holiday do you two enjoy celebrating together the most?',
   },
 
@@ -858,7 +858,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Is there a little win today you would like your partner to celebrate with you?',
   },
   {
-    'vi': 'Khi bận rộn, hai đứa làm gì để vẫn dành chút thời gian cho nhau?',
+    'vi': 'Khi bận rộn, chúng mình làm gì để vẫn dành chút thời gian cho nhau?',
     'en': 'When busy, what do you two do to still make time for each other?',
   },
   {
@@ -870,39 +870,39 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What in your day made you think "I wish my partner were here"?',
   },
   {
-    'vi': 'Hai đứa có thói quen chia sẻ chuyện trong ngày vào lúc nào?',
+    'vi': 'Chúng mình có thói quen chia sẻ chuyện trong ngày vào lúc nào?',
     'en': 'When do you two share how your days went?',
   },
 
   // ── Mơ mộng & tưởng tượng vui (playful daydreams) ────────────────────────
   {
-    'vi': 'Nếu hai đứa có một ngôi nhà trên cây, bạn muốn trang trí thế nào?',
+    'vi': 'Nếu chúng mình có một ngôi nhà trên cây, bạn muốn trang trí thế nào?',
     'en': 'If you two had a treehouse, how would you decorate it?',
   },
   {
-    'vi': 'Nếu hai đứa cùng nuôi một khu vườn, bạn muốn trồng gì đầu tiên?',
+    'vi': 'Nếu chúng mình cùng nuôi một khu vườn, bạn muốn trồng gì đầu tiên?',
     'en': 'If you two grew a garden together, what would you plant first?',
   },
   {
-    'vi': 'Nếu hai đứa có một chiếc thuyền nhỏ, bạn muốn chèo đi đâu?',
+    'vi': 'Nếu chúng mình có một chiếc thuyền nhỏ, bạn muốn chèo đi đâu?',
     'en': 'If you two had a little boat, where would you row to?',
   },
   {
-    'vi': 'Nếu được vẽ một bức tranh về tương lai hai đứa, trong tranh có gì?',
+    'vi': 'Nếu được vẽ một bức tranh về tương lai chúng mình, trong tranh có gì?',
     'en': 'If you painted a picture of your future together, what would be in it?',
   },
   {
-    'vi': 'Nếu hai đứa có một cây cầu vồng, bạn muốn nó dẫn tới đâu?',
+    'vi': 'Nếu chúng mình có một cây cầu vồng, bạn muốn nó dẫn tới đâu?',
     'en': 'If the two of you had a rainbow, where would you want it to lead?',
   },
   {
-    'vi': 'Nếu đặt một viên thời gian cho con cháu mở ra, hai đứa bỏ gì vào?',
-    'en': 'If you sealed a time capsule for the future, what would you two put inside?',
+    'vi': 'Nếu làm một hộp kỷ niệm để sau này mở lại, chúng mình sẽ bỏ gì vào?',
+    'en': 'If you made a keepsake box to open years later, what would you two put inside?',
   },
 
   // ── Trân trọng khác biệt (appreciating differences) ──────────────────────
   {
-    'vi': 'Điểm nào hai đứa khác nhau nhưng lại bổ sung cho nhau rất hay?',
+    'vi': 'Điểm nào chúng mình khác nhau nhưng lại bổ sung cho nhau rất hay?',
     'en': 'Where are you two different in a way that complements each other beautifully?',
   },
   {
@@ -914,7 +914,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Is there a hobby of your partner you have slowly grown to enjoy too?',
   },
   {
-    'vi': 'Khi bất đồng, điều gì giúp hai đứa vẫn tôn trọng nhau?',
+    'vi': 'Khi bất đồng, điều gì giúp chúng mình vẫn tôn trọng nhau?',
     'en': 'When you disagree, what helps the two of you still respect each other?',
   },
   {
@@ -932,34 +932,34 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What simple activity together makes you happiest?',
   },
   {
-    'vi': 'Bạn thích nhất khoảnh khắc nào trong một buổi đi chơi của hai đứa?',
+    'vi': 'Bạn thích nhất khoảnh khắc nào trong một buổi đi chơi của chúng mình?',
     'en': 'What is your favorite moment in one of your outings together?',
   },
   {
-    'vi': 'Trò chơi nào hai đứa có thể chơi cùng nhau hàng giờ không chán?',
+    'vi': 'Trò chơi nào chúng mình có thể chơi cùng nhau hàng giờ không chán?',
     'en': 'What game could the two of you play for hours without getting bored?',
   },
   {
-    'vi': 'Có bài tập thể dục hay đi dạo nào hai đứa thích làm cùng nhau không?',
+    'vi': 'Có bài tập thể dục hay đi dạo nào chúng mình thích làm cùng nhau không?',
     'en': 'Is there a workout or a walk the two of you love doing together?',
   },
   {
-    'vi': 'Một buổi tối cuối tuần "không làm gì cả" của hai đứa trông ra sao?',
+    'vi': 'Một buổi tối cuối tuần "không làm gì cả" của chúng mình trông ra sao?',
     'en': 'What does a weekend evening of "doing nothing" look like for you two?',
   },
   {
-    'vi': 'Điều nhỏ nào trong ngày khiến cả hai đứa cùng bật cười?',
+    'vi': 'Điều nhỏ nào trong ngày khiến cả chúng mình cùng bật cười?',
     'en': 'What small thing in a day makes both of you laugh?',
   },
 
   // ── Hồi tưởng & nhìn lại (reflection / looking back) ─────────────────────
   {
-    'vi': 'So với ngày đầu, bạn thấy hai đứa đã thay đổi điều gì đáng quý?',
+    'vi': 'So với ngày đầu, bạn thấy chúng mình đã thay đổi điều gì đáng quý?',
     'en': 'Compared to day one, what precious thing has changed between you two?',
   },
   {
-    'vi': 'Bài học lớn nhất tình yêu này dạy cho bạn là gì?',
-    'en': 'What is the biggest lesson this love has taught you?',
+    'vi': 'Khi yêu người ấy, bạn học được điều quan trọng nhất là gì?',
+    'en': 'What’s the most important thing loving your partner has taught you?',
   },
   {
     'vi': 'Có điều gì bạn từng lo lắng nhưng giờ thấy không còn đáng ngại?',

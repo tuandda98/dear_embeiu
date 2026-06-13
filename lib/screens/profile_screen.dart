@@ -431,7 +431,6 @@ class ProfileScreen extends StatelessWidget {
     return _buildSectionCard(
       icon: LucideIcons.sparkles,
       title: l10n.journeySnapshotTitle,
-      subtitle: l10n.journeySnapshotSubtitle,
       child: Column(
         children: [
           Row(
@@ -490,7 +489,7 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildSectionCard({
     required IconData icon,
     required String title,
-    required String subtitle,
+    String? subtitle,
     required Widget child,
   }) {
     return ContentCard(
@@ -514,15 +513,17 @@ class ProfileScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              height: 1.5,
+          if (subtitle != null && subtitle.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                height: 1.5,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 18),
           child,
         ],

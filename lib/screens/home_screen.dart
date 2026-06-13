@@ -1069,7 +1069,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             _gutter(_entrance(2, _buildWaitingForPartnerBanner(couple))),
           ],
-          // ── Nhóm 1: Hôm nay của hai đứa — daily actions first (habit loop).
+          // ── Nhóm 1: Hôm nay của chúng mình — daily actions first (habit loop).
           const SizedBox(height: 28),
           _gutter(_entrance(
             3,
@@ -1543,7 +1543,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// The merged "Hôm nay của hai đứa" ritual card (question + love note).
+  /// The merged "Hôm nay của chúng mình" ritual card (question + love note).
   /// Keyed by couple + today's question so its one-shot state (confetti,
   /// collapsed reveal, envelope) resets cleanly on a couple/day change.
   Widget _buildTodayRitualCard(Couple couple) {

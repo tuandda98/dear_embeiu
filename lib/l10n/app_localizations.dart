@@ -335,8 +335,14 @@ abstract class AppLocalizations {
   /// No description provided for @setupEditTitle.
   ///
   /// In en, this message translates to:
+  /// **'Refine the story of\n{me} ❤️ {partner}'**
+  String setupEditTitle(String me, String partner);
+
+  /// No description provided for @setupEditTitleGeneric.
+  ///
+  /// In en, this message translates to:
   /// **'Refine\nyour story'**
-  String get setupEditTitle;
+  String get setupEditTitleGeneric;
 
   /// No description provided for @setupTabCreate.
   ///
@@ -665,7 +671,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeGreetingTeaser1.
   ///
   /// In en, this message translates to:
-  /// **'Have you greeted your love yet? 💌'**
+  /// **'Send them a big warm hug 🤗'**
   String get homeGreetingTeaser1;
 
   /// No description provided for @homeGreetingTeaser2.
@@ -701,13 +707,13 @@ abstract class AppLocalizations {
   /// No description provided for @homeGreetingTeaser7.
   ///
   /// In en, this message translates to:
-  /// **'How are you two doing today? 🌷'**
+  /// **'Say a little thank-you today 💞'**
   String get homeGreetingTeaser7;
 
   /// No description provided for @homeGreetingTeaser8.
   ///
   /// In en, this message translates to:
-  /// **'Capture a little moment today 📷'**
+  /// **'A calm moment together is enough 🍃'**
   String get homeGreetingTeaser8;
 
   /// No description provided for @homeGreetingTeaser9.
@@ -725,7 +731,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeGreetingTeaser11.
   ///
   /// In en, this message translates to:
-  /// **'Leave them a little note 💬'**
+  /// **'Keep writing your love story together ✍️'**
   String get homeGreetingTeaser11;
 
   /// No description provided for @homeGreetingTeaser12.
@@ -2005,12 +2011,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Journey snapshot'**
   String get journeySnapshotTitle;
-
-  /// No description provided for @journeySnapshotSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'The standout numbers of your relationship, presented cleanly, modernly, and clearly.'**
-  String get journeySnapshotSubtitle;
 
   /// No description provided for @yearsTogether.
   ///
@@ -3611,7 +3611,7 @@ abstract class AppLocalizations {
   /// galleryTodayEmptySubtitle
   ///
   /// In en, this message translates to:
-  /// **'Don\'t let today slip by without a trace.'**
+  /// **'Every photo is a memory the two of you share.'**
   String get galleryTodayEmptySubtitle;
 
   /// galleryTodayEmptyTitle

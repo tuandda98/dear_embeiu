@@ -21,6 +21,7 @@ import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/content_card.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/header_icon_button.dart';
 import '../widgets/invite_action_buttons.dart';
 import '../widgets/love_lottie.dart';
 import '../widgets/shared_couple_photo_view.dart';
@@ -80,6 +81,17 @@ class _SetupScreenState extends State<SetupScreen> {
     }
 
     _didPrefill = true;
+    // Attach AFTER prefill so the programmatic prefill text assignment doesn't
+    // fire a setState mid-build. Rebuild on every keystroke so the editing
+    // "Save changes" button can enable/disable live against _hasPendingChanges.
+    _person1Controller.addListener(_onFormChanged);
+    _person2Controller.addListener(_onFormChanged);
+  }
+
+  void _onFormChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -413,6 +425,20 @@ class _SetupScreenState extends State<SetupScreen> {
     final existingCouple = coupleProvider.couple;
     final isEditing = currentUser?.hasCouple == true && existingCouple != null;
     final editingCouple = isEditing ? existingCouple : null;
+    // Editing: gate the Save button on an actual pending change so it can't
+    // no-op (create mode stays always-actionable). Mirrors _hasPendingChanges +
+    // the required-field guard inside _submitCreateOrUpdate.
+    final bool canSaveEdit = !isEditing ||
+        editingCouple == null ||
+        (_person1Controller.text.trim().isNotEmpty &&
+            _person2Controller.text.trim().isNotEmpty &&
+            _selectedDate != null &&
+            _hasPendingChanges(
+              editingCouple,
+              _person1Controller.text.trim(),
+              _person2Controller.text.trim(),
+              _selectedDate!,
+            ));
     final hasInviteCode = currentUser?.hasInviteCode == true;
     final isBusy = coupleProvider.isLoading || photoProvider.isLoading;
     final loadingMessage = coupleProvider.isLoading
@@ -452,6 +478,7 @@ class _SetupScreenState extends State<SetupScreen> {
                           existingCouple: editingCouple,
                           isEditing: isEditing,
                           isLoading: coupleProvider.isLoading,
+                          canSave: canSaveEdit,
                         )
                       else
                         _buildJoinCard(
@@ -475,7 +502,16 @@ class _SetupScreenState extends State<SetupScreen> {
     bool isEditing,
   ) {
     final l10n = context.l10n;
-    final title = isEditing ? l10n.setupEditTitle : l10n.setupCreateTitle;
+    final String title;
+    if (isEditing) {
+      final me = _person1Controller.text.trim();
+      final partner = _person2Controller.text.trim();
+      title = (me.isEmpty || partner.isEmpty)
+          ? l10n.setupEditTitleGeneric
+          : l10n.setupEditTitle(me, partner);
+    } else {
+      title = l10n.setupCreateTitle;
+    }
     final subtitle = isEditing
         ? l10n.setupEditSectionDesc
         : l10n.setupCreateSectionDesc;
@@ -483,6 +519,17 @@ class _SetupScreenState extends State<SetupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Editing opens as a pushed sub-screen → standard back squircle at the
+        // top-left (design-unify B3). Create mode is the setup landing (reached
+        // via the auth gate, nothing to pop) so it keeps the sign-out action.
+        if (isEditing) ...[
+          HeaderIconButton(
+            icon: LucideIcons.arrowLeft,
+            semanticsLabel: l10n.back,
+            onTap: () => Navigator.of(context).maybePop(),
+          ),
+          const SizedBox(height: 8),
+        ],
         Row(
           children: [
             // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
@@ -826,6 +873,7 @@ class _SetupScreenState extends State<SetupScreen> {
     Couple? existingCouple,
     required bool isEditing,
     required bool isLoading,
+    bool canSave = true,
   }) {
     final l10n = context.l10n;
     final hasPhoto = _couplePhotoPath != null &&
@@ -961,10 +1009,15 @@ class _SetupScreenState extends State<SetupScreen> {
             width: double.infinity,
             height: 52,
             child: FilledButton.icon(
-              onPressed: isLoading ? null : _submitCreateOrUpdate,
+              onPressed: (isLoading || !canSave) ? null : _submitCreateOrUpdate,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
+                // Disabled state (editing, no pending change): a muted rose so
+                // the button reads clearly inactive instead of full-strength.
+                disabledBackgroundColor:
+                    AppColors.accentRose.withValues(alpha: 0.35),
+                disabledForegroundColor: AppColors.white.withValues(alpha: 0.7),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(999),
                 ),

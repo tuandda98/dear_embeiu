@@ -39,7 +39,18 @@
   "alreadyWithUs": "Already with us?",
   "backToSignIn": "Back to sign in",
   "setupCreateTitle": "Begin\nour story",
-  "setupEditTitle": "Refine\nyour story",
+  "setupEditTitle": "Refine the story of\n{me} ❤️ {partner}",
+  "@setupEditTitle": {
+    "placeholders": {
+      "me": {
+        "type": "String"
+      },
+      "partner": {
+        "type": "String"
+      }
+    }
+  },
+  "setupEditTitleGeneric": "Refine\nyour story",
   "setupTabCreate": "Create",
   "setupTabJoin": "Join with code",
   "inviteCodeDialogTitle": "Your invite code",
@@ -108,17 +119,17 @@
   "homeGreetingAfternoon": "Good afternoon,",
   "homeGreetingEvening": "Good evening,",
   "homeGreetingNight": "Up late,",
-  "homeGreetingTeaser1": "Have you greeted your love yet? 💌",
+  "homeGreetingTeaser1": "Send them a big warm hug 🤗",
   "homeGreetingTeaser2": "Said \"I love you\" today? 💕",
   "homeGreetingTeaser3": "Send them a cute photo 📸",
   "homeGreetingTeaser4": "They can't wait to hear from you 🕊️",
   "homeGreetingTeaser5": "Don't forget today's question ✨",
   "homeGreetingTeaser6": "Send something sweet their way 🍯",
-  "homeGreetingTeaser7": "How are you two doing today? 🌷",
-  "homeGreetingTeaser8": "Capture a little moment today 📷",
+  "homeGreetingTeaser7": "Say a little thank-you today 💞",
+  "homeGreetingTeaser8": "A calm moment together is enough 🍃",
   "homeGreetingTeaser9": "A beautiful day to love 💖",
   "homeGreetingTeaser10": "Tell them you miss them 💭",
-  "homeGreetingTeaser11": "Leave them a little note 💬",
+  "homeGreetingTeaser11": "Keep writing your love story together ✍️",
   "homeGreetingTeaser12": "Keep your love streak going 🔥",
   "homeTodaySectionTitle": "Today, together",
   "dailyTapToAnswer": "Tap to answer…",
@@ -700,7 +711,6 @@
   "privateDiaryLabel": "Private diary",
   "loveMilestonesLabel": "Love milestones",
   "journeySnapshotTitle": "Journey snapshot",
-  "journeySnapshotSubtitle": "The standout numbers of your relationship, presented cleanly, modernly, and clearly.",
   "yearsTogether": "Years together",
   "monthsRemaining": "Months remaining",
   "totalDaysLabel": "Total days",
@@ -1352,7 +1362,7 @@
   "@galleryTodayBadge": {
     "description": "galleryTodayBadge"
   },
-  "galleryTodayEmptySubtitle": "Don't let today slip by without a trace.",
+  "galleryTodayEmptySubtitle": "Every photo is a memory the two of you share.",
   "@galleryTodayEmptySubtitle": {
     "description": "galleryTodayEmptySubtitle"
   },

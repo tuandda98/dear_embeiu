@@ -39,7 +39,8 @@
   "alreadyWithUs": "Đã có tài khoản?",
   "backToSignIn": "Quay lại đăng nhập",
   "setupCreateTitle": "Bắt đầu\ncâu chuyện của hai mình",
-  "setupEditTitle": "Chỉnh sửa\ncâu chuyện của hai mình",
+  "setupEditTitle": "Chỉnh sửa câu chuyện của\n{me} ❤️ {partner}",
+  "setupEditTitleGeneric": "Chỉnh sửa\ncâu chuyện của chúng mình",
   "setupTabCreate": "Tạo mới",
   "setupTabJoin": "Tham gia bằng mã",
   "inviteCodeDialogTitle": "Mã mời tài khoản của bạn",
@@ -91,7 +92,7 @@
   "navMemories": "Kỷ niệm",
   "navProfile": "Hồ sơ",
   "chatBadge": "CHUYỆN CỦA CHÚNG MÌNH",
-  "chatHeaderSubtitle": "Nơi hai đứa nói đủ thứ chuyện trên đời.",
+  "chatHeaderSubtitle": "Nơi chúng mình nói đủ thứ chuyện trên đời.",
   "chatEmptyHint": "Chưa có tin nhắn nào — gửi lời đầu tiên cho người ấy nhé 💬",
   "chatComposerHint": "Nhắn gì đó cho người ấy…",
   "chatSendFailed": "Chưa gửi được tin nhắn. Thử lại nhé.",
@@ -99,7 +100,7 @@
   "chatSending": "Đang gửi…",
   "chatUnreadDotSemantics": "Có tin nhắn mới",
   "chatWaitingPartnerTitle": "Còn thiếu một người nè",
-  "chatWaitingPartnerBody": "Mời người ấy ghép đôi để bắt đầu cuộc trò chuyện riêng của hai đứa.",
+  "chatWaitingPartnerBody": "Mời người ấy ghép đôi để bắt đầu cuộc trò chuyện riêng của chúng mình.",
   "chatWaitingPartnerCta": "Mời ghép đôi",
   "ourStoryBadge": "CÂU CHUYỆN CỦA CHÚNG MÌNH",
   "helloGreeting": "Xin chào,",
@@ -108,19 +109,19 @@
   "homeGreetingAfternoon": "Chào buổi chiều,",
   "homeGreetingEvening": "Chào buổi tối,",
   "homeGreetingNight": "Khuya rồi đó,",
-  "homeGreetingTeaser1": "Bạn đã chúc người ấy chưa? 💌",
+  "homeGreetingTeaser1": "Gửi người ấy một cái ôm thật chặt 🤗",
   "homeGreetingTeaser2": "Hôm nay đã nói yêu người ấy chưa? 💕",
   "homeGreetingTeaser3": "Gửi người ấy một tấm ảnh xinh nhé 📸",
   "homeGreetingTeaser4": "Người ấy đang chờ tin của bạn đó 🕊️",
   "homeGreetingTeaser5": "Đừng quên câu hỏi hôm nay nha ✨",
   "homeGreetingTeaser6": "Một lời ngọt ngào cho người ấy nào 🍯",
-  "homeGreetingTeaser7": "Hai đứa hôm nay thế nào rồi? 🌷",
-  "homeGreetingTeaser8": "Lưu lại một khoảnh khắc hôm nay nhé 📷",
+  "homeGreetingTeaser7": "Nói một lời cảm ơn nhỏ xíu hôm nay nhé 💞",
+  "homeGreetingTeaser8": "Một khoảnh khắc bình yên bên nhau là đủ rồi 🍃",
   "homeGreetingTeaser9": "Một ngày thật đẹp để yêu thương 💖",
   "homeGreetingTeaser10": "Nhắn người ấy là bạn đang nhớ họ nha 💭",
-  "homeGreetingTeaser11": "Viết cho người ấy một lời nhắn nhỏ 💬",
+  "homeGreetingTeaser11": "Cùng nhau viết tiếp chuyện tình của chúng mình ✍️",
   "homeGreetingTeaser12": "Cùng nhau giữ chuỗi ngày yêu nhé 🔥",
-  "homeTodaySectionTitle": "Hôm nay của hai đứa",
+  "homeTodaySectionTitle": "Hôm nay của chúng mình",
   "dailyTapToAnswer": "Chạm để trả lời…",
   "dailyPartnerAnsweredTeaser": "{name} đã trả lời rồi đó 👀",
   "@dailyPartnerAnsweredTeaser": {
@@ -180,7 +181,7 @@
     }
   },
   "counterBgSwipeHint": "Vuốt ngang để đổi ảnh nền",
-  "dailyQuestionPairedFirst": "Ghép đôi xong là hai đứa sẽ cùng trả lời một câu hỏi như vầy mỗi ngày 💞",
+  "dailyQuestionPairedFirst": "Ghép đôi xong là chúng mình sẽ cùng trả lời một câu hỏi như vầy mỗi ngày 💞",
   "loveNoteHistoryLinkShort": "Lời nhắn cũ",
   "loveNoteReplyCta": "Nhắn lại…",
   "loveNoteSendFirstCta": "Gửi lời nhắn đầu tiên…",
@@ -579,7 +580,7 @@
   "addMultipleBtn": "Thêm nhiều",
   "addNewMemoryTitle": "Thêm một kỷ niệm mới hôm nay",
   "whatNewToday": "hôm nay có gì mới?",
-  "composerSubtitle": "Biến thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.",
+  "composerSubtitle": "Để thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.",
   "compactCaption": "{count} khoảnh khắc · Vuốt thêm để bung khung đăng ảnh",
   "@compactCaption": {
     "placeholders": {
@@ -700,7 +701,6 @@
   "privateDiaryLabel": "Nhật ký riêng tư",
   "loveMilestonesLabel": "Mốc yêu thương",
   "journeySnapshotTitle": "Bức tranh hành trình",
-  "journeySnapshotSubtitle": "Các con số nổi bật của mối quan hệ được trình bày gọn gàng, hiện đại và dễ nhìn.",
   "yearsTogether": "Năm bên nhau",
   "monthsRemaining": "Tháng lẻ",
   "totalDaysLabel": "Tổng số ngày",
@@ -1005,7 +1005,7 @@
   "galleryEmptyTitle": "Chưa có ảnh nào",
   "galleryRecordTodayMoment": "Ghi lại khoảnh khắc hôm nay",
   "galleryTodayBadge": "Hôm nay",
-  "galleryTodayEmptySubtitle": "Đừng để ngày này trôi qua không dấu vết.",
+  "galleryTodayEmptySubtitle": "Mỗi tấm ảnh là một kỷ niệm chung của nhau.",
   "galleryTodayEmptyTitle": "Hôm nay chưa có khoảnh khắc nào",
   "homeWaitingPartnerSubtitle": "Chia sẻ mã mời với người ấy để bắt đầu hành trình cùng nhau.",
   "homeWaitingPartnerTitle": "Chờ bạn đồng hành",
@@ -1074,7 +1074,7 @@
       "n": { "type": "int" }
     }
   },
-  "streakChipAtRisk": "Chuỗi {n} ngày đang chờ hai đứa 🫶",
+  "streakChipAtRisk": "Chuỗi {n} ngày đang chờ chúng mình 🫶",
   "@streakChipAtRisk": {
     "placeholders": {
       "n": { "type": "int" }
@@ -1083,25 +1083,25 @@
 
   "streakSheetUnit": "ngày kết nối liên tiếp",
   "streakSheetNoStreakTitle": "Thắp ngọn lửa đầu tiên",
-  "streakSheetNoStreakBody": "Mỗi ngày hai đứa cùng trả lời câu hỏi là chuỗi lại dài thêm. Cùng bắt đầu nhé 💞",
-  "streakSheetActiveTitle": "Hai đứa đang giữ lửa 💞",
+  "streakSheetNoStreakBody": "Mỗi ngày chúng mình cùng trả lời câu hỏi là chuỗi lại dài thêm. Cùng bắt đầu nhé 💞",
+  "streakSheetActiveTitle": "Chúng mình đang giữ lửa 💞",
   "streakSheetActiveBody": "Hôm nay xong rồi đó! Hẹn gặp ở câu hỏi ngày mai nha.",
   "streakSheetInProgressTitle": "Chuỗi vẫn đang cháy 🌸",
-  "streakSheetInProgressBody": "Trả lời câu hỏi hôm nay để hai đứa cùng nối tiếp chuỗi {n} ngày nhé 💞",
+  "streakSheetInProgressBody": "Trả lời câu hỏi hôm nay để chúng mình cùng nối tiếp chuỗi {n} ngày nhé 💞",
   "@streakSheetInProgressBody": {
     "placeholders": {
       "n": { "type": "int" }
     }
   },
   "streakSheetAtRiskTitle": "Còn một nhịp đệm thôi 🫶",
-  "streakSheetAtRiskBody": "Hôm qua hai đứa lỡ một nhịp — không sao cả! Trả lời hôm nay là chuỗi {n} ngày tiếp tục liền.",
+  "streakSheetAtRiskBody": "Hôm qua chúng mình lỡ một nhịp — không sao cả! Trả lời hôm nay là chuỗi {n} ngày tiếp tục liền.",
   "@streakSheetAtRiskBody": {
     "placeholders": {
       "n": { "type": "int" }
     }
   },
   "streakSheetRestartBody": "Chuỗi cũ khép lại rồi, nhưng mỗi ngày mới là một khởi đầu. Cùng thắp lại nào 🌱",
-  "streakSheetRecord": "Kỷ lục của hai đứa: {m} ngày 🌟",
+  "streakSheetRecord": "Kỷ lục của chúng mình: {m} ngày 🌟",
   "@streakSheetRecord": {
     "placeholders": {
       "m": { "type": "int" }
@@ -1119,15 +1119,15 @@
   "streakCtaKeepGoing": "Giữ chuỗi nhé",
 
   "streakMilestone3Title": "3 ngày rồi đó! 🌸",
-  "streakMilestone3Body": "Khởi đầu thật đáng yêu. Hai đứa đang làm tốt lắm 💞",
+  "streakMilestone3Body": "Khởi đầu thật đáng yêu. Chúng mình đang làm tốt lắm 💞",
   "streakMilestone7Title": "Trọn một tuần! ✨",
-  "streakMilestone7Body": "7 ngày liền hai đứa không lỡ nhịp nào. Tự hào ghê!",
+  "streakMilestone7Body": "7 ngày liền chúng mình không lỡ nhịp nào. Tự hào ghê!",
   "streakMilestone30Title": "30 ngày bên nhau mỗi ngày! 🔥",
-  "streakMilestone30Body": "Một tháng giữ lửa — đây là thói quen của hai đứa rồi đấy 💞",
+  "streakMilestone30Body": "Một tháng giữ lửa — đây là thói quen của chúng mình rồi đấy 💞",
   "streakMilestone100Title": "100 ngày! 💯",
-  "streakMilestone100Body": "Trăm ngày cùng nhau trả lời, cùng nhau lớn lên. Hiếm cặp nào làm được như hai đứa 🌟",
+  "streakMilestone100Body": "Trăm ngày cùng nhau trả lời, cùng nhau lớn lên. Hiếm cặp nào làm được như chúng mình 🌟",
   "streakMilestone365Title": "Tròn một năm! 👑",
-  "streakMilestone365Body": "365 ngày không lỡ một nhịp kết nối. Đây là chuyện tình của riêng hai đứa 💞👑",
+  "streakMilestone365Body": "365 ngày không lỡ một nhịp kết nối. Đây là chuyện tình của riêng chúng mình 💞👑",
 
   "streakJournalSummary": "Chuỗi hiện tại {n} ngày · Dài nhất {m}",
   "@streakJournalSummary": {

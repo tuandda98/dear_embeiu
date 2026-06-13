@@ -129,7 +129,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupCreateTitle => 'Begin\nour story';
 
   @override
-  String get setupEditTitle => 'Refine\nyour story';
+  String setupEditTitle(String me, String partner) {
+    return 'Refine the story of\n$me ❤️ $partner';
+  }
+
+  @override
+  String get setupEditTitleGeneric => 'Refine\nyour story';
 
   @override
   String get setupTabCreate => 'Create';
@@ -305,7 +310,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeGreetingNight => 'Up late,';
 
   @override
-  String get homeGreetingTeaser1 => 'Have you greeted your love yet? 💌';
+  String get homeGreetingTeaser1 => 'Send them a big warm hug 🤗';
 
   @override
   String get homeGreetingTeaser2 => 'Said \"I love you\" today? 💕';
@@ -323,10 +328,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeGreetingTeaser6 => 'Send something sweet their way 🍯';
 
   @override
-  String get homeGreetingTeaser7 => 'How are you two doing today? 🌷';
+  String get homeGreetingTeaser7 => 'Say a little thank-you today 💞';
 
   @override
-  String get homeGreetingTeaser8 => 'Capture a little moment today 📷';
+  String get homeGreetingTeaser8 => 'A calm moment together is enough 🍃';
 
   @override
   String get homeGreetingTeaser9 => 'A beautiful day to love 💖';
@@ -335,7 +340,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeGreetingTeaser10 => 'Tell them you miss them 💭';
 
   @override
-  String get homeGreetingTeaser11 => 'Leave them a little note 💬';
+  String get homeGreetingTeaser11 => 'Keep writing your love story together ✍️';
 
   @override
   String get homeGreetingTeaser12 => 'Keep your love streak going 🔥';
@@ -1121,10 +1126,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get journeySnapshotTitle => 'Journey snapshot';
-
-  @override
-  String get journeySnapshotSubtitle =>
-      'The standout numbers of your relationship, presented cleanly, modernly, and clearly.';
 
   @override
   String get yearsTogether => 'Years together';
@@ -2047,7 +2048,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get galleryTodayEmptySubtitle =>
-      'Don\'t let today slip by without a trace.';
+      'Every photo is a memory the two of you share.';
 
   @override
   String get galleryTodayEmptyTitle => 'No moments captured today yet';
