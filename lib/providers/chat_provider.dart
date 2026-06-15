@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -144,6 +145,7 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     _loadSeenMarker(coupleId);
+    _kickLoveNoteMigration(coupleId);
 
     _subscription?.cancel();
     _subscription = _service.watchMessages(coupleId, limit: _pageSize).listen(
@@ -180,6 +182,33 @@ class ChatProvider extends ChangeNotifier {
         notifyListeners();
       },
     );
+  }
+
+  /// Couples whose love-note backfill was already requested this app session —
+  /// the lazy migration fires at most once per couple per launch.
+  static final Set<String> _loveNoteMigrationAttempted = <String>{};
+
+  /// One-time auto-migration (2026-06-14): the chat replaces the old two-way
+  /// love notes. The first time this (updated) app opens chat for a couple, it
+  /// asks the backend to backfill that couple's EXISTING love notes into the
+  /// conversation. New notes from a partner still on the old build are mirrored
+  /// live by a Cloud Function trigger, so this only covers the pre-update
+  /// history. Fire-and-forget, guarded once per session, errors swallowed — a
+  /// missing/old function or offline state must never block or break the chat.
+  void _kickLoveNoteMigration(String coupleId) {
+    if (!_service.isUsingFirebase ||
+        !_loveNoteMigrationAttempted.add(coupleId)) {
+      return;
+    }
+    unawaited(() async {
+      try {
+        await FirebaseFunctions.instanceFor(region: 'us-central1')
+            .httpsCallable('migrateLoveNotesToChat')
+            .call(<String, dynamic>{'coupleId': coupleId});
+      } catch (_) {
+        // Best-effort only — the chat works whether or not this succeeds.
+      }
+    }());
   }
 
   /// Sends a message. Returns false when there is no active couple/uid (the

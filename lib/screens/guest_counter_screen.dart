@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
 
 import '../app/app_routes.dart';
@@ -213,7 +213,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
       children: [
         // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
         // recolor of the original (user request 2026-06-11).
-        EyebrowChip(label: l10n.guestModeBadge, icon: LucideIcons.sparkles),
+        EyebrowChip(label: l10n.guestModeBadge, icon: IconsaxPlusLinear.magic_star),
         const SizedBox(height: 14),
         Text(l10n.guestCounterTitle, style: AppTheme.pageTitleStyle()),
         const SizedBox(height: 10),
@@ -244,7 +244,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
               ),
             ),
             child: const Icon(
-              Icons.favorite_rounded,
+              IconsaxPlusBold.heart,
               color: AppColors.white,
               size: 30,
             ),
@@ -276,7 +276,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
             height: 52,
             child: FilledButton.icon(
               onPressed: _pickDate,
-              icon: const Icon(LucideIcons.calendar, size: 18),
+              icon: const Icon(IconsaxPlusLinear.calendar, size: 18),
               label: Text(l10n.guestPickDate),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
@@ -322,7 +322,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
         const SizedBox(height: 20),
         OutlinedButton.icon(
           onPressed: _pickDate,
-          icon: const Icon(LucideIcons.repeat, size: 18),
+          icon: const Icon(IconsaxPlusLinear.refresh_2, size: 18),
           label: Text(l10n.guestChangeDate),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.accentRose,
@@ -356,7 +356,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
           Row(
             children: [
               // accentGold on white fails contrast (~1.8:1) — rose tint (C5).
-              const IconBadge(LucideIcons.award),
+              const IconBadge(IconsaxPlusLinear.medal_star),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -437,7 +437,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
               // Dark ink on glass (C5): white 13px text on the blush glass
               // failed contrast (S1) — switch to textPrimary/textSecondary.
               const Icon(
-                Icons.favorite_rounded,
+                IconsaxPlusBold.heart,
                 color: AppColors.accentRose,
                 size: 20,
               ),

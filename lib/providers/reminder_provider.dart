@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/milestone_reminder.dart';
+import '../services/home_prefs_service.dart';
 import '../services/reminder_service.dart';
 
 /// User-facing settings for the "milestone & anniversary reminders" feature.
@@ -80,8 +83,15 @@ class ReminderProvider extends ChangeNotifier {
   // its own Hive keys, default ON at 20:00. Lives in the same box but never
   // touches the milestone keys above.
   static const String _dqEnabledKey = 'dqReminderEnabled';
-  static const String _dqHourKey = 'dqReminderHour';
-  static const String _dqMinuteKey = 'dqReminderMinute';
+  // Multi-time daily-question reminder (2026-06-14): a list of minutes-since-
+  // midnight. The legacy single hour/minute keys are read once for migration.
+  static const String _dqTimesKey = 'dqReminderTimes';
+  static const String _dqLegacyHourKey = 'dqReminderHour';
+  static const String _dqLegacyMinuteKey = 'dqReminderMinute';
+
+  /// Max number of daily-question reminder times (mirrors the Firestore-rule
+  /// + ReminderService caps).
+  static const int maxDailyQuestionTimes = 10;
 
   /// Hive key prefix for a milestone's on/off flag (suffix = enum name).
   static const String _milestoneKeyPrefix = 'milestone_';
@@ -102,18 +112,27 @@ class ReminderProvider extends ChangeNotifier {
   ReminderSettings _settings = const ReminderSettings();
   ReminderSettings get settings => _settings;
 
-  // Daily-question reminder state (b2). Defaults: on, 20:00. Persisted under the
-  // _dq* keys and scheduled/cancelled independently of [settings.enabled].
+  // Daily-question reminder state. Defaults: on, a single 20:00 nudge. Now
+  // COUPLE-SHARED (2026-06-14): the enabled flag + the list of fire times sync
+  // through couples/{id}/prefs/home so both phones nudge together; Hive is the
+  // offline cache. Times are minutes-since-midnight, sorted, de-duped, ≤10.
   bool _dqEnabled = true;
-  int _dqHour = 20;
-  int _dqMinute = 0;
+  List<int> _dqTimes = <int>[20 * 60];
+
+  final HomePrefsService _homePrefs = HomePrefsService();
+  String? _dqCoupleId;
+  StreamSubscription<ReminderPrefs>? _dqPrefsSub;
 
   /// Whether the daily-question nudge is on.
   bool get dailyQuestionReminderEnabled => _dqEnabled;
 
-  /// The time of day the daily-question nudge fires.
-  TimeOfDay get dailyQuestionReminderTime =>
-      TimeOfDay(hour: _dqHour, minute: _dqMinute);
+  /// The fire times of the daily-question nudge (sorted) as [TimeOfDay].
+  List<TimeOfDay> get dailyQuestionReminderTimes => _dqTimes
+      .map((m) => TimeOfDay(hour: m ~/ 60, minute: m % 60))
+      .toList(growable: false);
+
+  /// Whether another time can still be added (cap [maxDailyQuestionTimes]).
+  bool get canAddDailyQuestionTime => _dqTimes.length < maxDailyQuestionTimes;
 
   /// On/off state per milestone. Initialised to the Dv4 defaults and overridden
   /// by persisted values in [load].
@@ -159,14 +178,27 @@ class ReminderProvider extends ChangeNotifier {
     try {
       final box = await Hive.openBox<dynamic>(_boxName);
       _settings = ReminderSettings(
-        enabled: box.get(_enabledKey, defaultValue: false) as bool,
+        // Master toggle removed (2026-06-14): milestones auto-remind. The legacy
+        // enabled flag is forced true; only hour/minute (default time) matter.
+        enabled: true,
         hour: box.get(_hourKey, defaultValue: 20) as int,
         minute: box.get(_minuteKey, defaultValue: 0) as int,
       );
-      // Daily-question reminder (b2): default on at 20:00.
+      // Daily-question reminder: default on at 20:00. Migrate the old single
+      // hour/minute keys into the new times list on first load after upgrade.
       _dqEnabled = box.get(_dqEnabledKey, defaultValue: true) as bool;
-      _dqHour = box.get(_dqHourKey, defaultValue: 20) as int;
-      _dqMinute = box.get(_dqMinuteKey, defaultValue: 0) as int;
+      final storedTimes = box.get(_dqTimesKey);
+      if (storedTimes is List && storedTimes.isNotEmpty) {
+        _dqTimes = _normalizeTimes(
+          storedTimes.whereType<num>().map((n) => n.toInt()),
+        );
+      } else {
+        final legacyHour = box.get(_dqLegacyHourKey);
+        final legacyMinute = box.get(_dqLegacyMinuteKey);
+        if (legacyHour is int && legacyMinute is int) {
+          _dqTimes = _normalizeTimes(<int>[legacyHour * 60 + legacyMinute]);
+        }
+      }
       for (final type in MilestoneType.values) {
         final stored = box.get('$_milestoneKeyPrefix${type.name}');
         if (stored is bool) {
@@ -204,8 +236,7 @@ class ReminderProvider extends ChangeNotifier {
     try {
       final box = await Hive.openBox<dynamic>(_boxName);
       await box.put(_dqEnabledKey, _dqEnabled);
-      await box.put(_dqHourKey, _dqHour);
-      await box.put(_dqMinuteKey, _dqMinute);
+      await box.put(_dqTimesKey, _dqTimes);
     } catch (error) {
       debugPrint('ReminderProvider._persistDailyQuestion failed: $error');
     }
@@ -243,44 +274,6 @@ class ReminderProvider extends ChangeNotifier {
     }
   }
 
-  /// Turn reminders on or off.
-  ///
-  /// Enabling first requests OS notification permission. Returns whether
-  /// reminders are now active: `false` means the user denied permission, so the
-  /// caller can surface that. Disabling always succeeds and clears the schedule.
-  Future<bool> setEnabled(
-    bool value, {
-    required DateTime anniversaryDate,
-    DateTime? lastPhotoDate,
-    required AppLocalizations l10n,
-  }) async {
-    if (!value) {
-      _settings = _settings.copyWith(enabled: false);
-      await _persist();
-      await _service.cancelAll();
-      notifyListeners();
-      return true;
-    }
-
-    final granted = await _service.requestPermissions();
-    if (!granted) {
-      _settings = _settings.copyWith(enabled: false);
-      await _persist();
-      notifyListeners();
-      return false;
-    }
-
-    _settings = _settings.copyWith(enabled: true);
-    await _persist();
-    await _reschedule(
-      anniversaryDate: anniversaryDate,
-      lastPhotoDate: lastPhotoDate,
-      l10n: l10n,
-    );
-    notifyListeners();
-    return true;
-  }
-
   /// Change the default time of day reminders fire and re-schedule around it.
   ///
   /// Changing the default time only moves milestones that follow it — those
@@ -299,7 +292,7 @@ class ReminderProvider extends ChangeNotifier {
     await _persist();
     final anniversary = anniversaryDate ?? _lastAnniversary;
     final strings = l10n ?? _lastL10n;
-    if (_settings.enabled && anniversary != null && strings != null) {
+    if (anniversary != null && strings != null) {
       await _reschedule(
         anniversaryDate: anniversary,
         lastPhotoDate: lastPhotoDate ?? _lastPhotoDate,
@@ -316,15 +309,13 @@ class ReminderProvider extends ChangeNotifier {
     _milestones[type] = value;
     await _persistMilestone(type);
 
-    if (_settings.enabled) {
-      final anniversary = _lastAnniversary;
-      final l10n = _lastL10n;
-      if (anniversary != null && l10n != null) {
-        if (value) {
-          await _scheduleMilestone(type, anniversary, l10n);
-        } else {
-          await _service.cancelMilestone(type);
-        }
+    final anniversary = _lastAnniversary;
+    final l10n = _lastL10n;
+    if (anniversary != null && l10n != null) {
+      if (value) {
+        await _scheduleMilestone(type, anniversary, l10n);
+      } else {
+        await _service.cancelMilestone(type);
       }
     }
     notifyListeners();
@@ -343,85 +334,169 @@ class ReminderProvider extends ChangeNotifier {
     }
     await _persistMilestoneTime(type);
 
-    if (_settings.enabled) {
-      final anniversary = _lastAnniversary;
-      final l10n = _lastL10n;
-      if (anniversary != null && l10n != null && isMilestoneEnabled(type)) {
-        await _scheduleMilestone(type, anniversary, l10n);
-      }
+    final anniversary = _lastAnniversary;
+    final l10n = _lastL10n;
+    if (anniversary != null && l10n != null && isMilestoneEnabled(type)) {
+      await _scheduleMilestone(type, anniversary, l10n);
     }
     notifyListeners();
   }
 
   // ---------------------------------------------------------------------------
-  // Daily-question reminder (b2). A single repeating-daily nudge, independent of
-  // the milestone master toggle ([settings.enabled]) and of couple state. The
-  // schedule itself is armed only while a couple is active (so the nudge means
-  // something), which is tracked by [_lastAnniversary] being set from [sync].
+  // Daily-question reminder. One or more repeating-daily nudges pulling both
+  // partners in to answer the day's question. COUPLE-SHARED (2026-06-14): the
+  // enabled flag + the fire times sync through couples/{id}/prefs/home, so an
+  // edit on either phone moves both. The notifications themselves stay LOCAL on
+  // each device; Hive is the offline cache.
   // ---------------------------------------------------------------------------
 
-  /// Turn the daily-question nudge on or off.
+  /// Follow the couple's shared daily-question reminder prefs. Wired from
+  /// SessionResolver when a couple is active; a partner's edit flows in here
+  /// and reschedules the local nudges. Re-subscribes when the couple changes.
+  void watchCoupleReminderPrefs(String coupleId) {
+    if (coupleId.trim().isEmpty) {
+      return;
+    }
+    _dqCoupleId = coupleId;
+    _dqPrefsSub?.cancel();
+    _dqPrefsSub = _homePrefs.watchReminderPrefs(coupleId).listen((prefs) {
+      var changed = false;
+      if (prefs.enabled != null && prefs.enabled != _dqEnabled) {
+        _dqEnabled = prefs.enabled!;
+        changed = true;
+      }
+      if (prefs.times != null) {
+        final normalized = _normalizeTimes(prefs.times!);
+        if (!_sameTimes(normalized, _dqTimes)) {
+          _dqTimes = normalized;
+          changed = true;
+        }
+      }
+      if (!changed) {
+        return;
+      }
+      _persistDailyQuestion();
+      // Reschedule with the copy cached by [sync] (from HomeScreen). If l10n
+      // isn't ready yet, the next sync after Home builds arms it.
+      final l10n = _lastL10n;
+      if (l10n != null) {
+        _scheduleDailyQuestion(l10n);
+      }
+      notifyListeners();
+    });
+  }
+
+  /// Turn the daily-question nudge on or off (couple-shared).
   ///
   /// Enabling first requests OS notification permission. Returns whether the
-  /// reminder is now on: `false` means the user denied permission, so the caller
-  /// can surface that. When on and a couple is active, schedules immediately;
-  /// otherwise the preference is saved and [sync] arms it once a couple loads.
+  /// reminder is now on: `false` means the user denied permission. The change
+  /// is published to the shared prefs so the partner's phone follows.
   Future<bool> setDailyQuestionReminderEnabled(
     bool value, {
     required AppLocalizations l10n,
   }) async {
-    if (!value) {
-      _dqEnabled = false;
-      await _persistDailyQuestion();
-      await _service.cancelDailyQuestion();
-      notifyListeners();
-      return true;
+    if (value) {
+      final granted = await _service.requestPermissions();
+      if (!granted) {
+        _dqEnabled = false;
+        await _persistDailyQuestion();
+        notifyListeners();
+        return false;
+      }
     }
-
-    final granted = await _service.requestPermissions();
-    if (!granted) {
-      _dqEnabled = false;
-      await _persistDailyQuestion();
-      notifyListeners();
-      return false;
-    }
-
-    _dqEnabled = true;
+    _dqEnabled = value;
     await _persistDailyQuestion();
-    // Only schedule when a couple is active (the nudge invites both partners to
-    // answer). If no couple yet, the preference is stored and [sync] arms it.
-    if (_lastAnniversary != null) {
-      await _scheduleDailyQuestion(l10n);
-    }
+    await _scheduleDailyQuestion(l10n);
+    _publishReminderPrefs(enabled: value);
     notifyListeners();
     return true;
   }
 
-  /// Change the time the daily-question nudge fires. Reschedules when it is on
-  /// and a couple is active.
-  Future<void> setDailyQuestionReminderTime(
-    int hour,
-    int minute, {
+  /// Replace the full set of fire times (couple-shared). Times are normalized
+  /// (clamped, de-duped, sorted, capped at [maxDailyQuestionTimes]).
+  Future<void> setDailyQuestionTimes(
+    List<TimeOfDay> times, {
     required AppLocalizations l10n,
   }) async {
-    _dqHour = hour;
-    _dqMinute = minute;
+    _dqTimes = _normalizeTimes(times.map((t) => t.hour * 60 + t.minute));
     await _persistDailyQuestion();
-    if (_dqEnabled && _lastAnniversary != null) {
-      await _scheduleDailyQuestion(l10n);
-    }
+    await _scheduleDailyQuestion(l10n);
+    _publishReminderPrefs(times: _dqTimes);
     notifyListeners();
   }
 
-  /// (Re)schedule the daily-question nudge with the localized copy. Cancels any
-  /// previous schedule via the stable id, so this is safe to call repeatedly.
+  /// Add one fire time (no-op past the cap or when it already exists).
+  Future<void> addDailyQuestionTime(
+    TimeOfDay time, {
+    required AppLocalizations l10n,
+  }) async {
+    if (!canAddDailyQuestionTime) {
+      return;
+    }
+    await setDailyQuestionTimes(
+      dailyQuestionReminderTimes..add(time),
+      l10n: l10n,
+    );
+  }
+
+  /// Remove the fire time at [index] in the sorted list.
+  Future<void> removeDailyQuestionTime(
+    int index, {
+    required AppLocalizations l10n,
+  }) async {
+    final next = dailyQuestionReminderTimes;
+    if (index < 0 || index >= next.length) {
+      return;
+    }
+    next.removeAt(index);
+    await setDailyQuestionTimes(next, l10n: l10n);
+  }
+
+  void _publishReminderPrefs({bool? enabled, List<int>? times}) {
+    final coupleId = _dqCoupleId;
+    if (coupleId == null) {
+      return;
+    }
+    // Fire-and-forget; the service swallows offline/rules errors.
+    unawaited(
+      _homePrefs.setReminderPrefs(coupleId, enabled: enabled, times: times),
+    );
+  }
+
+  /// (Re)schedule the daily-question nudge(s) with the localized copy. Clears
+  /// the previous schedule first, so safe to call repeatedly; off / no-times
+  /// simply cancels everything.
   Future<void> _scheduleDailyQuestion(AppLocalizations l10n) async {
-    await _service.scheduleDailyQuestion(
-      hour: _dqHour,
-      minute: _dqMinute,
+    if (!_dqEnabled || _dqTimes.isEmpty) {
+      await _service.cancelDailyQuestion();
+      return;
+    }
+    await _service.scheduleDailyQuestionTimes(
+      minutesOfDay: _dqTimes,
       title: l10n.dailyQuestionReminderNotifTitle,
       body: l10n.dailyQuestionReminderNotifBody,
     );
+  }
+
+  /// Clamp each minute-of-day to 0–1439, de-dupe, sort, cap at the max.
+  List<int> _normalizeTimes(Iterable<int> raw) {
+    final set = <int>{for (final m in raw) m.clamp(0, 24 * 60 - 1)};
+    final list = set.toList()..sort();
+    return list.length > maxDailyQuestionTimes
+        ? list.sublist(0, maxDailyQuestionTimes)
+        : list;
+  }
+
+  bool _sameTimes(List<int> a, List<int> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Refresh the schedule from the latest couple data. Cheap and idempotent —
@@ -438,14 +513,11 @@ class ReminderProvider extends ChangeNotifier {
     _lastPhotoDate = lastPhotoDate;
     _lastL10n = l10n;
 
-    // Daily-question nudge (b2): independent of the milestone master toggle.
-    if (_dqEnabled) {
-      await _scheduleDailyQuestion(l10n);
-    }
+    // Daily-question nudge: self-gates on enabled/times (cancels when off).
+    await _scheduleDailyQuestion(l10n);
 
-    if (!_settings.enabled) {
-      return;
-    }
+    // Milestones auto-remind (2026-06-14: no master toggle) — always reschedule
+    // the enabled milestones from the latest couple data.
     await _reschedule(
       anniversaryDate: anniversaryDate,
       lastPhotoDate: lastPhotoDate,
@@ -457,7 +529,16 @@ class ReminderProvider extends ChangeNotifier {
   /// (sign-out / no couple). The user's on/off preference is kept so it re-arms
   /// on the next [sync] once a couple is active again.
   Future<void> cancelDailyQuestionSchedule() async {
+    _dqPrefsSub?.cancel();
+    _dqPrefsSub = null;
+    _dqCoupleId = null;
     await _service.cancelDailyQuestion();
+  }
+
+  @override
+  void dispose() {
+    _dqPrefsSub?.cancel();
+    super.dispose();
   }
 
   /// Next fire description for [type], used by the customization screen. Pure

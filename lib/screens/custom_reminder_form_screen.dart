@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
 import '../models/custom_reminder.dart';
 import '../providers/custom_reminders_provider.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
 import '../widgets/content_card.dart';
-import '../widgets/eyebrow_chip.dart';
-import '../widgets/sub_screen_app_bar.dart';
+import '../widgets/sub_screen_header.dart';
 
 /// Add / edit form for a single custom reminder (full screen, push route).
 ///
@@ -237,52 +235,37 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        // Header vòng 5c (2026-06-11): the bar keeps only the back squircle +
-        // Save — the landing-style header (chip + dynamic title, NO subtitle
-        // to save room for the keyboard) scrolls with the form below.
-        appBar: subScreenAppBar(
-          context,
-          actions: [
-            Opacity(
-              opacity: _canSave ? 1 : 0.4,
-              child: TextButton(
-                onPressed: _canSave ? _save : null,
-                child: Text(
-                  l10n.customRemindersSave,
-                  // Header ink vòng 4 (2026-06-11): navy textPrimary, no
-                  // shadow — white-on-blush failed contrast on real shots.
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        // Header redesign 2026-06-14: no app bar — the SubScreenHeader (back →
+        // chip → dynamic title, all left-aligned at the gutter, + the Save
+        // action) leads the form. No subtitle, to save room for the keyboard.
         body: SafeArea(
-          top: false,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    EyebrowChip(
-                      label: l10n.customReminderFormBadge,
-                      icon: LucideIcons.bellPlus,
+                SubScreenHeader(
+                  badge: l10n.customReminderFormBadge,
+                  badgeIcon: IconsaxPlusLinear.notification_bing,
+                  title: widget.isEditing
+                      ? l10n.customRemindersEditTitle
+                      : l10n.customRemindersAddTitle,
+                  trailing: Opacity(
+                    opacity: _canSave ? 1 : 0.4,
+                    child: TextButton(
+                      onPressed: _canSave ? _save : null,
+                      child: Text(
+                        l10n.customRemindersSave,
+                        // Header ink vòng 4 (2026-06-11): navy textPrimary, no
+                        // shadow — white-on-blush failed contrast on real shots.
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 14),
-                    Text(
-                      widget.isEditing
-                          ? l10n.customRemindersEditTitle
-                          : l10n.customRemindersAddTitle,
-                      style: AppTheme.pageTitleStyle(),
-                    ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 20),
                 _buildFormCard(l10n, dateLabel, timeLabel),
@@ -316,7 +299,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
               hintText: l10n.customRemindersNameHint,
               counterText: '',
               prefixIcon: const Icon(
-                Icons.favorite_rounded,
+                IconsaxPlusBold.heart,
                 color: AppColors.accentRose,
               ),
               errorText:
@@ -344,7 +327,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
             children: [
               Expanded(
                 child: _pickerTile(
-                  icon: LucideIcons.calendar,
+                  icon: IconsaxPlusLinear.calendar,
                   label: l10n.customRemindersDateLabel,
                   value: dateLabel,
                   onTap: _pickDate,
@@ -353,7 +336,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _pickerTile(
-                  icon: LucideIcons.clock,
+                  icon: IconsaxPlusLinear.clock,
                   label: l10n.customRemindersTimeLabel,
                   value: timeLabel,
                   onTap: _pickTime,
@@ -366,7 +349,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
             Row(
               children: [
                 const Icon(
-                  LucideIcons.alertTriangle,
+                  IconsaxPlusLinear.warning_2,
                   color: AppColors.warning,
                   size: 16,
                 ),
@@ -438,7 +421,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
         TextButton.icon(
           onPressed: _confirmDelete,
           icon: const Icon(
-            LucideIcons.trash2,
+            IconsaxPlusLinear.trash,
             color: AppColors.error,
           ),
           label: Text(

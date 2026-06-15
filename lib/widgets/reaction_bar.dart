@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -291,11 +292,11 @@ class _HeartButtonState extends State<_HeartButton>
             ),
           ],
         ),
-        child: const Icon(Icons.favorite, size: 22, color: AppColors.accentLove),
+        child: const Icon(IconsaxPlusBold.heart, size: 22, color: AppColors.accentLove),
       );
     } else {
       content = Icon(
-        Icons.favorite_border,
+        IconsaxPlusLinear.heart,
         size: 22,
         color: widget.onDark
             ? AppColors.white.withValues(alpha: 0.85)
@@ -641,7 +642,7 @@ class _HeartBurstOverlayState extends State<HeartBurstOverlay>
                         ],
                       ),
                       child: const Icon(
-                        Icons.favorite,
+                        IconsaxPlusBold.heart,
                         size: 88,
                         color: AppColors.accentLove,
                       ),
@@ -667,7 +668,7 @@ class _HeartBurstOverlayState extends State<HeartBurstOverlay>
       offset: Offset(p.dx * localT, -p.rise * localT),
       child: Opacity(
         opacity: opacity,
-        child: Icon(Icons.favorite, size: p.size, color: AppColors.accentLove),
+        child: Icon(IconsaxPlusBold.heart, size: p.size, color: AppColors.accentLove),
       ),
     );
   }

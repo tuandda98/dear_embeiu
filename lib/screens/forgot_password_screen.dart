@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/header_icon_button.dart';
@@ -136,8 +135,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 52),
-                        _buildHeader(authProvider),
-                        const SizedBox(height: 24),
+                        if (!authProvider.isUsingFirebase) ...[
+                          _buildLocalFallbackBanner(),
+                          const SizedBox(height: 24),
+                        ],
                         GlassCard(
                           borderRadius: 28,
                           child: AnimatedSize(
@@ -157,13 +158,32 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                 ),
               ),
+              // Header redesign (2026-06-14): the eyebrow chip is centered on
+              // the top-bar, level with the back squircle (left) and language
+              // toggle (right) — the page title + subtitle were removed.
               Positioned(
                 top: 8,
                 left: 16,
                 child: HeaderIconButton(
-                  icon: LucideIcons.arrowLeft,
+                  icon: IconsaxPlusLinear.arrow_left,
                   onTap: () => Navigator.of(context).maybePop(),
                   semanticsLabel: context.l10n.back,
+                ),
+              ),
+              Positioned(
+                top: 8,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: SizedBox(
+                    height: 44,
+                    child: Center(
+                      child: EyebrowChip(
+                        label: context.l10n.forgotPasswordBadge,
+                        icon: IconsaxPlusLinear.key,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const Positioned(
@@ -178,30 +198,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  Widget _buildHeader(AuthProvider authProvider) {
-    final l10n = context.l10n;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
-        // recolor of the original (user request 2026-06-11).
-        EyebrowChip(label: l10n.forgotPasswordBadge, icon: LucideIcons.keyRound),
-        const SizedBox(height: 14),
-        Text(l10n.forgotPasswordTitle, style: AppTheme.pageTitleStyle()),
-        const SizedBox(height: 10),
-        Text(
-          l10n.forgotPasswordSubtitle,
-          style: AppTheme.pageSubtitleStyle(),
-        ),
-        if (!authProvider.isUsingFirebase) ...[
-          const SizedBox(height: 14),
-          _buildLocalFallbackBanner(),
-        ],
-      ],
-    );
-  }
-
+  // The chip/title/subtitle were removed in the 2026-06-14 header redesign
+  // (chip now lives centered on the top-bar). The local-fallback banner is
+  // rendered inline in build() when Firebase is unavailable.
   Widget _buildLocalFallbackBanner() {
     final l10n = context.l10n;
     return Container(
@@ -225,7 +224,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              LucideIcons.cloudOff,
+              IconsaxPlusLinear.cloud_cross,
               color: AppColors.warning,
               size: 18,
             ),
@@ -276,7 +275,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               onFieldSubmitted: (_) => enabled ? _submit() : null,
               decoration: _buildInputDecoration(
                 hint: l10n.emailHint,
-                icon: LucideIcons.mail,
+                icon: IconsaxPlusLinear.sms,
               ),
               validator: (value) {
                 final text = value?.trim() ?? '';
@@ -352,7 +351,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               borderRadius: BorderRadius.circular(999),
             ),
             child: const Icon(
-              LucideIcons.mailCheck,
+              IconsaxPlusLinear.sms_tracking,
               color: AppColors.success,
               size: 30,
             ),

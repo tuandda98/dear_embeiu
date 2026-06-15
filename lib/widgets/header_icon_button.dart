@@ -12,7 +12,7 @@ import '../theme/app_colors.dart';
 /// gradient, same as the page titles.
 ///
 /// Rules:
-/// - This is the standard back button (`LucideIcons.arrowLeft`) + header
+/// - This is the standard back button (`IconsaxPlusLinear.arrow_left`) + header
 ///   action for every screen.
 /// - Icon-on-PHOTO overlays (e.g. the Profile hero pencil) keep their backing
 ///   disc — bare ink has no guaranteed contrast on user images.

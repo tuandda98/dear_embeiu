@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
@@ -204,7 +204,7 @@ class _StreakSheetBodyState extends State<_StreakSheetBody>
               ]
             : null,
       ),
-      child: Icon(LucideIcons.flame, size: 36, color: color),
+      child: Icon(IconsaxPlusLinear.flash, size: 36, color: color),
     );
   }
 
@@ -389,7 +389,7 @@ class _StreakSheetBodyState extends State<_StreakSheetBody>
             children: [
               Text(label),
               const SizedBox(width: 8),
-              const Icon(LucideIcons.arrowRight, size: 18),
+              const Icon(IconsaxPlusLinear.arrow_right_3, size: 18),
             ],
           ),
         ),

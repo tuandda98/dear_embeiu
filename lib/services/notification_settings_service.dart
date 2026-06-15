@@ -2,11 +2,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 /// Per-type push notification preferences (feature notifications, D-notif-4).
 ///
-/// The user can mute "low-stakes" pushes (new photo, reaction, daily-question
-/// nudge) on THIS device while always-on types (love note, partner joined/left)
-/// keep coming. Stored locally in Hive for an instant, offline-robust UI, then
-/// MIRRORED into the device doc (`users/{uid}/devices/{id}`) so the Cloud
-/// Functions fan-out can honour the choice at send time.
+/// Notifications revamp (2026-06-14): the per-type push opt-out UI was removed —
+/// a couple ALWAYS gets every push. The prefs mirrored into the device doc are
+/// therefore forced ALL-ON ([currentOrDefault] no longer reads stored values).
+/// The field keys are still sent (the device-doc `hasOnly` rule lists them) and
+/// the legacy [load]/[set] APIs remain so older callers/tests don't break, but
+/// nothing in the UI mutes a type any more.
 ///
 /// Field names match the device-doc keys the CF reads (`device.get(key, true)`)
 /// so absent → default ON (backward-compatible with old app builds).
@@ -35,17 +36,12 @@ class NotificationSettingsService {
     };
   }
 
-  /// Synchronous read used by the device-registration write (the box is opened
-  /// once at startup, so it's already available). Falls back to all-ON if the
-  /// box isn't open yet.
+  /// Prefs mirrored into the device doc on registration. Notifications revamp
+  /// (2026-06-14): always ALL-ON — the per-type push opt-out was removed, so a
+  /// couple always gets every push regardless of any stored value. The keys are
+  /// still sent (the device-doc `hasOnly` rule lists them).
   Map<String, bool> currentOrDefault() {
-    if (!Hive.isBoxOpen(_boxName)) {
-      return {for (final key in allKeys) key: true};
-    }
-    final box = Hive.box<dynamic>(_boxName);
-    return {
-      for (final key in allKeys) key: box.get(key, defaultValue: true) as bool,
-    };
+    return {for (final key in allKeys) key: true};
   }
 
   /// Persists one pref locally. Mirroring to the device doc is the caller's job

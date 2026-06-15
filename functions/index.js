@@ -499,6 +499,15 @@ exports.notifyChatMessage = onDocumentCreated(
     }
 
     const message = snapshot.data() || {};
+
+    // Love notes mirrored into chat (auto-migration, 2026-06-14) carry
+    // migratedFromNote:true. They already pinged the partner via notifyLoveNote
+    // on the source note, so a chat push here would be a duplicate — and a
+    // one-time backfill of old notes must never spam. Skip them entirely.
+    if (message.migratedFromNote === true) {
+      return;
+    }
+
     const coupleId = `${event.params.coupleId || ""}`.trim();
     const authorUserId = `${message.authorUserId || ""}`.trim();
     const text = `${message.text || ""}`.trim();
@@ -588,6 +597,95 @@ exports.notifyChatMessage = onDocumentCreated(
       successCount: result.successCount,
       failureCount: result.failureCount,
     });
+  },
+);
+
+// ── Love Note → Chat auto-migration (2026-06-14) ───────────────────────────
+// The couple chat replaces the old two-way love notes. Users still on an older
+// build keep writing love notes, and their (possibly already-updated) partner
+// must not lose them — so every love note is mirrored into the chat as a real
+// message:
+//   • mirrorNoteHistoryToChat (trigger) — each NEW noteHistory entry, in real
+//     time, so a version-skewed couple stays in sync.
+//   • migrateLoveNotesToChat (callable) — one-time backfill of a couple's
+//     EXISTING notes, fired lazily by the updated client when chat opens.
+// Mirrored messages carry migratedFromNote:true (notifyChatMessage skips them,
+// so no duplicate push vs notifyLoveNote, and a backfill never spams). The
+// message id is derived from the note entry id (lovenote_<entryId>), so the
+// whole thing is idempotent — re-running only overwrites the same doc.
+async function mirrorNoteToChat(coupleId, entryId, data) {
+  const cid = `${coupleId || ""}`.trim();
+  const eid = `${entryId || ""}`.trim();
+  const authorUserId = `${(data && data.authorUserId) || ""}`.trim();
+  const text = `${(data && data.text) || ""}`.trim();
+  if (!cid || !eid || !authorUserId || !text) {
+    return false;
+  }
+  // Preserve the note's original time so it sorts into the conversation where
+  // it was actually written; fall back to now only if it's somehow missing.
+  const createdAt = (data && data.createdAt) ||
+    admin.firestore.FieldValue.serverTimestamp();
+  await db
+    .collection("couples").doc(cid)
+    .collection("messages").doc(`lovenote_${eid}`)
+    .set({authorUserId, text, createdAt, migratedFromNote: true});
+  return true;
+}
+
+exports.mirrorNoteHistoryToChat = onDocumentCreated(
+  {document: "couples/{coupleId}/noteHistory/{entryId}", region: "us-central1"},
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      return;
+    }
+    await mirrorNoteToChat(
+      event.params.coupleId,
+      event.params.entryId,
+      snapshot.data() || {},
+    );
+  },
+);
+
+exports.migrateLoveNotesToChat = onCall(
+  {region: "us-central1"},
+  async (request) => {
+    const uid = request.auth && request.auth.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+    const coupleId = `${(request.data && request.data.coupleId) || ""}`.trim();
+    if (!coupleId) {
+      throw new HttpsError("invalid-argument", "coupleId is required.");
+    }
+
+    const coupleRef = db.collection("couples").doc(coupleId);
+    const coupleSnap = await coupleRef.get();
+    if (!coupleSnap.exists) {
+      throw new HttpsError("not-found", "Couple not found.");
+    }
+    const memberIds = Array.isArray(coupleSnap.get("memberIds")) ?
+      coupleSnap.get("memberIds") : [];
+    if (!memberIds.includes(uid)) {
+      throw new HttpsError("permission-denied", "Not a member of this couple.");
+    }
+
+    // Already backfilled → nothing to do; the trigger keeps new notes in sync.
+    if (coupleSnap.get("loveNotesMigratedToChat") === true) {
+      return {alreadyDone: true, migrated: 0};
+    }
+
+    const historySnap = await coupleRef.collection("noteHistory").get();
+    const results = await Promise.all(
+      historySnap.docs.map(
+        (doc) => mirrorNoteToChat(coupleId, doc.id, doc.data() || {}),
+      ),
+    );
+    const migrated = results.filter(Boolean).length;
+
+    await coupleRef.set({loveNotesMigratedToChat: true}, {merge: true});
+    logger.info("Backfilled love notes into chat.", {coupleId, migrated});
+    return {alreadyDone: false, migrated};
   },
 );
 

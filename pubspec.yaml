@@ -89,7 +89,11 @@ dependencies:
   # fetch, so we dropped google_fonts (was the cause of iOS diacritic glitches).
   flutter_animate: ^4.5.2
   shimmer: ^3.0.0
-  lucide_icons: ^0.257.0
+  # Icon set: migrated Lucide → Iconsax 2026-06-14 (user "re-design toàn icon").
+  # iconsax_plus = full Iconsax set, 3 weights (Linear/Bold/Broken). lucide_icons
+  # fully removed (0 usages). Policy: Linear default, Bold for nav-selected +
+  # accents/badges; in-app brand loader heart kept as Material favorite.
+  iconsax_plus: ^1.0.0
   confetti: ^0.8.0
 
   # Lottie "moment" animations (feature lottie-moments, Đợt 2 revamp).

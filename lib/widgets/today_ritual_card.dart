@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
@@ -26,10 +26,10 @@ import 'love_lottie.dart';
 /// 3. Collapsing done-state — after a (stale) reveal the question block
 ///    shrinks to one line; a fresh reveal stays expanded and celebrates.
 ///
-/// The love-note section was REMOVED (user 2026-06-11) — messaging now lives
-/// entirely in the messenger-style chat (LoveNoteHistoryScreen, reached via
-/// the Profile memory chest); the journal/history archive links moved there
-/// too (Profile v2, 2026-06-11). Home only carries today's question ritual.
+/// The love-note section was REMOVED (user 2026-06-11) and the love-note
+/// feature itself was retired (2026-06-14) — couple messaging now lives
+/// entirely in the Chat tab (old notes are auto-migrated into it). Home only
+/// carries today's question ritual.
 class TodayRitualCard extends StatefulWidget {
   const TodayRitualCard({super.key, required this.couple});
 
@@ -167,27 +167,8 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     final question = daily.todayQuestion(langCode);
 
     return [
-      Row(
-        children: [
-          const Icon(LucideIcons.heartHandshake,
-              color: AppColors.accentRose, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              l10n.dailyQuestionLabel,
-              // Same voice as the love-note header — two sections of equal
-              // rank inside one card must share one header style.
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.2,
-              ),
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 10),
+      // Card-internal title ("Câu hỏi hôm nay" + heart icon) removed per user
+      // 2026-06-14 — the question text now leads the card directly.
       Text(
         question,
         style: AppTheme.displaySerif(
@@ -303,7 +284,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(LucideIcons.lock,
+                      const Icon(IconsaxPlusLinear.lock,
                           size: 15, color: AppColors.accentLoveDeep),
                       const SizedBox(width: 8),
                       Flexible(
@@ -544,7 +525,7 @@ class _DailyAnswerSheetState extends State<_DailyAnswerSheet> {
               const SizedBox(height: 18),
               Row(
                 children: [
-                  const Icon(LucideIcons.heartHandshake,
+                  const Icon(IconsaxPlusLinear.lovely,
                       color: AppColors.accentRose, size: 20),
                   const SizedBox(width: 8),
                   Expanded(

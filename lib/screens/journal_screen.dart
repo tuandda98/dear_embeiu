@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
@@ -15,9 +15,8 @@ import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/content_card.dart';
 import '../widgets/entrance_reveal.dart';
-import '../widgets/eyebrow_chip.dart';
 import '../widgets/shimmer_skeleton.dart';
-import '../widgets/sub_screen_app_bar.dart';
+import '../widgets/sub_screen_header.dart';
 import 'setup_screen.dart';
 
 /// The "Question journal" screen (feature couple-journal, Phần 1).
@@ -27,7 +26,13 @@ import 'setup_screen.dart';
 /// screen), each as a solid white day-card with the question and two labelled
 /// answer blocks. Loads once + "Show more" paging (no stream).
 class JournalScreen extends StatelessWidget {
-  const JournalScreen({super.key});
+  const JournalScreen({super.key, this.focusDate});
+
+  /// Optional 'YYYY-MM-DD' to deep-link to (e.g. opened from a daily-question
+  /// notification once both partners answered): the matching day-card is
+  /// scrolled into view and briefly highlighted. Ignored when null or absent
+  /// from the loaded page.
+  final String? focusDate;
 
   @override
   Widget build(BuildContext context) {
@@ -39,15 +44,16 @@ class JournalScreen extends StatelessWidget {
         coupleId: couple?.id ?? '',
         myUid: myUid,
       )..load(),
-      child: _JournalView(couple: couple),
+      child: _JournalView(couple: couple, focusDate: focusDate),
     );
   }
 }
 
 class _JournalView extends StatelessWidget {
-  const _JournalView({required this.couple});
+  const _JournalView({required this.couple, this.focusDate});
 
   final Couple? couple;
+  final String? focusDate;
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +61,10 @@ class _JournalView extends StatelessWidget {
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        // Header vòng 5c (2026-06-11): the bar keeps only the back squircle —
-        // the landing-style large header (EyebrowChip + pageTitle + subtitle)
-        // lives in the body and scrolls with the content, like Settings.
-        appBar: subScreenAppBar(context),
+        // Header redesign 2026-06-14: no app bar — the SubScreenHeader (back →
+        // chip → title → subtitle, all left-aligned at the gutter) leads the
+        // body so the chip lines up vertically with the title.
         body: SafeArea(
-          top: false,
           child: Consumer<JournalProvider>(
             builder: (context, provider, _) => _buildBody(context, provider),
           ),
@@ -80,7 +84,11 @@ class _JournalView extends StatelessWidget {
         if (provider.isEmpty) {
           return _withFixedHeader(_JournalEmpty(couple: couple));
         }
-        return _JournalList(couple: couple, provider: provider);
+        return _JournalList(
+          couple: couple,
+          provider: provider,
+          focusDate: focusDate,
+        );
     }
   }
 
@@ -91,7 +99,7 @@ class _JournalView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.fromLTRB(20, 4, 20, 0),
+          padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
           child: _JournalHeader(),
         ),
         Expanded(child: child),
@@ -100,8 +108,10 @@ class _JournalView extends StatelessWidget {
   }
 }
 
-/// Landing-style page header (vòng 5c): chip + large title + subtitle, plus
-/// the streak summary line that always travelled with the journal header.
+/// Page header: the shared [SubScreenHeader] in chip-only mode (user 2026-06-14
+/// "xoá dòng Nhật ký câu hỏi + dòng subtitle, chỉ giữ chip") — back → chip
+/// ("NHẬT KÝ CÂU HỎI") — plus the streak summary line that always travelled
+/// with the journal header.
 class _JournalHeader extends StatelessWidget {
   const _JournalHeader();
 
@@ -111,11 +121,10 @@ class _JournalHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        EyebrowChip(label: l10n.journalBadge, icon: LucideIcons.bookOpen),
-        const SizedBox(height: 14),
-        Text(l10n.journalScreenTitle, style: AppTheme.pageTitleStyle()),
-        const SizedBox(height: 8),
-        Text(l10n.journalHeaderSubtitle, style: AppTheme.pageSubtitleStyle()),
+        SubScreenHeader(
+          badge: l10n.journalBadge,
+          badgeIcon: IconsaxPlusLinear.book_1,
+        ),
         const SizedBox(height: 20),
         // Streak summary (feature streak) — read-only single line, the only
         // place "longest" is shown. Hidden while waiting for a partner / on
@@ -128,14 +137,73 @@ class _JournalHeader extends StatelessWidget {
 
 // ── List (success) ──────────────────────────────────────────────────────────
 
-class _JournalList extends StatelessWidget {
-  const _JournalList({required this.couple, required this.provider});
+class _JournalList extends StatefulWidget {
+  const _JournalList({
+    required this.couple,
+    required this.provider,
+    this.focusDate,
+  });
 
   final Couple? couple;
   final JournalProvider provider;
+  final String? focusDate;
+
+  @override
+  State<_JournalList> createState() => _JournalListState();
+}
+
+class _JournalListState extends State<_JournalList> {
+  // Anchor on the deep-linked day-card so we can scroll it into view.
+  final GlobalKey _focusCardKey = GlobalKey();
+  bool _highlight = false;
+  bool _focusScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _maybeScheduleFocus();
+  }
+
+  /// Once after the first frame, scroll the focused day-card into view and pulse
+  /// a rose outline on it for a couple seconds. No-op when there's no focus date
+  /// or that day isn't in the loaded page (deep-link targets today, always p.1).
+  void _maybeScheduleFocus() {
+    final date = widget.focusDate;
+    if (date == null || _focusScheduled) {
+      return;
+    }
+    if (!widget.provider.days.any((d) => d.date == date)) {
+      return;
+    }
+    _focusScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) {
+        return;
+      }
+      final ctx = _focusCardKey.currentContext;
+      if (ctx != null && ctx.mounted) {
+        await Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
+          alignment: 0.08,
+        );
+      }
+      if (!mounted) {
+        return;
+      }
+      setState(() => _highlight = true);
+      Future<void>.delayed(const Duration(milliseconds: 2600), () {
+        if (mounted) {
+          setState(() => _highlight = false);
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = widget.provider;
     final days = provider.days;
     // +1 leading slot for the scrolling page header, +1 trailing slot for the
     // "Show more" button (only when more remains).
@@ -144,7 +212,7 @@ class _JournalList extends StatelessWidget {
 
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       itemCount: itemCount,
       separatorBuilder: (_, index) {
         // The header carries its own bottom spacing (vòng 5c).
@@ -169,7 +237,26 @@ class _JournalList extends StatelessWidget {
         }
 
         final dayIndex = index - 1;
-        final card = _JournalDayCard(day: days[dayIndex], couple: couple);
+        final day = days[dayIndex];
+        final isFocus = widget.focusDate != null && day.date == widget.focusDate;
+        Widget card = _JournalDayCard(day: day, couple: widget.couple);
+        if (isFocus) {
+          // Wrap with the scroll anchor + a fading rose outline (r24 to match
+          // the card) so the deep-linked day stands out on arrival.
+          card = AnimatedContainer(
+            key: _focusCardKey,
+            duration: const Duration(milliseconds: 320),
+            foregroundDecoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: AppColors.accentLove
+                    .withValues(alpha: _highlight ? 0.65 : 0.0),
+                width: 1.8,
+              ),
+            ),
+            child: card,
+          );
+        }
         // Staggered entrance for the first six cards only (like the gallery
         // feed); deeper cards revealed by scrolling appear plainly. B9 plays
         // once and honours Reduce Motion.
@@ -366,7 +453,7 @@ class _LoadMoreButton extends StatelessWidget {
                     )
                   else
                     const Icon(
-                      LucideIcons.chevronDown,
+                      IconsaxPlusLinear.arrow_down_1,
                       size: 16,
                       color: AppColors.accentLove,
                     ),
@@ -398,7 +485,7 @@ class _JournalLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       // +1 leading slot for the page header (vòng 5c).
       itemCount: 4,
       separatorBuilder: (_, index) =>
@@ -454,7 +541,7 @@ class _JournalEmpty extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                LucideIcons.bookOpen,
+                IconsaxPlusLinear.book_1,
                 size: 38,
                 color: AppColors.accentLove,
               ),
@@ -541,7 +628,7 @@ class _JournalStreakSummary extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            LucideIcons.flame,
+            IconsaxPlusLinear.flash,
             size: 14,
             color: hasNumbers ? AppColors.accentRose : AppColors.textTertiary,
           ),
@@ -581,7 +668,7 @@ class _JournalError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              LucideIcons.cloudOff,
+              IconsaxPlusLinear.cloud_cross,
               size: 40,
               color: AppColors.textTertiary,
             ),

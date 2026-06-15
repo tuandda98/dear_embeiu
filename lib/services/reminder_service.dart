@@ -44,6 +44,14 @@ class ReminderService {
   static const int _idMilestone1000 = 1011;
   static const int _idMilestone1314 = 1012;
 
+  // Daily-question multi-time band (2026-06-14): one repeating notification per
+  // configured fire time, ids 1040..1049. Sits ABOVE the milestone band and
+  // outside [_autoIds] so the master reschedule never touches it. The legacy
+  // single id 1004 is still cancelled by [cancelDailyQuestion] to clean up any
+  // schedule left by an older build.
+  static const int _idDailyQuestionBase = 1040;
+  static const int _maxDailyQuestionTimes = 10;
+
   /// Every auto-reminder id this service may own, used by [cancelAll].
   static const List<int> _autoIds = <int>[
     _idLegacyDaily,
@@ -268,14 +276,13 @@ class ReminderService {
   // master toggle — it owns id 1004, which is deliberately outside [_autoIds].
   // ---------------------------------------------------------------------------
 
-  /// Schedule the daily-question nudge to fire every day at [hour]:[minute].
-  ///
-  /// Repeats daily via [DateTimeComponents.time], so a single schedule keeps
-  /// firing without rescheduling. Replaces any previous daily-question schedule
-  /// (stable id 1004).
-  Future<void> scheduleDailyQuestion({
-    required int hour,
-    required int minute,
+  /// (Re)schedule the daily-question nudge at each time in [minutesOfDay]
+  /// (minutes since midnight, ≤10 entries; extras are dropped). Each repeats
+  /// daily via [DateTimeComponents.time]. Clears the whole daily-question band
+  /// (and the legacy single id) first, so this is safe to call repeatedly and
+  /// an empty list simply cancels everything.
+  Future<void> scheduleDailyQuestionTimes({
+    required List<int> minutesOfDay,
     required String title,
     required String body,
   }) async {
@@ -283,23 +290,33 @@ class ReminderService {
     if (!_initialized) {
       return;
     }
-    final when = _nextDaily(hour, minute);
-    await _scheduleAt(
-      id: _idDailyQuestion,
-      when: when,
-      title: title,
-      body: body,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
+    await cancelDailyQuestion();
+    final times = minutesOfDay.take(_maxDailyQuestionTimes).toList();
+    for (var i = 0; i < times.length; i++) {
+      final clamped = times[i].clamp(0, 24 * 60 - 1);
+      final hour = clamped ~/ 60;
+      final minute = clamped % 60;
+      await _scheduleAt(
+        id: _idDailyQuestionBase + i,
+        when: _nextDaily(hour, minute),
+        title: title,
+        body: body,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    }
   }
 
-  /// Cancel the daily-question nudge. Safe to call when nothing is scheduled.
+  /// Cancel every daily-question nudge: the legacy single id (older builds) and
+  /// the whole multi-time band. Safe to call when nothing is scheduled.
   Future<void> cancelDailyQuestion() async {
     if (!_initialized) {
       return;
     }
     try {
       await _plugin.cancel(_idDailyQuestion);
+      for (var i = 0; i < _maxDailyQuestionTimes; i++) {
+        await _plugin.cancel(_idDailyQuestionBase + i);
+      }
     } catch (_) {
       // Already in the desired state.
     }

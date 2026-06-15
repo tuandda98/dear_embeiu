@@ -301,10 +301,14 @@ class AppTheme {
   static TextStyle pageTitleStyle({
     Color color = AppColors.textPrimary,
     bool shadowed = true,
+    // Sub-screens use 28 (header redesign 2026-06-14 — back+chip moved onto the
+    // app bar, the title sits just below it and reads cleaner a touch smaller);
+    // landing/auth heroes keep 32.
+    double fontSize = 32,
   }) {
     return _displayBase.copyWith(
       color: color,
-      fontSize: 32,
+      fontSize: fontSize,
       fontWeight: FontWeight.w700,
       letterSpacing: -0.5,
       height: 1.05,

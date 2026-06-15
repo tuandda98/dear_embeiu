@@ -249,7 +249,7 @@
   "loveInNumbersTitle": "Love in numbers",
   "loveInNumbersSubtitle": "Little stats from your journey",
   "daysTogether": "Days together",
-  "daysUnit": "days",
+  "daysUnit": "Days",
   "hoursShort": "hr",
   "minutesShort": "min",
   "secondsShort": "sec",
@@ -453,7 +453,7 @@
   "journalEntryCta": "Open journal",
   "journalScreenTitle": "Question journal",
   "journalScreenSubtitle": "The questions you've both answered.",
-  "journalBadge": "DAILY Q&A",
+  "journalBadge": "QUESTION JOURNAL",
   "journalHeaderSubtitle": "The questions you two have answered together.",
   "journalSettingsTile": "Question journal",
   "journalSettingsSection": "Memories",
@@ -548,7 +548,7 @@
       }
     }
   },
-  "privateGalleryBadge": "PRIVATE GALLERY",
+  "privateGalleryBadge": "PHOTO LIBRARY",
   "galleryTitle": "Photo Library",
   "gallerySubtitle": "Swipe up to quickly bring up the post frame and manage memories.",
   "addCaptionTitle": "Add caption",
@@ -586,8 +586,51 @@
     }
   },
   "privateFeedLabel": "Private feed for you two",
-  "postNewPhotoBtn": "Post new photo",
-  "addMultipleBtn": "Add multiple",
+  "postNewPhotoBtn": "Take photo",
+  "addMultipleBtn": "Add photos",
+  "cameraUnavailable": "Couldn't open the camera. Try again or check camera permission (the Simulator has no camera — use a real device).",
+  "galleryDraftTitle": "Review & post",
+  "galleryDraftCaptionHint": "Add a shared caption (optional)…",
+  "galleryDraftEmpty": "All photos removed.",
+  "galleryDraftPostBtn": "Post {count} photos",
+  "@galleryDraftPostBtn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createPostTitle": "New memory",
+  "createPostBadge": "NEW MEMORY",
+  "createPostAuthorMeta": "Posted by {name} · {when}",
+  "@createPostAuthorMeta": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "today": "Today",
+  "createPostCaptionHint": "What's happening with you two today?…",
+  "createPostAddMore": "Add",
+  "createPostAddFromLibrary": "Add from library",
+  "createPostPhotoCount": "{count, plural, one{{count} photo} other{{count} photos}}",
+  "@createPostPhotoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createPostBtn": "Post",
+  "createPostRemovePhoto": "Remove photo",
+  "createPostDiscardTitle": "Discard this memory?",
+  "createPostDiscardMessage": "The caption you just wrote won't be saved.",
+  "createPostDiscardConfirm": "Discard",
+  "createPostDiscardKeep": "Keep editing",
   "addNewMemoryTitle": "Add a new memory today",
   "whatNewToday": "what's new today?",
   "composerSubtitle": "Turn the library into a private and memorable love newsfeed.",
@@ -711,9 +754,10 @@
   "privateDiaryLabel": "Private diary",
   "loveMilestonesLabel": "Love milestones",
   "journeySnapshotTitle": "Journey snapshot",
-  "yearsTogether": "Years together",
-  "monthsRemaining": "Months remaining",
+  "yearsTogether": "Years",
+  "monthsRemaining": "Months",
   "totalDaysLabel": "Total days",
+  "totalHoursLabel": "Total hours",
   "memoriesSavedLabel": "Memories saved",
   "infoAndRhythmTitle": "Info & rhythm",
   "infoAndRhythmSubtitle": "A clearer look at your start date, album, and upcoming milestones.",
@@ -802,8 +846,18 @@
   "remindersTimeLabel": "Reminder time",
   "remindersPermissionDeniedMsg": "Turn on notifications in Settings to receive reminders.",
   "dailyQuestionReminderTitle": "Daily question reminder",
-  "dailyQuestionReminderSubtitle": "A gentle daily nudge to answer together.",
+  "dailyQuestionReminderSubtitle": "Nudges you both to answer each day, synced across both phones.",
   "dailyQuestionReminderTimeLabel": "Remind me at",
+  "dailyQuestionReminderTimesLabel": "Reminder times",
+  "dailyQuestionReminderAddTime": "Add a time",
+  "dailyQuestionReminderRemoveTime": "Remove reminder time {time}",
+  "@dailyQuestionReminderRemoveTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "dailyQuestionReminderNotifTitle": "Today's question is waiting 💌",
   "dailyQuestionReminderNotifBody": "Answer it to unlock your partner's reply.",
   "reminderDailyTitle": "Another day of us 💕",
@@ -905,6 +959,15 @@
   "settingsProfileTileSubtitle": "Reminders, language, account",
   "settingsRemindersModuleTitle": "Reminders",
   "settingsRemindersModuleSubtitle": "Milestones, anniversaries & your own reminders",
+  "settingsRemindersEntryTitle": "Reminders",
+  "settingsRemindersEntrySubtitle": "Milestones, anniversaries and your own reminders",
+  "remindersHubBadge": "REMINDERS",
+  "remindersHubTitle": "Our reminders",
+  "remindersHubSubtitle": "Milestones, anniversaries and your own reminders — all in one place.",
+  "remindersHubMilestonesSection": "Milestones & anniversaries",
+  "remindersHubMilestonesSectionSub": "Pick the milestones to be reminded of and set their times.",
+  "remindersHubCustomSection": "Our reminders",
+  "remindersHubCustomSectionSub": "Create reminders for your own special days.",
   "settingsAccountModuleTitle": "Account & data",
   "settingsAccountModuleSubtitle": "Your story, data & account",
   "settingsAnalyticsTitle": "Share usage data",
@@ -963,6 +1026,7 @@
   "customRemindersEmptyTitle": "No reminders yet",
   "customRemindersEmptyBody": "Create your own moments: birthdays, monthsaries, special days…",
   "customRemindersEmptyCta": "Create your first reminder",
+  "customRemindersAddAnother": "Add a reminder",
   "customRemindersOffTitle": "Reminders are off",
   "customRemindersOffBody": "Turn on \"Love reminders\" in Profile so your reminders can work.",
   "customRemindersOffCta": "Turn on reminders",
@@ -1827,5 +1891,73 @@
   "notifChatMessage": "{name} sent you a message 💬",
   "@notifChatMessage": {
     "placeholders": { "name": { "type": "String" } }
-  }
+  },
+  "forceUpdateBadge": "UPDATE",
+  "forceUpdateTitle": "Time to update",
+  "forceUpdateBody": "The version you're on is out of date. Update to the latest to keep making memories with your other half.",
+  "forceUpdateButton": "Update now",
+  "counterBgBadge": "BACKGROUND",
+  "counterBgTitle": "Counter background",
+  "counterBgSubtitleAll": "Pick which photos can back the day-counter card. Leave empty to cycle through them all.",
+  "counterBgSubtitleCount": "{count} photos picked for the counter background.",
+  "@counterBgSubtitleCount": { "placeholders": { "count": { "type": "int" } } },
+  "counterBgCoverLabel": "Cover",
+  "counterBgEmptyTitle": "No photos yet",
+  "counterBgEmptyBody": "Add some memories to your gallery first.",
+  "settingsCounterBgTitle": "Counter background",
+  "settingsCounterBgSubtitle": "Choose which photos show on the counter",
+  "counterBgSave": "Save",
+  "counterBgSavedMsg": "Counter background saved 💕",
+  "counterBgDiscardTitle": "Discard changes?",
+  "counterBgDiscardBody": "You have unsaved changes. Leave without saving?",
+  "counterBgDiscardLeave": "Leave",
+  "journeyTrailTitle": "Our journey",
+  "milestoneTrailNext": "{days} days to {label}",
+  "@milestoneTrailNext": { "placeholders": { "days": { "type": "int" }, "label": { "type": "String" } } },
+  "milestoneTrailAllDone": "You've reached every milestone 🎉",
+  "profileAchievementsTitle": "Your badges",
+  "badgeStreakLabel": "day streak",
+  "badgeRecordLabel": "record",
+  "badgeMemoriesLabel": "memories",
+  "badgeJournalLabel": "journal",
+  "loveTreeBadge": "LOVE TREE",
+  "loveTreeStage0": "Tiny seed",
+  "loveTreeStage1": "Sprout",
+  "loveTreeStage2": "Young tree",
+  "loveTreeStage3": "Flourishing tree",
+  "loveTreeStage4": "In full bloom",
+  "loveTreeFlowerCount": "{count} flowers bloomed",
+  "@loveTreeFlowerCount": { "placeholders": { "count": { "type": "int" } } },
+  "loveTreeFlowerCountZero": "No flowers yet — let's grow it together",
+  "loveTreeSeedSubtitle": "Your journey starts right here 🌱",
+  "loveTreeBloomSubtitle": "Your tree is in full bloom ✨",
+  "loveTreeNewBloomBanner": "Your tree just bloomed {count} new flowers 🌸",
+  "@loveTreeNewBloomBanner": { "placeholders": { "count": { "type": "int" } } },
+  "loveTreeNewBloomBannerOne": "Your tree just bloomed a new flower 🌸",
+  "loveTreeNurtureTitle": "Grow it together",
+  "loveTreeNurtureStreakTitle": "Keep your daily streak",
+  "loveTreeNurtureStreakBody": "Answer daily so your streak lives on",
+  "loveTreeNurturePhotoTitle": "Add a memory",
+  "loveTreeNurturePhotoBody": "Every photo is a new flower",
+  "loveTreeNurtureTalkTitle": "Talk together today",
+  "loveTreeNurtureTalkBody": "Small moments grow the tree",
+  "loveTreeMilestonesTitle": "Milestones",
+  "loveTreeMilestoneDays": "{count} days together",
+  "@loveTreeMilestoneDays": { "placeholders": { "count": { "type": "int" } } },
+  "loveTreeMilestoneStreak": "{count}-day streak",
+  "@loveTreeMilestoneStreak": { "placeholders": { "count": { "type": "int" } } },
+  "loveTreeMilestonePhotos": "{count} memories",
+  "@loveTreeMilestonePhotos": { "placeholders": { "count": { "type": "int" } } },
+  "loveTreeMilestoneBloomed": "bloomed",
+  "loveTreeMilestoneDaysLeft": "{count} days to go",
+  "@loveTreeMilestoneDaysLeft": { "placeholders": { "count": { "type": "int" } } },
+  "loveTreeMilestoneStreakLeft": "{count} streak days to go",
+  "@loveTreeMilestoneStreakLeft": { "placeholders": { "count": { "type": "int" } } },
+  "loveTreeMilestonePhotosLeft": "{count} photos to go",
+  "@loveTreeMilestonePhotosLeft": { "placeholders": { "count": { "type": "int" } } },
+  "loveTreeMilestoneAllDone": "all done 🌟",
+  "loveTreeWaitingTitle": "Waiting for both of you",
+  "loveTreeWaitingBody": "The tree grows when you're both here. Invite your partner 💌",
+  "loveTreeWaitingCta": "Invite partner",
+  "loveTreeNoCoupleBody": "Connect with your partner to start growing 🌱"
 }

@@ -239,7 +239,7 @@
   "loveInNumbersTitle": "Tình yêu qua con số",
   "loveInNumbersSubtitle": "Những thống kê nhỏ từ hành trình của hai bạn",
   "daysTogether": "Ngày bên nhau",
-  "daysUnit": "ngày",
+  "daysUnit": "Ngày",
   "hoursShort": "giờ",
   "minutesShort": "phút",
   "secondsShort": "giây",
@@ -443,7 +443,7 @@
   "journalEntryCta": "Xem lại nhật ký",
   "journalScreenTitle": "Nhật ký câu hỏi",
   "journalScreenSubtitle": "Những câu hỏi hai bạn đã cùng trả lời.",
-  "journalBadge": "HỎI ĐÁP MỖI NGÀY",
+  "journalBadge": "NHẬT KÝ CÂU HỎI",
   "journalHeaderSubtitle": "Những câu hỏi hai bạn đã cùng trả lời.",
   "journalSettingsTile": "Nhật ký câu hỏi",
   "journalSettingsSection": "Kỷ niệm",
@@ -538,7 +538,7 @@
       }
     }
   },
-  "privateGalleryBadge": "THƯ VIỆN RIÊNG TƯ",
+  "privateGalleryBadge": "THƯ VIỆN ẢNH",
   "galleryTitle": "Thư viện ảnh",
   "gallerySubtitle": "Vuốt lên nhẹ để gọi lại nhanh khung đăng ảnh và quản lý kỷ niệm.",
   "addCaptionTitle": "Thêm chú thích",
@@ -576,8 +576,51 @@
     }
   },
   "privateFeedLabel": "Feed riêng của hai bạn",
-  "postNewPhotoBtn": "Đăng ảnh mới",
-  "addMultipleBtn": "Thêm nhiều",
+  "postNewPhotoBtn": "Chụp hình",
+  "addMultipleBtn": "Thêm hình",
+  "cameraUnavailable": "Không mở được camera. Hãy thử lại hoặc kiểm tra quyền camera (máy ảo không có camera — dùng điện thoại thật nhé).",
+  "galleryDraftTitle": "Xem trước & đăng",
+  "galleryDraftCaptionHint": "Thêm chú thích chung (không bắt buộc)…",
+  "galleryDraftEmpty": "Đã bỏ hết ảnh.",
+  "galleryDraftPostBtn": "Đăng {count} ảnh",
+  "@galleryDraftPostBtn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createPostTitle": "Kỷ niệm mới",
+  "createPostBadge": "KỶ NIỆM MỚI",
+  "createPostAuthorMeta": "Đăng bởi {name} · {when}",
+  "@createPostAuthorMeta": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "today": "Hôm nay",
+  "createPostCaptionHint": "Hôm nay của hai bạn có gì?…",
+  "createPostAddMore": "Thêm ảnh",
+  "createPostAddFromLibrary": "Thêm ảnh từ thư viện",
+  "createPostPhotoCount": "{count} ảnh",
+  "@createPostPhotoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createPostBtn": "Đăng",
+  "createPostRemovePhoto": "Gỡ ảnh",
+  "createPostDiscardTitle": "Bỏ kỷ niệm này?",
+  "createPostDiscardMessage": "Phần chú thích chúng mình vừa viết sẽ không được lưu.",
+  "createPostDiscardConfirm": "Bỏ",
+  "createPostDiscardKeep": "Tiếp tục soạn",
   "addNewMemoryTitle": "Thêm một kỷ niệm mới hôm nay",
   "whatNewToday": "hôm nay có gì mới?",
   "composerSubtitle": "Để thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.",
@@ -701,9 +744,10 @@
   "privateDiaryLabel": "Nhật ký riêng tư",
   "loveMilestonesLabel": "Mốc yêu thương",
   "journeySnapshotTitle": "Bức tranh hành trình",
-  "yearsTogether": "Năm bên nhau",
-  "monthsRemaining": "Tháng lẻ",
+  "yearsTogether": "Năm",
+  "monthsRemaining": "Tháng",
   "totalDaysLabel": "Tổng số ngày",
+  "totalHoursLabel": "Tổng số giờ",
   "memoriesSavedLabel": "Khoảnh khắc lưu",
   "infoAndRhythmTitle": "Thông tin & nhịp sống",
   "infoAndRhythmSubtitle": "Một cách nhìn rõ ràng hơn về ngày bắt đầu, album và cột mốc sắp tới.",
@@ -789,8 +833,18 @@
   "remindersTimeLabel": "Giờ nhắc",
   "remindersPermissionDeniedMsg": "Hãy bật thông báo trong Cài đặt để nhận lời nhắc.",
   "dailyQuestionReminderTitle": "Nhắc trả lời câu hỏi",
-  "dailyQuestionReminderSubtitle": "Một lời nhắc nhẹ mỗi ngày để hai bạn cùng trả lời.",
+  "dailyQuestionReminderSubtitle": "Nhắc cả hai cùng trả lời mỗi ngày, đồng bộ trên cả hai máy.",
   "dailyQuestionReminderTimeLabel": "Nhắc lúc",
+  "dailyQuestionReminderTimesLabel": "Giờ nhắc",
+  "dailyQuestionReminderAddTime": "Thêm giờ nhắc",
+  "dailyQuestionReminderRemoveTime": "Xoá giờ nhắc {time}",
+  "@dailyQuestionReminderRemoveTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "dailyQuestionReminderNotifTitle": "Câu hỏi hôm nay đang chờ 💌",
   "dailyQuestionReminderNotifBody": "Ghé trả lời để mở khoá câu trả lời của người ấy nhé.",
   "reminderDailyTitle": "Thêm một ngày của chúng mình 💕",
@@ -854,6 +908,15 @@
   "settingsProfileTileSubtitle": "Nhắc nhở, ngôn ngữ, tài khoản",
   "settingsRemindersModuleTitle": "Nhắc nhở",
   "settingsRemindersModuleSubtitle": "Cột mốc, kỷ niệm & lời nhắc riêng",
+  "settingsRemindersEntryTitle": "Lời nhắc",
+  "settingsRemindersEntrySubtitle": "Cột mốc, kỷ niệm và lời nhắc riêng của hai bạn",
+  "remindersHubBadge": "LỜI NHẮC",
+  "remindersHubTitle": "Lời nhắc của chúng mình",
+  "remindersHubSubtitle": "Cột mốc, kỷ niệm và những lời nhắc riêng — tất cả ở một nơi.",
+  "remindersHubMilestonesSection": "Cột mốc & kỷ niệm",
+  "remindersHubMilestonesSectionSub": "Chọn cột mốc muốn được nhắc và đặt giờ riêng.",
+  "remindersHubCustomSection": "Lời nhắc của chúng mình",
+  "remindersHubCustomSectionSub": "Tự tạo lời nhắc cho những dịp riêng của hai bạn.",
   "settingsAccountModuleTitle": "Tài khoản & dữ liệu",
   "settingsAccountModuleSubtitle": "Câu chuyện, dữ liệu & tài khoản",
   "settingsAnalyticsTitle": "Chia sẻ dữ liệu sử dụng",
@@ -891,6 +954,7 @@
   "customRemindersEmptyTitle": "Chưa có lời nhắc nào",
   "customRemindersEmptyBody": "Tạo mốc riêng của hai bạn: sinh nhật, monthsary, ngày đặc biệt…",
   "customRemindersEmptyCta": "Tạo lời nhắc đầu tiên",
+  "customRemindersAddAnother": "Thêm lời nhắc",
   "customRemindersOffTitle": "Lời nhắc đang tắt",
   "customRemindersOffBody": "Hãy bật \"Nhắc nhớ yêu thương\" ở trang Hồ sơ để các lời nhắc có hiệu lực.",
   "customRemindersOffCta": "Bật lời nhắc",
@@ -1225,5 +1289,65 @@
   "notifChatMessage": "{name} vừa gửi cho bạn một tin nhắn 💬",
   "@notifChatMessage": {
     "placeholders": { "name": { "type": "String" } }
-  }
+  },
+  "forceUpdateBadge": "CẬP NHẬT",
+  "forceUpdateTitle": "Đã có bản cập nhật mới",
+  "forceUpdateBody": "Phiên bản bạn đang dùng đã cũ rồi. Cập nhật lên bản mới nhất để tiếp tục lưu giữ kỷ niệm cùng người ấy nhé.",
+  "forceUpdateButton": "Cập nhật ngay",
+  "counterBgBadge": "ẢNH NỀN",
+  "counterBgTitle": "Ảnh nền thẻ đếm",
+  "counterBgSubtitleAll": "Chọn ảnh được dùng làm nền thẻ đếm ngày. Bỏ trống thì xoay vòng tất cả ảnh.",
+  "counterBgSubtitleCount": "Đã chọn {count} ảnh làm nền thẻ đếm.",
+  "@counterBgSubtitleCount": { "placeholders": { "count": { "type": "int" } } },
+  "counterBgCoverLabel": "Ảnh đại diện",
+  "counterBgEmptyTitle": "Chưa có ảnh nào",
+  "counterBgEmptyBody": "Hãy thêm vài kỷ niệm vào thư viện trước nhé.",
+  "settingsCounterBgTitle": "Ảnh nền thẻ đếm",
+  "settingsCounterBgSubtitle": "Chọn ảnh hiện trên thẻ đếm ngày",
+  "counterBgSave": "Lưu",
+  "counterBgSavedMsg": "Đã lưu ảnh nền thẻ đếm 💕",
+  "counterBgDiscardTitle": "Bỏ thay đổi?",
+  "counterBgDiscardBody": "Bạn có thay đổi chưa lưu. Thoát mà không lưu nhé?",
+  "counterBgDiscardLeave": "Thoát",
+  "journeyTrailTitle": "Hành trình của chúng mình",
+  "milestoneTrailNext": "Còn {days} ngày tới {label}",
+  "@milestoneTrailNext": { "placeholders": { "days": { "type": "int" }, "label": { "type": "String" } } },
+  "milestoneTrailAllDone": "Hai bạn đã chinh phục mọi cột mốc rồi 🎉",
+  "profileAchievementsTitle": "Huy hiệu của chúng mình",
+  "badgeStreakLabel": "ngày chuỗi",
+  "badgeRecordLabel": "kỷ lục",
+  "badgeMemoriesLabel": "kỷ niệm",
+  "badgeJournalLabel": "nhật ký",
+  "loveTreeBadge": "CÂY TÌNH YÊU",
+  "loveTreeStage0": "Hạt mầm",
+  "loveTreeStage1": "Mầm non",
+  "loveTreeStage2": "Cây non",
+  "loveTreeStage3": "Cây xanh",
+  "loveTreeStage4": "Nở rộ",
+  "loveTreeFlowerCount": "{count} bông hoa đã nở",
+  "loveTreeFlowerCountZero": "Chưa có bông nào — hãy cùng vun đắp",
+  "loveTreeSeedSubtitle": "Hành trình của hai bạn bắt đầu từ đây 🌱",
+  "loveTreeBloomSubtitle": "Cây của hai bạn đang rực rỡ ✨",
+  "loveTreeNewBloomBanner": "Cây vừa nở {count} bông mới 🌸",
+  "loveTreeNewBloomBannerOne": "Cây vừa nở một bông mới 🌸",
+  "loveTreeNurtureTitle": "Cùng vun đắp",
+  "loveTreeNurtureStreakTitle": "Giữ chuỗi mỗi ngày",
+  "loveTreeNurtureStreakBody": "Trả lời câu hỏi để chuỗi không đứt",
+  "loveTreeNurturePhotoTitle": "Thêm một kỷ niệm",
+  "loveTreeNurturePhotoBody": "Mỗi tấm ảnh là một bông hoa mới",
+  "loveTreeNurtureTalkTitle": "Cùng trò chuyện hôm nay",
+  "loveTreeNurtureTalkBody": "Những khoảnh khắc nhỏ nuôi cây lớn",
+  "loveTreeMilestonesTitle": "Cột mốc",
+  "loveTreeMilestoneDays": "{count} ngày bên nhau",
+  "loveTreeMilestoneStreak": "Chuỗi {count} ngày",
+  "loveTreeMilestonePhotos": "{count} ảnh kỷ niệm",
+  "loveTreeMilestoneBloomed": "đã nở",
+  "loveTreeMilestoneDaysLeft": "còn {count} ngày",
+  "loveTreeMilestoneStreakLeft": "còn {count} ngày chuỗi",
+  "loveTreeMilestonePhotosLeft": "còn {count} ảnh",
+  "loveTreeMilestoneAllDone": "đã đủ 🌟",
+  "loveTreeWaitingTitle": "Cây đang chờ cả hai",
+  "loveTreeWaitingBody": "Cây sẽ lớn khi cả hai cùng có mặt. Mời người ấy tham gia nhé 💌",
+  "loveTreeWaitingCta": "Mời người ấy",
+  "loveTreeNoCoupleBody": "Hãy kết nối với người ấy để bắt đầu trồng cây 🌱"
 }

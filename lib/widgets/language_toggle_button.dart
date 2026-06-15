@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../l10n/l10n.dart';
 import '../providers/locale_provider.dart';
@@ -120,7 +120,7 @@ class LanguageToggleButton extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (isSystem)
-                  const Icon(LucideIcons.globe, size: 14, color: fgColor)
+                  const Icon(IconsaxPlusLinear.global, size: 14, color: fgColor)
                 else
                   Text(selected.code!.toUpperCase(),
                       style: const TextStyle(
@@ -140,7 +140,7 @@ class LanguageToggleButton extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 3),
-                Icon(LucideIcons.chevronDown,
+                Icon(IconsaxPlusLinear.arrow_down_1,
                     size: 14, color: fgColor.withValues(alpha: 0.7)),
               ],
             ),
@@ -207,7 +207,7 @@ class _LanguageSheetState extends State<_LanguageSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Icon(LucideIcons.globe, size: 18, color: AppColors.accentRose),
+                Icon(IconsaxPlusLinear.global, size: 18, color: AppColors.accentRose),
                 const SizedBox(width: 8),
                 Text(
                   l10n.languageTitle,
@@ -228,7 +228,7 @@ class _LanguageSheetState extends State<_LanguageSheet> {
                 onChanged: (value) => setState(() => _query = value),
                 decoration: InputDecoration(
                   isDense: true,
-                  prefixIcon: const Icon(LucideIcons.search, size: 20),
+                  prefixIcon: const Icon(IconsaxPlusLinear.search_normal, size: 20),
                   hintText: l10n.languageSearchHint,
                 ),
               ),
@@ -332,7 +332,7 @@ class _LanguageTile extends StatelessWidget {
               ),
             ),
             if (isSelected)
-              Icon(LucideIcons.checkCircle,
+              Icon(IconsaxPlusLinear.tick_circle,
                   color: AppColors.accentRose, size: 20),
           ],
         ),
@@ -361,7 +361,7 @@ class _LanguageChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       child: isSystem
-          ? const Icon(LucideIcons.globe, size: 20, color: AppColors.accentLove)
+          ? const Icon(IconsaxPlusLinear.global, size: 20, color: AppColors.accentLove)
           : Text(
               lang.code!.toUpperCase(),
               style: const TextStyle(

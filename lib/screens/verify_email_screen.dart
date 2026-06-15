@@ -2,14 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/language_toggle_button.dart';
@@ -195,8 +194,10 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final email = authProvider.currentEmail ?? '';
+    // authProvider watched so the screen rebuilds with provider state; the
+    // chip/title/subtitle (which used currentEmail) were removed in the
+    // 2026-06-14 header redesign, so we no longer read the email here.
+    context.watch<AuthProvider>();
 
     return PopScope(
       // Gate: never let a system-back drop the user into setup/home unverified.
@@ -218,15 +219,32 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 52),
-                          _buildHeader(email),
-                          const SizedBox(height: 24),
                           _buildCard(),
                         ],
                       ),
                     ),
                   ),
                 ),
-                // No back arrow top-left — this is a gate.
+                // No back arrow — this is a gate. The eyebrow chip is centered
+                // alone on the top-bar (header redesign 2026-06-14: chip lives
+                // on the bar; the title + subtitle were removed). The language
+                // toggle trails on the right.
+                Positioned(
+                  top: 8,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: SizedBox(
+                      height: 44,
+                      child: Center(
+                        child: EyebrowChip(
+                          label: context.l10n.verifyEmailBadge,
+                          icon: IconsaxPlusLinear.sms_tracking,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 const Positioned(
                   top: 12,
                   right: 16,
@@ -237,26 +255,6 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader(String email) {
-    final l10n = context.l10n;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
-        // recolor of the original (user request 2026-06-11).
-        EyebrowChip(label: l10n.verifyEmailBadge, icon: LucideIcons.mailCheck),
-        const SizedBox(height: 14),
-        Text(l10n.verifyEmailTitle, style: AppTheme.pageTitleStyle()),
-        const SizedBox(height: 10),
-        Text(
-          l10n.verifyEmailSubtitle(email),
-          style: AppTheme.pageSubtitleStyle(),
-        ),
-      ],
     );
   }
 
@@ -277,7 +275,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
                 borderRadius: BorderRadius.circular(999),
               ),
               child: const Icon(
-                LucideIcons.mailOpen,
+                IconsaxPlusLinear.sms,
                 color: AppColors.accentRose,
                 size: 30,
               ),
@@ -365,7 +363,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
                         color: AppColors.accentRose,
                       ),
                     )
-                  : const Icon(LucideIcons.refreshCw, size: 18),
+                  : const Icon(IconsaxPlusLinear.refresh, size: 18),
               label: Text(
                 _onCooldown
                     ? l10n.verifyEmailResendCountdown(
@@ -415,7 +413,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(
-            LucideIcons.alertCircle,
+            IconsaxPlusLinear.warning_2,
             color: AppColors.warning,
             size: 18,
           ),

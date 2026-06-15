@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
@@ -60,7 +61,7 @@ class _AnimatedHeartIconState extends State<AnimatedHeartIcon>
     return ScaleTransition(
       scale: _scaleAnimation,
       child: Icon(
-        Icons.favorite_rounded,
+        IconsaxPlusBold.heart,
         size: widget.size,
         color: widget.color,
       ),

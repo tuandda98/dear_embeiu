@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hive/hive.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../l10n/l10n.dart';
@@ -16,7 +16,6 @@ import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/daily_question_provider.dart';
-import '../providers/love_note_provider.dart';
 import '../providers/notification_inbox_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reaction_provider.dart';
@@ -27,8 +26,10 @@ import '../services/home_prefs_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
+import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/counter_card.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/icon_badge.dart';
 import '../widgets/invite_action_buttons.dart';
 import '../widgets/memory_cinema_card.dart';
@@ -59,25 +60,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 4 tabs (feature chat, D1): Home · Chat · Gallery · Profile. The chat tab
   // sits beside Home (thumb position); deep-link indices follow this order.
+  // Icon redesign 2026-06-14 (Iconsax): outline (Linear) when unselected, solid
+  // (Bold) when selected — a warmer, more modern set than the old Lucide line.
   static const List<_NavigationItem> _navigationItems = [
     _NavigationItem(
-      icon: Icons.favorite_border_rounded,
-      selectedIcon: Icons.favorite_rounded,
+      icon: IconsaxPlusLinear.heart,
+      selectedIcon: IconsaxPlusBold.heart,
       color: AppColors.accentRose,
     ),
     _NavigationItem(
-      icon: LucideIcons.messageCircle,
-      selectedIcon: LucideIcons.messageCircle,
+      icon: IconsaxPlusLinear.messages,
+      selectedIcon: IconsaxPlusBold.messages,
       color: AppColors.accentRose,
     ),
     _NavigationItem(
-      icon: LucideIcons.image,
-      selectedIcon: LucideIcons.image,
+      icon: IconsaxPlusLinear.gallery,
+      selectedIcon: IconsaxPlusBold.gallery,
       color: AppColors.accentRose,
     ),
     _NavigationItem(
-      icon: LucideIcons.user,
-      selectedIcon: LucideIcons.user,
+      icon: IconsaxPlusLinear.user,
+      selectedIcon: IconsaxPlusBold.user,
       color: AppColors.accentRose,
     ),
   ];
@@ -108,6 +111,12 @@ class _HomeScreenState extends State<HomeScreen> {
   final HomePrefsService _homePrefs = HomePrefsService();
   StreamSubscription<String?>? _bgSyncSub;
 
+  /// Couple-shared whitelist of photo ids allowed as the counter background
+  /// (Settings → "Ảnh nền thẻ đếm", 2026-06-14). Empty = no restriction (cycle
+  /// through everything, the original behaviour). Hive caches it offline.
+  List<String> _counterBgIds = const <String>[];
+  StreamSubscription<List<String>>? _bgIdsSyncSub;
+
   void _ensureCounterBgLoaded(String coupleId) {
     if (_counterBgCouple == coupleId) {
       return;
@@ -116,11 +125,31 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final box = Hive.box<String>('app_settings');
       _counterBgKey = box.get('counter_bg_$coupleId');
+      final cachedIds = box.get('counter_bg_ids_$coupleId');
+      _counterBgIds = (cachedIds == null || cachedIds.isEmpty)
+          ? const <String>[]
+          : cachedIds.split('\n');
       _showBgHint = box.get('counter_bg_hint_done') == null;
     } catch (_) {
       _counterBgKey = null; // Box unavailable → session-only selection.
+      _counterBgIds = const <String>[];
       _showBgHint = false;
     }
+    // Follow the couple-shared whitelist (a change in Settings on either phone
+    // re-filters both cards).
+    _bgIdsSyncSub?.cancel();
+    _bgIdsSyncSub = _homePrefs.watchCounterBgIds(coupleId).listen((ids) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _counterBgIds = ids);
+      try {
+        Hive.box<String>('app_settings')
+            .put('counter_bg_ids_$coupleId', ids.join('\n'));
+      } catch (_) {
+        // Cache only — the in-memory value is already set.
+      }
+    });
     // Follow the couple-shared selection (fires for the partner's swipes —
     // and echoes ours, which the equality guard ignores).
     _bgSyncSub?.cancel();
@@ -159,14 +188,36 @@ class _HomeScreenState extends State<HomeScreen> {
     Couple couple,
     List<Photo> photos,
   ) {
+    ({String key, String? local, String? remote})? couplePhoto;
+    if ((couple.couplePhotoUrl?.trim().isNotEmpty ?? false) ||
+        (couple.couplePhotoPath?.trim().isNotEmpty ?? false)) {
+      couplePhoto = (
+        key: 'couple',
+        local: couple.couplePhotoPath,
+        remote: couple.couplePhotoUrl,
+      );
+    }
+
+    // Whitelist mode (Settings → "Ảnh nền thẻ đếm"): keep only the picked
+    // photos, scanning ALL loaded photos (not just the recent 12) so an older
+    // pick still shows. Falls back to the default pool if none of the picks are
+    // in the current window, so the card is never blank.
+    final whitelist = _counterBgIds;
+    if (whitelist.isNotEmpty) {
+      final picked = <({String key, String? local, String? remote})>[
+        if (couplePhoto != null && whitelist.contains('couple')) couplePhoto,
+        for (final p in photos)
+          if (whitelist.contains(p.id) && (p.hasLocalPath || p.hasRemoteUrl))
+            (key: p.id, local: p.path, remote: p.remoteUrl),
+      ];
+      if (picked.isNotEmpty) {
+        return picked;
+      }
+    }
+
+    // Default (no whitelist): couple photo + the 12 most recent.
     return [
-      if ((couple.couplePhotoUrl?.trim().isNotEmpty ?? false) ||
-          (couple.couplePhotoPath?.trim().isNotEmpty ?? false))
-        (
-          key: 'couple',
-          local: couple.couplePhotoPath,
-          remote: couple.couplePhotoUrl,
-        ),
+      ?couplePhoto,
       for (final p in photos.take(12))
         if (p.hasLocalPath || p.hasRemoteUrl)
           (key: p.id, local: p.path, remote: p.remoteUrl),
@@ -282,6 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _streakProvider?.removeListener(_onStreakChanged);
     _bgHintTimer?.cancel();
     _bgSyncSub?.cancel();
+    _bgIdsSyncSub?.cancel();
     super.dispose();
   }
 
@@ -453,22 +505,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
       // Gutter per block (matches the live layout).
-      padding: EdgeInsets.fromLTRB(0, topPadding + 20, 0, 20),
+      padding: EdgeInsets.fromLTRB(0, topPadding + 16, 0, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row: greeting (two stacked text lines) + bell squircle.
+          // Header row: greeting chip pill + bell (matches the live one-chip
+          // header, header-unify 2026-06-14).
           _gutter(
             Row(
               children: const [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ShimmerSkeleton(width: 180, height: 21, borderRadius: 8),
-                    SizedBox(height: 7),
-                    ShimmerSkeleton(width: 220, height: 13, borderRadius: 6),
-                  ],
-                ),
+                ShimmerSkeleton(width: 168, height: 31, borderRadius: 999),
                 Spacer(),
                 ShimmerSkeleton(width: 48, height: 48, borderRadius: 17),
               ],
@@ -592,7 +638,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TickerMode(
                         enabled: _selectedIndex == 3,
-                        child: ProfileScreen(bottomInset: bottomInset),
+                        child: ProfileScreen(
+                          bottomInset: bottomInset,
+                          // A Profile badge (e.g. "Kỷ niệm") can jump to a tab.
+                          onRequestTab: (index) {
+                            if (index >= 0 &&
+                                index < _navigationItems.length &&
+                                index != _selectedIndex) {
+                              setState(() => _selectedIndex = index);
+                              _logTabScreenView(index);
+                            }
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -870,6 +927,57 @@ class _HomeScreenState extends State<HomeScreen> {
     bool isUploadingPhoto,
     double bottomInset,
   ) {
+    // Pinned header (header-sync 2026-06-14): the greeting chip + bell sit ABOVE
+    // the scroll so the bell stays reachable while scrolling — the same
+    // fixed-header structure Chat/Gallery/Profile already use. Only Home let its
+    // header scroll away with the content, which read as "inconsistent" across
+    // the four tabs (the action icon vanished here but stayed on the others).
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
+          child: _gutter(
+            // One chip + the bell, same shape/height as the other three tabs;
+            // the time-of-day greeting lives INSIDE the chip. Top-aligned (Row
+            // start + chip Align.topLeft) so the ~27pt chip sits at the row top
+            // beside the taller 48pt bell, matching the icon-less tabs.
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: _buildGreetingChip(),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _buildNotificationBell(),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          child: _buildHomeScrollBody(
+            couple,
+            counterData,
+            photos,
+            isUploadingPhoto,
+            bottomInset,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// The scrolling body of the Home tab (everything below the pinned header).
+  Widget _buildHomeScrollBody(
+    Couple couple,
+    CounterData counterData,
+    List<Photo> photos,
+    bool isUploadingPhoto,
+    double bottomInset,
+  ) {
     final l10n = context.l10n;
     _ensureCounterBgLoaded(couple.id);
     final bgCandidates = _counterBgCandidates(couple, photos);
@@ -891,14 +999,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final onThisDayPhoto =
         _onThisDayPhoto(context.read<PhotoProvider>().onThisDayPhotos);
 
-    // Ensure the love-note stream is watching this couple. SessionResolver
-    // already starts it, but the couple may finish loading after Home mounts
-    // (or change), so re-arm here. watchForCouple no-ops when unchanged.
+    // Re-arm the couple's realtime streams. SessionResolver already starts
+    // them, but the couple may finish loading after Home mounts (or change),
+    // so re-arm here. Every watchForCouple no-ops when unchanged.
     final myUid = context.read<AuthProvider>().currentUser?.id;
     if (myUid != null && couple.id.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.read<LoveNoteProvider>().watchForCouple(couple.id, myUid);
           // On-this-day memories (pagination D3) — deduped per calendar day
           // inside the provider, so this re-arm is cheap. Also covers the
           // date rolling over while the app stays open.
@@ -937,32 +1044,14 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        // Horizontal gutter applied per block (`_gutter`).
-        padding: EdgeInsets.fromLTRB(0, 16, 0, bottomInset),
+        // The greeting chip + bell are now PINNED above this scroll
+        // (header-sync 2026-06-14); their old 20pt bottom gap becomes the
+        // body's top padding. Horizontal gutter is applied per block (`_gutter`).
+        padding: EdgeInsets.fromLTRB(0, 20, 0, bottomInset),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
             _gutter(_entrance(
-            0,
-            // Slim header: badge chip + bell only — the greeting was dropped
-            // and the couple name moved INTO the CounterCard (user 2026-06-10).
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Personal greeting (redesign user 2026-06-11): time-of-day
-                // hello + the user's name over a rotating nudge line — warmer
-                // than the calendar-leaf date it replaced, and it points at a
-                // daily action ("đã chúc người ấy chưa?") instead of stating
-                // a fact the hero card below already implies.
-                Expanded(child: _buildGreetingHeader()),
-                const SizedBox(width: 12),
-                _buildNotificationBell(),
-              ],
-            ),
-          )),
-          const SizedBox(height: 20),
-          _gutter(_entrance(
             1,
             GestureDetector(
               // Swipe ←/→ on the hero card cycles its background photo
@@ -1039,7 +1128,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(LucideIcons.chevronLeft,
+                                const Icon(IconsaxPlusLinear.arrow_left_2,
                                     size: 14, color: AppColors.white),
                                 const SizedBox(width: 6),
                                 Text(
@@ -1051,7 +1140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 6),
-                                const Icon(LucideIcons.chevronRight,
+                                const Icon(IconsaxPlusLinear.arrow_right_3,
                                     size: 14, color: AppColors.white),
                               ],
                             ),
@@ -1136,30 +1225,29 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Header greeting: time-of-day hello + the user's name, over a rotating
-  /// one-line nudge toward a daily action. The nudge is picked from a
-  /// 12-string pool deterministically by (day of year, time bucket) so it
-  /// rotates through the day without flickering across rebuilds, and rarely
-  /// repeats two sessions in a row.
-  Widget _buildGreetingHeader() {
+  /// Header chip: the time-of-day greeting + the user's name, rendered INSIDE
+  /// the shared [EyebrowChip] so Home's header is the same one-chip shape as
+  /// the other three tabs (user 2026-06-14 "để lời chào trong chip"). A
+  /// time-aware leading glyph (sunrise/sun/sunset/moon) replaces the static
+  /// sparkles the label chips use, and the greeting is upper-cased to read as
+  /// an eyebrow like "HỒ SƠ TÌNH YÊU" / "THƯ VIỆN RIÊNG TƯ".
+  Widget _buildGreetingChip() {
     final l10n = context.l10n;
-    final now = DateTime.now();
-    final hour = now.hour;
-    // 0 sáng · 1 chiều · 2 tối · 3 khuya.
-    final int bucket;
+    final hour = DateTime.now().hour;
     final String greeting;
+    final IconData icon;
     if (hour >= 5 && hour < 12) {
-      bucket = 0;
       greeting = l10n.homeGreetingMorning;
+      icon = IconsaxPlusLinear.sun_1;
     } else if (hour >= 12 && hour < 18) {
-      bucket = 1;
       greeting = l10n.homeGreetingAfternoon;
+      icon = IconsaxPlusLinear.sun_1;
     } else if (hour >= 18 && hour < 22) {
-      bucket = 2;
       greeting = l10n.homeGreetingEvening;
+      icon = IconsaxPlusLinear.sun_1;
     } else {
-      bucket = 3;
       greeting = l10n.homeGreetingNight;
+      icon = IconsaxPlusLinear.moon;
     }
     final name =
         context.read<AuthProvider>().currentUser?.displayName.trim() ?? '';
@@ -1168,55 +1256,24 @@ class _HomeScreenState extends State<HomeScreen> {
     final title = name.isEmpty
         ? greeting.replaceAll(RegExp(r',\s*$'), '')
         : '$greeting $name';
-    final teasers = [
-      l10n.homeGreetingTeaser1,
-      l10n.homeGreetingTeaser2,
-      l10n.homeGreetingTeaser3,
-      l10n.homeGreetingTeaser4,
-      l10n.homeGreetingTeaser5,
-      l10n.homeGreetingTeaser6,
-      l10n.homeGreetingTeaser7,
-      l10n.homeGreetingTeaser8,
-      l10n.homeGreetingTeaser9,
-      l10n.homeGreetingTeaser10,
-      l10n.homeGreetingTeaser11,
-      l10n.homeGreetingTeaser12,
-    ];
-    final dayOfYear = now.difference(DateTime(now.year)).inDays;
-    // 7 and 5 are coprime with 12: +7/day walks the whole pool over 12 days,
-    // +5/bucket keeps the 4 buckets of one day on distinct lines.
-    final teaser = teasers[(dayOfYear * 7 + bucket * 5) % teasers.length];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          // Header ink vòng 4 (2026-06-11): navy textPrimary, no shadow —
-          // white+dark-drop still sank into the bright end of dawnBlush on
-          // real screenshots (~1.7:1); the gradient carries the brand, the
-          // ink carries the reading.
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 21,
-            fontWeight: FontWeight.w800,
-            height: 1.15,
+    return EyebrowChip(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppColors.accentLoveDeep),
+          const SizedBox(width: 7),
+          // Flexible + ellipsis so a long display name can't overflow the
+          // chip when the Align/Expanded parent bounds it.
+          Flexible(
+            child: Text(
+              title.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTheme.pageEyebrowStyle(alpha: 0.70),
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          teaser,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: AppColors.textPrimary.withValues(alpha: 0.62),
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            height: 1.3,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1247,7 +1304,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: _openNotificationCenter,
                 child: Center(
                   child: Icon(
-                    unread > 0 ? LucideIcons.bellRing : LucideIcons.bell,
+                    unread > 0 ? IconsaxPlusLinear.notification_bing : IconsaxPlusLinear.notification,
                     size: 26,
                     color: AppColors.textPrimary,
                   ),
@@ -1317,7 +1374,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // IconBadge (B6) at the banner's original metrics — 40 (= icon 20 +
           // 2×10 padding), r14, tint .10 — so the swap is pixel-identical.
           const IconBadge(
-            LucideIcons.link,
+            IconsaxPlusLinear.link,
             tint: AppColors.accentLove,
             size: 40,
             radius: 14,
@@ -1498,7 +1555,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           children: [
             Icon(
-              LucideIcons.flag,
+              IconsaxPlusLinear.flag,
               size: 15,
               color: AppColors.white.withValues(alpha: 0.92),
             ),
@@ -1602,7 +1659,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         child: const Icon(
-                          LucideIcons.camera,
+                          IconsaxPlusLinear.camera,
                           color: AppColors.white,
                           size: 20,
                         ),

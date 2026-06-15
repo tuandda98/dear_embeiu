@@ -68,6 +68,32 @@ describe('firestore: couple subcollections', () => {
         }),
       );
     });
+
+    it('lets a member set the background whitelist (counterBgPhotoIds)', async () => {
+      await assertSucceeds(
+        setDoc(doc(authedDb('alice'), 'couples/c1/prefs/home'), {
+          counterBgPhotoIds: ['photo-1', 'photo-2', 'couple'],
+        }),
+      );
+    });
+
+    it('lets the selected photo + whitelist coexist', async () => {
+      await assertSucceeds(
+        setDoc(doc(authedDb('alice'), 'couples/c1/prefs/home'), {
+          counterBgPhotoId: 'photo-1',
+          counterBgPhotoIds: ['photo-1', 'photo-2'],
+        }),
+      );
+    });
+
+    it('denies an oversized whitelist (>60)', async () => {
+      const big = Array.from({ length: 61 }, (_, i) => `p${i}`);
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/prefs/home'), {
+          counterBgPhotoIds: big,
+        }),
+      );
+    });
   });
 
   describe('/couples/{id}/notes/{noteId} (latest love note, doc id == author)', () => {

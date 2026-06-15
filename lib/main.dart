@@ -20,12 +20,12 @@ import 'providers/couple_provider.dart';
 import 'providers/custom_reminders_provider.dart';
 import 'providers/daily_question_provider.dart';
 import 'providers/locale_provider.dart';
-import 'providers/love_note_provider.dart';
 import 'providers/notification_inbox_provider.dart';
 import 'providers/photo_provider.dart';
 import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/streak_provider.dart';
+import 'screens/force_update_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/guest_counter_screen.dart';
 import 'screens/home_screen.dart';
@@ -272,7 +272,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => CoupleProvider()),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
         ChangeNotifierProvider(create: (_) => ReactionProvider()),
-        ChangeNotifierProvider(create: (_) => LoveNoteProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => DailyQuestionProvider()),
         ChangeNotifierProvider(create: (_) => StreakProvider()),
@@ -343,6 +342,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               // NOT go through SessionResolver/authGate — it opens directly
               // without any authentication.
               AppRoutes.guest: (_) => const GuestCounterScreen(),
+              // Force-update gate (feature force-update): a dead-end screen
+              // resolved by SessionResolver when this build is too old.
+              AppRoutes.forceUpdate: (_) => const ForceUpdateScreen(),
             },
           );
         },

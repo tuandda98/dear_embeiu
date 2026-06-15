@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -11,8 +11,8 @@ import '../models/couple.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
+import '../providers/streak_provider.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/content_card.dart';
 import '../widgets/eyebrow_chip.dart';
@@ -20,6 +20,7 @@ import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/header_icon_button.dart';
 import '../widgets/icon_badge.dart';
 import '../widgets/invite_action_buttons.dart';
+import '../widgets/milestone_trail.dart';
 import '../widgets/section_header.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/shimmer_skeleton.dart';
@@ -33,93 +34,107 @@ import 'setup_screen.dart';
 /// this tab holds the static record (hero identity card, journey strip) and
 /// the archives (journal / note history / streak) moved here from Home.
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key, this.bottomInset = 0});
+  const ProfileScreen({super.key, this.bottomInset = 0, this.onRequestTab});
 
   final double bottomInset;
 
+  /// Switches the Home shell's bottom-nav tab (e.g. a badge jumping to Gallery).
+  final void Function(int index)? onRequestTab;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Consumer2<CoupleProvider, PhotoProvider>(
-        builder: (context, coupleProvider, photoProvider, _) {
-          final authProvider = context.watch<AuthProvider>();
-          final currentUser = authProvider.currentUser;
-          final isBusy = coupleProvider.isLoading || photoProvider.isLoading;
-          final busyMessage = coupleProvider.isLoading
-              ? coupleProvider.loadingMessage
-              : photoProvider.loadingMessage;
+    // No nested Scaffold (header unify 2026-06-14): Profile renders straight
+    // into the Home shell's Scaffold + SafeArea like the Chat tab. It uses no
+    // Scaffold services (SnackBar/FAB) and its bg is transparent, so its own
+    // Scaffold was redundant.
+    return Consumer2<CoupleProvider, PhotoProvider>(
+      builder: (context, coupleProvider, photoProvider, _) {
+        final authProvider = context.watch<AuthProvider>();
+        final currentUser = authProvider.currentUser;
+        final isBusy = coupleProvider.isLoading || photoProvider.isLoading;
+        final busyMessage = coupleProvider.isLoading
+            ? coupleProvider.loadingMessage
+            : photoProvider.loadingMessage;
 
-          if (coupleProvider.couple == null) {
-            return BlockingLoadingOverlay(
-              isVisible: isBusy,
-              message: busyMessage,
-              child: _buildProfileLoadingSkeleton(context),
-            );
-          }
-
-          final couple = coupleProvider.couple!;
-          final photoCount = photoProvider.photoCount;
-          final totalDays = _daysTogether(couple.anniversaryDate);
-          final years = totalDays ~/ 365;
-          final months = (totalDays % 365) ~/ 30;
-          final inviteCode = currentUser?.inviteCode;
-
+        if (coupleProvider.couple == null) {
           return BlockingLoadingOverlay(
             isVisible: isBusy,
             message: busyMessage,
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: AppColors.secondaryGradient,
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildPageHeader(context),
-                      const SizedBox(height: 20),
-                      _buildHeroCard(context, couple: couple),
-                      const SizedBox(height: 18),
-                      _buildStatsSection(
-                        context,
-                        years: years,
-                        months: months,
-                        totalDays: totalDays,
-                        photoCount: photoCount,
-                      ),
-                      // Memory chest — the archives need a partner to exist;
-                      // while waiting, the invite block takes the slot.
-                      if (!couple.isWaitingForPartner) ...[
-                        const SizedBox(height: 24),
-                        _buildMemoryChest(context),
-                      ],
-                      if (inviteCode != null &&
-                          inviteCode.trim().isNotEmpty &&
-                          couple.isWaitingForPartner) ...[
+            child: _buildProfileLoadingSkeleton(context),
+          );
+        }
+
+        final couple = coupleProvider.couple!;
+        final totalDays = _daysTogether(couple.anniversaryDate);
+        final inviteCode = currentUser?.inviteCode;
+
+        return BlockingLoadingOverlay(
+          isVisible: isBusy,
+          message: busyMessage,
+          // Transparent: the shared dawnBlush bg is painted ONCE by the Home
+          // shell behind the tab IndexedStack (bg-unify 2026-06-14), so all 4
+          // tabs read identically. A per-tab gradient Container restarted the
+          // diagonal at the tab top → a ~60px colour shift vs the Home/Chat
+          // tabs (which show the outer container).
+          child: SafeArea(
+            // Home's shell SafeArea already applied the top inset for every
+            // tab, so skip top here (a no-op in portrait) — never double-pad.
+            top: false,
+            bottom: false,
+            // Pinned chip header (header unify 2026-06-14): a fixed top row +
+            // an Expanded scroll below, so the chip/settings stay put like the
+            // Chat tab. NB: the actual fix that made the top padding EVEN across
+            // tabs lives in _buildPageHeader — the header Row uses
+            // crossAxisAlignment.start so the 44px settings icon doesn't
+            // vertically-centre (and thus push down) the shorter chip.
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: _buildPageHeader(context),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(16, 20, 16, bottomInset),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeroCard(context, couple: couple),
                         const SizedBox(height: 18),
-                        _buildDetailTile(
-                          icon: LucideIcons.keyRound,
-                          title: context.l10n.yourInviteCodeLabel,
-                          value: inviteCode,
-                          tint: AppColors.warning,
-                          belowValue: InviteActionButtons(
-                            code: inviteCode,
-                            onDark: false,
+                        _buildJourneyTrail(context, totalDays: totalDays),
+                        // Achievements need a partner (streak/journal exist
+                        // only once both are present); while waiting, the
+                        // invite block takes the slot.
+                        if (!couple.isWaitingForPartner) ...[
+                          const SizedBox(height: 24),
+                          _buildAchievements(context),
+                        ],
+                        if (inviteCode != null &&
+                            inviteCode.trim().isNotEmpty &&
+                            couple.isWaitingForPartner) ...[
+                          const SizedBox(height: 18),
+                          _buildDetailTile(
+                            icon: IconsaxPlusLinear.key,
+                            title: context.l10n.yourInviteCodeLabel,
+                            value: inviteCode,
+                            tint: AppColors.warning,
+                            belowValue: InviteActionButtons(
+                              code: inviteCode,
+                              onDark: false,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -141,19 +156,17 @@ class ProfileScreen extends StatelessWidget {
               ShimmerSkeleton(width: 24, height: 24, borderRadius: 8),
             ],
           ),
-          const SizedBox(height: 14),
-          const ShimmerSkeleton(width: 220, height: 32, borderRadius: 8),
           const SizedBox(height: 20),
           // Couple hero card (radius 32).
           const ShimmerSkeleton(height: 220, borderRadius: 32),
           const SizedBox(height: 18),
-          // "Journey snapshot" section card (2×2 stat grid).
-          const ShimmerSkeleton(height: 320, borderRadius: 24),
+          // "Our journey" milestone-trail card.
+          const ShimmerSkeleton(height: 160, borderRadius: 24),
           const SizedBox(height: 24),
-          // Memory chest: section title + one grouped card.
+          // Achievements: section title + a 2×2 badge grid.
           const ShimmerSkeleton(width: 150, height: 22, borderRadius: 8),
           const SizedBox(height: 12),
-          const ShimmerSkeleton(height: 188, borderRadius: 24),
+          const ShimmerSkeleton(height: 232, borderRadius: 24),
         ],
       ),
     );
@@ -162,29 +175,25 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildPageHeader(BuildContext context) {
     final l10n = context.l10n;
 
-    return Column(
+    // Unified tab header (user 2026-06-14): every tab is now a single chip
+    // row + a right-aligned action icon — the big page title was dropped so
+    // all four tabs share one header height/shape. See chat/gallery/home.
+    //
+    // crossAxisAlignment.start (header-padding unify 2026-06-14): the settings
+    // icon (44) is taller than the chip (~27), and the Row's default centre
+    // alignment pushed the chip DOWN ~8pt vs the icon-less Chat/Gallery chips.
+    // Top-aligning lands the chip at exactly the same Y as every other tab.
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            EyebrowChip(
-              label: l10n.loveProfileBadge,
-              icon: LucideIcons.sparkles,
-            ),
-            const Spacer(),
-            // Settings entry = ONE squircle at the page's top-right (user
-            // 2026-06-11) — replaces the full-width tile that closed the page.
-            HeaderIconButton(
-              icon: LucideIcons.settings,
-              semanticsLabel: l10n.settingsTitle,
-              onTap: () => _openSettings(context),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        Text(
-          l10n.profileTitle,
-          style: AppTheme.pageTitleStyle(),
+        EyebrowChip(label: l10n.loveProfileBadge, icon: IconsaxPlusBold.magic_star),
+        const Spacer(),
+        // Settings entry = ONE squircle at the page's top-right (user
+        // 2026-06-11) — replaces the full-width tile that closed the page.
+        HeaderIconButton(
+          icon: IconsaxPlusLinear.setting_2,
+          semanticsLabel: l10n.settingsTitle,
+          onTap: () => _openSettings(context),
         ),
       ],
     );
@@ -242,9 +251,10 @@ class ProfileScreen extends StatelessWidget {
                         fit: BoxFit.cover,
                         // Cover banner → cap at screen width (physical px);
                         // it's blurred so this never costs visible quality.
-                        decodeWidth: (MediaQuery.of(context).size.width *
-                                MediaQuery.of(context).devicePixelRatio)
-                            .round(),
+                        decodeWidth:
+                            (MediaQuery.of(context).size.width *
+                                    MediaQuery.of(context).devicePixelRatio)
+                                .round(),
                       ),
                     ),
                   )
@@ -389,7 +399,7 @@ class ProfileScreen extends StatelessWidget {
                     ],
                   ),
                   child: const Icon(
-                    LucideIcons.pencil,
+                    IconsaxPlusLinear.edit_2,
                     size: 17,
                     color: AppColors.accentLoveDeep,
                   ),
@@ -419,67 +429,15 @@ class ProfileScreen extends StatelessWidget {
   /// "Bức tranh hành trình" — the ORIGINAL 2×2 stat grid, restored verbatim
   /// (user 2026-06-11: revert to the pre-redesign version — the journey-strip
   /// takes, both white and tinted, were dropped).
-  Widget _buildStatsSection(
-    BuildContext context, {
-    required int years,
-    required int months,
-    required int totalDays,
-    required int photoCount,
-  }) {
+  /// Journey trail (Profile redesign 2026-06-14, Concept B): a horizontal
+  /// milestone stepper replacing the old 4-stat grid (which showed the same
+  /// day-count in four units). The big day number lives on the hero card.
+  Widget _buildJourneyTrail(BuildContext context, {required int totalDays}) {
     final l10n = context.l10n;
-
     return _buildSectionCard(
-      icon: LucideIcons.sparkles,
-      title: l10n.journeySnapshotTitle,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _buildModernStatCard(
-                  icon: Icons.favorite_rounded,
-                  value: '$years',
-                  label: l10n.yearsTogether,
-                  color: AppColors.accentRose,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildModernStatCard(
-                  icon: LucideIcons.calendar,
-                  value: '$months',
-                  label: l10n.monthsRemaining,
-                  color: AppColors.accentCoral,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildModernStatCard(
-                  icon: LucideIcons.calendarDays,
-                  value: '$totalDays',
-                  label: l10n.totalDaysLabel,
-                  color: AppColors.info,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildModernStatCard(
-                  icon: LucideIcons.image,
-                  value: '$photoCount',
-                  label: l10n.memoriesSavedLabel,
-                  // accentGold (#E8B4D8) is near-invisible on white (~1.8:1) —
-                  // lavender keeps the tint family with real contrast (C8).
-                  color: AppColors.accentLavender,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      icon: IconsaxPlusLinear.map,
+      title: l10n.journeyTrailTitle,
+      child: MilestoneTrail(totalDays: totalDays),
     );
   }
 
@@ -531,100 +489,149 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildModernStatCard({
-    required IconData icon,
-    required String value,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: color.withValues(alpha: 0.10)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.78),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            value,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// "Memory chest" — the couple's archives, moved here from the Home ritual
-  /// card footer. ONE grouped card with hairline rows (redesign 2026-06-11,
-  /// same flat-list language as Settings v2) instead of three bordered tiles.
-  Widget _buildMemoryChest(BuildContext context) {
+  /// Achievements (Profile redesign 2026-06-14, Concept B): a 2×2 grid of
+  /// tappable badge cards showing the couple's REAL, diverse numbers — instead
+  /// of the old flat 2-row "memory chest" menu. Each badge keeps the entry
+  /// point it replaced (streak sheet, journal) plus new jumps (gallery tab).
+  Widget _buildAchievements(BuildContext context) {
     final l10n = context.l10n;
+    final streak = context.watch<StreakProvider>();
+    final photoCount = context.watch<PhotoProvider>().photoCount;
+    final nf = NumberFormat.decimalPattern(
+      Localizations.localeOf(context).toString(),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: l10n.profileMemoryChestTitle),
+        SectionHeader(title: l10n.profileAchievementsTitle),
         const SizedBox(height: 12),
-        ContentCard(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-          child: Column(
-            children: [
-              _chestRow(
-                icon: LucideIcons.bookOpen,
-                title: l10n.journalSettingsTile,
-                onTap: () => _push(context, const JournalScreen(), 'Journal'),
-              ),
-              _chestDivider(),
-              // "Nhật ký lời nhắn" tile removed (feature chat, D6): the chat
-              // tab replaced this entry point — the archive now opens from the
-              // history icon on the chat tab's header. Screen + route kept.
-              _chestRow(
-                icon: LucideIcons.flame,
-                title: l10n.profileStreakTile,
+        Row(
+          children: [
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.flash,
+                tint: AppColors.accentLove,
+                value: nf.format(streak.currentStreak),
+                label: l10n.badgeStreakLabel,
                 onTap: () {
                   HapticFeedback.selectionClick();
                   StreakSheet.show(context);
                 },
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.cup,
+                tint: AppColors.accentLavender,
+                value: nf.format(streak.longestStreak),
+                label: l10n.badgeRecordLabel,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  StreakSheet.show(context);
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.gallery,
+                tint: AppColors.accentCoral,
+                value: nf.format(photoCount),
+                label: l10n.badgeMemoriesLabel,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  onRequestTab?.call(2);
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.book_1,
+                tint: AppColors.accentRose,
+                value: null,
+                label: l10n.badgeJournalLabel,
+                onTap: () => _push(context, const JournalScreen(), 'Journal'),
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _chestDivider() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 58),
-      child: Divider(
-        height: 1,
-        color: AppColors.textTertiary.withValues(alpha: 0.18),
+  /// One achievement badge: tinted card + white icon disc + a big number (or an
+  /// open-arrow when it's a pure entry point without a count — the journal).
+  Widget _badgeCard({
+    required IconData icon,
+    required Color tint,
+    required String? value,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: onTap,
+        splashColor: tint.withValues(alpha: 0.12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          decoration: BoxDecoration(
+            color: tint.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: tint.withValues(alpha: 0.12)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.82),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(icon, color: tint, size: 22),
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 26,
+                child: value != null
+                    ? Text(
+                        value,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          height: 1,
+                        ),
+                      )
+                    : Align(
+                        alignment: Alignment.centerLeft,
+                        child: Icon(IconsaxPlusLinear.arrow_right_3,
+                            size: 22, color: tint),
+                      ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -639,44 +646,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _chestRow({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        splashColor: AppColors.accentRose.withValues(alpha: 0.08),
-        highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            children: [
-              IconBadge(icon),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Icon(
-                LucideIcons.chevronRight,
-                color: AppColors.textSecondary.withValues(alpha: 0.5),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildDetailTile({
     required IconData icon,

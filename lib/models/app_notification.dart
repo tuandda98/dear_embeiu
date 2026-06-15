@@ -87,10 +87,13 @@ class AppNotification {
       case AppNotificationType.photoReaction:
         return 2; // Gallery
       case AppNotificationType.chatMessage:
+      case AppNotificationType.loveNote:
+        // Chat. Love notes were retired + auto-migrated into chat (2026-06-14),
+        // so a legacy love-note tap must land where the message now lives —
+        // matches the 'love_note' branch in push_notification_service.dart.
         return 1; // Chat
       case AppNotificationType.partnerJoined:
       case AppNotificationType.partnerLeft:
-      case AppNotificationType.loveNote:
       case AppNotificationType.dailyQuestion:
       case AppNotificationType.unknown:
         return 0; // Home

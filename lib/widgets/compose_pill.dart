@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../theme/app_colors.dart';
 
@@ -20,7 +20,7 @@ class ComposePill extends StatelessWidget {
     super.key,
     required this.label,
     required this.onTap,
-    this.icon = LucideIcons.edit3,
+    this.icon = IconsaxPlusLinear.edit_2,
     this.emphasized = false,
   });
 

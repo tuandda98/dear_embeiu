@@ -405,7 +405,10 @@ class PushNotificationService {
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;
       case 'love_note':
-        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        // A not-yet-updated partner's love notes are now mirrored into chat
+        // (auto-migration 2026-06-14), so route this push to the Chat tab
+        // where the message actually lives.
+        NotificationTapRouter.pendingHomeTab.value = _chatTabIndex;
         break;
       case 'daily_question':
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;

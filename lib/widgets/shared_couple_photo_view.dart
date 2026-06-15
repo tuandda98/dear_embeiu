@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../theme/app_colors.dart';
 import 'shimmer_skeleton.dart';
@@ -81,7 +82,7 @@ class SharedCouplePhotoView extends StatelessWidget {
           color: AppColors.surfaceLight,
           alignment: Alignment.center,
           child: Icon(
-            Icons.favorite_rounded,
+            IconsaxPlusBold.heart,
             color: AppColors.textSecondary.withValues(alpha: 0.5),
           ),
         );

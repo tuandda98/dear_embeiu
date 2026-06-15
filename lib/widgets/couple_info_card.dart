@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../theme/app_colors.dart';
 import 'animated_couple_name.dart';
@@ -69,7 +69,7 @@ class CoupleInfoCard extends StatelessWidget {
                     placeholder: Container(
                       color: AppColors.surfaceLight,
                       child: const Icon(
-                        Icons.favorite_rounded,
+                        IconsaxPlusBold.heart,
                         color: AppColors.accentLove,
                         size: 26,
                       ),
@@ -116,7 +116,7 @@ class CoupleInfoCard extends StatelessWidget {
                   color: AppColors.surfaceLight,
                 ),
                 child: const Icon(
-                  LucideIcons.arrowRight,
+                  IconsaxPlusLinear.arrow_right_3,
                   color: AppColors.textSecondary,
                   size: 18,
                 ),

@@ -1,0 +1,5 @@
+ts=20260613T182239Z head=d5ad3eb branch=release/1.1.6 project=tonyembeiu-dev exit=0
+command: npx firebase-tools deploy --only functions:mirrorNoteHistoryToChat,functions:migrateLoveNotesToChat,functions:notifyChatMessage --project default
+created: mirrorNoteHistoryToChat, migrateLoveNotesToChat | updated: notifyChatMessage
+note: Love Note → Chat auto-migration (trigger mirror + callable backfill). Rules KHÔNG đổi (snapshot kèm để tham chiếu). Restore: git checkout d5ad3eb -- functions && npx firebase-tools deploy --only functions --project default
+manual-trace: hook trace-firebase-deploy.sh không tự fire cho deploy này

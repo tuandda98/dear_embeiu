@@ -467,6 +467,9 @@ class PhotoProvider extends ChangeNotifier {
     List<String> imagePaths, {
     required AppUser currentUser,
     required String Function(int current, int total) progress,
+    // Shared caption applied to EVERY photo in the batch (draft review sheet,
+    // 2026-06-14). Null/empty → no caption, as before.
+    String? caption,
   }) async {
     if (imagePaths.isEmpty) {
       return 0;
@@ -489,6 +492,7 @@ class PhotoProvider extends ChangeNotifier {
           final photo = await _photoService.addPhoto(
             currentUser: currentUser,
             localImagePath: imagePaths[i],
+            caption: caption,
           );
 
           if (!_photoService.isUsingFirebase || !currentUser.hasCouple) {

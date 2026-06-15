@@ -7,12 +7,12 @@ import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/daily_question_provider.dart';
-import '../providers/love_note_provider.dart';
 import '../providers/notification_inbox_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/streak_provider.dart';
+import '../services/app_update_service.dart';
 import '../services/storage_service.dart';
 import 'app_routes.dart';
 
@@ -38,7 +38,6 @@ class SessionResolver {
     final authProvider = context.read<AuthProvider>();
     final coupleProvider = context.read<CoupleProvider>();
     final photoProvider = context.read<PhotoProvider>();
-    final loveNoteProvider = context.read<LoveNoteProvider>();
     final chatProvider = context.read<ChatProvider>();
     final dailyQuestionProvider = context.read<DailyQuestionProvider>();
     final reactionProvider = context.read<ReactionProvider>();
@@ -51,7 +50,6 @@ class SessionResolver {
         authProvider: authProvider,
         coupleProvider: coupleProvider,
         photoProvider: photoProvider,
-        loveNoteProvider: loveNoteProvider,
         chatProvider: chatProvider,
         dailyQuestionProvider: dailyQuestionProvider,
         reactionProvider: reactionProvider,
@@ -93,7 +91,6 @@ class SessionResolver {
     required AuthProvider authProvider,
     required CoupleProvider coupleProvider,
     required PhotoProvider photoProvider,
-    required LoveNoteProvider loveNoteProvider,
     required ChatProvider chatProvider,
     required DailyQuestionProvider dailyQuestionProvider,
     required ReactionProvider reactionProvider,
@@ -101,13 +98,22 @@ class SessionResolver {
     required NotificationInboxProvider notificationInboxProvider,
     required ReminderProvider reminderProvider,
   }) async {
+    // Force-update gate (feature force-update): a build older than the server's
+    // minimum is sealed off behind the update screen BEFORE any auth/couple
+    // work — so even a guest launch is blocked. Fail-open: the check returns
+    // false on any error/offline/missing-config, so a config glitch can never
+    // lock everyone out (it has its own short timeout, and the whole resolve is
+    // wrapped in an 8s backstop above).
+    if (await AppUpdateService.instance.isForceUpdateRequired()) {
+      return AppRoutes.forceUpdate;
+    }
+
     if (!authProvider.isInitialized) {
       await authProvider.initialize();
     }
 
     if (!authProvider.isAuthenticated) {
       await photoProvider.clearForSignOut();
-      loveNoteProvider.clear();
       chatProvider.clear();
       dailyQuestionProvider.clear();
       reactionProvider.clear();
@@ -126,7 +132,6 @@ class SessionResolver {
     // until verified. Grandfathered / Google / Apple users return false here.
     if (authProvider.requiresEmailVerification) {
       await photoProvider.clearForSignOut();
-      loveNoteProvider.clear();
       chatProvider.clear();
       dailyQuestionProvider.clear();
       reactionProvider.clear();
@@ -150,10 +155,9 @@ class SessionResolver {
       if (anniversary != null) {
         unawaited(photoProvider.refreshOnThisDay(anniversary: anniversary));
       }
-      loveNoteProvider.watchForCouple(currentUser!.coupleId!, currentUser.id);
       // Chat (feature chat): the realtime window runs for the whole session so
       // the bottom-nav unread dot stays live on every tab.
-      chatProvider.watchForCouple(currentUser.coupleId!, currentUser.id);
+      chatProvider.watchForCouple(currentUser!.coupleId!, currentUser.id);
       dailyQuestionProvider.watchForCouple(
         currentUser.coupleId!,
         currentUser.id,
@@ -171,9 +175,12 @@ class SessionResolver {
         currentUser.coupleId!,
         currentUser.id,
       );
+      // Daily-question reminder (couple-shared, 2026-06-14): follow the shared
+      // enabled+times so a partner's edit reschedules this device's nudges. The
+      // actual (re)schedule uses the l10n cached by HomeScreen's sync().
+      reminderProvider.watchCoupleReminderPrefs(currentUser.coupleId!);
     } else {
       await photoProvider.clearForSignOut();
-      loveNoteProvider.clear();
       chatProvider.clear();
       dailyQuestionProvider.clear();
       reactionProvider.clear();

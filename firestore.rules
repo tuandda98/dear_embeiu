@@ -399,16 +399,35 @@ service cloud.firestore {
       allow delete: if isSoleCoupleMember(coupleId);
 
       // Shared Home preferences (feature home, 2026-06-10): one tiny doc the
-      // couple co-owns — currently only the counter-card background photo id,
-      // so a partner's swipe picks the same backdrop on both phones. ADDITIVE:
-      // old app versions never touch this path.
+      // couple co-owns. Fields (ALL optional — writes merge, old app versions
+      // only ever send counterBgPhotoId, new fields are ADDITIVE):
+      //   • counterBgPhotoId — which photo backs the hero counter card.
+      //   • dqReminderEnabled / dqReminderTimes — couple-shared daily-question
+      //     reminder (2026-06-14): both phones nudge at the same time(s). Times
+      //     are minutes-since-midnight ints; the client clamps each to 0–1439
+      //     and the list to ≤10 (the size cap here is the abuse guard).
       match /prefs/{prefId} {
         allow read: if isCoupleMember(coupleId);
         allow write: if isCoupleMember(coupleId)
           && prefId == 'home'
-          && request.resource.data.keys().hasOnly(['counterBgPhotoId'])
-          && request.resource.data.counterBgPhotoId is string
-          && request.resource.data.counterBgPhotoId.size() <= 200;
+          && request.resource.data.keys().hasOnly(
+              ['counterBgPhotoId', 'counterBgPhotoIds',
+               'dqReminderEnabled', 'dqReminderTimes'])
+          && (!('counterBgPhotoId' in request.resource.data)
+              || (request.resource.data.counterBgPhotoId is string
+                  && request.resource.data.counterBgPhotoId.size() <= 200))
+          // Whitelist of photo ids allowed as the hero-card background
+          // (2026-06-14). Empty/absent = use them all. Capped at 60 to bound
+          // the doc size; per-element type isn't checkable in rules (no list
+          // iteration) — the client only ever writes photo ids / 'couple'.
+          && (!('counterBgPhotoIds' in request.resource.data)
+              || (request.resource.data.counterBgPhotoIds is list
+                  && request.resource.data.counterBgPhotoIds.size() <= 60))
+          && (!('dqReminderEnabled' in request.resource.data)
+              || request.resource.data.dqReminderEnabled is bool)
+          && (!('dqReminderTimes' in request.resource.data)
+              || (request.resource.data.dqReminderTimes is list
+                  && request.resource.data.dqReminderTimes.size() <= 10));
       }
 
       // Love notes (feature #4): one short note per member, doc id == author uid.
@@ -540,6 +559,15 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/couples/$(resource.data.coupleId))
         && request.auth.uid in get(/databases/$(database)/documents/couples/$(resource.data.coupleId)).data.memberIds;
       allow update: if false;
+    }
+
+    // App config (force-update gate). PUBLIC-READ so the version check can run
+    // at cold start before any sign-in (a launching guest hits it too). Written
+    // ONLY from the Firebase Console (admin) — never from a client. Doc
+    // `config/app` fields: minBuildNumber (int), iosStoreUrl, androidStoreUrl.
+    match /config/{document} {
+      allow read: if true;
+      allow write: if false;
     }
   }
 }

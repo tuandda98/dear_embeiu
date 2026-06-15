@@ -1,0 +1,5 @@
+ts=20260614T062059Z head=d5ad3eb branch=release/1.1.6 project=tonyembeiu-dev exit=0
+command: npx firebase-tools deploy --only firestore:rules --project default
+change: prefs/home rule — thêm field optional dqReminderEnabled (bool) + dqReminderTimes (list ≤10), additive backward-compat (writes merge). Daily-Q reminder couple-shared.
+restore: git checkout d5ad3eb -- firestore.rules && deploy lại
+manual-trace: hook không tự fire

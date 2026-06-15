@@ -995,7 +995,7 @@ abstract class AppLocalizations {
   /// No description provided for @daysUnit.
   ///
   /// In en, this message translates to:
-  /// **'days'**
+  /// **'Days'**
   String get daysUnit;
 
   /// No description provided for @hoursShort.
@@ -1403,7 +1403,7 @@ abstract class AppLocalizations {
   /// No description provided for @journalBadge.
   ///
   /// In en, this message translates to:
-  /// **'DAILY Q&A'**
+  /// **'QUESTION JOURNAL'**
   String get journalBadge;
 
   /// No description provided for @journalHeaderSubtitle.
@@ -1553,7 +1553,7 @@ abstract class AppLocalizations {
   /// No description provided for @privateGalleryBadge.
   ///
   /// In en, this message translates to:
-  /// **'PRIVATE GALLERY'**
+  /// **'PHOTO LIBRARY'**
   String get privateGalleryBadge;
 
   /// No description provided for @galleryTitle.
@@ -1655,14 +1655,128 @@ abstract class AppLocalizations {
   /// No description provided for @postNewPhotoBtn.
   ///
   /// In en, this message translates to:
-  /// **'Post new photo'**
+  /// **'Take photo'**
   String get postNewPhotoBtn;
 
   /// No description provided for @addMultipleBtn.
   ///
   /// In en, this message translates to:
-  /// **'Add multiple'**
+  /// **'Add photos'**
   String get addMultipleBtn;
+
+  /// No description provided for @cameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the camera. Try again or check camera permission (the Simulator has no camera — use a real device).'**
+  String get cameraUnavailable;
+
+  /// No description provided for @galleryDraftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review & post'**
+  String get galleryDraftTitle;
+
+  /// No description provided for @galleryDraftCaptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a shared caption (optional)…'**
+  String get galleryDraftCaptionHint;
+
+  /// No description provided for @galleryDraftEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'All photos removed.'**
+  String get galleryDraftEmpty;
+
+  /// No description provided for @galleryDraftPostBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Post {count} photos'**
+  String galleryDraftPostBtn(int count);
+
+  /// No description provided for @createPostTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New memory'**
+  String get createPostTitle;
+
+  /// No description provided for @createPostBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW MEMORY'**
+  String get createPostBadge;
+
+  /// No description provided for @createPostAuthorMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'Posted by {name} · {when}'**
+  String createPostAuthorMeta(String name, String when);
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @createPostCaptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s happening with you two today?…'**
+  String get createPostCaptionHint;
+
+  /// No description provided for @createPostAddMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get createPostAddMore;
+
+  /// No description provided for @createPostAddFromLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from library'**
+  String get createPostAddFromLibrary;
+
+  /// No description provided for @createPostPhotoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo} other{{count} photos}}'**
+  String createPostPhotoCount(int count);
+
+  /// No description provided for @createPostBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get createPostBtn;
+
+  /// No description provided for @createPostRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get createPostRemovePhoto;
+
+  /// No description provided for @createPostDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this memory?'**
+  String get createPostDiscardTitle;
+
+  /// No description provided for @createPostDiscardMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The caption you just wrote won\'t be saved.'**
+  String get createPostDiscardMessage;
+
+  /// No description provided for @createPostDiscardConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get createPostDiscardConfirm;
+
+  /// No description provided for @createPostDiscardKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get createPostDiscardKeep;
 
   /// No description provided for @addNewMemoryTitle.
   ///
@@ -2015,13 +2129,13 @@ abstract class AppLocalizations {
   /// No description provided for @yearsTogether.
   ///
   /// In en, this message translates to:
-  /// **'Years together'**
+  /// **'Years'**
   String get yearsTogether;
 
   /// No description provided for @monthsRemaining.
   ///
   /// In en, this message translates to:
-  /// **'Months remaining'**
+  /// **'Months'**
   String get monthsRemaining;
 
   /// No description provided for @totalDaysLabel.
@@ -2029,6 +2143,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total days'**
   String get totalDaysLabel;
+
+  /// No description provided for @totalHoursLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total hours'**
+  String get totalHoursLabel;
 
   /// No description provided for @memoriesSavedLabel.
   ///
@@ -2417,7 +2537,7 @@ abstract class AppLocalizations {
   /// No description provided for @dailyQuestionReminderSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'A gentle daily nudge to answer together.'**
+  /// **'Nudges you both to answer each day, synced across both phones.'**
   String get dailyQuestionReminderSubtitle;
 
   /// No description provided for @dailyQuestionReminderTimeLabel.
@@ -2425,6 +2545,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remind me at'**
   String get dailyQuestionReminderTimeLabel;
+
+  /// No description provided for @dailyQuestionReminderTimesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder times'**
+  String get dailyQuestionReminderTimesLabel;
+
+  /// No description provided for @dailyQuestionReminderAddTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a time'**
+  String get dailyQuestionReminderAddTime;
+
+  /// No description provided for @dailyQuestionReminderRemoveTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove reminder time {time}'**
+  String dailyQuestionReminderRemoveTime(String time);
 
   /// No description provided for @dailyQuestionReminderNotifTitle.
   ///
@@ -2702,6 +2840,60 @@ abstract class AppLocalizations {
   /// **'Milestones, anniversaries & your own reminders'**
   String get settingsRemindersModuleSubtitle;
 
+  /// No description provided for @settingsRemindersEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get settingsRemindersEntryTitle;
+
+  /// No description provided for @settingsRemindersEntrySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones, anniversaries and your own reminders'**
+  String get settingsRemindersEntrySubtitle;
+
+  /// No description provided for @remindersHubBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'REMINDERS'**
+  String get remindersHubBadge;
+
+  /// No description provided for @remindersHubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our reminders'**
+  String get remindersHubTitle;
+
+  /// No description provided for @remindersHubSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones, anniversaries and your own reminders — all in one place.'**
+  String get remindersHubSubtitle;
+
+  /// No description provided for @remindersHubMilestonesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones & anniversaries'**
+  String get remindersHubMilestonesSection;
+
+  /// No description provided for @remindersHubMilestonesSectionSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the milestones to be reminded of and set their times.'**
+  String get remindersHubMilestonesSectionSub;
+
+  /// No description provided for @remindersHubCustomSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Our reminders'**
+  String get remindersHubCustomSection;
+
+  /// No description provided for @remindersHubCustomSectionSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Create reminders for your own special days.'**
+  String get remindersHubCustomSectionSub;
+
   /// No description provided for @settingsAccountModuleTitle.
   ///
   /// In en, this message translates to:
@@ -2923,6 +3115,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create your first reminder'**
   String get customRemindersEmptyCta;
+
+  /// No description provided for @customRemindersAddAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a reminder'**
+  String get customRemindersAddAnother;
 
   /// No description provided for @customRemindersOffTitle.
   ///
@@ -4363,6 +4561,354 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} sent you a message 💬'**
   String notifChatMessage(String name);
+
+  /// No description provided for @forceUpdateBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'UPDATE'**
+  String get forceUpdateBadge;
+
+  /// No description provided for @forceUpdateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to update'**
+  String get forceUpdateTitle;
+
+  /// No description provided for @forceUpdateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The version you\'re on is out of date. Update to the latest to keep making memories with your other half.'**
+  String get forceUpdateBody;
+
+  /// No description provided for @forceUpdateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Update now'**
+  String get forceUpdateButton;
+
+  /// No description provided for @counterBgBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'BACKGROUND'**
+  String get counterBgBadge;
+
+  /// No description provided for @counterBgTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Counter background'**
+  String get counterBgTitle;
+
+  /// No description provided for @counterBgSubtitleAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick which photos can back the day-counter card. Leave empty to cycle through them all.'**
+  String get counterBgSubtitleAll;
+
+  /// No description provided for @counterBgSubtitleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photos picked for the counter background.'**
+  String counterBgSubtitleCount(int count);
+
+  /// No description provided for @counterBgCoverLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover'**
+  String get counterBgCoverLabel;
+
+  /// No description provided for @counterBgEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No photos yet'**
+  String get counterBgEmptyTitle;
+
+  /// No description provided for @counterBgEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add some memories to your gallery first.'**
+  String get counterBgEmptyBody;
+
+  /// No description provided for @settingsCounterBgTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Counter background'**
+  String get settingsCounterBgTitle;
+
+  /// No description provided for @settingsCounterBgSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which photos show on the counter'**
+  String get settingsCounterBgSubtitle;
+
+  /// No description provided for @counterBgSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get counterBgSave;
+
+  /// No description provided for @counterBgSavedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Counter background saved 💕'**
+  String get counterBgSavedMsg;
+
+  /// No description provided for @counterBgDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes?'**
+  String get counterBgDiscardTitle;
+
+  /// No description provided for @counterBgDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved changes. Leave without saving?'**
+  String get counterBgDiscardBody;
+
+  /// No description provided for @counterBgDiscardLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get counterBgDiscardLeave;
+
+  /// No description provided for @journeyTrailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our journey'**
+  String get journeyTrailTitle;
+
+  /// No description provided for @milestoneTrailNext.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days to {label}'**
+  String milestoneTrailNext(int days, String label);
+
+  /// No description provided for @milestoneTrailAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve reached every milestone 🎉'**
+  String get milestoneTrailAllDone;
+
+  /// No description provided for @profileAchievementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your badges'**
+  String get profileAchievementsTitle;
+
+  /// No description provided for @badgeStreakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'day streak'**
+  String get badgeStreakLabel;
+
+  /// No description provided for @badgeRecordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'record'**
+  String get badgeRecordLabel;
+
+  /// No description provided for @badgeMemoriesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'memories'**
+  String get badgeMemoriesLabel;
+
+  /// No description provided for @badgeJournalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'journal'**
+  String get badgeJournalLabel;
+
+  /// No description provided for @loveTreeBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'LOVE TREE'**
+  String get loveTreeBadge;
+
+  /// No description provided for @loveTreeStage0.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiny seed'**
+  String get loveTreeStage0;
+
+  /// No description provided for @loveTreeStage1.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprout'**
+  String get loveTreeStage1;
+
+  /// No description provided for @loveTreeStage2.
+  ///
+  /// In en, this message translates to:
+  /// **'Young tree'**
+  String get loveTreeStage2;
+
+  /// No description provided for @loveTreeStage3.
+  ///
+  /// In en, this message translates to:
+  /// **'Flourishing tree'**
+  String get loveTreeStage3;
+
+  /// No description provided for @loveTreeStage4.
+  ///
+  /// In en, this message translates to:
+  /// **'In full bloom'**
+  String get loveTreeStage4;
+
+  /// No description provided for @loveTreeFlowerCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} flowers bloomed'**
+  String loveTreeFlowerCount(int count);
+
+  /// No description provided for @loveTreeFlowerCountZero.
+  ///
+  /// In en, this message translates to:
+  /// **'No flowers yet — let\'s grow it together'**
+  String get loveTreeFlowerCountZero;
+
+  /// No description provided for @loveTreeSeedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your journey starts right here 🌱'**
+  String get loveTreeSeedSubtitle;
+
+  /// No description provided for @loveTreeBloomSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your tree is in full bloom ✨'**
+  String get loveTreeBloomSubtitle;
+
+  /// No description provided for @loveTreeNewBloomBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Your tree just bloomed {count} new flowers 🌸'**
+  String loveTreeNewBloomBanner(int count);
+
+  /// No description provided for @loveTreeNewBloomBannerOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Your tree just bloomed a new flower 🌸'**
+  String get loveTreeNewBloomBannerOne;
+
+  /// No description provided for @loveTreeNurtureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Grow it together'**
+  String get loveTreeNurtureTitle;
+
+  /// No description provided for @loveTreeNurtureStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your daily streak'**
+  String get loveTreeNurtureStreakTitle;
+
+  /// No description provided for @loveTreeNurtureStreakBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer daily so your streak lives on'**
+  String get loveTreeNurtureStreakBody;
+
+  /// No description provided for @loveTreeNurturePhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a memory'**
+  String get loveTreeNurturePhotoTitle;
+
+  /// No description provided for @loveTreeNurturePhotoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo is a new flower'**
+  String get loveTreeNurturePhotoBody;
+
+  /// No description provided for @loveTreeNurtureTalkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Talk together today'**
+  String get loveTreeNurtureTalkTitle;
+
+  /// No description provided for @loveTreeNurtureTalkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Small moments grow the tree'**
+  String get loveTreeNurtureTalkBody;
+
+  /// No description provided for @loveTreeMilestonesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones'**
+  String get loveTreeMilestonesTitle;
+
+  /// No description provided for @loveTreeMilestoneDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days together'**
+  String loveTreeMilestoneDays(int count);
+
+  /// No description provided for @loveTreeMilestoneStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}-day streak'**
+  String loveTreeMilestoneStreak(int count);
+
+  /// No description provided for @loveTreeMilestonePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} memories'**
+  String loveTreeMilestonePhotos(int count);
+
+  /// No description provided for @loveTreeMilestoneBloomed.
+  ///
+  /// In en, this message translates to:
+  /// **'bloomed'**
+  String get loveTreeMilestoneBloomed;
+
+  /// No description provided for @loveTreeMilestoneDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days to go'**
+  String loveTreeMilestoneDaysLeft(int count);
+
+  /// No description provided for @loveTreeMilestoneStreakLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} streak days to go'**
+  String loveTreeMilestoneStreakLeft(int count);
+
+  /// No description provided for @loveTreeMilestonePhotosLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photos to go'**
+  String loveTreeMilestonePhotosLeft(int count);
+
+  /// No description provided for @loveTreeMilestoneAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'all done 🌟'**
+  String get loveTreeMilestoneAllDone;
+
+  /// No description provided for @loveTreeWaitingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for both of you'**
+  String get loveTreeWaitingTitle;
+
+  /// No description provided for @loveTreeWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The tree grows when you\'re both here. Invite your partner 💌'**
+  String get loveTreeWaitingBody;
+
+  /// No description provided for @loveTreeWaitingCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite partner'**
+  String get loveTreeWaitingCta;
+
+  /// No description provided for @loveTreeNoCoupleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with your partner to start growing 🌱'**
+  String get loveTreeNoCoupleBody;
 }
 
 class _AppLocalizationsDelegate

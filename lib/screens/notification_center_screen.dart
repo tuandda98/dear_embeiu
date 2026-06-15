@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
 import '../models/app_notification.dart';
+import '../providers/daily_question_provider.dart';
 import '../providers/notification_inbox_provider.dart';
+import '../services/daily_question_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
 import '../widgets/content_card.dart';
-import '../widgets/eyebrow_chip.dart';
 import '../widgets/header_icon_button.dart';
 import '../widgets/shimmer_skeleton.dart';
+import '../widgets/sub_screen_header.dart';
+import 'journal_screen.dart';
 
 /// In-app notification center (feature notifications). Lists the current
 /// couple's notifications newest-first, grouped into "Today" / "Earlier", lets
@@ -82,34 +84,18 @@ class _Header extends StatelessWidget {
         ? l10n.notifUnreadCount(unread)
         : l10n.notifAllCaughtUp;
 
-    // Header vòng 5c (2026-06-11): landing-style large header (EyebrowChip +
-    // pageTitle + the live unread line as the subtitle) — same pattern as
-    // Settings. The top row keeps only the back squircle + overflow menu; the
-    // header stays FIXED above the list (the Dismissible list below is too
-    // involved to absorb it as a scrolling first item).
+    // Header redesign 2026-06-14: the shared SubScreenHeader (back → chip →
+    // title → subtitle, all left-aligned at the gutter, + the overflow menu as
+    // a trailing action). Stays FIXED above the list (the Dismissible list
+    // below is too involved to absorb it as a scrolling first item).
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              HeaderIconButton(
-                icon: LucideIcons.arrowLeft,
-                semanticsLabel: l10n.back,
-                onTap: () => Navigator.of(context).maybePop(),
-              ),
-              const Spacer(),
-              if (hasItems) _OverflowMenu(provider: provider, l10n: l10n),
-            ],
-          ),
-          const SizedBox(height: 10),
-          EyebrowChip(label: l10n.notifCenterBadge, icon: LucideIcons.bell),
-          const SizedBox(height: 14),
-          Text(l10n.notifCenterTitle, style: AppTheme.pageTitleStyle()),
-          const SizedBox(height: 8),
-          Text(subtitle, style: AppTheme.pageSubtitleStyle()),
-        ],
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      child: SubScreenHeader(
+        badge: l10n.notifCenterBadge,
+        badgeIcon: IconsaxPlusLinear.notification,
+        title: l10n.notifCenterTitle,
+        subtitle: subtitle,
+        trailing: hasItems ? _OverflowMenu(provider: provider, l10n: l10n) : null,
       ),
     );
   }
@@ -222,7 +208,7 @@ class _DismissibleTile extends StatelessWidget {
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 22),
               child: const Icon(
-                LucideIcons.trash2,
+                IconsaxPlusLinear.trash,
                 color: AppColors.accentLoveDeep,
               ),
             ),
@@ -275,12 +261,22 @@ class _NotificationTile extends StatelessWidget {
               // notification-tap plumbing and close the center. Home is already
               // mounted and listening, so it switches tab on the next frame.
               context.read<NotificationInboxProvider>().markRead(n.id);
+
+              // Daily question: once BOTH answered the question lives in the
+              // journal, so open the journal focused on that day. If it isn't
+              // revealed yet (the viewer hasn't answered), this returns false
+              // and we fall through to Home so they can answer it.
+              if (n.type == AppNotificationType.dailyQuestion &&
+                  _openJournalIfRevealed(context, n)) {
+                return;
+              }
+
               // Photo/reaction → deep-link to the exact photo; else just the tab.
               final photoId = n.photoId;
               if (photoId != null && photoId.isNotEmpty) {
                 NotificationTapRouter.pendingPhotoId.value = photoId;
               }
-              // Daily question → scroll its card into view on Home.
+              // Daily question (not yet revealed) → scroll its card in on Home.
               if (n.type == AppNotificationType.dailyQuestion) {
                 NotificationTapRouter.pendingHomeFocus.value = 'daily_question';
               }
@@ -359,6 +355,30 @@ class _NotificationTile extends StatelessWidget {
     );
   }
 
+  /// Daily-question deep-link: the journal only contains days BOTH partners
+  /// answered, so a tap opens the journal at that day ONLY when today's
+  /// question is already revealed; the notification center is replaced so Back
+  /// lands on Home. Returns false (→ caller routes to Home so the viewer can
+  /// answer) when not revealed, or for an older notification we can't confirm
+  /// from the live provider (which only streams today — pushes are same-day).
+  bool _openJournalIfRevealed(BuildContext context, AppNotification n) {
+    final today = DailyQuestionService.dateKey(DateTime.now());
+    final date = (n.date == null || n.date!.isEmpty) ? today : n.date!;
+    if (date != today) {
+      return false;
+    }
+    if (!context.read<DailyQuestionProvider>().hasRevealed) {
+      return false;
+    }
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        settings: const RouteSettings(name: 'Journal'),
+        builder: (_) => JournalScreen(focusDate: date),
+      ),
+    );
+    return true;
+  }
+
   String _titleFor(AppNotification n, AppLocalizations l10n) {
     final name = n.actorName.isNotEmpty ? n.actorName : l10n.posterNameFallback;
     switch (n.type) {
@@ -434,21 +454,21 @@ class _Avatar extends StatelessWidget {
   (IconData, Color) _iconFor(AppNotificationType type) {
     switch (type) {
       case AppNotificationType.photoPosted:
-        return (LucideIcons.image, AppColors.accentLove);
+        return (IconsaxPlusLinear.gallery, AppColors.accentLove);
       case AppNotificationType.photoReaction:
-        return (LucideIcons.heart, AppColors.accentLoveDeep);
+        return (IconsaxPlusLinear.heart, AppColors.accentLoveDeep);
       case AppNotificationType.partnerJoined:
-        return (LucideIcons.heartHandshake, AppColors.accentLavenderDeep);
+        return (IconsaxPlusLinear.lovely, AppColors.accentLavenderDeep);
       case AppNotificationType.partnerLeft:
-        return (LucideIcons.heartCrack, AppColors.textSecondary);
+        return (IconsaxPlusLinear.heart_slash, AppColors.textSecondary);
       case AppNotificationType.loveNote:
-        return (LucideIcons.mail, AppColors.accentLove);
+        return (IconsaxPlusLinear.sms, AppColors.accentLove);
       case AppNotificationType.dailyQuestion:
-        return (LucideIcons.messageCircle, AppColors.accentLavenderDeep);
+        return (IconsaxPlusLinear.messages, AppColors.accentLavenderDeep);
       case AppNotificationType.chatMessage:
-        return (LucideIcons.messageCircle, AppColors.accentLove);
+        return (IconsaxPlusLinear.messages, AppColors.accentLove);
       case AppNotificationType.unknown:
-        return (LucideIcons.bell, AppColors.textSecondary);
+        return (IconsaxPlusLinear.notification, AppColors.textSecondary);
     }
   }
 }
@@ -466,7 +486,7 @@ class _OverflowMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return HeaderIconButton(
-      icon: LucideIcons.moreHorizontal,
+      icon: IconsaxPlusLinear.more,
       onTap: () => _showOverflowMenu(context),
     );
   }
@@ -498,7 +518,7 @@ class _OverflowMenu extends StatelessWidget {
             child: Row(
               children: [
                 const Icon(
-                  LucideIcons.checkCheck,
+                  IconsaxPlusLinear.tick_circle,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),
@@ -511,7 +531,7 @@ class _OverflowMenu extends StatelessWidget {
           value: 'clear',
           child: Row(
             children: [
-              const Icon(LucideIcons.trash2, size: 20, color: AppColors.error),
+              const Icon(IconsaxPlusLinear.trash, size: 20, color: AppColors.error),
               const SizedBox(width: 12),
               Text(l10n.notifClearAll),
             ],
@@ -577,7 +597,7 @@ class _EmptyState extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  LucideIcons.bellOff,
+                  IconsaxPlusLinear.notification_status,
                   size: 40,
                   color: AppColors.accentLove,
                 ),

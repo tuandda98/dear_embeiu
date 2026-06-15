@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../models/photo.dart';
 import '../theme/app_colors.dart';
@@ -75,7 +75,7 @@ class SharedPhotoView extends StatelessWidget {
           color: AppColors.surfaceLight,
           alignment: Alignment.center,
           child: Icon(
-            LucideIcons.imageOff,
+            IconsaxPlusLinear.gallery_remove,
             color: AppColors.textSecondary.withValues(alpha: 0.5),
           ),
         );

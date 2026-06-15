@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
@@ -14,27 +14,27 @@ import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/eyebrow_chip.dart';
-import '../widgets/header_icon_button.dart';
 import '../widgets/shimmer_skeleton.dart';
-import 'love_note_history_screen.dart';
 
 /// The "Trò chuyện" tab (feature chat) — the couple's private realtime chat,
 /// second tab of the Home bottom nav (IndexedStack child, NOT a pushed route).
 ///
-/// Speaks the same messenger language as [LoveNoteHistoryScreen] (design rule
+/// Speaks the same messenger language as the love-note journal (design rule
 /// #1): navy mine-bubbles / white partner-bubbles with burst grouping, centered
 /// micro-caps time dividers, borderless pill input + navy send disc. The
-/// conversation widgets are deliberately a DISCIPLINED COPY of the history
-/// screen's privates (extraction was skipped to leave the just-fixed history
+/// conversation widgets are deliberately a DISCIPLINED COPY of that screen's
+/// privates (extraction was skipped to leave the just-fixed history
 /// untouched — debt logged in project/features/chat/dev.md): divider rule here
 /// adds the ≥60-minute gap, bubbles add the pending treatment, the composer is
 /// a floating card instead of a full-width strip.
 ///
-/// Header: a single PINNED chip row (EyebrowChip + history icon →
-/// [LoveNoteHistoryScreen]) above the list — chat is the sanctioned exception
-/// to the large-header rule (user 2026-06-12): in a reversed list the big
-/// title sat at the OLDEST end, buried after a few messages, so it was
-/// dropped and the chip row alone names the screen.
+/// Header: a single PINNED chip row (just the EyebrowChip / couple-name) above
+/// the list — chat is the sanctioned exception to the large-header rule (user
+/// 2026-06-12): in a reversed list the big title sat at the OLDEST end, buried
+/// after a few messages, so it was dropped and the chip row alone names the
+/// screen. The old history icon (→ love-note journal) was removed 2026-06-14:
+/// the chat tab now IS the couple's running conversation, so the separate
+/// "past notes" entry was redundant.
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
     super.key,
@@ -126,16 +126,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _openHistory() {
-    HapticFeedback.selectionClick();
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        settings: const RouteSettings(name: 'LoveNoteHistory'),
-        builder: (_) => const LoveNoteHistoryScreen(),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -175,7 +165,10 @@ class _ChatScreenState extends State<ChatScreen> {
         // pulsing heart instead of a static label — falls back to the static
         // badge until the couple (or a partner name) exists.
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 12, 4),
+          // Unified tab-header geometry (2026-06-14): gutter 16, top 16 —
+          // same as Home/Gallery/Profile so the chip sits identically when
+          // swapping tabs.
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
           child: Row(
             children: [
               Flexible(
@@ -196,15 +189,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       )
                     : EyebrowChip(
                         label: l10n.chatBadge,
-                        icon: LucideIcons.messageCircle,
+                        icon: IconsaxPlusLinear.messages,
                       ),
-              ),
-              const Spacer(),
-              const SizedBox(width: 8),
-              HeaderIconButton(
-                icon: LucideIcons.history,
-                semanticsLabel: l10n.loveNoteHistoryTitle,
-                onTap: _openHistory,
               ),
             ],
           ),
@@ -360,7 +346,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ),
                                 )
                               : Icon(
-                                  LucideIcons.send,
+                                  IconsaxPlusLinear.send_2,
                                   size: 19,
                                   color: canSend
                                       ? AppColors.white
@@ -389,7 +375,7 @@ class _ChatScreenState extends State<ChatScreen> {
 /// chronologically and render through `reverse: true` so the tab opens at the
 /// latest message and grows upward — the title block is the logical FIRST item
 /// (visual top), scrolling away while reading (design §B1.2).
-class _MessageList extends StatelessWidget {
+class _MessageList extends StatefulWidget {
   const _MessageList({
     required this.messages,
     required this.myUid,
@@ -413,9 +399,51 @@ class _MessageList extends StatelessWidget {
   final Set<String> revealedIds;
 
   @override
+  State<_MessageList> createState() => _MessageListState();
+}
+
+class _MessageListState extends State<_MessageList> {
+  // Infinite scroll (pagination D5b): reverse:true puts the NEWEST at offset 0
+  // (bottom) and the OLDEST at maxScrollExtent (top), so scrolling up toward
+  // older history drives pixels → maxExtent. Auto-load the next older page a
+  // little before the very top so it streams in without a visible stop. Adding
+  // older messages at the top of a reverse list keeps the read position put
+  // (pixels unchanged), so there's no jump to compensate for. The "show more"
+  // button stays as a manual fallback (e.g. a list too short to scroll).
+  static const double _loadMoreThreshold = 400;
+
+  final ScrollController _controller = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onScroll);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!widget.hasMore || widget.isLoadingMore || !_controller.hasClients) {
+      return;
+    }
+    final position = _controller.position;
+    if (position.pixels >= position.maxScrollExtent - _loadMoreThreshold) {
+      // loadMore() is itself re-entrancy guarded, so the few extra calls fired
+      // while a page is in flight are harmless no-ops.
+      widget.onLoadMore();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final reduceMotion = AppMotion.reduceMotion(context);
-    final items = <ChatMessage>[...messages.reversed]; // oldest → newest
+    final items =
+        <ChatMessage>[...widget.messages.reversed]; // oldest → newest
 
     // Divider rule for chat (denser than love notes): NEW DAY or a ≥60-minute
     // gap since the previous message (design §B2). Pending messages (no server
@@ -441,13 +469,17 @@ class _MessageList extends StatelessWidget {
     final children = <Widget>[];
     // "Show more" sits between the title and the OLDEST message (D5) — older
     // history loads from the top, like Messenger.
-    if (hasMore) {
-      children
-          .add(_LoadMoreButton(isLoading: isLoadingMore, onTap: onLoadMore));
+    if (widget.hasMore) {
+      children.add(
+        _LoadMoreButton(
+          isLoading: widget.isLoadingMore,
+          onTap: widget.onLoadMore,
+        ),
+      );
     }
     for (var i = 0; i < items.length; i++) {
       final message = items[i];
-      final isMine = message.authorUserId == myUid;
+      final isMine = message.authorUserId == widget.myUid;
       final firstInGroup = hasSeparator[i] ||
           i == 0 ||
           items[i - 1].authorUserId != message.authorUserId;
@@ -460,9 +492,10 @@ class _MessageList extends StatelessWidget {
       }
 
       final id = message.id;
-      final animate = !reduceMotion && id != null && !revealedIds.contains(id);
+      final animate =
+          !reduceMotion && id != null && !widget.revealedIds.contains(id);
       if (id != null) {
-        revealedIds.add(id);
+        widget.revealedIds.add(id);
       }
 
       children.add(Padding(
@@ -478,7 +511,7 @@ class _MessageList extends StatelessWidget {
             isPending: message.isPending,
             firstInGroup: firstInGroup,
             lastInGroup: lastInGroup,
-            partnerInitial: partnerInitial,
+            partnerInitial: widget.partnerInitial,
           ),
         ),
       ));
@@ -487,6 +520,7 @@ class _MessageList extends StatelessWidget {
     // reverse:true puts logical item 0 at the visual bottom — so we feed the
     // items back-to-front and the title block (children[0]) ends up on top.
     return ListView.builder(
+      controller: _controller,
       reverse: true,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       itemCount: children.length,
@@ -608,7 +642,7 @@ class _LoadMoreButton extends StatelessWidget {
                     )
                   else
                     const Icon(
-                      LucideIcons.chevronUp,
+                      IconsaxPlusLinear.arrow_up_1,
                       size: 16,
                       color: AppColors.accentLove,
                     ),
@@ -765,7 +799,7 @@ class _ChatBubble extends StatelessWidget {
                 const Padding(
                   padding: EdgeInsets.only(bottom: 3),
                   child: Icon(
-                    LucideIcons.clock3,
+                    IconsaxPlusLinear.clock,
                     size: 11,
                     color: AppColors.textTertiary,
                   ),
@@ -880,7 +914,7 @@ class _EmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                LucideIcons.messageCircle,
+                IconsaxPlusLinear.messages,
                 size: 30,
                 color: AppColors.accentRose,
               ),
@@ -926,7 +960,7 @@ class _WaitingPartnerState extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                LucideIcons.userPlus,
+                IconsaxPlusLinear.user_add,
                 size: 30,
                 color: AppColors.accentRose,
               ),

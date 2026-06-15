@@ -6,7 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
@@ -21,10 +21,10 @@ import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/content_card.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
-import '../widgets/header_icon_button.dart';
 import '../widgets/invite_action_buttons.dart';
 import '../widgets/love_lottie.dart';
 import '../widgets/shared_couple_photo_view.dart';
+import '../widgets/sub_screen_header.dart';
 
 enum _SetupMode { create, join }
 
@@ -519,28 +519,26 @@ class _SetupScreenState extends State<SetupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Editing opens as a pushed sub-screen → standard back squircle at the
-        // top-left (design-unify B3). Create mode is the setup landing (reached
-        // via the auth gate, nothing to pop) so it keeps the sign-out action.
-        if (isEditing) ...[
-          HeaderIconButton(
-            icon: LucideIcons.arrowLeft,
-            semanticsLabel: l10n.back,
-            onTap: () => Navigator.of(context).maybePop(),
-          ),
-          const SizedBox(height: 8),
-        ],
-        Row(
-          children: [
-            // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
-            // recolor of the original (user request 2026-06-11).
-            EyebrowChip(
-              label:
-                  isEditing ? l10n.editCoupleBadge : l10n.coupleOnboardingBadge,
-              icon: isEditing ? LucideIcons.pencil : Icons.favorite_rounded,
-            ),
-            const Spacer(),
-            if (!isEditing)
+        // Header redesign 2026-06-14: EDIT mode (a pushed sub-screen) uses the
+        // shared SubScreenHeader (back → chip → title 28 → subtitle, all
+        // left-aligned at the gutter so the chip lines up vertically with the
+        // title). CREATE mode is the setup landing (reached via the auth gate,
+        // nothing to pop) so it keeps its own chip + sign-out row + 32 hero.
+        if (isEditing)
+          SubScreenHeader(
+            badge: l10n.editCoupleBadge,
+            badgeIcon: IconsaxPlusLinear.edit_2,
+            title: title,
+            subtitle: subtitle,
+          )
+        else ...[
+          Row(
+            children: [
+              EyebrowChip(
+                label: l10n.coupleOnboardingBadge,
+                icon: IconsaxPlusBold.heart,
+              ),
+              const Spacer(),
               Tooltip(
                 message: l10n.signOutBtn,
                 child: InkWell(
@@ -567,7 +565,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(LucideIcons.logOut, size: 13, color: AppColors.textPrimary.withValues(alpha: 0.85)),
+                        Icon(IconsaxPlusLinear.logout, size: 13, color: AppColors.textPrimary.withValues(alpha: 0.85)),
                         const SizedBox(width: 6),
                         Text(
                           l10n.signOutBtn,
@@ -582,12 +580,14 @@ class _SetupScreenState extends State<SetupScreen> {
                   ),
                 ),
               ),
-          ],
-        ),
-        const SizedBox(height: 18),
-        Text(title, style: AppTheme.pageTitleStyle()),
-        const SizedBox(height: 10),
-        Text(subtitle, style: AppTheme.pageSubtitleStyle()),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Create (first-run landing) keeps the 32 hero.
+          Text(title, style: AppTheme.pageTitleStyle(fontSize: 32)),
+          const SizedBox(height: 10),
+          Text(subtitle, style: AppTheme.pageSubtitleStyle()),
+        ],
         if (coupleProvider.errorMessage != null) ...[
           const SizedBox(height: 12),
           // Light card + dark ink (design-unify C6) — white text on a thin
@@ -662,13 +662,13 @@ class _SetupScreenState extends State<SetupScreen> {
                 children: [
                   _buildModeTabLabel(
                     label: l10n.setupTabCreate,
-                    icon: LucideIcons.plusCircle,
+                    icon: IconsaxPlusLinear.add_circle,
                     selected: isCreate,
                     onTap: () => setState(() => _mode = _SetupMode.create),
                   ),
                   _buildModeTabLabel(
                     label: l10n.setupTabJoin,
-                    icon: LucideIcons.link,
+                    icon: IconsaxPlusLinear.link,
                     selected: !isCreate,
                     onTap: () => setState(() => _mode = _SetupMode.join),
                   ),
@@ -767,10 +767,10 @@ class _SetupScreenState extends State<SetupScreen> {
             : null;
 
     final statusIcon = isWaitingForPartner
-        ? LucideIcons.hourglass
+        ? IconsaxPlusLinear.timer_1
         : hasCreatedCoupleSpace
-            ? Icons.favorite_rounded
-            : LucideIcons.keyRound;
+            ? IconsaxPlusBold.heart
+            : IconsaxPlusLinear.key;
 
     final statusColor = isWaitingForPartner
         ? AppColors.warning
@@ -845,7 +845,7 @@ class _SetupScreenState extends State<SetupScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Icon(
-                  LucideIcons.info,
+                  IconsaxPlusLinear.info_circle,
                   size: 12,
                   color: AppColors.textTertiary,
                 ),
@@ -903,7 +903,7 @@ class _SetupScreenState extends State<SetupScreen> {
               controller: _person1Controller,
               decoration: _inputDecoration(
                 hint: l10n.yourNameHint,
-                icon: LucideIcons.user,
+                icon: IconsaxPlusLinear.user,
               ),
             ),
           ),
@@ -914,7 +914,7 @@ class _SetupScreenState extends State<SetupScreen> {
               controller: _person2Controller,
               decoration: _inputDecoration(
                 hint: l10n.partnerNameHint,
-                icon: Icons.favorite_rounded,
+                icon: IconsaxPlusBold.heart,
               ),
             ),
           ),
@@ -935,7 +935,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.calendar, color: AppColors.accentCoral),
+                    const Icon(IconsaxPlusLinear.calendar, color: AppColors.accentCoral),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -950,7 +950,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         ),
                       ),
                     ),
-                    const Icon(LucideIcons.chevronRight),
+                    const Icon(IconsaxPlusLinear.arrow_right_3),
                   ],
                 ),
               ),
@@ -976,7 +976,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(LucideIcons.image, color: AppColors.info),
+                        const Icon(IconsaxPlusLinear.gallery, color: AppColors.info),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -1031,7 +1031,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         color: AppColors.white,
                       ),
                     )
-                  : Icon(isEditing ? LucideIcons.save : Icons.favorite_rounded),
+                  : Icon(isEditing ? IconsaxPlusLinear.save_2 : IconsaxPlusBold.heart),
               label: Text(
                 isEditing ? l10n.saveChangesBtn : l10n.createOurSpaceBtn,
                 style: const TextStyle(fontWeight: FontWeight.w700),
@@ -1073,7 +1073,7 @@ class _SetupScreenState extends State<SetupScreen> {
               textCapitalization: TextCapitalization.characters,
               decoration: _inputDecoration(
                 hint: l10n.theirInviteCodeHint,
-                icon: LucideIcons.lock,
+                icon: IconsaxPlusLinear.lock,
               ),
             ),
           ),
@@ -1100,7 +1100,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         color: AppColors.white,
                       ),
                     )
-                  : const Icon(LucideIcons.link),
+                  : const Icon(IconsaxPlusLinear.link),
               label: Text(
                 l10n.joinBtn,
                 style: const TextStyle(fontWeight: FontWeight.w700),
