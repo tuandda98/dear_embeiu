@@ -9,7 +9,7 @@ Các điểm hiện tại cần lưu ý trước khi phát hành:
 - Android App Bundle build được thành công tại `build/app/outputs/bundle/release/app-release.aab`
 - `applicationId` hiện tại là `com.tony.dearembeiu`
 - File `android/app/google-services.json` cần luôn khớp với package `com.tony.dearembeiu` trong Firebase để bản release build được ổn định
-- `version` hiện tại trong `pubspec.yaml` là `1.0.0+1`
+- `version` hiện tại trong `pubspec.yaml` là `1.2.0+7` (bản revamp: chat / nhắc đồng bộ / migrate love-note — **cần backend prod đã deploy** thì mới chạy đúng)
 - Tên app Android hiện tại trong `AndroidManifest.xml` là `dear embeiu`
 - Project dùng các dịch vụ Firebase: Auth, Firestore, Storage, Messaging
 - Vì có đăng nhập, upload ảnh và push notification nên cần chuẩn bị:
@@ -72,7 +72,7 @@ Project đã được cập nhật để:
 Sửa trong `pubspec.yaml`:
 
 ```yaml
-version: 1.0.0+1
+version: 1.2.0+7
 ```
 
 Quy ước:

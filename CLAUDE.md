@@ -246,7 +246,8 @@ SEMVER: PATCH=bug · MINOR=feature · MAJOR=breaking. **Build number (`+N`) đ�
 |---|---|---|---|---|
 | 1.0.0 | 1 | — | ✅ Live | Bản đầu: counter + gallery + coupling + reminders + auth |
 | 1.1.0 | 5 | — | ✅ Ready for Distribution (2026-06-06) | reactions/streak/journal/daily-question/love-note 2 chiều |
-| 1.1.1 | 6 | `release/1.1.1` | 🚧 Chuẩn bị submit | fix login/logout/email-verify/xoá tài khoản + backward-compat + CF leaveCoupleCleanup |
+| 1.1.1 | 6 | `release/1.1.1` | ⏭️ Gộp vào 1.2.0 (chưa submit riêng) | fix login/logout/email-verify/xoá tài khoản + backward-compat + CF leaveCoupleCleanup |
+| 1.2.0 | 7 | `release/1.1.6` (branch hiện tại) | 🚧 **Chuẩn bị submit (2026-06-15)** | **icon redesign toàn app (Iconsax)** + Profile redesign (hành trình & huy hiệu) + chọn ảnh nền thẻ đếm + chat auto-load + deep-link thông báo + force-update gate + header gọn + (gồm cả 1.1.1 auth fixes). Release notes: `RELEASE_NOTES_1.2.0.md`. **Pre-flight: analyze 0, rules-test 163. PROD rules/CF (force-update+counter-bg+chat-migrate) CHƯA deploy — chờ user.** |
 
 ---
 
