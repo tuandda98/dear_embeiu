@@ -1117,6 +1117,7 @@
   },
   "customRemindersDeleteConfirm": "Delete",
   "customRemindersDeletedMsg": "Reminder deleted",
+  "customRemindersUndoLabel": "Undo",
   "customRemindersNotifBodyFallback": "A special moment for the two of you 💞",
   "agreeToPrivacyPolicy": "I agree to the Privacy Policy",
   "@agreeToPrivacyPolicy": {

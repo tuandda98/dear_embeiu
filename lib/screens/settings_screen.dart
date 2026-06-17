@@ -22,6 +22,7 @@ import '../widgets/content_card.dart';
 import '../widgets/entrance_reveal.dart';
 import '../widgets/icon_badge.dart';
 import '../widgets/language_toggle_button.dart';
+import '../widgets/app_time_picker.dart';
 import '../widgets/section_header.dart';
 import '../widgets/sub_screen_header.dart';
 import 'counter_bg_screen.dart';
@@ -1169,7 +1170,7 @@ class _DailyQuestionReminderTile extends StatelessWidget {
     // One time, tap to change — sets the whole (single-element) list so the
     // provider syncs it to the couple.
     Future<void> pickTime() async {
-      final picked = await showTimePicker(context: context, initialTime: time);
+      final picked = await showAppTimePicker(context, initialTime: time);
       if (picked == null || !context.mounted) {
         return;
       }

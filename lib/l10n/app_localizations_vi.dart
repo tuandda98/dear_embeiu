@@ -1882,6 +1882,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get customRemindersDeletedMsg => 'Đã xoá lời nhắc';
 
   @override
+  String get customRemindersUndoLabel => 'Hoàn tác';
+
+  @override
   String get customRemindersNotifBodyFallback =>
       'Một mốc đáng nhớ của hai bạn 💞';
 

@@ -143,6 +143,18 @@ class CustomRemindersProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Restore a previously deleted reminder (called by swipe-to-delete undo).
+  /// Idempotent — silently no-ops if the id is already present.
+  Future<void> restore(CustomReminder reminder) async {
+    if (_reminders.any((r) => r.id == reminder.id)) return;
+    _reminders.add(reminder);
+    await _persist(reminder);
+    if (reminder.enabled) {
+      await _schedule(reminder);
+    }
+    notifyListeners();
+  }
+
   /// Delete a reminder and cancel its schedule.
   Future<void> delete(int id) async {
     _reminders.removeWhere((r) => r.id == id);

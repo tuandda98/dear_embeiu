@@ -3338,6 +3338,12 @@ abstract class AppLocalizations {
   /// **'Reminder deleted'**
   String get customRemindersDeletedMsg;
 
+  /// No description provided for @customRemindersUndoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get customRemindersUndoLabel;
+
   /// No description provided for @customRemindersNotifBodyFallback.
   ///
   /// In en, this message translates to:

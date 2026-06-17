@@ -8,6 +8,7 @@ import '../l10n/l10n.dart';
 import '../models/custom_reminder.dart';
 import '../providers/custom_reminders_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/app_time_picker.dart';
 import '../widgets/content_card.dart';
 import '../widgets/sub_screen_header.dart';
 
@@ -113,7 +114,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
   }
 
   Future<void> _pickTime() async {
-    final picked = await showTimePicker(context: context, initialTime: _time);
+    final picked = await showAppTimePicker(context, initialTime: _time);
     if (picked != null) {
       setState(() => _time = picked);
     }

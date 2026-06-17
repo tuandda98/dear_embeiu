@@ -1888,6 +1888,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customRemindersDeletedMsg => 'Reminder deleted';
 
   @override
+  String get customRemindersUndoLabel => 'Undo';
+
+  @override
   String get customRemindersNotifBodyFallback =>
       'A special moment for the two of you 💞';
 

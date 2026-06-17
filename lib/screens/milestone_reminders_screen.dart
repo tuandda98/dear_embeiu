@@ -8,6 +8,7 @@ import '../l10n/l10n.dart';
 import '../models/milestone_reminder.dart';
 import '../providers/reminder_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/app_time_picker.dart';
 import '../widgets/entrance_reveal.dart';
 import '../widgets/sub_screen_header.dart';
 
@@ -330,7 +331,7 @@ class _TimeChip extends StatelessWidget {
   final TimeOfDay time;
 
   Future<void> _pick(BuildContext context) async {
-    final picked = await showTimePicker(context: context, initialTime: time);
+    final picked = await showAppTimePicker(context, initialTime: time);
     if (picked == null || !context.mounted) {
       return;
     }

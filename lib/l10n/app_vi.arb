@@ -991,6 +991,7 @@
   "customRemindersDeleteDialogBody": "\"{name}\" sẽ bị xoá và không nhắc bạn nữa.",
   "customRemindersDeleteConfirm": "Xoá",
   "customRemindersDeletedMsg": "Đã xoá lời nhắc",
+  "customRemindersUndoLabel": "Hoàn tác",
   "customRemindersNotifBodyFallback": "Một mốc đáng nhớ của hai bạn 💞",
   "agreeToPrivacyPolicy": "Tôi đồng ý với Chính sách bảo mật",
   "appTitle": "Kỷ Niệm Của Chúng Mình",

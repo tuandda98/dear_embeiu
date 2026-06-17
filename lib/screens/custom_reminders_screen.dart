@@ -203,7 +203,7 @@ class _ReminderRow extends StatelessWidget {
         ),
         child: const Icon(IconsaxPlusLinear.trash, color: AppColors.white),
       ),
-      confirmDismiss: (_) => _confirmDeleteReminder(context, reminder),
+      confirmDismiss: (_) => _deleteWithUndo(context, reminder),
       child: EntranceReveal(
         order: order,
         child: AnimatedOpacity(
@@ -496,7 +496,7 @@ class _ReminderList extends StatelessWidget {
             ),
             child: const Icon(IconsaxPlusLinear.trash, color: AppColors.white),
           ),
-          confirmDismiss: (_) => _confirmDeleteReminder(context, reminder),
+          confirmDismiss: (_) => _deleteWithUndo(context, reminder),
           child: EntranceReveal(
             order: index,
             child: AnimatedOpacity(
@@ -512,67 +512,36 @@ class _ReminderList extends StatelessWidget {
   }
 }
 
-/// Confirm + perform a custom-reminder delete (shared by the standalone list's
-/// swipe-to-delete, the embedded body row and the overflow menu). Returns
-/// whether the reminder was actually removed.
-Future<bool> _confirmDeleteReminder(
+/// Immediately delete a custom reminder and show an undo snackbar.
+/// No confirmation dialog — swipe = instant action, snackbar = safety net.
+Future<bool> _deleteWithUndo(
   BuildContext context,
   CustomReminder reminder,
 ) async {
+  if (!context.mounted) return false;
   final l10n = context.l10n;
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      backgroundColor: AppColors.cardSurface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
-      ),
-      title: Text(
-        l10n.customRemindersDeleteDialogTitle,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-      content: Text(
-        l10n.customRemindersDeleteDialogBody(reminder.name),
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 14,
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text(
-            l10n.customRemindersCancel,
-            style: const TextStyle(color: AppColors.textSecondary),
-          ),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text(
-            l10n.customRemindersDeleteConfirm,
-            style: const TextStyle(
-              color: AppColors.error,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-  if (confirmed != true || !context.mounted) {
-    return false;
-  }
   final provider = context.read<CustomRemindersProvider>();
   final messenger = ScaffoldMessenger.of(context);
-  final deletedMsg = l10n.customRemindersDeletedMsg;
+
   await provider.delete(reminder.id);
+
+  if (!context.mounted) return true;
   messenger
     ..clearSnackBars()
-    ..showSnackBar(SnackBar(content: Text(deletedMsg)));
+    ..showSnackBar(
+      SnackBar(
+        content: Text(l10n.customRemindersDeletedMsg),
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: l10n.customRemindersUndoLabel,
+          onPressed: () {
+            if (context.mounted) {
+              context.read<CustomRemindersProvider>().restore(reminder);
+            }
+          },
+        ),
+      ),
+    );
   return true;
 }
 
@@ -655,26 +624,13 @@ class _ReminderCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            Column(
-              children: [
-                Switch.adaptive(
-                  value: reminder.enabled,
-                  activeThumbColor: AppColors.accentRose,
-                  onChanged: interactive
-                      ? (value) => provider.toggle(reminder.id, value)
-                      : null,
-                ),
-                if (interactive)
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    icon: const Icon(
-                      IconsaxPlusLinear.more_2,
-                      color: AppColors.textSecondary,
-                    ),
-                    onPressed: () => _openMenu(context),
-                  ),
-              ],
+            const SizedBox(width: 4),
+            Switch.adaptive(
+              value: reminder.enabled,
+              activeThumbColor: AppColors.accentRose,
+              onChanged: interactive
+                  ? (value) => provider.toggle(reminder.id, value)
+                  : null,
             ),
           ],
           ),
@@ -772,49 +728,4 @@ class _ReminderCard extends StatelessWidget {
     );
   }
 
-  void _openMenu(BuildContext context) {
-    final l10n = context.l10n;
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: AppColors.cardSurface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(
-                  IconsaxPlusLinear.edit_2,
-                  color: AppColors.accentRose,
-                ),
-                title: Text(l10n.customRemindersItemMenuEdit),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  _openEdit(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  IconsaxPlusLinear.trash,
-                  color: AppColors.error,
-                ),
-                title: Text(l10n.customRemindersItemMenuDelete),
-                onTap: () async {
-                  Navigator.of(sheetContext).pop();
-                  await _deleteFromMenu(context);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _deleteFromMenu(BuildContext context) async {
-    await _confirmDeleteReminder(context, reminder);
-  }
 }

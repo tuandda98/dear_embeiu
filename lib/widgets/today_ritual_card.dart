@@ -17,19 +17,12 @@ import 'compose_pill.dart';
 import 'content_card.dart';
 import 'love_lottie.dart';
 
-/// The "Hôm nay của chúng mình" ritual card (Home v3, 2026-06-10): today's
-/// question, tap-to-compose. Design principles applied:
+/// The "Hôm nay của chúng mình" ritual card (Home v3, 2026-06-10).
 ///
-/// 1. Question = tap-to-compose — a pill opens the answer bottom sheet.
-/// 2. Blur-teaser — when the partner answered first, their answer shows
-///    BLURRED with an unlock hint (the strongest answer motivator).
-/// 3. Collapsing done-state — after a (stale) reveal the question block
-///    shrinks to one line; a fresh reveal stays expanded and celebrates.
-///
-/// The love-note section was REMOVED (user 2026-06-11) and the love-note
-/// feature itself was retired (2026-06-14) — couple messaging now lives
-/// entirely in the Chat tab (old notes are auto-migrated into it). Home only
-/// carries today's question ritual.
+/// UX upgrades (2026-06-15):
+/// - Whole card tappable (states A & B) via transparent Material overlay.
+/// - Redesigned answer bottom sheet: gradient header, countdown char counter,
+///   gradient send button — emotional, not just functional.
 class TodayRitualCard extends StatefulWidget {
   const TodayRitualCard({super.key, required this.couple});
 
@@ -43,15 +36,8 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
   late final ConfettiController _confetti =
       ConfettiController(duration: const Duration(milliseconds: 600));
 
-  // One-shot reveal celebration guards (same protocol as the old card: only a
-  // reveal that HAPPENS while watching celebrates; reopening Home after both
-  // answered must not surprise the user).
   bool _confettiPlayed = false;
   bool _showRevealLottie = false;
-
-  /// Whether the revealed answers are expanded. Starts collapsed when the card
-  /// is born already-revealed (done-state should be small); flips to true on a
-  /// fresh reveal so the user reads the answers in the moment.
   bool _revealExpanded = false;
 
   @override
@@ -68,8 +54,6 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     super.dispose();
   }
 
-  /// Partner's display name: the viewer's counterpart in the couple, resolved
-  /// from the signed-in uid (creator == person1).
   String _partnerName(AppLocalizations l10n) {
     final myUid = context.read<AuthProvider>().currentUser?.id;
     final couple = widget.couple;
@@ -88,28 +72,26 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     final isWaiting = widget.couple.isWaitingForPartner;
     final partnerName = _partnerName(l10n);
 
-    // Fresh reveal while watching → celebrate once and expand.
     if (daily.hasRevealed && !_confettiPlayed) {
       _confettiPlayed = true;
       _showRevealLottie = true;
       _revealExpanded = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _confetti.play();
-        }
+        if (mounted) _confetti.play();
       });
       Future.delayed(const Duration(milliseconds: 2600), () {
-        if (mounted) {
-          setState(() => _showRevealLottie = false);
-        }
+        if (mounted) setState(() => _showRevealLottie = false);
       });
     }
+
+    // States A & B: nobody answered / partner answered first → whole card opens
+    // the answer sheet.
+    final canTapCard = !daily.hasAnswered;
 
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        // Solid white reading surface (ContentCard, B4) — the design system
-        // reserves glass for decorative blocks, not content-heavy cards.
+        // ── Content card ──────────────────────────────────────────────────────
         ContentCard(
           child: AnimatedSize(
             duration: const Duration(milliseconds: 240),
@@ -117,45 +99,64 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
             alignment: Alignment.topCenter,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ..._buildQuestionSection(l10n, daily, langCode, partnerName,
-                    isWaiting),
-              ],
+              children: _buildQuestionSection(
+                  l10n, daily, langCode, partnerName, isWaiting),
             ),
           ),
         ),
-        ConfettiWidget(
-          confettiController: _confetti,
-          blastDirectionality: BlastDirectionality.explosive,
-          numberOfParticles: 14,
-          maxBlastForce: 14,
-          minBlastForce: 6,
-          emissionFrequency: 0.0,
-          gravity: 0.25,
-          shouldLoop: false,
-          colors: const [
-            AppColors.accentRose,
-            AppColors.accentLavender,
-            AppColors.accentCoral,
-            AppColors.white,
-          ],
+
+        // ── Tappable overlay (states A & B only) ─────────────────────────────
+        // Sits above ContentCard so the InkWell ripple renders on the white
+        // surface; below Confetti/Lottie so they remain purely decorative.
+        if (canTapCard)
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(24),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: _openAnswerSheet,
+                splashColor: AppColors.accentRose.withValues(alpha: 0.05),
+                highlightColor: AppColors.accentRose.withValues(alpha: 0.02),
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+          ),
+
+        // ── Decorative overlays (ignore pointer — visual only) ────────────────
+        IgnorePointer(
+          child: ConfettiWidget(
+            confettiController: _confetti,
+            blastDirectionality: BlastDirectionality.explosive,
+            numberOfParticles: 14,
+            maxBlastForce: 14,
+            minBlastForce: 6,
+            emissionFrequency: 0.0,
+            gravity: 0.25,
+            shouldLoop: false,
+            colors: const [
+              AppColors.accentRose,
+              AppColors.accentLavender,
+              AppColors.accentCoral,
+              AppColors.white,
+            ],
+          ),
         ),
-        // One-shot unlock moment (feature lottie-moments) — auto-hidden so it
-        // never sits frozen on its last frame.
         if (_showRevealLottie)
-          const Positioned(
-            top: -8,
-            child: LoveLottie(
-              slot: LoveLottieSlot.dailyReveal,
-              height: 120,
+          const IgnorePointer(
+            child: Positioned(
+              top: -8,
+              child: LoveLottie(
+                slot: LoveLottieSlot.dailyReveal,
+                height: 120,
+              ),
             ),
           ),
       ],
     );
   }
 
-
-  // ── Daily question ─────────────────────────────────────────────────────────
+  // ── Question section ─────────────────────────────────────────────────────────
 
   List<Widget> _buildQuestionSection(
     AppLocalizations l10n,
@@ -165,10 +166,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     bool isWaiting,
   ) {
     final question = daily.todayQuestion(langCode);
-
     return [
-      // Card-internal title ("Câu hỏi hôm nay" + heart icon) removed per user
-      // 2026-06-14 — the question text now leads the card directly.
       Text(
         question,
         style: AppTheme.displaySerif(
@@ -191,15 +189,13 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     String partnerName,
     bool isWaiting,
   ) {
-    // D. Revealed — collapsed one-liner or expanded answers.
+    // D. Revealed
     if (daily.hasRevealed) {
       if (!_revealExpanded) {
         return [
           _inlineRow(
-            leading: const AnimatedHeartIcon(
-              size: 18,
-              color: AppColors.accentRose,
-            ),
+            leading:
+                const AnimatedHeartIcon(size: 18, color: AppColors.accentRose),
             label: l10n.dailyBothAnsweredToday,
             action: l10n.dailyReadAgain,
             onTap: () => setState(() => _revealExpanded = true),
@@ -219,15 +215,13 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
         const SizedBox(height: 10),
         Align(
           alignment: Alignment.centerRight,
-          child: _textLink(
-            l10n.dailyCollapse,
-            onTap: () => setState(() => _revealExpanded = false),
-          ),
+          child:
+              _textLink(l10n.dailyCollapse, onTap: () => setState(() => _revealExpanded = false)),
         ),
       ];
     }
 
-    // C. I answered, partner hasn't yet.
+    // C. I answered, partner hasn't yet
     if (daily.hasAnswered) {
       final mine = daily.myAnswer?.text.trim() ?? '';
       final waitingFor = isWaiting
@@ -247,7 +241,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
       ];
     }
 
-    // B. Partner answered first — blurred teaser + unlock pill.
+    // B. Partner answered first — blurred teaser + unlock pill
     final teaser = daily.partnerAnswer;
     if (teaser != null) {
       return [
@@ -255,8 +249,6 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
           borderRadius: BorderRadius.circular(14),
           child: Stack(
             children: [
-              // Blur the real text; exclude it from semantics so a screen
-              // reader can't leak the unrevealed answer.
               ExcludeSemantics(
                 child: ImageFiltered(
                   imageFilter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
@@ -313,9 +305,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
       ];
     }
 
-    // Waiting for a partner: the question is a PREVIEW, not a form — a
-    // "question for two" doesn't exist yet, so there is nothing to answer
-    // into (user 2026-06-10). The banner above carries the invite CTA.
+    // Waiting for partner (single player preview)
     if (isWaiting) {
       return [
         Text(
@@ -329,7 +319,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
       ];
     }
 
-    // A. Nobody answered yet — quiet compose pill (no raw form on Home).
+    // A. Nobody answered yet
     return [
       ComposePill(
         label: l10n.dailyTapToAnswer,
@@ -337,6 +327,8 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
       ),
     ];
   }
+
+  // ── Answer sheet ─────────────────────────────────────────────────────────────
 
   Future<void> _openAnswerSheet() async {
     HapticFeedback.selectionClick();
@@ -354,19 +346,14 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
       ),
     );
 
-    if (sent != true || !mounted) {
-      return;
-    }
+    if (sent != true || !mounted) return;
     HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.dailyQuestionSent)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.dailyQuestionSent)));
   }
 
-  // ── Shared bits ────────────────────────────────────────────────────────────
-  // (The tap-to-compose pill moved to the shared ComposePill widget, B8.)
+  // ── Shared bits ──────────────────────────────────────────────────────────────
 
-  /// Compact done-state row: pulsing heart + label + trailing action.
   Widget _inlineRow({
     required Widget leading,
     required String label,
@@ -416,9 +403,6 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     );
   }
 
-  /// Answer block, SAME two-tone language as the journal screen so the pair
-  /// reads identically across the app: mine = surfaceLight + rose label,
-  /// partner = lavender tint + lavender label (couple-journal convention).
   Widget _answerBlock(String label, String text, {required bool mine}) {
     return Container(
       width: double.infinity,
@@ -435,9 +419,8 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
           Text(
             label,
             style: TextStyle(
-              color: mine
-                  ? AppColors.accentLoveDeep
-                  : AppColors.accentLavenderDeep,
+              color:
+                  mine ? AppColors.accentLoveDeep : AppColors.accentLavenderDeep,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.3,
@@ -459,8 +442,10 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
   }
 }
 
-/// Bottom-sheet composer for today's answer (tap-to-compose). Shows the
-/// question while typing; pops `true` after a successful submit.
+// ─────────────────────────────────────────────────────────────────────────────
+// Answer bottom sheet (redesign 2026-06-15)
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _DailyAnswerSheet extends StatefulWidget {
   const _DailyAnswerSheet({required this.question, required this.l10n});
 
@@ -473,123 +458,282 @@ class _DailyAnswerSheet extends StatefulWidget {
 
 class _DailyAnswerSheetState extends State<_DailyAnswerSheet> {
   static const int _maxChars = 280;
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _ctrl = TextEditingController();
   bool _submitting = false;
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    final text = _controller.text.trim();
-    if (text.isEmpty || _submitting) {
-      return;
-    }
+    final text = _ctrl.text.trim();
+    if (text.isEmpty || _submitting) return;
     setState(() => _submitting = true);
     final navigator = Navigator.of(context);
     final ok = await context.read<DailyQuestionProvider>().submit(text);
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     navigator.pop(ok);
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = widget.l10n;
     final viewInsets = MediaQuery.of(context).viewInsets.bottom;
+    final safeBottom = MediaQuery.of(context).padding.bottom;
+    final remaining = _maxChars - _ctrl.text.characters.length;
+    final isReady = _ctrl.text.trim().isNotEmpty && !_submitting;
+
+    // Countdown colour: normal → warning at 50 → danger at 20
+    final countColor = remaining <= 20
+        ? AppColors.error
+        : remaining <= 50
+            ? AppColors.warning
+            : AppColors.textTertiary;
 
     return Padding(
       padding: EdgeInsets.only(bottom: viewInsets),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      child: Container(
+        decoration: const BoxDecoration(
           color: AppColors.cardSurface,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.textTertiary.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── Handle ──────────────────────────────────────────────────────
+            const SizedBox(height: 10),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.textPrimary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // ── Gradient header strip ────────────────────────────────────────
+            _SheetHeader(question: widget.question, l10n: widget.l10n),
+
+            // ── Text field ───────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: AppColors.accentRose.withValues(alpha: 0.12),
+                  ),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: TextField(
+                  controller: _ctrl,
+                  maxLength: _maxChars,
+                  maxLines: null,
+                  minLines: 4,
+                  autofocus: true,
+                  textInputAction: TextInputAction.newline,
+                  onChanged: (_) => setState(() {}),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    height: 1.55,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: widget.l10n.dailyQuestionHint,
+                    hintStyle: TextStyle(
+                      color: AppColors.textTertiary.withValues(alpha: 0.7),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    // Kill ALL border states so the theme's focusedBorder
+                    // (red) doesn't bleed through our custom container.
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    filled: false,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    counterText: '',
                   ),
                 ),
               ),
-              const SizedBox(height: 18),
-              Row(
+            ),
+
+            // ── Footer: countdown + send ─────────────────────────────────────
+            Padding(
+              padding: EdgeInsets.fromLTRB(20, 14, 20, safeBottom + 16),
+              child: Row(
                 children: [
-                  const Icon(IconsaxPlusLinear.lovely,
-                      color: AppColors.accentRose, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.dailyQuestionLabel,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                  // Countdown — only shown once the user starts typing.
+                  AnimatedOpacity(
+                    opacity: remaining < _maxChars ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 200),
+                      style: TextStyle(
+                        color: countColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      child: Text(
+                        '$remaining / $_maxChars',
                       ),
                     ),
                   ),
+                  const Spacer(),
+                  // Send button — gradient pill
+                  _SendButton(
+                    l10n: widget.l10n,
+                    enabled: isReady,
+                    loading: _submitting,
+                    onTap: _submit,
+                  ),
                 ],
               ),
-              const SizedBox(height: 8),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Sheet sub-widgets ──────────────────────────────────────────────────────────
+
+/// Gradient header: heart badge + "Câu hỏi hôm nay" label + question text.
+class _SheetHeader extends StatelessWidget {
+  const _SheetHeader({required this.question, required this.l10n});
+
+  final String question;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        gradient: AppColors.sunsetRomance,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [AppColors.softCardShadow(opacity: 0.20)],
+      ),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Badge row
+          Row(
+            children: [
+              const Icon(IconsaxPlusBold.lovely,
+                  size: 16, color: AppColors.white),
+              const SizedBox(width: 8),
               Text(
-                widget.question,
-                style: AppTheme.displaySerif(
-                  size: 19,
-                  weight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                  height: 1.3,
-                  letterSpacing: -0.2,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: _controller,
-                maxLength: _maxChars,
-                maxLines: 5,
-                minLines: 3,
-                autofocus: true,
-                textInputAction: TextInputAction.newline,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: l10n.dailyQuestionHint,
-                  counterText: l10n.dailyQuestionCharCount(
-                    _controller.text.characters.length,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed:
-                      (_submitting || _controller.text.trim().isEmpty)
-                          ? null
-                          : _submit,
-                  child: _submitting
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.4,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(AppColors.white),
-                          ),
-                        )
-                      : Text(l10n.dailyQuestionSend),
+                l10n.dailyQuestionLabel,
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          // Question text on gradient
+          Text(
+            question,
+            style: AppTheme.displaySerif(
+              size: 18,
+              weight: FontWeight.w600,
+              color: AppColors.white,
+              height: 1.3,
+              letterSpacing: -0.1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Gradient pill send button with loading state.
+class _SendButton extends StatelessWidget {
+  const _SendButton({
+    required this.l10n,
+    required this.enabled,
+    required this.loading,
+    required this.onTap,
+  });
+
+  final AppLocalizations l10n;
+  final bool enabled;
+  final bool loading;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      opacity: enabled ? 1.0 : 0.45,
+      duration: const Duration(milliseconds: 200),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: enabled ? AppColors.sunsetRomance : null,
+          color: enabled ? null : AppColors.textTertiary.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: enabled
+              ? [AppColors.softCardShadow(opacity: 0.20)]
+              : null,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+          child: InkWell(
+            onTap: enabled ? onTap : null,
+            borderRadius: BorderRadius.circular(999),
+            splashColor: Colors.white.withValues(alpha: 0.15),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
+              child: loading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(AppColors.white),
+                      ),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          l10n.dailyQuestionSend,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(
+                          IconsaxPlusBold.send_2,
+                          size: 15,
+                          color: AppColors.white,
+                        ),
+                      ],
+                    ),
+            ),
           ),
         ),
       ),
