@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import '../models/milestone_reminder.dart';
 import '../services/home_prefs_service.dart';
 import '../services/reminder_service.dart';
+import '../utils/lunar_calendar.dart';
 
 /// User-facing settings for the "milestone & anniversary reminders" feature.
 @immutable
@@ -39,18 +40,18 @@ class ReminderSettings {
 @immutable
 class MilestoneNextFire {
   const MilestoneNextFire.upcoming(this.date, {this.label})
-      : pending = false,
-        passed = false;
+    : pending = false,
+      passed = false;
   const MilestoneNextFire.passed()
-      : date = null,
-        label = null,
-        pending = false,
-        passed = true;
+    : date = null,
+      label = null,
+      pending = false,
+      passed = true;
   const MilestoneNextFire.pending()
-      : date = null,
-        label = null,
-        pending = true,
-        passed = false;
+    : date = null,
+      label = null,
+      pending = true,
+      passed = false;
 
   /// The upcoming fire date (null when pending/passed).
   final DateTime? date;
@@ -89,6 +90,20 @@ class ReminderProvider extends ChangeNotifier {
   static const String _dqLegacyHourKey = 'dqReminderHour';
   static const String _dqLegacyMinuteKey = 'dqReminderMinute';
 
+  // Lunar reminder (account-gated, 2026-06-19): nudge on chosen lunar days at
+  // chosen times. LOCAL only; Hive drives scheduling, UI is gated by email in
+  // Settings. Days/times are user-configurable (2026-06-19 v2); defaults are
+  // mồng-1 & ngày-rằm at 07:00/08:00/09:00.
+  static const String _lunarEnabledKey = 'lunar_reminder_enabled';
+  static const String _lunarTimesKey = 'lunar_reminder_times'; // minutes list
+  static const String _lunarDaysKey = 'lunar_reminder_days'; // lunar day list
+  static const List<int> _lunarDefaultTimes = <int>[7 * 60, 8 * 60, 9 * 60];
+  static const List<int> _lunarDefaultDays = <int>[1, 15];
+  static const int _maxLunarTimes = 6;
+  // How many upcoming occurrences to schedule per refresh. Kept small (×times ≤
+  // band size 40 and the iOS 64-pending cap) — topped up each app open.
+  static const int _lunarWindow = 8;
+
   /// Max number of daily-question reminder times (mirrors the Firestore-rule
   /// + ReminderService caps).
   static const int maxDailyQuestionTimes = 10;
@@ -119,6 +134,40 @@ class ReminderProvider extends ChangeNotifier {
   bool _dqEnabled = true;
   List<int> _dqTimes = <int>[20 * 60];
 
+  // Lunar reminder (account-gated). Off by default; only the gated account's
+  // Settings card can flip it. Days = lunar day-of-month numbers; times =
+  // minutes-since-midnight. See [_lunarEnabledKey].
+  bool _lunarEnabled = false;
+  List<int> _lunarTimes = List<int>.of(_lunarDefaultTimes);
+  List<int> _lunarDays = List<int>.of(_lunarDefaultDays);
+
+  /// Whether the lunar reminder is on.
+  bool get lunarEnabled => _lunarEnabled;
+
+  /// Reminder times (sorted) as [TimeOfDay].
+  List<TimeOfDay> get lunarTimes => _lunarTimes
+      .map((m) => TimeOfDay(hour: m ~/ 60, minute: m % 60))
+      .toList(growable: false);
+
+  /// Lunar day-of-month numbers to remind on (sorted, e.g. [1, 15]).
+  List<int> get lunarDays => List<int>.unmodifiable(_lunarDays);
+
+  /// Whether another reminder time can still be added (cap [_maxLunarTimes]).
+  bool get canAddLunarTime => _lunarTimes.length < _maxLunarTimes;
+
+  // Daily-question end-of-day safety net (2026-06-19). On top of the user's
+  // chosen reminder times, while the couple hasn't both answered today's
+  // question we fire 3 fixed local one-shots: 21:00 (gentle nudge) + 22:00 and
+  // 23:00 (streak warnings). LOCAL only — never synced; the copy is derived from
+  // the latest habit state cached here so enable/disable can re-arm correctly.
+  static const List<int> _eodHours = <int>[21, 22, 23];
+  bool _eodHasRevealed = false;
+  bool _eodIAnswered = false;
+  int _eodStreak = 0;
+  // Debounce signature so the frequent provider notifications that drive
+  // [refreshDailyQuestionSafetyNet] don't thrash the OS schedule.
+  String? _eodSignature;
+
   final HomePrefsService _homePrefs = HomePrefsService();
   String? _dqCoupleId;
   StreamSubscription<ReminderPrefs>? _dqPrefsSub;
@@ -136,8 +185,9 @@ class ReminderProvider extends ChangeNotifier {
 
   /// On/off state per milestone. Initialised to the Dv4 defaults and overridden
   /// by persisted values in [load].
-  final Map<MilestoneType, bool> _milestones =
-      Map<MilestoneType, bool>.from(kMilestoneDefaults);
+  final Map<MilestoneType, bool> _milestones = Map<MilestoneType, bool>.from(
+    kMilestoneDefaults,
+  );
 
   /// Optional per-milestone reminder time (Dv8). Absent = use the default time
   /// ([ReminderSettings.hour]/[minute]). Loaded from Hive in [load].
@@ -159,8 +209,7 @@ class ReminderProvider extends ChangeNotifier {
       _milestones[type] ?? kMilestoneDefaults[type] ?? false;
 
   /// Number of milestones currently turned on (for the profile badge).
-  int get enabledMilestoneCount =>
-      _milestones.values.where((on) => on).length;
+  int get enabledMilestoneCount => _milestones.values.where((on) => on).length;
 
   /// The custom reminder time set for [type], or null when it follows the
   /// default time (Dv8).
@@ -187,6 +236,19 @@ class ReminderProvider extends ChangeNotifier {
       // Daily-question reminder: default on at 20:00. Migrate the old single
       // hour/minute keys into the new times list on first load after upgrade.
       _dqEnabled = box.get(_dqEnabledKey, defaultValue: true) as bool;
+      _lunarEnabled = box.get(_lunarEnabledKey, defaultValue: false) as bool;
+      final storedLunarTimes = box.get(_lunarTimesKey);
+      if (storedLunarTimes is List && storedLunarTimes.isNotEmpty) {
+        _lunarTimes = _normalizeLunarTimes(
+          storedLunarTimes.whereType<num>().map((n) => n.toInt()),
+        );
+      }
+      final storedLunarDays = box.get(_lunarDaysKey);
+      if (storedLunarDays is List && storedLunarDays.isNotEmpty) {
+        _lunarDays = _normalizeLunarDays(
+          storedLunarDays.whereType<num>().map((n) => n.toInt()),
+        );
+      }
       final storedTimes = box.get(_dqTimesKey);
       if (storedTimes is List && storedTimes.isNotEmpty) {
         _dqTimes = _normalizeTimes(
@@ -206,13 +268,17 @@ class ReminderProvider extends ChangeNotifier {
         }
         // Optional per-milestone custom time (Dv8): present only when the user
         // overrode the default for this milestone.
-        final storedHour =
-            box.get('$_milestoneTimePrefix${type.name}$_milestoneHourSuffix');
-        final storedMinute = box
-            .get('$_milestoneTimePrefix${type.name}$_milestoneMinuteSuffix');
+        final storedHour = box.get(
+          '$_milestoneTimePrefix${type.name}$_milestoneHourSuffix',
+        );
+        final storedMinute = box.get(
+          '$_milestoneTimePrefix${type.name}$_milestoneMinuteSuffix',
+        );
         if (storedHour is int && storedMinute is int) {
-          _milestoneTimes[type] =
-              TimeOfDay(hour: storedHour, minute: storedMinute);
+          _milestoneTimes[type] = TimeOfDay(
+            hour: storedHour,
+            minute: storedMinute,
+          );
         }
       }
       notifyListeners();
@@ -242,6 +308,125 @@ class ReminderProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> _persistLunar() async {
+    try {
+      final box = await Hive.openBox<dynamic>(_boxName);
+      await box.put(_lunarEnabledKey, _lunarEnabled);
+      await box.put(_lunarTimesKey, _lunarTimes);
+      await box.put(_lunarDaysKey, _lunarDays);
+    } catch (error) {
+      debugPrint('ReminderProvider._persistLunar failed: $error');
+    }
+  }
+
+  /// Sort + de-dup + clamp reminder times (minutes 0..1439), capped at
+  /// [_maxLunarTimes]. Empty input falls back to the defaults.
+  List<int> _normalizeLunarTimes(Iterable<int> minutes) {
+    final set = <int>{};
+    for (final m in minutes) {
+      set.add(m.clamp(0, 24 * 60 - 1));
+    }
+    final list = set.toList()..sort();
+    if (list.isEmpty) {
+      return List<int>.of(_lunarDefaultTimes);
+    }
+    return list.take(_maxLunarTimes).toList();
+  }
+
+  /// Sort + de-dup + clamp lunar day numbers (1..30). Empty falls back to the
+  /// defaults (mồng-1 & ngày-rằm).
+  List<int> _normalizeLunarDays(Iterable<int> days) {
+    final set = <int>{};
+    for (final d in days) {
+      if (d >= 1 && d <= 30) {
+        set.add(d);
+      }
+    }
+    final list = set.toList()..sort();
+    return list.isEmpty ? List<int>.of(_lunarDefaultDays) : list;
+  }
+
+  /// Turn the lunar reminder on or off and (re)schedule. [l10n] supplies the
+  /// notification copy; falls back to the cached locale.
+  Future<void> setLunarEnabled(bool enabled, {AppLocalizations? l10n}) async {
+    _lunarEnabled = enabled;
+    await _persistLunar();
+    await refreshLunar(l10n ?? _lastL10n);
+    notifyListeners();
+  }
+
+  /// Replace the reminder times (normalized) and reschedule.
+  Future<void> setLunarTimes(
+    Iterable<int> minutes, {
+    AppLocalizations? l10n,
+  }) async {
+    _lunarTimes = _normalizeLunarTimes(minutes);
+    await _persistLunar();
+    await refreshLunar(l10n ?? _lastL10n);
+    notifyListeners();
+  }
+
+  /// Replace the lunar days (normalized) and reschedule.
+  Future<void> setLunarDays(
+    Iterable<int> days, {
+    AppLocalizations? l10n,
+  }) async {
+    _lunarDays = _normalizeLunarDays(days);
+    await _persistLunar();
+    await refreshLunar(l10n ?? _lastL10n);
+    notifyListeners();
+  }
+
+  /// (Re)compute the upcoming occurrences (for the chosen [_lunarDays]) and
+  /// reschedule one-shots at each of [_lunarTimes]. No-op (cancels) when disabled
+  /// or when no localized copy is available yet. Called on every change and from
+  /// [sync] each app open so the rolling window stays topped up.
+  Future<void> refreshLunar(AppLocalizations? l10n) async {
+    if (!_lunarEnabled || l10n == null || _lunarDays.isEmpty) {
+      await _service.cancelLunar();
+      return;
+    }
+    final events = LunarCalendar.nextLunarDays(
+      DateTime.now(),
+      _lunarDays.toSet(),
+      _lunarWindow,
+    );
+    final items = <({DateTime when, String title, String body})>[];
+    for (final e in events) {
+      final String title;
+      final String body;
+      if (e.lunarDay == 1) {
+        title = l10n.lunarNewMoonNotifTitle;
+        body = l10n.lunarNewMoonNotifBody;
+      } else if (e.lunarDay == 15) {
+        title = l10n.lunarFullMoonNotifTitle;
+        body = l10n.lunarFullMoonNotifBody;
+      } else {
+        title = l10n.lunarOtherDayNotifTitle(e.lunarDay);
+        body = l10n.lunarOtherDayNotifBody(e.lunarDay);
+      }
+      for (final m in _lunarTimes) {
+        items.add((
+          when: DateTime(
+            e.date.year,
+            e.date.month,
+            e.date.day,
+            m ~/ 60,
+            m % 60,
+          ),
+          title: title,
+          body: body,
+        ));
+      }
+    }
+    // Cap the total one-shots so the lunar band + the other reminder bands stay
+    // well under the iOS 64-pending limit. Items are built soonest-first, so the
+    // nearest occurrences are kept; the window is topped up each app open.
+    const maxItems = 24;
+    final capped = items.length > maxItems ? items.sublist(0, maxItems) : items;
+    await _service.scheduleLunarReminders(capped);
+  }
+
   Future<void> _persistMilestone(MilestoneType type) async {
     try {
       final box = await Hive.openBox<dynamic>(_boxName);
@@ -257,8 +442,7 @@ class ReminderProvider extends ChangeNotifier {
   Future<void> _persistMilestoneTime(MilestoneType type) async {
     try {
       final box = await Hive.openBox<dynamic>(_boxName);
-      final hourKey =
-          '$_milestoneTimePrefix${type.name}$_milestoneHourSuffix';
+      final hourKey = '$_milestoneTimePrefix${type.name}$_milestoneHourSuffix';
       final minuteKey =
           '$_milestoneTimePrefix${type.name}$_milestoneMinuteSuffix';
       final time = _milestoneTimes[type];
@@ -381,6 +565,8 @@ class ReminderProvider extends ChangeNotifier {
       final l10n = _lastL10n;
       if (l10n != null) {
         _scheduleDailyQuestion(l10n);
+        // A remote enable/disable also flips the end-of-day net.
+        _scheduleEndOfDay(l10n);
       }
       notifyListeners();
     });
@@ -407,6 +593,9 @@ class ReminderProvider extends ChangeNotifier {
     _dqEnabled = value;
     await _persistDailyQuestion();
     await _scheduleDailyQuestion(l10n);
+    // Re-arm / clear the end-of-day safety net to match (uses the last-known
+    // habit state; HomeScreen refreshes it with live state right after).
+    await _scheduleEndOfDay(l10n);
     _publishReminderPrefs(enabled: value);
     notifyListeners();
     return true;
@@ -433,10 +622,11 @@ class ReminderProvider extends ChangeNotifier {
     if (!canAddDailyQuestionTime) {
       return;
     }
-    await setDailyQuestionTimes(
-      dailyQuestionReminderTimes..add(time),
-      l10n: l10n,
-    );
+    // `dailyQuestionReminderTimes` is fixed-length — copy before appending.
+    await setDailyQuestionTimes(<TimeOfDay>[
+      ...dailyQuestionReminderTimes,
+      time,
+    ], l10n: l10n);
   }
 
   /// Remove the fire time at [index] in the sorted list.
@@ -444,7 +634,8 @@ class ReminderProvider extends ChangeNotifier {
     int index, {
     required AppLocalizations l10n,
   }) async {
-    final next = dailyQuestionReminderTimes;
+    // `dailyQuestionReminderTimes` is fixed-length — copy before removing.
+    final next = List<TimeOfDay>.of(dailyQuestionReminderTimes);
     if (index < 0 || index >= next.length) {
       return;
     }
@@ -476,6 +667,84 @@ class ReminderProvider extends ChangeNotifier {
       title: l10n.dailyQuestionReminderNotifTitle,
       body: l10n.dailyQuestionReminderNotifBody,
     );
+  }
+
+  /// Re-arm (or clear) today's end-of-day daily-question nudges from the latest
+  /// habit state. Wired from HomeScreen on every daily-question / streak update
+  /// (and once on launch). Cheap + idempotent — debounced on a signature so the
+  /// frequent provider notifications don't reschedule needlessly. LOCAL only.
+  ///
+  /// While the couple hasn't both answered today ([hasRevealed] == false) and
+  /// the reminder is on, fires 3 one-shots for TODAY: 21:00 nudges, 22:00/23:00
+  /// warn about the streak. [iAnswered] picks "answer now" vs "nudge your
+  /// partner" copy; [currentStreak] picks "keep your N-day streak" vs "start a
+  /// streak". Cancels everything once both have answered or the reminder is off.
+  Future<void> refreshDailyQuestionSafetyNet({
+    required bool hasRevealed,
+    required bool iAnswered,
+    required int currentStreak,
+    required AppLocalizations l10n,
+  }) async {
+    _eodHasRevealed = hasRevealed;
+    _eodIAnswered = iAnswered;
+    _eodStreak = currentStreak;
+    _lastL10n = l10n;
+    await _scheduleEndOfDay(l10n);
+  }
+
+  /// Compute and apply the end-of-day schedule from the cached habit state.
+  /// Shared by [refreshDailyQuestionSafetyNet] and the enable/disable paths (so
+  /// toggling re-arms with the right copy). Debounced via [_eodSignature].
+  Future<void> _scheduleEndOfDay(AppLocalizations l10n) async {
+    final now = DateTime.now();
+    final dayKey = '${now.year}-${now.month}-${now.day}';
+    final signature = <Object>[
+      _dqEnabled,
+      _eodHasRevealed,
+      _eodIAnswered,
+      _eodStreak,
+      dayKey,
+    ].join('|');
+    if (signature == _eodSignature) {
+      return;
+    }
+    _eodSignature = signature;
+
+    // Off, or today already complete → nothing to warn about.
+    if (!_dqEnabled || _eodHasRevealed) {
+      await _service.cancelDailyQuestionEndOfDay();
+      return;
+    }
+
+    final slots = <DailyQuestionEodSlot>[];
+    for (final hour in _eodHours) {
+      // 21:00 = gentle nudge; 22:00 & 23:00 = streak warnings.
+      final isWarning = hour >= 22;
+      final String title;
+      final String body;
+      if (!isWarning) {
+        title = l10n.dqEndOfDayNudgeTitle;
+        body = _eodIAnswered
+            ? l10n.dqEndOfDayNudgePartnerBody
+            : l10n.dqEndOfDayNudgeBody;
+      } else {
+        title = l10n.dqStreakWarningTitle;
+        if (_eodStreak >= 1) {
+          body = _eodIAnswered
+              ? l10n.dqStreakWarningPartnerBody(_eodStreak)
+              : l10n.dqStreakWarningBody(_eodStreak);
+        } else {
+          // No streak yet — frame it as starting one, not losing one.
+          body = _eodIAnswered
+              ? l10n.dqStreakWarningStartPartnerBody
+              : l10n.dqStreakWarningStartBody;
+        }
+      }
+      slots.add(
+        DailyQuestionEodSlot(hour: hour, minute: 0, title: title, body: body),
+      );
+    }
+    await _service.scheduleDailyQuestionEndOfDay(slots: slots);
   }
 
   /// Clamp each minute-of-day to 0–1439, de-dupe, sort, cap at the max.
@@ -523,6 +792,10 @@ class ReminderProvider extends ChangeNotifier {
       lastPhotoDate: lastPhotoDate,
       l10n: l10n,
     );
+
+    // Lunar reminder: top up the rolling day-1/day-15 window each app open
+    // (self-gates on enabled).
+    await refreshLunar(l10n);
   }
 
   /// Cancel the daily-question nudge — used when the couple goes inactive
@@ -532,7 +805,9 @@ class ReminderProvider extends ChangeNotifier {
     _dqPrefsSub?.cancel();
     _dqPrefsSub = null;
     _dqCoupleId = null;
+    _eodSignature = null;
     await _service.cancelDailyQuestion();
+    await _service.cancelDailyQuestionEndOfDay();
   }
 
   @override
@@ -552,12 +827,12 @@ class ReminderProvider extends ChangeNotifier {
     // reminder time (its custom time if set, otherwise the default time, Dv8).
     final effective = effectiveTimeOf(type);
     DateTime fireAt(DateTime date) => DateTime(
-          date.year,
-          date.month,
-          date.day,
-          effective.hour,
-          effective.minute,
-        );
+      date.year,
+      date.month,
+      date.day,
+      effective.hour,
+      effective.minute,
+    );
 
     if (type == MilestoneType.inactivity) {
       // No concrete next date — the UI shows a static description instead.
@@ -756,8 +1031,9 @@ class ReminderProvider extends ChangeNotifier {
   }
 
   int _daysInMonth(int year, int month) {
-    final firstOfNext =
-        month == 12 ? DateTime(year + 1, 1, 1) : DateTime(year, month + 1, 1);
+    final firstOfNext = month == 12
+        ? DateTime(year + 1, 1, 1)
+        : DateTime(year, month + 1, 1);
     return firstOfNext.subtract(const Duration(days: 1)).day;
   }
 

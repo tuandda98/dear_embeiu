@@ -7,6 +7,7 @@ import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/daily_question_provider.dart';
+import '../providers/mood_provider.dart';
 import '../providers/notification_inbox_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reaction_provider.dart';
@@ -40,6 +41,7 @@ class SessionResolver {
     final photoProvider = context.read<PhotoProvider>();
     final chatProvider = context.read<ChatProvider>();
     final dailyQuestionProvider = context.read<DailyQuestionProvider>();
+    final moodProvider = context.read<MoodProvider>();
     final reactionProvider = context.read<ReactionProvider>();
     final streakProvider = context.read<StreakProvider>();
     final notificationInboxProvider = context.read<NotificationInboxProvider>();
@@ -52,6 +54,7 @@ class SessionResolver {
         photoProvider: photoProvider,
         chatProvider: chatProvider,
         dailyQuestionProvider: dailyQuestionProvider,
+        moodProvider: moodProvider,
         reactionProvider: reactionProvider,
         streakProvider: streakProvider,
         notificationInboxProvider: notificationInboxProvider,
@@ -93,6 +96,7 @@ class SessionResolver {
     required PhotoProvider photoProvider,
     required ChatProvider chatProvider,
     required DailyQuestionProvider dailyQuestionProvider,
+    required MoodProvider moodProvider,
     required ReactionProvider reactionProvider,
     required StreakProvider streakProvider,
     required NotificationInboxProvider notificationInboxProvider,
@@ -116,6 +120,7 @@ class SessionResolver {
       await photoProvider.clearForSignOut();
       chatProvider.clear();
       dailyQuestionProvider.clear();
+      moodProvider.clear();
       reactionProvider.clear();
       streakProvider.clear();
       notificationInboxProvider.clear();
@@ -134,6 +139,7 @@ class SessionResolver {
       await photoProvider.clearForSignOut();
       chatProvider.clear();
       dailyQuestionProvider.clear();
+      moodProvider.clear();
       reactionProvider.clear();
       streakProvider.clear();
       notificationInboxProvider.clear();
@@ -163,6 +169,8 @@ class SessionResolver {
         currentUser.id,
       );
       reactionProvider.watchForCouple(currentUser.coupleId!, currentUser.id);
+      // Mood (feature mood) — daily "how is your person today" check-in.
+      moodProvider.watchForCouple(currentUser.coupleId!, currentUser.id);
       // Streak (feature streak) — only meaningful once the couple is active
       // (both members present); hidden while still waiting for a partner.
       streakProvider.watchForCouple(
@@ -183,6 +191,7 @@ class SessionResolver {
       await photoProvider.clearForSignOut();
       chatProvider.clear();
       dailyQuestionProvider.clear();
+      moodProvider.clear();
       reactionProvider.clear();
       streakProvider.clear();
       notificationInboxProvider.clear();

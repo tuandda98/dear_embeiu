@@ -38,6 +38,8 @@ import '../widgets/memory_cinema_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/streak_chip.dart';
+import '../providers/mood_provider.dart';
+import '../widgets/mood_card.dart';
 import '../widgets/today_ritual_card.dart';
 import '../widgets/streak_sheet.dart';
 import 'chat_screen.dart';
@@ -52,7 +54,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   static const double _floatingNavHeight = 84;
   static const double _floatingNavMargin = 16;
   static const double _floatingNavSpacing = 18;
@@ -112,6 +114,37 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedIndex = index;
     });
     _logTabScreenView(index);
+    // Presence heartbeat lives here (not in chat_screen) because chat sits in an
+    // IndexedStack and is never disposed on tab switch — so "am I viewing chat?"
+    // is the selected tab, not whether the widget is mounted.
+    if (index == _chatTabIndex) {
+      _startChatPresence();
+    } else {
+      _stopChatPresence();
+    }
+  }
+
+  /// Begins the chat presence heartbeat: marks me present now, then refreshes
+  /// every 20s while the chat tab stays active (window in `notifyChatMessage` is
+  /// 45s, so presence survives a dropped ping). Leaving the tab or backgrounding
+  /// calls [_stopChatPresence], which CLEARS presence so notifications resume
+  /// immediately — the freshness window is only a crash backstop.
+  void _startChatPresence() {
+    _chatPresenceTimer?.cancel();
+    _chatProvider?.pingPresence();
+    _chatPresenceTimer = Timer.periodic(const Duration(seconds: 20), (_) {
+      if (mounted && _selectedIndex == _chatTabIndex) {
+        _chatProvider?.pingPresence();
+      }
+    });
+  }
+
+  void _stopChatPresence() {
+    _chatPresenceTimer?.cancel();
+    _chatPresenceTimer = null;
+    // Clear presence the instant we leave so the partner's next message
+    // notifies us right away (no lingering suppression).
+    _chatProvider?.leavePresence();
   }
 
   /// Counter-card background selection (swipe ←/→ on the hero card cycles
@@ -124,6 +157,11 @@ class _HomeScreenState extends State<HomeScreen> {
   /// One-time "swipe to change photo" coach-mark over the counter card.
   bool _showBgHint = false;
   Timer? _bgHintTimer;
+
+  /// Presence heartbeat — runs only while the chat tab is the active screen so a
+  /// partner's message won't notify someone who's already reading it
+  /// (presence-suppress 2026-06-19). See _startChatPresence.
+  Timer? _chatPresenceTimer;
 
   /// Direction of the last background swipe (+1 next / -1 previous) — drives
   /// the slide-in side of the photo transition.
@@ -349,6 +387,16 @@ class _HomeScreenState extends State<HomeScreen> {
   StreakProvider? _streakProvider;
   bool _celebratingMilestone = false;
 
+  // Daily-question end-of-day safety net (2026-06-19): on every daily-question /
+  // streak update we re-arm the 21/22/23h local nudges from live habit state, so
+  // they fire only while today's question isn't both-answered yet.
+  DailyQuestionProvider? _dqProvider;
+
+  /// Captured in initState so the chat presence heartbeat can be cleared safely
+  /// from dispose without touching a deactivated BuildContext (presence-suppress
+  /// 2026-06-19).
+  ChatProvider? _chatProvider;
+
   /// Standard 16px page gutter, applied PER BLOCK (the scroll view itself has
   /// no horizontal padding).
   Widget _gutter(Widget child) {
@@ -391,6 +439,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Chat presence (presence-suppress 2026-06-19): observe app lifecycle so we
+    // can clear presence when backgrounded while on the chat tab.
+    WidgetsBinding.instance.addObserver(this);
     // Cold-start deep-link: a terminated→tap set the pending tab inside
     // PushNotificationService.initialize() (before this mounted), so apply it
     // now as the initial tab. Then listen for warm taps while mounted.
@@ -408,6 +459,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // Watch for a freshly-reached streak milestone to auto-celebrate.
     _streakProvider = context.read<StreakProvider>();
     _streakProvider!.addListener(_onStreakChanged);
+
+    // Keep the end-of-day daily-question safety net (21/22/23h) in sync with
+    // live habit state. Both providers feed it; re-arm on each update + once now.
+    _dqProvider = context.read<DailyQuestionProvider>();
+    _chatProvider = context.read<ChatProvider>();
+    _dqProvider!.addListener(_refreshDqSafetyNet);
+    _streakProvider!.addListener(_refreshDqSafetyNet);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshDqSafetyNet());
   }
 
   @override
@@ -419,11 +478,31 @@ class _HomeScreenState extends State<HomeScreen> {
       _onNotificationFocusRequest,
     );
     _streakProvider?.removeListener(_onStreakChanged);
+    _streakProvider?.removeListener(_refreshDqSafetyNet);
+    _dqProvider?.removeListener(_refreshDqSafetyNet);
     _bgHintTimer?.cancel();
+    _stopChatPresence();
+    WidgetsBinding.instance.removeObserver(this);
     _chatBgSub?.cancel();
     _bgSyncSub?.cancel();
     _bgIdsSyncSub?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Chat presence (presence-suppress 2026-06-19): only meaningful while the
+    // chat tab is the active screen. Backgrounding clears presence so the
+    // partner's messages notify me again; resuming re-arms the heartbeat.
+    if (_selectedIndex != _chatTabIndex) {
+      return;
+    }
+    if (state == AppLifecycleState.resumed) {
+      _startChatPresence();
+    } else {
+      _stopChatPresence();
+    }
   }
 
   /// Reacts to a streak update: when a milestone was just reached for the first
@@ -451,6 +530,27 @@ class _HomeScreenState extends State<HomeScreen> {
         _celebratingMilestone = false;
       }
     });
+  }
+
+  /// Re-arm the end-of-day daily-question nudges (21/22/23h) from the current
+  /// habit state. Fired on every daily-question / streak update (and once on
+  /// launch); the ReminderProvider debounces redundant reschedules and only
+  /// schedules while today's question isn't both-answered yet.
+  void _refreshDqSafetyNet() {
+    if (!mounted) {
+      return;
+    }
+    final dq = _dqProvider;
+    final streak = _streakProvider;
+    if (dq == null || streak == null) {
+      return;
+    }
+    context.read<ReminderProvider>().refreshDailyQuestionSafetyNet(
+          hasRevealed: dq.hasRevealed,
+          iAnswered: dq.hasAnswered,
+          currentStreak: streak.currentStreak,
+          l10n: context.l10n,
+        );
   }
 
   /// Reacts to a warm tap (app already running) requesting a tab switch.
@@ -1175,6 +1275,8 @@ class _HomeScreenState extends State<HomeScreen> {
             myUid,
           );
           context.read<ReactionProvider>().watchForCouple(couple.id, myUid);
+          // Mood (feature mood) — re-arm so the card is live + resets at midnight.
+          context.read<MoodProvider>().watchForCouple(couple.id, myUid);
           // Chat stream (feature chat) — must run from Home so the unread dot
           // works on every tab. watchForCouple no-ops when unchanged.
           context.read<ChatProvider>().watchForCouple(couple.id, myUid);
@@ -1348,6 +1450,12 @@ class _HomeScreenState extends State<HomeScreen> {
               // (tap-to-compose, blur teaser, collapsing done-state, envelope).
               child: _gutter(_entrance(3, _buildTodayRitualCard(couple))),
             ),
+            // Daily mood check-in (feature mood) — only once the partner is in
+            // (a one-sided mood card has no "how is your person" payoff).
+            if (!couple.isWaitingForPartner) ...[
+              const SizedBox(height: 16),
+              _gutter(_entrance(4, MoodCard(couple: couple))),
+            ],
             // ── Nhóm 2: Kỷ niệm — create + browse.
             const SizedBox(height: 28),
             _gutter(

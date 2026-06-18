@@ -2,6 +2,23 @@
 
 > Feature mới 2026-06-14 (user chốt autonomous, đi ngủ — "PO tự quyết tự chốt tự làm"). Mode 1: Designer → Dev → Tester.
 
+## v3 — ĐỔI METAPHOR: "Bầu trời sao kỷ niệm" (2026-06-18, đang prototype)
+
+**Vấn đề user nêu:** cây = diện tích hữu hạn → yêu lâu / nhiều sự kiện thì "nở hoa nhiều thật nhiều", rối, mất ý nghĩa phần thưởng. Hỏi "ý tưởng gì mà nó **vô cực**?". (Lưu ý: data hiện chỉ ~18 mốc curated, nên 'vô cực' là **future-proof** cho việc sau này mỗi ảnh/tuần/kỷ niệm đều có thể thành 1 event.)
+
+**Nguyên tắc vô cực (thiên nhiên):** không cộng dồn mãi mà (1) già đi, (2) theo mùa, (3) **gộp nhỏ→lớn / zoom (fractal)**, (4) timeline cuộn. → đưa 4 hướng cho user (cây cổ thụ / khu rừng theo năm / **bầu trời sao** / vá nhanh).
+
+**User CHỌN: 🌌 Bầu trời sao kỷ niệm.** Lý do mạnh: sao nhỏ → đẹp tới hàng trăm (khác hoa to); tận dụng nền đêm sẵn có; **pan/zoom = vô cực thật**.
+
+**Mô hình:** 1 mốc = 1 ngôi sao (màu theo loại: days=rose / streak=đỏ sâu / photos=lavender — tái dùng `nucleusColor`). Sao nối nhau bằng đường mờ (cũ→mới) = chòm sao lớn dần. Sao mới nhất sáng + lấp lánh hơn (thay "nở hoa"). Tap sao → MomentSheet (tái dùng). Vào app: sao mới "thắp sáng".
+
+**Lộ trình (phased):**
+- **MVP (XONG 2026-06-18):** thay phần vẽ hero cây→trường sao (canvas cố định, scatter deterministic, đường nối, twinkle, tap→sheet). Giữ header/cards/copy + code cây cũ (rollback qua cờ `_useConstellation`). → user duyệt hướng nhìn.
+- **P2:** pan/zoom (`InteractiveViewer`) = vô cực thật; vào app land ở chòm mới nhất.
+- **P3:** gom sao theo NĂM thành chòm có tên ("Năm thứ 2"…) + nhãn.
+- **P4:** copy/naming đổi sang ngôn ngữ sao (badge "Cây tình yêu"→"Bầu trời chúng mình", stage/caption/banner), l10n vi+en + gen-l10n.
+- **P5:** share card phiên bản bầu trời sao (hiện vẫn là cây).
+
 ## 1. Ý tưởng (user)
 Một màn hình mới có **1 cái cây** biểu tượng cho tình cảm 2 người. Khi có **sự kiện** (streak 7 ngày, 100 tin, kỷ niệm 100 ngày…) cây **nở hoa**, **nhuỵ hoa là 1 icon tròn**. Cây phát triển + nở hoa cần **xúc tác của CẢ 2 người**. Khi có sự kiện, user vào app **thấy cây đang nở hoa luôn**.
 

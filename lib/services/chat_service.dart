@@ -106,6 +106,33 @@ class ChatService {
     }
   }
 
+  /// Sets/clears MY chat presence (presence-suppress 2026-06-19) on the receipt
+  /// doc: while [active] the `chatActiveAt` timestamp is refreshed (heartbeat),
+  /// and on leave it is DELETED so `notifyChatMessage` resumes notifying me
+  /// immediately (a stale timestamp would keep suppressing for the freshness
+  /// window). Separate from `readAt` on purpose — read-time must stay accurate
+  /// for the đã-đọc label. Best-effort.
+  Future<void> setChatActive(
+    String coupleId,
+    String uid, {
+    required bool active,
+  }) async {
+    if (coupleId.trim().isEmpty || uid.trim().isEmpty || !isUsingFirebase) {
+      return;
+    }
+    try {
+      await _receiptsCollection(coupleId).doc(uid).set(
+        {
+          'chatActiveAt':
+              active ? FieldValue.serverTimestamp() : FieldValue.delete(),
+        },
+        SetOptions(merge: true),
+      );
+    } catch (_) {
+      // Fail-soft — a dropped presence write only risks one stray notification.
+    }
+  }
+
   /// Streams the newest [limit] messages, newest first (the realtime "window",
   /// pagination D5). `includeMetadataChanges` is ON so optimistic local echoes
   /// emit twice — once with `hasPendingWrites` (pending bubble) and once when

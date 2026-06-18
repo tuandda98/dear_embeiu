@@ -100,6 +100,10 @@ class ChatProvider extends ChangeNotifier {
     return ChatMessageStatus.sent;
   }
 
+  /// When the partner last read up to (their receipt `readAt`), or null. Drives
+  /// the "Đã xem · HH:mm" timestamp under the latest outgoing bubble.
+  DateTime? get partnerReadAt => _partnerReadAt;
+
   /// Messages newest-first (the chat screen lays them out via reverse:true).
   List<ChatMessage> get messages {
     if (!_service.isUsingFirebase) {
@@ -188,8 +192,9 @@ class ChatProvider extends ChangeNotifier {
     // Follow the partner's receipt so our sent bubbles can flip to đã nhận /
     // đã đọc as they catch up.
     _receiptSub?.cancel();
-    _receiptSub =
-        _service.watchPartnerReceipt(coupleId, myUid).listen((receipt) {
+    _receiptSub = _service.watchPartnerReceipt(coupleId, myUid).listen((
+      receipt,
+    ) {
       if (coupleId != _coupleId) {
         return;
       }
@@ -199,41 +204,45 @@ class ChatProvider extends ChangeNotifier {
     });
 
     _subscription?.cancel();
-    _subscription = _service.watchMessages(coupleId, limit: _pageSize).listen(
-      (window) {
-        final entries = window.messages;
-        if (!_service.isUsingFirebase) {
-          // Local conversation arrives whole — nothing more to page in.
-          _localMessages = entries;
-          _hasMore = false;
-        } else {
-          for (final message in entries) {
-            final id = message.id;
-            if (id != null) {
-              _arrival.putIfAbsent(id, () => _arrivalSeq++);
-              _byId[id] = message;
+    _subscription = _service
+        .watchMessages(coupleId, limit: _pageSize)
+        .listen(
+          (window) {
+            final entries = window.messages;
+            if (!_service.isUsingFirebase) {
+              // Local conversation arrives whole — nothing more to page in.
+              _localMessages = entries;
+              _hasMore = false;
+            } else {
+              for (final message in entries) {
+                final id = message.id;
+                if (id != null) {
+                  _arrival.putIfAbsent(id, () => _arrivalSeq++);
+                  _byId[id] = message;
+                }
+              }
+              // The first SERVER emission initializes the cursor + hasMore; later
+              // emissions only carry NEWER entries (the window), so the cursor
+              // stays put. Cache emissions still render above but never anchor
+              // pagination — a thin cache can be a PARTIAL window (<50 docs even
+              // though the server holds more), which would lock hasMore=false for
+              // the whole session / leave a gap below the cache block (bug #2).
+              if (_cursor == null &&
+                  entries.isNotEmpty &&
+                  !window.isFromCache) {
+                _cursor = entries.last.createdAt;
+                _hasMore = entries.length >= _pageSize;
+              }
+              _maybeMarkDelivered();
             }
-          }
-          // The first SERVER emission initializes the cursor + hasMore; later
-          // emissions only carry NEWER entries (the window), so the cursor
-          // stays put. Cache emissions still render above but never anchor
-          // pagination — a thin cache can be a PARTIAL window (<50 docs even
-          // though the server holds more), which would lock hasMore=false for
-          // the whole session / leave a gap below the cache block (bug #2).
-          if (_cursor == null && entries.isNotEmpty && !window.isFromCache) {
-            _cursor = entries.last.createdAt;
-            _hasMore = entries.length >= _pageSize;
-          }
-          _maybeMarkDelivered();
-        }
-        _isLoading = false;
-        notifyListeners();
-      },
-      onError: (_) {
-        _isLoading = false;
-        notifyListeners();
-      },
-    );
+            _isLoading = false;
+            notifyListeners();
+          },
+          onError: (_) {
+            _isLoading = false;
+            notifyListeners();
+          },
+        );
   }
 
   /// Couples whose love-note backfill was already requested this app session —
@@ -357,7 +366,8 @@ class ChatProvider extends ChangeNotifier {
     if (coupleId == null) {
       return;
     }
-    final latest = _latestPartnerAt?.millisecondsSinceEpoch ??
+    final latest =
+        _latestPartnerAt?.millisecondsSinceEpoch ??
         DateTime.now().millisecondsSinceEpoch;
     if (_seenLoaded && _seenMillis != null && latest <= _seenMillis!) {
       return; // Already seen — avoid a pointless rebuild + Hive write.
@@ -400,6 +410,32 @@ class ChatProvider extends ChangeNotifier {
     }
     _deliveredUpToMillis = latest;
     unawaited(_service.markReceipt(coupleId, uid, delivered: true));
+  }
+
+  /// Marks me present in the chat (heartbeat) so a partner message doesn't push
+  /// a notification at me — `notifyChatMessage` skips recipients whose
+  /// `chatActiveAt` is fresh. Call repeatedly while the chat is on screen.
+  /// (presence-suppress 2026-06-19)
+  void pingPresence() {
+    final coupleId = _coupleId;
+    final uid = _myUid;
+    if (coupleId == null || uid == null || !_service.isUsingFirebase) {
+      return;
+    }
+    unawaited(_service.setChatActive(coupleId, uid, active: true));
+  }
+
+  /// Clears my chat presence the instant I leave the conversation (tab switch /
+  /// background) so notifications resume immediately — without this the stale
+  /// timestamp would keep suppressing for the whole freshness window. (presence-
+  /// suppress 2026-06-19)
+  void leavePresence() {
+    final coupleId = _coupleId;
+    final uid = _myUid;
+    if (coupleId == null || uid == null || !_service.isUsingFirebase) {
+      return;
+    }
+    unawaited(_service.setChatActive(coupleId, uid, active: false));
   }
 
   Future<void> _loadSeenMarker(String coupleId) async {

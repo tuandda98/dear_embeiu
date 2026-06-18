@@ -285,6 +285,68 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatStatusRead => 'Seen';
 
   @override
+  String get lunarSectionTitle => 'Lunar calendar';
+
+  @override
+  String lunarDateLabel(int month, int day) {
+    return 'Lunar $month/$day';
+  }
+
+  @override
+  String get lunarTodayLabel => 'Today';
+
+  @override
+  String get lunarNextNewMoon => 'Next 1st';
+
+  @override
+  String get lunarNextFullMoon => 'Next full moon';
+
+  @override
+  String get lunarReminderToggle => 'Lunar-day reminder';
+
+  @override
+  String get lunarReminderToggleSub => 'On your chosen days & times';
+
+  @override
+  String get lunarNewMoonNotifTitle => 'First day of the lunar month 🌙';
+
+  @override
+  String get lunarNewMoonNotifBody =>
+      'Today is the first day of the lunar month.';
+
+  @override
+  String get lunarFullMoonNotifTitle => 'Full moon day 🌕';
+
+  @override
+  String get lunarFullMoonNotifBody =>
+      'Today is the full moon (15th lunar day).';
+
+  @override
+  String lunarOtherDayNotifTitle(int day) {
+    return 'Lunar day $day 🌙';
+  }
+
+  @override
+  String lunarOtherDayNotifBody(int day) {
+    return 'Today is the ${day}th day of the lunar month.';
+  }
+
+  @override
+  String get lunarCalendarBadge => 'LUNAR CALENDAR';
+
+  @override
+  String get lunarOpenCalendar => 'Open lunar calendar';
+
+  @override
+  String get lunarRemindDaysLabel => 'Reminder days (lunar)';
+
+  @override
+  String get lunarRemindTimesLabel => 'Reminder times';
+
+  @override
+  String get lunarAddTime => 'Add time';
+
+  @override
   String get chatUnreadDotSemantics => 'New message waiting';
 
   @override
@@ -744,6 +806,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reactionPartnerFallback => 'Your partner';
+
+  @override
+  String get moodCardTitle => 'Today\'s mood';
+
+  @override
+  String get moodShareCta => 'Share your mood';
+
+  @override
+  String get moodUpdateCta => 'Update mood';
+
+  @override
+  String get moodNotSharedYou => 'Tap to share';
+
+  @override
+  String moodPartnerEmpty(String name) {
+    return '$name hasn\'t shared today';
+  }
+
+  @override
+  String get moodSheetTitle => 'How are you today?';
+
+  @override
+  String get moodNoteHint => 'Add a few words (optional)';
+
+  @override
+  String get moodSaveCta => 'Save mood';
+
+  @override
+  String get moodHappy => 'Happy';
+
+  @override
+  String get moodLoved => 'Loved';
+
+  @override
+  String get moodMissing => 'Missing you';
+
+  @override
+  String get moodCalm => 'Calm';
+
+  @override
+  String get moodMeh => 'Meh';
+
+  @override
+  String get moodTired => 'Tired';
+
+  @override
+  String get moodSad => 'Sad';
+
+  @override
+  String get moodStressed => 'Stressed';
 
   @override
   String get dailyQuestionLabel => 'Today\'s question';
@@ -1471,6 +1583,42 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dailyQuestionReminderNotifBody =>
       'Answer it to unlock your partner\'s reply.';
+
+  @override
+  String get dailyQuestionReminderEndOfDayHint =>
+      'We\'ll also nudge you at 9, 10 and 11 PM if the day\'s almost over and you both haven\'t answered — the 10 and 11 PM ones warn you about your streak.';
+
+  @override
+  String get dqEndOfDayNudgeTitle => 'The day is winding down 🌙';
+
+  @override
+  String get dqEndOfDayNudgeBody =>
+      'Today\'s question is still waiting — answer it before the day ends.';
+
+  @override
+  String get dqEndOfDayNudgePartnerBody =>
+      'Your partner hasn\'t answered today\'s question yet — give them a nudge.';
+
+  @override
+  String get dqStreakWarningTitle => 'Your streak is about to break! 🔥';
+
+  @override
+  String dqStreakWarningBody(int days) {
+    return 'The day\'s almost over. Answer today\'s question to keep your $days-day streak!';
+  }
+
+  @override
+  String dqStreakWarningPartnerBody(int days) {
+    return 'Your partner hasn\'t answered yet. A little nudge keeps your $days-day streak alive!';
+  }
+
+  @override
+  String get dqStreakWarningStartBody =>
+      'The day\'s almost over! Answer today\'s question to start a new streak.';
+
+  @override
+  String get dqStreakWarningStartPartnerBody =>
+      'Your partner hasn\'t answered yet. Nudge them so you can start a streak together.';
 
   @override
   String get reminderDailyTitle => 'Another day of us 💕';

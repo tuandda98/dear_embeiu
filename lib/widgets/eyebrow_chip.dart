@@ -16,12 +16,24 @@ import '../theme/app_theme.dart';
 /// One widget for every screen header so the chips can never drift apart
 /// again. Used above the page title (12–14 gap), never inside content cards.
 class EyebrowChip extends StatelessWidget {
-  const EyebrowChip({super.key, this.label, this.icon, this.child})
-      : assert(label != null || child != null,
-            'EyebrowChip needs a label or a custom child');
+  const EyebrowChip({
+    super.key,
+    this.label,
+    this.icon,
+    this.child,
+    this.minHeight,
+  }) : assert(
+         label != null || child != null,
+         'EyebrowChip needs a label or a custom child',
+       );
 
   final String? label;
   final IconData? icon;
+
+  /// Optional minimum pill height. When set, the pill grows to this height with
+  /// its content centred (vertical padding collapses) — used by the chat header
+  /// so the name chip stands exactly as tall as the 44px back disc beside it.
+  final double? minHeight;
 
   /// Custom chip content replacing the icon+label row (same pill shell) —
   /// e.g. the chat tab's dynamic couple names with the pulsing heart. Style
@@ -30,8 +42,24 @@ class EyebrowChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final content =
+        child ??
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 13, color: AppColors.accentLoveDeep),
+              const SizedBox(width: 7),
+            ],
+            Text(label!, style: AppTheme.pageEyebrowStyle(alpha: 0.70)),
+          ],
+        );
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      padding: EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: minHeight != null ? 0 : 7,
+      ),
       decoration: BoxDecoration(
         color: AppColors.white.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(999),
@@ -44,20 +72,16 @@ class EyebrowChip extends StatelessWidget {
           ),
         ],
       ),
-      child: child ??
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 13, color: AppColors.accentLoveDeep),
-                const SizedBox(width: 7),
-              ],
-              Text(
-                label!,
-                style: AppTheme.pageEyebrowStyle(alpha: 0.70),
-              ),
-            ],
-          ),
+      // minHeight: a fixed-height pill whose WIDTH still wraps the content —
+      // `Center(widthFactor: 1)` fills the height but shrinks width to the child
+      // (no horizontal stretch). NO `alignment` on the Container: that would make
+      // it expand to the full available width (user: "wrap content + ở giữa").
+      child: minHeight != null
+          ? SizedBox(
+              height: minHeight,
+              child: Center(widthFactor: 1, child: content),
+            )
+          : content,
     );
   }
 }

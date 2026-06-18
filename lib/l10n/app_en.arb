@@ -111,6 +111,27 @@
   "chatStatusSent": "Sent",
   "chatStatusDelivered": "Delivered",
   "chatStatusRead": "Seen",
+  "lunarSectionTitle": "Lunar calendar",
+  "lunarDateLabel": "Lunar {month}/{day}",
+  "@lunarDateLabel": { "placeholders": { "month": { "type": "int" }, "day": { "type": "int" } } },
+  "lunarTodayLabel": "Today",
+  "lunarNextNewMoon": "Next 1st",
+  "lunarNextFullMoon": "Next full moon",
+  "lunarReminderToggle": "Lunar-day reminder",
+  "lunarReminderToggleSub": "On your chosen days & times",
+  "lunarNewMoonNotifTitle": "First day of the lunar month 🌙",
+  "lunarNewMoonNotifBody": "Today is the first day of the lunar month.",
+  "lunarFullMoonNotifTitle": "Full moon day 🌕",
+  "lunarFullMoonNotifBody": "Today is the full moon (15th lunar day).",
+  "lunarOtherDayNotifTitle": "Lunar day {day} 🌙",
+  "@lunarOtherDayNotifTitle": { "placeholders": { "day": { "type": "int" } } },
+  "lunarOtherDayNotifBody": "Today is the {day}th day of the lunar month.",
+  "@lunarOtherDayNotifBody": { "placeholders": { "day": { "type": "int" } } },
+  "lunarCalendarBadge": "LUNAR CALENDAR",
+  "lunarOpenCalendar": "Open lunar calendar",
+  "lunarRemindDaysLabel": "Reminder days (lunar)",
+  "lunarRemindTimesLabel": "Reminder times",
+  "lunarAddTime": "Add time",
   "chatUnreadDotSemantics": "New message waiting",
   "chatWaitingPartnerTitle": "One seat is still empty",
   "chatWaitingPartnerBody": "Invite your partner to pair up and start your private chat.",
@@ -443,6 +464,28 @@
   "@reactionPartnerFallback": {
     "description": "Generic word for the partner when their name is not set yet"
   },
+  "moodCardTitle": "Today's mood",
+  "moodShareCta": "Share your mood",
+  "moodUpdateCta": "Update mood",
+  "moodNotSharedYou": "Tap to share",
+  "moodPartnerEmpty": "{name} hasn't shared today",
+  "@moodPartnerEmpty": {
+    "description": "Partner side of the mood card when they haven't shared today",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "moodSheetTitle": "How are you today?",
+  "moodNoteHint": "Add a few words (optional)",
+  "moodSaveCta": "Save mood",
+  "moodHappy": "Happy",
+  "moodLoved": "Loved",
+  "moodMissing": "Missing you",
+  "moodCalm": "Calm",
+  "moodMeh": "Meh",
+  "moodTired": "Tired",
+  "moodSad": "Sad",
+  "moodStressed": "Stressed",
   "dailyQuestionLabel": "Today's question",
   "dailyQuestionHint": "Write your answer…",
   "dailyQuestionCharCount": "{count}/280",
@@ -884,6 +927,29 @@
   },
   "dailyQuestionReminderNotifTitle": "Today's question is waiting 💌",
   "dailyQuestionReminderNotifBody": "Answer it to unlock your partner's reply.",
+  "dailyQuestionReminderEndOfDayHint": "We'll also nudge you at 9, 10 and 11 PM if the day's almost over and you both haven't answered — the 10 and 11 PM ones warn you about your streak.",
+  "dqEndOfDayNudgeTitle": "The day is winding down 🌙",
+  "dqEndOfDayNudgeBody": "Today's question is still waiting — answer it before the day ends.",
+  "dqEndOfDayNudgePartnerBody": "Your partner hasn't answered today's question yet — give them a nudge.",
+  "dqStreakWarningTitle": "Your streak is about to break! 🔥",
+  "dqStreakWarningBody": "The day's almost over. Answer today's question to keep your {days}-day streak!",
+  "@dqStreakWarningBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dqStreakWarningPartnerBody": "Your partner hasn't answered yet. A little nudge keeps your {days}-day streak alive!",
+  "@dqStreakWarningPartnerBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dqStreakWarningStartBody": "The day's almost over! Answer today's question to start a new streak.",
+  "dqStreakWarningStartPartnerBody": "Your partner hasn't answered yet. Nudge them so you can start a streak together.",
   "reminderDailyTitle": "Another day of us 💕",
   "reminderDailyBody": "Open Dear Embeiu and count today together.",
   "reminderMilestoneApproachingTitle": "A milestone is near 💕",

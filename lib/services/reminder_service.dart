@@ -7,6 +7,24 @@ import 'package:timezone/timezone.dart' as tz;
 import '../models/custom_reminder.dart';
 import '../models/milestone_reminder.dart';
 
+/// One end-of-day daily-question nudge: a fixed [hour]:[minute] for TODAY with
+/// its own localized [title]/[body]. The provider picks the copy from the
+/// streak + answer state (21:00 = gentle nudge, 22:00/23:00 = streak warning).
+@immutable
+class DailyQuestionEodSlot {
+  const DailyQuestionEodSlot({
+    required this.hour,
+    required this.minute,
+    required this.title,
+    required this.body,
+  });
+
+  final int hour;
+  final int minute;
+  final String title;
+  final String body;
+}
+
 /// Local, on-device infrastructure for the retention "love reminders" feature.
 ///
 /// This owns the [FlutterLocalNotificationsPlugin] instance, the timezone
@@ -52,6 +70,22 @@ class ReminderService {
   static const int _idDailyQuestionBase = 1040;
   static const int _maxDailyQuestionTimes = 10;
 
+  // Daily-question end-of-day safety net (2026-06-19): up to 3 ONE-SHOT nudges
+  // for TODAY only (21:00 gentle nudge, 22:00 + 23:00 streak warnings), ids
+  // 1050..1052. One-shot — not repeating — because both the copy and whether to
+  // fire at all depend on today's answer state; the provider re-arms them each
+  // day and on every habit-state change. Outside [_autoIds] like the band above.
+  static const int _idDailyQuestionEodBase = 1050;
+  static const int _maxDailyQuestionEod = 3;
+
+  // Lunar reminders (account-gated, 2026-06-19): ONE-SHOT nudges on the upcoming
+  // lunar day-1 / day-15 dates at the configured hours, ids 1060..1099. Lunar
+  // dates don't fall on fixed Gregorian days so these can't repeat natively —
+  // the provider schedules a rolling window and tops it up on each app open.
+  // Outside [_autoIds] (independent of the milestone reschedule).
+  static const int _idLunarBase = 1060;
+  static const int _maxLunar = 40;
+
   /// Every auto-reminder id this service may own, used by [cancelAll].
   static const List<int> _autoIds = <int>[
     _idLegacyDaily,
@@ -88,8 +122,9 @@ class ReminderService {
         tz.setLocalLocation(tz.getLocation('UTC'));
       }
 
-      const androidSettings =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
       const darwinSettings = DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
@@ -117,8 +152,10 @@ class ReminderService {
       return false;
     }
     try {
-      final ios = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
+      final ios = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
       if (ios != null) {
         final granted = await ios.requestPermissions(
           alert: true,
@@ -127,14 +164,18 @@ class ReminderService {
         );
         return granted ?? false;
       }
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       if (android != null) {
         final granted = await android.requestNotificationsPermission();
         return granted ?? true;
       }
-      final macos = _plugin.resolvePlatformSpecificImplementation<
-          MacOSFlutterLocalNotificationsPlugin>();
+      final macos = _plugin
+          .resolvePlatformSpecificImplementation<
+            MacOSFlutterLocalNotificationsPlugin
+          >();
       if (macos != null) {
         final granted = await macos.requestPermissions(
           alert: true,
@@ -150,16 +191,16 @@ class ReminderService {
   }
 
   NotificationDetails get _details => const NotificationDetails(
-        android: AndroidNotificationDetails(
-          _channelId,
-          _channelName,
-          channelDescription: _channelDescription,
-          importance: Importance.defaultImportance,
-          priority: Priority.defaultPriority,
-        ),
-        iOS: DarwinNotificationDetails(),
-        macOS: DarwinNotificationDetails(),
-      );
+    android: AndroidNotificationDetails(
+      _channelId,
+      _channelName,
+      channelDescription: _channelDescription,
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+    ),
+    iOS: DarwinNotificationDetails(),
+    macOS: DarwinNotificationDetails(),
+  );
 
   /// Cancel every reminder this service owns. Used when the user turns the
   /// feature off or before a full re-schedule.
@@ -322,10 +363,119 @@ class ReminderService {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Lunar reminders (account-gated, 2026-06-19). [items] are pre-expanded by the
+  // provider (one per occurrence × hour, each with its own title/body). Each is
+  // a ONE-SHOT at a specific datetime — past ones are skipped. The whole band is
+  // cleared first so this is safe to call repeatedly; an empty list = cancel.
+  // ---------------------------------------------------------------------------
+  Future<void> scheduleLunarReminders(
+    List<({DateTime when, String title, String body})> items,
+  ) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelLunar();
+    final now = tz.TZDateTime.now(tz.local);
+    var id = _idLunarBase;
+    for (final it in items) {
+      if (id >= _idLunarBase + _maxLunar) {
+        break;
+      }
+      final when = tz.TZDateTime(
+        tz.local,
+        it.when.year,
+        it.when.month,
+        it.when.day,
+        it.when.hour,
+        it.when.minute,
+      );
+      if (!when.isAfter(now)) {
+        continue;
+      }
+      await _scheduleAt(id: id, when: when, title: it.title, body: it.body);
+      id++;
+    }
+  }
+
+  Future<void> cancelLunar() async {
+    if (!_initialized) {
+      return;
+    }
+    try {
+      for (var i = 0; i < _maxLunar; i++) {
+        await _plugin.cancel(_idLunarBase + i);
+      }
+    } catch (_) {
+      // Already in the desired state.
+    }
+  }
+
+  /// (Re)schedule today's end-of-day daily-question nudges. Each [slot] fires
+  /// once, TODAY, at its hour:minute — but only if that moment is still in the
+  /// future (past slots are skipped, never rolled to tomorrow, because tomorrow
+  /// the provider re-arms with fresh state). One-shot: no repeat component.
+  /// Clears the whole band first, so this is safe to call repeatedly and an
+  /// empty list simply cancels everything.
+  Future<void> scheduleDailyQuestionEndOfDay({
+    required List<DailyQuestionEodSlot> slots,
+  }) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelDailyQuestionEndOfDay();
+    final now = tz.TZDateTime.now(tz.local);
+    final capped = slots.take(_maxDailyQuestionEod).toList();
+    for (var i = 0; i < capped.length; i++) {
+      final slot = capped[i];
+      final when = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        slot.hour,
+        slot.minute,
+      );
+      // Already passed today — leave it unscheduled; tomorrow's re-arm covers it.
+      if (!when.isAfter(now)) {
+        continue;
+      }
+      await _scheduleAt(
+        id: _idDailyQuestionEodBase + i,
+        when: when,
+        title: slot.title,
+        body: slot.body,
+      );
+    }
+  }
+
+  /// Cancel every end-of-day daily-question nudge. Safe when nothing is set.
+  Future<void> cancelDailyQuestionEndOfDay() async {
+    if (!_initialized) {
+      return;
+    }
+    for (var i = 0; i < _maxDailyQuestionEod; i++) {
+      try {
+        await _plugin.cancel(_idDailyQuestionEodBase + i);
+      } catch (_) {
+        // Already in the desired state.
+      }
+    }
+  }
+
   /// The next [hour]:[minute] today, or tomorrow if that moment has passed.
   tz.TZDateTime _nextDaily(int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);
-    var when = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    var when = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
     if (!when.isAfter(now)) {
       when = when.add(const Duration(days: 1));
     }
@@ -409,8 +559,14 @@ class ReminderService {
 
     switch (reminder.recurrence) {
       case ReminderRecurrence.once:
-        final when =
-            tz.TZDateTime(tz.local, date.year, date.month, date.day, h, m);
+        final when = tz.TZDateTime(
+          tz.local,
+          date.year,
+          date.month,
+          date.day,
+          h,
+          m,
+        );
         return when.isAfter(now) ? when : null;
 
       case ReminderRecurrence.daily:
@@ -464,7 +620,13 @@ class ReminderService {
   /// Build a [tz.TZDateTime] for [year]/[month]/[day], clamping [day] to the
   /// last valid day of that month (e.g. 31 → 30, or 29 Feb → 28 in a non-leap
   /// year). Implements decision D8 so a cycle is never silently skipped.
-  tz.TZDateTime _clampedDate(int year, int month, int day, int hour, int minute) {
+  tz.TZDateTime _clampedDate(
+    int year,
+    int month,
+    int day,
+    int hour,
+    int minute,
+  ) {
     final lastDay = _daysInMonth(year, month);
     final safeDay = day > lastDay ? lastDay : day;
     return tz.TZDateTime(tz.local, year, month, safeDay, hour, minute);
@@ -472,8 +634,9 @@ class ReminderService {
 
   int _daysInMonth(int year, int month) {
     // The 0th day of the next month is the last day of this month.
-    final firstOfNextMonth =
-        month == 12 ? DateTime(year + 1, 1, 1) : DateTime(year, month + 1, 1);
+    final firstOfNextMonth = month == 12
+        ? DateTime(year + 1, 1, 1)
+        : DateTime(year, month + 1, 1);
     return firstOfNextMonth.subtract(const Duration(days: 1)).day;
   }
 

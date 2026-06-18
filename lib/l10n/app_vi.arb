@@ -100,7 +100,28 @@
   "chatSending": "Đang gửi…",
   "chatStatusSent": "Đã gửi",
   "chatStatusDelivered": "Đã nhận",
-  "chatStatusRead": "Đã đọc",
+  "chatStatusRead": "Đã xem",
+  "lunarSectionTitle": "Lịch âm",
+  "lunarDateLabel": "{day} tháng {month} Âm",
+  "@lunarDateLabel": { "placeholders": { "month": { "type": "int" }, "day": { "type": "int" } } },
+  "lunarTodayLabel": "Hôm nay",
+  "lunarNextNewMoon": "Mồng 1 tới",
+  "lunarNextFullMoon": "Ngày rằm tới",
+  "lunarReminderToggle": "Nhắc theo ngày âm lịch",
+  "lunarReminderToggleSub": "Vào ngày & giờ bạn chọn",
+  "lunarNewMoonNotifTitle": "Mồng một âm lịch 🌙",
+  "lunarNewMoonNotifBody": "Hôm nay là ngày mồng một âm lịch.",
+  "lunarFullMoonNotifTitle": "Ngày rằm 🌕",
+  "lunarFullMoonNotifBody": "Hôm nay là ngày rằm (15 âm lịch).",
+  "lunarOtherDayNotifTitle": "Ngày {day} âm lịch 🌙",
+  "@lunarOtherDayNotifTitle": { "placeholders": { "day": { "type": "int" } } },
+  "lunarOtherDayNotifBody": "Hôm nay là ngày {day} âm lịch.",
+  "@lunarOtherDayNotifBody": { "placeholders": { "day": { "type": "int" } } },
+  "lunarCalendarBadge": "LỊCH ÂM",
+  "lunarOpenCalendar": "Mở lịch âm",
+  "lunarRemindDaysLabel": "Ngày nhắc (âm lịch)",
+  "lunarRemindTimesLabel": "Giờ nhắc",
+  "lunarAddTime": "Thêm giờ",
   "chatUnreadDotSemantics": "Có tin nhắn mới",
   "chatWaitingPartnerTitle": "Còn thiếu một người nè",
   "chatWaitingPartnerBody": "Mời người ấy ghép đôi để bắt đầu cuộc trò chuyện riêng của chúng mình.",
@@ -433,6 +454,28 @@
   "@reactionPartnerFallback": {
     "description": "Generic word for the partner when their name is not set yet"
   },
+  "moodCardTitle": "Tâm trạng hôm nay",
+  "moodShareCta": "Chia sẻ tâm trạng",
+  "moodUpdateCta": "Đổi tâm trạng",
+  "moodNotSharedYou": "Chạm để chia sẻ",
+  "moodPartnerEmpty": "{name} chưa chia sẻ hôm nay",
+  "@moodPartnerEmpty": {
+    "description": "Partner side of the mood card when they haven't shared today",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "moodSheetTitle": "Hôm nay bạn thế nào?",
+  "moodNoteHint": "Thêm đôi lời (không bắt buộc)",
+  "moodSaveCta": "Lưu tâm trạng",
+  "moodHappy": "Vui",
+  "moodLoved": "Hạnh phúc",
+  "moodMissing": "Nhớ",
+  "moodCalm": "Bình yên",
+  "moodMeh": "Bình thường",
+  "moodTired": "Mệt",
+  "moodSad": "Buồn",
+  "moodStressed": "Căng thẳng",
   "dailyQuestionLabel": "Câu hỏi hôm nay",
   "dailyQuestionHint": "Viết câu trả lời của bạn…",
   "dailyQuestionCharCount": "{count}/280",
@@ -871,6 +914,29 @@
   },
   "dailyQuestionReminderNotifTitle": "Câu hỏi hôm nay đang chờ 💌",
   "dailyQuestionReminderNotifBody": "Ghé trả lời để mở khoá câu trả lời của người ấy nhé.",
+  "dailyQuestionReminderEndOfDayHint": "Chúng mình còn được nhắc thêm lúc 21h, 22h và 23h nếu cuối ngày mà cả hai chưa trả lời — riêng 22h và 23h sẽ cảnh báo sắp mất chuỗi.",
+  "dqEndOfDayNudgeTitle": "Ngày sắp khép lại rồi 🌙",
+  "dqEndOfDayNudgeBody": "Câu hỏi hôm nay vẫn đang chờ — ghé trả lời trước khi hết ngày nhé.",
+  "dqEndOfDayNudgePartnerBody": "Người ấy chưa trả lời câu hỏi hôm nay — nhắc một câu cho kịp nhé.",
+  "dqStreakWarningTitle": "Sắp lỡ mất chuỗi rồi! 🔥",
+  "dqStreakWarningBody": "Sắp hết ngày rồi. Trả lời câu hỏi để giữ chuỗi {days} ngày của chúng mình nhé!",
+  "@dqStreakWarningBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dqStreakWarningPartnerBody": "Người ấy chưa trả lời. Nhắc nhẹ một câu để khỏi đứt chuỗi {days} ngày nhé!",
+  "@dqStreakWarningPartnerBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dqStreakWarningStartBody": "Sắp hết ngày rồi! Trả lời câu hỏi để mở chuỗi mới cho chúng mình nhé.",
+  "dqStreakWarningStartPartnerBody": "Người ấy chưa trả lời. Nhắc một câu để chúng mình cùng bắt đầu chuỗi nhé.",
   "reminderDailyTitle": "Thêm một ngày của chúng mình 💕",
   "reminderDailyBody": "Mở Dear Embeiu và cùng đếm thêm một ngày bên nhau nhé.",
   "reminderMilestoneApproachingTitle": "Sắp đến cột mốc rồi 💕",

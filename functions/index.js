@@ -546,6 +546,46 @@ exports.notifyChatMessage = onDocumentCreated(
       return;
     }
 
+    // Presence suppression (2026-06-19): don't ping a recipient who is right now
+    // in the conversation. The chat client writes a dedicated presence stamp
+    // (couples/{id}/receipts/{uid}.chatActiveAt = serverTimestamp) on a ~20s
+    // heartbeat while the chat is the active screen, and DELETES it the instant
+    // they leave (tab switch / background). So a fresh chatActiveAt means
+    // "watching live" → skip both the inbox row and the push for them. The
+    // window is only a crash backstop (an app killed mid-chat stops heartbeating
+    // → presence goes stale within ACTIVE_WINDOW_MS → notifications resume).
+    // NB: this is a distinct field from `readAt` on purpose — readAt is the last
+    // read time (lingers after leaving) and would over-suppress. Fail-open: any
+    // read error leaves the recipient in (better an extra ping than a silent drop).
+    const ACTIVE_WINDOW_MS = 45 * 1000;
+    const nowMs = Date.now();
+    const presence = await Promise.all(
+      recipientIds.map(async (rid) => {
+        try {
+          const receiptSnap = await db
+            .collection("couples").doc(coupleId)
+            .collection("receipts").doc(rid)
+            .get();
+          const activeAt = receiptSnap.exists ?
+            receiptSnap.get("chatActiveAt") : null;
+          const activeMs = activeAt && typeof activeAt.toMillis === "function" ?
+            activeAt.toMillis() : 0;
+          const active = activeMs > 0 && (nowMs - activeMs) <= ACTIVE_WINDOW_MS;
+          return {rid, active};
+        } catch (err) {
+          return {rid, active: false};
+        }
+      }),
+    );
+    const idleRecipientIds = presence.filter((p) => !p.active).map((p) => p.rid);
+
+    if (idleRecipientIds.length === 0) {
+      logger.info("Chat-message notification skipped — recipient is active in the chat.", {
+        coupleId,
+      });
+      return;
+    }
+
     // Author display name from their user profile (fallback "Người ấy").
     let authorName = "";
     try {
@@ -561,7 +601,8 @@ exports.notifyChatMessage = onDocumentCreated(
     authorName = normalizeActorName(authorName);
 
     // Inbox record: structured, content-free (no excerpt — privacy by design).
-    await writeInboxNotifications(recipientIds, {
+    // Only for idle recipients — an active reader saw the message live.
+    await writeInboxNotifications(idleRecipientIds, {
       type: "chat_message",
       coupleId,
       actorUserId: authorUserId,
@@ -569,7 +610,7 @@ exports.notifyChatMessage = onDocumentCreated(
     });
 
     const result = await sendToRecipientDevices(
-      recipientIds,
+      idleRecipientIds,
       (languageCode) => buildChatMessageText(languageCode, authorName),
       {
         type: "chat_message",
@@ -596,6 +637,105 @@ exports.notifyChatMessage = onDocumentCreated(
       attemptedTokens: result.deviceCount,
       successCount: result.successCount,
       failureCount: result.failureCount,
+    });
+  },
+);
+
+// Daily mood notification (feature mood, 2026-06-19): when a member shares /
+// changes today's mood, ping the partner so they open the app to see it — the
+// daily hook. PUSH ONLY (no inbox row): a mood is ephemeral "today" state, not a
+// missed-item to log. Fires on mood OR date change (a new day's first share),
+// never on a note-only edit, never on deletion.
+exports.notifyPartnerMood = onDocumentWritten(
+  {document: "couples/{coupleId}/moods/{uid}", region: "us-central1"},
+  async (event) => {
+    const after = event.data && event.data.after && event.data.after.exists ?
+      event.data.after.data() : null;
+    if (!after) {
+      return; // deletion
+    }
+    const before = event.data && event.data.before && event.data.before.exists ?
+      event.data.before.data() : null;
+
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const authorUserId = `${event.params.uid || ""}`.trim();
+    const mood = `${after.mood || ""}`.trim();
+    const date = `${after.date || ""}`.trim();
+    const beforeMood = `${(before && before.mood) || ""}`.trim();
+    const beforeDate = `${(before && before.date) || ""}`.trim();
+
+    // Only a real mood change (or a new day's first share) is worth a ping —
+    // a note-only edit or metadata re-save is not.
+    if (!mood || (mood === beforeMood && date === beforeDate)) {
+      return;
+    }
+    if (!coupleId || !authorUserId) {
+      logger.warn("Mood notification skipped because required fields are missing.", {
+        coupleId,
+        authorUserId,
+      });
+      return;
+    }
+
+    const coupleSnapshot = await db.collection("couples").doc(coupleId).get();
+    if (!coupleSnapshot.exists) {
+      logger.warn("Mood notification skipped because couple document was not found.", {
+        coupleId,
+      });
+      return;
+    }
+
+    const memberIds = Array.isArray(coupleSnapshot.get("memberIds")) ?
+      coupleSnapshot.get("memberIds") : [];
+    const recipientIds = memberIds.filter(
+      (memberId) => typeof memberId === "string" && memberId.trim() && memberId !== authorUserId,
+    );
+    if (recipientIds.length === 0) {
+      logger.info("Mood notification skipped because there is no partner to notify yet.", {
+        coupleId,
+      });
+      return;
+    }
+
+    let authorName = "";
+    try {
+      const authorSnap = await db.collection("users").doc(authorUserId).get();
+      authorName = `${(authorSnap.exists && authorSnap.get("displayName")) || ""}`.trim();
+    } catch (err) {
+      logger.warn("Could not load author profile for mood notification.", {
+        coupleId,
+        authorUserId,
+        message: err && err.message,
+      });
+    }
+    authorName = normalizeActorName(authorName);
+
+    // Push only — no writeInboxNotifications (mood is ephemeral "today" state).
+    const result = await sendToRecipientDevices(
+      recipientIds,
+      (languageCode) => buildPartnerMoodText(languageCode, authorName),
+      {
+        type: "partner_mood",
+        coupleId,
+      },
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("Mood notification skipped because recipient has no active FCM tokens.", {
+        coupleId,
+      });
+      return;
+    }
+    if (result.failures.length > 0) {
+      logger.warn("Mood notification had delivery failures.", {
+        coupleId,
+        failures: result.failures,
+      });
+    }
+    logger.info("Processed mood notification.", {
+      coupleId,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
     });
   },
 );
@@ -1580,6 +1720,28 @@ const CHAT_MESSAGE_COPY = {
     body: (name) => `${name} just sent you a message 💌`,
   },
 };
+
+// Mood push copy (feature mood) — content-free teaser (no mood/note leaked),
+// just a warm nudge to open and see how your person feels today.
+const PARTNER_MOOD_COPY = {
+  vi: {
+    title: "Tâm trạng hôm nay 💗",
+    body: (name) => `${name} vừa chia sẻ tâm trạng hôm nay — ghé xem nhé`,
+  },
+  en: {
+    title: "Today's mood 💗",
+    body: (name) => `${name} just shared how they feel today — take a peek`,
+  },
+};
+
+function buildPartnerMoodText(languageCode, authorName) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = PARTNER_MOOD_COPY[code] || PARTNER_MOOD_COPY.vi;
+  return {
+    title: copy.title,
+    body: copy.body(authorName),
+  };
+}
 
 function buildChatMessageText(languageCode, authorName) {
   const code = `${languageCode || ""}`.trim().toLowerCase();

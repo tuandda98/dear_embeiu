@@ -74,6 +74,7 @@
 Theo `../CLAUDE.md` mục 11 (Product roadmap):
 
 **NOW**
+- ✅ **Mood "Tâm trạng hôm nay" (2026-06-19)** — daily hook: card Home 2 chiều + picker 8 mood + push khi người ấy đổi mood. Built + DEV deployed, prod chờ lệnh. Xem `features/mood/`.
 - ~~Analytics + event funnel~~ → đã có folder, **🧪 Test PASS code-level** (xem bảng "Đang làm").
 - Onboarding/tutorial (giảm rớt bước ghép đôi)
 - Reactions ❤️ trên ảnh (tận dụng push) — *mở rộng feature gallery*

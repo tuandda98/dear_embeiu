@@ -489,11 +489,42 @@ service cloud.firestore {
         allow read: if isCoupleMember(coupleId);
         allow write: if isCoupleMember(coupleId)
           && receiptId == request.auth.uid
-          && request.resource.data.keys().hasOnly(['deliveredAt', 'readAt'])
+          && request.resource.data.keys().hasOnly(['deliveredAt', 'readAt', 'chatActiveAt'])
           && (!('deliveredAt' in request.resource.data)
               || request.resource.data.deliveredAt is timestamp)
           && (!('readAt' in request.resource.data)
-              || request.resource.data.readAt is timestamp);
+              || request.resource.data.readAt is timestamp)
+          // chatActiveAt (presence-suppress 2026-06-19): serverTimestamp while
+          // the member is viewing the chat, cleared (FieldValue.delete) on leave.
+          // notifyChatMessage skips a recipient whose chatActiveAt is fresh.
+          // Optional + timestamp-only — additive, backward-compatible.
+          && (!('chatActiveAt' in request.resource.data)
+              || request.resource.data.chatActiveAt is timestamp);
+        allow delete: if false;
+      }
+
+      // Daily mood (feature mood, 2026-06-19): one doc per member (id == uid)
+      // holding today's mood. Both members read each other's (the "how is your
+      // person today" card); each writes only their own. authorUserId optional
+      // (doc id is the source of truth) but pinned to the writer when present.
+      match /moods/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(
+              ['authorUserId', 'mood', 'note', 'date', 'updatedAt'])
+          && request.resource.data.mood is string
+          && request.resource.data.mood.size() <= 20
+          && (!('authorUserId' in request.resource.data)
+              || request.resource.data.authorUserId == request.auth.uid)
+          && (!('note' in request.resource.data)
+              || (request.resource.data.note is string
+                  && request.resource.data.note.size() <= 100))
+          && (!('date' in request.resource.data)
+              || (request.resource.data.date is string
+                  && request.resource.data.date.size() <= 10))
+          && (!('updatedAt' in request.resource.data)
+              || request.resource.data.updatedAt is timestamp);
         allow delete: if false;
       }
 

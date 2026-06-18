@@ -620,6 +620,114 @@ abstract class AppLocalizations {
   /// **'Seen'**
   String get chatStatusRead;
 
+  /// No description provided for @lunarSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar calendar'**
+  String get lunarSectionTitle;
+
+  /// No description provided for @lunarDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar {month}/{day}'**
+  String lunarDateLabel(int month, int day);
+
+  /// No description provided for @lunarTodayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get lunarTodayLabel;
+
+  /// No description provided for @lunarNextNewMoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Next 1st'**
+  String get lunarNextNewMoon;
+
+  /// No description provided for @lunarNextFullMoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Next full moon'**
+  String get lunarNextFullMoon;
+
+  /// No description provided for @lunarReminderToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar-day reminder'**
+  String get lunarReminderToggle;
+
+  /// No description provided for @lunarReminderToggleSub.
+  ///
+  /// In en, this message translates to:
+  /// **'On your chosen days & times'**
+  String get lunarReminderToggleSub;
+
+  /// No description provided for @lunarNewMoonNotifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First day of the lunar month 🌙'**
+  String get lunarNewMoonNotifTitle;
+
+  /// No description provided for @lunarNewMoonNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is the first day of the lunar month.'**
+  String get lunarNewMoonNotifBody;
+
+  /// No description provided for @lunarFullMoonNotifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Full moon day 🌕'**
+  String get lunarFullMoonNotifTitle;
+
+  /// No description provided for @lunarFullMoonNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is the full moon (15th lunar day).'**
+  String get lunarFullMoonNotifBody;
+
+  /// No description provided for @lunarOtherDayNotifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar day {day} 🌙'**
+  String lunarOtherDayNotifTitle(int day);
+
+  /// No description provided for @lunarOtherDayNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is the {day}th day of the lunar month.'**
+  String lunarOtherDayNotifBody(int day);
+
+  /// No description provided for @lunarCalendarBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'LUNAR CALENDAR'**
+  String get lunarCalendarBadge;
+
+  /// No description provided for @lunarOpenCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Open lunar calendar'**
+  String get lunarOpenCalendar;
+
+  /// No description provided for @lunarRemindDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder days (lunar)'**
+  String get lunarRemindDaysLabel;
+
+  /// No description provided for @lunarRemindTimesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder times'**
+  String get lunarRemindTimesLabel;
+
+  /// No description provided for @lunarAddTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Add time'**
+  String get lunarAddTime;
+
   /// No description provided for @chatUnreadDotSemantics.
   ///
   /// In en, this message translates to:
@@ -1363,6 +1471,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your partner'**
   String get reactionPartnerFallback;
+
+  /// No description provided for @moodCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s mood'**
+  String get moodCardTitle;
+
+  /// No description provided for @moodShareCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your mood'**
+  String get moodShareCta;
+
+  /// No description provided for @moodUpdateCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Update mood'**
+  String get moodUpdateCta;
+
+  /// No description provided for @moodNotSharedYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to share'**
+  String get moodNotSharedYou;
+
+  /// Partner side of the mood card when they haven't shared today
+  ///
+  /// In en, this message translates to:
+  /// **'{name} hasn\'t shared today'**
+  String moodPartnerEmpty(String name);
+
+  /// No description provided for @moodSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How are you today?'**
+  String get moodSheetTitle;
+
+  /// No description provided for @moodNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a few words (optional)'**
+  String get moodNoteHint;
+
+  /// No description provided for @moodSaveCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Save mood'**
+  String get moodSaveCta;
+
+  /// No description provided for @moodHappy.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy'**
+  String get moodHappy;
+
+  /// No description provided for @moodLoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Loved'**
+  String get moodLoved;
+
+  /// No description provided for @moodMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing you'**
+  String get moodMissing;
+
+  /// No description provided for @moodCalm.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm'**
+  String get moodCalm;
+
+  /// No description provided for @moodMeh.
+  ///
+  /// In en, this message translates to:
+  /// **'Meh'**
+  String get moodMeh;
+
+  /// No description provided for @moodTired.
+  ///
+  /// In en, this message translates to:
+  /// **'Tired'**
+  String get moodTired;
+
+  /// No description provided for @moodSad.
+  ///
+  /// In en, this message translates to:
+  /// **'Sad'**
+  String get moodSad;
+
+  /// No description provided for @moodStressed.
+  ///
+  /// In en, this message translates to:
+  /// **'Stressed'**
+  String get moodStressed;
 
   /// No description provided for @dailyQuestionLabel.
   ///
@@ -2617,6 +2821,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Answer it to unlock your partner\'s reply.'**
   String get dailyQuestionReminderNotifBody;
+
+  /// No description provided for @dailyQuestionReminderEndOfDayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll also nudge you at 9, 10 and 11 PM if the day\'s almost over and you both haven\'t answered — the 10 and 11 PM ones warn you about your streak.'**
+  String get dailyQuestionReminderEndOfDayHint;
+
+  /// No description provided for @dqEndOfDayNudgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The day is winding down 🌙'**
+  String get dqEndOfDayNudgeTitle;
+
+  /// No description provided for @dqEndOfDayNudgeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s question is still waiting — answer it before the day ends.'**
+  String get dqEndOfDayNudgeBody;
+
+  /// No description provided for @dqEndOfDayNudgePartnerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner hasn\'t answered today\'s question yet — give them a nudge.'**
+  String get dqEndOfDayNudgePartnerBody;
+
+  /// No description provided for @dqStreakWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak is about to break! 🔥'**
+  String get dqStreakWarningTitle;
+
+  /// No description provided for @dqStreakWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The day\'s almost over. Answer today\'s question to keep your {days}-day streak!'**
+  String dqStreakWarningBody(int days);
+
+  /// No description provided for @dqStreakWarningPartnerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner hasn\'t answered yet. A little nudge keeps your {days}-day streak alive!'**
+  String dqStreakWarningPartnerBody(int days);
+
+  /// No description provided for @dqStreakWarningStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The day\'s almost over! Answer today\'s question to start a new streak.'**
+  String get dqStreakWarningStartBody;
+
+  /// No description provided for @dqStreakWarningStartPartnerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner hasn\'t answered yet. Nudge them so you can start a streak together.'**
+  String get dqStreakWarningStartPartnerBody;
 
   /// No description provided for @reminderDailyTitle.
   ///

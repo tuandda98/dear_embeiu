@@ -428,6 +428,10 @@ class PushNotificationService {
         // Deep-link within Home: scroll the daily-question card into view.
         NotificationTapRouter.pendingHomeFocus.value = 'daily_question';
         break;
+      case 'partner_mood':
+        // Mood card lives on Home (feature mood) — open there to see it.
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        break;
       default:
         // Unknown or absent type — leave the current tab untouched and don't
         // log a malformed `notification_opened`.

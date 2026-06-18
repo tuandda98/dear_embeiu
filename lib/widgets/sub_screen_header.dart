@@ -30,6 +30,7 @@ class SubScreenHeader extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.onBack,
+    this.onBackground = false,
   });
 
   /// Eyebrow chip label (e.g. `l10n.settingsBadge`).
@@ -49,6 +50,12 @@ class SubScreenHeader extends StatelessWidget {
   /// Defaults to `Navigator.maybePop`.
   final VoidCallback? onBack;
 
+  /// When the header floats over a dark/photo backdrop (e.g. the Love Tree's
+  /// full-bleed night sky) the bare navy back glyph can vanish — set this so it
+  /// rides the same frosted white disc as the [EyebrowChip]/trailing actions.
+  /// The centered chip is already a white pill, so it stays legible either way.
+  final bool onBackground;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -67,15 +74,13 @@ class SubScreenHeader extends StatelessWidget {
               child: HeaderIconButton(
                 icon: IconsaxPlusLinear.arrow_left,
                 semanticsLabel: context.l10n.back,
+                backed: onBackground,
                 onTap: onBack ?? () => Navigator.of(context).maybePop(),
               ),
             ),
           ),
           if (trailing != null)
-            Align(
-              alignment: Alignment.centerRight,
-              child: trailing!,
-            ),
+            Align(alignment: Alignment.centerRight, child: trailing!),
         ],
       ),
     );

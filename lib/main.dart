@@ -19,6 +19,7 @@ import 'providers/chat_provider.dart';
 import 'providers/couple_provider.dart';
 import 'providers/custom_reminders_provider.dart';
 import 'providers/daily_question_provider.dart';
+import 'providers/mood_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/notification_inbox_provider.dart';
 import 'providers/photo_provider.dart';
@@ -274,6 +275,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => ReactionProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => DailyQuestionProvider()),
+        ChangeNotifierProvider(create: (_) => MoodProvider()),
         ChangeNotifierProvider(create: (_) => StreakProvider()),
         ChangeNotifierProvider(create: (_) => NotificationInboxProvider()),
         ChangeNotifierProvider(

@@ -2,6 +2,8 @@
 
 > Dev sở hữu. Đọc `overview.md` + `design.md` trước. Implement đúng logic + đúng design. Bám kiến trúc Provider + service (`../../../CLAUDE.md` mục 2).
 
+- [2026-06-19] [dev] **Ẩn thẻ "Quản lý dữ liệu" (`_buildDangerZone`) theo email** (user yêu cầu). Thêm hằng `_hideDataManagementEmails` (Set, hiện có `phuogthao1408@gmail.com`); build so email đăng nhập (`authProvider.currentUser?.email ?? currentEmail`, trim+lowercase) → khớp thì bọc `if (!hideDataManagement)` quanh `SizedBox(24)+EntranceReveal(order:3, danger zone)` ⇒ tài khoản đó KHÔNG thấy xoá-cache-máy/rời-couple/xoá-tài-khoản. Các tài khoản khác giữ nguyên. analyze 0. ⚠️ Email hardcode — muốn thêm/sửa thì sửa Set này. (Lưu ý spelling `phuogthao` — chờ user xác nhận có thiếu chữ 'n' không.)
+
 - **Trạng thái dev:** chờ test (2026-05-31)
 - **Người/role:** Dev
 

@@ -188,8 +188,16 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
   _ShareCardData? _shareCardData;
   bool _sharing = false;
 
-  late final ConfettiController _confetti =
-      ConfettiController(duration: const Duration(milliseconds: 700));
+  late final ConfettiController _confetti = ConfettiController(
+    duration: const Duration(milliseconds: 700),
+  );
+
+  /// v3 prototype switch (2026-06-18): when true the hero is the
+  /// [_ConstellationSky] (the "infinite" star metaphor); when false it's the
+  /// [_TreeHero]. Reverted to the TREE per user 2026-06-18 ("revert lại thành
+  /// cái cây") — the star code stays dormant behind this flag for a possible
+  /// revisit. Non-const so neither code path is dead.
+  final bool _useConstellation = false;
 
   @override
   void initState() {
@@ -268,24 +276,50 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     // The share button shows only for an active couple that has a garden.
     final canShare = data != null;
 
+    // Full-bleed night sky (user 2026-06-18: "full background cả header cả
+    // width, nhìn như bầu trời đêm 1/2 màn hình"): the sky is its OWN layer at
+    // the back of the stack, covering the top ~55% of the screen edge-to-edge —
+    // behind the status bar + header — and fading to transparent (SkyBackdrop-
+    // Painter) so it melts into the dawnBlush page below. The tree hero is now
+    // transparent and sits over it.
+    final skyHeight = MediaQuery.of(context).size.height * 0.55;
+
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: Stack(
-            children: [
-              Column(
+        body: Stack(
+          children: [
+            // 1. The full-bleed sky (decorative — never intercepts taps).
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: skyHeight,
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: SkyBackdropPainter(phase: _phase, season: _season),
+                ),
+              ),
+            ),
+
+            // 2. Header + body (transparent) over the sky. The back/share discs
+            // are frosted (onBackground/backed) so they read on the dark night
+            // band; the centered white chip is legible on its own.
+            SafeArea(
+              child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
                     child: SubScreenHeader(
                       badge: l10n.loveTreeBadge,
                       badgeIcon: IconsaxPlusLinear.magic_star,
+                      onBackground: true,
                       trailing: canShare
                           ? HeaderIconButton(
                               icon: IconsaxPlusLinear.share,
                               iconColor: AppColors.accentLoveDeep,
+                              backed: true,
                               semanticsLabel: l10n.loveTreeShareButton,
                               onTap: () => _shareTree(context, data),
                             )
@@ -305,24 +339,24 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
                   ),
                 ],
               ),
+            ),
 
-              // Off-screen render target for the share card. Positioned far off
-              // the visible area so it lays out at its fixed logical size but is
-              // never seen — captured to a PNG on demand.
-              if (_renderingShareCard && _shareCardData != null)
-                Positioned(
-                  left: -3000,
-                  top: 0,
-                  child: RepaintBoundary(
-                    key: _shareCardKey,
-                    child: _LoveTreeShareCard(
-                      width: _kShareCardWidth,
-                      data: _shareCardData!,
-                    ),
+            // Off-screen render target for the share card. Positioned far off
+            // the visible area so it lays out at its fixed logical size but is
+            // never seen — captured to a PNG on demand.
+            if (_renderingShareCard && _shareCardData != null)
+              Positioned(
+                left: -3000,
+                top: 0,
+                child: RepaintBoundary(
+                  key: _shareCardKey,
+                  child: _LoveTreeShareCard(
+                    width: _kShareCardWidth,
+                    data: _shareCardData!,
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
@@ -407,8 +441,9 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     final reached = data.reached;
     final stage = data.stage;
 
-    final newCount =
-        _coupleId == null ? 0 : (flowerCount - _seenAtEntry).clamp(0, flowerCount);
+    final newCount = _coupleId == null
+        ? 0
+        : (flowerCount - _seenAtEntry).clamp(0, flowerCount);
     final hasNewBlooms = newCount > 0;
 
     // Sparkle for the freshly bloomed flowers — fired ONCE per visit (a late
@@ -436,25 +471,37 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. The tree hero (sky + season + idle particles + tappable flowers
-          //    + the one-shot coach mark).
-          _TreeHero(
-            stage: stage,
-            reached: reached,
-            newFromIndexInReached: flowerCount - newCount,
-            reduceMotion: reduceMotion,
-            confetti: _confetti,
-            phase: _phase,
-            season: _season,
-            ambient: ambient,
-            anniversary: data.couple.anniversaryDate,
-            photoProvider: photo,
-            // Coach mark: only when eligible (flag not set) AND there are
-            // flowers to point at; delayed past any bloom in `_TreeHero`.
-            showCoach: _coachEligible && flowerCount > 0,
-            hasNewBlooms: hasNewBlooms,
-            onCoachDismissed: _dismissCoach,
-          ),
+          // 1. The hero (transparent — the full-bleed night sky is painted by
+          //    the screen behind it). v3 prototype: a CONSTELLATION of stars
+          //    (the "infinite" metaphor) instead of the tree; flip
+          //    `_useConstellation` to roll back to the tree.
+          if (_useConstellation)
+            _ConstellationSky(
+              reached: reached,
+              newFromIndexInReached: flowerCount - newCount,
+              reduceMotion: reduceMotion,
+              ambient: ambient,
+              anniversary: data.couple.anniversaryDate,
+              photoProvider: photo,
+            )
+          else
+            _TreeHero(
+              stage: stage,
+              reached: reached,
+              newFromIndexInReached: flowerCount - newCount,
+              reduceMotion: reduceMotion,
+              confetti: _confetti,
+              phase: _phase,
+              season: _season,
+              ambient: ambient,
+              anniversary: data.couple.anniversaryDate,
+              photoProvider: photo,
+              // Coach mark: only when eligible (flag not set) AND there are
+              // flowers to point at; delayed past any bloom in `_TreeHero`.
+              showCoach: _coachEligible && flowerCount > 0,
+              hasNewBlooms: hasNewBlooms,
+              onCoachDismissed: _dismissCoach,
+            ),
 
           // 2. Caption (permanent affordance — only when there are flowers).
           if (flowerCount > 0) ...[
@@ -464,13 +511,7 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
           ] else
             const SizedBox(height: 16),
 
-          // 3. Stage title + flower count.
-          Text(
-            _stageTitle(l10n, stage),
-            textAlign: TextAlign.center,
-            style: AppTheme.sectionTitleStyle().copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 4),
+          // 3. Flower count (stage title removed 2026-06-19 — user request).
           Text(
             _stageSubtitle(l10n, stage, flowerCount),
             textAlign: TextAlign.center,
@@ -592,8 +633,9 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
 
   /// Captures the off-screen [_LoveTreeShareCard] to PNG bytes at ~1080px wide.
   Future<Uint8List?> _captureShareCard() async {
-    final boundary = _shareCardKey.currentContext?.findRenderObject()
-        as RenderRepaintBoundary?;
+    final boundary =
+        _shareCardKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
     if (boundary == null) {
       return null;
     }
@@ -605,23 +647,11 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     return byteData?.buffer.asUint8List();
   }
 
-  String _stageTitle(AppLocalizations l10n, LoveTreeStage stage) {
-    switch (stage) {
-      case LoveTreeStage.seed:
-        return l10n.loveTreeStage0;
-      case LoveTreeStage.sprout:
-        return l10n.loveTreeStage1;
-      case LoveTreeStage.young:
-        return l10n.loveTreeStage2;
-      case LoveTreeStage.green:
-        return l10n.loveTreeStage3;
-      case LoveTreeStage.bloom:
-        return l10n.loveTreeStage4;
-    }
-  }
-
   String _stageSubtitle(
-      AppLocalizations l10n, LoveTreeStage stage, int flowerCount) {
+    AppLocalizations l10n,
+    LoveTreeStage stage,
+    int flowerCount,
+  ) {
     if (flowerCount == 0) {
       return l10n.loveTreeSeedSubtitle;
     }
@@ -762,17 +792,10 @@ class _TreeHero extends StatelessWidget {
           return Stack(
             clipBehavior: Clip.none,
             children: [
-              // 1+2. Sky gradient + static stars (night) — painted BELOW the
-              // tree; repaints only when phase/season/size change.
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: SkyBackdropPainter(phase: phase, season: season),
-                ),
-              ),
-
-              // 3. The tree itself (branch / buds / leaves) — the active
-              // renderer decides whether that's a canopy tree or a sakura
-              // branch.
+              // The tree itself (branch / buds / leaves) — the active renderer
+              // decides whether that's a canopy tree or a sakura branch. The
+              // night sky is now a full-bleed layer the SCREEN paints behind this
+              // hero (love-tree 2026-06-18), so the hero stays transparent.
               Positioned.fill(
                 child: CustomPaint(
                   painter: kTreeRenderer.treePainter(
@@ -790,10 +813,12 @@ class _TreeHero extends StatelessWidget {
                   key: ValueKey('${reached[i].kind}-${reached[i].value}'),
                   // Offset by radius + hit-pad so the VISIBLE flower stays
                   // centred on its slot even though the touch box is padded.
-                  left: positions[i].dx -
+                  left:
+                      positions[i].dx -
                       _flowerRadius(i, reached.length) -
                       _flowerHitPad(_flowerDiameter(i, reached.length)),
-                  top: positions[i].dy -
+                  top:
+                      positions[i].dy -
                       _flowerRadius(i, reached.length) -
                       _flowerHitPad(_flowerDiameter(i, reached.length)),
                   child: kTreeRenderer.flowerWidget(
@@ -859,9 +884,7 @@ class _TreeHero extends StatelessWidget {
                     reached.length,
                   ),
                   reduceMotion: reduceMotion,
-                  startDelay: Duration(
-                    milliseconds: hasNewBlooms ? 1200 : 350,
-                  ),
+                  startDelay: Duration(milliseconds: hasNewBlooms ? 1200 : 350),
                   onDismiss: onCoachDismissed,
                 ),
             ],
@@ -878,7 +901,7 @@ class _TreeHero extends StatelessWidget {
   static int _coachTargetIndex(List<Offset> positions) {
     final centerX =
         positions.map((p) => p.dx).fold<double>(0, (a, b) => a + b) /
-            positions.length;
+        positions.length;
     var best = 0;
     var bestDy = positions[0].dy;
     var bestDx = (positions[0].dx - centerX).abs();
@@ -894,6 +917,203 @@ class _TreeHero extends StatelessWidget {
     }
     return best;
   }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Constellation sky (v3 prototype, 2026-06-18) — the "infinite" memory metaphor
+// ───────────────────────────────────────────────────────────────────────────
+
+/// Prototype that replaces the tree hero: every reached milestone becomes a
+/// STAR, laid along a gently rising meander and joined by faint constellation
+/// lines (oldest → newest). Tiny stars stay elegant even at hundreds — unlike
+/// big flowers — and a future pan/zoom canvas makes the sky literally endless
+/// (user 2026-06-18: "ý tưởng gì mà nó vô cực"). Reuses the same milestone data,
+/// per-kind hue, ambient clock and tap → MomentSheet as the tree, so flipping
+/// [_LoveTreeScreenState._useConstellation] swaps the two with one line.
+class _ConstellationSky extends StatelessWidget {
+  const _ConstellationSky({
+    required this.reached,
+    required this.newFromIndexInReached,
+    required this.reduceMotion,
+    required this.ambient,
+    required this.anniversary,
+    required this.photoProvider,
+  });
+
+  final List<LoveTreeMilestone> reached;
+  final int newFromIndexInReached;
+  final bool reduceMotion;
+  final AnimationController? ambient;
+  final DateTime anniversary;
+  final PhotoProvider photoProvider;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final usable = media.size.height - media.padding.vertical;
+    final skyHeight = (usable * 0.52).clamp(360.0, 460.0);
+
+    return SizedBox(
+      height: skyHeight,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final size = Size(constraints.maxWidth, constraints.maxHeight);
+          final positions = _starPositions(size, reached.length);
+
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Constellation lines + glowing stars; twinkle driven by the
+              // shared ambient clock (static under Reduce Motion).
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: _ConstellationPainter(
+                      positions: positions,
+                      reached: reached,
+                      newFromIndex: newFromIndexInReached,
+                      reduceMotion: reduceMotion,
+                      clock: reduceMotion ? null : ambient,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Transparent ≥44px tap targets over each star → MomentSheet.
+              for (var i = 0; i < reached.length; i++)
+                Positioned(
+                  left: positions[i].dx - 22,
+                  top: positions[i].dy - 22,
+                  width: 44,
+                  height: 44,
+                  child: Semantics(
+                    button: true,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _openMomentSheet(
+                        context,
+                        reached[i],
+                        anniversary: anniversary,
+                        photo: photoProvider,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// Deterministic star layout: a gentle bottom-left → top-right meander with a
+  /// sine wobble + per-index hash jitter, so the joining lines read as one
+  /// growing constellation and a star never jumps slot when newer ones unlock.
+  static List<Offset> _starPositions(Size size, int count) {
+    final w = size.width;
+    final h = size.height;
+    final pts = <Offset>[];
+    for (var i = 0; i < count; i++) {
+      final t = count <= 1 ? 0.5 : i / (count - 1);
+      final wobble = math.sin(t * math.pi * 2.4) * 0.12 * w;
+      final jx = ((_bloomHash(i) % 13) - 6) / 100.0 * w;
+      final jy = ((_bloomHash(i * 31 + 7) % 13) - 6) / 100.0 * h;
+      final x = (0.16 + 0.68 * t) * w + wobble + jx;
+      final y = (0.82 - 0.70 * t) * h + jy;
+      pts.add(Offset(x.clamp(0.08 * w, 0.92 * w), y.clamp(0.08 * h, 0.92 * h)));
+    }
+    return pts;
+  }
+}
+
+/// Paints the constellation: faint joining lines + each star's coloured halo,
+/// bright core and (for the newest) a sparkle cross. Twinkle reads the ambient
+/// [clock]; a null clock = static (Reduce Motion).
+class _ConstellationPainter extends CustomPainter {
+  _ConstellationPainter({
+    required this.positions,
+    required this.reached,
+    required this.newFromIndex,
+    required this.reduceMotion,
+    Listenable? clock,
+  }) : _clock = clock,
+       super(repaint: clock);
+
+  final List<Offset> positions;
+  final List<LoveTreeMilestone> reached;
+  final int newFromIndex;
+  final bool reduceMotion;
+  final Listenable? _clock;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (positions.isEmpty) {
+      return;
+    }
+    final clock = _clock;
+    final phase = (!reduceMotion && clock is Animation<double>)
+        ? clock.value
+        : 0.0;
+
+    // 1. Faint lines joining consecutive stars, brightening toward the newest.
+    for (var i = 1; i < positions.length; i++) {
+      final tNorm = i / positions.length;
+      final line = Paint()
+        ..color = AppColors.white.withValues(alpha: 0.10 + 0.16 * tNorm)
+        ..strokeWidth = 1.0
+        ..style = PaintingStyle.stroke;
+      canvas.drawLine(positions[i - 1], positions[i], line);
+    }
+
+    // 2. Stars: coloured halo (per kind) + white core + sparkle on new ones.
+    for (var i = 0; i < positions.length; i++) {
+      final c = positions[i];
+      final isNew = i >= newFromIndex;
+      final hue = LoveTreeService.nucleusColor(reached[i].kind);
+      final twinkle = reduceMotion
+          ? 1.0
+          : 0.75 + 0.25 * math.sin(phase * math.pi * 2 + i * 1.7);
+      final coreR = isNew ? 3.4 : 2.6;
+      final haloR = (isNew ? 16.0 : 11.0) * (0.9 + 0.1 * twinkle);
+
+      canvas.drawCircle(
+        c,
+        haloR,
+        Paint()
+          ..shader = RadialGradient(
+            colors: [
+              hue.withValues(alpha: (isNew ? 0.55 : 0.40) * twinkle),
+              hue.withValues(alpha: 0.0),
+            ],
+          ).createShader(Rect.fromCircle(center: c, radius: haloR)),
+      );
+
+      canvas.drawCircle(
+        c,
+        coreR,
+        Paint()
+          ..color = AppColors.white.withValues(
+            alpha: 0.92 * (0.7 + 0.3 * twinkle),
+          ),
+      );
+
+      if (isNew) {
+        final cross = Paint()
+          ..color = AppColors.white.withValues(alpha: 0.65 * twinkle)
+          ..strokeWidth = 1.0;
+        final r = coreR + 4;
+        canvas.drawLine(c.translate(-r, 0), c.translate(r, 0), cross);
+        canvas.drawLine(c.translate(0, -r), c.translate(0, r), cross);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ConstellationPainter old) =>
+      old.positions != positions ||
+      old.reached != reached ||
+      old.newFromIndex != newFromIndex ||
+      old.reduceMotion != reduceMotion;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -1046,7 +1266,10 @@ class _TapCoachMarkState extends State<_TapCoachMark>
         // Position roughly above/below the target; clamp horizontally so the
         // bubble never runs off the edge.
         const bubbleW = 220.0;
-        final left = (widget.target.dx - bubbleW / 2).clamp(12.0, w - bubbleW - 12.0);
+        final left = (widget.target.dx - bubbleW / 2).clamp(
+          12.0,
+          w - bubbleW - 12.0,
+        );
         final top = above
             ? (widget.target.dy - widget.flowerDiameter / 2 - 56)
             : (widget.target.dy + widget.flowerDiameter / 2 + 12);
@@ -1056,10 +1279,7 @@ class _TapCoachMarkState extends State<_TapCoachMark>
               left: left,
               top: top.clamp(8.0, constraints.maxHeight - 64),
               width: bubbleW,
-              child: Align(
-                alignment: Alignment.center,
-                child: bubble,
-              ),
+              child: Align(alignment: Alignment.center, child: bubble),
             ),
           ],
         );
@@ -1207,7 +1427,11 @@ class _CoachPainter extends CustomPainter {
   void _paintTapDot(Canvas canvas, {required double scale}) {
     final c = target.translate(10, 14);
     final r = 9.0 * scale;
-    canvas.drawCircle(c, r, Paint()..color = AppColors.white.withValues(alpha: 0.90));
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()..color = AppColors.white.withValues(alpha: 0.90),
+    );
     canvas.drawCircle(
       c,
       r,
@@ -1242,8 +1466,11 @@ class _TapHintCaption extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(IconsaxPlusLinear.finger_cricle,
-            size: 14, color: AppColors.accentRose),
+        const Icon(
+          IconsaxPlusLinear.finger_cricle,
+          size: 14,
+          color: AppColors.accentRose,
+        ),
         const SizedBox(width: 6),
         Flexible(
           child: Text(
@@ -1333,8 +1560,11 @@ class _BloomBanner extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(IconsaxPlusLinear.magic_star,
-                  size: 16, color: AppColors.accentLoveDeep),
+              const Icon(
+                IconsaxPlusLinear.magic_star,
+                size: 16,
+                color: AppColors.accentLoveDeep,
+              ),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
@@ -1389,8 +1619,11 @@ class _SharePill extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(IconsaxPlusLinear.share,
-                  size: 14, color: AppColors.accentLoveDeep),
+              const Icon(
+                IconsaxPlusLinear.share,
+                size: 14,
+                color: AppColors.accentLoveDeep,
+              ),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -1426,7 +1659,11 @@ class _NurtureCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(IconsaxPlusLinear.tree, size: 18, color: AppColors.accentRose),
+              const Icon(
+                IconsaxPlusLinear.tree,
+                size: 18,
+                color: AppColors.accentRose,
+              ),
               const SizedBox(width: 8),
               Text(
                 l10n.loveTreeNurtureTitle,
@@ -1558,8 +1795,11 @@ class _NurtureTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            const Icon(IconsaxPlusLinear.arrow_right_3,
-                size: 18, color: AppColors.textTertiary),
+            const Icon(
+              IconsaxPlusLinear.arrow_right_3,
+              size: 18,
+              color: AppColors.textTertiary,
+            ),
           ],
         ),
       ),
@@ -1596,17 +1836,19 @@ class _MilestonesCard extends StatelessWidget {
 
     final reached = milestones.where((m) => m.reached).toList();
     for (final m in reached) {
-      rows.add(_MilestoneRow(
-        label: _label(m),
-        kind: m.kind,
-        reached: true,
-        onTap: () => _openMomentSheet(
-          context,
-          m,
-          anniversary: anniversary,
-          photo: photoProvider,
+      rows.add(
+        _MilestoneRow(
+          label: _label(m),
+          kind: m.kind,
+          reached: true,
+          onTap: () => _openMomentSheet(
+            context,
+            m,
+            anniversary: anniversary,
+            photo: photoProvider,
+          ),
         ),
-      ));
+      );
     }
 
     // One "next" row per kind (the nearest unreached milestone of each).
@@ -1615,18 +1857,20 @@ class _MilestonesCard extends StatelessWidget {
           .where((m) => m.kind == kind && !m.reached)
           .fold<LoveTreeMilestone?>(null, (a, b) => a ?? b);
       if (next != null) {
-        rows.add(_MilestoneRow(
-          label: _label(next),
-          kind: kind,
-          reached: false,
-          remaining: _remaining(next),
-          onTap: () => MomentSheet.showLocked(
-            context,
+        rows.add(
+          _MilestoneRow(
+            label: _label(next),
             kind: kind,
-            value: next.value,
-            remaining: _remainingCount(next),
+            reached: false,
+            remaining: _remaining(next),
+            onTap: () => MomentSheet.showLocked(
+              context,
+              kind: kind,
+              value: next.value,
+              remaining: _remainingCount(next),
+            ),
           ),
-        ));
+        );
       }
     }
 
@@ -1636,7 +1880,11 @@ class _MilestonesCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(IconsaxPlusLinear.flag, size: 18, color: AppColors.accentRose),
+              const Icon(
+                IconsaxPlusLinear.flag,
+                size: 18,
+                color: AppColors.accentRose,
+              ),
               const SizedBox(width: 8),
               Text(
                 l10n.loveTreeMilestonesTitle,
@@ -1866,8 +2114,9 @@ class _StateMessage extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style:
-                AppTheme.sectionTitleStyle().copyWith(fontWeight: FontWeight.w800),
+            style: AppTheme.sectionTitleStyle().copyWith(
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -1961,14 +2210,11 @@ class _LoveFlowerState extends State<_LoveFlower>
         duration: const Duration(milliseconds: 540),
       );
       // 140ms stagger per new flower (design §4).
-      Future<void>.delayed(
-        Duration(milliseconds: 140 * widget.bloomOrder),
-        () {
-          if (mounted) {
-            _controller?.forward();
-          }
-        },
-      );
+      Future<void>.delayed(Duration(milliseconds: 140 * widget.bloomOrder), () {
+        if (mounted) {
+          _controller?.forward();
+        }
+      });
     }
   }
 
@@ -2129,7 +2375,10 @@ class _Nucleus extends StatelessWidget {
         shape: BoxShape.circle,
         gradient: gradient,
         // Outer white rim (slightly thicker than v1).
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.65), width: 1.4),
+        border: Border.all(
+          color: AppColors.white.withValues(alpha: 0.65),
+          width: 1.4,
+        ),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.30),
@@ -2228,9 +2477,7 @@ class _FlowerPetalsPainter extends CustomPainter {
         ..shader = RadialGradient(
           colors: [const Color(0xFFFFF0F4), const Color(0xFFFFD6E0), edgeColor],
           stops: const [0.0, 0.45, 1.0],
-        ).createShader(
-          Rect.fromCircle(center: Offset.zero, radius: petalLen),
-        );
+        ).createShader(Rect.fromCircle(center: Offset.zero, radius: petalLen));
       canvas.drawPath(path, fill);
 
       // Edge: white .40 near the base fading to .12 at the tip.
@@ -2257,14 +2504,20 @@ class _FlowerPetalsPainter extends CustomPainter {
     return Path()
       ..moveTo(0, baseY)
       ..cubicTo(
-        -petalW, -petalLen * 0.45,
-        -petalW * 0.5, -petalLen * 0.92,
-        0, -petalLen,
+        -petalW,
+        -petalLen * 0.45,
+        -petalW * 0.5,
+        -petalLen * 0.92,
+        0,
+        -petalLen,
       )
       ..cubicTo(
-        petalW * 0.5, -petalLen * 0.92,
-        petalW, -petalLen * 0.45,
-        0, baseY,
+        petalW * 0.5,
+        -petalLen * 0.92,
+        petalW,
+        -petalLen * 0.45,
+        0,
+        baseY,
       )
       ..close();
   }
@@ -2350,8 +2603,7 @@ class PaintTreeRenderer extends LoveTreeRenderer {
     required LoveTreeStage stage,
     Season? season,
     bool skeleton = false,
-  }) =>
-      LoveTreePainter(stage: stage, season: season, skeleton: skeleton);
+  }) => LoveTreePainter(stage: stage, season: season, skeleton: skeleton);
 
   @override
   Widget flowerWidget({
@@ -2363,17 +2615,16 @@ class PaintTreeRenderer extends LoveTreeRenderer {
     double swayPhase = 0,
     AnimationController? ambient,
     VoidCallback? onTap,
-  }) =>
-      _LoveFlower(
-        kind: kind,
-        diameter: diameter,
-        isNew: isNew,
-        bloomOrder: bloomOrder,
-        reduceMotion: reduceMotion,
-        swayPhase: swayPhase,
-        ambient: ambient,
-        onTap: onTap,
-      );
+  }) => _LoveFlower(
+    kind: kind,
+    diameter: diameter,
+    isNew: isNew,
+    bloomOrder: bloomOrder,
+    reduceMotion: reduceMotion,
+    swayPhase: swayPhase,
+    ambient: ambient,
+    onTap: onTap,
+  );
 
   @override
   List<Offset> bloomPositions(LoveTreeStage stage, Size size, int count) =>
@@ -2394,11 +2645,7 @@ const LoveTreeRenderer kTreeRenderer = SakuraBranchRenderer();
 // ───────────────────────────────────────────────────────────────────────────
 
 class LoveTreePainter extends CustomPainter {
-  LoveTreePainter({
-    required this.stage,
-    this.skeleton = false,
-    this.season,
-  });
+  LoveTreePainter({required this.stage, this.skeleton = false, this.season});
 
   final LoveTreeStage stage;
 
@@ -2442,8 +2689,7 @@ class LoveTreePainter extends CustomPainter {
       [0.65, 0.26, 7, 0.16],
     ];
     for (final s in spots) {
-      final paint = Paint()
-        ..color = AppColors.white.withValues(alpha: s[3]);
+      final paint = Paint()..color = AppColors.white.withValues(alpha: s[3]);
       canvas.drawCircle(
         Offset(size.width * s[0], size.height * s[1]),
         s[2],
@@ -2498,11 +2744,7 @@ class LoveTreePainter extends CustomPainter {
     // A small soft shadow where the sprout meets the mound (so it "stands").
     if (!skeleton) {
       canvas.drawOval(
-        Rect.fromCenter(
-          center: base.translate(0, 1),
-          width: 18,
-          height: 6,
-        ),
+        Rect.fromCenter(center: base.translate(0, 1), width: 18, height: 6),
         Paint()
           ..color = _darken(stemBaseColor, 0.10).withValues(alpha: 0.10)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
@@ -2513,9 +2755,12 @@ class LoveTreePainter extends CustomPainter {
     final stem = Path()
       ..moveTo(base.dx, base.dy)
       ..cubicTo(
-        base.dx - 8, base.dy - h * 0.04,
-        base.dx + 8, base.dy - h * 0.08,
-        stemTop.dx, stemTop.dy,
+        base.dx - 8,
+        base.dy - h * 0.04,
+        base.dx + 8,
+        base.dy - h * 0.08,
+        stemTop.dx,
+        stemTop.dy,
       );
     canvas.drawPath(
       stem,
@@ -2531,7 +2776,11 @@ class LoveTreePainter extends CustomPainter {
     }
 
     // Two cotyledon leaves at the tip (±32°, 3-stop gradient for volume).
-    const leafColors = [Color(0xFFB6E0A0), Color(0xFF8FCB7A), Color(0xFF66A85C)];
+    const leafColors = [
+      Color(0xFFB6E0A0),
+      Color(0xFF8FCB7A),
+      Color(0xFF66A85C),
+    ];
     _paintLeaf(canvas, stemTop, h * 0.10, -32, leafColors);
     _paintLeaf(canvas, stemTop, h * 0.10, 32, leafColors);
 
@@ -2567,15 +2816,21 @@ class LoveTreePainter extends CustomPainter {
     final trunk = Path()
       ..moveTo(base.dx - spec.trunkBase, base.dy)
       ..cubicTo(
-        base.dx - spec.trunkBase * 0.55, base.dy - h * tH * 0.35,
-        trunkTop.dx - spec.trunkTop * 1.4, base.dy - h * tH * 0.72,
-        trunkTop.dx - spec.trunkTop, trunkTop.dy,
+        base.dx - spec.trunkBase * 0.55,
+        base.dy - h * tH * 0.35,
+        trunkTop.dx - spec.trunkTop * 1.4,
+        base.dy - h * tH * 0.72,
+        trunkTop.dx - spec.trunkTop,
+        trunkTop.dy,
       )
       ..lineTo(trunkTop.dx + spec.trunkTop, trunkTop.dy)
       ..cubicTo(
-        trunkTop.dx + spec.trunkTop * 1.4 + 1.5, base.dy - h * tH * 0.72,
-        base.dx + spec.trunkBase * 0.55 + 1.5, base.dy - h * tH * 0.35,
-        base.dx + spec.trunkBase, base.dy,
+        trunkTop.dx + spec.trunkTop * 1.4 + 1.5,
+        base.dy - h * tH * 0.72,
+        base.dx + spec.trunkBase * 0.55 + 1.5,
+        base.dy - h * tH * 0.35,
+        base.dx + spec.trunkBase,
+        base.dy,
       )
       ..close();
 
@@ -2584,19 +2839,24 @@ class LoveTreePainter extends CustomPainter {
     } else {
       // Horizontal gradient → rounded volume (light left, dark right).
       final trunkFill = Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            _lighten(trunkColor, 0.06),
-            trunkColor,
-            _darken(trunkColor, 0.10),
-          ],
-          stops: const [0.0, 0.5, 1.0],
-        ).createShader(Rect.fromLTWH(
-          base.dx - spec.trunkBase, trunkTop.dy,
-          spec.trunkBase * 2, h * tH,
-        ));
+        ..shader =
+            LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                _lighten(trunkColor, 0.06),
+                trunkColor,
+                _darken(trunkColor, 0.10),
+              ],
+              stops: const [0.0, 0.5, 1.0],
+            ).createShader(
+              Rect.fromLTWH(
+                base.dx - spec.trunkBase,
+                trunkTop.dy,
+                spec.trunkBase * 2,
+                h * tH,
+              ),
+            );
       canvas.drawPath(trunk, trunkFill);
 
       // Bark grain (young+): a faint curved line down the trunk.
@@ -2604,9 +2864,12 @@ class LoveTreePainter extends CustomPainter {
         final grain = Path()
           ..moveTo(base.dx - spec.trunkBase * 0.2, base.dy - h * tH * 0.08)
           ..cubicTo(
-            base.dx + 2, base.dy - h * tH * 0.4,
-            base.dx - 2, base.dy - h * tH * 0.65,
-            trunkTop.dx, trunkTop.dy + h * tH * 0.06,
+            base.dx + 2,
+            base.dy - h * tH * 0.4,
+            base.dx - 2,
+            base.dy - h * tH * 0.65,
+            trunkTop.dx,
+            trunkTop.dy + h * tH * 0.06,
           );
         canvas.drawPath(
           grain,
@@ -2622,26 +2885,29 @@ class LoveTreePainter extends CustomPainter {
     // lift (extra control point) for a natural arc; tip rounded.
     for (final dir in spec.branchDirs) {
       final start = Offset(base.dx, base.dy - h * tH * 0.65);
-      final end = Offset(
-        base.dx + dir * w * 0.14,
-        base.dy - h * tH * 0.92,
-      );
+      final end = Offset(base.dx + dir * w * 0.14, base.dy - h * tH * 0.92);
       _paintBranch(canvas, start, end, dir, spec.branchWidth, trunkColor, h);
     }
 
     // Canopy centre — UNCHANGED from v1 (anchor for bloomPositions).
-    final canopyCenter = Offset(base.dx, base.dy - h * tH - spec.canopyR * 0.35);
+    final canopyCenter = Offset(
+      base.dx,
+      base.dy - h * tH - spec.canopyR * 0.35,
+    );
     final canopyR = spec.canopyR;
 
     // Glow behind the canopy (bloom stage only).
     if (stage == LoveTreeStage.bloom && !skeleton) {
       final glow = Paint()
-        ..shader = RadialGradient(
-          colors: [
-            AppColors.accentRose.withValues(alpha: 0.10),
-            AppColors.accentRose.withValues(alpha: 0.0),
-          ],
-        ).createShader(Rect.fromCircle(center: canopyCenter, radius: canopyR * 1.25));
+        ..shader =
+            RadialGradient(
+              colors: [
+                AppColors.accentRose.withValues(alpha: 0.10),
+                AppColors.accentRose.withValues(alpha: 0.0),
+              ],
+            ).createShader(
+              Rect.fromCircle(center: canopyCenter, radius: canopyR * 1.25),
+            );
       canvas.drawCircle(canopyCenter, canopyR * 1.25, glow);
     }
 
@@ -2665,15 +2931,20 @@ class LoveTreePainter extends CustomPainter {
     // (which anchor to canopyGeometry) still land on the leaves.
     if (skeleton) {
       // Skeleton keeps the flat v1 grey silhouette (no multi-layer colour).
-      canvas.drawPath(_blobPath(canopyCenter, canopyR, spec.bumps),
-          Paint()..color = AppColors.surfaceLight);
+      canvas.drawPath(
+        _blobPath(canopyCenter, canopyR, spec.bumps),
+        Paint()..color = AppColors.surfaceLight,
+      );
       return;
     }
 
     // Back layer (only when the canopy is big enough — keeps sprout light).
     if (canopyR >= 70) {
       final backPath = _blobPath(
-        Offset(canopyCenter.dx + canopyR * 0.10, canopyCenter.dy + canopyR * 0.06),
+        Offset(
+          canopyCenter.dx + canopyR * 0.10,
+          canopyCenter.dy + canopyR * 0.06,
+        ),
         canopyR * 1.02,
         spec.bumps,
       );
@@ -2702,7 +2973,11 @@ class LoveTreePainter extends CustomPainter {
       spec.canopyDark,
       _darken(spec.canopyDark, 0.10),
     ];
-    const autumnLeaf = [Color(0xFFF0B95A), Color(0xFFE8A33D), Color(0xFFD9822B)];
+    const autumnLeaf = [
+      Color(0xFFF0B95A),
+      Color(0xFFE8A33D),
+      Color(0xFFD9822B),
+    ];
     for (int i = 0; i < spec.leafCount; i++) {
       final a = i * (2 * math.pi / spec.leafCount) + 0.3;
       final lp = Offset(
@@ -2710,23 +2985,33 @@ class LoveTreePainter extends CustomPainter {
         canopyCenter.dy + math.sin(a) * canopyR * 0.62,
       );
       final autumn = season == Season.autumn && i % 4 == 1;
-      _paintLeaf(canvas, lp, canopyR * 0.22, a * 180 / math.pi + 90,
-          autumn ? autumnLeaf : leafColors);
+      _paintLeaf(
+        canvas,
+        lp,
+        canopyR * 0.22,
+        a * 180 / math.pi + 90,
+        autumn ? autumnLeaf : leafColors,
+      );
     }
 
     // Front highlight (the light source, top-left) — a soft radial bloom.
-    final frontCenter =
-        Offset(canopyCenter.dx - canopyR * 0.12, canopyCenter.dy - canopyR * 0.10);
+    final frontCenter = Offset(
+      canopyCenter.dx - canopyR * 0.12,
+      canopyCenter.dy - canopyR * 0.10,
+    );
     canvas.drawCircle(
       frontCenter,
       canopyR * 0.64,
       Paint()
-        ..shader = RadialGradient(
-          colors: [
-            _lighten(spec.canopyLight, 0.10).withValues(alpha: 0.55),
-            _lighten(spec.canopyLight, 0.10).withValues(alpha: 0.0),
-          ],
-        ).createShader(Rect.fromCircle(center: frontCenter, radius: canopyR * 0.64)),
+        ..shader =
+            RadialGradient(
+              colors: [
+                _lighten(spec.canopyLight, 0.10).withValues(alpha: 0.55),
+                _lighten(spec.canopyLight, 0.10).withValues(alpha: 0.0),
+              ],
+            ).createShader(
+              Rect.fromCircle(center: frontCenter, radius: canopyR * 0.64),
+            ),
     );
 
     // Season tint over the canopy (v2 #2 §B.3) — a soft colour wash that keeps
@@ -2743,8 +3028,10 @@ class LoveTreePainter extends CustomPainter {
       ];
       for (final f in fallen) {
         final p = Offset(w * f[0], h * f[1]);
-        _paintLeaf(canvas, p, h * 0.018, 20,
-            const [Color(0xFFFFD6E0), Color(0xFFFF8FA3)]);
+        _paintLeaf(canvas, p, h * 0.018, 20, const [
+          Color(0xFFFFD6E0),
+          Color(0xFFFF8FA3),
+        ]);
       }
     }
   }
@@ -2782,25 +3069,38 @@ class LoveTreePainter extends CustomPainter {
     final path = Path()
       ..moveTo(start.dx + nx * w0, start.dy + ny * w0)
       ..quadraticBezierTo(
-        ctrl.dx + nx * (w0 + w1) / 2, ctrl.dy + ny * (w0 + w1) / 2,
-        end.dx + nx * w1, end.dy + ny * w1,
+        ctrl.dx + nx * (w0 + w1) / 2,
+        ctrl.dy + ny * (w0 + w1) / 2,
+        end.dx + nx * w1,
+        end.dy + ny * w1,
       )
       ..lineTo(end.dx - nx * w1, end.dy - ny * w1)
       ..quadraticBezierTo(
-        ctrl.dx - nx * (w0 + w1) / 2, ctrl.dy - ny * (w0 + w1) / 2,
-        start.dx - nx * w0, start.dy - ny * w0,
+        ctrl.dx - nx * (w0 + w1) / 2,
+        ctrl.dy - ny * (w0 + w1) / 2,
+        start.dx - nx * w0,
+        start.dy - ny * w0,
       )
       ..close();
 
     final fill = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: [_lighten(color, 0.05), color, _darken(color, 0.10)],
-      ).createShader(Rect.fromPoints(
-        Offset(math.min(start.dx, end.dx) - w0, math.min(start.dy, end.dy)),
-        Offset(math.max(start.dx, end.dx) + w0, math.max(start.dy, end.dy)),
-      ));
+      ..shader =
+          LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [_lighten(color, 0.05), color, _darken(color, 0.10)],
+          ).createShader(
+            Rect.fromPoints(
+              Offset(
+                math.min(start.dx, end.dx) - w0,
+                math.min(start.dy, end.dy),
+              ),
+              Offset(
+                math.max(start.dx, end.dx) + w0,
+                math.max(start.dy, end.dy),
+              ),
+            ),
+          );
     canvas.drawPath(path, fill);
     // Rounded tip cap.
     canvas.drawCircle(end, w1, Paint()..color = _darken(color, 0.06));
@@ -2842,10 +3142,9 @@ class LoveTreePainter extends CustomPainter {
       final a = i * (2 * math.pi / n) - math.pi / 2;
       final r = radius * bumps[i];
       // Flatten vertically a touch so the canopy reads as a wide cloud.
-      pts.add(Offset(
-        center.dx + math.cos(a) * r,
-        center.dy + math.sin(a) * r * 0.78,
-      ));
+      pts.add(
+        Offset(center.dx + math.cos(a) * r, center.dy + math.sin(a) * r * 0.78),
+      );
     }
     final path = Path()..moveTo(pts[0].dx, pts[0].dy);
     for (int i = 0; i < n; i++) {
@@ -3099,13 +3398,17 @@ class SkyBackdropPainter extends CustomPainter {
         break;
     }
 
-    final rect = Rect.fromLTWH(0, 0, w, h * 0.78);
+    // Full-bleed sky (love-tree 2026-06-18): the gradient now spans the WHOLE
+    // box (it reaches up behind the header and runs full width) and fades to a
+    // fully-transparent tail so the sky melts into the dawnBlush page below with
+    // no hard horizontal seam.
+    final rect = Rect.fromLTWH(0, 0, w, h);
     final paint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: colors,
-        stops: const [0.0, 0.55, 1.0],
+        colors: [...colors, colors.last.withValues(alpha: 0.0)],
+        stops: const [0.0, 0.34, 0.60, 1.0],
       ).createShader(rect);
     canvas.drawRect(rect, paint);
 
@@ -3272,7 +3575,11 @@ class _ParticlesPainter extends CustomPainter {
           ..color = const Color(0xFFFFE066).withValues(alpha: alpha * 0.6)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
       );
-      canvas.drawCircle(c, 1.6, core..color = const Color(0xFFFFF6C8).withValues(alpha: alpha));
+      canvas.drawCircle(
+        c,
+        1.6,
+        core..color = const Color(0xFFFFF6C8).withValues(alpha: alpha),
+      );
     }
   }
 
@@ -3282,7 +3589,9 @@ class _ParticlesPainter extends CustomPainter {
     // Falling sakura petals (v2.2 §C.6): soft pink in spring, a warmer amber
     // tinge in autumn (keeps the four seasons distinguishable). Each petal is
     // a small notched sakura petal, not a teardrop leaf.
-    final petalColor = spring ? const Color(0xFFFF8FA3) : const Color(0xFFF0B95A);
+    final petalColor = spring
+        ? const Color(0xFFFF8FA3)
+        : const Color(0xFFF0B95A);
     final fill = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
@@ -3356,10 +3665,7 @@ class _ShareCardData {
 /// name, stats, tagline and a "Dear Embeiu" watermark. Self-contained: no
 /// dependency on the screen layout, so it can be rendered off-screen → PNG.
 class _LoveTreeShareCard extends StatelessWidget {
-  const _LoveTreeShareCard({
-    required this.width,
-    required this.data,
-  });
+  const _LoveTreeShareCard({required this.width, required this.data});
 
   /// Logical width; height is width * 5/4 (4:5 portrait).
   final double width;
@@ -3517,7 +3823,9 @@ class _ShareTree extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Positioned.fill(
-              child: CustomPaint(painter: kTreeRenderer.treePainter(stage: stage)),
+              child: CustomPaint(
+                painter: kTreeRenderer.treePainter(stage: stage),
+              ),
             ),
             for (int i = 0; i < reached.length; i++)
               Positioned(
@@ -3709,10 +4017,12 @@ class _BranchSegment {
   /// Unit tangent at [t] (derivative of the cubic, normalised).
   Offset tangentAt(double t) {
     final mt = 1 - t;
-    final dx = 3 * mt * mt * (c1.dx - p0.dx) +
+    final dx =
+        3 * mt * mt * (c1.dx - p0.dx) +
         6 * mt * t * (c2.dx - c1.dx) +
         3 * t * t * (p3.dx - c2.dx);
-    final dy = 3 * mt * mt * (c1.dy - p0.dy) +
+    final dy =
+        3 * mt * mt * (c1.dy - p0.dy) +
         6 * mt * t * (c2.dy - c1.dy) +
         3 * t * t * (p3.dy - c2.dy);
     final len = math.sqrt(dx * dx + dy * dy);
@@ -3821,14 +4131,16 @@ class _SakuraBranchGeometry {
         start.dx + (end.dx - start.dx) * 0.70,
         start.dy + (end.dy - start.dy) * 0.70 - h * 0.02,
       );
-      segs.add(_BranchSegment(
-        p0: start,
-        c1: ctrl1,
-        c2: ctrl2,
-        p3: end,
-        wBaseHalf: forkHalf,
-        wTipHalf: spec.wTip * 0.7 / 2,
-      ));
+      segs.add(
+        _BranchSegment(
+          p0: start,
+          c1: ctrl1,
+          c2: ctrl2,
+          p3: end,
+          wBaseHalf: forkHalf,
+          wTipHalf: spec.wTip * 0.7 / 2,
+        ),
+      );
     }
     segments = segs;
   }
@@ -3924,7 +4236,9 @@ List<Offset> _sakuraBloomPositions(LoveTreeStage stage, Size size, int count) {
       final sideSign = (_bloomHash(i * 7 + 3) & 1) == 0 ? 1.0 : -1.0;
       // Sit just off the branch edge + a small deterministic jitter.
       final offsetMag =
-          seg.wHalf(t) + flowerR * 0.55 + (_bloomHash(i * 31 + 5) % 6).toDouble();
+          seg.wHalf(t) +
+          flowerR * 0.55 +
+          (_bloomHash(i * 31 + 5) % 6).toDouble();
       var pos = p + nrm * (sideSign * offsetMag);
       // Clamp inside the canvas with a margin so no blossom clips out (§B.1).
       final margin = flowerR + 4;
@@ -4070,7 +4384,11 @@ class SakuraBranchPainter extends CustomPainter {
 
     // Round the tip so the branch doesn't end in a flat cut.
     final tip = seg.pointAt(1.0);
-    canvas.drawCircle(tip, seg.wHalf(1.0), Paint()..color = _shadeFlowerColor(bark, -0.06));
+    canvas.drawCircle(
+      tip,
+      seg.wHalf(1.0),
+      Paint()..color = _shadeFlowerColor(bark, -0.06),
+    );
 
     // Bark grain on the main branch from young+ (a faint curved line on the
     // lower half) — only when the branch is wide enough to read.
@@ -4078,8 +4396,10 @@ class SakuraBranchPainter extends CustomPainter {
       final grain = Path()
         ..moveTo(seg.pointAt(0.10).dx, seg.pointAt(0.10).dy)
         ..quadraticBezierTo(
-          seg.pointAt(0.30).dx, seg.pointAt(0.30).dy,
-          seg.pointAt(0.50).dx, seg.pointAt(0.50).dy,
+          seg.pointAt(0.30).dx,
+          seg.pointAt(0.30).dy,
+          seg.pointAt(0.50).dx,
+          seg.pointAt(0.50).dy,
         );
       canvas.drawPath(
         grain,
@@ -4102,7 +4422,11 @@ class SakuraBranchPainter extends CustomPainter {
     if (spec.leafCount <= 0) {
       return;
     }
-    const leafColors = [Color(0xFFB8CBA0), Color(0xFF9FBF7A), Color(0xFFC9A8B0)];
+    const leafColors = [
+      Color(0xFFB8CBA0),
+      Color(0xFF9FBF7A),
+      Color(0xFFC9A8B0),
+    ];
     final len = size.height * 0.05;
     // Anchor leaves at deterministic spots along the main branch's lower half.
     final main = geo.mainSegment;
@@ -4155,11 +4479,7 @@ class SakuraBranchPainter extends CustomPainter {
 
   /// Closed pink buds near the tip — the dreamy "about to bloom" accent. At seed
   /// stage these stand in for blossoms; later one sits at the tip.
-  void _paintBuds(
-    Canvas canvas,
-    _SakuraBranchGeometry geo,
-    _BranchSpec spec,
-  ) {
+  void _paintBuds(Canvas canvas, _SakuraBranchGeometry geo, _BranchSpec spec) {
     final main = geo.mainSegment;
     for (var i = 0; i < spec.budCount; i++) {
       // Buds cluster at the tip; for 2 buds, spread them just below it.
@@ -4192,7 +4512,11 @@ class SakuraBranchPainter extends CustomPainter {
     final calyx = Paint()..color = const Color(0xFF9FBF7A);
     canvas.drawCircle(const Offset(0, 1), 3.2, calyx);
     // The bud body: an upright oval, pink-light → pink-deep.
-    final budRect = Rect.fromCenter(center: const Offset(0, -4), width: 8, height: 11);
+    final budRect = Rect.fromCenter(
+      center: const Offset(0, -4),
+      width: 8,
+      height: 11,
+    );
     canvas.drawOval(
       budRect,
       Paint()
@@ -4256,14 +4580,11 @@ class _SakuraFlowerState extends State<_SakuraFlower>
         vsync: this,
         duration: const Duration(milliseconds: 540),
       );
-      Future<void>.delayed(
-        Duration(milliseconds: 140 * widget.bloomOrder),
-        () {
-          if (mounted) {
-            _controller?.forward();
-          }
-        },
-      );
+      Future<void>.delayed(Duration(milliseconds: 140 * widget.bloomOrder), () {
+        if (mounted) {
+          _controller?.forward();
+        }
+      });
     }
   }
 
@@ -4314,8 +4635,10 @@ class _SakuraFlowerState extends State<_SakuraFlower>
     if (!_animate || _controller == null) {
       return flower;
     }
-    final petalScale =
-        CurvedAnimation(parent: _controller!, curve: Curves.easeOutBack);
+    final petalScale = CurvedAnimation(
+      parent: _controller!,
+      curve: Curves.easeOutBack,
+    );
     final petalFade = CurvedAnimation(
       parent: _controller!,
       curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
@@ -4373,8 +4696,9 @@ class _SakuraFlowerState extends State<_SakuraFlower>
                     shadows: [
                       Shadow(
                         color: _shadeFlowerColor(
-                                LoveTreeService.nucleusColor(widget.kind), -0.2)
-                            .withValues(alpha: 0.35),
+                          LoveTreeService.nucleusColor(widget.kind),
+                          -0.2,
+                        ).withValues(alpha: 0.35),
                         blurRadius: 1,
                       ),
                     ],
@@ -4436,15 +4760,22 @@ class _SakuraPetalsPainter extends CustomPainter {
       final stroke = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
-        ..shader = LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [
-            AppColors.white.withValues(alpha: 0.40),
-            AppColors.white.withValues(alpha: 0.10),
-          ],
-        ).createShader(Rect.fromLTWH(
-            -petalLen * 0.46, -petalLen, petalLen * 0.92, petalLen));
+        ..shader =
+            LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [
+                AppColors.white.withValues(alpha: 0.40),
+                AppColors.white.withValues(alpha: 0.10),
+              ],
+            ).createShader(
+              Rect.fromLTWH(
+                -petalLen * 0.46,
+                -petalLen,
+                petalLen * 0.92,
+                petalLen,
+              ),
+            );
       canvas.drawPath(path, stroke);
       canvas.restore();
     }
@@ -4475,10 +4806,7 @@ class _SakuraNucleusPainter extends CustomPainter {
       d * 0.70,
       Paint()
         ..shader = RadialGradient(
-          colors: [
-            color.withValues(alpha: 0.22),
-            color.withValues(alpha: 0.0),
-          ],
+          colors: [color.withValues(alpha: 0.22), color.withValues(alpha: 0.0)],
         ).createShader(Rect.fromCircle(center: center, radius: d * 0.70)),
     );
 
@@ -4494,7 +4822,11 @@ class _SakuraNucleusPainter extends CustomPainter {
       final a = (i / stamenCount) * 2 * math.pi + jitter;
       final p = center + Offset(math.cos(a) * ringR, math.sin(a) * ringR);
       canvas.drawCircle(p, dotR, stamenPaint);
-      canvas.drawCircle(p.translate(-dotR * 0.3, -dotR * 0.3), dotR * 0.5, tipPaint);
+      canvas.drawCircle(
+        p.translate(-dotR * 0.3, -dotR * 0.3),
+        dotR * 0.5,
+        tipPaint,
+      );
     }
 
     // 3. Centre disc — a soft rounded volume (no thick white rim).
@@ -4543,8 +4875,7 @@ class SakuraBranchRenderer extends LoveTreeRenderer {
     required LoveTreeStage stage,
     Season? season,
     bool skeleton = false,
-  }) =>
-      SakuraBranchPainter(stage: stage, season: season, skeleton: skeleton);
+  }) => SakuraBranchPainter(stage: stage, season: season, skeleton: skeleton);
 
   @override
   Widget flowerWidget({
@@ -4556,17 +4887,16 @@ class SakuraBranchRenderer extends LoveTreeRenderer {
     double swayPhase = 0,
     AnimationController? ambient,
     VoidCallback? onTap,
-  }) =>
-      _SakuraFlower(
-        kind: kind,
-        diameter: diameter,
-        isNew: isNew,
-        bloomOrder: bloomOrder,
-        reduceMotion: reduceMotion,
-        swayPhase: swayPhase,
-        ambient: ambient,
-        onTap: onTap,
-      );
+  }) => _SakuraFlower(
+    kind: kind,
+    diameter: diameter,
+    isNew: isNew,
+    bloomOrder: bloomOrder,
+    reduceMotion: reduceMotion,
+    swayPhase: swayPhase,
+    ambient: ambient,
+    onTap: onTap,
+  );
 
   @override
   List<Offset> bloomPositions(LoveTreeStage stage, Size size, int count) =>

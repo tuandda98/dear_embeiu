@@ -17,6 +17,7 @@ import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../services/analytics_service.dart';
 import '../theme/app_colors.dart';
+import '../utils/lunar_calendar.dart';
 import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/content_card.dart';
 import '../widgets/entrance_reveal.dart';
@@ -27,6 +28,7 @@ import '../widgets/section_header.dart';
 import '../widgets/sub_screen_header.dart';
 import 'chat_bg_screen.dart';
 import 'counter_bg_screen.dart';
+import 'lunar_calendar_screen.dart';
 import 'reminders_screen.dart';
 
 /// The app-wide Settings screen (feature: settings — v2 redesign 2026-06-11).
@@ -54,6 +56,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // whole sequence (leaveCouple → updateCurrentUser → sync) with no dead gap.
   bool _leaving = false;
 
+  // Accounts that should NOT see the "Quản lý dữ liệu" (data management) card —
+  // i.e. clear-local-cache / leave-couple / delete-account are hidden for them
+  // (user request 2026-06-19). Matched case-insensitively against the signed-in
+  // email. Add more emails here if needed.
+  static const Set<String> _hideDataManagementEmails = <String>{
+    'phuogthao1408@gmail.com',
+  };
+
+  // Accounts that DO see the lunar-calendar card (today's lunar date + a
+  // mồng-1/ngày-rằm reminder). Account-gated per user request 2026-06-19;
+  // matched case-insensitively against the signed-in email.
+  static const Set<String> _lunarCalendarEmails = <String>{
+    'dodaoanhtuan@gmail.com',
+  };
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -70,8 +87,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         canPop: false,
         child: Scaffold(
           body: Container(
-            decoration:
-                const BoxDecoration(gradient: AppColors.secondaryGradient),
+            decoration: const BoxDecoration(
+              gradient: AppColors.secondaryGradient,
+            ),
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -120,6 +138,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   return const SizedBox.shrink();
                 }
                 final authProvider = context.watch<AuthProvider>();
+                // Hide the data-management card for specific accounts.
+                final email =
+                    (authProvider.currentUser?.email ??
+                            authProvider.currentEmail ??
+                            '')
+                        .trim()
+                        .toLowerCase();
+                final hideDataManagement = _hideDataManagementEmails.contains(
+                  email,
+                );
+                final showLunar = _lunarCalendarEmails.contains(email);
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -145,19 +174,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         order: 1,
                         child: _buildNotificationsSection(context),
                       ),
+                      if (showLunar) ...[
+                        const SizedBox(height: 24),
+                        EntranceReveal(
+                          order: 2,
+                          child: _buildLunarSection(context),
+                        ),
+                      ],
                       const SizedBox(height: 24),
                       EntranceReveal(
                         order: 2,
                         child: _buildGeneralSection(context),
                       ),
-                      const SizedBox(height: 24),
-                      EntranceReveal(
-                        order: 3,
-                        child: _buildDangerZone(
-                          context,
-                          isUsingFirebase: authProvider.isUsingFirebase,
+                      if (!hideDataManagement) ...[
+                        const SizedBox(height: 24),
+                        EntranceReveal(
+                          order: 3,
+                          child: _buildDangerZone(
+                            context,
+                            isUsingFirebase: authProvider.isUsingFirebase,
+                          ),
                         ),
-                      ),
+                      ],
                       // Sign-out closes the page — the universal settings
                       // convention: scan order runs frequent → rare → leave.
                       const SizedBox(height: 18),
@@ -236,10 +274,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 8),
-            trailing,
-          ],
+          if (trailing != null) ...[const SizedBox(width: 8), trailing],
           if (trailingIcon != null) ...[
             const SizedBox(width: 4),
             Icon(
@@ -315,7 +350,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               if (email.isNotEmpty) ...[
                 _rowDivider(),
-                _buildAccountInfoRow(IconsaxPlusLinear.sms, l10n.emailLabel, email),
+                _buildAccountInfoRow(
+                  IconsaxPlusLinear.sms,
+                  l10n.emailLabel,
+                  email,
+                ),
               ],
             ],
           ),
@@ -431,6 +470,130 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         MaterialPageRoute<void>(
                           settings: const RouteSettings(name: 'Reminders'),
                           builder: (_) => const RemindersScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Group: Lunar calendar (account-gated, 2026-06-19) — today's lunar date +
+  // next mồng-1 / ngày-rằm (Gregorian) + a toggle that schedules the 7/8/9 AM
+  // nudges on those days. Only shown for emails in [_lunarCalendarEmails].
+  // ---------------------------------------------------------------------------
+  Widget _buildLunarSection(BuildContext context) {
+    final l10n = context.l10n;
+    final now = DateTime.now();
+    final today = LunarCalendar.fromSolar(now);
+    final upcoming = LunarCalendar.nextOneAndFifteen(now, 4);
+    DateTime? nextFirst;
+    DateTime? nextFull;
+    for (final e in upcoming) {
+      if (e.isFirstDay) {
+        nextFirst ??= e.date;
+      } else {
+        nextFull ??= e.date;
+      }
+    }
+    String gdate(DateTime? d) => d == null ? '—' : '${d.day}/${d.month}';
+
+    return Consumer<ReminderProvider>(
+      builder: (context, reminder, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SectionHeader(title: l10n.lunarSectionTitle),
+            const SizedBox(height: 12),
+            ContentCard(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      children: [
+                        const IconBadge(IconsaxPlusLinear.moon),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${l10n.lunarTodayLabel}: '
+                                '${l10n.lunarDateLabel(today.month, today.day)}'
+                                ' · ${LunarCalendar.canChiYear(today.year)}',
+                                style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${l10n.lunarNextNewMoon}: ${gdate(nextFirst)}'
+                                '   ·   '
+                                '${l10n.lunarNextFullMoon}: ${gdate(nextFull)}',
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _rowDivider(),
+                  SwitchListTile.adaptive(
+                    value: reminder.lunarEnabled,
+                    onChanged: (v) {
+                      HapticFeedback.selectionClick();
+                      reminder.setLunarEnabled(v, l10n: l10n);
+                    },
+                    activeThumbColor: AppColors.accentRose,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                    secondary: const IconBadge(
+                      IconsaxPlusLinear.notification_bing,
+                    ),
+                    title: Text(
+                      l10n.lunarReminderToggle,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        l10n.lunarReminderToggleSub,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ),
+                  _rowDivider(),
+                  // Full calendar + day/time editor.
+                  _navRow(
+                    icon: IconsaxPlusLinear.calendar_1,
+                    title: l10n.lunarOpenCalendar,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          settings: const RouteSettings(name: 'LunarCalendar'),
+                          builder: (_) => const LunarCalendarScreen(),
                         ),
                       );
                     },
@@ -606,7 +769,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.error.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(IconsaxPlusLinear.trash, color: AppColors.error),
+                child: const Icon(
+                  IconsaxPlusLinear.trash,
+                  color: AppColors.error,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -637,26 +803,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 14),
 
-          // Warning context FIRST — user reads before acting
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.error.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.error.withValues(alpha: 0.14)),
-            ),
-            child: Text(
-              l10n.clearDataNote,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-                height: 1.5,
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-
           // Firebase-specific: clear local cache (low severity)
           if (isUsingFirebase) ...[
             SizedBox(
@@ -665,9 +811,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: () => _showClearLocalDialog(context),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.textPrimary,
-                  side: BorderSide(color: AppColors.textSecondary.withValues(alpha: 0.22)),
+                  side: BorderSide(
+                    color: AppColors.textSecondary.withValues(alpha: 0.22),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 icon: const Icon(IconsaxPlusLinear.eraser, size: 18),
                 label: Text(l10n.clearLocalDataBtn),
@@ -681,11 +831,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: AppColors.warning.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.warning.withValues(alpha: 0.18)),
+                border: Border.all(
+                  color: AppColors.warning.withValues(alpha: 0.18),
+                ),
               ),
               child: Text(
                 l10n.localFallbackWarning,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.45),
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  height: 1.45,
+                ),
               ),
             ),
             const SizedBox(height: 10),
@@ -698,9 +854,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () => _showLeaveCoupleDialog(context),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.error,
-                side: BorderSide(color: AppColors.error.withValues(alpha: 0.30)),
+                side: BorderSide(
+                  color: AppColors.error.withValues(alpha: 0.30),
+                ),
                 padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
               icon: const Icon(IconsaxPlusLinear.logout, size: 18),
               label: Text(l10n.leaveCoupleBtn),
@@ -712,7 +872,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.symmetric(vertical: 14),
             child: Row(
               children: [
-                Expanded(child: Divider(color: AppColors.error.withValues(alpha: 0.15), height: 1)),
+                Expanded(
+                  child: Divider(
+                    color: AppColors.error.withValues(alpha: 0.15),
+                    height: 1,
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Text(
@@ -725,7 +890,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ),
-                Expanded(child: Divider(color: AppColors.error.withValues(alpha: 0.15), height: 1)),
+                Expanded(
+                  child: Divider(
+                    color: AppColors.error.withValues(alpha: 0.15),
+                    height: 1,
+                  ),
+                ),
               ],
             ),
           ),
@@ -739,7 +909,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 backgroundColor: AppColors.error,
                 foregroundColor: AppColors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
               icon: const Icon(IconsaxPlusLinear.trash, size: 18),
               label: Text(
@@ -805,9 +977,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ScaffoldMessenger.of(context)
                 ..clearSnackBars()
                 ..showSnackBar(
-                  SnackBar(
-                    content: Text(l10n.localDataClearedMsg),
-                  ),
+                  SnackBar(content: Text(l10n.localDataClearedMsg)),
                 );
             },
             child: Text(
@@ -846,10 +1016,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (!context.mounted) return;
 
               if (errorCode == null) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRoutes.authGate,
-                  (route) => false,
-                );
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
               } else if (errorCode == 'requires-recent-login') {
                 // Stale-session challenge — don't dead-end. Collect the password
                 // and re-auth + retry the delete in place (#2).
@@ -862,7 +1031,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
             child: Text(
               l10n.deleteAccountConfirmBtn,
-              style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -900,17 +1072,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
 
               final authProvider = ctx.read<AuthProvider>();
-              final result = await authProvider
-                  .reauthenticateAndDeleteAccount(passwordController.text);
+              final result = await authProvider.reauthenticateAndDeleteAccount(
+                passwordController.text,
+              );
               if (!ctx.mounted) return;
 
               if (result == null) {
                 // Deleted — close the dialog and reset to the auth gate.
                 Navigator.of(ctx).pop();
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRoutes.authGate,
-                  (route) => false,
-                );
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
                 return;
               }
 
@@ -924,10 +1096,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       content: Text(l10n.deleteAccountSessionExpiredMsg),
                     ),
                   );
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRoutes.authGate,
-                  (route) => false,
-                );
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
                 return;
               }
 
@@ -969,8 +1140,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       validator: (value) =>
                           (value == null || value.trim().isEmpty)
-                              ? l10n.passwordRequired
-                              : null,
+                          ? l10n.passwordRequired
+                          : null,
                     ),
                   ],
                 ),
@@ -1033,10 +1204,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 return;
               }
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                AppRoutes.authGate,
-                (route) => false,
-              );
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
             },
             child: Text(l10n.signOutConfirmBtn),
           ),
@@ -1058,12 +1228,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: screenContext,
       builder: (dialogContext) => AlertDialog(
-        title: Text(isSoleMember
-            ? l10n.leaveCoupleDeleteAllTitle
-            : l10n.leaveCoupleDialogTitle),
-        content: Text(isSoleMember
-            ? l10n.leaveCoupleDeleteAllContent
-            : l10n.leaveCoupleDialogContent),
+        title: Text(
+          isSoleMember
+              ? l10n.leaveCoupleDeleteAllTitle
+              : l10n.leaveCoupleDialogTitle,
+        ),
+        content: Text(
+          isSoleMember
+              ? l10n.leaveCoupleDeleteAllContent
+              : l10n.leaveCoupleDialogContent,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -1137,10 +1311,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // / streak watchers for the now-single user (going straight to /setup left
     // them running on the old coupleId) and lands on setup. The destination
     // shows its own loader, so we hand off without a flash.
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.authGate,
-      (route) => false,
-    );
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
   }
 }
 
@@ -1164,17 +1337,24 @@ class _DailyQuestionReminderTile extends StatelessWidget {
     final times = context.select<ReminderProvider, List<TimeOfDay>>(
       (p) => p.dailyQuestionReminderTimes,
     );
-    // Single shared fire-time (notifications revamp 2026-06-14: the multi-time
-    // "add" was dropped — this reminder has ONE time). Fall back to 20:00.
-    final time = times.isNotEmpty
-        ? times.first
-        : const TimeOfDay(hour: 20, minute: 0);
+    final canAddTime = context.select<ReminderProvider, bool>(
+      (p) => p.canAddDailyQuestionTime,
+    );
+    // The fire times the user can edit (multi-time, 2026-06-19): each row is a
+    // time the couple shares; tap to change, ✕ to remove (kept ≥1). On top of
+    // these, the provider always fires fixed 21/22/23h end-of-day nudges while
+    // today's question isn't answered — surfaced via the hint below.
+    final editable = times.isNotEmpty
+        ? times
+        : const <TimeOfDay>[TimeOfDay(hour: 20, minute: 0)];
 
     Future<void> handleToggle(bool value) async {
       HapticFeedback.selectionClick();
       final messenger = ScaffoldMessenger.of(context);
-      final granted =
-          await provider.setDailyQuestionReminderEnabled(value, l10n: l10n);
+      final granted = await provider.setDailyQuestionReminderEnabled(
+        value,
+        l10n: l10n,
+      );
       if (value && !granted) {
         messenger
           ..clearSnackBars()
@@ -1184,15 +1364,38 @@ class _DailyQuestionReminderTile extends StatelessWidget {
       }
     }
 
-    // One time, tap to change — sets the whole (single-element) list so the
-    // provider syncs it to the couple.
-    Future<void> pickTime() async {
-      final picked = await showAppTimePicker(context, initialTime: time);
+    // Edit one existing time: re-pick and replace it in the shared list so the
+    // provider re-normalizes (sort/de-dupe) and syncs it to the couple.
+    Future<void> editTime(int index) async {
+      final picked = await showAppTimePicker(
+        context,
+        initialTime: editable[index],
+      );
       if (picked == null || !context.mounted) {
         return;
       }
       HapticFeedback.selectionClick();
-      await provider.setDailyQuestionTimes(<TimeOfDay>[picked], l10n: l10n);
+      final next = List<TimeOfDay>.of(editable);
+      next[index] = picked;
+      await provider.setDailyQuestionTimes(next, l10n: l10n);
+    }
+
+    Future<void> removeTime(int index) async {
+      HapticFeedback.selectionClick();
+      await provider.removeDailyQuestionTime(index, l10n: l10n);
+    }
+
+    // Add a new time — default the picker to 21:00, a sensible evening slot.
+    Future<void> addTime() async {
+      final picked = await showAppTimePicker(
+        context,
+        initialTime: const TimeOfDay(hour: 21, minute: 0),
+      );
+      if (picked == null || !context.mounted) {
+        return;
+      }
+      HapticFeedback.selectionClick();
+      await provider.addDailyQuestionTime(picked, l10n: l10n);
     }
 
     return Padding(
@@ -1235,11 +1438,110 @@ class _DailyQuestionReminderTile extends StatelessWidget {
               ),
             ],
           ),
-          // Single shared fire-time — only shown while the nudge is on.
-          if (enabled)
+          // Fire-times editor + end-of-day hint — only while the nudge is on.
+          if (enabled) ...[
+            const SizedBox(height: 12),
+            for (var i = 0; i < editable.length; i++)
+              Padding(
+                padding: EdgeInsets.only(top: i == 0 ? 0 : 8),
+                child: _DailyQuestionTimeRow(
+                  time: editable[i],
+                  onTap: () => editTime(i),
+                  // Keep at least one time; ✕ appears only with spares.
+                  onRemove: editable.length > 1 ? () => removeTime(i) : null,
+                ),
+              ),
+            if (canAddTime)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: _DailyQuestionAddTimeRow(onTap: addTime),
+              ),
             Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: _DailyQuestionTimeRow(time: time, onTap: pickTime),
+              padding: const EdgeInsets.only(top: 12, left: 2, right: 2),
+              child: Text(
+                l10n.dailyQuestionReminderEndOfDayHint,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// One editable fire-time row for the daily-question nudge (multi-time,
+/// 2026-06-19): tap the row to change the time, tap ✕ to remove it (shown only
+/// when [onRemove] is non-null, i.e. more than one time remains). Soft rose
+/// surface so it groups with the switch above.
+class _DailyQuestionTimeRow extends StatelessWidget {
+  const _DailyQuestionTimeRow({
+    required this.time,
+    required this.onTap,
+    this.onRemove,
+  });
+
+  final TimeOfDay time;
+  final VoidCallback onTap;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.accentRose.withValues(alpha: 0.06),
+      borderRadius: BorderRadius.circular(16),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(16),
+              splashColor: AppColors.accentRose.withValues(alpha: 0.08),
+              highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 14,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      IconsaxPlusLinear.clock,
+                      size: 18,
+                      color: AppColors.accentRose,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        time.format(context),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (onRemove != null)
+            InkResponse(
+              onTap: onRemove,
+              radius: 22,
+              child: const Padding(
+                padding: EdgeInsets.fromLTRB(4, 14, 14, 14),
+                child: Icon(
+                  IconsaxPlusLinear.close_circle,
+                  size: 20,
+                  color: AppColors.textTertiary,
+                ),
+              ),
             ),
         ],
       ),
@@ -1247,14 +1549,12 @@ class _DailyQuestionReminderTile extends StatelessWidget {
   }
 }
 
-/// Single fire-time row for the daily-question nudge (notifications revamp
-/// 2026-06-14: one shared time, tap to change — the multi-time "add" was
-/// dropped). Soft rose surface so it reads as one grouped control with the
-/// switch above.
-class _DailyQuestionTimeRow extends StatelessWidget {
-  const _DailyQuestionTimeRow({required this.time, required this.onTap});
+/// The "Add a time" row for the daily-question nudge (multi-time, 2026-06-19):
+/// a soft rose tile that opens the time picker to append a new fire time.
+/// Hidden by the caller once the cap is reached.
+class _DailyQuestionAddTimeRow extends StatelessWidget {
+  const _DailyQuestionAddTimeRow({required this.onTap});
 
-  final TimeOfDay time;
   final VoidCallback onTap;
 
   @override
@@ -1272,30 +1572,20 @@ class _DailyQuestionTimeRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           child: Row(
             children: [
-              const Icon(IconsaxPlusLinear.clock,
-                  size: 18, color: AppColors.accentRose),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  l10n.dailyQuestionReminderTimesLabel,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              const Icon(
+                IconsaxPlusLinear.add_circle,
+                size: 18,
+                color: AppColors.accentRose,
               ),
+              const SizedBox(width: 10),
               Text(
-                time.format(context),
+                l10n.dailyQuestionReminderAddTime,
                 style: const TextStyle(
                   color: AppColors.accentRose,
                   fontSize: 15,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(width: 6),
-              const Icon(IconsaxPlusLinear.arrow_right_3,
-                  size: 18, color: AppColors.textTertiary),
             ],
           ),
         ),
@@ -1354,4 +1644,3 @@ class _AnalyticsToggleTileState extends State<_AnalyticsToggleTile> {
     );
   }
 }
-

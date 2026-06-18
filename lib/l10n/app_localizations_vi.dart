@@ -281,7 +281,67 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chatStatusDelivered => 'Đã nhận';
 
   @override
-  String get chatStatusRead => 'Đã đọc';
+  String get chatStatusRead => 'Đã xem';
+
+  @override
+  String get lunarSectionTitle => 'Lịch âm';
+
+  @override
+  String lunarDateLabel(int month, int day) {
+    return '$day tháng $month Âm';
+  }
+
+  @override
+  String get lunarTodayLabel => 'Hôm nay';
+
+  @override
+  String get lunarNextNewMoon => 'Mồng 1 tới';
+
+  @override
+  String get lunarNextFullMoon => 'Ngày rằm tới';
+
+  @override
+  String get lunarReminderToggle => 'Nhắc theo ngày âm lịch';
+
+  @override
+  String get lunarReminderToggleSub => 'Vào ngày & giờ bạn chọn';
+
+  @override
+  String get lunarNewMoonNotifTitle => 'Mồng một âm lịch 🌙';
+
+  @override
+  String get lunarNewMoonNotifBody => 'Hôm nay là ngày mồng một âm lịch.';
+
+  @override
+  String get lunarFullMoonNotifTitle => 'Ngày rằm 🌕';
+
+  @override
+  String get lunarFullMoonNotifBody => 'Hôm nay là ngày rằm (15 âm lịch).';
+
+  @override
+  String lunarOtherDayNotifTitle(int day) {
+    return 'Ngày $day âm lịch 🌙';
+  }
+
+  @override
+  String lunarOtherDayNotifBody(int day) {
+    return 'Hôm nay là ngày $day âm lịch.';
+  }
+
+  @override
+  String get lunarCalendarBadge => 'LỊCH ÂM';
+
+  @override
+  String get lunarOpenCalendar => 'Mở lịch âm';
+
+  @override
+  String get lunarRemindDaysLabel => 'Ngày nhắc (âm lịch)';
+
+  @override
+  String get lunarRemindTimesLabel => 'Giờ nhắc';
+
+  @override
+  String get lunarAddTime => 'Thêm giờ';
 
   @override
   String get chatUnreadDotSemantics => 'Có tin nhắn mới';
@@ -746,6 +806,56 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get reactionPartnerFallback => 'Người ấy';
+
+  @override
+  String get moodCardTitle => 'Tâm trạng hôm nay';
+
+  @override
+  String get moodShareCta => 'Chia sẻ tâm trạng';
+
+  @override
+  String get moodUpdateCta => 'Đổi tâm trạng';
+
+  @override
+  String get moodNotSharedYou => 'Chạm để chia sẻ';
+
+  @override
+  String moodPartnerEmpty(String name) {
+    return '$name chưa chia sẻ hôm nay';
+  }
+
+  @override
+  String get moodSheetTitle => 'Hôm nay bạn thế nào?';
+
+  @override
+  String get moodNoteHint => 'Thêm đôi lời (không bắt buộc)';
+
+  @override
+  String get moodSaveCta => 'Lưu tâm trạng';
+
+  @override
+  String get moodHappy => 'Vui';
+
+  @override
+  String get moodLoved => 'Hạnh phúc';
+
+  @override
+  String get moodMissing => 'Nhớ';
+
+  @override
+  String get moodCalm => 'Bình yên';
+
+  @override
+  String get moodMeh => 'Bình thường';
+
+  @override
+  String get moodTired => 'Mệt';
+
+  @override
+  String get moodSad => 'Buồn';
+
+  @override
+  String get moodStressed => 'Căng thẳng';
 
   @override
   String get dailyQuestionLabel => 'Câu hỏi hôm nay';
@@ -1467,6 +1577,42 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get dailyQuestionReminderNotifBody =>
       'Ghé trả lời để mở khoá câu trả lời của người ấy nhé.';
+
+  @override
+  String get dailyQuestionReminderEndOfDayHint =>
+      'Chúng mình còn được nhắc thêm lúc 21h, 22h và 23h nếu cuối ngày mà cả hai chưa trả lời — riêng 22h và 23h sẽ cảnh báo sắp mất chuỗi.';
+
+  @override
+  String get dqEndOfDayNudgeTitle => 'Ngày sắp khép lại rồi 🌙';
+
+  @override
+  String get dqEndOfDayNudgeBody =>
+      'Câu hỏi hôm nay vẫn đang chờ — ghé trả lời trước khi hết ngày nhé.';
+
+  @override
+  String get dqEndOfDayNudgePartnerBody =>
+      'Người ấy chưa trả lời câu hỏi hôm nay — nhắc một câu cho kịp nhé.';
+
+  @override
+  String get dqStreakWarningTitle => 'Sắp lỡ mất chuỗi rồi! 🔥';
+
+  @override
+  String dqStreakWarningBody(int days) {
+    return 'Sắp hết ngày rồi. Trả lời câu hỏi để giữ chuỗi $days ngày của chúng mình nhé!';
+  }
+
+  @override
+  String dqStreakWarningPartnerBody(int days) {
+    return 'Người ấy chưa trả lời. Nhắc nhẹ một câu để khỏi đứt chuỗi $days ngày nhé!';
+  }
+
+  @override
+  String get dqStreakWarningStartBody =>
+      'Sắp hết ngày rồi! Trả lời câu hỏi để mở chuỗi mới cho chúng mình nhé.';
+
+  @override
+  String get dqStreakWarningStartPartnerBody =>
+      'Người ấy chưa trả lời. Nhắc một câu để chúng mình cùng bắt đầu chuỗi nhé.';
 
   @override
   String get reminderDailyTitle => 'Thêm một ngày của chúng mình 💕';

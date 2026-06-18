@@ -188,6 +188,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           couple.person1Name.trim().isNotEmpty &&
                           couple.person2Name.trim().isNotEmpty)
                       ? EyebrowChip(
+                          // Match the 44px back disc beside it (user 2026-06-19).
+                          minHeight: 44,
                           child: AnimatedCoupleName(
                             person1Name: couple.person1Name.toUpperCase(),
                             person2Name: couple.person2Name.toUpperCase(),
@@ -215,6 +217,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         )
                       : EyebrowChip(
+                          minHeight: 44,
                           label: l10n.chatBadge,
                           icon: IconsaxPlusLinear.messages,
                         ),
@@ -270,10 +273,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 messages: messages,
                 myUid: myUid,
                 latestMineStatus: latestMineStatus,
+                latestMineReadAt: provider.partnerReadAt,
                 hasMore: provider.hasMore,
                 isLoadingMore: provider.loadingMore,
                 onLoadMore: provider.loadMore,
                 revealedIds: _revealedIds,
+                hasBackground: widget.hasBackground,
               );
             },
           ),
@@ -428,18 +433,29 @@ class _MessageList extends StatefulWidget {
     required this.messages,
     required this.myUid,
     required this.latestMineStatus,
+    required this.latestMineReadAt,
     required this.hasMore,
     required this.isLoadingMore,
     required this.onLoadMore,
     required this.revealedIds,
+    required this.hasBackground,
   });
 
   final List<ChatMessage> messages;
   final String myUid;
 
+  /// Whether a custom photo backdrop is behind the list — the "naked" texts
+  /// (time dividers + the delivery status) then ride a dark scrim pill so they
+  /// stay legible over ANY photo region (which changes constantly).
+  final bool hasBackground;
+
   /// Delivery status of the latest outgoing message — rendered under its
   /// bubble (đang gửi / đã gửi / đã nhận / đã đọc).
   final ChatMessageStatus latestMineStatus;
+
+  /// When the partner last read up to — formatted as the "Đã xem · HH:mm" time
+  /// under the latest outgoing bubble when its status is `read`.
+  final DateTime? latestMineReadAt;
   final bool hasMore;
   final bool isLoadingMore;
   final VoidCallback onLoadMore;
@@ -550,7 +566,12 @@ class _MessageListState extends State<_MessageList> {
           items[i + 1].authorUserId != message.authorUserId;
 
       if (hasSeparator[i]) {
-        children.add(_TimeDivider(when: message.createdAt!));
+        children.add(
+          _TimeDivider(
+            when: message.createdAt!,
+            onBackground: widget.hasBackground,
+          ),
+        );
       }
 
       final id = message.id;
@@ -582,7 +603,13 @@ class _MessageListState extends State<_MessageList> {
       // Delivery status under the latest outgoing bubble only (iMessage style).
       if (i == latestMineIndex &&
           widget.latestMineStatus != ChatMessageStatus.none) {
-        children.add(_StatusLabel(status: widget.latestMineStatus));
+        children.add(
+          _StatusLabel(
+            status: widget.latestMineStatus,
+            readAt: widget.latestMineReadAt,
+            onBackground: widget.hasBackground,
+          ),
+        );
       }
     }
 
@@ -738,9 +765,13 @@ class _LoadMoreButton extends StatelessWidget {
 /// drops the year, older days carry the full date — locale-aware (D3). Same
 /// recipe as the history screen's divider.
 class _TimeDivider extends StatelessWidget {
-  const _TimeDivider({required this.when});
+  const _TimeDivider({required this.when, this.onBackground = false});
 
   final DateTime when;
+
+  /// On a photo backdrop the bare navy date vanishes over light regions — the
+  /// label then rides a dark scrim pill + white ink so it reads on ANY photo.
+  final bool onBackground;
 
   @override
   Widget build(BuildContext context) {
@@ -756,18 +787,32 @@ class _TimeDivider extends StatelessWidget {
                 : DateFormat.yMMMd(locale).add_Hm().format(when))
             .toUpperCase();
 
+    final text = Text(
+      label,
+      style: TextStyle(
+        color: onBackground ? AppColors.white : AppColors.textSecondary,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.5,
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.only(top: 20, bottom: 8),
       child: Center(
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
-          ),
-        ),
+        child: onBackground
+            ? Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.38),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: text,
+              )
+            : text,
       ),
     );
   }
@@ -879,66 +924,79 @@ class _ChatBubble extends StatelessWidget {
     // 2026-06-18, user). This is a 1-1 couple chat, so the side + bubble colour
     // already name the sender — a per-bubble avatar is the group-chat idiom and
     // here it's just a redundant dot (iMessage/Zalo 1-1 convention).
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: bubble,
-    );
+    return Align(alignment: Alignment.centerLeft, child: bubble);
   }
 }
 
 /// Delivery-status line under the latest outgoing bubble (feature chat-status,
-/// 2026-06-18): đang gửi → đã gửi → đã nhận → đã đọc. Right-aligned + tiny, the
-/// glyph progresses hollow → filled → rose to mirror the words at a glance.
+/// 2026-06-18): đang gửi → đã gửi → đã nhận → đã xem. iMessage-minimal (user
+/// 2026-06-19): a small right-aligned TEXT label (no icon), and the read state
+/// shows WHEN the partner saw it — "Đã xem · 23:30".
 class _StatusLabel extends StatelessWidget {
-  const _StatusLabel({required this.status});
+  const _StatusLabel({
+    required this.status,
+    required this.readAt,
+    this.onBackground = false,
+  });
 
   final ChatMessageStatus status;
 
+  /// Partner's read time — appended to the read label as "· HH:mm".
+  final DateTime? readAt;
+
+  /// On a photo backdrop the grey text is lifted to white + a soft shadow so it
+  /// stays legible over ANY photo region (no pill — minimal).
+  final bool onBackground;
+
   @override
   Widget build(BuildContext context) {
+    if (status == ChatMessageStatus.none) {
+      return const SizedBox.shrink();
+    }
     final l10n = context.l10n;
-    final (String label, IconData icon, Color color) = switch (status) {
-      ChatMessageStatus.sending => (
-          l10n.chatSending,
-          IconsaxPlusLinear.clock,
-          AppColors.textTertiary,
-        ),
-      ChatMessageStatus.sent => (
-          l10n.chatStatusSent,
-          IconsaxPlusLinear.tick_circle,
-          AppColors.textTertiary,
-        ),
-      ChatMessageStatus.delivered => (
-          l10n.chatStatusDelivered,
-          IconsaxPlusBold.tick_circle,
-          AppColors.textSecondary,
-        ),
-      ChatMessageStatus.read => (
-          l10n.chatStatusRead,
-          IconsaxPlusBold.tick_circle,
-          AppColors.accentLove,
-        ),
-      ChatMessageStatus.none => ('', IconsaxPlusLinear.tick_circle, AppColors.textTertiary),
+    final locale = Localizations.localeOf(context).toString();
+
+    var label = switch (status) {
+      ChatMessageStatus.sending => l10n.chatSending,
+      ChatMessageStatus.sent => l10n.chatStatusSent,
+      ChatMessageStatus.delivered => l10n.chatStatusDelivered,
+      ChatMessageStatus.read => l10n.chatStatusRead,
+      ChatMessageStatus.none => '',
     };
+    // "Đã xem · 23:30" — append the read time when we know it.
+    if (status == ChatMessageStatus.read && readAt != null) {
+      label = '$label · ${DateFormat.Hm(locale).format(readAt!)}';
+    }
     if (label.isEmpty) {
       return const SizedBox.shrink();
     }
+
+    // Grey text on the gradient; white text + soft shadow over a photo. "Đã xem"
+    // sits a touch darker/stronger than the in-transit states.
+    final baseColor = status == ChatMessageStatus.read
+        ? AppColors.textSecondary
+        : AppColors.textTertiary;
+    final color = onBackground ? AppColors.white : baseColor;
+    final shadows = onBackground
+        ? <Shadow>[
+            Shadow(color: Colors.black.withValues(alpha: 0.55), blurRadius: 3),
+          ]
+        : null;
+
     return Padding(
-      padding: const EdgeInsets.only(top: 4, right: 4, bottom: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
+      padding: const EdgeInsets.only(top: 3, right: 6, bottom: 2),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.1,
+            color: color,
+            shadows: shadows,
           ),
-        ],
+        ),
       ),
     );
   }
