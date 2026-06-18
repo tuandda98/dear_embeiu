@@ -42,6 +42,7 @@ class ChatScreen extends StatefulWidget {
     required this.keyboardVisible,
     this.onRequestTab,
     this.onBack,
+    this.hasBackground = false,
   });
 
   /// Whether the software keyboard is up. Passed in by HomeScreen — the Home
@@ -57,6 +58,11 @@ class ChatScreen extends StatefulWidget {
   /// shown in the header and the bottom nav is hidden by HomeScreen — chat is a
   /// full-screen drill-in (user 2026-06-17) rather than a peer tab.
   final VoidCallback? onBack;
+
+  /// Whether HomeScreen is painting a custom photo backdrop behind this tab
+  /// (feature chat-background, 2026-06-18). When true the back arrow rides a
+  /// frosted disc so it stays legible over dark photo regions.
+  final bool hasBackground;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -154,17 +160,6 @@ class _ChatScreenState extends State<ChatScreen> {
       _seededInitial = true;
     }
 
-    // Partner's initial for the burst avatar (same resolution as history).
-    final partnerName = couple == null
-        ? ''
-        : (myUid == couple.createdByUserId
-                  ? couple.person2Name
-                  : couple.person1Name)
-              .trim();
-    final partnerInitial = partnerName.isNotEmpty
-        ? partnerName.characters.first.toUpperCase()
-        : '♥';
-
     return Column(
       children: [
         // ── Tier 1: pinned chip row (the list never slides under it). ──────
@@ -172,10 +167,10 @@ class _ChatScreenState extends State<ChatScreen> {
         // pulsing heart instead of a static label — falls back to the static
         // badge until the couple (or a partner name) exists.
         Padding(
-          // Unified tab-header geometry (2026-06-14): gutter 16, top 16 —
-          // same as Home/Gallery/Profile so the chip sits identically when
-          // swapping tabs.
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+          // Tab-header geometry: gutter 16. Chat is a full-screen drill-in (not
+          // a peer tab), so its header rides as high as the SafeArea allows
+          // (top 0 — flush under the status bar/notch) — user 2026-06-18.
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
           // Centered title chip (user 2026-06-17): the couple-name chip is CENTRED
           // in the row — back arrow pinned to the left gutter — same Stack recipe
           // as SubScreenHeader so the screen's title sits dead-centre instead of
@@ -214,7 +209,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   letterSpacing: 1.0,
                                 ),
                             heartColor: AppColors.accentLoveDeep,
-                            heartSize: 15,
+                            heartSize: 13,
                             spacing: 7,
                             runSpacing: 0,
                           ),
@@ -237,6 +232,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         icon: IconsaxPlusLinear.arrow_left,
                         onTap: widget.onBack!,
                         semanticsLabel: l10n.back,
+                        // Over a photo backdrop the bare navy arrow vanishes on
+                        // dark regions — give it the chip's frosted disc.
+                        backed: widget.hasBackground,
                       ),
                     ),
                   ),
@@ -259,10 +257,19 @@ class _ChatScreenState extends State<ChatScreen> {
               if (messages.isEmpty) {
                 return _EmptyState(l10n: l10n);
               }
+              // Status of the latest outgoing message (messages are newest-first,
+              // so the first mine is the latest) — shown under its bubble.
+              var latestMineStatus = ChatMessageStatus.none;
+              for (final m in messages) {
+                if (m.authorUserId == myUid) {
+                  latestMineStatus = provider.statusOf(m);
+                  break;
+                }
+              }
               return _MessageList(
                 messages: messages,
                 myUid: myUid,
-                partnerInitial: partnerInitial,
+                latestMineStatus: latestMineStatus,
                 hasMore: provider.hasMore,
                 isLoadingMore: provider.loadingMore,
                 onLoadMore: provider.loadMore,
@@ -420,7 +427,7 @@ class _MessageList extends StatefulWidget {
   const _MessageList({
     required this.messages,
     required this.myUid,
-    required this.partnerInitial,
+    required this.latestMineStatus,
     required this.hasMore,
     required this.isLoadingMore,
     required this.onLoadMore,
@@ -429,7 +436,10 @@ class _MessageList extends StatefulWidget {
 
   final List<ChatMessage> messages;
   final String myUid;
-  final String partnerInitial;
+
+  /// Delivery status of the latest outgoing message — rendered under its
+  /// bubble (đang gửi / đã gửi / đã nhận / đã đọc).
+  final ChatMessageStatus latestMineStatus;
   final bool hasMore;
   final bool isLoadingMore;
   final VoidCallback onLoadMore;
@@ -484,6 +494,15 @@ class _MessageListState extends State<_MessageList> {
   Widget build(BuildContext context) {
     final reduceMotion = AppMotion.reduceMotion(context);
     final items = <ChatMessage>[...widget.messages.reversed]; // oldest → newest
+
+    // Latest outgoing message (last mine in oldest→newest order) — the status
+    // line (đang gửi / đã gửi / đã nhận / đã đọc) rides under just this bubble.
+    var latestMineIndex = -1;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].authorUserId == widget.myUid) {
+        latestMineIndex = i;
+      }
+    }
 
     // Divider rule for chat (denser than love notes): NEW DAY or a ≥60-minute
     // gap since the previous message (design §B2). Pending messages (no server
@@ -555,11 +574,16 @@ class _MessageListState extends State<_MessageList> {
               isPending: message.isPending,
               firstInGroup: firstInGroup,
               lastInGroup: lastInGroup,
-              partnerInitial: widget.partnerInitial,
             ),
           ),
         ),
       );
+
+      // Delivery status under the latest outgoing bubble only (iMessage style).
+      if (i == latestMineIndex &&
+          widget.latestMineStatus != ChatMessageStatus.none) {
+        children.add(_StatusLabel(status: widget.latestMineStatus));
+      }
     }
 
     // reverse:true puts logical item 0 at the visual bottom — so we feed the
@@ -750,9 +774,9 @@ class _TimeDivider extends StatelessWidget {
 }
 
 /// Chat bubble (design §B3 — same chosen language as the history screen):
-/// mine = solid navy, right; partner = solid white + initial avatar on the
-/// last bubble of each burst, left. Pending mine-bubbles render at .65 opacity
-/// with a small clock beside them until the server confirms (§4).
+/// mine = solid navy, right; partner = solid white, flush-left (no avatar —
+/// 1-1 chat). Pending mine-bubbles render at .65 opacity with a small clock
+/// beside them until the server confirms (§4).
 class _ChatBubble extends StatelessWidget {
   const _ChatBubble({
     required this.text,
@@ -760,7 +784,6 @@ class _ChatBubble extends StatelessWidget {
     required this.isPending,
     required this.firstInGroup,
     required this.lastInGroup,
-    required this.partnerInitial,
   });
 
   final String text;
@@ -768,7 +791,6 @@ class _ChatBubble extends StatelessWidget {
   final bool isPending;
   final bool firstInGroup;
   final bool lastInGroup;
-  final String partnerInitial;
 
   @override
   Widget build(BuildContext context) {
@@ -853,39 +875,69 @@ class _ChatBubble extends StatelessWidget {
       );
     }
 
-    // Partner side: a small initial avatar beside the LAST bubble of each
-    // burst; earlier bubbles keep an empty slot so the burst stays aligned.
+    // Partner side: bubble flush-left, NO per-message avatar (dropped
+    // 2026-06-18, user). This is a 1-1 couple chat, so the side + bubble colour
+    // already name the sender — a per-bubble avatar is the group-chat idiom and
+    // here it's just a redundant dot (iMessage/Zalo 1-1 convention).
     return Align(
       alignment: Alignment.centerLeft,
+      child: bubble,
+    );
+  }
+}
+
+/// Delivery-status line under the latest outgoing bubble (feature chat-status,
+/// 2026-06-18): đang gửi → đã gửi → đã nhận → đã đọc. Right-aligned + tiny, the
+/// glyph progresses hollow → filled → rose to mirror the words at a glance.
+class _StatusLabel extends StatelessWidget {
+  const _StatusLabel({required this.status});
+
+  final ChatMessageStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final (String label, IconData icon, Color color) = switch (status) {
+      ChatMessageStatus.sending => (
+          l10n.chatSending,
+          IconsaxPlusLinear.clock,
+          AppColors.textTertiary,
+        ),
+      ChatMessageStatus.sent => (
+          l10n.chatStatusSent,
+          IconsaxPlusLinear.tick_circle,
+          AppColors.textTertiary,
+        ),
+      ChatMessageStatus.delivered => (
+          l10n.chatStatusDelivered,
+          IconsaxPlusBold.tick_circle,
+          AppColors.textSecondary,
+        ),
+      ChatMessageStatus.read => (
+          l10n.chatStatusRead,
+          IconsaxPlusBold.tick_circle,
+          AppColors.accentLove,
+        ),
+      ChatMessageStatus.none => ('', IconsaxPlusLinear.tick_circle, AppColors.textTertiary),
+    };
+    if (label.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, right: 4, bottom: 2),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          if (lastInGroup)
-            ExcludeSemantics(
-              child: Container(
-                width: 24,
-                height: 24,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: AppColors.primaryGradient,
-                ),
-                child: Text(
-                  partnerInitial,
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    height: 1,
-                  ),
-                ),
-              ),
-            )
-          else
-            const SizedBox(width: 24),
-          const SizedBox(width: 8),
-          Flexible(child: bubble),
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
         ],
       ),
     );
@@ -903,10 +955,9 @@ class _ChatSkeleton extends StatelessWidget {
       final shape = ShimmerSkeleton(width: width, height: 40, borderRadius: 18);
       return Align(
         alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
-        // Partner rows reserve the 24+8 avatar slot, like the real layout.
-        child: mine
-            ? shape
-            : Padding(padding: const EdgeInsets.only(left: 32), child: shape),
+        // Both sides flush to their edge — partner bubbles no longer reserve an
+        // avatar slot (avatar dropped 2026-06-18).
+        child: shape,
       );
     }
 

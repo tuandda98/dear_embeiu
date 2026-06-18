@@ -94,6 +94,27 @@ describe('firestore: couple subcollections', () => {
         }),
       );
     });
+
+    it('lets a member set the chat background (and clear it with "")', async () => {
+      await assertSucceeds(
+        setDoc(doc(authedDb('alice'), 'couples/c1/prefs/home'), {
+          chatBgPhotoId: 'photo-9',
+        }),
+      );
+      await assertSucceeds(
+        setDoc(doc(authedDb('alice'), 'couples/c1/prefs/home'), {
+          chatBgPhotoId: '',
+        }),
+      );
+    });
+
+    it('denies an oversized chat background id (>200)', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/prefs/home'), {
+          chatBgPhotoId: tooLong(201),
+        }),
+      );
+    });
   });
 
   describe('/couples/{id}/notes/{noteId} (latest love note, doc id == author)', () => {
@@ -278,6 +299,66 @@ describe('firestore: couple subcollections', () => {
       );
       await assertFails(deleteDoc(doc(authedDb('alice'), 'couples/c1/messages/m1')));
       await assertFails(deleteDoc(doc(authedDb('bob'), 'couples/c1/messages/m1')));
+    });
+  });
+
+  describe('/couples/{id}/receipts/{uid} (chat read/delivery receipts)', () => {
+    it('lets a member write their OWN receipt (delivered + read)', async () => {
+      await assertSucceeds(
+        setDoc(doc(authedDb('alice'), 'couples/c1/receipts/alice'), {
+          deliveredAt: serverTimestamp(),
+          readAt: serverTimestamp(),
+        }),
+      );
+    });
+
+    it('lets a member write just one field (merge)', async () => {
+      await assertSucceeds(
+        setDoc(doc(authedDb('bob'), 'couples/c1/receipts/bob'), {
+          readAt: serverTimestamp(),
+        }),
+      );
+    });
+
+    it('lets the partner read the receipt', async () => {
+      await seedDoc('couples/c1/receipts/alice', { readAt: TS });
+      await assertSucceeds(
+        getDoc(doc(authedDb('bob'), 'couples/c1/receipts/alice')),
+      );
+    });
+
+    it('forbids writing the partner\'s receipt (id must == uid)', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/receipts/bob'), {
+          readAt: serverTimestamp(),
+        }),
+      );
+    });
+
+    it('rejects extra fields and non-timestamp values', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/receipts/alice'), {
+          readAt: serverTimestamp(),
+          sneaky: true,
+        }),
+      );
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/receipts/alice'), {
+          readAt: 'nope',
+        }),
+      );
+    });
+
+    it('forbids an outsider reading or writing', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('dave'), 'couples/c1/receipts/dave'), {
+          readAt: serverTimestamp(),
+        }),
+      );
+      await seedDoc('couples/c1/receipts/alice', { readAt: TS });
+      await assertFails(
+        getDoc(doc(authedDb('dave'), 'couples/c1/receipts/alice')),
+      );
     });
   });
 

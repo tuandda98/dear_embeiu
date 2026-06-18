@@ -33,3 +33,27 @@ An toàn: không chia-0, mounted check sau await, dispose đủ (confetti/contro
 R1 animation nở mượt + đúng tập bông mới · R2 confetti emit canopy không bị clip · R3 stage đông hoa (6-18) nhuỵ không chồng che · R4 thoát trước postFrame → animate lại (hiếm) · R5 badge StreakChip mất sau pop về Home · R6 thẩm mỹ 5 stage + glow/gradient trên GPU thật.
 
 ### Kết luận: PASS code-level — SHIP được. Smoke-test runtime R1-R6 trước khi gộp release.
+
+## [2026-06-18] [Tester] Nghiệm thu Love Tree v2 (code-level, read-only) — PASS-with-runtime-caveats
+
+**Verdict: PASS-with-runtime-caveats.** `fvm flutter analyze` 0 issue (Lead tự chạy lại: 0). i18n 19/19 key v2 đủ en+vi (52=52 loveTree keys). `love_tree_service.dart` unchanged vs HEAD → milestone math v1 INTACT.
+
+### AC #1–#8: TẤT CẢ PASS (4/5/7 = PASS code-level, cần smoke-test runtime cho visual/animation/share)
+1 Bấm bông nở→sheet đúng kind+dòng-ngày — PASS (`love_tree_screen.dart:79-108`, `moment_sheet.dart:278-304`)
+2 CTA→Gallery deep-link đúng ảnh — PASS (`moment_sheet.dart:372-422` + router fields)
+3 Bông chưa nở→hint+CTA không lỗi — PASS (`:1148-1153`)
+4 Trời 4 khung giờ + đêm sao/đom-đóm — PASS code-level (`SkyBackdropPainter:2208`, `_paintFireflies:2392`) [CẦN runtime]
+5 Mùa 4 mùa + cánh/lá rơi — PASS code-level (`_paintSeasonTint:1971`, `_paintFalling:2430`) [CẦN runtime]
+6 Reduce Motion→0 động, đẹp tĩnh — PASS (`:405,1478,1534,390`; `_AmbientParticles:2346`)
+7 Khoe cây→PNG 4:5 share — PASS code-level (`_shareTree:478`, `_LoveTreeShareCard:2508`) [CẦN runtime]
+8 analyze sạch + i18n vi+en — PASS
+
+### 8 rủi ro bắt buộc — TẤT CẢ PASS [VERIFIED]
+1 Guard photo `len<value`→null, không OOR (`:68-75`,`moment_sheet.dart:293,372`) · 2 Index `[len-value]` off-by-one OK (sort mới→cũ) · 3 Deep-link pop sheet+LoveTree, không pushNamed('/home') (`moment_sheet.dart:438-442`) · 4 Reduce Motion tắt đủ động giữ tĩnh, không sót controller · 5 Share im lặng+double-tap guard+sharePositionOrigin (`:479-552`) · 6 Milestone math KHÔNG đổi (git diff rỗng) · 7 i18n đủ en+vi không hardcode VN · 8 streak không đọc ngày (`:94-95`)
+
+### Minor (không chặn release)
+- `_ambient` controller vẫn repeat() ngầm nếu bật Reduce Motion OS GIỮA lúc đang xem màn (1 controller, AnimatedBuilder đã unsubscribe → CPU không đáng kể). Edge hiếm.
+- Bướm (design B.4) không implement — đúng spec "tuỳ chọn", AC không bắt buộc.
+
+### CẦN smoke-test thiết bị (runtime)
+1 Trời 4 khung giờ (đổi giờ máy)+đêm sao/đom-đóm · 2 Mùa 4 mùa (đổi tháng) · 3 OS Reduce Motion: 0 động thực tế · 4 Khoe cây (header+banner): share OS thật, PNG 4:5 nét, iPad popover · 5 Deep-link CTA Gallery: pop về Home đúng tab+đúng ảnh, watcher không vỡ · 6 Bloom animation lần đầu + không lặp (lastSeen) · 7 photoCount>ảnh-đã-load: ẩn gọn không crash

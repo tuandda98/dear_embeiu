@@ -602,6 +602,24 @@ abstract class AppLocalizations {
   /// **'Sending…'**
   String get chatSending;
 
+  /// No description provided for @chatStatusSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get chatStatusSent;
+
+  /// No description provided for @chatStatusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get chatStatusDelivered;
+
+  /// No description provided for @chatStatusRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Seen'**
+  String get chatStatusRead;
+
   /// No description provided for @chatUnreadDotSemantics.
   ///
   /// In en, this message translates to:
@@ -4700,6 +4718,72 @@ abstract class AppLocalizations {
   /// **'Leave'**
   String get counterBgDiscardLeave;
 
+  /// No description provided for @settingsChatBgTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat background'**
+  String get settingsChatBgTitle;
+
+  /// No description provided for @settingsChatBgSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a photo to back your conversation'**
+  String get settingsChatBgSubtitle;
+
+  /// No description provided for @chatBgBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'CHAT BACKGROUND'**
+  String get chatBgBadge;
+
+  /// No description provided for @chatBgTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat background'**
+  String get chatBgTitle;
+
+  /// No description provided for @chatBgSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick one photo to back your conversation, or keep the default gradient.'**
+  String get chatBgSubtitle;
+
+  /// No description provided for @chatBgFilterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only portrait, high-resolution photos are shown — they fill the screen without cropping or blurring.'**
+  String get chatBgFilterHint;
+
+  /// No description provided for @chatBgNoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get chatBgNoneLabel;
+
+  /// No description provided for @chatBgMeasuring.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtering photos…'**
+  String get chatBgMeasuring;
+
+  /// No description provided for @chatBgNoneValidTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No suitable photos yet'**
+  String get chatBgNoneValidTitle;
+
+  /// No description provided for @chatBgNoneValidBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tall, sharp photo to your gallery — landscape or low-resolution photos can\'t be used as a chat background.'**
+  String get chatBgNoneValidBody;
+
+  /// No description provided for @chatBgSavedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat background saved 💕'**
+  String get chatBgSavedMsg;
+
   /// No description provided for @journeyTrailTitle.
   ///
   /// In en, this message translates to:
@@ -4999,6 +5083,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect with your partner to start growing 🌱'**
   String get loveTreeNoCoupleBody;
+
+  /// No description provided for @loveTreeCoachTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to see this moment 🌸'**
+  String get loveTreeCoachTooltip;
+
+  /// No description provided for @loveTreeTapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a flower to relive a memory'**
+  String get loveTreeTapHint;
+
+  /// No description provided for @loveTreeMomentDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days together'**
+  String loveTreeMomentDaysTitle(int count);
+
+  /// No description provided for @loveTreeMomentPhotosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory #{count}'**
+  String loveTreeMomentPhotosTitle(int count);
+
+  /// No description provided for @loveTreeMomentStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}-day streak record'**
+  String loveTreeMomentStreakTitle(int count);
+
+  /// No description provided for @loveTreeMomentBloomedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Bloomed on {date}'**
+  String loveTreeMomentBloomedOn(String date);
+
+  /// No description provided for @loveTreeMomentPhotoTakenOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Added on {date}'**
+  String loveTreeMomentPhotoTakenOn(String date);
+
+  /// No description provided for @loveTreeMomentDaysCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day together is one more petal in bloom 🌸'**
+  String get loveTreeMomentDaysCopy;
+
+  /// No description provided for @loveTreeMomentPhotosCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'A moment the two of you chose to keep 💞'**
+  String get loveTreeMomentPhotosCopy;
+
+  /// No description provided for @loveTreeMomentStreakCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'The record you two once kept together. Start a new streak to beat it 🔥'**
+  String get loveTreeMomentStreakCopy;
+
+  /// No description provided for @loveTreeMomentViewInGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'View in Gallery'**
+  String get loveTreeMomentViewInGallery;
+
+  /// No description provided for @loveTreeLockedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days to go before this blooms 🌱'**
+  String loveTreeLockedDays(int count);
+
+  /// No description provided for @loveTreeLockedPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} memories to go before this blooms 🌱'**
+  String loveTreeLockedPhotos(int count);
+
+  /// No description provided for @loveTreeLockedStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} streak days to go before this blooms 🌱'**
+  String loveTreeLockedStreak(int count);
+
+  /// No description provided for @loveTreeLockedPhotosCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a memory'**
+  String get loveTreeLockedPhotosCta;
+
+  /// No description provided for @loveTreeLockedStreakCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer today'**
+  String get loveTreeLockedStreakCta;
+
+  /// No description provided for @loveTreeShareButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Share our tree'**
+  String get loveTreeShareButton;
+
+  /// No description provided for @loveTreeShareStats.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days together · {flowers} flowers in bloom'**
+  String loveTreeShareStats(String days, String flowers);
+
+  /// No description provided for @loveTreeShareTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'The tree we grew together 🌳'**
+  String get loveTreeShareTagline;
+
+  /// No description provided for @loveTreeShareTaglineSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Our tree just sprouted 🌱'**
+  String get loveTreeShareTaglineSeed;
+
+  /// No description provided for @loveTreeShareMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Our love tree has bloomed {flowers} flowers after {days} days 🌳💞 — grow yours together on Dear Embeiu.'**
+  String loveTreeShareMessage(String flowers, String days);
+
+  /// No description provided for @loveTreeShareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create the card, please try again'**
+  String get loveTreeShareFailed;
 }
 
 class _AppLocalizationsDelegate

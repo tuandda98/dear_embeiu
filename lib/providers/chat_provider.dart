@@ -7,6 +7,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/chat_message.dart';
 import '../services/chat_service.dart';
 
+/// Delivery state of one of MY outgoing messages (feature chat-status,
+/// 2026-06-18), derived from the partner's receipt. `none` = not applicable
+/// (the partner's message, or the local fallback with no partner).
+enum ChatMessageStatus { none, sending, sent, delivered, read }
+
 /// State for the couple chat tab (feature chat): owns the realtime window of
 /// the newest 50 messages plus the accumulated older pages (pagination D5,
 /// same recipe as LoveNoteProvider's history AFTER the race fix), and the
@@ -64,6 +69,36 @@ class ChatProvider extends ChangeNotifier {
   bool _seenLoaded = false;
 
   String get _seenKey => 'chat_seen_$_coupleId';
+
+  // ── Read/delivery receipts (feature chat-status, 2026-06-18) ───────────────
+  // The PARTNER's receipt timestamps, watched so MY outgoing messages can show
+  // đã nhận / đã đọc. `_deliveredUpToMillis` throttles my own delivered-stamp
+  // writes to once per genuinely-newer partner message.
+  StreamSubscription<ChatReceipt>? _receiptSub;
+  DateTime? _partnerDeliveredAt;
+  DateTime? _partnerReadAt;
+  int _deliveredUpToMillis = 0;
+
+  /// The delivery status of [message] for the status line under the latest
+  /// outgoing bubble. Returns [ChatMessageStatus.none] for partner messages and
+  /// in the local fallback (no partner to receive/read).
+  ChatMessageStatus statusOf(ChatMessage message) {
+    if (!_service.isUsingFirebase || message.authorUserId != _myUid) {
+      return ChatMessageStatus.none;
+    }
+    final when = message.createdAt;
+    if (message.isPending || when == null) {
+      return ChatMessageStatus.sending;
+    }
+    final t = when.millisecondsSinceEpoch;
+    if ((_partnerReadAt?.millisecondsSinceEpoch ?? -1) >= t) {
+      return ChatMessageStatus.read;
+    }
+    if ((_partnerDeliveredAt?.millisecondsSinceEpoch ?? -1) >= t) {
+      return ChatMessageStatus.delivered;
+    }
+    return ChatMessageStatus.sent;
+  }
 
   /// Messages newest-first (the chat screen lays them out via reverse:true).
   List<ChatMessage> get messages {
@@ -141,11 +176,27 @@ class ChatProvider extends ChangeNotifier {
     _resetMessageState();
     _seenMillis = null;
     _seenLoaded = false;
+    _partnerDeliveredAt = null;
+    _partnerReadAt = null;
+    _deliveredUpToMillis = 0;
     _isLoading = true;
     notifyListeners();
 
     _loadSeenMarker(coupleId);
     _kickLoveNoteMigration(coupleId);
+
+    // Follow the partner's receipt so our sent bubbles can flip to đã nhận /
+    // đã đọc as they catch up.
+    _receiptSub?.cancel();
+    _receiptSub =
+        _service.watchPartnerReceipt(coupleId, myUid).listen((receipt) {
+      if (coupleId != _coupleId) {
+        return;
+      }
+      _partnerDeliveredAt = receipt.deliveredAt;
+      _partnerReadAt = receipt.readAt;
+      notifyListeners();
+    });
 
     _subscription?.cancel();
     _subscription = _service.watchMessages(coupleId, limit: _pageSize).listen(
@@ -173,6 +224,7 @@ class ChatProvider extends ChangeNotifier {
             _cursor = entries.last.createdAt;
             _hasMore = entries.length >= _pageSize;
           }
+          _maybeMarkDelivered();
         }
         _isLoading = false;
         notifyListeners();
@@ -313,6 +365,15 @@ class ChatProvider extends ChangeNotifier {
     _seenMillis = latest;
     _seenLoaded = true;
     notifyListeners();
+    // Tell the partner we've read up to now (đã đọc) — and implicitly received
+    // it (đã nhận). Best-effort; guarded on the live couple/uid.
+    final uid = _myUid;
+    if (uid != null) {
+      _deliveredUpToMillis = latest;
+      unawaited(
+        _service.markReceipt(coupleId, uid, delivered: true, read: true),
+      );
+    }
     try {
       final box = await Hive.openBox<String>('app_settings');
       // Guard the couple after the await — never stamp another couple's key.
@@ -322,6 +383,23 @@ class ChatProvider extends ChangeNotifier {
     } catch (_) {
       // Best-effort: the in-memory marker already keeps this session honest.
     }
+  }
+
+  /// Stamps MY deliveredAt when a partner message newer than anything we've
+  /// acknowledged has arrived (the device now HAS it). Throttled by
+  /// [_deliveredUpToMillis] so it writes at most once per newer partner message.
+  void _maybeMarkDelivered() {
+    final coupleId = _coupleId;
+    final uid = _myUid;
+    if (coupleId == null || uid == null || !_service.isUsingFirebase) {
+      return;
+    }
+    final latest = _latestPartnerAt?.millisecondsSinceEpoch;
+    if (latest == null || latest <= _deliveredUpToMillis) {
+      return;
+    }
+    _deliveredUpToMillis = latest;
+    unawaited(_service.markReceipt(coupleId, uid, delivered: true));
   }
 
   Future<void> _loadSeenMarker(String coupleId) async {
@@ -354,17 +432,23 @@ class ChatProvider extends ChangeNotifier {
   void clear() {
     _subscription?.cancel();
     _subscription = null;
+    _receiptSub?.cancel();
+    _receiptSub = null;
     _resetMessageState();
     _coupleId = null;
     _myUid = null;
     _seenMillis = null;
     _seenLoaded = false;
+    _partnerDeliveredAt = null;
+    _partnerReadAt = null;
+    _deliveredUpToMillis = 0;
     notifyListeners();
   }
 
   @override
   void dispose() {
     _subscription?.cancel();
+    _receiptSub?.cancel();
     super.dispose();
   }
 }

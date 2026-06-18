@@ -56,6 +56,10 @@ class LoveTreeService {
   static const String _boxName = 'app_settings';
   static String seenKey(String coupleId) => 'love_tree_seen_$coupleId';
 
+  /// Key for the one-shot "tap a flower" coach mark (v2.1 — String "1" once the
+  /// hint has been shown). Per-couple, like [seenKey].
+  static String coachKey(String coupleId) => 'love_tree_coach_$coupleId';
+
   /// Days the couple has been together (date-only, clamped ≥0). Mirrors the
   /// counter's `inDays` semantics.
   static int daysTogether(DateTime anniversary) {
@@ -135,6 +139,27 @@ class LoveTreeService {
       await box.put(seenKey(coupleId), '$flowers');
     } catch (_) {
       // Best-effort — the in-session state already drove the bloom animation.
+    }
+  }
+
+  /// Whether the tap-a-flower coach mark has already been shown for [coupleId].
+  static bool coachShown(String coupleId) {
+    try {
+      final box = Hive.box<String>(_boxName);
+      return box.get(coachKey(coupleId)) == '1';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Marks the coach mark as shown for [coupleId] (best-effort) — once set, it
+  /// never appears again on any device for this couple.
+  static Future<void> markCoachShown(String coupleId) async {
+    try {
+      final box = await Hive.openBox<String>(_boxName);
+      await box.put(coachKey(coupleId), '1');
+    } catch (_) {
+      // Best-effort.
     }
   }
 

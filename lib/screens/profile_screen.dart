@@ -342,6 +342,7 @@ class ProfileScreen extends StatelessWidget {
                     runSpacing: 6,
                     heartSize: 26,
                     heartColor: AppColors.white,
+                    pulseHeart: true, // hero header — breathes like the Home counter
                     textStyle: TextStyle(
                       color: AppColors.white,
                       fontSize: 30,
@@ -644,7 +645,8 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
             Expanded(
               child: _badgeCard(
                 icon: IconsaxPlusBold.flash,
-                tint: AppColors.accentLove,
+                medalGradient: _MedalPalette.streak.gradient,
+                accent: _MedalPalette.streak.accent,
                 value: nf.format(streak.currentStreak),
                 label: l10n.badgeStreakLabel,
                 onTap: () {
@@ -657,7 +659,8 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
             Expanded(
               child: _badgeCard(
                 icon: IconsaxPlusBold.cup,
-                tint: AppColors.accentLavender,
+                medalGradient: _MedalPalette.record.gradient,
+                accent: _MedalPalette.record.accent,
                 value: nf.format(streak.longestStreak),
                 label: l10n.badgeRecordLabel,
                 onTap: () {
@@ -682,7 +685,8 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
             Expanded(
               child: _badgeCard(
                 icon: IconsaxPlusBold.gallery,
-                tint: AppColors.accentCoral,
+                medalGradient: _MedalPalette.memories.gradient,
+                accent: _MedalPalette.memories.accent,
                 value: nf.format(photoCount),
                 label: l10n.badgeMemoriesLabel,
                 onTap: () {
@@ -700,7 +704,8 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
             Expanded(
               child: _badgeCard(
                 icon: IconsaxPlusBold.book_1,
-                tint: AppColors.accentRose,
+                medalGradient: _MedalPalette.journal.gradient,
+                accent: _MedalPalette.journal.accent,
                 // null only briefly while the count loads → slim shimmer, never
                 // a bare arrow (the old inconsistency this redesign removes).
                 value: _journalCount == null ? null : nf.format(_journalCount!),
@@ -722,85 +727,139 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
     );
   }
 
+  /// One achievement tile rendered as a real "medal": a gradient medallion that
+  /// glows with its own colored halo (the focal point), a hero number in the
+  /// medal's accent color, and a label. White card lifts it off the dawnBlush
+  /// background; each medal carries a distinct-but-on-brand color so the 2×2
+  /// grid reads as four separate badges, not one repeated tile.
   Widget _badgeCard({
     required IconData icon,
-    required Color tint,
+    required List<Color> medalGradient, // light → deep, fills the medallion
+    required Color accent, // hero number + halo glow (the deep end)
     required String? value,
     required String label,
     required VoidCallback onTap,
   }) {
+    const br = BorderRadius.all(Radius.circular(24));
+
     return Material(
       color: Colors.transparent,
+      borderRadius: br,
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: br,
         onTap: onTap,
-        splashColor: tint.withValues(alpha: 0.12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        splashColor: accent.withValues(alpha: 0.10),
+        highlightColor: accent.withValues(alpha: 0.05),
+        child: Ink(
           decoration: BoxDecoration(
-            color: tint.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: tint.withValues(alpha: 0.12)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.82),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Icon(icon, color: tint, size: 22),
-                  ),
-                  const Spacer(),
-                  // Uniform "tap for detail" affordance on every tile.
-                  Icon(IconsaxPlusLinear.arrow_right_3,
-                      size: 18, color: tint.withValues(alpha: 0.5)),
-                ],
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                height: 26,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: value != null
-                      ? Text(
-                          value,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            height: 1,
-                          ),
-                        )
-                      : Container(
-                          width: 34,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: tint.withValues(alpha: 0.18),
-                            borderRadius: BorderRadius.circular(7),
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
+            color: AppColors.white,
+            borderRadius: br,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
               ),
             ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Gradient medallion with a soft colored glow — the focal
+                    // point that makes each tile pop off the white card.
+                    Container(
+                      width: 54,
+                      height: 54,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: medalGradient,
+                        ),
+                        borderRadius: BorderRadius.circular(17),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.34),
+                            blurRadius: 14,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Icon(icon, color: AppColors.white, size: 27),
+                    ),
+                    const Spacer(),
+                    // Tap-for-detail affordance.
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Icon(
+                        IconsaxPlusLinear.arrow_right_3,
+                        size: 16,
+                        color: accent.withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Hero value / shimmer while the journal count loads.
+                value != null
+                    ? Text(
+                        value,
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          height: 1,
+                          letterSpacing: -0.5,
+                        ),
+                      )
+                    : ShimmerSkeleton(width: 48, height: 22, borderRadius: 6),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+/// Per-badge medal palette — distinct yet all within the Sunset Romance family
+/// (cool red · violet · warm coral · berry rose). `gradient` fills the
+/// medallion (saturated enough for a white icon); `accent` is the deep end used
+/// for the hero number and the medallion's glow.
+class _MedalPalette {
+  const _MedalPalette(this.gradient, this.accent);
+  final List<Color> gradient;
+  final Color accent;
+
+  static const streak = _MedalPalette(
+    [AppColors.sunset1, AppColors.accentLove], // #FF6B9D → #FF4D6D
+    AppColors.accentLove,
+  );
+  static const record = _MedalPalette(
+    [AppColors.accentLavender, AppColors.accentLavenderDeep], // #A78BFA → #7C5CD6
+    AppColors.accentLavenderDeep,
+  );
+  static const memories = _MedalPalette(
+    [Color(0xFFFF8A6E), Color(0xFFFF5C7A)], // warm coral → pink
+    Color(0xFFFF5C7A),
+  );
+  static const journal = _MedalPalette(
+    [Color(0xFFF58BB8), Color(0xFFDB5793)], // berry rose
+    Color(0xFFD44A85),
+  );
 }

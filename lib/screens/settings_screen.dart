@@ -25,6 +25,7 @@ import '../widgets/language_toggle_button.dart';
 import '../widgets/app_time_picker.dart';
 import '../widgets/section_header.dart';
 import '../widgets/sub_screen_header.dart';
+import 'chat_bg_screen.dart';
 import 'counter_bg_screen.dart';
 import 'reminders_screen.dart';
 
@@ -539,6 +540,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     MaterialPageRoute<void>(
                       settings: const RouteSettings(name: 'CounterBg'),
                       builder: (_) => const CounterBgScreen(),
+                    ),
+                  );
+                },
+              ),
+              _rowDivider(),
+              // Chat-tab background picker (2026-06-18): pick one valid-sized
+              // photo to back the conversation instead of the gradient.
+              _navRow(
+                icon: IconsaxPlusLinear.message,
+                title: l10n.settingsChatBgTitle,
+                subtitle: l10n.settingsChatBgSubtitle,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      settings: const RouteSettings(name: 'ChatBg'),
+                      builder: (_) => const ChatBgScreen(),
                     ),
                   );
                 },

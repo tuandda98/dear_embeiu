@@ -95,6 +95,36 @@ class HomePrefsService {
     }
   }
 
+  /// Streams the couple-shared Chat-tab background photo key (2026-06-18). Null
+  /// or '' means "no custom background" — the Chat tab keeps its gradient. Empty
+  /// stream in the local fallback.
+  Stream<String?> watchChatBg(String coupleId) {
+    if (coupleId.trim().isEmpty || !isUsingFirebase) {
+      return const Stream<String?>.empty();
+    }
+    return _doc(coupleId).snapshots().map((snapshot) {
+      final raw = snapshot.data()?['chatBgPhotoId'];
+      return raw is String && raw.isNotEmpty ? raw : null;
+    }).handleError((_) {});
+  }
+
+  /// Publishes the chosen Chat background so the partner's chat follows along.
+  /// Pass an empty string to clear it (back to the gradient). MERGE so it never
+  /// wipes the other shared fields. Best-effort — the Hive cache holds the pick.
+  Future<void> setChatBg(String coupleId, String photoId) async {
+    if (coupleId.trim().isEmpty || !isUsingFirebase) {
+      return;
+    }
+    try {
+      await _doc(coupleId).set(
+        <String, Object?>{'chatBgPhotoId': photoId},
+        SetOptions(merge: true),
+      );
+    } catch (_) {
+      // Fail-soft — sync catches up on the next successful write.
+    }
+  }
+
   /// Streams the couple-shared daily-question reminder prefs (enabled + the
   /// list of fire times as minutes-since-midnight). Either field is null when
   /// absent in Firestore. Empty stream in the local fallback.

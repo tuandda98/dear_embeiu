@@ -258,7 +258,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 person1Name: couple?.person1Name ?? '',
                 person2Name: couple?.person2Name ?? '',
                 creatorUserId: couple?.createdByUserId,
-                heartSize: 14,
+                heartSize: 12,
                 heartColor: AppColors.accentRose,
                 textStyle: const TextStyle(
                   color: AppColors.textPrimary,

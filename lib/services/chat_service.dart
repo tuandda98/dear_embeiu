@@ -28,6 +28,11 @@ class ChatWindow {
   final bool isFromCache;
 }
 
+/// One member's chat receipt (feature chat-status, 2026-06-18): when their
+/// device last RECEIVED the conversation and last READ it. Either null when the
+/// member hasn't reached that state yet.
+typedef ChatReceipt = ({DateTime? deliveredAt, DateTime? readAt});
+
 class ChatService {
   ChatService({FirebaseFirestore? firestore}) : _firestore = firestore;
 
@@ -46,6 +51,60 @@ class ChatService {
   CollectionReference<Map<String, dynamic>> _messagesCollection(
           String coupleId) =>
       _db.collection('couples').doc(coupleId).collection('messages');
+
+  CollectionReference<Map<String, dynamic>> _receiptsCollection(
+          String coupleId) =>
+      _db.collection('couples').doc(coupleId).collection('receipts');
+
+  /// Streams the PARTNER's receipt (the doc whose id != [myUid]) so the sender
+  /// can show đã nhận / đã đọc on their own messages. The collection holds at
+  /// most two docs (one per member). Empty in the local fallback (no partner).
+  Stream<ChatReceipt> watchPartnerReceipt(String coupleId, String myUid) {
+    if (coupleId.trim().isEmpty || myUid.trim().isEmpty || !isUsingFirebase) {
+      return const Stream<ChatReceipt>.empty();
+    }
+    return _receiptsCollection(coupleId).snapshots().map((snapshot) {
+      for (final doc in snapshot.docs) {
+        if (doc.id != myUid) {
+          final data = doc.data();
+          return (
+            deliveredAt: ChatMessage.parseTimestamp(data['deliveredAt']),
+            readAt: ChatMessage.parseTimestamp(data['readAt']),
+          );
+        }
+      }
+      return (deliveredAt: null, readAt: null);
+    }).handleError((_) {});
+  }
+
+  /// Stamps MY receipt (doc id == [uid]) with the server time for whichever of
+  /// [delivered]/[read] is set. MERGE so updating one never wipes the other.
+  /// Best-effort — a dropped receipt only delays a status label, never breaks
+  /// the chat.
+  Future<void> markReceipt(
+    String coupleId,
+    String uid, {
+    bool delivered = false,
+    bool read = false,
+  }) async {
+    if (coupleId.trim().isEmpty || uid.trim().isEmpty || !isUsingFirebase) {
+      return;
+    }
+    final payload = <String, Object?>{
+      if (delivered) 'deliveredAt': FieldValue.serverTimestamp(),
+      if (read) 'readAt': FieldValue.serverTimestamp(),
+    };
+    if (payload.isEmpty) {
+      return;
+    }
+    try {
+      await _receiptsCollection(coupleId)
+          .doc(uid)
+          .set(payload, SetOptions(merge: true));
+    } catch (_) {
+      // Fail-soft — the next stamp catches up.
+    }
+  }
 
   /// Streams the newest [limit] messages, newest first (the realtime "window",
   /// pagination D5). `includeMetadataChanges` is ON so optimistic local echoes

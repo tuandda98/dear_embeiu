@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -138,6 +140,13 @@ class _HomeScreenState extends State<HomeScreen> {
   List<String> _counterBgIds = const <String>[];
   StreamSubscription<List<String>>? _bgIdsSyncSub;
 
+  /// Couple-shared Chat-tab background (feature chat-background, 2026-06-18):
+  /// the picked photo id (or null = gradient). Rendered FULL-BLEED at this shell
+  /// level — behind the status bar — because the chat tab sits inside the shared
+  /// SafeArea+IndexedStack and can't escape it on its own.
+  String? _chatBgKey;
+  StreamSubscription<String?>? _chatBgSub;
+
   void _ensureCounterBgLoaded(String coupleId) {
     if (_counterBgCouple == coupleId) {
       return;
@@ -151,11 +160,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ? const <String>[]
           : cachedIds.split('\n');
       _showBgHint = box.get('counter_bg_hint_done') == null;
+      final chatBg = box.get('chat_bg_photo_$coupleId');
+      _chatBgKey = (chatBg == null || chatBg.isEmpty) ? null : chatBg;
     } catch (_) {
       _counterBgKey = null; // Box unavailable → session-only selection.
       _counterBgIds = const <String>[];
       _showBgHint = false;
+      _chatBgKey = null;
     }
+    // Follow the couple-shared chat background (a pick in Settings on either
+    // phone repaints both chats; '' clears it back to the gradient).
+    _chatBgSub?.cancel();
+    _chatBgSub = _homePrefs.watchChatBg(coupleId).listen((key) {
+      if (!mounted || key == _chatBgKey) {
+        return;
+      }
+      setState(() => _chatBgKey = key);
+      try {
+        Hive.box<String>('app_settings')
+            .put('chat_bg_photo_$coupleId', key ?? '');
+      } catch (_) {
+        // Cache only — the in-memory value is already set.
+      }
+    });
     // Follow the couple-shared whitelist (a change in Settings on either phone
     // re-filters both cards).
     _bgIdsSyncSub?.cancel();
@@ -189,6 +216,40 @@ class _HomeScreenState extends State<HomeScreen> {
         // Cache only — the in-memory value is already set.
       }
     });
+  }
+
+  /// Resolve the picked chat-background key ('couple' cover or a gallery photo
+  /// id) to an image provider — local file first (instant/offline), else the
+  /// network URL. Null when nothing is picked or the photo no longer exists.
+  ImageProvider? _resolveChatBg(Couple couple, List<Photo> photos) {
+    final id = _chatBgKey;
+    if (id == null || id.isEmpty) {
+      return null;
+    }
+    String? local;
+    String? remote;
+    if (id == 'couple') {
+      local = couple.couplePhotoPath;
+      remote = couple.couplePhotoUrl;
+    } else {
+      for (final p in photos) {
+        if (p.id == id) {
+          local = p.path;
+          remote = p.remoteUrl;
+          break;
+        }
+      }
+    }
+    if (local != null && local.trim().isNotEmpty) {
+      final file = File(local);
+      if (file.existsSync()) {
+        return FileImage(file);
+      }
+    }
+    if (remote != null && remote.trim().isNotEmpty) {
+      return CachedNetworkImageProvider(remote);
+    }
+    return null;
   }
 
   void _dismissBgHint() {
@@ -359,6 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     _streakProvider?.removeListener(_onStreakChanged);
     _bgHintTimer?.cancel();
+    _chatBgSub?.cancel();
     _bgSyncSub?.cancel();
     _bgIdsSyncSub?.cancel();
     super.dispose();
@@ -629,15 +691,59 @@ class _HomeScreenState extends State<HomeScreen> {
               couple.anniversaryDate,
             );
 
+            // Wire the couple-shared backgrounds up front (idempotent per
+            // couple) so the chat backdrop below resolves on the first frame.
+            _ensureCounterBgLoaded(couple.id);
+            final chatBg = _selectedIndex == _chatTabIndex
+                ? _resolveChatBg(couple, photoProvider.sortedPhotos)
+                : null;
+
             return Stack(
               children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    gradient: AppColors.secondaryGradient,
+                // Base gradient (every tab) — a full-screen layer so the chat
+                // backdrop can sit between it and the content, behind the
+                // status bar.
+                const Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: AppColors.secondaryGradient,
+                    ),
                   ),
-                  child: SafeArea(
-                    bottom: false,
-                    child: IndexedStack(
+                ),
+                // Full-bleed chat background (chat tab only, when picked): the
+                // photo fills the entire screen, including behind the status
+                // bar, with a soft scrim for bubble/date readability.
+                if (chatBg != null) ...[
+                  Positioned.fill(
+                    child: Image(
+                      image: chatBg,
+                      fit: BoxFit.cover,
+                      gaplessPlayback: true,
+                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                    ),
+                  ),
+                  const Positioned.fill(
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0x33000000),
+                              Color(0x14000000),
+                              Color(0x3D000000),
+                            ],
+                            stops: [0.0, 0.5, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                SafeArea(
+                  bottom: false,
+                  child: IndexedStack(
                       index: _selectedIndex,
                       // TickerMode: IndexedStack keeps every tab alive, but the
                       // hidden tabs must not keep animating (aurora, Ken Burns,
@@ -660,6 +766,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             // it still sees the raw keyboard inset the Scaffold
                             // strips from its body's MediaQuery.
                             keyboardVisible: mediaQuery.viewInsets.bottom > 0,
+                            // Photo backdrop active → the back arrow needs its
+                            // frosted disc to stay legible over dark regions.
+                            hasBackground: chatBg != null,
                             onRequestTab: (index) {
                               if (index >= 0 &&
                                   index < _navigationItems.length) {
@@ -696,7 +805,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                ),
                 Positioned(
                   left: _floatingNavMargin,
                   right: _floatingNavMargin,
@@ -1142,6 +1250,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           runSpacing: 4,
                           heartSize: 18,
                           heartColor: AppColors.white,
+                          pulseHeart: true, // hero counter — the one heart that breathes
                           textStyle: const TextStyle(
                             color: AppColors.white,
                             fontSize: 20,

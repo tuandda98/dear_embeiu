@@ -908,7 +908,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             creatorUserId: couple.createdByUserId,
                             spacing: 4,
                             runSpacing: 2,
-                            heartSize: 13,
+                            heartSize: 12,
                             heartColor: AppColors.accentRose,
                             textStyle: TextStyle(
                               color: AppColors.textPrimary.withValues(
@@ -1079,7 +1079,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       creatorUserId: couple.createdByUserId,
                       spacing: 5,
                       runSpacing: 4,
-                      heartSize: 14,
+                      heartSize: 12,
                       heartColor: AppColors.accentRose,
                       textStyle: _galleryCardTitleStyle(size: 15),
                     ),
@@ -1359,7 +1359,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           creatorUserId: couple.createdByUserId,
                           spacing: 5,
                           runSpacing: 4,
-                          heartSize: 14,
+                          heartSize: 12,
                           heartColor: AppColors.accentRose,
                           textStyle: _galleryCardTitleStyle(size: 16),
                         ),
@@ -1749,7 +1749,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       spacing: 6,
                       runSpacing: 4,
                       alignment: WrapAlignment.center,
-                      heartSize: 18,
+                      heartSize: 15,
                       heartColor: AppColors.accentRose,
                       textStyle: TextStyle(
                         color: AppColors.textPrimary.withValues(alpha: 0.92),
@@ -2541,7 +2541,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                                 creatorUserId: widget.couple!.createdByUserId,
                                 spacing: 6,
                                 runSpacing: 4,
-                                heartSize: 14,
+                                heartSize: 12,
                                 heartColor: AppColors.white,
                                 textStyle: TextStyle(
                                   color: AppColors.white.withValues(

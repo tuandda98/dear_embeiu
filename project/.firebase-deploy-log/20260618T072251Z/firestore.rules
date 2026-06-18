@@ -480,23 +480,6 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
-      // Chat read/delivery receipts (feature chat-status, 2026-06-18): one doc
-      // per member (id == uid) holding `deliveredAt`/`readAt` server timestamps.
-      // A member writes ONLY their own doc; both read each other's so the
-      // sender can show đang gửi / đã gửi / đã nhận / đã đọc. Both fields
-      // OPTIONAL (merge writes), additive. No delete.
-      match /receipts/{receiptId} {
-        allow read: if isCoupleMember(coupleId);
-        allow write: if isCoupleMember(coupleId)
-          && receiptId == request.auth.uid
-          && request.resource.data.keys().hasOnly(['deliveredAt', 'readAt'])
-          && (!('deliveredAt' in request.resource.data)
-              || request.resource.data.deliveredAt is timestamp)
-          && (!('readAt' in request.resource.data)
-              || request.resource.data.readAt is timestamp);
-        allow delete: if false;
-      }
-
       // Daily question marker doc (feature couple-journal): one parent doc per
       // answered day so the journal can list days (the responses subcollection
       // alone leaves this parent un-listable). Holds a question-text snapshot

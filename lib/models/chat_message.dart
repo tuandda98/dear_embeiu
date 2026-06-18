@@ -53,6 +53,10 @@ class ChatMessage {
         createdAt: _parseDateTime(json['createdAt']),
       );
 
+  /// Public timestamp parser (Firestore `Timestamp` / ISO string / DateTime →
+  /// DateTime?) — reused for chat receipt timestamps in ChatService.
+  static DateTime? parseTimestamp(dynamic value) => _parseDateTime(value);
+
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) {
       return null;

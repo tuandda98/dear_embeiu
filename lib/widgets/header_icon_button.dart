@@ -28,6 +28,7 @@ class HeaderIconButton extends StatelessWidget {
     this.radius = 16,
     this.iconSize = 24,
     this.iconColor = AppColors.textPrimary,
+    this.backed = false,
   });
 
   final IconData icon;
@@ -43,29 +44,58 @@ class HeaderIconButton extends StatelessWidget {
   final double iconSize;
   final Color iconColor;
 
+  /// Icon-on-PHOTO mode: bare ink has no guaranteed contrast over user images
+  /// (a dark photo swallows navy ink), so the glyph rides the SAME frosted
+  /// light disc as [EyebrowChip] — white .72 fill + white .65 hairline + rose
+  /// lift. Reads on both dark and light photos. Off by default (gradient
+  /// headers stay bare ink, per the 2026-06-11 redesign).
+  final bool backed;
+
   @override
   Widget build(BuildContext context) {
+    final core = SizedBox(
+      width: size,
+      height: size,
+      child: Material(
+        color: Colors.transparent,
+        shape: backed ? const CircleBorder() : null,
+        clipBehavior: backed ? Clip.antiAlias : Clip.none,
+        child: InkWell(
+          borderRadius: backed ? null : BorderRadius.circular(radius),
+          customBorder: backed ? const CircleBorder() : null,
+          splashColor: AppColors.accentRose.withValues(alpha: 0.08),
+          highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+          onTap: onTap,
+          child: Center(
+            child: Icon(icon, size: iconSize, color: iconColor),
+          ),
+        ),
+      ),
+    );
+
     return Semantics(
       label: semanticsLabel,
       button: true,
       excludeSemantics: semanticsLabel != null,
       onTap: onTap,
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(radius),
-            splashColor: AppColors.accentRose.withValues(alpha: 0.08),
-            highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
-            onTap: onTap,
-            child: Center(
-              child: Icon(icon, size: iconSize, color: iconColor),
-            ),
-          ),
-        ),
-      ),
+      child: backed
+          ? DecoratedBox(
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.72),
+                shape: BoxShape.circle,
+                border:
+                    Border.all(color: AppColors.white.withValues(alpha: 0.65)),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.accentRose.withValues(alpha: 0.14),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: core,
+            )
+          : core,
     );
   }
 }

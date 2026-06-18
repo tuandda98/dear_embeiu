@@ -276,6 +276,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatSending => 'Sending…';
 
   @override
+  String get chatStatusSent => 'Sent';
+
+  @override
+  String get chatStatusDelivered => 'Delivered';
+
+  @override
+  String get chatStatusRead => 'Seen';
+
+  @override
   String get chatUnreadDotSemantics => 'New message waiting';
 
   @override
@@ -2725,6 +2734,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get counterBgDiscardLeave => 'Leave';
 
   @override
+  String get settingsChatBgTitle => 'Chat background';
+
+  @override
+  String get settingsChatBgSubtitle => 'Pick a photo to back your conversation';
+
+  @override
+  String get chatBgBadge => 'CHAT BACKGROUND';
+
+  @override
+  String get chatBgTitle => 'Chat background';
+
+  @override
+  String get chatBgSubtitle =>
+      'Pick one photo to back your conversation, or keep the default gradient.';
+
+  @override
+  String get chatBgFilterHint =>
+      'Only portrait, high-resolution photos are shown — they fill the screen without cropping or blurring.';
+
+  @override
+  String get chatBgNoneLabel => 'Default';
+
+  @override
+  String get chatBgMeasuring => 'Filtering photos…';
+
+  @override
+  String get chatBgNoneValidTitle => 'No suitable photos yet';
+
+  @override
+  String get chatBgNoneValidBody =>
+      'Add a tall, sharp photo to your gallery — landscape or low-resolution photos can\'t be used as a chat background.';
+
+  @override
+  String get chatBgSavedMsg => 'Chat background saved 💕';
+
+  @override
   String get journeyTrailTitle => 'Our journey';
 
   @override
@@ -2902,4 +2947,94 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get loveTreeNoCoupleBody =>
       'Connect with your partner to start growing 🌱';
+
+  @override
+  String get loveTreeCoachTooltip => 'Tap to see this moment 🌸';
+
+  @override
+  String get loveTreeTapHint => 'Tap a flower to relive a memory';
+
+  @override
+  String loveTreeMomentDaysTitle(int count) {
+    return '$count days together';
+  }
+
+  @override
+  String loveTreeMomentPhotosTitle(int count) {
+    return 'Memory #$count';
+  }
+
+  @override
+  String loveTreeMomentStreakTitle(int count) {
+    return '$count-day streak record';
+  }
+
+  @override
+  String loveTreeMomentBloomedOn(String date) {
+    return 'Bloomed on $date';
+  }
+
+  @override
+  String loveTreeMomentPhotoTakenOn(String date) {
+    return 'Added on $date';
+  }
+
+  @override
+  String get loveTreeMomentDaysCopy =>
+      'Every day together is one more petal in bloom 🌸';
+
+  @override
+  String get loveTreeMomentPhotosCopy =>
+      'A moment the two of you chose to keep 💞';
+
+  @override
+  String get loveTreeMomentStreakCopy =>
+      'The record you two once kept together. Start a new streak to beat it 🔥';
+
+  @override
+  String get loveTreeMomentViewInGallery => 'View in Gallery';
+
+  @override
+  String loveTreeLockedDays(int count) {
+    return '$count days to go before this blooms 🌱';
+  }
+
+  @override
+  String loveTreeLockedPhotos(int count) {
+    return '$count memories to go before this blooms 🌱';
+  }
+
+  @override
+  String loveTreeLockedStreak(int count) {
+    return '$count streak days to go before this blooms 🌱';
+  }
+
+  @override
+  String get loveTreeLockedPhotosCta => 'Add a memory';
+
+  @override
+  String get loveTreeLockedStreakCta => 'Answer today';
+
+  @override
+  String get loveTreeShareButton => 'Share our tree';
+
+  @override
+  String loveTreeShareStats(String days, String flowers) {
+    return '$days days together · $flowers flowers in bloom';
+  }
+
+  @override
+  String get loveTreeShareTagline => 'The tree we grew together 🌳';
+
+  @override
+  String get loveTreeShareTaglineSeed => 'Our tree just sprouted 🌱';
+
+  @override
+  String loveTreeShareMessage(String flowers, String days) {
+    return 'Our love tree has bloomed $flowers flowers after $days days 🌳💞 — grow yours together on Dear Embeiu.';
+  }
+
+  @override
+  String get loveTreeShareFailed =>
+      'Couldn\'t create the card, please try again';
 }

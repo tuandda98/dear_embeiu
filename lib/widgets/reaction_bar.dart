@@ -507,7 +507,7 @@ class ReactionChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 16, height: 1)),
+          _leadingGlyph(textColor),
           const SizedBox(width: 6),
           Text(
             label,
@@ -520,6 +520,20 @@ class ReactionChip extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// The love reaction reads as the app's Iconsax heart (matching the react
+  /// button), never the OS emoji — so "your react button" and "partner's
+  /// reaction" speak one visual language instead of icon-vs-glossy-emoji. The
+  /// other five reactions have no icon equivalent and stay expressive emoji.
+  Widget _leadingGlyph(Color textColor) {
+    if (emoji == kDefaultReactionEmoji) {
+      final heartColor = onDark
+          ? textColor
+          : (isMine ? AppColors.accentLoveDeep : AppColors.accentLove);
+      return Icon(IconsaxPlusBold.heart, size: 15, color: heartColor);
+    }
+    return Text(emoji, style: const TextStyle(fontSize: 16, height: 1));
   }
 }
 
@@ -589,9 +603,6 @@ class _BothReactedPillState extends State<_BothReactedPill>
   }
 
   Widget _pill(BuildContext context) {
-    final sameEmoji = widget.myEmoji == widget.partnerEmoji;
-    final leading =
-        sameEmoji ? '💞' : '${widget.partnerEmoji}${widget.myEmoji}';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
@@ -614,7 +625,7 @@ class _BothReactedPillState extends State<_BothReactedPill>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(leading, style: const TextStyle(fontSize: 15, height: 1)),
+          _leadingGlyph(),
           const SizedBox(width: 7),
           Text(
             context.l10n.reactionBothShort,
@@ -628,6 +639,58 @@ class _BothReactedPillState extends State<_BothReactedPill>
       ),
     );
   }
+
+  /// Celebratory leading glyph. Both threw the love heart → the app's Iconsax
+  /// heart, doubled (one visual language with the react button & chips) instead
+  /// of the 💞 OS emoji. A non-heart MATCH keeps 💞 ("you matched!"); differing
+  /// reactions show each, with any ❤️ rendered as the app heart.
+  Widget _leadingGlyph() {
+    final sameEmoji = widget.myEmoji == widget.partnerEmoji;
+    const heart = kDefaultReactionEmoji;
+    if (sameEmoji && widget.myEmoji == heart) {
+      return _doubleHeart();
+    }
+    if (sameEmoji) {
+      return const Text('💞', style: TextStyle(fontSize: 15, height: 1));
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [_glyph(widget.partnerEmoji), _glyph(widget.myEmoji)],
+    );
+  }
+
+  Widget _glyph(String emoji) => emoji == kDefaultReactionEmoji
+      ? const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 1),
+          child: Icon(IconsaxPlusBold.heart, size: 14, color: AppColors.white),
+        )
+      : Text(emoji, style: const TextStyle(fontSize: 15, height: 1));
+
+  /// Two layered white hearts — an iconified 💞 for "both loved this".
+  Widget _doubleHeart() => SizedBox(
+        width: 20,
+        height: 16,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: 0,
+              bottom: 0,
+              child: Icon(
+                IconsaxPlusBold.heart,
+                size: 11,
+                color: AppColors.white.withValues(alpha: 0.55),
+              ),
+            ),
+            const Positioned(
+              right: 0,
+              top: 0,
+              child: Icon(IconsaxPlusBold.heart,
+                  size: 13, color: AppColors.white),
+            ),
+          ],
+        ),
+      );
 }
 
 /// A small, self-removing burst of 💞 that rises from the heart button the moment
@@ -818,16 +881,23 @@ class _ReactionPickerPillState extends State<_ReactionPickerPill>
                         ),
                       ],
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (final emoji in kReactionEmojis)
-                          _PickerEmoji(
-                            emoji: emoji,
-                            isSelected: emoji == widget.selectedEmoji,
-                            onTap: () => widget.onPick(emoji),
-                          ),
-                      ],
+                    // Overlay entries have no Material ancestor, but each
+                    // _PickerEmoji uses InkResponse (needs one) → wrap in a
+                    // transparent Material so the ripples work instead of
+                    // throwing "No Material widget found" every frame.
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final emoji in kReactionEmojis)
+                            _PickerEmoji(
+                              emoji: emoji,
+                              isSelected: emoji == widget.selectedEmoji,
+                              onTap: () => widget.onPick(emoji),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -1048,7 +1118,12 @@ class ReactionCountBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(heart.emoji, style: const TextStyle(fontSize: 12, height: 1)),
+          // Love reaction → app heart icon (consistent with ReactionChip / the
+          // react button); other emoji stay as-is.
+          heart.emoji == kDefaultReactionEmoji
+              ? const Icon(IconsaxPlusBold.heart,
+                  size: 12, color: AppColors.white)
+              : Text(heart.emoji, style: const TextStyle(fontSize: 12, height: 1)),
           if (count >= 2) ...[
             const SizedBox(width: 3),
             const Text(

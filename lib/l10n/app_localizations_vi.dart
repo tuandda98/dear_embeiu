@@ -275,6 +275,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chatSending => 'Đang gửi…';
 
   @override
+  String get chatStatusSent => 'Đã gửi';
+
+  @override
+  String get chatStatusDelivered => 'Đã nhận';
+
+  @override
+  String get chatStatusRead => 'Đã đọc';
+
+  @override
   String get chatUnreadDotSemantics => 'Có tin nhắn mới';
 
   @override
@@ -2719,6 +2728,42 @@ class AppLocalizationsVi extends AppLocalizations {
   String get counterBgDiscardLeave => 'Thoát';
 
   @override
+  String get settingsChatBgTitle => 'Ảnh nền đoạn chat';
+
+  @override
+  String get settingsChatBgSubtitle => 'Chọn một ảnh làm nền cuộc trò chuyện';
+
+  @override
+  String get chatBgBadge => 'ẢNH NỀN CHAT';
+
+  @override
+  String get chatBgTitle => 'Ảnh nền đoạn chat';
+
+  @override
+  String get chatBgSubtitle =>
+      'Chọn một ảnh làm nền cuộc trò chuyện, hoặc giữ nền mặc định.';
+
+  @override
+  String get chatBgFilterHint =>
+      'Chỉ hiện ảnh dọc, độ phân giải cao — phủ kín màn hình mà không bị cắt hay vỡ nét.';
+
+  @override
+  String get chatBgNoneLabel => 'Mặc định';
+
+  @override
+  String get chatBgMeasuring => 'Đang lọc ảnh…';
+
+  @override
+  String get chatBgNoneValidTitle => 'Chưa có ảnh phù hợp';
+
+  @override
+  String get chatBgNoneValidBody =>
+      'Hãy thêm ảnh dọc, sắc nét vào thư viện — ảnh ngang hoặc độ phân giải thấp không dùng làm nền chat được.';
+
+  @override
+  String get chatBgSavedMsg => 'Đã lưu ảnh nền chat 💕';
+
+  @override
   String get journeyTrailTitle => 'Hành trình của chúng mình';
 
   @override
@@ -2894,4 +2939,93 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get loveTreeNoCoupleBody =>
       'Hãy kết nối với người ấy để bắt đầu trồng cây 🌱';
+
+  @override
+  String get loveTreeCoachTooltip => 'Chạm để xem khoảnh khắc 🌸';
+
+  @override
+  String get loveTreeTapHint => 'Chạm vào mỗi bông để xem kỷ niệm';
+
+  @override
+  String loveTreeMomentDaysTitle(int count) {
+    return '$count ngày bên nhau';
+  }
+
+  @override
+  String loveTreeMomentPhotosTitle(int count) {
+    return 'Kỷ niệm thứ $count';
+  }
+
+  @override
+  String loveTreeMomentStreakTitle(int count) {
+    return 'Kỷ lục chuỗi $count ngày';
+  }
+
+  @override
+  String loveTreeMomentBloomedOn(String date) {
+    return 'Nở ngày $date';
+  }
+
+  @override
+  String loveTreeMomentPhotoTakenOn(String date) {
+    return 'Đăng ngày $date';
+  }
+
+  @override
+  String get loveTreeMomentDaysCopy =>
+      'Mỗi ngày bên nhau là một cánh hoa nở 🌸';
+
+  @override
+  String get loveTreeMomentPhotosCopy =>
+      'Một khoảnh khắc hai đứa đã cùng lưu giữ 💞';
+
+  @override
+  String get loveTreeMomentStreakCopy =>
+      'Kỷ lục các bạn từng cùng nhau giữ. Bắt đầu chuỗi mới để vượt nó nhé 🔥';
+
+  @override
+  String get loveTreeMomentViewInGallery => 'Xem trong Thư viện';
+
+  @override
+  String loveTreeLockedDays(int count) {
+    return 'Còn $count ngày nữa để nở 🌱';
+  }
+
+  @override
+  String loveTreeLockedPhotos(int count) {
+    return 'Còn $count kỷ niệm nữa để nở 🌱';
+  }
+
+  @override
+  String loveTreeLockedStreak(int count) {
+    return 'Còn $count ngày chuỗi nữa để nở 🌱';
+  }
+
+  @override
+  String get loveTreeLockedPhotosCta => 'Thêm kỷ niệm';
+
+  @override
+  String get loveTreeLockedStreakCta => 'Trả lời hôm nay';
+
+  @override
+  String get loveTreeShareButton => 'Khoe cây';
+
+  @override
+  String loveTreeShareStats(String days, String flowers) {
+    return '$days ngày bên nhau · $flowers bông hoa';
+  }
+
+  @override
+  String get loveTreeShareTagline => 'Cây tình yêu của chúng mình 🌳';
+
+  @override
+  String get loveTreeShareTaglineSeed => 'Cây vừa gieo mầm 🌱';
+
+  @override
+  String loveTreeShareMessage(String flowers, String days) {
+    return 'Cây tình yêu của chúng mình đã nở $flowers bông hoa sau $days ngày 🌳💞 — vun cây cùng người ấy trên Dear Embeiu.';
+  }
+
+  @override
+  String get loveTreeShareFailed => 'Không tạo được thẻ, thử lại nhé';
 }

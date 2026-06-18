@@ -97,7 +97,7 @@ class CoupleInfoCard extends StatelessWidget {
                       person2Name: person2Name,
                       spacing: 6,
                       runSpacing: 4,
-                      heartSize: 14,
+                      heartSize: 12,
                       heartColor: AppColors.accentLove,
                       textStyle: const TextStyle(
                         color: AppColors.textPrimary,
