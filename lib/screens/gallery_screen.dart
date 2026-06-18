@@ -103,6 +103,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
     _pendingDeepLinkPhotoId = NotificationTapRouter.pendingPhotoId.value;
     NotificationTapRouter.consumePhotoRequest();
     NotificationTapRouter.pendingPhotoId.addListener(_onDeepLinkPhotoRequest);
+
+    // Love Tree "Thêm một kỷ niệm" shortcut (2026-06-17): open the add-photo
+    // composer when asked. It's only ever set while running (the tree is
+    // reachable in-app only), so drop any stale value and act on warm requests.
+    NotificationTapRouter.consumeComposeRequest();
+    NotificationTapRouter.pendingCompose.addListener(_onComposeRequest);
   }
 
   @override
@@ -110,7 +116,26 @@ class _GalleryScreenState extends State<GalleryScreen> {
     NotificationTapRouter.pendingPhotoId.removeListener(
       _onDeepLinkPhotoRequest,
     );
+    NotificationTapRouter.pendingCompose.removeListener(_onComposeRequest);
     super.dispose();
+  }
+
+  /// Warm request from the Love Tree to open the add-photo composer. Deferred a
+  /// frame so the tab switch + the popped Love Tree route settle before the
+  /// native picker opens.
+  void _onComposeRequest() {
+    if (!NotificationTapRouter.pendingCompose.value) {
+      return;
+    }
+    NotificationTapRouter.consumeComposeRequest();
+    if (!mounted) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _pickMultiplePhotos();
+      }
+    });
   }
 
   /// Warm deep-link: a tap arrived while the app is running.

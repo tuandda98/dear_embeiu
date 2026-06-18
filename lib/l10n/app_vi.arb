@@ -409,6 +409,27 @@
   "@reactionBothLabel": {
     "description": "a11y label when both members have reacted to a photo"
   },
+  "reactionBothShort": "Cả hai đã thả tim",
+  "@reactionBothShort": {
+    "description": "Short label inside the celebratory pill shown when both members reacted"
+  },
+  "reactionWaitingPartner": "Đang chờ {name} cùng thả tim…",
+  "@reactionWaitingPartner": {
+    "description": "Nudge shown when only the current user reacted, inviting the named partner to react too",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reactionWaitingPartnerGeneric": "Đang chờ người ấy cùng thả tim…",
+  "@reactionWaitingPartnerGeneric": {
+    "description": "Generic nudge when only the current user reacted and the partner has no name yet"
+  },
+  "reactionPartnerFallback": "Người ấy",
+  "@reactionPartnerFallback": {
+    "description": "Generic word for the partner when their name is not set yet"
+  },
   "dailyQuestionLabel": "Câu hỏi hôm nay",
   "dailyQuestionHint": "Viết câu trả lời của bạn…",
   "dailyQuestionCharCount": "{count}/280",
@@ -1319,6 +1340,35 @@
   "badgeRecordLabel": "kỷ lục",
   "badgeMemoriesLabel": "kỷ niệm",
   "badgeJournalLabel": "nhật ký",
+  "profileRecordsTitle": "Kỷ lục của chúng mình",
+  "profileRecordLongestStreak": "Chuỗi dài nhất",
+  "profileRecordDaysTogether": "Ngày bên nhau",
+  "profileRecordTotalMemories": "Tổng kỷ niệm",
+  "profileRecordJournalEntries": "Câu hỏi đã trả lời",
+  "profileRecordStreakMilestones": "Cột mốc chuỗi đạt",
+  "profileJournalCountLabel": "{count} câu",
+  "@profileJournalCountLabel": {
+    "description": "Journal entry count value, e.g. '5 câu' (Q&As answered)",
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "profileMemoriesTitle": "Kỷ niệm của chúng mình",
+  "profileMemoriesCountLabel": "{count} kỷ niệm",
+  "@profileMemoriesCountLabel": {
+    "description": "Total memories subtitle in the memories sheet",
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "profileMemoriesNextLabel": "Còn {count} ảnh nữa tới mốc {milestone}",
+  "@profileMemoriesNextLabel": {
+    "description": "Motivation toward the next photo-count milestone",
+    "placeholders": {
+      "count": { "type": "String" },
+      "milestone": { "type": "String" }
+    }
+  },
   "loveTreeBadge": "CÂY TÌNH YÊU",
   "loveTreeStage0": "Hạt mầm",
   "loveTreeStage1": "Mầm non",

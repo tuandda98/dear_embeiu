@@ -42,8 +42,18 @@
 - `flutter gen-l10n` (sạch).
 - `flutter analyze` (cả project) → **No issues found**.
 
+## [2026-06-17] [dev] Wire điều hướng 3 tile "Cùng vun đắp"
+- User: 3 tile trong "Cùng vun đắp" giờ điều hướng thật thay vì chỉ `pop()`:
+  - **Giữ chuỗi mỗi ngày** → Home tab + scroll tới card câu hỏi hôm nay (`pendingHomeTab=0` + `pendingHomeFocus='daily_question'`).
+  - **Thêm một kỷ niệm** → Gallery tab + tự mở composer thêm ảnh (`pendingHomeTab=2` + cờ mới `pendingCompose=true`).
+  - **Cùng trò chuyện hôm nay** → Chat tab (`pendingHomeTab=1`).
+- Cơ chế: Love Tree là route push TRÊN Home; Home sở hữu tab + card daily-question và đã listen `NotificationTapRouter`. Mỗi tile set router rồi `maybePop()` để Home áp dụng — tái dùng đúng cầu nối deep-link của push notification (KHÔNG tự push tab-child).
+- Thêm mới: `NotificationTapRouter.pendingCompose` (ValueNotifier<bool>) + `consumeComposeRequest()` ở `push_notification_service.dart`. `GalleryScreen` listen cờ này (warm-only — tree chỉ mở khi app đang chạy) → `_onComposeRequest` defer 1 frame rồi gọi `_pickMultiplePhotos()` (không nhân đôi logic upload, dùng lại luồng Gallery sẵn có).
+- Files: `lib/screens/love_tree_screen.dart` (import service + 3 helper `_goToDailyQuestion/_goToAddMemory/_goToChat`), `lib/screens/gallery_screen.dart` (listener compose), `lib/services/push_notification_service.dart` (cờ + consume).
+- `flutter analyze` (cả project) → **No issues found**.
+
 ## Lệch spec / cần Tester soi
-- **Điều hướng "Cùng vun đắp"**: cả 3 tile `pop()` về Home (đúng v1 PO chốt — KHÔNG đổi tab). Backlog: đổi tab Gallery/Chat.
+- **Điều hướng "Cùng vun đắp" [ĐÃ WIRE 2026-06-17]**: streak→câu hỏi hôm nay (Home+focus), kỷ niệm→Gallery+composer, chat→Chat tab. Backlog cũ "đổi tab" đã đóng. Tester soi: timing picker mở ngay sau pop+switch tab (native modal, defer postFrame); back từ Chat về Home (previousIndex=0); cancel picker thì chỉ nằm ở Gallery.
 - **Canopy anchor cho hoa**: đã anchor hoa vào canopy THẬT theo stage (cải tiến so với spec gốc "dùng box green/bloom") để hoa không lửng ở stage nhỏ (sprout/young). Tester verify hoa nằm trên tán mọi stage, không tràn xuống thân, không chồng che nhuỵ.
 - **Sparkle confetti**: bắn 1 lần/lượt khi có hoa mới + !reduceMotion (`ConfettiWidget` emit từ canopy center, 10 particle). Cần soi runtime: confetti có hiển thị trong vùng cây không (Stack clip), reduceMotion có tắt sạch không.
 - **lastSeen ghi postFrame**: nếu user thoát màn NGAY trước postFrame, lastSeen có thể chưa kịp ghi → lần sau animate lại (hiếm, chấp nhận được). Tester thử mở→thoát nhanh.

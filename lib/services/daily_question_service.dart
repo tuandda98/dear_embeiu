@@ -47,6 +47,26 @@ class DailyQuestionService {
   ) =>
       _dailyAnswers(coupleId).doc(dateKey).collection('responses');
 
+  /// Counts revealed journal days (marker docs flagged `bothAnswered: true`) via
+  /// a cheap server-side `count()` aggregation — one billed read, no documents
+  /// downloaded. Used by the Profile "Nhật ký" badge so it can show a real
+  /// number instead of an arrow. Returns 0 on the local fallback or on any
+  /// error (missing index / offline) so the badge degrades gracefully.
+  Future<int> countJournalEntries(String coupleId) async {
+    if (!isUsingFirebase || coupleId.trim().isEmpty) {
+      return 0;
+    }
+    try {
+      final agg = await _dailyAnswers(coupleId)
+          .where('bothAnswered', isEqualTo: true)
+          .count()
+          .get();
+      return agg.count ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   /// Parses a 'YYYY-MM-DD' [dateKey] back to a date-only [DateTime] (local).
   /// Falls back to "now" when the key is malformed so a marker still gets a
   /// sensible question snapshot.

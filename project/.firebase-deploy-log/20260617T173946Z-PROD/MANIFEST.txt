@@ -1,0 +1,21 @@
+================ PROD DEPLOY — 20260617T173946Z ================
+project=tonyembeiu (PROD — phục vụ CẢ iOS + Android, 1 backend chung)
+deploy-from git HEAD=dde6978 (branch phase3)
+prev prod deploy = 20260615T161258Z-PROD (1.2.0 full-sync, rules 574 dòng)
+
+ĐÃ DEPLOY:
+- firestore:rules CHỈ (additive) — thêm DUY NHẤT 1 khối:
+    match /{path=**}/reactions/{reactionId} { allow read: if isCoupleMember(resource.data.coupleId); }
+  (feature reactions ❤️ — cấp quyền cho collectionGroup('reactions') query app dùng;
+   fix bug "A thả tim B không thấy". Read-only, member-scoped theo coupleId denormalised.)
+- diff vs prod 06-15: CHỈ khối reactions ở trên (đã verify diff sạch trước deploy).
+- rules-test: 170 passing. compile OK. exit=0.
+
+================ CÁCH REVERT ================
+Rule mới là ADDITIVE + READ-ONLY → giữ HOÀN TOÀN an toàn (không siết gì, không phá app cũ).
+Chỉ revert nếu thực sự cần:
+  A) Firebase Console → Firestore → Rules → History → chọn bản publish 2026-06-15 → Rollback.
+  B) CLI: copy prev-prod rồi deploy lại:
+     cp project/.firebase-deploy-log/20260617T173946Z-PROD/prev-prod/firestore.rules firestore.rules
+     npx firebase-tools deploy --only firestore:rules --project prod
+     git checkout dde6978 -- firestore.rules   # trả lại repo

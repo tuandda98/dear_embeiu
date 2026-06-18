@@ -534,22 +534,6 @@ service cloud.firestore {
       }
     }
 
-    // Collection-group READ for reactions (feature: reactions ❤️).
-    // The app streams a couple's reactions with ONE query
-    // (reaction_service.dart): collectionGroup('reactions').where('coupleId','==',coupleId).
-    // The nested rule above secures the doc PATH (create/update/delete + a
-    // single-doc get) but a nested path rule does NOT authorise a
-    // collection-group query — so without this recursive-wildcard rule the
-    // partner's stream returns permission-denied and a reaction never appears
-    // on the other device (the reactor only keeps seeing their own optimistic
-    // heart, masking the failure). Read-only + member-scoped: every reaction
-    // doc carries its `coupleId`, so a member can only ever stream their own
-    // couple's reactions. ADDITIVE — grants the query, restricts nothing the
-    // nested rule already allowed.
-    match /{path=**}/reactions/{reactionId} {
-      allow read: if isCoupleMember(resource.data.coupleId);
-    }
-
     // UGC moderation reports (Apple Guideline 1.2). Create-only for any
     // signed-in user; admins review via the Firebase Console. Clients can
     // never read, edit, or delete reports.

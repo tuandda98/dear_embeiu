@@ -43,7 +43,6 @@ import 'profile_screen.dart';
 import 'gallery_screen.dart';
 import 'notification_center_screen.dart';
 
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -89,7 +88,29 @@ class _HomeScreenState extends State<HomeScreen> {
   static const int _chatTabIndex = 1;
 
   int _selectedIndex = 0;
+
+  /// The tab to return to when leaving the chat drill-in via its back button
+  /// (user 2026-06-17). Chat hides the bottom nav, so it's the only tab the
+  /// user can't step away from by tapping another nav item — we remember where
+  /// they came from and restore it on back. Defaults to Home.
+  int _previousIndex = 0;
   String? _lastReminderKey;
+
+  /// Switches tabs while remembering the tab we're leaving — but only when
+  /// entering chat, the one full-screen drill-in (its back button needs a
+  /// destination). Any other target leaves `_previousIndex` untouched.
+  void _selectTab(int index) {
+    if (index == _selectedIndex) {
+      return;
+    }
+    setState(() {
+      if (index == _chatTabIndex) {
+        _previousIndex = _selectedIndex;
+      }
+      _selectedIndex = index;
+    });
+    _logTabScreenView(index);
+  }
 
   /// Counter-card background selection (swipe ←/→ on the hero card cycles
   /// through the couple photo + recent gallery photos). Persisted per couple
@@ -144,8 +165,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       setState(() => _counterBgIds = ids);
       try {
-        Hive.box<String>('app_settings')
-            .put('counter_bg_ids_$coupleId', ids.join('\n'));
+        Hive.box<String>(
+          'app_settings',
+        ).put('counter_bg_ids_$coupleId', ids.join('\n'));
       } catch (_) {
         // Cache only — the in-memory value is already set.
       }
@@ -245,8 +267,9 @@ class _HomeScreenState extends State<HomeScreen> {
       _counterBgKey = candidates[next].key;
     });
     try {
-      Hive.box<String>('app_settings')
-          .put('counter_bg_$coupleId', candidates[next].key);
+      Hive.box<String>(
+        'app_settings',
+      ).put('counter_bg_$coupleId', candidates[next].key);
     } catch (_) {
       // Best-effort persistence only.
     }
@@ -317,7 +340,9 @@ class _HomeScreenState extends State<HomeScreen> {
     // Cold-start / warm deep-link to a specific Home card (e.g. daily question).
     _applyPendingFocus(NotificationTapRouter.pendingHomeFocus.value);
     NotificationTapRouter.consumeHomeFocusRequest();
-    NotificationTapRouter.pendingHomeFocus.addListener(_onNotificationFocusRequest);
+    NotificationTapRouter.pendingHomeFocus.addListener(
+      _onNotificationFocusRequest,
+    );
 
     // Watch for a freshly-reached streak milestone to auto-celebrate.
     _streakProvider = context.read<StreakProvider>();
@@ -326,10 +351,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    NotificationTapRouter.pendingHomeTab
-        .removeListener(_onNotificationTapRequest);
-    NotificationTapRouter.pendingHomeFocus
-        .removeListener(_onNotificationFocusRequest);
+    NotificationTapRouter.pendingHomeTab.removeListener(
+      _onNotificationTapRequest,
+    );
+    NotificationTapRouter.pendingHomeFocus.removeListener(
+      _onNotificationFocusRequest,
+    );
     _streakProvider?.removeListener(_onStreakChanged);
     _bgHintTimer?.cancel();
     _bgSyncSub?.cancel();
@@ -376,10 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) {
         return;
       }
-      if (_selectedIndex != requested) {
-        setState(() => _selectedIndex = requested);
-        _logTabScreenView(requested);
-      }
+      _selectTab(requested);
     });
   }
 
@@ -560,7 +584,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (inbox.unreadForTab(_selectedIndex) > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.read<NotificationInboxProvider>().markReadForTab(_selectedIndex);
+          context.read<NotificationInboxProvider>().markReadForTab(
+            _selectedIndex,
+          );
         }
       });
     }
@@ -578,92 +604,109 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      extendBody: true,
-      body: Consumer2<CoupleProvider, PhotoProvider>(
-        builder: (context, coupleProvider, photoProvider, _) {
-          if (coupleProvider.couple == null) {
-            return _buildHomeLoadingSkeleton(mediaQuery.padding.top);
-          }
+    return PopScope(
+      // System back inside the chat drill-in returns to the previous tab rather
+      // than popping the Home route (user 2026-06-17) — mirrors the header back
+      // icon. Every other tab keeps the default pop (exit the app).
+      canPop: _selectedIndex != _chatTabIndex,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _selectedIndex == _chatTabIndex) {
+          _selectTab(_previousIndex == _chatTabIndex ? 0 : _previousIndex);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBody: true,
+        body: Consumer2<CoupleProvider, PhotoProvider>(
+          builder: (context, coupleProvider, photoProvider, _) {
+            if (coupleProvider.couple == null) {
+              return _buildHomeLoadingSkeleton(mediaQuery.padding.top);
+            }
 
-          final couple = coupleProvider.couple!;
-          _syncReminders(context, couple, photoProvider);
-          final counterData = CounterData.calculateFromAnniversary(
-            couple.anniversaryDate,
-          );
+            final couple = coupleProvider.couple!;
+            _syncReminders(context, couple, photoProvider);
+            final counterData = CounterData.calculateFromAnniversary(
+              couple.anniversaryDate,
+            );
 
-          return Stack(
-            children: [
-              Container(
-                decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
-                child: SafeArea(
-                  bottom: false,
-                  child: IndexedStack(
-                    index: _selectedIndex,
-                    // TickerMode: IndexedStack keeps every tab alive, but the
-                    // hidden tabs must not keep animating (aurora, Ken Burns,
-                    // pulses) or ticking their timers — battery + jank.
-                    children: [
-                      TickerMode(
-                        enabled: _selectedIndex == 0,
-                        child: _buildHomeTab(
-                          couple,
-                          counterData,
-                          photoProvider.sortedPhotos,
-                          photoProvider.isLoading,
-                          bottomInset,
+            return Stack(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: AppColors.secondaryGradient,
+                  ),
+                  child: SafeArea(
+                    bottom: false,
+                    child: IndexedStack(
+                      index: _selectedIndex,
+                      // TickerMode: IndexedStack keeps every tab alive, but the
+                      // hidden tabs must not keep animating (aurora, Ken Burns,
+                      // pulses) or ticking their timers — battery + jank.
+                      children: [
+                        TickerMode(
+                          enabled: _selectedIndex == 0,
+                          child: _buildHomeTab(
+                            couple,
+                            counterData,
+                            photoProvider.sortedPhotos,
+                            photoProvider.isLoading,
+                            bottomInset,
+                          ),
                         ),
-                      ),
-                      TickerMode(
-                        enabled: _selectedIndex == 1,
-                        child: ChatScreen(
-                          // HomeScreen's context sits ABOVE the Scaffold, so
-                          // it still sees the raw keyboard inset the Scaffold
-                          // strips from its body's MediaQuery.
-                          keyboardVisible: mediaQuery.viewInsets.bottom > 0,
-                          onRequestTab: (index) {
-                            if (index >= 0 &&
-                                index < _navigationItems.length &&
-                                index != _selectedIndex) {
-                              setState(() => _selectedIndex = index);
-                              _logTabScreenView(index);
-                            }
-                          },
+                        TickerMode(
+                          enabled: _selectedIndex == 1,
+                          child: ChatScreen(
+                            // HomeScreen's context sits ABOVE the Scaffold, so
+                            // it still sees the raw keyboard inset the Scaffold
+                            // strips from its body's MediaQuery.
+                            keyboardVisible: mediaQuery.viewInsets.bottom > 0,
+                            onRequestTab: (index) {
+                              if (index >= 0 &&
+                                  index < _navigationItems.length) {
+                                _selectTab(index);
+                              }
+                            },
+                            // Back leaves the chat drill-in for the tab the user
+                            // came from (Home if none). Guard against returning to
+                            // chat itself.
+                            onBack: () => _selectTab(
+                              _previousIndex == _chatTabIndex
+                                  ? 0
+                                  : _previousIndex,
+                            ),
+                          ),
                         ),
-                      ),
-                      TickerMode(
-                        enabled: _selectedIndex == 2,
-                        child: GalleryScreen(bottomInset: bottomInset),
-                      ),
-                      TickerMode(
-                        enabled: _selectedIndex == 3,
-                        child: ProfileScreen(
-                          bottomInset: bottomInset,
-                          // A Profile badge (e.g. "Kỷ niệm") can jump to a tab.
-                          onRequestTab: (index) {
-                            if (index >= 0 &&
-                                index < _navigationItems.length &&
-                                index != _selectedIndex) {
-                              setState(() => _selectedIndex = index);
-                              _logTabScreenView(index);
-                            }
-                          },
+                        TickerMode(
+                          enabled: _selectedIndex == 2,
+                          child: GalleryScreen(bottomInset: bottomInset),
                         ),
-                      ),
-                    ],
+                        TickerMode(
+                          enabled: _selectedIndex == 3,
+                          child: ProfileScreen(
+                            bottomInset: bottomInset,
+                            // A Profile badge (e.g. "Kỷ niệm") can jump to a tab.
+                            onRequestTab: (index) {
+                              if (index >= 0 &&
+                                  index < _navigationItems.length) {
+                                _selectTab(index);
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Positioned(
-                left: _floatingNavMargin,
-                right: _floatingNavMargin,
-                bottom: mediaQuery.padding.bottom + _floatingNavMargin,
-                child: _buildFloatingNavigationBar(),
-              ),
-            ],
-          );
-        },
+                Positioned(
+                  left: _floatingNavMargin,
+                  right: _floatingNavMargin,
+                  bottom: mediaQuery.padding.bottom + _floatingNavMargin,
+                  child: _buildFloatingNavigationBar(),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -675,13 +718,18 @@ class _HomeScreenState extends State<HomeScreen> {
     // marker. Watched here so the dot pops/falls live with the chat stream.
     final chatHasUnread = context.watch<ChatProvider>().hasUnread;
 
+    // The nav slides fully away both when typing AND while the chat drill-in is
+    // open (user 2026-06-17): chat is a full-screen view reached/left by its own
+    // back button, so the peer-tab bar must not show there.
+    final hideNav = isKeyboardVisible || _selectedIndex == _chatTabIndex;
+
     return AnimatedSlide(
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
-      offset: isKeyboardVisible ? const Offset(0, 1.2) : Offset.zero,
+      offset: hideNav ? const Offset(0, 1.2) : Offset.zero,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 220),
-        opacity: isKeyboardVisible ? 0 : 1,
+        opacity: hideNav ? 0 : 1,
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(28),
@@ -726,8 +774,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         constraints.maxWidth / _navigationItems.length;
                     final pillLeft =
                         itemWidth * _selectedIndex + _floatingNavPillInset;
-                    final pillWidth =
-                        itemWidth - _floatingNavPillInset * 2;
+                    final pillWidth = itemWidth - _floatingNavPillInset * 2;
                     final pillHeight =
                         constraints.maxHeight - _floatingNavPillInset * 2;
 
@@ -754,7 +801,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.accentLove.withValues(alpha: 0.40),
+                                  color: AppColors.accentLove.withValues(
+                                    alpha: 0.40,
+                                  ),
                                   blurRadius: 16,
                                   offset: const Offset(0, 4),
                                 ),
@@ -764,30 +813,30 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         // ── Nav items ────────────────────────────────────
                         Row(
-                          children: List.generate(
-                            _navigationItems.length,
-                            (index) {
-                              final item = _navigationItems[index];
-                              final isSelected = index == _selectedIndex;
-                              final label = _navLabel(index, l10n);
+                          children: List.generate(_navigationItems.length, (
+                            index,
+                          ) {
+                            final item = _navigationItems[index];
+                            final isSelected = index == _selectedIndex;
+                            final label = _navLabel(index, l10n);
 
-                              // Dot only when the chat tab is NOT active
-                              // (landing on it marks seen immediately).
-                              final showUnreadDot = index == _chatTabIndex &&
-                                  !isSelected &&
-                                  chatHasUnread;
+                            // Dot only when the chat tab is NOT active
+                            // (landing on it marks seen immediately).
+                            final showUnreadDot =
+                                index == _chatTabIndex &&
+                                !isSelected &&
+                                chatHasUnread;
 
-                              return Expanded(
-                                child: _buildNavigationItem(
-                                  item: item,
-                                  index: index,
-                                  isSelected: isSelected,
-                                  label: label,
-                                  showUnreadDot: showUnreadDot,
-                                ),
-                              );
-                            },
-                          ),
+                            return Expanded(
+                              child: _buildNavigationItem(
+                                item: item,
+                                index: index,
+                                isSelected: isSelected,
+                                label: label,
+                                showUnreadDot: showUnreadDot,
+                              ),
+                            );
+                          }),
                         ),
                       ],
                     );
@@ -826,8 +875,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () {
             if (_selectedIndex == index) return;
             HapticFeedback.selectionClick();
-            setState(() => _selectedIndex = index);
-            _logTabScreenView(index);
+            _selectTab(index);
           },
           child: SizedBox.expand(
             child: Center(
@@ -845,7 +893,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
                           child: Icon(
-                            isSelected ? (item.selectedIcon ?? item.icon) : item.icon,
+                            isSelected
+                                ? (item.selectedIcon ?? item.icon)
+                                : item.icon,
                             key: ValueKey('icon-$index-$isSelected'),
                             size: 22,
                             // .75, not .55 — unselected icons on the light glass
@@ -918,7 +968,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 
   Widget _buildHomeTab(
     Couple couple,
@@ -996,8 +1045,9 @@ class _HomeScreenState extends State<HomeScreen> {
     // Pagination D3: on-this-day comes from the provider's dedicated query —
     // the realtime window only holds the newest 30 photos, so filtering the
     // visible list would miss older memories.
-    final onThisDayPhoto =
-        _onThisDayPhoto(context.read<PhotoProvider>().onThisDayPhotos);
+    final onThisDayPhoto = _onThisDayPhoto(
+      context.read<PhotoProvider>().onThisDayPhotos,
+    );
 
     // Re-arm the couple's realtime streams. SessionResolver already starts
     // them, but the couple may finish loading after Home mounts (or change),
@@ -1009,12 +1059,13 @@ class _HomeScreenState extends State<HomeScreen> {
           // On-this-day memories (pagination D3) — deduped per calendar day
           // inside the provider, so this re-arm is cheap. Also covers the
           // date rolling over while the app stays open.
-          context
-              .read<PhotoProvider>()
-              .refreshOnThisDay(anniversary: couple.anniversaryDate);
-          context
-              .read<DailyQuestionProvider>()
-              .watchForCouple(couple.id, myUid);
+          context.read<PhotoProvider>().refreshOnThisDay(
+            anniversary: couple.anniversaryDate,
+          );
+          context.read<DailyQuestionProvider>().watchForCouple(
+            couple.id,
+            myUid,
+          );
           context.read<ReactionProvider>().watchForCouple(couple.id, myUid);
           // Chat stream (feature chat) — must run from Home so the unread dot
           // works on every tab. watchForCouple no-ops when unchanged.
@@ -1023,14 +1074,15 @@ class _HomeScreenState extends State<HomeScreen> {
           // the partner joins while Home stays open. watchForCouple no-ops when
           // (couple, active) is unchanged.
           context.read<StreakProvider>().watchForCouple(
-                couple.id,
-                coupleActive: !couple.isWaitingForPartner,
-              );
+            couple.id,
+            coupleActive: !couple.isWaitingForPartner,
+          );
           // Notification center stream — re-arm so the bell badge stays live
           // even if the couple finished loading after Home mounted.
-          context
-              .read<NotificationInboxProvider>()
-              .watchForCouple(couple.id, myUid);
+          context.read<NotificationInboxProvider>().watchForCouple(
+            couple.id,
+            myUid,
+          );
         }
       });
     }
@@ -1051,154 +1103,172 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _gutter(_entrance(
-            1,
-            GestureDetector(
-              // Swipe ←/→ on the hero card cycles its background photo
-              // (couple photo + recent gallery). Horizontal-only, so vertical
-              // page scrolling and the chip's tap are untouched.
-              onHorizontalDragEnd: (details) {
-                final velocity = details.primaryVelocity ?? 0;
-                if (velocity.abs() < 150) {
-                  return;
-                }
-                _swipeCounterBg(velocity < 0 ? 1 : -1, bgCandidates, couple.id);
-              },
-              child: Stack(
-                children: [
-                  CounterCard(
-              // Days-only hero + live hh:mm:ss clock (user 2026-06-10):
-              // the years/months breakdown is gone — one big day count.
-              totalDays: totalDays,
-              liveSince: couple.anniversaryDate,
-              // Swipeable card background (falls back to the couple photo).
-              photoLocalPath: counterBg?.local,
-              photoRemoteUrl: counterBg?.remote,
-              photoSwipeDirection: _bgSwipeDirection,
-              // Couple name lives inside the hero card (user 2026-06-10).
-              headerExtra: AnimatedCoupleName(
-                person1Name: couple.person1Name,
-                person2Name: couple.person2Name,
-                creatorUserId: couple.createdByUserId,
-                alignment: WrapAlignment.center,
-                spacing: 6,
-                runSpacing: 4,
-                heartSize: 18,
-                heartColor: AppColors.white,
-                textStyle: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              // No "started from {date}" subtitle on Home (design 3.7/L1):
-              // static info already on the Profile hero — every line trimmed
-              // here pulls the "today" ritual card closer to the fold.
-              // No anniversary-countdown pill (user 2026-06-10): it doubled
-              // the milestone countdown right below. Milestone progress +
-              // streak chip close the card, with the chip at the very bottom.
-              progressFooter: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInlineMilestoneProgress(
-                    totalDays: totalDays,
-                    nextMilestone: nextMilestone,
-                    progress: progressToMilestone.clamp(0, 1),
-                    l10n: l10n,
-                  ),
-                  const SizedBox(height: 14),
-                  // Couple streak chip (feature streak) — hides itself while
-                  // waiting for a partner / on error (fail-soft).
-                  const Center(child: StreakChip()),
-                ],
-              ),
-              ),
-                  // …plus a one-time coach-mark (auto-hides, never returns).
-                  if (_showBgHint && bgCandidates.length >= 2)
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 9),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.45),
-                              borderRadius: BorderRadius.circular(999),
+            _gutter(
+              _entrance(
+                1,
+                GestureDetector(
+                  // Swipe ←/→ on the hero card cycles its background photo
+                  // (couple photo + recent gallery). Horizontal-only, so vertical
+                  // page scrolling and the chip's tap are untouched.
+                  onHorizontalDragEnd: (details) {
+                    final velocity = details.primaryVelocity ?? 0;
+                    if (velocity.abs() < 150) {
+                      return;
+                    }
+                    _swipeCounterBg(
+                      velocity < 0 ? 1 : -1,
+                      bgCandidates,
+                      couple.id,
+                    );
+                  },
+                  child: Stack(
+                    children: [
+                      CounterCard(
+                        // Days-only hero + live hh:mm:ss clock (user 2026-06-10):
+                        // the years/months breakdown is gone — one big day count.
+                        totalDays: totalDays,
+                        liveSince: couple.anniversaryDate,
+                        // Swipeable card background (falls back to the couple photo).
+                        photoLocalPath: counterBg?.local,
+                        photoRemoteUrl: counterBg?.remote,
+                        photoSwipeDirection: _bgSwipeDirection,
+                        // Couple name lives inside the hero card (user 2026-06-10).
+                        headerExtra: AnimatedCoupleName(
+                          person1Name: couple.person1Name,
+                          person2Name: couple.person2Name,
+                          creatorUserId: couple.createdByUserId,
+                          alignment: WrapAlignment.center,
+                          spacing: 6,
+                          runSpacing: 4,
+                          heartSize: 18,
+                          heartColor: AppColors.white,
+                          textStyle: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        // No "started from {date}" subtitle on Home (design 3.7/L1):
+                        // static info already on the Profile hero — every line trimmed
+                        // here pulls the "today" ritual card closer to the fold.
+                        // No anniversary-countdown pill (user 2026-06-10): it doubled
+                        // the milestone countdown right below. Milestone progress +
+                        // streak chip close the card, with the chip at the very bottom.
+                        progressFooter: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildInlineMilestoneProgress(
+                              totalDays: totalDays,
+                              nextMilestone: nextMilestone,
+                              progress: progressToMilestone.clamp(0, 1),
+                              l10n: l10n,
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(IconsaxPlusLinear.arrow_left_2,
-                                    size: 14, color: AppColors.white),
-                                const SizedBox(width: 6),
-                                Text(
-                                  l10n.counterBgSwipeHint,
-                                  style: const TextStyle(
-                                    color: AppColors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                const Icon(IconsaxPlusLinear.arrow_right_3,
-                                    size: 14, color: AppColors.white),
-                              ],
-                            ),
-                          ).animate().fadeIn(
-                                duration: const Duration(milliseconds: 400),
-                              ),
+                            const SizedBox(height: 14),
+                            // Couple streak chip (feature streak) — hides itself while
+                            // waiting for a partner / on error (fail-soft).
+                            const Center(child: StreakChip()),
+                          ],
                         ),
                       ),
-                    ),
-                ],
+                      // …plus a one-time coach-mark (auto-hides, never returns).
+                      if (_showBgHint && bgCandidates.length >= 2)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: Center(
+                              child:
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 9,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.45,
+                                      ),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          IconsaxPlusLinear.arrow_left_2,
+                                          size: 14,
+                                          color: AppColors.white,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          l10n.counterBgSwipeHint,
+                                          style: const TextStyle(
+                                            color: AppColors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        const Icon(
+                                          IconsaxPlusLinear.arrow_right_3,
+                                          size: 14,
+                                          color: AppColors.white,
+                                        ),
+                                      ],
+                                    ),
+                                  ).animate().fadeIn(
+                                    duration: const Duration(milliseconds: 400),
+                                  ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          )),
-          if (couple.isWaitingForPartner) ...[
-            const SizedBox(height: 16),
-            _gutter(_entrance(2, _buildWaitingForPartnerBanner(couple))),
+            if (couple.isWaitingForPartner) ...[
+              const SizedBox(height: 16),
+              _gutter(_entrance(2, _buildWaitingForPartnerBanner(couple))),
+            ],
+            // ── Nhóm 1: Hôm nay của chúng mình — daily actions first (habit loop).
+            const SizedBox(height: 28),
+            _gutter(
+              _entrance(3, SectionHeader(title: l10n.homeTodaySectionTitle)),
+            ),
+            const SizedBox(height: 12),
+            KeyedSubtree(
+              key: _dailyQuestionKey,
+              // Merged "today ritual" card: question + love note in ONE card
+              // (tap-to-compose, blur teaser, collapsing done-state, envelope).
+              child: _gutter(_entrance(3, _buildTodayRitualCard(couple))),
+            ),
+            // ── Nhóm 2: Kỷ niệm — create + browse.
+            const SizedBox(height: 28),
+            _gutter(
+              _entrance(
+                5,
+                SectionHeader(
+                  title: l10n.recentMemoriesTitle,
+                  subtitle: photos.isEmpty ? l10n.addPhotosPrompt : null,
+                  actionLabel: photos.isEmpty ? null : l10n.seeAll,
+                  // Gallery moved to index 2 when the chat tab landed (feature chat).
+                  onActionTap: photos.isEmpty
+                      ? null
+                      : () => setState(() => _selectedIndex = 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Memory cinema sits in the standard gutter like every other card
+            // (user 2026-06-11) — the section pads itself inside.
+            _entrance(
+              6,
+              _buildRecentPhotosSection(
+                recentPhotos,
+                isUploadingPhoto,
+                couple,
+                l10n,
+                onThisDay: onThisDayPhoto,
+              ),
+            ),
           ],
-          // ── Nhóm 1: Hôm nay của chúng mình — daily actions first (habit loop).
-          const SizedBox(height: 28),
-          _gutter(_entrance(
-            3,
-            SectionHeader(title: l10n.homeTodaySectionTitle),
-          )),
-          const SizedBox(height: 12),
-          KeyedSubtree(
-            key: _dailyQuestionKey,
-            // Merged "today ritual" card: question + love note in ONE card
-            // (tap-to-compose, blur teaser, collapsing done-state, envelope).
-            child: _gutter(_entrance(3, _buildTodayRitualCard(couple))),
-          ),
-          // ── Nhóm 2: Kỷ niệm — create + browse.
-          const SizedBox(height: 28),
-          _gutter(_entrance(
-            5,
-            SectionHeader(
-              title: l10n.recentMemoriesTitle,
-              subtitle: photos.isEmpty ? l10n.addPhotosPrompt : null,
-              actionLabel: photos.isEmpty ? null : l10n.seeAll,
-              // Gallery moved to index 2 when the chat tab landed (feature chat).
-              onActionTap: photos.isEmpty
-                  ? null
-                  : () => setState(() => _selectedIndex = 2),
-            ),
-          )),
-          const SizedBox(height: 12),
-          // Memory cinema sits in the standard gutter like every other card
-          // (user 2026-06-11) — the section pads itself inside.
-          _entrance(
-            6,
-            _buildRecentPhotosSection(
-              recentPhotos,
-              isUploadingPhoto,
-              couple,
-              l10n,
-              onThisDay: onThisDayPhoto,
-            ),
-          ),
-        ],
         ),
       ),
     );
@@ -1304,7 +1374,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: _openNotificationCenter,
                 child: Center(
                   child: Icon(
-                    unread > 0 ? IconsaxPlusLinear.notification_bing : IconsaxPlusLinear.notification,
+                    unread > 0
+                        ? IconsaxPlusLinear.notification_bing
+                        : IconsaxPlusLinear.notification,
                     size: 26,
                     color: AppColors.textPrimary,
                   ),
@@ -1412,7 +1484,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.accentLove.withValues(alpha: 0.10),
                           borderRadius: BorderRadius.circular(10),
@@ -1505,10 +1579,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       await context.read<PhotoProvider>().addPhoto(
-            pickedFile.path,
-            currentUser: currentUser,
-            caption: caption.isNotEmpty ? caption : null,
-          );
+        pickedFile.path,
+        currentUser: currentUser,
+        caption: caption.isNotEmpty ? caption : null,
+      );
     } catch (_) {
       if (!mounted) {
         return;
@@ -1530,9 +1604,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.photoAddedSuccess)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.photoAddedSuccess)));
   }
 
   /// Compact milestone progress rendered INSIDE the hero CounterCard
@@ -1605,8 +1679,9 @@ class _HomeScreenState extends State<HomeScreen> {
   /// collapsed reveal, envelope) resets cleanly on a couple/day change.
   Widget _buildTodayRitualCard(Couple couple) {
     final langCode = Localizations.localeOf(context).languageCode;
-    final question =
-        context.read<DailyQuestionProvider>().todayQuestion(langCode);
+    final question = context.read<DailyQuestionProvider>().todayQuestion(
+      langCode,
+    );
     return TodayRitualCard(
       key: ValueKey('today-${couple.id}-$question'),
       couple: couple,
@@ -1651,8 +1726,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: AppColors.accentRose,
                           boxShadow: [
                             BoxShadow(
-                              color:
-                                  AppColors.accentRose.withValues(alpha: 0.35),
+                              color: AppColors.accentRose.withValues(
+                                alpha: 0.35,
+                              ),
                               blurRadius: 14,
                               offset: const Offset(0, 6),
                             ),
@@ -1744,20 +1820,22 @@ class _HomeScreenState extends State<HomeScreen> {
     // No add-CTA here anymore (user 2026-06-10) — posting lives in the
     // Gallery tab composer + the quiet camera in the section header; Home
     // only *plays* the memories.
-    return _gutter(MemoryCinemaCard(
-      photos: slides,
-      onThisDayId: onThisDay?.id,
-      onPhotoTap: (index) {
-        AnalyticsService.instance.logMemoryCinemaOpened();
-        return GalleryScreen.openPreview(
-          context,
-          photos: slides,
-          heroTags: [for (final p in slides) 'cinema-photo-${p.id}'],
-          initialIndex: index,
-          couple: couple,
-        );
-      },
-    ));
+    return _gutter(
+      MemoryCinemaCard(
+        photos: slides,
+        onThisDayId: onThisDay?.id,
+        onPhotoTap: (index) {
+          AnalyticsService.instance.logMemoryCinemaOpened();
+          return GalleryScreen.openPreview(
+            context,
+            photos: slides,
+            heroTags: [for (final p in slides) 'cinema-photo-${p.id}'],
+            initialIndex: index,
+            couple: couple,
+          );
+        },
+      ),
+    );
   }
 
   /// Finds the "On this day" memory: a photo taken on the same month+day as
@@ -1790,7 +1868,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   int _getNextMilestone(int totalDays) {
-    const milestones = [30, 50, 100, 180, 365, 500, 730, 1000, 1500, 2000, 3000];
+    const milestones = [
+      30,
+      50,
+      100,
+      180,
+      365,
+      500,
+      730,
+      1000,
+      1500,
+      2000,
+      3000,
+    ];
     for (final milestone in milestones) {
       if (totalDays < milestone) {
         return milestone;
@@ -1802,11 +1892,15 @@ class _HomeScreenState extends State<HomeScreen> {
   String _milestoneLabel(int days, AppLocalizations l10n) {
     if (days % 365 == 0) {
       final count = days ~/ 365;
-      return count == 1 ? l10n.milestoneYearsOne(count) : l10n.milestoneYearsMany(count);
+      return count == 1
+          ? l10n.milestoneYearsOne(count)
+          : l10n.milestoneYearsMany(count);
     }
     if (days < 365 && days % 30 == 0) {
       final count = days ~/ 30;
-      return count == 1 ? l10n.milestoneMonthsOne(count) : l10n.milestoneMonthsMany(count);
+      return count == 1
+          ? l10n.milestoneMonthsOne(count)
+          : l10n.milestoneMonthsMany(count);
     }
     return l10n.milestoneDaysLabel(days);
   }

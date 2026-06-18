@@ -12,6 +12,7 @@ import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/streak_provider.dart';
+import '../services/daily_question_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/content_card.dart';
@@ -24,6 +25,8 @@ import '../widgets/milestone_trail.dart';
 import '../widgets/section_header.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/shimmer_skeleton.dart';
+import '../widgets/memories_sheet.dart';
+import '../widgets/records_sheet.dart';
 import '../widgets/streak_sheet.dart';
 import 'journal_screen.dart';
 import 'settings_screen.dart';
@@ -109,7 +112,11 @@ class ProfileScreen extends StatelessWidget {
                         // invite block takes the slot.
                         if (!couple.isWaitingForPartner) ...[
                           const SizedBox(height: 24),
-                          _buildAchievements(context),
+                          _AchievementsGrid(
+                            coupleId: couple.id,
+                            totalDays: totalDays,
+                            onRequestTab: onRequestTab,
+                          ),
                         ],
                         if (inviteCode != null &&
                             inviteCode.trim().isNotEmpty &&
@@ -489,162 +496,9 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  /// Achievements (Profile redesign 2026-06-14, Concept B): a 2×2 grid of
-  /// tappable badge cards showing the couple's REAL, diverse numbers — instead
-  /// of the old flat 2-row "memory chest" menu. Each badge keeps the entry
-  /// point it replaced (streak sheet, journal) plus new jumps (gallery tab).
-  Widget _buildAchievements(BuildContext context) {
-    final l10n = context.l10n;
-    final streak = context.watch<StreakProvider>();
-    final photoCount = context.watch<PhotoProvider>().photoCount;
-    final nf = NumberFormat.decimalPattern(
-      Localizations.localeOf(context).toString(),
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionHeader(title: l10n.profileAchievementsTitle),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _badgeCard(
-                icon: IconsaxPlusBold.flash,
-                tint: AppColors.accentLove,
-                value: nf.format(streak.currentStreak),
-                label: l10n.badgeStreakLabel,
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  StreakSheet.show(context);
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _badgeCard(
-                icon: IconsaxPlusBold.cup,
-                tint: AppColors.accentLavender,
-                value: nf.format(streak.longestStreak),
-                label: l10n.badgeRecordLabel,
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  StreakSheet.show(context);
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _badgeCard(
-                icon: IconsaxPlusBold.gallery,
-                tint: AppColors.accentCoral,
-                value: nf.format(photoCount),
-                label: l10n.badgeMemoriesLabel,
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  onRequestTab?.call(2);
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _badgeCard(
-                icon: IconsaxPlusBold.book_1,
-                tint: AppColors.accentRose,
-                value: null,
-                label: l10n.badgeJournalLabel,
-                onTap: () => _push(context, const JournalScreen(), 'Journal'),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  /// One achievement badge: tinted card + white icon disc + a big number (or an
-  /// open-arrow when it's a pure entry point without a count — the journal).
-  Widget _badgeCard({
-    required IconData icon,
-    required Color tint,
-    required String? value,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(22),
-        onTap: onTap,
-        splashColor: tint.withValues(alpha: 0.12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-          decoration: BoxDecoration(
-            color: tint.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: tint.withValues(alpha: 0.12)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.82),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Icon(icon, color: tint, size: 22),
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                height: 26,
-                child: value != null
-                    ? Text(
-                        value,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          height: 1,
-                        ),
-                      )
-                    : Align(
-                        alignment: Alignment.centerLeft,
-                        child: Icon(IconsaxPlusLinear.arrow_right_3,
-                            size: 22, color: tint),
-                      ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _push(BuildContext context, Widget screen, String routeName) {
-    HapticFeedback.selectionClick();
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        settings: RouteSettings(name: routeName),
-        builder: (_) => screen,
-      ),
-    );
-  }
+  // The "Huy hiệu của chúng mình" achievements grid lives in its own stateful
+  // widget (_AchievementsGrid, end of file) so it can cache the journal-count
+  // aggregation across the Profile's frequent rebuilds.
 
 
   Widget _buildDetailTile({
@@ -723,5 +577,230 @@ class ProfileScreen extends StatelessWidget {
 
   String _formatDate(BuildContext context, DateTime date) {
     return DateFormat(context.l10n.fullDateFormat).format(date);
+  }
+}
+
+/// The "Huy hiệu của chúng mình" 2×2 badge grid (Profile redesign 2026-06-18).
+///
+/// Stateful so the journal-entry count (a one-shot Firestore `count()`
+/// aggregation) is fetched once and cached, instead of re-querying on every
+/// Profile rebuild. Every badge shows a real number + a small corner chevron
+/// ("tap for detail", uniform across all four — no bare arrow tile any more) and
+/// opens a focused detail: streak sheet / records sheet / memories sheet /
+/// journal screen.
+class _AchievementsGrid extends StatefulWidget {
+  const _AchievementsGrid({
+    required this.coupleId,
+    required this.totalDays,
+    required this.onRequestTab,
+  });
+
+  final String coupleId;
+  final int totalDays;
+  final void Function(int index)? onRequestTab;
+
+  @override
+  State<_AchievementsGrid> createState() => _AchievementsGridState();
+}
+
+class _AchievementsGridState extends State<_AchievementsGrid> {
+  int? _journalCount; // null while the aggregation is in flight
+
+  @override
+  void initState() {
+    super.initState();
+    _loadJournalCount();
+  }
+
+  Future<void> _loadJournalCount() async {
+    final count =
+        await DailyQuestionService().countJournalEntries(widget.coupleId);
+    if (mounted) {
+      setState(() => _journalCount = count);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final streak = context.watch<StreakProvider>();
+    final photoProvider = context.watch<PhotoProvider>();
+    final photoCount = photoProvider.photoCount;
+    final nf = NumberFormat.decimalPattern(
+      Localizations.localeOf(context).toString(),
+    );
+
+    final milestonesReached = StreakProvider.milestones
+        .where((m) => streak.longestStreak >= m)
+        .length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(title: l10n.profileAchievementsTitle),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.flash,
+                tint: AppColors.accentLove,
+                value: nf.format(streak.currentStreak),
+                label: l10n.badgeStreakLabel,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  StreakSheet.show(context);
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.cup,
+                tint: AppColors.accentLavender,
+                value: nf.format(streak.longestStreak),
+                label: l10n.badgeRecordLabel,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  RecordsSheet.show(
+                    context,
+                    longestStreak: streak.longestStreak,
+                    daysTogether: widget.totalDays,
+                    photoCount: photoCount,
+                    journalCount: _journalCount ?? 0,
+                    milestonesReached: milestonesReached,
+                    milestonesTotal: StreakProvider.milestones.length,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.gallery,
+                tint: AppColors.accentCoral,
+                value: nf.format(photoCount),
+                label: l10n.badgeMemoriesLabel,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  MemoriesSheet.show(
+                    context,
+                    photoCount: photoCount,
+                    recentPhotos: photoProvider.photos,
+                    onViewAll: () => widget.onRequestTab?.call(2),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.book_1,
+                tint: AppColors.accentRose,
+                // null only briefly while the count loads → slim shimmer, never
+                // a bare arrow (the old inconsistency this redesign removes).
+                value: _journalCount == null ? null : nf.format(_journalCount!),
+                label: l10n.badgeJournalLabel,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      settings: const RouteSettings(name: 'Journal'),
+                      builder: (_) => const JournalScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _badgeCard({
+    required IconData icon,
+    required Color tint,
+    required String? value,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: onTap,
+        splashColor: tint.withValues(alpha: 0.12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          decoration: BoxDecoration(
+            color: tint.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: tint.withValues(alpha: 0.12)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.82),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(icon, color: tint, size: 22),
+                  ),
+                  const Spacer(),
+                  // Uniform "tap for detail" affordance on every tile.
+                  Icon(IconsaxPlusLinear.arrow_right_3,
+                      size: 18, color: tint.withValues(alpha: 0.5)),
+                ],
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 26,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: value != null
+                      ? Text(
+                          value,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            height: 1,
+                          ),
+                        )
+                      : Container(
+                          width: 34,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: tint.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -36,7 +36,14 @@ Nền dawnBlush (từ Home shell) · ContentCard trắng r24 · thẻ huy hiệu
 ## Copy (vi/en)
 `journeyTrailTitle` (Hành trình của chúng mình / Our journey) · `milestoneTrailNext({days},{label})` · `milestoneTrailAllDone` · `profileAchievementsTitle` (Huy hiệu của chúng mình / Your badges) · `badgeStreakLabel` (ngày chuỗi) · `badgeRecordLabel` (kỷ lục) · `badgeMemoriesLabel` (kỷ niệm) · `badgeJournalLabel` (nhật ký). Nhãn năm tái dùng `milestoneYearsOne/Many`.
 
+## Redesign v2 (2026-06-18) — mỗi huy hiệu bấm ra chi tiết
+User: "ngày chuỗi bấm xem chi tiết · kỷ lục xem có kỷ lục gì · kỷ niệm xem kỷ niệm gì · sao nhật ký là icon >?". Nguyên tắc: **4 huy hiệu = 4 con số liếc-là-thấy, mỗi ô bấm → 1 chi tiết đúng chủ đề; đồng bộ tuyệt đối** (bỏ ">" lệch).
+- **Đồng bộ:** cả 4 ô = CON SỐ + chevron nhỏ mờ góc trên-phải (tín hiệu "bấm xem thêm" thống nhất); Nhật-ký nay có số (count query). Chi tiết = **bottom sheet** `cardSurface` blur (đồng bộ StreakSheet).
+- **Ngày chuỗi**→StreakSheet (đã có). **Kỷ lục**→`RecordsSheet` "Tủ kỷ lục" (5 record: chuỗi dài nhất / ngày bên nhau / tổng kỷ niệm / câu hỏi đã trả lời / mốc chuỗi đạt). **Kỷ niệm**→`MemoriesSheet` (thumbnail gần đây + "+N" + chips mốc ảnh có ✓ + "Còn X tới mốc Y" + Xem-tất-cả→tab Gallery). **Nhật ký**→JournalScreen.
+- **User chốt (AskUserQuestion):** Kỷ lục = Tủ kỷ lục · Kỷ niệm = sheet+mốc.
+
 ## Nợ / mở rộng
-- Nhật ký chưa có count → hiện mũi tên thay số (cần count() query nếu muốn số).
+- ✅ [DONE 2026-06-18] Nhật ký count() query — đã hiện số thật.
 - Có thể thêm huy hiệu "khoá" (chưa đạt → mờ) cho gamification sâu hơn.
 - Trail: có thể thêm celebrate animation khi vừa đạt mốc.
+- RecordsSheet: có thể thêm record "nhiều ảnh nhất 1 ngày", "trả lời sớm nhất"… nếu muốn phong phú.

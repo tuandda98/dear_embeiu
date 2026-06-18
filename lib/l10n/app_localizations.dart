@@ -1322,6 +1322,30 @@ abstract class AppLocalizations {
   /// **'You both reacted 💞'**
   String get reactionBothLabel;
 
+  /// Short label inside the celebratory pill shown when both members reacted
+  ///
+  /// In en, this message translates to:
+  /// **'You both reacted'**
+  String get reactionBothShort;
+
+  /// Nudge shown when only the current user reacted, inviting the named partner to react too
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name} to react…'**
+  String reactionWaitingPartner(String name);
+
+  /// Generic nudge when only the current user reacted and the partner has no name yet
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your partner to react…'**
+  String get reactionWaitingPartnerGeneric;
+
+  /// Generic word for the partner when their name is not set yet
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner'**
+  String get reactionPartnerFallback;
+
   /// No description provided for @dailyQuestionLabel.
   ///
   /// In en, this message translates to:
@@ -4723,6 +4747,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'journal'**
   String get badgeJournalLabel;
+
+  /// No description provided for @profileRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your records'**
+  String get profileRecordsTitle;
+
+  /// No description provided for @profileRecordLongestStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest streak'**
+  String get profileRecordLongestStreak;
+
+  /// No description provided for @profileRecordDaysTogether.
+  ///
+  /// In en, this message translates to:
+  /// **'Days together'**
+  String get profileRecordDaysTogether;
+
+  /// No description provided for @profileRecordTotalMemories.
+  ///
+  /// In en, this message translates to:
+  /// **'Total memories'**
+  String get profileRecordTotalMemories;
+
+  /// No description provided for @profileRecordJournalEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions answered'**
+  String get profileRecordJournalEntries;
+
+  /// No description provided for @profileRecordStreakMilestones.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak milestones'**
+  String get profileRecordStreakMilestones;
+
+  /// Journal entry count value, e.g. '5 answered'
+  ///
+  /// In en, this message translates to:
+  /// **'{count} answered'**
+  String profileJournalCountLabel(String count);
+
+  /// No description provided for @profileMemoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our memories'**
+  String get profileMemoriesTitle;
+
+  /// Total memories subtitle in the memories sheet
+  ///
+  /// In en, this message translates to:
+  /// **'{count} memories'**
+  String profileMemoriesCountLabel(String count);
+
+  /// Motivation toward the next photo-count milestone
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more to reach {milestone}'**
+  String profileMemoriesNextLabel(String count, String milestone);
 
   /// No description provided for @loveTreeBadge.
   ///

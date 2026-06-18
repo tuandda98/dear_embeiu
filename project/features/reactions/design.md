@@ -349,5 +349,26 @@ Tái dùng token `AppMotion` (fast 200 / base 280) + `flutter_animate`. Heart-bu
 - [x] Mục Phụ thuộc kỹ thuật (subcollection + rules + CF) cho Dev/PO
 - [ ] PO chốt các "quyết định mở" (xem báo cáo) trước khi Dev bắt tay
 
+## Redesign v2 (2026-06-18) — "Trái = tôi · Phải = chúng mình"
+
+**Bối cảnh:** user báo "em thả tim, anh tuan nhận push nhưng KHÔNG thấy tim trên ảnh; làm sao biết cả 2 cùng thả?". Nguyên nhân THẬT là bug backend (collectionGroup rule chưa deploy — xem dev.md/overview.md), nhưng UI v1 cũng có nợ: (a) **trùng lặp** — nút tim đã sáng còn thêm chip "❤️ Bạn"; (b) **không có trạng thái "cả hai cùng thả tim"** (2 key l10n `reactionBothLabel`/`reactionPartnerReacted` viết sẵn mà chưa dùng).
+
+**Nguyên tắc cốt lõi:** app cặp đôi CHỈ có 2 người ⇒ khai thác: **nút tim (trái) = hành động + trạng thái của TÔI; dòng phải = trạng thái "của chúng mình"** — không bao giờ hiện "tôi" 2 lần. Mỗi trạng thái nói đúng 1 điều.
+
+**4 trạng thái (single source of truth):**
+| State | Nút tim (trái) | Dòng phải |
+|---|---|---|
+| A — chưa ai | ♡ viền (rose .85) | hint `reactionHint` "Thả tim cho khoảnh khắc này" |
+| B — chỉ tôi | ❤️ Bold đặc + glow | nudge `reactionWaitingPartner({tên})` "Đang chờ {tên} cùng thả tim…" (rỗng tên→`…Generic`). Mời người kia → đẩy North Star |
+| C — chỉ người kia | ♡ **viền** rose .95 + **nền tint rose .10 + nhịp đập** (mời chạm lại) | chip `ReactionChip(emoji, {tên})` = `reactionPartnerReacted` (rỗng tên→`reactionPartnerFallback` "Người ấy") |
+| D — cả hai 🎉 | ❤️ đặc (emoji của tôi) | **pill gradient `accentLove→accentLoveDeep`** "💞 `reactionBothShort`" — leading 💞 khi 2 emoji TRÙNG, hiện cả 2 emoji khi KHÁC |
+
+**Motion:** nút tim invite pulse `Tween(1.0↔1.12)` easeInOut 1100ms repeat-reverse (TẮT khi Reduce Motion). Pill D entrance pop `TweenSequence(.82→1.06→1.0)` 300ms `AppMotion.curve` + fade (skip khi Reduce Motion). **Bùng tim khi VỪA khớp:** `_MatchBurst` — 6× 💞 bay lên + mờ dần từ tâm nút tim (overlay 750ms) + `HapticFeedback.mediumImpact`, **CHỈ khi flip thật** (`_seeded` chặn lần build đầu / lúc load), TẮT khi Reduce Motion.
+
+**Token màu pill D:** gradient ngang `[#FF4D6D, #E63956]`, chữ trắng w800 12sp, leading 15sp, padding (12,7), radius 999, shadow rose .30 blur10 y3 (chỉ light, onDark bỏ shadow).
+
+**Quyết định user chốt (AskUserQuestion 2026-06-18):** deploy DEV ngay (PROD chờ) · hero state = pill gradient gộp · giữ 6 emoji (long-press picker không đổi).
+
 ## Nhật ký design
+- [2026-06-18] [Lead/Designer] Redesign v2 reaction bar (xem mục trên): 4 state rõ ràng, bỏ chip "Bạn" trùng, thêm pill "cả hai" + nudge chờ-partner + invite-pulse + match-burst. Thực thi + verify runtime trên Android emulator (A/C/D feed + D fullscreen on-dark đều đúng), analyze 0.
 - [2026-06-04] [Designer] Thiết kế v1 Reactions: bộ 6 emoji, 3 surface (feed card chính / fullscreen / home badge read-only), 3 lối tương tác (tap/double-tap/long-press), full states + animation token + copy vi/en (UI+push) + mục phụ thuộc kỹ thuật. Đính chính: Gallery là feed dọc (không masonry như prompt giả định).

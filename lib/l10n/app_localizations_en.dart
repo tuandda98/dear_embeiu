@@ -722,6 +722,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reactionBothLabel => 'You both reacted 💞';
 
   @override
+  String get reactionBothShort => 'You both reacted';
+
+  @override
+  String reactionWaitingPartner(String name) {
+    return 'Waiting for $name to react…';
+  }
+
+  @override
+  String get reactionWaitingPartnerGeneric =>
+      'Waiting for your partner to react…';
+
+  @override
+  String get reactionPartnerFallback => 'Your partner';
+
+  @override
   String get dailyQuestionLabel => 'Today\'s question';
 
   @override
@@ -2734,6 +2749,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get badgeJournalLabel => 'journal';
+
+  @override
+  String get profileRecordsTitle => 'Your records';
+
+  @override
+  String get profileRecordLongestStreak => 'Longest streak';
+
+  @override
+  String get profileRecordDaysTogether => 'Days together';
+
+  @override
+  String get profileRecordTotalMemories => 'Total memories';
+
+  @override
+  String get profileRecordJournalEntries => 'Questions answered';
+
+  @override
+  String get profileRecordStreakMilestones => 'Streak milestones';
+
+  @override
+  String profileJournalCountLabel(String count) {
+    return '$count answered';
+  }
+
+  @override
+  String get profileMemoriesTitle => 'Our memories';
+
+  @override
+  String profileMemoriesCountLabel(String count) {
+    return '$count memories';
+  }
+
+  @override
+  String profileMemoriesNextLabel(String count, String milestone) {
+    return '$count more to reach $milestone';
+  }
 
   @override
   String get loveTreeBadge => 'LOVE TREE';

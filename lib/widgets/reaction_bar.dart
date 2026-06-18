@@ -14,19 +14,6 @@ import '../providers/reaction_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 
-/// Resolves the display name for a reaction's author from the couple. person1 is
-/// the couple creator (`createdByUserId`); the other member is person2. Falls
-/// back to the partner-name placeholder when the couple is missing.
-String _reactorName(Couple? couple, String authorUserId) {
-  if (couple == null) {
-    return '';
-  }
-  if (authorUserId == couple.createdByUserId) {
-    return couple.person1Name.trim();
-  }
-  return couple.person2Name.trim();
-}
-
 /// The reaction surface shown under a photo (feed card + fullscreen preview).
 ///
 /// Renders the heart button (3 states), the partner/you chips, and wires the
@@ -57,10 +44,19 @@ class ReactionBar extends StatefulWidget {
 class _ReactionBarState extends State<ReactionBar> {
   final GlobalKey _heartKey = GlobalKey();
   OverlayEntry? _pickerEntry;
+  OverlayEntry? _burstEntry;
+
+  // Tracks the "both reacted" state so we celebrate the exact moment the second
+  // person joins (a genuine flip), but never on first build. [_seeded] guards
+  // the initial build from counting as a flip.
+  bool _wasBoth = false;
+  bool _seeded = false;
 
   @override
   void dispose() {
     _removePicker();
+    _burstEntry?.remove();
+    _burstEntry = null;
     super.dispose();
   }
 
@@ -137,13 +133,14 @@ class _ReactionBarState extends State<ReactionBar> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ReactionProvider>();
-    final reactions = provider.reactionsFor(widget.photo.id);
     final myEmoji = provider.myReaction(widget.photo.id, widget.myUid);
     final partner = provider.partnerReaction(widget.photo.id, widget.myUid);
+    final bothReacted = myEmoji != null && partner != null;
 
-    final hintColor = widget.onDark
-        ? AppColors.white.withValues(alpha: 0.6)
-        : AppColors.textTertiary;
+    // One-time delight: the moment a photo flips into the "both reacted" state
+    // (the second person joins), fire a gentle haptic + heart burst. Never on
+    // first build — a photo that already had both reactions on load must not pop.
+    _maybeCelebrateBoth(bothReacted);
 
     return Padding(
       padding: widget.padding,
@@ -153,6 +150,8 @@ class _ReactionBarState extends State<ReactionBar> {
             key: _heartKey,
             emoji: myEmoji,
             onDark: widget.onDark,
+            // Nudge a tap-back only when the partner reacted and I haven't yet.
+            invite: partner != null && myEmoji == null,
             onTap: _onTapHeart,
             onLongPress: _onLongPressHeart,
             tooltip: myEmoji == null
@@ -161,53 +160,152 @@ class _ReactionBarState extends State<ReactionBar> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: reactions.isEmpty
-                ? Text(
-                    context.l10n.reactionHint,
-                    style: TextStyle(
-                      color: hintColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  )
-                : Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      if (partner != null)
-                        ReactionChip(
-                          emoji: partner.emoji,
-                          label: _reactorName(widget.couple, partner.authorUserId)
-                                  .isNotEmpty
-                              ? _reactorName(
-                                  widget.couple, partner.authorUserId)
-                              : context.l10n.reactionYouLabel,
-                          isMine: false,
-                          onDark: widget.onDark,
-                        ),
-                      if (myEmoji != null)
-                        ReactionChip(
-                          emoji: myEmoji,
-                          label: context.l10n.reactionYouLabel,
-                          isMine: true,
-                          onDark: widget.onDark,
-                        ),
-                    ],
-                  ),
+            child: _buildStatus(
+              context,
+              myEmoji: myEmoji,
+              partner: partner,
+              bothReacted: bothReacted,
+            ),
           ),
         ],
       ),
     );
   }
+
+  /// The right-hand status, expressing "us": one meaning per state. The heart
+  /// button already conveys *my* reaction, so we never repeat it here.
+  Widget _buildStatus(
+    BuildContext context, {
+    required String? myEmoji,
+    required PhotoReaction? partner,
+    required bool bothReacted,
+  }) {
+    final hintColor = widget.onDark
+        ? AppColors.white.withValues(alpha: 0.6)
+        : AppColors.textTertiary;
+
+    // D — both reacted: the hero celebratory pill.
+    if (bothReacted) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: _BothReactedPill(
+          myEmoji: myEmoji!,
+          partnerEmoji: partner!.emoji,
+          onDark: widget.onDark,
+        ),
+      );
+    }
+
+    // C — only the partner reacted: a warm chip inviting a tap-back.
+    if (partner != null) {
+      final name = _partnerNameRaw();
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: ReactionChip(
+          emoji: partner.emoji,
+          label: name.isNotEmpty ? name : context.l10n.reactionPartnerFallback,
+          isMine: false,
+          onDark: widget.onDark,
+        ),
+      );
+    }
+
+    // B — only I reacted: anticipation nudge to bring the partner in.
+    if (myEmoji != null) {
+      final name = _partnerNameRaw();
+      final waiting = name.isEmpty
+          ? context.l10n.reactionWaitingPartnerGeneric
+          : context.l10n.reactionWaitingPartner(name);
+      return Text(
+        waiting,
+        style: TextStyle(
+          color: hintColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      );
+    }
+
+    // A — nobody reacted yet.
+    return Text(
+      context.l10n.reactionHint,
+      style: TextStyle(
+        color: hintColor,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+
+  /// The partner's name (the couple member who is not me), trimmed; empty when
+  /// unknown. There are only ever two members, so the partner is simply "the
+  /// other one" relative to [ReactionBar.myUid].
+  String _partnerNameRaw() {
+    final couple = widget.couple;
+    if (couple == null) {
+      return '';
+    }
+    final iAmCreator = widget.myUid == couple.createdByUserId;
+    return (iAmCreator ? couple.person2Name : couple.person1Name).trim();
+  }
+
+  void _maybeCelebrateBoth(bool bothReacted) {
+    if (!_seeded) {
+      _seeded = true;
+      _wasBoth = bothReacted;
+      return;
+    }
+    if (bothReacted && !_wasBoth) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        HapticFeedback.mediumImpact();
+        _playMatchBurst();
+      });
+    }
+    _wasBoth = bothReacted;
+  }
+
+  /// Inserts a transient, self-removing 💞 burst anchored on the heart button.
+  /// No-op under Reduce Motion or when the render geometry isn't available.
+  void _playMatchBurst() {
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (reduceMotion) {
+      return;
+    }
+    final box = _heartKey.currentContext?.findRenderObject() as RenderBox?;
+    final overlayState = Overlay.maybeOf(context);
+    final overlay = overlayState?.context.findRenderObject() as RenderBox?;
+    if (box == null || overlayState == null || overlay == null) {
+      return;
+    }
+    final center =
+        box.localToGlobal(box.size.center(Offset.zero), ancestor: overlay);
+    _burstEntry?.remove();
+    final entry = OverlayEntry(
+      builder: (_) => _MatchBurst(
+        center: center,
+        onDone: () {
+          _burstEntry?.remove();
+          _burstEntry = null;
+        },
+      ),
+    );
+    _burstEntry = entry;
+    overlayState.insert(entry);
+  }
 }
 
-/// The circular heart button with three states: outline (no reaction), filled
-/// ❤️ (default reaction), or an emoji chip (any other reaction).
+/// The circular heart button. Conveys *my* reaction (outline / filled ❤️ / emoji
+/// chip) and, when [invite] is set (the partner reacted but I haven't yet),
+/// switches to a bold rose heart with a slow breathing pulse to nudge a tap-back.
 class _HeartButton extends StatefulWidget {
   const _HeartButton({
     super.key,
     required this.emoji,
     required this.onDark,
+    required this.invite,
     required this.onTap,
     required this.onLongPress,
     required this.tooltip,
@@ -215,6 +313,7 @@ class _HeartButton extends StatefulWidget {
 
   final String? emoji;
   final bool onDark;
+  final bool invite;
   final Future<void> Function() onTap;
   final VoidCallback onLongPress;
   final String tooltip;
@@ -224,9 +323,11 @@ class _HeartButton extends StatefulWidget {
 }
 
 class _HeartButtonState extends State<_HeartButton>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _popController;
   late final Animation<double> _pop;
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulse;
 
   @override
   void initState() {
@@ -246,6 +347,15 @@ class _HeartButtonState extends State<_HeartButton>
     ]).animate(
       CurvedAnimation(parent: _popController, curve: AppMotion.curve),
     );
+
+    // Slow breathing pulse, driven only while [invite] is active (see _syncPulse).
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    );
+    _pulse = Tween<double>(begin: 1.0, end: 1.12).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -260,7 +370,21 @@ class _HeartButtonState extends State<_HeartButton>
   @override
   void dispose() {
     _popController.dispose();
+    _pulseController.dispose();
     super.dispose();
+  }
+
+  /// Starts/stops the breathing pulse. Called from build so it always reflects
+  /// the latest [invite] + Reduce Motion state.
+  void _syncPulse(bool active) {
+    if (active) {
+      if (!_pulseController.isAnimating) {
+        _pulseController.repeat(reverse: true);
+      }
+    } else if (_pulseController.isAnimating || _pulseController.value != 0) {
+      _pulseController.stop();
+      _pulseController.value = 0;
+    }
   }
 
   @override
@@ -269,11 +393,16 @@ class _HeartButtonState extends State<_HeartButton>
     final isHeart = emoji == kDefaultReactionEmoji;
     final isOtherEmoji = emoji != null && !isHeart;
 
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    _syncPulse(widget.invite && !reduceMotion);
+
     final Color bg;
     if (widget.onDark) {
-      bg = AppColors.white.withValues(alpha: 0.14);
+      bg = AppColors.white.withValues(alpha: widget.invite ? 0.20 : 0.14);
     } else if (isOtherEmoji) {
       bg = AppColors.accentRose.withValues(alpha: 0.12);
+    } else if (widget.invite) {
+      bg = AppColors.accentRose.withValues(alpha: 0.10);
     } else {
       bg = Colors.transparent;
     }
@@ -295,12 +424,17 @@ class _HeartButtonState extends State<_HeartButton>
         child: const Icon(IconsaxPlusBold.heart, size: 22, color: AppColors.accentLove),
       );
     } else {
+      // No reaction from me yet. Keep the OUTLINE heart so it never reads as
+      // "I reacted" (that would clash with the filled state). When inviting a
+      // tap-back we draw attention with the bg tint + breathing pulse + a
+      // slightly stronger outline colour — not by filling it in.
       content = Icon(
         IconsaxPlusLinear.heart,
         size: 22,
         color: widget.onDark
-            ? AppColors.white.withValues(alpha: 0.85)
-            : AppColors.accentRose.withValues(alpha: 0.85),
+            ? AppColors.white.withValues(alpha: widget.invite ? 1.0 : 0.85)
+            : AppColors.accentRose
+                .withValues(alpha: widget.invite ? 0.95 : 0.85),
       );
     }
 
@@ -311,18 +445,21 @@ class _HeartButtonState extends State<_HeartButton>
       // tooltip stays available for hover/a11y only.
       triggerMode: TooltipTriggerMode.manual,
       child: ScaleTransition(
-        scale: _pop,
-        child: Material(
-          color: bg,
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: () => widget.onTap(),
-            onLongPress: widget.onLongPress,
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: Center(child: content),
+        scale: _pulse,
+        child: ScaleTransition(
+          scale: _pop,
+          child: Material(
+            color: bg,
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () => widget.onTap(),
+              onLongPress: widget.onLongPress,
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Center(child: content),
+              ),
             ),
           ),
         ),
@@ -381,6 +518,197 @@ class ReactionChip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The hero "both reacted" pill — a warm gradient capsule that celebrates both
+/// members reacting (state D). Plays a one-shot entrance pop when it first
+/// appears (i.e. the moment a photo becomes "both"). The leading glyph is 💞 when
+/// the two emoji match, or the pair of emoji when they differ.
+class _BothReactedPill extends StatefulWidget {
+  const _BothReactedPill({
+    required this.myEmoji,
+    required this.partnerEmoji,
+    required this.onDark,
+  });
+
+  final String myEmoji;
+  final String partnerEmoji;
+  final bool onDark;
+
+  @override
+  State<_BothReactedPill> createState() => _BothReactedPillState();
+}
+
+class _BothReactedPillState extends State<_BothReactedPill>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scale;
+  late final Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.82, end: 1.06), weight: 65),
+      TweenSequenceItem(tween: Tween(begin: 1.06, end: 1.0), weight: 35),
+    ]).animate(CurvedAnimation(parent: _controller, curve: AppMotion.curve));
+    _fade = CurvedAnimation(parent: _controller, curve: AppMotion.curve);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (reduceMotion) {
+      if (!_controller.isCompleted) {
+        _controller.value = 1.0;
+      }
+      return _pill(context);
+    }
+    return FadeTransition(
+      opacity: _fade,
+      child: ScaleTransition(
+        scale: _scale,
+        alignment: Alignment.centerLeft,
+        child: _pill(context),
+      ),
+    );
+  }
+
+  Widget _pill(BuildContext context) {
+    final sameEmoji = widget.myEmoji == widget.partnerEmoji;
+    final leading =
+        sameEmoji ? '💞' : '${widget.partnerEmoji}${widget.myEmoji}';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.accentLove, AppColors.accentLoveDeep],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: widget.onDark
+            ? null
+            : [
+                BoxShadow(
+                  color: AppColors.accentLove.withValues(alpha: 0.30),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(leading, style: const TextStyle(fontSize: 15, height: 1)),
+          const SizedBox(width: 7),
+          Text(
+            context.l10n.reactionBothShort,
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A small, self-removing burst of 💞 that rises from the heart button the moment
+/// a photo flips into the "both reacted" state. Calls [onDone] when finished so
+/// the host can drop its [OverlayEntry]. Purely decorative (ignores pointers).
+class _MatchBurst extends StatefulWidget {
+  const _MatchBurst({required this.center, required this.onDone});
+
+  /// Global position (in overlay space) to emanate from.
+  final Offset center;
+  final VoidCallback onDone;
+
+  @override
+  State<_MatchBurst> createState() => _MatchBurstState();
+}
+
+class _MatchBurstState extends State<_MatchBurst>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  final List<_Particle> _particles = <_Particle>[];
+  final math.Random _random = math.Random();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 750),
+    );
+    _particles.addAll(List.generate(6, (_) {
+      return _Particle(
+        dx: (_random.nextDouble() - 0.5) * 70,
+        rise: 46 + _random.nextDouble() * 40,
+        size: 14 + _random.nextDouble() * 8,
+        delay: _random.nextDouble() * 0.18,
+      );
+    }));
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        widget.onDone();
+      }
+    });
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final t = _controller.value;
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              for (final p in _particles) _buildParticle(p, t),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildParticle(_Particle p, double t) {
+    final localT = ((t - p.delay) / (1 - p.delay)).clamp(0.0, 1.0);
+    if (localT <= 0) {
+      return const SizedBox.shrink();
+    }
+    final opacity = (1 - localT).clamp(0.0, 1.0);
+    return Positioned(
+      left: widget.center.dx - p.size / 2 + p.dx * localT,
+      top: widget.center.dy - p.size / 2 - p.rise * localT,
+      child: Opacity(
+        opacity: opacity,
+        child: Text('💞', style: TextStyle(fontSize: p.size, height: 1)),
       ),
     );
   }

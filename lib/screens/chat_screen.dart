@@ -14,6 +14,7 @@ import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/eyebrow_chip.dart';
+import '../widgets/header_icon_button.dart';
 import '../widgets/shimmer_skeleton.dart';
 
 /// The "Trò chuyện" tab (feature chat) — the couple's private realtime chat,
@@ -40,6 +41,7 @@ class ChatScreen extends StatefulWidget {
     super.key,
     required this.keyboardVisible,
     this.onRequestTab,
+    this.onBack,
   });
 
   /// Whether the software keyboard is up. Passed in by HomeScreen — the Home
@@ -50,6 +52,11 @@ class ChatScreen extends StatefulWidget {
   /// Asks HomeScreen to switch the bottom-nav tab (waiting-partner CTA → the
   /// Profile tab where the invite code lives).
   final ValueChanged<int>? onRequestTab;
+
+  /// Pops the chat back to the tab the user came from. When set, a back icon is
+  /// shown in the header and the bottom nav is hidden by HomeScreen — chat is a
+  /// full-screen drill-in (user 2026-06-17) rather than a peer tab.
+  final VoidCallback? onBack;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -151,9 +158,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final partnerName = couple == null
         ? ''
         : (myUid == couple.createdByUserId
-                ? couple.person2Name
-                : couple.person1Name)
-            .trim();
+                  ? couple.person2Name
+                  : couple.person1Name)
+              .trim();
     final partnerInitial = partnerName.isNotEmpty
         ? partnerName.characters.first.toUpperCase()
         : '♥';
@@ -169,30 +176,72 @@ class _ChatScreenState extends State<ChatScreen> {
           // same as Home/Gallery/Profile so the chip sits identically when
           // swapping tabs.
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-          child: Row(
-            children: [
-              Flexible(
-                child: (couple != null &&
-                        couple.person1Name.trim().isNotEmpty &&
-                        couple.person2Name.trim().isNotEmpty)
-                    ? EyebrowChip(
-                        child: AnimatedCoupleName(
-                          person1Name: couple.person1Name.toUpperCase(),
-                          person2Name: couple.person2Name.toUpperCase(),
-                          creatorUserId: couple.createdByUserId,
-                          textStyle: AppTheme.pageEyebrowStyle(alpha: 0.70),
-                          heartColor: AppColors.accentLoveDeep,
-                          heartSize: 12,
-                          spacing: 6,
-                          runSpacing: 0,
+          // Centered title chip (user 2026-06-17): the couple-name chip is CENTRED
+          // in the row — back arrow pinned to the left gutter — same Stack recipe
+          // as SubScreenHeader so the screen's title sits dead-centre instead of
+          // hugging the back icon. Symmetric h-padding keeps a long name off the
+          // back-arrow touch target.
+          child: SizedBox(
+            height: 44,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 44),
+                  child:
+                      (couple != null &&
+                          couple.person1Name.trim().isNotEmpty &&
+                          couple.person2Name.trim().isNotEmpty)
+                      ? EyebrowChip(
+                          child: AnimatedCoupleName(
+                            person1Name: couple.person1Name.toUpperCase(),
+                            person2Name: couple.person2Name.toUpperCase(),
+                            creatorUserId: couple.createdByUserId,
+                            alignment: WrapAlignment.center,
+                            // Header voice (2026-06-17): the couple-name crowns the
+                            // chat as a strong tracked-caps TITLE — full-opacity
+                            // navy, at the conversation's reading size (15) but
+                            // ALL-CAPS, max-weight (Quicksand tops out at Bold —
+                            // w800 already resolves to it) and tracked, so it can
+                            // never read as just another white message bubble. The
+                            // body stays quiet sentence-case 15/w400: caps-vs-lower,
+                            // bold-vs-regular and tracked-vs-tight separate the two
+                            // at a glance (user: phân biệt rõ header vs tin nhắn).
+                            textStyle: AppTheme.pageEyebrowStyle(alpha: 1.0)
+                                .copyWith(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.0,
+                                ),
+                            heartColor: AppColors.accentLoveDeep,
+                            heartSize: 15,
+                            spacing: 7,
+                            runSpacing: 0,
+                          ),
+                        )
+                      : EyebrowChip(
+                          label: l10n.chatBadge,
+                          icon: IconsaxPlusLinear.messages,
                         ),
-                      )
-                    : EyebrowChip(
-                        label: l10n.chatBadge,
-                        icon: IconsaxPlusLinear.messages,
+                ),
+                // Back icon (user 2026-06-17): chat is a full-screen drill-in, so
+                // it carries the app's standard back affordance at the left gutter.
+                // -10 lands the 44 touch target's glyph on the gutter (like
+                // SubScreenHeader). HomeScreen restores the tab the user came from.
+                if (widget.onBack != null)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Transform.translate(
+                      offset: const Offset(-10, 0),
+                      child: HeaderIconButton(
+                        icon: IconsaxPlusLinear.arrow_left,
+                        onTap: widget.onBack!,
+                        semanticsLabel: l10n.back,
                       ),
-              ),
-            ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
         Expanded(
@@ -227,17 +276,15 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  /// Floating-card composer (design §B4): white r24 card hovering ABOVE the
-  /// floating nav while the keyboard is down, and hugging the keyboard once it
-  /// opens (the nav hides itself; the Scaffold resize handles the inset). The
-  /// 260ms padding animation matches the nav's own slide.
+  /// Floating-card composer (design §B4): white r24 card resting just above the
+  /// safe-area while the keyboard is down (the bottom nav is hidden on this
+  /// drill-in screen, so there is nothing to clear), and hugging the keyboard
+  /// once it opens. The 260ms padding animation matches the keyboard slide.
   Widget _buildComposer(AppLocalizations l10n) {
     // Keyboard open → root MediaQuery.padding.bottom collapses to 0, so this
     // never double-pads on top of the keyboard inset.
     final safeBottom = MediaQuery.of(context).padding.bottom;
-    final bottomClearance = widget.keyboardVisible
-        ? 10.0
-        : safeBottom + _navMargin + _navHeight + 10;
+    final bottomClearance = widget.keyboardVisible ? 10.0 : safeBottom + 16;
 
     // Borders muted explicitly: the app-wide rose focus outline reads like a
     // validation error inside a chat bar (same call as the history composer).
@@ -339,8 +386,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   height: 18,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.2,
-                                    valueColor:
-                                        AlwaysStoppedAnimation<Color>(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
                                       AppColors.white,
                                     ),
                                   ),
@@ -364,11 +410,6 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-
-  // Mirrors HomeScreen's floating-nav geometry (design §B4) — the composer
-  // must clear the nav by 10 while the keyboard is down.
-  static const double _navHeight = 84;
-  static const double _navMargin = 16;
 }
 
 /// The conversation: provider entries arrive newest-first; we lay them out
@@ -442,8 +483,7 @@ class _MessageListState extends State<_MessageList> {
   @override
   Widget build(BuildContext context) {
     final reduceMotion = AppMotion.reduceMotion(context);
-    final items =
-        <ChatMessage>[...widget.messages.reversed]; // oldest → newest
+    final items = <ChatMessage>[...widget.messages.reversed]; // oldest → newest
 
     // Divider rule for chat (denser than love notes): NEW DAY or a ≥60-minute
     // gap since the previous message (design §B2). Pending messages (no server
@@ -453,7 +493,8 @@ class _MessageListState extends State<_MessageList> {
     for (var i = 0; i < items.length; i++) {
       final when = items[i].createdAt;
       if (when != null) {
-        hasSeparator[i] = lastWhen == null ||
+        hasSeparator[i] =
+            lastWhen == null ||
             when.year != lastWhen.year ||
             when.month != lastWhen.month ||
             when.day != lastWhen.day ||
@@ -480,10 +521,12 @@ class _MessageListState extends State<_MessageList> {
     for (var i = 0; i < items.length; i++) {
       final message = items[i];
       final isMine = message.authorUserId == widget.myUid;
-      final firstInGroup = hasSeparator[i] ||
+      final firstInGroup =
+          hasSeparator[i] ||
           i == 0 ||
           items[i - 1].authorUserId != message.authorUserId;
-      final lastInGroup = i == items.length - 1 ||
+      final lastInGroup =
+          i == items.length - 1 ||
           hasSeparator[i + 1] ||
           items[i + 1].authorUserId != message.authorUserId;
 
@@ -498,23 +541,25 @@ class _MessageListState extends State<_MessageList> {
         widget.revealedIds.add(id);
       }
 
-      children.add(Padding(
-        padding: EdgeInsets.only(
-          top: hasSeparator[i] ? 0 : (firstInGroup ? 10 : 3),
-        ),
-        child: _MessageEntrance(
-          key: id == null ? null : ValueKey('chat-msg-$id'),
-          animate: animate,
-          child: _ChatBubble(
-            text: message.text,
-            isMine: isMine,
-            isPending: message.isPending,
-            firstInGroup: firstInGroup,
-            lastInGroup: lastInGroup,
-            partnerInitial: widget.partnerInitial,
+      children.add(
+        Padding(
+          padding: EdgeInsets.only(
+            top: hasSeparator[i] ? 0 : (firstInGroup ? 10 : 3),
+          ),
+          child: _MessageEntrance(
+            key: id == null ? null : ValueKey('chat-msg-$id'),
+            animate: animate,
+            child: _ChatBubble(
+              text: message.text,
+              isMine: isMine,
+              isPending: message.isPending,
+              firstInGroup: firstInGroup,
+              lastInGroup: lastInGroup,
+              partnerInitial: widget.partnerInitial,
+            ),
           ),
         ),
-      ));
+      );
     }
 
     // reverse:true puts logical item 0 at the visual bottom — so we feed the
@@ -677,15 +722,15 @@ class _TimeDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
     final now = DateTime.now();
-    final sameDay = when.year == now.year &&
-        when.month == now.month &&
-        when.day == now.day;
-    final label = (sameDay
-            ? DateFormat.Hm(locale).format(when)
-            : when.year == now.year
+    final sameDay =
+        when.year == now.year && when.month == now.month && when.day == now.day;
+    final label =
+        (sameDay
+                ? DateFormat.Hm(locale).format(when)
+                : when.year == now.year
                 ? DateFormat.MMMd(locale).add_Hm().format(when)
                 : DateFormat.yMMMd(locale).add_Hm().format(when))
-        .toUpperCase();
+            .toUpperCase();
 
     return Padding(
       padding: const EdgeInsets.only(top: 20, bottom: 8),
@@ -751,10 +796,7 @@ class _ChatBubble extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: isMine
-          ? BoxDecoration(
-              color: AppColors.textPrimary,
-              borderRadius: radius,
-            )
+          ? BoxDecoration(color: AppColors.textPrimary, borderRadius: radius)
           : BoxDecoration(
               color: AppColors.cardSurface,
               borderRadius: radius,
@@ -864,10 +906,7 @@ class _ChatSkeleton extends StatelessWidget {
         // Partner rows reserve the 24+8 avatar slot, like the real layout.
         child: mine
             ? shape
-            : Padding(
-                padding: const EdgeInsets.only(left: 32),
-                child: shape,
-              ),
+            : Padding(padding: const EdgeInsets.only(left: 32), child: shape),
       );
     }
 

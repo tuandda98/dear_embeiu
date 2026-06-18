@@ -81,6 +81,19 @@ class NotificationTapRouter {
       pendingHomeFocus.value = null;
     }
   }
+
+  /// A request to open the Gallery's add-photo composer (the Love Tree
+  /// "Thêm một kỷ niệm" shortcut, 2026-06-17). true = open the multi-image
+  /// picker once the Gallery tab is shown; [GalleryScreen] consumes it. Only
+  /// ever set while the app is running (the Love Tree is reachable in-app only).
+  static final ValueNotifier<bool> pendingCompose = ValueNotifier<bool>(false);
+
+  /// Marks the pending compose request as handled.
+  static void consumeComposeRequest() {
+    if (pendingCompose.value) {
+      pendingCompose.value = false;
+    }
+  }
 }
 
 /// Home tab indices a deep-link can target (mirror HomeScreen's IndexedStack).

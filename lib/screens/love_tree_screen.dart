@@ -12,6 +12,7 @@ import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/love_tree_service.dart';
+import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
@@ -537,12 +538,15 @@ class _NurtureCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
+          // Each tile pops the tree and routes Home to the matching action
+          // (user 2026-06-17): keep streak → today's question, add a memory →
+          // the Gallery add-photo composer, chat → the Chat tab.
           _NurtureTile(
             icon: IconsaxPlusLinear.flash,
             tint: AppColors.accentCoral,
             title: l10n.loveTreeNurtureStreakTitle,
             body: l10n.loveTreeNurtureStreakBody,
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: () => _goToDailyQuestion(context),
           ),
           const SizedBox(height: 10),
           _NurtureTile(
@@ -550,7 +554,7 @@ class _NurtureCard extends StatelessWidget {
             tint: AppColors.accentLavender,
             title: l10n.loveTreeNurturePhotoTitle,
             body: l10n.loveTreeNurturePhotoBody,
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: () => _goToAddMemory(context),
           ),
           const SizedBox(height: 10),
           _NurtureTile(
@@ -558,11 +562,36 @@ class _NurtureCard extends StatelessWidget {
             tint: AppColors.accentRose,
             title: l10n.loveTreeNurtureTalkTitle,
             body: l10n.loveTreeNurtureTalkBody,
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: () => _goToChat(context),
           ),
         ],
       ),
     );
+  }
+
+  /// The Love Tree is a route pushed over Home, which owns the tabs + the
+  /// daily-question card and listens to [NotificationTapRouter]. So each
+  /// shortcut signals the destination through the router, then pops back to let
+  /// Home apply it — the same bridge notification deep-links use.
+
+  /// Keep-streak → Home tab, daily-question card scrolled into view.
+  void _goToDailyQuestion(BuildContext context) {
+    NotificationTapRouter.pendingHomeTab.value = 0;
+    NotificationTapRouter.pendingHomeFocus.value = 'daily_question';
+    Navigator.of(context).maybePop();
+  }
+
+  /// Add-a-memory → Gallery tab with its add-photo composer opened.
+  void _goToAddMemory(BuildContext context) {
+    NotificationTapRouter.pendingHomeTab.value = 2;
+    NotificationTapRouter.pendingCompose.value = true;
+    Navigator.of(context).maybePop();
+  }
+
+  /// Chat-today → Chat tab.
+  void _goToChat(BuildContext context) {
+    NotificationTapRouter.pendingHomeTab.value = 1;
+    Navigator.of(context).maybePop();
   }
 }
 

@@ -725,6 +725,20 @@ class AppLocalizationsVi extends AppLocalizations {
   String get reactionBothLabel => 'Cả hai đã thả tim 💞';
 
   @override
+  String get reactionBothShort => 'Cả hai đã thả tim';
+
+  @override
+  String reactionWaitingPartner(String name) {
+    return 'Đang chờ $name cùng thả tim…';
+  }
+
+  @override
+  String get reactionWaitingPartnerGeneric => 'Đang chờ người ấy cùng thả tim…';
+
+  @override
+  String get reactionPartnerFallback => 'Người ấy';
+
+  @override
   String get dailyQuestionLabel => 'Câu hỏi hôm nay';
 
   @override
@@ -2730,6 +2744,42 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get badgeJournalLabel => 'nhật ký';
+
+  @override
+  String get profileRecordsTitle => 'Kỷ lục của chúng mình';
+
+  @override
+  String get profileRecordLongestStreak => 'Chuỗi dài nhất';
+
+  @override
+  String get profileRecordDaysTogether => 'Ngày bên nhau';
+
+  @override
+  String get profileRecordTotalMemories => 'Tổng kỷ niệm';
+
+  @override
+  String get profileRecordJournalEntries => 'Câu hỏi đã trả lời';
+
+  @override
+  String get profileRecordStreakMilestones => 'Cột mốc chuỗi đạt';
+
+  @override
+  String profileJournalCountLabel(String count) {
+    return '$count câu';
+  }
+
+  @override
+  String get profileMemoriesTitle => 'Kỷ niệm của chúng mình';
+
+  @override
+  String profileMemoriesCountLabel(String count) {
+    return '$count kỷ niệm';
+  }
+
+  @override
+  String profileMemoriesNextLabel(String count, String milestone) {
+    return 'Còn $count ảnh nữa tới mốc $milestone';
+  }
 
   @override
   String get loveTreeBadge => 'CÂY TÌNH YÊU';

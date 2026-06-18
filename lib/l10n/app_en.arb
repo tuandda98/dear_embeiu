@@ -419,6 +419,27 @@
   "@reactionBothLabel": {
     "description": "a11y label when both members have reacted to a photo"
   },
+  "reactionBothShort": "You both reacted",
+  "@reactionBothShort": {
+    "description": "Short label inside the celebratory pill shown when both members reacted"
+  },
+  "reactionWaitingPartner": "Waiting for {name} to react…",
+  "@reactionWaitingPartner": {
+    "description": "Nudge shown when only the current user reacted, inviting the named partner to react too",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reactionWaitingPartnerGeneric": "Waiting for your partner to react…",
+  "@reactionWaitingPartnerGeneric": {
+    "description": "Generic nudge when only the current user reacted and the partner has no name yet"
+  },
+  "reactionPartnerFallback": "Your partner",
+  "@reactionPartnerFallback": {
+    "description": "Generic word for the partner when their name is not set yet"
+  },
   "dailyQuestionLabel": "Today's question",
   "dailyQuestionHint": "Write your answer…",
   "dailyQuestionCharCount": "{count}/280",
@@ -1921,6 +1942,35 @@
   "badgeRecordLabel": "record",
   "badgeMemoriesLabel": "memories",
   "badgeJournalLabel": "journal",
+  "profileRecordsTitle": "Your records",
+  "profileRecordLongestStreak": "Longest streak",
+  "profileRecordDaysTogether": "Days together",
+  "profileRecordTotalMemories": "Total memories",
+  "profileRecordJournalEntries": "Questions answered",
+  "profileRecordStreakMilestones": "Streak milestones",
+  "profileJournalCountLabel": "{count} answered",
+  "@profileJournalCountLabel": {
+    "description": "Journal entry count value, e.g. '5 answered'",
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "profileMemoriesTitle": "Our memories",
+  "profileMemoriesCountLabel": "{count} memories",
+  "@profileMemoriesCountLabel": {
+    "description": "Total memories subtitle in the memories sheet",
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "profileMemoriesNextLabel": "{count} more to reach {milestone}",
+  "@profileMemoriesNextLabel": {
+    "description": "Motivation toward the next photo-count milestone",
+    "placeholders": {
+      "count": { "type": "String" },
+      "milestone": { "type": "String" }
+    }
+  },
   "loveTreeBadge": "LOVE TREE",
   "loveTreeStage0": "Tiny seed",
   "loveTreeStage1": "Sprout",
