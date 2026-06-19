@@ -455,6 +455,7 @@
     "description": "Generic word for the partner when their name is not set yet"
   },
   "moodCardTitle": "Tâm trạng hôm nay",
+  "moodMatched": "Chúng mình cùng một tâm trạng 💞",
   "moodShareCta": "Chia sẻ tâm trạng",
   "moodUpdateCta": "Đổi tâm trạng",
   "moodNotSharedYou": "Chạm để chia sẻ",

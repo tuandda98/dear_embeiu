@@ -12,7 +12,9 @@ import '../providers/auth_provider.dart';
 import '../providers/mood_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import 'animated_couple_name.dart';
 import 'content_card.dart';
+import 'mood_glyph.dart';
 
 /// Localized label for a mood [key].
 String moodLabel(AppLocalizations l10n, String key) {
@@ -78,47 +80,64 @@ class MoodCard extends StatelessWidget {
                   color: AppColors.accentLove.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(IconsaxPlusBold.emoji_happy,
-                    size: 20, color: AppColors.accentLove),
+                child: const Icon(
+                  IconsaxPlusBold.emoji_happy,
+                  size: 20,
+                  color: AppColors.accentLove,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(l10n.moodCardTitle,
-                    style: AppTheme.sectionTitleStyle()),
+                child: Text(
+                  l10n.moodCardTitle,
+                  style: AppTheme.sectionTitleStyle(),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _MoodSide(
-                    label: l10n.reactionYouLabel,
-                    mood: myMood,
-                    emptyText: l10n.moodNotSharedYou,
-                    isMe: true,
-                    onTap: () => _openPicker(context, myMood),
+          // When BOTH shared the SAME mood today, celebrate the sync with one big
+          // glyph instead of two side-by-side (user 2026-06-19).
+          if (myMood != null &&
+              partnerMood != null &&
+              myMood.mood == partnerMood.mood)
+            _MoodMatched(
+              myMood: myMood,
+              partnerMood: partnerMood,
+              myLabel: l10n.reactionYouLabel,
+              partnerName: partnerName,
+            )
+          else
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _MoodSide(
+                      label: l10n.reactionYouLabel,
+                      mood: myMood,
+                      emptyText: l10n.moodNotSharedYou,
+                      isMe: true,
+                      onTap: () => _openPicker(context, myMood),
+                    ),
                   ),
-                ),
-                Container(
-                  width: 1,
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  color: AppColors.surfaceLight,
-                ),
-                Expanded(
-                  child: _MoodSide(
-                    label: partnerName,
-                    mood: partnerMood,
-                    emptyText: l10n.moodPartnerEmpty(partnerName),
-                    isMe: false,
-                    onTap: null,
+                  Container(
+                    width: 1,
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    color: AppColors.surfaceLight,
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: _MoodSide(
+                      label: partnerName,
+                      mood: partnerMood,
+                      emptyText: l10n.moodPartnerEmpty(partnerName),
+                      isMe: false,
+                      onTap: null,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 16),
           _buildCta(context, l10n, myMood),
         ],
@@ -231,8 +250,7 @@ class _MoodSide extends StatelessWidget {
               shape: BoxShape.circle,
               color: AppColors.accentRose.withValues(alpha: 0.10),
             ),
-            child: Text(option.emoji,
-                style: const TextStyle(fontSize: 30, height: 1)),
+            child: MoodGlyph(option: option, size: 44),
           ),
           const SizedBox(height: 8),
           Text(
@@ -308,6 +326,163 @@ class _MoodSide extends StatelessWidget {
   }
 }
 
+/// Celebratory "in sync" state: when both shared the SAME mood today, one big
+/// glyph in a gradient ring replaces the two-column layout (user 2026-06-19).
+class _MoodMatched extends StatelessWidget {
+  const _MoodMatched({
+    required this.myMood,
+    required this.partnerMood,
+    required this.myLabel,
+    required this.partnerName,
+  });
+
+  final Mood myMood;
+  final Mood partnerMood;
+  final String myLabel;
+  final String partnerName;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final option = myMood.option;
+
+    // A soft rose "moment" panel that ties the whole in-sync state together
+    // (đồng bộ with the app's tinted panels); inside, a glowing glyph + the two
+    // names around a pulsing heart say "one mood, two of us" (đồng điệu).
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.accentRose.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.accentRose.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Glyph on a soft radial glow (no hard ring) + lifted white disc.
+          SizedBox(
+            width: 128,
+            height: 128,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.accentLove.withValues(alpha: 0.24),
+                        AppColors.accentLove.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                  child: const SizedBox(width: 128, height: 128),
+                ),
+                Container(
+                  width: 92,
+                  height: 92,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.cardSurface,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accentRose.withValues(alpha: 0.18),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: option == null
+                      ? const SizedBox.shrink()
+                      : MoodGlyph(option: option, size: 60),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            moodLabel(l10n, myMood.mood),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Two names around a pulsing heart — reuses the app's couple-name motif.
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  myLabel.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTheme.pageEyebrowStyle(alpha: 0.6, shadowed: false),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: AnimatedHeartIcon(
+                  size: 13,
+                  color: AppColors.accentLoveDeep,
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  partnerName.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTheme.pageEyebrowStyle(alpha: 0.6, shadowed: false),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.moodMatched,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.accentLoveDeep,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (myMood.hasNote || partnerMood.hasNote) ...[
+            const SizedBox(height: 12),
+            _note(myLabel, myMood),
+            _note(partnerName, partnerMood),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _note(String name, Mood mood) {
+    if (!mood.hasNote) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Text(
+        '${name.toUpperCase()}: "${mood.note}"',
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: AppColors.textSecondary,
+          fontSize: 12,
+          height: 1.3,
+          fontStyle: FontStyle.italic,
+        ),
+      ),
+    );
+  }
+}
+
 /// Bottom sheet to pick today's mood (+ optional short note). One tap on a mood
 /// is enough; the note is optional. Mirrors the streak/records sheet styling.
 class _MoodPickerSheet extends StatefulWidget {
@@ -321,8 +496,9 @@ class _MoodPickerSheet extends StatefulWidget {
 
 class _MoodPickerSheetState extends State<_MoodPickerSheet> {
   late String? _selected = widget.current?.mood;
-  late final TextEditingController _noteController =
-      TextEditingController(text: widget.current?.note ?? '');
+  late final TextEditingController _noteController = TextEditingController(
+    text: widget.current?.note ?? '',
+  );
 
   @override
   void dispose() {
@@ -336,9 +512,7 @@ class _MoodPickerSheetState extends State<_MoodPickerSheet> {
       return;
     }
     HapticFeedback.lightImpact();
-    await context
-        .read<MoodProvider>()
-        .setMood(key, note: _noteController.text);
+    await context.read<MoodProvider>().setMood(key, note: _noteController.text);
     if (mounted) {
       Navigator.of(context).maybePop();
     }
@@ -421,7 +595,9 @@ class _MoodPickerSheetState extends State<_MoodPickerSheet> {
                       borderSide: BorderSide.none,
                     ),
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -476,7 +652,7 @@ class _MoodChoice extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(option.emoji, style: const TextStyle(fontSize: 28, height: 1)),
+            MoodGlyph(option: option, size: 40, animate: selected),
             const SizedBox(height: 6),
             Text(
               label,

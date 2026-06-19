@@ -118,5 +118,25 @@
 - **Rollback**: nếu visual sakura có vấn đề nặng, đổi 1 hằng `kTreeRenderer = SakuraBranchRenderer()` → `PaintTreeRenderer()` (cuối `love_tree_screen.dart`) là về lại cây v2.1 ngay.
 - **Lệch spec nhỏ (Dev quyết, không ngoài scope)**: spec §C.2 ghi "6–7 chấm tua nhuỵ" → chọn 7 (cố định). Glow đỉnh bloom vẽ TRONG `SakuraBranchPainter` (không vẽ ở `_TreeHero`). `canopyGeometry` của renderer khai báo theo contract nhưng hiện chưa có call-site gọi trực tiếp (coach dùng `_coachTargetIndex(positions)`, glow vẽ trong painter) — giữ cho ranh giới v3.
 
+## [2026-06-19] [designer+dev] BG bầu trời theo BUỔI (user: "ban ngày cũng phải có bg đẹp như trời sao ban đêm")
+Trước: `SkyBackdropPainter` chỉ vẽ **sao ở `night`**; dawn/day/dusk chỉ gradient nhạt → ban ngày trống trải. Sửa (chỉ trong `SkyBackdropPainter`, painter-only, static/Reduce-Motion-safe):
+- **Gradient giàu hơn** mỗi phase (vẫn hài hoà brand hồng): dawn=bình minh ấm vàng-hồng · day=xanh trời nhạt→hồng · dusk=hoàng hôn cam-hồng-tím · night=tím đêm.
+- **Thiên thể theo buổi** (mới): `_paintSun` (mặt trời + quầng sáng radial) cho dawn (mọc thấp góc trái) / day (cao góc phải) / dusk (lặn thấp, quầng cam to); `_paintCloud` (mây trắng blur) cho day (3) + dawn (1); `_paintMoon` (trăng tròn + glow) cho night; `_paintStars` thêm param `alphaScale` → night đầy sao, **dusk có sao mờ** (0.45). Màu tham khảo palette sunrise/sunset trên web.
+- Vị trí mặt trời/trăng đặt theo `Size` fraction (responsive). analyze 0. Verify trực tiếp emulator **buổi sáng (06:38)**: mặt trời mọc góc trên-trái + gradient bình minh ✓. Day/dusk/night cùng painter (không đổi được giờ emulator do production-build chặn root) — verify code + analyze. Client-only, không deploy.
+
+## [2026-06-19] [dev] Bầu trời ĐỘNG sáng/trưa/chiều (user: "buổi tối có sao, sáng/trưa/chiều chưa có gì" → animate)
+User muốn nền sáng/trưa/chiều sống động như trời sao đêm. **Quyết định nguồn:** thử auto-tải Lottie nền từ web nhưng BẾ TẮC (sandbox chặn `lottiefiles.com`/`lottie.host` CDN; repo weather GitHub tải được thì **GPL-3.0 / không license** + màu vàng-xanh lệch tông hồng) → user chốt **animate bằng code** (khớp palette 100%, không lo license).
+- Chỉ sửa `SkyBackdropPainter` (painter-only) + call-site: thêm field `t` (clock phase [0,1), `-1`=static Reduce-Motion) + getter `_moving`/`_tau`.
+- Chuyển động dịu mắt, dùng LẠI `_ambient` controller 8s có sẵn (KHÔNG thêm controller): **mây trôi** (`_paintCloud` thêm `driftPhase`, sway sin lệch pha) · **nắng/trăng "thở"** (pulse ±5-6% quầng sáng) · **sao nhấp nháy** (mỗi sao 1 pha riêng, dusk+night) · **chim bay** (`_paintBird` mới — bóng hải âu 2 nét lướt trái→phải + vỗ cánh, dawn 2 con + day 2 con).
+- Call-site: `reduceMotion ? CustomPaint(static) : AnimatedBuilder(_ambientController())` truyền `t=_ambient.value`. `shouldRepaint` so thêm `t`. Static frame = mây/sao/nắng base + chim đậu mid-flight (không blank).
+- analyze **0** (file + toàn dự án). Client-only, KHÔNG deploy. Verify thẩm mỹ runtime: cần soi mây trôi/chim bay mượt + perf máy tầm trung (sky repaint 60fps có blur mây — nếu nặng thì giảm số mây/tắt blur khi moving).
+
+### Vòng 2 (user screenshot: "bg xấu, mặt trời+mây mờ" + "thiết kế bg ngày/trưa/chiều giàu như trời sao đêm")
+- **Mặt trời NÉT**: `_paintSun` bỏ đĩa radial mép trong suốt (gây nhoè) → 3 lớp: aura mềm rộng + "seat" glow ôm sát + **đĩa đặc rìa full-alpha** (tâm sáng→core). Hết "vệt bẩn".
+- **Mây RÕ**: blur sigma `r*0.45→0.16`, opacity `0.55→0.82`; +param `tint` (mây hoàng hôn ám cam/hồng/tím ở dusk).
+- **Giàu chi tiết như trời đêm**: mỗi buổi ngày giờ là CẢNH nhiều lớp: `_paintLightMotes` (đốm sáng lung linh — bản ban-ngày của trường-sao, dùng lại 14 vị trí `_stars`, 2 circle phẳng/đốm, twinkle lệch pha; vàng ấm@dawn, trắng@day) + 4 tầng mây trôi + `_paintFlock` (đàn 5 chim đội hình chevron trôi chậm, vỗ cánh lệch pha) thay 2 chim lẻ. dusk giữ sao mờ (0.5) + mây ám hồng + đàn chim về.
+- bg dawn ấm/đậm hơn (bớt washed-out): `#FFD7A3@.80 → #FFB3CC@.54`.
+- `_drawBird(center,span,flap,alpha)` tách từ `_paintBird` (giờ bỏ). analyze 0. Vẫn client-only. **Verify simulator dawn (07:36).**
+
 ## [2026-06-19] [dev] Bỏ tiêu đề giai đoạn cây (user request)
 User: "xoá cái cây xanh đi" → gỡ dòng tiêu đề tên-giai-đoạn ("Hạt mầm/Mầm non/Cây non/Cây xanh/Nở rộ") ở hero love tree. Xoá `Text(_stageTitle(...))` + `SizedBox(height:4)` (`love_tree_screen.dart` §3) **và** method `_stageTitle` (giờ orphan). Giữ caption "Chạm vào mỗi bông…" + subtitle "{n} bông hoa đã nở" (`_stageSubtitle`). `stage` vẫn dùng (painter + subtitle bloom). l10n `loveTreeStage0..4` giữ trong ARB (unused, vô hại). analyze 0. Client-only, không deploy.

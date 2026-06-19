@@ -1478,6 +1478,12 @@ abstract class AppLocalizations {
   /// **'Today\'s mood'**
   String get moodCardTitle;
 
+  /// No description provided for @moodMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'You both feel the same today 💞'**
+  String get moodMatched;
+
   /// No description provided for @moodShareCta.
   ///
   /// In en, this message translates to:

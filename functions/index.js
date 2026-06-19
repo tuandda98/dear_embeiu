@@ -713,7 +713,7 @@ exports.notifyPartnerMood = onDocumentWritten(
     // Push only — no writeInboxNotifications (mood is ephemeral "today" state).
     const result = await sendToRecipientDevices(
       recipientIds,
-      (languageCode) => buildPartnerMoodText(languageCode, authorName),
+      (languageCode) => buildPartnerMoodText(languageCode, authorName, mood),
       {
         type: "partner_mood",
         coupleId,
@@ -1726,20 +1726,41 @@ const CHAT_MESSAGE_COPY = {
 const PARTNER_MOOD_COPY = {
   vi: {
     title: "Tâm trạng hôm nay 💗",
-    body: (name) => `${name} vừa chia sẻ tâm trạng hôm nay — ghé xem nhé`,
+    // Show the mood when we recognise it ("Anh Tuấn đang thấy Nhớ"); otherwise a
+    // gentle generic nudge.
+    body: (name, moodLabel) => moodLabel ?
+      `${name} đang thấy ${moodLabel}` :
+      `${name} vừa chia sẻ tâm trạng hôm nay — ghé xem nhé`,
   },
   en: {
     title: "Today's mood 💗",
-    body: (name) => `${name} just shared how they feel today — take a peek`,
+    body: (name, moodLabel) => moodLabel ?
+      `${name} is feeling ${moodLabel}` :
+      `${name} just shared how they feel today — take a peek`,
   },
 };
 
-function buildPartnerMoodText(languageCode, authorName) {
+// Localized mood labels (mirror the app's app_*.arb mood keys) so the push can
+// name the mood. Unknown keys fall back to the generic copy above.
+const MOOD_LABELS = {
+  vi: {
+    happy: "Vui", loved: "Hạnh phúc", missing: "Nhớ", calm: "Bình yên",
+    meh: "Bình thường", tired: "Mệt", sad: "Buồn", stressed: "Căng thẳng",
+  },
+  en: {
+    happy: "Happy", loved: "Loved", missing: "Missing you", calm: "Calm",
+    meh: "Meh", tired: "Tired", sad: "Sad", stressed: "Stressed",
+  },
+};
+
+function buildPartnerMoodText(languageCode, authorName, moodKey) {
   const code = `${languageCode || ""}`.trim().toLowerCase();
   const copy = PARTNER_MOOD_COPY[code] || PARTNER_MOOD_COPY.vi;
+  const labels = MOOD_LABELS[code] || MOOD_LABELS.vi;
+  const moodLabel = labels[`${moodKey || ""}`.trim()] || "";
   return {
     title: copy.title,
-    body: copy.body(authorName),
+    body: copy.body(authorName, moodLabel),
   };
 }
 

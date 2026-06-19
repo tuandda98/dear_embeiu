@@ -465,6 +465,7 @@
     "description": "Generic word for the partner when their name is not set yet"
   },
   "moodCardTitle": "Today's mood",
+  "moodMatched": "You both feel the same today 💞",
   "moodShareCta": "Share your mood",
   "moodUpdateCta": "Update mood",
   "moodNotSharedYou": "Tap to share",

@@ -811,6 +811,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moodCardTitle => 'Today\'s mood';
 
   @override
+  String get moodMatched => 'You both feel the same today 💞';
+
+  @override
   String get moodShareCta => 'Share your mood';
 
   @override

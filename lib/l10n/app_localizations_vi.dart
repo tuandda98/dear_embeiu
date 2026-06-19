@@ -811,6 +811,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get moodCardTitle => 'Tâm trạng hôm nay';
 
   @override
+  String get moodMatched => 'Chúng mình cùng một tâm trạng 💞';
+
+  @override
   String get moodShareCta => 'Chia sẻ tâm trạng';
 
   @override

@@ -6,27 +6,33 @@
 library;
 
 /// One selectable mood: a stable [key] (persisted + mirrored in firestore.rules)
-/// and its [emoji]. Labels are localized in the UI (see `moodLabel`), never
-/// stored. Order matters — the picker renders them in this order.
+/// and its [emoji]. [lottie] is the animated face for that mood (Noto Animated
+/// Emoji, CC BY 4.0) — the UI renders it and falls back to the static [emoji]
+/// glyph if the asset is missing. Labels are localized in the UI (see
+/// `moodLabel`), never stored. Order matters — the picker renders them in this
+/// order.
 class MoodOption {
-  const MoodOption(this.key, this.emoji);
+  const MoodOption(this.key, this.emoji, this.lottie);
 
   final String key;
   final String emoji;
+
+  /// Asset path of the animated face (under `assets/lottie/`).
+  final String lottie;
 }
 
 /// The curated, couple-friendly mood set (warm + a "missing you" that only makes
 /// sense for two). Keep in sync with the `moodXxx` l10n keys + the rules' size
 /// guard. Small on purpose so the check-in stays a 1–2 tap ritual.
 const List<MoodOption> kMoodOptions = [
-  MoodOption('happy', '😄'),
-  MoodOption('loved', '🥰'),
-  MoodOption('missing', '🥹'),
-  MoodOption('calm', '😌'),
-  MoodOption('meh', '😐'),
-  MoodOption('tired', '😪'),
-  MoodOption('sad', '😢'),
-  MoodOption('stressed', '😣'),
+  MoodOption('happy', '😄', 'assets/lottie/mood_happy.json'),
+  MoodOption('loved', '🥰', 'assets/lottie/mood_loved.json'),
+  MoodOption('missing', '🥹', 'assets/lottie/mood_missing.json'),
+  MoodOption('calm', '😌', 'assets/lottie/mood_calm.json'),
+  MoodOption('meh', '😐', 'assets/lottie/mood_meh.json'),
+  MoodOption('tired', '😪', 'assets/lottie/mood_tired.json'),
+  MoodOption('sad', '😢', 'assets/lottie/mood_sad.json'),
+  MoodOption('stressed', '😣', 'assets/lottie/mood_stressed.json'),
 ];
 
 /// Looks up a [MoodOption] by [key], or null when unknown (e.g. an older/newer

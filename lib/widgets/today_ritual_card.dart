@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
@@ -33,12 +34,30 @@ class TodayRitualCard extends StatefulWidget {
 }
 
 class _TodayRitualCardState extends State<TodayRitualCard> {
-  late final ConfettiController _confetti =
-      ConfettiController(duration: const Duration(milliseconds: 600));
+  late final ConfettiController _confetti = ConfettiController(
+    duration: const Duration(milliseconds: 600),
+  );
 
   bool _confettiPlayed = false;
   bool _showRevealLottie = false;
   bool _revealExpanded = false;
+
+  // Per-day guard (user 2026-06-19): the reveal celebration must play AT MOST
+  // ONCE a day, not on every app open. On a cold start the provider re-derives
+  // hasRevealed false→true, which the in-session trigger below would mistake for
+  // a fresh reveal — so we also persist the date we last celebrated for this
+  // couple in Hive and never replay it the same day.
+  static const String _boxName = 'app_settings';
+  bool _seenLoaded = false;
+  bool _revealSeenToday = false;
+
+  String get _revealSeenKey => 'dq_reveal_seen_${widget.couple.id}';
+
+  String get _todayKey {
+    final n = DateTime.now();
+    return '${n.year}-${n.month.toString().padLeft(2, '0')}-'
+        '${n.day.toString().padLeft(2, '0')}';
+  }
 
   @override
   void initState() {
@@ -46,6 +65,30 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     final daily = context.read<DailyQuestionProvider>();
     _confettiPlayed = daily.hasRevealed;
     _revealExpanded = !daily.hasRevealed;
+    _loadRevealSeen();
+  }
+
+  Future<void> _loadRevealSeen() async {
+    try {
+      final box = await Hive.openBox<dynamic>(_boxName);
+      final stored = box.get(_revealSeenKey);
+      if (!mounted) return;
+      setState(() {
+        _revealSeenToday = stored == _todayKey;
+        _seenLoaded = true;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _seenLoaded = true);
+    }
+  }
+
+  Future<void> _stampRevealSeen() async {
+    try {
+      final box = await Hive.openBox<dynamic>(_boxName);
+      await box.put(_revealSeenKey, _todayKey);
+    } catch (_) {
+      // Best-effort — worst case it celebrates once more next launch.
+    }
   }
 
   @override
@@ -72,10 +115,19 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     final isWaiting = widget.couple.isWaitingForPartner;
     final partnerName = _partnerName(l10n);
 
-    if (daily.hasRevealed && !_confettiPlayed) {
+    // Celebrate only a GENUINE first reveal today: not already played this
+    // session (_confettiPlayed), the per-day marker loaded, and not yet
+    // celebrated today (_revealSeenToday). Until the marker loads we hold off so
+    // a cold start's false→true transition can't replay a past celebration.
+    if (daily.hasRevealed &&
+        !_confettiPlayed &&
+        _seenLoaded &&
+        !_revealSeenToday) {
       _confettiPlayed = true;
+      _revealSeenToday = true;
       _showRevealLottie = true;
       _revealExpanded = true;
+      _stampRevealSeen();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _confetti.play();
       });
@@ -100,7 +152,12 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: _buildQuestionSection(
-                  l10n, daily, langCode, partnerName, isWaiting),
+                l10n,
+                daily,
+                langCode,
+                partnerName,
+                isWaiting,
+              ),
             ),
           ),
         ),
@@ -146,10 +203,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
           const IgnorePointer(
             child: Positioned(
               top: -8,
-              child: LoveLottie(
-                slot: LoveLottieSlot.dailyReveal,
-                height: 120,
-              ),
+              child: LoveLottie(slot: LoveLottieSlot.dailyReveal, height: 120),
             ),
           ),
       ],
@@ -194,8 +248,10 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
       if (!_revealExpanded) {
         return [
           _inlineRow(
-            leading:
-                const AnimatedHeartIcon(size: 18, color: AppColors.accentRose),
+            leading: const AnimatedHeartIcon(
+              size: 18,
+              color: AppColors.accentRose,
+            ),
             label: l10n.dailyBothAnsweredToday,
             action: l10n.dailyReadAgain,
             onTap: () => setState(() => _revealExpanded = true),
@@ -215,8 +271,10 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
         const SizedBox(height: 10),
         Align(
           alignment: Alignment.centerRight,
-          child:
-              _textLink(l10n.dailyCollapse, onTap: () => setState(() => _revealExpanded = false)),
+          child: _textLink(
+            l10n.dailyCollapse,
+            onTap: () => setState(() => _revealExpanded = false),
+          ),
         ),
       ];
     }
@@ -276,8 +334,11 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(IconsaxPlusLinear.lock,
-                          size: 15, color: AppColors.accentLoveDeep),
+                      const Icon(
+                        IconsaxPlusLinear.lock,
+                        size: 15,
+                        color: AppColors.accentLoveDeep,
+                      ),
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
@@ -320,12 +381,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     }
 
     // A. Nobody answered yet
-    return [
-      ComposePill(
-        label: l10n.dailyTapToAnswer,
-        onTap: _openAnswerSheet,
-      ),
-    ];
+    return [ComposePill(label: l10n.dailyTapToAnswer, onTap: _openAnswerSheet)];
   }
 
   // ── Answer sheet ─────────────────────────────────────────────────────────────
@@ -348,8 +404,9 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
 
     if (sent != true || !mounted) return;
     HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(l10n.dailyQuestionSent)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.dailyQuestionSent)));
   }
 
   // ── Shared bits ──────────────────────────────────────────────────────────────
@@ -419,8 +476,9 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
           Text(
             label,
             style: TextStyle(
-              color:
-                  mine ? AppColors.accentLoveDeep : AppColors.accentLavenderDeep,
+              color: mine
+                  ? AppColors.accentLoveDeep
+                  : AppColors.accentLavenderDeep,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.3,
@@ -488,8 +546,8 @@ class _DailyAnswerSheetState extends State<_DailyAnswerSheet> {
     final countColor = remaining <= 20
         ? AppColors.error
         : remaining <= 50
-            ? AppColors.warning
-            : AppColors.textTertiary;
+        ? AppColors.warning
+        : AppColors.textTertiary;
 
     return Padding(
       padding: EdgeInsets.only(bottom: viewInsets),
@@ -530,8 +588,10 @@ class _DailyAnswerSheetState extends State<_DailyAnswerSheet> {
                     color: AppColors.accentRose.withValues(alpha: 0.12),
                   ),
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: TextField(
                   controller: _ctrl,
                   maxLength: _maxChars,
@@ -586,9 +646,7 @@ class _DailyAnswerSheetState extends State<_DailyAnswerSheet> {
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
-                      child: Text(
-                        '$remaining / $_maxChars',
-                      ),
+                      child: Text('$remaining / $_maxChars'),
                     ),
                   ),
                   const Spacer(),
@@ -634,8 +692,11 @@ class _SheetHeader extends StatelessWidget {
           // Badge row
           Row(
             children: [
-              const Icon(IconsaxPlusBold.lovely,
-                  size: 16, color: AppColors.white),
+              const Icon(
+                IconsaxPlusBold.lovely,
+                size: 16,
+                color: AppColors.white,
+              ),
               const SizedBox(width: 8),
               Text(
                 l10n.dailyQuestionLabel,
@@ -690,9 +751,7 @@ class _SendButton extends StatelessWidget {
           gradient: enabled ? AppColors.sunsetRomance : null,
           color: enabled ? null : AppColors.textTertiary.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(999),
-          boxShadow: enabled
-              ? [AppColors.softCardShadow(opacity: 0.20)]
-              : null,
+          boxShadow: enabled ? [AppColors.softCardShadow(opacity: 0.20)] : null,
         ),
         child: Material(
           color: Colors.transparent,
@@ -702,16 +761,16 @@ class _SendButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
             splashColor: Colors.white.withValues(alpha: 0.15),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
               child: loading
                   ? const SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.white,
+                        ),
                       ),
                     )
                   : Row(

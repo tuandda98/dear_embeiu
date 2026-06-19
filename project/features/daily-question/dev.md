@@ -26,7 +26,8 @@
 ## Edge case kỹ thuật đã xử lý
 - Local-fallback (`!isUsingFirebase`): Hive lưu chỉ answer của máy này; service không crash; provider resubscribe sau submit để UI cập nhật ngay.
 - Day rollover khi app mở: `watchForCouple` so cả `dateKey` → resubscribe sang câu mới.
-- Confetti **bắn đúng 1 lần**: flag `_confettiPlayed` init = `provider.hasRevealed` (mở lại Home đã reveal → KHÔNG bắn), chỉ bắn ở transition fresh reveal; key card theo couple+question để reset state đúng.
+- Confetti **bắn đúng 1 lần**: flag `_confettiPlayed` init = `provider.hasRevealed`, chỉ bắn ở transition fresh reveal.
+  - ⚠️ **[2026-06-19] FIX bug (user: "tắt mở app lại đều hiện lottie reveal dù cả 2 đã trả lời")**: cold-start provider khởi tạo `hasRevealed=false` → load → lật `true` ⇒ build hiểu nhầm là "vừa reveal" → lottie+confetti phát LẠI mỗi lần mở. Thêm **guard per-day lưu Hive** ở `today_ritual_card.dart`: key `dq_reveal_seen_<coupleId>` = 'YYYY-MM-DD'; `_loadRevealSeen()` async set `_revealSeenToday`/`_seenLoaded`; điều kiện bắn = `hasRevealed && !_confettiPlayed && _seenLoaded && !_revealSeenToday`; khi bắn thì `_stampRevealSeen()` đóng dấu hôm nay. → chỉ ăn mừng **1 lần/ngày** khi cả 2 vừa trả lời, mở lại không phát nữa. analyze 0.
 - Clamp text 280 cả client (service) + rules. Trim rỗng → submit no-op.
 - `waiting_partner` (chưa có partner): vẫn cho trả lời, ghi chú "sẽ mở khoá khi người ấy tham gia & trả lời", không lỗi.
 - recursiveDelete dọn subcollection lồng + phantom doc khi xoá hẳn couple (deleteAccount/leave sole-member).
