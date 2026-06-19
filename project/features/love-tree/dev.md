@@ -138,5 +138,11 @@ User muốn nền sáng/trưa/chiều sống động như trời sao đêm. **Qu
 - bg dawn ấm/đậm hơn (bớt washed-out): `#FFD7A3@.80 → #FFB3CC@.54`.
 - `_drawBird(center,span,flap,alpha)` tách từ `_paintBird` (giờ bỏ). analyze 0. Vẫn client-only. **Verify simulator dawn (07:36).**
 
+### Vòng 3 (user screenshot dawn: "sky chỉ mặt trời + mây, BỎ đàn chim; mặt trời cũng nên có Lottie")
+- **Mặt trời → Lottie**: `assets/lottie/sky_sun.json` = **Meteocons `clear-day`** (Bas Milius, **MIT**, mặt trời trơn tia xoay #F8AF18, 128×128 loop 6s) — tải qua **npm registry → tarball `@meteocons/lottie@0.1.0`** (jsDelivr npm/CDN bị 404, nhưng `registry.npmjs.org` reachable → lấy tarball, giải nén `package/fill/clear-day.json`). KHÔNG mặt cười (Noto chỉ có 🌞 có mặt → loại).
+- Render: overlay `Lottie.asset` `Positioned` trong Stack `build()` (sau lớp sky CustomPaint, TRƯỚC SafeArea → sau header/cây; `IgnorePointer`), vị trí+cỡ theo phase (dawn trái w·0.42, day phải-cao w·0.34, dusk phải-thấp to w·0.48); night = null (giữ trăng vẽ tay). `repeat/animate = !reduceMotion`, lỗi→`SizedBox.shrink`. +import `package:lottie`.
+- **BỎ đàn chim + đốm sáng**: gỡ `_paintFlock`/`_drawBird`/`_paintLightMotes` + `_paintSun` (giờ sun là Lottie). Painter daytime CHỈ còn `_paintCloud` (giữ drift + tint hoàng hôn). Bỏ luôn sao mờ ở dusk (user "chỉ mặt trời + mây"). Night giữ nguyên trăng+sao.
+- analyze 0. Client-only, không deploy. **License: thêm Meteocons (MIT) vào ghi công cùng Noto.** Verify runtime.
+
 ## [2026-06-19] [dev] Bỏ tiêu đề giai đoạn cây (user request)
 User: "xoá cái cây xanh đi" → gỡ dòng tiêu đề tên-giai-đoạn ("Hạt mầm/Mầm non/Cây non/Cây xanh/Nở rộ") ở hero love tree. Xoá `Text(_stageTitle(...))` + `SizedBox(height:4)` (`love_tree_screen.dart` §3) **và** method `_stageTitle` (giờ orphan). Giữ caption "Chạm vào mỗi bông…" + subtitle "{n} bông hoa đã nở" (`_stageSubtitle`). `stage` vẫn dùng (painter + subtitle bloom). l10n `loveTreeStage0..4` giữ trong ARB (unused, vô hại). analyze 0. Client-only, không deploy.

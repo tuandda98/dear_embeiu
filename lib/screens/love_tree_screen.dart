@@ -9,6 +9,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -282,7 +283,32 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     // behind the status bar + header — and fading to transparent (SkyBackdrop-
     // Painter) so it melts into the dawnBlush page below. The tree hero is now
     // transparent and sits over it.
-    final skyHeight = MediaQuery.of(context).size.height * 0.55;
+    final screenSize = MediaQuery.of(context).size;
+    final skyHeight = screenSize.height * 0.55;
+    final w = screenSize.width;
+
+    // Daytime sun = a Lottie overlay (Meteocons "clear-day", MIT) placed per
+    // phase in clear sky (clear of the header). Night has no sun — its painted
+    // moon stands in.
+    Offset? sunCenter;
+    double sunSize = 0;
+    switch (_phase) {
+      case SkyPhase.dawn:
+        sunCenter = Offset(w * 0.24, skyHeight * 0.34);
+        sunSize = w * 0.42;
+        break;
+      case SkyPhase.day:
+        sunCenter = Offset(w * 0.80, skyHeight * 0.18);
+        sunSize = w * 0.34;
+        break;
+      case SkyPhase.dusk:
+        sunCenter = Offset(w * 0.78, skyHeight * 0.52);
+        sunSize = w * 0.48;
+        break;
+      case SkyPhase.night:
+        sunCenter = null;
+        break;
+    }
 
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
@@ -290,10 +316,10 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-            // 1. The full-bleed sky (decorative — never intercepts taps). When
-            //    motion is allowed it gently breathes on the shared ambient
-            //    clock (cloud drift, glow, star twinkle, gliding birds); under
-            //    Reduce Motion it's a clean static frame (t = -1).
+            // 1. The full-bleed sky: gradient + drifting clouds (night: moon +
+            //    star field). Decorative — never intercepts taps. Drifts /
+            //    twinkles on the shared ambient clock; a clean static frame
+            //    under Reduce Motion (t = -1).
             Positioned(
               top: 0,
               left: 0,
@@ -317,6 +343,25 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
                       ),
               ),
             ),
+
+            // 1b. The SUN — a Lottie (Meteocons "clear-day", MIT) over the sky
+            //     but behind the header + tree. Daytime only; never taps.
+            if (sunCenter != null)
+              Positioned(
+                left: sunCenter.dx - sunSize / 2,
+                top: sunCenter.dy - sunSize / 2,
+                width: sunSize,
+                height: sunSize,
+                child: IgnorePointer(
+                  child: Lottie.asset(
+                    'assets/lottie/sky_sun.json',
+                    repeat: !reduceMotion,
+                    animate: !reduceMotion,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                  ),
+                ),
+              ),
 
             // 2. Header + body (transparent) over the sky. The back/share discs
             // are frosted (onBackground/backed) so they read on the dark night
@@ -3439,22 +3484,13 @@ class SkyBackdropPainter extends CustomPainter {
       ).createShader(rect);
     canvas.drawRect(rect, paint);
 
-    // Celestial scene per phase — daytime skies are now as ALIVE as the night's
-    // star field (user: "thiết kế bg ban ngày/trưa/chiều giống bầu trời đêm"):
-    // a crisp sun, layered drifting clouds, a gliding flock and soft light motes
-    // (the daytime answer to stars). Animated on the clock when [t] >= 0; a
-    // clean static frame under Reduce Motion (t == -1).
+    // Celestial scene per phase. Daytime = JUST drifting clouds here (the SUN is
+    // a Lottie overlay drawn by the widget tree — see build()); night keeps its
+    // painted moon + full star field. Clouds drift / stars twinkle when [t] >= 0;
+    // a clean static frame under Reduce Motion (t == -1). (user: "sky chỉ mặt
+    // trời + mây, bỏ đàn chim; mặt trời để Lottie".)
     switch (phase) {
-      case SkyPhase.dawn: // sunrise — warm, layered, a flock heading out
-        _paintLightMotes(canvas, size, const Color(0xFFFFE6B0),
-            alphaScale: 0.85);
-        _paintSun(
-          canvas,
-          center: Offset(w * 0.23, h * 0.29),
-          radius: h * 0.044,
-          core: const Color(0xFFFFF4DC),
-          glow: const Color(0xFFFFBE63),
-        );
+      case SkyPhase.dawn: // sunrise — soft layered clouds
         _paintCloud(canvas, Offset(w * 0.74, h * 0.13), h * 0.060, 0.45,
             driftPhase: 0.0);
         _paintCloud(canvas, Offset(w * 0.50, h * 0.21), h * 0.044, 0.72,
@@ -3463,17 +3499,8 @@ class SkyBackdropPainter extends CustomPainter {
             driftPhase: 2.8);
         _paintCloud(canvas, Offset(w * 0.88, h * 0.31), h * 0.040, 0.55,
             driftPhase: 0.8);
-        _paintFlock(canvas, w, h, yFrac: 0.40, size: 1.0);
         break;
-      case SkyPhase.day: // bright midday — fluffy, breezy
-        _paintLightMotes(canvas, size, AppColors.white, alphaScale: 0.6);
-        _paintSun(
-          canvas,
-          center: Offset(w * 0.79, h * 0.13),
-          radius: h * 0.040,
-          core: const Color(0xFFFFFBEC),
-          glow: const Color(0xFFFFDE86),
-        );
+      case SkyPhase.day: // bright midday — fluffy clouds
         _paintCloud(canvas, Offset(w * 0.26, h * 0.16), h * 0.062, 0.85,
             driftPhase: 0.0);
         _paintCloud(canvas, Offset(w * 0.56, h * 0.26), h * 0.048, 0.7,
@@ -3482,80 +3509,20 @@ class SkyBackdropPainter extends CustomPainter {
             driftPhase: 2.4);
         _paintCloud(canvas, Offset(w * 0.12, h * 0.33), h * 0.036, 0.5,
             driftPhase: 3.2);
-        _paintFlock(canvas, w, h, yFrac: 0.22, size: 0.9);
         break;
-      case SkyPhase.dusk: // golden hour — warm-lit clouds + early stars
-        _paintSun(
-          canvas,
-          center: Offset(w * 0.78, h * 0.42),
-          radius: h * 0.060,
-          core: const Color(0xFFFFE6B6),
-          glow: const Color(0xFFFF7E4E),
-        );
+      case SkyPhase.dusk: // golden hour — warm-lit clouds
         _paintCloud(canvas, Offset(w * 0.30, h * 0.17), h * 0.052, 0.7,
             driftPhase: 0.0, tint: const Color(0xFFFFC09A));
         _paintCloud(canvas, Offset(w * 0.60, h * 0.25), h * 0.044, 0.6,
             driftPhase: 1.4, tint: const Color(0xFFFFAEB8));
         _paintCloud(canvas, Offset(w * 0.14, h * 0.29), h * 0.038, 0.5,
             driftPhase: 2.6, tint: const Color(0xFFE7AED0));
-        _paintStars(canvas, size, alphaScale: 0.5);
-        _paintFlock(canvas, w, h, yFrac: 0.36, size: 0.95);
         break;
-      case SkyPhase.night: // moon + full star field
+      case SkyPhase.night: // moon + full star field (unchanged — its identity)
         _paintMoon(canvas, Offset(w * 0.79, h * 0.15), h * 0.044);
         _paintStars(canvas, size);
         break;
     }
-  }
-
-  /// A soft glowing sun/sunshine: a wide radial halo + a bright core.
-  void _paintSun(
-    Canvas canvas, {
-    required Offset center,
-    required double radius,
-    required Color core,
-    required Color glow,
-  }) {
-    // Slow glow "breathing" — halo widens/brightens ±5% on the ambient clock.
-    final pulse = _moving ? 1 + 0.05 * math.sin(_tau) : 1.0;
-    // 1. Wide, soft outer aura (the ONLY soft part).
-    final haloR = radius * 3.2 * pulse;
-    canvas.drawCircle(
-      center,
-      haloR,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [
-            glow.withValues(alpha: 0.30 * pulse),
-            glow.withValues(alpha: 0.0),
-          ],
-        ).createShader(Rect.fromCircle(center: center, radius: haloR)),
-    );
-    // 2. A tighter glow "seat" hugging the disc so it sits, not floats.
-    final seatR = radius * 1.7;
-    canvas.drawCircle(
-      center,
-      seatR,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [
-            glow.withValues(alpha: 0.55),
-            glow.withValues(alpha: 0.0),
-          ],
-          stops: const [0.5, 1.0],
-        ).createShader(Rect.fromCircle(center: center, radius: seatR)),
-    );
-    // 3. The CRISP sun disc — bright center → warm core at a full-alpha edge
-    //    (defined rim, no more blurry blob).
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [Color.lerp(core, AppColors.white, 0.55)!, core],
-          stops: const [0.0, 1.0],
-        ).createShader(Rect.fromCircle(center: center, radius: radius)),
-    );
   }
 
   /// A soft cloud: a few lightly-blurred blobs clustered. [strength] scales
@@ -3636,69 +3603,6 @@ class SkyBackdropPainter extends CustomPainter {
         canvas.drawLine(c.translate(-3, 0), c.translate(3, 0), cross);
         canvas.drawLine(c.translate(0, -3), c.translate(0, 3), cross);
       }
-    }
-  }
-
-  /// Draws one gull silhouette (two soft wing strokes) centred at [c]. [span] is
-  /// the half-wing length; [flap] in [0,1] beats the wings; [alpha] its opacity.
-  void _drawBird(
-      Canvas canvas, Offset c, double span, double flap, double alpha) {
-    final s = span * (0.62 + 0.38 * flap);
-    final paint = Paint()
-      ..color = const Color(0xFF5E5168).withValues(alpha: alpha)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final path = Path()
-      ..moveTo(c.dx - s, c.dy)
-      ..quadraticBezierTo(c.dx - s * 0.4, c.dy - s * 0.72, c.dx, c.dy - s * 0.08)
-      ..quadraticBezierTo(c.dx + s * 0.4, c.dy - s * 0.72, c.dx + s, c.dy);
-    canvas.drawPath(path, paint);
-  }
-
-  /// A loose flock of little birds in a chevron that drifts slowly across the
-  /// sky (left→right), wings beating out of phase. Richer + more alive than a
-  /// lone bird; parked mid-flight on the static frame.
-  void _paintFlock(Canvas canvas, double w, double h,
-      {required double yFrac, double size = 1.0}) {
-    final prog = _moving ? (t * 0.6) % 1.0 : 0.42;
-    final ax = w * (-0.12 + 1.24 * prog);
-    final ay =
-        h * yFrac + (_moving ? math.sin(prog * math.pi * 3) * h * 0.012 : 0.0);
-    final span = h * 0.018 * size;
-    // Loose chevron: leader in front, two wings trailing.
-    const form = [
-      [0.00, 0.00],
-      [-0.055, 0.024],
-      [0.055, 0.024],
-      [-0.110, 0.050],
-      [0.110, 0.050],
-    ];
-    for (var i = 0; i < form.length; i++) {
-      final c = Offset(ax + form[i][0] * w, ay + form[i][1] * h);
-      final flap = _moving ? 0.5 + 0.5 * math.sin(_tau * 3 + i * 0.7) : 0.6;
-      _drawBird(canvas, c, span, flap, 0.32);
-    }
-  }
-
-  /// Soft daytime light motes — the daytime counterpart to the night star
-  /// field: faint glints scattered across the upper sky, each twinkling on its
-  /// own phase. Cheap (two flat circles each, no shader). [color] tints them
-  /// (warm gold at dawn, white at midday).
-  void _paintLightMotes(Canvas canvas, Size size, Color color,
-      {double alphaScale = 1.0}) {
-    for (var i = 0; i < _stars.length; i++) {
-      final s = _stars[i];
-      final c = Offset(size.width * s[0], size.height * s[1]);
-      final tw = _moving
-          ? (0.40 + 0.60 * math.sin(_tau * 0.8 + i * 1.7)).clamp(0.0, 1.0)
-          : 0.7;
-      final a = s[3] * alphaScale * tw;
-      canvas.drawCircle(
-          c, s[2] * 2.2, Paint()..color = color.withValues(alpha: 0.18 * a));
-      canvas.drawCircle(
-          c, s[2] * 0.9, Paint()..color = color.withValues(alpha: 0.55 * a));
     }
   }
 

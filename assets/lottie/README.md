@@ -43,3 +43,11 @@ Mỗi file ứng với 1 slot trong `lib/widgets/love_lottie.dart` (`enum LoveLo
 Nguồn: **Noto Animated Emoji** của Google — `https://fonts.gstatic.com/s/e/notoemoji/latest/<codepoint>/lottie.json`.
 License: **CC BY 4.0** (https://creativecommons.org/licenses/by/4.0/) — dùng thương mại OK, **phải ghi công**.
 → TODO user-visible: thêm 1 dòng "Animated emoji by Google (Noto Emoji, CC BY 4.0)" vào màn Giấy phép/About (app hiện chưa có `showLicensePage`).
+
+## Sky — mặt trời màn Cây tình yêu (feature love-tree, 2026-06-19)
+
+| File | Dùng ở đâu | Nguồn / license |
+|---|---|---|
+| `sky_sun.json` | Overlay mặt trời ban ngày/trưa/chiều ở `love_tree_screen` (Lottie `Positioned`, daytime only; đêm dùng trăng vẽ tay) | **Meteocons `clear-day`** (Bas Milius), **MIT** — tải từ npm `@meteocons/lottie@0.1.0` (`package/fill/clear-day.json`) |
+
+Mây vẫn vẽ CustomPaint (`SkyBackdropPainter._paintCloud`, có drift + tint hoàng hôn). Đàn chim/đốm sáng đã bỏ (user). Attribution: Meteocons MIT — nên ghi công cùng Noto ở màn About.

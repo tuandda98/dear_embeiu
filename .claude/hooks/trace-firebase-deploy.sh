@@ -6,7 +6,10 @@
 #   - <UTC-ts>/  : snapshot firestore.rules + storage.rules + MANIFEST.txt (git HEAD, dirty, lệnh, exit)
 # Restore: checkout đúng git_head rồi deploy lại; nếu lúc deploy bị dirty thì dùng file snapshot.
 # KHÔNG dùng `set -e`: hook chỉ ghi log, luôn exit 0, không bao giờ chặn/giật tool.
-ROOT="/Users/tony.tuando/StudioProjects/dear_embeiu"
+# Portable (2026-06-19): dùng $CLAUDE_PROJECT_DIR (harness set), fallback = ../../
+# từ vị trí script (.claude/hooks/). Trước đây hardcode path 1 máy → máy khác ghi sai
+# chỗ + hook chưa wire → deploy không có vết.
+ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 input=$(cat)
 cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/null)
 
