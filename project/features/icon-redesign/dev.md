@@ -38,3 +38,4 @@
 
 ## Nhật ký
 - [2026-06-14] [lead+po+designer+dev] Sweep TOÀN APP Lucide→Iconsax (199 usage/33 file) + UI hearts→Iconsax + gỡ lucide_icons. Pilot (nav+Profile) trước đó. analyze 0. Tự QA Home/nav OK.
+- [2026-06-19] [dev] Đổi icon prefix 2 chip header tab cho khớp chủ đề (user thấy `magic_star` chung chung không ăn nhập): Gallery "THƯ VIỆN ẢNH" `IconsaxPlusLinear.magic_star`→`gallery_favorite` (khung ảnh + tim), Profile "HỒ SƠ TÌNH YÊU" `IconsaxPlusBold.magic_star`→`lovely` (tim lấp lánh). Giữ weight cũ (Gallery Linear / Profile Bold đỏ). `gallery_screen.dart:795` + `profile_screen.dart:196`. analyze 0.

@@ -193,7 +193,7 @@ class ProfileScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        EyebrowChip(label: l10n.loveProfileBadge, icon: IconsaxPlusBold.magic_star),
+        EyebrowChip(label: l10n.loveProfileBadge, icon: IconsaxPlusBold.lovely),
         const Spacer(),
         // Settings entry = ONE squircle at the page's top-right (user
         // 2026-06-11) — replaces the full-width tile that closed the page.

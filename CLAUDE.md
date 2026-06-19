@@ -34,7 +34,7 @@ Ghép đôi qua mã mời (invite code): A tạo couple → nhận mã 6 ký t�
 Identity:
 - App id (Android & iOS): `com.tony.dearembeiu`
 - Firebase project: `tonyembeiu` (.firebaserc default, region us-central1)
-- Version: **1.2.0+8** (1.0 + 1.1.0 đã live App Store; **1.2.0 = REVAMP: chat thay love-note + nhắc đồng bộ couple + redesign header/profile/gallery — đang RELEASE Google Play (Android), production**). **⚠️ BACKEND PROD ĐÃ FULL-SYNC 1.2.0 (2026-06-15): rules 490→574 (additive), 3 CF mới `notifyChatMessage`/`mirrorNoteHistoryToChat`/`migrateLoveNotesToChat` + 11 CF updated, indexes+storage — log restore ở `project/.firebase-deploy-log/20260615T161258Z-PROD/`.** Hết "prod chờ lệnh" cho các feature 1.2.0. Flutter SDK env `^3.11.4` (dev: Flutter 3.41.6 stable)
+- Version: **1.3.0+9** (1.0 + 1.1.0 đã live App Store; **1.2.0 live Google Play, KHÔNG lên Apple — Apple nhảy thẳng 1.1.0→1.3.0**; 1.3.0 đang chuẩn bị submit Apple 2026-06-19). 1.2.0 = REVAMP icon/profile/chat. **1.3.0 = + Cây Tình Yêu (bầu trời 4 buổi) + Tâm trạng hôm nay + nền/trạng thái chat + daily-Q reminder nhiều giờ.** **⚠️ BACKEND PROD sync tới 2026-06-17 (reactions collectionGroup). 1.3.0 còn NỢ prod (additive, user sẽ tự deploy): rules `moods`/`receipts`/`prefs.chatBgPhotoId` + CF `notifyPartnerMood`+`notifyChatMessage`. Lệnh: `deploy --only firestore:rules,functions:notifyPartnerMood,functions:notifyChatMessage --project prod`.** Flutter SDK env `^3.11.4` (dev: Flutter 3.41.6 stable)
 - Ngôn ngữ: vi + en (supportedLocales). ARB ở `lib/l10n/app_en.arb`, `app_vi.arb`. Mặc định system locale.
 - GitHub: github.com/tuandda98/dear_embeiu; privacy policy host GitHub Pages (`docs/` qua Firebase Hosting).
 - Brand: "Sunset Romance", màu hồng #FF6B9D, chỉ light mode (`AppTheme.lightTheme`).
@@ -250,7 +250,8 @@ SEMVER: PATCH=bug · MINOR=feature · MAJOR=breaking. **Build number (`+N`) đ�
 | 1.0.0 | 1 | — | ✅ Live | Bản đầu: counter + gallery + coupling + reminders + auth |
 | 1.1.0 | 5 | — | ✅ Ready for Distribution (2026-06-06) | reactions/streak/journal/daily-question/love-note 2 chiều |
 | 1.1.1 | 6 | `release/1.1.1` | ⏭️ Gộp vào 1.2.0 (chưa submit riêng) | fix login/logout/email-verify/xoá tài khoản + backward-compat + CF leaveCoupleCleanup |
-| 1.2.0 | 7 | `release/1.1.6` (branch hiện tại) | 🚧 **Chuẩn bị submit (2026-06-15)** | **icon redesign toàn app (Iconsax)** + Profile redesign (hành trình & huy hiệu) + chọn ảnh nền thẻ đếm + chat auto-load + deep-link thông báo + force-update gate + header gọn + (gồm cả 1.1.1 auth fixes). Release notes: `RELEASE_NOTES_1.2.0.md`. **Pre-flight: analyze 0, rules-test 163. PROD rules/CF (force-update+counter-bg+chat-migrate) CHƯA deploy — chờ user.** |
+| 1.2.0 | 7 | `release/1.1.6` | ✅ Live Google Play (KHÔNG submit Apple) | **icon redesign toàn app (Iconsax)** + Profile redesign (hành trình & huy hiệu) + chọn ảnh nền thẻ đếm + chat auto-load + deep-link thông báo + force-update gate + header gọn + (gồm cả 1.1.1 auth fixes). Release notes: `RELEASE_NOTES_1.2.0.md`. |
+| 1.3.0 | 9 | `phase3` (branch hiện tại) | 🚧 **Chuẩn bị submit Apple (2026-06-19)** | Apple nhảy 1.1.0→1.3.0 (gộp delta 1.2.0+1.3.0). MỚI: **Cây Tình Yêu bầu trời 4 buổi** (mặt trời/trăng vẽ mềm) + **Tâm trạng hôm nay** + ảnh nền chat + trạng thái tin nhắn + presence + daily-Q reminder nhiều giờ/cảnh báo cuối ngày + reactions redesign & fix. Release notes: `RELEASE_NOTES_1.3.0.md`. **Pre-flight: analyze 0, rules-test 187. ⚠️ PROD rules/CF (moods/receipts/chatBg + notifyPartnerMood/notifyChatMessage) CHƯA deploy — user tự deploy.** |
 
 ---
 

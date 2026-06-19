@@ -146,3 +146,16 @@ User muốn nền sáng/trưa/chiều sống động như trời sao đêm. **Qu
 
 ## [2026-06-19] [dev] Bỏ tiêu đề giai đoạn cây (user request)
 User: "xoá cái cây xanh đi" → gỡ dòng tiêu đề tên-giai-đoạn ("Hạt mầm/Mầm non/Cây non/Cây xanh/Nở rộ") ở hero love tree. Xoá `Text(_stageTitle(...))` + `SizedBox(height:4)` (`love_tree_screen.dart` §3) **và** method `_stageTitle` (giờ orphan). Giữ caption "Chạm vào mỗi bông…" + subtitle "{n} bông hoa đã nở" (`_stageSubtitle`). `stage` vẫn dùng (painter + subtitle bloom). l10n `loveTreeStage0..4` giữ trong ARB (unused, vô hại). analyze 0. Client-only, không deploy.
+
+## [2026-06-19] [dev] Mặt trời "vầng sáng mềm" vẽ tay + bg sáng/trưa XANH DA TRỜI pastel
+User (screenshot dawn-ish 09:36): "bg buổi sáng chưa đẹp, mặt trời quá xấu → bg phải là màu xanh da trời; trưa/chiều mỗi buổi 1 gam; tối GIỮ NGUYÊN (rất thích)". Research palette sunrise/sunset web (schemecolor, color-hex). User chốt qua AskUserQuestion: **mặt trời = "vầng sáng mềm" (glow)** + **độ xanh = "pastel dịu"**.
+- **GỠ Lottie mặt trời** (đảo vòng 3): xoá overlay `Lottie.asset('assets/lottie/sky_sun.json')` + khối tính `sunCenter/sunSize`/biến `w` trong `build()` + **import `package:lottie`**. Asset `sky_sun.json` còn nằm đĩa nhưng KHÔNG dùng nữa (dep `lottie` giờ unused toàn dự án — để lại, analyze không lỗi).
+- **Mặt trời = `_paintSun` vẽ tay** trong `SkyBackdropPainter` (cùng idiom `_paintMoon`): quầng halo radial rộng "thở" theo `_ambient` (±5%) + đĩa orb fill radial (highlight→core) blur nhẹ mép → tan vào halo, KHÔNG tia cứng. Gọi đầu mỗi case daytime (mây vẽ sau → trôi trước mặt trời): dawn mọc thấp-trái `#FFE6B8/#FFD49A` (warm trên trời pastel), day cao-phải nhỏ-sáng `#FFF4D8/#FFE6AE`, dusk lặn thấp-phải to `#FFC785/#FF9E6E` (tan vào trời vàng). Vị trí theo `Size` fraction (giữ tọa độ Lottie cũ).
+- **bg pastel xanh** (giữ cấu trúc "dải trời tan vào dawnBlush hồng" như buổi tối user thích — KHÔNG đổi cả nền, cây/hoa vẫn trên hồng): dawn `#C8E6F7@.56→#E4F2FB@.34→#EFF7FC@.08` (nhạt+mát hơn, sáng sớm airy); day `#B8DEF5@.62→#DCEFFB@.40→#EAF5FC@.10` (xanh nhất, đúng hex user chọn ở preview). dusk GIỮ NGUYÊN golden hour, night GIỮ NGUYÊN.
+- analyze **0** (file + toàn dự án). Client-only, KHÔNG deploy. **Verify runtime:** screenshot lúc 09:36 = phase `day` → sẽ thấy trời xanh pastel + vầng nắng mềm góc trên-phải. Cần soi thêm dawn/dusk (production build chặn đổi giờ emulator).
+
+### Vòng tiếp (user screenshot day 09:51: "header rất lộn xộn, sắp lại hợp lý")
+Sau khi thêm mặt trời+mây, chúng chen vào dải header → vầng nắng nằm sau nút share, mây lởn vởn quanh chip/back = rối. **Header control vốn ổn** (`SubScreenHeader`: back · chip giữa · share) → KHÔNG đụng. Sửa thuần **bố cục cảnh trời** trong painter:
+- **Dành ~28% đỉnh trời làm vùng SẠCH cho header** — dồn toàn bộ mặt trời + mây xuống vùng trời trống bên dưới header (mọi tâm thiên thể `y ≥ ~0.33` của dải trời; tính cả máy nhỏ header chiếm ~0.27 → vẫn thoát).
+- **Cân đối mặt trời 1 bên / mây bên kia**, không bright-core nào nằm sau nút góc: dawn nắng thấp-trái + mây phải; day nắng phải `y0.37` (glow top ~0.23 > đáy header) + mây trái; dusk nắng to lặn phải `y0.49` + mây trái. Mây dồn xuống `y0.33–0.45` (trên thân cây ~0.67, dưới chip ~0.06). dawn giảm 4→3 mây.
+- analyze 0. Client-only, không deploy. Verify runtime day (09:5x).

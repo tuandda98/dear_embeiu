@@ -792,7 +792,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget _buildGalleryEyebrow(String label) {
     // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink recolor
     // of the original (user request 2026-06-11).
-    return EyebrowChip(label: label, icon: IconsaxPlusLinear.magic_star);
+    return EyebrowChip(label: label, icon: IconsaxPlusLinear.gallery_favorite);
   }
 
   TextStyle _galleryCardTitleStyle({double size = 16}) {

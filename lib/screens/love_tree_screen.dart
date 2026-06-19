@@ -9,7 +9,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -285,30 +284,10 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     // transparent and sits over it.
     final screenSize = MediaQuery.of(context).size;
     final skyHeight = screenSize.height * 0.55;
-    final w = screenSize.width;
 
-    // Daytime sun = a Lottie overlay (Meteocons "clear-day", MIT) placed per
-    // phase in clear sky (clear of the header). Night has no sun — its painted
-    // moon stands in.
-    Offset? sunCenter;
-    double sunSize = 0;
-    switch (_phase) {
-      case SkyPhase.dawn:
-        sunCenter = Offset(w * 0.24, skyHeight * 0.34);
-        sunSize = w * 0.42;
-        break;
-      case SkyPhase.day:
-        sunCenter = Offset(w * 0.80, skyHeight * 0.18);
-        sunSize = w * 0.34;
-        break;
-      case SkyPhase.dusk:
-        sunCenter = Offset(w * 0.78, skyHeight * 0.52);
-        sunSize = w * 0.48;
-        break;
-      case SkyPhase.night:
-        sunCenter = null;
-        break;
-    }
+    // The daytime sun is now painted INSIDE SkyBackdropPainter as a soft glowing
+    // orb — same idiom as the painted moon — replacing the old flat cartoon
+    // Lottie (user 2026-06-19: "mặt trời quá xấu" → chọn "vầng sáng mềm").
 
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
@@ -343,25 +322,6 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
                       ),
               ),
             ),
-
-            // 1b. The SUN — a Lottie (Meteocons "clear-day", MIT) over the sky
-            //     but behind the header + tree. Daytime only; never taps.
-            if (sunCenter != null)
-              Positioned(
-                left: sunCenter.dx - sunSize / 2,
-                top: sunCenter.dy - sunSize / 2,
-                width: sunSize,
-                height: sunSize,
-                child: IgnorePointer(
-                  child: Lottie.asset(
-                    'assets/lottie/sky_sun.json',
-                    repeat: !reduceMotion,
-                    animate: !reduceMotion,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                  ),
-                ),
-              ),
 
             // 2. Header + body (transparent) over the sky. The back/share discs
             // are frosted (onBackground/backed) so they read on the dark night
@@ -3440,18 +3400,23 @@ class SkyBackdropPainter extends CustomPainter {
     // pink "Sunset Romance" palette so the sky melts into dawnBlush below.
     final List<Color> colors;
     switch (phase) {
-      case SkyPhase.dawn: // buổi sáng — sunrise
+      case SkyPhase.dawn: // buổi sáng — soft fresh blue sky (user 2026-06-19:
+        // "bg buổi sáng phải là màu xanh da trời", chọn tông pastel dịu). A hair
+        // lighter & cooler than midday so morning reads airy; the warm painted
+        // sun rising low-left supplies the only warmth, and it melts quickly
+        // into the dawnBlush pink below where the tree sits.
         colors = [
-          const Color(0xFFFFD7A3).withValues(alpha: 0.80),
-          const Color(0xFFFFB3CC).withValues(alpha: 0.54),
-          const Color(0x00FFB3CC),
+          const Color(0xFFC8E6F7).withValues(alpha: 0.56),
+          const Color(0xFFE4F2FB).withValues(alpha: 0.34),
+          const Color(0xFFEFF7FC).withValues(alpha: 0.08),
         ];
         break;
-      case SkyPhase.day: // buổi trưa — bright sky
+      case SkyPhase.day: // buổi trưa — bright clear sky blue (the bluest of the
+        // day; pastel per user choice). Slightly more saturated than dawn.
         colors = [
-          const Color(0xFFBFE4FF).withValues(alpha: 0.52),
-          const Color(0xFFFFDCEA).withValues(alpha: 0.34),
-          const Color(0x00FFDCEA),
+          const Color(0xFFB8DEF5).withValues(alpha: 0.62),
+          const Color(0xFFDCEFFB).withValues(alpha: 0.40),
+          const Color(0xFFEAF5FC).withValues(alpha: 0.10),
         ];
         break;
       case SkyPhase.dusk: // buổi chiều — golden hour
@@ -3490,32 +3455,39 @@ class SkyBackdropPainter extends CustomPainter {
     // a clean static frame under Reduce Motion (t == -1). (user: "sky chỉ mặt
     // trời + mây, bỏ đàn chim; mặt trời để Lottie".)
     switch (phase) {
-      case SkyPhase.dawn: // sunrise — soft layered clouds
-        _paintCloud(canvas, Offset(w * 0.74, h * 0.13), h * 0.060, 0.45,
+      // Header-safe composition (2026-06-19): the top ~28% of the sky band is a
+      // CLEAN zone reserved for the header (back · title chip · share) — the sun
+      // + clouds used to crowd into it and read as clutter. Everything celestial
+      // now lives in the open sky BELOW the header, balanced sun-on-one-side /
+      // clouds-on-the-other so no bright core ever sits under a corner control.
+      case SkyPhase.dawn: // sunrise — warm sun low-left, clouds drifting right
+        _paintSun(canvas, Offset(w * 0.22, h * 0.43), h * 0.056,
+            const Color(0xFFFFE6B8), const Color(0xFFFFD49A));
+        _paintCloud(canvas, Offset(w * 0.66, h * 0.33), h * 0.052, 0.6,
             driftPhase: 0.0);
-        _paintCloud(canvas, Offset(w * 0.50, h * 0.21), h * 0.044, 0.72,
+        _paintCloud(canvas, Offset(w * 0.47, h * 0.44), h * 0.042, 0.7,
             driftPhase: 1.6);
-        _paintCloud(canvas, Offset(w * 0.15, h * 0.17), h * 0.036, 0.6,
+        _paintCloud(canvas, Offset(w * 0.86, h * 0.41), h * 0.036, 0.5,
             driftPhase: 2.8);
-        _paintCloud(canvas, Offset(w * 0.88, h * 0.31), h * 0.040, 0.55,
-            driftPhase: 0.8);
         break;
-      case SkyPhase.day: // bright midday — fluffy clouds
-        _paintCloud(canvas, Offset(w * 0.26, h * 0.16), h * 0.062, 0.85,
+      case SkyPhase.day: // bright midday — small high sun upper-right, clouds left
+        _paintSun(canvas, Offset(w * 0.74, h * 0.37), h * 0.044,
+            const Color(0xFFFFF4D8), const Color(0xFFFFE6AE));
+        _paintCloud(canvas, Offset(w * 0.24, h * 0.33), h * 0.056, 0.8,
             driftPhase: 0.0);
-        _paintCloud(canvas, Offset(w * 0.56, h * 0.26), h * 0.048, 0.7,
+        _paintCloud(canvas, Offset(w * 0.48, h * 0.44), h * 0.046, 0.65,
             driftPhase: 1.2);
-        _paintCloud(canvas, Offset(w * 0.85, h * 0.31), h * 0.042, 0.6,
-            driftPhase: 2.4);
-        _paintCloud(canvas, Offset(w * 0.12, h * 0.33), h * 0.036, 0.5,
+        _paintCloud(canvas, Offset(w * 0.13, h * 0.45), h * 0.034, 0.5,
             driftPhase: 3.2);
         break;
-      case SkyPhase.dusk: // golden hour — warm-lit clouds
-        _paintCloud(canvas, Offset(w * 0.30, h * 0.17), h * 0.052, 0.7,
+      case SkyPhase.dusk: // golden hour — big warm setting sun right, clouds left
+        _paintSun(canvas, Offset(w * 0.74, h * 0.49), h * 0.066,
+            const Color(0xFFFFC785), const Color(0xFFFF9E6E));
+        _paintCloud(canvas, Offset(w * 0.28, h * 0.33), h * 0.050, 0.7,
             driftPhase: 0.0, tint: const Color(0xFFFFC09A));
-        _paintCloud(canvas, Offset(w * 0.60, h * 0.25), h * 0.044, 0.6,
+        _paintCloud(canvas, Offset(w * 0.52, h * 0.44), h * 0.042, 0.6,
             driftPhase: 1.4, tint: const Color(0xFFFFAEB8));
-        _paintCloud(canvas, Offset(w * 0.14, h * 0.29), h * 0.038, 0.5,
+        _paintCloud(canvas, Offset(w * 0.16, h * 0.40), h * 0.036, 0.5,
             driftPhase: 2.6, tint: const Color(0xFFE7AED0));
         break;
       case SkyPhase.night: // moon + full star field (unchanged — its identity)
@@ -3542,6 +3514,41 @@ class SkyBackdropPainter extends CustomPainter {
     canvas.drawCircle(c.translate(r * 0.95, r * 0.18), r * 0.78, p);
     canvas.drawCircle(c.translate(-r * 0.9, r * 0.22), r * 0.7, p);
     canvas.drawCircle(c.translate(r * 0.1, -r * 0.22), r * 0.72, p);
+  }
+
+  /// A soft glowing sun (daytime phases) — a warm orb wrapped in a wide radial
+  /// halo with NO hard rays (user 2026-06-19 chose "vầng sáng mềm" over the flat
+  /// cartoon Lottie). Same idiom as [_paintMoon]: the halo gently breathes on
+  /// the ambient clock, and the orb edge is faintly blurred so it melts into the
+  /// glow rather than reading as a hard disc. [core] = orb colour, [glow] = halo.
+  void _paintSun(Canvas canvas, Offset c, double r, Color core, Color glow) {
+    final pulse = _moving ? 1 + 0.05 * math.sin(_tau) : 1.0;
+    final glowR = r * 3.2 * pulse;
+    // Wide soft halo (warm light bleeding into the sky).
+    canvas.drawCircle(
+      c,
+      glowR,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            glow.withValues(alpha: 0.45 * pulse),
+            glow.withValues(alpha: 0.16),
+            glow.withValues(alpha: 0.0),
+          ],
+          stops: const [0.0, 0.5, 1.0],
+        ).createShader(Rect.fromCircle(center: c, radius: glowR)),
+    );
+    // The orb: a soft radial fill (bright highlight → warm rim) with a faint
+    // blur so the edge dissolves into the halo (no hard cartoon disc).
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [Color.lerp(core, AppColors.white, 0.55)!, core],
+        ).createShader(Rect.fromCircle(center: c, radius: r))
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.10),
+    );
   }
 
   /// A soft full moon with a gentle glow (night) that breathes on the clock.

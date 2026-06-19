@@ -188,36 +188,36 @@ class _ChatScreenState extends State<ChatScreen> {
                           couple.person1Name.trim().isNotEmpty &&
                           couple.person2Name.trim().isNotEmpty)
                       ? EyebrowChip(
-                          // Match the 44px back disc beside it (user 2026-06-19).
-                          minHeight: 44,
+                          // Natural slim height (user 2026-06-19, "nhẹ nhàng thanh
+                          // lịch"): drop the forced-44 block so the chip rides at the
+                          // same delicate pill height as every other tab's eyebrow —
+                          // lighter, and finally CONSISTENT with Home/Gallery/Profile
+                          // (those already pair a slim ~27 chip with a 44 control).
+                          // The back disc centres beside it in the 44-tall Stack.
                           child: AnimatedCoupleName(
                             person1Name: couple.person1Name.toUpperCase(),
                             person2Name: couple.person2Name.toUpperCase(),
                             creatorUserId: couple.createdByUserId,
                             alignment: WrapAlignment.center,
-                            // Header voice (2026-06-17): the couple-name crowns the
-                            // chat as a strong tracked-caps TITLE — full-opacity
-                            // navy, at the conversation's reading size (15) but
-                            // ALL-CAPS, max-weight (Quicksand tops out at Bold —
-                            // w800 already resolves to it) and tracked, so it can
-                            // never read as just another white message bubble. The
-                            // body stays quiet sentence-case 15/w400: caps-vs-lower,
-                            // bold-vs-regular and tracked-vs-tight separate the two
-                            // at a glance (user: phân biệt rõ header vs tin nhắn).
-                            textStyle: AppTheme.pageEyebrowStyle(alpha: 1.0)
+                            // Header voice (refined 2026-06-19): a quiet tracked-caps
+                            // TITLE — navy .85, 13/w700 ALL-CAPS tracked. A size and a
+                            // weight lighter than the old chunky 15/w800 so it reads as
+                            // a graceful eyebrow, yet caps-vs-lower + bold-vs-regular +
+                            // tracked-vs-tight still set it apart from the sentence-case
+                            // 15/w400 message bubbles below.
+                            textStyle: AppTheme.pageEyebrowStyle(alpha: 0.85)
                                 .copyWith(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
                                   letterSpacing: 1.0,
                                 ),
                             heartColor: AppColors.accentLoveDeep,
-                            heartSize: 13,
-                            spacing: 7,
+                            heartSize: 11,
+                            spacing: 6,
                             runSpacing: 0,
                           ),
                         )
                       : EyebrowChip(
-                          minHeight: 44,
                           label: l10n.chatBadge,
                           icon: IconsaxPlusLinear.messages,
                         ),
