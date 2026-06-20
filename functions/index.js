@@ -15,6 +15,37 @@ const RESEND_API_KEY = defineSecret("RESEND_API_KEY");
 // Sender identity — domain must be verified on Resend before sending works.
 const VERIFICATION_EMAIL_FROM = "Dear Embeiu <noreply@dearembeiu.com>";
 
+// On-brand email action handler (feature auth, 2026-06-20). Firebase's default
+// action page is replaced by our hosted page (docs/auth-action.html on GitHub
+// Pages) which applies the oobCode via the identitytoolkit REST API and shows a
+// Sunset Romance UI + "open app" deep link. We rewrite the host/path of the
+// Firebase-generated action link to point here. This avoids the flaky Console
+// "Customize action URL" setting and works identically on dev + prod.
+const AUTH_ACTION_PAGE = "https://dearembeiu.com/auth-action.html";
+
+// Repoint a Firebase action link (verify-email / password-reset) at our hosted
+// handler page, keeping all query params (mode/oobCode/apiKey/continueUrl).
+// `lang` is forced so the page copy matches the email language. Fail-open: on
+// any parse error — or a link missing oobCode/apiKey — return the original link
+// so verification still works through Firebase's default page.
+function rewriteActionLink(firebaseLink, lang) {
+  try {
+    const src = new URL(firebaseLink);
+    const target = new URL(AUTH_ACTION_PAGE);
+    target.search = src.search;
+    if (lang) {
+      target.searchParams.set("lang", lang);
+    }
+    if (!target.searchParams.get("oobCode") ||
+        !target.searchParams.get("apiKey")) {
+      return firebaseLink;
+    }
+    return target.toString();
+  } catch (_) {
+    return firebaseLink;
+  }
+}
+
 admin.initializeApp();
 
 const db = admin.firestore();
@@ -1434,6 +1465,9 @@ exports.sendCustomVerificationEmail = onCall(
       .toLowerCase() || "vi";
     const name = `${userRecord.displayName || ""}`.trim();
 
+    // Point the link at our on-brand action page instead of Firebase's default.
+    verifyUrl = rewriteActionLink(verifyUrl, lang);
+
     const {subject, html} = buildVerificationEmail({name, verifyUrl, lang});
 
     // Send via the Resend HTTP API (Node 20 has global fetch — no SDK dep).
@@ -1877,6 +1911,10 @@ exports.sendCustomPasswordResetEmail = onCall(
     }
 
     const name = `${userRecord.displayName || ""}`.trim();
+
+    // Point the link at our on-brand action page instead of Firebase's default.
+    resetUrl = rewriteActionLink(resetUrl, lang);
+
     const {subject, html} = buildPasswordResetEmail({name, resetUrl, lang});
 
     let response;
