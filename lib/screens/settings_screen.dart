@@ -62,6 +62,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // email. Add more emails here if needed.
   static const Set<String> _hideDataManagementEmails = <String>{
     'phuogthao1408@gmail.com',
+    // Couple dodaoanhtuan ↔ thaohathao14 (active) — cả hai ẩn card (user
+    // 2026-06-20): chủ tài khoản + người ấy đều không thấy quản-lý-dữ-liệu.
+    'dodaoanhtuan@gmail.com',
+    'thaohathao14@gmail.com',
   };
 
   // Accounts that DO see the lunar-calendar card (today's lunar date + a

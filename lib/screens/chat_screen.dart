@@ -246,41 +246,50 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
         Expanded(
-          child: Builder(
-            builder: (context) {
-              if (waiting) {
-                return _WaitingPartnerState(
-                  l10n: l10n,
-                  onInviteTap: () => widget.onRequestTab?.call(3),
-                );
-              }
-              if (provider.isLoading && messages.isEmpty) {
-                return const _ChatSkeleton();
-              }
-              if (messages.isEmpty) {
-                return _EmptyState(l10n: l10n);
-              }
-              // Status of the latest outgoing message (messages are newest-first,
-              // so the first mine is the latest) — shown under its bubble.
-              var latestMineStatus = ChatMessageStatus.none;
-              for (final m in messages) {
-                if (m.authorUserId == myUid) {
-                  latestMineStatus = provider.statusOf(m);
-                  break;
+          // Tap anywhere on the conversation → drop the keyboard (user
+          // 2026-06-20). opaque so taps on the empty padding around bubbles
+          // register; the ListView's drag recogniser still wins scroll, and
+          // inner InkWells (show-more) still win their own taps, so only true
+          // empty-space taps reach here.
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Builder(
+              builder: (context) {
+                if (waiting) {
+                  return _WaitingPartnerState(
+                    l10n: l10n,
+                    onInviteTap: () => widget.onRequestTab?.call(3),
+                  );
                 }
-              }
-              return _MessageList(
-                messages: messages,
-                myUid: myUid,
-                latestMineStatus: latestMineStatus,
-                latestMineReadAt: provider.partnerReadAt,
-                hasMore: provider.hasMore,
-                isLoadingMore: provider.loadingMore,
-                onLoadMore: provider.loadMore,
-                revealedIds: _revealedIds,
-                hasBackground: widget.hasBackground,
-              );
-            },
+                if (provider.isLoading && messages.isEmpty) {
+                  return const _ChatSkeleton();
+                }
+                if (messages.isEmpty) {
+                  return _EmptyState(l10n: l10n);
+                }
+                // Status of the latest outgoing message (messages are newest-first,
+                // so the first mine is the latest) — shown under its bubble.
+                var latestMineStatus = ChatMessageStatus.none;
+                for (final m in messages) {
+                  if (m.authorUserId == myUid) {
+                    latestMineStatus = provider.statusOf(m);
+                    break;
+                  }
+                }
+                return _MessageList(
+                  messages: messages,
+                  myUid: myUid,
+                  latestMineStatus: latestMineStatus,
+                  latestMineReadAt: provider.partnerReadAt,
+                  hasMore: provider.hasMore,
+                  isLoadingMore: provider.loadingMore,
+                  onLoadMore: provider.loadMore,
+                  revealedIds: _revealedIds,
+                  hasBackground: widget.hasBackground,
+                );
+              },
+            ),
           ),
         ),
         if (!waiting) _buildComposer(l10n),
@@ -618,6 +627,9 @@ class _MessageListState extends State<_MessageList> {
     return ListView.builder(
       controller: _controller,
       reverse: true,
+      // Drag the conversation → keyboard slides down too (Messenger/iMessage
+      // idiom), complementing the tap-to-dismiss on the list area.
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       itemCount: children.length,
       itemBuilder: (context, index) => children[children.length - 1 - index],

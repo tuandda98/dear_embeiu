@@ -86,6 +86,16 @@ class ReminderService {
   static const int _idLunarBase = 1060;
   static const int _maxLunar = 40;
 
+  // Personal "anh By → embe" nudges (account-gated, 2026-06-20). Two bands, both
+  // outside [_autoIds] (owned only by the gated account's refresh):
+  //   • medicine 1100–1109 — DAILY-RECURRING (uống thuốc đúng giờ), unconditional.
+  //   • question 1110–1139 — ONE-SHOT for today's remaining hours (nhắc trả lời
+  //     câu hỏi); cleared once she's answered, re-armed daily by the provider.
+  static const int _idPersonalMedicineBase = 1100;
+  static const int _maxPersonalMedicine = 10;
+  static const int _idPersonalQuestionBase = 1110;
+  static const int _maxPersonalQuestion = 30;
+
   /// Every auto-reminder id this service may own, used by [cancelAll].
   static const List<int> _autoIds = <int>[
     _idLegacyDaily,
@@ -410,6 +420,103 @@ class ReminderService {
     } catch (_) {
       // Already in the desired state.
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Personal "anh By → embe" reminders (account-gated, 2026-06-20). Owned by the
+  // gated account's [ReminderProvider.refreshPersonalReminders].
+  // ---------------------------------------------------------------------------
+
+  /// Daily-recurring medicine nudges — each [slot] repeats every day at its
+  /// hour:minute (so it fires even without re-opening the app). Clears the band
+  /// first; an empty list simply cancels everything.
+  Future<void> schedulePersonalMedicineDaily(
+    List<({int hour, int minute, String title, String body})> slots,
+  ) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelPersonalMedicine();
+    final capped = slots.take(_maxPersonalMedicine).toList();
+    for (var i = 0; i < capped.length; i++) {
+      final s = capped[i];
+      await _scheduleAt(
+        id: _idPersonalMedicineBase + i,
+        when: _nextDaily(s.hour, s.minute),
+        title: s.title,
+        body: s.body,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    }
+  }
+
+  Future<void> cancelPersonalMedicine() async {
+    if (!_initialized) {
+      return;
+    }
+    for (var i = 0; i < _maxPersonalMedicine; i++) {
+      try {
+        await _plugin.cancel(_idPersonalMedicineBase + i);
+      } catch (_) {
+        // Already in the desired state.
+      }
+    }
+  }
+
+  /// One-shot "answer the question" nudges for TODAY only — past times are
+  /// skipped (never rolled to tomorrow; the provider re-arms each day). Clears
+  /// the band first, so calling with an empty list cancels everything.
+  Future<void> schedulePersonalQuestionToday(
+    List<({int hour, int minute, String title, String body})> slots,
+  ) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelPersonalQuestion();
+    final now = tz.TZDateTime.now(tz.local);
+    final capped = slots.take(_maxPersonalQuestion).toList();
+    for (var i = 0; i < capped.length; i++) {
+      final s = capped[i];
+      final when = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        s.hour,
+        s.minute,
+      );
+      if (!when.isAfter(now)) {
+        continue;
+      }
+      await _scheduleAt(
+        id: _idPersonalQuestionBase + i,
+        when: when,
+        title: s.title,
+        body: s.body,
+      );
+    }
+  }
+
+  Future<void> cancelPersonalQuestion() async {
+    if (!_initialized) {
+      return;
+    }
+    for (var i = 0; i < _maxPersonalQuestion; i++) {
+      try {
+        await _plugin.cancel(_idPersonalQuestionBase + i);
+      } catch (_) {
+        // Already in the desired state.
+      }
+    }
+  }
+
+  /// Cancel BOTH personal bands — used when the signed-in account is not the
+  /// gated one (or on reset).
+  Future<void> cancelPersonalReminders() async {
+    await cancelPersonalMedicine();
+    await cancelPersonalQuestion();
   }
 
   /// (Re)schedule today's end-of-day daily-question nudges. Each [slot] fires

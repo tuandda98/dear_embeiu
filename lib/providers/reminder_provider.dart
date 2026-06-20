@@ -747,6 +747,99 @@ class ReminderProvider extends ChangeNotifier {
     await _service.scheduleDailyQuestionEndOfDay(slots: slots);
   }
 
+  // ---------------------------------------------------------------------------
+  // Personal "anh By → embe" reminders (account-gated, 2026-06-20). A private
+  // nudge schedule for ONE account (em bé). LOCAL only; gentle/affectionate copy
+  // hardcoded in Vietnamese (gated to a single VN account, so no l10n needed).
+  // ---------------------------------------------------------------------------
+  static const String _personalAccountEmail = 'thaohathao14@gmail.com';
+
+  // Hourly "answer the question" nudges run 7h → 22h (but stop earlier the
+  // moment she answers — see [refreshPersonalReminders]).
+  static const int _personalQuestionStartHour = 7;
+  static const int _personalQuestionEndHour = 22;
+
+  static const String _personalQuestionTitle = 'Anh By nhắc nè 💕';
+  static const List<String> _personalQuestionBodies = <String>[
+    'Embe ơi, trả lời câu hỏi hôm nay cho anh By với nha 🥰',
+    'Anh By đang đợi câu trả lời của embe nè 💗',
+    'Dành chút xíu trả lời câu hỏi nha embe, anh By thương 🌷',
+    'Embe trả lời rồi mình cùng xem câu của nhau nha 💞',
+  ];
+
+  static const String _personalMedicineTitle = 'Tới giờ uống thuốc rồi 💊';
+
+  String? _personalSignature;
+
+  /// (Re)arm or clear the private anh-By→embe nudges. Wired from HomeScreen on
+  /// every daily-question update (+ once on launch). ONLY the gated account
+  /// ([_personalAccountEmail]) gets them; any other signed-in account clears the
+  /// bands. Debounced on email|iAnswered|day so frequent provider notifications
+  /// don't thrash the OS schedule. LOCAL only.
+  ///  • medicine 9:59 / 10:10 / 10:30 — daily, ALWAYS (uống thuốc đúng giờ).
+  ///  • "trả lời câu hỏi" every hour 7h–22h — today's remaining hours, but only
+  ///    while she hasn't answered yet; stops the moment [iAnswered] is true.
+  Future<void> refreshPersonalReminders({
+    required String email,
+    required bool iAnswered,
+  }) async {
+    final isTarget = email.trim().toLowerCase() == _personalAccountEmail;
+    final now = DateTime.now();
+    final dayKey = '${now.year}-${now.month}-${now.day}';
+    final signature = '$isTarget|$iAnswered|$dayKey';
+    if (signature == _personalSignature) {
+      return;
+    }
+    _personalSignature = signature;
+
+    if (!isTarget) {
+      await _service.cancelPersonalReminders();
+      return;
+    }
+
+    // Medicine — daily-recurring, unconditional.
+    await _service.schedulePersonalMedicineDaily(const [
+      (
+        hour: 9,
+        minute: 59,
+        title: _personalMedicineTitle,
+        body: 'Embe ơi, uống thuốc đúng giờ cho khỏe nha, anh By thương embe 🥰',
+      ),
+      (
+        hour: 10,
+        minute: 10,
+        title: _personalMedicineTitle,
+        body: 'Anh By nhắc embe uống thuốc nè, đừng quên nha 💕',
+      ),
+      (
+        hour: 10,
+        minute: 30,
+        title: _personalMedicineTitle,
+        body: 'Uống thuốc đúng giờ nha embe, để anh By yên tâm 💗',
+      ),
+    ]);
+
+    // Hourly "answer the question" nudges — stop once she's answered today.
+    if (iAnswered) {
+      await _service.cancelPersonalQuestion();
+    } else {
+      final slots = <({int hour, int minute, String title, String body})>[];
+      for (
+        var h = _personalQuestionStartHour;
+        h <= _personalQuestionEndHour;
+        h++
+      ) {
+        slots.add((
+          hour: h,
+          minute: 0,
+          title: _personalQuestionTitle,
+          body: _personalQuestionBodies[h % _personalQuestionBodies.length],
+        ));
+      }
+      await _service.schedulePersonalQuestionToday(slots);
+    }
+  }
+
   /// Clamp each minute-of-day to 0–1439, de-dupe, sort, cap at the max.
   List<int> _normalizeTimes(Iterable<int> raw) {
     final set = <int>{for (final m in raw) m.clamp(0, 24 * 60 - 1)};

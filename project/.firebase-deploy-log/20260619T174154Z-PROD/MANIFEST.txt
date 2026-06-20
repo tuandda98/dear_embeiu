@@ -1,0 +1,33 @@
+================ PROD DEPLOY — 20260619T174154Z ================
+project=tonyembeiu (PROD — phục vụ CẢ iOS + Android, 1 backend chung)
+deploy-from git HEAD=6bdae3e (branch phase3)
+prev prod deploy = 20260617T173946Z-PROD (reactions collectionGroup rule)
+release = 1.3.0+9 (nợ backend prod của 1.3.0)
+
+COMMAND:
+  npx firebase-tools deploy --only firestore:rules,functions:notifyPartnerMood,functions:notifyChatMessage --project prod --force
+
+ĐÃ DEPLOY (exit=0, Deploy complete!):
+- firestore:rules (additive — diff vs prod 06-17 chỉ THÊM, không siết):
+    • prefs/home: nới whitelist thêm 'chatBgPhotoId' (optional string ≤200, ''=clear) — ảnh nền tab Chat
+    • MỚI  match /receipts/{receiptId}  — trạng thái tin nhắn (deliveredAt/readAt) + presence chatActiveAt (hasOnly 3 field, optional timestamp, own-write, no delete)
+    • MỚI  match /moods/{uid}  — Tâm trạng hôm nay (hasOnly 5 field, mood≤20/note≤100/date≤10, own-write, both read, no delete)
+- functions:notifyPartnerMood  → CREATE (onDocumentWritten moods/{uid}, push content-free khi mood/date đổi; Eventarc trigger tạo OK không cần retry)
+- functions:notifyChatMessage  → UPDATE (presence-suppression 06-19: skip recipient có receipts/{uid}.chatActiveAt tươi <45s; fail-open)
+- rules-test: 187 passing. compile OK.
+- Verify: functions:list prod → notifyPartnerMood + notifyChatMessage đều v2 us-central1 nodejs20 LIVE.
+
+KHÔNG đụng tới (giữ nguyên prod): storage rules, firestore.indexes, các CF khác (notifyPhotoReaction/notifyDailyAnswer, migrate funcs, deleteAccount, leaveCoupleCleanup, v.v. đã có từ 1.2.0 06-15).
+
+================ CÁCH REVERT ================
+Rules mới là ADDITIVE (collection mới + field optional mới) → an toàn tuyệt đối, không phá app 1.0/1.1/1.2.
+Chỉ revert nếu thực sự cần:
+  A) Firebase Console → Firestore → Rules → History → chọn bản publish 2026-06-17 → Rollback.
+  B) CLI rules: copy prev-prod rồi deploy lại:
+       cp project/.firebase-deploy-log/20260619T174154Z-PROD/prev-prod/firestore.rules firestore.rules
+       npx firebase-tools deploy --only firestore:rules --project prod
+  C) Functions: notifyPartnerMood là CF MỚI → xoá nếu cần:
+       npx firebase-tools functions:delete notifyPartnerMood --project prod
+     (functions/ tại HEAD 6bdae3e == bản đã deploy → `git checkout 6bdae3e -- functions` cho lại đúng state này.)
+
+dirty lúc deploy: 4 file (l10n generated *.dart + pubspec.lock + HISTORY.md) — KHÔNG đụng firestore.rules/functions (cả 2 == HEAD 6bdae3e).

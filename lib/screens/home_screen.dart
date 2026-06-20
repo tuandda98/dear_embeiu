@@ -551,6 +551,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           currentStreak: streak.currentStreak,
           l10n: context.l10n,
         );
+    // Private "anh By → embe" nudges, gated to one account (2026-06-20). Shares
+    // this hook so the hourly "answer the question" reminders stop the moment
+    // she answers (dq.hasAnswered) and re-arm on each launch/update.
+    final auth = context.read<AuthProvider>();
+    final email = auth.currentUser?.email ?? auth.currentEmail ?? '';
+    context.read<ReminderProvider>().refreshPersonalReminders(
+          email: email,
+          iAnswered: dq.hasAnswered,
+        );
   }
 
   /// Reacts to a warm tap (app already running) requesting a tab switch.

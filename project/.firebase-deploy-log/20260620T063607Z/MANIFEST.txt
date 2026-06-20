@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --only functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail 2>&1 | tail -35
+time_utc: 20260620T063607Z
+git_head: 525ee3f (phase3)
+dirty   : 17 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 525ee3f)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 525ee3f -- functions` rồi redeploy
