@@ -74,3 +74,5 @@
 - [16:14] là tôi tạo phase 4 đó, làm tiếp đi có 1 mình bạn thoio
 - [2026-06-20] **Implement hybrid auto-store force-update** (feature cho 1.3.2, branch feature/auto-store-update). AppUpdateService viết lại: iOS iTunes-lookup + Android in_app_update (native immediate) + cờ remote autoStoreForce, giữ minBuildNumber làm override. session_resolver tách nhánh Android/iOS. pubspec +in_app_update 4.2.5. analyze 0 full. Tester review lock-out. Fail-open tuyệt đối.
 - [17:03] commit và push lên feature/auto-store-update
+- [17:04] release release 1.3.2
+- [2026-06-20] **Release 1.3.2+11** (theo RULE auto-suggest 2 nền tảng). Branch release/1.3.2 từ feature/auto-store-update. Bump 1.3.1+10→1.3.2+11; nội dung = hybrid auto-store force-update (in_app_update Android + iTunes iOS + cờ autoStoreForce). analyze 0, không đụng backend. Build CẢ AAB (FF:EF:1E:27, vc11) + IPA (v1.3.2/11). Release notes RELEASE_NOTES_1.3.2.md. Chờ user upload 2 store (lưu ý iOS 1.3.1 có thể còn đang review).
