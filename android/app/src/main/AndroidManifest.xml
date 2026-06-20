@@ -37,6 +37,18 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Custom URL scheme `dearembeiu://` — lets the branded email
+                 action page (docs/auth-action.html) foreground the app after
+                 the user verifies their email / resets their password in the
+                 browser. The app only needs to come to the foreground:
+                 VerifyEmailScreen auto-polls on resume and advances itself.
+                 Scheme-only (no host) so any dearembeiu://... foregrounds. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="dearembeiu"/>
+            </intent-filter>
         </activity>
         <!-- flutter_local_notifications: deliver and re-register scheduled
              "love reminders" (incl. after a device reboot). -->
