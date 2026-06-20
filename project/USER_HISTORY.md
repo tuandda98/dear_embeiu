@@ -55,3 +55,14 @@
 - [13:46] oke đẹp rồi
 - [13:46] tôi cho phép bạn commit lên sau đó tạo ra 1 bracnh là hotfix sau đó chuẩn bị relase cho tôi
 - [13:47] giờ dk để môi trường production là gì
+- [2026-06-20] **Commit + branch + push hotfix.** User cho phép commit. Commit 509f429 trên phase3 (24 files: hotfix code + tooling + docs) → tạo branch `hotfix/1.3.1` → push cả phase3 (24ccd73..509f429) + hotfix/1.3.1 (branch mới) lên origin. Chuẩn bị release: Android AAB 1.3.1+10 sẵn; iOS IPA BỊ CHẶN signing (chỉ có cert Apple Development, THIẾU Apple Distribution) → cần build qua Xcode Archive hoặc tạo distribution cert.
+- [13:55] ⚠️ iOS IPA bị chặn — lý do  Keychain máy này chỉ có cert Apple Development (thesavior9820@...), KHÔNG có Apple Distribution. Mà IPA lên App Store bắt buộc cert Distribution + provisioning profile App Store. → Build CLI giờ chắc chắn fail ở bước export, nên mình không chạy. --> tôi từng release  1 bản trên apple store rôì , qua transporter hãy giúp tôi re-check lại
+- [2026-06-20] **✅ iOS IPA 1.3.1+10 BUILD THÀNH CÔNG** (sửa nhận định sai trước đó). `flutter build ipa --release` CHẠY ĐƯỢC trên máy nhà dù keychain chỉ có cert Apple Development: Flutter dùng `-allowProvisioningUpdates` → Xcode tự tạo distribution cert/profile lúc archive (automatic signing, team 4UBR69C227, account thesavior9820 đã login Xcode). File: `build/ios/ipa/dear_embeiu.ipa` (v1.3.1/10, App Store method). Cả 2 build sẵn sàng upload.
+- [14:07] [Image #5] build lại aab code mới nhất
+- [14:12] ghi chú phát hành nên điền gì vào
+- [14:14] trên ioss nên điênf gì, lần sau khi tôi nói giúo tôi chuanả bị release  bản mới thì nhớ giúp tôi phânf này nữa, cho 2 nền tảng luôn
+- [2026-06-20] **Thêm bước Release notes vào RULE AUTO-SUGGEST** (§13 step 5): mỗi khi user yêu cầu release → Claude tự soạn RELEASE_NOTES_X.Y.Z.md (VI+EN) cho cả 2 store, chỉ nêu thay đổi công khai (không gate riêng/tính năng ẩn). Tạo RELEASE_NOTES_1.3.1.md cho hotfix hiện tại.
+- [14:17] re-check lại nhưng thay đổi và liệt kê cho tôi, toio có 1 agent claude song song với bạn
+- [14:20] nhưng gì chuaư depoy pro ?
+- [14:24] cái nào chưa devlpoy pro devloy pro hết cho tôi nhớ ghi log
+- [2026-06-20] **Deploy PROD phần pending (theo lệnh "deploy hết").** Feature email-action của AGENT SONG SONG (commit 525ee3f+24ccd73): `deploy --only functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail,hosting --project prod`. UPDATE 2 CF (rewriteActionLink→trang on-brand) + RELEASE hosting docs/auth-action.html (tonyembeiu.web.app). Pre: node-check OK + rules-test pass. Verify: page HTTP 200 + 2 CF live. Trace: snapshot 20260620T072735Z-PROD/ + MANIFEST + HISTORY line. Rules đã khớp prod từ 06-19 (không nợ).

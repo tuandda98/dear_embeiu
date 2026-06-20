@@ -255,11 +255,12 @@ SEMVER: PATCH=bug · MINOR=feature · MAJOR=breaking. **Build number (`+N`) đ�
 > 2. **Pre-flight** — `flutter analyze` sạch (toolchain đúng máy) + `scripts/test-firebase-rules.sh` nếu đụng backend.
 > 3. **Build CẢ HAI** từ cùng pubspec — `flutter build appbundle --release` (Android) + `flutter build ipa --release` (iOS, cần signing distribution).
 > 4. **Verify ký** — AAB: SHA1 upload key `FF:EF:1E:27`; IPA: cert distribution + Strip-Invalid-Arch (Transporter).
-> 5. **🤖 Google Play** — upload AAB → track → submit (versionCode > bản live).
-> 6. **🍎 App Store** — upload IPA (Transporter/Xcode) → App Store Connect → submit review.
-> 7. **Backend** — deploy prod rules/functions nếu đổi (rules-test + auto-trace).
-> 8. **Force-update** (nếu muốn ép) — SAU KHI cả 2 live → set `config/app.minBuildNumber` (≤ build mới nhất live ở MỖI store; iosStoreUrl `id6775165592`).
-> 9. **Ghi** — release log bảng dưới + `project/USER_HISTORY.md`. Git commit/tag = user tự làm (Claude không tự commit).
+> 5. **📝 Release notes (BẮT BUỘC — user 2026-06-20)** — soạn `RELEASE_NOTES_X.Y.Z.md` (VI primary + EN) cho **CẢ 2 store**, đưa text sẵn để user paste: Play "Có gì mới" + App Store Connect "What's New in This Version" (mỗi ngôn ngữ vi/en riêng). **CHỈ nêu thay đổi CÔNG KHAI; TUYỆT ĐỐI không nêu gate riêng tài khoản / tính năng ẩn (force-update, presence, allowlist email…).** Hotfix → notes ngắn; theo format `RELEASE_NOTES_1.3.0.md`.
+> 6. **🤖 Google Play** — upload AAB → track → submit (versionCode > bản live).
+> 7. **🍎 App Store** — upload IPA (Transporter/Xcode) → App Store Connect → submit review.
+> 8. **Backend** — deploy prod rules/functions nếu đổi (rules-test + auto-trace).
+> 9. **Force-update** (nếu muốn ép) — SAU KHI cả 2 live → set `config/app.minBuildNumber` (≤ build mới nhất live ở MỖI store; iosStoreUrl `id6775165592`).
+> 10. **Ghi** — release log bảng dưới + `project/USER_HISTORY.md`. Git commit/tag = user tự làm (Claude không tự commit).
 > Luôn nhắc: build CẢ 2 từ CÙNG pubspec, submit ĐỒNG THỜI (RULE PARITY trên).
 
 **Release log:**
@@ -270,7 +271,7 @@ SEMVER: PATCH=bug · MINOR=feature · MAJOR=breaking. **Build number (`+N`) đ�
 | 1.1.1 | 6 | `release/1.1.1` | ⏭️ Gộp vào 1.2.0 (chưa submit riêng) | fix login/logout/email-verify/xoá tài khoản + backward-compat + CF leaveCoupleCleanup |
 | 1.2.0 | 7 | `release/1.1.6` | ⏭️ Từng live Google Play (đã bị 1.3.0 thay 2026-06-20; KHÔNG submit Apple) | **icon redesign toàn app (Iconsax)** + Profile redesign (hành trình & huy hiệu) + chọn ảnh nền thẻ đếm + chat auto-load + deep-link thông báo + force-update gate + header gọn + (gồm cả 1.1.1 auth fixes). Release notes: `RELEASE_NOTES_1.2.0.md`. |
 | 1.3.0 | 9 | `phase3` (branch hiện tại) | ✅ **LIVE CẢ 2 STORE (Apple + Google Play) — verify 2026-06-20** | Apple nhảy 1.1.0→1.3.0 (gộp delta 1.2.0+1.3.0). MỚI: **Cây Tình Yêu bầu trời 4 buổi** (mặt trời/trăng vẽ mềm) + **Tâm trạng hôm nay** + ảnh nền chat + trạng thái tin nhắn + presence + daily-Q reminder nhiều giờ/cảnh báo cuối ngày + reactions redesign & fix. Release notes: `RELEASE_NOTES_1.3.0.md`. **Pre-flight: analyze 0, rules-test 187. ✅ PROD rules/CF (moods/receipts/chatBg + notifyPartnerMood/notifyChatMessage) ĐÃ deploy 2026-06-19 (snapshot `20260619T174154Z-PROD/`). AAB 1.3.0+9 đã rebuild ký đúng upload key trên máy nhà 2026-06-19. CÒN: tạo doc `config/app` (force-update) ở Console nếu muốn bật gate.** |
-| 1.3.1 | 10 | `phase3` | 🚀 **Hotfix CẢ 2 NỀN TẢNG (parity) — AAB Android built 2026-06-20; iOS IPA CHƯA build; chờ submit đồng thời 2 store** | PATCH trên 1.3.0. Hotfix client-only: (1) chat chạm/cuộn vùng tin nhắn → thu bàn phím (`chat_screen.dart`); (2) ẩn card "Quản lý dữ liệu" cho `dodaoanhtuan@gmail.com` + `thaohathao14@gmail.com` (`settings_screen.dart`); (3) **lời nhắc riêng "anh By → embe"** account-gated `thaohathao14@gmail.com` — uống thuốc 9:59/10:10/10:30 daily + nhắc trả lời câu hỏi mỗi giờ 7h–22h (dừng khi đã trả lời); local notification (`reminder_service`/`reminder_provider`/`home_screen`, id band 1100–1139). analyze 0. AAB `build/app/outputs/bundle/release/app-release.aab` ký đúng upload key (SHA1 FF:EF:1E:27), versionCode 10. KHÔNG đụng backend (không deploy). |
+| 1.3.1 | 10 | `hotfix/1.3.1` (commit 509f429, đã push) | 🚀 **Hotfix CẢ 2 NỀN TẢNG (parity) — AAB + IPA build xong 2026-06-20, chờ user upload 2 store** | PATCH trên 1.3.0. Hotfix client-only: (1) chat chạm/cuộn vùng tin nhắn → thu bàn phím (`chat_screen.dart`); (2) ẩn card "Quản lý dữ liệu" cho `dodaoanhtuan@gmail.com` + `thaohathao14@gmail.com` (`settings_screen.dart`); (3) **lời nhắc riêng "anh By → embe"** account-gated `thaohathao14@gmail.com` — uống thuốc 9:59/10:10/10:30 daily + nhắc trả lời câu hỏi mỗi giờ 7h–22h (dừng khi đã trả lời); local notification (`reminder_service`/`reminder_provider`/`home_screen`, id band 1100–1139). analyze 0. AAB `build/app/outputs/bundle/release/app-release.aab` ký đúng upload key (SHA1 FF:EF:1E:27), versionCode 10. KHÔNG đụng backend (không deploy). |
 
 ---
 

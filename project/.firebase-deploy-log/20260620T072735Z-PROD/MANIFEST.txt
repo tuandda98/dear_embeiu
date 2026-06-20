@@ -1,0 +1,27 @@
+================ PROD DEPLOY — 20260620T072735Z ================
+project=tonyembeiu (PROD — phục vụ CẢ iOS + Android, 1 backend chung)
+deploy-from git HEAD=509f429 (branch hotfix/1.3.1)
+⚠️ FEATURE CỦA AGENT SONG SONG (commit 525ee3f + 24ccd73, "feat(auth) email action link → on-brand page"). Deploy theo lệnh user 2026-06-20 ("cái nào chưa deploy prod deploy hết").
+
+COMMAND:
+  npx firebase-tools deploy --only functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail,hosting --project prod --force
+
+ĐÃ DEPLOY (exit=0, Deploy complete!):
+- functions:sendCustomVerificationEmail  → UPDATE (rewriteActionLink: repoint email action link sang trang on-brand)
+- functions:sendCustomPasswordResetEmail → UPDATE (rewriteActionLink, idem)
+- hosting (docs/) → RELEASE: thêm `docs/auth-action.html` (491 dòng, trang xử lý email action on-brand) lên https://tonyembeiu.web.app
+  (CF + hosting page ĐI CÙNG NHAU: CF rewrite link trỏ tới auth-action.html — deploy chung 1 lần để không lệch.)
+- Verify: auth-action.html HTTP 200; functions:list prod → 2 CF callable v2 us-central1 LIVE.
+- node --check functions/index.js OK; rules-test pass (rules KHÔNG đổi đợt này).
+
+KHÔNG đụng: firestore rules/storage (đã khớp prod 06-19), các CF khác.
+Client deep-link (AndroidManifest/Info.plist `dearembeiu://`) = thuộc commit cùng feature, ĐÃ nằm trong build app 1.3.1 (KHÔNG phải deploy backend).
+
+================ CÁCH REVERT ================
+- Functions: bản prod trước (06-19) = git HEAD 6bdae3e.
+    git checkout 6bdae3e -- functions
+    npx firebase-tools deploy --only functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail --project prod
+- Hosting: Firebase Console → Hosting → Release history → rollback bản trước 2026-06-20.
+  (firestore.rules/storage.rules trong folder này = bản hiện tại, KHÔNG đổi đợt deploy này.)
+
+dirty lúc deploy: CLAUDE.md + USER_HISTORY.md + RELEASE_NOTES_1.3.1.md (docs, KHÔNG đụng functions/docs-hosting đã commit ở 509f429).
