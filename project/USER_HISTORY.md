@@ -66,3 +66,8 @@
 - [14:20] nhưng gì chuaư depoy pro ?
 - [14:24] cái nào chưa devlpoy pro devloy pro hết cho tôi nhớ ghi log
 - [2026-06-20] **Deploy PROD phần pending (theo lệnh "deploy hết").** Feature email-action của AGENT SONG SONG (commit 525ee3f+24ccd73): `deploy --only functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail,hosting --project prod`. UPDATE 2 CF (rewriteActionLink→trang on-brand) + RELEASE hosting docs/auth-action.html (tonyembeiu.web.app). Pre: node-check OK + rules-test pass. Verify: page HTTP 200 + 2 CF live. Trace: snapshot 20260620T072735Z-PROD/ + MANIFEST + HISTORY line. Rules đã khớp prod từ 06-19 (không nợ).
+- [15:53] tại sao feature force update bản mơí vãn ko work ?
+- [15:56] trên android đã có bản mới
+- [15:58] đang đợi apple duyệt
+- [16:01] có cách nào tối ưu hơn không ? là app tự check có bản release mới rôì tự force update ?
+- [16:03] implement cách hybrid này
