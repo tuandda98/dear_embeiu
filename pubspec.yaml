@@ -101,6 +101,9 @@ dependencies:
   lottie: ^3.3.3
   firebase_analytics: ^12.4.2
   package_info_plus: ^9.0.1
+  # Android-only native force/flexible update via Google Play In-App Updates
+  # (feature auto-store-update). iOS uses the iTunes Lookup API instead.
+  in_app_update: ^4.2.3
 
 dev_dependencies:
   flutter_test:

@@ -35,3 +35,12 @@
 
 ## Nhật ký
 - [2026-06-14] [lead+dev] Dựng trọn feature force-update (hard-only, Firestore config, fail-open). 3 file mới + 5 file sửa + rule + 6 rules-test + l10n. analyze 0, rules-test 160 pass. Chưa deploy/tạo doc (chờ user).
+
+- [2026-06-20] [dev/lead] **Hybrid auto-store force-update (cho 1.3.2).** User: "app tự check có bản release mới rồi tự force update". Thay vì chỉ `minBuildNumber` thủ công → thêm auto-detect store theo TỪNG nền tảng, tự xử vụ build-number-global (mỗi máy check store của nó). Branch `feature/auto-store-update`.
+  - **`AppUpdateService` viết lại** (giữ fail-open tuyệt đối): config `config/app` thêm cờ **`autoStoreForce`** (bool). (1) **Manual floor** `minBuildNumber` giữ nguyên (cả 2 nền tảng, route-based). (2) **Auto**: iOS `_iosStoreHasNewerVersion` (iTunes Lookup API `itunes.apple.com/lookup?bundleId=`, so version dotted bằng `_isNewerVersion`, dùng `dart:io HttpClient` — không thêm dep http); Android `maybeRunAndroidUpdate` dùng **`in_app_update`** (Google Play In-App Updates): `checkForUpdate()`→`performImmediateUpdate()` (native full-screen, tải+cài trong app). `isForceUpdateRequired()` giờ CHỈ cho iOS (Android sớm return false).
+  - **`session_resolver`**: tách nhánh `Platform.isAndroid` → `maybeRunAndroidUpdate()` (imperative, chỉ route fallback khi native không chạy được + vẫn cần chặn); else (iOS) → `isForceUpdateRequired()` → route forceUpdate. Thêm import `dart:io Platform`.
+  - **pubspec**: `in_app_update: ^4.2.3` (resolved 4.2.5).
+  - **config/app**: thêm field `autoStoreForce` — rules KHÔNG đổi (read:if true cho phép đọc field mới; client chỉ đọc). Không cần deploy rules.
+  - **Đánh đổi (user biết):** auto-force = mọi bản store mới thành bắt buộc; cờ `autoStoreForce` để bật/tắt từ xa (không cần build lại). `minBuildNumber` vẫn là override chọn-thời-điểm.
+  - **Hạn chế:** in_app_update CHỈ chạy khi app cài từ Play (debug/sideload → checkForUpdate throw → fallback manual floor). iOS không có API ép-cài native nên vẫn điều hướng ra App Store.
+  - pub get OK, `flutter analyze` 0 (full). Tester đang review lock-out. **Chưa build app, chưa tạo doc config/app, chưa release — feature cho 1.3.2.**

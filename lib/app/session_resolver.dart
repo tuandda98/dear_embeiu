@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
@@ -108,7 +109,15 @@ class SessionResolver {
     // false on any error/offline/missing-config, so a config glitch can never
     // lock everyone out (it has its own short timeout, and the whole resolve is
     // wrapped in an 8s backstop above).
-    if (await AppUpdateService.instance.isForceUpdateRequired()) {
+    // Android drives Google Play's native in-app update (imperative — Play's own
+    // full-screen UI); only falls back to the route-based screen when the native
+    // flow can't run but a block is still required. iOS uses the route-based
+    // force screen (App Store has no native in-app force-install). Both fail-open.
+    if (Platform.isAndroid) {
+      if (await AppUpdateService.instance.maybeRunAndroidUpdate()) {
+        return AppRoutes.forceUpdate;
+      }
+    } else if (await AppUpdateService.instance.isForceUpdateRequired()) {
       return AppRoutes.forceUpdate;
     }
 
