@@ -162,136 +162,157 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return Column(
       children: [
-        // ── Tier 1: pinned chip row (the list never slides under it). ──────
-        // Dynamic chip (user 2026-06-12): the couple's two names around the
-        // pulsing heart instead of a static label — falls back to the static
-        // badge until the couple (or a partner name) exists.
-        Padding(
-          // Tab-header geometry: gutter 16. Chat is a full-screen drill-in (not
-          // a peer tab), so its header rides as high as the SafeArea allows
-          // (top 0 — flush under the status bar/notch) — user 2026-06-18.
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-          // Centered title chip (user 2026-06-17): the couple-name chip is CENTRED
-          // in the row — back arrow pinned to the left gutter — same Stack recipe
-          // as SubScreenHeader so the screen's title sits dead-centre instead of
-          // hugging the back icon. Symmetric h-padding keeps a long name off the
-          // back-arrow touch target.
-          child: SizedBox(
-            height: 44,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 44),
-                  child:
-                      (couple != null &&
-                          couple.person1Name.trim().isNotEmpty &&
-                          couple.person2Name.trim().isNotEmpty)
-                      ? EyebrowChip(
-                          // Natural slim height (user 2026-06-19, "nhẹ nhàng thanh
-                          // lịch"): drop the forced-44 block so the chip rides at the
-                          // same delicate pill height as every other tab's eyebrow —
-                          // lighter, and finally CONSISTENT with Home/Gallery/Profile
-                          // (those already pair a slim ~27 chip with a 44 control).
-                          // The back disc centres beside it in the 44-tall Stack.
-                          child: AnimatedCoupleName(
-                            person1Name: couple.person1Name.toUpperCase(),
-                            person2Name: couple.person2Name.toUpperCase(),
-                            creatorUserId: couple.createdByUserId,
-                            alignment: WrapAlignment.center,
-                            // Header voice (refined 2026-06-19): a quiet tracked-caps
-                            // TITLE — navy .85, 13/w700 ALL-CAPS tracked. A size and a
-                            // weight lighter than the old chunky 15/w800 so it reads as
-                            // a graceful eyebrow, yet caps-vs-lower + bold-vs-regular +
-                            // tracked-vs-tight still set it apart from the sentence-case
-                            // 15/w400 message bubbles below.
-                            textStyle: AppTheme.pageEyebrowStyle(alpha: 0.85)
-                                .copyWith(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 1.0,
-                                ),
-                            heartColor: AppColors.accentLoveDeep,
-                            heartSize: 11,
-                            spacing: 6,
-                            runSpacing: 0,
-                          ),
-                        )
-                      : EyebrowChip(
-                          label: l10n.chatBadge,
-                          icon: IconsaxPlusLinear.messages,
-                        ),
+        // Full-bleed conversation (user 2026-06-21, "kéo tin nhắn full top"): the
+        // message list fills the whole area and scrolls BEHIND the floating chip
+        // header, so the oldest messages can be dragged all the way to the top
+        // instead of stopping under a solid header band. _MessageList.topInset (=
+        // the header height) keeps the topmost message clear of the chip at rest.
+        Expanded(
+          child: Stack(
+            children: [
+              // Tap anywhere on the conversation → drop the keyboard (user
+              // 2026-06-20). opaque so taps on the empty padding around bubbles
+              // register; the ListView's drag recogniser still wins scroll, and
+              // inner InkWells (show-more) still win their own taps, so only true
+              // empty-space taps reach here.
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => FocusScope.of(context).unfocus(),
+                  child: Builder(
+                    builder: (context) {
+                      if (waiting) {
+                        return _WaitingPartnerState(
+                          l10n: l10n,
+                          onInviteTap: () => widget.onRequestTab?.call(3),
+                        );
+                      }
+                      if (provider.isLoading && messages.isEmpty) {
+                        return const _ChatSkeleton();
+                      }
+                      if (messages.isEmpty) {
+                        return _EmptyState(l10n: l10n);
+                      }
+                      // Status of the latest outgoing message (messages are
+                      // newest-first, so the first mine is the latest) — shown
+                      // under its bubble.
+                      var latestMineStatus = ChatMessageStatus.none;
+                      for (final m in messages) {
+                        if (m.authorUserId == myUid) {
+                          latestMineStatus = provider.statusOf(m);
+                          break;
+                        }
+                      }
+                      return _MessageList(
+                        messages: messages,
+                        myUid: myUid,
+                        latestMineStatus: latestMineStatus,
+                        latestMineReadAt: provider.partnerReadAt,
+                        hasMore: provider.hasMore,
+                        isLoadingMore: provider.loadingMore,
+                        onLoadMore: provider.loadMore,
+                        revealedIds: _revealedIds,
+                        hasBackground: widget.hasBackground,
+                        // = header height (44 chip + 4 gap): keeps the oldest
+                        // message just below the chip when scrolled to the top.
+                        topInset: 48,
+                      );
+                    },
+                  ),
                 ),
-                // Back icon (user 2026-06-17): chat is a full-screen drill-in, so
-                // it carries the app's standard back affordance at the left gutter.
-                // -10 lands the 44 touch target's glyph on the gutter (like
-                // SubScreenHeader). HomeScreen restores the tab the user came from.
-                if (widget.onBack != null)
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Transform.translate(
-                      offset: const Offset(-10, 0),
-                      child: HeaderIconButton(
-                        icon: IconsaxPlusLinear.arrow_left,
-                        onTap: widget.onBack!,
-                        semanticsLabel: l10n.back,
-                        // Over a photo backdrop the bare navy arrow vanishes on
-                        // dark regions — give it the chip's frosted disc.
-                        backed: widget.hasBackground,
-                      ),
+              ),
+              // ── Tier 1: pinned chip row — now a TOP OVERLAY so the list runs
+              // full height behind it. Dynamic chip (user 2026-06-12): the
+              // couple's two names around the pulsing heart instead of a static
+              // label — falls back to the static badge until the couple (or a
+              // partner name) exists.
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                // Transparent header (user 2026-06-21): no nav-bar background —
+                // the chip carries its own frosted pill and the back arrow rides a
+                // frosted disc (backed: true), so both stay legible over the
+                // messages/photo without an opaque strip behind them.
+                child: Padding(
+                  // Tab-header geometry: gutter 16, top 0 (flush under the status
+                  // bar/notch, as high as the SafeArea allows).
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                  // Centered title chip (user 2026-06-17): the couple-name chip is
+                  // CENTRED in the row — back arrow pinned to the left gutter —
+                  // same Stack recipe as SubScreenHeader so the title sits
+                  // dead-centre instead of hugging the back icon. Symmetric
+                  // h-padding keeps a long name off the back-arrow touch target.
+                  child: SizedBox(
+                    height: 44,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 44),
+                          child:
+                              (couple != null &&
+                                  couple.person1Name.trim().isNotEmpty &&
+                                  couple.person2Name.trim().isNotEmpty)
+                              ? EyebrowChip(
+                                  child: AnimatedCoupleName(
+                                    person1Name: couple.person1Name
+                                        .toUpperCase(),
+                                    person2Name: couple.person2Name
+                                        .toUpperCase(),
+                                    creatorUserId: couple.createdByUserId,
+                                    alignment: WrapAlignment.center,
+                                    textStyle:
+                                        AppTheme.pageEyebrowStyle(
+                                          alpha: 0.85,
+                                        ).copyWith(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 1.0,
+                                        ),
+                                    heartColor: AppColors.accentLoveDeep,
+                                    heartSize: 11,
+                                    spacing: 6,
+                                    runSpacing: 0,
+                                  ),
+                                )
+                              : EyebrowChip(
+                                  label: l10n.chatBadge,
+                                  icon: IconsaxPlusLinear.messages,
+                                ),
+                        ),
+                        // Back icon (user 2026-06-17): chat is a full-screen
+                        // drill-in, so it carries the app's standard back
+                        // affordance at the left gutter. -10 lands the 44 touch
+                        // target's glyph on the gutter. HomeScreen restores the
+                        // tab the user came from.
+                        if (widget.onBack != null)
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Transform.translate(
+                              offset: const Offset(-10, 0),
+                              child: HeaderIconButton(
+                                icon: IconsaxPlusLinear.arrow_left,
+                                onTap: widget.onBack!,
+                                semanticsLabel: l10n.back,
+                                // Always disc-backed now (2026-06-21): the list
+                                // scrolls behind the header, so a bare navy arrow
+                                // would vanish over a dark bubble — the frosted
+                                // disc keeps it legible over messages OR a photo.
+                                backed: true,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
         ),
-        Expanded(
-          // Tap anywhere on the conversation → drop the keyboard (user
-          // 2026-06-20). opaque so taps on the empty padding around bubbles
-          // register; the ListView's drag recogniser still wins scroll, and
-          // inner InkWells (show-more) still win their own taps, so only true
-          // empty-space taps reach here.
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: Builder(
-              builder: (context) {
-                if (waiting) {
-                  return _WaitingPartnerState(
-                    l10n: l10n,
-                    onInviteTap: () => widget.onRequestTab?.call(3),
-                  );
-                }
-                if (provider.isLoading && messages.isEmpty) {
-                  return const _ChatSkeleton();
-                }
-                if (messages.isEmpty) {
-                  return _EmptyState(l10n: l10n);
-                }
-                // Status of the latest outgoing message (messages are newest-first,
-                // so the first mine is the latest) — shown under its bubble.
-                var latestMineStatus = ChatMessageStatus.none;
-                for (final m in messages) {
-                  if (m.authorUserId == myUid) {
-                    latestMineStatus = provider.statusOf(m);
-                    break;
-                  }
-                }
-                return _MessageList(
-                  messages: messages,
-                  myUid: myUid,
-                  latestMineStatus: latestMineStatus,
-                  latestMineReadAt: provider.partnerReadAt,
-                  hasMore: provider.hasMore,
-                  isLoadingMore: provider.loadingMore,
-                  onLoadMore: provider.loadMore,
-                  revealedIds: _revealedIds,
-                  hasBackground: widget.hasBackground,
-                );
-              },
-            ),
-          ),
-        ),
+        // "đang soạn…" — a partner-style dot bubble just above the composer.
+        if (!waiting && provider.partnerTyping) const _TypingIndicator(),
         if (!waiting) _buildComposer(l10n),
       ],
     );
@@ -345,6 +366,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 textCapitalization: TextCapitalization.sentences,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _send(),
+                // Signal "đang soạn…" to the partner while there's a draft.
+                onChanged: (v) => _chat.setTyping(v.trim().isNotEmpty),
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 15,
@@ -372,7 +395,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             const SizedBox(width: 10),
             // Send disc — quiet ghost while empty, navy (the outgoing-bubble
-            // colour, matching the history composer) once there's a draft.
+            // colour) once there's a draft.
             ValueListenableBuilder<TextEditingValue>(
               valueListenable: _composer,
               builder: (context, value, _) {
@@ -448,10 +471,15 @@ class _MessageList extends StatefulWidget {
     required this.onLoadMore,
     required this.revealedIds,
     required this.hasBackground,
+    required this.topInset,
   });
 
   final List<ChatMessage> messages;
   final String myUid;
+
+  /// Top padding so the oldest message clears the floating header the list now
+  /// scrolls behind (full-bleed chat since 2026-06-21). = header chip height.
+  final double topInset;
 
   /// Whether a custom photo backdrop is behind the list — the "naked" texts
   /// (time dividers + the delivery status) then ride a dark scrim pill so they
@@ -630,7 +658,7 @@ class _MessageListState extends State<_MessageList> {
       // Drag the conversation → keyboard slides down too (Messenger/iMessage
       // idiom), complementing the tap-to-dismiss on the list area.
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: EdgeInsets.fromLTRB(16, widget.topInset, 16, 12),
       itemCount: children.length,
       itemBuilder: (context, index) => children[children.length - 1 - index],
     );
@@ -830,10 +858,85 @@ class _TimeDivider extends StatelessWidget {
   }
 }
 
-/// Chat bubble (design §B3 — same chosen language as the history screen):
-/// mine = solid navy, right; partner = solid white, flush-left (no avatar —
-/// 1-1 chat). Pending mine-bubbles render at .65 opacity with a small clock
-/// beside them until the server confirms (§4).
+// Chat bubble colours (user 2026-06-21): outgoing keep the app's classic navy
+// (AppColors.textPrimary) — reverted from the pink/red experiment — and incoming
+// use a soft neutral iMessage grey. Messages-style layout, original colours.
+const Color _kChatPartnerGrey = Color(0xFFE9E9EB);
+
+/// "đang soạn…" indicator (2026-06-21): three dots bouncing in a partner-style
+/// grey bubble, shown above the composer while the partner is typing.
+class _TypingIndicator extends StatefulWidget {
+  const _TypingIndicator();
+
+  @override
+  State<_TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<_TypingIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          decoration: BoxDecoration(
+            color: _kChatPartnerGrey,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: AnimatedBuilder(
+            animation: _c,
+            builder: (context, _) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _dot(0.0),
+                const SizedBox(width: 5),
+                _dot(0.18),
+                const SizedBox(width: 5),
+                _dot(0.36),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _dot(double phase) {
+    final t = (_c.value + phase) % 1.0;
+    // Triangle wave 0→1→0: the dot lifts + brightens, then settles.
+    final wave = 1 - (2 * t - 1).abs();
+    return Transform.translate(
+      offset: Offset(0, -3 * wave),
+      child: Container(
+        width: 7,
+        height: 7,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.textSecondary.withValues(alpha: 0.35 + 0.5 * wave),
+        ),
+      ),
+    );
+  }
+}
+
+/// Chat bubble (iMessage language, 2026-06-21): mine = navy, right; partner =
+/// neutral grey, flush-left (no avatar — 1-1 chat). Pending
+/// mine-bubbles render at .65 opacity with a small clock beside them until the
+/// server confirms (§4).
 class _ChatBubble extends StatelessWidget {
   const _ChatBubble({
     required this.text,
@@ -851,10 +954,10 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const full = Radius.circular(18);
-    const flat = Radius.circular(10);
-    // The sender-side corners flatten between grouped bubbles (burst look);
-    // the opposite side stays fully rounded.
+    const full = Radius.circular(20);
+    const flat = Radius.circular(6);
+    // Rounded corners; the sender-side corners flatten between grouped bubbles
+    // (no tail — user 2026-06-22).
     final radius = isMine
         ? BorderRadius.only(
             topLeft: full,
@@ -868,31 +971,22 @@ class _ChatBubble extends StatelessWidget {
             topLeft: firstInGroup ? full : flat,
             bottomLeft: lastInGroup ? full : flat,
           );
-
     final bubble = Container(
       constraints: BoxConstraints(
-        maxWidth: MediaQuery.of(context).size.width * 0.72,
+        maxWidth: MediaQuery.of(context).size.width * 0.74,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: isMine
-          ? BoxDecoration(color: AppColors.textPrimary, borderRadius: radius)
-          : BoxDecoration(
-              color: AppColors.cardSurface,
-              borderRadius: radius,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      decoration: BoxDecoration(
+        // Outgoing = classic navy; incoming = neutral grey. Flat, no tail.
+        color: isMine ? AppColors.textPrimary : _kChatPartnerGrey,
+        borderRadius: radius,
+      ),
       child: Text(
         text,
         style: TextStyle(
           color: isMine ? AppColors.white : AppColors.textPrimary,
-          fontSize: 15,
-          height: 1.4,
+          fontSize: 16,
+          height: 1.35,
         ),
       ),
     );

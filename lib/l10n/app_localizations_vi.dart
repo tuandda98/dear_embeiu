@@ -1274,6 +1274,24 @@ class AppLocalizationsVi extends AppLocalizations {
   String get updatingCaption => 'Đang cập nhật chú thích...';
 
   @override
+  String get photoOptionsTitle => 'Tùy chọn ảnh';
+
+  @override
+  String get replacePhotoAction => 'Đổi ảnh khác';
+
+  @override
+  String get galleryReplacePhotoTooltip => 'Đổi ảnh khác';
+
+  @override
+  String get replacingPhoto => 'Đang cập nhật ảnh...';
+
+  @override
+  String get photoUpdatedSuccess => 'Đã cập nhật ảnh';
+
+  @override
+  String get photoUpdateError => 'Chưa cập nhật được ảnh, thử lại nhé.';
+
+  @override
   String get galleryLoadErrorTitle => 'Chưa tải được ảnh';
 
   @override
@@ -1580,10 +1598,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get dailyQuestionReminderNotifBody =>
       'Ghé trả lời để mở khoá câu trả lời của người ấy nhé.';
-
-  @override
-  String get dailyQuestionReminderEndOfDayHint =>
-      'Chúng mình còn được nhắc thêm lúc 21h, 22h và 23h nếu cuối ngày mà cả hai chưa trả lời — riêng 22h và 23h sẽ cảnh báo sắp mất chuỗi.';
 
   @override
   String get dqEndOfDayNudgeTitle => 'Ngày sắp khép lại rồi 🌙';

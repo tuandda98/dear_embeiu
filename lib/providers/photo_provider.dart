@@ -604,6 +604,48 @@ class PhotoProvider extends ChangeNotifier {
     }
   }
 
+  /// Replaces the image file of an already-posted photo (caption/author/date
+  /// unchanged). Uploads the new file, updates the doc, and reflects the new
+  /// remoteUrl immediately so the feed/preview repaint without waiting for a
+  /// realtime emission (photos outside the window get none).
+  Future<void> replacePhotoImage(
+    String photoId,
+    String localImagePath, {
+    required AppUser currentUser,
+  }) async {
+    final photo = _photosById[photoId];
+    if (photo == null) {
+      return;
+    }
+
+    _setLoading(true, message: AppL10n.strings.replacingPhoto);
+    _clearError(notify: false);
+
+    try {
+      final updatedPhoto = await _photoService.replacePhotoImage(
+        currentUser: currentUser,
+        photo: photo,
+        localImagePath: localImagePath,
+      );
+
+      _photosById[photoId] = updatedPhoto;
+      _onThisDayPhotos = _onThisDayPhotos
+          .map((p) => p.id == photoId ? updatedPhoto : p)
+          .toList();
+      if (!_photoService.isUsingFirebase || !currentUser.hasCouple) {
+        await StorageService.savePhotos(sortedPhotos);
+      }
+
+      notifyListeners();
+    } on PhotoSyncException catch (e) {
+      _errorMessage = e.message;
+      notifyListeners();
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   /// Records a moderation report for [photo] (Apple Guideline 1.2 UGC).
   /// Best-effort: never throws or surfaces errors to the UI (see service).
   Future<void> reportPhoto({

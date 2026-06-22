@@ -1280,6 +1280,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updatingCaption => 'Updating caption...';
 
   @override
+  String get photoOptionsTitle => 'Photo options';
+
+  @override
+  String get replacePhotoAction => 'Replace photo';
+
+  @override
+  String get galleryReplacePhotoTooltip => 'Replace photo';
+
+  @override
+  String get replacingPhoto => 'Updating photo...';
+
+  @override
+  String get photoUpdatedSuccess => 'Photo updated';
+
+  @override
+  String get photoUpdateError => 'Could not update photo right now.';
+
+  @override
   String get galleryLoadErrorTitle => 'Couldn\'t load photos';
 
   @override
@@ -1586,10 +1604,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dailyQuestionReminderNotifBody =>
       'Answer it to unlock your partner\'s reply.';
-
-  @override
-  String get dailyQuestionReminderEndOfDayHint =>
-      'We\'ll also nudge you at 9, 10 and 11 PM if the day\'s almost over and you both haven\'t answered — the 10 and 11 PM ones warn you about your streak.';
 
   @override
   String get dqEndOfDayNudgeTitle => 'The day is winding down 🌙';

@@ -2282,6 +2282,42 @@ abstract class AppLocalizations {
   /// **'Updating caption...'**
   String get updatingCaption;
 
+  /// No description provided for @photoOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo options'**
+  String get photoOptionsTitle;
+
+  /// No description provided for @replacePhotoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace photo'**
+  String get replacePhotoAction;
+
+  /// No description provided for @galleryReplacePhotoTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace photo'**
+  String get galleryReplacePhotoTooltip;
+
+  /// No description provided for @replacingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating photo...'**
+  String get replacingPhoto;
+
+  /// No description provided for @photoUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo updated'**
+  String get photoUpdatedSuccess;
+
+  /// No description provided for @photoUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update photo right now.'**
+  String get photoUpdateError;
+
   /// No description provided for @galleryLoadErrorTitle.
   ///
   /// In en, this message translates to:
@@ -2827,12 +2863,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Answer it to unlock your partner\'s reply.'**
   String get dailyQuestionReminderNotifBody;
-
-  /// No description provided for @dailyQuestionReminderEndOfDayHint.
-  ///
-  /// In en, this message translates to:
-  /// **'We\'ll also nudge you at 9, 10 and 11 PM if the day\'s almost over and you both haven\'t answered — the 10 and 11 PM ones warn you about your streak.'**
-  String get dailyQuestionReminderEndOfDayHint;
 
   /// No description provided for @dqEndOfDayNudgeTitle.
   ///

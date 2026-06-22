@@ -21,8 +21,8 @@ class ChatWindow {
   const ChatWindow({required this.messages, required this.isFromCache});
 
   const ChatWindow.empty()
-      : messages = const <ChatMessage>[],
-        isFromCache = false;
+    : messages = const <ChatMessage>[],
+      isFromCache = false;
 
   final List<ChatMessage> messages;
   final bool isFromCache;
@@ -31,7 +31,11 @@ class ChatWindow {
 /// One member's chat receipt (feature chat-status, 2026-06-18): when their
 /// device last RECEIVED the conversation and last READ it. Either null when the
 /// member hasn't reached that state yet.
-typedef ChatReceipt = ({DateTime? deliveredAt, DateTime? readAt});
+typedef ChatReceipt = ({
+  DateTime? deliveredAt,
+  DateTime? readAt,
+  DateTime? typingAt,
+});
 
 class ChatService {
   ChatService({FirebaseFirestore? firestore}) : _firestore = firestore;
@@ -49,12 +53,12 @@ class ChatService {
   FirebaseFirestore get _db => _firestore ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> _messagesCollection(
-          String coupleId) =>
-      _db.collection('couples').doc(coupleId).collection('messages');
+    String coupleId,
+  ) => _db.collection('couples').doc(coupleId).collection('messages');
 
   CollectionReference<Map<String, dynamic>> _receiptsCollection(
-          String coupleId) =>
-      _db.collection('couples').doc(coupleId).collection('receipts');
+    String coupleId,
+  ) => _db.collection('couples').doc(coupleId).collection('receipts');
 
   /// Streams the PARTNER's receipt (the doc whose id != [myUid]) so the sender
   /// can show đã nhận / đã đọc on their own messages. The collection holds at
@@ -63,18 +67,22 @@ class ChatService {
     if (coupleId.trim().isEmpty || myUid.trim().isEmpty || !isUsingFirebase) {
       return const Stream<ChatReceipt>.empty();
     }
-    return _receiptsCollection(coupleId).snapshots().map((snapshot) {
-      for (final doc in snapshot.docs) {
-        if (doc.id != myUid) {
-          final data = doc.data();
-          return (
-            deliveredAt: ChatMessage.parseTimestamp(data['deliveredAt']),
-            readAt: ChatMessage.parseTimestamp(data['readAt']),
-          );
-        }
-      }
-      return (deliveredAt: null, readAt: null);
-    }).handleError((_) {});
+    return _receiptsCollection(coupleId)
+        .snapshots()
+        .map((snapshot) {
+          for (final doc in snapshot.docs) {
+            if (doc.id != myUid) {
+              final data = doc.data();
+              return (
+                deliveredAt: ChatMessage.parseTimestamp(data['deliveredAt']),
+                readAt: ChatMessage.parseTimestamp(data['readAt']),
+                typingAt: ChatMessage.parseTimestamp(data['typingAt']),
+              );
+            }
+          }
+          return (deliveredAt: null, readAt: null, typingAt: null);
+        })
+        .handleError((_) {});
   }
 
   /// Stamps MY receipt (doc id == [uid]) with the server time for whichever of
@@ -98,9 +106,9 @@ class ChatService {
       return;
     }
     try {
-      await _receiptsCollection(coupleId)
-          .doc(uid)
-          .set(payload, SetOptions(merge: true));
+      await _receiptsCollection(
+        coupleId,
+      ).doc(uid).set(payload, SetOptions(merge: true));
     } catch (_) {
       // Fail-soft — the next stamp catches up.
     }
@@ -121,15 +129,35 @@ class ChatService {
       return;
     }
     try {
-      await _receiptsCollection(coupleId).doc(uid).set(
-        {
-          'chatActiveAt':
-              active ? FieldValue.serverTimestamp() : FieldValue.delete(),
-        },
-        SetOptions(merge: true),
-      );
+      await _receiptsCollection(coupleId).doc(uid).set({
+        'chatActiveAt': active
+            ? FieldValue.serverTimestamp()
+            : FieldValue.delete(),
+      }, SetOptions(merge: true));
     } catch (_) {
       // Fail-soft — a dropped presence write only risks one stray notification.
+    }
+  }
+
+  /// Sets/clears MY "typing" signal (typing indicator 2026-06-21) on the receipt
+  /// doc: while [typing] the `typingAt` timestamp is refreshed, and on stop it is
+  /// DELETED so the partner's "đang soạn…" hides at once. The partner reads it
+  /// from [watchPartnerReceipt]. Best-effort — a dropped write only blips the
+  /// indicator.
+  Future<void> setTyping(
+    String coupleId,
+    String uid, {
+    required bool typing,
+  }) async {
+    if (coupleId.trim().isEmpty || uid.trim().isEmpty || !isUsingFirebase) {
+      return;
+    }
+    try {
+      await _receiptsCollection(coupleId).doc(uid).set({
+        'typingAt': typing ? FieldValue.serverTimestamp() : FieldValue.delete(),
+      }, SetOptions(merge: true));
+    } catch (_) {
+      // Fail-soft — a dropped typing write only blips the indicator.
     }
   }
 
@@ -162,11 +190,13 @@ class ChatService {
         .map(
           (snapshot) => ChatWindow(
             messages: snapshot.docs
-                .map((doc) => ChatMessage.fromDoc(
-                      doc.id,
-                      doc.data(),
-                      isPending: doc.metadata.hasPendingWrites,
-                    ))
+                .map(
+                  (doc) => ChatMessage.fromDoc(
+                    doc.id,
+                    doc.data(),
+                    isPending: doc.metadata.hasPendingWrites,
+                  ),
+                )
                 .toList(),
             isFromCache: snapshot.metadata.isFromCache,
           ),
@@ -273,8 +303,10 @@ class ChatService {
           }
         }
       }
-      messages.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
+      messages.sort(
+        (a, b) =>
+            (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)),
+      );
       return messages;
     } catch (_) {
       return const <ChatMessage>[];

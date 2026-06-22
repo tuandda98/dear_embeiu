@@ -392,6 +392,65 @@ class _GalleryScreenState extends State<GalleryScreen> {
     ).showSnackBar(SnackBar(content: Text(context.l10n.captionUpdatedSuccess)));
   }
 
+  /// Replace the IMAGE of an already-posted [photo] (caption/date/author stay):
+  /// pick one new photo from the library, then run the provider replace path
+  /// (shared loading overlay + success/error snackbar). The act of picking a
+  /// new photo is itself the confirmation, so there's no extra dialog.
+  Future<void> _replacePhotoImage(Photo photo) async {
+    final currentUser = context.read<AuthProvider>().currentUser;
+    if (currentUser == null) {
+      return;
+    }
+
+    final XFile? picked;
+    try {
+      picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1920,
+        maxHeight: 1920,
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.photoUpdateError)),
+        );
+      }
+      return;
+    }
+    if (picked == null || !mounted) {
+      return;
+    }
+
+    try {
+      await context.read<PhotoProvider>().replacePhotoImage(
+            photo.id,
+            picked.path,
+            currentUser: currentUser,
+          );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.read<PhotoProvider>().errorMessage ??
+                context.l10n.photoUpdateError,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.photoUpdatedSuccess)),
+    );
+  }
+
   Future<void> _deletePhoto(Photo photo) async {
     final currentUser = context.read<AuthProvider>().currentUser;
     if (currentUser == null) {
@@ -606,6 +665,248 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
+  /// On-brand action sheet for a posted photo (redesign 2026-06-21 — replaces
+  /// the plain overflow popup). A compact header (thumbnail + who/when) anchors
+  /// which photo you're acting on; then grouped rows with tinted icon badges:
+  /// the owner actions (edit caption / replace image / delete-in-red) in one
+  /// rounded card, the moderation report in its own card, plus a Cancel.
+  Future<void> _showPhotoActionsSheet(Photo photo) async {
+    final currentUserId = context.read<AuthProvider>().currentUser?.id;
+
+    final action = await showModalBottomSheet<_PhotoFeedAction>(
+      context: context,
+      backgroundColor: AppColors.cardSurface,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) {
+        final l10n = sheetContext.l10n;
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.textTertiary.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: SizedBox(
+                        width: 52,
+                        height: 52,
+                        child: SharedPhotoView(
+                          photo: photo,
+                          fit: BoxFit.cover,
+                          decodeWidth: 120,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.photoOptionsTitle,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            '${_feedPostedByLabel(photo)} · '
+                            '${_formatFeedDate(photo.uploadDate)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                _buildPhotoActionGroup(sheetContext, [
+                  _PhotoActionSpec(
+                    icon: IconsaxPlusLinear.edit_2,
+                    label: l10n.editCaptionAction,
+                    action: _PhotoFeedAction.editCaption,
+                  ),
+                  _PhotoActionSpec(
+                    icon: IconsaxPlusLinear.gallery_edit,
+                    label: l10n.replacePhotoAction,
+                    action: _PhotoFeedAction.replaceImage,
+                  ),
+                  if (currentUserId != null)
+                    _PhotoActionSpec(
+                      icon: IconsaxPlusLinear.trash,
+                      label: l10n.deletePhotoAction,
+                      action: _PhotoFeedAction.delete,
+                      tint: AppColors.error,
+                    ),
+                ]),
+                const SizedBox(height: 12),
+                _buildPhotoActionGroup(sheetContext, [
+                  _PhotoActionSpec(
+                    icon: IconsaxPlusLinear.flag,
+                    label: l10n.reportPhotoAction,
+                    action: _PhotoFeedAction.report,
+                    tint: AppColors.accentRose,
+                  ),
+                ]),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColors.surfaceLight,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      l10n.cancel,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (action == null || !mounted) {
+      return;
+    }
+    switch (action) {
+      case _PhotoFeedAction.editCaption:
+        _editCaption(photo);
+      case _PhotoFeedAction.replaceImage:
+        _replacePhotoImage(photo);
+      case _PhotoFeedAction.delete:
+        _deletePhoto(photo);
+      case _PhotoFeedAction.report:
+        _reportPhoto(photo);
+    }
+  }
+
+  /// One rounded card holding action rows separated by hairline dividers
+  /// (indented to clear the icon badges).
+  Widget _buildPhotoActionGroup(
+    BuildContext sheetContext,
+    List<_PhotoActionSpec> specs,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < specs.length; i++) ...[
+            if (i > 0)
+              Divider(
+                height: 1,
+                thickness: 1,
+                indent: 64,
+                endIndent: 12,
+                color: AppColors.textTertiary.withValues(alpha: 0.12),
+              ),
+            _buildPhotoActionTile(
+              sheetContext,
+              specs[i],
+              first: i == 0,
+              last: i == specs.length - 1,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoActionTile(
+    BuildContext sheetContext,
+    _PhotoActionSpec spec, {
+    required bool first,
+    required bool last,
+  }) {
+    final tint = spec.tint ?? AppColors.accentLoveDeep;
+    final labelColor = spec.tint ?? AppColors.textPrimary;
+    final radius = BorderRadius.vertical(
+      top: Radius.circular(first ? 20 : 0),
+      bottom: Radius.circular(last ? 20 : 0),
+    );
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: radius,
+        onTap: () => Navigator.of(sheetContext).pop(spec.action),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: tint.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(spec.icon, size: 20, color: tint),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  spec.label,
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w600,
+                    color: labelColor,
+                  ),
+                ),
+              ),
+              Icon(
+                IconsaxPlusLinear.arrow_right_3,
+                size: 18,
+                color: AppColors.textTertiary.withValues(alpha: 0.6),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _formatFeedDate(DateTime date) {
     final l10n = context.l10n;
     return DateFormat(
@@ -664,6 +965,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               initialIndex: initialIndex,
               couple: couple,
               onEditCaption: _editCaption,
+              onReplaceImage: _replacePhotoImage,
               onReport: _reportPhoto,
             ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -1409,61 +1711,15 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     ],
                   ),
                 ),
-                PopupMenuButton<_PhotoFeedAction>(
+                IconButton(
+                  onPressed: () => _showPhotoActionsSheet(photo),
+                  visualDensity: VisualDensity.compact,
+                  splashRadius: 22,
+                  tooltip: context.l10n.photoOptionsTitle,
                   icon: Icon(
                     IconsaxPlusLinear.more,
                     color: AppColors.textSecondary.withValues(alpha: 0.76),
                   ),
-                  onSelected: (action) {
-                    if (action == _PhotoFeedAction.editCaption) {
-                      _editCaption(photo);
-                      return;
-                    }
-
-                    if (action == _PhotoFeedAction.report) {
-                      _reportPhoto(photo);
-                      return;
-                    }
-
-                    _deletePhoto(photo);
-                  },
-                  itemBuilder: (context) {
-                    final currentUserId = context
-                        .read<AuthProvider>()
-                        .currentUser
-                        ?.id;
-                    return [
-                      PopupMenuItem(
-                        value: _PhotoFeedAction.editCaption,
-                        child: Text(context.l10n.editCaptionAction),
-                      ),
-                      if (currentUserId != null)
-                        PopupMenuItem(
-                          value: _PhotoFeedAction.delete,
-                          child: Text(context.l10n.deletePhotoAction),
-                        ),
-                      PopupMenuItem(
-                        value: _PhotoFeedAction.report,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              IconsaxPlusLinear.flag,
-                              size: 18,
-                              color: AppColors.accentRose,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              context.l10n.reportPhotoAction,
-                              style: const TextStyle(
-                                color: AppColors.accentRose,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ];
-                  },
                 ),
               ],
             ),
@@ -1995,7 +2251,25 @@ class _FeedReactionBar extends StatelessWidget {
   }
 }
 
-enum _PhotoFeedAction { editCaption, delete, report }
+enum _PhotoFeedAction { editCaption, replaceImage, delete, report }
+
+/// One row in the photo-actions sheet (redesign 2026-06-21): an icon badge +
+/// label that pops [action]. [tint] colours the badge/icon/label (red for
+/// destructive delete, rose for report); null = neutral navy label on the
+/// app's accent badge.
+class _PhotoActionSpec {
+  const _PhotoActionSpec({
+    required this.icon,
+    required this.label,
+    required this.action,
+    this.tint,
+  });
+
+  final IconData icon;
+  final String label;
+  final _PhotoFeedAction action;
+  final Color? tint;
+}
 
 sealed class _FeedItem {}
 
@@ -2158,6 +2432,7 @@ class _FullscreenPhotoPreview extends StatefulWidget {
     required this.initialIndex,
     required this.couple,
     this.onEditCaption,
+    this.onReplaceImage,
     this.onReport,
   });
 
@@ -2166,6 +2441,7 @@ class _FullscreenPhotoPreview extends StatefulWidget {
   final int initialIndex;
   final Couple? couple;
   final void Function(Photo photo)? onEditCaption;
+  final void Function(Photo photo)? onReplaceImage;
   final void Function(Photo photo)? onReport;
 
   @override
@@ -2469,6 +2745,23 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                             ),
                             icon: const Icon(IconsaxPlusLinear.flag),
                             tooltip: context.l10n.reportPhotoAction,
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        if (widget.onReplaceImage != null) ...[
+                          IconButton.filledTonal(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              widget.onReplaceImage!(currentPhoto);
+                            },
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black.withValues(
+                                alpha: 0.28,
+                              ),
+                              foregroundColor: AppColors.white,
+                            ),
+                            icon: const Icon(IconsaxPlusLinear.gallery_edit),
+                            tooltip: context.l10n.galleryReplacePhotoTooltip,
                           ),
                           const SizedBox(width: 8),
                         ],

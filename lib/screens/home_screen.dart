@@ -545,21 +545,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (dq == null || streak == null) {
       return;
     }
-    context.read<ReminderProvider>().refreshDailyQuestionSafetyNet(
-          hasRevealed: dq.hasRevealed,
-          iAnswered: dq.hasAnswered,
-          currentStreak: streak.currentStreak,
-          l10n: context.l10n,
-        );
-    // Private "anh By → embe" nudges, gated to one account (2026-06-20). Shares
-    // this hook so the hourly "answer the question" reminders stop the moment
-    // she answers (dq.hasAnswered) and re-arm on each launch/update.
+    final reminders = context.read<ReminderProvider>();
+    // Private "anh By → embe" nudges, gated to one account (2026-06-20). Evaluated
+    // FIRST so the gated-account flag is set before the shared schedulers below:
+    // on em bé's device her hourly nudge replaces the shared daily-question +
+    // end-of-day reminders (suppressed there to avoid double notifications). The
+    // hourly band stops the moment she answers and re-arms each launch/update.
     final auth = context.read<AuthProvider>();
     final email = auth.currentUser?.email ?? auth.currentEmail ?? '';
-    context.read<ReminderProvider>().refreshPersonalReminders(
-          email: email,
-          iAnswered: dq.hasAnswered,
-        );
+    reminders.refreshPersonalReminders(
+      email: email,
+      iAnswered: dq.hasAnswered,
+      // Skip the hourly-question band while the DQ stream is mid-(re)subscribe
+      // (answers momentarily empty → hasAnswered flickers false) so we never
+      // re-arm stale nudges that fire after she's answered (bug 2026-06-20).
+      isLoading: dq.isLoading,
+    );
+    // Skip while the DQ stream is mid-(re)subscribe: answers are momentarily
+    // empty so hasRevealed/hasAnswered flicker false, which would re-arm the
+    // end-of-day nudges we just cancelled (same race as the personal band).
+    // The settled notify that follows re-runs this with the real state.
+    if (!dq.isLoading) {
+      reminders.refreshDailyQuestionSafetyNet(
+        hasRevealed: dq.hasRevealed,
+        iAnswered: dq.hasAnswered,
+        currentStreak: streak.currentStreak,
+        l10n: context.l10n,
+      );
+    }
   }
 
   /// Reacts to a warm tap (app already running) requesting a tab switch.

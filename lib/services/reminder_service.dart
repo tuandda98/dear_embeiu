@@ -62,11 +62,13 @@ class ReminderService {
   static const int _idMilestone1000 = 1011;
   static const int _idMilestone1314 = 1012;
 
-  // Daily-question multi-time band (2026-06-14): one repeating notification per
-  // configured fire time, ids 1040..1049. Sits ABOVE the milestone band and
-  // outside [_autoIds] so the master reschedule never touches it. The legacy
-  // single id 1004 is still cancelled by [cancelDailyQuestion] to clean up any
-  // schedule left by an older build.
+  // Daily-question multi-time band (2026-06-14; one-shot TODAY since 2026-06-20):
+  // one notification per configured fire time, ids 1040..1049, scheduled only for
+  // today's remaining times and re-armed each day by the provider — so it can be
+  // suppressed once both have answered and switch copy when only one has. Sits
+  // ABOVE the milestone band and outside [_autoIds] so the master reschedule
+  // never touches it. The legacy single id 1004 is still cancelled by
+  // [cancelDailyQuestion] to clean up any schedule left by an older build.
   static const int _idDailyQuestionBase = 1040;
   static const int _maxDailyQuestionTimes = 10;
 
@@ -328,10 +330,12 @@ class ReminderService {
   // ---------------------------------------------------------------------------
 
   /// (Re)schedule the daily-question nudge at each time in [minutesOfDay]
-  /// (minutes since midnight, ≤10 entries; extras are dropped). Each repeats
-  /// daily via [DateTimeComponents.time]. Clears the whole daily-question band
-  /// (and the legacy single id) first, so this is safe to call repeatedly and
-  /// an empty list simply cancels everything.
+  /// (minutes since midnight, ≤10 entries; extras are dropped). ONE-SHOT for
+  /// TODAY only — times already past are skipped (never rolled to tomorrow; the
+  /// provider re-arms each day with the current answer state so it can suppress
+  /// the nudge once both have answered and swap copy when only one has). Clears
+  /// the whole daily-question band (and the legacy single id) first, so this is
+  /// safe to call repeatedly and an empty list simply cancels everything.
   Future<void> scheduleDailyQuestionTimes({
     required List<int> minutesOfDay,
     required String title,
@@ -342,17 +346,28 @@ class ReminderService {
       return;
     }
     await cancelDailyQuestion();
+    final now = tz.TZDateTime.now(tz.local);
     final times = minutesOfDay.take(_maxDailyQuestionTimes).toList();
     for (var i = 0; i < times.length; i++) {
       final clamped = times[i].clamp(0, 24 * 60 - 1);
       final hour = clamped ~/ 60;
       final minute = clamped % 60;
+      final when = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        hour,
+        minute,
+      );
+      if (!when.isAfter(now)) {
+        continue;
+      }
       await _scheduleAt(
         id: _idDailyQuestionBase + i,
-        when: _nextDaily(hour, minute),
+        when: when,
         title: title,
         body: body,
-        matchDateTimeComponents: DateTimeComponents.time,
       );
     }
   }

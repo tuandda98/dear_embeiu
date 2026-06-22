@@ -236,6 +236,81 @@ class PhotoService {
     }
   }
 
+  /// Replaces the image FILE of an already-posted [photo] (caption/date/author
+  /// stay). Uploads the new file to a fresh storage path (a per-replace
+  /// uniquifier so the CDN can't serve the stale cached image), merge-updates
+  /// the doc's `remoteUrl`/`storagePath`/`updatedAt`, then best-effort deletes
+  /// the old storage object. The immutable `coupleId`/`authorUserId`/
+  /// `uploadDate` are preserved, so the firestore.rules photo-update guard
+  /// passes (only the mutable image fields change).
+  Future<Photo> replacePhotoImage({
+    required AppUser currentUser,
+    required Photo photo,
+    required String localImagePath,
+  }) async {
+    final localCopyPath = await StorageService.savePhotoFile(localImagePath);
+    final now = DateTime.now();
+    final newLocalPath = localCopyPath ?? localImagePath;
+
+    // Local-only fallback (no Firebase / no couple): just swap the cached file.
+    if (!isUsingFirebase || !currentUser.hasCouple || photo.coupleId == null) {
+      if (photo.hasLocalPath && photo.path != newLocalPath) {
+        await StorageService.deletePhotoFile(photo.path);
+      }
+      return photo.copyWith(path: newLocalPath, updatedAt: now);
+    }
+
+    final file = File(localImagePath);
+    if (!await file.exists()) {
+      throw PhotoSyncException(AppL10n.strings.photoNotFoundToPost);
+    }
+
+    final coupleId = photo.coupleId!;
+    final extension = _guessFileExtension(localImagePath);
+    // New path (id + timestamp) so the download URL changes — replacing in place
+    // would let a cached old image linger behind the same URL.
+    final newStoragePath =
+        'couple_photos/$coupleId/${photo.id}_${now.millisecondsSinceEpoch}$extension';
+
+    try {
+      final uploadTask = await _bucket.ref(newStoragePath).putFile(
+            file,
+            SettableMetadata(contentType: _contentTypeForExtension(extension)),
+          );
+      final newRemoteUrl = await uploadTask.ref.getDownloadURL();
+
+      final oldStoragePath = photo.storagePath?.trim();
+      final updatedPhoto = photo.copyWith(
+        path: newLocalPath,
+        remoteUrl: newRemoteUrl,
+        storagePath: newStoragePath,
+        updatedAt: now,
+      );
+
+      await _photosCollection(coupleId).doc(photo.id).set(
+            updatedPhoto.toFirestoreUpdate(),
+            SetOptions(merge: true),
+          );
+
+      // Best-effort cleanup of the previous objects — never fail the replace if
+      // the old file is already gone / can't be removed.
+      if (oldStoragePath != null &&
+          oldStoragePath.isNotEmpty &&
+          oldStoragePath != newStoragePath) {
+        try {
+          await _bucket.ref(oldStoragePath).delete();
+        } catch (_) {}
+      }
+      if (photo.hasLocalPath && photo.path != newLocalPath) {
+        await StorageService.deletePhotoFile(photo.path);
+      }
+
+      return updatedPhoto;
+    } on FirebaseException catch (e) {
+      throw PhotoSyncException(_mapFirebaseError(e));
+    }
+  }
+
   Future<void> deletePhoto({
     required AppUser currentUser,
     required Photo photo,

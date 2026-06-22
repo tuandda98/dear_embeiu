@@ -1460,17 +1460,6 @@ class _DailyQuestionReminderTile extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8),
                 child: _DailyQuestionAddTimeRow(onTap: addTime),
               ),
-            Padding(
-              padding: const EdgeInsets.only(top: 12, left: 2, right: 2),
-              child: Text(
-                l10n.dailyQuestionReminderEndOfDayHint,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  height: 1.4,
-                ),
-              ),
-            ),
           ],
         ],
       ),

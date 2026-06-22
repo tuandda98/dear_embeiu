@@ -26,6 +26,7 @@ class CounterCard extends StatelessWidget {
   final int months;
   final int days;
   final VoidCallback? onTap;
+
   /// When null, falls back to the localized "you've been together for" label.
   final String? title;
   final String? subtitle;
@@ -137,29 +138,33 @@ class CounterCard extends StatelessWidget {
                     swipeDirection: photoSwipeDirection,
                   ),
                 ),
-              // ── Aurora layers — slow, offset breathing so the surface
-              // feels alive without demanding attention.
-              _buildGlow(
-                alignment: Alignment.topLeft,
-                opacity: 0.42,
-                breatheMs: 3200,
-                animated: !reduceMotion,
-              ),
-              _buildGlow(
-                alignment: Alignment.bottomRight,
-                opacity: 0.30,
-                color: AppColors.accentLavender,
-                breatheMs: 4000,
-                animated: !reduceMotion,
-              ),
-              _buildGlow(
-                alignment: Alignment.topRight,
-                opacity: 0.20,
-                color: AppColors.accentCoral,
-                size: 160,
-                breatheMs: 3600,
-                animated: !reduceMotion,
-              ),
+              // ── Aurora layers — slow, offset breathing so the surface feels
+              // alive. ONLY on the plain gradient card: a chosen photo IS the
+              // surface, so these (esp. the white one) are skipped to keep it
+              // crisp & clear (user 2026-06-21: photo must read sharp, no veil).
+              if (!_hasPhoto) ...[
+                _buildGlow(
+                  alignment: Alignment.topLeft,
+                  opacity: 0.42,
+                  breatheMs: 3200,
+                  animated: !reduceMotion,
+                ),
+                _buildGlow(
+                  alignment: Alignment.bottomRight,
+                  opacity: 0.30,
+                  color: AppColors.accentLavender,
+                  breatheMs: 4000,
+                  animated: !reduceMotion,
+                ),
+                _buildGlow(
+                  alignment: Alignment.topRight,
+                  opacity: 0.20,
+                  color: AppColors.accentCoral,
+                  size: 160,
+                  breatheMs: 3600,
+                  animated: !reduceMotion,
+                ),
+              ],
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 28, 24, 26),
                 child: Column(
@@ -294,23 +299,37 @@ class CounterCard extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        Container(
-          width: 220,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.rectangle,
-            borderRadius: BorderRadius.circular(60),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.white.withValues(alpha: 0.55),
-                blurRadius: 48,
-              ),
-            ],
+        // Soft white bloom — only on the plain gradient card. Over a photo it
+        // fogs the image (user 2026-06-21), so the number leans on a dark text
+        // shadow for contrast there instead of this halo.
+        if (!_hasPhoto)
+          Container(
+            width: 220,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(60),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.white.withValues(alpha: 0.55),
+                  blurRadius: 48,
+                ),
+              ],
+            ),
           ),
-        ),
         Text(
           '$days',
-          style: AppTheme.dayCountStyle(),
+          style: _hasPhoto
+              ? AppTheme.dayCountStyle().copyWith(
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      blurRadius: 18,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                )
+              : AppTheme.dayCountStyle(),
         ),
       ],
     );
@@ -321,21 +340,22 @@ class CounterCard extends StatelessWidget {
       children: [
         Text(
           value.toString(),
-          style: AppTheme.displaySerif(
-            size: 58,
-            color: AppColors.white,
-            weight: FontWeight.w600,
-            letterSpacing: -1.2,
-            height: 1,
-          ).copyWith(
-            // Soft halo behind each numeral — the "lit from within" look.
-            shadows: [
-              Shadow(
-                color: AppColors.white.withValues(alpha: 0.45),
-                blurRadius: 22,
+          style:
+              AppTheme.displaySerif(
+                size: 58,
+                color: AppColors.white,
+                weight: FontWeight.w600,
+                letterSpacing: -1.2,
+                height: 1,
+              ).copyWith(
+                // Soft halo behind each numeral — the "lit from within" look.
+                shadows: [
+                  Shadow(
+                    color: AppColors.white.withValues(alpha: 0.45),
+                    blurRadius: 22,
+                  ),
+                ],
               ),
-            ],
-          ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -381,11 +401,7 @@ class CounterCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            IconsaxPlusBold.heart,
-            color: AppColors.white,
-            size: 14,
-          ),
+          const Icon(IconsaxPlusBold.heart, color: AppColors.white, size: 14),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
@@ -436,20 +452,21 @@ class CounterCard extends StatelessWidget {
           child: !animated
               ? glow
               : glow
-                  .animate(
-                      onPlay: (controller) => controller.repeat(reverse: true))
-                  .scale(
-                    begin: const Offset(1, 1),
-                    end: const Offset(1.12, 1.12),
-                    duration: Duration(milliseconds: breatheMs),
-                    curve: Curves.easeInOut,
-                  )
-                  .fade(
-                    begin: 0.85,
-                    end: 1.0,
-                    duration: Duration(milliseconds: breatheMs),
-                    curve: Curves.easeInOut,
-                  ),
+                    .animate(
+                      onPlay: (controller) => controller.repeat(reverse: true),
+                    )
+                    .scale(
+                      begin: const Offset(1, 1),
+                      end: const Offset(1.12, 1.12),
+                      duration: Duration(milliseconds: breatheMs),
+                      curve: Curves.easeInOut,
+                    )
+                    .fade(
+                      begin: 0.85,
+                      end: 1.0,
+                      duration: Duration(milliseconds: breatheMs),
+                      curve: Curves.easeInOut,
+                    ),
         ),
       ),
     );
@@ -511,8 +528,9 @@ class _LiveElapsedClockState extends State<_LiveElapsedClock> {
     // TOTAL hours together (no % 24) — grows past 24 and keeps counting for
     // the whole relationship; minutes/seconds stay positional.
     final locale = Localizations.localeOf(context).toString();
-    final hoursText =
-        NumberFormat.decimalPattern(locale).format(elapsed.inHours);
+    final hoursText = NumberFormat.decimalPattern(
+      locale,
+    ).format(elapsed.inHours);
     final minutes = elapsed.inMinutes % 60;
     final seconds = elapsed.inSeconds % 60;
 
@@ -622,19 +640,22 @@ class _AdaptivePhotoBackdropState extends State<_AdaptivePhotoBackdrop>
     with SingleTickerProviderStateMixin {
   /// Drives the directional slide between two backgrounds: the new photo
   /// glides in from the swipe side while the old one drifts away and fades.
-  late final AnimationController _swap = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 480),
-  )..addStatusListener((status) {
-      if (status == AnimationStatus.completed && mounted) {
-        setState(() {
-          _outgoingLocal = null;
-          _outgoingRemote = null;
-        });
-      }
-    });
-  late final CurvedAnimation _swapCurve =
-      CurvedAnimation(parent: _swap, curve: Curves.easeOutCubic);
+  late final AnimationController _swap =
+      AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 480),
+      )..addStatusListener((status) {
+        if (status == AnimationStatus.completed && mounted) {
+          setState(() {
+            _outgoingLocal = null;
+            _outgoingRemote = null;
+          });
+        }
+      });
+  late final CurvedAnimation _swapCurve = CurvedAnimation(
+    parent: _swap,
+    curve: Curves.easeOutCubic,
+  );
 
   String? _outgoingLocal;
   String? _outgoingRemote;
@@ -728,9 +749,8 @@ class _AdaptivePhotoBackdropState extends State<_AdaptivePhotoBackdrop>
       var total = 0.0;
       for (var i = 0; i + 3 < bytes.length; i += 4) {
         // Rec. 601 luma — perceptual brightness, not raw RGB average.
-        final luma = (0.299 * bytes[i] +
-                0.587 * bytes[i + 1] +
-                0.114 * bytes[i + 2]) /
+        final luma =
+            (0.299 * bytes[i] + 0.587 * bytes[i + 1] + 0.114 * bytes[i + 2]) /
             255.0;
         lumas[i ~/ 4] = luma;
         total += luma;
@@ -795,36 +815,21 @@ class _AdaptivePhotoBackdropState extends State<_AdaptivePhotoBackdrop>
   /// One photo layer with its own frost level (looked up from the stats
   /// cache, so the OUTGOING photo keeps its blur during the swap).
   Widget _photoLayer(String? local, String? remote) {
-    final key = _keyFor(local, remote);
-    final stats = key == null ? null : _statsCache[key];
-    final layerBusy =
-        stats == null ? 0.0 : ((stats.$2 - 0.06) / 0.14).clamp(0.0, 1.0);
-    final blurSigma = 3.6 * layerBusy;
-
-    Widget photo = SharedCouplePhotoView(
+    // Rendered SHARP — no busyness blur (user 2026-06-21: keep the photo crisp).
+    // Text legibility still comes from the adaptive dark scrim below.
+    return SharedCouplePhotoView(
       localPath: local,
       remoteUrl: remote,
       fit: BoxFit.cover,
-      decodeWidth: (MediaQuery.of(context).size.width *
-              MediaQuery.of(context).devicePixelRatio)
-          .round(),
+      decodeWidth:
+          (MediaQuery.of(context).size.width *
+                  MediaQuery.of(context).devicePixelRatio)
+              .round(),
       // Both transparent: while downloading (or stuck/unreachable) and on
       // failure, the gradient base shows instead of a gray shimmer pane.
       placeholder: const SizedBox.shrink(),
       loading: const SizedBox.shrink(),
     );
-    if (blurSigma > 0.3) {
-      photo = ImageFiltered(
-        imageFilter: ui.ImageFilter.blur(
-          sigmaX: blurSigma,
-          sigmaY: blurSigma,
-          tileMode: TileMode.mirror,
-        ),
-        // Slight zoom hides the soft edges blur sampling produces.
-        child: Transform.scale(scale: 1 + 0.04 * layerBusy, child: photo),
-      );
-    }
-    return photo;
   }
 
   @override
@@ -832,9 +837,14 @@ class _AdaptivePhotoBackdropState extends State<_AdaptivePhotoBackdrop>
     final t = _brightnessT;
     final busy = _busynessT;
     // Busy textures get an extra veil on top of the brightness-driven one…
-    final topAlpha = (ui.lerpDouble(0.08, 0.40, t)! + 0.12 * busy).clamp(0.0, 0.55);
-    final bottomAlpha =
-        (ui.lerpDouble(0.22, 0.55, t)! + 0.12 * busy).clamp(0.0, 0.62);
+    final topAlpha = (ui.lerpDouble(0.08, 0.40, t)! + 0.12 * busy).clamp(
+      0.0,
+      0.55,
+    );
+    final bottomAlpha = (ui.lerpDouble(0.22, 0.55, t)! + 0.12 * busy).clamp(
+      0.0,
+      0.62,
+    );
     final hasOutgoing = _outgoingLocal != null || _outgoingRemote != null;
 
     return Stack(

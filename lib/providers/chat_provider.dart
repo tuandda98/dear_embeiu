@@ -79,6 +79,26 @@ class ChatProvider extends ChangeNotifier {
   DateTime? _partnerReadAt;
   int _deliveredUpToMillis = 0;
 
+  // ── Typing indicator (2026-06-21) ──────────────────────────────────────────
+  // Viewer side: the partner's "đang soạn…", derived from their `typingAt`.
+  bool _partnerTyping = false;
+  DateTime? _lastPartnerTypingAt;
+  Timer? _partnerTypingHideTimer;
+  // Ignore the first receipt snapshot after (re)subscribing — its typingAt is
+  // the CURRENT state (maybe a stale leftover), not a live "started typing".
+  bool _partnerReceiptPrimed = false;
+  // Sender side: my own typing signal — throttled (write ≤ once / 3s) with a
+  // stop debounce so a pause clears it even if I never send.
+  bool _amTyping = false;
+  // While I have a non-empty draft, a heartbeat refreshes `typingAt` every few
+  // seconds so the partner's indicator stays up THROUGH pauses — it only clears
+  // when I empty the draft, send, or leave (user 2026-06-21).
+  Timer? _typingHeartbeat;
+  static const Duration _typingHeartbeatInterval = Duration(seconds: 3);
+
+  /// Whether the partner is currently typing — drives the typing indicator.
+  bool get partnerTyping => _partnerTyping;
+
   /// The delivery status of [message] for the status line under the latest
   /// outgoing bubble. Returns [ChatMessageStatus.none] for partner messages and
   /// in the local fallback (no partner to receive/read).
@@ -191,6 +211,10 @@ class ChatProvider extends ChangeNotifier {
 
     // Follow the partner's receipt so our sent bubbles can flip to đã nhận /
     // đã đọc as they catch up.
+    _partnerReceiptPrimed = false;
+    _partnerTyping = false;
+    _lastPartnerTypingAt = null;
+    _partnerTypingHideTimer?.cancel();
     _receiptSub?.cancel();
     _receiptSub = _service.watchPartnerReceipt(coupleId, myUid).listen((
       receipt,
@@ -200,6 +224,7 @@ class ChatProvider extends ChangeNotifier {
       }
       _partnerDeliveredAt = receipt.deliveredAt;
       _partnerReadAt = receipt.readAt;
+      _updatePartnerTyping(receipt.typingAt);
       notifyListeners();
     });
 
@@ -287,6 +312,9 @@ class ChatProvider extends ChangeNotifier {
     if (coupleId == null || uid == null || text.trim().isEmpty) {
       return false;
     }
+
+    // Sending ends the typing state.
+    _stopTyping();
 
     await _service.send(
       coupleId: coupleId,
@@ -430,12 +458,101 @@ class ChatProvider extends ChangeNotifier {
   /// timestamp would keep suppressing for the whole freshness window. (presence-
   /// suppress 2026-06-19)
   void leavePresence() {
+    // Leaving the chat: I'm no longer typing either.
+    _stopTyping();
     final coupleId = _coupleId;
     final uid = _myUid;
     if (coupleId == null || uid == null || !_service.isUsingFirebase) {
       return;
     }
     unawaited(_service.setChatActive(coupleId, uid, active: false));
+  }
+
+  /// Signals MY typing state to the partner (typing indicator 2026-06-21). Pass
+  /// [typing] = whether the composer has a non-empty draft (call from onChanged).
+  /// While true, a heartbeat keeps refreshing `typingAt` so the partner sees
+  /// "đang soạn…" CONTINUOUSLY — through pauses, not just while keys are pressed
+  /// — until the draft empties, the message is sent, or the chat is left.
+  /// LOCAL fallback: no-op.
+  void setTyping(bool typing) {
+    final coupleId = _coupleId;
+    final uid = _myUid;
+    if (coupleId == null || uid == null || !_service.isUsingFirebase) {
+      return;
+    }
+    if (!typing) {
+      _stopTyping();
+      return;
+    }
+    if (_amTyping) {
+      return; // Heartbeat already running — it keeps the signal alive.
+    }
+    _amTyping = true;
+    unawaited(_service.setTyping(coupleId, uid, typing: true));
+    _typingHeartbeat = Timer.periodic(_typingHeartbeatInterval, (_) {
+      final c = _coupleId;
+      final u = _myUid;
+      if (c == null || u == null || !_service.isUsingFirebase) {
+        _stopTyping();
+        return;
+      }
+      unawaited(_service.setTyping(c, u, typing: true));
+    });
+  }
+
+  /// Clears MY typing signal + stops the heartbeat (draft emptied, message sent,
+  /// or chat left).
+  void _stopTyping() {
+    _typingHeartbeat?.cancel();
+    _typingHeartbeat = null;
+    if (!_amTyping) {
+      return;
+    }
+    _amTyping = false;
+    final coupleId = _coupleId;
+    final uid = _myUid;
+    if (coupleId == null || uid == null || !_service.isUsingFirebase) {
+      return;
+    }
+    unawaited(_service.setTyping(coupleId, uid, typing: false));
+  }
+
+  /// Viewer side: react to the partner's `typingAt` from their receipt. Shows
+  /// the indicator while the value is fresh and changing, auto-hides 6s after the
+  /// last update (covers an app-kill that never cleared), and hides at once when
+  /// the partner clears it. The 10s freshness gate ignores a stale leftover on
+  /// first load. Does NOT notify (the caller notifies after); the hide-timer does.
+  void _updatePartnerTyping(DateTime? typingAt) {
+    // First snapshot after (re)subscribe = current state, not a live event —
+    // record it without showing (clock-independent: no now() comparison, so a
+    // simulator clock skew can't suppress the indicator).
+    if (!_partnerReceiptPrimed) {
+      _partnerReceiptPrimed = true;
+      _lastPartnerTypingAt = typingAt;
+      return;
+    }
+    // Cleared (stopped / sent / left) → hide at once.
+    if (typingAt == null) {
+      _lastPartnerTypingAt = null;
+      _partnerTypingHideTimer?.cancel();
+      _partnerTyping = false;
+      return;
+    }
+    // Same value re-emitted (a deliveredAt/readAt change) → leave the running
+    // hide-timer alone.
+    if (typingAt == _lastPartnerTypingAt) {
+      return;
+    }
+    // A NEW typingAt = the partner is still typing. Show + arm an 8s auto-hide —
+    // longer than their 3s heartbeat, so the indicator stays up through pauses
+    // and only the explicit clear (sent/emptied) or an app-kill ever hides it.
+    _lastPartnerTypingAt = typingAt;
+    _partnerTyping = true;
+    _partnerTypingHideTimer?.cancel();
+    _partnerTypingHideTimer = Timer(const Duration(seconds: 8), () {
+      _partnerTyping = false;
+      notifyListeners();
+    });
   }
 
   Future<void> _loadSeenMarker(String coupleId) async {
@@ -466,6 +583,13 @@ class ChatProvider extends ChangeNotifier {
 
   /// Stops watching and resets state (sign-out or leaving a couple).
   void clear() {
+    // Clear my typing signal while the couple/uid are still set (it writes).
+    _stopTyping();
+    _partnerTypingHideTimer?.cancel();
+    _partnerTypingHideTimer = null;
+    _partnerTyping = false;
+    _lastPartnerTypingAt = null;
+    _partnerReceiptPrimed = false;
     _subscription?.cancel();
     _subscription = null;
     _receiptSub?.cancel();
@@ -483,6 +607,8 @@ class ChatProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _typingHeartbeat?.cancel();
+    _partnerTypingHideTimer?.cancel();
     _subscription?.cancel();
     _receiptSub?.cancel();
     super.dispose();

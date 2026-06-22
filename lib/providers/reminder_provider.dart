@@ -167,6 +167,15 @@ class ReminderProvider extends ChangeNotifier {
   // Debounce signature so the frequent provider notifications that drive
   // [refreshDailyQuestionSafetyNet] don't thrash the OS schedule.
   String? _eodSignature;
+  // Same, for the user-set daily-question nudge (now answer-aware: suppressed
+  // when both answered, partner-nudge copy when only I have — shares the cached
+  // [_eodHasRevealed]/[_eodIAnswered] habit state).
+  String? _dqScheduleSignature;
+  // True only on the gated account's device (em bé): her private hourly nudge
+  // ([refreshPersonalReminders]) replaces the SHARED daily-question + end-of-day
+  // nudges, which are suppressed LOCALLY here to avoid double notifications. Does
+  // NOT change the couple-shared on/off setting — the partner still gets them.
+  bool _suppressSharedDqReminders = false;
 
   final HomePrefsService _homePrefs = HomePrefsService();
   String? _dqCoupleId;
@@ -654,18 +663,46 @@ class ReminderProvider extends ChangeNotifier {
     );
   }
 
-  /// (Re)schedule the daily-question nudge(s) with the localized copy. Clears
-  /// the previous schedule first, so safe to call repeatedly; off / no-times
-  /// simply cancels everything.
+  /// (Re)schedule today's user-set daily-question nudge(s) with the localized
+  /// copy, **answer-aware** (2026-06-20). Driven by the latest habit state cached
+  /// in [_eodHasRevealed]/[_eodIAnswered] (updated by [refreshDailyQuestionSafetyNet]):
+  ///  • both answered ([_eodHasRevealed]) → cancel (nothing to nudge about today);
+  ///  • I answered but partner hasn't ([_eodIAnswered]) → swap to "nhắc người ấy";
+  ///  • neither / only partner → default "trả lời đi".
+  /// Debounced on enabled|revealed|iAnswered|times|day so the frequent provider
+  /// notifications don't thrash the OS schedule. Clears the band first, so safe
+  /// to call repeatedly; off / no-times / both-answered simply cancels.
   Future<void> _scheduleDailyQuestion(AppLocalizations l10n) async {
-    if (!_dqEnabled || _dqTimes.isEmpty) {
+    final now = DateTime.now();
+    final dayKey = '${now.year}-${now.month}-${now.day}';
+    final signature = <Object>[
+      _dqEnabled,
+      _suppressSharedDqReminders,
+      _eodHasRevealed,
+      _eodIAnswered,
+      _dqTimes.join(','),
+      dayKey,
+    ].join('|');
+    if (signature == _dqScheduleSignature) {
+      return;
+    }
+    _dqScheduleSignature = signature;
+
+    // Off, suppressed for em bé (her hourly nudge covers it), no times, or both
+    // answered → nothing to nudge about today.
+    if (!_dqEnabled ||
+        _suppressSharedDqReminders ||
+        _dqTimes.isEmpty ||
+        _eodHasRevealed) {
       await _service.cancelDailyQuestion();
       return;
     }
     await _service.scheduleDailyQuestionTimes(
       minutesOfDay: _dqTimes,
       title: l10n.dailyQuestionReminderNotifTitle,
-      body: l10n.dailyQuestionReminderNotifBody,
+      body: _eodIAnswered
+          ? l10n.dqEndOfDayNudgePartnerBody
+          : l10n.dailyQuestionReminderNotifBody,
     );
   }
 
@@ -689,6 +726,9 @@ class ReminderProvider extends ChangeNotifier {
     _eodIAnswered = iAnswered;
     _eodStreak = currentStreak;
     _lastL10n = l10n;
+    // Re-arm the user-set nudge too: it now shares this answer state so it can
+    // suppress / swap copy the moment someone answers (not just the EOD net).
+    await _scheduleDailyQuestion(l10n);
     await _scheduleEndOfDay(l10n);
   }
 
@@ -700,6 +740,7 @@ class ReminderProvider extends ChangeNotifier {
     final dayKey = '${now.year}-${now.month}-${now.day}';
     final signature = <Object>[
       _dqEnabled,
+      _suppressSharedDqReminders,
       _eodHasRevealed,
       _eodIAnswered,
       _eodStreak,
@@ -710,8 +751,9 @@ class ReminderProvider extends ChangeNotifier {
     }
     _eodSignature = signature;
 
-    // Off, or today already complete → nothing to warn about.
-    if (!_dqEnabled || _eodHasRevealed) {
+    // Off, suppressed for em bé (her hourly nudge covers it), or today already
+    // complete → nothing to warn about.
+    if (!_dqEnabled || _suppressSharedDqReminders || _eodHasRevealed) {
       await _service.cancelDailyQuestionEndOfDay();
       return;
     }
@@ -769,57 +811,96 @@ class ReminderProvider extends ChangeNotifier {
 
   static const String _personalMedicineTitle = 'Tới giờ uống thuốc rồi 💊';
 
-  String? _personalSignature;
+  // Day the medicine band was last (re)armed; null = not the gated account.
+  String? _personalMedicineDayKey;
+  // Last applied "$iAnswered|$dayKey" for the hourly-question band; null = none.
+  String? _personalQuestionSignature;
 
   /// (Re)arm or clear the private anh-By→embe nudges. Wired from HomeScreen on
   /// every daily-question update (+ once on launch). ONLY the gated account
   /// ([_personalAccountEmail]) gets them; any other signed-in account clears the
-  /// bands. Debounced on email|iAnswered|day so frequent provider notifications
-  /// don't thrash the OS schedule. LOCAL only.
-  ///  • medicine 9:59 / 10:10 / 10:30 — daily, ALWAYS (uống thuốc đúng giờ).
+  /// bands. LOCAL only.
+  ///  • medicine 9:59 / 10:10 / 10:30 — daily, ALWAYS (uống thuốc đúng giờ);
+  ///    debounced on the day so it (re)arms at most once per day.
   ///  • "trả lời câu hỏi" every hour 7h–22h — today's remaining hours, but only
   ///    while she hasn't answered yet; stops the moment [iAnswered] is true.
+  ///
+  /// ⚠️ The hourly-question band is only touched on a SETTLED answer state
+  /// ([isLoading] == false). While the daily-question stream is (re)subscribing
+  /// it momentarily reports `iAnswered == false` (answers cleared to []), so
+  /// acting then would re-arm the one-shots we just cancelled — and if the app
+  /// backgrounds before the stream settles, those stale nudges survive and fire
+  /// even after she has answered (the production bug, 2026-06-20).
   Future<void> refreshPersonalReminders({
     required String email,
     required bool iAnswered,
+    required bool isLoading,
   }) async {
     final isTarget = email.trim().toLowerCase() == _personalAccountEmail;
-    final now = DateTime.now();
-    final dayKey = '${now.year}-${now.month}-${now.day}';
-    final signature = '$isTarget|$iAnswered|$dayKey';
-    if (signature == _personalSignature) {
-      return;
-    }
-    _personalSignature = signature;
+    // Set synchronously (before any await) so the shared-reminder schedulers,
+    // called right after this in HomeScreen's hook, see the right value: em bé's
+    // device suppresses the shared daily-question + end-of-day nudges.
+    _suppressSharedDqReminders = isTarget;
 
     if (!isTarget) {
+      // Debounce the cleared state so a non-gated account doesn't re-cancel on
+      // every provider notification.
+      if (_personalMedicineDayKey == null &&
+          _personalQuestionSignature == null) {
+        return;
+      }
+      _personalMedicineDayKey = null;
+      _personalQuestionSignature = null;
       await _service.cancelPersonalReminders();
       return;
     }
 
-    // Medicine — daily-recurring, unconditional.
-    await _service.schedulePersonalMedicineDaily(const [
-      (
-        hour: 9,
-        minute: 59,
-        title: _personalMedicineTitle,
-        body: 'Embe ơi, uống thuốc đúng giờ cho khỏe nha, anh By thương embe 🥰',
-      ),
-      (
-        hour: 10,
-        minute: 10,
-        title: _personalMedicineTitle,
-        body: 'Anh By nhắc embe uống thuốc nè, đừng quên nha 💕',
-      ),
-      (
-        hour: 10,
-        minute: 30,
-        title: _personalMedicineTitle,
-        body: 'Uống thuốc đúng giờ nha embe, để anh By yên tâm 💗',
-      ),
-    ]);
+    final now = DateTime.now();
+    final dayKey = '${now.year}-${now.month}-${now.day}';
 
-    // Hourly "answer the question" nudges — stop once she's answered today.
+    // Medicine — daily-recurring, unconditional. Re-arm at most once per day
+    // (the plugin keeps firing across days on its own; we only re-assert when the
+    // day rolls over or this account just became the gated one). Runs even while
+    // the question state is still loading, so meds aren't tied to the DQ stream.
+    if (_personalMedicineDayKey != dayKey) {
+      _personalMedicineDayKey = dayKey;
+      await _service.schedulePersonalMedicineDaily(const [
+        (
+          hour: 9,
+          minute: 59,
+          title: _personalMedicineTitle,
+          body:
+              'Embe ơi, uống thuốc đúng giờ cho khỏe nha, anh By thương embe 🥰',
+        ),
+        (
+          hour: 10,
+          minute: 10,
+          title: _personalMedicineTitle,
+          body: 'Anh By nhắc embe uống thuốc nè, đừng quên nha 💕',
+        ),
+        (
+          hour: 10,
+          minute: 30,
+          title: _personalMedicineTitle,
+          body: 'Uống thuốc đúng giờ nha embe, để anh By yên tâm 💗',
+        ),
+      ]);
+    }
+
+    // Hourly "answer the question" nudges — act ONLY on a settled state (see the
+    // doc above). A transient loading=true pass leaves the band untouched.
+    if (isLoading) {
+      return;
+    }
+
+    final questionSignature = '$iAnswered|$dayKey';
+    if (questionSignature == _personalQuestionSignature) {
+      return;
+    }
+    _personalQuestionSignature = questionSignature;
+
+    // Stop the moment she's answered today; otherwise (re)arm today's remaining
+    // hours.
     if (iAnswered) {
       await _service.cancelPersonalQuestion();
     } else {
@@ -899,6 +980,7 @@ class ReminderProvider extends ChangeNotifier {
     _dqPrefsSub = null;
     _dqCoupleId = null;
     _eodSignature = null;
+    _dqScheduleSignature = null;
     await _service.cancelDailyQuestion();
     await _service.cancelDailyQuestionEndOfDay();
   }
