@@ -430,6 +430,39 @@
       .phone-screen { border-radius: 36px; }
       .ps-counter-num { font-size: 42px; }
     }
+
+    /* Real screenshot inside phone frame */
+    .phone-shot { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* ═══ SCREENSHOTS GALLERY ═══ */
+    .shots { padding: 92px 24px 40px; }
+    .shots-inner { max-width: 1100px; margin: 0 auto; }
+    .shots-grid {
+      display: flex; gap: 28px; justify-content: center;
+      flex-wrap: wrap; margin-top: 48px;
+    }
+    .shot-card { text-align: center; }
+    .shot-frame {
+      width: 232px; height: 482px; background: #111118;
+      border-radius: 42px; padding: 8px; margin: 0 auto;
+      box-shadow: 0 36px 70px rgba(15,15,30,.34), 0 0 0 1.5px rgba(255,255,255,.10);
+      transition: transform .35s cubic-bezier(.22,.61,.36,1);
+    }
+    .shot-card:hover .shot-frame { transform: translateY(-8px); }
+    .shot-screen {
+      width: 100%; height: 100%; border-radius: 36px;
+      overflow: hidden; background: #FFC4CF;
+    }
+    .shot-screen img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .shot-cap {
+      margin-top: 18px; font-weight: 700; font-size: 15px; color: var(--navy);
+    }
+    .shot-sub { font-size: 13px; color: rgba(26,26,46,.55); margin-top: 2px; }
+    @media (max-width: 600px) {
+      .shots { padding: 64px 20px 24px; }
+      .shot-frame { width: 210px; height: 436px; border-radius: 38px; }
+      .shot-screen { border-radius: 32px; }
+    }
   </style>
 </head>
 <body>
@@ -442,9 +475,10 @@
         <span>Dear Embeiu</span>
       </div>
       <div class="nav-links">
-        <a href="#features" data-vi="Tính năng" data-en="Features">Tính năng</a>
-        <a href="#how"      data-vi="Cách dùng" data-en="How it works">Cách dùng</a>
-        <a href="#support"  data-vi="Liên hệ"   data-en="Contact">Liên hệ</a>
+        <a href="#features"    data-vi="Tính năng"  data-en="Features">Tính năng</a>
+        <a href="#screenshots" data-vi="Giao diện"  data-en="Screenshots">Giao diện</a>
+        <a href="#how"         data-vi="Cách dùng"  data-en="How it works">Cách dùng</a>
+        <a href="#support"     data-vi="Liên hệ"    data-en="Contact">Liên hệ</a>
       </div>
       <div class="nav-right">
         <div class="lang-toggle" role="group" aria-label="Language / Ngôn ngữ">
@@ -481,18 +515,17 @@
         </p>
 
         <div class="hero-btns">
-          <!-- TODO: Replace #APPSTORE_URL with the real App Store link, e.g. https://apps.apple.com/vn/app/dear-embeiu/id6XXXXXXXXX -->
-          <a href="#APPSTORE_URL" class="btn-store btn-dark" id="hero-appstore">
+          <a href="https://apps.apple.com/app/id6775165592" class="btn-store btn-dark" id="hero-appstore" target="_blank" rel="noopener">
             <span class="bs-icon">🍎</span>
             <span class="bs-text">
               <span class="bs-sub" data-vi="Tải trên" data-en="Download on">Tải trên</span>
               <span class="bs-main">App Store</span>
             </span>
           </a>
-          <a href="#download" class="btn-store btn-light">
+          <a href="https://play.google.com/store/apps/details?id=com.tony.dearembeiu" class="btn-store btn-light" id="hero-googleplay" target="_blank" rel="noopener">
             <span class="bs-icon">▶</span>
             <span class="bs-text">
-              <span class="bs-sub" data-vi="Sắp có trên" data-en="Coming soon on">Sắp có trên</span>
+              <span class="bs-sub" data-vi="Tải trên" data-en="Get it on">Tải trên</span>
               <span class="bs-main">Google Play</span>
             </span>
           </a>
@@ -502,7 +535,7 @@
           <span class="pill" data-vi="✅ Miễn phí hoàn toàn"  data-en="✅ Completely free">✅ Miễn phí hoàn toàn</span>
           <span class="pill" data-vi="🔒 Riêng tư &amp; an toàn" data-en="🔒 Private &amp; secure">🔒 Riêng tư &amp; an toàn</span>
           <span class="pill" data-vi="🇻🇳 Tiếng Việt"           data-en="🇻🇳 Vietnamese">🇻🇳 Tiếng Việt</span>
-          <span class="pill">📱 iOS</span>
+          <span class="pill">📱 iOS &amp; Android</span>
         </div>
       </div>
 
@@ -525,91 +558,11 @@
             🔥 Streak 7 ngày!
           </div>
 
-          <div class="phone-frame" role="img" aria-label="Giao diện app Dear Embeiu">
+          <div class="phone-frame">
             <div class="phone-screen">
-
-              <!-- Dynamic island -->
-              <div class="ps-di"></div>
-
-              <!-- Status bar -->
-              <div class="ps-status">
-                <span>9:41</span>
-                <div style="display:flex;align-items:center;gap:5px">
-                  <div class="ps-signal">
-                    <div class="ps-bar"></div><div class="ps-bar"></div>
-                    <div class="ps-bar"></div><div class="ps-bar"></div>
-                  </div>
-                  <div class="ps-battery"><div class="ps-battery-fill"></div></div>
-                </div>
-              </div>
-
-              <!-- Header -->
-              <div class="ps-header">
-                <div class="ps-chip"
-                  data-vi="☀️ BUỔI CHIỀU"
-                  data-en="☀️ GOOD AFTERNOON">☀️ BUỔI CHIỀU
-                </div>
-                <div class="ps-bell">
-                  🔔
-                  <div class="ps-bell-badge">2</div>
-                </div>
-              </div>
-
-              <!-- Counter card -->
-              <div class="ps-counter">
-                <div class="ps-counter-label"
-                  data-vi="TÌNH YÊU CỦA CHÚNG MÌNH"
-                  data-en="OUR LOVE">TÌNH YÊU CỦA CHÚNG MÌNH</div>
-                <div class="ps-counter-num">365</div>
-                <div class="ps-counter-sub"
-                  data-vi="ngày yêu nhau 💜"
-                  data-en="days in love 💜">ngày yêu nhau 💜</div>
-                <div class="ps-counter-ymd"
-                  data-vi="1 năm · 0 tháng · 0 ngày"
-                  data-en="1 year · 0 months · 0 days">1 năm · 0 tháng · 0 ngày</div>
-                <div class="ps-milestone">
-                  <span class="ps-milestone-lbl">🏁 <span data-vi="Mốc 520 ngày" data-en="Milestone: 520 days">Mốc 520 ngày</span></span>
-                  <span class="ps-milestone-rem" data-vi="còn 155 ngày" data-en="155 days left">còn 155 ngày</span>
-                </div>
-                <div class="ps-progress-bar"><div class="ps-progress-fill"></div></div>
-                <div class="ps-streak-chip">🔥 <span data-vi="Streak 7 ngày" data-en="7-day streak">Streak 7 ngày</span></div>
-              </div>
-
-              <!-- Today section -->
-              <div class="ps-today-title"
-                data-vi="Hôm nay của chúng mình"
-                data-en="Today, together">Hôm nay của chúng mình</div>
-              <div class="ps-today-card">
-                <div class="ps-today-q"
-                  data-vi="Có một giấc mơ lớn mà em muốn cùng anh theo đuổi không? ✨"
-                  data-en="Is there a big dream you'd like to chase together? ✨">
-                  Có một giấc mơ lớn mà em muốn cùng anh theo đuổi không? ✨
-                </div>
-                <div class="ps-compose"
-                  data-vi="Viết câu trả lời của bạn..."
-                  data-en="Write your answer...">Viết câu trả lời của bạn...</div>
-              </div>
-
-              <!-- Floating tab bar -->
-              <div class="ps-tabs" aria-hidden="true">
-                <div class="ps-tab on">
-                  <span class="ps-tab-ic">🏠</span>
-                  <span data-vi="Trang chủ" data-en="Home">Trang chủ</span>
-                </div>
-                <div class="ps-tab">
-                  <span class="ps-tab-ic">💬</span>
-                  <span>Chat</span>
-                </div>
-                <div class="ps-tab">
-                  <span class="ps-tab-ic">🖼️</span>
-                  <span data-vi="Ảnh" data-en="Photos">Ảnh</span>
-                </div>
-                <div class="ps-tab">
-                  <span class="ps-tab-ic">👤</span>
-                  <span data-vi="Hồ sơ" data-en="Profile">Hồ sơ</span>
-                </div>
-              </div>
-
+              <img class="phone-shot" src="screenshots/home-counter.jpg"
+                   alt="Giao diện Dear Embeiu — đếm ngày yêu / Dear Embeiu app — day counter"
+                   loading="eager" width="750" height="1626" />
             </div>
           </div>
         </div>
@@ -688,6 +641,63 @@
             data-en="Set reminders for 100 days, 1 year, Valentine's Day... never miss an important milestone again.">
             Đặt nhắc nhở cho 100 ngày, 1 năm, ngày lễ tình nhân... không bao giờ bỏ lỡ những mốc quan trọng.
           </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SCREENSHOTS ═══ -->
+  <section class="shots" id="screenshots" aria-labelledby="shots-h2">
+    <div class="shots-inner">
+      <div class="tc">
+        <div class="section-tag"
+          data-vi="📱 Giao diện"
+          data-en="📱 Screenshots">📱 Giao diện</div>
+        <h2 class="sec" id="shots-h2"
+          data-vi="Nhìn là yêu ngay"
+          data-en="Love at first sight">Nhìn là yêu ngay</h2>
+        <p class="sec-sub"
+          data-vi="Thiết kế ấm áp, riêng tư — mỗi màn hình là một góc nhỏ dành riêng cho hai người."
+          data-en="Warm, private design — every screen is a little corner made just for the two of you.">
+          Thiết kế ấm áp, riêng tư — mỗi màn hình là một góc nhỏ dành riêng cho hai người.
+        </p>
+      </div>
+
+      <div class="shots-grid">
+        <div class="shot-card reveal">
+          <div class="shot-frame"><div class="shot-screen">
+            <img src="screenshots/home-counter.jpg" loading="lazy" width="750" height="1626"
+                 alt="Đếm ngày yêu với ảnh kỷ niệm / Day counter with memory photo" />
+          </div></div>
+          <div class="shot-cap" data-vi="Đếm ngày yêu" data-en="Day counter">Đếm ngày yêu</div>
+          <div class="shot-sub" data-vi="Ảnh nền là kỷ niệm của hai người" data-en="Your own memory as the background">Ảnh nền là kỷ niệm của hai người</div>
+        </div>
+
+        <div class="shot-card reveal d1">
+          <div class="shot-frame"><div class="shot-screen">
+            <img src="screenshots/home-today.jpg" loading="lazy" width="750" height="1626"
+                 alt="Câu hỏi hằng ngày và tâm trạng / Daily question and mood" />
+          </div></div>
+          <div class="shot-cap" data-vi="Hôm nay của chúng mình" data-en="Today, together">Hôm nay của chúng mình</div>
+          <div class="shot-sub" data-vi="Câu hỏi mỗi ngày · tâm trạng hôm nay" data-en="Daily question · today's mood">Câu hỏi mỗi ngày · tâm trạng hôm nay</div>
+        </div>
+
+        <div class="shot-card reveal d2">
+          <div class="shot-frame"><div class="shot-screen">
+            <img src="screenshots/chat.jpg" loading="lazy" width="750" height="1626"
+                 alt="Nhắn tin riêng tư cho người ấy / Private chat with your partner" />
+          </div></div>
+          <div class="shot-cap" data-vi="Nhắn tin yêu thương" data-en="Sweet messages">Nhắn tin yêu thương</div>
+          <div class="shot-sub" data-vi="Không gian chat chỉ của hai người" data-en="A chat space just for two">Không gian chat chỉ của hai người</div>
+        </div>
+
+        <div class="shot-card reveal d3">
+          <div class="shot-frame"><div class="shot-screen">
+            <img src="screenshots/home-counter-photobooth.jpg" loading="lazy" width="750" height="1626"
+                 alt="Tùy chọn ảnh nền thẻ đếm / Customizable counter background" />
+          </div></div>
+          <div class="shot-cap" data-vi="Tùy biến theo ý mình" data-en="Make it yours">Tùy biến theo ý mình</div>
+          <div class="shot-sub" data-vi="Đổi ảnh nền thẻ đếm bất cứ lúc nào" data-en="Swap the counter photo anytime">Đổi ảnh nền thẻ đếm bất cứ lúc nào</div>
         </div>
       </div>
     </div>
@@ -785,26 +795,25 @@
         Miễn phí. Không quảng cáo. Chỉ dành riêng cho hai người bạn yêu.
       </p>
       <div class="dl-btns">
-        <!-- TODO: Replace #APPSTORE_URL with the real App Store link -->
-        <a href="#APPSTORE_URL" class="btn-dl btn-ios" id="dl-appstore">
+        <a href="https://apps.apple.com/app/id6775165592" class="btn-dl btn-ios" id="dl-appstore" target="_blank" rel="noopener">
           <span class="dl-ic">🍎</span>
           <span class="dl-t">
             <span class="dl-sub" data-vi="Tải trên" data-en="Download on">Tải trên</span>
             <span class="dl-main">App Store</span>
           </span>
         </a>
-        <span class="btn-dl btn-and" style="opacity:.5;cursor:default;">
+        <a href="https://play.google.com/store/apps/details?id=com.tony.dearembeiu" class="btn-dl btn-and" id="dl-googleplay" target="_blank" rel="noopener">
           <span class="dl-ic">▶</span>
           <span class="dl-t">
-            <span class="dl-sub" data-vi="Sắp có trên" data-en="Coming soon on">Sắp có trên</span>
+            <span class="dl-sub" data-vi="Tải trên" data-en="Get it on">Tải trên</span>
             <span class="dl-main">Google Play</span>
           </span>
-        </span>
+        </a>
       </div>
       <p class="dl-note"
-        data-vi="Yêu cầu iOS 14.0+ &nbsp;·&nbsp; Android sắp ra mắt"
-        data-en="Requires iOS 14.0+ &nbsp;·&nbsp; Android coming soon">
-        Yêu cầu iOS 14.0+ &nbsp;·&nbsp; Android sắp ra mắt
+        data-vi="Yêu cầu iOS 14.0+ &nbsp;·&nbsp; Android 6.0+"
+        data-en="Requires iOS 14.0+ &nbsp;·&nbsp; Android 6.0+">
+        Yêu cầu iOS 14.0+ &nbsp;·&nbsp; Android 6.0+
       </p>
     </div>
   </section>
@@ -842,8 +851,8 @@
           <h4 data-vi="Thông tin" data-en="Info">Thông tin</h4>
           <ul>
             <li><a href="#how" data-vi="Cách dùng" data-en="How it works">Cách dùng</a></li>
-            <li><a href="#APPSTORE_URL" data-vi="App Store (iOS)" data-en="App Store (iOS)">App Store (iOS)</a></li>
-            <li><span style="color:rgba(255,255,255,.28)" data-vi="Google Play (sắp có)" data-en="Google Play (coming soon)">Google Play (sắp có)</span></li>
+            <li><a href="https://apps.apple.com/app/id6775165592" target="_blank" rel="noopener" data-vi="App Store (iOS)" data-en="App Store (iOS)">App Store (iOS)</a></li>
+            <li><a href="https://play.google.com/store/apps/details?id=com.tony.dearembeiu" target="_blank" rel="noopener" data-vi="Google Play (Android)" data-en="Google Play (Android)">Google Play (Android)</a></li>
           </ul>
         </div>
       </div>
@@ -927,7 +936,7 @@
     document.querySelectorAll('a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
         const id = a.getAttribute('href');
-        if (!id || id === '#' || id === '#APPSTORE_URL') return;
+        if (!id || id === '#') return;
         const el = document.querySelector(id);
         if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       });
