@@ -5,10 +5,10 @@
 ## Vấn đề
 Trước đây mọi lời nhắc trong app (cột mốc, lời nhắc riêng, daily-Q) đều là **local trên máy người đặt** → partner KHÔNG nhận. User muốn A nhắc được B.
 
-## Phạm vi (đã chốt với user 2026-06-29)
-1. **Thúc tức thì (nudge):** A bấm → B nhận push NGAY (kể cả app B đóng).
-2. **Đặt lịch nhắc cho người ấy:** A đặt giờ + lặp (once/daily/weekly/monthly/yearly) → đến giờ B nhận thông báo (local trên máy B, đúng múi giờ B).
-3. **Nội dung:** chip mẫu có sẵn (Nhớ uống nước / Về nhà thôi / Nhớ em 💕 / Ngủ sớm nha) + ô tự gõ.
+## Phạm vi (CHỐT 2026-06-30)
+**1 TOGGLE "Cũng nhắc người ấy" trong form Lời nhắc Cài đặt** ("Lời nhắc của chúng mình"). Khi tạo/sửa 1 lời nhắc, bật toggle → người ấy CŨNG nhận đúng lời nhắc đó vào đúng giờ (trên máy họ, đúng múi giờ họ). Sửa/xoá/bật-tắt lời nhắc → bản của người ấy đồng bộ theo (liên kết).
+
+> ⚠️ **Lịch sử quyết định:** ban đầu (2026-06-29) làm 1 màn "Nhắc người ấy" RIÊNG gồm 2 phần — *thúc tức thì* (nudge push ngay) + *đặt lịch*. User CHỐT (2026-06-30): bỏ màn riêng + bỏ instant nudge, **gói gọn chỉ còn toggle trong custom reminder**. Code instant-nudge (`nudges` collection, CF `notifyPartnerNudge`, type `partner_nudge`) đã XOÁ.
 
 Tổng quát hoá feature hardcode "anh By → embe" (uống thuốc) thành tính năng cho mọi cặp.
 
@@ -24,4 +24,4 @@ Tổng quát hoá feature hardcode "anh By → embe" (uống thuốc) thành tí
 - Cap 20 lịch/người (guard client; rules không đếm subcollection).
 
 ## Trạng thái
-💻 Dev XONG (2026-06-29): rules + 2 CF + test emulator 206 pass · client (model/service/provider/wiring/2 màn/2 entry tap-map/l10n vi+en/analytics) · `flutter analyze` 0. ⏳ chờ deploy DEV + smoke-test 2 thiết bị. Chi tiết: [dev.md](dev.md).
+💻 Dev XONG (2026-06-30, reshape về toggle-only): rules `partnerReminders` + CF `notifyPartnerReminderSet` + test emulator **197 pass** · client (model `partner_reminder` + `CustomReminder.notifyPartner` + service + `PartnerReminderProvider` chỉ-nhận + `CustomRemindersProvider` mirror + toggle form + wiring) · `flutter analyze` 0 · ✅ DEV deployed. ⏳ smoke-test 2 thiết bị. Chi tiết: [dev.md](dev.md).

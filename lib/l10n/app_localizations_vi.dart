@@ -2016,6 +2016,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get customRemindersRepeatYearly => 'Hằng năm';
 
   @override
+  String get customRemindersNotifyPartnerLabel => 'Cũng nhắc người ấy';
+
+  @override
+  String get customRemindersNotifyPartnerSubtitle =>
+      'Người ấy cũng nhận lời nhắc này vào đúng giờ';
+
+  @override
   String customRemindersMetaOnce(String date, String time) {
     return 'Một lần · $date · $time';
   }
@@ -3193,108 +3200,5 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loveTreeShareFailed => 'Không tạo được thẻ, thử lại nhé';
 
   @override
-  String get partnerNudgeTitle => 'Nhắc người ấy';
-
-  @override
-  String get partnerNudgeBadge => 'NHẮC NGƯỜI ẤY';
-
-  @override
-  String get partnerNudgeTabInstant => 'Thúc ngay';
-
-  @override
-  String get partnerNudgeTabScheduled => 'Đặt lịch';
-
-  @override
-  String get partnerNudgeInstantHeader =>
-      'Gửi một lời nhắc tới người ấy ngay bây giờ.';
-
-  @override
-  String get partnerNudgePresetWater => 'Nhớ uống nước 💧';
-
-  @override
-  String get partnerNudgePresetComeHome => 'Về nhà thôi nè 🏠';
-
-  @override
-  String get partnerNudgePresetMissYou => 'Đang nhớ em 💕';
-
-  @override
-  String get partnerNudgePresetSleepEarly => 'Ngủ sớm nha 😴';
-
-  @override
-  String get partnerNudgeComposeHint => 'Nhắn gì đó cho người ấy…';
-
-  @override
-  String get partnerNudgeSendButton => 'Gửi lời nhắc';
-
-  @override
-  String get partnerNudgeSentToast => 'Đã gửi lời nhắc 💌';
-
-  @override
-  String get partnerNudgeFailedToast => 'Chưa gửi được, thử lại nhé';
-
-  @override
-  String get partnerNudgeCooldownToast => 'Đợi chút rồi nhắc tiếp nhé 💞';
-
-  @override
-  String get partnerNudgeEntryTitle => 'Nhắc người ấy';
-
-  @override
-  String get partnerNudgeEntrySubtitle =>
-      'Gửi lời nhắc hoặc đặt lịch nhắc cho người ấy';
-
-  @override
-  String notifPartnerNudge(String name) {
-    return '$name nhắc bạn';
-  }
-
-  @override
   String get partnerReminderNotifBody => 'Người ấy nhắc bạn 💌';
-
-  @override
-  String get partnerReminderScheduledHeader =>
-      'Đặt lịch nhắc — sẽ báo đúng giờ trên máy người ấy.';
-
-  @override
-  String get partnerReminderEmptyTitle => 'Chưa có lịch nhắc nào';
-
-  @override
-  String get partnerReminderEmptyBody =>
-      'Đặt lịch nhắc người ấy: uống thuốc, ngủ sớm, uống nước…';
-
-  @override
-  String get partnerReminderAddButton => 'Thêm lịch nhắc';
-
-  @override
-  String get partnerReminderFormAddTitle => 'Lịch nhắc mới';
-
-  @override
-  String get partnerReminderFormEditTitle => 'Sửa lịch nhắc';
-
-  @override
-  String get partnerReminderFormBadge => 'NHẮC NGƯỜI ẤY';
-
-  @override
-  String get partnerReminderTextLabel => 'Nội dung nhắc';
-
-  @override
-  String get partnerReminderTextHint => 'vd: Uống thuốc, Ngủ sớm nha';
-
-  @override
-  String get partnerReminderTextError => 'Hãy nhập nội dung nhắc';
-
-  @override
-  String get partnerReminderSavedToast => 'Đã đặt lịch nhắc 💌';
-
-  @override
-  String get partnerReminderDeletedToast => 'Đã xoá lịch nhắc';
-
-  @override
-  String get partnerReminderCapacityToast =>
-      'Tối đa 20 lịch nhắc. Hãy xoá bớt để thêm mới.';
-
-  @override
-  String get partnerReminderDeleteButton => 'Xoá lịch nhắc';
-
-  @override
-  String get partnerReminderDisabledLabel => 'Đã tắt';
 }

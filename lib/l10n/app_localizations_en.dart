@@ -2025,6 +2025,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customRemindersRepeatYearly => 'Yearly';
 
   @override
+  String get customRemindersNotifyPartnerLabel => 'Also remind my partner';
+
+  @override
+  String get customRemindersNotifyPartnerSubtitle =>
+      'Your partner gets this reminder at the same time too';
+
+  @override
   String customRemindersMetaOnce(String date, String time) {
     return 'Once · $date · $time';
   }
@@ -3204,109 +3211,5 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t create the card, please try again';
 
   @override
-  String get partnerNudgeTitle => 'Nudge your partner';
-
-  @override
-  String get partnerNudgeBadge => 'NUDGE YOUR PARTNER';
-
-  @override
-  String get partnerNudgeTabInstant => 'Nudge now';
-
-  @override
-  String get partnerNudgeTabScheduled => 'Schedule';
-
-  @override
-  String get partnerNudgeInstantHeader =>
-      'Send your partner a little nudge right now.';
-
-  @override
-  String get partnerNudgePresetWater => 'Drink some water 💧';
-
-  @override
-  String get partnerNudgePresetComeHome => 'Come home soon 🏠';
-
-  @override
-  String get partnerNudgePresetMissYou => 'Missing you 💕';
-
-  @override
-  String get partnerNudgePresetSleepEarly => 'Get some sleep 😴';
-
-  @override
-  String get partnerNudgeComposeHint => 'Say something to your partner…';
-
-  @override
-  String get partnerNudgeSendButton => 'Send nudge';
-
-  @override
-  String get partnerNudgeSentToast => 'Nudge sent 💌';
-
-  @override
-  String get partnerNudgeFailedToast => 'Couldn\'t send, please try again';
-
-  @override
-  String get partnerNudgeCooldownToast =>
-      'Give it a moment before nudging again 💞';
-
-  @override
-  String get partnerNudgeEntryTitle => 'Nudge your partner';
-
-  @override
-  String get partnerNudgeEntrySubtitle =>
-      'Send a nudge or schedule a reminder for your partner';
-
-  @override
-  String notifPartnerNudge(String name) {
-    return '$name nudged you';
-  }
-
-  @override
   String get partnerReminderNotifBody => 'A reminder from your partner 💌';
-
-  @override
-  String get partnerReminderScheduledHeader =>
-      'Schedule a reminder — it rings on your partner\'s phone at the set time.';
-
-  @override
-  String get partnerReminderEmptyTitle => 'No scheduled reminders yet';
-
-  @override
-  String get partnerReminderEmptyBody =>
-      'Set a reminder for your partner: take medicine, sleep early, drink water…';
-
-  @override
-  String get partnerReminderAddButton => 'Add reminder';
-
-  @override
-  String get partnerReminderFormAddTitle => 'New reminder';
-
-  @override
-  String get partnerReminderFormEditTitle => 'Edit reminder';
-
-  @override
-  String get partnerReminderFormBadge => 'NUDGE YOUR PARTNER';
-
-  @override
-  String get partnerReminderTextLabel => 'Reminder text';
-
-  @override
-  String get partnerReminderTextHint => 'e.g. Take medicine, Sleep early';
-
-  @override
-  String get partnerReminderTextError => 'Please enter the reminder text';
-
-  @override
-  String get partnerReminderSavedToast => 'Reminder scheduled 💌';
-
-  @override
-  String get partnerReminderDeletedToast => 'Reminder deleted';
-
-  @override
-  String get partnerReminderCapacityToast =>
-      'Up to 20 reminders. Remove some to add more.';
-
-  @override
-  String get partnerReminderDeleteButton => 'Delete reminder';
-
-  @override
-  String get partnerReminderDisabledLabel => 'Off';
 }

@@ -35,6 +35,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
   late DateTime _date;
   late TimeOfDay _time;
   late ReminderRecurrence _recurrence;
+  bool _notifyPartner = false;
 
   bool _showNameError = false;
 
@@ -61,6 +62,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
       _time = TimeOfDay(hour: defaultWhen.hour, minute: defaultWhen.minute);
     }
     _recurrence = existing?.recurrence ?? ReminderRecurrence.once;
+    _notifyPartner = existing?.notifyPartner ?? false;
   }
 
   @override
@@ -142,6 +144,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
         hour: _time.hour,
         minute: _time.minute,
         recurrence: _recurrence,
+        notifyPartner: _notifyPartner,
       );
       await provider.update(updated);
     } else {
@@ -152,6 +155,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
         hour: _time.hour,
         minute: _time.minute,
         recurrence: _recurrence,
+        notifyPartner: _notifyPartner,
       );
     }
     if (!mounted) {
@@ -270,6 +274,12 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
                 ),
                 const SizedBox(height: 20),
                 _buildFormCard(l10n, dateLabel, timeLabel),
+                // "Cũng nhắc người ấy" — only meaningful when in a couple
+                // (feature partner-nudge, 2026-06-30).
+                if (context.watch<CustomRemindersProvider>().canNotifyPartner) ...[
+                  const SizedBox(height: 16),
+                  _buildNotifyPartnerCard(l10n),
+                ],
                 if (widget.isEditing) ...[
                   const SizedBox(height: 24),
                   _buildDeleteSection(l10n),
@@ -383,6 +393,59 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
                 ],
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotifyPartnerCard(AppLocalizations l10n) {
+    return ContentCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.accentRose.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              IconsaxPlusBold.notification_bing,
+              color: AppColors.accentRose,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.customRemindersNotifyPartnerLabel,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.customRemindersNotifyPartnerSubtitle,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: _notifyPartner,
+            onChanged: (v) => setState(() => _notifyPartner = v),
+            activeThumbColor: AppColors.accentLove,
           ),
         ],
       ),

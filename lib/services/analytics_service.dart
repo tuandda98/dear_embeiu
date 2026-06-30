@@ -33,8 +33,6 @@ class AnalyticsEvents {
   static const String dailyQuestionAnswered = 'daily_question_answered';
   static const String dailyQuestionRevealed = 'daily_question_revealed';
   static const String reminderCreated = 'reminder_created';
-  static const String partnerNudgeSent = 'partner_nudge_sent';
-  static const String partnerReminderCreated = 'partner_reminder_created';
   static const String notificationOpened = 'notification_opened';
   static const String languageChanged = 'language_changed';
   static const String counterBgSwiped = 'counter_bg_swiped';
@@ -47,8 +45,7 @@ class AnalyticsEvents {
   static const String pResult = 'result'; // couple_join_attempt
   static const String pIsFirst = 'is_first'; // photo_posted
   static const String pAction = 'action'; // love_note_set / reaction_set
-  static const String pRepeat = 'repeat'; // reminder_created / partner_reminder
-  static const String pSource = 'source'; // partner_nudge_sent (chip/custom)
+  static const String pRepeat = 'repeat'; // reminder_created
   static const String pType = 'type'; // notification_opened
   static const String pLocale = 'locale'; // language_changed
 
@@ -298,20 +295,6 @@ class AnalyticsService {
   /// [repeat] is the recurrence enum name (once/daily/weekly/monthly/yearly).
   void logReminderCreated(String repeat) => logEvent(
         AnalyticsEvents.reminderCreated,
-        params: {AnalyticsEvents.pRepeat: repeat},
-      );
-
-  /// Sent a nudge to the partner (feature partner-nudge). [source] is `chip`
-  /// or `custom` — never the nudge text itself.
-  void logNudgeSent(String source) => logEvent(
-        AnalyticsEvents.partnerNudgeSent,
-        params: {AnalyticsEvents.pSource: source},
-      );
-
-  /// Scheduled a reminder for the partner (feature partner-nudge). [repeat] is
-  /// the recurrence kind only.
-  void logPartnerReminderCreated(String repeat) => logEvent(
-        AnalyticsEvents.partnerReminderCreated,
         params: {AnalyticsEvents.pRepeat: repeat},
       );
 

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/couple_provider.dart';
+import '../providers/custom_reminders_provider.dart';
 import '../providers/daily_question_provider.dart';
 import '../providers/mood_provider.dart';
 import '../providers/notification_inbox_provider.dart';
@@ -49,6 +50,7 @@ class SessionResolver {
     final notificationInboxProvider = context.read<NotificationInboxProvider>();
     final reminderProvider = context.read<ReminderProvider>();
     final partnerReminderProvider = context.read<PartnerReminderProvider>();
+    final customRemindersProvider = context.read<CustomRemindersProvider>();
 
     try {
       return await _resolve(
@@ -63,6 +65,7 @@ class SessionResolver {
         notificationInboxProvider: notificationInboxProvider,
         reminderProvider: reminderProvider,
         partnerReminderProvider: partnerReminderProvider,
+        customRemindersProvider: customRemindersProvider,
       ).timeout(_globalResolveTimeout);
     } catch (_) {
       // Global backstop: never hang on the splash. Pick a safe route from
@@ -106,6 +109,7 @@ class SessionResolver {
     required NotificationInboxProvider notificationInboxProvider,
     required ReminderProvider reminderProvider,
     required PartnerReminderProvider partnerReminderProvider,
+    required CustomRemindersProvider customRemindersProvider,
   }) async {
     // Force-update gate (feature force-update): a build older than the server's
     // minimum is sealed off behind the update screen BEFORE any auth/couple
@@ -138,6 +142,7 @@ class SessionResolver {
       streakProvider.clear();
       notificationInboxProvider.clear();
       partnerReminderProvider.clear();
+      customRemindersProvider.setCouple(null, null);
       // No active couple: drop the daily-question nudge (b2). The on/off
       // preference is kept so it re-arms on the next sync once a couple loads.
       await reminderProvider.cancelDailyQuestionSchedule();
@@ -158,6 +163,7 @@ class SessionResolver {
       streakProvider.clear();
       notificationInboxProvider.clear();
       partnerReminderProvider.clear();
+      customRemindersProvider.setCouple(null, null);
       await reminderProvider.cancelDailyQuestionSchedule();
       return AppRoutes.verifyEmail;
     }
@@ -217,6 +223,9 @@ class SessionResolver {
         currentUser.coupleId!,
         currentUser.id,
       );
+      // Custom reminders can mirror to the partner (toggle in the form) — give
+      // the provider the couple context so it can write partnerReminders.
+      customRemindersProvider.setCouple(currentUser.coupleId!, currentUser.id);
     } else {
       await photoProvider.clearForSignOut();
       chatProvider.clear();
@@ -226,6 +235,7 @@ class SessionResolver {
       streakProvider.clear();
       notificationInboxProvider.clear();
       partnerReminderProvider.clear();
+      customRemindersProvider.setCouple(null, null);
       // Authenticated but no couple yet — cancel the daily-question nudge (b2)
       // until a partner joins; the preference persists for re-arming via sync.
       await reminderProvider.cancelDailyQuestionSchedule();

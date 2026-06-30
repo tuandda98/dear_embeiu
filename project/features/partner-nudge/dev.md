@@ -23,8 +23,18 @@
 - **UI**: `screens/nudge_partner_screen.dart` (TabBar 2 tab: Thúc ngay = chip 1-chạm gửi + ô tự gõ; Đặt lịch = list lịch mình + FAB) · `screens/partner_reminder_form_screen.dart` (mô phỏng custom form). Entry: **HeaderIconButton ở header Profile** (cạnh settings).
 - **l10n**: thêm key partnerNudge*/partnerReminder*/notifPartnerNudge vào CẢ `app_en.arb`+`app_vi.arb` → `flutter gen-l10n`. Tái dùng nhãn recurrence `customRemindersRepeat*` + `customRemindersTimeLabel/Save`.
 
-## [2026-06-30] Toggle "Cũng nhắc người ấy" — ĐÃ THỬ RỒI REVERT
-User yêu cầu thêm toggle vào custom reminders (Settings) để mirror lời nhắc sang người ấy → đã làm xong (model `notifyPartner`+`partnerReminderId`, provider reconcile mirror, form switch, wire session_resolver, l10n). **Nhưng user xem xong CHỐT bỏ** (trùng tab "Đặt lịch" ở màn `nudge_partner`). ĐÃ revert toàn bộ vòng này; giữ nguyên màn "Nhắc người ấy" 2 tab. → cách đặt lịch cho người ấy duy nhất = tab "Đặt lịch".
+## [2026-06-30] CHỐT: chỉ còn TOGGLE, XOÁ màn riêng + instant nudge
+User làm rõ (qua ảnh form Lời nhắc riêng): muốn tính năng nhắc người ấy **nằm ngay trong form custom reminder** (1 toggle), và **xoá hẳn màn "Nhắc người ấy" riêng** + instant nudge.
+**A) Khôi phục toggle:** `CustomReminder.notifyPartner`+`partnerReminderId`; `CustomRemindersProvider.setCouple`/`canNotifyPartner`/`_syncPartner`/`_removePartner` reconcile mirror trong add/update/delete/toggle/restore (dùng `PartnerReminderService` trực tiếp); form switch `_buildNotifyPartnerCard` (gate canNotifyPartner); session_resolver `setCouple` wire (read+sig+call site+hasCoupleData+clear×3); l10n `customRemindersNotifyPartnerLabel/Subtitle`.
+**B) Xoá instant nudge / màn riêng:**
+- Xoá file `screens/nudge_partner_screen.dart` + `screens/partner_reminder_form_screen.dart`; gỡ entry HeaderIconButton + `_openNudge` ở `profile_screen`.
+- `PartnerReminderProvider` rút gọn còn CHỈ phần nhận (watch `partnerReminders` → arm local doc của partner) + clear; bỏ sendNudge/cooldown/mine/CRUD.
+- `PartnerReminderService`: bỏ `sendNudge` + `_nudges` (giữ watch/create/update/delete cho toggle).
+- `app_notification`: bỏ type `partnerNudge` + field `messageText`. `notification_center`: bỏ 3 case. `push_notification_service`: bỏ tap `partner_nudge` (giữ `partner_reminder_set`). `analytics`: bỏ `logNudgeSent`/`logPartnerReminderCreated`+consts.
+- **functions/index.js**: xoá CF `notifyPartnerNudge` + `PARTNER_NUDGE_COPY` + `buildPartnerNudgeText` (giữ `notifyPartnerReminderSet`). **firestore.rules**: xoá block `nudges` (giữ `partnerReminders`). **test**: xoá describe `nudges`.
+- l10n: xoá hết key `partnerNudge*`/`notifPartnerNudge` + key màn/form riêng; GIỮ `partnerReminderNotifBody`.
+- analyze 0; rules-test **197 pass**; node -c functions OK.
+- ⚠️ DEV vẫn còn rule `nudges` + CF `notifyPartnerNudge` MỒ CÔI từ bản thử (deploy 2026-06-29) — vô hại (không client nào ghi `nudges`); dọn ở lần deploy DEV sau (redeploy rules + `firebase functions:delete notifyPartnerNudge`).
 
 ## Còn lại
 - ⏳ Deploy DEV: `firestore:rules` + `functions:notifyPartnerNudge,notifyPartnerReminderSet` (default project = tonyembeiu-dev). PROD chờ lệnh user.

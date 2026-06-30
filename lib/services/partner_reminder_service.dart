@@ -6,11 +6,10 @@ import 'package:firebase_core/firebase_core.dart';
 import '../models/partner_reminder.dart';
 import 'firebase_bootstrap_service.dart';
 
-/// Firestore access for the "nhắc người ấy" feature (partner-nudge, 2026-06-29):
-/// - one-shot NUDGES (`couples/{id}/nudges`) → Cloud Function pushes them to the
-///   partner with the text in the body;
-/// - scheduled PARTNER REMINDERS (`couples/{id}/partnerReminders`) → the
-///   recipient's app watches and arms a LOCAL notification.
+/// Firestore access for the "nhắc người ấy" toggle (partner-nudge, 2026-06-30):
+/// scheduled PARTNER REMINDERS (`couples/{id}/partnerReminders`) written when the
+/// custom-reminder "Cũng nhắc người ấy" toggle is on — the recipient's app
+/// watches and arms a LOCAL notification.
 ///
 /// Fail-soft by design (mirrors [HomePrefsService]): without Firebase the watch
 /// emits nothing and writes are dropped.
@@ -25,40 +24,8 @@ class PartnerReminderService {
 
   FirebaseFirestore get _db => _firestore ?? FirebaseFirestore.instance;
 
-  CollectionReference<Map<String, dynamic>> _nudges(String coupleId) =>
-      _db.collection('couples').doc(coupleId).collection('nudges');
-
   CollectionReference<Map<String, dynamic>> _reminders(String coupleId) =>
       _db.collection('couples').doc(coupleId).collection('partnerReminders');
-
-  // --- Nudge (instant) -------------------------------------------------------
-
-  /// Write a one-shot nudge; the `notifyPartnerNudge` Cloud Function pushes it
-  /// to the partner. Returns whether the write was attempted (false in the local
-  /// fallback / on bad input).
-  Future<bool> sendNudge(
-    String coupleId,
-    String authorUserId,
-    String text,
-  ) async {
-    final body = text.trim();
-    if (coupleId.trim().isEmpty ||
-        authorUserId.trim().isEmpty ||
-        body.isEmpty ||
-        !isUsingFirebase) {
-      return false;
-    }
-    try {
-      await _nudges(coupleId).add(<String, Object?>{
-        'authorUserId': authorUserId,
-        'text': body.length > 200 ? body.substring(0, 200) : body,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
 
   // --- Scheduled partner reminders ------------------------------------------
 

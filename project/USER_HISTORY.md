@@ -192,3 +192,4 @@
 - [08:06] run me prj on ios
 - [08:14] [Image #1] là khi user A gửi lời nhắc thì, user B được thông báo dúng không ?
 - [08:26] ý tôi là lơì nhắc trong cài dặt, thêm 1 cái toggel cho phép gửi thông báo lơì nhắc cho người kia lúc tạo lời nhắc
+- [08:46] [Image #2] [Image #3] ý tôi nói là chỗ này có thêm 1 tính năng là nhắc người còn lại , xoá cái bạn vừa thêm nhắc người ấy

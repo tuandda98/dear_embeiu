@@ -14,10 +14,6 @@ enum AppNotificationType {
   dailyQuestion,
   chatMessage,
 
-  /// A nudge one partner sent the other (feature partner-nudge, 2026-06-29).
-  /// Carries the nudge text in [AppNotification.messageText]; routes to Home.
-  partnerNudge,
-
   /// A type this app build doesn't recognise (forward-compat: a newer backend
   /// could send a new type). Rendered with a generic fallback, routes to Home.
   unknown,
@@ -39,8 +35,6 @@ AppNotificationType appNotificationTypeFromString(String? raw) {
       return AppNotificationType.dailyQuestion;
     case 'chat_message':
       return AppNotificationType.chatMessage;
-    case 'partner_nudge':
-      return AppNotificationType.partnerNudge;
     default:
       return AppNotificationType.unknown;
   }
@@ -60,7 +54,6 @@ class AppNotification {
     this.noteExcerpt,
     this.caption,
     this.date,
-    this.messageText,
     this.createdAt,
   });
 
@@ -80,7 +73,6 @@ class AppNotification {
   final String? noteExcerpt; // love_note
   final String? caption; // photo_posted
   final String? date; // daily_question (yyyy-mm-dd key)
-  final String? messageText; // partner_nudge (the nudge content)
   final DateTime? createdAt;
 
   /// Which Home bottom-nav tab this notification should open when tapped.
@@ -103,7 +95,6 @@ class AppNotification {
       case AppNotificationType.partnerJoined:
       case AppNotificationType.partnerLeft:
       case AppNotificationType.dailyQuestion:
-      case AppNotificationType.partnerNudge:
       case AppNotificationType.unknown:
         return 0; // Home
     }
@@ -122,7 +113,6 @@ class AppNotification {
       noteExcerpt: _nullableString(data['noteExcerpt']),
       caption: _nullableString(data['caption']),
       date: _nullableString(data['date']),
-      messageText: _nullableString(data['messageText']),
       createdAt: _parseTimestamp(data['createdAt']),
       read: data['read'] == true,
     );
@@ -142,7 +132,6 @@ class AppNotification {
       noteExcerpt: noteExcerpt,
       caption: caption,
       date: date,
-      messageText: messageText,
       createdAt: createdAt,
     );
   }

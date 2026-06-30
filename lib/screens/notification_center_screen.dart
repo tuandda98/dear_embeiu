@@ -396,8 +396,6 @@ class _NotificationTile extends StatelessWidget {
         return l10n.notifDailyQuestion(name);
       case AppNotificationType.chatMessage:
         return l10n.notifChatMessage(name);
-      case AppNotificationType.partnerNudge:
-        return l10n.notifPartnerNudge(name);
       case AppNotificationType.unknown:
         return l10n.notifGeneric;
     }
@@ -409,9 +407,6 @@ class _NotificationTile extends StatelessWidget {
         return n.noteExcerpt;
       case AppNotificationType.photoPosted:
         return n.caption;
-      case AppNotificationType.partnerNudge:
-        // The nudge IS its content — show the message under the title.
-        return n.messageText;
       default:
         return null;
     }
@@ -472,8 +467,6 @@ class _Avatar extends StatelessWidget {
         return (IconsaxPlusLinear.messages, AppColors.accentLavenderDeep);
       case AppNotificationType.chatMessage:
         return (IconsaxPlusLinear.messages, AppColors.accentLove);
-      case AppNotificationType.partnerNudge:
-        return (IconsaxPlusLinear.notification_bing, AppColors.accentLove);
       case AppNotificationType.unknown:
         return (IconsaxPlusLinear.notification, AppColors.textSecondary);
     }

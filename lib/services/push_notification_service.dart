@@ -432,11 +432,9 @@ class PushNotificationService {
         // Mood card lives on Home (feature mood) — open there to see it.
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;
-      case 'partner_nudge':
       case 'partner_reminder_set':
-        // Partner nudge / scheduled-reminder confirmation (feature
-        // partner-nudge) — just bring the app to Home. ⚠️ Keep in sync with
-        // AppNotification.targetHomeTab (notification center taps).
+        // Scheduled-reminder confirmation (feature partner-nudge): A set a
+        // shared reminder for B — just bring the app to Home.
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;
       default:

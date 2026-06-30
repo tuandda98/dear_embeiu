@@ -3596,6 +3596,18 @@ abstract class AppLocalizations {
   /// **'Yearly'**
   String get customRemindersRepeatYearly;
 
+  /// No description provided for @customRemindersNotifyPartnerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Also remind my partner'**
+  String get customRemindersNotifyPartnerLabel;
+
+  /// No description provided for @customRemindersNotifyPartnerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner gets this reminder at the same time too'**
+  String get customRemindersNotifyPartnerSubtitle;
+
   /// No description provided for @customRemindersMetaOnce.
   ///
   /// In en, this message translates to:
@@ -5510,203 +5522,11 @@ abstract class AppLocalizations {
   /// **'Couldn\'t create the card, please try again'**
   String get loveTreeShareFailed;
 
-  /// No description provided for @partnerNudgeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Nudge your partner'**
-  String get partnerNudgeTitle;
-
-  /// No description provided for @partnerNudgeBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'NUDGE YOUR PARTNER'**
-  String get partnerNudgeBadge;
-
-  /// No description provided for @partnerNudgeTabInstant.
-  ///
-  /// In en, this message translates to:
-  /// **'Nudge now'**
-  String get partnerNudgeTabInstant;
-
-  /// No description provided for @partnerNudgeTabScheduled.
-  ///
-  /// In en, this message translates to:
-  /// **'Schedule'**
-  String get partnerNudgeTabScheduled;
-
-  /// No description provided for @partnerNudgeInstantHeader.
-  ///
-  /// In en, this message translates to:
-  /// **'Send your partner a little nudge right now.'**
-  String get partnerNudgeInstantHeader;
-
-  /// No description provided for @partnerNudgePresetWater.
-  ///
-  /// In en, this message translates to:
-  /// **'Drink some water 💧'**
-  String get partnerNudgePresetWater;
-
-  /// No description provided for @partnerNudgePresetComeHome.
-  ///
-  /// In en, this message translates to:
-  /// **'Come home soon 🏠'**
-  String get partnerNudgePresetComeHome;
-
-  /// No description provided for @partnerNudgePresetMissYou.
-  ///
-  /// In en, this message translates to:
-  /// **'Missing you 💕'**
-  String get partnerNudgePresetMissYou;
-
-  /// No description provided for @partnerNudgePresetSleepEarly.
-  ///
-  /// In en, this message translates to:
-  /// **'Get some sleep 😴'**
-  String get partnerNudgePresetSleepEarly;
-
-  /// No description provided for @partnerNudgeComposeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Say something to your partner…'**
-  String get partnerNudgeComposeHint;
-
-  /// No description provided for @partnerNudgeSendButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Send nudge'**
-  String get partnerNudgeSendButton;
-
-  /// No description provided for @partnerNudgeSentToast.
-  ///
-  /// In en, this message translates to:
-  /// **'Nudge sent 💌'**
-  String get partnerNudgeSentToast;
-
-  /// No description provided for @partnerNudgeFailedToast.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t send, please try again'**
-  String get partnerNudgeFailedToast;
-
-  /// No description provided for @partnerNudgeCooldownToast.
-  ///
-  /// In en, this message translates to:
-  /// **'Give it a moment before nudging again 💞'**
-  String get partnerNudgeCooldownToast;
-
-  /// No description provided for @partnerNudgeEntryTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Nudge your partner'**
-  String get partnerNudgeEntryTitle;
-
-  /// No description provided for @partnerNudgeEntrySubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Send a nudge or schedule a reminder for your partner'**
-  String get partnerNudgeEntrySubtitle;
-
-  /// No description provided for @notifPartnerNudge.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} nudged you'**
-  String notifPartnerNudge(String name);
-
   /// No description provided for @partnerReminderNotifBody.
   ///
   /// In en, this message translates to:
   /// **'A reminder from your partner 💌'**
   String get partnerReminderNotifBody;
-
-  /// No description provided for @partnerReminderScheduledHeader.
-  ///
-  /// In en, this message translates to:
-  /// **'Schedule a reminder — it rings on your partner\'s phone at the set time.'**
-  String get partnerReminderScheduledHeader;
-
-  /// No description provided for @partnerReminderEmptyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'No scheduled reminders yet'**
-  String get partnerReminderEmptyTitle;
-
-  /// No description provided for @partnerReminderEmptyBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Set a reminder for your partner: take medicine, sleep early, drink water…'**
-  String get partnerReminderEmptyBody;
-
-  /// No description provided for @partnerReminderAddButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Add reminder'**
-  String get partnerReminderAddButton;
-
-  /// No description provided for @partnerReminderFormAddTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'New reminder'**
-  String get partnerReminderFormAddTitle;
-
-  /// No description provided for @partnerReminderFormEditTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit reminder'**
-  String get partnerReminderFormEditTitle;
-
-  /// No description provided for @partnerReminderFormBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'NUDGE YOUR PARTNER'**
-  String get partnerReminderFormBadge;
-
-  /// No description provided for @partnerReminderTextLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Reminder text'**
-  String get partnerReminderTextLabel;
-
-  /// No description provided for @partnerReminderTextHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Take medicine, Sleep early'**
-  String get partnerReminderTextHint;
-
-  /// No description provided for @partnerReminderTextError.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter the reminder text'**
-  String get partnerReminderTextError;
-
-  /// No description provided for @partnerReminderSavedToast.
-  ///
-  /// In en, this message translates to:
-  /// **'Reminder scheduled 💌'**
-  String get partnerReminderSavedToast;
-
-  /// No description provided for @partnerReminderDeletedToast.
-  ///
-  /// In en, this message translates to:
-  /// **'Reminder deleted'**
-  String get partnerReminderDeletedToast;
-
-  /// No description provided for @partnerReminderCapacityToast.
-  ///
-  /// In en, this message translates to:
-  /// **'Up to 20 reminders. Remove some to add more.'**
-  String get partnerReminderCapacityToast;
-
-  /// No description provided for @partnerReminderDeleteButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete reminder'**
-  String get partnerReminderDeleteButton;
-
-  /// No description provided for @partnerReminderDisabledLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Off'**
-  String get partnerReminderDisabledLabel;
 }
 
 class _AppLocalizationsDelegate

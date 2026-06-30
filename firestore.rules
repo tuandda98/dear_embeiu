@@ -480,31 +480,14 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
-      // Nudge "Thúc người ấy" (feature partner-nudge, 2026-06-29): A taps a
-      // chip / types a line → writes one create-only doc → Cloud Function
-      // notifyPartnerNudge pushes it to B with the text in the body (unlike
-      // chat, which is content-free for privacy — a nudge IS its content). Same
-      // create-only shape as messages; immutable. ADDITIVE new collection.
-      match /nudges/{nudgeId} {
-        allow read: if isCoupleMember(coupleId);
-        allow create: if isCoupleMember(coupleId)
-          && request.resource.data.keys().hasOnly(['authorUserId', 'text', 'createdAt'])
-          && request.resource.data.authorUserId == request.auth.uid
-          && request.resource.data.text is string
-          && request.resource.data.text.size() > 0
-          && request.resource.data.text.size() <= 200
-          && request.resource.data.createdAt == request.time;
-        allow update, delete: if false;
-      }
-
       // Scheduled reminder one partner sets FOR the other (feature
-      // partner-nudge, 2026-06-29): A creates a timed reminder ("uống thuốc
-      // 10:00", repeats) → the partner's app watches this collection and arms a
-      // LOCAL notification (so it fires in the recipient's own timezone, free).
-      // The AUTHOR owns the doc: any member may create their own (authorUserId
-      // pinned to the writer); only the author may update/delete theirs. Both
-      // members read (B needs to read to arm; A to manage the list). minuteOfDay
-      // is wall-clock minutes-since-midnight (0..1439). ADDITIVE new collection.
+      // partner-nudge, 2026-06-30): the custom-reminder "Cũng nhắc người ấy"
+      // toggle mirrors a reminder here → the partner's app watches this
+      // collection and arms a LOCAL notification (fires in the recipient's own
+      // timezone, free). The AUTHOR owns the doc: any member may create their
+      // own (authorUserId pinned to the writer); only the author may
+      // update/delete theirs. Both members read (B to arm; A to manage).
+      // minuteOfDay is wall-clock minutes-since-midnight (0..1439). ADDITIVE.
       match /partnerReminders/{reminderId} {
         allow read: if isCoupleMember(coupleId);
         allow create: if isCoupleMember(coupleId)

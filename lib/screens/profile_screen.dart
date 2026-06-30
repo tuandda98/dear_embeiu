@@ -29,7 +29,6 @@ import '../widgets/memories_sheet.dart';
 import '../widgets/records_sheet.dart';
 import '../widgets/streak_sheet.dart';
 import 'journal_screen.dart';
-import 'nudge_partner_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
 
@@ -196,14 +195,6 @@ class ProfileScreen extends StatelessWidget {
       children: [
         EyebrowChip(label: l10n.loveProfileBadge, icon: IconsaxPlusBold.lovely),
         const Spacer(),
-        // Nudge your partner (feature partner-nudge, 2026-06-29) — a squircle
-        // next to settings opens the instant-nudge / scheduled-reminder screen.
-        HeaderIconButton(
-          icon: IconsaxPlusLinear.notification_bing,
-          semanticsLabel: l10n.partnerNudgeTitle,
-          onTap: () => _openNudge(context),
-        ),
-        const SizedBox(width: 8),
         // Settings entry = ONE squircle at the page's top-right (user
         // 2026-06-11) — replaces the full-width tile that closed the page.
         HeaderIconButton(
@@ -212,16 +203,6 @@ class ProfileScreen extends StatelessWidget {
           onTap: () => _openSettings(context),
         ),
       ],
-    );
-  }
-
-  void _openNudge(BuildContext context) {
-    HapticFeedback.selectionClick();
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        settings: const RouteSettings(name: 'NudgePartner'),
-        builder: (_) => const NudgePartnerScreen(),
-      ),
     );
   }
 
