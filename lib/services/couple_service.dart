@@ -607,6 +607,40 @@ class CoupleService {
     await StorageService.clearCouple();
   }
 
+  /// Heals the creator's OWN user doc to `status: 'in_couple'` once the partner
+  /// has joined and the couple is active. The join transaction only writes the
+  /// JOINER's user doc — the creator (A) is never touched server-side, so
+  /// without this A's `users/{A}.status` lingers at the stale 'waiting_partner'
+  /// even though the couple is active and B is already 'in_couple'. A writes
+  /// its OWN doc here, so the `canUpdateOwnUser` rule
+  /// (request.auth.uid == userId) passes cleanly — unlike a cross-user write,
+  /// which the rules deny. (The `notifyPartnerJoined` Cloud Function performs
+  /// the same heal server-side; this client path also self-heals legacy
+  /// couples whose creator predates that CF.)
+  ///
+  /// Returns the healed [AppUser] on a successful write, or null when nothing
+  /// needed healing / the write couldn't run. Best-effort and idempotent.
+  Future<AppUser?> reconcileActiveStatus({
+    required AppUser currentUser,
+    required Couple? couple,
+  }) async {
+    if (!isUsingFirebase || couple == null) return null;
+    final isActive = couple.status == 'active' || couple.memberCount >= 2;
+    if (!isActive) return null;
+    if (!currentUser.hasCouple || currentUser.coupleId != couple.id) return null;
+    if (!couple.memberIds.contains(currentUser.id)) return null;
+    if (currentUser.status == 'in_couple') return null;
+
+    final now = DateTime.now();
+    final healed = currentUser.copyWith(
+      status: 'in_couple',
+      updatedAt: now,
+      lastSeenAt: now,
+    );
+    await _userService.updateCoupleMembership(healed);
+    return healed;
+  }
+
   Future<AppUser> leaveCouple({required AppUser currentUser}) async {
     final now = DateTime.now();
 

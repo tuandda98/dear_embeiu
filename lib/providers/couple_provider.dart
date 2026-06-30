@@ -24,6 +24,15 @@ class CoupleProvider extends ChangeNotifier {
   // permission-denied; we suppress that self-inflicted stream error so it can't
   // leave a stale "Couldn't sync couple info" banner on the Setup screen.
   bool _isLeaving = false;
+  // One-shot latch per couple load: guards re-entry so the live couple stream
+  // (which can emit many times) heals the creator's stale status at most once.
+  bool _statusHealAttempted = false;
+
+  /// Wired by [SessionResolver]: pushes a self-healed user (status flipped to
+  /// 'in_couple' once the partner joins) back into AuthProvider so the
+  /// in-memory session matches Firestore. See
+  /// [CoupleService.reconcileActiveStatus].
+  Future<void> Function(AppUser healed)? onMemberStatusHealed;
 
   Couple? get couple => _couple;
   bool get hasCoupleData => _couple != null;
@@ -34,6 +43,7 @@ class CoupleProvider extends ChangeNotifier {
   Future<void> loadCoupleForUser(AppUser? currentUser) async {
     await _coupleSubscription?.cancel();
     _coupleSubscription = null;
+    _statusHealAttempted = false;
 
     if (currentUser == null || !currentUser.hasCouple) {
       _couple = null;
@@ -56,6 +66,11 @@ class CoupleProvider extends ChangeNotifier {
           (couple) {
             _couple = couple;
             notifyListeners();
+            // Self-heal: when the partner joins and this couple goes active, the
+            // join transaction only updated the JOINER's user doc — the creator
+            // (this user, A) is still 'waiting_partner'. Flip A's own status to
+            // 'in_couple' so both members are consistent. Fire-and-forget.
+            unawaited(_maybeHealActiveStatus(currentUser, couple));
           },
           onError: (error) {
             // Ignore the permission-denied this stream throws while we're
@@ -87,6 +102,32 @@ class CoupleProvider extends ChangeNotifier {
       }
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Heals the creator's stale `status` to 'in_couple' once the couple is
+  /// active (partner joined). One attempt per load — guarded by
+  /// [_statusHealAttempted] so the live stream's repeat emissions don't refire
+  /// the write. Best-effort: on success the healed user is pushed back into
+  /// AuthProvider via [onMemberStatusHealed]; on failure the
+  /// `notifyPartnerJoined` CF and the next app launch reconcile it anyway.
+  Future<void> _maybeHealActiveStatus(AppUser currentUser, Couple? couple) async {
+    if (_statusHealAttempted || couple == null) return;
+    if (currentUser.status == 'in_couple') return;
+    final isActive = couple.status == 'active' || couple.memberCount >= 2;
+    if (!isActive) return;
+    _statusHealAttempted = true;
+    try {
+      final healed = await _coupleService.reconcileActiveStatus(
+        currentUser: currentUser,
+        couple: couple,
+      );
+      if (healed != null) {
+        await onMemberStatusHealed?.call(healed);
+      }
+    } catch (_) {
+      // Best-effort — the couple already shows active in the UI; A's status is
+      // also reconciled server-side by notifyPartnerJoined and on next launch.
     }
   }
 
