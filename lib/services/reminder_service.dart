@@ -98,6 +98,14 @@ class ReminderService {
   static const int _idPersonalQuestionBase = 1110;
   static const int _maxPersonalQuestion = 30;
 
+  // Partner reminders (feature partner-nudge, 2026-06-29): scheduled reminders
+  // one partner set FOR the other, synced via Firestore and armed LOCALLY on the
+  // recipient's device (so they fire in the recipient's own timezone). Reserved
+  // band 3000–3049, owned by PartnerReminderProvider; outside [_autoIds] and the
+  // custom-reminder band (2000–2999) so they never collide.
+  static const int _idPartnerReminderBase = 3000;
+  static const int _maxPartnerReminders = 50;
+
   /// Every auto-reminder id this service may own, used by [cancelAll].
   static const List<int> _autoIds = <int>[
     _idLegacyDaily,
@@ -532,6 +540,52 @@ class ReminderService {
   Future<void> cancelPersonalReminders() async {
     await cancelPersonalMedicine();
     await cancelPersonalQuestion();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Partner reminders (feature partner-nudge). The author sets these in
+  // Firestore; the RECIPIENT's device arms them locally here (band 3000–3049).
+  // Each item carries a transient [CustomReminder] (only its date/time/
+  // recurrence matter — id is ignored) plus the localized title/body to show.
+  // ---------------------------------------------------------------------------
+
+  /// (Re)arm the recipient-side local notifications for the partner reminders.
+  /// Clears the whole band first, so calling with an empty list cancels
+  /// everything. A `once` reminder already in the past is simply skipped
+  /// (handled by [scheduleCustom]).
+  Future<void> schedulePartnerReminders(
+    List<({CustomReminder reminder, String title, String body})> items,
+  ) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelPartnerReminders();
+    final capped = items.take(_maxPartnerReminders).toList();
+    for (var i = 0; i < capped.length; i++) {
+      final item = capped[i];
+      await scheduleCustom(
+        id: _idPartnerReminderBase + i,
+        reminder: item.reminder,
+        title: item.title,
+        body: item.body,
+      );
+    }
+  }
+
+  /// Cancel every partner-reminder local notification. Safe when nothing is set
+  /// (e.g. sign-out / no couple).
+  Future<void> cancelPartnerReminders() async {
+    if (!_initialized) {
+      return;
+    }
+    for (var i = 0; i < _maxPartnerReminders; i++) {
+      try {
+        await _plugin.cancel(_idPartnerReminderBase + i);
+      } catch (_) {
+        // Already in the desired state.
+      }
+    }
   }
 
   /// (Re)schedule today's end-of-day daily-question nudges. Each [slot] fires

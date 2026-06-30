@@ -362,6 +362,181 @@ describe('firestore: couple subcollections', () => {
     });
   });
 
+  describe('/couples/{id}/nudges/{nudgeId} (partner nudge — feature partner-nudge)', () => {
+    // Same create-only shape as messages: createdAt must be request.time.
+    const validNudge = (uid, overrides = {}) => ({
+      authorUserId: uid,
+      text: 'Nhớ uống nước',
+      createdAt: serverTimestamp(),
+      ...overrides,
+    });
+
+    it('lets a member send their own nudge', async () => {
+      await assertSucceeds(
+        setDoc(doc(authedDb('alice'), 'couples/c1/nudges/n1'), validNudge('alice')),
+      );
+    });
+
+    it('accepts text at exactly 200 chars; rejects over 200', async () => {
+      await assertSucceeds(
+        setDoc(doc(authedDb('alice'), 'couples/c1/nudges/n1'),
+          validNudge('alice', { text: tooLong(200) })),
+      );
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/nudges/n2'),
+          validNudge('alice', { text: tooLong(201) })),
+      );
+    });
+
+    it('rejects an empty nudge', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/nudges/n1'),
+          validNudge('alice', { text: '' })),
+      );
+    });
+
+    it('forbids spoofing authorUserId', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/nudges/n1'), validNudge('bob')),
+      );
+    });
+
+    it('rejects extra fields', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/nudges/n1'),
+          validNudge('alice', { sneaky: true })),
+      );
+    });
+
+    it('rejects a client-fixed createdAt (must be request.time)', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/nudges/n1'),
+          validNudge('alice', { createdAt: TS })),
+      );
+    });
+
+    it('forbids a non-member sending or reading', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('dave'), 'couples/c1/nudges/n1'), validNudge('dave')),
+      );
+      await seedDoc('couples/c1/nudges/n1', { authorUserId: 'alice', text: 'hi', createdAt: TS });
+      await assertFails(getDoc(doc(authedDb('dave'), 'couples/c1/nudges/n1')));
+    });
+
+    it('lets the partner read a nudge', async () => {
+      await seedDoc('couples/c1/nudges/n1', { authorUserId: 'alice', text: 'hi', createdAt: TS });
+      await assertSucceeds(getDoc(doc(authedDb('bob'), 'couples/c1/nudges/n1')));
+    });
+
+    it('is immutable: no update, no delete', async () => {
+      await seedDoc('couples/c1/nudges/n1', { authorUserId: 'alice', text: 'hi', createdAt: TS });
+      await assertFails(
+        updateDoc(doc(authedDb('alice'), 'couples/c1/nudges/n1'), { text: 'edited' }),
+      );
+      await assertFails(deleteDoc(doc(authedDb('alice'), 'couples/c1/nudges/n1')));
+    });
+  });
+
+  describe('/couples/{id}/partnerReminders/{id} (scheduled reminder for partner)', () => {
+    const validReminder = (uid, overrides = {}) => ({
+      authorUserId: uid,
+      text: 'uống thuốc',
+      minuteOfDay: 600,
+      recurrence: 'daily',
+      enabled: true,
+      createdAt: serverTimestamp(),
+      ...overrides,
+    });
+
+    it('lets a member create a reminder for their partner', async () => {
+      await assertSucceeds(
+        setDoc(doc(authedDb('alice'), 'couples/c1/partnerReminders/r1'),
+          validReminder('alice')),
+      );
+    });
+
+    it('forbids spoofing authorUserId on create', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/partnerReminders/r1'),
+          validReminder('bob')),
+      );
+    });
+
+    it('rejects empty/oversized text', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/partnerReminders/r1'),
+          validReminder('alice', { text: '' })),
+      );
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/partnerReminders/r2'),
+          validReminder('alice', { text: tooLong(201) })),
+      );
+    });
+
+    it('rejects minuteOfDay out of range', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/partnerReminders/r1'),
+          validReminder('alice', { minuteOfDay: 1440 })),
+      );
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/partnerReminders/r2'),
+          validReminder('alice', { minuteOfDay: -1 })),
+      );
+    });
+
+    it('rejects a client-fixed createdAt', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('alice'), 'couples/c1/partnerReminders/r1'),
+          validReminder('alice', { createdAt: TS })),
+      );
+    });
+
+    it('lets the partner read it; outsider cannot', async () => {
+      await seedDoc('couples/c1/partnerReminders/r1',
+        { authorUserId: 'alice', text: 'x', minuteOfDay: 600, recurrence: 'daily', enabled: true });
+      await assertSucceeds(getDoc(doc(authedDb('bob'), 'couples/c1/partnerReminders/r1')));
+      await assertFails(getDoc(doc(authedDb('dave'), 'couples/c1/partnerReminders/r1')));
+    });
+
+    it('lets ONLY the author update; forbids the partner', async () => {
+      await seedDoc('couples/c1/partnerReminders/r1',
+        { authorUserId: 'alice', text: 'x', minuteOfDay: 600, recurrence: 'daily', enabled: true });
+      await assertSucceeds(
+        updateDoc(doc(authedDb('alice'), 'couples/c1/partnerReminders/r1'), { enabled: false }),
+      );
+      await assertFails(
+        updateDoc(doc(authedDb('bob'), 'couples/c1/partnerReminders/r1'), { enabled: false }),
+      );
+    });
+
+    it('forbids changing authorUserId on update', async () => {
+      await seedDoc('couples/c1/partnerReminders/r1',
+        { authorUserId: 'alice', text: 'x', minuteOfDay: 600, recurrence: 'daily', enabled: true });
+      await assertFails(
+        updateDoc(doc(authedDb('alice'), 'couples/c1/partnerReminders/r1'),
+          { authorUserId: 'bob' }),
+      );
+    });
+
+    it('lets ONLY the author delete; forbids the partner', async () => {
+      await seedDoc('couples/c1/partnerReminders/r1',
+        { authorUserId: 'alice', text: 'x', minuteOfDay: 600, recurrence: 'daily', enabled: true });
+      await assertFails(
+        deleteDoc(doc(authedDb('bob'), 'couples/c1/partnerReminders/r1')),
+      );
+      await assertSucceeds(
+        deleteDoc(doc(authedDb('alice'), 'couples/c1/partnerReminders/r1')),
+      );
+    });
+
+    it('forbids a non-member creating', async () => {
+      await assertFails(
+        setDoc(doc(authedDb('dave'), 'couples/c1/partnerReminders/r1'),
+          validReminder('dave')),
+      );
+    });
+  });
+
   describe('/couples/{id}/dailyAnswers/{date} (question-text marker)', () => {
     const path = 'couples/c1/dailyAnswers/2026-01-01';
 

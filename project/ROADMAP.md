@@ -19,6 +19,8 @@
 
 ## Đang làm
 
+> **📌 Phiên 2026-06-29 — `partner-nudge` 🆕 (Nhắc người ấy):** A nhắc B qua thông báo (bù việc mọi reminder cũ đều local). 2 kiểu: **thúc tức thì** (ghi `nudges/` → CF `notifyPartnerNudge` push CÓ nội dung, không presence-suppress) + **đặt lịch nhắc cho người ấy** (ghi `partnerReminders/` → máy B arm LOCAL band 3000–3049 theo `minuteOfDay`/tz B; CF `notifyPartnerReminderSet` confirm-push đánh thức B). Nội dung = chip mẫu + tự gõ. Rules additive (2 collection author-owned) + test emulator 206 pass; client trọn (model/service/provider/wiring 5 chỗ session_resolver/2 màn/entry Profile header/l10n vi+en/analytics); analyze 0. 💻 Dev XONG, ⏳ chờ deploy DEV + smoke-test. → [partner-nudge](features/partner-nudge/overview.md).
+
 > **📌 Phiên 2026-06-19 (đa-feature, chi tiết ở `dev.md` từng feature):**
 > - **lunar-reminder** 🆕 (gated `dodaoanhtuan@gmail.com`): lịch âm offline (Hồ Ngọc Đức, 7 test pass) + nhắc mồng-1/rằm; v2 cho **chỉnh ngày (1..30) + giờ** + **màn lịch grid đầy đủ**. Local. analyze 0. CHƯA smoke-test. → xem dòng riêng bên dưới.
 > - **mood** (Tâm trạng): icon TO khi **trùng tâm trạng** + redesign "đồng điệu" (glow + tên 2 người + tim đập); **push hiện luôn mood** ("Anh Tuấn đang thấy Nhớ", CF `notifyPartnerMood` + map nhãn vi/en) — DEV deployed; auto-nhắc tâm trạng đối phương xác nhận đã có & gentle.

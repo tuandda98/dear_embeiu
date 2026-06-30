@@ -10,6 +10,7 @@ import '../providers/couple_provider.dart';
 import '../providers/daily_question_provider.dart';
 import '../providers/mood_provider.dart';
 import '../providers/notification_inbox_provider.dart';
+import '../providers/partner_reminder_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
@@ -47,6 +48,7 @@ class SessionResolver {
     final streakProvider = context.read<StreakProvider>();
     final notificationInboxProvider = context.read<NotificationInboxProvider>();
     final reminderProvider = context.read<ReminderProvider>();
+    final partnerReminderProvider = context.read<PartnerReminderProvider>();
 
     try {
       return await _resolve(
@@ -60,6 +62,7 @@ class SessionResolver {
         streakProvider: streakProvider,
         notificationInboxProvider: notificationInboxProvider,
         reminderProvider: reminderProvider,
+        partnerReminderProvider: partnerReminderProvider,
       ).timeout(_globalResolveTimeout);
     } catch (_) {
       // Global backstop: never hang on the splash. Pick a safe route from
@@ -102,6 +105,7 @@ class SessionResolver {
     required StreakProvider streakProvider,
     required NotificationInboxProvider notificationInboxProvider,
     required ReminderProvider reminderProvider,
+    required PartnerReminderProvider partnerReminderProvider,
   }) async {
     // Force-update gate (feature force-update): a build older than the server's
     // minimum is sealed off behind the update screen BEFORE any auth/couple
@@ -133,6 +137,7 @@ class SessionResolver {
       reactionProvider.clear();
       streakProvider.clear();
       notificationInboxProvider.clear();
+      partnerReminderProvider.clear();
       // No active couple: drop the daily-question nudge (b2). The on/off
       // preference is kept so it re-arms on the next sync once a couple loads.
       await reminderProvider.cancelDailyQuestionSchedule();
@@ -152,11 +157,20 @@ class SessionResolver {
       reactionProvider.clear();
       streakProvider.clear();
       notificationInboxProvider.clear();
+      partnerReminderProvider.clear();
       await reminderProvider.cancelDailyQuestionSchedule();
       return AppRoutes.verifyEmail;
     }
 
     final currentUser = authProvider.currentUser;
+    // Self-heal wiring (couple status parity): when the live couple stream sees
+    // the partner join, CoupleProvider flips THIS user's stale 'waiting_partner'
+    // to 'in_couple' in Firestore and hands back the healed user here so the
+    // in-memory AuthProvider session matches. Idempotent — the healed fetch
+    // short-circuits the next pass.
+    coupleProvider.onMemberStatusHealed = (healed) async {
+      await authProvider.updateCurrentUser(healed);
+    };
     await coupleProvider.loadCoupleForUser(currentUser);
     final hasCoupleData =
         currentUser?.hasCouple == true && coupleProvider.hasCoupleData;
@@ -196,6 +210,13 @@ class SessionResolver {
       // enabled+times so a partner's edit reschedules this device's nudges. The
       // actual (re)schedule uses the l10n cached by HomeScreen's sync().
       reminderProvider.watchCoupleReminderPrefs(currentUser.coupleId!);
+      // Partner reminders (feature partner-nudge): stream the couple's reminders
+      // so the ones MY PARTNER set for me arm as local notifications, and the
+      // ones I created populate the management list.
+      partnerReminderProvider.watchPartnerReminders(
+        currentUser.coupleId!,
+        currentUser.id,
+      );
     } else {
       await photoProvider.clearForSignOut();
       chatProvider.clear();
@@ -204,6 +225,7 @@ class SessionResolver {
       reactionProvider.clear();
       streakProvider.clear();
       notificationInboxProvider.clear();
+      partnerReminderProvider.clear();
       // Authenticated but no couple yet — cancel the daily-question nudge (b2)
       // until a partner joins; the preference persists for re-arming via sync.
       await reminderProvider.cancelDailyQuestionSchedule();

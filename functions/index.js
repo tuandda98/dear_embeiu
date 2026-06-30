@@ -243,6 +243,35 @@ exports.notifyPartnerJoined = onDocumentUpdated(
       return;
     }
 
+    // Status parity heal: the client join transaction only writes the JOINER's
+    // user doc (status='in_couple'); the creator (A, here a recipient) is never
+    // touched, so without this their users/{A}.status lingers at the stale
+    // 'waiting_partner' even though the couple is now active. The admin SDK
+    // bypasses the per-user rules, so we authoritatively flip every pre-existing
+    // member to 'in_couple'. Best-effort per doc — a notification must still go
+    // out even if a heal write fails.
+    await Promise.all(
+      recipientIds.map((uid) =>
+        db
+          .collection("users")
+          .doc(uid)
+          .set(
+            {
+              status: "in_couple",
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            },
+            {merge: true},
+          )
+          .catch((err) => {
+            logger.warn("Could not heal member status to in_couple on partner join.", {
+              coupleId,
+              uid,
+              message: err && err.message,
+            });
+          }),
+      ),
+    );
+
     // Joiner display name: prefer their user profile, then person2Name, then "Người ấy".
     let joinerName = "";
     try {
@@ -348,6 +377,36 @@ exports.notifyPartnerLeft = onDocumentUpdated(
       });
       return;
     }
+
+    // Status parity heal (symmetric to notifyPartnerJoined): when a partner
+    // leaves, the client leave write can only touch the LEAVER's own user doc —
+    // the remaining member (B) is left stale at 'in_couple' even though the
+    // couple demoted back to 'waiting_partner' (the client's best-effort
+    // cross-user write to B is denied by the per-user rules). The admin SDK
+    // bypasses those rules, so we authoritatively reset every remaining member
+    // to 'waiting_partner' so they can accept a new partner join. Best-effort
+    // per doc — the notification must still go out even if a heal write fails.
+    await Promise.all(
+      recipientIds.map((uid) =>
+        db
+          .collection("users")
+          .doc(uid)
+          .set(
+            {
+              status: "waiting_partner",
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            },
+            {merge: true},
+          )
+          .catch((err) => {
+            logger.warn("Could not heal member status to waiting_partner on partner left.", {
+              coupleId,
+              uid,
+              message: err && err.message,
+            });
+          }),
+      ),
+    );
 
     // Leaver display name: prefer their user profile (still exists — they only
     // left the couple), fall back to "Người ấy" via normalizeActorName.
@@ -664,6 +723,191 @@ exports.notifyChatMessage = onDocumentCreated(
     }
 
     logger.info("Processed chat-message notification.", {
+      coupleId,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
+// Partner nudge (feature partner-nudge, 2026-06-29): one member taps a chip /
+// types a line to "nudge" the other → write a create-only nudges doc → push it
+// to the partner. DELIBERATELY DIFFERENT from chat in two ways (see plan §C):
+//   (1) the push BODY carries the nudge text — a nudge IS its content (pattern
+//       notifyLoveNote), unlike chat which is content-free for privacy.
+//   (2) NO presence-suppression — a nudge is an intentional act, always deliver
+//       even if the recipient is in the app.
+// Always-on (not in PUSH_TYPE_PREF_FIELD); the recipient mutes via the global
+// notificationsEnabled device flag. Fail-open throughout.
+exports.notifyPartnerNudge = onDocumentCreated(
+  {document: "couples/{coupleId}/nudges/{nudgeId}", region: "us-central1"},
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      logger.warn("Partner-nudge notification skipped because snapshot is missing.");
+      return;
+    }
+
+    const nudge = snapshot.data() || {};
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const authorUserId = `${nudge.authorUserId || ""}`.trim();
+    const text = `${nudge.text || ""}`.trim();
+
+    if (!text) {
+      return;
+    }
+    if (!coupleId || !authorUserId) {
+      logger.warn("Partner-nudge notification skipped because required fields are missing.", {
+        coupleId,
+        authorUserId,
+      });
+      return;
+    }
+
+    const coupleSnapshot = await db.collection("couples").doc(coupleId).get();
+    if (!coupleSnapshot.exists) {
+      logger.warn("Partner-nudge notification skipped because couple document was not found.", {
+        coupleId,
+      });
+      return;
+    }
+
+    const memberIds = Array.isArray(coupleSnapshot.get("memberIds")) ?
+      coupleSnapshot.get("memberIds") : [];
+    const recipientIds = memberIds.filter(
+      (memberId) => typeof memberId === "string" && memberId.trim() && memberId !== authorUserId,
+    );
+
+    if (recipientIds.length === 0) {
+      logger.info("Partner-nudge notification skipped because there is no partner to notify yet.", {
+        coupleId,
+      });
+      return;
+    }
+
+    // Author display name from their user profile (fallback "Người ấy").
+    let authorName = "";
+    try {
+      const authorSnap = await db.collection("users").doc(authorUserId).get();
+      authorName = `${(authorSnap.exists && authorSnap.get("displayName")) || ""}`.trim();
+    } catch (err) {
+      logger.warn("Could not load author profile for partner-nudge notification.", {
+        coupleId,
+        authorUserId,
+        message: err && err.message,
+      });
+    }
+    authorName = normalizeActorName(authorName);
+
+    // Inbox record keeps the nudge text so the notification center shows what
+    // was sent (this is content the recipient is meant to see — not private).
+    await writeInboxNotifications(recipientIds, {
+      type: "partner_nudge",
+      coupleId,
+      actorUserId: authorUserId,
+      actorName: authorName,
+      messageText: truncateText(text, 200),
+    });
+
+    const result = await sendToRecipientDevices(
+      recipientIds,
+      (languageCode) => buildPartnerNudgeText(languageCode, authorName, text),
+      {
+        type: "partner_nudge",
+        coupleId,
+      },
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("Partner-nudge notification skipped because recipient has no active FCM tokens.", {
+        coupleId,
+      });
+      return;
+    }
+
+    if (result.failures.length > 0) {
+      logger.warn("Partner-nudge notification had delivery failures.", {
+        coupleId,
+        failures: result.failures,
+      });
+    }
+
+    logger.info("Processed partner-nudge notification.", {
+      coupleId,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
+// Partner scheduled-reminder confirmation (feature partner-nudge, 2026-06-29):
+// when A creates a timed reminder FOR B (couples/{id}/partnerReminders), push a
+// one-off confirmation to B. This serves double duty: it tells B "your person
+// set a reminder for you" AND wakes B's app so its watcher arms the LOCAL
+// notification (local-on-B scheduling needs the app to have synced the doc).
+// PUSH ONLY — no inbox row (the reminder itself will fire locally later, like
+// every other local reminder, and those never appear in the notification
+// center). Fail-open. NB: the recurring local fire happens on B's device; this
+// CF only confirms the *set* action once on create.
+exports.notifyPartnerReminderSet = onDocumentCreated(
+  {document: "couples/{coupleId}/partnerReminders/{reminderId}", region: "us-central1"},
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      return;
+    }
+
+    const reminder = snapshot.data() || {};
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const authorUserId = `${reminder.authorUserId || ""}`.trim();
+    const text = `${reminder.text || ""}`.trim();
+    const minuteOfDay = Number.isFinite(reminder.minuteOfDay) ?
+      reminder.minuteOfDay : null;
+
+    if (!text || !coupleId || !authorUserId) {
+      return;
+    }
+
+    const coupleSnapshot = await db.collection("couples").doc(coupleId).get();
+    if (!coupleSnapshot.exists) {
+      return;
+    }
+
+    const memberIds = Array.isArray(coupleSnapshot.get("memberIds")) ?
+      coupleSnapshot.get("memberIds") : [];
+    // Recipient = the partner the reminder is FOR (everyone but the author).
+    const recipientIds = memberIds.filter(
+      (memberId) => typeof memberId === "string" && memberId.trim() && memberId !== authorUserId,
+    );
+    if (recipientIds.length === 0) {
+      return;
+    }
+
+    let authorName = "";
+    try {
+      const authorSnap = await db.collection("users").doc(authorUserId).get();
+      authorName = `${(authorSnap.exists && authorSnap.get("displayName")) || ""}`.trim();
+    } catch (err) {
+      logger.warn("Could not load author profile for partner-reminder-set notification.", {
+        coupleId,
+        message: err && err.message,
+      });
+    }
+    authorName = normalizeActorName(authorName);
+
+    const result = await sendToRecipientDevices(
+      recipientIds,
+      (languageCode) =>
+        buildPartnerReminderSetText(languageCode, authorName, text, minuteOfDay),
+      {
+        type: "partner_reminder_set",
+        coupleId,
+      },
+    );
+
+    logger.info("Processed partner-reminder-set notification.", {
       coupleId,
       attemptedTokens: result.deviceCount,
       successCount: result.successCount,
@@ -1805,6 +2049,65 @@ function buildChatMessageText(languageCode, authorName) {
     title: copy.title,
     body: copy.body(authorName),
   };
+}
+
+// Partner-nudge push copy (feature partner-nudge). Unlike chat this is
+// CONTENT-FULL: the body is the actual nudge text the sender chose ("Nhớ uống
+// nước"). Title names the sender. Fallback Vietnamese.
+const PARTNER_NUDGE_COPY = {
+  vi: {
+    title: (name) => `${name} nhắc bạn 💌`,
+  },
+  en: {
+    title: (name) => `${name} is nudging you 💌`,
+  },
+};
+
+function buildPartnerNudgeText(languageCode, authorName, text) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = PARTNER_NUDGE_COPY[code] || PARTNER_NUDGE_COPY.vi;
+  return {
+    title: copy.title(authorName),
+    body: truncateText(`${text || ""}`.trim(), 200),
+  };
+}
+
+// Partner scheduled-reminder confirmation copy (feature partner-nudge). Tells
+// B that A set a timed reminder for them, with the time when known.
+const PARTNER_REMINDER_SET_COPY = {
+  vi: {
+    title: "Lời nhắc từ người ấy ⏰",
+    body: (name, text, hhmm) => hhmm ?
+      `${name} đặt nhắc bạn: ${text} lúc ${hhmm}` :
+      `${name} đặt nhắc bạn: ${text}`,
+  },
+  en: {
+    title: "A reminder from your partner ⏰",
+    body: (name, text, hhmm) => hhmm ?
+      `${name} set a reminder for you: ${text} at ${hhmm}` :
+      `${name} set a reminder for you: ${text}`,
+  },
+};
+
+function buildPartnerReminderSetText(languageCode, authorName, text, minuteOfDay) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = PARTNER_REMINDER_SET_COPY[code] || PARTNER_REMINDER_SET_COPY.vi;
+  return {
+    title: copy.title,
+    body: copy.body(authorName, truncateText(`${text || ""}`.trim(), 120),
+      formatMinuteOfDay(minuteOfDay)),
+  };
+}
+
+// Format wall-clock minutes-since-midnight (0..1439) as "HH:MM". Returns "" for
+// null/out-of-range so callers can drop the time gracefully.
+function formatMinuteOfDay(minuteOfDay) {
+  if (!Number.isFinite(minuteOfDay) || minuteOfDay < 0 || minuteOfDay > 1439) {
+    return "";
+  }
+  const h = Math.floor(minuteOfDay / 60);
+  const m = minuteOfDay % 60;
+  return `${`${h}`.padStart(2, "0")}:${`${m}`.padStart(2, "0")}`;
 }
 
 // Localized copy for the daily-question push (feature #5), keyed by the

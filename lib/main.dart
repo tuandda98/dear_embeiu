@@ -22,6 +22,7 @@ import 'providers/daily_question_provider.dart';
 import 'providers/mood_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/notification_inbox_provider.dart';
+import 'providers/partner_reminder_provider.dart';
 import 'providers/photo_provider.dart';
 import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
@@ -285,6 +286,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider<CustomRemindersProvider>.value(
           value: widget.customRemindersProvider,
         ),
+        ChangeNotifierProvider(create: (_) => PartnerReminderProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
