@@ -24,4 +24,4 @@ Tổng quát hoá feature hardcode "anh By → embe" (uống thuốc) thành tí
 - Cap 20 lịch/người (guard client; rules không đếm subcollection).
 
 ## Trạng thái
-💻 Dev XONG (2026-06-30, reshape về toggle-only): rules `partnerReminders` + CF `notifyPartnerReminderSet` + test emulator **197 pass** · client (model `partner_reminder` + `CustomReminder.notifyPartner` + service + `PartnerReminderProvider` chỉ-nhận + `CustomRemindersProvider` mirror + toggle form + wiring) · `flutter analyze` 0 · ✅ DEV deployed. ⏳ smoke-test 2 thiết bị. Chi tiết: [dev.md](dev.md).
+🚀 **SHIP trong release 1.4.0+15 (2026-06-30)** — toggle-only: rules `partnerReminders` + CF `notifyPartnerReminderSet` + test emulator **197 pass** · client (model `partner_reminder` + `CustomReminder.notifyPartner` + service + `PartnerReminderProvider` chỉ-nhận + `CustomRemindersProvider` mirror + toggle form + wiring) · `flutter analyze` 0 · ✅ **DEV + PROD deployed**. AAB+IPA build+verify xong, chờ user upload 2 store. ⏳ smoke-test 2 thiết bị thật. Chi tiết: [dev.md](dev.md).

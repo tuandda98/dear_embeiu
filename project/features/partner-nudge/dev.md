@@ -36,7 +36,12 @@ User làm rõ (qua ảnh form Lời nhắc riêng): muốn tính năng nhắc ng
 - analyze 0; rules-test **197 pass**; node -c functions OK.
 - ⚠️ DEV vẫn còn rule `nudges` + CF `notifyPartnerNudge` MỒ CÔI từ bản thử (deploy 2026-06-29) — vô hại (không client nào ghi `nudges`); dọn ở lần deploy DEV sau (redeploy rules + `firebase functions:delete notifyPartnerNudge`).
 
+## [2026-06-30] SHIP trong release 1.4.0+15
+- ✅ **PROD backend deployed** (snapshot `20260630T130417Z`): `deploy --only firestore:rules,functions:notifyPartnerReminderSet --project prod` (user uỷ quyền). rules-test 197 pass trước deploy.
+- ✅ AAB 56.4M ký `FF:EF:1E:27` vc15 + IPA 48M v1.4.0(15) `platform IOS` (clean trước build). Release notes `RELEASE_NOTES_1.4.0.md`.
+- ⏳ Chờ user upload 2 store + git commit/tag.
+
 ## Còn lại
-- ⏳ Deploy DEV: `firestore:rules` + `functions:notifyPartnerNudge,notifyPartnerReminderSet` (default project = tonyembeiu-dev). PROD chờ lệnh user.
-- ⏳ Smoke-test 2 thiết bị (A nudge → B push có nội dung; A đặt lịch → B confirm + đến giờ kêu local; sign-out B → band cancel).
-- 🔜 Fast-follow (chưa làm): CF cron backstop cho lịch khi B lâu không mở app.
+- ⏳ Smoke-test 2 thiết bị thật (A bật toggle → B nhận push xác nhận + đến giờ kêu local; sửa/xoá đồng bộ; sign-out B → band 3000–3049 cancel).
+- 🧹 Dọn DEV: rule `nudges` + CF `notifyPartnerNudge` mồ côi (redeploy DEV rules + `firebase functions:delete notifyPartnerNudge --project tonyembeiu-dev`).
+- 🔜 Fast-follow: CF cron backstop cho lịch khi B lâu không mở app.

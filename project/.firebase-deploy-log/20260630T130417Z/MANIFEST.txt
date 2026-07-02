@@ -1,0 +1,8 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu
+npx firebase-tools deploy --only firestore:rules,functions:notifyPartnerReminderSet --project prod 2>&1 | tail -30
+time_utc: 20260630T130417Z
+git_head: 8f3885a (release/1.3.2)
+dirty   : 2 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 8f3885a)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 8f3885a -- functions` rồi redeploy

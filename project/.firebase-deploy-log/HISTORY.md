@@ -47,3 +47,5 @@ echo "DEPLOY_EXIT=${PIPESTATUS[0]}"` · snapshot `20260608T064709Z/`
 - [20260621T044706Z] head=207dff5 dirty=21 exit=? · `tail -3 /private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/3dc7a9b5-3838-46ea-99ac-3fed44fa1b07/tasks/bxjc4wx1e.output | grep -iE "passing|failing" || echo "(rules-test exit 0)"; echo "=== DEPLOY PROD rules ==="; npx firebase-tools deploy --only firestore:rules --project prod 2>&1 | tail -15` · snapshot `20260621T044706Z/`
 - [20260629T163021Z] head=a3a6638 dirty=28 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu
 npx firebase-tools deploy --only firestore:rules,functions:notifyPartnerNudge,functions:notifyPartnerReminderSet 2>&1 | tail -45` · snapshot `20260629T163021Z/`
+- [20260630T130417Z] head=8f3885a dirty=2 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu
+npx firebase-tools deploy --only firestore:rules,functions:notifyPartnerReminderSet --project prod 2>&1 | tail -30` · snapshot `20260630T130417Z/`

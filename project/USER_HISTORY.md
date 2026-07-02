@@ -193,3 +193,28 @@
 - [08:14] [Image #1] là khi user A gửi lời nhắc thì, user B được thông báo dúng không ?
 - [08:26] ý tôi là lơì nhắc trong cài dặt, thêm 1 cái toggel cho phép gửi thông báo lơì nhắc cho người kia lúc tạo lời nhắc
 - [08:46] [Image #2] [Image #3] ý tôi nói là chỗ này có thêm 1 tính năng là nhắc người còn lại , xoá cái bạn vừa thêm nhắc người ấy
+
+
+---
+## Phien moi - 2026-06-30 19:55:47 (source: resume)
+- [19:56] /lead release giúp tôi
+- [20:07] <task-notification> <task-id>bgq10jvl1</task-id> <tool-use-id>toolu_01JTeC119xdAMJV2sNP4hjuk</tool-use-id> <output-file>/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/da6abb6e-eb5f-4858-b31d-5b1db1223ce0/tasks/bgq10jvl1.output</output-file> <status>completed</status> <summary>Background command "Clean + build AAB release (nền)" completed (exit code 0)</summary> </task-notification>
+- [20:13] <task-notification> <task-id>bx5e87qqd</task-id> <tool-use-id>toolu_01H8qtqzsxqd3MZNgJfZAnAg</tool-use-id> <output-file>/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/da6abb6e-eb5f-4858-b31d-5b1db1223ce0/tasks/bx5e87qqd.output</output-file> <status>completed</status> <summary>Background command "Build IPA release (nền)" completed (exit code 0)</summary> </task-notification>
+- [20:15] ✅ RELEASE 1.4.0+15 (partner-nudge + fix coupling): bump pubspec · analyze 0 · rules-test 197 · PROD backend deployed (partnerReminders rules + CF notifyPartnerReminderSet, snapshot 20260630T130417Z) · AAB 56.4M ký FF:EF:1E:27 vc15 · IPA 48M v1.4.0(15) platform IOS · release notes RELEASE_NOTES_1.4.0.md. Chờ user upload 2 store + git commit/tag.
+- [01:05] co gi moi thi noi sao
+- [01:08] [Image #4]
+
+
+---
+## Phien moi - 2026-07-01 08:42:57 (source: resume)
+
+
+---
+## Phien moi - 2026-07-02 00:33:07 (source: resume)
+- [00:33] vì sao app ko force update ?
+
+
+---
+## Phien moi - 2026-07-02 07:01:37 (source: resume)
+- [07:01] nâng minBuildNumber lên 15 giúp tôi
+- [08:36] commit và push luôn giúp tôi
