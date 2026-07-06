@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -160,6 +161,9 @@ class PushNotificationService {
           android: androidSettings,
           iOS: iosSettings,
         ),
+        // Tap on a banner we showed ourselves in the foreground → deep-link the
+        // same way a real push tap does (reuses the type/photoId routing).
+        onDidReceiveNotificationResponse: _handleLocalNotificationResponse,
       );
 
       final androidPlugin =
@@ -167,10 +171,17 @@ class PushNotificationService {
               AndroidFlutterLocalNotificationsPlugin>();
       await androidPlugin?.createNotificationChannel(_photoChannel);
 
+      // We render the foreground banner OURSELVES via a local notification (see
+      // _handleForegroundMessage) — on iOS the `flutter_local_notifications`
+      // plugin owns the UNUserNotificationCenter delegate, which silently
+      // disables FCM's own foreground auto-present, so relying on `alert: true`
+      // here made iOS show NOTHING while the app was open. Turn alert/sound off
+      // to defer entirely to our manual show (keeps a single banner on every
+      // platform, no duplicates); badge stays on for the app-icon count.
       await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-        alert: true,
+        alert: false,
         badge: true,
-        sound: true,
+        sound: false,
       );
 
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
@@ -392,9 +403,36 @@ class PushNotificationService {
   /// background tap, cold-start) since each routes a [RemoteMessage] here.
   /// Unknown/missing types are ignored (no tab change, no error).
   void _handleNotificationTap(RemoteMessage message) {
-    final type = message.data['type'];
-    // Photo deep-link: carry the photoId so the Gallery opens the exact photo.
-    final photoId = (message.data['photoId'] as String?)?.trim();
+    _applyRoute(
+      message.data['type'] as String?,
+      (message.data['photoId'] as String?)?.trim(),
+    );
+  }
+
+  /// Tap handler for a banner WE showed in the foreground via
+  /// [_localNotifications] (see [_handleForegroundMessage]). Its payload is the
+  /// JSON-encoded FCM `data` map, so we route by the same type/photoId as a real
+  /// push tap. Legacy/plain payloads (just the type string) are handled too.
+  void _handleLocalNotificationResponse(NotificationResponse response) {
+    final payload = response.payload;
+    if (payload == null || payload.isEmpty) {
+      return;
+    }
+    try {
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+      _applyRoute(
+        data['type'] as String?,
+        (data['photoId'] as String?)?.toString().trim(),
+      );
+    } catch (_) {
+      _applyRoute(payload, null);
+    }
+  }
+
+  /// Routes a notification (push tap OR a foreground banner tap) to the home tab
+  /// / deep-link target for its [type]. Unknown/absent types are ignored (no tab
+  /// change, no malformed analytics event).
+  void _applyRoute(String? type, String? photoId) {
     switch (type) {
       case 'photo_posted':
         NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
@@ -443,12 +481,25 @@ class PushNotificationService {
         return;
     }
     // Analytics — log only the known, normalised push type (an enum string,
-    // never any notification content).
-    AnalyticsService.instance.logNotificationOpened(type as String);
+    // never any notification content). `type` is non-null here (any null/unknown
+    // value returned early via the default branch above).
+    AnalyticsService.instance.logNotificationOpened(type!);
   }
 
+  /// Renders an in-app banner for a push that arrives while the app is in the
+  /// FOREGROUND — on BOTH Android and iOS.
+  ///
+  /// A foreground push is never auto-displayed by the OS: on Android the system
+  /// tray only shows `notification` payloads while the app is backgrounded, and
+  /// on iOS FCM's own `setForegroundNotificationPresentationOptions` is disabled
+  /// the moment `flutter_local_notifications` claims the notification-center
+  /// delegate (which it does in [initialize]). So for EVERY interaction type
+  /// (reaction ❤️, daily-question answer, chat, mood, photo, partner reminder…)
+  /// we must surface it ourselves here, or the partner sees nothing while their
+  /// app is open. Covers all types uniformly because it runs at the transport
+  /// layer (onMessage), not per notification kind.
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    if (!Platform.isAndroid) {
+    if (!_isSupportedPlatform) {
       return;
     }
 
@@ -467,6 +518,15 @@ class PushNotificationService {
         (message.messageId.hashCode ^ DateTime.now().millisecondsSinceEpoch) &
             0x7FFFFFFF;
 
+    // Carry the full FCM data map so a tap on this foreground banner deep-links
+    // exactly like a background push tap (routed in _handleLocalNotificationResponse).
+    String? payload;
+    try {
+      payload = jsonEncode(message.data);
+    } catch (_) {
+      payload = message.data['type'] as String?;
+    }
+
     await _localNotifications.show(
       notificationId,
       title,
@@ -480,7 +540,13 @@ class PushNotificationService {
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
         ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
       ),
+      payload: payload,
     );
   }
 }

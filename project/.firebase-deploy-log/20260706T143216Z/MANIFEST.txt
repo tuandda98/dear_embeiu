@@ -1,0 +1,7 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu; npx firebase-tools deploy --only functions:notifyDailyAnswer --project prod --force 2>&1 | tail -30
+time_utc: 20260706T143216Z
+git_head: a18e5a1 (release/1.3.2)
+dirty   : 10 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout a18e5a1)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout a18e5a1 -- functions` rồi redeploy

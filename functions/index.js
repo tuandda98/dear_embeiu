@@ -1046,6 +1046,30 @@ exports.notifyDailyAnswer = onDocumentCreated(
     }
     authorName = normalizeActorName(authorName);
 
+    // Did THIS answer complete the pair? The responses collection for today
+    // holds at most one doc per member (id === uid). If it now has both, the
+    // recipient (the partner) has ALREADY answered — so the push must NOT nudge
+    // them to "answer yours to unlock" (they did already). It becomes a neutral
+    // "you both answered, come read" ping instead. Fail-open to the nudge on any
+    // count error (an extra nudge is better than a silent wrong copy).
+    let bothAnswered = false;
+    try {
+      const date = `${event.params.date || ""}`.trim();
+      if (date) {
+        const countSnap = await db
+          .collection("couples").doc(coupleId)
+          .collection("dailyAnswers").doc(date)
+          .collection("responses")
+          .count().get();
+        bothAnswered = (countSnap.data().count || 0) >= 2;
+      }
+    } catch (err) {
+      logger.warn("Could not count daily responses; defaulting to answer nudge.", {
+        coupleId,
+        message: err && err.message,
+      });
+    }
+
     await writeInboxNotifications(recipientIds, {
       type: "daily_question",
       coupleId,
@@ -1056,7 +1080,7 @@ exports.notifyDailyAnswer = onDocumentCreated(
 
     const result = await sendToRecipientDevices(
       recipientIds,
-      (languageCode) => buildDailyAnswerText(languageCode, authorName),
+      (languageCode) => buildDailyAnswerText(languageCode, authorName, bothAnswered),
       {
         type: "daily_question",
         coupleId,
@@ -1980,24 +2004,28 @@ function formatMinuteOfDay(minuteOfDay) {
 
 // Localized copy for the daily-question push (feature #5), keyed by the
 // recipient device's languageCode. Unknown/missing codes fall back to
-// Vietnamese. Body is a gentle nudge to answer and unlock the reveal.
+// Vietnamese. `body` nudges a recipient who HASN'T answered yet to answer and
+// unlock the reveal; `bodyBoth` is used when the recipient has ALREADY answered
+// (this answer completed the pair) so we never tell them to answer again.
 const DAILY_QUESTION_COPY = {
   vi: {
     title: (author) => `${author} đã trả lời câu hỏi hôm nay 💞`,
     body: "Trả lời câu hỏi của bạn để mở khoá câu trả lời của người ấy nhé.",
+    bodyBoth: "Cả hai đã trả lời rồi — mở app xem câu trả lời của nhau nhé!",
   },
   en: {
     title: (name) => `${name} answered today's question 💞`,
     body: "Answer yours to unlock your partner's reply.",
+    bodyBoth: "You've both answered — open the app to read each other's replies!",
   },
 };
 
-function buildDailyAnswerText(languageCode, authorName) {
+function buildDailyAnswerText(languageCode, authorName, bothAnswered) {
   const code = `${languageCode || ""}`.trim().toLowerCase();
   const copy = DAILY_QUESTION_COPY[code] || DAILY_QUESTION_COPY.vi;
   return {
     title: copy.title(authorName),
-    body: copy.body,
+    body: bothAnswered ? copy.bodyBoth : copy.body,
   };
 }
 

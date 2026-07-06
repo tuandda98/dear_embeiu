@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -38,6 +36,10 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     duration: const Duration(milliseconds: 600),
   );
 
+  // Provider we listen to for the live reveal (partner's answer landing). Held
+  // so we can detach the listener in dispose.
+  DailyQuestionProvider? _daily;
+
   bool _confettiPlayed = false;
   bool _showRevealLottie = false;
   bool _revealExpanded = false;
@@ -63,9 +65,45 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
   void initState() {
     super.initState();
     final daily = context.read<DailyQuestionProvider>();
+    _daily = daily;
     _confettiPlayed = daily.hasRevealed;
     _revealExpanded = !daily.hasRevealed;
+    // Trigger the reveal celebration from a provider listener — the moment the
+    // partner's answer actually lands — instead of running side-effects inside
+    // build(). The old in-build trigger re-evaluated on every rebuild and made
+    // the transition stutter ("đơ").
+    daily.addListener(_onDailyChanged);
     _loadRevealSeen();
+  }
+
+  void _onDailyChanged() => _maybeCelebrateReveal();
+
+  /// Fires the once-a-day reveal celebration exactly once, guarded so it never
+  /// replays on a rebuild or a cold-start false→true re-derivation. Safe to call
+  /// from the provider listener or right after the per-day marker loads.
+  void _maybeCelebrateReveal() {
+    if (!mounted || _confettiPlayed || !_seenLoaded || _revealSeenToday) {
+      return;
+    }
+    final daily = _daily;
+    if (daily == null || !daily.hasRevealed) {
+      return;
+    }
+
+    _confettiPlayed = true;
+    _revealSeenToday = true;
+    _stampRevealSeen();
+    setState(() {
+      _showRevealLottie = true;
+      _revealExpanded = true;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _confetti.play();
+    });
+    Future.delayed(const Duration(milliseconds: 2600), () {
+      if (mounted) setState(() => _showRevealLottie = false);
+    });
   }
 
   Future<void> _loadRevealSeen() async {
@@ -80,6 +118,9 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     } catch (_) {
       if (mounted) setState(() => _seenLoaded = true);
     }
+    // Both may have already answered before this marker loaded (a reveal that
+    // raced the Hive read) — celebrate now, still gated by the once-a-day guard.
+    _maybeCelebrateReveal();
   }
 
   Future<void> _stampRevealSeen() async {
@@ -93,6 +134,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
 
   @override
   void dispose() {
+    _daily?.removeListener(_onDailyChanged);
     _confetti.dispose();
     super.dispose();
   }
@@ -115,26 +157,9 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     final isWaiting = widget.couple.isWaitingForPartner;
     final partnerName = _partnerName(l10n);
 
-    // Celebrate only a GENUINE first reveal today: not already played this
-    // session (_confettiPlayed), the per-day marker loaded, and not yet
-    // celebrated today (_revealSeenToday). Until the marker loads we hold off so
-    // a cold start's false→true transition can't replay a past celebration.
-    if (daily.hasRevealed &&
-        !_confettiPlayed &&
-        _seenLoaded &&
-        !_revealSeenToday) {
-      _confettiPlayed = true;
-      _revealSeenToday = true;
-      _showRevealLottie = true;
-      _revealExpanded = true;
-      _stampRevealSeen();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _confetti.play();
-      });
-      Future.delayed(const Duration(milliseconds: 2600), () {
-        if (mounted) setState(() => _showRevealLottie = false);
-      });
-    }
+    // The reveal celebration is triggered from _onDailyChanged (a live provider
+    // update), NOT here — build() must stay side-effect free so the transition
+    // renders smoothly.
 
     // States A & B: nobody answered / partner answered first → whole card opens
     // the answer sheet.
@@ -299,64 +324,15 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
       ];
     }
 
-    // B. Partner answered first — blurred teaser + unlock pill
+    // B. Partner answered first — a clean "locked" teaser. The old version blurred
+    // the partner's real (near-black) text over a light surface, which rendered a
+    // muddy grey-brown smudge and re-ran an expensive per-frame ImageFilter on the
+    // live transition (the "đơ + màu nâu" bug). Redaction bars in the brand
+    // lavender read just as clearly as "hidden answer" and cost nothing to paint.
     final teaser = daily.partnerAnswer;
     if (teaser != null) {
       return [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: Stack(
-            children: [
-              ExcludeSemantics(
-                child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-                    color: AppColors.surfaceLight,
-                    child: Text(
-                      teaser.text,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 15,
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: Container(
-                  alignment: Alignment.center,
-                  color: AppColors.white.withValues(alpha: 0.10),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        IconsaxPlusLinear.lock,
-                        size: 15,
-                        color: AppColors.accentLoveDeep,
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          l10n.dailyPartnerAnsweredTeaser(partnerName),
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        _lockedTeaser(l10n, partnerName),
         const SizedBox(height: 12),
         ComposePill(
           label: l10n.dailyAnswerToReveal,
@@ -441,6 +417,69 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
               _textLink(action, onTap: onTap),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// "Locked" preview shown when the partner answered first: brand-lavender
+  /// redaction bars (fake hidden text) + a lock row. No blur, no dark text — so
+  /// it never smudges into a brown blotch and paints in a single cheap frame.
+  Widget _lockedTeaser(AppLocalizations l10n, String partnerName) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.accentLavender.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppColors.accentLavender.withValues(alpha: 0.18),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _redactBar(1.0),
+          const SizedBox(height: 9),
+          _redactBar(0.88),
+          const SizedBox(height: 9),
+          _redactBar(0.55),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                IconsaxPlusLinear.lock,
+                size: 15,
+                color: AppColors.accentLoveDeep,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  l10n.dailyPartnerAnsweredTeaser(partnerName),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _redactBar(double widthFactor) {
+    return FractionallySizedBox(
+      alignment: Alignment.centerLeft,
+      widthFactor: widthFactor,
+      child: Container(
+        height: 11,
+        decoration: BoxDecoration(
+          color: AppColors.accentLavender.withValues(alpha: 0.22),
+          borderRadius: BorderRadius.circular(999),
         ),
       ),
     );

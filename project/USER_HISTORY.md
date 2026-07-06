@@ -218,3 +218,24 @@
 ## Phien moi - 2026-07-02 07:01:37 (source: resume)
 - [07:01] nâng minBuildNumber lên 15 giúp tôi
 - [08:36] commit và push luôn giúp tôi
+- [08:38] tag v1.4.0+15 luôn giúp tôi
+
+
+---
+## Phien moi - 2026-07-03 07:06:16 (source: startup)
+
+
+---
+## Phien moi - 2026-07-06 20:41:51 (source: startup)
+- [20:42] có những vấn đề sau :
+- [20:51] 1.  khi app đang mở, mà người thứ 2 bấm like ảnh hay trả lời câu hỏi hoặc tương tác vơí người thứ 1 thì noti đang không hiện thông báo, hãy check lại tất cả các trường hợp như vậy 2. khi user 1 trả loiừ câu hỏi và user 2 trả lơì câu hoir thì nội dung sẽ chỉ là user đã trả lời câu hỏi chứ không bắt người đã trả lời câu hỏi trả lời lại
+- [21:07] có cần release bản mới ko
+- [21:08] release bản mới và what news cho tôi
+- [21:09] còn 1 lỗi nữa là khi app đang mở mà người thứ 2 trả lời câu hỏi thì cái card nó bị đơ và hiện màu nâu hay gì đó, xử lý chưa mượt, check lại logic chỗ đó rồi xử lý mượt mà hơn
+- [21:17] release và what's next cho tôi sau đó deploy
+- [21:44] [Image #2]
+- [21:49] vd bây giờ tôi cạpa nhật min version thì production có bị làm sao ko ? vì app chuă realase
+- [21:51] chưa hiểu tính năg autoStoreForce ?giải thích
+- [21:52] 1.4.1(16) ?
+- [21:53] autoStoreForce có hieuẻ ko ?
+- [00:56] commit cho tôi
