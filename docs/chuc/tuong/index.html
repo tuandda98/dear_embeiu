@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#FFF0F5" />
+<title>Dear Embeiu</title>
+<meta property="og:title" content="Dear Embeiu" />
+<meta property="og:description" content="Mở ra xem nhé 💌" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#FF6B9D; --pink-deep:#E63956; --pink-light:#FFB6C1;
+  --pink-pale:#FFF0F5; --pink-mist:#FFE4EF; --cream:#FFFBF8;
+  --navy:#1A1A2E; --muted:#6B7280;
+  --font:'Quicksand',-apple-system,BlinkMacSystemFont,sans-serif;
+  --script:'Dancing Script',cursive;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);line-height:1.65;color:var(--navy);min-height:100vh;
+  background:
+    radial-gradient(60vw 50vw at 12% 0%, rgba(255,107,157,.16), transparent 60%),
+    radial-gradient(50vw 45vw at 88% 12%, rgba(255,182,193,.28), transparent 62%),
+    linear-gradient(180deg,var(--cream) 0%,var(--pink-pale) 55%,var(--pink-mist) 100%);
+  padding:40px 20px 70px}
+.wrap{max-width:640px;margin:0 auto}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+
+/* ── khoá ── */
+.gate{text-align:center;padding:60px 0}
+.gate h1{font-family:var(--script);font-size:clamp(34px,9vw,48px);line-height:1.15;
+  background:linear-gradient(120deg,var(--pink-deep),var(--pink));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.gate p{color:var(--muted);margin-top:12px;font-size:15.5px}
+.cd{display:flex;gap:9px;justify-content:center;margin-top:26px}
+.cd div{background:#fff;border:1.5px solid var(--pink-mist);border-radius:16px;
+  padding:14px 6px;min-width:68px;box-shadow:0 8px 22px rgba(255,107,157,.14)}
+.cd b{display:block;font-size:27px;color:var(--pink-deep);line-height:1;font-variant-numeric:tabular-nums}
+.cd span{display:block;font-size:10.5px;color:var(--muted);margin-top:5px;letter-spacing:.08em;text-transform:uppercase}
+
+/* ── đầu trang ── */
+.hero{text-align:center;margin-bottom:34px}
+.avatar{width:140px;height:140px;border-radius:50%;object-fit:cover;border:5px solid #fff;
+  box-shadow:0 16px 44px rgba(255,107,157,.34);animation:pop .9s cubic-bezier(.2,1.4,.35,1) both}
+@keyframes pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+.eyebrow{font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--pink-deep);
+  margin:18px 0 6px;font-weight:600}
+h1.big{font-family:var(--script);font-size:clamp(38px,10.5vw,58px);line-height:1.1;
+  background:linear-gradient(120deg,var(--pink-deep),var(--pink));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  padding-bottom:.1em}
+.sub{color:var(--muted);font-size:15.5px;margin-top:8px}
+.total{display:inline-block;margin-top:16px;background:#fff;border:1.5px solid var(--pink-mist);
+  border-radius:999px;padding:10px 22px;font-weight:700;color:var(--pink-deep);
+  box-shadow:0 8px 22px rgba(255,107,157,.16)}
+
+/* ── thiệp ── */
+.grid{display:flex;flex-direction:column;gap:14px}
+.note{background:#fff;border-radius:22px;padding:20px 20px 18px;position:relative;
+  box-shadow:0 12px 32px rgba(255,107,157,.14);border:1px solid rgba(255,182,193,.4);
+  opacity:0;transform:translateY(22px) rotate(var(--tilt,0deg));
+  transition:opacity .6s cubic-bezier(.22,.61,.36,1),transform .6s cubic-bezier(.22,.61,.36,1)}
+.note.in{opacity:1;transform:translateY(0) rotate(var(--tilt,0deg))}
+.note::before{content:'';position:absolute;left:0;top:22px;bottom:22px;width:4px;
+  border-radius:0 4px 4px 0;background:var(--accent,var(--pink))}
+.note .who{font-family:var(--script);font-size:25px;color:var(--accent,var(--pink-deep));line-height:1.2}
+.note .msg{margin-top:6px;font-size:15.5px;white-space:pre-wrap;word-break:break-word}
+.note .when{margin-top:10px;font-size:11.5px;color:#b9a3ad}
+.play{display:inline-flex;align-items:center;gap:8px;margin-top:12px;border:0;cursor:pointer;
+  font-family:inherit;font-weight:700;font-size:13.5px;padding:10px 18px;border-radius:999px;
+  background:var(--pink-mist);color:var(--pink-deep);transition:transform .15s}
+.play:active{transform:scale(.96)}
+.play.playing{background:var(--pink-deep);color:#fff}
+.del{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;
+  border:0;background:#fff0f3;color:var(--pink-deep);cursor:pointer;font-size:14px;line-height:1;
+  display:none}
+body.admin .del{display:block}
+
+.empty{text-align:center;color:var(--muted);padding:40px 10px}
+footer{text-align:center;margin-top:34px;font-size:12.5px;color:#c2adb6}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}
+  .note{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div class="wrap" id="app">
+  <div class="gate">
+    <h1>Sắp tới rồi…</h1>
+    <p>Có một thứ dành cho bạn, nhưng phải đúng ngày mới mở được cơ.</p>
+    <div class="cd">
+      <div><b id="d">–</b><span>ngày</span></div>
+      <div><b id="h">–</b><span>giờ</span></div>
+      <div><b id="m">–</b><span>phút</span></div>
+      <div><b id="s">–</b><span>giây</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const EP = 'https://us-central1-tonyembeiu.cloudfunctions.net/birthdayGreeting';
+const $ = s => document.querySelector(s);
+const KEY = new URLSearchParams(location.search).get('key') || '';
+const ACCENTS = ['#FF6B9D','#E63956','#A78BFA','#F59E0B','#10B981','#3B82F6','#EC4899'];
+const esc = s => (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+if (KEY) document.body.classList.add('admin');
+
+let unlockAt = Date.parse('2026-08-14T00:00:00+07:00');
+
+async function boot(){
+  try{
+    const r = await fetch(EP + '?action=wall' + (KEY ? '&key=' + encodeURIComponent(KEY) : ''));
+    if (r.status === 423){                       // máy chủ chưa cho xem
+      const d = await r.json();
+      if (d.unlockAt) unlockAt = d.unlockAt;
+      startCountdown();
+      return;
+    }
+    if (!r.ok) throw new Error(r.status);
+    render(await r.json());
+  }catch(e){
+    $('#app').innerHTML = '<div class="empty">Chưa tải được. Thử lại sau một chút nhé 🤍</div>';
+  }
+}
+
+function startCountdown(){
+  const pad = n => String(n).padStart(2,'0');
+  const tick = () => {
+    const left = unlockAt - Date.now();
+    if (left <= 0){ clearInterval(id); boot(); return; }   // tới giờ tự mở
+    const t = Math.floor(left/1000);
+    $('#d').textContent = Math.floor(t/86400);
+    $('#h').textContent = pad(Math.floor(t/3600)%24);
+    $('#m').textContent = pad(Math.floor(t/60)%60);
+    $('#s').textContent = pad(t%60);
+  };
+  const id = setInterval(tick, 1000); tick();
+}
+
+function render(data){
+  const list = data.greetings || [];
+  document.title = 'Chúc mừng sinh nhật Thảo 🎂';
+  $('#app').innerHTML = `
+    <div class="hero">
+      <img class="avatar" id="avatar" src="https://dearembeiu-birthday.web.app/assets/thao.jpg" alt="Thảo">
+      <div class="eyebrow">14 · 08 · 2026</div>
+      <h1 class="big">Chúc mừng sinh nhật<br>Thảo</h1>
+      <p class="sub">Mọi người có gửi lời chúc cho bạn nè 🤍</p>
+      <div class="total">${list.length} lời chúc</div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <footer>Gom lại bởi Anh By · dearembeiu.com</footer>`;
+  $('#avatar').addEventListener('error', () => { $('#avatar').style.display = 'none'; });
+
+  const grid = $('#grid');
+  if (!list.length){
+    grid.innerHTML = '<div class="empty">Chưa có lời chúc nào… nhưng chắc sắp có thôi 🤍</div>';
+    return;
+  }
+  list.forEach((g, i) => {
+    const el = document.createElement('div');
+    el.className = 'note';
+    el.style.setProperty('--accent', ACCENTS[i % ACCENTS.length]);
+    el.style.setProperty('--tilt', ((i % 2 ? 1 : -1) * (0.3 + (i % 3) * 0.25)).toFixed(2) + 'deg');
+    const when = g.createdAt
+      ? new Date(g.createdAt).toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'})
+      : '';
+    el.innerHTML =
+      `<button class="del" data-id="${g.id}" title="Xoá">✕</button>
+       <div class="who">${esc(g.name) || 'Một người giấu tên'}</div>
+       ${g.text ? `<div class="msg">${esc(g.text)}</div>` : ''}
+       ${g.hasAudio ? `<button class="play" data-id="${g.id}">▶︎ Nghe lời chúc</button>` : ''}
+       ${when ? `<div class="when">${when}</div>` : ''}`;
+    grid.appendChild(el);
+  });
+
+  // hiện dần khi cuộn tới
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  }), {threshold:.12});
+  grid.querySelectorAll('.note').forEach((n, i) => {
+    n.style.transitionDelay = Math.min(i, 6) * 70 + 'ms'; io.observe(n);
+  });
+
+  grid.addEventListener('click', onGridClick);
+  setTimeout(burst, 500);
+}
+
+let current = null;
+async function onGridClick(e){
+  const play = e.target.closest('.play');
+  const del = e.target.closest('.del');
+
+  if (play){
+    const id = play.dataset.id;
+    if (current){ current.pause(); current = null;
+      document.querySelectorAll('.play.playing').forEach(b => {
+        b.classList.remove('playing'); b.textContent = '▶︎ Nghe lời chúc'; }); }
+    play.textContent = 'Đang tải…';
+    try{
+      const r = await fetch(`${EP}?action=audio&id=${encodeURIComponent(id)}` +
+        (KEY ? '&key=' + encodeURIComponent(KEY) : ''));
+      const d = await r.json();
+      const a = new Audio(`data:${d.mime};base64,${d.b64}`);
+      current = a;
+      play.classList.add('playing'); play.textContent = '❚❚ Đang phát…';
+      a.onended = () => { play.classList.remove('playing'); play.textContent = '▶︎ Nghe lại'; current = null; };
+      await a.play();
+    }catch(err){
+      play.textContent = '▶︎ Nghe lời chúc';
+      alert('Không phát được đoạn ghi âm này.');
+    }
+    return;
+  }
+
+  if (del && KEY){
+    if (!confirm('Xoá lời chúc này?')) return;
+    try{
+      const r = await fetch(`${EP}?action=delete&id=${encodeURIComponent(del.dataset.id)}&key=${encodeURIComponent(KEY)}`,
+        {method:'POST'});
+      if (!r.ok) throw new Error(r.status);
+      del.closest('.note').remove();
+    }catch(err){ alert('Xoá không được.'); }
+  }
+}
+
+/* ── pháo giấy ── */
+const fx = $('#fx'), ctx = fx.getContext('2d');
+let parts = [], raf = null;
+function size(){ fx.width = innerWidth; fx.height = innerHeight; }
+size(); addEventListener('resize', size);
+function burst(){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const C = ['#FF6B9D','#FFB6C1','#E63956','#FFD79A','#A78BFA','#fff'];
+  for (let i = 0; i < 150; i++){
+    const a = Math.random()*Math.PI*2, s = 3+Math.random()*8;
+    parts.push({x:innerWidth/2, y:innerHeight*.32, vx:Math.cos(a)*s, vy:Math.sin(a)*s-3,
+      g:.17, s:5+Math.random()*6, life:1, col:C[(Math.random()*C.length)|0],
+      heart:Math.random()<.4, rot:Math.random()*6.3, vr:(Math.random()-.5)*.25});
+  }
+  if (!raf) tick2();
+}
+function heart(x,y,s,rot,col){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(rot); ctx.scale(s/16,s/16);
+  ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(0,4);
+  ctx.bezierCurveTo(-8,-4,-6,-11,0,-7); ctx.bezierCurveTo(6,-11,8,-4,0,4);
+  ctx.fill(); ctx.restore();
+}
+function tick2(){
+  ctx.clearRect(0,0,fx.width,fx.height);
+  parts = parts.filter(p => p.life > 0 && p.y < innerHeight+60);
+  for (const p of parts){
+    p.x+=p.vx; p.y+=p.vy; p.vy+=p.g; p.vx*=.99; p.rot+=p.vr; p.life-=.006;
+    ctx.globalAlpha = Math.max(0,p.life);
+    if (p.heart) heart(p.x,p.y,p.s*1.7,p.rot,p.col);
+    else { ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.col;
+      ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); }
+  }
+  ctx.globalAlpha = 1;
+  raf = parts.length ? requestAnimationFrame(tick2) : null;
+}
+
+boot();
+</script>
+</body>
+</html>

@@ -2046,3 +2046,172 @@ exports.birthdayWish = onRequest(
       }
     },
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// birthdayGreeting (2026-08-10) — tường lời chúc CÔNG KHAI cho bạn bè Thảo,
+// phục vụ trang https://dearembeiu.com/chuc
+//
+// TÁCH HẲN khỏi birthdayWish (collection riêng) để không trộn lẫn với ô điều
+// ước riêng tư trên trang sinh nhật cá nhân.
+//
+// Khoá theo thời gian đặt Ở MÁY CHỦ, không chỉ ở giao diện: trước 00:00 ngày
+// 14/08 giờ VN, endpoint TỪ CHỐI trả nội dung — Thảo có mò ra link sớm cũng
+// không đọc được. Riêng số đếm thì luôn trả (trang cho bạn bè cần khoe
+// "đã có N người chúc").
+//
+// Ghi âm lưu base64 trong Firestore (doc riêng, nạp khi bấm nghe) thay vì
+// Storage — tránh phải nới storage.rules trên prod.
+//
+//   POST   {name, text, audioB64?, audioMime?}  → gửi lời chúc
+//   GET    ?action=count                        → {count} (luôn cho)
+//   GET    ?action=wall[&key=…]                 → danh sách (chặn tới giờ mở)
+//   GET    ?action=audio&id=…[&key=…]           → base64 ghi âm
+//   POST   ?action=delete&id=…&key=…            → xoá 1 lời chúc
+// ─────────────────────────────────────────────────────────────────────────────
+const GREETING_COLLECTION = "birthdayGreetings";
+const GREETING_AUDIO_COLLECTION = "birthdayGreetingAudio";
+const GREETING_UNLOCK_MS = Date.parse("2026-08-14T00:00:00+07:00");
+const MAX_GREETINGS = 500;
+const MAX_NAME_LEN = 40;
+const MAX_GREETING_LEN = 400;
+const MAX_AUDIO_B64 = 400000; // ~300KB thô; 15 giây Opus chỉ tầm 45KB
+
+exports.birthdayGreeting = onRequest(
+    {region: "us-central1", cors: true, secrets: [BIRTHDAY_READ_KEY],
+      memory: "256MiB"},
+    async (req, res) => {
+      const db = admin.firestore();
+      const action = String(req.query.action || "");
+      const key = String(req.query.key || "");
+
+      const hasKey = () => {
+        const expected = BIRTHDAY_READ_KEY.value();
+        return Boolean(expected) && key === expected;
+      };
+      // chủ trang (có khoá) xem bất cứ lúc nào; người khác phải chờ tới giờ mở
+      const unlocked = () => hasKey() || Date.now() >= GREETING_UNLOCK_MS;
+
+      try {
+        if (req.method === "GET" && action === "count") {
+          const c = await db.collection(GREETING_COLLECTION).count().get();
+          res.json({count: c.data().count, unlockAt: GREETING_UNLOCK_MS});
+          return;
+        }
+
+        if (req.method === "GET" && action === "wall") {
+          if (!unlocked()) {
+            res.status(423).json({error: "locked", unlockAt: GREETING_UNLOCK_MS});
+            return;
+          }
+          const snap = await db.collection(GREETING_COLLECTION)
+              .orderBy("createdAt", "desc").limit(MAX_GREETINGS).get();
+          res.json({
+            count: snap.size,
+            greetings: snap.docs.map((d) => {
+              const g = d.data();
+              return {
+                id: d.id,
+                name: g.name || "",
+                text: g.text || "",
+                hasAudio: Boolean(g.hasAudio),
+                createdAt: g.createdAt ? g.createdAt.toDate().toISOString() : null,
+              };
+            }),
+          });
+          return;
+        }
+
+        if (req.method === "GET" && action === "audio") {
+          if (!unlocked()) {
+            res.status(423).json({error: "locked"});
+            return;
+          }
+          const id = String(req.query.id || "");
+          if (!id) {
+            res.status(400).json({error: "missing-id"});
+            return;
+          }
+          const doc = await db.collection(GREETING_AUDIO_COLLECTION).doc(id).get();
+          if (!doc.exists) {
+            res.status(404).json({error: "not-found"});
+            return;
+          }
+          res.json({b64: doc.data().b64, mime: doc.data().mime || "audio/webm"});
+          return;
+        }
+
+        if (req.method === "POST" && action === "delete") {
+          if (!hasKey()) {
+            res.status(403).json({error: "forbidden"});
+            return;
+          }
+          const id = String(req.query.id || "");
+          if (!id) {
+            res.status(400).json({error: "missing-id"});
+            return;
+          }
+          await db.collection(GREETING_COLLECTION).doc(id).delete();
+          await db.collection(GREETING_AUDIO_COLLECTION).doc(id).delete()
+              .catch(() => {});
+          logger.info("birthdayGreeting: đã xoá 1 lời chúc.", {id});
+          res.json({ok: true});
+          return;
+        }
+
+        if (req.method !== "POST") {
+          res.status(405).json({error: "method-not-allowed"});
+          return;
+        }
+
+        // ── gửi lời chúc ──
+        const body = req.body || {};
+        const name = String(body.name || "").trim().slice(0, MAX_NAME_LEN);
+        const text = String(body.text || "").trim();
+        const audioB64 = String(body.audioB64 || "");
+        const audioMime = String(body.audioMime || "audio/webm").slice(0, 60);
+
+        if (!name) {
+          res.status(400).json({error: "no-name"});
+          return;
+        }
+        if (!text && !audioB64) {
+          res.status(400).json({error: "empty"});
+          return;
+        }
+        if (text.length > MAX_GREETING_LEN) {
+          res.status(400).json({error: "too-long"});
+          return;
+        }
+        if (audioB64.length > MAX_AUDIO_B64) {
+          res.status(400).json({error: "audio-too-big"});
+          return;
+        }
+
+        const col = db.collection(GREETING_COLLECTION);
+        const total = await col.count().get();
+        if (total.data().count >= MAX_GREETINGS) {
+          logger.warn("birthdayGreeting: đã đạt trần, từ chối ghi thêm.");
+          res.status(429).json({error: "full"});
+          return;
+        }
+
+        const ref = await col.add({
+          name,
+          text,
+          hasAudio: Boolean(audioB64),
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        if (audioB64) {
+          await db.collection(GREETING_AUDIO_COLLECTION).doc(ref.id)
+              .set({b64: audioB64, mime: audioMime});
+        }
+
+        logger.info("birthdayGreeting: nhận 1 lời chúc.",
+            {name, len: text.length, audio: Boolean(audioB64)});
+        res.json({ok: true, id: ref.id});
+      } catch (err) {
+        logger.error("birthdayGreeting thất bại.", {error: String(err)});
+        res.status(500).json({error: "internal"});
+      }
+    },
+);
