@@ -93,6 +93,17 @@ Theo `../CLAUDE.md` mục 11 (Product roadmap):
 - Day streak (đã stubbed l10n)
 
 **NEXT**
+- 📌 **Couple Wrapped** — *user chốt sẽ làm, ghi nợ 2026-08-10.* Bản tổng kết tự động kiểu
+  Spotify Wrapped: 6–8 thẻ lướt ngang + nút xuất ảnh để chia sẻ. **Không cần data mới** —
+  tính hết từ Firestore đang có (`dailyAnswers` + `responses.answeredAt` + `photos` + `messages`).
+  Số liệu mẫu đã trích thật từ couple `qlAB4LKZCQV7MwB8SvPy` ngày 2026-08-10: 66/66 ngày cả hai
+  trả lời · 2.806 chữ (1.411 vs 1.395, chênh 0,6%) · ai trả lời trước 45–21 · giờ đỉnh 12h
+  (cụm 11–13h chiếm 1/3) · ngày 07/07 cả hai cùng viết "Vỡ Tan".
+  ⚠️ Ràng buộc phải xử lý: prod mới có 43 user / 17 couple và **chỉ 3 couple thực sự dùng
+  Daily Question** (66, 20, 16 câu) → phải có trạng thái cho couple ít data, đừng khoe
+  "5 ngày". Giá trị chính là **giữ chân + lan truyền** (thẻ thành tích khoe được, khác với
+  nội dung riêng tư không ai đăng), KHÔNG kỳ vọng tự kéo người mới khi tệp còn nhỏ.
+  Bước đề xuất: dựng demo web bơm data thật để xem trước, rồi mới đưa vào Flutter.
 - Home-screen widget
 - Daily question (có thể dùng AI/Claude API)
 - Shared calendar + đếm ngược sự kiện
