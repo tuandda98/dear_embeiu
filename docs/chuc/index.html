@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow" />
 <meta name="theme-color" content="#FFF0F5" />
 <title>Gửi lời chúc sinh nhật</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%8E%82%3C/text%3E%3C/svg%3E">
 <meta property="og:title" content="Gửi lời chúc sinh nhật 🎂" />
 <meta property="og:description" content="Viết vài dòng cho Thảo nhé — bí mật tới 14/08" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,6 +56,7 @@ h1{font-family:var(--script);font-size:clamp(36px,10vw,52px);line-height:1.1;
 /* ── thẻ nhập ── */
 .card{background:#fff;border-radius:26px;padding:26px 22px;
   box-shadow:0 20px 50px rgba(255,107,157,.16);border:1px solid rgba(255,182,193,.4)}
+.grouplabel{display:block;font-size:13.5px;font-weight:700;margin-bottom:8px;color:var(--navy)}
 label{display:block;font-size:13.5px;font-weight:700;margin-bottom:8px;color:var(--navy)}
 input[type=text],textarea{width:100%;font-family:inherit;font-size:16px;color:var(--navy);
   padding:14px 16px;border-radius:16px;border:1.5px solid #f0dbe4;background:#fffdfe;
@@ -132,12 +134,12 @@ footer{text-align:center;margin-top:28px;font-size:12.5px;color:#c2adb6}
     </div>
 
     <div class="field">
-      <label>Hoặc nói một câu cho Thảo nghe 🎙️</label>
+      <span class="grouplabel">Hoặc nói một câu cho Thảo nghe 🎙️</span>
       <div class="rec">
         <button class="recbtn" id="recbtn"><span class="dot"></span> Ghi âm 15 giây</button>
         <div class="recbar" id="recbar"><i></i></div>
         <div class="preview" id="preview">
-          <audio id="player" controls></audio>
+          <audio id="player" controls aria-label="Nghe thử đoạn ghi âm vừa ghi"></audio>
           <button class="redo" id="redo">Ghi lại</button>
         </div>
         <p class="hint" id="rechint">Không bắt buộc — nhưng nghe giọng thật thì thích lắm</p>
