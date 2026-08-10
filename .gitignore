@@ -75,3 +75,9 @@ ios/Runner/GoogleService-Info.plist
 # Figma integration — chứa API token, không commit
 .env.figma
 figma_screenshots/
+# Trang sinh nhật riêng tư — deploy thẳng lên Firebase Hosting site
+# "dearembeiu-birthday", TUYỆT ĐỐI không commit (repo này public).
+docs/birthday/
+
+# cache deploy của Firebase CLI
+.firebase/

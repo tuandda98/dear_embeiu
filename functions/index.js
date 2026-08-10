@@ -2,7 +2,7 @@ const admin = require("firebase-admin");
 const {logger} = require("firebase-functions");
 const {onDocumentCreated, onDocumentUpdated, onDocumentWritten} = require("firebase-functions/v2/firestore");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
-const {onCall, HttpsError} = require("firebase-functions/v2/https");
+const {onCall, onRequest, HttpsError} = require("firebase-functions/v2/https");
 const {defineSecret} = require("firebase-functions/params");
 const {buildVerificationEmail} = require("./emails/verification_email");
 const {buildPasswordResetEmail} = require("./emails/password_reset_email");
@@ -1955,3 +1955,94 @@ exports.sendCustomPasswordResetEmail = onCall(
   },
 );
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// birthdayWish (2026-08-10) — endpoint cho trang sinh nhật tĩnh
+// (docs/birthday/<slug>/) gửi "điều ước" về, và cho chủ trang đọc lại.
+//
+// Vì sao là onRequest chứ không phải onCall: trang là HTML tĩnh, không nhúng
+// Firebase SDK và người viết KHÔNG đăng nhập. Function ghi bằng quyền admin nên
+// không cần nới rules Firestore cho client, cũng không cần bật đăng nhập ẩn danh.
+//
+//   POST  {text, from}      → ghi 1 điều ước (không cần khoá)
+//   GET   ?key=<BIRTHDAY_READ_KEY> → đọc lại toàn bộ (khoá nằm ở Secret Manager,
+//                                    KHÔNG commit vào repo vì repo là public)
+//
+// Chống spam: giới hạn độ dài, và chặn khi đã quá MAX_WISHES bản ghi.
+// ─────────────────────────────────────────────────────────────────────────────
+const BIRTHDAY_READ_KEY = defineSecret("BIRTHDAY_READ_KEY");
+const WISH_COLLECTION = "birthdayWishes";
+const MAX_WISH_LEN = 500;
+const MAX_WISHES = 200;
+
+exports.birthdayWish = onRequest(
+    {region: "us-central1", cors: true, secrets: [BIRTHDAY_READ_KEY]},
+    async (req, res) => {
+      try {
+        if (req.method === "GET") {
+          const key = String(req.query.key || "");
+          const expected = BIRTHDAY_READ_KEY.value();
+          if (!expected || key !== expected) {
+            res.status(403).json({error: "forbidden"});
+            return;
+          }
+          const snap = await admin.firestore()
+              .collection(WISH_COLLECTION)
+              .orderBy("createdAt", "desc")
+              .limit(MAX_WISHES)
+              .get();
+          res.json({
+            count: snap.size,
+            wishes: snap.docs.map((d) => {
+              const w = d.data();
+              return {
+                text: w.text,
+                from: w.from || "",
+                createdAt: w.createdAt ?
+                  w.createdAt.toDate().toISOString() : null,
+              };
+            }),
+          });
+          return;
+        }
+
+        if (req.method !== "POST") {
+          res.status(405).json({error: "method-not-allowed"});
+          return;
+        }
+
+        const body = req.body || {};
+        const text = String(body.text || "").trim();
+        const from = String(body.from || "").trim().slice(0, 60);
+
+        if (!text) {
+          res.status(400).json({error: "empty"});
+          return;
+        }
+        if (text.length > MAX_WISH_LEN) {
+          res.status(400).json({error: "too-long"});
+          return;
+        }
+
+        const col = admin.firestore().collection(WISH_COLLECTION);
+        const existing = await col.count().get();
+        if (existing.data().count >= MAX_WISHES) {
+          logger.warn("birthdayWish: đã đạt trần bản ghi, từ chối ghi thêm.");
+          res.status(429).json({error: "full"});
+          return;
+        }
+
+        await col.add({
+          text,
+          from,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        logger.info("birthdayWish: nhận được 1 điều ước.", {len: text.length});
+        res.json({ok: true});
+      } catch (err) {
+        logger.error("birthdayWish thất bại.", {error: String(err)});
+        res.status(500).json({error: "internal"});
+      }
+    },
+);
