@@ -2088,8 +2088,9 @@ exports.birthdayGreeting = onRequest(
         const expected = BIRTHDAY_READ_KEY.value();
         return Boolean(expected) && key === expected;
       };
-      // chủ trang (có khoá) xem bất cứ lúc nào; người khác phải chờ tới giờ mở
-      const unlocked = () => hasKey() || Date.now() >= GREETING_UNLOCK_MS;
+      // [2026-08-11] Trang đổi thành CÔNG KHAI: ai vào cũng đọc được hết lời
+      // chúc, không chờ tới 14/08 nữa. Giữ hàm để dễ bật lại khoá nếu cần.
+      const unlocked = () => true;
 
       try {
         if (req.method === "GET" && action === "count") {
@@ -2170,10 +2171,7 @@ exports.birthdayGreeting = onRequest(
         const audioB64 = String(body.audioB64 || "");
         const audioMime = String(body.audioMime || "audio/webm").slice(0, 60);
 
-        if (!name) {
-          res.status(400).json({error: "no-name"});
-          return;
-        }
+        // tên để trống = gửi ẩn danh (user chốt 2026-08-11)
         if (!text && !audioB64) {
           res.status(400).json({error: "empty"});
           return;

@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="robots" content="noindex, nofollow" />
 <meta name="theme-color" content="#FFF0F5" />
-<title>Gửi lời chúc sinh nhật</title>
+<title>Thảo · 14 tháng 8</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%8E%82%3C/text%3E%3C/svg%3E">
-<meta property="og:title" content="Gửi lời chúc sinh nhật 🎂" />
-<meta property="og:description" content="Viết vài dòng cho Thảo nhé — bí mật tới 14/08" />
+<meta property="og:title" content="Thảo · 14 tháng 8" />
+<meta property="og:description" content="Một trang nhỏ kể về Thảo — và chỗ để bạn gửi lời chúc 💌" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
@@ -16,209 +16,352 @@
 :root{
   --pink:#FF6B9D; --pink-deep:#E63956; --pink-light:#FFB6C1;
   --pink-pale:#FFF0F5; --pink-mist:#FFE4EF; --cream:#FFFBF8;
-  --navy:#1A1A2E; --muted:#6B7280;
+  --navy:#1A1A2E; --muted:#6B7280; --line:#F3D9E3;
   --font:'Quicksand',-apple-system,BlinkMacSystemFont,sans-serif;
   --script:'Dancing Script',cursive;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
-body{font-family:var(--font);line-height:1.65;color:var(--navy);
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{font-family:var(--font);line-height:1.65;color:var(--navy);min-height:100vh;
   background:
-    radial-gradient(60vw 50vw at 12% 0%, rgba(255,107,157,.16), transparent 60%),
-    radial-gradient(50vw 45vw at 88% 12%, rgba(255,182,193,.28), transparent 62%),
-    linear-gradient(180deg,var(--cream) 0%,var(--pink-pale) 55%,var(--pink-mist) 100%);
-  min-height:100vh;padding:36px 20px 60px}
-.wrap{max-width:560px;margin:0 auto}
+    radial-gradient(60vw 50vw at 12% 0%, rgba(255,107,157,.14), transparent 60%),
+    radial-gradient(50vw 45vw at 88% 10%, rgba(255,182,193,.26), transparent 62%),
+    linear-gradient(180deg,var(--cream) 0%,var(--pink-pale) 45%,var(--pink-mist) 100%);
+  background-attachment:fixed}
+.wrap{max-width:620px;margin:0 auto;padding:0 20px}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
 
-/* ── đầu trang ── */
-.hero{text-align:center;margin-bottom:30px}
-.avatar{width:132px;height:132px;border-radius:50%;object-fit:cover;
-  border:5px solid #fff;box-shadow:0 16px 40px rgba(255,107,157,.32);
-  animation:pop .8s cubic-bezier(.2,1.4,.35,1) both}
-@keyframes pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
-.eyebrow{font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--pink-deep);margin:18px 0 6px;font-weight:600}
-h1{font-family:var(--script);font-size:clamp(36px,10vw,52px);line-height:1.1;
+/* ═════ MỞ ĐẦU ═════ */
+.hero{text-align:center;padding:52px 0 20px}
+.avatar{width:150px;height:150px;border-radius:50%;object-fit:cover;border:6px solid #fff;
+  box-shadow:0 18px 46px rgba(255,107,157,.32);
+  animation:pop .9s cubic-bezier(.2,1.4,.35,1) both}
+@keyframes pop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
+.eyebrow{font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--pink-deep);
+  margin:20px 0 4px;font-weight:600}
+h1{font-family:var(--script);font-size:clamp(46px,14vw,74px);line-height:1;
   background:linear-gradient(120deg,var(--pink-deep),var(--pink));
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-  padding-bottom:.1em}
-.lead{color:var(--muted);font-size:15.5px;margin-top:10px}
-.secret{display:inline-flex;align-items:center;gap:8px;margin-top:16px;
-  background:#fff;border:1.5px solid var(--pink-mist);border-radius:999px;
-  padding:9px 18px;font-size:13.5px;color:var(--pink-deep);font-weight:600;
-  box-shadow:0 6px 18px rgba(255,107,157,.14)}
+  padding-bottom:.08em}
+.age{margin-top:6px;font-size:16px;color:var(--muted)}
+.scrolldown{margin-top:26px;font-size:13px;color:var(--muted);animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 
-/* ── đếm số người ── */
-.count{text-align:center;margin:22px 0 26px;font-size:14.5px;color:var(--muted)}
-.count b{font-size:30px;color:var(--pink-deep);font-family:var(--script);
-  display:inline-block;vertical-align:-4px;margin-right:4px}
+/* ═════ DÒNG THỜI GIAN ═════ */
+.timeline{position:relative;padding:34px 0 10px;margin-left:26px}
+.timeline::before{content:'';position:absolute;left:0;top:0;bottom:70px;width:2px;
+  background:linear-gradient(180deg,transparent,var(--line) 6%,var(--line) 94%,transparent)}
+.step{position:relative;padding-left:30px;margin-bottom:36px;
+  opacity:0;transform:translateY(24px);
+  transition:opacity .7s cubic-bezier(.22,.61,.36,1),transform .7s cubic-bezier(.22,.61,.36,1)}
+.step.in{opacity:1;transform:none}
+.step::before{content:'';position:absolute;left:-6px;top:7px;width:14px;height:14px;border-radius:50%;
+  background:#fff;border:3px solid var(--pink);box-shadow:0 0 0 4px var(--pink-pale)}
+.step.big::before{background:var(--pink-deep);border-color:var(--pink-deep)}
+.yr{font-family:var(--script);font-size:27px;color:var(--pink-deep);line-height:1.1}
+.when{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:#bda3af;margin-top:2px}
+.step h3{font-size:17px;margin-top:7px}
+.step p{font-size:15px;color:var(--muted);margin-top:5px}
+.shot{margin-top:13px;border-radius:20px;overflow:hidden;background:#fff;
+  box-shadow:0 14px 34px rgba(255,107,157,.16);border:1px solid rgba(255,182,193,.4)}
+.shot img{width:100%;display:block}
+/* chương chưa có ảnh — vẫn đẹp, không vỡ khung */
+.soon{margin-top:13px;border-radius:20px;padding:26px 20px;text-align:center;
+  background:linear-gradient(140deg,#fff,#fff6f9);
+  border:1.5px dashed var(--pink-light);color:#c9a9b7;font-size:13.5px}
+.soon b{display:block;font-family:var(--script);font-size:34px;color:var(--pink-light);margin-bottom:2px}
 
-/* ── thẻ nhập ── */
-.card{background:#fff;border-radius:26px;padding:26px 22px;
-  box-shadow:0 20px 50px rgba(255,107,157,.16);border:1px solid rgba(255,182,193,.4)}
-.grouplabel{display:block;font-size:13.5px;font-weight:700;margin-bottom:8px;color:var(--navy)}
-label{display:block;font-size:13.5px;font-weight:700;margin-bottom:8px;color:var(--navy)}
+/* ═════ LỜI CHÚC ═════ */
+.sec{padding:16px 0 60px}
+.sec-head{text-align:center;margin-bottom:26px}
+.sec-head h2{font-family:var(--script);font-size:clamp(34px,9vw,46px);
+  background:linear-gradient(120deg,var(--pink-deep),var(--pink));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sec-head p{color:var(--muted);font-size:15px;margin-top:4px}
+
+.card{background:#fff;border-radius:26px;padding:24px 20px;
+  box-shadow:0 20px 50px rgba(255,107,157,.15);border:1px solid rgba(255,182,193,.4)}
+.lbl{display:block;font-size:13.5px;font-weight:700;margin-bottom:8px}
 input[type=text],textarea{width:100%;font-family:inherit;font-size:16px;color:var(--navy);
-  padding:14px 16px;border-radius:16px;border:1.5px solid #f0dbe4;background:#fffdfe;
-  outline:none;transition:border-color .2s,box-shadow .2s}
-textarea{min-height:130px;resize:vertical;line-height:1.6}
+  padding:14px 16px;border-radius:16px;border:1.5px solid #f0dbe4;background:#fffdfe;outline:none;
+  transition:border-color .2s,box-shadow .2s}
+textarea{min-height:120px;resize:vertical;line-height:1.6}
 input:focus,textarea:focus{border-color:var(--pink);box-shadow:0 0 0 4px rgba(255,107,157,.13)}
 ::placeholder{color:#c9b3bd}
-.field{margin-bottom:18px}
-.counter{text-align:right;font-size:12px;color:#b9a3ad;margin-top:6px}
+.field{margin-bottom:16px}
+.sub{font-size:12px;color:#b9a3ad;margin-top:6px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.anon{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);cursor:pointer;user-select:none}
+.anon input{width:17px;height:17px;accent-color:var(--pink-deep)}
 
-/* ── ghi âm ── */
-.rec{border:1.5px dashed var(--pink-light);border-radius:18px;padding:16px;
-  background:#fff9fb;text-align:center}
+.rec{border:1.5px dashed var(--pink-light);border-radius:18px;padding:15px;background:#fff9fb;text-align:center}
 .rec .hint{font-size:12.5px;color:var(--muted);margin-top:8px}
-.recbtn{display:inline-flex;align-items:center;gap:9px;border:0;cursor:pointer;
-  font-family:inherit;font-weight:700;font-size:14.5px;padding:12px 22px;border-radius:999px;
-  background:var(--pink-mist);color:var(--pink-deep);transition:transform .15s}
-.recbtn:active{transform:scale(.97)}
+.recbtn{display:inline-flex;align-items:center;gap:9px;border:0;cursor:pointer;font-family:inherit;
+  font-weight:700;font-size:14.5px;padding:12px 22px;border-radius:999px;
+  background:var(--pink-mist);color:var(--pink-deep)}
 .recbtn.on{background:var(--pink-deep);color:#fff;animation:rec 1.2s ease-in-out infinite}
 @keyframes rec{0%,100%{box-shadow:0 0 0 0 rgba(230,57,86,.5)}50%{box-shadow:0 0 0 12px rgba(230,57,86,0)}}
 .dot{width:9px;height:9px;border-radius:50%;background:currentColor}
-.recbar{height:6px;border-radius:999px;background:#f3dde5;margin-top:14px;overflow:hidden;display:none}
+.recbar{height:6px;border-radius:999px;background:#f3dde5;margin-top:13px;overflow:hidden;display:none}
 .recbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink-light),var(--pink-deep));transition:width .1s linear}
-.preview{margin-top:14px;display:none}
+.preview{margin-top:13px;display:none}
 .preview audio{width:100%}
 .redo{background:none;border:0;color:var(--muted);font-family:inherit;font-size:13px;
   text-decoration:underline;cursor:pointer;margin-top:8px}
 
-/* ── nút gửi ── */
-.send{width:100%;margin-top:22px;border:0;cursor:pointer;font-family:inherit;font-weight:700;
+.send{width:100%;margin-top:18px;border:0;cursor:pointer;font-family:inherit;font-weight:700;
   font-size:16.5px;color:#fff;padding:17px;border-radius:999px;
   background:linear-gradient(135deg,var(--pink),var(--pink-deep));
-  box-shadow:0 14px 32px rgba(255,107,157,.36);transition:transform .18s,box-shadow .18s}
+  box-shadow:0 14px 32px rgba(255,107,157,.36)}
 .send:active{transform:scale(.985)}
-.send:disabled{opacity:.55;cursor:default}
-.msg{text-align:center;font-size:13.5px;margin-top:12px;min-height:20px;color:var(--pink-deep)}
+.send:disabled{opacity:.55}
+.msg{text-align:center;font-size:13.5px;margin-top:10px;min-height:20px;color:var(--pink-deep)}
+.done{text-align:center;padding:12px 4px}
+.done .big{font-family:var(--script);font-size:40px;color:var(--pink-deep);line-height:1.15}
+.done p{color:var(--muted);font-size:15px;margin-top:8px}
+.again{margin-top:18px;background:var(--pink-mist);color:var(--pink-deep);border:0;font-family:inherit;
+  font-weight:700;font-size:14.5px;padding:13px 26px;border-radius:999px;cursor:pointer}
 
-/* ── xong ── */
-.done{text-align:center;padding:16px 4px}
-.done .big{font-family:var(--script);font-size:42px;color:var(--pink-deep);line-height:1.15}
-.done p{color:var(--muted);font-size:15px;margin-top:10px}
-.again{margin-top:20px;background:var(--pink-mist);color:var(--pink-deep);border:0;
-  font-family:inherit;font-weight:700;font-size:14.5px;padding:13px 26px;border-radius:999px;cursor:pointer}
-
-footer{text-align:center;margin-top:28px;font-size:12.5px;color:#c2adb6}
-#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ═════ TƯỜNG ═════ */
+.wallhead{text-align:center;margin:44px 0 18px}
+.wallhead .n{display:inline-block;background:#fff;border:1.5px solid var(--pink-mist);
+  border-radius:999px;padding:10px 24px;font-weight:700;color:var(--pink-deep);
+  box-shadow:0 8px 22px rgba(255,107,157,.16)}
+.notes{display:flex;flex-direction:column;gap:13px}
+.note{background:#fff;border-radius:22px;padding:19px 19px 16px;position:relative;
+  box-shadow:0 12px 30px rgba(255,107,157,.13);border:1px solid rgba(255,182,193,.4);
+  opacity:0;transform:translateY(20px) rotate(var(--tilt,0deg));
+  transition:opacity .6s cubic-bezier(.22,.61,.36,1),transform .6s cubic-bezier(.22,.61,.36,1)}
+.note.in{opacity:1;transform:translateY(0) rotate(var(--tilt,0deg))}
+.note::before{content:'';position:absolute;left:0;top:20px;bottom:20px;width:4px;
+  border-radius:0 4px 4px 0;background:var(--accent,var(--pink))}
+.note .who{font-family:var(--script);font-size:24px;color:var(--accent,var(--pink-deep));line-height:1.2}
+.note .who.anon{font-family:var(--font);font-size:14.5px;font-weight:700;opacity:.75}
+.note .txt{margin-top:5px;font-size:15.5px;white-space:pre-wrap;word-break:break-word}
+.note .when2{margin-top:9px;font-size:11.5px;color:#b9a3ad}
+.play{display:inline-flex;align-items:center;gap:8px;margin-top:11px;border:0;cursor:pointer;
+  font-family:inherit;font-weight:700;font-size:13.5px;padding:9px 17px;border-radius:999px;
+  background:var(--pink-mist);color:var(--pink-deep)}
+.play.playing{background:var(--pink-deep);color:#fff}
+.del{position:absolute;top:9px;right:9px;width:27px;height:27px;border-radius:50%;border:0;
+  background:#fff0f3;color:var(--pink-deep);cursor:pointer;font-size:13px;line-height:1;display:none}
+body.admin .del{display:block}
+.empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:15px}
+footer{text-align:center;padding:10px 20px 46px;font-size:12.5px;color:#c2adb6}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}
+  .step,.note{opacity:1;transform:none}}
 </style>
 </head>
 <body>
 <canvas id="fx"></canvas>
+
 <div class="wrap">
-
   <div class="hero">
-    <img class="avatar" id="avatar"
-         src="https://dearembeiu-birthday.web.app/assets/thao.jpg" alt="Thảo">
-    <div class="eyebrow">14 · 08 · 2026</div>
-    <h1>Sinh nhật Thảo</h1>
-    <p class="lead">Viết cho Thảo vài dòng nhé — mấy lời này sẽ được gom lại thành một tấm thiệp chung.</p>
-    <div class="secret">🤫 Thảo chưa xem được đâu, tới đúng ngày mới mở</div>
+    <img class="avatar" id="avatar" src="https://dearembeiu-birthday.web.app/assets/thao.jpg" alt="Thảo">
+    <div class="eyebrow">14 · 08 · 1998</div>
+    <h1>Thảo</h1>
+    <p class="age" id="age">—</p>
+    <p class="scrolldown">cuộn xuống nhé ↓</p>
   </div>
 
-  <p class="count" id="count"><b>–</b> người đã gửi lời chúc</p>
+  <div class="timeline" id="timeline"></div>
 
-  <div class="card" id="card">
-    <div class="field">
-      <label for="name">Tên của bạn</label>
-      <input type="text" id="name" maxlength="40" placeholder="Thảo sẽ biết là ai nhé" autocomplete="name">
+  <section class="sec">
+    <div class="sec-head">
+      <h2>Gửi Thảo một lời</h2>
+      <p>Ai cũng viết được, ai cũng đọc được. Ghi tên hay ẩn danh đều ok.</p>
     </div>
 
-    <div class="field">
-      <label for="text">Lời chúc</label>
-      <textarea id="text" maxlength="400" placeholder="Chúc Thảo tuổi mới…"></textarea>
-      <div class="counter"><span id="len">0</span>/400</div>
-    </div>
-
-    <div class="field">
-      <span class="grouplabel">Hoặc nói một câu cho Thảo nghe 🎙️</span>
-      <div class="rec">
-        <button class="recbtn" id="recbtn"><span class="dot"></span> Ghi âm 15 giây</button>
-        <div class="recbar" id="recbar"><i></i></div>
-        <div class="preview" id="preview">
-          <audio id="player" controls aria-label="Nghe thử đoạn ghi âm vừa ghi"></audio>
-          <button class="redo" id="redo">Ghi lại</button>
-        </div>
-        <p class="hint" id="rechint">Không bắt buộc — nhưng nghe giọng thật thì thích lắm</p>
+    <div class="card" id="form">
+      <div class="field">
+        <label class="lbl" for="name">Tên của bạn</label>
+        <input type="text" id="name" maxlength="40" placeholder="Để trống cũng được nhé" autocomplete="name">
+        <label class="anon" style="margin-top:10px">
+          <input type="checkbox" id="anon"> Gửi ẩn danh
+        </label>
       </div>
+
+      <div class="field">
+        <label class="lbl" for="text">Lời chúc</label>
+        <textarea id="text" maxlength="400" placeholder="Chúc Thảo tuổi mới…"></textarea>
+        <div class="row"><span></span><span class="sub"><b id="len">0</b>/400</span></div>
+      </div>
+
+      <div class="field">
+        <span class="lbl">Hoặc nói một câu cho Thảo nghe 🎙️</span>
+        <div class="rec">
+          <button class="recbtn" id="recbtn"><span class="dot"></span> Ghi âm 15 giây</button>
+          <div class="recbar" id="recbar"><i></i></div>
+          <div class="preview" id="preview">
+            <audio id="player" controls aria-label="Nghe thử đoạn vừa ghi"></audio>
+            <button class="redo" id="redo">Ghi lại</button>
+          </div>
+          <p class="hint" id="rechint">Không bắt buộc — nhưng nghe giọng thật thì thích lắm</p>
+        </div>
+      </div>
+
+      <button class="send" id="send">Gửi lời chúc 💌</button>
+      <p class="msg" id="msg"></p>
     </div>
 
-    <button class="send" id="send">Gửi lời chúc 💌</button>
-    <p class="msg" id="msg"></p>
-  </div>
+    <div class="wallhead"><span class="n" id="count">đang tải…</span></div>
+    <div class="notes" id="notes"></div>
+  </section>
 
-  <footer>Một món quà nhỏ từ Dear Embeiu</footer>
+  <footer>Làm bởi Anh By · dearembeiu.com</footer>
 </div>
 
 <script>
+/* ══════════════════════════════════════════════════════════════
+   CẤU HÌNH — sửa ở đây là đủ.
+   Chương nào chưa có ảnh thì để photo:'' , trang vẫn hiển thị đẹp.
+   Ảnh mới: bỏ file vào docs/birthday/assets/ rồi deploy Firebase,
+   đường dẫn là https://dearembeiu-birthday.web.app/assets/<tên>.jpg
+   ══════════════════════════════════════════════════════════════ */
+const A = 'https://dearembeiu-birthday.web.app/assets/';
+const CONFIG = {
+  name: 'Thảo',
+  birth: '1998-08-14',
+  timeline: [
+    {yr:'1998', when:'14 tháng 8', big:true,
+     title:'Thảo có mặt trên đời',
+     text:'Một ngày mùa hè, thế giới có thêm một người mà sau này rất nhiều người sẽ thương.',
+     photo:'', slot:true},
+    {yr:'Tuổi thơ', when:'những năm 2000',
+     title:'Con bé hay cười',
+     text:'Chỗ này đang chờ một tấm ảnh hồi nhỏ.',
+     photo:'', slot:true},
+    {yr:'Đi học', when:'rồi lớn dần',
+     title:'Lớn lên từng ngày',
+     text:'Chỗ này cũng đang chờ ảnh.',
+     photo:'', slot:true},
+    {yr:'2020', when:'lần đầu quen',
+     title:'Hai người biết nhau',
+     text:'Rồi lạc nhau. Sáu năm trôi qua như thế.',
+     photo:'', slot:false},
+    {yr:'2026', when:'16 tháng 2',
+     title:'Những ngày rực rỡ',
+     text:'Đi nhiều, cười nhiều, và xinh hơn mỗi ngày.',
+     photo: A + 'ig10.jpg'},
+    {yr:'2026', when:'18 tháng 2',
+     title:'Nắng và cây xanh',
+     text:'',
+     photo: A + 'ig09.jpg'},
+    {yr:'2026', when:'7 tháng 3',
+     title:'Hội An mùa đèn lồng',
+     text:'',
+     photo: A + 'ig07.jpg'},
+    {yr:'2026', when:'14 tháng 3',
+     title:'Phố cổ, tường vàng',
+     text:'',
+     photo: A + 'ig05.jpg'},
+    {yr:'2026', when:'18 tháng 5',
+     title:'Đi thật xa',
+     text:'',
+     photo: A + 'ig04.jpg'},
+    {yr:'2026', when:'20 tháng 5',
+     title:'Nắng phương xa',
+     text:'',
+     photo: A + 'ig03.jpg'},
+    {yr:'2026', when:'28 tháng 5',
+     title:'Một buổi sáng đẹp',
+     text:'',
+     photo: A + 'ig01.jpg'},
+    {yr:'2026', when:'14 tháng 8', big:true,
+     title:'Sinh nhật thứ 28',
+     text:'Và hôm nay là ngày của Thảo. Kéo xuống chút nữa, mọi người có gửi lời chúc nè.',
+     photo:'', slot:false},
+  ]
+};
+
 const EP = 'https://us-central1-tonyembeiu.cloudfunctions.net/birthdayGreeting';
 const $ = s => document.querySelector(s);
-const MAX_SEC = 15;
-
-/* ── số người đã chúc ── */
-async function loadCount(){
-  try{
-    const r = await fetch(EP + '?action=count');
-    const d = await r.json();
-    $('#count').innerHTML = `<b>${d.count}</b> người đã gửi lời chúc`;
-  }catch(e){ $('#count').style.display = 'none'; }
-}
-loadCount();
-
-$('#text').addEventListener('input', e => { $('#len').textContent = e.target.value.length; });
-// ảnh hỏng thì ẩn hẳn, đừng để khung vỡ
+const KEY = new URLSearchParams(location.search).get('key') || '';
+const ACCENTS = ['#FF6B9D','#E63956','#A78BFA','#F59E0B','#10B981','#3B82F6','#EC4899'];
+const esc = s => (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+if (KEY) document.body.classList.add('admin');
 $('#avatar').addEventListener('error', () => { $('#avatar').style.display = 'none'; });
 
-/* ── ghi âm ── */
-let media = null, rec = null, chunks = [], audioB64 = '', audioMime = '', timer = null, ticks = 0;
+/* ── tuổi ── */
+(function age(){
+  const b = new Date(CONFIG.birth + 'T00:00:00');
+  const now = new Date(); now.setHours(0,0,0,0);
+  const thisYear = new Date(now.getFullYear(), b.getMonth(), b.getDate());
+  const yr = now > thisYear ? now.getFullYear() + 1 : now.getFullYear();
+  const age = yr - b.getFullYear();
+  const isToday = now.getTime() === thisYear.getTime();
+  $('#age').textContent = isToday
+    ? `Hôm nay Thảo ${age} tuổi 🎂`
+    : `Sắp ${age} tuổi rồi`;
+})();
 
+/* ── dòng thời gian ── */
+(function timeline(){
+  const box = $('#timeline');
+  CONFIG.timeline.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'step' + (s.big ? ' big' : '');
+    el.innerHTML =
+      `<div class="yr">${esc(s.yr)}</div>
+       ${s.when ? `<div class="when">${esc(s.when)}</div>` : ''}
+       <h3>${esc(s.title)}</h3>
+       ${s.text ? `<p>${esc(s.text)}</p>` : ''}
+       ${s.photo
+          ? `<div class="shot"><img src="${s.photo}" alt="${esc(s.title)}" loading="lazy"></div>`
+          : s.slot
+            ? `<div class="soon"><b>${esc(s.yr)}</b>chỗ này chờ một tấm ảnh</div>`
+            : ''}`;
+    box.appendChild(el);
+  });
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  }), {threshold:.1, rootMargin:'0px 0px -6% 0px'});
+  box.querySelectorAll('.step').forEach(s => io.observe(s));
+})();
+
+/* ── ghi âm ── */
+let media=null, rec=null, chunks=[], audioB64='', audioMime='', timer=null, ticks=0;
+const MAX_SEC = 15;
 function pickMime(){
-  const opts = ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
-  for (const m of opts) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+  for (const m of ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'])
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
   return '';
 }
-
+const blobToB64 = blob => new Promise(res => {
+  const fr = new FileReader();
+  fr.onloadend = () => res(String(fr.result).split(',')[1] || '');
+  fr.readAsDataURL(blob);
+});
 async function startRec(){
   const hint = $('#rechint');
   if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder){
-    hint.textContent = 'Máy này không ghi âm được — bạn viết chữ giúp nhé.';
-    return;
+    hint.textContent = 'Máy này không ghi âm được — bạn viết chữ giúp nhé.'; return;
   }
-  try{
-    media = await navigator.mediaDevices.getUserMedia({audio:true});
-  }catch(e){
-    hint.textContent = 'Không mở được micro. Bạn viết chữ cũng được mà 🤍';
-    return;
-  }
+  try{ media = await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(e){ hint.textContent = 'Không mở được micro. Viết chữ cũng được mà 🤍'; return; }
   const mime = pickMime();
-  rec = mime ? new MediaRecorder(media, {mimeType:mime}) : new MediaRecorder(media);
-  audioMime = rec.mimeType || mime || 'audio/webm';
-  chunks = [];
+  rec = mime ? new MediaRecorder(media,{mimeType:mime}) : new MediaRecorder(media);
+  audioMime = rec.mimeType || mime || 'audio/webm'; chunks = [];
   rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
   rec.onstop = async () => {
     media.getTracks().forEach(t => t.stop());
-    const blob = new Blob(chunks, {type: audioMime});
+    const blob = new Blob(chunks,{type:audioMime});
     $('#player').src = URL.createObjectURL(blob);
     $('#preview').style.display = 'block';
     audioB64 = await blobToB64(blob);
     hint.textContent = `Đã ghi ${ticks} giây — nghe thử rồi gửi nhé`;
   };
-  rec.start();
-  ticks = 0;
+  rec.start(); ticks = 0;
   $('#recbtn').classList.add('on');
   $('#recbtn').innerHTML = '<span class="dot"></span> Đang ghi… bấm để dừng';
   $('#recbar').style.display = 'block';
   hint.textContent = 'Nói đi, tối đa 15 giây';
   timer = setInterval(() => {
     ticks++;
-    $('#recbar').firstElementChild.style.width = (ticks / MAX_SEC * 100) + '%';
+    $('#recbar').firstElementChild.style.width = (ticks/MAX_SEC*100) + '%';
     if (ticks >= MAX_SEC) stopRec();
   }, 1000);
 }
-
 function stopRec(){
   if (timer){ clearInterval(timer); timer = null; }
   if (rec && rec.state !== 'inactive') rec.stop();
@@ -227,55 +370,121 @@ function stopRec(){
   $('#recbar').style.display = 'none';
   $('#recbar').firstElementChild.style.width = '0';
 }
-
-const blobToB64 = blob => new Promise(res => {
-  const fr = new FileReader();
-  fr.onloadend = () => res(String(fr.result).split(',')[1] || '');
-  fr.readAsDataURL(blob);
-});
-
-$('#recbtn').onclick = () => {
-  if (rec && rec.state === 'recording') stopRec(); else startRec();
-};
+$('#recbtn').onclick = () => { (rec && rec.state === 'recording') ? stopRec() : startRec(); };
 $('#redo').onclick = () => {
-  audioB64 = ''; $('#preview').style.display = 'none';
+  audioB64=''; $('#preview').style.display='none';
   $('#rechint').textContent = 'Không bắt buộc — nhưng nghe giọng thật thì thích lắm';
 };
 
+$('#text').addEventListener('input', e => { $('#len').textContent = e.target.value.length; });
+$('#anon').addEventListener('change', e => {
+  $('#name').disabled = e.target.checked;
+  if (e.target.checked) $('#name').value = '';
+});
+
 /* ── gửi ── */
 $('#send').onclick = async () => {
-  const name = $('#name').value.trim();
+  const anon = $('#anon').checked;
+  const name = anon ? '' : $('#name').value.trim();
   const text = $('#text').value.trim();
-  const msg = $('#msg');
-  if (!name){ msg.textContent = 'Cho Thảo biết bạn là ai với 🥺'; $('#name').focus(); return; }
+  const msg = $('#msg'), btn = $('#send');
   if (!text && !audioB64){ msg.textContent = 'Viết vài chữ hoặc ghi âm một câu nhé'; return; }
-
-  const btn = $('#send');
   btn.disabled = true; btn.textContent = 'Đang gửi…'; msg.textContent = '';
   try{
-    const r = await fetch(EP, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({name, text, audioB64, audioMime})
-    });
-    if (!r.ok){
-      const e = await r.json().catch(() => ({}));
-      throw new Error(e.error || r.status);
-    }
-    $('#card').innerHTML =
+    const r = await fetch(EP, {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name, text, audioB64, audioMime})});
+    if (!r.ok){ const e = await r.json().catch(()=>({})); throw new Error(e.error || r.status); }
+    $('#form').innerHTML =
       '<div class="done"><div class="big">Gửi rồi nhé 🤍</div>' +
-      '<p>Đúng 0h ngày 14/08, Thảo sẽ đọc được lời chúc của bạn.<br>Nhớ giữ bí mật giùm nha 🤫</p>' +
+      '<p>Lời của bạn đã nằm dưới kia rồi đó.</p>' +
       '<button class="again" id="again">Gửi thêm một lời nữa</button></div>';
     $('#again').onclick = () => location.reload();
     burst();
-    loadCount();
+    loadWall();
   }catch(err){
     btn.disabled = false; btn.textContent = 'Gửi lời chúc 💌';
     const m = String(err.message);
-    msg.textContent = m === 'audio-too-big' ? 'Đoạn ghi âm dài quá, bạn ghi ngắn lại giúp nhé'
+    msg.textContent = m === 'audio-too-big' ? 'Đoạn ghi âm dài quá, ghi ngắn lại giúp nhé'
       : m === 'too-long' ? 'Lời chúc dài quá 400 chữ rồi'
       : 'Gửi chưa được, bạn thử lại giúp nhé';
   }
 };
+
+/* ── tường lời chúc ── */
+async function loadWall(){
+  const notes = $('#notes');
+  try{
+    const r = await fetch(EP + '?action=wall' + (KEY ? '&key=' + encodeURIComponent(KEY) : ''));
+    if (!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    const list = d.greetings || [];
+    $('#count').textContent = list.length
+      ? `${list.length} lời chúc` : 'chưa có lời chúc nào';
+    if (!list.length){
+      notes.innerHTML = '<div class="empty">Bạn là người đầu tiên đó 🤍</div>';
+      return;
+    }
+    notes.innerHTML = '';
+    list.forEach((g,i) => {
+      const el = document.createElement('div');
+      el.className = 'note';
+      el.style.setProperty('--accent', ACCENTS[i % ACCENTS.length]);
+      el.style.setProperty('--tilt', ((i%2?1:-1)*(0.25+(i%3)*0.2)).toFixed(2)+'deg');
+      const when = g.createdAt
+        ? new Date(g.createdAt).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'}) : '';
+      const who = g.name
+        ? `<div class="who">${esc(g.name)}</div>`
+        : `<div class="who anon">Một người giấu tên</div>`;
+      el.innerHTML =
+        `<button class="del" data-id="${g.id}" title="Xoá">✕</button>
+         ${who}
+         ${g.text ? `<div class="txt">${esc(g.text)}</div>` : ''}
+         ${g.hasAudio ? `<button class="play" data-id="${g.id}">▶︎ Nghe lời chúc</button>` : ''}
+         ${when ? `<div class="when2">${when}</div>` : ''}`;
+      notes.appendChild(el);
+    });
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    }), {threshold:.12});
+    notes.querySelectorAll('.note').forEach((n,i) => {
+      n.style.transitionDelay = Math.min(i,6)*70 + 'ms'; io.observe(n);
+    });
+  }catch(e){
+    $('#count').textContent = 'chưa tải được';
+    notes.innerHTML = '<div class="empty">Thử lại sau một chút nhé 🤍</div>';
+  }
+}
+loadWall();
+
+let current = null;
+$('#notes').addEventListener('click', async e => {
+  const play = e.target.closest('.play'), del = e.target.closest('.del');
+  if (play){
+    const id = play.dataset.id;
+    if (current){ current.pause(); current = null;
+      document.querySelectorAll('.play.playing').forEach(b => {
+        b.classList.remove('playing'); b.textContent = '▶︎ Nghe lời chúc'; }); }
+    play.textContent = 'Đang tải…';
+    try{
+      const r = await fetch(`${EP}?action=audio&id=${encodeURIComponent(id)}` +
+        (KEY ? '&key=' + encodeURIComponent(KEY) : ''));
+      const d = await r.json();
+      const a = new Audio(`data:${d.mime};base64,${d.b64}`);
+      current = a; play.classList.add('playing'); play.textContent = '❚❚ Đang phát…';
+      a.onended = () => { play.classList.remove('playing'); play.textContent = '▶︎ Nghe lại'; current = null; };
+      await a.play();
+    }catch(err){ play.textContent = '▶︎ Nghe lời chúc'; }
+    return;
+  }
+  if (del && KEY){
+    if (!confirm('Xoá lời chúc này?')) return;
+    try{
+      const r = await fetch(`${EP}?action=delete&id=${encodeURIComponent(del.dataset.id)}&key=${encodeURIComponent(KEY)}`,{method:'POST'});
+      if (!r.ok) throw new Error(r.status);
+      del.closest('.note').remove();
+    }catch(err){ alert('Xoá không được.'); }
+  }
+});
 
 /* ── pháo giấy ── */
 const fx = $('#fx'), ctx = fx.getContext('2d');
@@ -287,7 +496,7 @@ function burst(){
   const C = ['#FF6B9D','#FFB6C1','#E63956','#FFD79A','#A78BFA','#fff'];
   for (let i = 0; i < 140; i++){
     const a = Math.random()*Math.PI*2, s = 3+Math.random()*8;
-    parts.push({x:innerWidth/2, y:innerHeight*.4, vx:Math.cos(a)*s, vy:Math.sin(a)*s-3,
+    parts.push({x:innerWidth/2, y:innerHeight*.45, vx:Math.cos(a)*s, vy:Math.sin(a)*s-3,
       g:.17, s:5+Math.random()*6, life:1, col:C[(Math.random()*C.length)|0],
       heart:Math.random()<.4, rot:Math.random()*6.3, vr:(Math.random()-.5)*.25});
   }
