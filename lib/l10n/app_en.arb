@@ -934,6 +934,10 @@
   },
   "dailyQuestionReminderNotifTitle": "Today's question is waiting 💌",
   "dailyQuestionReminderNotifBody": "Answer it to unlock your partner's reply.",
+  "dailyQuestionReminderNotifBodyAlt1": "There's a new question for the two of you — answer yours first 💞",
+  "dailyQuestionReminderNotifBodyAlt2": "A little question is waiting for you both, come answer it 🌸",
+  "dqPartnerOnlyNudgeTitle": "Just your partner left to answer 💌",
+  "dailyQuestionReminderEndOfDayHint": "If the question is still unfinished at the end of the day, you'll also be nudged at 21:00 — plus 22:00 and 23:00 if you haven't answered yet.",
   "dqEndOfDayNudgeTitle": "The day is winding down 🌙",
   "dqEndOfDayNudgeBody": "Today's question is still waiting — answer it before the day ends.",
   "dqEndOfDayNudgePartnerBody": "Your partner hasn't answered today's question yet — give them a nudge.",
@@ -956,6 +960,16 @@
   },
   "dqStreakWarningStartBody": "The day's almost over! Answer today's question to start a new streak.",
   "dqStreakWarningStartPartnerBody": "Your partner hasn't answered yet. Nudge them so you can start a streak together.",
+  "dqStreakWarningFinalTitle": "Less than an hour left! ⏳",
+  "dqStreakWarningFinalBody": "Answer now so your {days}-day streak doesn't break 🔥",
+  "@dqStreakWarningFinalBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dqStreakWarningFinalStartBody": "Answer now to start a new streak before the day ends 🌱",
   "reminderDailyTitle": "Another day of us 💕",
   "reminderDailyBody": "Open Dear Embeiu and count today together.",
   "reminderMilestoneApproachingTitle": "A milestone is near 💕",
@@ -1985,6 +1999,10 @@
   },
   "notifDailyQuestion": "{name} answered today's question",
   "@notifDailyQuestion": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "notifDailyQuestionBoth": "You and {name} both answered today's question 💞",
+  "@notifDailyQuestionBoth": {
     "placeholders": { "name": { "type": "String" } }
   },
   "notifChatMessage": "{name} sent you a message 💬",

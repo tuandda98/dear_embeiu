@@ -921,6 +921,10 @@
   },
   "dailyQuestionReminderNotifTitle": "Câu hỏi hôm nay đang chờ 💌",
   "dailyQuestionReminderNotifBody": "Ghé trả lời để mở khoá câu trả lời của người ấy nhé.",
+  "dailyQuestionReminderNotifBodyAlt1": "Hôm nay chúng mình có một câu hỏi mới — bạn trả lời trước nha 💞",
+  "dailyQuestionReminderNotifBodyAlt2": "Một câu hỏi nhỏ đang đợi chúng mình, ghé trả lời nhé 🌸",
+  "dqPartnerOnlyNudgeTitle": "Chỉ còn người ấy nữa thôi 💌",
+  "dailyQuestionReminderEndOfDayHint": "Nếu cuối ngày câu hỏi vẫn chưa xong, chúng mình được nhắc thêm lúc 21:00 — và cả 22:00, 23:00 nếu bạn vẫn chưa trả lời.",
   "dqEndOfDayNudgeTitle": "Ngày sắp khép lại rồi 🌙",
   "dqEndOfDayNudgeBody": "Câu hỏi hôm nay vẫn đang chờ — ghé trả lời trước khi hết ngày nhé.",
   "dqEndOfDayNudgePartnerBody": "Người ấy chưa trả lời câu hỏi hôm nay — nhắc một câu cho kịp nhé.",
@@ -943,6 +947,16 @@
   },
   "dqStreakWarningStartBody": "Sắp hết ngày rồi! Trả lời câu hỏi để mở chuỗi mới cho chúng mình nhé.",
   "dqStreakWarningStartPartnerBody": "Người ấy chưa trả lời. Nhắc một câu để chúng mình cùng bắt đầu chuỗi nhé.",
+  "dqStreakWarningFinalTitle": "Còn chưa đầy 1 tiếng nữa thôi! ⏳",
+  "dqStreakWarningFinalBody": "Trả lời ngay để chuỗi {days} ngày của chúng mình không đứt nhé 🔥",
+  "@dqStreakWarningFinalBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dqStreakWarningFinalStartBody": "Trả lời ngay để chúng mình mở chuỗi mới trước khi hết ngày nhé 🌱",
   "reminderDailyTitle": "Thêm một ngày của chúng mình 💕",
   "reminderDailyBody": "Mở Dear Embeiu và cùng đếm thêm một ngày bên nhau nhé.",
   "reminderMilestoneApproachingTitle": "Sắp đến cột mốc rồi 💕",
@@ -1383,6 +1397,10 @@
   },
   "notifDailyQuestion": "{name} đã trả lời câu hỏi hôm nay",
   "@notifDailyQuestion": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "notifDailyQuestionBoth": "Bạn và {name} đã trả lời câu hỏi hôm nay 💞",
+  "@notifDailyQuestionBoth": {
     "placeholders": { "name": { "type": "String" } }
   },
   "notifChatMessage": "{name} vừa gửi cho bạn một tin nhắn 💬",

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui' show DartPluginRegistrant;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -15,10 +16,15 @@ import '../models/app_user.dart';
 import 'analytics_service.dart';
 import 'firebase_bootstrap_service.dart';
 import 'notification_settings_service.dart';
+import 'reminder_service.dart';
 import 'user_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // A fresh background isolate starts with no plugin registrations, so the
+  // local-notifications channel [_cancelStaleDailyQuestionNudges] needs would
+  // throw MissingPluginException. Idempotent.
+  DartPluginRegistrant.ensureInitialized();
   if (Firebase.apps.isEmpty) {
     try {
       await Firebase.initializeApp();
@@ -26,6 +32,30 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       // Ignore bootstrap errors in background isolate.
     }
   }
+  await _cancelStaleDailyQuestionNudges(message);
+}
+
+/// Drops today's local daily-question nudges when a push reports the pair is now
+/// complete (`data.bothAnswered == 'true'`, set by the `notifyDailyAnswer` CF).
+///
+/// Why this can't live in the UI: the local schedule is re-evaluated only by
+/// [HomeScreen] on provider updates, but the FIRST answerer normally leaves the
+/// app right after answering. When their partner answers hours later nothing
+/// re-evaluates anything, so the nudges armed back when only one had answered
+/// still fire — saying "người ấy chưa trả lời câu hỏi hôm nay" and warning about
+/// a streak that is already safe (up to 4 wrong notifications a day). Running at
+/// the transport layer fixes it with no UI alive.
+///
+/// ⚠️ Not a total fix: an iOS app the user force-quit gets no background wake at
+/// all. [ReminderProvider] therefore also keeps the end-of-day copy safe on its
+/// own — it no longer arms the 22h/23h streak warnings once I've answered.
+Future<void> _cancelStaleDailyQuestionNudges(RemoteMessage message) async {
+  final data = message.data;
+  if (data['type'] != 'daily_question' ||
+      '${data['bothAnswered']}'.trim().toLowerCase() != 'true') {
+    return;
+  }
+  await ReminderService.instance.cancelDailyQuestionBands();
 }
 
 /// Deep-link bridge for notification taps (no extra package, no navigatorKey).
@@ -502,6 +532,11 @@ class PushNotificationService {
     if (!_isSupportedPlatform) {
       return;
     }
+
+    // Same stale-nudge cleanup as the background isolate — a safety net for the
+    // window where the app is foregrounded but HomeScreen isn't mounted yet
+    // (it's the listener that would otherwise re-evaluate the schedule).
+    await _cancelStaleDailyQuestionNudges(message);
 
     final notification = message.notification;
     final title = notification?.title ?? message.data['title'] as String?;

@@ -2864,6 +2864,30 @@ abstract class AppLocalizations {
   /// **'Answer it to unlock your partner\'s reply.'**
   String get dailyQuestionReminderNotifBody;
 
+  /// No description provided for @dailyQuestionReminderNotifBodyAlt1.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s a new question for the two of you — answer yours first 💞'**
+  String get dailyQuestionReminderNotifBodyAlt1;
+
+  /// No description provided for @dailyQuestionReminderNotifBodyAlt2.
+  ///
+  /// In en, this message translates to:
+  /// **'A little question is waiting for you both, come answer it 🌸'**
+  String get dailyQuestionReminderNotifBodyAlt2;
+
+  /// No description provided for @dqPartnerOnlyNudgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Just your partner left to answer 💌'**
+  String get dqPartnerOnlyNudgeTitle;
+
+  /// No description provided for @dailyQuestionReminderEndOfDayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'If the question is still unfinished at the end of the day, you\'ll also be nudged at 21:00 — plus 22:00 and 23:00 if you haven\'t answered yet.'**
+  String get dailyQuestionReminderEndOfDayHint;
+
   /// No description provided for @dqEndOfDayNudgeTitle.
   ///
   /// In en, this message translates to:
@@ -2911,6 +2935,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your partner hasn\'t answered yet. Nudge them so you can start a streak together.'**
   String get dqStreakWarningStartPartnerBody;
+
+  /// No description provided for @dqStreakWarningFinalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Less than an hour left! ⏳'**
+  String get dqStreakWarningFinalTitle;
+
+  /// No description provided for @dqStreakWarningFinalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer now so your {days}-day streak doesn\'t break 🔥'**
+  String dqStreakWarningFinalBody(int days);
+
+  /// No description provided for @dqStreakWarningFinalStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer now to start a new streak before the day ends 🌱'**
+  String get dqStreakWarningFinalStartBody;
 
   /// No description provided for @reminderDailyTitle.
   ///
@@ -4909,6 +4951,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} answered today\'s question'**
   String notifDailyQuestion(String name);
+
+  /// No description provided for @notifDailyQuestionBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'You and {name} both answered today\'s question 💞'**
+  String notifDailyQuestionBoth(String name);
 
   /// No description provided for @notifChatMessage.
   ///

@@ -157,13 +157,21 @@ class ReminderProvider extends ChangeNotifier {
 
   // Daily-question end-of-day safety net (2026-06-19). On top of the user's
   // chosen reminder times, while the couple hasn't both answered today's
-  // question we fire 3 fixed local one-shots: 21:00 (gentle nudge) + 22:00 and
-  // 23:00 (streak warnings). LOCAL only — never synced; the copy is derived from
-  // the latest habit state cached here so enable/disable can re-arm correctly.
+  // question we fire fixed local one-shots: 21:00 (gentle nudge) + 22:00 and
+  // 23:00 (streak warnings). 2026-08-09: the two warnings are armed ONLY while I
+  // still haven't answered — see [_scheduleEndOfDay]. LOCAL only — never synced;
+  // the copy is derived from the latest habit state cached here so enable/disable
+  // can re-arm correctly.
   static const List<int> _eodHours = <int>[21, 22, 23];
   bool _eodHasRevealed = false;
   bool _eodIAnswered = false;
   int _eodStreak = 0;
+  // Whether the couple is fully formed (partner joined). A couple still in
+  // `waiting_partner` can't complete a question together, so every daily-question
+  // nudge is cancelled for it (2026-08-09). Defaults to true so the very first
+  // schedule — which may run from session_resolver before HomeScreen's first
+  // [sync] lands — behaves exactly as before for a normal, active couple.
+  bool _coupleActive = true;
   // Debounce signature so the frequent provider notifications that drive
   // [refreshDailyQuestionSafetyNet] don't thrash the OS schedule.
   String? _eodSignature;
@@ -191,6 +199,13 @@ class ReminderProvider extends ChangeNotifier {
 
   /// Whether another time can still be added (cap [maxDailyQuestionTimes]).
   bool get canAddDailyQuestionTime => _dqTimes.length < maxDailyQuestionTimes;
+
+  /// True on the account whose private hourly nudge replaces the shared
+  /// daily-question reminders (they are suppressed there to avoid doubling up).
+  /// Settings hides the tile in that case rather than showing a switch that reads
+  /// ON while nothing is ever scheduled (2026-08-09).
+  bool get sharedDailyQuestionRemindersSuppressed =>
+      _suppressSharedDqReminders;
 
   /// On/off state per milestone. Initialised to the Dv4 defaults and overridden
   /// by persisted values in [load].
@@ -663,21 +678,40 @@ class ReminderProvider extends ChangeNotifier {
     );
   }
 
-  /// (Re)schedule today's user-set daily-question nudge(s) with the localized
-  /// copy, **answer-aware** (2026-06-20). Driven by the latest habit state cached
-  /// in [_eodHasRevealed]/[_eodIAnswered] (updated by [refreshDailyQuestionSafetyNet]):
-  ///  • both answered ([_eodHasRevealed]) → cancel (nothing to nudge about today);
-  ///  • I answered but partner hasn't ([_eodIAnswered]) → swap to "nhắc người ấy";
-  ///  • neither / only partner → default "trả lời đi".
-  /// Debounced on enabled|revealed|iAnswered|times|day so the frequent provider
-  /// notifications don't thrash the OS schedule. Clears the band first, so safe
-  /// to call repeatedly; off / no-times / both-answered simply cancels.
+  /// The end-of-day hours that WILL actually be armed right now — 21/22/23h
+  /// normally, only 21h once I've answered (see [_scheduleEndOfDay]). Used both
+  /// there and by [_scheduleDailyQuestion], which drops any user-set time landing
+  /// on one of these hours so the two bands can't fire twice in the same minute.
+  List<int> get _activeEodHours =>
+      _eodIAnswered ? const <int>[21] : _eodHours;
+
+  /// (Re)schedule the user-set daily-question nudge(s) with the localized copy,
+  /// **answer-aware** (2026-06-20). Two bands, both driven by the habit state
+  /// cached in [_eodHasRevealed]/[_eodIAnswered]:
+  ///
+  /// • TODAY (one-shot, ids 1040–1049) —
+  ///   both answered ([_eodHasRevealed]) → cancel (nothing to nudge about today);
+  ///   I answered but partner hasn't ([_eodIAnswered]) → "nhắc người ấy" copy,
+  ///   with its own title (the default one says the question is waiting, which
+  ///   would contradict the body once my half is done);
+  ///   neither / only partner → default "trả lời đi".
+  ///   Times that collide with an [_activeEodHours] slot are dropped — the
+  ///   end-of-day nudge already covers that minute with more specific copy.
+  /// • BACKSTOP (rolling one-shots for the next 7 days, from TOMORROW, ids
+  ///   1020–1033) — untouched by today's answer state, because it can only ever
+  ///   fire on a day the app was never opened (2026-08-09, fixes "no app open ⇒
+  ///   no reminder at all").
+  ///
+  /// Debounced on enabled|revealed|iAnswered|times|coupleActive|day so the frequent
+  /// provider notifications don't thrash the OS schedule. Clears each band first,
+  /// so safe to call repeatedly.
   Future<void> _scheduleDailyQuestion(AppLocalizations l10n) async {
     final now = DateTime.now();
     final dayKey = '${now.year}-${now.month}-${now.day}';
     final signature = <Object>[
       _dqEnabled,
       _suppressSharedDqReminders,
+      _coupleActive,
       _eodHasRevealed,
       _eodIAnswered,
       _dqTimes.join(','),
@@ -688,21 +722,59 @@ class ReminderProvider extends ChangeNotifier {
     }
     _dqScheduleSignature = signature;
 
-    // Off, suppressed for em bé (her hourly nudge covers it), no times, or both
-    // answered → nothing to nudge about today.
+    // Off, suppressed for em bé (her hourly nudge covers it), no times, or no
+    // partner yet → nothing to nudge about at all, today or later. A couple still
+    // waiting for the partner to join can't complete a question together, so
+    // nudging them (up to 4×/day) is pure noise (2026-08-09).
     if (!_dqEnabled ||
         _suppressSharedDqReminders ||
         _dqTimes.isEmpty ||
-        _eodHasRevealed) {
+        !_coupleActive) {
+      await _service.cancelDailyQuestion();
+      await _service.cancelDailyQuestionBackstop();
+      return;
+    }
+
+    // Rotating bodies so several times a day don't read as one sentence on
+    // repeat. Only the "I'm waiting for them" case is a single fixed line.
+    final bodies = _eodIAnswered
+        ? <String>[l10n.dqEndOfDayNudgePartnerBody]
+        : <String>[
+            l10n.dailyQuestionReminderNotifBody,
+            l10n.dailyQuestionReminderNotifBodyAlt1,
+            l10n.dailyQuestionReminderNotifBodyAlt2,
+          ];
+    final title = _eodIAnswered
+        ? l10n.dqPartnerOnlyNudgeTitle
+        : l10n.dailyQuestionReminderNotifTitle;
+
+    // The backstop stays armed even when today is already complete — it is about
+    // the days AFTER today, and it always uses the plain "come answer" copy.
+    await _service.scheduleDailyQuestionBackstop(
+      minutesOfDay: _dqTimes,
+      title: l10n.dailyQuestionReminderNotifTitle,
+      bodies: <String>[
+        l10n.dailyQuestionReminderNotifBody,
+        l10n.dailyQuestionReminderNotifBodyAlt1,
+        l10n.dailyQuestionReminderNotifBodyAlt2,
+      ],
+    );
+
+    if (_eodHasRevealed) {
       await _service.cancelDailyQuestion();
       return;
     }
+
+    // Drop times that an end-of-day slot already owns (no double notification in
+    // the same minute).
+    final eodMinutes = _activeEodHours.map((h) => h * 60).toSet();
+    final times =
+        _dqTimes.where((minute) => !eodMinutes.contains(minute)).toList();
+
     await _service.scheduleDailyQuestionTimes(
-      minutesOfDay: _dqTimes,
-      title: l10n.dailyQuestionReminderNotifTitle,
-      body: _eodIAnswered
-          ? l10n.dqEndOfDayNudgePartnerBody
-          : l10n.dailyQuestionReminderNotifBody,
+      minutesOfDay: times,
+      title: title,
+      bodies: bodies,
     );
   }
 
@@ -712,10 +784,12 @@ class ReminderProvider extends ChangeNotifier {
   /// frequent provider notifications don't reschedule needlessly. LOCAL only.
   ///
   /// While the couple hasn't both answered today ([hasRevealed] == false) and
-  /// the reminder is on, fires 3 one-shots for TODAY: 21:00 nudges, 22:00/23:00
-  /// warn about the streak. [iAnswered] picks "answer now" vs "nudge your
-  /// partner" copy; [currentStreak] picks "keep your N-day streak" vs "start a
-  /// streak". Cancels everything once both have answered or the reminder is off.
+  /// the reminder is on, fires one-shots for TODAY: 21:00 nudges, and — only when
+  /// I haven't answered yet — 22:00 + 23:00 warn about the streak ([currentStreak]
+  /// picks "keep your N-day streak" vs "start a streak"). Once [iAnswered], the
+  /// 21:00 ping switches to "nudge your partner" and the two warnings are dropped
+  /// (see [_scheduleEndOfDay]). Cancels everything once both have answered or the
+  /// reminder is off.
   Future<void> refreshDailyQuestionSafetyNet({
     required bool hasRevealed,
     required bool iAnswered,
@@ -741,6 +815,7 @@ class ReminderProvider extends ChangeNotifier {
     final signature = <Object>[
       _dqEnabled,
       _suppressSharedDqReminders,
+      _coupleActive,
       _eodHasRevealed,
       _eodIAnswered,
       _eodStreak,
@@ -751,36 +826,49 @@ class ReminderProvider extends ChangeNotifier {
     }
     _eodSignature = signature;
 
-    // Off, suppressed for em bé (her hourly nudge covers it), or today already
-    // complete → nothing to warn about.
-    if (!_dqEnabled || _suppressSharedDqReminders || _eodHasRevealed) {
+    // Off, suppressed for em bé (her hourly nudge covers it), no partner yet, or
+    // today already complete → nothing to warn about.
+    if (!_dqEnabled ||
+        _suppressSharedDqReminders ||
+        !_coupleActive ||
+        _eodHasRevealed) {
       await _service.cancelDailyQuestionEndOfDay();
       return;
     }
 
+    // Which slots to arm (2026-08-09). Once I've answered, keep ONLY the gentle
+    // 21:00 "nudge your partner" ping and drop both streak warnings:
+    //  • my half is done, so warning ME about the streak twice more is noise;
+    //  • these are one-shots armed hours in advance — if the partner answers
+    //    while my app is closed, the "chưa trả lời" premise silently goes stale
+    //    (the push-driven cancel in PushNotificationService covers most of that,
+    //    but not an iOS app the user force-quit), and a false "sắp lỡ mất chuỗi"
+    //    at 22h AND 23h is the worst-feeling way to be wrong.
+    final hours = _activeEodHours;
+
     final slots = <DailyQuestionEodSlot>[];
-    for (final hour in _eodHours) {
-      // 21:00 = gentle nudge; 22:00 & 23:00 = streak warnings.
-      final isWarning = hour >= 22;
+    for (final hour in hours) {
       final String title;
       final String body;
-      if (!isWarning) {
+      if (hour < 22) {
+        // 21:00 — gentle nudge, still in time to act.
         title = l10n.dqEndOfDayNudgeTitle;
         body = _eodIAnswered
             ? l10n.dqEndOfDayNudgePartnerBody
             : l10n.dqEndOfDayNudgeBody;
-      } else {
+      } else if (hour == 22) {
+        // 22:00 — streak warning. No streak yet → frame it as starting one.
         title = l10n.dqStreakWarningTitle;
-        if (_eodStreak >= 1) {
-          body = _eodIAnswered
-              ? l10n.dqStreakWarningPartnerBody(_eodStreak)
-              : l10n.dqStreakWarningBody(_eodStreak);
-        } else {
-          // No streak yet — frame it as starting one, not losing one.
-          body = _eodIAnswered
-              ? l10n.dqStreakWarningStartPartnerBody
-              : l10n.dqStreakWarningStartBody;
-        }
+        body = _eodStreak >= 1
+            ? l10n.dqStreakWarningBody(_eodStreak)
+            : l10n.dqStreakWarningStartBody;
+      } else {
+        // 23:00 — last call. Its own copy: it used to reuse 22:00's title AND
+        // body verbatim, so the user got the identical notification twice.
+        title = l10n.dqStreakWarningFinalTitle;
+        body = _eodStreak >= 1
+            ? l10n.dqStreakWarningFinalBody(_eodStreak)
+            : l10n.dqStreakWarningFinalStartBody;
       }
       slots.add(
         DailyQuestionEodSlot(hour: hour, minute: 0, title: title, body: body),
@@ -949,12 +1037,17 @@ class ReminderProvider extends ChangeNotifier {
     required DateTime anniversaryDate,
     DateTime? lastPhotoDate,
     required AppLocalizations l10n,
+    bool coupleActive = true,
   }) async {
     // Cache inputs first so the daily-question schedule and later milestone
     // toggles both see a non-null anniversary (= a couple is active).
     _lastAnniversary = anniversaryDate;
     _lastPhotoDate = lastPhotoDate;
     _lastL10n = l10n;
+    // Whether the partner has actually joined — gates the daily-question nudges
+    // (a solo `waiting_partner` couple can't complete a question). Milestones and
+    // the counter still make sense solo, so they are NOT gated on this.
+    _coupleActive = coupleActive;
 
     // Daily-question nudge: self-gates on enabled/times (cancels when off).
     await _scheduleDailyQuestion(l10n);
@@ -983,6 +1076,9 @@ class ReminderProvider extends ChangeNotifier {
     _dqScheduleSignature = null;
     await _service.cancelDailyQuestion();
     await _service.cancelDailyQuestionEndOfDay();
+    // Also drop the repeating backstop — without a couple there is nothing to
+    // answer, and this band would otherwise keep firing daily forever.
+    await _service.cancelDailyQuestionBackstop();
   }
 
   @override

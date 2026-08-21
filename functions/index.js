@@ -1032,7 +1032,10 @@ exports.notifyDailyAnswer = onDocumentCreated(
       return;
     }
 
-    // Answering member's display name (fallback "Người ấy").
+    // Answering member's display name. Kept RAW (possibly "") on purpose:
+    // • the inbox doc drops empty fields, so the client renders its OWN localized
+    //   fallback instead of a hardcoded Vietnamese one on an English device;
+    // • the push localizes the fallback per recipient device in buildDailyAnswerText.
     let authorName = "";
     try {
       const authorSnap = await db.collection("users").doc(authorUserId).get();
@@ -1044,38 +1047,81 @@ exports.notifyDailyAnswer = onDocumentCreated(
         message: err && err.message,
       });
     }
-    authorName = normalizeActorName(authorName);
 
-    // Did THIS answer complete the pair? The responses collection for today
-    // holds at most one doc per member (id === uid). If it now has both, the
-    // recipient (the partner) has ALREADY answered — so the push must NOT nudge
-    // them to "answer yours to unlock" (they did already). It becomes a neutral
-    // "you both answered, come read" ping instead. Fail-open to the nudge on any
-    // count error (an extra nudge is better than a silent wrong copy).
-    let bothAnswered = false;
+    // Who has answered today? The responses collection holds at most one doc per
+    // member (id === uid), so reading it once answers three questions:
+    //  1. copy — has the RECIPIENT already answered? If yes the push must NOT tell
+    //     them to "answer yours to unlock" (they did). Checking the recipient's own
+    //     doc instead of a total count removes the race the count had: when both
+    //     partners submit within the same second, the count this function reads can
+    //     still be 1 and the just-answered partner got nudged to answer again.
+    //  2. the `bothAnswered` data flag the client uses to drop today's now-stale
+    //     local nudges (see §6 of CLAUDE.md).
+    //  3. the streak/journal marker below.
+    // Fail-open to the nudge on any read error (an extra nudge beats wrong copy).
+    const date = `${event.params.date || ""}`.trim();
+    let answeredUids = new Set();
     try {
-      const date = `${event.params.date || ""}`.trim();
       if (date) {
-        const countSnap = await db
+        const responsesSnap = await db
           .collection("couples").doc(coupleId)
           .collection("dailyAnswers").doc(date)
           .collection("responses")
-          .count().get();
-        bothAnswered = (countSnap.data().count || 0) >= 2;
+          .get();
+        answeredUids = new Set(responsesSnap.docs.map((doc) => doc.id));
       }
     } catch (err) {
-      logger.warn("Could not count daily responses; defaulting to answer nudge.", {
+      logger.warn("Could not read daily responses; defaulting to answer nudge.", {
         coupleId,
         message: err && err.message,
       });
+    }
+    // True when every recipient has answered too — i.e. the pair is complete.
+    // (A couple has exactly two members, so this is a single-recipient check.)
+    const bothAnswered = answeredUids.size > 0 &&
+      recipientIds.every((recipientId) => answeredUids.has(recipientId));
+
+    // Stamp the streak/journal marker server-side once BOTH have answered.
+    // Previously only the client did this (in submitAnswer, best-effort inside a
+    // swallowed try/catch), which lost the day in two real cases:
+    //  • both submit at the same moment → each client reads only its own doc → the
+    //    flag is never written, so the card reveals but the streak + journal skip
+    //    that day entirely;
+    //  • the marker doc doesn't exist yet → the member-write rule demands
+    //    date/questionVi/questionEn on every write, so a merge carrying only
+    //    `bothAnswered` is DENIED.
+    // The Admin SDK bypasses rules, so this write always lands. Best-effort: a
+    // failure must never break the notification.
+    if (bothAnswered && date) {
+      try {
+        await db
+          .collection("couples").doc(coupleId)
+          .collection("dailyAnswers").doc(date)
+          .set({
+            bothAnswered: true,
+            revealedAt: admin.firestore.FieldValue.serverTimestamp(),
+          }, {merge: true});
+      } catch (err) {
+        logger.warn("Could not stamp bothAnswered marker.", {
+          coupleId,
+          date,
+          message: err && err.message,
+        });
+      }
     }
 
     await writeInboxNotifications(recipientIds, {
       type: "daily_question",
       coupleId,
       actorUserId: authorUserId,
+      // Empty → dropped by sanitizeInboxPayload → client uses its own localized
+      // "Người ấy"/"Your partner" fallback.
       actorName: authorName,
-      date: `${event.params.date || ""}`.trim(),
+      date,
+      // Lets the notification center title match the push ("cả hai đã trả lời"
+      // instead of only "<name> answered"). Stored as a real boolean (inbox docs
+      // are structured data, unlike the string-only FCM data payload).
+      bothAnswered,
     });
 
     const result = await sendToRecipientDevices(
@@ -1084,7 +1130,18 @@ exports.notifyDailyAnswer = onDocumentCreated(
       {
         type: "daily_question",
         coupleId,
+        // Lets the recipient's app cancel today's local daily-question nudges the
+        // moment the pair is complete (2026-08-09). Without this the FIRST
+        // answerer — who normally leaves the app right after answering — keeps the
+        // nudges armed from when only they had answered, so hours later they fire
+        // with copy that has become false ("người ấy chưa trả lời", "sắp lỡ mất
+        // chuỗi"). FCM data values must be strings.
+        bothAnswered: bothAnswered ? "true" : "false",
       },
+      // Only the pair-completing push needs to wake the recipient's app (iOS
+      // content-available + Android data-only companion); the "answer yours to
+      // unlock" one has nothing for the client to act on.
+      {wakeClients: bothAnswered},
     );
 
     if (result.deviceCount === 0) {
@@ -1233,6 +1290,17 @@ exports.notifyPhotoReaction = onDocumentCreated(
 // `dataExtra` is merged into each message's data payload; `title`/`body` from
 // buildText are also mirrored into data (kept consistent with the original
 // photo-notification payload shape).
+// `options.wakeClients` (2026-08-09) additionally wakes the recipient app so it
+// can ACT on the payload with no UI running — for callers whose data the client
+// must process (e.g. dropping stale local nudges). Platform mechanics differ:
+//  • iOS: `aps.content-available` on the alert push itself (mixed payload — the
+//    banner still shows, and the background isolate runs). No extra send.
+//  • Android: a notification-payload push received in background/terminated goes
+//    straight to the system tray — onMessageReceived (⇒ Flutter's
+//    onBackgroundMessage) is NEVER called for it; only DATA-ONLY messages reach
+//    the handler there. So each Android device additionally gets a data-only
+//    companion (high priority, same `dataExtra`, deliberately WITHOUT title/body
+//    so the foreground handler shows no second banner).
 // Per-type mute prefs (D-notif-4): maps a push `type` to the device-doc field
 // the user can switch off. Types not listed (love_note, partner_joined/left)
 // are always-on and never filtered. Absent field on a device → not muted.
@@ -1242,7 +1310,7 @@ const PUSH_TYPE_PREF_FIELD = {
   daily_question: "pushDailyQuestion",
 };
 
-async function sendToRecipientDevices(recipientIds, buildText, dataExtra) {
+async function sendToRecipientDevices(recipientIds, buildText, dataExtra, options = {}) {
   const muteField = PUSH_TYPE_PREF_FIELD[dataExtra && dataExtra.type];
   const deviceDocs = [];
   // Real iOS app-icon badge (D-notif-2): per recipient, how many unread inbox
@@ -1297,38 +1365,69 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra) {
     return {deviceCount: 0, successCount: 0, failureCount: 0, failures: []};
   }
 
-  const messages = deviceDocs.map((device) => {
+  // Each outgoing entry keeps its device so delivery failures can be attributed
+  // (and dead tokens pruned) even after companion messages are appended — a bare
+  // `messages[index] → deviceDocs[index]` mapping would break then.
+  const outgoing = deviceDocs.map((device) => {
     const {title, body} = buildText(device.languageCode);
     return {
-      token: device.token,
-      notification: {title, body},
-      data: {
-        ...dataExtra,
-        title,
-        body,
-      },
-      android: {
-        priority: "high",
-        notification: {
-          channelId: "partner_photo_updates",
+      device,
+      message: {
+        token: device.token,
+        notification: {title, body},
+        data: {
+          ...dataExtra,
+          title,
+          body,
         },
-      },
-      apns: {
-        headers: {
-          "apns-priority": "10",
-          "apns-push-type": "alert",
+        android: {
+          priority: "high",
+          notification: {
+            channelId: "partner_photo_updates",
+          },
         },
-        payload: {
-          aps: {
-            sound: "default",
-            badge: unreadByRecipient[device.recipientId] || 1,
+        apns: {
+          headers: {
+            "apns-priority": "10",
+            "apns-push-type": "alert",
+          },
+          payload: {
+            aps: {
+              sound: "default",
+              badge: unreadByRecipient[device.recipientId] || 1,
+              // Wake the app's background isolate on iOS so it can ACT on this
+              // push, not just display it. Opt-in per caller — a background wake
+              // spends one of iOS's rationed budget slots, so we don't burn one
+              // on every push. Mixed payload (alert + content-available) still
+              // shows the banner normally.
+              ...(options.wakeClients ? {contentAvailable: true} : {}),
+            },
           },
         },
       },
     };
   });
 
-  const response = await admin.messaging().sendEach(messages);
+  // Android wake companion — see the wakeClients note above the function. The
+  // data payload carries NO title/body on purpose: in the foreground the client's
+  // onMessage handler acts on the data, then bails before showing a banner.
+  if (options.wakeClients) {
+    for (const device of deviceDocs) {
+      if (device.platform !== "android") {
+        continue;
+      }
+      outgoing.push({
+        device,
+        message: {
+          token: device.token,
+          data: {...dataExtra},
+          android: {priority: "high"},
+        },
+      });
+    }
+  }
+
+  const response = await admin.messaging().sendEach(outgoing.map((o) => o.message));
 
   const invalidRefs = [];
   const failures = [];
@@ -1337,10 +1436,11 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra) {
       return;
     }
 
+    const {device} = outgoing[index];
     const code = res.error && res.error.code;
     failures.push({
-      recipientId: deviceDocs[index].recipientId,
-      platform: deviceDocs[index].platform,
+      recipientId: device.recipientId,
+      platform: device.platform,
       code: code || "unknown",
       message: res.error && res.error.message,
     });
@@ -1349,7 +1449,9 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra) {
       code === "messaging/registration-token-not-registered" ||
       code === "messaging/invalid-registration-token"
     ) {
-      invalidRefs.push(deviceDocs[index].ref);
+      // A device may appear twice (alert + companion) — the duplicate delete is a
+      // no-op.
+      invalidRefs.push(device.ref);
     }
   });
 
@@ -2009,22 +2111,29 @@ function formatMinuteOfDay(minuteOfDay) {
 // (this answer completed the pair) so we never tell them to answer again.
 const DAILY_QUESTION_COPY = {
   vi: {
+    // Localized fallback when the partner hasn't set a display name — the shared
+    // normalizeActorName() would hardcode Vietnamese on an English device.
+    partnerFallback: "Người ấy",
     title: (author) => `${author} đã trả lời câu hỏi hôm nay 💞`,
     body: "Trả lời câu hỏi của bạn để mở khoá câu trả lời của người ấy nhé.",
     bodyBoth: "Cả hai đã trả lời rồi — mở app xem câu trả lời của nhau nhé!",
   },
   en: {
+    partnerFallback: "Your partner",
     title: (name) => `${name} answered today's question 💞`,
     body: "Answer yours to unlock your partner's reply.",
     bodyBoth: "You've both answered — open the app to read each other's replies!",
   },
 };
 
+// `authorName` may be empty — the fallback is picked per RECIPIENT language here
+// rather than baked in Vietnamese by the caller.
 function buildDailyAnswerText(languageCode, authorName, bothAnswered) {
   const code = `${languageCode || ""}`.trim().toLowerCase();
   const copy = DAILY_QUESTION_COPY[code] || DAILY_QUESTION_COPY.vi;
+  const name = `${authorName || ""}`.trim() || copy.partnerFallback;
   return {
-    title: copy.title(authorName),
+    title: copy.title(name),
     body: bothAnswered ? copy.bodyBoth : copy.body,
   };
 }

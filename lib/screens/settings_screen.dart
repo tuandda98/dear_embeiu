@@ -1344,6 +1344,16 @@ class _DailyQuestionReminderTile extends StatelessWidget {
     final canAddTime = context.select<ReminderProvider, bool>(
       (p) => p.canAddDailyQuestionTime,
     );
+    // On the account that has its own private hourly nudge, the shared
+    // daily-question reminders are suppressed entirely — showing a switch that
+    // reads ON while nothing is ever scheduled is a lie, so hide the tile
+    // (2026-08-09).
+    final suppressed = context.select<ReminderProvider, bool>(
+      (p) => p.sharedDailyQuestionRemindersSuppressed,
+    );
+    if (suppressed) {
+      return const SizedBox.shrink();
+    }
     // The fire times the user can edit (multi-time, 2026-06-19): each row is a
     // time the couple shares; tap to change, ✕ to remove (kept ≥1). On top of
     // these, the provider always fires fixed 21/22/23h end-of-day nudges while
@@ -1460,6 +1470,20 @@ class _DailyQuestionReminderTile extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8),
                 child: _DailyQuestionAddTimeRow(onTap: addTime),
               ),
+            // End-of-day nudges (21/22/23h) are fixed and not separately
+            // toggleable, so say so — otherwise setting one time and receiving up
+            // to four notifications looks like a bug (2026-08-09).
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                l10n.dailyQuestionReminderEndOfDayHint,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11.5,
+                  height: 1.45,
+                ),
+              ),
+            ),
           ],
         ],
       ),

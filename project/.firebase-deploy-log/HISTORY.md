@@ -50,3 +50,4 @@ npx firebase-tools deploy --only firestore:rules,functions:notifyPartnerNudge,fu
 - [20260630T130417Z] head=8f3885a dirty=2 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu
 npx firebase-tools deploy --only firestore:rules,functions:notifyPartnerReminderSet --project prod 2>&1 | tail -30` · snapshot `20260630T130417Z/`
 - [20260706T143216Z] head=a18e5a1 dirty=10 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu; npx firebase-tools deploy --only functions:notifyDailyAnswer --project prod --force 2>&1 | tail -30` · snapshot `20260706T143216Z/`
+- [20260809T052659Z] head=680597a dirty=25 exit=? · `npx firebase-tools deploy --only functions:notifyDailyAnswer --project prod --force 2>&1 | tail -15` · snapshot `20260809T052659Z/`

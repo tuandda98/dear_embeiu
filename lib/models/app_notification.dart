@@ -55,6 +55,7 @@ class AppNotification {
     this.caption,
     this.date,
     this.createdAt,
+    this.bothAnswered = false,
   });
 
   final String id;
@@ -74,6 +75,11 @@ class AppNotification {
   final String? caption; // photo_posted
   final String? date; // daily_question (yyyy-mm-dd key)
   final DateTime? createdAt;
+
+  /// daily_question only: this answer COMPLETED the pair, so the title can say
+  /// "you both answered" instead of naming only the partner (2026-08-09, matches
+  /// the push copy). Absent on docs written by older backends → false.
+  final bool bothAnswered;
 
   /// Which Home bottom-nav tab this notification should open when tapped.
   /// Photo-related → Gallery (2); chat → Chat (1); everything else → Home (0).
@@ -115,6 +121,7 @@ class AppNotification {
       date: _nullableString(data['date']),
       createdAt: _parseTimestamp(data['createdAt']),
       read: data['read'] == true,
+      bothAnswered: data['bothAnswered'] == true,
     );
   }
 
@@ -133,6 +140,7 @@ class AppNotification {
       caption: caption,
       date: date,
       createdAt: createdAt,
+      bothAnswered: bothAnswered,
     );
   }
 

@@ -1600,6 +1600,21 @@ class AppLocalizationsVi extends AppLocalizations {
       'Ghé trả lời để mở khoá câu trả lời của người ấy nhé.';
 
   @override
+  String get dailyQuestionReminderNotifBodyAlt1 =>
+      'Hôm nay chúng mình có một câu hỏi mới — bạn trả lời trước nha 💞';
+
+  @override
+  String get dailyQuestionReminderNotifBodyAlt2 =>
+      'Một câu hỏi nhỏ đang đợi chúng mình, ghé trả lời nhé 🌸';
+
+  @override
+  String get dqPartnerOnlyNudgeTitle => 'Chỉ còn người ấy nữa thôi 💌';
+
+  @override
+  String get dailyQuestionReminderEndOfDayHint =>
+      'Nếu cuối ngày câu hỏi vẫn chưa xong, chúng mình được nhắc thêm lúc 21:00 — và cả 22:00, 23:00 nếu bạn vẫn chưa trả lời.';
+
+  @override
   String get dqEndOfDayNudgeTitle => 'Ngày sắp khép lại rồi 🌙';
 
   @override
@@ -1630,6 +1645,18 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get dqStreakWarningStartPartnerBody =>
       'Người ấy chưa trả lời. Nhắc một câu để chúng mình cùng bắt đầu chuỗi nhé.';
+
+  @override
+  String get dqStreakWarningFinalTitle => 'Còn chưa đầy 1 tiếng nữa thôi! ⏳';
+
+  @override
+  String dqStreakWarningFinalBody(int days) {
+    return 'Trả lời ngay để chuỗi $days ngày của chúng mình không đứt nhé 🔥';
+  }
+
+  @override
+  String get dqStreakWarningFinalStartBody =>
+      'Trả lời ngay để chúng mình mở chuỗi mới trước khi hết ngày nhé 🌱';
 
   @override
   String get reminderDailyTitle => 'Thêm một ngày của chúng mình 💕';
@@ -2830,6 +2857,11 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String notifDailyQuestion(String name) {
     return '$name đã trả lời câu hỏi hôm nay';
+  }
+
+  @override
+  String notifDailyQuestionBoth(String name) {
+    return 'Bạn và $name đã trả lời câu hỏi hôm nay 💞';
   }
 
   @override

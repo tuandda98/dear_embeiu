@@ -72,6 +72,34 @@ class ReminderService {
   static const int _idDailyQuestionBase = 1040;
   static const int _maxDailyQuestionTimes = 10;
 
+  // Daily-question BACKSTOP band (2026-08-09), ids 1020–1033.
+  //
+  // Why it exists: the band above is one-shot for TODAY and is only ever armed
+  // while the app is running, so a user who doesn't open the app on a given day
+  // got NO reminder at all that day — exactly the user the nudge is for.
+  //
+  // Shape: a ROLLING WINDOW of one-shots covering the next [_backstopDays] days
+  // (never today), topped up on every app open — the same pattern as the lunar
+  // band. So:
+  //  • open the app every day → each re-arm rebuilds the window from tomorrow and
+  //    nothing here ever fires (today's answer-aware one-shot handles today);
+  //  • skip days → these fire, up to [_backstopDays] days out.
+  // Because it can only fire on a day the app wasn't opened, the user provably
+  // hasn't answered that day → the plain "come answer" copy is always true, which
+  // is why this band needs no answer-state awareness.
+  //
+  // ⚠️ Deliberately NOT a repeating schedule (`DateTimeComponents.time`): on iOS
+  // that becomes an hour/minute-only UNCalendarNotificationTrigger, whose next
+  // match can be TODAY — firing a duplicate alongside the one-shot band in the
+  // same minute. Explicit dates keep the two bands from ever colliding.
+  static const int _idDailyQuestionBackstopBase = 1020;
+  // Days ahead to pre-arm. Kept small on purpose: iOS caps an app at 64 PENDING
+  // notifications, and this band shares that budget with milestones, the lunar
+  // window and partner reminders. 7 days is plenty to catch a lapsed user before
+  // their next app open.
+  static const int _backstopDays = 7;
+  static const int _maxDailyQuestionBackstop = 14;
+
   // Daily-question end-of-day safety net (2026-06-19): up to 3 ONE-SHOT nudges
   // for TODAY only (21:00 gentle nudge, 22:00 + 23:00 streak warnings), ids
   // 1050..1052. One-shot — not repeating — because both the copy and whether to
@@ -341,19 +369,27 @@ class ReminderService {
   /// (minutes since midnight, ≤10 entries; extras are dropped). ONE-SHOT for
   /// TODAY only — times already past are skipped (never rolled to tomorrow; the
   /// provider re-arms each day with the current answer state so it can suppress
-  /// the nudge once both have answered and swap copy when only one has). Clears
-  /// the whole daily-question band (and the legacy single id) first, so this is
-  /// safe to call repeatedly and an empty list simply cancels everything.
+  /// the nudge once both have answered and swap copy when only one has, and
+  /// [scheduleDailyQuestionBackstop] covers the days the app isn't opened).
+  /// Clears the whole daily-question band (and the legacy single id) first, so
+  /// this is safe to call repeatedly and an empty list simply cancels everything.
+  ///
+  /// [bodies] rotates per fire time (`bodies[i % bodies.length]`) so a user with
+  /// several times a day doesn't get the exact same sentence over and over. Pass
+  /// a single-element list for one fixed body.
   Future<void> scheduleDailyQuestionTimes({
     required List<int> minutesOfDay,
     required String title,
-    required String body,
+    required List<String> bodies,
   }) async {
     await initialize();
     if (!_initialized) {
       return;
     }
     await cancelDailyQuestion();
+    if (bodies.isEmpty) {
+      return;
+    }
     final now = tz.TZDateTime.now(tz.local);
     final times = minutesOfDay.take(_maxDailyQuestionTimes).toList();
     for (var i = 0; i < times.length; i++) {
@@ -375,8 +411,115 @@ class ReminderService {
         id: _idDailyQuestionBase + i,
         when: when,
         title: title,
-        body: body,
+        body: bodies[i % bodies.length],
       );
+    }
+  }
+
+  /// (Re)schedule the BACKSTOP nudges (ids 1020–1033) — the safety net for days
+  /// the app is never opened, so the one-shot band above never gets armed. See
+  /// the band's doc comment for the full rationale.
+  ///
+  /// Arms one-shots for each time in [minutesOfDay] on each of the next
+  /// [_backstopDays] days, **starting tomorrow** (never today, so it can't double
+  /// up with [scheduleDailyQuestionTimes]), capped at
+  /// [_maxDailyQuestionBackstop] notifications. Dates are rebuilt field-by-field
+  /// per day so a DST shift can't drag the wall-clock time. [bodies] rotates so
+  /// consecutive nudges don't repeat one sentence. Clears the band first — empty
+  /// times (or bodies) simply cancels it.
+  Future<void> scheduleDailyQuestionBackstop({
+    required List<int> minutesOfDay,
+    required String title,
+    required List<String> bodies,
+  }) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelDailyQuestionBackstop();
+    final times = minutesOfDay.take(_maxDailyQuestionTimes).toList();
+    if (bodies.isEmpty || times.isEmpty) {
+      return;
+    }
+    final now = tz.TZDateTime.now(tz.local);
+    var id = _idDailyQuestionBackstopBase;
+    var bodyIndex = 0;
+    // Day-major so every covered day gets all of its times before we spend the
+    // budget on a day further out.
+    for (var dayOffset = 1; dayOffset <= _backstopDays; dayOffset++) {
+      final day = now.add(Duration(days: dayOffset));
+      for (final minuteOfDay in times) {
+        if (id >= _idDailyQuestionBackstopBase + _maxDailyQuestionBackstop) {
+          return;
+        }
+        final clamped = minuteOfDay.clamp(0, 24 * 60 - 1);
+        final when = tz.TZDateTime(
+          tz.local,
+          day.year,
+          day.month,
+          day.day,
+          clamped ~/ 60,
+          clamped % 60,
+        );
+        if (!when.isAfter(now)) {
+          continue;
+        }
+        await _scheduleAt(
+          id: id,
+          when: when,
+          title: title,
+          body: bodies[bodyIndex % bodies.length],
+        );
+        id++;
+        bodyIndex++;
+      }
+    }
+  }
+
+  /// Cancel the backstop band (1020–1033). Kept separate from
+  /// [cancelDailyQuestion] on purpose: finishing today's question must clear
+  /// TODAY's nudges while leaving the coming days' safety net armed.
+  Future<void> cancelDailyQuestionBackstop() async {
+    if (!_initialized) {
+      return;
+    }
+    for (var i = 0; i < _maxDailyQuestionBackstop; i++) {
+      try {
+        await _plugin.cancel(_idDailyQuestionBackstopBase + i);
+      } catch (_) {
+        // Already in the desired state.
+      }
+    }
+  }
+
+  /// Cancel BOTH daily-question bands — the user-set times (plus the legacy id)
+  /// AND the end-of-day safety net — WITHOUT requiring [initialize].
+  ///
+  /// `cancel` is a plain platform call (no timezone database, no permission
+  /// setup), so unlike the other cancels here this one works from the FCM
+  /// **background isolate**, where this service is a brand-new instance with
+  /// `_initialized == false`. That's the whole point: when a "both answered" push
+  /// arrives, today's armed nudges have become false ("người ấy chưa trả lời")
+  /// and must be dropped even though no UI is alive to re-evaluate them.
+  ///
+  /// ⚠️ Deliberately does NOT touch the repeating backstop band (1020–1029):
+  /// today being finished says nothing about tomorrow, and that band is the only
+  /// reminder a user who stops opening the app will ever get.
+  Future<void> cancelDailyQuestionBands() async {
+    Future<void> drop(int id) async {
+      try {
+        await _plugin.cancel(id);
+      } catch (_) {
+        // Already in the desired state.
+      }
+    }
+
+    await drop(_idDailyQuestion);
+    for (var i = 0; i < _maxDailyQuestionTimes; i++) {
+      await drop(_idDailyQuestionBase + i);
+    }
+    for (var i = 0; i < _maxDailyQuestionEod; i++) {
+      await drop(_idDailyQuestionEodBase + i);
     }
   }
 

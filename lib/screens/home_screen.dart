@@ -667,10 +667,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final photos = photoProvider.sortedPhotos;
     final lastPhotoDate = photos.isEmpty ? null : photos.first.uploadDate;
     final now = DateTime.now();
+    // `coupleActive` is part of the key: the daily-question nudges are gated on it
+    // (a solo waiting_partner couple must not be nudged), so the partner joining
+    // has to re-trigger a sync.
+    final coupleActive = !couple.isWaitingForPartner;
     final key = [
       couple.anniversaryDate.millisecondsSinceEpoch,
       lastPhotoDate?.millisecondsSinceEpoch ?? 0,
       l10n.localeName,
+      coupleActive,
       '${now.year}-${now.month}-${now.day}',
     ].join('|');
     if (key == _lastReminderKey) {
@@ -688,6 +693,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         anniversaryDate: anniversaryDate,
         lastPhotoDate: lastPhotoDate,
         l10n: l10n,
+        coupleActive: coupleActive,
       );
     });
   }

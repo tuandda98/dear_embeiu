@@ -143,9 +143,16 @@ class DailyQuestionService {
     // Streak flag (feature streak, D-PO-2): once BOTH members have answered
     // today, stamp `bothAnswered`/`revealedAt` on the marker so StreakProvider
     // can list revealed days cheaply (filter client-side, no responses fan-out).
-    // Set client-side here (no Cloud Function) — additive to the marker so the
-    // member-write rule still validates (date/questionVi/questionEn stay present
-    // via merge). Best-effort: a failure must never fail answering.
+    //
+    // ⚠️ This client-side write is now only a FAST PATH. The authoritative stamp
+    // lives in the `notifyDailyAnswer` Cloud Function (2026-08-09), because this
+    // one silently loses the day in two cases: both partners submitting at the
+    // same moment (each client reads only its own doc, so neither sets the flag)
+    // and a marker doc that doesn't exist yet (the member-write rule demands
+    // date/questionVi/questionEn, so a merge carrying only `bothAnswered` is
+    // DENIED). The CF uses the Admin SDK, which bypasses rules and reads after
+    // both docs exist. Kept here so the streak still updates instantly in-app.
+    // Best-effort: a failure must never fail answering.
     try {
       final responses = await _responses(coupleId, dateKey).get();
       // `responses` holds at most two docs (one per member). Both present →

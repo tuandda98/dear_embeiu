@@ -365,7 +365,19 @@ class _NotificationTile extends StatelessWidget {
     final today = DailyQuestionService.dateKey(DateTime.now());
     final date = (n.date == null || n.date!.isEmpty) ? today : n.date!;
     if (date != today) {
-      return false;
+      // A notification from an EARLIER day: its question can only live in the
+      // journal, so open it focused there (2026-08-09 — this used to fall through
+      // to Home, which shows TODAY's question instead of the one tapped).
+      // `hasRevealed` describes TODAY only, so it can't gate this; if that day was
+      // never completed the journal simply won't contain it and the focus is a
+      // no-op — still a better destination than the wrong question.
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          settings: const RouteSettings(name: 'Journal'),
+          builder: (_) => JournalScreen(focusDate: date),
+        ),
+      );
+      return true;
     }
     if (!context.read<DailyQuestionProvider>().hasRevealed) {
       return false;
@@ -393,7 +405,11 @@ class _NotificationTile extends StatelessWidget {
       case AppNotificationType.loveNote:
         return l10n.notifLoveNote(name);
       case AppNotificationType.dailyQuestion:
-        return l10n.notifDailyQuestion(name);
+        // Match the push: once this answer completed the pair, don't read as if
+        // only the partner had answered.
+        return n.bothAnswered
+            ? l10n.notifDailyQuestionBoth(name)
+            : l10n.notifDailyQuestion(name);
       case AppNotificationType.chatMessage:
         return l10n.notifChatMessage(name);
       case AppNotificationType.unknown:

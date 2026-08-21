@@ -138,6 +138,19 @@ class DailyQuestionProvider extends ChangeNotifier {
       return false;
     }
 
+    // Midnight rollover guard (2026-08-09): the day bucket is only refreshed by
+    // [watchForCouple], which HomeScreen calls from a post-frame callback. An app
+    // left open across midnight can therefore still hold YESTERDAY's [_dateKey]
+    // while the card already renders TODAY's question — answering then would file
+    // the answer (and the question snapshot) under the wrong day and skip today's
+    // streak. Re-align first; the resubscribe below picks up the new day's stream.
+    final today = DailyQuestionService.dateKey(DateTime.now());
+    if (_dateKey != today) {
+      _dateKey = today;
+      _answers = const <DailyAnswer>[];
+      _resubscribe();
+    }
+
     await _service.submitAnswer(
       coupleId: coupleId,
       dateKey: _dateKey,

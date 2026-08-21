@@ -1606,6 +1606,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Answer it to unlock your partner\'s reply.';
 
   @override
+  String get dailyQuestionReminderNotifBodyAlt1 =>
+      'There\'s a new question for the two of you — answer yours first 💞';
+
+  @override
+  String get dailyQuestionReminderNotifBodyAlt2 =>
+      'A little question is waiting for you both, come answer it 🌸';
+
+  @override
+  String get dqPartnerOnlyNudgeTitle => 'Just your partner left to answer 💌';
+
+  @override
+  String get dailyQuestionReminderEndOfDayHint =>
+      'If the question is still unfinished at the end of the day, you\'ll also be nudged at 21:00 — plus 22:00 and 23:00 if you haven\'t answered yet.';
+
+  @override
   String get dqEndOfDayNudgeTitle => 'The day is winding down 🌙';
 
   @override
@@ -1636,6 +1651,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dqStreakWarningStartPartnerBody =>
       'Your partner hasn\'t answered yet. Nudge them so you can start a streak together.';
+
+  @override
+  String get dqStreakWarningFinalTitle => 'Less than an hour left! ⏳';
+
+  @override
+  String dqStreakWarningFinalBody(int days) {
+    return 'Answer now so your $days-day streak doesn\'t break 🔥';
+  }
+
+  @override
+  String get dqStreakWarningFinalStartBody =>
+      'Answer now to start a new streak before the day ends 🌱';
 
   @override
   String get reminderDailyTitle => 'Another day of us 💕';
@@ -2838,6 +2865,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String notifDailyQuestion(String name) {
     return '$name answered today\'s question';
+  }
+
+  @override
+  String notifDailyQuestionBoth(String name) {
+    return 'You and $name both answered today\'s question 💞';
   }
 
   @override

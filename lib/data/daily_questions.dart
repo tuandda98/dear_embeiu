@@ -38,7 +38,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What song would you dedicate to your partner?',
   },
   {
-    'vi': 'Kỷ niệm nào của hai bạn khiến bạn mỉm cười mỗi khi nhớ lại?',
+    'vi': 'Kỷ niệm nào của chúng mình khiến bạn mỉm cười mỗi khi nhớ lại?',
     'en': 'Which memory of the two of you makes you smile every time?',
   },
   {
@@ -82,7 +82,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'When was the last time your partner made you laugh out loud?',
   },
   {
-    'vi': 'Nếu hai bạn có một ngày nghỉ trọn vẹn, bạn muốn làm gì?',
+    'vi': 'Nếu chúng mình có một ngày nghỉ trọn vẹn, bạn muốn làm gì?',
     'en': 'If the two of you had a whole day off, what would you do?',
   },
   {
@@ -98,11 +98,11 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What scent makes you think of your partner?',
   },
   {
-    'vi': 'Nếu viết một cuốn sách về hai bạn, tựa đề sẽ là gì?',
+    'vi': 'Nếu viết một cuốn sách về chúng mình, tựa đề sẽ là gì?',
     'en': 'If you wrote a book about the two of you, what would the title be?',
   },
   {
-    'vi': 'Điều gì khiến bạn tin rằng hai bạn hợp nhau?',
+    'vi': 'Điều gì khiến bạn tin rằng chúng mình hợp nhau?',
     'en': 'What makes you believe the two of you are a good match?',
   },
   {
@@ -142,7 +142,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'What do you miss most about your partner when you are apart?',
   },
   {
-    'vi': 'Nếu hai bạn nuôi một thú cưng, bạn muốn đặt tên là gì?',
+    'vi': 'Nếu chúng mình nuôi một thú cưng, bạn muốn đặt tên là gì?',
     'en': 'If the two of you got a pet, what would you name it?',
   },
   {
@@ -190,7 +190,7 @@ const List<Map<String, String>> dailyQuestions = [
     'en': 'Where would you like to take a keepsake photo with your partner?',
   },
   {
-    'vi': 'Nếu hai bạn có một ngày hoàn toàn tự do, bạn ước làm gì?',
+    'vi': 'Nếu chúng mình có một ngày hoàn toàn tự do, bạn ước làm gì?',
     'en': 'If the two of you had a completely free day, what would you wish to do?',
   },
   {
@@ -1039,8 +1039,19 @@ List<int> _permutation(int n, int seed) {
 ///   • Same couple + same local day ⇒ same question (both partners agree).
 ///   • No question repeats within one full cycle (== bank length) of days.
 ///   • Different couples get different orderings.
-///   • Stable mapping: appending questions does not reshuffle the bank (it only
-///     lengthens each couple's cycle — see [questionForCouple] notes below).
+///
+/// ⚠️ **Changing the bank LENGTH reshuffles everything** (verified 2026-08-09 — an
+/// earlier note here claimed the opposite). Both the Fisher–Yates permutation and
+/// `daysSinceEpoch % n` depend on `n`, so adding even one question gives every
+/// couple a brand-new order: today's question changes mid-cycle and the no-repeat
+/// guarantee breaks across the boundary (simulated: growing 229 → 235 brought a
+/// question from the previous 30 days back within the next 30). Two devices on
+/// different app versions therefore see DIFFERENT questions on the same day, and
+/// the journal marker keeps whichever text the SECOND answerer's build produced.
+/// This is accepted debt (see `project/features/daily-question/dev.md` §Trade-off)
+/// — mitigated in practice by the force-update floor. **Prefer editing existing
+/// entries over appending**; a real fix means pinning the cycle length or storing
+/// a per-couple offset.
 ///
 /// An empty or null [coupleId] falls back to seed 0 (still valid, never throws).
 /// Robust against an empty bank.
