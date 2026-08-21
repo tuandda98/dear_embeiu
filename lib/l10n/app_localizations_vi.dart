@@ -3233,4 +3233,21 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get partnerReminderNotifBody => 'Người ấy nhắc bạn 💌';
+
+  @override
+  String notifAnswerReaction(String name, String emoji) {
+    return '$name đã thả $emoji cho câu trả lời của bạn';
+  }
+
+  @override
+  String get answerReactionHint => 'Thả cảm xúc cho câu trả lời của người ấy';
+
+  @override
+  String get answerReactionAddTooltip => 'Thả cảm xúc';
+
+  @override
+  String get answerReactionRemoveTooltip => 'Bỏ cảm xúc';
+
+  @override
+  String get answerReactionErrorRetry => 'Chưa gửi được, thử lại nhé';
 }

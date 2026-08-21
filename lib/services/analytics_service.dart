@@ -45,6 +45,7 @@ class AnalyticsEvents {
   static const String pResult = 'result'; // couple_join_attempt
   static const String pIsFirst = 'is_first'; // photo_posted
   static const String pAction = 'action'; // love_note_set / reaction_set
+  static const String pSurface = 'surface'; // reaction_set: photo / daily_answer
   static const String pRepeat = 'repeat'; // reminder_created
   static const String pType = 'type'; // notification_opened
   static const String pLocale = 'locale'; // language_changed
@@ -281,9 +282,16 @@ class AnalyticsService {
       );
 
   /// [action] is `add` / `change` / `remove` (NOT which emoji or whose photo).
-  void logReactionSet(String action) => logEvent(
+  /// [action] is `add` / `change` / `remove`; [surface] says WHICH thing was
+  /// reacted to (`photo` by default, `daily_answer` for daily-question answers)
+  /// so the two reaction surfaces stay separable in the funnel. Never carries
+  /// the emoji or any content.
+  void logReactionSet(String action, {String surface = 'photo'}) => logEvent(
         AnalyticsEvents.reactionSet,
-        params: {AnalyticsEvents.pAction: action},
+        params: {
+          AnalyticsEvents.pAction: action,
+          AnalyticsEvents.pSurface: surface,
+        },
       );
 
   void logDailyQuestionAnswered() =>

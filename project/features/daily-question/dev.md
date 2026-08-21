@@ -133,3 +133,51 @@
   - Verify thêm trong vòng: 5 chuỗi l10n mới dump từ generated ĐÚNG đủ dấu · thứ tự `_cancelStaleDailyQuestionNudges` TRƯỚC null-check title/body trong `_handleForegroundMessage` (dòng 539 < 544) · bản đồ id notification sạch (backstop 1020–1033 nằm giữa 1012 và 1040, đệm 1034–1039) · `platform` client ghi thật ở `user_service.dart:196` · background handler đăng ký `main.dart:102` + `ReminderService.instance.initialize()` chạy startup (`main.dart:155`) · `_scheduleDailyQuestion` final đúng thiết kế (backstop schedule trước, revealed chỉ cancel dải hôm nay, eodMinutes drop đúng theo `_activeEodHours`).
   - Verify: `node -c` OK · `flutter analyze` 0 · `flutter test` 24/24 · rules-test 197. **⚠️ Backend vẫn CHỜ LỆNH deploy `functions:notifyDailyAnswer` prod.** Hạn chế còn lại sau vá: Android bị user "Force stop" trong Settings (không nhận FCM cho tới lần mở tay kế tiếp) + iOS force-quit — cả hai đã có lớp 2 đỡ.
 - [2026-08-09→10] [lead] **RELEASE 1.4.2+17 HOÀN TẤT PHÁT HÀNH (phối hợp Claude + user).** CF `notifyDailyAnswer` deploy PROD ✓ → AAB+IPA build/verify ✓ → iOS: user upload Transporter, version 1.4.2 + build 17 + What's New vi do Claude tạo/điền qua Chrome MCP trên App Store Connect (listing Apple CHỈ có Vietnamese localization — không cần EN), user submit → **Apple duyệt + LIVE 2026-08-09 19:58 UTC**. Android: Claude điền notes vi+en-US trong Play Console qua Chrome MCP, user kéo-thả AAB (56.5MB vượt cap 10MB của tool bridge) + submit → **đang review**. Gotcha ASC: gõ text qua CDP vào What's New bị "invalid characters" (nghi ký tự ẩn từ keystroke) → dùng `form_input` set giá trị trực tiếp thì sạch. `minBuildNumber` giữ 15 tới khi Play live 17. **[2026-08-10] Play cảnh báo đỏ target-API deadline 31/8/2026 → nâng `targetSdk` 35→36 (`android/app/build.gradle.kts`), build debug verify `targetSdkVersion:'36'` qua aapt2, không dùng windowOptOutEdgeToEdgeEnforcement nên an toàn; ship cùng release kế tiếp (1.4.3+18?) TRƯỚC 31/8.** Còn treo phía user: xác minh nhà phát triển Android trước 30/9/2026 (danh tính cá nhân — Claude không làm thay được) + git commit/tag + smoke-test 2 máy khi Play live.
+
+---
+
+## [2026-08-22] [dev] Thả react cho câu trả lời (feature: daily-question reactions)
+
+**Yêu cầu user:** "update tính năng câu hỏi hằng ngày sẽ có thả react".
+
+**3 quyết định PO chốt với user trước khi code:**
+1. **Đối tượng** = react lên **câu trả lời của NGƯỜI ẤY** (không phải cả ngày, không react câu của mình) — đúng pattern reaction ảnh.
+2. **Phạm vi** = **Home (thẻ sau reveal) + Nhật ký** (cả 2 màn vốn đã render `myAnswer` + `partnerAnswer`).
+3. **Thông báo** = **CÓ push**, giống reaction ảnh (đụng backend).
+
+### Data model
+`couples/{coupleId}/dailyAnswers/{date}/responses/{answerAuthorUid}/answerReactions/{reactorUid}`
+— 1 doc / người react / câu trả lời, doc id == uid người react. Field:
+`reactorUserId` · `emoji` (1 trong 6) · `coupleId` · `date` · `reactedAt`.
+
+⚠️ **Vì sao KHÔNG đặt tên `reactions`:** `ReactionService.watchCoupleReactions`
+query `collectionGroup('reactions').where('coupleId','==',...)` **chỉ lọc coupleId**
+rồi lấy `photoId = doc.reference.parent.parent.id`. Dùng chung tên ⇒ react câu trả lời
+lọt vào map reaction ẢNH với "photoId" = uid — trên **mọi bản đã phát hành**, không sửa
+được từ xa. Tên riêng `answerReactions` cô lập tuyệt đối 2 feature; client cũ không bao
+giờ query collection này. Có test pin điều này
+(`keeps answer reactions OUT of the photo-reaction collection group`).
+
+`coupleId` + `date` denormalise lên doc để 1 query collection-group phục vụ CẢ Home lẫn
+Nhật ký (≤2 react/ngày ⇒ nhiều năm vẫn nhỏ). Tác giả câu trả lời + ngày **lấy từ PATH**
+khi đọc, không tin field (field có thể cũ/giả).
+
+### File
+- **MỚI**: `models/answer_reaction.dart` (re-export `kReactionEmojis` từ `photo_reaction.dart` — 1 nguồn sự thật cho 6 emoji) · `services/answer_reaction_service.dart` · `providers/answer_reaction_provider.dart` (optimistic + rollback, key `date|answerAuthorUid`) · `widgets/answer_reaction_row.dart`.
+- **SỬA**: `main.dart` + `app/session_resolver.dart` + `screens/home_screen.dart` (wire/clear provider) · `widgets/today_ritual_card.dart` (2 row ở nhánh D. Revealed) · `screens/journal_screen.dart` · `providers/daily_question_provider.dart` (thêm getter `dateKey`) · `models/app_notification.dart` (type `dailyAnswerReaction`) · `services/push_notification_service.dart` (tap route) · `screens/notification_center_screen.dart` (title/icon + tap → Journal) · `services/analytics_service.dart` (`logReactionSet` thêm param `surface`: `photo`/`daily_answer`).
+- **Backend**: `firestore.rules` (nested write + recursive collection-group read) · `firestore.indexes.json` (fieldOverride `answerReactions.coupleId` COLLECTION_GROUP) · `functions/index.js` (`notifyDailyAnswerReaction`).
+
+### Quyết định đáng ghi
+- **Chỉ hiện sau reveal.** Trên Home, row chỉ render ở nhánh `hasRevealed`. Hiện sớm hơn sẽ **lộ việc người ấy đã trả lời trước** — đúng thứ cơ chế reveal đang cố giấu.
+- **Rules chặn tự-react** (`reactorUid != answerAuthorUid`), không chỉ ẩn ở UI. Đã ghi chú trong rules cách nới nếu sau này đổi ý.
+- **Tên người trong push để RAW + fallback theo ngôn ngữ máy nhận** (`ANSWER_REACTION_COPY.partnerFallback`) — KHÔNG dùng `normalizeActorName` vì hàm đó hardcode "Người ấy", chính là bug máy EN đã phải sửa ở 1.4.2.
+- **Push content-free**: không bao giờ trích nội dung câu trả lời, chỉ tên + emoji.
+
+### Verify
+`flutter analyze` 0 · `flutter test` 24/24 · **rules-test 209 pass** (197 → +12 test mới ở
+`firebase_rules_test/test/firestore.answerReactions.test.js`, gồm cả 2 test collection-group
+là đúng chỗ bug reaction ảnh từng lọt).
+
+⚠️ **Backend CHỜ LỆNH deploy prod**: `firestore:rules,firestore:indexes,functions:notifyDailyAnswerReaction`.
+Chưa deploy ⇒ react sẽ `permission-denied` và không có push.
+⚠️ **Chưa smoke-test 2 máy thật.**

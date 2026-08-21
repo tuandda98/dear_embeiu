@@ -103,7 +103,16 @@
   "chatStatusRead": "Đã xem",
   "lunarSectionTitle": "Lịch âm",
   "lunarDateLabel": "{day} tháng {month} Âm",
-  "@lunarDateLabel": { "placeholders": { "month": { "type": "int" }, "day": { "type": "int" } } },
+  "@lunarDateLabel": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
   "lunarTodayLabel": "Hôm nay",
   "lunarNextNewMoon": "Mồng 1 tới",
   "lunarNextFullMoon": "Ngày rằm tới",
@@ -114,9 +123,21 @@
   "lunarFullMoonNotifTitle": "Ngày rằm 🌕",
   "lunarFullMoonNotifBody": "Hôm nay là ngày rằm (15 âm lịch).",
   "lunarOtherDayNotifTitle": "Ngày {day} âm lịch 🌙",
-  "@lunarOtherDayNotifTitle": { "placeholders": { "day": { "type": "int" } } },
+  "@lunarOtherDayNotifTitle": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
   "lunarOtherDayNotifBody": "Hôm nay là ngày {day} âm lịch.",
-  "@lunarOtherDayNotifBody": { "placeholders": { "day": { "type": "int" } } },
+  "@lunarOtherDayNotifBody": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
   "lunarCalendarBadge": "LỊCH ÂM",
   "lunarOpenCalendar": "Mở lịch âm",
   "lunarRemindDaysLabel": "Ngày nhắc (âm lịch)",
@@ -463,7 +484,9 @@
   "@moodPartnerEmpty": {
     "description": "Partner side of the mood card when they haven't shared today",
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "moodSheetTitle": "Hôm nay bạn thế nào?",
@@ -1230,7 +1253,6 @@
   "guestCtaBody": "Đăng nhập để ghép đôi & lưu ảnh chung.",
   "guestCtaSignIn": "Đăng nhập",
   "guestCtaRegister": "Đăng ký",
-
   "streakChipNoStreak": "Bắt đầu chuỗi cùng nhau",
   "@streakChipNoStreak": {
     "description": "Streak chip — couple đã ghép nhưng chưa có chuỗi (lời mời, shame-free)"
@@ -1242,22 +1264,27 @@
   "streakChipActiveToday": "{n} ngày kết nối · hôm nay xong rồi",
   "@streakChipActiveToday": {
     "placeholders": {
-      "n": { "type": "int" }
+      "n": {
+        "type": "int"
+      }
     }
   },
   "streakChipInProgress": "{n} ngày kết nối · tới lượt hôm nay 🌸",
   "@streakChipInProgress": {
     "placeholders": {
-      "n": { "type": "int" }
+      "n": {
+        "type": "int"
+      }
     }
   },
   "streakChipAtRisk": "Chuỗi {n} ngày đang chờ chúng mình 🫶",
   "@streakChipAtRisk": {
     "placeholders": {
-      "n": { "type": "int" }
+      "n": {
+        "type": "int"
+      }
     }
   },
-
   "streakSheetUnit": "ngày kết nối liên tiếp",
   "streakSheetNoStreakTitle": "Thắp ngọn lửa đầu tiên",
   "streakSheetNoStreakBody": "Mỗi ngày chúng mình cùng trả lời câu hỏi là chuỗi lại dài thêm. Cùng bắt đầu nhé 💞",
@@ -1267,34 +1294,42 @@
   "streakSheetInProgressBody": "Trả lời câu hỏi hôm nay để chúng mình cùng nối tiếp chuỗi {n} ngày nhé 💞",
   "@streakSheetInProgressBody": {
     "placeholders": {
-      "n": { "type": "int" }
+      "n": {
+        "type": "int"
+      }
     }
   },
   "streakSheetAtRiskTitle": "Còn một nhịp đệm thôi 🫶",
   "streakSheetAtRiskBody": "Hôm qua chúng mình lỡ một nhịp — không sao cả! Trả lời hôm nay là chuỗi {n} ngày tiếp tục liền.",
   "@streakSheetAtRiskBody": {
     "placeholders": {
-      "n": { "type": "int" }
+      "n": {
+        "type": "int"
+      }
     }
   },
   "streakSheetRestartBody": "Chuỗi cũ khép lại rồi, nhưng mỗi ngày mới là một khởi đầu. Cùng thắp lại nào 🌱",
   "streakSheetRecord": "Kỷ lục của chúng mình: {m} ngày 🌟",
   "@streakSheetRecord": {
     "placeholders": {
-      "m": { "type": "int" }
+      "m": {
+        "type": "int"
+      }
     }
   },
-
   "streakNextMilestone": "Còn {n} ngày tới mốc {m} 🎉",
   "@streakNextMilestone": {
     "placeholders": {
-      "n": { "type": "int" },
-      "m": { "type": "int" }
+      "n": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
     }
   },
   "streakCtaAnswerNow": "Trả lời ngay",
   "streakCtaKeepGoing": "Giữ chuỗi nhé",
-
   "streakMilestone3Title": "3 ngày rồi đó! 🌸",
   "streakMilestone3Body": "Khởi đầu thật đáng yêu. Chúng mình đang làm tốt lắm 💞",
   "streakMilestone7Title": "Trọn một tuần! ✨",
@@ -1305,16 +1340,18 @@
   "streakMilestone100Body": "Trăm ngày cùng nhau trả lời, cùng nhau lớn lên. Hiếm cặp nào làm được như chúng mình 🌟",
   "streakMilestone365Title": "Tròn một năm! 👑",
   "streakMilestone365Body": "365 ngày không lỡ một nhịp kết nối. Đây là chuyện tình của riêng chúng mình 💞👑",
-
   "streakJournalSummary": "Chuỗi hiện tại {n} ngày · Dài nhất {m}",
   "@streakJournalSummary": {
     "placeholders": {
-      "n": { "type": "int" },
-      "m": { "type": "int" }
+      "n": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
     }
   },
   "streakJournalSummaryNone": "Cùng trả lời mỗi ngày để bắt đầu chuỗi nhé 🌸",
-
   "forgotPasswordLink": "Quên mật khẩu?",
   "forgotPasswordBadge": "KHÔI PHỤC TRUY CẬP",
   "forgotPasswordTitle": "Quên mật khẩu?",
@@ -1326,7 +1363,9 @@
   "forgotPasswordSentBody": "Đã gửi liên kết đặt lại mật khẩu tới {email}. Mở mail và bấm vào liên kết để đặt lại. Nhớ kiểm tra cả mục spam nhé.",
   "@forgotPasswordSentBody": {
     "placeholders": {
-      "email": { "type": "String" }
+      "email": {
+        "type": "String"
+      }
     }
   },
   "forgotPasswordResendLink": "Không nhận được? Gửi lại",
@@ -1337,7 +1376,9 @@
   "verifyEmailSubtitle": "Mình đã gửi liên kết xác thực tới {email}.",
   "@verifyEmailSubtitle": {
     "placeholders": {
-      "email": { "type": "String" }
+      "email": {
+        "type": "String"
+      }
     }
   },
   "verifyEmailBody": "Mở email, bấm vào liên kết xác thực, rồi quay lại đây và bấm \"Tôi đã xác thực\".",
@@ -1346,18 +1387,18 @@
   "verifyEmailResendCountdown": "Gửi lại sau {time}",
   "@verifyEmailResendCountdown": {
     "placeholders": {
-      "time": { "type": "String" }
+      "time": {
+        "type": "String"
+      }
     }
   },
   "verifyEmailNotYet": "Chưa thấy xác thực — bạn kiểm tra lại hộp thư rồi thử lại nhé.",
   "verifyEmailSuccess": "Đã xác thực! Đang đưa bạn vào...",
   "verifyEmailResendError": "Không gửi lại được email. Kiểm tra kết nối rồi thử lại nhé.",
-
   "setupWaitingCoupleCodeTitle": "Gửi mã này cho người ấy để ghép đôi",
   "setupCoupleCodeDesc": "Đây là mã ghép đôi của hai bạn. Cả hai đều dùng mã này để kết nối lại nếu cần.",
   "setupCoupleCodeRejoinHint": "Lưu mã lại — bạn có thể dùng nó để quay lại không gian này bất cứ lúc nào.",
   "galleryNeedsCoupleToUpload": "Bạn cần ghép đôi trước để đăng ảnh chung nhé 💞",
-
   "notifCenterTitle": "Thông báo",
   "notifCenterBadge": "TIN MỚI CỦA HAI BẠN",
   "notifCenterEmptyTitle": "Chưa có thông báo",
@@ -1366,7 +1407,11 @@
   "notifGroupEarlier": "Trước đó",
   "notifUnreadCount": "{count} chưa đọc",
   "@notifUnreadCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "notifAllCaughtUp": "Hai bạn đã xem hết rồi 💛",
   "notifMarkAllRead": "Đánh dấu đã đọc",
@@ -1377,35 +1422,70 @@
   "notifGeneric": "Bạn có thông báo mới",
   "notifPhotoPosted": "{name} vừa đăng ảnh mới",
   "@notifPhotoPosted": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "notifPhotoReaction": "{name} đã thả {emoji} vào ảnh của bạn",
   "@notifPhotoReaction": {
-    "placeholders": { "name": { "type": "String" }, "emoji": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "emoji": {
+        "type": "String"
+      }
+    }
   },
   "notifPartnerJoined": "{name} đã ghép đôi cùng bạn",
   "@notifPartnerJoined": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "notifPartnerLeft": "{name} đã rời khỏi không gian chung",
   "@notifPartnerLeft": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "notifLoveNote": "{name} vừa để lại lời nhắn",
   "@notifLoveNote": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "notifDailyQuestion": "{name} đã trả lời câu hỏi hôm nay",
   "@notifDailyQuestion": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "notifDailyQuestionBoth": "Bạn và {name} đã trả lời câu hỏi hôm nay 💞",
   "@notifDailyQuestionBoth": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "notifChatMessage": "{name} vừa gửi cho bạn một tin nhắn 💬",
   "@notifChatMessage": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "forceUpdateBadge": "CẬP NHẬT",
   "forceUpdateTitle": "Đã có bản cập nhật mới",
@@ -1415,7 +1495,13 @@
   "counterBgTitle": "Ảnh nền thẻ đếm",
   "counterBgSubtitleAll": "Chọn ảnh được dùng làm nền thẻ đếm ngày. Bỏ trống thì xoay vòng tất cả ảnh.",
   "counterBgSubtitleCount": "Đã chọn {count} ảnh làm nền thẻ đếm.",
-  "@counterBgSubtitleCount": { "placeholders": { "count": { "type": "int" } } },
+  "@counterBgSubtitleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "counterBgCoverLabel": "Ảnh đại diện",
   "counterBgEmptyTitle": "Chưa có ảnh nào",
   "counterBgEmptyBody": "Hãy thêm vài kỷ niệm vào thư viện trước nhé.",
@@ -1439,7 +1525,16 @@
   "chatBgSavedMsg": "Đã lưu ảnh nền chat 💕",
   "journeyTrailTitle": "Hành trình của chúng mình",
   "milestoneTrailNext": "Còn {days} ngày tới {label}",
-  "@milestoneTrailNext": { "placeholders": { "days": { "type": "int" }, "label": { "type": "String" } } },
+  "@milestoneTrailNext": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "milestoneTrailAllDone": "Hai bạn đã chinh phục mọi cột mốc rồi 🎉",
   "profileAchievementsTitle": "Huy hiệu của chúng mình",
   "badgeStreakLabel": "ngày chuỗi",
@@ -1456,7 +1551,9 @@
   "@profileJournalCountLabel": {
     "description": "Journal entry count value, e.g. '5 câu' (Q&As answered)",
     "placeholders": {
-      "count": { "type": "String" }
+      "count": {
+        "type": "String"
+      }
     }
   },
   "profileMemoriesTitle": "Kỷ niệm của chúng mình",
@@ -1464,15 +1561,21 @@
   "@profileMemoriesCountLabel": {
     "description": "Total memories subtitle in the memories sheet",
     "placeholders": {
-      "count": { "type": "String" }
+      "count": {
+        "type": "String"
+      }
     }
   },
   "profileMemoriesNextLabel": "Còn {count} ảnh nữa tới mốc {milestone}",
   "@profileMemoriesNextLabel": {
     "description": "Motivation toward the next photo-count milestone",
     "placeholders": {
-      "count": { "type": "String" },
-      "milestone": { "type": "String" }
+      "count": {
+        "type": "String"
+      },
+      "milestone": {
+        "type": "String"
+      }
     }
   },
   "loveTreeBadge": "CÂY TÌNH YÊU",
@@ -1509,37 +1612,129 @@
   "loveTreeNoCoupleBody": "Hãy kết nối với người ấy để bắt đầu trồng cây 🌱",
   "loveTreeCoachTooltip": "Chạm để xem khoảnh khắc 🌸",
   "loveTreeTapHint": "Chạm vào mỗi bông để xem kỷ niệm",
-
   "loveTreeMomentDaysTitle": "{count} ngày bên nhau",
-  "@loveTreeMomentDaysTitle": { "placeholders": { "count": { "type": "int" } } },
+  "@loveTreeMomentDaysTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loveTreeMomentPhotosTitle": "Kỷ niệm thứ {count}",
-  "@loveTreeMomentPhotosTitle": { "placeholders": { "count": { "type": "int" } } },
+  "@loveTreeMomentPhotosTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loveTreeMomentStreakTitle": "Kỷ lục chuỗi {count} ngày",
-  "@loveTreeMomentStreakTitle": { "placeholders": { "count": { "type": "int" } } },
+  "@loveTreeMomentStreakTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loveTreeMomentBloomedOn": "Nở ngày {date}",
-  "@loveTreeMomentBloomedOn": { "placeholders": { "date": { "type": "String" } } },
+  "@loveTreeMomentBloomedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "loveTreeMomentPhotoTakenOn": "Đăng ngày {date}",
-  "@loveTreeMomentPhotoTakenOn": { "placeholders": { "date": { "type": "String" } } },
+  "@loveTreeMomentPhotoTakenOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "loveTreeMomentDaysCopy": "Mỗi ngày bên nhau là một cánh hoa nở 🌸",
   "loveTreeMomentPhotosCopy": "Một khoảnh khắc hai đứa đã cùng lưu giữ 💞",
   "loveTreeMomentStreakCopy": "Kỷ lục các bạn từng cùng nhau giữ. Bắt đầu chuỗi mới để vượt nó nhé 🔥",
   "loveTreeMomentViewInGallery": "Xem trong Thư viện",
   "loveTreeLockedDays": "Còn {count} ngày nữa để nở 🌱",
-  "@loveTreeLockedDays": { "placeholders": { "count": { "type": "int" } } },
+  "@loveTreeLockedDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loveTreeLockedPhotos": "Còn {count} kỷ niệm nữa để nở 🌱",
-  "@loveTreeLockedPhotos": { "placeholders": { "count": { "type": "int" } } },
+  "@loveTreeLockedPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loveTreeLockedStreak": "Còn {count} ngày chuỗi nữa để nở 🌱",
-  "@loveTreeLockedStreak": { "placeholders": { "count": { "type": "int" } } },
+  "@loveTreeLockedStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loveTreeLockedPhotosCta": "Thêm kỷ niệm",
   "loveTreeLockedStreakCta": "Trả lời hôm nay",
   "loveTreeShareButton": "Khoe cây",
   "loveTreeShareStats": "{days} ngày bên nhau · {flowers} bông hoa",
-  "@loveTreeShareStats": { "placeholders": { "days": { "type": "String" }, "flowers": { "type": "String" } } },
+  "@loveTreeShareStats": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      },
+      "flowers": {
+        "type": "String"
+      }
+    }
+  },
   "loveTreeShareTagline": "Cây tình yêu của chúng mình 🌳",
   "loveTreeShareTaglineSeed": "Cây vừa gieo mầm 🌱",
   "loveTreeShareMessage": "Cây tình yêu của chúng mình đã nở {flowers} bông hoa sau {days} ngày 🌳💞 — vun cây cùng người ấy trên Dear Embeiu.",
-  "@loveTreeShareMessage": { "placeholders": { "flowers": { "type": "String" }, "days": { "type": "String" } } },
+  "@loveTreeShareMessage": {
+    "placeholders": {
+      "flowers": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  },
   "loveTreeShareFailed": "Không tạo được thẻ, thử lại nhé",
-
-  "partnerReminderNotifBody": "Người ấy nhắc bạn 💌"
+  "partnerReminderNotifBody": "Người ấy nhắc bạn 💌",
+  "notifAnswerReaction": "{name} đã thả {emoji} cho câu trả lời của bạn",
+  "@notifAnswerReaction": {
+    "description": "Notification center title when the partner reacts to your daily-question answer.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "emoji": {
+        "type": "String"
+      }
+    }
+  },
+  "answerReactionHint": "Thả cảm xúc cho câu trả lời của người ấy",
+  "@answerReactionHint": {
+    "description": "Hint under a revealed partner answer inviting a reaction."
+  },
+  "answerReactionAddTooltip": "Thả cảm xúc",
+  "@answerReactionAddTooltip": {
+    "description": "Tooltip/a11y label for the answer reaction heart button."
+  },
+  "answerReactionRemoveTooltip": "Bỏ cảm xúc",
+  "@answerReactionRemoveTooltip": {
+    "description": "Tooltip/a11y label to remove your answer reaction."
+  },
+  "answerReactionErrorRetry": "Chưa gửi được, thử lại nhé",
+  "@answerReactionErrorRetry": {
+    "description": "Shown when writing an answer reaction failed."
+  }
 }

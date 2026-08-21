@@ -370,3 +370,4 @@
 - [00:31] ghiim claude rồi
 - [00:32] login vào claude rồi
 - [00:33] oke làm đi
+- [00:49] update tính năng câu hỏi hằng ngày sẽ có thả react

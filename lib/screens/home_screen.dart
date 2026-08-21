@@ -20,6 +20,7 @@ import '../providers/couple_provider.dart';
 import '../providers/daily_question_provider.dart';
 import '../providers/notification_inbox_provider.dart';
 import '../providers/photo_provider.dart';
+import '../providers/answer_reaction_provider.dart';
 import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/streak_provider.dart';
@@ -1303,6 +1304,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             myUid,
           );
           context.read<ReactionProvider>().watchForCouple(couple.id, myUid);
+          context
+              .read<AnswerReactionProvider>()
+              .watchForCouple(couple.id, myUid);
           // Mood (feature mood) — re-arm so the card is live + resets at midnight.
           context.read<MoodProvider>().watchForCouple(couple.id, myUid);
           // Chat stream (feature chat) — must run from Home so the unread dot

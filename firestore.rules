@@ -587,6 +587,43 @@ service cloud.firestore {
           && request.resource.data.text is string
           && request.resource.data.text.size() <= 280;
       }
+
+      // Reactions on a daily-question answer (feature: daily-question
+      // reactions). One doc per reactor per answer, doc id == reactor's uid, so
+      // each member owns and overwrites their single reaction; removing it
+      // deletes the doc. Both members read.
+      //
+      // Named `answerReactions`, NOT `reactions`: photo reactions stream
+      // through collectionGroup('reactions') filtered only by coupleId, so
+      // sharing the name would leak these docs into the photo reaction map on
+      // every already-shipped client. A separate group keeps the two features
+      // isolated.
+      //
+      // `coupleId` and `date` are denormalised onto the doc so ONE
+      // collection-group query can watch the couple's whole history; both are
+      // pinned to the path here so a stale or forged field can never widen what
+      // a member sees.
+      //
+      // reactorUid != answerAuthorUid: you react to your PARTNER's answer, not
+      // your own (product decision 2026-08-22). Relax this line if self-
+      // reactions are ever wanted — nothing else depends on it.
+      match /dailyAnswers/{date}/responses/{answerAuthorUid}/answerReactions/{reactorUid} {
+        allow read: if isCoupleMember(coupleId);
+        allow create, update: if isCoupleMember(coupleId)
+          && reactorUid == request.auth.uid
+          && reactorUid != answerAuthorUid
+          && request.resource.data.keys().hasOnly(
+              ['reactorUserId', 'emoji', 'coupleId', 'date', 'reactedAt'])
+          && request.resource.data.reactorUserId == request.auth.uid
+          && request.resource.data.coupleId == coupleId
+          && request.resource.data.date == date
+          && request.resource.data.emoji is string
+          && request.resource.data.emoji in ['❤️', '😍', '😂', '🥹', '🔥', '👍']
+          && (!('reactedAt' in request.resource.data)
+              || request.resource.data.reactedAt is timestamp);
+        allow delete: if isCoupleMember(coupleId)
+          && reactorUid == request.auth.uid;
+      }
     }
 
     match /couples/{coupleId}/photos/{photoId} {
@@ -635,6 +672,19 @@ service cloud.firestore {
     // couple's reactions. ADDITIVE — grants the query, restricts nothing the
     // nested rule already allowed.
     match /{path=**}/reactions/{reactionId} {
+      allow read: if isCoupleMember(resource.data.coupleId);
+    }
+
+    // Collection-group READ for daily-answer reactions (feature:
+    // daily-question reactions). Same Firestore trap as the photo reactions
+    // above: the nested path rule secures single-doc access but does NOT
+    // authorise `collectionGroup('answerReactions').where('coupleId','==',...)`,
+    // which is exactly the query answer_reaction_service.dart runs — without
+    // this the partner's stream returns permission-denied and a reaction never
+    // crosses devices. Read-only + member-scoped: every doc carries its
+    // coupleId (pinned to the path on write), so a member can only ever stream
+    // their own couple. ADDITIVE — grants the query, restricts nothing.
+    match /{path=**}/answerReactions/{reactionId} {
       allow read: if isCoupleMember(resource.data.coupleId);
     }
 

@@ -3244,4 +3244,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get partnerReminderNotifBody => 'A reminder from your partner 💌';
+
+  @override
+  String notifAnswerReaction(String name, String emoji) {
+    return '$name reacted $emoji to your answer';
+  }
+
+  @override
+  String get answerReactionHint => 'React to your partner\'s answer';
+
+  @override
+  String get answerReactionAddTooltip => 'Add a reaction';
+
+  @override
+  String get answerReactionRemoveTooltip => 'Remove reaction';
+
+  @override
+  String get answerReactionErrorRetry => 'Couldn\'t send — tap to retry';
 }

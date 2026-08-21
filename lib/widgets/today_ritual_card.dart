@@ -11,6 +11,7 @@ import '../providers/auth_provider.dart';
 import '../providers/daily_question_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import 'answer_reaction_row.dart';
 import 'animated_couple_name.dart';
 import 'compose_pill.dart';
 import 'content_card.dart';
@@ -285,14 +286,34 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
       }
       final mine = daily.myAnswer?.text.trim() ?? '';
       final theirs = daily.partnerAnswer?.text.trim() ?? '';
+      // Reactions (feature: daily-question reactions) only exist once the day is
+      // revealed — before that, showing a reaction surface on the partner's
+      // block would leak that they already answered.
+      final myUid = daily.myAnswer?.authorUserId ?? '';
+      final theirUid = daily.partnerAnswer?.authorUserId ?? '';
+      final date = daily.dateKey;
+      final canReact =
+          date.isNotEmpty && myUid.isNotEmpty && theirUid.isNotEmpty;
       return [
         _answerBlock(l10n.dailyQuestionYourAnswerLabel, mine, mine: true),
+        if (canReact)
+          AnswerReactionRow(
+            date: date,
+            answerAuthorUid: myUid,
+            myUid: myUid,
+          ),
         const SizedBox(height: 10),
         _answerBlock(
           l10n.dailyQuestionPartnerAnswerLabel(partnerName),
           theirs,
           mine: false,
         ),
+        if (canReact)
+          AnswerReactionRow(
+            date: date,
+            answerAuthorUid: theirUid,
+            myUid: myUid,
+          ),
         const SizedBox(height: 10),
         Align(
           alignment: Alignment.centerRight,

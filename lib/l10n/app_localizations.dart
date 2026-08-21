@@ -5575,6 +5575,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A reminder from your partner 💌'**
   String get partnerReminderNotifBody;
+
+  /// Notification center title when the partner reacts to your daily-question answer.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} reacted {emoji} to your answer'**
+  String notifAnswerReaction(String name, String emoji);
+
+  /// Hint under a revealed partner answer inviting a reaction.
+  ///
+  /// In en, this message translates to:
+  /// **'React to your partner\'s answer'**
+  String get answerReactionHint;
+
+  /// Tooltip/a11y label for the answer reaction heart button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a reaction'**
+  String get answerReactionAddTooltip;
+
+  /// Tooltip/a11y label to remove your answer reaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove reaction'**
+  String get answerReactionRemoveTooltip;
+
+  /// Shown when writing an answer reaction failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send — tap to retry'**
+  String get answerReactionErrorRetry;
 }
 
 class _AppLocalizationsDelegate

@@ -12,6 +12,10 @@ enum AppNotificationType {
   partnerLeft,
   loveNote,
   dailyQuestion,
+
+  /// Partner reacted to your daily-question answer (feature: daily-question
+  /// reactions). Carries `date` + `emoji`; routes like [dailyQuestion].
+  dailyAnswerReaction,
   chatMessage,
 
   /// A type this app build doesn't recognise (forward-compat: a newer backend
@@ -33,6 +37,8 @@ AppNotificationType appNotificationTypeFromString(String? raw) {
       return AppNotificationType.loveNote;
     case 'daily_question':
       return AppNotificationType.dailyQuestion;
+    case 'daily_answer_reaction':
+      return AppNotificationType.dailyAnswerReaction;
     case 'chat_message':
       return AppNotificationType.chatMessage;
     default:
@@ -101,6 +107,10 @@ class AppNotification {
       case AppNotificationType.partnerJoined:
       case AppNotificationType.partnerLeft:
       case AppNotificationType.dailyQuestion:
+      // A reaction always lands on an already-revealed answer, so the tap
+      // handler in notification_center_screen sends it straight to that day in
+      // the Journal; Home is the cold-start fallback.
+      case AppNotificationType.dailyAnswerReaction:
       case AppNotificationType.unknown:
         return 0; // Home
     }

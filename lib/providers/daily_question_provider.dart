@@ -38,6 +38,11 @@ class DailyQuestionProvider extends ChangeNotifier {
       questionTextForCouple(DateTime.now(), _coupleId ?? '', langCode);
 
   /// The current user's own answer for today (author == current uid), or null.
+  /// The day currently being watched, `YYYY-MM-DD`. Empty before the first
+  /// `watchForCouple`. Answer reactions are addressed by (date, answer author),
+  /// so the card needs this to write against the right day.
+  String get dateKey => _dateKey;
+
   DailyAnswer? get myAnswer {
     final uid = _myUid;
     if (uid == null) {

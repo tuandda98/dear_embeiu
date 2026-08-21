@@ -491,6 +491,13 @@ class PushNotificationService {
         // where the message actually lives.
         NotificationTapRouter.pendingHomeTab.value = _chatTabIndex;
         break;
+      case 'daily_answer_reaction':
+        // Same landing as 'daily_question': the card on Home. A reaction only
+        // exists on an already-revealed day, so the card shows both answers —
+        // the in-app Notification Center takes the richer Journal route (it can
+        // read providers; a cold-start push tap cannot).
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        break;
       case 'daily_question':
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         // Deep-link within Home: scroll the daily-question card into view.

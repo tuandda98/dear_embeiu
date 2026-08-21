@@ -266,7 +266,12 @@ class _NotificationTile extends StatelessWidget {
               // journal, so open the journal focused on that day. If it isn't
               // revealed yet (the viewer hasn't answered), this returns false
               // and we fall through to Home so they can answer it.
-              if (n.type == AppNotificationType.dailyQuestion &&
+              // A reaction ALWAYS lands on an already-revealed day (you can
+              // only react after both answered), so it takes the same journal
+              // route — and unlike daily_question it never needs the Home
+              // fallback for an unanswered day.
+              if ((n.type == AppNotificationType.dailyQuestion ||
+                      n.type == AppNotificationType.dailyAnswerReaction) &&
                   _openJournalIfRevealed(context, n)) {
                 return;
               }
@@ -410,6 +415,8 @@ class _NotificationTile extends StatelessWidget {
         return n.bothAnswered
             ? l10n.notifDailyQuestionBoth(name)
             : l10n.notifDailyQuestion(name);
+      case AppNotificationType.dailyAnswerReaction:
+        return l10n.notifAnswerReaction(name, n.emoji ?? '❤️');
       case AppNotificationType.chatMessage:
         return l10n.notifChatMessage(name);
       case AppNotificationType.unknown:
@@ -481,6 +488,8 @@ class _Avatar extends StatelessWidget {
         return (IconsaxPlusLinear.sms, AppColors.accentLove);
       case AppNotificationType.dailyQuestion:
         return (IconsaxPlusLinear.messages, AppColors.accentLavenderDeep);
+      case AppNotificationType.dailyAnswerReaction:
+        return (IconsaxPlusLinear.heart, AppColors.accentLavenderDeep);
       case AppNotificationType.chatMessage:
         return (IconsaxPlusLinear.messages, AppColors.accentLove);
       case AppNotificationType.unknown:

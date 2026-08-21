@@ -13,6 +13,7 @@ import '../providers/journal_provider.dart';
 import '../providers/streak_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/answer_reaction_row.dart';
 import '../widgets/content_card.dart';
 import '../widgets/entrance_reveal.dart';
 import '../widgets/shimmer_skeleton.dart';
@@ -303,6 +304,9 @@ class _JournalDayCard extends StatelessWidget {
     final l10n = context.l10n;
     final langCode = Localizations.localeOf(context).languageCode;
     final question = day.questionFor(langCode);
+    // Read here rather than threading through _JournalView → _JournalList: the
+    // signed-in uid is stable for as long as this screen exists.
+    final myUid = context.read<AuthProvider>().currentUser?.id ?? '';
 
     // B4 surface: solid white r24 + the standard black .06 content shadow
     // (design-unify C9 — was r28 with a rose-tinted shadow).
@@ -346,6 +350,16 @@ class _JournalDayCard extends StatelessWidget {
             background: AppColors.surfaceLight,
             labelColor: AppColors.accentLoveDeep,
           ),
+          // Reactions (feature: daily-question reactions). Every journal day is
+          // revealed by definition, so both rows are always safe to show: a
+          // read-only echo of the partner's reaction on my answer, and the
+          // interactive heart on theirs.
+          if (myUid.isNotEmpty && day.partnerUid.isNotEmpty)
+            AnswerReactionRow(
+              date: day.date,
+              answerAuthorUid: myUid,
+              myUid: myUid,
+            ),
           const SizedBox(height: 10),
           _AnswerBlock(
             label: l10n.journalPartnerAnswerLabel(_partnerName(l10n)),
@@ -353,6 +367,12 @@ class _JournalDayCard extends StatelessWidget {
             background: AppColors.accentLavender.withValues(alpha: 0.10),
             labelColor: AppColors.accentLavenderDeep,
           ),
+          if (myUid.isNotEmpty && day.partnerUid.isNotEmpty)
+            AnswerReactionRow(
+              date: day.date,
+              answerAuthorUid: day.partnerUid,
+              myUid: myUid,
+            ),
         ],
       ),
     );

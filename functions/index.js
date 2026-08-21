@@ -1283,6 +1283,113 @@ exports.notifyPhotoReaction = onDocumentCreated(
   },
 );
 
+// Reaction on a daily-question answer (feature: daily-question reactions).
+// Fires when a member reacts to their PARTNER's answer and notifies the answer's
+// author. Path-scoped to `answerReactions`, so it never overlaps
+// notifyPhotoReaction (which triggers on the photos `reactions` subcollection).
+//
+// The answer's author and the day come from the trigger path, not from document
+// fields, so a forged/stale field can never redirect the push.
+exports.notifyDailyAnswerReaction = onDocumentCreated(
+  {
+    document:
+      "couples/{coupleId}/dailyAnswers/{date}/responses/{answerAuthorUid}/answerReactions/{reactorUid}",
+    region: "us-central1",
+  },
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      logger.warn("Answer reaction notification skipped because snapshot is missing.");
+      return;
+    }
+
+    const reaction = snapshot.data() || {};
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const date = `${event.params.date || ""}`.trim();
+    const answerAuthorUid = `${event.params.answerAuthorUid || ""}`.trim();
+    // The answerReactions doc id === the reacting member's uid by convention.
+    const reactorUid = `${event.params.reactorUid || ""}`.trim();
+    const emoji = `${reaction.emoji || "❤️"}`.trim() || "❤️";
+
+    if (!coupleId || !date || !answerAuthorUid || !reactorUid) {
+      logger.warn("Answer reaction notification skipped because required fields are missing.", {
+        coupleId,
+        date,
+        answerAuthorUid,
+        reactorUid,
+      });
+      return;
+    }
+
+    // Defence in depth — the rules already forbid reacting to your own answer.
+    if (reactorUid === answerAuthorUid) {
+      return;
+    }
+
+    // Reacting member's display name. Left RAW here (empty when unknown) so the
+    // fallback can be localized per recipient device below — hardcoding
+    // "Người ấy" is what produced the mixed-language push fixed in 1.4.2.
+    let reactorName = "";
+    try {
+      const reactorSnap = await db.collection("users").doc(reactorUid).get();
+      reactorName = `${(reactorSnap.exists && reactorSnap.get("displayName")) || ""}`.trim();
+    } catch (err) {
+      logger.warn("Could not load reactor profile for answer reaction notification.", {
+        coupleId,
+        reactorUid,
+        message: err && err.message,
+      });
+    }
+
+    // Inbox drops an empty name so the client localizes its own fallback.
+    const inboxPayload = {
+      type: "daily_answer_reaction",
+      coupleId,
+      date,
+      emoji,
+      actorUserId: reactorUid,
+    };
+    if (reactorName) {
+      inboxPayload.actorName = reactorName;
+    }
+    await writeInboxNotifications([answerAuthorUid], inboxPayload);
+
+    const result = await sendToRecipientDevices(
+      [answerAuthorUid],
+      (languageCode) => buildAnswerReactionText(languageCode, reactorName, emoji),
+      {
+        type: "daily_answer_reaction",
+        coupleId,
+        date,
+      },
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("Answer reaction notification skipped because the author has no active FCM tokens.", {
+        coupleId,
+        date,
+      });
+      return;
+    }
+
+    if (result.failures.length > 0) {
+      logger.warn("Answer reaction notification had delivery failures.", {
+        coupleId,
+        date,
+        failures: result.failures,
+      });
+    }
+
+    logger.info("Processed answer reaction notification.", {
+      coupleId,
+      date,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
 // Shared device-fan-out used by the partner-photo and partner-joined pushes.
 // Collects every notifications-enabled device token for the recipients, builds
 // one localized message per device (via `buildText(languageCode)`), sends them
@@ -2151,6 +2258,33 @@ const REACTION_COPY = {
     body: (name, emoji) => `${name} reacted ${emoji} to your photo`,
   },
 };
+
+// Copy for the daily-answer reaction push (feature: daily-question reactions).
+// Carries a per-language `partnerFallback` instead of a hardcoded Vietnamese
+// name — the 1.4.2 lesson that produced "Người ấy reacted to your answer" on
+// English devices. Content-free: never quotes the answer text.
+const ANSWER_REACTION_COPY = {
+  vi: {
+    title: "Dear Embeiu",
+    partnerFallback: "Người ấy",
+    body: (name, emoji) => `${name} đã thả ${emoji} cho câu trả lời của bạn`,
+  },
+  en: {
+    title: "Dear Embeiu",
+    partnerFallback: "Your partner",
+    body: (name, emoji) => `${name} reacted ${emoji} to your answer`,
+  },
+};
+
+function buildAnswerReactionText(languageCode, reactorName, emoji) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = ANSWER_REACTION_COPY[code] || ANSWER_REACTION_COPY.vi;
+  const name = `${reactorName || ""}`.trim() || copy.partnerFallback;
+  return {
+    title: copy.title,
+    body: copy.body(name, `${emoji || "❤️"}`.trim() || "❤️"),
+  };
+}
 
 function buildReactionText(languageCode, reactorName, emoji) {
   const code = `${languageCode || ""}`.trim().toLowerCase();
