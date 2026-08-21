@@ -181,3 +181,5 @@ là đúng chỗ bug reaction ảnh từng lọt).
 ⚠️ **Backend CHỜ LỆNH deploy prod**: `firestore:rules,firestore:indexes,functions:notifyDailyAnswerReaction`.
 Chưa deploy ⇒ react sẽ `permission-denied` và không có push.
 ⚠️ **Chưa smoke-test 2 máy thật.**
+
+**[2026-08-22] [dev] ✅ DEPLOY PROD** (user ra lệnh): `deploy --only firestore:rules,firestore:indexes,functions:notifyDailyAnswerReaction --project prod`. Rules released · indexes deployed · CF `notifyDailyAnswerReaction` **CREATE** (verify `functions:list --project prod`: v2, us-central1, nodejs20). Rules-test 209 pass ngay trước deploy. Trace restore: `project/.firebase-deploy-log/20260821T185633Z/`. Additive — client 1.4.x không đọc/ghi `answerReactions` nên không ảnh hưởng. ⚠️ Còn lại: smoke-test 2 máy thật khi 1.5.0 live.
