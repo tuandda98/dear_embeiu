@@ -365,3 +365,8 @@
 ## Phien moi - 2026-08-22 00:24:56 (source: startup)
 - [00:24] code mới nhât của prj này đang ở branch nào. ?
 - [00:25] có , làm đi
+- [00:28] bạn có truy cập được vào chomre ko ?
+- [00:30] có r mà
+- [00:31] ghiim claude rồi
+- [00:32] login vào claude rồi
+- [00:33] oke làm đi
