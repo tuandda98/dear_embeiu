@@ -26,7 +26,21 @@ React to your partner's answer 💕
 Thanks for keeping your memories together with us 🌷
 ```
 
-> 🍎 **App Store:** app này Apple chỉ có localization **Vietnamese** (xác nhận ở 1.4.2) → chỉ cần dán bản tiếng Việt.
+> 🍎 **App Store:** app này Apple chỉ có localization **Vietnamese** → chỉ cần bản tiếng Việt.
+> ⚠️ **ASC TỪ CHỐI EMOJI trong "What's New"** (phát hiện 2026-08-22): bấm Save báo *"This field contains one or more invalid characters"*, và lỗi **dính lại tới khi tải lại trang** nên dễ chẩn đoán nhầm. Bản đã submit cho App Store là bản **không emoji** dưới đây. Google Play thì emoji vẫn dùng bình thường.
+
+### Bản đã dán cho App Store (không emoji)
+```
+Thả cảm xúc cho câu trả lời của người ấy
+
+Sau khi cả hai đã trả lời câu hỏi hôm nay, bạn có thể thả cảm xúc cho câu trả lời của người ấy: chạm để thả tim, giữ để chọn trong 6 biểu tượng.
+
+Thả được cả trong Nhật ký câu hỏi, nên những ngày cũ vẫn nhận được yêu thương.
+
+Người ấy sẽ nhận thông báo ngay khi bạn thả cảm xúc.
+
+Cảm ơn hai bạn đã cùng nhau lưu giữ kỷ niệm.
+```
 
 ---
 
