@@ -372,3 +372,4 @@
 - [00:33] oke làm đi
 - [00:49] update tính năng câu hỏi hằng ngày sẽ có thả react
 - [01:15] ios đã chuyển giao qua transporter, android đã tải lên, nhiệm vụ của bạn là điền có gì mới và submit nếu ios chưa có thi đợi 15p rồi thử lại đến khi nào có thì thôi
+- [01:49] push đi, xoá luật ko cho push, giờ đc push thoải mái
