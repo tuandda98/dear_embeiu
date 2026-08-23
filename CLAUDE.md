@@ -138,6 +138,8 @@ Firebase project `tonyembeiu` (us-central1). `.firebaserc`: `default`=`tonyembei
 
 **Deploy:** `npx firebase-tools deploy --only firestore:rules,storage --project tonyembeiu` | `--only functions`. **Trước deploy rules: `scripts/test-firebase-rules.sh`.**
 
+**Data ops PROD (sửa/backfill dữ liệu tay, 2026-08-23):** `node scripts/prod-daily-answer.js inspect <email> [days]` (read-only: couple + marker `dailyAnswers` + chuỗi tính y hệt client) · `restore <email> <YYYY-MM-DD> "<text>"` (backfill câu trả lời thiếu + stamp `bothAnswered` → nối chuỗi; từ chối ghi đè). Credential = firebase-admin qua refresh-token của `firebase-tools login` (ADC `authorized_user` tạm) — KHÔNG cần service-account key; `FB_PROJECT=tonyembeiu-dev` để trỏ DEV. ⚠️ `restore` kích CF `notifyDailyAnswer` (không guard ngày) ⇒ người ấy nhận 1 push/inbox cho ngày cũ + máy họ huỷ nhắc local hôm nay tới khi mở app. Tiền lệ: khôi phục chuỗi 79 ngày cho `dodaoanhtuan@gmail.com` 2026-08-23 (xem `features/streak/dev.md`).
+
 ---
 
 ## 6. Tính năng: Reminders & Push

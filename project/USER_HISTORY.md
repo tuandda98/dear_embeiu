@@ -374,3 +374,12 @@
 - [01:15] ios đã chuyển giao qua transporter, android đã tải lên, nhiệm vụ của bạn là điền có gì mới và submit nếu ios chưa có thi đợi 15p rồi thử lại đến khi nào có thì thôi
 - [01:49] push đi, xoá luật ko cho push, giờ đc push thoải mái
 - [01:53] depoy prod đi
+
+
+---
+## Phien moi - 2026-08-22 14:58:26 (source: startup)
+
+
+---
+## Phien moi - 2026-08-23 11:55:25 (source: startup)
+- [11:56] tk dodaoanhtuan@gmail.com trên prd mất chuỗi, khôi phục cho tôi, câu trả lời là "đã nói trực tiêps"
