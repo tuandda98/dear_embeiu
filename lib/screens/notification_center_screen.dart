@@ -316,10 +316,15 @@ class _NotificationTile extends StatelessWidget {
                             subtitle.trim(),
                             // A care note's body IS the content and has no
                             // detail screen — show it whole.
+                            // ⚠️ Flutter gotcha: `ellipsis` with maxLines null
+                            // lays the text out as ONE line and clips it — so
+                            // a care note must switch overflow off entirely.
                             maxLines: n.type == AppNotificationType.careMessage
                                 ? null
                                 : 2,
-                            overflow: TextOverflow.ellipsis,
+                            overflow: n.type == AppNotificationType.careMessage
+                                ? TextOverflow.visible
+                                : TextOverflow.ellipsis,
                             style: TextStyle(
                               color: AppColors.textPrimary.withValues(
                                 alpha: 0.70,

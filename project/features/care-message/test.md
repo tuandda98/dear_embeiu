@@ -25,3 +25,9 @@ Chưa smoke-test 2 máy thật (push nguyên văn có dấu, badge, gate trả b
 analyze 0 · test 81/81 · rules-test 241. 15/15 finding vá đạt; điểm rủi ro nhất (rule `responses` không `hasOnly` ⇒ `backfill` được phép; rule `questionVi/En` bất biến không DENY luồng thường vì rules đọc doc SAU merge; CF stamp `bothAnswered` TRƯỚC early-return backfill) đều verified.
 - BUG mới P2 (đã vá cùng ngày): `dispose` gate có thể xoá nhầm guard của gate mới (→ token `_token`); `_clamp` cắt giữa cụm emoji ghép (→ duyệt grapheme trong ngân sách UTF-16).
 - Còn [CẦN TEST runtime, 2 máy]: backfill không bắn push ngày cũ / không huỷ nhắc hôm nay; gate rollover nửa đêm; care note offline gửi đúng 1 lần. ⚠️ PROD chưa deploy rules + `notifyDailyAnswer` + `notifyCareMessage` + `generateDailyQuestion`.
+
+## [2026-09-05] [Tester-runtime] Smoke-test 2 máy — ✅ PASS + 1 bug UI đã vá
+- Android (test1): nút 💌 header → màn Quan tâm (6 chip, form, "Đã gửi gần đây" có tin seed) → chip "Uống nước nha 💧" → Gửi → về Home. Firestore: doc `careMessages` mới + CF `notifyCareMessage` ghi inbox cho test2 với **title/body nguyên văn**.
+- iOS (test2): chuông báo 7 chưa đọc; Trung tâm thông báo hiện "Uống nước nha 💧" + "Nhớ em 💕" với chấm chưa đọc (không bị auto-read ở Home ✓).
+- 🐛 **Body vẫn bị cắt 1 dòng "…"** dù đã bỏ `maxLines`: gotcha Flutter — `overflow: TextOverflow.ellipsis` không kèm `maxLines` ép layout 1 dòng. **Đã vá** (`TextOverflow.visible` cho care ở Notification center + danh sách "Đã gửi gần đây"); chưa re-verify trên máy (cần rebuild).
+- Chưa cover: push banner thật (không kiểm được token FCM trên emulator/simulator), catch-up gate (chỉ tài khoản gated).

@@ -43,3 +43,10 @@ Pre-flight: analyze 0 · test 81/81 · rules-test 241 · `node --check` OK · 2 
 | #7 v1 | P2 | Ghi `questionState` cả khi publish fail | ✅ `_publishFailed` → bỏ record. |
 | #6 v1 | P2 | Copy `look_back` khi mốc đã qua | ✅ lọc `look_back` khi `offset < 1`. |
 Nợ test: chưa có unit test cho `_contextReady`/`1 day`/hint rebuild (81 test không đổi).
+
+## [2026-09-05] [Tester-runtime] Smoke-test 2 máy (Android emulator Pixel 6 = test1 · iPhone 16 simulator = test2, backend DEV, dữ liệu `dev-seed-test-couple.js`) — ✅ PASS
+- Marker hôm nay do máy resolve trước ghi (`source=bank`, `questionId=236` từ bank +150, `askedBankIds=[236]`); **iOS đọc cùng marker và hiện đúng bản EN** của câu đó ⇒ 2 máy cùng câu.
+- Android trả lời → iOS thấy "Anh Test has answered 👀" realtime → iOS trả lời (dán tiếng Việt có dấu) → **cả hai reveal**, chuỗi 45 → **46** trên cả 2 máy, marker `bothAnswered=true`.
+- Reaction ❤️ từ iOS lên câu trả lời của Anh Test → Android hiện ngay.
+- Toggle AI: dialog xác nhận có câu "bắt đầu từ câu hỏi ngày mai" → `prefs/home.aiQuestionsEnabled=true` trên Firestore (rules DEV OK).
+- Chưa cover runtime: revisit (chỉ T6), AI với key thật, midnight rollover, hook mốc/mood/ảnh (cần đúng ngữ cảnh).

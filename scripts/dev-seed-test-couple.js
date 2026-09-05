@@ -110,15 +110,16 @@ async function uploadSeedPhoto(bucket, localPath, dest) {
   await batch.commit();
   console.log(`[couple] ${COUPLE_ID} active, mã ghép ${COUPLE_CODE}, ngày yêu ${dayKey(ANNIVERSARY)}`);
 
-  // 45 ngày câu hỏi cả hai đã trả lời (hôm nay để trống)
+  // 45 ngày câu hỏi cả hai đã trả lời (hôm nay để trống). `backfill:true` để CF
+  // notifyDailyAnswer không bắn 45 inbox "cả hai đã trả lời" khi seed.
   let b = db.batch(); let ops = 0;
   const flush = async () => { if (ops) { await b.commit(); b = db.batch(); ops = 0; } };
   for (let n = 1; n <= 45; n++) {
     const d = daysAgo(n); const key = dayKey(d); const q = QUESTIONS[n % QUESTIONS.length];
     const mref = coupleRef.collection('dailyAnswers').doc(key);
     b.set(mref, { date: key, questionVi: q[0], questionEn: q[1], source: 'bank', bothAnswered: true, revealedAt: TS(daysAgo(n, 21)), updatedAt: TS(daysAgo(n, 21)) }, { merge: true });
-    b.set(mref.collection('responses').doc(uidA), { authorUserId: uidA, text: ANSWERS_A[n % ANSWERS_A.length], answeredAt: TS(daysAgo(n, 19)) }, { merge: true });
-    b.set(mref.collection('responses').doc(uidB), { authorUserId: uidB, text: ANSWERS_B[n % ANSWERS_B.length], answeredAt: TS(daysAgo(n, 21)) }, { merge: true });
+    b.set(mref.collection('responses').doc(uidA), { authorUserId: uidA, text: ANSWERS_A[n % ANSWERS_A.length], answeredAt: TS(daysAgo(n, 19)), backfill: true }, { merge: true });
+    b.set(mref.collection('responses').doc(uidB), { authorUserId: uidB, text: ANSWERS_B[n % ANSWERS_B.length], answeredAt: TS(daysAgo(n, 21)), backfill: true }, { merge: true });
     ops += 3; if (ops >= 400) await flush();
   }
   // 2 reaction của test2 lên câu trả lời test1 (hôm qua, hôm kia)

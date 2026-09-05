@@ -31,3 +31,10 @@ BUG-2 (2 máy + đổi giờ), permission notification, trần 64 pending iOS, s
 analyze 0 · test 81/81 · rules-test 241 · ARB parity 0 lệch. 10/10 bug vòng 1 vá đạt (feature tour cài-mới vs nâng-cấp, `seenBuild` promotion, `showAll` lọc build, `_actionFor`, nhắc mời cancel cold start, intro không hiện cho user cũ, `LayoutBuilder` bounded, scope `code` trong get.html, pubspec↔`sinceBuild`).
 - BUG mới P2: route `forceUpdate` cũng `markSeen` intro → **[Dev] đã vá cùng ngày** (loại `forceUpdate` khỏi điều kiện).
 - Còn [CẦN TEST runtime]: intro máy nhỏ + Reduce Motion; nhắc mời 24h/72h sau khi kill app; get.html trên Safari iOS/Chrome Android thật.
+
+## [2026-09-05] [Tester-runtime] Smoke-test emulator + simulator — ✅ PASS phần cover
+- Intro 3 slide hiện đúng 1 lần trên cả Android lẫn iOS (cài mới), "Bắt đầu" → guest landing; sau đăng nhập không hiện lại.
+- Feature tour "CÓ GÌ MỚI · Phiên bản 1.6.0-dev" hiện ở Home với 3 mục (Android, lần đầu vào Home sau đăng nhập).
+- Trang `dearembeiu.com/get?code=…` live 200 (curl), bản đã vá không auto-redirect khi có mã.
+- ⚠️ Quan sát (KHÔNG do đợt này): lần đăng nhập ĐẦU trên Android emulator rơi vào Setup/"Hồ sơ cặp đôi" thay vì Home — `SessionResolver` timeout tổng 8s (await in-app-update check + auth + loadCouple + photo sync) → `_safeFallbackRoute` chọn `setup` vì chưa có cache couple; mở lại app là vào Home bình thường. Nên xem lại: fallback về `home` khi `currentUser.hasCouple`, hoặc bỏ `photoProvider.syncForUser` khỏi đường resolve.
+- Chưa cover runtime: checklist chờ partner + nhắc 24h/72h (cần couple `waiting_partner`), share sheet, deep-link `dearembeiu://`.

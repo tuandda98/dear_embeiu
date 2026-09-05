@@ -463,7 +463,8 @@ class _CareMessageTile extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             message.body,
-            overflow: TextOverflow.ellipsis,
+            // No maxLines + ellipsis would clip to ONE line (Flutter gotcha).
+            overflow: TextOverflow.visible,
             style: const TextStyle(
               fontSize: 13.5,
               height: 1.4,
