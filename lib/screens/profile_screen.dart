@@ -113,17 +113,19 @@ class ProfileScreen extends StatelessWidget {
                         // only once both are present); while waiting, the
                         // invite block takes the slot.
                         if (!couple.isWaitingForPartner) ...[
+                          // Care note (feature care-message): only useful once
+                          // there IS a partner to notify, so it shares the
+                          // paired-only slot with the achievements grid — and
+                          // sits ABOVE it (user 2026-09-05: "để Gửi quan tâm
+                          // trước Huy hiệu").
+                          const SizedBox(height: 18),
+                          _buildCareTile(context),
                           const SizedBox(height: 24),
                           _AchievementsGrid(
                             coupleId: couple.id,
                             totalDays: totalDays,
                             onRequestTab: onRequestTab,
                           ),
-                          // Care note (feature care-message): only useful once
-                          // there IS a partner to notify, so it shares the
-                          // paired-only slot with the achievements grid.
-                          const SizedBox(height: 18),
-                          _buildCareTile(context),
                         ],
                         if (inviteCode != null &&
                             inviteCode.trim().isNotEmpty &&

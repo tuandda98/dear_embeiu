@@ -410,3 +410,4 @@
 - [20:04] mở 1 cái ios nữa tôi cânf test
 - [20:05] tạo 2 account test1@gmail.com và test2@gmail.com pass 12345678 và tạo sẵn 1 số data để có thể test đc ở sẻver dev
 - [20:11] tự test real device đi rồi report cho tôi
+- [20:36] để sent a care note trước your badge
