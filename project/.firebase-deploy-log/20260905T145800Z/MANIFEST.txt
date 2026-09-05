@@ -1,0 +1,7 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu; git status --short | head -3; npx firebase-tools deploy --only firestore:rules,functions:notifyCareMessage,functions:generateDailyQuestion,functions:notifyDailyAnswer --project prod 2>&1 | tail -25
+time_utc: 20260905T145800Z
+git_head: b0b1cd0 (release/1.6.0)
+dirty   : 2 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout b0b1cd0)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout b0b1cd0 -- functions` rồi redeploy
