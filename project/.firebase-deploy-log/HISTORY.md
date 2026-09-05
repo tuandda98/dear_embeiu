@@ -53,3 +53,4 @@ npx firebase-tools deploy --only firestore:rules,functions:notifyPartnerReminder
 - [20260809T052659Z] head=680597a dirty=25 exit=? · `npx firebase-tools deploy --only functions:notifyDailyAnswer --project prod --force 2>&1 | tail -15` · snapshot `20260809T052659Z/`
 - [20260821T181157Z] head=b805e21 dirty=1 exit=? · `npx firebase-tools deploy --only firestore:rules,firestore:indexes,functions:notifyDailyAnswerReaction 2>&1 | tail -28` · snapshot `20260821T181157Z/`
 - [20260821T185633Z] head=f3e628e dirty=1 exit=? · `npx firebase-tools deploy --only firestore:rules,firestore:indexes,functions:notifyDailyAnswerReaction --project prod 2>&1 | tail -30` · snapshot `20260821T185633Z/`
+- [20260905T110540Z] head=674d2f4 dirty=22 exit=? · `npx firebase-tools deploy --only firestore:rules,functions:notifyCareMessage --project tonyembeiu-dev 2>&1 | tail -30` · snapshot `20260905T110540Z/`

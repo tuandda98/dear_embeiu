@@ -183,3 +183,56 @@ Chưa deploy ⇒ react sẽ `permission-denied` và không có push.
 ⚠️ **Chưa smoke-test 2 máy thật.**
 
 **[2026-08-22] [dev] ✅ DEPLOY PROD** (user ra lệnh): `deploy --only firestore:rules,firestore:indexes,functions:notifyDailyAnswerReaction --project prod`. Rules released · indexes deployed · CF `notifyDailyAnswerReaction` **CREATE** (verify `functions:list --project prod`: v2, us-central1, nodejs20). Rules-test 209 pass ngay trước deploy. Trace restore: `project/.firebase-deploy-log/20260821T185633Z/`. Additive — client 1.4.x không đọc/ghi `answerReactions` nên không ảnh hưởng. ⚠️ Còn lại: smoke-test 2 máy thật khi 1.5.0 live.
+
+---
+
+## [2026-09-05] [Dev] Catch-up: ép trả lời ngày đã QUÊN + nhắc "Anh By <3" (ACCOUNT-GATED)
+
+⚠️ **Chỉ áp cho 1 tài khoản: `thaohathao14@gmail.com`** (so sánh trim+lowercase). Mọi account khác
+short-circuit TRƯỚC mọi read Firestore ⇒ không tốn quota, không đổi hành vi.
+
+### File
+- **MỚI** `lib/services/catchup_service.dart` — `CatchupService.findMissedDays({coupleId, myUid})`:
+  quét cửa sổ **14 ngày trước hôm nay** (hôm qua lùi về, KHÔNG gồm hôm nay), chặn dưới bằng hằng số
+  `catchupSinceDate = '2026-09-05'` (không đào lại ngày đã backfill tay 2026-08-23). 1 query
+  `dailyAnswers orderBy('date') desc limit 20` để loại nhanh ngày `bothAnswered == true`, rồi
+  `get()` song song `responses/{myUid}` cho các ngày còn lại. Ngày QUÊN = không `bothAnswered`
+  **và** không có doc response của mình (ngày không có marker cũng tính). Câu hỏi lấy từ marker
+  `questionVi` nếu có, không thì derive `questionTextForCouple(date, coupleId, 'vi')` y hệt
+  `submitAnswer`. **Fail-soft tuyệt đối** (mọi lỗi → list rỗng) + chỉ chạy khi `isUsingFirebase`.
+- **MỚI** `lib/widgets/catchup_gate.dart` — modal CHẶN full-width (`showDialog` `barrierDismissible:false`
+  + `PopScope(canPop:false)`, không nút đóng/để sau), đi lần lượt **ngày CŨ nhất → mới nhất**:
+  chip `ANH BY <3` + tiến độ `1/3`, tiêu đề "Embe quên câu hỏi ngày dd/MM rồi nè 🥺", câu hỏi trong
+  khối surface, `TextField` ≤280 multiline, nút pill r999 h52 "Gửi cho anh By 💌". Submit gọi
+  `DailyQuestionService.submitAnswer(dateKey: <ngày quên>)` (hàm này tự lo marker + `bothAnswered`).
+  Lỗi gửi → SnackBar đỏ, giữ modal, cho gửi lại. Cờ tĩnh `CatchupGate.isShowing` chống mở chồng.
+- **SỬA** `lib/services/reminder_service.dart` — band MỚI **1140–1159** (`_idPersonalCatchupBase`,
+  max 20): `schedulePersonalCatchup(slots)` (one-shot HÔM NAY, bỏ giờ đã qua, clear band trước) +
+  `cancelPersonalCatchup()`; `cancelPersonalReminders()` nay huỷ cả 3 band personal.
+- **SỬA** `lib/providers/reminder_provider.dart` — `refreshPersonalCatchupReminders({email, missedCount})`:
+  gate email, debounce theo signature `"$missedCount|$dayKey"` như các band personal khác. Còn tồn
+  ngày quên → arm **9:30 · 11:30 · 13:30 · 15:30 · 17:30 · 19:30 · 21:30**, title luôn mở đầu
+  `"Anh By <3 "` (4 biến thể xoay vòng), body 7 câu xoay vòng có nêu số ngày còn nợ. Hết nợ (hoặc
+  account khác) → `cancelPersonalCatchup()`.
+- **SỬA** `lib/screens/home_screen.dart` — `_maybeRunCatchup({force})`: gate email → lấy couple
+  (bỏ qua khi `isWaitingForPartner`) → scan → sync band nhắc → mở gate nếu có nợ → xong thì set
+  `missedCount: 0` + SnackBar "Xong rồi, cảm ơn embe 💕". Throttle 5 phút/ngày, tự chạy lại khi
+  sang ngày mới. Hook: post-frame của Home tab (cold start / couple load xong / đổi ngày) +
+  `didChangeAppLifecycleState(resumed)` (`force: true`).
+
+### Không đụng
+`*.arb` (copy gated hardcode tiếng Việt như band personal cũ) · `push_notification_service.dart` ·
+`app_notification.dart` · `firestore.rules` · `functions/` · `pubspec.yaml`. **Rules hiện đã cho
+member ghi `responses/{uid}` + marker cho BẤT KỲ date → KHÔNG cần deploy gì.**
+
+### Verify
+`flutter analyze` **0 issue** · `flutter test` **24/24**. Không chạy rules-test (không đụng backend).
+
+### Giới hạn / Tester soi giúp
+- Chưa test trên máy thật (đặc biệt: modal chặn khi bàn phím mở, và trường hợp couple mới ghép).
+- Nếu `dailyAnswers` có marker thiếu field `date` (marker cũ do CF stamp trước khi client kịp ghi)
+  thì query `orderBy('date')` sẽ bỏ qua marker đó ⇒ ngày đó bị coi là "chưa bothAnswered" và sẽ
+  fallback sang `get()` response của mình — vẫn đúng kết quả, chỉ tốn thêm 1 read.
+- Band 1140–1159 ăn thêm tối đa 7 slot trong ngân sách **64 pending notification của iOS** (đang
+  chia với milestone / lunar 40 / personal 30 / partner 50) — nợ kỹ thuật đã biết, chưa xử lý.
+- Gate mở TRÊN Home nên nếu user đang ở tab khác lúc resume vẫn bị chặn — đúng ý đồ, nhưng cần xác nhận.

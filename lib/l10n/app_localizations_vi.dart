@@ -3250,4 +3250,94 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get answerReactionErrorRetry => 'Chưa gửi được, thử lại nhé';
+
+  @override
+  String get careMessageBadge => 'QUAN TÂM';
+
+  @override
+  String get careMessageEntryTitle => 'Gửi quan tâm';
+
+  @override
+  String get careMessageEntrySubtitle =>
+      'Một lời nhắn nhỏ cho người ấy ấm lòng';
+
+  @override
+  String get careMessageQuickPicksTitle => 'Gợi ý nhanh';
+
+  @override
+  String get careMessageTitleLabel => 'Tiêu đề';
+
+  @override
+  String get careMessageTitleHint => 'vd: Nhớ quá';
+
+  @override
+  String get careMessageBodyLabel => 'Lời nhắn';
+
+  @override
+  String get careMessageBodyHint => 'Viết vài lời thương thương...';
+
+  @override
+  String get careMessageSendCta => 'Gửi cho người ấy 💌';
+
+  @override
+  String get careMessageSentToast => 'Đã gửi rồi nhé 💌';
+
+  @override
+  String get careMessageErrorToast => 'Chưa gửi được, thử lại nhé.';
+
+  @override
+  String get careMessageNeedCouple =>
+      'Cần ghép đôi trước khi gửi quan tâm nhé.';
+
+  @override
+  String get careMessageRecentTitle => 'Đã gửi gần đây';
+
+  @override
+  String get careMessageFromMe => 'Mình';
+
+  @override
+  String get careMessageFromPartner => 'Người ấy';
+
+  @override
+  String get careQuick1Title => 'Nhớ quá 💕';
+
+  @override
+  String get careQuick1Body => 'Tự nhiên nhớ ghê. Hôm nay thế nào rồi?';
+
+  @override
+  String get careQuick2Title => 'Uống nước nha 💧';
+
+  @override
+  String get careQuick2Body => 'Nhớ uống đủ nước nha, đừng để khát mới uống.';
+
+  @override
+  String get careQuick3Title => 'Ăn cơm chưa? 🍚';
+
+  @override
+  String get careQuick3Body => 'Nhớ ăn đúng bữa nha, đừng bỏ bữa nhé.';
+
+  @override
+  String get careQuick4Title => 'Ngủ sớm nha 🌙';
+
+  @override
+  String get careQuick4Body =>
+      'Khuya rồi, ngủ sớm cho khoẻ nha. Chúc ngủ ngon!';
+
+  @override
+  String get careQuick5Title => 'Yêu nhiều lắm ❤️';
+
+  @override
+  String get careQuick5Body => 'Chỉ muốn nói là hôm nay cũng yêu nhiều lắm đó.';
+
+  @override
+  String get careQuick6Title => 'Cố lên nha 💪';
+
+  @override
+  String get careQuick6Body =>
+      'Hôm nay chắc mệt lắm. Cố lên nha, luôn có chúng mình ở đây.';
+
+  @override
+  String notifCareMessage(String name) {
+    return '$name gửi lời quan tâm';
+  }
 }

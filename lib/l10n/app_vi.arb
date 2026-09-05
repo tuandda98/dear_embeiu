@@ -1736,5 +1736,122 @@
   "answerReactionErrorRetry": "Chưa gửi được, thử lại nhé",
   "@answerReactionErrorRetry": {
     "description": "Shown when writing an answer reaction failed."
+  },
+  "careMessageBadge": "QUAN TÂM",
+  "@careMessageBadge": {
+    "description": "Eyebrow chip on the send-a-care-note screen."
+  },
+  "careMessageEntryTitle": "Gửi quan tâm",
+  "@careMessageEntryTitle": {
+    "description": "Profile menu entry opening the care-note composer."
+  },
+  "careMessageEntrySubtitle": "Một lời nhắn nhỏ cho người ấy ấm lòng",
+  "@careMessageEntrySubtitle": {
+    "description": "Subtitle of the profile care-note entry."
+  },
+  "careMessageQuickPicksTitle": "Gợi ý nhanh",
+  "@careMessageQuickPicksTitle": {
+    "description": "Section title above the ready-made care-note chips."
+  },
+  "careMessageTitleLabel": "Tiêu đề",
+  "@careMessageTitleLabel": {
+    "description": "Label of the care-note title field."
+  },
+  "careMessageTitleHint": "vd: Nhớ quá",
+  "@careMessageTitleHint": {
+    "description": "Hint of the care-note title field."
+  },
+  "careMessageBodyLabel": "Lời nhắn",
+  "@careMessageBodyLabel": {
+    "description": "Label of the care-note body field."
+  },
+  "careMessageBodyHint": "Viết vài lời thương thương...",
+  "@careMessageBodyHint": {
+    "description": "Hint of the care-note body field."
+  },
+  "careMessageSendCta": "Gửi cho người ấy 💌",
+  "@careMessageSendCta": {
+    "description": "Primary button that sends the care note."
+  },
+  "careMessageSentToast": "Đã gửi rồi nhé 💌",
+  "@careMessageSentToast": {
+    "description": "Snackbar after a care note was sent."
+  },
+  "careMessageErrorToast": "Chưa gửi được, thử lại nhé.",
+  "@careMessageErrorToast": {
+    "description": "Snackbar when sending a care note failed."
+  },
+  "careMessageNeedCouple": "Cần ghép đôi trước khi gửi quan tâm nhé.",
+  "@careMessageNeedCouple": {
+    "description": "Shown when the user has no active couple yet."
+  },
+  "careMessageRecentTitle": "Đã gửi gần đây",
+  "@careMessageRecentTitle": {
+    "description": "Section title above the recent care notes list."
+  },
+  "careMessageFromMe": "Mình",
+  "@careMessageFromMe": {
+    "description": "Author label on a care note you sent."
+  },
+  "careMessageFromPartner": "Người ấy",
+  "@careMessageFromPartner": {
+    "description": "Author label on a care note your partner sent."
+  },
+  "careQuick1Title": "Nhớ quá 💕",
+  "@careQuick1Title": {
+    "description": "Quick-pick care note title 1."
+  },
+  "careQuick1Body": "Tự nhiên nhớ ghê. Hôm nay thế nào rồi?",
+  "@careQuick1Body": {
+    "description": "Quick-pick care note body 1."
+  },
+  "careQuick2Title": "Uống nước nha 💧",
+  "@careQuick2Title": {
+    "description": "Quick-pick care note title 2."
+  },
+  "careQuick2Body": "Nhớ uống đủ nước nha, đừng để khát mới uống.",
+  "@careQuick2Body": {
+    "description": "Quick-pick care note body 2."
+  },
+  "careQuick3Title": "Ăn cơm chưa? 🍚",
+  "@careQuick3Title": {
+    "description": "Quick-pick care note title 3."
+  },
+  "careQuick3Body": "Nhớ ăn đúng bữa nha, đừng bỏ bữa nhé.",
+  "@careQuick3Body": {
+    "description": "Quick-pick care note body 3."
+  },
+  "careQuick4Title": "Ngủ sớm nha 🌙",
+  "@careQuick4Title": {
+    "description": "Quick-pick care note title 4."
+  },
+  "careQuick4Body": "Khuya rồi, ngủ sớm cho khoẻ nha. Chúc ngủ ngon!",
+  "@careQuick4Body": {
+    "description": "Quick-pick care note body 4."
+  },
+  "careQuick5Title": "Yêu nhiều lắm ❤️",
+  "@careQuick5Title": {
+    "description": "Quick-pick care note title 5."
+  },
+  "careQuick5Body": "Chỉ muốn nói là hôm nay cũng yêu nhiều lắm đó.",
+  "@careQuick5Body": {
+    "description": "Quick-pick care note body 5."
+  },
+  "careQuick6Title": "Cố lên nha 💪",
+  "@careQuick6Title": {
+    "description": "Quick-pick care note title 6."
+  },
+  "careQuick6Body": "Hôm nay chắc mệt lắm. Cố lên nha, luôn có chúng mình ở đây.",
+  "@careQuick6Body": {
+    "description": "Quick-pick care note body 6."
+  },
+  "notifCareMessage": "{name} gửi lời quan tâm",
+  "@notifCareMessage": {
+    "description": "Notification center title for a care note from the partner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

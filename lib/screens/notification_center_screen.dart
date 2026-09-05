@@ -419,6 +419,10 @@ class _NotificationTile extends StatelessWidget {
         return l10n.notifAnswerReaction(name, n.emoji ?? '❤️');
       case AppNotificationType.chatMessage:
         return l10n.notifChatMessage(name);
+      case AppNotificationType.careMessage:
+        // Verbatim: a care note's whole point is the partner's own words — only
+        // fall back to a template if an older backend omitted the title.
+        return n.title ?? l10n.notifCareMessage(name);
       case AppNotificationType.unknown:
         return l10n.notifGeneric;
     }
@@ -430,6 +434,8 @@ class _NotificationTile extends StatelessWidget {
         return n.noteExcerpt;
       case AppNotificationType.photoPosted:
         return n.caption;
+      case AppNotificationType.careMessage:
+        return n.body;
       default:
         return null;
     }
@@ -492,6 +498,8 @@ class _Avatar extends StatelessWidget {
         return (IconsaxPlusLinear.heart, AppColors.accentLavenderDeep);
       case AppNotificationType.chatMessage:
         return (IconsaxPlusLinear.messages, AppColors.accentLove);
+      case AppNotificationType.careMessage:
+        return (IconsaxPlusLinear.message_favorite, AppColors.accentLoveDeep);
       case AppNotificationType.unknown:
         return (IconsaxPlusLinear.notification, AppColors.textSecondary);
     }

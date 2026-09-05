@@ -2394,5 +2394,122 @@
   "answerReactionErrorRetry": "Couldn't send — tap to retry",
   "@answerReactionErrorRetry": {
     "description": "Shown when writing an answer reaction failed."
+  },
+  "careMessageBadge": "CARE NOTE",
+  "@careMessageBadge": {
+    "description": "Eyebrow chip on the send-a-care-note screen."
+  },
+  "careMessageEntryTitle": "Send a care note",
+  "@careMessageEntryTitle": {
+    "description": "Profile menu entry opening the care-note composer."
+  },
+  "careMessageEntrySubtitle": "A little message to warm their day",
+  "@careMessageEntrySubtitle": {
+    "description": "Subtitle of the profile care-note entry."
+  },
+  "careMessageQuickPicksTitle": "Quick picks",
+  "@careMessageQuickPicksTitle": {
+    "description": "Section title above the ready-made care-note chips."
+  },
+  "careMessageTitleLabel": "Title",
+  "@careMessageTitleLabel": {
+    "description": "Label of the care-note title field."
+  },
+  "careMessageTitleHint": "e.g. Missing you",
+  "@careMessageTitleHint": {
+    "description": "Hint of the care-note title field."
+  },
+  "careMessageBodyLabel": "Message",
+  "@careMessageBodyLabel": {
+    "description": "Label of the care-note body field."
+  },
+  "careMessageBodyHint": "Write something warm...",
+  "@careMessageBodyHint": {
+    "description": "Hint of the care-note body field."
+  },
+  "careMessageSendCta": "Send to your love 💌",
+  "@careMessageSendCta": {
+    "description": "Primary button that sends the care note."
+  },
+  "careMessageSentToast": "Sent 💌",
+  "@careMessageSentToast": {
+    "description": "Snackbar after a care note was sent."
+  },
+  "careMessageErrorToast": "Couldn't send. Please try again.",
+  "@careMessageErrorToast": {
+    "description": "Snackbar when sending a care note failed."
+  },
+  "careMessageNeedCouple": "Pair up first to send a care note.",
+  "@careMessageNeedCouple": {
+    "description": "Shown when the user has no active couple yet."
+  },
+  "careMessageRecentTitle": "Recently sent",
+  "@careMessageRecentTitle": {
+    "description": "Section title above the recent care notes list."
+  },
+  "careMessageFromMe": "You",
+  "@careMessageFromMe": {
+    "description": "Author label on a care note you sent."
+  },
+  "careMessageFromPartner": "Your love",
+  "@careMessageFromPartner": {
+    "description": "Author label on a care note your partner sent."
+  },
+  "careQuick1Title": "Missing you 💕",
+  "@careQuick1Title": {
+    "description": "Quick-pick care note title 1."
+  },
+  "careQuick1Body": "Just thinking about you. How is your day going?",
+  "@careQuick1Body": {
+    "description": "Quick-pick care note body 1."
+  },
+  "careQuick2Title": "Drink some water 💧",
+  "@careQuick2Title": {
+    "description": "Quick-pick care note title 2."
+  },
+  "careQuick2Body": "Remember to stay hydrated today, okay?",
+  "@careQuick2Body": {
+    "description": "Quick-pick care note body 2."
+  },
+  "careQuick3Title": "Have you eaten? 🍚",
+  "@careQuick3Title": {
+    "description": "Quick-pick care note title 3."
+  },
+  "careQuick3Body": "Please eat on time today, no skipping meals.",
+  "@careQuick3Body": {
+    "description": "Quick-pick care note body 3."
+  },
+  "careQuick4Title": "Sleep early tonight 🌙",
+  "@careQuick4Title": {
+    "description": "Quick-pick care note title 4."
+  },
+  "careQuick4Body": "It is getting late, get some rest. Sweet dreams!",
+  "@careQuick4Body": {
+    "description": "Quick-pick care note body 4."
+  },
+  "careQuick5Title": "Love you so much ❤️",
+  "@careQuick5Title": {
+    "description": "Quick-pick care note title 5."
+  },
+  "careQuick5Body": "Just wanted to say I love you so much today.",
+  "@careQuick5Body": {
+    "description": "Quick-pick care note body 5."
+  },
+  "careQuick6Title": "You've got this 💪",
+  "@careQuick6Title": {
+    "description": "Quick-pick care note title 6."
+  },
+  "careQuick6Body": "Today looks tough, but you've got this. I am right here.",
+  "@careQuick6Body": {
+    "description": "Quick-pick care note body 6."
+  },
+  "notifCareMessage": "{name} sent you a care note",
+  "@notifCareMessage": {
+    "description": "Notification center title for a care note from the partner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

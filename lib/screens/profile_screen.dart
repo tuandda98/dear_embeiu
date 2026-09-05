@@ -20,6 +20,7 @@ import '../widgets/eyebrow_chip.dart';
 import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/header_icon_button.dart';
 import '../widgets/icon_badge.dart';
+import '../widgets/ink_tile.dart';
 import '../widgets/invite_action_buttons.dart';
 import '../widgets/milestone_trail.dart';
 import '../widgets/section_header.dart';
@@ -28,6 +29,7 @@ import '../widgets/shimmer_skeleton.dart';
 import '../widgets/memories_sheet.dart';
 import '../widgets/records_sheet.dart';
 import '../widgets/streak_sheet.dart';
+import 'care_message_screen.dart';
 import 'journal_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
@@ -117,6 +119,11 @@ class ProfileScreen extends StatelessWidget {
                             totalDays: totalDays,
                             onRequestTab: onRequestTab,
                           ),
+                          // Care note (feature care-message): only useful once
+                          // there IS a partner to notify, so it shares the
+                          // paired-only slot with the achievements grid.
+                          const SizedBox(height: 18),
+                          _buildCareTile(context),
                         ],
                         if (inviteCode != null &&
                             inviteCode.trim().isNotEmpty &&
@@ -501,6 +508,66 @@ class ProfileScreen extends StatelessWidget {
   // widget (_AchievementsGrid, end of file) so it can cache the journal-count
   // aggregation across the Profile's frequent rebuilds.
 
+
+  /// Entry point for the "send a care note" composer (feature care-message) —
+  /// same tile shape as [_buildDetailTile], made tappable with the shared
+  /// [InkTile] ripple.
+  Widget _buildCareTile(BuildContext context) {
+    final l10n = context.l10n;
+    return InkTile(
+      borderRadius: 22,
+      onTap: () => openCareMessageScreen(context),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: 0.72),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.accentLove.withValues(alpha: 0.10),
+          ),
+        ),
+        child: Row(
+          children: [
+            const IconBadge(
+              IconsaxPlusLinear.message_favorite,
+              tint: AppColors.accentLove,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.careMessageEntryTitle,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.careMessageEntrySubtitle,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              IconsaxPlusLinear.arrow_right_3,
+              size: 18,
+              color: AppColors.textTertiary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildDetailTile({
     required IconData icon,

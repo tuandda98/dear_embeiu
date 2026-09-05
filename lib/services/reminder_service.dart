@@ -125,6 +125,12 @@ class ReminderService {
   static const int _maxPersonalMedicine = 10;
   static const int _idPersonalQuestionBase = 1110;
   static const int _maxPersonalQuestion = 30;
+  //   • catch-up 1140–1159 — ONE-SHOT for today's remaining slots (feature
+  //     `catch-up`, 2026-09-05): fires only while she still has PAST days with
+  //     no answer, so the copy can name how many are waiting. Cleared as soon
+  //     as the backlog hits zero.
+  static const int _idPersonalCatchupBase = 1140;
+  static const int _maxPersonalCatchup = 20;
 
   // Partner reminders (feature partner-nudge, 2026-06-29): scheduled reminders
   // one partner set FOR the other, synced via Firestore and armed LOCALLY on the
@@ -678,11 +684,61 @@ class ReminderService {
     }
   }
 
-  /// Cancel BOTH personal bands — used when the signed-in account is not the
+  /// One-shot "embe còn câu hỏi cũ chưa trả lời" nudges for TODAY only
+  /// (feature `catch-up`, 2026-09-05, band 1140–1159). Same shape as
+  /// [schedulePersonalQuestionToday]: past times are skipped, the band is
+  /// cleared first, and an empty list simply cancels everything.
+  Future<void> schedulePersonalCatchup(
+    List<({int hour, int minute, String title, String body})> slots,
+  ) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelPersonalCatchup();
+    final now = tz.TZDateTime.now(tz.local);
+    final capped = slots.take(_maxPersonalCatchup).toList();
+    for (var i = 0; i < capped.length; i++) {
+      final s = capped[i];
+      final when = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        s.hour,
+        s.minute,
+      );
+      if (!when.isAfter(now)) {
+        continue;
+      }
+      await _scheduleAt(
+        id: _idPersonalCatchupBase + i,
+        when: when,
+        title: s.title,
+        body: s.body,
+      );
+    }
+  }
+
+  Future<void> cancelPersonalCatchup() async {
+    if (!_initialized) {
+      return;
+    }
+    for (var i = 0; i < _maxPersonalCatchup; i++) {
+      try {
+        await _plugin.cancel(_idPersonalCatchupBase + i);
+      } catch (_) {
+        // Already in the desired state.
+      }
+    }
+  }
+
+  /// Cancel ALL personal bands — used when the signed-in account is not the
   /// gated one (or on reset).
   Future<void> cancelPersonalReminders() async {
     await cancelPersonalMedicine();
     await cancelPersonalQuestion();
+    await cancelPersonalCatchup();
   }
 
   // ---------------------------------------------------------------------------

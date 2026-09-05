@@ -1390,6 +1390,121 @@ exports.notifyDailyAnswerReaction = onDocumentCreated(
   },
 );
 
+// ── Care message (feature care-message) ────────────────────────────────────
+// One member sends a short "quan tâm" note; the partner gets it as a push whose
+// title/body ARE the note, plus a durable inbox item.
+//
+// Deliberately NOT content-free and NOT localized: every other push here hides
+// its content behind a localized template, but this feature's whole point is
+// that the words the sender wrote land on the partner's lock screen verbatim.
+// The rules bound the text (title ≤ 60, body ≤ 200, non-empty) and we clamp
+// again here, so nothing unbounded reaches FCM.
+// No wakeClients — there is nothing for the client to do in the background.
+exports.notifyCareMessage = onDocumentCreated(
+  {document: "couples/{coupleId}/careMessages/{messageId}", region: "us-central1"},
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      logger.warn("Care message notification skipped because snapshot is missing.");
+      return;
+    }
+
+    const care = snapshot.data() || {};
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const messageId = `${event.params.messageId || ""}`.trim();
+    const authorUserId = `${care.authorUserId || ""}`.trim();
+    const title = `${care.title || ""}`.trim().slice(0, 60);
+    const body = `${care.body || ""}`.trim().slice(0, 200);
+
+    if (!coupleId || !authorUserId || !title || !body) {
+      logger.warn("Care message notification skipped because required fields are missing.", {
+        coupleId,
+        messageId,
+        authorUserId,
+        hasTitle: !!title,
+        hasBody: !!body,
+      });
+      return;
+    }
+
+    const coupleSnapshot = await db.collection("couples").doc(coupleId).get();
+    if (!coupleSnapshot.exists) {
+      logger.warn("Care message notification skipped because couple document was not found.", {
+        coupleId,
+      });
+      return;
+    }
+
+    const memberIds = Array.isArray(coupleSnapshot.get("memberIds")) ?
+      coupleSnapshot.get("memberIds") : [];
+    const recipientIds = memberIds.filter(
+      (memberId) => typeof memberId === "string" && memberId.trim() && memberId !== authorUserId,
+    );
+    if (recipientIds.length === 0) {
+      logger.info("Care message notification skipped because there is no partner to notify yet.", {
+        coupleId,
+      });
+      return;
+    }
+
+    let authorName = "";
+    try {
+      const authorSnap = await db.collection("users").doc(authorUserId).get();
+      authorName = `${(authorSnap.exists && authorSnap.get("displayName")) || ""}`.trim();
+    } catch (err) {
+      logger.warn("Could not load author profile for care message notification.", {
+        coupleId,
+        authorUserId,
+        message: err && err.message,
+      });
+    }
+    authorName = normalizeActorName(authorName);
+
+    await writeInboxNotifications(recipientIds, {
+      type: "care_message",
+      coupleId,
+      actorUserId: authorUserId,
+      actorName: authorName,
+      careMessageId: messageId,
+      title,
+      body,
+    });
+
+    // Same text on every device, whatever its language — see the note above.
+    const result = await sendToRecipientDevices(
+      recipientIds,
+      () => ({title, body}),
+      {
+        type: "care_message",
+        coupleId,
+        careMessageId: messageId,
+      },
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("Care message notification skipped because recipient has no active FCM tokens.", {
+        coupleId,
+        messageId,
+      });
+      return;
+    }
+    if (result.failures.length > 0) {
+      logger.warn("Care message notification had delivery failures.", {
+        coupleId,
+        messageId,
+        failures: result.failures,
+      });
+    }
+    logger.info("Processed care message notification.", {
+      coupleId,
+      messageId,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
 // Shared device-fan-out used by the partner-photo and partner-joined pushes.
 // Collects every notifications-enabled device token for the recipients, builds
 // one localized message per device (via `buildText(languageCode)`), sends them

@@ -1009,6 +1009,97 @@ class ReminderProvider extends ChangeNotifier {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Catch-up nudges (feature `catch-up`, 2026-09-05) — SAME gated account. Fire
+  // only while she still has PAST days with no answer of hers; the copy names
+  // how many are waiting so the nudge stays concrete. LOCAL only, band
+  // 1140–1159, independent of the hourly-question band above (that one is about
+  // TODAY, this one about the backlog).
+  // ---------------------------------------------------------------------------
+
+  /// Slots armed for today whenever there's a backlog (past hours are skipped
+  /// by the service).
+  static const List<({int hour, int minute})> _personalCatchupSlots =
+      <({int hour, int minute})>[
+        (hour: 9, minute: 30),
+        (hour: 11, minute: 30),
+        (hour: 13, minute: 30),
+        (hour: 15, minute: 30),
+        (hour: 17, minute: 30),
+        (hour: 19, minute: 30),
+        (hour: 21, minute: 30),
+      ];
+
+  /// Every title starts with "Anh By <3 " (user requirement).
+  static const List<String> _personalCatchupTitles = <String>[
+    'Anh By <3 nhớ embe nè',
+    'Anh By <3 đợi embe xíu nha',
+    'Anh By <3 gửi embe chút thương',
+    'Anh By <3 nhắc embe nhẹ nhàng',
+  ];
+
+  // Last applied "$missedCount|$dayKey"; null = band not owned (non-gated
+  // account) so the cleared state is debounced too.
+  String? _personalCatchupSignature;
+
+  /// Affectionate bodies, rotated across the day so she never sees the same
+  /// line twice in a row. [missed] is the number of past days still unanswered.
+  static List<String> _personalCatchupBodies(int missed) => <String>[
+    'Còn $missed câu hỏi hôm trước đang đợi embe đó, trả lời cho anh By vui nha 🥰',
+    'Embe ơi, mình còn $missed câu chưa trả lời nè, vào trả lời bù cho anh By nha 💗',
+    'Anh By tò mò câu trả lời của embe lắm, còn $missed câu thôi à 🥺',
+    'Trả lời nốt $missed câu là chuỗi của chúng mình lại đẹp liền, cố lên embe 💞',
+    'Anh By thương embe nhiều, dành 1 phút cho $missed câu hỏi cũ nha 🌷',
+    'Embe của anh By ơi, $missed câu hỏi đang chờ được embe trả lời nè 💕',
+    'Mở app trả lời giúp anh By $missed câu nha, anh By đọc là vui cả ngày 🥰',
+  ];
+
+  /// (Re)arm or clear the catch-up nudges. Wired from HomeScreen after every
+  /// backlog scan ([CatchupService.findMissedDays]). Only the gated account
+  /// ([_personalAccountEmail]) owns the band; anyone else just cancels it.
+  /// [missedCount] == 0 cancels as well.
+  Future<void> refreshPersonalCatchupReminders({
+    required String? email,
+    required int missedCount,
+  }) async {
+    final isTarget =
+        (email ?? '').trim().toLowerCase() == _personalAccountEmail;
+    if (!isTarget) {
+      if (_personalCatchupSignature == null) {
+        return;
+      }
+      _personalCatchupSignature = null;
+      await _service.cancelPersonalCatchup();
+      return;
+    }
+
+    final now = DateTime.now();
+    final dayKey = '${now.year}-${now.month}-${now.day}';
+    final signature = '$missedCount|$dayKey';
+    if (signature == _personalCatchupSignature) {
+      return;
+    }
+    _personalCatchupSignature = signature;
+
+    if (missedCount <= 0) {
+      await _service.cancelPersonalCatchup();
+      return;
+    }
+
+    final bodies = _personalCatchupBodies(missedCount);
+    final slots = <({int hour, int minute, String title, String body})>[];
+    for (var i = 0; i < _personalCatchupSlots.length; i++) {
+      final slot = _personalCatchupSlots[i];
+      slots.add((
+        hour: slot.hour,
+        minute: slot.minute,
+        title: _personalCatchupTitles[i % _personalCatchupTitles.length],
+        body: bodies[i % bodies.length],
+      ));
+    }
+    await _service.schedulePersonalCatchup(slots);
+  }
+
   /// Clamp each minute-of-day to 0–1439, de-dupe, sort, cap at the max.
   List<int> _normalizeTimes(Iterable<int> raw) {
     final set = <int>{for (final m in raw) m.clamp(0, 24 * 60 - 1)};

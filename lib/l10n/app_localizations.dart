@@ -5605,6 +5605,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t send — tap to retry'**
   String get answerReactionErrorRetry;
+
+  /// Eyebrow chip on the send-a-care-note screen.
+  ///
+  /// In en, this message translates to:
+  /// **'CARE NOTE'**
+  String get careMessageBadge;
+
+  /// Profile menu entry opening the care-note composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a care note'**
+  String get careMessageEntryTitle;
+
+  /// Subtitle of the profile care-note entry.
+  ///
+  /// In en, this message translates to:
+  /// **'A little message to warm their day'**
+  String get careMessageEntrySubtitle;
+
+  /// Section title above the ready-made care-note chips.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick picks'**
+  String get careMessageQuickPicksTitle;
+
+  /// Label of the care-note title field.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get careMessageTitleLabel;
+
+  /// Hint of the care-note title field.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Missing you'**
+  String get careMessageTitleHint;
+
+  /// Label of the care-note body field.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get careMessageBodyLabel;
+
+  /// Hint of the care-note body field.
+  ///
+  /// In en, this message translates to:
+  /// **'Write something warm...'**
+  String get careMessageBodyHint;
+
+  /// Primary button that sends the care note.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to your love 💌'**
+  String get careMessageSendCta;
+
+  /// Snackbar after a care note was sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent 💌'**
+  String get careMessageSentToast;
+
+  /// Snackbar when sending a care note failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Please try again.'**
+  String get careMessageErrorToast;
+
+  /// Shown when the user has no active couple yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair up first to send a care note.'**
+  String get careMessageNeedCouple;
+
+  /// Section title above the recent care notes list.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently sent'**
+  String get careMessageRecentTitle;
+
+  /// Author label on a care note you sent.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get careMessageFromMe;
+
+  /// Author label on a care note your partner sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your love'**
+  String get careMessageFromPartner;
+
+  /// Quick-pick care note title 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing you 💕'**
+  String get careQuick1Title;
+
+  /// Quick-pick care note body 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Just thinking about you. How is your day going?'**
+  String get careQuick1Body;
+
+  /// Quick-pick care note title 2.
+  ///
+  /// In en, this message translates to:
+  /// **'Drink some water 💧'**
+  String get careQuick2Title;
+
+  /// Quick-pick care note body 2.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember to stay hydrated today, okay?'**
+  String get careQuick2Body;
+
+  /// Quick-pick care note title 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Have you eaten? 🍚'**
+  String get careQuick3Title;
+
+  /// Quick-pick care note body 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Please eat on time today, no skipping meals.'**
+  String get careQuick3Body;
+
+  /// Quick-pick care note title 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep early tonight 🌙'**
+  String get careQuick4Title;
+
+  /// Quick-pick care note body 4.
+  ///
+  /// In en, this message translates to:
+  /// **'It is getting late, get some rest. Sweet dreams!'**
+  String get careQuick4Body;
+
+  /// Quick-pick care note title 5.
+  ///
+  /// In en, this message translates to:
+  /// **'Love you so much ❤️'**
+  String get careQuick5Title;
+
+  /// Quick-pick care note body 5.
+  ///
+  /// In en, this message translates to:
+  /// **'Just wanted to say I love you so much today.'**
+  String get careQuick5Body;
+
+  /// Quick-pick care note title 6.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve got this 💪'**
+  String get careQuick6Title;
+
+  /// Quick-pick care note body 6.
+  ///
+  /// In en, this message translates to:
+  /// **'Today looks tough, but you\'ve got this. I am right here.'**
+  String get careQuick6Body;
+
+  /// Notification center title for a care note from the partner.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent you a care note'**
+  String notifCareMessage(String name);
 }
 
 class _AppLocalizationsDelegate

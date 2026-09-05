@@ -3261,4 +3261,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get answerReactionErrorRetry => 'Couldn\'t send — tap to retry';
+
+  @override
+  String get careMessageBadge => 'CARE NOTE';
+
+  @override
+  String get careMessageEntryTitle => 'Send a care note';
+
+  @override
+  String get careMessageEntrySubtitle => 'A little message to warm their day';
+
+  @override
+  String get careMessageQuickPicksTitle => 'Quick picks';
+
+  @override
+  String get careMessageTitleLabel => 'Title';
+
+  @override
+  String get careMessageTitleHint => 'e.g. Missing you';
+
+  @override
+  String get careMessageBodyLabel => 'Message';
+
+  @override
+  String get careMessageBodyHint => 'Write something warm...';
+
+  @override
+  String get careMessageSendCta => 'Send to your love 💌';
+
+  @override
+  String get careMessageSentToast => 'Sent 💌';
+
+  @override
+  String get careMessageErrorToast => 'Couldn\'t send. Please try again.';
+
+  @override
+  String get careMessageNeedCouple => 'Pair up first to send a care note.';
+
+  @override
+  String get careMessageRecentTitle => 'Recently sent';
+
+  @override
+  String get careMessageFromMe => 'You';
+
+  @override
+  String get careMessageFromPartner => 'Your love';
+
+  @override
+  String get careQuick1Title => 'Missing you 💕';
+
+  @override
+  String get careQuick1Body =>
+      'Just thinking about you. How is your day going?';
+
+  @override
+  String get careQuick2Title => 'Drink some water 💧';
+
+  @override
+  String get careQuick2Body => 'Remember to stay hydrated today, okay?';
+
+  @override
+  String get careQuick3Title => 'Have you eaten? 🍚';
+
+  @override
+  String get careQuick3Body => 'Please eat on time today, no skipping meals.';
+
+  @override
+  String get careQuick4Title => 'Sleep early tonight 🌙';
+
+  @override
+  String get careQuick4Body =>
+      'It is getting late, get some rest. Sweet dreams!';
+
+  @override
+  String get careQuick5Title => 'Love you so much ❤️';
+
+  @override
+  String get careQuick5Body => 'Just wanted to say I love you so much today.';
+
+  @override
+  String get careQuick6Title => 'You\'ve got this 💪';
+
+  @override
+  String get careQuick6Body =>
+      'Today looks tough, but you\'ve got this. I am right here.';
+
+  @override
+  String notifCareMessage(String name) {
+    return '$name sent you a care note';
+  }
 }

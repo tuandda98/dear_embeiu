@@ -18,6 +18,11 @@ enum AppNotificationType {
   dailyAnswerReaction,
   chatMessage,
 
+  /// Partner sent a hand-written care note (feature care-message). Unlike every
+  /// other type, its text is NOT re-rendered from a template — [title]/[body]
+  /// carry the partner's own words and are shown verbatim.
+  careMessage,
+
   /// A type this app build doesn't recognise (forward-compat: a newer backend
   /// could send a new type). Rendered with a generic fallback, routes to Home.
   unknown,
@@ -41,6 +46,8 @@ AppNotificationType appNotificationTypeFromString(String? raw) {
       return AppNotificationType.dailyAnswerReaction;
     case 'chat_message':
       return AppNotificationType.chatMessage;
+    case 'care_message':
+      return AppNotificationType.careMessage;
     default:
       return AppNotificationType.unknown;
   }
@@ -62,6 +69,8 @@ class AppNotification {
     this.date,
     this.createdAt,
     this.bothAnswered = false,
+    this.title,
+    this.body,
   });
 
   final String id;
@@ -87,6 +96,11 @@ class AppNotification {
   /// the push copy). Absent on docs written by older backends → false.
   final bool bothAnswered;
 
+  /// care_message only: the partner's own words, stored on the inbox doc so the
+  /// center shows exactly what the push showed. Null on every other type.
+  final String? title;
+  final String? body;
+
   /// Which Home bottom-nav tab this notification should open when tapped.
   /// Photo-related → Gallery (2); chat → Chat (1); everything else → Home (0).
   /// ⚠️ Indices shifted when the chat tab landed at 1 (feature chat,
@@ -111,6 +125,8 @@ class AppNotification {
       // handler in notification_center_screen sends it straight to that day in
       // the Journal; Home is the cold-start fallback.
       case AppNotificationType.dailyAnswerReaction:
+      // A care note has no dedicated destination — just bring them Home.
+      case AppNotificationType.careMessage:
       case AppNotificationType.unknown:
         return 0; // Home
     }
@@ -132,6 +148,8 @@ class AppNotification {
       createdAt: _parseTimestamp(data['createdAt']),
       read: data['read'] == true,
       bothAnswered: data['bothAnswered'] == true,
+      title: _nullableString(data['title']),
+      body: _nullableString(data['body']),
     );
   }
 
@@ -151,6 +169,8 @@ class AppNotification {
       date: date,
       createdAt: createdAt,
       bothAnswered: bothAnswered,
+      title: title,
+      body: body,
     );
   }
 

@@ -25,12 +25,14 @@ import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/analytics_service.dart';
+import '../services/catchup_service.dart';
 import '../services/home_prefs_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
+import '../widgets/catchup_gate.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/icon_badge.dart';
@@ -46,6 +48,7 @@ import '../widgets/streak_sheet.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'gallery_screen.dart';
+import 'care_message_screen.dart';
 import 'notification_center_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -398,6 +401,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// 2026-06-19).
   ChatProvider? _chatProvider;
 
+  // Catch-up gate (feature `catch-up`, 2026-09-05) — ACCOUNT-GATED to em bé
+  // ([CatchupService.gatedEmail]). Scans the last 14 days for questions she
+  // never answered, blocks Home with the make-up form and keeps the
+  // "Anh By <3" nudge band (1140–1159) in sync with the backlog. Every other
+  // account short-circuits inside [_maybeRunCatchup] before any read.
+  final CatchupService _catchupService = CatchupService();
+  bool _catchupBusy = false;
+  DateTime? _catchupLastCheck;
+  String? _catchupLastDay;
+
   /// Standard 16px page gutter, applied PER BLOCK (the scroll view itself has
   /// no horizontal padding).
   Widget _gutter(Widget child) {
@@ -493,6 +506,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
+    // Catch-up gate: re-scan the backlog on every resume (covers the day rolling
+    // over in the background and answers made on the other device). No-ops for
+    // every account but the gated one.
+    if (state == AppLifecycleState.resumed) {
+      _maybeRunCatchup(force: true);
+    }
     // Chat presence (presence-suppress 2026-06-19): only meaningful while the
     // chat tab is the active screen. Backgrounding clears presence so the
     // partner's messages notify me again; resuming re-arms the heartbeat.
@@ -573,6 +592,90 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         currentStreak: streak.currentStreak,
         l10n: context.l10n,
       );
+    }
+  }
+
+  /// Catch-up gate (feature `catch-up`, 2026-09-05) — ACCOUNT-GATED.
+  ///
+  /// Scans the last 14 days for daily questions the user never answered, keeps
+  /// the "Anh By <3" nudge band in sync with that backlog and — when there IS a
+  /// backlog — blocks Home with the un-dismissable make-up form. Everything is
+  /// fail-soft (the service swallows read errors and returns an empty list), so
+  /// a network hiccup simply means "no backlog" and the app runs as usual.
+  ///
+  /// Throttled to once per 5 minutes per day (a rolled-over day or [force] from
+  /// a resume re-runs it immediately).
+  Future<void> _maybeRunCatchup({bool force = false}) async {
+    if (!mounted || _catchupBusy || CatchupGate.isShowing) {
+      return;
+    }
+    final auth = context.read<AuthProvider>();
+    final email = auth.currentUser?.email ?? auth.currentEmail ?? '';
+    if (!CatchupService.isGatedEmail(email)) {
+      return;
+    }
+    final myUid = auth.currentUser?.id;
+    final couple = context.read<CoupleProvider>().couple;
+    if (myUid == null ||
+        myUid.isEmpty ||
+        couple == null ||
+        couple.id.isEmpty ||
+        // A couple still waiting for the partner can never reveal a day, so
+        // there is nothing to catch up on.
+        couple.isWaitingForPartner) {
+      return;
+    }
+
+    final now = DateTime.now();
+    final dayKey = '${now.year}-${now.month}-${now.day}';
+    final last = _catchupLastCheck;
+    if (!force &&
+        _catchupLastDay == dayKey &&
+        last != null &&
+        now.difference(last) < const Duration(minutes: 5)) {
+      return;
+    }
+    _catchupBusy = true;
+    _catchupLastDay = dayKey;
+    _catchupLastCheck = now;
+
+    try {
+      final missed = await _catchupService.findMissedDays(
+        coupleId: couple.id,
+        myUid: myUid,
+      );
+      if (!mounted) {
+        return;
+      }
+      await context.read<ReminderProvider>().refreshPersonalCatchupReminders(
+        email: email,
+        missedCount: missed.length,
+      );
+      if (missed.isEmpty || !mounted) {
+        return;
+      }
+      await CatchupGate.show(
+        context,
+        coupleId: couple.id,
+        myUid: myUid,
+        days: missed,
+      );
+      if (!mounted) {
+        return;
+      }
+      // The gate only closes once every missed day has been answered.
+      await context.read<ReminderProvider>().refreshPersonalCatchupReminders(
+        email: email,
+        missedCount: 0,
+      );
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Xong rồi, cảm ơn embe 💕')),
+      );
+    } finally {
+      _catchupBusy = false;
     }
   }
 
@@ -1238,6 +1341,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ),
                 const SizedBox(width: 12),
+                _buildCareButton(),
                 _buildNotificationBell(),
               ],
             ),
@@ -1325,6 +1429,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             couple.id,
             myUid,
           );
+          // Catch-up gate (account-gated): covers cold start, the couple
+          // finishing its load after Home mounted, and the date rolling over
+          // while the app stays open. Throttled inside.
+          _maybeRunCatchup();
         }
       });
     }
@@ -1592,6 +1700,42 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Header "care note" button (feature care-message, 2026-09-05): opens the
+  /// compose screen where the user sends a caring title + message that lands
+  /// on the partner's phone as a push. Same bare 48px glyph as the bell so the
+  /// Home header stays one chip + icons like the other tabs.
+  Widget _buildCareButton() {
+    final l10n = context.l10n;
+    return Semantics(
+      label: l10n.careMessageEntryTitle,
+      button: true,
+      excludeSemantics: true,
+      onTap: () => openCareMessageScreen(context),
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(17),
+            splashColor: AppColors.accentRose.withValues(alpha: 0.12),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              openCareMessageScreen(context);
+            },
+            child: const Center(
+              child: Icon(
+                IconsaxPlusLinear.message_favorite,
+                size: 26,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

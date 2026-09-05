@@ -507,6 +507,13 @@ class PushNotificationService {
         // Mood card lives on Home (feature mood) — open there to see it.
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;
+      case 'care_message':
+        // A care note (feature care-message) has no dedicated screen — the push
+        // itself IS the content (its title/body are the partner's own words),
+        // so a tap just brings the app up on Home. The full text stays readable
+        // in the Notification Center.
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        break;
       case 'partner_reminder_set':
         // Scheduled-reminder confirmation (feature partner-nudge): A set a
         // shared reminder for B — just bring the app to Home.
