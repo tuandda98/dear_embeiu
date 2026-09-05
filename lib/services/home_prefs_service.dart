@@ -162,17 +162,22 @@ class HomePrefsService {
   /// Publishes the AI-questions opt-in for BOTH partners (merge, fail-soft) —
   /// one switch, one shared question, so it deliberately lives next to the
   /// other couple-shared prefs rather than on-device.
-  Future<void> setAiQuestionsEnabled(String coupleId, bool enabled) async {
+  /// Returns false when the write was rejected/failed so the toggle can
+  /// revert instead of showing a state that never reached Firestore.
+  Future<bool> setAiQuestionsEnabled(String coupleId, bool enabled) async {
     if (coupleId.trim().isEmpty || !isUsingFirebase) {
-      return;
+      return false;
     }
     try {
-      await _doc(coupleId).set(
-        <String, Object?>{'aiQuestionsEnabled': enabled},
-        SetOptions(merge: true),
-      );
+      await _doc(coupleId)
+          .set(
+            <String, Object?>{'aiQuestionsEnabled': enabled},
+            SetOptions(merge: true),
+          )
+          .timeout(const Duration(seconds: 10));
+      return true;
     } catch (_) {
-      // Fail-soft — sync catches up on the next successful write.
+      return false;
     }
   }
 

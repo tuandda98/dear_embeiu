@@ -3,7 +3,7 @@
   "aiQuestionsTitle": "Câu hỏi cá nhân hoá bằng AI",
   "aiQuestionsSubtitle": "Dùng 30 ngày câu trả lời gần nhất của cả hai để tạo câu hỏi riêng cho chúng mình. Dữ liệu chỉ dùng để tạo câu hỏi, không dùng để huấn luyện. Tắt bất cứ lúc nào.",
   "aiQuestionsDialogTitle": "Bật câu hỏi cá nhân hoá?",
-  "aiQuestionsDialogBody": "Cài đặt này áp dụng cho cả hai: người ấy cũng sẽ thấy câu hỏi do AI tạo. Chúng mình chỉ đọc 30 ngày câu trả lời gần nhất để tạo câu hỏi, không dùng để huấn luyện, và có thể tắt bất cứ lúc nào.",
+  "aiQuestionsDialogBody": "Cài đặt này áp dụng cho cả hai: người ấy cũng sẽ thấy câu hỏi do AI tạo. Chúng mình chỉ đọc 30 ngày câu trả lời gần nhất để tạo câu hỏi, không dùng để huấn luyện, và có thể tắt bất cứ lúc nào. Câu hỏi AI bắt đầu từ câu hỏi ngày mai.",
   "aiQuestionsDialogConfirm": "Bật",
   "introSkip": "Bỏ qua",
   "introNext": "Tiếp",
@@ -1826,6 +1826,12 @@
   "@careMessageSendCta": {
     "description": "Primary button that sends the care note."
   },
+  "aiQuestionsSaveFailed": "Chưa lưu được, thử lại sau nhé",
+  "@aiQuestionsSaveFailed": {"description": "aiQuestionsSaveFailed"},
+  "dailyQuestionPreparing": "Đang chuẩn bị câu hỏi hôm nay…",
+  "@dailyQuestionPreparing": {"description": "dailyQuestionPreparing"},
+  "careMessageQueuedToast": "Mạng chậm xíu, lời quan tâm sẽ tự gửi khi có mạng 💌",
+  "@careMessageQueuedToast": {"description": "Toast when the care note write timed out offline and is queued"},
   "careMessageSentToast": "Đã gửi rồi nhé 💌",
   "@careMessageSentToast": {
     "description": "Snackbar after a care note was sent."

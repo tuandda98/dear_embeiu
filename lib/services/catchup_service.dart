@@ -77,12 +77,18 @@ class CatchupService {
   /// The missed days in [windowDays] before [now] (today EXCLUDED — today's
   /// card on Home already handles it), oldest first so the gate can walk
   /// forward in time.
-  Future<List<CatchupMissedDay>> findMissedDays({
+  /// Returns `null` when the scan could not run (offline / permission) so the
+  /// caller keeps its current state instead of treating it as "no debt".
+  Future<List<CatchupMissedDay>?> findMissedDays({
     required String coupleId,
     required String myUid,
+    required String partnerUid,
     DateTime? now,
   }) async {
-    if (!isUsingFirebase || coupleId.trim().isEmpty || myUid.trim().isEmpty) {
+    if (!isUsingFirebase ||
+        coupleId.trim().isEmpty ||
+        myUid.trim().isEmpty ||
+        partnerUid.trim().isEmpty) {
       return const <CatchupMissedDay>[];
     }
 
@@ -125,7 +131,12 @@ class CatchupService {
         return const <CatchupMissedDay>[];
       }
 
-      // Did I answer that day? (≤14 point reads, run in parallel.)
+      // Did I answer that day — and did the PARTNER? A day only counts as
+      // missed when the partner answered and I didn't: that is the day *my*
+      // catch-up can still complete (the CF stamps `bothAnswered` on the
+      // backfill). A day nobody answered cannot be repaired from this side,
+      // so it is skipped rather than forcing an answer that would never
+      // restore the streak. (≤ 2×14 point reads, in parallel.)
       final mine = await Future.wait(
         pending.map(
           (key) => _dailyAnswers(
@@ -133,10 +144,17 @@ class CatchupService {
           ).doc(key).collection('responses').doc(myUid).get(),
         ),
       );
+      final theirs = await Future.wait(
+        pending.map(
+          (key) => _dailyAnswers(
+            coupleId,
+          ).doc(key).collection('responses').doc(partnerUid).get(),
+        ),
+      );
 
       final missed = <CatchupMissedDay>[];
       for (var i = 0; i < pending.length; i++) {
-        if (mine[i].exists) {
+        if (mine[i].exists || !theirs[i].exists) {
           continue;
         }
         final key = pending[i];
@@ -159,7 +177,7 @@ class CatchupService {
       // Fail-soft on purpose: offline / permission-denied / missing index must
       // never block the app behind the gate.
       debugPrint('CatchupService.findMissedDays failed: $error');
-      return const <CatchupMissedDay>[];
+      return null;
     }
   }
 }

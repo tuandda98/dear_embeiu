@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
@@ -82,6 +83,10 @@ class _CatchupGateDialogState extends State<_CatchupGateDialog> {
 
   @override
   void dispose() {
+    // The route can be REMOVED (session revoked → pushNamedAndRemoveUntil)
+    // without ever completing `showDialog`'s future, which would leave the
+    // static guard stuck at true for the rest of the process.
+    CatchupGate._isShowing = false;
     _controller.dispose();
     super.dispose();
   }
@@ -101,11 +106,26 @@ class _CatchupGateDialogState extends State<_CatchupGateDialog> {
     }
     setState(() => _sending = true);
     try {
-      await widget.service.submitAnswer(
-        coupleId: widget.coupleId,
-        dateKey: _day.dateKey,
-        uid: widget.myUid,
-        text: text,
+      // Firestore queues the write offline and `set()` then never resolves —
+      // inside an un-dismissable dialog that would freeze the app. After the
+      // timeout the write is still queued, so treat it as sent and move on.
+      await widget.service
+          .submitAnswer(
+            coupleId: widget.coupleId,
+            dateKey: _day.dateKey,
+            uid: widget.myUid,
+            text: text,
+            backfill: true,
+          )
+          .timeout(const Duration(seconds: 12));
+    } on TimeoutException {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mạng chậm xíu, câu trả lời sẽ tự gửi khi có mạng 💌'),
+        ),
       );
     } catch (_) {
       if (!mounted) {
@@ -200,7 +220,6 @@ class _CatchupGateDialogState extends State<_CatchupGateDialog> {
                 const SizedBox(height: 14),
                 TextField(
                   controller: _controller,
-                  enabled: !_sending,
                   autofocus: true,
                   minLines: 3,
                   maxLines: 5,

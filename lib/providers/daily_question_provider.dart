@@ -48,7 +48,15 @@ class DailyQuestionProvider extends ChangeNotifier {
   String _languageCode = 'vi';
   DateTime? _anniversaryDate;
   int _currentStreak = 0;
-  int _photosThisWeek = 0;
+  /// -1 = unknown (photo list not loaded yet) so the "no photos this week"
+  /// template can never fire on a guess; Home passes a real count later.
+  int _photosThisWeek = -1;
+
+  /// Set by the first [updateContext]. Until then [_maybeResolveToday] waits:
+  /// SessionResolver arms [watchForCouple] BEFORE Home mounts, and resolving
+  /// with an empty context (no partner/streak/anniversary/mood) would freeze a
+  /// context-blind question into the marker for both phones.
+  bool _contextReady = false;
   String? _myMood;
   String? _partnerMood;
 
@@ -106,6 +114,7 @@ class DailyQuestionProvider extends ChangeNotifier {
     String? languageCode,
     DateTime? anniversaryDate,
   }) {
+    _contextReady = true;
     if (currentStreak != null) {
       _currentStreak = currentStreak;
     }
@@ -213,6 +222,9 @@ class DailyQuestionProvider extends ChangeNotifier {
     final uid = _myUid;
     if (coupleId == null || uid == null || _dateKey.isEmpty) {
       return;
+    }
+    if (!_contextReady) {
+      return; // Home calls updateContext() first, then we resolve.
     }
     final key = '$coupleId|$_dateKey';
     if (_resolvedKey == key) {

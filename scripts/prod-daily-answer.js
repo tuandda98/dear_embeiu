@@ -15,6 +15,9 @@
 // tạm (0600, xoá khi thoát). KHÔNG cần service-account key. firebase-admin lấy
 // từ functions/node_modules (chạy `npm i` trong functions/ nếu thiếu).
 //
+// ℹ️ Từ 2026-09-05 `restore` ghi thêm `backfill: true` ⇒ CF `notifyDailyAnswer`
+// vẫn stamp `bothAnswered` nhưng BỎ QUA push/inbox/wake (hết tác dụng phụ dưới).
+// Ghi chú cũ (CF chưa deploy prod bản mới thì vẫn đúng):
 // ⚠️ `restore` TẠO doc `responses/{uid}` ⇒ CF `notifyDailyAnswer` (onCreate,
 // KHÔNG guard theo ngày) vẫn chạy: người ấy nhận 1 inbox + 1 push "cả hai đã
 // trả lời" cho ngày cũ, và push `bothAnswered=true` làm máy người ấy huỷ dải
@@ -150,7 +153,7 @@ async function restore(db, auth, email, date, text) {
   const before = await computeStreak(db, c.coupleId, localTodayKey());
   console.log(`[pre] ${date} bothAnswered=${marker.get('bothAnswered')} · streak hiện tại=${before.current} (${before.state})`);
 
-  await respRef.create({ authorUserId: c.uid, text: t, answeredAt: admin.firestore.FieldValue.serverTimestamp() });
+  await respRef.create({ authorUserId: c.uid, text: t, answeredAt: admin.firestore.FieldValue.serverTimestamp(), backfill: true });
   const others = await markerRef.collection('responses').get();
   const allAnswered = c.memberIds.every((m) => others.docs.some((d) => d.id === m));
   if (allAnswered) {

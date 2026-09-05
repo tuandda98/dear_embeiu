@@ -254,6 +254,8 @@ class TemplateQuestionSource implements QuestionSource {
       out = out
           .replaceAll(kTplDays, milestone.offset.abs().toString())
           .replaceAll(kTplMilestone, milestone.milestone.toString());
+      // EN plural: "1 days" → "1 day" (the day right before every milestone).
+      out = out.replaceAll(RegExp(r'\b1 days\b'), '1 day');
     }
     if (mood != null) {
       out = out.replaceAll(kTplMood, mood);

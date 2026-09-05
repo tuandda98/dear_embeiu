@@ -47,8 +47,8 @@ class ResolvedQuestion {
 
   String textFor(String langCode) =>
       langCode.trim().toLowerCase().startsWith('vi')
-          ? (questionVi.isNotEmpty ? questionVi : questionEn)
-          : (questionEn.isNotEmpty ? questionEn : questionVi);
+      ? (questionVi.isNotEmpty ? questionVi : questionEn)
+      : (questionEn.isNotEmpty ? questionEn : questionVi);
 
   String? hintFor(String langCode) {
     final vi = hintVi?.trim();
@@ -102,9 +102,9 @@ class QuestionEngine {
     List<QuestionSource> sources = const <QuestionSource>[],
     FirebaseFirestore? firestore,
     QuestionStateService? stateService,
-  })  : _firestore = firestore,
-        _stateService =
-            stateService ?? QuestionStateService(firestore: firestore) {
+  }) : _firestore = firestore,
+       _stateService =
+           stateService ?? QuestionStateService(firestore: firestore) {
     for (final source in sources) {
       registerSource(source);
     }
@@ -116,15 +116,14 @@ class QuestionEngine {
   factory QuestionEngine.withDefaults({
     FirebaseFirestore? firestore,
     QuestionStateService? stateService,
-  }) =>
-      QuestionEngine(
-        sources: const <QuestionSource>[
-          TemplateQuestionSource(),
-          BankQuestionSource(),
-        ],
-        firestore: firestore,
-        stateService: stateService,
-      );
+  }) => QuestionEngine(
+    sources: const <QuestionSource>[
+      TemplateQuestionSource(),
+      BankQuestionSource(),
+    ],
+    firestore: firestore,
+    stateService: stateService,
+  );
 
   final FirebaseFirestore? _firestore;
   final QuestionStateService _stateService;
@@ -185,7 +184,14 @@ class QuestionEngine {
     // (b) Marker already carries the question → both phones use it verbatim.
     try {
       final existing = await markerRef.get();
-      final resolved = _fromMarker(existing.data());
+      var resolved = _fromMarker(existing.data());
+      if (resolved != null &&
+          resolved.source == 'revisit' &&
+          (resolved.refDate ?? '').isNotEmpty) {
+        // The other phone (or a restart) only has the marker: rebuild the
+        // per-user "back then you wrote…" hint from refDate.
+        resolved = await _withRevisitHint(resolved, existing.reference, myUid);
+      }
       if (resolved != null) {
         return resolved;
       }
@@ -343,6 +349,40 @@ class QuestionEngine {
     }
   }
 
+  /// Reads MY answer of [ResolvedQuestion.refDate] and attaches it as the
+  /// hint (never persisted — it is personal to this user). Fail-soft.
+  Future<ResolvedQuestion> _withRevisitHint(
+    ResolvedQuestion base,
+    DocumentReference<Map<String, dynamic>> markerRef,
+    String myUid,
+  ) async {
+    try {
+      final snap = await markerRef.parent
+          .doc(base.refDate!)
+          .collection('responses')
+          .doc(myUid)
+          .get()
+          .timeout(const Duration(seconds: 4));
+      final text = (snap.data()?['text'] as String?)?.trim() ?? '';
+      if (text.isEmpty) {
+        return base;
+      }
+      final short = text.length > 80 ? '${text.substring(0, 80)}…' : text;
+      return ResolvedQuestion(
+        questionVi: base.questionVi,
+        questionEn: base.questionEn,
+        source: base.source,
+        refDate: base.refDate,
+        templateKey: base.templateKey,
+        questionId: base.questionId,
+        hintVi: 'Hồi đó bạn viết: "$short"',
+        hintEn: 'Back then you wrote: "$short"',
+      );
+    } catch (_) {
+      return base;
+    }
+  }
+
   ResolvedQuestion? _fromMarker(Map<String, dynamic>? data) {
     if (data == null) {
       return null;
@@ -380,18 +420,14 @@ class QuestionEngine {
         if (theirs != null) {
           return theirs;
         }
-        tx.set(
-          markerRef,
-          <String, Object?>{
-            'date': dateKey,
-            'questionVi': candidate.questionVi,
-            'questionEn': candidate.questionEn,
-            'source': candidate.source,
-            ...candidate.markerExtras,
-            'updatedAt': FieldValue.serverTimestamp(),
-          },
-          SetOptions(merge: true),
-        );
+        tx.set(markerRef, <String, Object?>{
+          'date': dateKey,
+          'questionVi': candidate.questionVi,
+          'questionEn': candidate.questionEn,
+          'source': candidate.source,
+          ...candidate.markerExtras,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
         return null;
       });
     } catch (_) {

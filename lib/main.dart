@@ -111,9 +111,10 @@ void main() async {
 
   // Correctness-critical: the reinstall purge must complete before the splash
   // resolves a route, so it stays on the pre-runApp path.
-  await InstallStateService().handleFreshInstall(
-    onFreshInstall: () => authService.purgePersistedSession(),
-  );
+  InstallStateService.isFreshInstallLaunch =
+      await InstallStateService().handleFreshInstall(
+        onFreshInstall: () => authService.purgePersistedSession(),
+      );
 
   runApp(MyApp(
     authService: authService,

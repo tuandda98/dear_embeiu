@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import '../screens/care_message_screen.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../l10n/app_localizations.dart';
@@ -18,6 +19,7 @@ class FeatureTourEntry {
     required this.title,
     required this.body,
     this.targetTab,
+    this.onOpen,
   });
 
   /// Build number (`pubspec` `+N`) this feature shipped in.
@@ -32,6 +34,10 @@ class FeatureTourEntry {
   /// Optional Home tab index (Home 0 · Chat 1 · Gallery 2 · Profile 3) — when
   /// set the row becomes tappable and jumps straight to the feature.
   final int? targetTab;
+
+  /// Optional direct action (push a screen). Takes precedence over
+  /// [targetTab] and works from Settings, where there is no tab bar.
+  final void Function(BuildContext context)? onOpen;
 }
 
 /// The tour catalogue, oldest first.
@@ -45,7 +51,7 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
     icon: IconsaxPlusLinear.message_favorite,
     title: (l10n) => l10n.featureTourCareTitle,
     body: (l10n) => l10n.featureTourCareBody,
-    targetTab: 0,
+    onOpen: openCareMessageScreen,
   ),
   FeatureTourEntry(
     sinceBuild: 20,

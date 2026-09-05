@@ -35,19 +35,21 @@ class CareMessageService {
   /// Sends a care note. Trims + clamps to the rule limits (60 / 200) and skips
   /// silently when either part is empty, so the caller never has to pre-check.
   /// Throws on a Firestore failure so the UI can surface a retry.
-  Future<void> send({
+  /// Returns true when the note was handed to Firestore. False = nothing was
+  /// written (no Firebase, empty input) — the caller must NOT report success.
+  Future<bool> send({
     required String coupleId,
     required String uid,
     required String title,
     required String body,
   }) async {
     if (coupleId.trim().isEmpty || uid.trim().isEmpty || !isUsingFirebase) {
-      return;
+      return false;
     }
     final cleanTitle = _clamp(title, CareMessage.maxTitleLength);
     final cleanBody = _clamp(body, CareMessage.maxBodyLength);
     if (cleanTitle.isEmpty || cleanBody.isEmpty) {
-      return;
+      return false;
     }
 
     await _collection(coupleId.trim()).add(<String, dynamic>{
@@ -56,6 +58,7 @@ class CareMessageService {
       'body': cleanBody,
       'createdAt': FieldValue.serverTimestamp(),
     });
+    return true;
   }
 
   /// Streams the couple's most recent care notes (both members'), newest first.
@@ -76,10 +79,19 @@ class CareMessageService {
         .handleError((_) {});
   }
 
-  /// Trim + hard-clamp (the rule rejects anything longer, and a rejected write
-  /// is worse than a slightly shortened note).
+  /// Trim + hard-clamp to [max] UTF-16 code units (what the security rule's
+  /// `size()` counts) without ever ending on a lone high surrogate — an emoji
+  /// cut in half would be stored, listed and PUSHED as "�".
   static String _clamp(String value, int max) {
     final trimmed = value.trim();
-    return trimmed.length <= max ? trimmed : trimmed.substring(0, max).trim();
+    if (trimmed.length <= max) {
+      return trimmed;
+    }
+    var cut = trimmed.substring(0, max);
+    final last = cut.codeUnitAt(cut.length - 1);
+    if (last >= 0xD800 && last <= 0xDBFF) {
+      cut = cut.substring(0, cut.length - 1);
+    }
+    return cut.trim();
   }
 }

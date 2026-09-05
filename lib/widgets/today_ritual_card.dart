@@ -405,6 +405,15 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     final l10n = context.l10n;
     final daily = context.read<DailyQuestionProvider>();
     final langCode = Localizations.localeOf(context).languageCode;
+    if (daily.isResolvingQuestion) {
+      // The engine (AI source can take a few seconds) may still swap the
+      // placeholder question; answering now could file the answer under a
+      // different question than the one on screen.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.dailyQuestionPreparing)),
+      );
+      return;
+    }
 
     final sent = await showModalBottomSheet<bool>(
       context: context,

@@ -349,6 +349,10 @@
         (/Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1);
       var isAndroid = /Android/i.test(ua);
       if (!isIOS && !isAndroid) return; // desktop/khác: chỉ hiện 2 nút
+      // Có mã mời hợp lệ → ĐỨNG YÊN: người nhận cần đọc/sao chép mã, và người
+      // đã cài app cần nút "Mở Dear Embeiu" thay vì bị đá sang store (vòng lặp
+      // cài xong quay lại link lại bị đá). Chỉ tự chuyển khi link không có mã.
+      if (code) return;
 
       var note = $('redirectNote');
       note.textContent = isIOS ? t.redirectIos : t.redirectAndroid;

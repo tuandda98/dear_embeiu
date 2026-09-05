@@ -20,7 +20,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiQuestionsDialogBody =>
-      'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time.';
+      'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.';
 
   @override
   String get aiQuestionsDialogConfirm => 'Turn on';
@@ -3440,6 +3440,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get careMessageSendCta => 'Send to your love 💌';
+
+  @override
+  String get aiQuestionsSaveFailed => 'Couldn\'t save that, please try again';
+
+  @override
+  String get dailyQuestionPreparing => 'Getting today\'s question ready…';
+
+  @override
+  String get careMessageQueuedToast =>
+      'Slow network — your note will be sent as soon as you\'re back online 💌';
 
   @override
   String get careMessageSentToast => 'Sent 💌';

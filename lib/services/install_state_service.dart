@@ -10,6 +10,12 @@ class InstallStateService {
 
   static const String _markerFileName = '.app_install_marker';
 
+  /// True for the whole process when THIS launch created the install marker
+  /// (brand-new install / reinstall). Set by main() right after
+  /// [handleFreshInstall]; lets features tell "fresh install" apart from
+  /// "upgraded from a build that didn't have my flag yet" (feature tour).
+  static bool isFreshInstallLaunch = false;
+
   final Future<Directory> Function() _markerDirectoryProvider;
 
   Future<bool> handleFreshInstall({

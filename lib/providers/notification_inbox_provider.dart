@@ -28,8 +28,15 @@ class NotificationInboxProvider extends ChangeNotifier {
   bool get hasUnread => unreadCount > 0;
 
   /// Unread notifications whose tap target is [tab] (drives auto-read on tab open).
-  int unreadForTab(int tab) =>
-      _items.where((n) => !n.read && n.targetHomeTab == tab).length;
+  int unreadForTab(int tab) => _items.where((n) => _autoReadsOn(n, tab)).length;
+
+  /// Home auto-reads what the Home tab SHOWS. A care note isn't rendered on
+  /// Home at all (only the bell), so it must stay unread until the center
+  /// opens — otherwise the badge dies within one frame of arrival.
+  static bool _autoReadsOn(AppNotification n, int tab) =>
+      !n.read &&
+      n.targetHomeTab == tab &&
+      n.type != AppNotificationType.careMessage;
 
   /// Begins watching notifications for [coupleId] on behalf of [myUid]. Safe to
   /// call repeatedly: no-ops when the (couple, uid) pair is unchanged and
@@ -89,12 +96,12 @@ class NotificationInboxProvider extends ChangeNotifier {
     if (uid == null) return;
     final ids = [
       for (final n in _items)
-        if (!n.read && n.targetHomeTab == tab) n.id,
+        if (_autoReadsOn(n, tab)) n.id,
     ];
     if (ids.isEmpty) return;
     _items = [
       for (final n in _items)
-        (!n.read && n.targetHomeTab == tab) ? n.copyWith(read: true) : n,
+        _autoReadsOn(n, tab) ? n.copyWith(read: true) : n,
     ];
     notifyListeners();
     await _service.markAllRead(uid, ids);

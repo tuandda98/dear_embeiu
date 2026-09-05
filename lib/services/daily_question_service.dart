@@ -44,8 +44,7 @@ class DailyQuestionService {
   CollectionReference<Map<String, dynamic>> _responses(
     String coupleId,
     String dateKey,
-  ) =>
-      _dailyAnswers(coupleId).doc(dateKey).collection('responses');
+  ) => _dailyAnswers(coupleId).doc(dateKey).collection('responses');
 
   /// Counts revealed journal days (marker docs flagged `bothAnswered: true`) via
   /// a cheap server-side `count()` aggregation — one billed read, no documents
@@ -57,10 +56,9 @@ class DailyQuestionService {
       return 0;
     }
     try {
-      final agg = await _dailyAnswers(coupleId)
-          .where('bothAnswered', isEqualTo: true)
-          .count()
-          .get();
+      final agg = await _dailyAnswers(
+        coupleId,
+      ).where('bothAnswered', isEqualTo: true).count().get();
       return agg.count ?? 0;
     } catch (_) {
       return 0;
@@ -89,10 +87,10 @@ class DailyQuestionService {
     }
 
     return _responses(coupleId, dateKey).snapshots().map(
-          (snapshot) => snapshot.docs
-              .map((doc) => DailyAnswer.fromDoc(doc.id, doc.data()))
-              .toList(),
-        );
+      (snapshot) => snapshot.docs
+          .map((doc) => DailyAnswer.fromDoc(doc.id, doc.data()))
+          .toList(),
+    );
   }
 
   /// Records the current user's answer for [dateKey] (doc id == [uid]).
@@ -109,6 +107,12 @@ class DailyQuestionService {
     required String uid,
     required String text,
     String? questionVi,
+
+    /// True when answering a PAST day from the catch-up gate. Persisted on the
+    /// response so `notifyDailyAnswer` stamps the marker but skips the push/
+    /// inbox/wake (copy says "hôm nay" and the wake would cancel the
+    /// partner's nudges for the wrong day).
+    bool backfill = false,
     String? questionEn,
     String? source,
   }) async {
@@ -130,6 +134,7 @@ class DailyQuestionService {
       'authorUserId': uid,
       'text': clamped,
       'answeredAt': FieldValue.serverTimestamp(),
+      if (backfill) 'backfill': true,
     });
 
     // Write a parent marker doc so the journal can list the days that have any
@@ -144,30 +149,36 @@ class DailyQuestionService {
     // empty, preferring the text the card actually rendered.
     try {
       final markerRef = _dailyAnswers(coupleId).doc(dateKey);
-      final existing = await markerRef.get();
-      final data = existing.data();
-      final hasQuestion =
-          (data?['questionVi'] as String?)?.trim().isNotEmpty == true &&
-              (data?['questionEn'] as String?)?.trim().isNotEmpty == true;
+      // Transaction (not get-then-set): an offline phone's queued write must
+      // not overwrite the question the other phone published meanwhile — the
+      // rule now rejects a changed questionVi/En anyway, and a rejected merge
+      // would also drop the harmless `updatedAt` refresh.
+      await markerRef.firestore.runTransaction<void>((tx) async {
+        final existing = await tx.get(markerRef);
+        final data = existing.data();
+        final hasQuestion =
+            (data?['questionVi'] as String?)?.trim().isNotEmpty == true &&
+            (data?['questionEn'] as String?)?.trim().isNotEmpty == true;
 
-      final payload = <String, Object?>{
-        'date': dateKey,
-        'updatedAt': FieldValue.serverTimestamp(),
-      };
-      if (!hasQuestion) {
-        final parsedDate = _dateFromKey(dateKey);
-        final vi = questionVi?.trim();
-        final en = questionEn?.trim();
-        payload['questionVi'] = (vi != null && vi.isNotEmpty)
-            ? vi
-            : questionTextForCouple(parsedDate, coupleId, 'vi');
-        payload['questionEn'] = (en != null && en.isNotEmpty)
-            ? en
-            : questionTextForCouple(parsedDate, coupleId, 'en');
-        final src = source?.trim();
-        payload['source'] = (src != null && src.isNotEmpty) ? src : 'bank';
-      }
-      await markerRef.set(payload, SetOptions(merge: true));
+        final payload = <String, Object?>{
+          'date': dateKey,
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+        if (!hasQuestion) {
+          final parsedDate = _dateFromKey(dateKey);
+          final vi = questionVi?.trim();
+          final en = questionEn?.trim();
+          payload['questionVi'] = (vi != null && vi.isNotEmpty)
+              ? vi
+              : questionTextForCouple(parsedDate, coupleId, 'vi');
+          payload['questionEn'] = (en != null && en.isNotEmpty)
+              ? en
+              : questionTextForCouple(parsedDate, coupleId, 'en');
+          final src = source?.trim();
+          payload['source'] = (src != null && src.isNotEmpty) ? src : 'bank';
+        }
+        tx.set(markerRef, payload, SetOptions(merge: true));
+      });
     } catch (_) {
       // Ignore — the answer itself is already saved; the marker is auxiliary.
     }
@@ -216,14 +227,13 @@ class DailyQuestionService {
     DocumentSnapshot<Map<String, dynamic>>? startAfter,
     int limit = 30,
   }) async {
-    if (!isUsingFirebase ||
-        coupleId.trim().isEmpty ||
-        myUid.trim().isEmpty) {
+    if (!isUsingFirebase || coupleId.trim().isEmpty || myUid.trim().isEmpty) {
       return const JournalPage(days: [], lastDoc: null, hasMore: false);
     }
 
-    Query<Map<String, dynamic>> query =
-        _dailyAnswers(coupleId).orderBy('date', descending: true).limit(limit);
+    Query<Map<String, dynamic>> query = _dailyAnswers(
+      coupleId,
+    ).orderBy('date', descending: true).limit(limit);
     if (startAfter != null) {
       query = query.startAfterDocument(startAfter);
     }
@@ -237,8 +247,7 @@ class DailyQuestionService {
     // Read each day's responses in parallel (≤2 docs each).
     final futures = markers.map((marker) async {
       final data = marker.data();
-      final responsesSnap =
-          await _responses(coupleId, marker.id).get();
+      final responsesSnap = await _responses(coupleId, marker.id).get();
       final answers = responsesSnap.docs
           .map((d) => DailyAnswer.fromDoc(d.id, d.data()))
           .where((a) => a.hasText)

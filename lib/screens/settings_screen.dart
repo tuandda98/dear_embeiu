@@ -1566,7 +1566,30 @@ class _AiQuestionsTileState extends State<_AiQuestionsTile> {
       'ai_questions_toggle',
       params: <String, Object?>{'enabled': value},
     );
-    await _prefs.setAiQuestionsEnabled(coupleId, value);
+    final ok = await _prefs.setAiQuestionsEnabled(coupleId, value);
+    if (!ok && mounted) {
+      // Rejected (rules not deployed / offline): don't lie with an ON switch.
+      setState(() => _pending = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.aiQuestionsSaveFailed),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  // One stream per couple — creating it inside build would re-subscribe the
+  // Firestore listener on every rebuild.
+  Stream<bool>? _enabledStream;
+  String? _enabledStreamCoupleId;
+
+  Stream<bool> _streamFor(String coupleId) {
+    if (_enabledStreamCoupleId != coupleId || _enabledStream == null) {
+      _enabledStreamCoupleId = coupleId;
+      _enabledStream = _prefs.watchAiQuestionsEnabled(coupleId);
+    }
+    return _enabledStream!;
   }
 
   @override
@@ -1579,7 +1602,7 @@ class _AiQuestionsTileState extends State<_AiQuestionsTile> {
     final coupleId = couple.id;
 
     return StreamBuilder<bool>(
-      stream: _prefs.watchAiQuestionsEnabled(coupleId),
+      stream: _streamFor(coupleId),
       builder: (context, snapshot) {
         // Remote wins once it lands; until then show the optimistic value.
         final remote = snapshot.data;

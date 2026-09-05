@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
@@ -77,15 +78,41 @@ class _CareMessageScreenState extends State<CareMessageScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     try {
-      await _service.send(
-        coupleId: coupleId,
-        uid: uid,
-        title: _titleController.text,
-        body: _bodyController.text,
-      );
+      bool ok;
+      var queued = false;
+      try {
+        ok = await _service
+            .send(
+              coupleId: coupleId,
+              uid: uid,
+              title: _titleController.text,
+              body: _bodyController.text,
+            )
+            .timeout(const Duration(seconds: 10));
+      } on TimeoutException {
+        // Offline: Firestore has queued the write and delivers it once the
+        // network is back. Don't spin forever (the user would back out and
+        // resend → N duplicate pushes); say so and leave.
+        ok = true;
+        queued = true;
+      }
       if (!mounted) return;
+      if (!ok) {
+        setState(() => _isSending = false);
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(l10n.careMessageErrorToast),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.careMessageSentToast)),
+        SnackBar(
+          content: Text(
+            queued ? l10n.careMessageQueuedToast : l10n.careMessageSentToast,
+          ),
+        ),
       );
       navigator.maybePop();
     } catch (_) {
@@ -339,7 +366,7 @@ class _QuickPicks extends StatelessWidget {
 
 /// Recent care notes from BOTH members (newest first). Hidden entirely while
 /// empty/loading so a brand-new couple never sees a dangling empty section.
-class _RecentCareMessages extends StatelessWidget {
+class _RecentCareMessages extends StatefulWidget {
   const _RecentCareMessages({
     required this.service,
     required this.coupleId,
@@ -351,10 +378,31 @@ class _RecentCareMessages extends StatelessWidget {
   final String myUid;
 
   @override
+  State<_RecentCareMessages> createState() => _RecentCareMessagesState();
+}
+
+/// Stateful so the Firestore stream is created ONCE per couple — the parent
+/// rebuilds on every keystroke (composer setState) and an inline
+/// `watchRecent()` in build would tear down + re-open the listener each time.
+class _RecentCareMessagesState extends State<_RecentCareMessages> {
+  late Stream<List<CareMessage>> _stream = widget.service.watchRecent(
+    widget.coupleId,
+  );
+
+  @override
+  void didUpdateWidget(covariant _RecentCareMessages oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.coupleId != widget.coupleId) {
+      _stream = widget.service.watchRecent(widget.coupleId);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final myUid = widget.myUid;
     return StreamBuilder<List<CareMessage>>(
-      stream: service.watchRecent(coupleId),
+      stream: _stream,
       builder: (context, snapshot) {
         final items = snapshot.data ?? const <CareMessage>[];
         if (items.isEmpty) {
@@ -415,7 +463,6 @@ class _CareMessageTile extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             message.body,
-            maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 13.5,

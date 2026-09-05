@@ -167,4 +167,63 @@ describe('firestore: question engine state', () => {
       }),
     );
   });
+
+  // ---- question text is immutable once published ----------------------------
+  //
+  // The marker is the source of truth for the day's question. An older client
+  // (<=1.5.0) still re-derives the question from its own bank on every answer
+  // and merges it onto the marker; that write must be rejected so it cannot
+  // overwrite a template/revisit/AI question the newer client published.
+  it('forbids changing questionVi once the marker has one', async () => {
+    await seedDoc('couples/c1/dailyAnswers/2026-09-06', {
+      date: '2026-09-06',
+      questionVi: 'Câu hỏi engine',
+      questionEn: 'Engine question',
+      source: 'template',
+    });
+    await assertFails(
+      setDoc(
+        doc(authedDb('bob'), 'couples/c1/dailyAnswers/2026-09-06'),
+        {date: '2026-09-06', questionVi: 'Câu bank cũ', questionEn: 'Engine question'},
+        {merge: true},
+      ),
+    );
+  });
+
+  it('forbids changing questionEn once the marker has one', async () => {
+    await seedDoc('couples/c1/dailyAnswers/2026-09-07', {
+      date: '2026-09-07',
+      questionVi: 'Câu hỏi engine',
+      questionEn: 'Engine question',
+    });
+    await assertFails(
+      setDoc(
+        doc(authedDb('bob'), 'couples/c1/dailyAnswers/2026-09-07'),
+        {date: '2026-09-07', questionVi: 'Câu hỏi engine', questionEn: 'Old bank question'},
+        {merge: true},
+      ),
+    );
+  });
+
+  it('still lets a member merge bothAnswered/updatedAt when the question is unchanged', async () => {
+    await seedDoc('couples/c1/dailyAnswers/2026-09-08', {
+      date: '2026-09-08',
+      questionVi: 'Câu hỏi engine',
+      questionEn: 'Engine question',
+    });
+    await assertSucceeds(
+      setDoc(
+        doc(authedDb('bob'), 'couples/c1/dailyAnswers/2026-09-08'),
+        {bothAnswered: true, updatedAt: TS},
+        {merge: true},
+      ),
+    );
+    await assertSucceeds(
+      setDoc(
+        doc(authedDb('alice'), 'couples/c1/dailyAnswers/2026-09-08'),
+        {date: '2026-09-08', questionVi: 'Câu hỏi engine', questionEn: 'Engine question', source: 'template'},
+        {merge: true},
+      ),
+    );
+  });
 });

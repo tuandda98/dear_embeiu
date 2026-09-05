@@ -641,7 +641,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       currentStreak: context.read<StreakProvider>().currentStreak,
       myMood: moods.myMood?.mood,
       partnerMood: moods.partnerMood?.mood,
-      photosThisWeek: photosThisWeek,
+      // Empty list may just mean "not loaded yet" → unknown (-1), never 0.
+      photosThisWeek: photos.isEmpty ? -1 : photosThisWeek,
       partnerUid: partnerUid,
       languageCode: Localizations.localeOf(context).languageCode,
       anniversaryDate: couple.anniversaryDate,
@@ -683,11 +684,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _catchupLastCheck = now;
 
     try {
+      final partnerUid = couple.memberIds.firstWhere(
+        (m) => m != myUid,
+        orElse: () => '',
+      );
+      if (partnerUid.isEmpty) {
+        return;
+      }
       final missed = await _catchupService.findMissedDays(
         coupleId: couple.id,
         myUid: myUid,
+        partnerUid: partnerUid,
       );
       if (!mounted) {
+        return;
+      }
+      if (missed == null) {
+        // Scan failed (offline / permission): keep the armed nudges and let
+        // the next resume retry instead of pretending the debt is cleared.
+        _catchupLastCheck = null;
         return;
       }
       await context.read<ReminderProvider>().refreshPersonalCatchupReminders(

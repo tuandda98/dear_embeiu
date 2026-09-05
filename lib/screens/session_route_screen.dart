@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../app/app_routes.dart';
@@ -60,6 +61,12 @@ class _SessionRouteScreenState extends State<SessionRouteScreen> {
       setState(() => _pendingIntroRoute = route);
       return;
     }
+    // Anyone who lands on an authenticated route is not new: mark the intro
+    // as seen so an existing user upgrading from a pre-intro build doesn't get
+    // the "welcome" slides the first time they sign out.
+    if (route != AppRoutes.guest) {
+      unawaited(IntroScreen.markSeen());
+    }
 
     if (!mounted) {
       return;
@@ -68,7 +75,13 @@ class _SessionRouteScreenState extends State<SessionRouteScreen> {
     navigator.pushReplacementNamed(route);
   }
 
+  bool _finishingIntro = false;
+
   Future<void> _finishIntro() async {
+    if (_finishingIntro) {
+      return; // double-tap on "Bắt đầu" must not push the guest route twice
+    }
+    _finishingIntro = true;
     final navigator = Navigator.of(context);
     final route = _pendingIntroRoute ?? AppRoutes.guest;
     await IntroScreen.markSeen();

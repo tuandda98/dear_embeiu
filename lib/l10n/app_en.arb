@@ -3,7 +3,7 @@
   "aiQuestionsTitle": "AI-personalised questions",
   "aiQuestionsSubtitle": "Uses the last 30 days of both your answers to write a question just for the two of you. The data is only used to create questions, never for training. Turn it off any time.",
   "aiQuestionsDialogTitle": "Turn on personalised questions?",
-  "aiQuestionsDialogBody": "This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time.",
+  "aiQuestionsDialogBody": "This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time. AI questions start from tomorrow's question.",
   "aiQuestionsDialogConfirm": "Turn on",
   "introSkip": "Skip",
   "introNext": "Next",
@@ -2484,6 +2484,12 @@
   "@careMessageSendCta": {
     "description": "Primary button that sends the care note."
   },
+  "aiQuestionsSaveFailed": "Couldn't save that, please try again",
+  "@aiQuestionsSaveFailed": {"description": "aiQuestionsSaveFailed"},
+  "dailyQuestionPreparing": "Getting today's question ready…",
+  "@dailyQuestionPreparing": {"description": "dailyQuestionPreparing"},
+  "careMessageQueuedToast": "Slow network — your note will be sent as soon as you're back online 💌",
+  "@careMessageQueuedToast": {"description": "Toast when the care note write timed out offline and is queued"},
   "careMessageSentToast": "Sent 💌",
   "@careMessageSentToast": {
     "description": "Snackbar after a care note was sent."

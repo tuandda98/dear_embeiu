@@ -1110,6 +1110,24 @@ exports.notifyDailyAnswer = onDocumentCreated(
       }
     }
 
+    // Backfilled answers (the account-gated catch-up gate writes `backfill:true`
+    // on responses for PAST days, 2026-09-05 — the admin restore script does
+    // too): the marker stamp above still runs so the streak/journal recover,
+    // but there is nothing to announce — the copy says "hôm nay", the inbox
+    // item would be a dead-end, and the wake would cancel the partner's TODAY
+    // nudges for a day that isn't today.
+    const responseData = (event.data && typeof event.data.data === "function") ?
+      (event.data.data() || {}) : {};
+    if (responseData.backfill === true) {
+      logger.info("Daily-answer notification skipped for backfilled response.", {
+        coupleId,
+        date,
+        authorUserId,
+        bothAnswered,
+      });
+      return;
+    }
+
     await writeInboxNotifications(recipientIds, {
       type: "daily_question",
       coupleId,
@@ -2540,6 +2558,9 @@ const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 // Swap to "claude-haiku-4-5" if the bill ever matters — roughly 5× cheaper for
 // this prompt size, at some cost in how well it picks up on past answers.
 const AI_QUESTION_MODEL = "claude-opus-5";
+// Hard cap on model calls per couple per day (idempotency alone only keys on
+// `date`; without this a member could burn budget by asking for many dates).
+const AI_MAX_ATTEMPTS_PER_DAY = 3;
 
 const AI_QUESTION_SYSTEM_PROMPT = [
   "Bạn là người viết câu hỏi mỗi ngày cho một cặp đôi đang dùng app Dear Embeiu.",
@@ -2632,6 +2653,16 @@ exports.generateDailyQuestion = onCall(
     if (!AI_DATE_PATTERN.test(date)) {
       throw new HttpsError("invalid-argument", "date must be YYYY-MM-DD.");
     }
+    // Only "today" (±1 day to absorb every client timezone against UTC) may be
+    // generated — never arbitrary past/future dates.
+    const allowedDates = new Set([-1, 0, 1].map((delta) => {
+      const d = new Date();
+      d.setUTCDate(d.getUTCDate() + delta);
+      return d.toISOString().slice(0, 10);
+    }));
+    if (!allowedDates.has(date)) {
+      return {ok: false, reason: "invalid"};
+    }
 
     const coupleRef = db.collection("couples").doc(coupleId);
     const coupleSnap = await coupleRef.get();
@@ -2673,6 +2704,19 @@ exports.generateDailyQuestion = onCall(
       const apiKey = `${ANTHROPIC_API_KEY.value() || ""}`.trim();
       if (!apiKey || apiKey === "unset") {
         return {ok: false, reason: "no_api_key"};
+      }
+
+      // Rate limit: count attempts on the day's marker (Admin write; `date` is
+      // included so the doc still lists correctly for clients).
+      const attempts = await db.runTransaction(async (tx) => {
+        const snap = await tx.get(markerRef);
+        const n = Number((snap.exists && snap.get("aiAttempts")) || 0) + 1;
+        tx.set(markerRef, {date, aiAttempts: n}, {merge: true});
+        return n;
+      });
+      if (attempts > AI_MAX_ATTEMPTS_PER_DAY) {
+        logger.warn("generateDailyQuestion: rate limited.", {coupleId, date, attempts});
+        return {ok: false, reason: "rate_limited"};
       }
 
       // 3. Build the (anonymised) context.

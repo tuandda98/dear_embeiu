@@ -86,10 +86,7 @@ class _IntroScreenState extends State<IntroScreen> {
     if (AppMotion.reduceMotion(context)) {
       _controller.jumpToPage(_index + 1);
     } else {
-      _controller.nextPage(
-        duration: AppMotion.slow,
-        curve: AppMotion.curve,
-      );
+      _controller.nextPage(duration: AppMotion.slow, curve: AppMotion.curve);
     }
   }
 
@@ -228,40 +225,48 @@ class _IntroSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          EntranceReveal(order: 0, child: illustration),
-          const SizedBox(height: 32),
-          EntranceReveal(
-            order: 1,
-            child: EyebrowChip(label: badge, icon: badgeIcon),
+    // Centre on tall screens, scroll on short ones: give the Column the
+    // viewport height as a minimum, otherwise `center` is a no-op inside an
+    // unbounded scroll view.
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 8),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight - 16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              EntranceReveal(order: 0, child: illustration),
+              const SizedBox(height: 32),
+              EntranceReveal(
+                order: 1,
+                child: EyebrowChip(label: badge, icon: badgeIcon),
+              ),
+              const SizedBox(height: 14),
+              EntranceReveal(
+                order: 2,
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: AppTheme.pageTitleStyle(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              EntranceReveal(
+                order: 3,
+                child: Text(
+                  body,
+                  textAlign: TextAlign.center,
+                  style: AppTheme.pageSubtitleStyle(alpha: 0.72),
+                ),
+              ),
+              if (footer != null) ...[
+                const SizedBox(height: 20),
+                EntranceReveal(order: 4, child: footer!),
+              ],
+            ],
           ),
-          const SizedBox(height: 14),
-          EntranceReveal(
-            order: 2,
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: AppTheme.pageTitleStyle(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          EntranceReveal(
-            order: 3,
-            child: Text(
-              body,
-              textAlign: TextAlign.center,
-              style: AppTheme.pageSubtitleStyle(alpha: 0.72),
-            ),
-          ),
-          if (footer != null) ...[
-            const SizedBox(height: 20),
-            EntranceReveal(order: 4, child: footer!),
-          ],
-        ],
+        ),
       ),
     );
   }

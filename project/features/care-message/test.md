@@ -1,32 +1,22 @@
-# 🧪 Test — <Tên feature>
+# Care message — Test (Tester sở hữu)
 
-> Tester sở hữu. Đọc cả `overview.md` + `design.md` + `dev.md`. CHỈ test, KHÔNG sửa code. Output: PASS hoặc FAIL (kèm bug report).
+## [2026-09-05] [code-review max] commit 01971bc (care-message + catch-up) — 15 finding CONFIRMED → [Dev] vá cùng ngày
+| # | Finding | Vá |
+|---|---|---|
+| 1 | Gate trả bài ngày cũ kích `notifyDailyAnswer` → push/inbox "hôm nay" + wake huỷ nhắc hôm nay của người ấy | ✅ response ghi `backfill:true`; CF vẫn stamp `bothAnswered` nhưng bỏ push/inbox/wake. Script restore cũng ghi `backfill:true`. |
+| 2 | Ngày KHÔNG AI trả lời cũng bị ép trả bài (vô ích cho chuỗi) | ✅ chỉ tính ngày người ấy ĐÃ trả lời mà mình chưa. |
+| 3 | Gate submit offline treo trong dialog không đóng được | ✅ timeout 12s → coi như đã xếp hàng, đi tiếp + toast. |
+| 4 | `_isShowing` kẹt true khi route bị remove (session revoked) | ✅ reset trong `dispose` của dialog. |
+| 5 | `_personalCatchupSignature` không reset ở nhánh non-target | ✅ reset. |
+| 6 | Scan lỗi bị coi là "hết nợ" → huỷ dải nhắc | ✅ `findMissedDays` trả `null` khi lỗi; caller giữ nguyên + bỏ throttle. |
+| 7 | `submitAnswer` derive lại questionVi (đã được Q1 sửa) | ✅ |
+| 8 | Clamp UTF-16 cắt đôi emoji → "�" trong push | ✅ không kết thúc bằng high-surrogate. |
+| 9 | Gửi quan tâm offline treo + gửi trùng | ✅ timeout 10s → toast "đã xếp hàng" + pop. |
+| 10 | Inbox `care_message` bị auto-read ngay khi ở Home | ✅ loại khỏi `unreadForTab/markReadForTab`. |
+| 11 | Off-Firebase báo "Đã gửi" giả | ✅ `send` trả bool; false → toast lỗi. |
+| 12 | Gate TextField `enabled:!_sending` rớt focus | ✅ bỏ `enabled`. |
+| 13 | Màn quan tâm tạo lại stream mỗi phím gõ | ✅ `_RecentCareMessages` stateful giữ stream. |
+| 14 | Body quan tâm bị cắt 2 dòng, không màn chi tiết | ✅ Notification center + danh sách gần đây hiện trọn body. |
+| 15 | Email gated trùng 3 nơi | ✅ `ReminderProvider` dùng `CatchupService.gatedEmail`. |
 
-- **Trạng thái test:** <chưa test | đang test | PASS | FAIL>
-- **Người/role:** Master Tester
-
-## Phạm vi test
-<feature/case nào>
-
-## Test case
-| # | Loại | Mô tả | Kỳ vọng | Kết quả |
-|---|------|-------|---------|---------|
-| 1 | happy | <…> | <…> | ⬜ |
-| 2 | edge | <…> | <…> | ⬜ |
-| 3 | negative | <…> | <…> | ⬜ |
-| 4 | đa ngôn ngữ | <…> | <…> | ⬜ |
-| 5 | offline / 2 thiết bị couple | <…> | <…> | ⬜ |
-| 6 | cold start | <…> | <…> | ⬜ |
-
-*(Kết quả: ✅ pass · ❌ fail · ⬜ chưa chạy)*
-
-## Bug report (nếu FAIL)
-### BUG-1: <tiêu đề>
-- **Severity:** <critical | major | minor>
-- **File/màn hình:** <file:line>
-- **Expected:** <…>
-- **Actual:** <…>
-- **Steps to reproduce:** 1) … 2) … (ghi nhánh Firebase/local nếu liên quan)
-
-## Nhật ký test
-- [<YYYY-MM-DD>] [Tester] <đã test gì / kết quả>
+Chưa smoke-test 2 máy thật (push nguyên văn có dấu, badge, gate trả bài).

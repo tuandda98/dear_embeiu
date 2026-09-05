@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
+import '../services/install_state_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../data/feature_tour_entries.dart';
@@ -50,19 +52,26 @@ class FeatureTour {
       return;
     }
 
-    final seen = int.tryParse(box.get(_seenKey) ?? '');
+    var seen = int.tryParse(box.get(_seenKey) ?? '');
     if (seen == null) {
-      // First run after install (or after a cache wipe) — remember where we are
-      // and stay quiet.
-      await _remember(box, current);
-      return;
+      if (InstallStateService.isFreshInstallLaunch) {
+        // Brand-new install — the intro already introduced the app; remember
+        // where we are and stay quiet.
+        await _remember(box, current);
+        return;
+      }
+      // Upgraded from a build that predates this flag (the flag itself ships
+      // in build 20): treat every entry as unseen, otherwise the tour would
+      // never show on the very build that introduces it.
+      seen = 0;
     }
     if (seen >= current) {
       return;
     }
 
+    final seenBuild = seen; // promoted copy — closures don't see promotion
     final entries = featureTourEntries
-        .where((e) => e.sinceBuild > seen && e.sinceBuild <= current)
+        .where((e) => e.sinceBuild > seenBuild && e.sinceBuild <= current)
         .toList();
     await _remember(box, current);
 
@@ -93,10 +102,15 @@ class FeatureTour {
         // Cosmetic only.
       }
     }
-    if (!context.mounted || featureTourEntries.isEmpty) {
+    // Only what this build actually ships (a dev build behind the entries'
+    // `sinceBuild` must not advertise features it doesn't have).
+    final entries = current > 0
+        ? featureTourEntries.where((e) => e.sinceBuild <= current).toList()
+        : featureTourEntries;
+    if (!context.mounted || entries.isEmpty) {
       return;
     }
-    await _open(context, featureTourEntries, info?.version, onOpenTab);
+    await _open(context, entries, info?.version, onOpenTab);
   }
 
   static Future<PackageInfo?> _packageInfo() async {
@@ -129,6 +143,9 @@ class FeatureTour {
         entries: entries,
         version: version,
         onOpenTab: onOpenTab,
+        // The sheet's own context dies with the pop; navigation after it must
+        // use the host's.
+        hostContext: context,
       ),
     );
   }
@@ -139,11 +156,37 @@ class _FeatureTourSheet extends StatelessWidget {
     required this.entries,
     required this.version,
     required this.onOpenTab,
+    required this.hostContext,
   });
 
   final List<FeatureTourEntry> entries;
   final String? version;
   final void Function(int tab)? onOpenTab;
+  final BuildContext hostContext;
+
+  /// Row tap: a dedicated [FeatureTourEntry.onOpen] wins (works from Settings
+  /// too); else a tab switch when the host gave us one. Null → not tappable,
+  /// so no dead chevron.
+  VoidCallback? _actionFor(FeatureTourEntry entry, BuildContext sheetContext) {
+    final onOpen = entry.onOpen;
+    if (onOpen != null) {
+      return () {
+        Navigator.of(sheetContext).pop();
+        if (hostContext.mounted) {
+          onOpen(hostContext);
+        }
+      };
+    }
+    final tab = entry.targetTab;
+    final openTab = onOpenTab;
+    if (tab == null || openTab == null) {
+      return null;
+    }
+    return () {
+      Navigator.of(sheetContext).pop();
+      openTab(tab);
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,12 +199,8 @@ class _FeatureTourSheet extends StatelessWidget {
         color: AppColors.cardSurface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      padding: EdgeInsets.fromLTRB(
-        20,
-        12,
-        20,
-        20 + MediaQuery.viewPaddingOf(context).bottom,
-      ),
+      // Bottom inset comes from the SafeArea below — don't add it twice.
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       child: SafeArea(
         top: false,
         child: Column(
@@ -206,13 +245,7 @@ class _FeatureTourSheet extends StatelessWidget {
                         child: _EntryRow(
                           entry: entries[i],
                           l10n: l10n,
-                          onTap: entries[i].targetTab == null
-                              ? null
-                              : () {
-                                  final tab = entries[i].targetTab!;
-                                  Navigator.of(context).pop();
-                                  onOpenTab?.call(tab);
-                                },
+                          onTap: _actionFor(entries[i], context),
                         ),
                       ),
                     ],

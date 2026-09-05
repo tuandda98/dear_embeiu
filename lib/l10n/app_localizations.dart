@@ -119,7 +119,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiQuestionsDialogBody.
   ///
   /// In en, this message translates to:
-  /// **'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time.'**
+  /// **'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.'**
   String get aiQuestionsDialogBody;
 
   /// No description provided for @aiQuestionsDialogConfirm.
@@ -5929,6 +5929,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Send to your love 💌'**
   String get careMessageSendCta;
+
+  /// aiQuestionsSaveFailed
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save that, please try again'**
+  String get aiQuestionsSaveFailed;
+
+  /// dailyQuestionPreparing
+  ///
+  /// In en, this message translates to:
+  /// **'Getting today\'s question ready…'**
+  String get dailyQuestionPreparing;
+
+  /// Toast when the care note write timed out offline and is queued
+  ///
+  /// In en, this message translates to:
+  /// **'Slow network — your note will be sent as soon as you\'re back online 💌'**
+  String get careMessageQueuedToast;
 
   /// Snackbar after a care note was sent.
   ///

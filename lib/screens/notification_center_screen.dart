@@ -314,7 +314,11 @@ class _NotificationTile extends StatelessWidget {
                           const SizedBox(height: 3),
                           Text(
                             subtitle.trim(),
-                            maxLines: 2,
+                            // A care note's body IS the content and has no
+                            // detail screen — show it whole.
+                            maxLines: n.type == AppNotificationType.careMessage
+                                ? null
+                                : 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: AppColors.textPrimary.withValues(

@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../l10n/app_localizations.dart';
 import '../models/milestone_reminder.dart';
 import '../services/home_prefs_service.dart';
+import '../services/catchup_service.dart';
 import '../services/reminder_service.dart';
 import '../utils/lunar_calendar.dart';
 
@@ -882,7 +883,8 @@ class ReminderProvider extends ChangeNotifier {
   // nudge schedule for ONE account (em bé). LOCAL only; gentle/affectionate copy
   // hardcoded in Vietnamese (gated to a single VN account, so no l10n needed).
   // ---------------------------------------------------------------------------
-  static const String _personalAccountEmail = 'thaohathao14@gmail.com';
+  // Single source of truth shared with the catch-up gate (CatchupService).
+  static const String _personalAccountEmail = CatchupService.gatedEmail;
 
   // Hourly "answer the question" nudges run 7h → 22h (but stop earlier the
   // moment she answers — see [refreshPersonalReminders]).
@@ -939,6 +941,9 @@ class ReminderProvider extends ChangeNotifier {
       }
       _personalMedicineDayKey = null;
       _personalQuestionSignature = null;
+      // cancelPersonalReminders() also clears the catch-up band (1140–1159);
+      // drop its debounce key too or a same-day re-login won't re-arm it.
+      _personalCatchupSignature = null;
       await _service.cancelPersonalReminders();
       return;
     }
@@ -1109,6 +1114,10 @@ class ReminderProvider extends ChangeNotifier {
 
   String? _inviteFollowUpSignature;
 
+  /// True once this process has cancelled band 1180–1189 while not waiting
+  /// (reset whenever the band is armed again).
+  bool _inviteFollowUpCleared = false;
+
   /// (Re)arm or clear the invite follow-ups. Wired from HomeScreen alongside the
   /// reminder sync. [waiting] false cancels the band (partner joined). [anchor]
   /// is the couple's creation time, falling back to now for legacy couples with
@@ -1120,10 +1129,15 @@ class ReminderProvider extends ChangeNotifier {
     required AppLocalizations l10n,
   }) async {
     if (!waiting) {
-      if (_inviteFollowUpSignature == null) {
+      // The signature is per-process, but the one-shots persist in the OS: a
+      // partner who joined while this app was killed must still get the band
+      // cleared on the next launch. Cancel once per process (cheap), and
+      // again after every re-arm.
+      _inviteFollowUpSignature = null;
+      if (_inviteFollowUpCleared) {
         return;
       }
-      _inviteFollowUpSignature = null;
+      _inviteFollowUpCleared = true;
       await _service.cancelInviteFollowUps();
       return;
     }
@@ -1135,6 +1149,7 @@ class ReminderProvider extends ChangeNotifier {
       return;
     }
     _inviteFollowUpSignature = signature;
+    _inviteFollowUpCleared = false;
 
     await _service.scheduleInviteFollowUps(
       anchor: anchor,

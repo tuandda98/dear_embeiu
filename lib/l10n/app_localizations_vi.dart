@@ -20,7 +20,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get aiQuestionsDialogBody =>
-      'Cài đặt này áp dụng cho cả hai: người ấy cũng sẽ thấy câu hỏi do AI tạo. Chúng mình chỉ đọc 30 ngày câu trả lời gần nhất để tạo câu hỏi, không dùng để huấn luyện, và có thể tắt bất cứ lúc nào.';
+      'Cài đặt này áp dụng cho cả hai: người ấy cũng sẽ thấy câu hỏi do AI tạo. Chúng mình chỉ đọc 30 ngày câu trả lời gần nhất để tạo câu hỏi, không dùng để huấn luyện, và có thể tắt bất cứ lúc nào. Câu hỏi AI bắt đầu từ câu hỏi ngày mai.';
 
   @override
   String get aiQuestionsDialogConfirm => 'Bật';
@@ -3428,6 +3428,16 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get careMessageSendCta => 'Gửi cho người ấy 💌';
+
+  @override
+  String get aiQuestionsSaveFailed => 'Chưa lưu được, thử lại sau nhé';
+
+  @override
+  String get dailyQuestionPreparing => 'Đang chuẩn bị câu hỏi hôm nay…';
+
+  @override
+  String get careMessageQueuedToast =>
+      'Mạng chậm xíu, lời quan tâm sẽ tự gửi khi có mạng 💌';
 
   @override
   String get careMessageSentToast => 'Đã gửi rồi nhé 💌';
