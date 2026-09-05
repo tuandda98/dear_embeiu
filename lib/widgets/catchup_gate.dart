@@ -27,6 +27,11 @@ class CatchupGate {
   static bool get isShowing => _isShowing;
   static bool _isShowing = false;
 
+  /// Identity of the gate currently shown; a stale dialog's `dispose` (which
+  /// runs ~300ms after `showDialog` completes) only clears the guard when it
+  /// still owns it.
+  static Object? _token;
+
   /// Walks [days] (oldest first) one question at a time. Resolves when every
   /// day has been answered (the only way out).
   static Future<void> show(
@@ -40,6 +45,8 @@ class CatchupGate {
       return;
     }
     _isShowing = true;
+    final token = Object();
+    _token = token;
     try {
       await showDialog<void>(
         context: context,
@@ -51,10 +58,14 @@ class CatchupGate {
           myUid: myUid,
           days: days,
           service: service ?? DailyQuestionService(),
+          token: token,
         ),
       );
     } finally {
-      _isShowing = false;
+      if (_token == token) {
+        _isShowing = false;
+        _token = null;
+      }
     }
   }
 }
@@ -65,12 +76,16 @@ class _CatchupGateDialog extends StatefulWidget {
     required this.myUid,
     required this.days,
     required this.service,
+    required this.token,
   });
 
   final String coupleId;
   final String myUid;
   final List<CatchupMissedDay> days;
   final DailyQuestionService service;
+
+  /// See [CatchupGate._token].
+  final Object token;
 
   @override
   State<_CatchupGateDialog> createState() => _CatchupGateDialogState();
@@ -86,7 +101,10 @@ class _CatchupGateDialogState extends State<_CatchupGateDialog> {
     // The route can be REMOVED (session revoked → pushNamedAndRemoveUntil)
     // without ever completing `showDialog`'s future, which would leave the
     // static guard stuck at true for the rest of the process.
-    CatchupGate._isShowing = false;
+    if (CatchupGate._token == widget.token) {
+      CatchupGate._isShowing = false;
+      CatchupGate._token = null;
+    }
     _controller.dispose();
     super.dispose();
   }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/widgets.dart' show StringCharacters;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -87,11 +88,18 @@ class CareMessageService {
     if (trimmed.length <= max) {
       return trimmed;
     }
-    var cut = trimmed.substring(0, max);
-    final last = cut.codeUnitAt(cut.length - 1);
-    if (last >= 0xD800 && last <= 0xDBFF) {
-      cut = cut.substring(0, cut.length - 1);
+    // Walk grapheme clusters (emoji + ZWJ/skin-tone/variation sequences stay
+    // whole) while counting UTF-16 units, which is what the rule's size()
+    // counts.
+    final buf = StringBuffer();
+    var units = 0;
+    for (final grapheme in trimmed.characters) {
+      if (units + grapheme.length > max) {
+        break;
+      }
+      buf.write(grapheme);
+      units += grapheme.length;
     }
-    return cut.trim();
+    return buf.toString().trim();
   }
 }

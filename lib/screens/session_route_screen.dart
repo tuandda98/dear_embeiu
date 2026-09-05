@@ -64,7 +64,9 @@ class _SessionRouteScreenState extends State<SessionRouteScreen> {
     // Anyone who lands on an authenticated route is not new: mark the intro
     // as seen so an existing user upgrading from a pre-intro build doesn't get
     // the "welcome" slides the first time they sign out.
-    if (route != AppRoutes.guest) {
+    // (Not on forceUpdate: that gate runs before auth, so a brand-new user
+    // blocked by it must still get the intro once they update.)
+    if (route != AppRoutes.guest && route != AppRoutes.forceUpdate) {
       unawaited(IntroScreen.markSeen());
     }
 

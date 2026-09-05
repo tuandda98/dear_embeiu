@@ -26,3 +26,8 @@ Pre-flight: analyze 0 · test 81/81 · ARB JSON hợp lệ, 0 key lệch vi/en.
 
 ### Chỉ test được máy thật
 BUG-2 (2 máy + đổi giờ), permission notification, trần 64 pending iOS, share sheet iPad/Android, `dearembeiu://invite`, intro màn 320dp/font 200%, feature tour ở build 20 thật.
+
+## Vòng 2 — [2026-09-05] [Tester] Xác minh bản vá (commit `fe53eaa`, 1.6.0+20) — ✅ PASS
+analyze 0 · test 81/81 · rules-test 241 · ARB parity 0 lệch. 10/10 bug vòng 1 vá đạt (feature tour cài-mới vs nâng-cấp, `seenBuild` promotion, `showAll` lọc build, `_actionFor`, nhắc mời cancel cold start, intro không hiện cho user cũ, `LayoutBuilder` bounded, scope `code` trong get.html, pubspec↔`sinceBuild`).
+- BUG mới P2: route `forceUpdate` cũng `markSeen` intro → **[Dev] đã vá cùng ngày** (loại `forceUpdate` khỏi điều kiện).
+- Còn [CẦN TEST runtime]: intro máy nhỏ + Reduce Motion; nhắc mời 24h/72h sau khi kill app; get.html trên Safari iOS/Chrome Android thật.
