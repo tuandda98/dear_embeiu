@@ -432,3 +432,4 @@
 - [21:41] <task-notification> <task-id>bwkewjvir</task-id> <tool-use-id>toolu_01USzoqr1u7EtBy5WjkFVrfa</tool-use-id> <output-file>/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/3f48f168-d10a-479b-b88a-4745d3e518b9/tasks/bwkewjvir.output</output-file> <status>completed</status> <summary>Background command "Build release: clean → pub get → analyze → appbundle → ipa (tuần tự, nền)" completed (exit code 0)</summary> </task-notification>
 - [21:44] [Image #5]
 - [21:47] mở playconsole và apple connect, release 2 bản mới cho tôi bằng skill chomre, sau đó deploy prod
+- [22:19] https://play.google.com/console/u/0/developers/7212012257366334862/app/4972795391707482818/app-content/ad-id-declaration bị gì vạy? vào trả loiừ giúp tôi
