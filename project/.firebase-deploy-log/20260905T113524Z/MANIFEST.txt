@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --only firestore:rules,functions:generateDailyQuestion --project tonyembeiu-dev 2>&1 | tail -30
+time_utc: 20260905T113524Z
+git_head: 3848cb2 (feature/care-and-catchup)
+dirty   : 38 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 3848cb2)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 3848cb2 -- functions` rồi redeploy

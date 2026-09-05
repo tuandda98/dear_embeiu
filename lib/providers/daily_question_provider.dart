@@ -6,16 +6,23 @@ import '../data/daily_questions.dart';
 import '../models/daily_answer.dart';
 import '../services/analytics_service.dart';
 import '../services/daily_question_service.dart';
+import '../services/question_engine.dart';
 
 /// State for the "Daily question" Home card (feature #5): streams both members'
 /// answers for today's shared question and exposes the user's own answer plus
 /// the partner's (revealed only once both have answered — enforced here so the
 /// UI can simply read [hasRevealed]).
 class DailyQuestionProvider extends ChangeNotifier {
-  DailyQuestionProvider({DailyQuestionService? service})
-      : _service = service ?? DailyQuestionService();
+  DailyQuestionProvider({DailyQuestionService? service, QuestionEngine? engine})
+      : _service = service ?? DailyQuestionService(),
+        _engine = engine ?? QuestionEngine.withDefaults();
 
   final DailyQuestionService _service;
+  final QuestionEngine _engine;
+
+  /// The engine backing [todayQuestion]. Exposed so the coordinator can
+  /// `registerSource` extra sources ('revisit', 'ai') at startup.
+  QuestionEngine get engine => _engine;
 
   StreamSubscription<List<DailyAnswer>>? _subscription;
   String? _coupleId;
@@ -23,6 +30,27 @@ class DailyQuestionProvider extends ChangeNotifier {
   String _dateKey = '';
   List<DailyAnswer> _answers = const <DailyAnswer>[];
   bool _isLoading = false;
+
+  // ── Question engine (feature endless-questions) ─────────────────────────
+  // The card shows a deterministic bank question INSTANTLY (placeholder), then
+  // swaps in whatever the engine resolves for today — which is snapshotted on
+  // the day marker, so both phones converge on the same prompt.
+  ResolvedQuestion? _resolved;
+  bool _isResolving = false;
+
+  /// 'coupleId + dateKey' of the resolution currently held/in flight — the
+  /// guard that keeps this to ONE resolve per couple per day.
+  String? _resolvedKey;
+
+  // Context fed by the coordinator (Home) via [updateContext]; safe defaults so
+  // the engine works before anything is wired.
+  String _partnerUid = '';
+  String _languageCode = 'vi';
+  DateTime? _anniversaryDate;
+  int _currentStreak = 0;
+  int _photosThisWeek = 0;
+  String? _myMood;
+  String? _partnerMood;
 
   // Analytics guard — `daily_question_revealed` must fire ONCE per (couple,
   // day) reveal, not on every stream update once both have answered. Reset
@@ -34,8 +62,73 @@ class DailyQuestionProvider extends ChangeNotifier {
   /// day — while different couples get their own no-repeat ordering.
   /// Falls back to seed 0 (still deterministic, never throws) before a couple is
   /// known.
-  String todayQuestion(String langCode) =>
-      questionTextForCouple(DateTime.now(), _coupleId ?? '', langCode);
+  ///
+  /// Once [QuestionEngine.resolveToday] has answered for today, its text wins
+  /// (it may be a template/revisit/AI question, and it matches the marker both
+  /// partners read).
+  String todayQuestion(String langCode) {
+    final resolved = _resolved;
+    if (resolved != null) {
+      final text = resolved.textFor(langCode);
+      if (text.isNotEmpty) {
+        return text;
+      }
+    }
+    return questionTextForCouple(DateTime.now(), _coupleId ?? '', langCode);
+  }
+
+  /// Today's question in the language last passed to [updateContext].
+  String get questionText => todayQuestion(_languageCode);
+
+  /// 'bank' | 'template' | 'revisit' | 'ai' — null until resolved.
+  String? get questionSource => _resolved?.source;
+
+  /// Optional hint under the question (per-user, never persisted), or null.
+  String? get hintText => _resolved?.hintFor(_languageCode);
+
+  /// Same hint in an explicit language.
+  String? hintFor(String langCode) => _resolved?.hintFor(langCode);
+
+  /// True while the engine is resolving today's question in the background.
+  /// The card stays usable meanwhile (it shows the bank placeholder).
+  bool get isResolvingQuestion => _isResolving;
+
+  /// Feeds the engine the live signals it may use (streak, moods, photos) plus
+  /// the couple facts it needs. Every argument is optional — only the ones
+  /// passed are updated. Triggers a (re)resolve when today's question hasn't
+  /// been resolved yet.
+  void updateContext({
+    int? currentStreak,
+    String? myMood,
+    String? partnerMood,
+    int? photosThisWeek,
+    String? partnerUid,
+    String? languageCode,
+    DateTime? anniversaryDate,
+  }) {
+    if (currentStreak != null) {
+      _currentStreak = currentStreak;
+    }
+    if (myMood != null) {
+      _myMood = myMood;
+    }
+    if (partnerMood != null) {
+      _partnerMood = partnerMood;
+    }
+    if (photosThisWeek != null) {
+      _photosThisWeek = photosThisWeek;
+    }
+    if (partnerUid != null) {
+      _partnerUid = partnerUid;
+    }
+    if (languageCode != null && languageCode.trim().isNotEmpty) {
+      _languageCode = languageCode.trim();
+    }
+    if (anniversaryDate != null) {
+      _anniversaryDate = anniversaryDate;
+    }
+    _maybeResolveToday();
+  }
 
   /// The current user's own answer for today (author == current uid), or null.
   /// The day currently being watched, `YYYY-MM-DD`. Empty before the first
@@ -102,9 +195,68 @@ class DailyQuestionProvider extends ChangeNotifier {
     _dateKey = today;
     _answers = const <DailyAnswer>[];
     _isLoading = true;
+    // New couple/day window → the previously resolved question no longer
+    // applies; drop it so the card falls back to the instant placeholder while
+    // the engine works.
+    _resolved = null;
+    _resolvedKey = null;
     notifyListeners();
 
     _resubscribe();
+    _maybeResolveToday();
+  }
+
+  /// Resolves today's question ONCE per (couple, day). Fire-and-forget: the
+  /// card renders the bank placeholder until this lands.
+  void _maybeResolveToday() {
+    final coupleId = _coupleId;
+    final uid = _myUid;
+    if (coupleId == null || uid == null || _dateKey.isEmpty) {
+      return;
+    }
+    final key = '$coupleId|$_dateKey';
+    if (_resolvedKey == key) {
+      return;
+    }
+    _resolvedKey = key;
+    _isResolving = true;
+    notifyListeners();
+
+    unawaited(_resolveToday(key, coupleId, uid));
+  }
+
+  Future<void> _resolveToday(String key, String coupleId, String uid) async {
+    ResolvedQuestion? resolved;
+    try {
+      resolved = await _engine.resolveToday(
+        coupleId: coupleId,
+        myUid: uid,
+        partnerUid: _partnerUid,
+        date: DateTime.now(),
+        languageCode: _languageCode,
+        anniversaryDate: _anniversaryDate ?? DateTime.now(),
+        currentStreak: _currentStreak,
+        photosThisWeek: _photosThisWeek,
+        myMoodToday: _myMood,
+        partnerMoodToday: _partnerMood,
+      );
+    } catch (_) {
+      // Fail-soft: keep the placeholder question.
+      resolved = null;
+    }
+
+    // A day rollover / couple change may have happened while we awaited.
+    if (_resolvedKey != key) {
+      return;
+    }
+    _isResolving = false;
+    if (resolved != null) {
+      _resolved = resolved;
+    } else {
+      // Allow a later retry (e.g. once the network is back).
+      _resolvedKey = null;
+    }
+    notifyListeners();
   }
 
   void _resubscribe() {
@@ -153,14 +305,23 @@ class DailyQuestionProvider extends ChangeNotifier {
     if (_dateKey != today) {
       _dateKey = today;
       _answers = const <DailyAnswer>[];
+      _resolved = null;
+      _resolvedKey = null;
       _resubscribe();
+      _maybeResolveToday();
     }
 
+    final resolved = _resolved;
     await _service.submitAnswer(
       coupleId: coupleId,
       dateKey: _dateKey,
       uid: uid,
       text: text,
+      // Snapshot the question the card actually showed (never re-derived from
+      // the bank — it may have been a template/revisit/AI question).
+      questionVi: resolved?.questionVi,
+      questionEn: resolved?.questionEn,
+      source: resolved?.source,
     );
 
     // Analytics — answered today (🔒 never the answer text).
@@ -183,6 +344,9 @@ class DailyQuestionProvider extends ChangeNotifier {
     _dateKey = '';
     _answers = const <DailyAnswer>[];
     _isLoading = false;
+    _resolved = null;
+    _resolvedKey = null;
+    _isResolving = false;
     notifyListeners();
   }
 

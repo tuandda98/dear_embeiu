@@ -832,6 +832,29 @@ class _SetupScreenState extends State<SetupScreen> {
               ),
             ),
           ],
+          // Next-steps checklist (feature onboarding, 2026-09-05): the code
+          // alone left the creator guessing what the partner has to do. Same
+          // three steps as the Home waiting card, text-only here.
+          if (isWaitingForPartner) ...[
+            const SizedBox(height: 14),
+            _buildWaitingStepLine(
+              index: 1,
+              title: l10n.homeWaitingStep1Title,
+              description: l10n.homeWaitingStep1Desc,
+            ),
+            const SizedBox(height: 8),
+            _buildWaitingStepLine(
+              index: 2,
+              title: l10n.homeWaitingStep2Title,
+              description: l10n.homeWaitingStep2Desc,
+            ),
+            const SizedBox(height: 8),
+            _buildWaitingStepLine(
+              index: 3,
+              title: l10n.homeWaitingStep3Title,
+              description: l10n.homeWaitingStep3Desc,
+            ),
+          ],
           // Rejoin hint: remind both members they can use this code to
           // reconnect if one leaves, so they don't lose access.
           if (isWaitingForPartner) ...[
@@ -866,6 +889,63 @@ class _SetupScreenState extends State<SetupScreen> {
           ],
         ],
       ),
+    );
+  }
+
+  /// One text-only step of the waiting checklist (rose numeral disc + title +
+  /// description). Mirrors the Home waiting card's rows without its actions.
+  Widget _buildWaitingStepLine({
+    required int index,
+    required String title,
+    required String description,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.accentLove.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            '$index',
+            style: const TextStyle(
+              color: AppColors.accentLoveDeep,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  height: 1.25,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

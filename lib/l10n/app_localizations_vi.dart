@@ -9,6 +9,156 @@ class AppLocalizationsVi extends AppLocalizations {
   AppLocalizationsVi([String locale = 'vi']) : super(locale);
 
   @override
+  String get aiQuestionsTitle => 'Câu hỏi cá nhân hoá bằng AI';
+
+  @override
+  String get aiQuestionsSubtitle =>
+      'Dùng 30 ngày câu trả lời gần nhất của cả hai để tạo câu hỏi riêng cho chúng mình. Dữ liệu chỉ dùng để tạo câu hỏi, không dùng để huấn luyện. Tắt bất cứ lúc nào.';
+
+  @override
+  String get aiQuestionsDialogTitle => 'Bật câu hỏi cá nhân hoá?';
+
+  @override
+  String get aiQuestionsDialogBody =>
+      'Cài đặt này áp dụng cho cả hai: người ấy cũng sẽ thấy câu hỏi do AI tạo. Chúng mình chỉ đọc 30 ngày câu trả lời gần nhất để tạo câu hỏi, không dùng để huấn luyện, và có thể tắt bất cứ lúc nào.';
+
+  @override
+  String get aiQuestionsDialogConfirm => 'Bật';
+
+  @override
+  String get introSkip => 'Bỏ qua';
+
+  @override
+  String get introNext => 'Tiếp';
+
+  @override
+  String get introStart => 'Bắt đầu';
+
+  @override
+  String get introSlide1Badge => 'ĐẾM NGÀY YÊU';
+
+  @override
+  String get introSlide1Title => 'Đếm từng ngày yêu';
+
+  @override
+  String get introSlide1Body =>
+      'Chúng mình cùng xem đã bên nhau bao lâu, chạm từng cột mốc và ngắm cây tình yêu lớn lên mỗi ngày.';
+
+  @override
+  String get introSlide2Badge => 'MỖI NGÀY';
+
+  @override
+  String get introSlide2Title => 'Kỷ niệm & câu hỏi mỗi ngày';
+
+  @override
+  String get introSlide2Body =>
+      'Thư viện ảnh chung, câu hỏi mỗi ngày cho cả hai, chuỗi ngày kết nối và góc trò chuyện riêng của chúng mình.';
+
+  @override
+  String get introSlide3Badge => 'CẦN CẢ HAI';
+
+  @override
+  String get introSlide3Title => 'Cần cả hai';
+
+  @override
+  String get introSlide3Body =>
+      'Dear Embeiu là không gian của 2 người. Bạn tạo mã mời, người ấy tải app (iOS/Android) và nhập mã là xong.';
+
+  @override
+  String get featureTourBadge => 'CÓ GÌ MỚI';
+
+  @override
+  String featureTourVersionTitle(String version) {
+    return 'Phiên bản $version';
+  }
+
+  @override
+  String get featureTourGotIt => 'Đã hiểu';
+
+  @override
+  String get featureTourSettingsTile => 'Có gì mới';
+
+  @override
+  String get featureTourSettingsTileSub => 'Xem lại những tính năng mới nhất';
+
+  @override
+  String get featureTourCareTitle => 'Gửi quan tâm';
+
+  @override
+  String get featureTourCareBody =>
+      'Soạn một lời nhắn ngắn, người ấy nhận thông báo ngay.';
+
+  @override
+  String get featureTourQuestionsTitle => 'Câu hỏi mỗi ngày mới hơn';
+
+  @override
+  String get featureTourQuestionsBody =>
+      'Câu hỏi theo tuần, theo tháng và theo tâm trạng, xem lại câu trả lời cũ, và tuỳ chọn AI cá nhân hoá có thể bật trong Cài đặt.';
+
+  @override
+  String get featureTourInviteTitle => 'Mời người ấy dễ hơn';
+
+  @override
+  String get featureTourInviteBody =>
+      'Chia sẻ link tải app kèm mã mời, có hướng dẫn từng bước.';
+
+  @override
+  String get homeWaitingBadge => 'CHỜ NGƯỜI ẤY';
+
+  @override
+  String get homeWaitingStep1Title => 'Gửi lời mời';
+
+  @override
+  String get homeWaitingStep1Desc =>
+      'Gửi mã mời này cho người ấy qua tin nhắn.';
+
+  @override
+  String get homeWaitingStep1Cta => 'Gửi cho người ấy 💌';
+
+  @override
+  String get homeWaitingStep1Copy => 'Sao chép mã';
+
+  @override
+  String get homeWaitingStep2Title => 'Người ấy tải app và đăng ký';
+
+  @override
+  String get homeWaitingStep2Desc =>
+      'Người ấy cần cài Dear Embeiu (iOS/Android), đăng ký rồi chọn <Nhập mã mời>.';
+
+  @override
+  String get homeWaitingStep3Title => 'Nhập mã là xong';
+
+  @override
+  String get homeWaitingStep3Desc =>
+      'Ghép xong app tự chuyển, bạn sẽ nhận thông báo.';
+
+  @override
+  String get homeWaitingMeanwhileTitle => 'Trong lúc chờ, bạn vẫn có thể:';
+
+  @override
+  String get homeWaitingMeanwhileItem1 => 'Đặt ngày yêu';
+
+  @override
+  String get homeWaitingMeanwhileItem2 => 'Thêm kỷ niệm';
+
+  @override
+  String get homeWaitingMeanwhileItem3 => 'Trả lời câu hỏi hôm nay';
+
+  @override
+  String get homeWaitingMeanwhileFooter => 'Người ấy vào sẽ thấy hết.';
+
+  @override
+  String get inviteFollowUpTitle => 'Người ấy chưa vào nè 💌';
+
+  @override
+  String get inviteFollowUpBody24h =>
+      'Gửi lại lời mời cho người ấy nha, chỉ mất 10 giây';
+
+  @override
+  String get inviteFollowUpBody72h =>
+      'Kỷ niệm của chúng mình đang đợi người ấy. Nhắc người ấy tải app nhé';
+
+  @override
   String get back => 'Quay lại';
 
   @override
@@ -1547,7 +1697,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String inviteShareMessage(String code) {
-    return 'Mình muốn lưu giữ kỷ niệm cùng bạn trên Dear Embeiu 💞\nNhập mã mời này để ghép đôi với mình nhé: $code';
+    return 'Mình muốn lưu giữ kỷ niệm cùng bạn trên Dear Embeiu 💞\nNhập mã mời này để ghép đôi với mình nhé: $code\nTải app & nhập mã tại: https://dearembeiu.com/get?code=$code';
   }
 
   @override

@@ -2512,3 +2512,351 @@ exports.sendCustomPasswordResetEmail = onCall(
   },
 );
 
+
+// ---------------------------------------------------------------------------
+// AI daily question (feature endless-questions, 2026-09-05)
+// ---------------------------------------------------------------------------
+//
+// Callable that writes ONE personalised question into today's marker doc
+// (couples/{coupleId}/dailyAnswers/{date}) so both phones read the exact same
+// text. The client calls it when it is about to render today's card and the
+// marker has no question yet; on ANY failure it returns {ok:false, reason} —
+// never throws for runtime problems — so the client silently falls back to the
+// local bank/template engine and the card is never empty.
+//
+// Privacy: the prompt carries the couple's recent answers, so it only runs when
+// the couple opted in (prefs/home.aiQuestionsEnabled == true) and the two
+// people are anonymised to "A" (caller) / "B" (partner) — no names, emails or
+// uids ever leave the function.
+const Anthropic = require("@anthropic-ai/sdk");
+
+// Anthropic API key. Set before deploy (per project):
+//   printf '<KEY>' | firebase functions:secrets:set ANTHROPIC_API_KEY \
+//     --project <dev|prod> --data-file -
+// A literal "unset" placeholder is treated as "no key" (DEV deploys without a
+// real key still work — the callable just answers {ok:false, no_api_key}).
+const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
+
+// Swap to "claude-haiku-4-5" if the bill ever matters — roughly 5× cheaper for
+// this prompt size, at some cost in how well it picks up on past answers.
+const AI_QUESTION_MODEL = "claude-opus-5";
+
+const AI_QUESTION_SYSTEM_PROMPT = [
+  "Bạn là người viết câu hỏi mỗi ngày cho một cặp đôi đang dùng app Dear Embeiu.",
+  "Nhiệm vụ: viết ĐÚNG 1 câu hỏi cho hôm nay, có cả bản tiếng Việt và bản tiếng Anh.",
+  "",
+  "Yêu cầu:",
+  "- Mỗi bản tối đa 200 ký tự, chỉ một câu hỏi duy nhất.",
+  "- Giọng ấm áp, nhẹ nhàng, tôn trọng; hỏi để hai người kể cho nhau nghe.",
+  "- Tiếng Việt xưng hô \"chúng mình\" / \"người ấy\" / \"bạn\". KHÔNG dùng tên riêng, KHÔNG dùng \"hai đứa\".",
+  "- Dựa vào chủ đề và câu trả lời gần đây để hỏi sâu hơn hoặc nối tiếp (ví dụ nhắc lại một dự định họ từng nói).",
+  "- Phù hợp với thứ trong tuần, cột mốc hoặc tâm trạng hôm nay nếu có dữ liệu.",
+  "- KHÔNG lặp lại chủ đề của 14 ngày gần nhất.",
+  "- Tránh chủ đề sức khoẻ, tài chính, tình dục, xung đột nặng.",
+  "- Tối đa 1 emoji (không có cũng được).",
+  "- KHÔNG dùng dấu ngoặc nhọn { } hay < >.",
+  "- tags: 1–3 từ khoá chủ đề (tiếng Việt, viết thường).",
+].join("\n");
+
+const AI_QUESTION_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["vi", "en", "tags"],
+  properties: {
+    vi: {type: "string"},
+    en: {type: "string"},
+    tags: {type: "array", items: {type: "string"}},
+  },
+};
+
+const AI_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+const AI_WEEKDAY_VI = [
+  "Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy",
+];
+
+// 'YYYY-MM-DD' -> UTC ms (dates in this feature are wall-clock day keys, never
+// instants, so UTC arithmetic keeps the day math exact).
+function aiDateToUtcMs(date) {
+  const [y, m, d] = date.split("-").map((part) => parseInt(part, 10));
+  return Date.UTC(y, m - 1, d);
+}
+
+function aiShiftDate(date, deltaDays) {
+  const shifted = new Date(aiDateToUtcMs(date) + deltaDays * 86400000);
+  return shifted.toISOString().slice(0, 10);
+}
+
+function aiTrim(value, max) {
+  const text = `${value == null ? "" : value}`.replace(/\s+/g, " ").trim();
+  return text.length > max ? `${text.slice(0, max)}…` : text;
+}
+
+// Anniversary is stored as a Timestamp by the app, but tolerate a date string
+// from older writes.
+function aiAnniversaryDateKey(raw) {
+  try {
+    if (!raw) return null;
+    if (typeof raw.toDate === "function") {
+      return raw.toDate().toISOString().slice(0, 10);
+    }
+    if (typeof raw === "string" && AI_DATE_PATTERN.test(raw.slice(0, 10))) {
+      return raw.slice(0, 10);
+    }
+  } catch (_) {
+    return null;
+  }
+  return null;
+}
+
+exports.generateDailyQuestion = onCall(
+  {
+    region: "us-central1",
+    secrets: [ANTHROPIC_API_KEY],
+    timeoutSeconds: 60,
+    memory: "256MiB",
+  },
+  async (request) => {
+    const uid = request.auth && request.auth.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+
+    const data = request.data || {};
+    const coupleId = `${data.coupleId || ""}`.trim();
+    const date = `${data.date || ""}`.trim();
+    const lang = `${data.lang || "vi"}`.trim() === "en" ? "en" : "vi";
+    if (!coupleId) {
+      throw new HttpsError("invalid-argument", "coupleId is required.");
+    }
+    if (!AI_DATE_PATTERN.test(date)) {
+      throw new HttpsError("invalid-argument", "date must be YYYY-MM-DD.");
+    }
+
+    const coupleRef = db.collection("couples").doc(coupleId);
+    const coupleSnap = await coupleRef.get();
+    if (!coupleSnap.exists) {
+      throw new HttpsError("not-found", "Couple not found.");
+    }
+    const memberIds = Array.isArray(coupleSnap.get("memberIds")) ?
+      coupleSnap.get("memberIds") : [];
+    if (!memberIds.includes(uid)) {
+      throw new HttpsError("permission-denied", "Not a member of this couple.");
+    }
+    const partnerUid = memberIds.find((id) => id !== uid) || null;
+    if (!partnerUid) {
+      return {ok: false, reason: "no_partner"};
+    }
+
+    const markerRef = coupleRef.collection("dailyAnswers").doc(date);
+
+    try {
+      // 1. Idempotent: someone (the partner's phone, or an earlier call) has
+      //    already fixed today's question -> hand back exactly that text.
+      const existing = await markerRef.get();
+      const existingVi = `${existing.get("questionVi") || ""}`.trim();
+      const existingEn = `${existing.get("questionEn") || ""}`.trim();
+      if (existingVi && existingEn) {
+        return {
+          ok: true,
+          questionVi: existingVi,
+          questionEn: existingEn,
+          source: `${existing.get("source") || "bank"}`,
+        };
+      }
+
+      // 2. Opt-in gate + key availability.
+      const prefsSnap = await coupleRef.collection("prefs").doc("home").get();
+      if (prefsSnap.get("aiQuestionsEnabled") !== true) {
+        return {ok: false, reason: "disabled"};
+      }
+      const apiKey = `${ANTHROPIC_API_KEY.value() || ""}`.trim();
+      if (!apiKey || apiKey === "unset") {
+        return {ok: false, reason: "no_api_key"};
+      }
+
+      // 3. Build the (anonymised) context.
+      const markersSnap = await coupleRef
+        .collection("dailyAnswers")
+        .orderBy("date", "desc")
+        .limit(60)
+        .get();
+
+      const answeredDays = [];
+      const askedQuestions = [];
+      const answeredDates = new Set();
+      for (const markerDoc of markersSnap.docs) {
+        const markerDate = `${markerDoc.get("date") || markerDoc.id}`;
+        if (markerDate >= date) {
+          continue; // today / future days carry no reveal yet
+        }
+        const question = aiTrim(markerDoc.get("questionVi"), 200);
+        if (question && askedQuestions.length < 60) {
+          askedQuestions.push(question);
+        }
+        if (markerDoc.get("bothAnswered") !== true) {
+          continue;
+        }
+        answeredDates.add(markerDate);
+        if (answeredDays.length < 30) {
+          answeredDays.push({date: markerDate, question, ref: markerDoc.ref});
+        }
+      }
+
+      // Pull each day's two answers (≤2 docs per day).
+      await Promise.all(answeredDays.map(async (day) => {
+        const responses = await day.ref.collection("responses").limit(2).get();
+        day.answers = responses.docs.map((responseDoc) => ({
+          who: responseDoc.id === uid ? "A" : "B",
+          text: aiTrim(responseDoc.get("text"), 240),
+        })).filter((entry) => entry.text);
+      }));
+
+      // Streak = consecutive fully-answered days walking back from yesterday.
+      let streak = 0;
+      let cursor = aiShiftDate(date, -1);
+      while (answeredDates.has(cursor) && streak < 400) {
+        streak += 1;
+        cursor = aiShiftDate(cursor, -1);
+      }
+
+      // Days together (from the anniversary), if the couple set one.
+      const anniversary = aiAnniversaryDateKey(coupleSnap.get("anniversaryDate"));
+      const daysTogether = anniversary ?
+        Math.round((aiDateToUtcMs(date) - aiDateToUtcMs(anniversary)) / 86400000) :
+        null;
+
+      // Today's moods (only when the mood doc is for the same day).
+      const moodSnaps = await Promise.all([
+        coupleRef.collection("moods").doc(uid).get(),
+        coupleRef.collection("moods").doc(partnerUid).get(),
+      ]);
+      const moodOf = (snap) => (`${snap.get("date") || ""}` === date ?
+        aiTrim(snap.get("mood"), 20) : "");
+      const moodA = moodOf(moodSnaps[0]);
+      const moodB = moodOf(moodSnaps[1]);
+
+      const weekdayVi = AI_WEEKDAY_VI[new Date(aiDateToUtcMs(date)).getUTCDay()];
+
+      const contextLines = [
+        `Hôm nay: ${date} (${weekdayVi}).`,
+        `Ngôn ngữ chính người dùng đang đọc: ${lang === "en" ? "tiếng Anh" : "tiếng Việt"}.`,
+      ];
+      if (daysTogether != null && daysTogether > 0) {
+        contextLines.push(`Số ngày hai người đã bên nhau: ${daysTogether}.`);
+      }
+      contextLines.push(`Chuỗi ngày cùng trả lời hiện tại: ${streak}.`);
+      if (moodA || moodB) {
+        contextLines.push(
+          `Tâm trạng hôm nay — A: ${moodA || "chưa chọn"}; B: ${moodB || "chưa chọn"}.`,
+        );
+      }
+      if (answeredDays.length) {
+        contextLines.push("", "Các ngày gần đây (mới nhất trước), A và B là hai người trong cặp:");
+        for (const day of answeredDays) {
+          contextLines.push(`• ${day.date} — hỏi: ${day.question || "(không rõ)"}`);
+          for (const entry of day.answers || []) {
+            contextLines.push(`   ${entry.who}: ${entry.text}`);
+          }
+        }
+      } else {
+        contextLines.push("", "Chưa có ngày nào cả hai cùng trả lời — hãy hỏi một câu dễ mở lời.");
+      }
+      if (askedQuestions.length) {
+        contextLines.push("", "Các câu hỏi đã dùng gần đây (TUYỆT ĐỐI không lặp lại):");
+        for (const question of askedQuestions) {
+          contextLines.push(`- ${question}`);
+        }
+      }
+      contextLines.push("", "Hãy viết câu hỏi cho hôm nay.");
+
+      // 4. Ask Claude for one question (structured JSON output).
+      const client = new Anthropic({apiKey});
+      const response = await client.messages.create({
+        model: AI_QUESTION_MODEL,
+        max_tokens: 1024,
+        output_config: {
+          effort: "low",
+          format: {type: "json_schema", schema: AI_QUESTION_SCHEMA},
+        },
+        system: AI_QUESTION_SYSTEM_PROMPT,
+        messages: [{role: "user", content: contextLines.join("\n")}],
+      });
+
+      if (response.usage) {
+        logger.info("generateDailyQuestion: model usage.", {
+          coupleId,
+          date,
+          model: AI_QUESTION_MODEL,
+          inputTokens: response.usage.input_tokens,
+          outputTokens: response.usage.output_tokens,
+        });
+      }
+      if (response.stop_reason === "refusal") {
+        return {ok: false, reason: "refusal"};
+      }
+
+      const textBlock = (response.content || []).find((b) => b.type === "text");
+      const raw = (textBlock && textBlock.text) || "";
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch (_) {
+        logger.warn("generateDailyQuestion: model output was not JSON.", {
+          coupleId, date, sample: raw.slice(0, 200),
+        });
+        return {ok: false, reason: "invalid"};
+      }
+
+      // 5. Validate before it can ever reach a card.
+      const questionVi = `${(parsed && parsed.vi) || ""}`.trim();
+      const questionEn = `${(parsed && parsed.en) || ""}`.trim();
+      const shapeOk = (text) => text.length >= 10 &&
+        text.length <= 220 &&
+        !/[{}<>]/.test(text);
+      const recent = new Set(askedQuestions.map((q) => q.toLowerCase()));
+      if (!shapeOk(questionVi) || !shapeOk(questionEn) ||
+          recent.has(questionVi.toLowerCase())) {
+        logger.warn("generateDailyQuestion: rejected model output.", {
+          coupleId, date, viLength: questionVi.length, enLength: questionEn.length,
+        });
+        return {ok: false, reason: "invalid"};
+      }
+
+      // 6. Commit into the marker — but only if nobody beat us to it. If the
+      //    other phone wrote a question meanwhile, return THEIRS so both sides
+      //    still see one identical question for the day.
+      const committed = await db.runTransaction(async (tx) => {
+        const snap = await tx.get(markerRef);
+        const already = `${snap.get("questionVi") || ""}`.trim();
+        const alreadyEn = `${snap.get("questionEn") || ""}`.trim();
+        if (already && alreadyEn) {
+          return {
+            questionVi: already,
+            questionEn: alreadyEn,
+            source: `${snap.get("source") || "bank"}`,
+          };
+        }
+        tx.set(markerRef, {
+          date,
+          questionVi,
+          questionEn,
+          source: "ai",
+          aiModel: AI_QUESTION_MODEL,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, {merge: true});
+        return {questionVi, questionEn, source: "ai"};
+      });
+
+      return {ok: true, ...committed};
+    } catch (err) {
+      // Fail-soft on purpose: the client falls back to the local engine.
+      logger.error("generateDailyQuestion failed.", {
+        coupleId,
+        date,
+        message: err && err.message,
+      });
+      return {ok: false, reason: "error"};
+    }
+  },
+);

@@ -1115,3 +1115,20 @@ String questionTextForDate(DateTime local, String langCode) {
   }
   return entry['en'] ?? entry['vi'] ?? '';
 }
+
+// ── Public helpers for the question engine (feature endless-questions) ──────
+// The engine (`services/question_engine.dart` + sources) needs the SAME stable
+// hash / permutation primitives used above, but seeds them per (couple, day)
+// instead of per couple, and addresses questions by index into the merged bank
+// `[...dailyQuestions, ...dailyQuestionsExtra]`. Thin public wrappers keep the
+// originals private and the legacy `questionForCouple` path untouched.
+
+/// Stable 32-bit FNV-1a hash of [input] (same as the legacy seed).
+int stableQuestionHash(String input) => _fnv1a(input);
+
+/// Deterministic permutation of `[0..n-1]` for [seed] (Fisher–Yates + LCG).
+/// Identical on every device for the same (n, seed).
+List<int> deterministicPermutation(int n, int seed) => _permutation(n, seed);
+
+/// Whole-day index for [local] since 2020-01-01 (date part only).
+int daysSinceQuestionEpoch(DateTime local) => _daysSinceEpoch(local);

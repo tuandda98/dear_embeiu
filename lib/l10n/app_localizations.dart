@@ -98,6 +98,276 @@ abstract class AppLocalizations {
     Locale('vi'),
   ];
 
+  /// No description provided for @aiQuestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI-personalised questions'**
+  String get aiQuestionsTitle;
+
+  /// No description provided for @aiQuestionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses the last 30 days of both your answers to write a question just for the two of you. The data is only used to create questions, never for training. Turn it off any time.'**
+  String get aiQuestionsSubtitle;
+
+  /// No description provided for @aiQuestionsDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on personalised questions?'**
+  String get aiQuestionsDialogTitle;
+
+  /// No description provided for @aiQuestionsDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time.'**
+  String get aiQuestionsDialogBody;
+
+  /// No description provided for @aiQuestionsDialogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get aiQuestionsDialogConfirm;
+
+  /// No description provided for @introSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get introSkip;
+
+  /// No description provided for @introNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get introNext;
+
+  /// No description provided for @introStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get introStart;
+
+  /// No description provided for @introSlide1Badge.
+  ///
+  /// In en, this message translates to:
+  /// **'LOVE COUNTER'**
+  String get introSlide1Badge;
+
+  /// No description provided for @introSlide1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Count every day together'**
+  String get introSlide1Title;
+
+  /// No description provided for @introSlide1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'See how long you have been together, reach every milestone, and watch your love tree grow day by day.'**
+  String get introSlide1Body;
+
+  /// No description provided for @introSlide2Badge.
+  ///
+  /// In en, this message translates to:
+  /// **'EVERY DAY'**
+  String get introSlide2Badge;
+
+  /// No description provided for @introSlide2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Memories & a question a day'**
+  String get introSlide2Title;
+
+  /// No description provided for @introSlide2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'A shared photo library, a daily question for both of you, your connection streak, and a chat corner just for the two of you.'**
+  String get introSlide2Body;
+
+  /// No description provided for @introSlide3Badge.
+  ///
+  /// In en, this message translates to:
+  /// **'IT TAKES TWO'**
+  String get introSlide3Badge;
+
+  /// No description provided for @introSlide3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'It takes both of you'**
+  String get introSlide3Title;
+
+  /// No description provided for @introSlide3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Dear Embeiu is a space for two. You create an invite code, your partner downloads the app (iOS/Android) and enters the code — that\'s it.'**
+  String get introSlide3Body;
+
+  /// No description provided for @featureTourBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'WHAT\'S NEW'**
+  String get featureTourBadge;
+
+  /// Feature tour sheet title, e.g. 'Version 1.6.0'
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String featureTourVersionTitle(String version);
+
+  /// No description provided for @featureTourGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get featureTourGotIt;
+
+  /// No description provided for @featureTourSettingsTile.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get featureTourSettingsTile;
+
+  /// No description provided for @featureTourSettingsTileSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Take another look at the latest features'**
+  String get featureTourSettingsTileSub;
+
+  /// No description provided for @featureTourCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a little care'**
+  String get featureTourCareTitle;
+
+  /// No description provided for @featureTourCareBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a short message and your partner gets a notification right away.'**
+  String get featureTourCareBody;
+
+  /// No description provided for @featureTourQuestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fresher daily questions'**
+  String get featureTourQuestionsTitle;
+
+  /// No description provided for @featureTourQuestionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions that follow the week, the month and your mood, a way to look back at old answers, and an optional AI personalisation you can turn on in Settings.'**
+  String get featureTourQuestionsBody;
+
+  /// No description provided for @featureTourInviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Easier to invite your partner'**
+  String get featureTourInviteTitle;
+
+  /// No description provided for @featureTourInviteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a download link together with your invite code, with step-by-step guidance.'**
+  String get featureTourInviteBody;
+
+  /// No description provided for @homeWaitingBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'WAITING FOR THEM'**
+  String get homeWaitingBadge;
+
+  /// No description provided for @homeWaitingStep1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the invite'**
+  String get homeWaitingStep1Title;
+
+  /// No description provided for @homeWaitingStep1Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Send this invite code to your partner in a message.'**
+  String get homeWaitingStep1Desc;
+
+  /// No description provided for @homeWaitingStep1Cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Send it to them 💌'**
+  String get homeWaitingStep1Cta;
+
+  /// No description provided for @homeWaitingStep1Copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get homeWaitingStep1Copy;
+
+  /// No description provided for @homeWaitingStep2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'They install the app and sign up'**
+  String get homeWaitingStep2Title;
+
+  /// No description provided for @homeWaitingStep2Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'They need to install Dear Embeiu (iOS/Android), sign up, then pick <Enter invite code>.'**
+  String get homeWaitingStep2Desc;
+
+  /// No description provided for @homeWaitingStep3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Entering the code is all it takes'**
+  String get homeWaitingStep3Title;
+
+  /// No description provided for @homeWaitingStep3Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Once you are paired the app switches over by itself and you get a notification.'**
+  String get homeWaitingStep3Desc;
+
+  /// No description provided for @homeWaitingMeanwhileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'While you wait, you can already:'**
+  String get homeWaitingMeanwhileTitle;
+
+  /// No description provided for @homeWaitingMeanwhileItem1.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your anniversary date'**
+  String get homeWaitingMeanwhileItem1;
+
+  /// No description provided for @homeWaitingMeanwhileItem2.
+  ///
+  /// In en, this message translates to:
+  /// **'Add memories'**
+  String get homeWaitingMeanwhileItem2;
+
+  /// No description provided for @homeWaitingMeanwhileItem3.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer today\'s question'**
+  String get homeWaitingMeanwhileItem3;
+
+  /// No description provided for @homeWaitingMeanwhileFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'They will see all of it when they join.'**
+  String get homeWaitingMeanwhileFooter;
+
+  /// No description provided for @inviteFollowUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner hasn\'t joined yet 💌'**
+  String get inviteFollowUpTitle;
+
+  /// No description provided for @inviteFollowUpBody24h.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the invite again — it only takes 10 seconds'**
+  String get inviteFollowUpBody24h;
+
+  /// No description provided for @inviteFollowUpBody72h.
+  ///
+  /// In en, this message translates to:
+  /// **'Our memories are waiting for them. Remind them to download the app'**
+  String get inviteFollowUpBody72h;
+
   /// No description provided for @back.
   ///
   /// In en, this message translates to:
@@ -2777,7 +3047,7 @@ abstract class AppLocalizations {
   /// No description provided for @inviteShareMessage.
   ///
   /// In en, this message translates to:
-  /// **'I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: {code}'**
+  /// **'I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: {code}\nGet the app & enter the code at: https://dearembeiu.com/get?code={code}'**
   String inviteShareMessage(String code);
 
   /// No description provided for @remindersTitle.

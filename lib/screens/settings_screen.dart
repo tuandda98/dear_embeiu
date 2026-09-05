@@ -16,11 +16,13 @@ import '../providers/locale_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../services/analytics_service.dart';
+import '../services/home_prefs_service.dart';
 import '../theme/app_colors.dart';
 import '../utils/lunar_calendar.dart';
 import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/content_card.dart';
 import '../widgets/entrance_reveal.dart';
+import '../widgets/feature_tour_sheet.dart';
 import '../widgets/icon_badge.dart';
 import '../widgets/language_toggle_button.dart';
 import '../widgets/app_time_picker.dart';
@@ -456,6 +458,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // Daily-question nudge (b2): toggle + multi-time editor.
                   const _DailyQuestionReminderTile(),
                   _rowDivider(),
+                  // AI-personalised daily questions (endless-questions,
+                  // 2026-09-05): couple-shared opt-in, hidden until paired.
+                  const _AiQuestionsTile(),
                   // Single entry to the merged Reminders screen (milestones +
                   // custom). Badge shows how many milestones are on.
                   _navRow(
@@ -740,6 +745,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Uri.parse(AppUrls.privacyPolicy),
                   mode: LaunchMode.externalApplication,
                 ),
+              ),
+              _rowDivider(),
+              // "What's new" — replays the version feature tour on demand
+              // (feature: onboarding, 2026-09-05).
+              _navRow(
+                icon: IconsaxPlusLinear.magic_star,
+                title: l10n.featureTourSettingsTile,
+                subtitle: l10n.featureTourSettingsTileSub,
+                onTap: () => FeatureTour.showAll(context),
               ),
             ],
           ),
@@ -1487,6 +1501,144 @@ class _DailyQuestionReminderTile extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Couple-shared opt-in for AI-personalised daily questions (feature
+/// endless-questions, 2026-09-05). The flag lives on `prefs/home` so BOTH
+/// phones see the same question — hence the confirmation dialog before turning
+/// it on (it changes what the partner sees too). Turning it OFF is immediate.
+/// Hidden until the couple is active: with no partner there are no shared
+/// answers to personalise from. Bare row — the group card owns the surface.
+class _AiQuestionsTile extends StatefulWidget {
+  const _AiQuestionsTile();
+
+  @override
+  State<_AiQuestionsTile> createState() => _AiQuestionsTileState();
+}
+
+class _AiQuestionsTileState extends State<_AiQuestionsTile> {
+  final HomePrefsService _prefs = HomePrefsService();
+
+  /// Optimistic value so the switch doesn't lag the round-trip; the stream
+  /// (couple-shared truth) overrides it on the next emission.
+  bool? _pending;
+
+  Future<void> _handleToggle(String coupleId, bool value) async {
+    final l10n = context.l10n;
+    HapticFeedback.selectionClick();
+
+    if (value) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(
+            l10n.aiQuestionsDialogTitle,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          content: Text(l10n.aiQuestionsDialogBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(
+                l10n.aiQuestionsDialogConfirm,
+                style: const TextStyle(
+                  color: AppColors.accentRose,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) {
+        return;
+      }
+    }
+
+    setState(() => _pending = value);
+    AnalyticsService.instance.logEvent(
+      'ai_questions_toggle',
+      params: <String, Object?>{'enabled': value},
+    );
+    await _prefs.setAiQuestionsEnabled(coupleId, value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final couple = context.watch<CoupleProvider>().couple;
+    if (couple == null || couple.isWaitingForPartner) {
+      return const SizedBox.shrink();
+    }
+    final coupleId = couple.id;
+
+    return StreamBuilder<bool>(
+      stream: _prefs.watchAiQuestionsEnabled(coupleId),
+      builder: (context, snapshot) {
+        // Remote wins once it lands; until then show the optimistic value.
+        final remote = snapshot.data;
+        if (remote != null && remote == _pending) {
+          _pending = null;
+        }
+        final enabled = _pending ?? remote ?? false;
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                children: [
+                  const IconBadge(IconsaxPlusLinear.magicpen),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.aiQuestionsTitle,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.aiQuestionsSubtitle,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Switch.adaptive(
+                    value: enabled,
+                    activeThumbColor: AppColors.accentRose,
+                    onChanged: (value) => _handleToggle(coupleId, value),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 58),
+              child: Divider(
+                height: 1,
+                color: AppColors.textTertiary.withValues(alpha: 0.18),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

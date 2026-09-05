@@ -97,11 +97,20 @@ class DailyQuestionService {
 
   /// Records the current user's answer for [dateKey] (doc id == [uid]).
   /// [text] is trimmed and clamped to 280 chars to match the security rule.
+  ///
+  /// [questionVi]/[questionEn]/[source] carry the question the card ACTUALLY
+  /// showed (resolved by `QuestionEngine`, feature endless-questions). They are
+  /// only used when the marker doesn't already hold a question — the marker is
+  /// the source of truth and is never re-derived from the bank once written.
+  /// Omitting them falls back to the legacy bank derivation.
   Future<void> submitAnswer({
     required String coupleId,
     required String dateKey,
     required String uid,
     required String text,
+    String? questionVi,
+    String? questionEn,
+    String? source,
   }) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty ||
@@ -125,17 +134,40 @@ class DailyQuestionService {
 
     // Write a parent marker doc so the journal can list the days that have any
     // answers (the responses subcollection alone leaves the parent "phantom" —
-    // un-listable). The question text is snapshotted HERE, from the bank, at the
-    // exact day it was answered (PO decision A: never re-derive — the bank may
-    // shift later). Best-effort: a marker failure must not fail answering.
-    final parsedDate = _dateFromKey(dateKey);
+    // un-listable). The question text is snapshotted HERE, at the exact day it
+    // was answered (PO decision A: never re-derive — the bank may shift later).
+    //
+    // ⚠️ Since the question engine (feature endless-questions) the marker is the
+    // SOURCE OF TRUTH for what was asked: if it already carries a question we
+    // must NOT overwrite it (the other phone may have resolved a template/AI
+    // question that has no bank equivalent). We only fill it in when it's still
+    // empty, preferring the text the card actually rendered.
     try {
-      await _dailyAnswers(coupleId).doc(dateKey).set({
+      final markerRef = _dailyAnswers(coupleId).doc(dateKey);
+      final existing = await markerRef.get();
+      final data = existing.data();
+      final hasQuestion =
+          (data?['questionVi'] as String?)?.trim().isNotEmpty == true &&
+              (data?['questionEn'] as String?)?.trim().isNotEmpty == true;
+
+      final payload = <String, Object?>{
         'date': dateKey,
-        'questionVi': questionTextForCouple(parsedDate, coupleId, 'vi'),
-        'questionEn': questionTextForCouple(parsedDate, coupleId, 'en'),
         'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      };
+      if (!hasQuestion) {
+        final parsedDate = _dateFromKey(dateKey);
+        final vi = questionVi?.trim();
+        final en = questionEn?.trim();
+        payload['questionVi'] = (vi != null && vi.isNotEmpty)
+            ? vi
+            : questionTextForCouple(parsedDate, coupleId, 'vi');
+        payload['questionEn'] = (en != null && en.isNotEmpty)
+            ? en
+            : questionTextForCouple(parsedDate, coupleId, 'en');
+        final src = source?.trim();
+        payload['source'] = (src != null && src.isNotEmpty) ? src : 'bank';
+      }
+      await markerRef.set(payload, SetOptions(merge: true));
     } catch (_) {
       // Ignore — the answer itself is already saved; the marker is auxiliary.
     }

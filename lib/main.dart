@@ -19,6 +19,8 @@ import 'providers/chat_provider.dart';
 import 'providers/couple_provider.dart';
 import 'providers/custom_reminders_provider.dart';
 import 'providers/daily_question_provider.dart';
+import 'services/ai_question_source.dart';
+import 'services/revisit_question_source.dart';
 import 'providers/mood_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/notification_inbox_provider.dart';
@@ -277,7 +279,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => ReactionProvider()),
         ChangeNotifierProvider(create: (_) => AnswerReactionProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
-        ChangeNotifierProvider(create: (_) => DailyQuestionProvider()),
+        // Endless questions (2026-09-05): the engine ships with [template, bank];
+        // 'revisit' is picked by the Friday schedule and 'ai' runs first only
+        // when the couple opted in (prefs/home.aiQuestionsEnabled). Both stay at
+        // priority 0 on purpose — a boosted source would run EVERY day.
+        ChangeNotifierProvider(
+          create: (_) => DailyQuestionProvider()
+            ..engine.registerSource(RevisitQuestionSource())
+            ..engine.registerSource(AiQuestionSource()),
+        ),
         ChangeNotifierProvider(create: (_) => MoodProvider()),
         ChangeNotifierProvider(create: (_) => StreakProvider()),
         ChangeNotifierProvider(create: (_) => NotificationInboxProvider()),

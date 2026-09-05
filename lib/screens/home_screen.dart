@@ -10,6 +10,7 @@ import 'package:hive/hive.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../l10n/l10n.dart';
 import '../models/couple.dart';
 import '../models/counter_data.dart';
@@ -33,10 +34,10 @@ import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/catchup_gate.dart';
+import '../widgets/feature_tour_sheet.dart';
+import '../widgets/content_card.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/eyebrow_chip.dart';
-import '../widgets/icon_badge.dart';
-import '../widgets/invite_action_buttons.dart';
 import '../widgets/memory_cinema_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/shimmer_skeleton.dart';
@@ -396,6 +397,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // they fire only while today's question isn't both-answered yet.
   DailyQuestionProvider? _dqProvider;
 
+  /// Guards [FeatureTour.maybeShow] to one attempt per Home lifetime.
+  bool _featureTourChecked = false;
+
   /// Captured in initState so the chat presence heartbeat can be cleared safely
   /// from dispose without touching a deactivated BuildContext (presence-suppress
   /// 2026-06-19).
@@ -481,6 +485,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _dqProvider!.addListener(_refreshDqSafetyNet);
     _streakProvider!.addListener(_refreshDqSafetyNet);
     WidgetsBinding.instance.addPostFrameCallback((_) => _refreshDqSafetyNet());
+    // "Có gì mới" tour (feature onboarding, 2026-09-05): once per build, after
+    // the first frame settles and never on top of the catch-up gate.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future<void>.delayed(const Duration(milliseconds: 900), () {
+        if (!mounted || _featureTourChecked || CatchupGate.isShowing) {
+          return;
+        }
+        _featureTourChecked = true;
+        FeatureTour.maybeShow(context, onOpenTab: _selectTab);
+      });
+    });
   }
 
   @override
@@ -605,6 +620,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   ///
   /// Throttled to once per 5 minutes per day (a rolled-over day or [force] from
   /// a resume re-runs it immediately).
+  /// Pushes the live context the question engine may condition on (streak,
+  /// today's moods, photos this week, partner uid, anniversary, language).
+  /// Cheap + idempotent; the provider only re-resolves on a new (couple, day).
+  void _syncQuestionContext(Couple couple, String myUid) {
+    if (!mounted) {
+      return;
+    }
+    final moods = context.read<MoodProvider>();
+    final photos = context.read<PhotoProvider>().photos;
+    final now = DateTime.now();
+    final weekStart = DateTime(now.year, now.month, now.day - (now.weekday - 1));
+    final photosThisWeek =
+        photos.where((p) => !p.uploadDate.isBefore(weekStart)).length;
+    final partnerUid = couple.memberIds.firstWhere(
+      (m) => m != myUid,
+      orElse: () => '',
+    );
+    context.read<DailyQuestionProvider>().updateContext(
+      currentStreak: context.read<StreakProvider>().currentStreak,
+      myMood: moods.myMood?.mood,
+      partnerMood: moods.partnerMood?.mood,
+      photosThisWeek: photosThisWeek,
+      partnerUid: partnerUid,
+      languageCode: Localizations.localeOf(context).languageCode,
+      anniversaryDate: couple.anniversaryDate,
+    );
+  }
+
   Future<void> _maybeRunCatchup({bool force = false}) async {
     if (!mounted || _catchupBusy || CatchupGate.isShowing) {
       return;
@@ -789,6 +832,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     final reminderProvider = context.read<ReminderProvider>();
     final anniversaryDate = couple.anniversaryDate;
+    final coupleCreatedAt = couple.createdAt;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -798,6 +842,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         lastPhotoDate: lastPhotoDate,
         l10n: l10n,
         coupleActive: coupleActive,
+      );
+      // Invite follow-ups (feature onboarding): while the partner still hasn't
+      // joined, nudge this member 24h/72h after the couple was created; the
+      // provider cancels the band as soon as the couple goes active.
+      reminderProvider.refreshInviteFollowUps(
+        waiting: !coupleActive,
+        coupleCreatedAt: coupleCreatedAt,
+        l10n: l10n,
       );
     });
   }
@@ -1403,6 +1455,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           context.read<PhotoProvider>().refreshOnThisDay(
             anniversary: couple.anniversaryDate,
           );
+          // Feed streak/mood/photos/anniversary to the question engine BEFORE
+          // the first resolve of the day — resolve runs once per (couple, day)
+          // and the marker it writes is final, so context must arrive first.
+          _syncQuestionContext(couple, myUid);
           context.read<DailyQuestionProvider>().watchForCouple(
             couple.id,
             myUid,
@@ -1817,33 +1873,247 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  /// Waiting-for-partner block (feature onboarding, 2026-09-05) — used to be a
+  /// one-line banner ("share your code") that left A guessing what happens next.
+  /// Now a 3-step checklist on the standard [ContentCard]: send the invite (with
+  /// the code + a primary share CTA), the partner installs & signs up, they enter
+  /// the code. Closes with what A can already do solo, so the wait isn't dead
+  /// time. Realtime swap to the full Home when the partner joins is unchanged.
   Widget _buildWaitingForPartnerBanner(Couple couple) {
-    // Light card + dark ink — the white-on-white glass version washed out on
-    // the blush gradient (contrast-debt cleanup, 2026-06-10).
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 14,
-            offset: const Offset(0, 8),
+    final l10n = context.l10n;
+    // Couple-level code when present (leave/rejoin flow), personal invite code
+    // as the legacy fallback — same rule as the Setup card.
+    final code = (couple.coupleCode?.isNotEmpty ?? false)
+        ? couple.coupleCode!
+        : couple.inviteCode;
+    final hasCode = code.isNotEmpty;
+
+    return ContentCard(
+      radius: 24,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          EyebrowChip(
+            label: l10n.homeWaitingBadge,
+            icon: IconsaxPlusLinear.timer_1,
+          ),
+          const SizedBox(height: 14),
+          _buildWaitingStep(
+            index: 1,
+            title: l10n.homeWaitingStep1Title,
+            description: l10n.homeWaitingStep1Desc,
+            child: hasCode
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      // The code stays big and selectable — it's the one thing
+                      // the partner has to read out loud.
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.accentLove.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          code,
+                          style: const TextStyle(
+                            color: AppColors.accentLoveDeep,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 4,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // Primary pill (h52, r999) — the single obvious action.
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: Material(
+                          color: AppColors.accentLove,
+                          borderRadius: BorderRadius.circular(999),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(999),
+                            onTap: () => _shareInviteCode(code),
+                            child: Center(
+                              child: Text(
+                                l10n.homeWaitingStep1Cta,
+                                style: const TextStyle(
+                                  color: AppColors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Material(
+                          color: AppColors.accentRose.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(999),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(999),
+                            onTap: () => _copyInviteCode(code),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 9,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    IconsaxPlusLinear.copy,
+                                    size: 14,
+                                    color: AppColors.accentRose,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    l10n.homeWaitingStep1Copy,
+                                    style: const TextStyle(
+                                      color: AppColors.accentRose,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : null,
+          ),
+          const SizedBox(height: 14),
+          _buildWaitingStep(
+            index: 2,
+            title: l10n.homeWaitingStep2Title,
+            description: l10n.homeWaitingStep2Desc,
+          ),
+          const SizedBox(height: 14),
+          _buildWaitingStep(
+            index: 3,
+            title: l10n.homeWaitingStep3Title,
+            description: l10n.homeWaitingStep3Desc,
+            isLast: true,
+          ),
+          const SizedBox(height: 16),
+          Divider(
+            thickness: 0.5,
+            height: 0.5,
+            color: AppColors.textPrimary.withValues(alpha: 0.10),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.homeWaitingMeanwhileTitle,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...<String>[
+            l10n.homeWaitingMeanwhileItem1,
+            l10n.homeWaitingMeanwhileItem2,
+            l10n.homeWaitingMeanwhileItem3,
+          ].map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2),
+                    child: Icon(
+                      IconsaxPlusBold.heart,
+                      size: 11,
+                      color: AppColors.accentRose,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            l10n.homeWaitingMeanwhileFooter,
+            style: const TextStyle(
+              color: AppColors.textTertiary,
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+              height: 1.4,
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  /// One numbered row of the waiting checklist: rose numeral disc + title +
+  /// description, with an optional [child] block under the text (step 1's code
+  /// and actions). A hairline connector runs down from the disc except on the
+  /// last step.
+  Widget _buildWaitingStep({
+    required int index,
+    required String title,
+    required String description,
+    Widget? child,
+    bool isLast = false,
+  }) {
+    return IntrinsicHeight(
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // IconBadge (B6) at the banner's original metrics — 40 (= icon 20 +
-          // 2×10 padding), r14, tint .10 — so the swap is pixel-identical.
-          const IconBadge(
-            IconsaxPlusLinear.link,
-            tint: AppColors.accentLove,
-            size: 40,
-            radius: 14,
-            tintAlpha: 0.10,
+          Column(
+            children: [
+              Container(
+                width: 26,
+                height: 26,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.accentLove.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  '$index',
+                  style: const TextStyle(
+                    color: AppColors.accentLoveDeep,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 1.5,
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    color: AppColors.accentLove.withValues(alpha: 0.14),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1851,61 +2121,59 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  context.l10n.homeWaitingPartnerTitle,
+                  title,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    height: 1.2,
+                    height: 1.25,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  context.l10n.homeWaitingPartnerSubtitle,
+                  description,
                   style: const TextStyle(
                     color: AppColors.textSecondary,
-                    fontSize: 12,
-                    height: 1.4,
+                    fontSize: 12.5,
+                    height: 1.45,
                   ),
                 ),
-                if (couple.inviteCode.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.accentLove.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          couple.inviteCode,
-                          style: const TextStyle(
-                            color: AppColors.accentLoveDeep,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 3,
-                          ),
-                        ),
-                      ),
-                      InviteActionButtons(
-                        code: couple.inviteCode,
-                        onDark: false,
-                        iconOnly: true,
-                      ),
-                    ],
-                  ),
-                ],
+                ?child,
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Share sheet for the invite code — same message + analytics event as
+  /// [InviteActionButtons] (kept in sync deliberately; the checklist needs a
+  /// full-width primary CTA that the compact pill cluster can't provide).
+  Future<void> _shareInviteCode(String code) async {
+    final message = context.l10n.inviteShareMessage(code);
+    // iPad/macOS need a popover origin or the share sheet crashes.
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = (box != null && box.hasSize)
+        ? (box.localToGlobal(Offset.zero) & box.size)
+        : null;
+    AnalyticsService.instance.logInviteShared('share_sheet');
+    try {
+      await SharePlus.instance.share(
+        ShareParams(text: message, sharePositionOrigin: origin),
+      );
+    } catch (_) {
+      // OS-driven failures stay silent (no error toast), per design.
+    }
+  }
+
+  void _copyInviteCode(String code) {
+    Clipboard.setData(ClipboardData(text: code));
+    AnalyticsService.instance.logInviteShared('copy');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.inviteCodeCopiedMsg),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

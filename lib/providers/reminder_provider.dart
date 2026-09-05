@@ -1100,6 +1100,49 @@ class ReminderProvider extends ChangeNotifier {
     await _service.schedulePersonalCatchup(slots);
   }
 
+  // ---------------------------------------------------------------------------
+  // Invite follow-ups (feature onboarding, 2026-09-05) — band 1180–1189. While
+  // the couple is still `waiting_partner`, nudge the lone member 24h + 72h after
+  // the couple was created so a partner who never joined doesn't silently kill
+  // the account. LOCAL only (the partner has no device in this couple yet).
+  // ---------------------------------------------------------------------------
+
+  String? _inviteFollowUpSignature;
+
+  /// (Re)arm or clear the invite follow-ups. Wired from HomeScreen alongside the
+  /// reminder sync. [waiting] false cancels the band (partner joined). [anchor]
+  /// is the couple's creation time, falling back to now for legacy couples with
+  /// no usable timestamp. Debounced on (waiting | anchor) so the frequent
+  /// rebuilds don't thrash the OS schedule.
+  Future<void> refreshInviteFollowUps({
+    required bool waiting,
+    DateTime? coupleCreatedAt,
+    required AppLocalizations l10n,
+  }) async {
+    if (!waiting) {
+      if (_inviteFollowUpSignature == null) {
+        return;
+      }
+      _inviteFollowUpSignature = null;
+      await _service.cancelInviteFollowUps();
+      return;
+    }
+
+    final anchor = coupleCreatedAt ?? DateTime.now();
+    final signature =
+        'waiting|${anchor.millisecondsSinceEpoch}|${l10n.localeName}';
+    if (signature == _inviteFollowUpSignature) {
+      return;
+    }
+    _inviteFollowUpSignature = signature;
+
+    await _service.scheduleInviteFollowUps(
+      anchor: anchor,
+      title: l10n.inviteFollowUpTitle,
+      bodies: <String>[l10n.inviteFollowUpBody24h, l10n.inviteFollowUpBody72h],
+    );
+  }
+
   /// Clamp each minute-of-day to 0–1439, de-dupe, sort, cap at the max.
   List<int> _normalizeTimes(Iterable<int> raw) {
     final set = <int>{for (final m in raw) m.clamp(0, 24 * 60 - 1)};

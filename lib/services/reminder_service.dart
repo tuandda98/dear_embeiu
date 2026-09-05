@@ -132,6 +132,16 @@ class ReminderService {
   static const int _idPersonalCatchupBase = 1140;
   static const int _maxPersonalCatchup = 20;
 
+  // Invite follow-ups (feature onboarding, 2026-09-05), ids 1180–1189. ONE-SHOT
+  // nudges for the member who is still alone in a `waiting_partner` couple:
+  // 24h + 72h after the couple was created, "your partner hasn't joined yet —
+  // send the invite again". Outside [_autoIds] and every other band (personal
+  // 1100–1159, daily-question 1020–1052, lunar 1060–1099) so they never collide;
+  // owned solely by ReminderProvider.refreshInviteFollowUps, which cancels the
+  // whole band the moment the partner joins.
+  static const int _idInviteFollowUpBase = 1180;
+  static const int _maxInviteFollowUps = 10;
+
   // Partner reminders (feature partner-nudge, 2026-06-29): scheduled reminders
   // one partner set FOR the other, synced via Firestore and armed LOCALLY on the
   // recipient's device (so they fire in the recipient's own timezone). Reserved
@@ -727,6 +737,69 @@ class ReminderService {
     for (var i = 0; i < _maxPersonalCatchup; i++) {
       try {
         await _plugin.cancel(_idPersonalCatchupBase + i);
+      } catch (_) {
+        // Already in the desired state.
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Invite follow-ups (feature onboarding) — band 1180–1189.
+  // ---------------------------------------------------------------------------
+
+  /// (Re)arm the invite follow-up nudges: ONE-SHOTs at [anchor] + 24h and
+  /// [anchor] + 72h (the couple was created at [anchor]). Slots already in the
+  /// past are skipped; when BOTH are past — the couple has been waiting for days
+  /// and the app just got opened — a single nudge is armed at now + 24h so a
+  /// long-waiting member still gets reminded. [bodies] rotates over the armed
+  /// slots. Clears the band first, so this is safe to call repeatedly.
+  Future<void> scheduleInviteFollowUps({
+    required DateTime anchor,
+    required String title,
+    required List<String> bodies,
+  }) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelInviteFollowUps();
+    if (bodies.isEmpty) {
+      return;
+    }
+    final now = tz.TZDateTime.now(tz.local);
+    final base = tz.TZDateTime.from(anchor, tz.local);
+    final candidates = <tz.TZDateTime>[
+      base.add(const Duration(hours: 24)),
+      base.add(const Duration(hours: 72)),
+    ].where((when) => when.isAfter(now)).toList();
+    if (candidates.isEmpty) {
+      // Everything already elapsed → one catch-up ping a day from now.
+      candidates.add(now.add(const Duration(hours: 24)));
+    }
+    var id = _idInviteFollowUpBase;
+    for (var i = 0; i < candidates.length; i++) {
+      if (id >= _idInviteFollowUpBase + _maxInviteFollowUps) {
+        return;
+      }
+      await _scheduleAt(
+        id: id,
+        when: candidates[i],
+        title: title,
+        body: bodies[i % bodies.length],
+      );
+      id++;
+    }
+  }
+
+  /// Cancel the invite follow-up band (1180–1189) — called as soon as the
+  /// partner joins (or the member leaves the waiting state).
+  Future<void> cancelInviteFollowUps() async {
+    if (!_initialized) {
+      return;
+    }
+    for (var i = 0; i < _maxInviteFollowUps; i++) {
+      try {
+        await _plugin.cancel(_idInviteFollowUpBase + i);
       } catch (_) {
         // Already in the desired state.
       }

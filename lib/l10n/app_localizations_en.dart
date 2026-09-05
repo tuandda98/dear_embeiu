@@ -9,6 +9,158 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get aiQuestionsTitle => 'AI-personalised questions';
+
+  @override
+  String get aiQuestionsSubtitle =>
+      'Uses the last 30 days of both your answers to write a question just for the two of you. The data is only used to create questions, never for training. Turn it off any time.';
+
+  @override
+  String get aiQuestionsDialogTitle => 'Turn on personalised questions?';
+
+  @override
+  String get aiQuestionsDialogBody =>
+      'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time.';
+
+  @override
+  String get aiQuestionsDialogConfirm => 'Turn on';
+
+  @override
+  String get introSkip => 'Skip';
+
+  @override
+  String get introNext => 'Next';
+
+  @override
+  String get introStart => 'Get started';
+
+  @override
+  String get introSlide1Badge => 'LOVE COUNTER';
+
+  @override
+  String get introSlide1Title => 'Count every day together';
+
+  @override
+  String get introSlide1Body =>
+      'See how long you have been together, reach every milestone, and watch your love tree grow day by day.';
+
+  @override
+  String get introSlide2Badge => 'EVERY DAY';
+
+  @override
+  String get introSlide2Title => 'Memories & a question a day';
+
+  @override
+  String get introSlide2Body =>
+      'A shared photo library, a daily question for both of you, your connection streak, and a chat corner just for the two of you.';
+
+  @override
+  String get introSlide3Badge => 'IT TAKES TWO';
+
+  @override
+  String get introSlide3Title => 'It takes both of you';
+
+  @override
+  String get introSlide3Body =>
+      'Dear Embeiu is a space for two. You create an invite code, your partner downloads the app (iOS/Android) and enters the code — that\'s it.';
+
+  @override
+  String get featureTourBadge => 'WHAT\'S NEW';
+
+  @override
+  String featureTourVersionTitle(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get featureTourGotIt => 'Got it';
+
+  @override
+  String get featureTourSettingsTile => 'What\'s new';
+
+  @override
+  String get featureTourSettingsTileSub =>
+      'Take another look at the latest features';
+
+  @override
+  String get featureTourCareTitle => 'Send a little care';
+
+  @override
+  String get featureTourCareBody =>
+      'Write a short message and your partner gets a notification right away.';
+
+  @override
+  String get featureTourQuestionsTitle => 'Fresher daily questions';
+
+  @override
+  String get featureTourQuestionsBody =>
+      'Questions that follow the week, the month and your mood, a way to look back at old answers, and an optional AI personalisation you can turn on in Settings.';
+
+  @override
+  String get featureTourInviteTitle => 'Easier to invite your partner';
+
+  @override
+  String get featureTourInviteBody =>
+      'Share a download link together with your invite code, with step-by-step guidance.';
+
+  @override
+  String get homeWaitingBadge => 'WAITING FOR THEM';
+
+  @override
+  String get homeWaitingStep1Title => 'Send the invite';
+
+  @override
+  String get homeWaitingStep1Desc =>
+      'Send this invite code to your partner in a message.';
+
+  @override
+  String get homeWaitingStep1Cta => 'Send it to them 💌';
+
+  @override
+  String get homeWaitingStep1Copy => 'Copy code';
+
+  @override
+  String get homeWaitingStep2Title => 'They install the app and sign up';
+
+  @override
+  String get homeWaitingStep2Desc =>
+      'They need to install Dear Embeiu (iOS/Android), sign up, then pick <Enter invite code>.';
+
+  @override
+  String get homeWaitingStep3Title => 'Entering the code is all it takes';
+
+  @override
+  String get homeWaitingStep3Desc =>
+      'Once you are paired the app switches over by itself and you get a notification.';
+
+  @override
+  String get homeWaitingMeanwhileTitle => 'While you wait, you can already:';
+
+  @override
+  String get homeWaitingMeanwhileItem1 => 'Set your anniversary date';
+
+  @override
+  String get homeWaitingMeanwhileItem2 => 'Add memories';
+
+  @override
+  String get homeWaitingMeanwhileItem3 => 'Answer today\'s question';
+
+  @override
+  String get homeWaitingMeanwhileFooter =>
+      'They will see all of it when they join.';
+
+  @override
+  String get inviteFollowUpTitle => 'Your partner hasn\'t joined yet 💌';
+
+  @override
+  String get inviteFollowUpBody24h =>
+      'Send the invite again — it only takes 10 seconds';
+
+  @override
+  String get inviteFollowUpBody72h =>
+      'Our memories are waiting for them. Remind them to download the app';
+
+  @override
   String get back => 'Back';
 
   @override
@@ -1553,7 +1705,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String inviteShareMessage(String code) {
-    return 'I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: $code';
+    return 'I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: $code\nGet the app & enter the code at: https://dearembeiu.com/get?code=$code';
   }
 
   @override

@@ -246,6 +246,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
     bool isWaiting,
   ) {
     final question = daily.todayQuestion(langCode);
+    final hint = daily.hintFor(langCode);
     return [
       Text(
         question,
@@ -257,6 +258,22 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
           letterSpacing: -0.2,
         ),
       ),
+      // Per-user hint from the question engine (e.g. revisit: "Hồi đó bạn
+      // viết: …") — never persisted, so it is safe to be personal.
+      if (hint != null && hint.isNotEmpty) ...[
+        const SizedBox(height: 8),
+        Text(
+          hint,
+          style: const TextStyle(
+            fontFamily: AppTheme.fontFamily,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            fontStyle: FontStyle.italic,
+            color: AppColors.accentLavender,
+            height: 1.35,
+          ),
+        ),
+      ],
       const SizedBox(height: 14),
       ..._buildQuestionBody(l10n, daily, question, partnerName, isWaiting),
     ];

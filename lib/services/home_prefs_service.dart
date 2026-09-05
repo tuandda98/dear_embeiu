@@ -146,6 +146,36 @@ class HomePrefsService {
     }).handleError((_) {});
   }
 
+  /// Streams the couple-shared opt-in for AI-personalised daily questions
+  /// (feature endless-questions, 2026-09-05). Absent = false (opt-in), and the
+  /// local fallback simply never emits (AI needs Firebase anyway).
+  Stream<bool> watchAiQuestionsEnabled(String coupleId) {
+    if (coupleId.trim().isEmpty || !isUsingFirebase) {
+      return const Stream<bool>.empty();
+    }
+    return _doc(coupleId).snapshots().map((snapshot) {
+      final raw = snapshot.data()?['aiQuestionsEnabled'];
+      return raw is bool && raw;
+    }).handleError((_) {});
+  }
+
+  /// Publishes the AI-questions opt-in for BOTH partners (merge, fail-soft) —
+  /// one switch, one shared question, so it deliberately lives next to the
+  /// other couple-shared prefs rather than on-device.
+  Future<void> setAiQuestionsEnabled(String coupleId, bool enabled) async {
+    if (coupleId.trim().isEmpty || !isUsingFirebase) {
+      return;
+    }
+    try {
+      await _doc(coupleId).set(
+        <String, Object?>{'aiQuestionsEnabled': enabled},
+        SetOptions(merge: true),
+      );
+    } catch (_) {
+      // Fail-soft — sync catches up on the next successful write.
+    }
+  }
+
   /// Publishes the shared daily-question reminder prefs (merge). Best-effort.
   Future<void> setReminderPrefs(
     String coupleId, {
