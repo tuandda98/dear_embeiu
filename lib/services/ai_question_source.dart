@@ -21,7 +21,9 @@ class AiQuestionSource implements QuestionSource {
   final FirebaseFunctions? _functions;
 
   /// Server-side budget is ~10s; keep a little headroom over it.
-  static const Duration _timeout = Duration(seconds: 15);
+  // Bounded so the first phone of the day is never blocked long: the engine
+  // falls back to template/bank when this elapses.
+  static const Duration _timeout = Duration(seconds: 8);
 
   @override
   String get key => 'ai';

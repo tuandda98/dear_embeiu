@@ -260,6 +260,18 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
       ),
       // Per-user hint from the question engine (e.g. revisit: "Hồi đó bạn
       // viết: …") — never persisted, so it is safe to be personal.
+      if (daily.isResolvingQuestion) ...[
+        const SizedBox(height: 6),
+        Text(
+          l10n.dailyQuestionPreparing,
+          style: TextStyle(
+            fontFamily: AppTheme.fontFamily,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary.withValues(alpha: 0.55),
+          ),
+        ),
+      ],
       if (hint != null && hint.isNotEmpty) ...[
         const SizedBox(height: 8),
         Text(

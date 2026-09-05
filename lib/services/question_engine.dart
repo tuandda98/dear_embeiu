@@ -9,6 +9,8 @@ import 'bank_question_source.dart';
 import 'daily_question_service.dart';
 import 'firebase_bootstrap_service.dart';
 import 'question_source.dart';
+import 'revisit_question_source.dart'
+    show truncateForQuote, kRevisitHintMaxChars;
 import 'question_state_service.dart';
 import 'template_question_source.dart';
 
@@ -196,6 +198,7 @@ class QuestionEngine {
         return resolved;
       }
     } catch (_) {
+      _publishFailed = true;
       // Offline/denied → keep going; we can still propose a question locally.
     }
 
@@ -239,21 +242,26 @@ class QuestionEngine {
     }
 
     // (e) Publish on the marker — first writer wins, the loser adopts theirs.
+    _publishFailed = false;
     final winner = await _publish(markerRef, dateKey, candidate);
     if (winner != null) {
       return winner;
     }
 
-    // (f) Remember what we used (best-effort, never blocks).
-    unawaited(
-      _stateService.record(
-        coupleId: coupleId,
-        current: state,
-        bankId: candidate.source == 'bank' ? candidate.questionId : null,
-        templateKey: candidate.templateKey,
-        revisitDate: candidate.refDate,
-      ),
-    );
+    // (f) Remember what we used (best-effort, never blocks) — but only when the
+    // marker write actually landed; a failed publish must not mark the bank
+    // id / template key as "asked".
+    if (!_publishFailed) {
+      unawaited(
+        _stateService.record(
+          coupleId: coupleId,
+          current: state,
+          bankId: candidate.source == 'bank' ? candidate.questionId : null,
+          templateKey: candidate.templateKey,
+          revisitDate: candidate.refDate,
+        ),
+      );
+    }
 
     return ResolvedQuestion(
       questionVi: candidate.questionVi,
@@ -367,7 +375,7 @@ class QuestionEngine {
       if (text.isEmpty) {
         return base;
       }
-      final short = text.length > 80 ? '${text.substring(0, 80)}…' : text;
+      final short = truncateForQuote(text, kRevisitHintMaxChars);
       return ResolvedQuestion(
         questionVi: base.questionVi,
         questionEn: base.questionEn,
@@ -382,6 +390,10 @@ class QuestionEngine {
       return base;
     }
   }
+
+  /// Set by [_publish] when the transaction threw (offline / denied) so the
+  /// caller can skip recording state for a question that never landed.
+  bool _publishFailed = false;
 
   ResolvedQuestion? _fromMarker(Map<String, dynamic>? data) {
     if (data == null) {

@@ -628,7 +628,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
     final moods = context.read<MoodProvider>();
-    final photos = context.read<PhotoProvider>().photos;
+    final photoProvider = context.read<PhotoProvider>();
+    final photos = photoProvider.photos;
     final now = DateTime.now();
     final weekStart = DateTime(now.year, now.month, now.day - (now.weekday - 1));
     final photosThisWeek =
@@ -641,8 +642,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       currentStreak: context.read<StreakProvider>().currentStreak,
       myMood: moods.myMood?.mood,
       partnerMood: moods.partnerMood?.mood,
-      // Empty list may just mean "not loaded yet" → unknown (-1), never 0.
-      photosThisWeek: photos.isEmpty ? -1 : photosThisWeek,
+      // Still loading → unknown (-1), never 0. A couple with no photos at all
+      // legitimately reports 0 once the load has finished.
+      photosThisWeek: photoProvider.isLoading ? -1 : photosThisWeek,
       partnerUid: partnerUid,
       languageCode: Localizations.localeOf(context).languageCode,
       anniversaryDate: couple.anniversaryDate,

@@ -359,6 +359,16 @@ class DailyQuestionProvider extends ChangeNotifier {
     _resolved = null;
     _resolvedKey = null;
     _isResolving = false;
+    // Context belongs to the couple that just left; the next couple must wait
+    // for Home to feed its own (otherwise a sign-out → sign-in without a
+    // restart would resolve with the previous couple's streak/anniversary).
+    _contextReady = false;
+    _currentStreak = 0;
+    _photosThisWeek = -1;
+    _myMood = null;
+    _partnerMood = null;
+    _partnerUid = '';
+    _anniversaryDate = null;
     notifyListeners();
   }
 

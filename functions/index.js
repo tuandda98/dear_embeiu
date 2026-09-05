@@ -1098,6 +1098,11 @@ exports.notifyDailyAnswer = onDocumentCreated(
           .collection("couples").doc(coupleId)
           .collection("dailyAnswers").doc(date)
           .set({
+            // `date` is REQUIRED on the marker: the streak + journal queries
+            // orderBy('date') and Firestore drops docs missing the field. When
+            // both clients failed to publish (offline), this stamp CREATES the
+            // marker, so without `date` the day would vanish from both.
+            date,
             bothAnswered: true,
             revealedAt: admin.firestore.FieldValue.serverTimestamp(),
           }, {merge: true});

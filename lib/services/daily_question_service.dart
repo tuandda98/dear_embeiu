@@ -180,7 +180,30 @@ class DailyQuestionService {
         tx.set(markerRef, payload, SetOptions(merge: true));
       });
     } catch (_) {
-      // Ignore — the answer itself is already saved; the marker is auxiliary.
+      // Transactions have no offline mutation queue: they fail immediately
+      // without a network. Fall back to a queued merge so the marker (with
+      // `date`, which the streak/journal queries need) still lands when the
+      // phone is back online. The rule keeps this safe: if the other phone
+      // published a different question meanwhile, the merge is simply denied.
+      try {
+        final parsedDate = _dateFromKey(dateKey);
+        final vi = questionVi?.trim();
+        final en = questionEn?.trim();
+        final src = source?.trim();
+        await _dailyAnswers(coupleId).doc(dateKey).set(<String, Object?>{
+          'date': dateKey,
+          'questionVi': (vi != null && vi.isNotEmpty)
+              ? vi
+              : questionTextForCouple(parsedDate, coupleId, 'vi'),
+          'questionEn': (en != null && en.isNotEmpty)
+              ? en
+              : questionTextForCouple(parsedDate, coupleId, 'en'),
+          'source': (src != null && src.isNotEmpty) ? src : 'bank',
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (_) {
+        // Ignore — the answer itself is already saved; the marker is auxiliary.
+      }
     }
 
     // Streak flag (feature streak, D-PO-2): once BOTH members have answered

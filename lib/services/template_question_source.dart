@@ -196,6 +196,12 @@ class TemplateQuestionSource implements QuestionSource {
       if (t.needsDays && (milestone == null || milestone.offset < 1)) {
         return false;
       }
+      // "Gần … ngày bên nhau rồi" is wrong once the milestone is today or
+      // already behind us (the ±3-day window covers both).
+      if (t.topic == 'look_back' &&
+          (milestone == null || milestone.offset < 1)) {
+        return false;
+      }
       if (t.needsStreak && ctx.currentStreak <= 0) {
         return false;
       }

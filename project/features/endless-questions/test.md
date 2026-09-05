@@ -26,3 +26,20 @@ Pre-flight: analyze 0 · test 81/81 · rules-test 238 · `node --check functions
 
 ### Chỉ test được runtime
 2 máy cùng ngày (race publish/adopt); CF với key thật (`claude-opus-5` + `output_config.json_schema` trên SDK 0.124); PROD chưa deploy; chi phí thực; offline `get()` trên thiết bị.
+
+## Vòng 2 — [2026-09-05] [Tester] Xác minh 9 bản vá (commit `fe53eaa`) — ✅ PASS mục tiêu, phát hiện 1 P1 mới → [Dev] đã vá cùng ngày
+Pre-flight: analyze 0 · test 81/81 · rules-test 241 · `node --check` OK · 2 probe rules trên emulator (merge `{date,updatedAt}` lên marker đã có câu = ALLOW; publish lên marker `{date,aiAttempts}` = ALLOW; client cũ DENY bị nuốt; `size()` đếm ký tự).
+| # | Mức | Bug mới | Vá |
+|---|---|---|---|
+| B5 | **P1** | CF stamp `bothAnswered` KHÔNG kèm `date`; marker do CF tạo mới bị `orderBy('date')` của streak/journal LOẠI (verified emulator); transaction client không có mutation-queue offline nên dễ rơi vào cảnh này hơn | ✅ CF stamp thêm `date`; `submitAnswer` khi transaction fail → fallback `set(merge)` xếp hàng offline (rule bất biến giữ an toàn). Deploy DEV trace `20260905T122337Z`. |
+| B1 | P2 | `clear()` không reset `_contextReady`/context ⇒ đổi tài khoản không kill app resolve bằng context couple cũ | ✅ reset đủ trong `clear()`. |
+| B3 | P2 | `photos.isEmpty ? -1` vô hiệu hook "chưa có ảnh" đúng với couple chưa có ảnh | ✅ dùng `PhotoProvider.isLoading`. |
+| B2 | P2 | `_contextReady` chưa đảm bảo streak/mood đã emit ở frame đầu (bỏ lỡ hook, không bắn sai) | ⏳ [CẦN TEST runtime]. |
+| B8 | P2 | Chặn trả lời khi resolve mà không có tín hiệu; AI tới 15s | ✅ caption "Đang chuẩn bị câu hỏi…" trên card khi resolving; AI timeout 8s. |
+| B4 | P2 latent | Marker `questionVi: ''` khoá vĩnh viễn | ✅ rules coi chuỗi rỗng là chưa có (`get('questionVi','') == ''`); +2 test → **243**. |
+| B6 | P3 | Hint dựng lại cắt khác bản gốc | ✅ dùng chung `truncateForQuote`. |
+| B7 | P3 | Handler toggle cũ xoá `_pending` mới | ✅ `_toggleSeq`. |
+| B9 | P3 | Trả lời đúng lúc qua nửa đêm ghi câu bank | ⏳ nợ (hiếm). |
+| #7 v1 | P2 | Ghi `questionState` cả khi publish fail | ✅ `_publishFailed` → bỏ record. |
+| #6 v1 | P2 | Copy `look_back` khi mốc đã qua | ✅ lọc `look_back` khi `offset < 1`. |
+Nợ test: chưa có unit test cho `_contextReady`/`1 day`/hint rebuild (81 test không đổi).

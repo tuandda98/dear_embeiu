@@ -226,4 +226,26 @@ describe('firestore: question engine state', () => {
       ),
     );
   });
+
+  it('lets a member publish the question onto a marker that only has date+aiAttempts', async () => {
+    await seedDoc('couples/c1/dailyAnswers/2026-09-09', {date: '2026-09-09', aiAttempts: 1});
+    await assertSucceeds(
+      setDoc(
+        doc(authedDb('alice'), 'couples/c1/dailyAnswers/2026-09-09'),
+        {date: '2026-09-09', questionVi: 'Câu hỏi engine', questionEn: 'Engine question', source: 'template'},
+        {merge: true},
+      ),
+    );
+  });
+
+  it('treats an empty questionVi as absent (can still be filled in)', async () => {
+    await seedDoc('couples/c1/dailyAnswers/2026-09-10', {date: '2026-09-10', questionVi: '', questionEn: ''});
+    await assertSucceeds(
+      setDoc(
+        doc(authedDb('bob'), 'couples/c1/dailyAnswers/2026-09-10'),
+        {date: '2026-09-10', questionVi: 'Câu hỏi thật', questionEn: 'Real question'},
+        {merge: true},
+      ),
+    );
+  });
 });

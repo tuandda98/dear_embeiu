@@ -1524,6 +1524,7 @@ class _AiQuestionsTileState extends State<_AiQuestionsTile> {
   /// Optimistic value so the switch doesn't lag the round-trip; the stream
   /// (couple-shared truth) overrides it on the next emission.
   bool? _pending;
+  int _toggleSeq = 0;
 
   Future<void> _handleToggle(String coupleId, bool value) async {
     final l10n = context.l10n;
@@ -1562,11 +1563,16 @@ class _AiQuestionsTileState extends State<_AiQuestionsTile> {
     }
 
     setState(() => _pending = value);
+    final seq = ++_toggleSeq;
     AnalyticsService.instance.logEvent(
       'ai_questions_toggle',
       params: <String, Object?>{'enabled': value},
     );
     final ok = await _prefs.setAiQuestionsEnabled(coupleId, value);
+    // A newer toggle superseded this one — its handler owns `_pending` now.
+    if (seq != _toggleSeq) {
+      return;
+    }
     if (!ok && mounted) {
       // Rejected (rules not deployed / offline): don't lie with an ON switch.
       setState(() => _pending = null);
