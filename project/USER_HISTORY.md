@@ -411,3 +411,4 @@
 - [20:05] tạo 2 account test1@gmail.com và test2@gmail.com pass 12345678 và tạo sẵn 1 số data để có thể test đc ở sẻver dev
 - [20:11] tự test real device đi rồi report cho tôi
 - [20:36] để sent a care note trước your badge
+- [20:37] card note đồng thời cũng được lưu lại dòng thời gian như câu hỏi hằng ngày luôn, sau đó làm thêm 1 feature cho người dùng tự đặt câu hỏi hằng ngày hôm nay, nếu chưa ai trả lời, người dùng có quyền tự đặt câu hỏi hằng ngày hôm nay, brainstorme nó giúp tôi
