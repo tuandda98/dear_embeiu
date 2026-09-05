@@ -140,6 +140,8 @@ Firebase project `tonyembeiu` (us-central1). `.firebaserc`: `default`=`tonyembei
 
 **Deploy:** `npx firebase-tools deploy --only firestore:rules,storage --project tonyembeiu` | `--only functions`. **Trước deploy rules: `scripts/test-firebase-rules.sh`.**
 
+**Seed DEV test (2026-09-05):** `node scripts/dev-seed-test-couple.js` (chỉ DEV, từ chối prod; idempotent) → 2 tài khoản `test1@gmail.com` / `test2@gmail.com` mật khẩu `12345678` (emailVerified) ĐÃ GHÉP ĐÔI couple `test_couple_dev` mã `TEST22`, ngày yêu 2025-01-01, 45 ngày dailyAnswers bothAnswered (hôm nay trống), 2 reaction, mood, 3 ảnh (Storage DEV), 6 tin chat, 1 lời quan tâm. Chạy lại để reset dữ liệu mẫu.
+
 **Data ops PROD (sửa/backfill dữ liệu tay, 2026-08-23):** `node scripts/prod-daily-answer.js inspect <email> [days]` (read-only: couple + marker `dailyAnswers` + chuỗi tính y hệt client) · `restore <email> <YYYY-MM-DD> "<text>"` (backfill câu trả lời thiếu + stamp `bothAnswered` → nối chuỗi; từ chối ghi đè). Credential = firebase-admin qua refresh-token của `firebase-tools login` (ADC `authorized_user` tạm) — KHÔNG cần service-account key; `FB_PROJECT=tonyembeiu-dev` để trỏ DEV. ⚠️ `restore` kích CF `notifyDailyAnswer` (không guard ngày) ⇒ người ấy nhận 1 push/inbox cho ngày cũ + máy họ huỷ nhắc local hôm nay tới khi mở app. Tiền lệ: khôi phục chuỗi 79 ngày cho `dodaoanhtuan@gmail.com` 2026-08-23 + lần 2 ngày 2026-09-05 (backfill Em Bé Iu 08-29 → 92 ngày liên tục; xem `features/streak/dev.md`). Gotcha: `getaddrinfo ENOTFOUND identitytoolkit.googleapis.com` là resolver macOS chập chờn — retry sau ~1 phút, không phải lỗi credential.
 
 ---
