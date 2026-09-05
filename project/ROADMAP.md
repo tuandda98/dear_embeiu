@@ -19,7 +19,7 @@
 
 ## Đang làm
 
-> **📌 Brainstorm 2026-09-05 (tối, chưa dev):** **care-message → timeline** (lời quan tâm vào Nhật ký theo ngày, client-only) → [overview](features/care-message/overview.md) · **`custom-question`** (tự đặt câu hỏi hôm nay khi chưa ai trả lời; cần `answeredBy` trên marker + ngoại lệ rule + CF push) → [overview](features/custom-question/overview.md).
+> **📌 Brainstorm 2026-09-05 (tối, chưa dev):** **care-message → timeline** (lời quan tâm vào Nhật ký theo ngày, client-only) → [overview](features/care-message/overview.md). ❌ Ý "tự đặt câu hỏi hôm nay" đã **BỎ** theo user (2026-09-05): cả hai luôn trả lời câu hỏi của hệ thống, không ai đặt/sửa câu hỏi.
 
 > **📌 Phiên 2026-09-05 (đợt 2 — 9 agent song song, user uỷ quyền chốt theo đề xuất) — 💻 Dev XONG `onboarding` + `endless-questions`, 🧪 Tester đang soi, PROD chờ lệnh:** **`onboarding`** (intro lần đầu + "cần cả hai": link tải trong tin mời + trang `dearembeiu.com/get`, checklist chờ partner + nhắc lại 24h/72h, feature tour theo version, intro 3 slide) → [overview](features/onboarding/overview.md) · **`endless-questions`** (engine 4 tầng: marker = nguồn sự thật, chọn theo `askedBankIds` thay `% n`, template thời gian/ngữ cảnh/lịch/mood/mốc, "nhìn lại" từ lịch sử, AI opt-in) → [overview](features/endless-questions/overview.md). ⚠️ Bank 229 câu sẽ lặp từ ~giữa 01/2027; thêm câu vào bank hiện tại = xáo trộn hoán vị mọi cặp.
 
