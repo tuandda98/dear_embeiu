@@ -1,6 +1,6 @@
 # Endless questions — Câu hỏi không bao giờ hết, theo thời gian & theo lịch sử của chính cặp đôi
 
-> File PO sở hữu. **Trạng thái: 📋 Brainstorm 2026-09-05 — chờ user chốt phạm vi.** Mở rộng feature [daily-question](../daily-question/overview.md).
+> File PO sở hữu. **Trạng thái: 💻 Dev XONG 2026-09-05 (5 agent song song: Q1 engine+template · Q2 nhìn lại · Q3 AI client+toggle · B2 rules+CF · Q4 bank +150) — 🧪 Tester code-level đang soi; AI opt-in, DEV secret placeholder, PROD chờ lệnh.** User uỷ quyền chốt theo đề xuất (làm đủ 4 tầng, AI opt-in). Chi tiết: [dev.md](dev.md).
 
 ## 1. Hiện trạng & vì sao sẽ hết
 - Bank tĩnh **229 câu** (`lib/data/daily_questions.dart`), chọn = hoán vị cố định theo `coupleId` rồi lấy `daysSinceEpoch % 229`. Không lặp trong 1 chu kỳ, **sau 229 ngày lặp lại y nguyên**. Cặp dùng từ đầu tháng 6/2026 → **lặp từ khoảng giữa tháng 1/2027**.

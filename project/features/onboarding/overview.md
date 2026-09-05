@@ -1,6 +1,6 @@
 # Onboarding — Giới thiệu app lần đầu mở + "cần cả hai mới có ý nghĩa"
 
-> File PO sở hữu. **Trạng thái: 📋 Brainstorm 2026-09-05 — chờ user chốt phạm vi.** Chưa design, chưa dev.
+> File PO sở hữu. **Trạng thái: 💻 Dev XONG 2026-09-05 (4 agent song song: O1 landing+link · O2 checklist+nhắc lại · O3 feature tour · O4 intro) — 🧪 Tester code-level đang soi, chờ smoke-test máy thật.** User uỷ quyền chốt theo đề xuất (làm cả 4 mục). Chi tiết: [dev.md](dev.md).
 
 - **Feature:** onboarding
 - **Ưu tiên đề xuất:** P0 cho phần "B phải tải app" (phễu ghép đôi = điểm nghẽn lớn nhất, CLAUDE.md §11), P1 cho intro slides.
