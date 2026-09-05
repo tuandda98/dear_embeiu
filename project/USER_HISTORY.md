@@ -414,3 +414,4 @@
 - [20:37] card note đồng thời cũng được lưu lại dòng thời gian như câu hỏi hằng ngày luôn, sau đó làm thêm 1 feature cho người dùng tự đặt câu hỏi hằng ngày hôm nay, nếu chưa ai trả lời, người dùng có quyền tự đặt câu hỏi hằng ngày hôm nay, brainstorme nó giúp tôi
 - [20:43] bỏ cái sửa câu hỏi đi, không ai đc sửa câu hỏi
 - [20:45] không cho đặt câu hỏi hôm nay, xoá điều đấy, cả 2 phải trả lời câu hỏi của hệ thống
+- [20:46] lời quan tâm giống chứ ko phỉa là vào Nhật ký theo ngày đ

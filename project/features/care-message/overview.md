@@ -21,14 +21,13 @@
 ## 3. Ngoài phạm vi (v1)
 - Không sửa/xoá tin đã gửi · không rate-limit phía client · không màn hình riêng khi tap push (chỉ về Home).
 
-## [2026-09-05] Mở rộng: Quan tâm vào DÒNG THỜI GIAN (Nhật ký) — 📋 Brainstorm, chờ user chốt
-- **Yêu cầu:** lời quan tâm được lưu và xem lại theo dòng thời gian như câu hỏi hằng ngày.
-- **Hiện trạng:** Nhật ký chỉ liệt kê ngày có cả 2 câu trả lời (`JournalDay`), phân trang theo marker `dailyAnswers`. Lời quan tâm đã nằm vĩnh viễn ở `careMessages` (createdAt), chỉ chưa có chỗ xem lại ngoài "Đã gửi gần đây" (20 tin) và Trung tâm thông báo.
+## [2026-09-05] Mở rộng: DÒNG THỜI GIAN QUAN TÂM riêng (như Nhật ký câu hỏi, nhưng TÁCH BIỆT) — 📋 Brainstorm, chờ user chốt
+- **Yêu cầu (user chốt 2026-09-05):** lời quan tâm có dòng thời gian **riêng**, giống cách Nhật ký lưu câu hỏi hằng ngày; **KHÔNG trộn** vào Nhật ký câu hỏi theo ngày.
+- **Hiện trạng:** `careMessages` lưu vĩnh viễn (createdAt), chỉ xem được 20 tin ở "Đã gửi gần đây" và trong Trung tâm thông báo.
 - **Đề xuất (client-only, không đổi rules):**
-  1. Nhật ký thành **timeline theo ngày**: mỗi thẻ ngày = câu hỏi + 2 câu trả lời (nếu có) **+ dải "Quan tâm"** liệt kê lời nhắn 2 chiều trong ngày (avatar chữ cái người gửi + title, chạm mở body; >3 tin hiện "+k"). Ngày **chỉ có quan tâm** vẫn hiện (thẻ nhẹ hơn, không câu hỏi).
-  2. Tải: query `careMessages orderBy createdAt desc` theo cửa sổ ngày của trang Nhật ký đang xem, gộp client-side vào `JournalDay` (thêm `careNotes: List<CareMessage>`). Ngày không có marker nhưng có note → tạo thẻ "chỉ note".
-  3. Trung tâm thông báo: tap `care_message` → mở **Nhật ký đúng ngày** (thay vì về Home) — tái dùng cơ chế `focusDate` của daily_question.
-  4. Profile: ô "Nhật ký" giữ số câu hỏi; thêm dòng phụ "+N lời quan tâm" (tuỳ chọn).
-  5. Lọc nhanh trên Nhật ký: chip "Tất cả · Câu hỏi · Quan tâm" (P2, làm sau nếu cần).
-- **Edge:** couple gửi nhiều tin/ngày → gom + "+k"; múi giờ 2 máy khác nhau → ngày tính theo giờ máy đang xem (chấp nhận, giống mood); tin do mình gửi hiện "Mình", của người ấy hiện tên.
-- **Ước lượng:** 0.5–1 ngày Dev, không deploy.
+  1. Màn mới **"Dòng thời gian quan tâm"** (`care_timeline_screen.dart`): header chip-only "QUAN TÂM", danh sách **gom theo ngày** (nhãn ngày kiểu Nhật ký: Hôm nay / Hôm qua / dd MMM), mỗi tin = thẻ nhỏ có avatar chữ cái người gửi (Mình / tên người ấy), title đậm + body trọn, giờ gửi. Phân trang cuộn vô hạn 30 tin/lần (`orderBy createdAt desc`, `startAfter`). Trạng thái rỗng: minh hoạ + nút "Gửi lời quan tâm đầu tiên".
+  2. Điểm vào: (a) màn "Gửi quan tâm" — mục "Đã gửi gần đây" đổi thành 5 tin gần nhất + nút "Xem tất cả" → timeline; (b) Profile: tile "Gửi quan tâm" thêm dòng phụ "N lời quan tâm · Xem dòng thời gian" hoặc tile riêng "Dòng thời gian quan tâm" (chọn 1 khi design); (c) Trung tâm thông báo: tap `care_message` → mở timeline **cuộn tới đúng tin** (highlight nhẹ) thay vì về Home.
+  3. Lọc nhanh (P2): chip "Tất cả · Mình gửi · Người ấy gửi".
+  4. Thống kê nhỏ ở đầu màn (P2): tổng số lời quan tâm + số ngày liên tiếp có gửi (không phải chuỗi chính, chỉ trang trí).
+- **Edge:** tin cùng ngày nhưng 2 máy khác múi giờ → gom theo giờ máy đang xem (giống mood); tin dài 200 ký tự hiện trọn (đã vá overflow); người dùng cũ chưa có tin → empty state.
+- **Ước lượng:** ~0.5–1 ngày Dev, không deploy backend. Có thể làm chung 1 agent với việc đổi "Đã gửi gần đây" → "Xem tất cả".
