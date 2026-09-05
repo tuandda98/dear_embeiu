@@ -9,6 +9,36 @@ class AppLocalizationsVi extends AppLocalizations {
   AppLocalizationsVi([String locale = 'vi']) : super(locale);
 
   @override
+  String get careTimelineBadge => 'DÒNG THỜI GIAN QUAN TÂM';
+
+  @override
+  String get careTimelineSeeAll => 'Xem tất cả';
+
+  @override
+  String get careTimelineTile => 'Dòng thời gian quan tâm';
+
+  @override
+  String careTimelineCount(int count) {
+    return '$count lời quan tâm';
+  }
+
+  @override
+  String get careTimelineYesterday => 'Hôm qua';
+
+  @override
+  String get careTimelineEmptyTitle => 'Chưa có lời quan tâm nào';
+
+  @override
+  String get careTimelineEmptyBody =>
+      'Mỗi lời nhắn nhỏ chúng mình gửi nhau đều được giữ lại ở đây, theo thứ tự thời gian.';
+
+  @override
+  String get careTimelineEmptyCta => 'Gửi lời quan tâm đầu tiên';
+
+  @override
+  String get careTimelineLoadError => 'Chưa tải được dòng thời gian.';
+
+  @override
   String get aiQuestionsTitle => 'Câu hỏi cá nhân hoá bằng AI';
 
   @override

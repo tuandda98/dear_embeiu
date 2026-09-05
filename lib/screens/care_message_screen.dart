@@ -14,6 +14,7 @@ import '../theme/app_theme.dart';
 import '../widgets/content_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/sub_screen_header.dart';
+import 'care_timeline_screen.dart';
 
 /// Opens the "send a care note" composer (feature care-message).
 ///
@@ -385,15 +386,23 @@ class _RecentCareMessages extends StatefulWidget {
 /// rebuilds on every keystroke (composer setState) and an inline
 /// `watchRecent()` in build would tear down + re-open the listener each time.
 class _RecentCareMessagesState extends State<_RecentCareMessages> {
+  /// Only the last FEW notes — the full history lives on the care timeline
+  /// ("Xem tất cả"), so this section stays a teaser.
+  static const int _recentLimit = 5;
+
   late Stream<List<CareMessage>> _stream = widget.service.watchRecent(
     widget.coupleId,
+    limit: _recentLimit,
   );
 
   @override
   void didUpdateWidget(covariant _RecentCareMessages oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.coupleId != widget.coupleId) {
-      _stream = widget.service.watchRecent(widget.coupleId);
+      _stream = widget.service.watchRecent(
+        widget.coupleId,
+        limit: _recentLimit,
+      );
     }
   }
 
@@ -411,7 +420,11 @@ class _RecentCareMessagesState extends State<_RecentCareMessages> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SectionHeader(title: l10n.careMessageRecentTitle),
+            SectionHeader(
+              title: l10n.careMessageRecentTitle,
+              actionLabel: l10n.careTimelineSeeAll,
+              onActionTap: () => openCareTimeline(context),
+            ),
             const SizedBox(height: 12),
             for (final item in items) ...[
               _CareMessageTile(message: item, myUid: myUid),

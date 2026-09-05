@@ -71,6 +71,7 @@ class AppNotification {
     this.bothAnswered = false,
     this.title,
     this.body,
+    this.careMessageId,
   });
 
   final String id;
@@ -101,6 +102,11 @@ class AppNotification {
   final String? title;
   final String? body;
 
+  /// care_message only: id of the `careMessages` doc, so a tap can open the
+  /// care timeline scrolled to that exact note (feature care-message,
+  /// 2026-09-05). Null on notes written before the timeline shipped.
+  final String? careMessageId;
+
   /// Which Home bottom-nav tab this notification should open when tapped.
   /// Photo-related → Gallery (2); chat → Chat (1); everything else → Home (0).
   /// ⚠️ Indices shifted when the chat tab landed at 1 (feature chat,
@@ -125,7 +131,8 @@ class AppNotification {
       // handler in notification_center_screen sends it straight to that day in
       // the Journal; Home is the cold-start fallback.
       case AppNotificationType.dailyAnswerReaction:
-      // A care note has no dedicated destination — just bring them Home.
+      // The notification center opens a care note in the care TIMELINE
+      // (scrolled to that note); Home is only the cold-start push fallback.
       case AppNotificationType.careMessage:
       case AppNotificationType.unknown:
         return 0; // Home
@@ -150,6 +157,7 @@ class AppNotification {
       bothAnswered: data['bothAnswered'] == true,
       title: _nullableString(data['title']),
       body: _nullableString(data['body']),
+      careMessageId: _nullableString(data['careMessageId']),
     );
   }
 
@@ -171,6 +179,7 @@ class AppNotification {
       bothAnswered: bothAnswered,
       title: title,
       body: body,
+      careMessageId: careMessageId,
     );
   }
 

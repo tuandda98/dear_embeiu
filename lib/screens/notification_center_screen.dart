@@ -13,6 +13,7 @@ import '../widgets/content_card.dart';
 import '../widgets/header_icon_button.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/sub_screen_header.dart';
+import 'care_timeline_screen.dart';
 import 'journal_screen.dart';
 
 /// In-app notification center (feature notifications). Lists the current
@@ -273,6 +274,23 @@ class _NotificationTile extends StatelessWidget {
               if ((n.type == AppNotificationType.dailyQuestion ||
                       n.type == AppNotificationType.dailyAnswerReaction) &&
                   _openJournalIfRevealed(context, n)) {
+                return;
+              }
+
+              // Care note: the couple's care notes live forever in their own
+              // timeline (feature care-message, 2026-09-05), so open it
+              // scrolled to this exact note instead of dumping the user on
+              // Home. Replaces the center so Back lands on Home.
+              // (careMessageId is null on notes written before the timeline
+              // shipped — the timeline then just opens at the top.)
+              if (n.type == AppNotificationType.careMessage) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute<void>(
+                    settings: const RouteSettings(name: 'CareTimeline'),
+                    builder: (_) =>
+                        CareTimelineScreen(focusMessageId: n.careMessageId),
+                  ),
+                );
                 return;
               }
 

@@ -1,5 +1,44 @@
 {
   "@@locale": "vi",
+  "careTimelineBadge": "DÒNG THỜI GIAN QUAN TÂM",
+  "@careTimelineBadge": {
+    "description": "Eyebrow chip on the care-notes timeline screen."
+  },
+  "careTimelineSeeAll": "Xem tất cả",
+  "@careTimelineSeeAll": {
+    "description": "Link next to the recent care notes that opens the full timeline."
+  },
+  "careTimelineTile": "Dòng thời gian quan tâm",
+  "@careTimelineTile": {
+    "description": "Profile tile opening the care-notes timeline."
+  },
+  "careTimelineCount": "{count} lời quan tâm",
+  "@careTimelineCount": {
+    "description": "Subtitle of the profile care-timeline tile: how many care notes exist.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "careTimelineYesterday": "Hôm qua",
+  "@careTimelineYesterday": {
+    "description": "Day header for care notes sent yesterday."
+  },
+  "careTimelineEmptyTitle": "Chưa có lời quan tâm nào",
+  "@careTimelineEmptyTitle": {
+    "description": "Empty state title on the care timeline (also the profile tile subtitle when the count is zero)."
+  },
+  "careTimelineEmptyBody": "Mỗi lời nhắn nhỏ chúng mình gửi nhau đều được giữ lại ở đây, theo thứ tự thời gian.",
+  "@careTimelineEmptyBody": {
+    "description": "Empty state body on the care timeline."
+  },
+  "careTimelineEmptyCta": "Gửi lời quan tâm đầu tiên",
+  "@careTimelineEmptyCta": {
+    "description": "Empty state button opening the care-note composer."
+  },
+  "careTimelineLoadError": "Chưa tải được dòng thời gian.",
+  "@careTimelineLoadError": {
+    "description": "Error state on the care timeline."
+  },
   "aiQuestionsTitle": "Câu hỏi cá nhân hoá bằng AI",
   "aiQuestionsSubtitle": "Dùng 30 ngày câu trả lời gần nhất của cả hai để tạo câu hỏi riêng cho chúng mình. Dữ liệu chỉ dùng để tạo câu hỏi, không dùng để huấn luyện. Tắt bất cứ lúc nào.",
   "aiQuestionsDialogTitle": "Bật câu hỏi cá nhân hoá?",

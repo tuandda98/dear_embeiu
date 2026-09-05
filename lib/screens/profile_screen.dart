@@ -12,6 +12,7 @@ import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/streak_provider.dart';
+import '../services/care_message_service.dart';
 import '../services/daily_question_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/animated_couple_name.dart';
@@ -30,6 +31,7 @@ import '../widgets/memories_sheet.dart';
 import '../widgets/records_sheet.dart';
 import '../widgets/streak_sheet.dart';
 import 'care_message_screen.dart';
+import 'care_timeline_screen.dart';
 import 'journal_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
@@ -120,6 +122,8 @@ class ProfileScreen extends StatelessWidget {
                           // trước Huy hiệu").
                           const SizedBox(height: 18),
                           _buildCareTile(context),
+                          const SizedBox(height: 10),
+                          _CareTimelineTile(coupleId: couple.id),
                           const SizedBox(height: 24),
                           _AchievementsGrid(
                             coupleId: couple.id,
@@ -931,4 +935,103 @@ class _MedalPalette {
     [Color(0xFFF58BB8), Color(0xFFDB5793)], // berry rose
     Color(0xFFD44A85),
   );
+}
+
+/// Entry point for the care-note TIMELINE (feature care-message, 2026-09-05) —
+/// sits right under the composer tile and shows how many notes the couple has
+/// exchanged.
+///
+/// Stateful for the same reason as [_AchievementsGrid]: the total is a one-shot
+/// Firestore `count()` aggregation, so it's fetched once and cached instead of
+/// re-querying on every Profile rebuild.
+class _CareTimelineTile extends StatefulWidget {
+  const _CareTimelineTile({required this.coupleId});
+
+  final String coupleId;
+
+  @override
+  State<_CareTimelineTile> createState() => _CareTimelineTileState();
+}
+
+class _CareTimelineTileState extends State<_CareTimelineTile> {
+  int? _count; // null while the aggregation is in flight
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCount();
+  }
+
+  Future<void> _loadCount() async {
+    final count = await CareMessageService().countAll(widget.coupleId);
+    if (mounted) {
+      setState(() => _count = count);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final count = _count;
+    // While loading, keep the subtitle neutral (no flash of "0 notes").
+    final subtitle = count == null
+        ? l10n.careMessageEntrySubtitle
+        : count == 0
+            ? l10n.careTimelineEmptyTitle
+            : l10n.careTimelineCount(count);
+
+    return InkTile(
+      borderRadius: 22,
+      onTap: () => openCareTimeline(context),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: 0.72),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.accentLove.withValues(alpha: 0.10),
+          ),
+        ),
+        child: Row(
+          children: [
+            const IconBadge(
+              IconsaxPlusLinear.clock,
+              tint: AppColors.accentLavender,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.careTimelineTile,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              IconsaxPlusLinear.arrow_right_3,
+              size: 18,
+              color: AppColors.textTertiary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -1,5 +1,44 @@
 {
   "@@locale": "en",
+  "careTimelineBadge": "CARE TIMELINE",
+  "@careTimelineBadge": {
+    "description": "Eyebrow chip on the care-notes timeline screen."
+  },
+  "careTimelineSeeAll": "See all",
+  "@careTimelineSeeAll": {
+    "description": "Link next to the recent care notes that opens the full timeline."
+  },
+  "careTimelineTile": "Care timeline",
+  "@careTimelineTile": {
+    "description": "Profile tile opening the care-notes timeline."
+  },
+  "careTimelineCount": "{count} care notes",
+  "@careTimelineCount": {
+    "description": "Subtitle of the profile care-timeline tile: how many care notes exist.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "careTimelineYesterday": "Yesterday",
+  "@careTimelineYesterday": {
+    "description": "Day header for care notes sent yesterday."
+  },
+  "careTimelineEmptyTitle": "No care notes yet",
+  "@careTimelineEmptyTitle": {
+    "description": "Empty state title on the care timeline (also the profile tile subtitle when the count is zero)."
+  },
+  "careTimelineEmptyBody": "Every little note the two of you send lands here, in order.",
+  "@careTimelineEmptyBody": {
+    "description": "Empty state body on the care timeline."
+  },
+  "careTimelineEmptyCta": "Send the first care note",
+  "@careTimelineEmptyCta": {
+    "description": "Empty state button opening the care-note composer."
+  },
+  "careTimelineLoadError": "Couldn't load the timeline.",
+  "@careTimelineLoadError": {
+    "description": "Error state on the care timeline."
+  },
   "aiQuestionsTitle": "AI-personalised questions",
   "aiQuestionsSubtitle": "Uses the last 30 days of both your answers to write a question just for the two of you. The data is only used to create questions, never for training. Turn it off any time.",
   "aiQuestionsDialogTitle": "Turn on personalised questions?",

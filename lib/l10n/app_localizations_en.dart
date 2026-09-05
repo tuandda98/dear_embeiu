@@ -9,6 +9,36 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get careTimelineBadge => 'CARE TIMELINE';
+
+  @override
+  String get careTimelineSeeAll => 'See all';
+
+  @override
+  String get careTimelineTile => 'Care timeline';
+
+  @override
+  String careTimelineCount(int count) {
+    return '$count care notes';
+  }
+
+  @override
+  String get careTimelineYesterday => 'Yesterday';
+
+  @override
+  String get careTimelineEmptyTitle => 'No care notes yet';
+
+  @override
+  String get careTimelineEmptyBody =>
+      'Every little note the two of you send lands here, in order.';
+
+  @override
+  String get careTimelineEmptyCta => 'Send the first care note';
+
+  @override
+  String get careTimelineLoadError => 'Couldn\'t load the timeline.';
+
+  @override
   String get aiQuestionsTitle => 'AI-personalised questions';
 
   @override

@@ -21,7 +21,7 @@
 ## 3. Ngoài phạm vi (v1)
 - Không sửa/xoá tin đã gửi · không rate-limit phía client · không màn hình riêng khi tap push (chỉ về Home).
 
-## [2026-09-05] Mở rộng: DÒNG THỜI GIAN QUAN TÂM riêng (như Nhật ký câu hỏi, nhưng TÁCH BIỆT) — 📋 Brainstorm, chờ user chốt
+## [2026-09-05] Mở rộng: DÒNG THỜI GIAN QUAN TÂM riêng (như Nhật ký câu hỏi, nhưng TÁCH BIỆT) — 💻 Dev xong, chờ smoke-test
 - **Yêu cầu (user chốt 2026-09-05):** lời quan tâm có dòng thời gian **riêng**, giống cách Nhật ký lưu câu hỏi hằng ngày; **KHÔNG trộn** vào Nhật ký câu hỏi theo ngày.
 - **Hiện trạng:** `careMessages` lưu vĩnh viễn (createdAt), chỉ xem được 20 tin ở "Đã gửi gần đây" và trong Trung tâm thông báo.
 - **Đề xuất (client-only, không đổi rules):**
@@ -31,3 +31,4 @@
   4. Thống kê nhỏ ở đầu màn (P2): tổng số lời quan tâm + số ngày liên tiếp có gửi (không phải chuỗi chính, chỉ trang trí).
 - **Edge:** tin cùng ngày nhưng 2 máy khác múi giờ → gom theo giờ máy đang xem (giống mood); tin dài 200 ký tự hiện trọn (đã vá overflow); người dùng cũ chưa có tin → empty state.
 - **Ước lượng:** ~0.5–1 ngày Dev, không deploy backend. Có thể làm chung 1 agent với việc đổi "Đã gửi gần đây" → "Xem tất cả".
+- **[2026-09-05] Đã implement (Dev, client-only, KHÔNG deploy):** màn `care_timeline_screen.dart` (chip "DÒNG THỜI GIAN QUAN TÂM", gom theo ngày, phân trang 30/lần, pull-to-refresh, empty state) + 3 điểm vào (a) "Xem tất cả" ở màn gửi (mục gần đây rút còn 5 tin), (b) tile riêng "Dòng thời gian quan tâm" dưới tile "Gửi quan tâm" ở Profile kèm số đếm, (c) Trung tâm thông báo tap `care_message` → mở timeline cuộn tới đúng tin (highlight 1.5s). Chi tiết ở [dev.md](dev.md). **Chưa làm:** lọc nhanh (P2) + thống kê đầu màn (P2). Chờ Tester smoke-test 2 máy.

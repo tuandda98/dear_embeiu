@@ -7,6 +7,30 @@ import 'package:firebase_core/firebase_core.dart';
 import '../models/care_message.dart';
 import 'firebase_bootstrap_service.dart';
 
+/// One page of care notes for the "care timeline" screen: the items plus the
+/// cursor needed to ask for the next page.
+///
+/// [lastDoc] is the raw Firestore snapshot of the LAST item (null when the page
+/// is empty) — pass it back as `startAfter`. [hasMore] is optimistic: it's true
+/// whenever the page came back full, so the final page costs one extra empty
+/// query instead of hiding the last few notes.
+class CareMessagePage {
+  const CareMessagePage({
+    required this.items,
+    this.lastDoc,
+    this.hasMore = false,
+  });
+
+  const CareMessagePage.empty()
+      : items = const <CareMessage>[],
+        lastDoc = null,
+        hasMore = false;
+
+  final List<CareMessage> items;
+  final DocumentSnapshot<Map<String, dynamic>>? lastDoc;
+  final bool hasMore;
+}
+
 /// Writes/reads the couple's "care notes" (feature care-message):
 /// `couples/{coupleId}/careMessages/{autoId}` — append-only (rules forbid
 /// update/delete), readable by both members.
@@ -78,6 +102,57 @@ class CareMessageService {
               .toList(growable: false),
         )
         .handleError((_) {});
+  }
+
+  /// Fetches ONE page of care notes, newest first (feature care-message —
+  /// "care timeline"). Unlike [watchRecent] this is a one-shot read so the
+  /// timeline can page through the couple's whole history without holding N
+  /// live listeners open.
+  ///
+  /// Fail-soft: any error (or no Firebase) yields an empty page, so a broken
+  /// history never throws into the list — the caller shows its empty state.
+  Future<CareMessagePage> fetchPage({
+    required String coupleId,
+    int limit = 30,
+    DocumentSnapshot<Map<String, dynamic>>? startAfter,
+  }) async {
+    if (coupleId.trim().isEmpty || !isUsingFirebase) {
+      return const CareMessagePage.empty();
+    }
+    try {
+      Query<Map<String, dynamic>> query = _collection(
+        coupleId.trim(),
+      ).orderBy('createdAt', descending: true);
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      final snapshot = await query.limit(limit).get();
+      final docs = snapshot.docs;
+      return CareMessagePage(
+        items: docs
+            .map((doc) => CareMessage.fromDoc(doc.id, doc.data()))
+            .toList(growable: false),
+        lastDoc: docs.isEmpty ? null : docs.last,
+        hasMore: docs.length >= limit,
+      );
+    } catch (_) {
+      return const CareMessagePage.empty();
+    }
+  }
+
+  /// Total number of care notes the couple ever exchanged (aggregation
+  /// `count()` — one cheap read, no documents transferred). Used for the
+  /// Profile tile subtitle. Returns 0 on any failure.
+  Future<int> countAll(String coupleId) async {
+    if (coupleId.trim().isEmpty || !isUsingFirebase) {
+      return 0;
+    }
+    try {
+      final agg = await _collection(coupleId.trim()).count().get();
+      return agg.count ?? 0;
+    } catch (_) {
+      return 0;
+    }
   }
 
   /// Trim + hard-clamp to [max] UTF-16 code units (what the security rule's

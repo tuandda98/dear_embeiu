@@ -98,6 +98,60 @@ abstract class AppLocalizations {
     Locale('vi'),
   ];
 
+  /// Eyebrow chip on the care-notes timeline screen.
+  ///
+  /// In en, this message translates to:
+  /// **'CARE TIMELINE'**
+  String get careTimelineBadge;
+
+  /// Link next to the recent care notes that opens the full timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get careTimelineSeeAll;
+
+  /// Profile tile opening the care-notes timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Care timeline'**
+  String get careTimelineTile;
+
+  /// Subtitle of the profile care-timeline tile: how many care notes exist.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} care notes'**
+  String careTimelineCount(int count);
+
+  /// Day header for care notes sent yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get careTimelineYesterday;
+
+  /// Empty state title on the care timeline (also the profile tile subtitle when the count is zero).
+  ///
+  /// In en, this message translates to:
+  /// **'No care notes yet'**
+  String get careTimelineEmptyTitle;
+
+  /// Empty state body on the care timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Every little note the two of you send lands here, in order.'**
+  String get careTimelineEmptyBody;
+
+  /// Empty state button opening the care-note composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the first care note'**
+  String get careTimelineEmptyCta;
+
+  /// Error state on the care timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the timeline.'**
+  String get careTimelineLoadError;
+
   /// No description provided for @aiQuestionsTitle.
   ///
   /// In en, this message translates to:
