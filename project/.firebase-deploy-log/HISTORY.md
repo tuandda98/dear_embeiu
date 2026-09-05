@@ -57,3 +57,24 @@ npx firebase-tools deploy --only firestore:rules,functions:notifyPartnerReminder
 - [20260905T113524Z] head=3848cb2 dirty=38 exit=? · `npx firebase-tools deploy --only firestore:rules,functions:generateDailyQuestion --project tonyembeiu-dev 2>&1 | tail -30` · snapshot `20260905T113524Z/`
 - [20260905T120412Z] head=9332239 dirty=36 exit=? · `npx firebase-tools deploy --only firestore:rules,functions:notifyDailyAnswer,functions:generateDailyQuestion --project tonyembeiu-dev 2>&1 | grep -E "✔|✖|Error|error|Deploy complete|Successful" | head -12; ls -t project/.firebase-deploy-log | head -1` · snapshot `20260905T120412Z/`
 - [20260905T122337Z] head=fc81880 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu; npx firebase-tools deploy --only firestore:rules,functions:notifyDailyAnswer --project tonyembeiu-dev 2>&1 | grep -E "✔|✖|Error|Deploy complete" | head -6; ls -td project/.firebase-deploy-log/*/ | head -1 | xargs basename` · snapshot `20260905T122337Z/`
+- [20260905T140508Z] head=21cbc69 dirty=2 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu
+python3 - <<'EOF'
+p='functions/index.js'; s=open(p,encoding='utf-8').read()
+old="""    const title = `${care.title || ""}`.trim().slice(0, 60);
+    const body = `${care.body || ""}`.trim().slice(0, 200);
+
+    if (!coupleId || !authorUserId || !title || !body) {"""
+new="""    const title = `${care.title || ""}`.trim().slice(0, 60);
+    const body = `${care.body || ""}`.trim().slice(0, 200);
+
+    // Seeded/backfilled notes (admin scripts write `backfill: true`) are
+    // history, not news: keep them out of the inbox and off the lock screen.
+    if (care.backfill === true) {
+      logger.info("Care message notification skipped for backfilled note.", {coupleId, messageId});
+      return;
+    }
+
+    if (!coupleId || !authorUserId || !title || !body) {"""
+assert s.count(old)==1; s=s.replace(old,new); open(p,'w',encoding='utf-8').write(s); print('CF ok')
+EOF
+node -c functions/index.js && npx firebase-tools deploy --only functions:notifyCareMessage --project tonyembeiu-dev 2>&1 | grep -E "✔|✖|Error|Deploy complete" | head -4` · snapshot `20260905T140508Z/`

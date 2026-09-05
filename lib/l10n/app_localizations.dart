@@ -98,10 +98,16 @@ abstract class AppLocalizations {
     Locale('vi'),
   ];
 
+  /// Profile badge label under the care-notes count
+  ///
+  /// In en, this message translates to:
+  /// **'care notes'**
+  String get badgeCareLabel;
+
   /// Eyebrow chip on the care-notes timeline screen.
   ///
   /// In en, this message translates to:
-  /// **'CARE TIMELINE'**
+  /// **'CARE NOTES'**
   String get careTimelineBadge;
 
   /// Link next to the recent care notes that opens the full timeline.
@@ -113,13 +119,13 @@ abstract class AppLocalizations {
   /// Profile tile opening the care-notes timeline.
   ///
   /// In en, this message translates to:
-  /// **'Care timeline'**
+  /// **'Care notes'**
   String get careTimelineTile;
 
   /// Subtitle of the profile care-timeline tile: how many care notes exist.
   ///
   /// In en, this message translates to:
-  /// **'{count} care notes'**
+  /// **'{count} notes between you'**
   String careTimelineCount(int count);
 
   /// Day header for care notes sent yesterday.

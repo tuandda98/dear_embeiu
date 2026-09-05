@@ -9,17 +9,20 @@ class AppLocalizationsVi extends AppLocalizations {
   AppLocalizationsVi([String locale = 'vi']) : super(locale);
 
   @override
-  String get careTimelineBadge => 'DÒNG THỜI GIAN QUAN TÂM';
+  String get badgeCareLabel => 'lời quan tâm';
+
+  @override
+  String get careTimelineBadge => 'LỜI QUAN TÂM';
 
   @override
   String get careTimelineSeeAll => 'Xem tất cả';
 
   @override
-  String get careTimelineTile => 'Dòng thời gian quan tâm';
+  String get careTimelineTile => 'Lời quan tâm';
 
   @override
   String careTimelineCount(int count) {
-    return '$count lời quan tâm';
+    return '$count lời nhắn cho nhau';
   }
 
   @override

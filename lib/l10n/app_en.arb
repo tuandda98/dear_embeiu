@@ -1,6 +1,8 @@
 {
   "@@locale": "en",
-  "careTimelineBadge": "CARE TIMELINE",
+  "badgeCareLabel": "care notes",
+  "@badgeCareLabel": {"description": "Profile badge label under the care-notes count"},
+  "careTimelineBadge": "CARE NOTES",
   "@careTimelineBadge": {
     "description": "Eyebrow chip on the care-notes timeline screen."
   },
@@ -8,11 +10,11 @@
   "@careTimelineSeeAll": {
     "description": "Link next to the recent care notes that opens the full timeline."
   },
-  "careTimelineTile": "Care timeline",
+  "careTimelineTile": "Care notes",
   "@careTimelineTile": {
     "description": "Profile tile opening the care-notes timeline."
   },
-  "careTimelineCount": "{count} care notes",
+  "careTimelineCount": "{count} notes between you",
   "@careTimelineCount": {
     "description": "Subtitle of the profile care-timeline tile: how many care notes exist.",
     "placeholders": {

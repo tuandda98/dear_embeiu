@@ -9,17 +9,20 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get careTimelineBadge => 'CARE TIMELINE';
+  String get badgeCareLabel => 'care notes';
+
+  @override
+  String get careTimelineBadge => 'CARE NOTES';
 
   @override
   String get careTimelineSeeAll => 'See all';
 
   @override
-  String get careTimelineTile => 'Care timeline';
+  String get careTimelineTile => 'Care notes';
 
   @override
   String careTimelineCount(int count) {
-    return '$count care notes';
+    return '$count notes between you';
   }
 
   @override

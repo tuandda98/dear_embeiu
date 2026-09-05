@@ -1,6 +1,8 @@
 {
   "@@locale": "vi",
-  "careTimelineBadge": "DÒNG THỜI GIAN QUAN TÂM",
+  "badgeCareLabel": "lời quan tâm",
+  "@badgeCareLabel": {"description": "Profile badge label under the care-notes count"},
+  "careTimelineBadge": "LỜI QUAN TÂM",
   "@careTimelineBadge": {
     "description": "Eyebrow chip on the care-notes timeline screen."
   },
@@ -8,11 +10,11 @@
   "@careTimelineSeeAll": {
     "description": "Link next to the recent care notes that opens the full timeline."
   },
-  "careTimelineTile": "Dòng thời gian quan tâm",
+  "careTimelineTile": "Lời quan tâm",
   "@careTimelineTile": {
     "description": "Profile tile opening the care-notes timeline."
   },
-  "careTimelineCount": "{count} lời quan tâm",
+  "careTimelineCount": "{count} lời nhắn cho nhau",
   "@careTimelineCount": {
     "description": "Subtitle of the profile care-timeline tile: how many care notes exist.",
     "placeholders": {

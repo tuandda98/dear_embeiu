@@ -1439,6 +1439,13 @@ exports.notifyCareMessage = onDocumentCreated(
     const title = `${care.title || ""}`.trim().slice(0, 60);
     const body = `${care.body || ""}`.trim().slice(0, 200);
 
+    // Seeded/backfilled notes (admin scripts write `backfill: true`) are
+    // history, not news: keep them out of the inbox and off the lock screen.
+    if (care.backfill === true) {
+      logger.info("Care message notification skipped for backfilled note.", {coupleId, messageId});
+      return;
+    }
+
     if (!coupleId || !authorUserId || !title || !body) {
       logger.warn("Care message notification skipped because required fields are missing.", {
         coupleId,

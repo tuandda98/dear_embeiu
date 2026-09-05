@@ -1,0 +1,27 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu
+python3 - <<'EOF'
+p='functions/index.js'; s=open(p,encoding='utf-8').read()
+old="""    const title = `${care.title || ""}`.trim().slice(0, 60);
+    const body = `${care.body || ""}`.trim().slice(0, 200);
+
+    if (!coupleId || !authorUserId || !title || !body) {"""
+new="""    const title = `${care.title || ""}`.trim().slice(0, 60);
+    const body = `${care.body || ""}`.trim().slice(0, 200);
+
+    // Seeded/backfilled notes (admin scripts write `backfill: true`) are
+    // history, not news: keep them out of the inbox and off the lock screen.
+    if (care.backfill === true) {
+      logger.info("Care message notification skipped for backfilled note.", {coupleId, messageId});
+      return;
+    }
+
+    if (!coupleId || !authorUserId || !title || !body) {"""
+assert s.count(old)==1; s=s.replace(old,new); open(p,'w',encoding='utf-8').write(s); print('CF ok')
+EOF
+node -c functions/index.js && npx firebase-tools deploy --only functions:notifyCareMessage --project tonyembeiu-dev 2>&1 | grep -E "✔|✖|Error|Deploy complete" | head -4
+time_utc: 20260905T140508Z
+git_head: 21cbc69 (feature/care-and-catchup)
+dirty   : 2 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 21cbc69)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 21cbc69 -- functions` rồi redeploy
