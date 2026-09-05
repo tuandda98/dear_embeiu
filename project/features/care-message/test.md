@@ -31,3 +31,10 @@ analyze 0 · test 81/81 · rules-test 241. 15/15 finding vá đạt; điểm r�
 - iOS (test2): chuông báo 7 chưa đọc; Trung tâm thông báo hiện "Uống nước nha 💧" + "Nhớ em 💕" với chấm chưa đọc (không bị auto-read ở Home ✓).
 - 🐛 **Body vẫn bị cắt 1 dòng "…"** dù đã bỏ `maxLines`: gotcha Flutter — `overflow: TextOverflow.ellipsis` không kèm `maxLines` ép layout 1 dòng. **Đã vá** (`TextOverflow.visible` cho care ở Notification center + danh sách "Đã gửi gần đây"); chưa re-verify trên máy (cần rebuild).
 - Chưa cover: push banner thật (không kiểm được token FCM trên emulator/simulator), catch-up gate (chỉ tài khoản gated).
+
+## [2026-09-05] [Tester-runtime] Timeline quan tâm — smoke-test 2 máy (Android emulator = test1 · iPhone 16 simulator = test2, DEV) — ✅ PASS
+- Profile: 2 tile "Gửi quan tâm" + "Dòng thời gian quan tâm · 3 lời quan tâm" (đếm đúng), đều nằm trên "Huy hiệu".
+- Timeline Android (vi) và iOS (en): gom "HÔM NAY/TODAY", avatar Mình/Em Test (rose/lavender), title + body TRỌN, giờ HH:mm; thứ tự mới → cũ.
+- Màn gửi: "Đã gửi gần đây/Recently sent" + "Xem tất cả/See all" → mở timeline.
+- iOS gửi "Have you eaten? 🍚" → Android: Trung tâm thông báo hiện item với body đầy đủ 2 dòng (fix overflow đã có hiệu lực), chấm chưa đọc; **tap → mở timeline và highlight đúng tin**.
+- Chưa cover: phân trang >30 tin, empty state (couple test đã có tin), tin cũ không có `careMessageId` trong inbox.
