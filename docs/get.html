@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Dear Embeiu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    /* ── Dear Embeiu — "Sunset Romance" brand tokens (khớp auth-action.html) ── */
+    :root {
+      --sunset1: #ff6b9d;
+      --sunset3: #ffb6c1;
+      --accent: #ff4d6d;       /* primary button / heart */
+      --accent-deep: #e63956;
+      --ink: #1a1a2e;          /* textPrimary navy */
+      --ink-soft: #3a3a4e;
+      --ink-muted: #8a8a9a;
+      --card: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      background: #fff1f5;
+      background-image:
+        radial-gradient(120% 80% at 50% -10%, #ffe1ec 0%, rgba(255, 225, 236, 0) 60%),
+        linear-gradient(160deg, #fff5f8 0%, #ffe9f1 48%, #ffe0ec 100%);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px 18px;
+    }
+
+    .wrap { width: 100%; max-width: 440px; }
+
+    .card {
+      background: var(--card);
+      border-radius: 28px;
+      padding: 36px 28px 30px;
+      box-shadow: 0 18px 48px rgba(255, 107, 157, 0.18),
+        0 2px 8px rgba(26, 26, 46, 0.04);
+      text-align: center;
+      animation: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .badge {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 20px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--sunset1) 0%, var(--sunset3) 100%);
+      box-shadow: 0 10px 24px rgba(255, 107, 157, 0.34);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 23px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: var(--ink);
+    }
+
+    p.msg {
+      margin: 0 0 4px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--ink-soft);
+    }
+    p.sub {
+      margin: 14px 0 0;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--ink-muted);
+    }
+
+    /* ── Khối mã mời ─────────────────────────────────────────────────────── */
+    .codeBox {
+      margin-top: 22px;
+      padding: 18px 16px 16px;
+      border-radius: 22px;
+      background: #fff5f8;
+      border: 1.5px solid rgba(255, 77, 109, 0.18);
+    }
+    .codeLabel {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      margin-bottom: 8px;
+    }
+    .codeValue {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      color: var(--accent-deep);
+      user-select: all;
+      word-break: break-all;
+    }
+
+    .btn {
+      display: inline-block;
+      width: 100%;
+      margin-top: 14px;
+      padding: 16px 24px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(255, 77, 109, 0.32);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn.ghost {
+      background: #fff;
+      color: var(--accent-deep);
+      border: 1.5px solid rgba(255, 77, 109, 0.28);
+      box-shadow: none;
+    }
+    .btn.small {
+      margin-top: 12px;
+      padding: 12px 18px;
+      font-size: 14px;
+    }
+
+    .stores {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .stores .btn { margin-top: 0; }
+
+    .redirectNote {
+      margin: 16px 2px 0;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--ink-muted);
+    }
+
+    .foot {
+      margin-top: 22px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(138, 138, 154, 0.92);
+    }
+    .foot .brand { font-weight: 600; color: var(--ink-muted); }
+
+    .hidden { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="badge">💞</div>
+      <h1 id="title"></h1>
+      <p class="msg" id="message"></p>
+
+      <!-- Mã mời (chỉ khi ?code= hợp lệ) -->
+      <div class="codeBox hidden" id="codeBox">
+        <div class="codeLabel" id="codeLabel"></div>
+        <div class="codeValue" id="codeValue"></div>
+        <button class="btn small ghost" type="button" id="copyBtn"></button>
+      </div>
+
+      <!-- Nút store (desktop/khác: luôn hiện; mobile: hiện kèm redirect) -->
+      <div class="stores" id="stores">
+        <a class="btn" id="iosBtn" href="https://apps.apple.com/app/id6775165592"></a>
+        <a class="btn" id="androidBtn"
+           href="https://play.google.com/store/apps/details?id=com.tony.dearembeiu"></a>
+      </div>
+
+      <p class="redirectNote hidden" id="redirectNote"></p>
+
+      <a class="btn ghost" id="openApp" href="dearembeiu://invite"></a>
+      <p class="sub" id="subNote"></p>
+    </div>
+
+    <div class="foot">
+      <div class="brand">Dear Embeiu</div>
+      <div id="footTag">Lưu giữ kỷ niệm &amp; đếm ngày yêu 💞</div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    // Custom scheme đã đăng ký ở iOS Info.plist + Android intent-filter.
+    // Mở link chỉ cần đưa app lên foreground — app KHÔNG parse URL.
+    var APP_LINK = 'dearembeiu://invite';
+    var IOS_URL = 'https://apps.apple.com/app/id6775165592';
+    var ANDROID_URL = 'https://play.google.com/store/apps/details?id=com.tony.dearembeiu';
+
+    // ── Copy song ngữ (vi mặc định, en) ───────────────────────────────────
+    var COPY = {
+      vi: {
+        footTag: 'Lưu giữ kỷ niệm & đếm ngày yêu 💞',
+        title: 'Bạn được mời rồi! 💞',
+        msgWithCode: 'Người ấy mời bạn cùng lưu giữ kỷ niệm trên Dear Embeiu 💞 · Tải app, đăng ký rồi chọn <b>Nhập mã mời</b> và dán mã bên dưới.',
+        msgNoCode: 'Tải Dear Embeiu để cùng người ấy đếm ngày yêu và lưu giữ kỷ niệm chung 💞',
+        codeLabel: 'Mã mời',
+        copy: 'Sao chép mã',
+        copied: 'Đã sao chép ✓',
+        copyFail: 'Hãy chọn và sao chép thủ công',
+        ios: 'Tải trên App Store',
+        android: 'Tải trên Google Play',
+        openApp: 'Mở Dear Embeiu (nếu đã cài)',
+        redirectIos: 'Đang chuyển bạn tới App Store…',
+        redirectAndroid: 'Đang chuyển bạn tới Google Play…',
+        subNote: 'Sau khi cài, mở app → Đăng ký → Nhập mã mời để ghép đôi nhé.',
+      },
+      en: {
+        footTag: 'Keep your memories & count the days in love 💞',
+        title: 'You are invited! 💞',
+        msgWithCode: 'Someone invited you to keep memories together on Dear Embeiu 💞 · Install the app, sign up, then tap <b>Enter invite code</b> and paste the code below.',
+        msgNoCode: 'Get Dear Embeiu to count the days in love and keep shared memories 💞',
+        codeLabel: 'Invite code',
+        copy: 'Copy code',
+        copied: 'Copied ✓',
+        copyFail: 'Please select and copy manually',
+        ios: 'Download on the App Store',
+        android: 'Get it on Google Play',
+        openApp: 'Open Dear Embeiu (if installed)',
+        redirectIos: 'Taking you to the App Store…',
+        redirectAndroid: 'Taking you to Google Play…',
+        subNote: 'After installing, open the app → Sign up → Enter invite code to pair.',
+      },
+    };
+
+    function $(id) { return document.getElementById(id); }
+    function show(el) { el.classList.remove('hidden'); }
+    function hide(el) { el.classList.add('hidden'); }
+
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name) || '';
+    }
+
+    // Ngôn ngữ: ?lang= thắng, sau đó tới navigator.language, mặc định vi.
+    function pickLang() {
+      var q = (getParam('lang') || '').trim().toLowerCase().slice(0, 2);
+      if (COPY[q]) return q;
+      var nav = ((navigator.languages && navigator.languages[0]) ||
+        navigator.language || '').toLowerCase().slice(0, 2);
+      return COPY[nav] ? nav : 'vi';
+    }
+
+    var lang = pickLang();
+    var t = COPY[lang];
+    document.documentElement.lang = lang;
+    $('footTag').textContent = t.footTag;
+    $('title').textContent = t.title;
+    $('iosBtn').textContent = t.ios;
+    $('androidBtn').textContent = t.android;
+    $('openApp').textContent = t.openApp;
+    $('openApp').setAttribute('href', APP_LINK);
+    $('subNote').textContent = t.subNote;
+
+    // ── Mã mời: 6 ký tự [A-Z0-9] ──────────────────────────────────────────
+    var rawCode = (getParam('code') || '').trim().toUpperCase();
+    var code = /^[A-Z0-9]{6}$/.test(rawCode) ? rawCode : '';
+
+    $('message').innerHTML = code ? t.msgWithCode : t.msgNoCode;
+
+    if (code) {
+      $('codeLabel').textContent = t.codeLabel;
+      $('codeValue').textContent = code;
+      $('copyBtn').textContent = t.copy;
+      show($('codeBox'));
+
+      $('copyBtn').addEventListener('click', function () {
+        var btn = $('copyBtn');
+        function done(ok) {
+          btn.textContent = ok ? t.copied : t.copyFail;
+          setTimeout(function () { btn.textContent = t.copy; }, 2200);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(code).then(function () { done(true); },
+            function () { done(legacyCopy(code)); });
+        } else {
+          done(legacyCopy(code));
+        }
+      });
+    }
+
+    // Fallback clipboard cho trình duyệt cũ / ngữ cảnh không secure.
+    function legacyCopy(text) {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // ── Nhận diện nền tảng → tự chuyển tới đúng store ─────────────────────
+    (function routeByPlatform() {
+      var ua = navigator.userAgent || '';
+      // iPadOS 13+ báo UA giống macOS → nhận thêm qua touch points.
+      var isIOS = /iPhone|iPad|iPod/i.test(ua) ||
+        (/Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1);
+      var isAndroid = /Android/i.test(ua);
+      if (!isIOS && !isAndroid) return; // desktop/khác: chỉ hiện 2 nút
+
+      var note = $('redirectNote');
+      note.textContent = isIOS ? t.redirectIos : t.redirectAndroid;
+      show(note);
+      setTimeout(function () {
+        window.location.href = isIOS ? IOS_URL : ANDROID_URL;
+      }, 1200);
+    })();
+  </script>
+</body>
+</html>
