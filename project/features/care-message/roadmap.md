@@ -1,24 +1,5 @@
-# 🗺️ Roadmap riêng — <Tên feature>
+# 🗺️ Roadmap — Care message ("Quan tâm")
 
-> Kế hoạch chi tiết NỘI BỘ feature này (chia phase/version, thứ tự làm). Khác với `../../ROADMAP.md` (toàn cảnh mọi feature). PO sở hữu; cập nhật khi phạm vi feature đổi.
-
-- **Trạng thái feature:** <📋 Spec | 🎨 Design | 💻 Dev | 🧪 Test | ✅ Done>
-
-## Phân phase (Now / Next / Later)
-
-### 🟢 Phase 1 — <tên> (<ưu tiên P0/P1/P2>) — <trạng thái>
-- [ ] <việc 1>
-- [ ] <việc 2>
-- *Xong khi:* <tiêu chí>
-
-### 🟡 Phase 2 — <tên> — <trạng thái>
-- [ ] <việc>
-
-### ⚪ Phase 3 (Later) — <tên> — <trạng thái>
-- [ ] <ý tưởng tương lai>
-
-## Mốc đã đạt
-- [<YYYY-MM-DD>] <mốc>
-
-## Ghi chú phụ thuộc
-- <feature/điều kiện cần trước>
+- **Now (1.6.0):** compose title+body → push nguyên văn + inbox; entry Home + Profile; 6 gợi ý. 💻 Dev xong, code-review 15 finding đã vá, chờ smoke-test 2 máy + PROD deploy (`careMessages` rules + CF `notifyCareMessage`).
+- **Next:** pref tắt riêng push quan tâm (`PUSH_TYPE_PREF_FIELD` chưa map); lịch sử 2 chiều có lọc; reaction nhanh lên tin (❤️) để người nhận đáp lại 1 chạm.
+- **Later:** hẹn giờ gửi (kết hợp partner-nudge); mẫu theo ngữ cảnh (mood/thời tiết); giới hạn spam (cooldown 1 tin/5 phút).
