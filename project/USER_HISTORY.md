@@ -479,3 +479,9 @@
 - [00:59] [Image #4] cái attemmp mang lên đầu, atemp request lẫn resspone luôn
 - [01:01] <task-notification> <task-id>bws29cy46</task-id> <tool-use-id>toolu_01SbvpkL87pUsw1TMsgtR92v</tool-use-id> <output-file>/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/2c719421-de15-460f-8a54-7be8ad0e324d/tasks/bws29cy46.output</output-file> <status>completed</status> <summary>Background command "Build IPA release" completed (exit code 0)</summary> </task-notification>
 - [01:01] <task-notification> <task-id>bxvxe857y</task-id> <tool-use-id>toolu_01EftN6cYraQFgdp9y1CworL</tool-use-id> <output-file>/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/2c719421-de15-460f-8a54-7be8ad0e324d/tasks/bxvxe857y.output</output-file> <status>completed</status> <summary>Background command "Chờ IPA xong hoặc lỗi" completed (exit code 0)</summary> </task-notification>
+- [01:02] ở trang details phần respone, làm riêng 1 ô vuông cạnh traceid để copy
+- [01:03] [Image #5] làm nổi bật những rpc fail, bỏ hết fiter phía trên, chỉ cần ô tìm kiếm, và sort theo thứ tự request vào gửi trước và respone nào tới tước
+- [01:04] dùng skill chỏme remote mở 2 trang của apple và gg lên và relase cho tôi
+- [01:07] đã đang nhập và kéo aab
+- [01:09] respone ở trang details luôn có traceid trả về, làm icon sao chép kế bên traceid
+- [01:11] [Image #7] case error có bao nhieue biến thể? làm hết , không cần sugegst fix chỉ cần in thông tin lỗi những gì có thể để giúp ích việc tìm root caseue
