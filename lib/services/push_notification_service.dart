@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui' show DartPluginRegistrant;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -13,10 +15,16 @@ import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import 'analytics_service.dart';
 import 'firebase_bootstrap_service.dart';
+import 'notification_settings_service.dart';
+import 'reminder_service.dart';
 import 'user_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // A fresh background isolate starts with no plugin registrations, so the
+  // local-notifications channel [_cancelStaleDailyQuestionNudges] needs would
+  // throw MissingPluginException. Idempotent.
+  DartPluginRegistrant.ensureInitialized();
   if (Firebase.apps.isEmpty) {
     try {
       await Firebase.initializeApp();
@@ -24,6 +32,30 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       // Ignore bootstrap errors in background isolate.
     }
   }
+  await _cancelStaleDailyQuestionNudges(message);
+}
+
+/// Drops today's local daily-question nudges when a push reports the pair is now
+/// complete (`data.bothAnswered == 'true'`, set by the `notifyDailyAnswer` CF).
+///
+/// Why this can't live in the UI: the local schedule is re-evaluated only by
+/// [HomeScreen] on provider updates, but the FIRST answerer normally leaves the
+/// app right after answering. When their partner answers hours later nothing
+/// re-evaluates anything, so the nudges armed back when only one had answered
+/// still fire — saying "người ấy chưa trả lời câu hỏi hôm nay" and warning about
+/// a streak that is already safe (up to 4 wrong notifications a day). Running at
+/// the transport layer fixes it with no UI alive.
+///
+/// ⚠️ Not a total fix: an iOS app the user force-quit gets no background wake at
+/// all. [ReminderProvider] therefore also keeps the end-of-day copy safe on its
+/// own — it no longer arms the 22h/23h streak warnings once I've answered.
+Future<void> _cancelStaleDailyQuestionNudges(RemoteMessage message) async {
+  final data = message.data;
+  if (data['type'] != 'daily_question' ||
+      '${data['bothAnswered']}'.trim().toLowerCase() != 'true') {
+    return;
+  }
+  await ReminderService.instance.cancelDailyQuestionBands();
 }
 
 /// Deep-link bridge for notification taps (no extra package, no navigatorKey).
@@ -46,17 +78,62 @@ class NotificationTapRouter {
   /// pending request"; HomeScreen ignores it and keeps its current tab.
   static final ValueNotifier<int> pendingHomeTab = ValueNotifier<int>(-1);
 
+  /// Photo id a tapped photo/reaction notification wants the Gallery to open
+  /// fullscreen (deep-link to the exact item, not just the tab). null = none.
+  /// [GalleryScreen] consumes it when it builds and the photo is loaded; if the
+  /// photo is gone (deleted) it's simply cleared and the user lands on the grid.
+  static final ValueNotifier<String?> pendingPhotoId =
+      ValueNotifier<String?>(null);
+
   /// Marks the current request as handled so it won't be reapplied later.
   static void consumeHomeTabRequest() {
     if (pendingHomeTab.value != -1) {
       pendingHomeTab.value = -1;
     }
   }
+
+  /// Marks the pending photo deep-link as handled.
+  static void consumePhotoRequest() {
+    if (pendingPhotoId.value != null) {
+      pendingPhotoId.value = null;
+    }
+  }
+
+  /// A specific card on the Home tab a tapped notification wants brought into
+  /// view (deep-link within Home). Carries the notification `type` string
+  /// (e.g. 'daily_question'); [HomeScreen] scrolls that card into view. null =
+  /// no focus request (just land on the tab).
+  static final ValueNotifier<String?> pendingHomeFocus =
+      ValueNotifier<String?>(null);
+
+  /// Marks the pending Home-focus request as handled.
+  static void consumeHomeFocusRequest() {
+    if (pendingHomeFocus.value != null) {
+      pendingHomeFocus.value = null;
+    }
+  }
+
+  /// A request to open the Gallery's add-photo composer (the Love Tree
+  /// "Thêm một kỷ niệm" shortcut, 2026-06-17). true = open the multi-image
+  /// picker once the Gallery tab is shown; [GalleryScreen] consumes it. Only
+  /// ever set while the app is running (the Love Tree is reachable in-app only).
+  static final ValueNotifier<bool> pendingCompose = ValueNotifier<bool>(false);
+
+  /// Marks the pending compose request as handled.
+  static void consumeComposeRequest() {
+    if (pendingCompose.value) {
+      pendingCompose.value = false;
+    }
+  }
 }
 
 /// Home tab indices a deep-link can target (mirror HomeScreen's IndexedStack).
+/// ⚠️ Feature chat (2026-06-11) inserted the chat tab at 1 — Gallery moved
+/// 1→2, Profile 2→3. Keep in sync with HomeScreen._navigationItems AND
+/// AppNotification.targetHomeTab (notification center taps).
 const int _homeTabIndex = 0;
-const int _galleryTabIndex = 1;
+const int _chatTabIndex = 1;
+const int _galleryTabIndex = 2;
 
 class PushNotificationService {
   PushNotificationService._();
@@ -98,6 +175,10 @@ class PushNotificationService {
     _isInitialized = true;
 
     try {
+      // Open the per-type prefs box early so device registration writes the
+      // user's real choices (not defaults) from the first sync (D-notif-4).
+      await NotificationSettingsService.instance.ensureLoaded();
+
       const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
       const iosSettings = DarwinInitializationSettings(
         requestAlertPermission: false,
@@ -110,6 +191,9 @@ class PushNotificationService {
           android: androidSettings,
           iOS: iosSettings,
         ),
+        // Tap on a banner we showed ourselves in the foreground → deep-link the
+        // same way a real push tap does (reuses the type/photoId routing).
+        onDidReceiveNotificationResponse: _handleLocalNotificationResponse,
       );
 
       final androidPlugin =
@@ -117,10 +201,17 @@ class PushNotificationService {
               AndroidFlutterLocalNotificationsPlugin>();
       await androidPlugin?.createNotificationChannel(_photoChannel);
 
+      // We render the foreground banner OURSELVES via a local notification (see
+      // _handleForegroundMessage) — on iOS the `flutter_local_notifications`
+      // plugin owns the UNUserNotificationCenter delegate, which silently
+      // disables FCM's own foreground auto-present, so relying on `alert: true`
+      // here made iOS show NOTHING while the app was open. Turn alert/sound off
+      // to defer entirely to our manual show (keeps a single banner on every
+      // platform, no duplicates); badge stays on for the app-icon count.
       await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-        alert: true,
+        alert: false,
         badge: true,
-        sound: true,
+        sound: false,
       );
 
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
@@ -180,6 +271,26 @@ class PushNotificationService {
       await _saveDeviceToken(userId: user.id, token: token);
     } catch (e) {
       debugPrint('Push notification user sync failed: $e');
+    }
+  }
+
+  /// Re-writes the active user's device doc with the CURRENT per-type prefs
+  /// (D-notif-4) — called right after the user toggles a notification type in
+  /// Settings so the Cloud Functions fan-out sees the change. No-ops when there
+  /// is no signed-in user / Firebase.
+  Future<void> refreshDeviceRegistration() async {
+    final userId = _activeUserId;
+    if (userId == null || !_canUseFirebaseMessaging) {
+      return;
+    }
+    try {
+      final token = await _readCurrentToken();
+      if (token == null || token.isEmpty) {
+        return;
+      }
+      await _saveDeviceToken(userId: userId, token: token);
+    } catch (e) {
+      debugPrint('Push prefs refresh failed: $e');
     }
   }
 
@@ -248,6 +359,8 @@ class PushNotificationService {
         platform: _platformLabel,
         notificationsEnabled: true,
         languageCode: _currentLanguageCode,
+        // Mirror the per-type mute prefs so the CF can honour them (D-notif-4).
+        pushTypePrefs: NotificationSettingsService.instance.currentOrDefault(),
       );
       // Keep this user's device list from accumulating stale registrations.
       await _userService.pruneStaleDevices(userId: userId, keepDeviceId: deviceId);
@@ -320,21 +433,90 @@ class PushNotificationService {
   /// background tap, cold-start) since each routes a [RemoteMessage] here.
   /// Unknown/missing types are ignored (no tab change, no error).
   void _handleNotificationTap(RemoteMessage message) {
-    final type = message.data['type'];
+    _applyRoute(
+      message.data['type'] as String?,
+      (message.data['photoId'] as String?)?.trim(),
+    );
+  }
+
+  /// Tap handler for a banner WE showed in the foreground via
+  /// [_localNotifications] (see [_handleForegroundMessage]). Its payload is the
+  /// JSON-encoded FCM `data` map, so we route by the same type/photoId as a real
+  /// push tap. Legacy/plain payloads (just the type string) are handled too.
+  void _handleLocalNotificationResponse(NotificationResponse response) {
+    final payload = response.payload;
+    if (payload == null || payload.isEmpty) {
+      return;
+    }
+    try {
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+      _applyRoute(
+        data['type'] as String?,
+        (data['photoId'] as String?)?.toString().trim(),
+      );
+    } catch (_) {
+      _applyRoute(payload, null);
+    }
+  }
+
+  /// Routes a notification (push tap OR a foreground banner tap) to the home tab
+  /// / deep-link target for its [type]. Unknown/absent types are ignored (no tab
+  /// change, no malformed analytics event).
+  void _applyRoute(String? type, String? photoId) {
     switch (type) {
       case 'photo_posted':
         NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
+        if (photoId != null && photoId.isNotEmpty) {
+          NotificationTapRouter.pendingPhotoId.value = photoId;
+        }
         break;
       case 'photo_reaction':
         NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
+        if (photoId != null && photoId.isNotEmpty) {
+          NotificationTapRouter.pendingPhotoId.value = photoId;
+        }
+        break;
+      case 'chat_message':
+        NotificationTapRouter.pendingHomeTab.value = _chatTabIndex;
         break;
       case 'partner_joined':
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;
+      case 'partner_left':
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        break;
       case 'love_note':
+        // A not-yet-updated partner's love notes are now mirrored into chat
+        // (auto-migration 2026-06-14), so route this push to the Chat tab
+        // where the message actually lives.
+        NotificationTapRouter.pendingHomeTab.value = _chatTabIndex;
+        break;
+      case 'daily_answer_reaction':
+        // Same landing as 'daily_question': the card on Home. A reaction only
+        // exists on an already-revealed day, so the card shows both answers —
+        // the in-app Notification Center takes the richer Journal route (it can
+        // read providers; a cold-start push tap cannot).
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;
       case 'daily_question':
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        // Deep-link within Home: scroll the daily-question card into view.
+        NotificationTapRouter.pendingHomeFocus.value = 'daily_question';
+        break;
+      case 'partner_mood':
+        // Mood card lives on Home (feature mood) — open there to see it.
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        break;
+      case 'care_message':
+        // A care note (feature care-message) has no dedicated screen — the push
+        // itself IS the content (its title/body are the partner's own words),
+        // so a tap just brings the app up on Home. The full text stays readable
+        // in the Notification Center.
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        break;
+      case 'partner_reminder_set':
+        // Scheduled-reminder confirmation (feature partner-nudge): A set a
+        // shared reminder for B — just bring the app to Home.
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;
       default:
@@ -343,14 +525,32 @@ class PushNotificationService {
         return;
     }
     // Analytics — log only the known, normalised push type (an enum string,
-    // never any notification content).
-    AnalyticsService.instance.logNotificationOpened(type as String);
+    // never any notification content). `type` is non-null here (any null/unknown
+    // value returned early via the default branch above).
+    AnalyticsService.instance.logNotificationOpened(type!);
   }
 
+  /// Renders an in-app banner for a push that arrives while the app is in the
+  /// FOREGROUND — on BOTH Android and iOS.
+  ///
+  /// A foreground push is never auto-displayed by the OS: on Android the system
+  /// tray only shows `notification` payloads while the app is backgrounded, and
+  /// on iOS FCM's own `setForegroundNotificationPresentationOptions` is disabled
+  /// the moment `flutter_local_notifications` claims the notification-center
+  /// delegate (which it does in [initialize]). So for EVERY interaction type
+  /// (reaction ❤️, daily-question answer, chat, mood, photo, partner reminder…)
+  /// we must surface it ourselves here, or the partner sees nothing while their
+  /// app is open. Covers all types uniformly because it runs at the transport
+  /// layer (onMessage), not per notification kind.
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    if (!Platform.isAndroid) {
+    if (!_isSupportedPlatform) {
       return;
     }
+
+    // Same stale-nudge cleanup as the background isolate — a safety net for the
+    // window where the app is foregrounded but HomeScreen isn't mounted yet
+    // (it's the listener that would otherwise re-evaluate the schedule).
+    await _cancelStaleDailyQuestionNudges(message);
 
     final notification = message.notification;
     final title = notification?.title ?? message.data['title'] as String?;
@@ -367,6 +567,15 @@ class PushNotificationService {
         (message.messageId.hashCode ^ DateTime.now().millisecondsSinceEpoch) &
             0x7FFFFFFF;
 
+    // Carry the full FCM data map so a tap on this foreground banner deep-links
+    // exactly like a background push tap (routed in _handleLocalNotificationResponse).
+    String? payload;
+    try {
+      payload = jsonEncode(message.data);
+    } catch (_) {
+      payload = message.data['type'] as String?;
+    }
+
     await _localNotifications.show(
       notificationId,
       title,
@@ -380,7 +589,13 @@ class PushNotificationService {
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
         ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
       ),
+      payload: payload,
     );
   }
 }

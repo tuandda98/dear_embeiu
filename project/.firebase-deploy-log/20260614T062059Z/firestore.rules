@@ -1,0 +1,557 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isNonEmptyString(value) {
+      return value is string && value.size() > 0;
+    }
+
+    function isNullableString(value) {
+      return value == null || value is string;
+    }
+
+    function isNullableTimestamp(value) {
+      return value == null || value is timestamp;
+    }
+
+    function isNullOrEmptyString(value) {
+      return value == null || (value is string && value.size() == 0);
+    }
+
+    function isValidStatus(value) {
+      return value in ['single', 'waiting_partner', 'in_couple'];
+    }
+
+    function isValidMemberIds(memberIds) {
+      return memberIds is list
+        && memberIds.size() >= 1
+        && memberIds.size() <= 2
+        && memberIds[0] is string
+        && (memberIds.size() == 1 || memberIds[1] is string);
+    }
+
+    function isValidUserDocument(data) {
+      return data.keys().hasAll([
+          'email',
+          'displayName',
+          'avatarUrl',
+          'coupleId',
+          'inviteCode',
+          'status',
+          'createdAt',
+          'updatedAt',
+          'lastSeenAt',
+        ])
+        && isNonEmptyString(data.email)
+        && isNonEmptyString(data.displayName)
+        && isNullableString(data.avatarUrl)
+        && isNullableString(data.coupleId)
+        && isNonEmptyString(data.inviteCode)
+        && isValidStatus(data.status)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp
+        && isNullableTimestamp(data.lastSeenAt)
+        // sessionToken is optional: absent on CREATE (toFirestore omits it), only
+        // merge-written later by mintSessionToken. Use .get so an absent key
+        // returns null (→ valid) instead of erroring and denying the write.
+        && isNullableString(data.get('sessionToken', null));
+    }
+
+    function isStrictUserDocument(data) {
+      return data.keys().hasOnly([
+          'email',
+          'displayName',
+          'avatarUrl',
+          'coupleId',
+          'inviteCode',
+          'status',
+          'createdAt',
+          'updatedAt',
+          'lastSeenAt',
+        ]);
+    }
+
+    function onlyAllowedUserFieldsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'email',
+          'displayName',
+          'avatarUrl',
+          'coupleId',
+          'inviteCode',
+          'status',
+          'createdAt',
+          'updatedAt',
+          'lastSeenAt',
+          'sessionToken',
+        ]);
+    }
+
+    function canCreateOwnUser(userId) {
+      return isSignedIn()
+        && request.auth.uid == userId
+        && isStrictUserDocument(request.resource.data)
+        && isValidUserDocument(request.resource.data);
+    }
+
+    function canUpdateOwnUser(userId) {
+      return isSignedIn()
+        && request.auth.uid == userId
+        && isValidUserDocument(request.resource.data)
+        && onlyAllowedUserFieldsChanged()
+        && (resource.data.createdAt == null || request.resource.data.createdAt == resource.data.createdAt)
+        && (resource.data.email == null || request.resource.data.email == resource.data.email)
+        && (isNullOrEmptyString(resource.data.inviteCode)
+          || request.resource.data.inviteCode == resource.data.inviteCode);
+    }
+
+    function isValidDeviceDocument(data) {
+      return data.keys().hasOnly([
+          'token',
+          'platform',
+          'notificationsEnabled',
+          'languageCode',
+          'pushPhoto',
+          'pushReaction',
+          'pushDailyQuestion',
+          'updatedAt',
+        ])
+        && isNonEmptyString(data.token)
+        && data.platform in ['ios', 'android', 'unknown']
+        && data.notificationsEnabled is bool
+        // languageCode added in 1.1: the old (1.0) app omits it, so read via
+        // .get (absent → null → valid). A bare data.languageCode errors on an
+        // absent key and would deny an old-app device write (→ push breaks).
+        && isNullableString(data.get('languageCode', null))
+        // Per-type mute prefs (D-notif-4): optional bools, ADDITIVE. Read via
+        // .get(field, true) so a device doc that omits them (old build) stays
+        // valid and defaults to ON — mirrors the Cloud Function's default.
+        && data.get('pushPhoto', true) is bool
+        && data.get('pushReaction', true) is bool
+        && data.get('pushDailyQuestion', true) is bool
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidInviteCodeDocument(data) {
+      return data.keys().hasAll([
+          'userId',
+          'displayName',
+          'coupleId',
+          'createdAt',
+          'updatedAt',
+        ])
+        && isNonEmptyString(data.userId)
+        && isNonEmptyString(data.displayName)
+        && isNullableString(data.coupleId)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isStrictInviteCodeDocument(data) {
+      return data.keys().hasOnly([
+          'userId',
+          'displayName',
+          'coupleId',
+          'createdAt',
+          'updatedAt',
+        ]);
+    }
+
+    function onlyAllowedInviteCodeFieldsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'userId',
+          'displayName',
+          'coupleId',
+          'createdAt',
+          'updatedAt',
+        ]);
+    }
+
+    function isValidCoupleDocument(data) {
+      return data.keys().hasAll([
+          'person1Name',
+          'person2Name',
+          'anniversaryDate',
+          'couplePhotoPath',
+          'couplePhotoUrl',
+          'couplePhotoStoragePath',
+          'inviteCode',
+          'memberIds',
+          'memberCount',
+          'createdByUserId',
+          'status',
+          'createdAt',
+          'updatedAt',
+        ])
+        && isNonEmptyString(data.person1Name)
+        && isNonEmptyString(data.person2Name)
+        && data.anniversaryDate is timestamp
+        && isNullableString(data.couplePhotoPath)
+        && isNullableString(data.couplePhotoUrl)
+        && isNullableString(data.couplePhotoStoragePath)
+        && isNonEmptyString(data.inviteCode)
+        // coupleCode added in 1.1: the old (1.0) app omits it, so read via .get
+        // (absent → null → valid). A bare data.coupleCode errors on an absent
+        // key and would deny an old-app couple write on the shared prod backend.
+        && isNullableString(data.get('coupleCode', null))
+        && isValidMemberIds(data.memberIds)
+        && data.memberCount is int
+        && data.memberCount == data.memberIds.size()
+        && isNonEmptyString(data.createdByUserId)
+        && data.status in ['waiting_partner', 'active']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isStrictCoupleDocument(data) {
+      return data.keys().hasOnly([
+          'person1Name',
+          'person2Name',
+          'anniversaryDate',
+          'couplePhotoPath',
+          'couplePhotoUrl',
+          'couplePhotoStoragePath',
+          'inviteCode',
+          'coupleCode',
+          'memberIds',
+          'memberCount',
+          'createdByUserId',
+          'status',
+          'createdAt',
+          'updatedAt',
+        ]);
+    }
+
+    function onlyAllowedCoupleFieldsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'person1Name',
+          'person2Name',
+          'anniversaryDate',
+          'couplePhotoPath',
+          'couplePhotoUrl',
+          'couplePhotoStoragePath',
+          'inviteCode',
+          'coupleCode',
+          'memberIds',
+          'memberCount',
+          'createdByUserId',
+          'status',
+          'createdAt',
+          'updatedAt',
+        ]);
+    }
+
+    function coupleMetadataIsImmutable() {
+      return request.resource.data.inviteCode == resource.data.inviteCode
+        && request.resource.data.createdByUserId == resource.data.createdByUserId
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function isCoupleMember(coupleId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/couples/$(coupleId))
+        && request.auth.uid in get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds;
+    }
+
+    function isSoleCoupleMember(coupleId) {
+      return isCoupleMember(coupleId)
+        && get(/databases/$(database)/documents/couples/$(coupleId)).data.memberCount == 1
+        && get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.size() == 1
+        && get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds[0] == request.auth.uid;
+    }
+
+    function isCoupleProfileEdit() {
+      return isSignedIn()
+        && isValidCoupleDocument(request.resource.data)
+        && onlyAllowedCoupleFieldsChanged()
+        && request.auth.uid in resource.data.memberIds
+        && request.resource.data.memberIds == resource.data.memberIds
+        && request.resource.data.memberCount == resource.data.memberCount
+        && request.resource.data.status == resource.data.status
+        && coupleMetadataIsImmutable();
+    }
+
+    function isCoupleJoinTransition() {
+      return isSignedIn()
+        && isValidCoupleDocument(request.resource.data)
+        && onlyAllowedCoupleFieldsChanged()
+        && resource.data.status == 'waiting_partner'
+        && resource.data.memberCount == 1
+        && request.resource.data.memberCount == 2
+        && request.resource.data.status == 'active'
+        && request.resource.data.memberIds.size() == 2
+        && request.auth.uid in request.resource.data.memberIds
+        && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+        && coupleMetadataIsImmutable();
+    }
+
+    function isCoupleLeaveTransition() {
+      return isSignedIn()
+        && isValidCoupleDocument(request.resource.data)
+        && onlyAllowedCoupleFieldsChanged()
+        && request.auth.uid in resource.data.memberIds
+        && resource.data.memberCount == 2
+        && resource.data.memberIds.size() == 2
+        && request.resource.data.memberCount == 1
+        && request.resource.data.memberIds.size() == 1
+        && !(request.auth.uid in request.resource.data.memberIds)
+        && resource.data.memberIds.hasAll(request.resource.data.memberIds)
+        && coupleMetadataIsImmutable()
+        && request.resource.data.status == 'waiting_partner';
+    }
+
+    function isValidPhotoDocument(coupleId, data) {
+      return data.keys().hasOnly([
+          'path',
+          'remoteUrl',
+          'storagePath',
+          'coupleId',
+          'authorUserId',
+          'authorName',
+          'uploadDate',
+          'caption',
+          'updatedAt',
+        ])
+        && isNullableString(data.path)
+        && isNullableString(data.remoteUrl)
+        && isNullableString(data.storagePath)
+        && data.coupleId == coupleId
+        && isNonEmptyString(data.authorUserId)
+        && isNullableString(data.authorName)
+        && data.uploadDate is timestamp
+        && isNullableString(data.caption)
+        && isNullableTimestamp(data.updatedAt);
+    }
+
+    match /users/{userId} {
+      allow create: if canCreateOwnUser(userId);
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow update: if canUpdateOwnUser(userId);
+      allow delete: if false;
+
+      match /devices/{deviceId} {
+        allow read, delete: if isSignedIn() && request.auth.uid == userId;
+        allow create, update: if isSignedIn()
+          && request.auth.uid == userId
+          && isValidDeviceDocument(request.resource.data);
+      }
+
+      // Notification inbox / center (feature notifications): durable records of
+      // the pushes a user receives, written ONLY by Cloud Functions through the
+      // Admin SDK (which bypasses these rules). The client may read its own,
+      // toggle the `read` flag (mark read), and delete (dismiss / clear) — but
+      // never CREATE or forge a notification, and never edit any field other
+      // than `read`. ADDITIVE: old app versions simply ignore this subcollection.
+      match /notifications/{notificationId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow update: if isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+          && request.resource.data.read is bool;
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+        allow create: if false;
+      }
+    }
+
+    match /invite_codes/{inviteCode} {
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && isStrictInviteCodeDocument(request.resource.data)
+        && isValidInviteCodeDocument(request.resource.data);
+
+      allow read: if isSignedIn();
+
+      allow update: if isSignedIn()
+        && isValidInviteCodeDocument(request.resource.data)
+        && onlyAllowedInviteCodeFieldsChanged()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && (resource.data.createdAt == null || request.resource.data.createdAt == resource.data.createdAt);
+
+      allow delete: if false;
+    }
+
+    match /couples/{coupleId} {
+      allow create: if isSignedIn()
+        && isStrictCoupleDocument(request.resource.data)
+        && isValidCoupleDocument(request.resource.data)
+        && request.resource.data.createdByUserId == request.auth.uid
+        && request.resource.data.memberIds.size() == 1
+        && request.resource.data.memberIds[0] == request.auth.uid
+        && request.resource.data.memberCount == 1
+        && request.resource.data.status == 'waiting_partner';
+
+      allow read: if isSignedIn()
+        && (
+          request.auth.uid in resource.data.memberIds
+          || (
+            resource.data.status == 'waiting_partner'
+            && resource.data.memberCount == 1
+          )
+        );
+
+      allow update: if isCoupleProfileEdit()
+        || isCoupleJoinTransition()
+        || isCoupleLeaveTransition();
+
+      allow delete: if isSoleCoupleMember(coupleId);
+
+      // Shared Home preferences (feature home, 2026-06-10): one tiny doc the
+      // couple co-owns. Fields (ALL optional — writes merge, old app versions
+      // only ever send counterBgPhotoId, new fields are ADDITIVE):
+      //   • counterBgPhotoId — which photo backs the hero counter card.
+      //   • dqReminderEnabled / dqReminderTimes — couple-shared daily-question
+      //     reminder (2026-06-14): both phones nudge at the same time(s). Times
+      //     are minutes-since-midnight ints; the client clamps each to 0–1439
+      //     and the list to ≤10 (the size cap here is the abuse guard).
+      match /prefs/{prefId} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && prefId == 'home'
+          && request.resource.data.keys().hasOnly(
+              ['counterBgPhotoId', 'dqReminderEnabled', 'dqReminderTimes'])
+          && (!('counterBgPhotoId' in request.resource.data)
+              || (request.resource.data.counterBgPhotoId is string
+                  && request.resource.data.counterBgPhotoId.size() <= 200))
+          && (!('dqReminderEnabled' in request.resource.data)
+              || request.resource.data.dqReminderEnabled is bool)
+          && (!('dqReminderTimes' in request.resource.data)
+              || (request.resource.data.dqReminderTimes is list
+                  && request.resource.data.dqReminderTimes.size() <= 10));
+      }
+
+      // Love notes (feature #4): one short note per member, doc id == author uid.
+      // The author owns and overwrites their single note; both members can read.
+      match /notes/{noteId} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && noteId == request.auth.uid
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 140;
+      }
+
+      // Love-note history (feature love-note-history): append-only archive of
+      // every note ever sent, so the couple keeps a timeline of their words.
+      // ADDITIVE — the latest-note surface above (notes/{uid}) is unchanged.
+      // Both members read; each member only creates their own entries; entries
+      // are immutable (no edit/delete) so the archive can't be rewritten.
+      match /noteHistory/{entryId} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 140;
+        allow update, delete: if false;
+      }
+
+      // Couple chat (feature chat, D2/D3): append-only private conversation.
+      // Both members read; each member only creates their own messages
+      // (author == auth.uid, exact 3-field shape, text ≤1000, createdAt must
+      // be the request server-time, i.e. serverTimestamp()). Messages are
+      // immutable — no edit/delete in v1 ("tin nhắn là kỷ niệm"). ADDITIVE:
+      // a brand-new collection, old app versions never touch this path.
+      match /messages/{messageId} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && request.resource.data.keys().hasOnly(['authorUserId', 'text', 'createdAt'])
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 1000
+          && request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
+      }
+
+      // Daily question marker doc (feature couple-journal): one parent doc per
+      // answered day so the journal can list days (the responses subcollection
+      // alone leaves this parent un-listable). Holds a question-text snapshot
+      // for the day. Either member may read/write; merge-written on answer.
+      match /dailyAnswers/{date} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && request.resource.data.date is string
+          && request.resource.data.questionVi is string
+          && request.resource.data.questionVi.size() <= 300
+          && request.resource.data.questionEn is string
+          && request.resource.data.questionEn.size() <= 300;
+      }
+
+      // Daily question answers (feature #5): one answer per member per day, doc
+      // id == author uid. Both members read both answers (the "answer first to
+      // reveal" rule is client-side UI only); each member writes only their own.
+      match /dailyAnswers/{date}/responses/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 280;
+      }
+    }
+
+    match /couples/{coupleId}/photos/{photoId} {
+      allow read: if isCoupleMember(coupleId);
+
+      allow create: if isCoupleMember(coupleId)
+        && isValidPhotoDocument(coupleId, request.resource.data)
+        && request.resource.data.authorUserId == request.auth.uid;
+
+      allow update: if isCoupleMember(coupleId)
+        && isValidPhotoDocument(coupleId, request.resource.data)
+        && request.resource.data.coupleId == resource.data.coupleId
+        && request.resource.data.authorUserId == resource.data.authorUserId
+        && request.resource.data.uploadDate == resource.data.uploadDate;
+
+      allow delete: if isCoupleMember(coupleId);
+
+      // Reactions (feature: reactions ❤️): one reaction per member per photo,
+      // doc id == author uid. Both members read; each member writes only their
+      // own reaction with one of the six allowed emoji. `coupleId` is
+      // denormalised onto the doc so a collection-group query can stream every
+      // reaction of the couple; it must match the path's coupleId.
+      match /reactions/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow create, update: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.coupleId == coupleId
+          && request.resource.data.emoji is string
+          && request.resource.data.emoji in ['❤️', '😍', '😂', '🥹', '🔥', '👍'];
+        allow delete: if isCoupleMember(coupleId)
+          && uid == request.auth.uid;
+      }
+    }
+
+    // UGC moderation reports (Apple Guideline 1.2). Create-only for any
+    // signed-in user; admins review via the Firebase Console. Clients can
+    // never read, edit, or delete reports.
+    match /reports/{reportId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if false;
+    }
+
+    // Couple entry codes (feature couple-code). Each doc maps a 6-char code
+    // to a coupleId. Used by joinCoupleByCode as the primary lookup (before
+    // falling back to invite_codes for legacy couples). Created by the couple
+    // creator; deleted when the couple is cleaned up. No update path (codes
+    // are immutable once written — a new couple gets a new code).
+    match /couple_codes/{code} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['coupleId', 'createdAt', 'updatedAt'])
+        && isNonEmptyString(request.resource.data.coupleId)
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp
+        && isCoupleMember(request.resource.data.coupleId);
+      allow delete: if isSignedIn()
+        && exists(/databases/$(database)/documents/couples/$(resource.data.coupleId))
+        && request.auth.uid in get(/databases/$(database)/documents/couples/$(resource.data.coupleId)).data.memberIds;
+      allow update: if false;
+    }
+  }
+}
+

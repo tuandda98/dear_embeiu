@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
 
 import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
-import '../models/counter_data.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/content_card.dart';
 import '../widgets/counter_card.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/icon_badge.dart';
 import '../widgets/language_toggle_button.dart';
 
 /// Guest "try without signing in" love-day counter (Apple 5.1.1 fix).
@@ -44,8 +46,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
     final millis = box.get(_anniversaryKey);
     if (millis is int && mounted) {
       setState(() {
-        _anniversaryDate =
-            DateTime.fromMillisecondsSinceEpoch(millis);
+        _anniversaryDate = DateTime.fromMillisecondsSinceEpoch(millis);
       });
     }
   }
@@ -110,7 +111,19 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   }
 
   int _getNextMilestone(int totalDays) {
-    const milestones = [30, 50, 100, 180, 365, 500, 730, 1000, 1500, 2000, 3000];
+    const milestones = [
+      30,
+      50,
+      100,
+      180,
+      365,
+      500,
+      730,
+      1000,
+      1500,
+      2000,
+      3000,
+    ];
     for (final milestone in milestones) {
       if (totalDays < milestone) {
         return milestone;
@@ -198,38 +211,15 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                LucideIcons.sparkles,
-                size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.guestModeBadge,
-                style: AppTheme.pageEyebrowStyle(),
-              ),
-            ],
-          ),
-        ),
+        // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
+        // recolor of the original (user request 2026-06-11).
+        EyebrowChip(label: l10n.guestModeBadge, icon: IconsaxPlusLinear.magic_star),
         const SizedBox(height: 14),
-        Text(
-          l10n.guestCounterTitle,
-          style: AppTheme.pageTitleStyle(),
-        ),
+        Text(l10n.guestCounterTitle, style: AppTheme.pageTitleStyle()),
         const SizedBox(height: 10),
         Text(
           l10n.guestCounterSubtitle,
-          style: AppTheme.pageSubtitleStyle(alpha: 0.84),
+          style: AppTheme.pageSubtitleStyle(),
         ),
       ],
     );
@@ -249,10 +239,12 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.white.withValues(alpha: 0.22),
-              border: Border.all(color: AppColors.white.withValues(alpha: 0.45)),
+              border: Border.all(
+                color: AppColors.white.withValues(alpha: 0.45),
+              ),
             ),
             child: const Icon(
-              Icons.favorite_rounded,
+              IconsaxPlusBold.heart,
               color: AppColors.white,
               size: 30,
             ),
@@ -281,16 +273,16 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: FilledButton.icon(
               onPressed: _pickDate,
-              icon: const Icon(LucideIcons.calendar, size: 18),
+              icon: const Icon(IconsaxPlusLinear.calendar, size: 18),
               label: Text(l10n.guestPickDate),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
             ),
@@ -301,7 +293,6 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   }
 
   Widget _buildDateContent(AppLocalizations l10n, DateTime date) {
-    final counter = CounterData.calculateFromAnniversary(date);
     final totalDays = _getTotalDays(date);
     final nextAnniversary = _getNextAnniversary(date);
     final daysUntilAnniversary = _daysUntil(nextAnniversary);
@@ -313,9 +304,9 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         CounterCard(
-          years: counter.years,
-          months: counter.months,
-          days: counter.days,
+          // Days-only hero + live clock — matches the Home card (2026-06-10).
+          totalDays: totalDays,
+          liveSince: date,
           subtitle: l10n.guestCounterStartFrom(_formatDate(date)),
           footer: daysUntilAnniversary == 0
               ? l10n.todayIsAnniversary
@@ -331,7 +322,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
         const SizedBox(height: 20),
         OutlinedButton.icon(
           onPressed: _pickDate,
-          icon: const Icon(LucideIcons.repeat, size: 18),
+          icon: const Icon(IconsaxPlusLinear.refresh_2, size: 18),
           label: Text(l10n.guestChangeDate),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.accentRose,
@@ -341,7 +332,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
             ),
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(999),
             ),
           ),
         ),
@@ -357,36 +348,15 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   }) {
     final daysLeft = nextMilestone - totalDays;
 
-    return Container(
-      width: double.infinity,
+    return ContentCard(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.accentGold.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  LucideIcons.award,
-                  color: AppColors.accentGold,
-                ),
-              ),
+              // accentGold on white fails contrast (~1.8:1) — rose tint (C5).
+              const IconBadge(IconsaxPlusLinear.medal_star),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -424,8 +394,9 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
               value: progress,
               minHeight: 10,
               backgroundColor: AppColors.surfaceLight,
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.accentRose),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.accentRose,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -463,9 +434,11 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
         children: [
           Row(
             children: [
+              // Dark ink on glass (C5): white 13px text on the blush glass
+              // failed contrast (S1) — switch to textPrimary/textSecondary.
               const Icon(
-                Icons.favorite_rounded,
-                color: AppColors.white,
+                IconsaxPlusBold.heart,
+                color: AppColors.accentRose,
                 size: 20,
               ),
               const SizedBox(width: 10),
@@ -473,7 +446,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
                 child: Text(
                   l10n.guestCtaTitle,
                   style: const TextStyle(
-                    color: AppColors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
@@ -484,8 +457,8 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
           const SizedBox(height: 8),
           Text(
             l10n.guestCtaBody,
-            style: TextStyle(
-              color: AppColors.white.withValues(alpha: 0.88),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
               fontSize: 13,
               height: 1.45,
             ),
@@ -494,18 +467,20 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
           Row(
             children: [
               Expanded(
-                child: FilledButton(
-                  onPressed: () =>
-                      Navigator.of(context).pushNamed(AppRoutes.login),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.accentRose,
-                    foregroundColor: AppColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                child: SizedBox(
+                  height: 52,
+                  child: FilledButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.login),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.accentRose,
+                      foregroundColor: AppColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(999),
+                      ),
                     ),
+                    child: Text(l10n.guestCtaSignIn),
                   ),
-                  child: Text(l10n.guestCtaSignIn),
                 ),
               ),
               const SizedBox(width: 12),
@@ -513,7 +488,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
                 onPressed: () =>
                     Navigator.of(context).pushNamed(AppRoutes.register),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.white,
+                  foregroundColor: AppColors.textPrimary,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 14,

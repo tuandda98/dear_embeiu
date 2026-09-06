@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
@@ -17,10 +18,13 @@ import '../services/couple_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/blocking_loading_overlay.dart';
+import '../widgets/content_card.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/invite_action_buttons.dart';
 import '../widgets/love_lottie.dart';
 import '../widgets/shared_couple_photo_view.dart';
+import '../widgets/sub_screen_header.dart';
 
 enum _SetupMode { create, join }
 
@@ -77,6 +81,17 @@ class _SetupScreenState extends State<SetupScreen> {
     }
 
     _didPrefill = true;
+    // Attach AFTER prefill so the programmatic prefill text assignment doesn't
+    // fire a setState mid-build. Rebuild on every keystroke so the editing
+    // "Save changes" button can enable/disable live against _hasPendingChanges.
+    _person1Controller.addListener(_onFormChanged);
+    _person2Controller.addListener(_onFormChanged);
+  }
+
+  void _onFormChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -395,10 +410,10 @@ class _SetupScreenState extends State<SetupScreen> {
     return result.warningMessage ?? result.message ?? '';
   }
 
+  // Locale-aware display format (design-unify C6, decision D3 — display-only:
+  // the stored DateTime is untouched, only how it reads on screen changes).
   String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    return '$day/$month/${date.year}';
+    return DateFormat(context.l10n.fullDateFormat).format(date);
   }
 
   @override
@@ -410,6 +425,20 @@ class _SetupScreenState extends State<SetupScreen> {
     final existingCouple = coupleProvider.couple;
     final isEditing = currentUser?.hasCouple == true && existingCouple != null;
     final editingCouple = isEditing ? existingCouple : null;
+    // Editing: gate the Save button on an actual pending change so it can't
+    // no-op (create mode stays always-actionable). Mirrors _hasPendingChanges +
+    // the required-field guard inside _submitCreateOrUpdate.
+    final bool canSaveEdit = !isEditing ||
+        editingCouple == null ||
+        (_person1Controller.text.trim().isNotEmpty &&
+            _person2Controller.text.trim().isNotEmpty &&
+            _selectedDate != null &&
+            _hasPendingChanges(
+              editingCouple,
+              _person1Controller.text.trim(),
+              _person2Controller.text.trim(),
+              _selectedDate!,
+            ));
     final hasInviteCode = currentUser?.hasInviteCode == true;
     final isBusy = coupleProvider.isLoading || photoProvider.isLoading;
     final loadingMessage = coupleProvider.isLoading
@@ -449,6 +478,7 @@ class _SetupScreenState extends State<SetupScreen> {
                           existingCouple: editingCouple,
                           isEditing: isEditing,
                           isLoading: coupleProvider.isLoading,
+                          canSave: canSaveEdit,
                         )
                       else
                         _buildJoinCard(
@@ -472,7 +502,16 @@ class _SetupScreenState extends State<SetupScreen> {
     bool isEditing,
   ) {
     final l10n = context.l10n;
-    final title = isEditing ? l10n.setupEditTitle : l10n.setupCreateTitle;
+    final String title;
+    if (isEditing) {
+      final me = _person1Controller.text.trim();
+      final partner = _person2Controller.text.trim();
+      title = (me.isEmpty || partner.isEmpty)
+          ? l10n.setupEditTitleGeneric
+          : l10n.setupEditTitle(me, partner);
+    } else {
+      title = l10n.setupCreateTitle;
+    }
     final subtitle = isEditing
         ? l10n.setupEditSectionDesc
         : l10n.setupCreateSectionDesc;
@@ -480,33 +519,26 @@ class _SetupScreenState extends State<SetupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+        // Header redesign 2026-06-14: EDIT mode (a pushed sub-screen) uses the
+        // shared SubScreenHeader (back → chip → title 28 → subtitle, all
+        // left-aligned at the gutter so the chip lines up vertically with the
+        // title). CREATE mode is the setup landing (reached via the auth gate,
+        // nothing to pop) so it keeps its own chip + sign-out row + 32 hero.
+        if (isEditing)
+          SubScreenHeader(
+            badge: l10n.editCoupleBadge,
+            badgeIcon: IconsaxPlusLinear.edit_2,
+            title: title,
+            subtitle: subtitle,
+          )
+        else ...[
+          Row(
+            children: [
+              EyebrowChip(
+                label: l10n.coupleOnboardingBadge,
+                icon: IconsaxPlusBold.heart,
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    isEditing ? LucideIcons.pencil : Icons.favorite_rounded,
-                    size: 14,
-                    color: AppColors.white.withValues(alpha: 0.92),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isEditing ? l10n.editCoupleBadge : l10n.coupleOnboardingBadge,
-                    style: AppTheme.pageEyebrowStyle(),
-                  ),
-                ],
-              ),
-            ),
-            const Spacer(),
-            if (!isEditing)
+              const Spacer(),
               Tooltip(
                 message: l10n.signOutBtn,
                 child: InkWell(
@@ -522,20 +554,23 @@ class _SetupScreenState extends State<SetupScreen> {
                   borderRadius: BorderRadius.circular(999),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    // Header ink vòng 4 (2026-06-11): navy ink on a near-solid
+                    // white pill (same .72 fill as the light row tiles) — the
+                    // frosted-glass + white-text version failed contrast.
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.10),
+                      color: AppColors.white.withValues(alpha: 0.72),
                       borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColors.white.withValues(alpha: 0.15)),
+                      border: Border.all(color: AppColors.white.withValues(alpha: 0.65)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(LucideIcons.logOut, size: 13, color: AppColors.white.withValues(alpha: 0.70)),
+                        Icon(IconsaxPlusLinear.logout, size: 13, color: AppColors.textPrimary.withValues(alpha: 0.85)),
                         const SizedBox(width: 6),
                         Text(
                           l10n.signOutBtn,
                           style: TextStyle(
-                            color: AppColors.white.withValues(alpha: 0.70),
+                            color: AppColors.textPrimary.withValues(alpha: 0.85),
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -545,27 +580,31 @@ class _SetupScreenState extends State<SetupScreen> {
                   ),
                 ),
               ),
-          ],
-        ),
-        const SizedBox(height: 18),
-        Text(title, style: AppTheme.pageTitleStyle()),
-        const SizedBox(height: 10),
-        Text(subtitle, style: AppTheme.pageSubtitleStyle(alpha: 0.84)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Create (first-run landing) keeps the 32 hero.
+          Text(title, style: AppTheme.pageTitleStyle(fontSize: 32)),
+          const SizedBox(height: 10),
+          Text(subtitle, style: AppTheme.pageSubtitleStyle()),
+        ],
         if (coupleProvider.errorMessage != null) ...[
           const SizedBox(height: 12),
+          // Light card + dark ink (design-unify C6) — white text on a thin
+          // warning tint failed contrast on the blush gradient.
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(14),
+              color: AppColors.white.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.warning.withValues(alpha: 0.30)),
             ),
             child: Text(
               coupleProvider.errorMessage!,
               style: const TextStyle(
-                color: AppColors.white,
-                fontSize: 12.5,
+                color: AppColors.textPrimary,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 height: 1.4,
               ),
@@ -623,13 +662,13 @@ class _SetupScreenState extends State<SetupScreen> {
                 children: [
                   _buildModeTabLabel(
                     label: l10n.setupTabCreate,
-                    icon: LucideIcons.plusCircle,
+                    icon: IconsaxPlusLinear.add_circle,
                     selected: isCreate,
                     onTap: () => setState(() => _mode = _SetupMode.create),
                   ),
                   _buildModeTabLabel(
                     label: l10n.setupTabJoin,
-                    icon: LucideIcons.link,
+                    icon: IconsaxPlusLinear.link,
                     selected: !isCreate,
                     onTap: () => setState(() => _mode = _SetupMode.join),
                   ),
@@ -649,11 +688,18 @@ class _SetupScreenState extends State<SetupScreen> {
     required VoidCallback onTap,
   }) {
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: SizedBox.expand(
-          child: Row(
+      // InkWell (not a bare GestureDetector) so the tap ripples — white .12 on
+      // the dark-ish glass track (design-unify C6 / A8 ripple rule). The
+      // sliding pill underneath is untouched.
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          splashColor: AppColors.white.withValues(alpha: 0.12),
+          highlightColor: Colors.transparent,
+          child: SizedBox.expand(
+            child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AnimatedSwitcher(
@@ -662,9 +708,11 @@ class _SetupScreenState extends State<SetupScreen> {
                   icon,
                   key: ValueKey('$icon-$selected'),
                   size: 15,
+                  // Header ink vòng 4: unselected tab reads navy .60 — white
+                  // type on the glass track failed contrast on blush.
                   color: selected
                       ? AppColors.accentRose
-                      : AppColors.white.withValues(alpha: 0.75),
+                      : AppColors.textPrimary.withValues(alpha: 0.60),
                 ),
               ),
               const SizedBox(width: 6),
@@ -674,13 +722,14 @@ class _SetupScreenState extends State<SetupScreen> {
                 style: TextStyle(
                   color: selected
                       ? AppColors.textPrimary
-                      : AppColors.white.withValues(alpha: 0.75),
+                      : AppColors.textPrimary.withValues(alpha: 0.60),
                   fontWeight: FontWeight.w700,
-                  fontSize: 13.5,
+                  fontSize: 13,
                 ),
                 child: Text(label),
               ),
             ],
+            ),
           ),
         ),
       ),
@@ -708,48 +757,51 @@ class _SetupScreenState extends State<SetupScreen> {
             ? l10n.setupWaitingCoupleCodeTitle
             : l10n.inviteCodeTiedToAccount;
 
-    final description = !hasCreatedCoupleSpace
+    // Couple-active branch: `inviteCodeTiedToAccount` already serves as the
+    // title — repeating it as the description read as a copy bug, so that
+    // branch renders no description at all (vòng 4).
+    final String? description = !hasCreatedCoupleSpace
         ? l10n.inviteCodeDialogContent
         : isWaitingForPartner
             ? l10n.setupCoupleCodeDesc
-            : l10n.inviteCodeTiedToAccount;
+            : null;
 
     final statusIcon = isWaitingForPartner
-        ? LucideIcons.hourglass
+        ? IconsaxPlusLinear.timer_1
         : hasCreatedCoupleSpace
-            ? Icons.favorite_rounded
-            : LucideIcons.keyRound;
+            ? IconsaxPlusBold.heart
+            : IconsaxPlusLinear.key;
 
     final statusColor = isWaitingForPartner
         ? AppColors.warning
         : hasCreatedCoupleSpace
             ? AppColors.accentRose
-            : AppColors.white;
+            : AppColors.textSecondary;
 
     // Cụm Copy/Share chỉ có nghĩa khi couple đang chờ partner: mã mời còn
     // join được. Khi couple đã active (đã tạo space & không còn waiting),
     // ẩn cụm nút vì không ai join bằng mã này nữa.
     final showInviteActions = !hasCreatedCoupleSpace || isWaitingForPartner;
 
-    return SizedBox(
-      width: double.infinity,
-      child: GlassCard(
-        borderRadius: 24,
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(statusIcon, size: 14, color: statusColor),
+    // Header ink vòng 4 (2026-06-11): solid white ContentCard + navy/rose ink
+    // — the glass card with white type failed contrast on the blush gradient.
+    return ContentCard(
+      radius: 24,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(statusIcon, size: 14, color: statusColor),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   title,
-                  style: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.80),
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -759,7 +811,7 @@ class _SetupScreenState extends State<SetupScreen> {
           Text(
             displayCode,
             style: const TextStyle(
-              color: AppColors.white,
+              color: AppColors.accentLoveDeep,
               fontSize: 30,
               fontWeight: FontWeight.w900,
               letterSpacing: 4,
@@ -767,34 +819,66 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           if (showInviteActions) ...[
             const SizedBox(height: 10),
-            InviteActionButtons(code: displayCode, onDark: true),
+            InviteActionButtons(code: displayCode, onDark: false),
           ],
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: TextStyle(
-              color: AppColors.white.withValues(alpha: 0.65),
-              fontSize: 12,
-              height: 1.45,
+          if (description != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+                height: 1.45,
+              ),
             ),
-          ),
+          ],
+          // Next-steps checklist (feature onboarding, 2026-09-05): the code
+          // alone left the creator guessing what the partner has to do. Same
+          // three steps as the Home waiting card, text-only here.
+          if (isWaitingForPartner) ...[
+            const SizedBox(height: 14),
+            _buildWaitingStepLine(
+              index: 1,
+              title: l10n.homeWaitingStep1Title,
+              description: l10n.homeWaitingStep1Desc,
+            ),
+            const SizedBox(height: 8),
+            _buildWaitingStepLine(
+              index: 2,
+              title: l10n.homeWaitingStep2Title,
+              description: l10n.homeWaitingStep2Desc,
+            ),
+            const SizedBox(height: 8),
+            _buildWaitingStepLine(
+              index: 3,
+              title: l10n.homeWaitingStep3Title,
+              description: l10n.homeWaitingStep3Desc,
+            ),
+          ],
           // Rejoin hint: remind both members they can use this code to
           // reconnect if one leaves, so they don't lose access.
           if (isWaitingForPartner) ...[
             const SizedBox(height: 10),
-            Divider(thickness: 0.5, color: AppColors.white.withValues(alpha: 0.15)),
+            Divider(
+              thickness: 0.5,
+              color: AppColors.textPrimary.withValues(alpha: 0.10),
+            ),
             const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(LucideIcons.info, size: 12, color: AppColors.white.withValues(alpha: 0.45)),
+                const Icon(
+                  IconsaxPlusLinear.info_circle,
+                  size: 12,
+                  color: AppColors.textTertiary,
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     l10n.setupCoupleCodeRejoinHint,
-                    style: TextStyle(
-                      color: AppColors.white.withValues(alpha: 0.50),
-                      fontSize: 11.5,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
                       fontStyle: FontStyle.italic,
                       height: 1.4,
                     ),
@@ -804,8 +888,64 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ],
         ],
-        ),
       ),
+    );
+  }
+
+  /// One text-only step of the waiting checklist (rose numeral disc + title +
+  /// description). Mirrors the Home waiting card's rows without its actions.
+  Widget _buildWaitingStepLine({
+    required int index,
+    required String title,
+    required String description,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.accentLove.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            '$index',
+            style: const TextStyle(
+              color: AppColors.accentLoveDeep,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  height: 1.25,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -813,6 +953,7 @@ class _SetupScreenState extends State<SetupScreen> {
     Couple? existingCouple,
     required bool isEditing,
     required bool isLoading,
+    bool canSave = true,
   }) {
     final l10n = context.l10n;
     final hasPhoto = _couplePhotoPath != null &&
@@ -842,7 +983,7 @@ class _SetupScreenState extends State<SetupScreen> {
               controller: _person1Controller,
               decoration: _inputDecoration(
                 hint: l10n.yourNameHint,
-                icon: LucideIcons.user,
+                icon: IconsaxPlusLinear.user,
               ),
             ),
           ),
@@ -853,7 +994,7 @@ class _SetupScreenState extends State<SetupScreen> {
               controller: _person2Controller,
               decoration: _inputDecoration(
                 hint: l10n.partnerNameHint,
-                icon: Icons.favorite_rounded,
+                icon: IconsaxPlusBold.heart,
               ),
             ),
           ),
@@ -874,7 +1015,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.calendar, color: AppColors.accentCoral),
+                    const Icon(IconsaxPlusLinear.calendar, color: AppColors.accentCoral),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -889,7 +1030,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         ),
                       ),
                     ),
-                    const Icon(LucideIcons.chevronRight),
+                    const Icon(IconsaxPlusLinear.arrow_right_3),
                   ],
                 ),
               ),
@@ -915,7 +1056,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(LucideIcons.image, color: AppColors.info),
+                        const Icon(IconsaxPlusLinear.gallery, color: AppColors.info),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -943,16 +1084,22 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
           const SizedBox(height: 20),
+          // Primary CTA token (design-unify B10): pill r999, height 52, rose.
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: FilledButton.icon(
-              onPressed: isLoading ? null : _submitCreateOrUpdate,
+              onPressed: (isLoading || !canSave) ? null : _submitCreateOrUpdate,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                // Disabled state (editing, no pending change): a muted rose so
+                // the button reads clearly inactive instead of full-strength.
+                disabledBackgroundColor:
+                    AppColors.accentRose.withValues(alpha: 0.35),
+                disabledForegroundColor: AppColors.white.withValues(alpha: 0.7),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               icon: isLoading
@@ -964,7 +1111,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         color: AppColors.white,
                       ),
                     )
-                  : Icon(isEditing ? LucideIcons.save : Icons.favorite_rounded),
+                  : Icon(isEditing ? IconsaxPlusLinear.save_2 : IconsaxPlusBold.heart),
               label: Text(
                 isEditing ? l10n.saveChangesBtn : l10n.createOurSpaceBtn,
                 style: const TextStyle(fontWeight: FontWeight.w700),
@@ -1006,21 +1153,22 @@ class _SetupScreenState extends State<SetupScreen> {
               textCapitalization: TextCapitalization.characters,
               decoration: _inputDecoration(
                 hint: l10n.theirInviteCodeHint,
-                icon: LucideIcons.lock,
+                icon: IconsaxPlusLinear.lock,
               ),
             ),
           ),
           const SizedBox(height: 20),
+          // Primary CTA token (design-unify B10): pill r999, height 52, rose.
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: FilledButton.icon(
               onPressed: isLoading ? null : _submitJoin,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               icon: isLoading
@@ -1032,7 +1180,7 @@ class _SetupScreenState extends State<SetupScreen> {
                         color: AppColors.white,
                       ),
                     )
-                  : const Icon(LucideIcons.link),
+                  : const Icon(IconsaxPlusLinear.link),
               label: Text(
                 l10n.joinBtn,
                 style: const TextStyle(fontWeight: FontWeight.w700),

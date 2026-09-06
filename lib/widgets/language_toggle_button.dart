@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../l10n/l10n.dart';
 import '../providers/locale_provider.dart';
@@ -82,7 +82,11 @@ class LanguageToggleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = currentAppLanguage(context.watch<LocaleProvider>().locale);
-    final fgColor = onDark ? AppColors.white : AppColors.textPrimary;
+    // Header ink vòng 4 (2026-06-11): the pill always reads navy. The [onDark]
+    // (= on-gradient) variant now sits on a near-solid white pill — same
+    // family as HeaderIconButton — because white type on the glass pill failed
+    // contrast on the bright end of dawnBlush. No text shadows.
+    const fgColor = AppColors.textPrimary;
 
     // When following the system language the pill shows the globe plus the code
     // MaterialApp actually resolved (e.g. "🌐 VI") instead of a bare dash.
@@ -91,48 +95,56 @@ class LanguageToggleButton extends StatelessWidget {
         Localizations.localeOf(context).languageCode.toUpperCase();
     final String pillCode = isSystem ? resolvedCode : selected.code!.toUpperCase();
 
-    return GestureDetector(
-      onTap: () => showLanguagePicker(context),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-        decoration: BoxDecoration(
+    return Container(
+      decoration: BoxDecoration(
+        color: onDark
+            ? AppColors.white.withValues(alpha: 0.72)
+            : AppColors.textPrimary.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
           color: onDark
-              ? AppColors.white.withValues(alpha: 0.14)
-              : AppColors.textPrimary.withValues(alpha: 0.07),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: onDark
-                ? AppColors.white.withValues(alpha: 0.22)
-                : AppColors.textPrimary.withValues(alpha: 0.12),
-          ),
+              ? AppColors.white.withValues(alpha: 0.65)
+              : AppColors.textPrimary.withValues(alpha: 0.12),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isSystem)
-              Icon(LucideIcons.globe, size: 14, color: fgColor)
-            else
-              Text(selected.code!.toUpperCase(),
-                  style: TextStyle(
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => showLanguagePicker(context),
+          borderRadius: BorderRadius.circular(999),
+          splashColor: AppColors.accentRose.withValues(alpha: 0.08),
+          highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isSystem)
+                  const Icon(IconsaxPlusLinear.global, size: 14, color: fgColor)
+                else
+                  Text(selected.code!.toUpperCase(),
+                      style: const TextStyle(
+                        color: fgColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      )),
+                const SizedBox(width: 5),
+                Text(
+                  pillCode,
+                  style: const TextStyle(
                     color: fgColor,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.5,
-                  )),
-            const SizedBox(width: 5),
-            Text(
-              pillCode,
-              style: TextStyle(
-                color: fgColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-              ),
+                  ),
+                ),
+                const SizedBox(width: 3),
+                Icon(IconsaxPlusLinear.arrow_down_1,
+                    size: 14, color: fgColor.withValues(alpha: 0.7)),
+              ],
             ),
-            const SizedBox(width: 3),
-            Icon(LucideIcons.chevronDown,
-                size: 14, color: fgColor.withValues(alpha: 0.7)),
-          ],
+          ),
         ),
       ),
     );
@@ -195,7 +207,7 @@ class _LanguageSheetState extends State<_LanguageSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Icon(LucideIcons.globe, size: 18, color: AppColors.accentRose),
+                Icon(IconsaxPlusLinear.global, size: 18, color: AppColors.accentRose),
                 const SizedBox(width: 8),
                 Text(
                   l10n.languageTitle,
@@ -216,7 +228,7 @@ class _LanguageSheetState extends State<_LanguageSheet> {
                 onChanged: (value) => setState(() => _query = value),
                 decoration: InputDecoration(
                   isDense: true,
-                  prefixIcon: const Icon(LucideIcons.search, size: 20),
+                  prefixIcon: const Icon(IconsaxPlusLinear.search_normal, size: 20),
                   hintText: l10n.languageSearchHint,
                 ),
               ),
@@ -320,7 +332,7 @@ class _LanguageTile extends StatelessWidget {
               ),
             ),
             if (isSelected)
-              Icon(LucideIcons.checkCircle,
+              Icon(IconsaxPlusLinear.tick_circle,
                   color: AppColors.accentRose, size: 20),
           ],
         ),
@@ -349,7 +361,7 @@ class _LanguageChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       child: isSystem
-          ? const Icon(LucideIcons.globe, size: 20, color: AppColors.accentLove)
+          ? const Icon(IconsaxPlusLinear.global, size: 20, color: AppColors.accentLove)
           : Text(
               lang.code!.toUpperCase(),
               style: const TextStyle(

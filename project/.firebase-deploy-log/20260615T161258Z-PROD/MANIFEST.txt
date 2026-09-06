@@ -1,0 +1,43 @@
+================ PROD DEPLOY — 20260615T161258Z ================
+project=tonyembeiu (PROD — phục vụ CẢ iOS + Android, 1 backend chung)
+deploy-from git HEAD=3ba18f0 (branch release/1.1.6)
+prev prod deploy git HEAD=16dd17b (2026-06-06, trạng thái 1.1.0 — rules 490 dòng)
+
+ĐÃ DEPLOY:
+- firestore:rules  (490 → 574 dòng; additive/backward-compat — iOS 1.1.0 live KHÔNG vỡ)
+- firestore:indexes
+- storage:rules
+- functions: CREATED notifyChatMessage, mirrorNoteHistoryToChat, migrateLoveNotesToChat
+            UPDATED pruneDeadDevices, sendPartnerPhotoNotification, notifyPartnerJoined,
+            notifyPartnerLeft, notifyLoveNote, notifyDailyAnswer, notifyPhotoReaction,
+            deleteAccount, leaveCoupleCleanup, sendCustomVerificationEmail,
+            sendCustomPasswordResetEmail
+exit=0, không lỗi Eventarc.
+
+================ CÁCH REVERT (nếu muốn quay lại trạng thái 1.1.0) ================
+File trạng thái CŨ đã lưu sẵn ở: project/.firebase-deploy-log/20260615T161258Z-PROD/prev-prod/  (firestore.rules / storage.rules / firestore.indexes.json — bản 1.1.0)
+File vừa deploy lưu ở: project/.firebase-deploy-log/20260615T161258Z-PROD/deployed/
+
+A) RULES (cách nhanh nhất — Firebase Console):
+   Console → Firestore Database → Rules → tab "Lịch sử/History" → chọn bản publish trước (2026-06-06) → Rollback.
+   (Storage rules tương tự: Storage → Rules → History → Rollback.)
+   HOẶC bằng CLI:
+     git checkout 16dd17b -- firestore.rules storage.rules firestore.indexes.json
+     npx firebase-tools deploy --only firestore:rules,storage,firestore:indexes --project prod
+     git checkout 3ba18f0 -- firestore.rules storage.rules firestore.indexes.json   # trả lại repo
+   HOẶC copy thẳng file đã lưu:
+     cp project/.firebase-deploy-log/20260615T161258Z-PROD/prev-prod/firestore.rules firestore.rules && cp project/.firebase-deploy-log/20260615T161258Z-PROD/prev-prod/storage.rules storage.rules
+     npx firebase-tools deploy --only firestore:rules,storage --project prod   # rồi git checkout lại
+
+B) FUNCTIONS:
+   - XOÁ 3 hàm mới (chat + migrate):
+     npx firebase-tools functions:delete notifyChatMessage mirrorNoteHistoryToChat migrateLoveNotesToChat --project prod
+   - Trả 11 hàm cũ về code 1.1.0:
+     git checkout 16dd17b -- functions
+     npx firebase-tools deploy --only functions --project prod
+     git checkout 3ba18f0 -- functions
+
+C) INDEXES: additive (chỉ thêm) — muốn gỡ thì xoá thủ công trong Console → Firestore → Indexes.
+
+⚠️ LƯU Ý: rules mới là ADDITIVE/backward-compat → GIỮ vẫn an toàn cho iOS 1.1.0 live.
+   Chỉ revert nếu thực sự muốn rollback cả bản 1.2.0. Revert rules về 490-dòng sẽ làm app 1.2.0 (chat/nhắc) bị permission-denied.

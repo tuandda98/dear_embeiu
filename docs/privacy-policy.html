@@ -1,164 +1,529 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Privacy Policy — dear embeiu</title>
+  <title>Chính Sách Quyền Riêng Tư — Dear Embeiu</title>
+  <meta name="description" content="Chính sách quyền riêng tư của ứng dụng Dear Embeiu." />
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #222; }
-    h1 { color: #d63384; }
-    h2 { color: #6f42c1; margin-top: 32px; }
-    code { background: #f6f0fa; padding: 2px 6px; border-radius: 4px; }
-    a { color: #d63384; }
-    .meta { color: #888; font-size: 14px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th { background: #f6f0fa; text-align: left; padding: 8px 12px; font-size: 13px; color: #6f42c1; }
-    td { padding: 8px 12px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: top; }
-    .badge { display: inline-block; background: #fff0f6; color: #d63384; border: 1px solid #f8c0d8; border-radius: 4px; padding: 1px 7px; font-size: 12px; font-weight: 600; }
+    :root {
+      --pink:        #FF6B9D;
+      --pink-deep:   #E63956;
+      --pink-light:  #FFB6C1;
+      --pink-pale:   #FFF0F5;
+      --pink-mist:   #FFE4EF;
+      --navy:        #1A1A2E;
+      --muted:       #6B7280;
+      --muted-light: #9CA3AF;
+      --border:      rgba(255,107,157,.14);
+      --shadow-soft: 0 4px 20px rgba(26,26,46,.07);
+      --r-card:      24px;
+      --r-pill:      999px;
+      --r-sm:        16px;
+      --font:        'Quicksand', -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); color: var(--navy); background: var(--pink-pale); }
+    a { color: var(--pink); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ─── i18n ─── */
+    html[lang="en"] .vi-only { display: none; }
+    html[lang="vi"] .en-only { display: none; }
+
+    /* ─── Nav ─── */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,240,245,.88);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { max-width: 1100px; margin: 0 auto; height: 64px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .nav-logo { display: flex; align-items: center; gap: 9px; font-size: 1.05rem; font-weight: 700; flex-shrink: 0; }
+    .nav-logo a { color: var(--navy); }
+    .nav-logo a:hover { text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .lang-toggle { display: flex; gap: 2px; background: rgba(255,107,157,.08); border: 1.5px solid var(--border); border-radius: var(--r-pill); padding: 3px; }
+    .lt-btn { border: none; background: transparent; cursor: pointer; font-family: var(--font); font-size: .75rem; font-weight: 700; color: var(--muted); padding: 5px 11px; border-radius: var(--r-pill); transition: all .2s; line-height: 1; }
+    .lt-btn.active { background: var(--pink); color: #fff; box-shadow: 0 2px 8px rgba(255,107,157,.40); }
+    .lt-btn:not(.active):hover { color: var(--pink); }
+    .nav-back { display: inline-flex; align-items: center; gap: 6px; font-size: .88rem; font-weight: 700; color: var(--muted); padding: 10px 18px; border-radius: var(--r-pill); border: 1.5px solid var(--border); background: #fff; transition: color .2s, border-color .2s; white-space: nowrap; }
+    .nav-back:hover { color: var(--pink); border-color: rgba(255,107,157,.35); text-decoration: none; }
+
+    /* ─── Page hero ─── */
+    .page-hero {
+      padding: 56px 28px 48px;
+      background: linear-gradient(155deg, #FFF5FA 0%, var(--pink-mist) 60%, #FFD6E7 100%);
+      border-bottom: 1px solid var(--border);
+    }
+    .page-hero-inner { max-width: 760px; margin: 0 auto; }
+    .page-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.8); border: 1.5px solid var(--border); border-radius: var(--r-pill); padding: 5px 15px; font-size: .76rem; font-weight: 700; color: var(--pink); margin-bottom: 16px; letter-spacing: .02em; backdrop-filter: blur(8px); }
+    .page-hero h1 { font-size: clamp(1.7rem,4vw,2.4rem); font-weight: 700; line-height: 1.2; color: var(--navy); margin-bottom: 10px; }
+    .page-meta { font-size: .84rem; color: var(--muted); font-weight: 500; }
+
+    /* ─── Content ─── */
+    .content-wrap { max-width: 760px; margin: 0 auto; padding: 56px 28px 80px; }
+
+    .prose-intro { font-size: 1.02rem; color: var(--muted); line-height: 1.75; font-weight: 500; margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+
+    .prose-section { margin-bottom: 44px; }
+    .prose-section h2 { font-size: 1.15rem; font-weight: 700; color: var(--navy); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid var(--pink-mist); display: flex; align-items: center; gap: 10px; }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: linear-gradient(135deg,var(--pink),var(--pink-deep)); border-radius: 8px; font-size: .75rem; font-weight: 800; color: #fff; flex-shrink: 0; }
+    .prose-section p { font-size: .93rem; color: var(--muted); line-height: 1.75; font-weight: 500; margin-bottom: 12px; }
+    .prose-section ul, .prose-section ol { padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+    .prose-section li { font-size: .93rem; color: var(--muted); line-height: 1.7; font-weight: 500; padding-left: 20px; position: relative; }
+    .prose-section li::before { content: '•'; position: absolute; left: 0; color: var(--pink); font-weight: 700; }
+    .prose-section li ul { margin-top: 8px; padding-left: 16px; }
+    .prose-section li ul li::before { content: '–'; color: var(--pink-light); }
+    .prose-section strong { color: var(--navy); font-weight: 700; }
+    .prose-section code { background: var(--pink-pale); padding: 2px 7px; border-radius: 6px; font-size: .88em; color: var(--pink-deep); }
+
+    /* Table */
+    .data-table { width: 100%; border-collapse: collapse; margin: 16px 0; border-radius: var(--r-card); overflow: hidden; box-shadow: var(--shadow-soft); }
+    .data-table thead tr { background: linear-gradient(135deg,var(--pink),var(--pink-deep)); }
+    .data-table th { text-align: left; padding: 12px 16px; font-size: .8rem; font-weight: 700; color: #fff; letter-spacing: .03em; }
+    .data-table td { padding: 11px 16px; border-bottom: 1px solid var(--pink-pale); font-size: .88rem; color: var(--muted); font-weight: 500; background: #fff; vertical-align: top; line-height: 1.55; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--pink-pale); }
+    .badge-yes { display: inline-flex; align-items: center; background: rgba(255,107,157,.12); color: var(--pink-deep); border: 1px solid rgba(255,107,157,.25); border-radius: 6px; padding: 2px 9px; font-size: .78rem; font-weight: 700; }
+    .badge-no  { display: inline-flex; align-items: center; background: #F3F4F6; color: var(--muted-light); border-radius: 6px; padding: 2px 9px; font-size: .78rem; font-weight: 600; }
+
+    /* Info box */
+    .info-box { background: var(--pink-pale); border: 1.5px solid var(--border); border-radius: var(--r-sm); padding: 16px 20px; margin: 16px 0; font-size: .88rem; color: var(--muted); line-height: 1.65; font-weight: 500; }
+    .info-box strong { color: var(--pink-deep); }
+
+    /* ─── Footer ─── */
+    footer { background: #0D0D1C; padding: 40px 28px 28px; }
+    .ft-inner { max-width: 1100px; margin: 0 auto; }
+    .ft-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .ft-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 8px; }
+    .ft-brand p { font-size: .82rem; color: rgba(255,255,255,.4); line-height: 1.6; max-width: 240px; }
+    .ft-col h4 { font-size: .76rem; font-weight: 700; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+    .ft-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .ft-col a { font-size: .84rem; color: rgba(255,255,255,.4); font-weight: 500; transition: color .2s; text-decoration: none; }
+    .ft-col a:hover { color: var(--pink); }
+    .ft-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: .78rem; color: rgba(255,255,255,.26); font-weight: 500; }
+    .ft-bottom a { color: rgba(255,255,255,.26); transition: color .2s; text-decoration: none; }
+    .ft-bottom a:hover { color: var(--pink); }
+
+    @media (max-width: 600px) { .ft-top { flex-direction: column; } .ft-bottom { flex-direction: column; text-align: center; } .content-wrap { padding: 40px 20px 60px; } }
   </style>
 </head>
 <body>
-  <h1>Privacy Policy — dear embeiu</h1>
-  <p class="meta">Effective date: 28 May 2026 &nbsp;·&nbsp; Last updated: 3 June 2026</p>
 
-  <p>This Privacy Policy describes how the mobile application <strong>dear embeiu</strong> ("the App", "we", "us") collects, uses, and shares information when you use the App.</p>
+  <!-- ═══ NAV ═══ -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <a href="index.html">
+          <span>💌</span> Dear Embeiu
+        </a>
+      </div>
+      <div class="nav-right">
+        <div class="lang-toggle" role="group" aria-label="Language / Ngôn ngữ">
+          <button class="lt-btn active" data-lang="vi" onclick="setLang('vi')" aria-pressed="true">VI</button>
+          <button class="lt-btn"        data-lang="en" onclick="setLang('en')" aria-pressed="false">EN</button>
+        </div>
+        <a href="index.html" class="nav-back">
+          <span class="vi-only">← Trang chủ</span>
+          <span class="en-only">← Home</span>
+        </a>
+      </div>
+    </div>
+  </nav>
 
-  <h2>1. Information we collect</h2>
-  <ul>
-    <li><strong>Account information:</strong> email address and display name (handled by Firebase Authentication; we never see or store your password in plain text).</li>
-    <li><strong>Couple information:</strong> partner names, anniversary date, optional couple photo, and an invite code used to pair two accounts.</li>
-    <li><strong>Photos and captions:</strong> images you upload to the in-app gallery and any captions you add. These are stored in Firebase Cloud Storage and visible only to you and your paired partner.</li>
-    <li><strong>Device identifiers:</strong> Firebase Cloud Messaging (FCM) registration token used solely to deliver push notifications to your partner's device. We do not use this token for advertising.</li>
-    <li><strong>Diagnostic data:</strong> crash logs and basic app-stability metrics collected automatically by Firebase Crashlytics.</li>
-    <li><strong>Usage / analytics data:</strong> anonymous, aggregated app-usage events (for example, that a photo was posted, a reminder was created, or the language was changed) collected by <strong>Firebase Analytics (Google)</strong> to help us understand how the App is used and improve it. These events <strong>never include the content of your private data</strong> — no email, name, note text, daily-question answers, photo captions, invite codes, photo URLs, or location are ever sent. You can turn this off at any time (see section&nbsp;10).</li>
-    <li><strong>Local storage:</strong> the App uses an on-device database (Hive) to cache couple and photo data for offline access. This cache stays on your device and is cleared when you delete the App or clear its data.</li>
-  </ul>
+  <!-- ═══ PAGE HERO ═══ -->
+  <div class="page-hero">
+    <div class="page-hero-inner">
+      <div class="page-tag">
+        <span class="vi-only">🔒 Pháp lý</span>
+        <span class="en-only">🔒 Legal</span>
+      </div>
+      <h1>
+        <span class="vi-only">Chính Sách Quyền Riêng Tư</span>
+        <span class="en-only">Privacy Policy</span>
+      </h1>
+      <p class="page-meta">
+        <span class="vi-only">Ngày hiệu lực: 28 tháng 5 năm 2026 &nbsp;·&nbsp; Cập nhật lần cuối: 3 tháng 6 năm 2026</span>
+        <span class="en-only">Effective date: 28 May 2026 &nbsp;·&nbsp; Last updated: 3 June 2026</span>
+      </p>
+    </div>
+  </div>
 
-  <h2>2. Data safety summary</h2>
-  <p>The table below matches the categories declared in the Google Play Data Safety section.</p>
-  <table>
-    <tr>
-      <th>Data type</th>
-      <th>Collected</th>
-      <th>Shared with</th>
-      <th>Purpose</th>
-    </tr>
-    <tr>
-      <td>Email address</td>
-      <td><span class="badge">Yes</span></td>
-      <td>Firebase Auth only</td>
-      <td>Account creation &amp; login</td>
-    </tr>
-    <tr>
-      <td>Display name</td>
-      <td><span class="badge">Yes</span></td>
-      <td>Your paired partner</td>
-      <td>Shown in shared couple profile</td>
-    </tr>
-    <tr>
-      <td>Photos &amp; captions</td>
-      <td><span class="badge">Yes</span></td>
-      <td>Your paired partner</td>
-      <td>Shared gallery</td>
-    </tr>
-    <tr>
-      <td>Device / FCM token</td>
-      <td><span class="badge">Yes</span></td>
-      <td>Not shared</td>
-      <td>Push notifications</td>
-    </tr>
-    <tr>
-      <td>Crash logs</td>
-      <td><span class="badge">Yes</span></td>
-      <td>Not shared</td>
-      <td>App stability</td>
-    </tr>
-    <tr>
-      <td>App usage / analytics (anonymous)</td>
-      <td><span class="badge">Yes</span></td>
-      <td>Google (Firebase Analytics)</td>
-      <td>Analytics — not used for advertising or tracking; opt-out available</td>
-    </tr>
-    <tr>
-      <td>Precise location</td>
-      <td>No</td>
-      <td>—</td>
-      <td>—</td>
-    </tr>
-    <tr>
-      <td>Contacts / SMS</td>
-      <td>No</td>
-      <td>—</td>
-      <td>—</td>
-    </tr>
-  </table>
+  <!-- ═══ CONTENT ═══ -->
+  <div class="content-wrap">
 
-  <h2>3. How we use your information</h2>
-  <ul>
-    <li>To create and authenticate your account.</li>
-    <li>To pair your account with your partner via the invite-code flow.</li>
-    <li>To sync your shared couple data (profile, gallery) between paired devices in real time.</li>
-    <li>To deliver a push notification to your partner when you post a new photo.</li>
-    <li>To diagnose crashes and improve app stability.</li>
-    <li>To cache data locally so the App works offline.</li>
-  </ul>
+    <p class="prose-intro">
+      <span class="vi-only">Chính Sách Quyền Riêng Tư này mô tả cách ứng dụng di động <strong>Dear Embeiu</strong> ("Ứng dụng", "chúng tôi") thu thập, sử dụng và chia sẻ thông tin khi bạn sử dụng Ứng dụng.</span>
+      <span class="en-only">This Privacy Policy describes how the mobile application <strong>Dear Embeiu</strong> ("the App", "we", "us") collects, uses, and shares information when you use the App.</span>
+    </p>
 
-  <h2>4. Sharing of information</h2>
-  <p>We do <strong>not</strong> sell your personal data. Your data is shared only:</p>
-  <ul>
-    <li>With your paired partner inside the App (couple profile, gallery, captions).</li>
-    <li>With <strong>Google Firebase</strong> infrastructure services that process data on our behalf. Each service is governed by Google's privacy commitments:
+    <!-- 1. Information we collect -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">1</span>
+        <span class="vi-only">Thông tin chúng tôi thu thập</span>
+        <span class="en-only">Information we collect</span>
+      </h2>
       <ul>
-        <li>Firebase Authentication, Cloud Firestore, Cloud Storage, Cloud Messaging, Crashlytics, <strong>Analytics</strong> — <a href="https://firebase.google.com/support/privacy" target="_blank">firebase.google.com/support/privacy</a></li>
-        <li>Google Play Services — <a href="https://policies.google.com/privacy" target="_blank">policies.google.com/privacy</a></li>
+        <li>
+          <strong class="vi-only">Thông tin tài khoản:</strong>
+          <strong class="en-only">Account information:</strong>
+          <span class="vi-only"> địa chỉ email và tên hiển thị (xử lý bởi Firebase Authentication; chúng tôi không bao giờ xem hoặc lưu mật khẩu của bạn dưới dạng văn bản thuần túy).</span>
+          <span class="en-only"> email address and display name (handled by Firebase Authentication; we never see or store your password in plain text).</span>
+        </li>
+        <li>
+          <strong class="vi-only">Thông tin cặp đôi:</strong>
+          <strong class="en-only">Couple information:</strong>
+          <span class="vi-only"> tên người bạn đời, ngày kỷ niệm, ảnh cặp đôi tùy chọn, và mã mời dùng để ghép đôi hai tài khoản.</span>
+          <span class="en-only"> partner names, anniversary date, optional couple photo, and an invite code used to pair two accounts.</span>
+        </li>
+        <li>
+          <strong class="vi-only">Ảnh và chú thích:</strong>
+          <strong class="en-only">Photos and captions:</strong>
+          <span class="vi-only"> hình ảnh bạn tải lên thư viện trong ứng dụng. Được lưu trong Firebase Cloud Storage, chỉ hiển thị với bạn và người bạn đời đã ghép đôi.</span>
+          <span class="en-only"> images you upload to the in-app gallery and any captions you add. Stored in Firebase Cloud Storage and visible only to you and your paired partner.</span>
+        </li>
+        <li>
+          <strong class="vi-only">Mã định danh thiết bị:</strong>
+          <strong class="en-only">Device identifiers:</strong>
+          <span class="vi-only"> token đăng ký Firebase Cloud Messaging (FCM) chỉ dùng để gửi thông báo đẩy đến thiết bị của người bạn đời. Chúng tôi không sử dụng token này cho quảng cáo.</span>
+          <span class="en-only"> Firebase Cloud Messaging (FCM) registration token used solely to deliver push notifications to your partner's device. We do not use this token for advertising.</span>
+        </li>
+        <li>
+          <strong class="vi-only">Dữ liệu chẩn đoán:</strong>
+          <strong class="en-only">Diagnostic data:</strong>
+          <span class="vi-only"> nhật ký sự cố và số liệu ổn định ứng dụng cơ bản thu thập tự động bởi Firebase Crashlytics.</span>
+          <span class="en-only"> crash logs and basic app-stability metrics collected automatically by Firebase Crashlytics.</span>
+        </li>
+        <li>
+          <strong class="vi-only">Dữ liệu sử dụng / phân tích:</strong>
+          <strong class="en-only">Usage / analytics data:</strong>
+          <span class="vi-only"> các sự kiện sử dụng ẩn danh (ví dụ: đã đăng ảnh, đã tạo lời nhắc) được thu thập bởi <strong>Firebase Analytics (Google)</strong> để cải thiện ứng dụng. Các sự kiện này <strong>không bao giờ bao gồm nội dung riêng tư</strong> — không có email, tên, nội dung ghi chú, câu trả lời, chú thích ảnh, mã mời, URL ảnh hoặc vị trí. Bạn có thể tắt bất cứ lúc nào (xem mục 10).</span>
+          <span class="en-only"> anonymous, aggregated usage events (for example, that a photo was posted, a reminder was created) collected by <strong>Firebase Analytics (Google)</strong> to improve the App. These events <strong>never include your private content</strong> — no email, name, note text, daily-question answers, captions, invite codes, photo URLs, or location are ever sent. You can turn this off at any time (see section 10).</span>
+        </li>
+        <li>
+          <strong class="vi-only">Lưu trữ cục bộ:</strong>
+          <strong class="en-only">Local storage:</strong>
+          <span class="vi-only"> ứng dụng dùng cơ sở dữ liệu trên thiết bị (Hive) để lưu cache dữ liệu cho truy cập offline. Cache bị xóa khi bạn gỡ ứng dụng hoặc xóa dữ liệu.</span>
+          <span class="en-only"> the App uses an on-device database (Hive) to cache couple and photo data for offline access. This cache stays on your device and is cleared when you delete the App or clear its data.</span>
+        </li>
       </ul>
-    </li>
-  </ul>
+    </div>
 
-  <h2>5. Data storage and retention</h2>
-  <ul>
-    <li>All data is stored in Firebase services (Google Cloud) and protected in transit using HTTPS/TLS encryption.</li>
-    <li>We retain your data for as long as your account exists.</li>
-    <li><strong>Upon account deletion</strong>, all personal data (account, couple info, photos, captions, FCM token) is <strong>permanently removed from our servers within 30 days</strong>.</li>
-    <li>Local cached data on your device is removed when you delete the App or clear its storage.</li>
-  </ul>
+    <!-- 2. Data safety -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">2</span>
+        <span class="vi-only">Tóm tắt an toàn dữ liệu</span>
+        <span class="en-only">Data safety summary</span>
+      </h2>
+      <p>
+        <span class="vi-only">Bảng dưới đây khớp với các danh mục được khai báo trong phần Data Safety của Google Play.</span>
+        <span class="en-only">The table below matches the categories declared in the Google Play Data Safety section.</span>
+      </p>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><span class="vi-only">Loại dữ liệu</span><span class="en-only">Data type</span></th>
+              <th><span class="vi-only">Thu thập</span><span class="en-only">Collected</span></th>
+              <th><span class="vi-only">Chia sẻ với</span><span class="en-only">Shared with</span></th>
+              <th><span class="vi-only">Mục đích</span><span class="en-only">Purpose</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="vi-only">Địa chỉ email</span><span class="en-only">Email address</span></td>
+              <td><span class="badge-yes"><span class="vi-only">Có</span><span class="en-only">Yes</span></span></td>
+              <td><span class="vi-only">Chỉ Firebase Auth</span><span class="en-only">Firebase Auth only</span></td>
+              <td><span class="vi-only">Tạo tài khoản &amp; đăng nhập</span><span class="en-only">Account creation &amp; login</span></td>
+            </tr>
+            <tr>
+              <td><span class="vi-only">Tên hiển thị</span><span class="en-only">Display name</span></td>
+              <td><span class="badge-yes"><span class="vi-only">Có</span><span class="en-only">Yes</span></span></td>
+              <td><span class="vi-only">Người bạn đời của bạn</span><span class="en-only">Your paired partner</span></td>
+              <td><span class="vi-only">Hiển thị trong hồ sơ cặp đôi</span><span class="en-only">Shown in shared couple profile</span></td>
+            </tr>
+            <tr>
+              <td><span class="vi-only">Ảnh &amp; chú thích</span><span class="en-only">Photos &amp; captions</span></td>
+              <td><span class="badge-yes"><span class="vi-only">Có</span><span class="en-only">Yes</span></span></td>
+              <td><span class="vi-only">Người bạn đời của bạn</span><span class="en-only">Your paired partner</span></td>
+              <td><span class="vi-only">Thư viện chia sẻ</span><span class="en-only">Shared gallery</span></td>
+            </tr>
+            <tr>
+              <td><span class="vi-only">Token FCM</span><span class="en-only">Device / FCM token</span></td>
+              <td><span class="badge-yes"><span class="vi-only">Có</span><span class="en-only">Yes</span></span></td>
+              <td><span class="vi-only">Không chia sẻ</span><span class="en-only">Not shared</span></td>
+              <td><span class="vi-only">Thông báo đẩy</span><span class="en-only">Push notifications</span></td>
+            </tr>
+            <tr>
+              <td><span class="vi-only">Nhật ký sự cố</span><span class="en-only">Crash logs</span></td>
+              <td><span class="badge-yes"><span class="vi-only">Có</span><span class="en-only">Yes</span></span></td>
+              <td><span class="vi-only">Không chia sẻ</span><span class="en-only">Not shared</span></td>
+              <td><span class="vi-only">Ổn định ứng dụng</span><span class="en-only">App stability</span></td>
+            </tr>
+            <tr>
+              <td><span class="vi-only">Dữ liệu sử dụng (ẩn danh)</span><span class="en-only">App usage / analytics (anonymous)</span></td>
+              <td><span class="badge-yes"><span class="vi-only">Có</span><span class="en-only">Yes</span></span></td>
+              <td>Google (Firebase Analytics)</td>
+              <td><span class="vi-only">Phân tích — không dùng cho quảng cáo; có thể tắt</span><span class="en-only">Analytics — not used for advertising; opt-out available</span></td>
+            </tr>
+            <tr>
+              <td><span class="vi-only">Vị trí chính xác</span><span class="en-only">Precise location</span></td>
+              <td><span class="badge-no"><span class="vi-only">Không</span><span class="en-only">No</span></span></td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><span class="vi-only">Danh bạ / SMS</span><span class="en-only">Contacts / SMS</span></td>
+              <td><span class="badge-no"><span class="vi-only">Không</span><span class="en-only">No</span></span></td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  <h2>6. Push notifications</h2>
-  <p>The App requests permission to send push notifications on Android 13+ and iOS. Notifications are sent only when your paired partner posts a new photo. You can disable notifications at any time from your device settings or in-app preferences. Revoking permission does not affect any other App functionality.</p>
+    <!-- 3. How we use -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">3</span>
+        <span class="vi-only">Cách chúng tôi sử dụng thông tin</span>
+        <span class="en-only">How we use your information</span>
+      </h2>
+      <ul>
+        <li><span class="vi-only">Để tạo và xác thực tài khoản của bạn.</span><span class="en-only">To create and authenticate your account.</span></li>
+        <li><span class="vi-only">Để ghép đôi tài khoản của bạn với người bạn đời qua mã mời.</span><span class="en-only">To pair your account with your partner via the invite-code flow.</span></li>
+        <li><span class="vi-only">Để đồng bộ dữ liệu cặp đôi (hồ sơ, thư viện) giữa các thiết bị theo thời gian thực.</span><span class="en-only">To sync your shared couple data (profile, gallery) between paired devices in real time.</span></li>
+        <li><span class="vi-only">Để gửi thông báo đẩy cho người bạn đời khi bạn đăng ảnh mới.</span><span class="en-only">To deliver a push notification to your partner when you post a new photo.</span></li>
+        <li><span class="vi-only">Để chẩn đoán sự cố và cải thiện độ ổn định ứng dụng.</span><span class="en-only">To diagnose crashes and improve app stability.</span></li>
+        <li><span class="vi-only">Để lưu cache dữ liệu cục bộ để ứng dụng hoạt động offline.</span><span class="en-only">To cache data locally so the App works offline.</span></li>
+      </ul>
+    </div>
 
-  <h2>7. Your rights — access and deletion</h2>
-  <p>You can, at any time:</p>
-  <ul>
-    <li>View and edit your account and couple profile inside the App.</li>
-    <li>Delete individual photos you have uploaded.</li>
-    <li>Leave a couple, which removes you from the shared space immediately.</li>
-    <li>Delete your account directly in the App (Profile → Data Management → Delete Account), which removes all your data from our servers within 30 days.</li>
-    <li>Request data deletion by email at <a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a>. We will confirm and process the request within 30 days.</li>
-  </ul>
+    <!-- 4. Sharing -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">4</span>
+        <span class="vi-only">Chia sẻ thông tin</span>
+        <span class="en-only">Sharing of information</span>
+      </h2>
+      <p>
+        <span class="vi-only">Chúng tôi <strong>không</strong> bán dữ liệu cá nhân của bạn. Dữ liệu của bạn chỉ được chia sẻ:</span>
+        <span class="en-only">We do <strong>not</strong> sell your personal data. Your data is shared only:</span>
+      </p>
+      <ul>
+        <li>
+          <span class="vi-only">Với người bạn đời đã ghép đôi trong ứng dụng (hồ sơ cặp đôi, thư viện, chú thích).</span>
+          <span class="en-only">With your paired partner inside the App (couple profile, gallery, captions).</span>
+        </li>
+        <li>
+          <span class="vi-only">Với các dịch vụ hạ tầng <strong>Google Firebase</strong> xử lý dữ liệu thay mặt chúng tôi:</span>
+          <span class="en-only">With <strong>Google Firebase</strong> infrastructure services that process data on our behalf:</span>
+          <ul>
+            <li>Firebase Authentication, Cloud Firestore, Cloud Storage, Cloud Messaging, Crashlytics, Analytics — <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">firebase.google.com/support/privacy</a></li>
+            <li>Google Play Services — <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
 
-  <h2>8. Age requirement</h2>
-  <p>The App is intended for users aged <strong>16 and older</strong>. It is designed for romantic couples and is not suitable for children. We do not knowingly collect data from anyone under 16. If you believe a minor has created an account, please contact us at <a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a> and we will delete the data promptly.</p>
+    <!-- 5. Storage -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">5</span>
+        <span class="vi-only">Lưu trữ và giữ dữ liệu</span>
+        <span class="en-only">Data storage and retention</span>
+      </h2>
+      <ul>
+        <li><span class="vi-only">Tất cả dữ liệu được lưu trong Firebase (Google Cloud) và bảo vệ bằng mã hóa HTTPS/TLS.</span><span class="en-only">All data is stored in Firebase services (Google Cloud) and protected in transit using HTTPS/TLS encryption.</span></li>
+        <li><span class="vi-only">Chúng tôi giữ dữ liệu của bạn miễn là tài khoản còn tồn tại.</span><span class="en-only">We retain your data for as long as your account exists.</span></li>
+        <li><span class="vi-only"><strong>Khi xóa tài khoản</strong>, toàn bộ dữ liệu cá nhân sẽ bị <strong>xóa vĩnh viễn khỏi máy chủ trong vòng 30 ngày</strong>.</span><span class="en-only"><strong>Upon account deletion</strong>, all personal data is <strong>permanently removed from our servers within 30 days</strong>.</span></li>
+        <li><span class="vi-only">Dữ liệu cache trên thiết bị bị xóa khi bạn gỡ cài đặt ứng dụng hoặc xóa bộ nhớ của nó.</span><span class="en-only">Local cached data on your device is removed when you delete the App or clear its storage.</span></li>
+      </ul>
+    </div>
 
-  <h2>9. Security</h2>
-  <p>We apply Firebase security rules to restrict data access to authenticated users only, and use TLS encryption for all data in transit. While no system is 100% secure, we follow industry-standard practices to protect your information.</p>
+    <!-- 6. Push notifications -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">6</span>
+        <span class="vi-only">Thông báo đẩy</span>
+        <span class="en-only">Push notifications</span>
+      </h2>
+      <p>
+        <span class="vi-only">Ứng dụng yêu cầu quyền gửi thông báo đẩy trên Android 13+ và iOS. Thông báo chỉ được gửi khi người bạn đời đăng ảnh mới hoặc có hoạt động liên quan. Bạn có thể tắt thông báo bất cứ lúc nào từ cài đặt thiết bị hoặc trong ứng dụng. Việc thu hồi quyền không ảnh hưởng đến các chức năng khác.</span>
+        <span class="en-only">The App requests permission to send push notifications on Android 13+ and iOS. Notifications are sent only when your paired partner posts a new photo or takes a relevant action. You can disable notifications at any time from your device settings or in-app preferences. Revoking permission does not affect any other App functionality.</span>
+      </p>
+    </div>
 
-  <h2>10. Analytics and international data transfer</h2>
-  <p>The App uses <strong>Firebase Analytics</strong>, a Google service, to collect anonymous usage statistics that help us understand which features are used and where the experience can be improved. We have configured Analytics so that it:</p>
-  <ul>
-    <li><strong>Never collects your private content</strong> — events carry only fixed, non-identifying values (for example "a photo was posted", "is this the first photo: yes/no", "language changed to Vietnamese"). No email, name, note text, daily-question answers, captions, invite codes, photo URLs or location are ever included.</li>
-    <li><strong>Is not used for advertising or cross-app tracking.</strong> Ad personalization and Google advertising identifiers (IDFA / Google signals) are disabled. We do not track you across other companies' apps or websites.</li>
-    <li>May associate events with your account using a non-public account identifier while you are signed in, solely to measure retention. This identifier is removed from Analytics when you sign out or delete your account.</li>
-  </ul>
-  <p>Analytics data is processed and stored on <strong>Google's servers, which may be located outside Vietnam</strong> (including in the United States and other countries). Google processes this data on our behalf under its privacy commitments — see <a href="https://firebase.google.com/support/privacy" target="_blank">firebase.google.com/support/privacy</a>.</p>
-  <p><strong>You can turn analytics off at any time</strong> in the App under <strong>Settings → "Share usage data"</strong>. When turned off, the App stops collecting and sending analytics events immediately. This setting is on by default and does not affect any other functionality.</p>
+    <!-- 7. Your rights -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">7</span>
+        <span class="vi-only">Quyền của bạn — truy cập và xóa</span>
+        <span class="en-only">Your rights — access and deletion</span>
+      </h2>
+      <p><span class="vi-only">Bạn có thể, bất cứ lúc nào:</span><span class="en-only">You can, at any time:</span></p>
+      <ul>
+        <li><span class="vi-only">Xem và chỉnh sửa tài khoản và hồ sơ cặp đôi trong ứng dụng.</span><span class="en-only">View and edit your account and couple profile inside the App.</span></li>
+        <li><span class="vi-only">Xóa từng ảnh bạn đã tải lên.</span><span class="en-only">Delete individual photos you have uploaded.</span></li>
+        <li><span class="vi-only">Rời khỏi cặp đôi, điều này xóa bạn khỏi không gian chia sẻ ngay lập tức.</span><span class="en-only">Leave a couple, which removes you from the shared space immediately.</span></li>
+        <li><span class="vi-only">Xóa tài khoản trực tiếp trong ứng dụng (<strong>Hồ sơ → Quản lý dữ liệu → Xóa tài khoản</strong>), xóa toàn bộ dữ liệu trong vòng 30 ngày.</span><span class="en-only">Delete your account directly in the App (<strong>Profile → Data Management → Delete Account</strong>), which removes all your data within 30 days.</span></li>
+        <li><span class="vi-only">Yêu cầu xóa dữ liệu qua email tại <a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a>. Chúng tôi xác nhận và xử lý trong vòng 30 ngày.</span><span class="en-only">Request data deletion by email at <a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a>. We will confirm and process the request within 30 days.</span></li>
+      </ul>
+    </div>
 
-  <h2>11. Changes to this policy</h2>
-  <p>We may update this Privacy Policy from time to time. The "Last updated" date at the top will reflect the latest revision. For material changes, we will notify users via an in-app message. Continued use of the App after changes constitutes acceptance of the updated policy.</p>
+    <!-- 8. Age -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">8</span>
+        <span class="vi-only">Yêu cầu độ tuổi</span>
+        <span class="en-only">Age requirement</span>
+      </h2>
+      <p>
+        <span class="vi-only">Ứng dụng dành cho người dùng từ <strong>16 tuổi trở lên</strong>. Được thiết kế cho các cặp đôi lãng mạn và không phù hợp với trẻ em. Chúng tôi không cố ý thu thập dữ liệu từ bất kỳ ai dưới 16 tuổi. Nếu bạn cho rằng một người chưa đủ tuổi đã tạo tài khoản, vui lòng liên hệ tại <a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a>.</span>
+        <span class="en-only">The App is intended for users aged <strong>16 and older</strong>. It is designed for romantic couples and is not suitable for children. We do not knowingly collect data from anyone under 16. If you believe a minor has created an account, please contact us at <a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a> and we will delete the data promptly.</span>
+      </p>
+    </div>
 
-  <h2>12. Contact</h2>
-  <p>If you have questions about this Privacy Policy or how we handle your data, contact us at:<br>
-  <a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a></p>
+    <!-- 9. Security -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">9</span>
+        <span class="vi-only">Bảo mật</span>
+        <span class="en-only">Security</span>
+      </h2>
+      <p>
+        <span class="vi-only">Chúng tôi áp dụng quy tắc bảo mật Firebase để giới hạn quyền truy cập dữ liệu chỉ cho người dùng đã xác thực, và sử dụng mã hóa TLS cho tất cả dữ liệu khi truyền tải. Mặc dù không có hệ thống nào an toàn tuyệt đối, chúng tôi tuân theo các thông lệ tiêu chuẩn ngành để bảo vệ thông tin của bạn.</span>
+        <span class="en-only">We apply Firebase security rules to restrict data access to authenticated users only, and use TLS encryption for all data in transit. While no system is 100% secure, we follow industry-standard practices to protect your information.</span>
+      </p>
+    </div>
 
-  <p class="meta">© 2026 dear embeiu</p>
+    <!-- 10. Analytics -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">10</span>
+        <span class="vi-only">Phân tích và chuyển dữ liệu quốc tế</span>
+        <span class="en-only">Analytics and international data transfer</span>
+      </h2>
+      <p>
+        <span class="vi-only">Ứng dụng sử dụng <strong>Firebase Analytics</strong> (Google) để thu thập số liệu thống kê sử dụng ẩn danh. Chúng tôi đã cấu hình Analytics để:</span>
+        <span class="en-only">The App uses <strong>Firebase Analytics</strong>, a Google service, to collect anonymous usage statistics. We have configured Analytics so that it:</span>
+      </p>
+      <ul>
+        <li><span class="vi-only"><strong>Không bao giờ thu thập nội dung riêng tư</strong> — các sự kiện chỉ mang giá trị không định danh (ví dụ: "đã đăng ảnh", "ngôn ngữ thay đổi sang tiếng Việt"). Không có email, tên, nội dung ghi chú, câu trả lời, chú thích, mã mời, URL ảnh hoặc vị trí nào được bao gồm.</span><span class="en-only"><strong>Never collects your private content</strong> — events carry only non-identifying values (for example "a photo was posted", "language changed to Vietnamese"). No email, name, note text, daily-question answers, captions, invite codes, photo URLs or location are ever included.</span></li>
+        <li><span class="vi-only"><strong>Không được dùng cho quảng cáo hoặc theo dõi cross-app.</strong> Cá nhân hóa quảng cáo và mã IDFA / Google signals đã bị tắt.</span><span class="en-only"><strong>Is not used for advertising or cross-app tracking.</strong> Ad personalization and Google advertising identifiers (IDFA / Google signals) are disabled.</span></li>
+        <li><span class="vi-only">Có thể liên kết sự kiện với tài khoản của bạn bằng mã định danh không công khai, chỉ để đo lường mức độ duy trì. Mã này bị xóa khỏi Analytics khi bạn đăng xuất hoặc xóa tài khoản.</span><span class="en-only">May associate events with your account using a non-public identifier solely to measure retention. This identifier is removed from Analytics when you sign out or delete your account.</span></li>
+      </ul>
+      <div class="info-box">
+        <span class="vi-only">Dữ liệu Analytics được xử lý trên <strong>máy chủ của Google, có thể nằm ngoài Việt Nam</strong> (bao gồm Hoa Kỳ). Xem: <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">firebase.google.com/support/privacy</a>.</span>
+        <span class="en-only">Analytics data is processed on <strong>Google's servers, which may be located outside Vietnam</strong> (including the United States). See: <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">firebase.google.com/support/privacy</a>.</span>
+      </div>
+      <p>
+        <span class="vi-only"><strong>Bạn có thể tắt analytics bất cứ lúc nào</strong> trong ứng dụng tại <strong>Cài đặt → "Chia sẻ dữ liệu sử dụng"</strong>. Cài đặt này mặc định bật và không ảnh hưởng đến các chức năng khác.</span>
+        <span class="en-only"><strong>You can turn analytics off at any time</strong> in the App under <strong>Settings → "Share usage data"</strong>. This setting is on by default and does not affect any other functionality.</span>
+      </p>
+    </div>
+
+    <!-- 11. Changes -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">11</span>
+        <span class="vi-only">Thay đổi chính sách</span>
+        <span class="en-only">Changes to this policy</span>
+      </h2>
+      <p>
+        <span class="vi-only">Chúng tôi có thể cập nhật Chính Sách Quyền Riêng Tư này theo thời gian. Ngày "Cập nhật lần cuối" ở đầu trang sẽ phản ánh lần sửa đổi mới nhất. Với các thay đổi quan trọng, chúng tôi sẽ thông báo qua tin nhắn trong ứng dụng. Việc tiếp tục sử dụng ứng dụng sau thay đổi đồng nghĩa với việc chấp nhận chính sách đã cập nhật.</span>
+        <span class="en-only">We may update this Privacy Policy from time to time. The "Last updated" date at the top will reflect the latest revision. For material changes, we will notify users via an in-app message. Continued use of the App after changes constitutes acceptance of the updated policy.</span>
+      </p>
+    </div>
+
+    <!-- 12. Contact -->
+    <div class="prose-section">
+      <h2>
+        <span class="sec-num">12</span>
+        <span class="vi-only">Liên hệ</span>
+        <span class="en-only">Contact</span>
+      </h2>
+      <p>
+        <span class="vi-only">Nếu bạn có câu hỏi về Chính Sách Quyền Riêng Tư này, hãy liên hệ với chúng tôi tại:</span>
+        <span class="en-only">If you have questions about this Privacy Policy or how we handle your data, contact us at:</span>
+      </p>
+      <p><a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a></p>
+    </div>
+
+  </div><!-- /content-wrap -->
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer>
+    <div class="ft-inner">
+      <div class="ft-top">
+        <div class="ft-brand">
+          <div class="ft-logo"><span>💌</span><span>Dear Embeiu</span></div>
+          <p class="vi-only">Không gian riêng tư dành cho các cặp đôi.</p>
+          <p class="en-only">A private space for couples.</p>
+        </div>
+        <div class="ft-col">
+          <h4 class="vi-only">Pháp lý</h4>
+          <h4 class="en-only">Legal</h4>
+          <ul>
+            <li><a href="privacy-policy.html" class="vi-only">Chính sách quyền riêng tư</a><a href="privacy-policy.html" class="en-only">Privacy Policy</a></li>
+            <li><a href="account-deletion.html" class="vi-only">Yêu cầu xoá tài khoản</a><a href="account-deletion.html" class="en-only">Account Deletion</a></li>
+          </ul>
+        </div>
+        <div class="ft-col">
+          <h4 class="vi-only">Hỗ trợ</h4>
+          <h4 class="en-only">Support</h4>
+          <ul>
+            <li><a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a></li>
+            <li><a href="index.html#download" class="vi-only">Tải ứng dụng</a><a href="index.html#download" class="en-only">Download</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="ft-bottom">
+        <span class="vi-only">© 2026 Dear Embeiu · Được làm với 💕 tại Việt Nam</span>
+        <span class="en-only">© 2026 Dear Embeiu · Made with 💕 in Vietnam</span>
+        <span>
+          <a href="privacy-policy.html" class="vi-only">Chính sách bảo mật</a><a href="privacy-policy.html" class="en-only">Privacy Policy</a>
+          &nbsp;·&nbsp;
+          <a href="account-deletion.html" class="vi-only">Xoá tài khoản</a><a href="account-deletion.html" class="en-only">Account Deletion</a>
+          &nbsp;·&nbsp;
+          <a href="mailto:thesavior9820@gmail.com" class="vi-only">Liên hệ</a><a href="mailto:thesavior9820@gmail.com" class="en-only">Contact</a>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const META = {
+      vi: { title: 'Chính Sách Quyền Riêng Tư — Dear Embeiu' },
+      en: { title: 'Privacy Policy — Dear Embeiu' },
+    };
+    function setLang(lang) {
+      if (lang !== 'vi' && lang !== 'en') lang = 'vi';
+      document.documentElement.lang = lang;
+      document.title = META[lang].title;
+      document.querySelectorAll('.lt-btn').forEach(btn => {
+        const active = btn.dataset.lang === lang;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', String(active));
+      });
+      try { localStorage.setItem('de_lang', lang); } catch(e) {}
+    }
+    (function() {
+      let lang;
+      try { lang = localStorage.getItem('de_lang'); } catch(e) {}
+      if (!lang) { const nav = (navigator.language || 'vi').toLowerCase(); lang = nav.startsWith('en') ? 'en' : 'vi'; }
+      setLang(lang);
+    })();
+  </script>
+
 </body>
 </html>

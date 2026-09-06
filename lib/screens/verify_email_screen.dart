@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/language_toggle_button.dart';
 
@@ -133,11 +133,12 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
       // the manual "I've verified" tap and the background poll/resume path.
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
-        ..showSnackBar(SnackBar(content: Text(context.l10n.verifyEmailSuccess)));
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRoutes.authGate,
-        (route) => false,
-      );
+        ..showSnackBar(
+          SnackBar(content: Text(context.l10n.verifyEmailSuccess)),
+        );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
       return;
     }
 
@@ -171,8 +172,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
       _startCooldown();
     } else {
       final l10n = context.l10n;
-      final message =
-          authProvider.errorMessage ?? l10n.verifyEmailResendError;
+      final message = authProvider.errorMessage ?? l10n.verifyEmailResendError;
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
         ..showSnackBar(SnackBar(content: Text(message)));
@@ -187,24 +187,26 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
       return;
     }
     _navigated = true;
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.authGate,
-      (route) => false,
-    );
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final email = authProvider.currentEmail ?? '';
+    // authProvider watched so the screen rebuilds with provider state; the
+    // chip/title/subtitle (which used currentEmail) were removed in the
+    // 2026-06-14 header redesign, so we no longer read the email here.
+    context.watch<AuthProvider>();
 
     return PopScope(
       // Gate: never let a system-back drop the user into setup/home unverified.
       canPop: false,
       child: Scaffold(
         body: Container(
-          decoration:
-              const BoxDecoration(gradient: AppColors.secondaryGradient),
+          decoration: const BoxDecoration(
+            gradient: AppColors.secondaryGradient,
+          ),
           child: SafeArea(
             child: Stack(
               children: [
@@ -217,15 +219,32 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 52),
-                          _buildHeader(email),
-                          const SizedBox(height: 24),
                           _buildCard(),
                         ],
                       ),
                     ),
                   ),
                 ),
-                // No back arrow top-left — this is a gate.
+                // No back arrow — this is a gate. The eyebrow chip is centered
+                // alone on the top-bar (header redesign 2026-06-14: chip lives
+                // on the bar; the title + subtitle were removed). The language
+                // toggle trails on the right.
+                Positioned(
+                  top: 8,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: SizedBox(
+                      height: 44,
+                      child: Center(
+                        child: EyebrowChip(
+                          label: context.l10n.verifyEmailBadge,
+                          icon: IconsaxPlusLinear.sms_tracking,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 const Positioned(
                   top: 12,
                   right: 16,
@@ -236,49 +255,6 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader(String email) {
-    final l10n = context.l10n;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                LucideIcons.mailCheck,
-                size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.verifyEmailBadge,
-                style: AppTheme.pageEyebrowStyle(),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          l10n.verifyEmailTitle,
-          style: AppTheme.pageTitleStyle(),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          l10n.verifyEmailSubtitle(email),
-          style: AppTheme.pageSubtitleStyle(alpha: 0.84),
-        ),
-      ],
     );
   }
 
@@ -299,7 +275,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
                 borderRadius: BorderRadius.circular(999),
               ),
               child: const Icon(
-                LucideIcons.mailOpen,
+                IconsaxPlusLinear.sms,
                 color: AppColors.accentRose,
                 size: 30,
               ),
@@ -330,14 +306,14 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
           // Primary: I've verified.
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: FilledButton(
               onPressed: _checking ? null : () => _checkVerified(manual: true),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               child: _checking
@@ -375,7 +351,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               icon: _resending
@@ -387,7 +363,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
                         color: AppColors.accentRose,
                       ),
                     )
-                  : const Icon(LucideIcons.refreshCw, size: 18),
+                  : const Icon(IconsaxPlusLinear.refresh, size: 18),
               label: Text(
                 _onCooldown
                     ? l10n.verifyEmailResendCountdown(
@@ -437,7 +413,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(
-            LucideIcons.alertCircle,
+            IconsaxPlusLinear.warning_2,
             color: AppColors.warning,
             size: 18,
           ),
@@ -447,7 +423,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
               l10n.verifyEmailNotYet,
               style: const TextStyle(
                 color: AppColors.textPrimary,
-                fontSize: 12.5,
+                fontSize: 13,
                 height: 1.45,
                 fontWeight: FontWeight.w500,
               ),

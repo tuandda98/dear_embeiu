@@ -1,0 +1,25 @@
+================ BACK-FILL THỦ CÔNG — 2026-06-19 (DEV) ================
+Lý do back-fill: hook trace-firebase-deploy.sh CHƯA được wire lúc deploy
+(settings.json thiếu PostToolUse) + script hardcode ROOT của máy khác
+(/Users/tony.tuando/...). Nay đã: (a) wire PostToolUse[Bash] -> trace script,
+(b) sửa ROOT = $CLAUDE_PROJECT_DIR (portable). Từ giờ deploy tự ghi vết.
+
+git_head: 3541fff (branch phase3)
+project : tonyembeiu-dev (DEV) — PROD CHƯA deploy (chờ lệnh user)
+snapshot: firestore.rules / storage.rules trong folder này = trạng thái hiện tại
+
+3 DEPLOY DEV HÔM NAY (gộp vào entry này):
+  1) deploy --only firestore:rules --project dev
+     -> feature chat-status: rules couples/{c}/receipts/{uid} (deliveredAt/readAt)
+        + các cập nhật rules hiện hành.
+  2) deploy --only functions:notifyPartnerMood --project dev
+     -> xác nhận CF mood (báo "updating" = đã có sẵn trên dev từ lúc dựng feature).
+  3) deploy --only functions:notifyPartnerMood --project dev
+     -> copy push HIỆN MOOD: "Anh Tuấn đang thấy Nhớ" (map nhãn vi/en trong CF).
+
+RESTORE:
+  - Rules    : git checkout 3541fff -- firestore.rules storage.rules
+               (hoặc copy 2 file snapshot trong folder này) -> deploy lại --project dev
+  - Functions: git checkout 3541fff -- functions
+               -> npx firebase-tools deploy --only functions:notifyPartnerMood --project dev
+  - Hoặc Firebase Console -> Firestore/Storage -> Rules -> history.

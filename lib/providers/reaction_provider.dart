@@ -10,7 +10,7 @@ import '../services/reaction_service.dart';
 /// the active couple via a single collection-group query (see [ReactionService])
 /// and exposes per-photo lookups plus optimistic toggle/set/remove actions.
 ///
-/// Lifecycle mirrors [LoveNoteProvider]/[DailyQuestionProvider]: `watchForCouple`
+/// Lifecycle mirrors [DailyQuestionProvider]: `watchForCouple`
 /// is wired in `session_resolver` (and re-armed in HomeScreen/GalleryScreen) when
 /// a couple is active, and `clear` is called on sign-out / no-couple.
 class ReactionProvider extends ChangeNotifier {

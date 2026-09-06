@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
+import '../app/app_routes.dart';
 import '../app/session_resolver.dart';
 import '../l10n/l10n.dart';
 import '../theme/app_colors.dart';
+import 'intro_screen.dart';
 
 /// Single source of truth for "resolve where to go next, then go there".
 ///
@@ -25,6 +28,12 @@ class SessionRouteScreen extends StatefulWidget {
 }
 
 class _SessionRouteScreenState extends State<SessionRouteScreen> {
+  /// First-launch intro (feature onboarding, O4): set to the resolved guest
+  /// route while the 3-slide intro is on screen; `null` the rest of the time.
+  /// Only ever set for [AppRoutes.guest] — force-update, verify-email, setup
+  /// and home navigate immediately as before.
+  String? _pendingIntroRoute;
+
   @override
   void initState() {
     super.initState();
@@ -41,12 +50,58 @@ class _SessionRouteScreenState extends State<SessionRouteScreen> {
       return;
     }
 
+    // Intro only precedes the GUEST landing (brand-new, not-signed-in user) and
+    // only once per device. Everything else — the force-update gate above all —
+    // keeps its exact previous behaviour. Any storage error makes hasSeen()
+    // return true, so a failure simply skips the intro.
+    if (route == AppRoutes.guest && !await IntroScreen.hasSeen()) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _pendingIntroRoute = route);
+      return;
+    }
+    // Anyone who lands on an authenticated route is not new: mark the intro
+    // as seen so an existing user upgrading from a pre-intro build doesn't get
+    // the "welcome" slides the first time they sign out.
+    // (Not on forceUpdate: that gate runs before auth, so a brand-new user
+    // blocked by it must still get the intro once they update.)
+    if (route != AppRoutes.guest && route != AppRoutes.forceUpdate) {
+      unawaited(IntroScreen.markSeen());
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    navigator.pushReplacementNamed(route);
+  }
+
+  bool _finishingIntro = false;
+
+  Future<void> _finishIntro() async {
+    if (_finishingIntro) {
+      return; // double-tap on "Bắt đầu" must not push the guest route twice
+    }
+    _finishingIntro = true;
+    final navigator = Navigator.of(context);
+    final route = _pendingIntroRoute ?? AppRoutes.guest;
+    await IntroScreen.markSeen();
+
+    if (!mounted) {
+      return;
+    }
+
     navigator.pushReplacementNamed(route);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+
+    if (_pendingIntroRoute != null) {
+      return IntroScreen(onDone: _finishIntro);
+    }
 
     return Scaffold(
       body: Container(

@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --only functions:notifyChatMessage 2>&1 | tail -15
+time_utc: 20260611T113415Z
+git_head: 5bf467c (release/1.1.6)
+dirty   : 68 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 5bf467c)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 5bf467c -- functions` rồi redeploy

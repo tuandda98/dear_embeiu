@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/header_icon_button.dart';
 import '../widgets/language_toggle_button.dart';
 
 /// Forgot-password screen (feature auth, Đợt 1). Lets a user request a Firebase
@@ -90,7 +91,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     HapticFeedback.heavyImpact();
     final l10n = context.l10n;
-    final message = authProvider.errorMessage ?? l10n.forgotPasswordNetworkError;
+    final message =
+        authProvider.errorMessage ?? l10n.forgotPasswordNetworkError;
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(message)));
@@ -133,8 +135,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 52),
-                        _buildHeader(authProvider),
-                        const SizedBox(height: 24),
+                        if (!authProvider.isUsingFirebase) ...[
+                          _buildLocalFallbackBanner(),
+                          const SizedBox(height: 24),
+                        ],
                         GlassCard(
                           borderRadius: 28,
                           child: AnimatedSize(
@@ -154,14 +158,31 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                 ),
               ),
+              // Header redesign (2026-06-14): the eyebrow chip is centered on
+              // the top-bar, level with the back squircle (left) and language
+              // toggle (right) — the page title + subtitle were removed.
               Positioned(
-                top: 4,
-                left: 4,
-                child: IconButton(
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  icon: const Icon(
-                    LucideIcons.arrowLeft,
-                    color: AppColors.white,
+                top: 8,
+                left: 16,
+                child: HeaderIconButton(
+                  icon: IconsaxPlusLinear.arrow_left,
+                  onTap: () => Navigator.of(context).maybePop(),
+                  semanticsLabel: context.l10n.back,
+                ),
+              ),
+              Positioned(
+                top: 8,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: SizedBox(
+                    height: 44,
+                    child: Center(
+                      child: EyebrowChip(
+                        label: context.l10n.forgotPasswordBadge,
+                        icon: IconsaxPlusLinear.key,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -177,62 +198,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  Widget _buildHeader(AuthProvider authProvider) {
-    final l10n = context.l10n;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                LucideIcons.keyRound,
-                size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.forgotPasswordBadge,
-                style: AppTheme.pageEyebrowStyle(),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          l10n.forgotPasswordTitle,
-          style: AppTheme.pageTitleStyle(),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          l10n.forgotPasswordSubtitle,
-          style: AppTheme.pageSubtitleStyle(alpha: 0.84),
-        ),
-        if (!authProvider.isUsingFirebase) ...[
-          const SizedBox(height: 14),
-          _buildLocalFallbackBanner(),
-        ],
-      ],
-    );
-  }
-
+  // The chip/title/subtitle were removed in the 2026-06-14 header redesign
+  // (chip now lives centered on the top-bar). The local-fallback banner is
+  // rendered inline in build() when Firebase is unavailable.
   Widget _buildLocalFallbackBanner() {
     final l10n = context.l10n;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.16),
+        // Light card + dark ink (C1.4): white-on-glass failed contrast on the
+        // blush gradient — match the Home waiting-banner language instead.
+        color: AppColors.white.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.30)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,7 +224,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              LucideIcons.cloudOff,
+              IconsaxPlusLinear.cloud_cross,
               color: AppColors.warning,
               size: 18,
             ),
@@ -255,8 +234,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: Text(
               l10n.forgotPasswordLocalFallback,
               style: const TextStyle(
-                color: AppColors.white,
-                fontSize: 12.5,
+                color: AppColors.textSecondary,
+                fontSize: 13,
                 height: 1.45,
                 fontWeight: FontWeight.w500,
               ),
@@ -296,7 +275,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               onFieldSubmitted: (_) => enabled ? _submit() : null,
               decoration: _buildInputDecoration(
                 hint: l10n.emailHint,
-                icon: LucideIcons.mail,
+                icon: IconsaxPlusLinear.sms,
               ),
               validator: (value) {
                 final text = value?.trim() ?? '';
@@ -313,14 +292,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: FilledButton(
               onPressed: enabled ? _submit : null,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               child: _sending
@@ -372,7 +351,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               borderRadius: BorderRadius.circular(999),
             ),
             child: const Icon(
-              LucideIcons.mailCheck,
+              IconsaxPlusLinear.sms_tracking,
               color: AppColors.success,
               size: 30,
             ),
@@ -401,22 +380,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 20),
         SizedBox(
           width: double.infinity,
+          height: 52,
           child: FilledButton(
             onPressed: () => Navigator.of(context).maybePop(),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.accentRose,
               foregroundColor: AppColors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(999),
               ),
             ),
             child: Text(
               l10n.forgotPasswordBackToLogin,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
           ),
         ),
@@ -424,9 +400,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Center(
           child: TextButton(
             onPressed: _resend,
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.accentRose,
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.accentRose),
             child: Text(l10n.forgotPasswordResendLink),
           ),
         ),
@@ -434,10 +408,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  Widget _buildFieldBlock({
-    required String label,
-    required Widget child,
-  }) {
+  Widget _buildFieldBlock({required String label, required Widget child}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -468,9 +439,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       filled: true,
       fillColor: AppColors.white.withValues(alpha: 0.92),
       hintStyle: const TextStyle(
-        color: AppColors.textPrimary,
+        color: AppColors.textSecondary,
         fontSize: 14,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w500,
       ),
       errorMaxLines: 2,
       errorStyle: const TextStyle(

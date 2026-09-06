@@ -41,7 +41,12 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
-        targetSdk = 35
+        // 36 (Android 16) — Google Play target-API policy deadline 2026-08-31
+        // ("không thể cập nhật ứng dụng" past that date if still 35). Ships with
+        // the first release AFTER 1.4.2+17 (which is in review targeting 35 —
+        // still compliant until the deadline). compileSdk is already 36; the app
+        // has no windowOptOutEdgeToEdgeEnforcement (removed at target 36).
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         // Default app label; overridden per build type below (Dev gets " Dev").

@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --only firestore:rules,firestore:indexes,functions:notifyDailyAnswerReaction 2>&1 | tail -28
+time_utc: 20260821T181157Z
+git_head: b805e21 (feature/daily-question-reactions)
+dirty   : 1 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout b805e21)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout b805e21 -- functions` rồi redeploy

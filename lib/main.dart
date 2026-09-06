@@ -15,15 +15,22 @@ import 'package:provider/provider.dart';
 
 import 'app/app_routes.dart';
 import 'providers/auth_provider.dart';
+import 'providers/chat_provider.dart';
 import 'providers/couple_provider.dart';
 import 'providers/custom_reminders_provider.dart';
 import 'providers/daily_question_provider.dart';
+import 'services/ai_question_source.dart';
+import 'services/revisit_question_source.dart';
+import 'providers/mood_provider.dart';
 import 'providers/locale_provider.dart';
-import 'providers/love_note_provider.dart';
+import 'providers/notification_inbox_provider.dart';
+import 'providers/partner_reminder_provider.dart';
 import 'providers/photo_provider.dart';
+import 'providers/answer_reaction_provider.dart';
 import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/streak_provider.dart';
+import 'screens/force_update_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/guest_counter_screen.dart';
 import 'screens/home_screen.dart';
@@ -104,9 +111,10 @@ void main() async {
 
   // Correctness-critical: the reinstall purge must complete before the splash
   // resolves a route, so it stays on the pre-runApp path.
-  await InstallStateService().handleFreshInstall(
-    onFreshInstall: () => authService.purgePersistedSession(),
-  );
+  InstallStateService.isFreshInstallLaunch =
+      await InstallStateService().handleFreshInstall(
+        onFreshInstall: () => authService.purgePersistedSession(),
+      );
 
   runApp(MyApp(
     authService: authService,
@@ -270,9 +278,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => CoupleProvider()),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
         ChangeNotifierProvider(create: (_) => ReactionProvider()),
-        ChangeNotifierProvider(create: (_) => LoveNoteProvider()),
-        ChangeNotifierProvider(create: (_) => DailyQuestionProvider()),
+        ChangeNotifierProvider(create: (_) => AnswerReactionProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+        // Endless questions (2026-09-05): the engine ships with [template, bank];
+        // 'revisit' is picked by the Friday schedule and 'ai' runs first only
+        // when the couple opted in (prefs/home.aiQuestionsEnabled). Both stay at
+        // priority 0 on purpose — a boosted source would run EVERY day.
+        ChangeNotifierProvider(
+          create: (_) => DailyQuestionProvider()
+            ..engine.registerSource(RevisitQuestionSource())
+            ..engine.registerSource(AiQuestionSource()),
+        ),
+        ChangeNotifierProvider(create: (_) => MoodProvider()),
         ChangeNotifierProvider(create: (_) => StreakProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationInboxProvider()),
         ChangeNotifierProvider(
           create: (_) => LocaleProvider(initialLocale: widget.initialLocale),
         ),
@@ -280,6 +299,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider<CustomRemindersProvider>.value(
           value: widget.customRemindersProvider,
         ),
+        ChangeNotifierProvider(create: (_) => PartnerReminderProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
@@ -339,6 +359,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               // NOT go through SessionResolver/authGate — it opens directly
               // without any authentication.
               AppRoutes.guest: (_) => const GuestCounterScreen(),
+              // Force-update gate (feature force-update): a dead-end screen
+              // resolved by SessionResolver when this build is too old.
+              AppRoutes.forceUpdate: (_) => const ForceUpdateScreen(),
             },
           );
         },

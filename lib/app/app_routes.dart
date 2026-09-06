@@ -8,6 +8,7 @@ class AppRoutes {
   static const String home = '/home';
   static const String setup = '/setup';
   static const String guest = '/guest';
+  static const String forceUpdate = '/force-update';
 
   const AppRoutes._();
 }

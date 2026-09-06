@@ -1,4 +1,4 @@
-import 'package:flutter/animation.dart';
+import 'package:flutter/widgets.dart';
 
 /// Shared motion tokens for the "Sunset Romance" UI revamp.
 ///
@@ -27,4 +27,10 @@ class AppMotion {
 
   /// Per-item delay step for a staggered entrance.
   static const Duration stagger = Duration(milliseconds: 50);
+
+  /// Whether the OS "reduce motion" / "disable animations" accessibility
+  /// setting is on (WCAG 2.3.3). Decorative or looping animations should render
+  /// a static frame (and timers / auto-advance should stop) when this is true.
+  static bool reduceMotion(BuildContext context) =>
+      MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 }

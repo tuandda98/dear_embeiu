@@ -1,5 +1,100 @@
 {
   "@@locale": "en",
+  "badgeCareLabel": "care notes",
+  "@badgeCareLabel": {"description": "Profile badge label under the care-notes count"},
+  "careTimelineBadge": "CARE NOTES",
+  "@careTimelineBadge": {
+    "description": "Eyebrow chip on the care-notes timeline screen."
+  },
+  "careTimelineSeeAll": "See all",
+  "@careTimelineSeeAll": {
+    "description": "Link next to the recent care notes that opens the full timeline."
+  },
+  "careTimelineTile": "Care notes",
+  "@careTimelineTile": {
+    "description": "Profile tile opening the care-notes timeline."
+  },
+  "careTimelineCount": "{count} notes between you",
+  "@careTimelineCount": {
+    "description": "Subtitle of the profile care-timeline tile: how many care notes exist.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "careTimelineYesterday": "Yesterday",
+  "@careTimelineYesterday": {
+    "description": "Day header for care notes sent yesterday."
+  },
+  "careTimelineEmptyTitle": "No care notes yet",
+  "@careTimelineEmptyTitle": {
+    "description": "Empty state title on the care timeline (also the profile tile subtitle when the count is zero)."
+  },
+  "careTimelineEmptyBody": "Every little note the two of you send lands here, in order.",
+  "@careTimelineEmptyBody": {
+    "description": "Empty state body on the care timeline."
+  },
+  "careTimelineEmptyCta": "Send the first care note",
+  "@careTimelineEmptyCta": {
+    "description": "Empty state button opening the care-note composer."
+  },
+  "careTimelineLoadError": "Couldn't load the timeline.",
+  "@careTimelineLoadError": {
+    "description": "Error state on the care timeline."
+  },
+  "aiQuestionsTitle": "AI-personalised questions",
+  "aiQuestionsSubtitle": "Uses the last 30 days of both your answers to write a question just for the two of you. The data is only used to create questions, never for training. Turn it off any time.",
+  "aiQuestionsDialogTitle": "Turn on personalised questions?",
+  "aiQuestionsDialogBody": "This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time. AI questions start from tomorrow's question.",
+  "aiQuestionsDialogConfirm": "Turn on",
+  "introSkip": "Skip",
+  "introNext": "Next",
+  "introStart": "Get started",
+  "introSlide1Badge": "LOVE COUNTER",
+  "introSlide1Title": "Count every day together",
+  "introSlide1Body": "See how long you have been together, reach every milestone, and watch your love tree grow day by day.",
+  "introSlide2Badge": "EVERY DAY",
+  "introSlide2Title": "Memories & a question a day",
+  "introSlide2Body": "A shared photo library, a daily question for both of you, your connection streak, and a chat corner just for the two of you.",
+  "introSlide3Badge": "IT TAKES TWO",
+  "introSlide3Title": "It takes both of you",
+  "introSlide3Body": "Dear Embeiu is a space for two. You create an invite code, your partner downloads the app (iOS/Android) and enters the code — that's it.",
+  "featureTourBadge": "WHAT'S NEW",
+  "featureTourVersionTitle": "Version {version}",
+  "@featureTourVersionTitle": {
+    "description": "Feature tour sheet title, e.g. 'Version 1.6.0'",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "featureTourGotIt": "Got it",
+  "featureTourSettingsTile": "What's new",
+  "featureTourSettingsTileSub": "Take another look at the latest features",
+  "featureTourCareTitle": "Send a little care",
+  "featureTourCareBody": "Write a short message and your partner gets a notification right away.",
+  "featureTourQuestionsTitle": "Fresher daily questions",
+  "featureTourQuestionsBody": "Questions that follow the week, the month and your mood, a way to look back at old answers, and an optional AI personalisation you can turn on in Settings.",
+  "featureTourInviteTitle": "Easier to invite your partner",
+  "featureTourInviteBody": "Share a download link together with your invite code, with step-by-step guidance.",
+  "homeWaitingBadge": "WAITING FOR THEM",
+  "homeWaitingStep1Title": "Send the invite",
+  "homeWaitingStep1Desc": "Send this invite code to your partner in a message.",
+  "homeWaitingStep1Cta": "Send it to them 💌",
+  "homeWaitingStep1Copy": "Copy code",
+  "homeWaitingStep2Title": "They install the app and sign up",
+  "homeWaitingStep2Desc": "They need to install Dear Embeiu (iOS/Android), sign up, then pick <Enter invite code>.",
+  "homeWaitingStep3Title": "Entering the code is all it takes",
+  "homeWaitingStep3Desc": "Once you are paired the app switches over by itself and you get a notification.",
+  "homeWaitingMeanwhileTitle": "While you wait, you can already:",
+  "homeWaitingMeanwhileItem1": "Set your anniversary date",
+  "homeWaitingMeanwhileItem2": "Add memories",
+  "homeWaitingMeanwhileItem3": "Answer today's question",
+  "homeWaitingMeanwhileFooter": "They will see all of it when they join.",
+  "inviteFollowUpTitle": "Your partner hasn't joined yet 💌",
+  "inviteFollowUpBody24h": "Send the invite again — it only takes 10 seconds",
+  "inviteFollowUpBody72h": "Our memories are waiting for them. Remind them to download the app",
+  "back": "Back",
   "cancel": "Cancel",
   "save": "Save",
   "delete": "Delete",
@@ -38,7 +133,18 @@
   "alreadyWithUs": "Already with us?",
   "backToSignIn": "Back to sign in",
   "setupCreateTitle": "Begin\nour story",
-  "setupEditTitle": "Refine\nyour story",
+  "setupEditTitle": "Refine the story of\n{me} ❤️ {partner}",
+  "@setupEditTitle": {
+    "placeholders": {
+      "me": {
+        "type": "String"
+      },
+      "partner": {
+        "type": "String"
+      }
+    }
+  },
+  "setupEditTitleGeneric": "Refine\nyour story",
   "setupTabCreate": "Create",
   "setupTabJoin": "Join with code",
   "inviteCodeDialogTitle": "Your invite code",
@@ -86,11 +192,158 @@
   },
   "setupSuccessConnected": "Connected successfully 💞",
   "navHome": "Home",
+  "navChat": "Chat",
   "navMemories": "Memories",
   "navProfile": "Profile",
+  "chatBadge": "JUST THE TWO OF US",
+  "chatHeaderSubtitle": "Where the two of you talk about everything.",
+  "chatEmptyHint": "No messages yet — send your love the first one 💬",
+  "chatComposerHint": "Message your love…",
+  "chatSendFailed": "Couldn't send your message. Please try again.",
+  "chatSendSemantics": "Send message",
+  "chatSending": "Sending…",
+  "chatStatusSent": "Sent",
+  "chatStatusDelivered": "Delivered",
+  "chatStatusRead": "Seen",
+  "lunarSectionTitle": "Lunar calendar",
+  "lunarDateLabel": "Lunar {month}/{day}",
+  "@lunarDateLabel": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "lunarTodayLabel": "Today",
+  "lunarNextNewMoon": "Next 1st",
+  "lunarNextFullMoon": "Next full moon",
+  "lunarReminderToggle": "Lunar-day reminder",
+  "lunarReminderToggleSub": "On your chosen days & times",
+  "lunarNewMoonNotifTitle": "First day of the lunar month 🌙",
+  "lunarNewMoonNotifBody": "Today is the first day of the lunar month.",
+  "lunarFullMoonNotifTitle": "Full moon day 🌕",
+  "lunarFullMoonNotifBody": "Today is the full moon (15th lunar day).",
+  "lunarOtherDayNotifTitle": "Lunar day {day} 🌙",
+  "@lunarOtherDayNotifTitle": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "lunarOtherDayNotifBody": "Today is the {day}th day of the lunar month.",
+  "@lunarOtherDayNotifBody": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "lunarCalendarBadge": "LUNAR CALENDAR",
+  "lunarOpenCalendar": "Open lunar calendar",
+  "lunarRemindDaysLabel": "Reminder days (lunar)",
+  "lunarRemindTimesLabel": "Reminder times",
+  "lunarAddTime": "Add time",
+  "chatUnreadDotSemantics": "New message waiting",
+  "chatWaitingPartnerTitle": "One seat is still empty",
+  "chatWaitingPartnerBody": "Invite your partner to pair up and start your private chat.",
+  "chatWaitingPartnerCta": "Invite to pair",
   "ourStoryBadge": "OUR STORY",
   "helloGreeting": "Hello,",
   "homeSubtitle": "A good day to look back at your love story.",
+  "homeGreetingMorning": "Good morning,",
+  "homeGreetingAfternoon": "Good afternoon,",
+  "homeGreetingEvening": "Good evening,",
+  "homeGreetingNight": "Up late,",
+  "homeGreetingTeaser1": "Send them a big warm hug 🤗",
+  "homeGreetingTeaser2": "Said \"I love you\" today? 💕",
+  "homeGreetingTeaser3": "Send them a cute photo 📸",
+  "homeGreetingTeaser4": "They can't wait to hear from you 🕊️",
+  "homeGreetingTeaser5": "Don't forget today's question ✨",
+  "homeGreetingTeaser6": "Send something sweet their way 🍯",
+  "homeGreetingTeaser7": "Say a little thank-you today 💞",
+  "homeGreetingTeaser8": "A calm moment together is enough 🍃",
+  "homeGreetingTeaser9": "A beautiful day to love 💖",
+  "homeGreetingTeaser10": "Tell them you miss them 💭",
+  "homeGreetingTeaser11": "Keep writing your love story together ✍️",
+  "homeGreetingTeaser12": "Keep your love streak going 🔥",
+  "homeTodaySectionTitle": "Today, together",
+  "dailyTapToAnswer": "Tap to answer…",
+  "dailyPartnerAnsweredTeaser": "{name} has answered 👀",
+  "@dailyPartnerAnsweredTeaser": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyAnswerToReveal": "Answer to unlock their reply",
+  "dailyBothAnsweredToday": "You both answered today",
+  "dailyReadAgain": "Read again",
+  "dailyCollapse": "Collapse",
+  "loveNoteSealedTitle": "A new note from {name}",
+  "@loveNoteSealedTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveNoteSealedTap": "Tap to open 💌",
+  "loveNoteNewBadge": "NEW",
+  "loveNoteComposeCta": "Compose a message",
+  "loveNoteSheetTitleTo": "Send a note to {name}",
+  "@loveNoteSheetTitleTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "journalLinkShort": "Journal",
+  "milestoneNextLabel": "Milestone: {label}",
+  "@milestoneNextLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "milestoneDaysLeft": "{count} days left",
+  "@milestoneDaysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneTodayLabel": "today 🎉",
+  "onThisDayShort": "{count, plural, =1{1 year ago 💞} other{{count} years ago 💞}}",
+  "@onThisDayShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "counterBgSwipeHint": "Swipe to change the photo",
+  "dailyQuestionPairedFirst": "Once you're paired, you'll answer a question like this together every day 💞",
+  "loveNoteHistoryLinkShort": "Past notes",
+  "loveNoteReplyCta": "Reply…",
+  "loveNoteSendFirstCta": "Send the first note…",
+  "loveNoteStartChat": "No notes yet — send each other the first one 💌",
+  "loveNoteYouLabel": "You",
+  "notificationBellLabel": "Notifications, {count} unread",
+  "@notificationBellLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "youveBeenTogetherFor": "YOU'VE BEEN TOGETHER FOR",
   "daysOfUsSince": "days of us · since {date}",
   "@daysOfUsSince": {
@@ -113,6 +366,20 @@
   "quickMomentsSubtitle": "Shortcuts to revisit your story",
   "addMemoryCta": "Add a memory",
   "addMemoryCtaSubtitle": "Post a new photo for you both to keep",
+  "cinemaCardSemantics": "Memory: {caption}, photo {index} of {total}. Tap to view full screen.",
+  "@cinemaCardSemantics": {
+    "placeholders": {
+      "caption": {
+        "type": "String"
+      },
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "memoriesCardTitle": "Memories",
   "viewAllPhotos": "View all photos",
   "profileCardTitle": "Profile",
@@ -121,7 +388,10 @@
   "loveInNumbersTitle": "Love in numbers",
   "loveInNumbersSubtitle": "Little stats from your journey",
   "daysTogether": "Days together",
-  "daysUnit": "days",
+  "daysUnit": "Days",
+  "hoursShort": "hr",
+  "minutesShort": "min",
+  "secondsShort": "sec",
   "memoriesSaved": "Memories saved",
   "photosUnit": "photos",
   "nextAnniversaryLabel": "Next anniversary",
@@ -216,9 +486,12 @@
     }
   },
   "loveNoteSaved": "Your note was sent 💞",
+  "loveNoteSendFailed": "Couldn't send the note — please try again.",
   "loveNoteHistoryCta": "See past notes",
   "loveNoteHistoryTitle": "Note journal",
   "loveNoteHistorySubtitle": "Every note you two have left for each other.",
+  "loveNoteHistoryBadge": "LOVE NOTES",
+  "loveNoteHistoryHeaderSubtitle": "Every note the two of you have sent.",
   "loveNoteHistoryEmpty": "No notes saved yet. The ones you send each other will be kept here.",
   "loveNoteJustNow": "just now",
   "loveNoteMinutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
@@ -285,6 +558,52 @@
   "@reactionBothLabel": {
     "description": "a11y label when both members have reacted to a photo"
   },
+  "reactionBothShort": "You both reacted",
+  "@reactionBothShort": {
+    "description": "Short label inside the celebratory pill shown when both members reacted"
+  },
+  "reactionWaitingPartner": "Waiting for {name} to react…",
+  "@reactionWaitingPartner": {
+    "description": "Nudge shown when only the current user reacted, inviting the named partner to react too",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reactionWaitingPartnerGeneric": "Waiting for your partner to react…",
+  "@reactionWaitingPartnerGeneric": {
+    "description": "Generic nudge when only the current user reacted and the partner has no name yet"
+  },
+  "reactionPartnerFallback": "Your partner",
+  "@reactionPartnerFallback": {
+    "description": "Generic word for the partner when their name is not set yet"
+  },
+  "moodCardTitle": "Today's mood",
+  "moodMatched": "You both feel the same today 💞",
+  "moodShareCta": "Share your mood",
+  "moodUpdateCta": "Update mood",
+  "moodNotSharedYou": "Tap to share",
+  "moodPartnerEmpty": "{name} hasn't shared today",
+  "@moodPartnerEmpty": {
+    "description": "Partner side of the mood card when they haven't shared today",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moodSheetTitle": "How are you today?",
+  "moodNoteHint": "Add a few words (optional)",
+  "moodSaveCta": "Save mood",
+  "moodHappy": "Happy",
+  "moodLoved": "Loved",
+  "moodMissing": "Missing you",
+  "moodCalm": "Calm",
+  "moodMeh": "Meh",
+  "moodTired": "Tired",
+  "moodSad": "Sad",
+  "moodStressed": "Stressed",
   "dailyQuestionLabel": "Today's question",
   "dailyQuestionHint": "Write your answer…",
   "dailyQuestionCharCount": "{count}/280",
@@ -319,6 +638,8 @@
   "journalEntryCta": "Open journal",
   "journalScreenTitle": "Question journal",
   "journalScreenSubtitle": "The questions you've both answered.",
+  "journalBadge": "QUESTION JOURNAL",
+  "journalHeaderSubtitle": "The questions you two have answered together.",
   "journalSettingsTile": "Question journal",
   "journalSettingsSection": "Memories",
   "journalYourAnswerLabel": "YOUR ANSWER",
@@ -412,7 +733,7 @@
       }
     }
   },
-  "privateGalleryBadge": "PRIVATE GALLERY",
+  "privateGalleryBadge": "PHOTO LIBRARY",
   "galleryTitle": "Photo Library",
   "gallerySubtitle": "Swipe up to quickly bring up the post frame and manage memories.",
   "addCaptionTitle": "Add caption",
@@ -450,8 +771,51 @@
     }
   },
   "privateFeedLabel": "Private feed for you two",
-  "postNewPhotoBtn": "Post new photo",
-  "addMultipleBtn": "Add multiple",
+  "postNewPhotoBtn": "Take photo",
+  "addMultipleBtn": "Add photos",
+  "cameraUnavailable": "Couldn't open the camera. Try again or check camera permission (the Simulator has no camera — use a real device).",
+  "galleryDraftTitle": "Review & post",
+  "galleryDraftCaptionHint": "Add a shared caption (optional)…",
+  "galleryDraftEmpty": "All photos removed.",
+  "galleryDraftPostBtn": "Post {count} photos",
+  "@galleryDraftPostBtn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createPostTitle": "New memory",
+  "createPostBadge": "NEW MEMORY",
+  "createPostAuthorMeta": "Posted by {name} · {when}",
+  "@createPostAuthorMeta": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "today": "Today",
+  "createPostCaptionHint": "What's happening with you two today?…",
+  "createPostAddMore": "Add",
+  "createPostAddFromLibrary": "Add from library",
+  "createPostPhotoCount": "{count, plural, one{{count} photo} other{{count} photos}}",
+  "@createPostPhotoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createPostBtn": "Post",
+  "createPostRemovePhoto": "Remove photo",
+  "createPostDiscardTitle": "Discard this memory?",
+  "createPostDiscardMessage": "The caption you just wrote won't be saved.",
+  "createPostDiscardConfirm": "Discard",
+  "createPostDiscardKeep": "Keep editing",
   "addNewMemoryTitle": "Add a new memory today",
   "whatNewToday": "what's new today?",
   "composerSubtitle": "Turn the library into a private and memorable love newsfeed.",
@@ -525,6 +889,12 @@
   },
   "deletingPhoto": "Deleting photo...",
   "updatingCaption": "Updating caption...",
+  "photoOptionsTitle": "Photo options",
+  "replacePhotoAction": "Replace photo",
+  "galleryReplacePhotoTooltip": "Replace photo",
+  "replacingPhoto": "Updating photo...",
+  "photoUpdatedSuccess": "Photo updated",
+  "photoUpdateError": "Could not update photo right now.",
   "galleryLoadErrorTitle": "Couldn't load photos",
   "galleryLoadErrorSubtitle": "Your memories are safe — we just couldn't reach them right now.",
   "galleryRetryBtn": "Try again",
@@ -575,10 +945,10 @@
   "privateDiaryLabel": "Private diary",
   "loveMilestonesLabel": "Love milestones",
   "journeySnapshotTitle": "Journey snapshot",
-  "journeySnapshotSubtitle": "The standout numbers of your relationship, presented cleanly, modernly, and clearly.",
-  "yearsTogether": "Years together",
-  "monthsRemaining": "Months remaining",
+  "yearsTogether": "Years",
+  "monthsRemaining": "Months",
   "totalDaysLabel": "Total days",
+  "totalHoursLabel": "Total hours",
   "memoriesSavedLabel": "Memories saved",
   "infoAndRhythmTitle": "Info & rhythm",
   "infoAndRhythmSubtitle": "A clearer look at your start date, album, and upcoming milestones.",
@@ -606,6 +976,16 @@
   "customizeProfileTitle": "Customize profile",
   "customizeProfileSubtitle": "Update names, anniversary date, and couple photo so the profile always reflects your current journey.",
   "editOurStoryBtn": "Edit our story",
+  "profileChipDaysLabel": "days together",
+  "profileChipAnniversaryLabel": "days to anniversary",
+  "profileChipAnniversaryTodayLabel": "anniversary is today!",
+  "profileChipPhotosLabel": "memories saved",
+  "profileMemoryChestTitle": "Memory chest",
+  "profileStreakTile": "Connection streak",
+  "settingsSectionAccount": "Account",
+  "settingsSectionNotifications": "Notifications",
+  "settingsSectionGeneral": "General",
+  "settingsPushGroupLabel": "Push from your partner",
   "proTipLabel": "Pro tip",
   "proTipContent": "A bright, close-up couple photo with good breathing room will make the hero section look much more polished.",
   "dataManagementTitle": "Data management",
@@ -642,7 +1022,7 @@
   "inviteCodeCopiedMsg": "Invite code copied",
   "copyBtn": "Copy",
   "shareBtn": "Share",
-  "inviteShareMessage": "I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: {code}",
+  "inviteShareMessage": "I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: {code}\nGet the app & enter the code at: https://dearembeiu.com/get?code={code}",
   "@inviteShareMessage": {
     "placeholders": {
       "code": {
@@ -657,10 +1037,56 @@
   "remindersTimeLabel": "Reminder time",
   "remindersPermissionDeniedMsg": "Turn on notifications in Settings to receive reminders.",
   "dailyQuestionReminderTitle": "Daily question reminder",
-  "dailyQuestionReminderSubtitle": "A gentle daily nudge to answer together.",
+  "dailyQuestionReminderSubtitle": "Nudges you both to answer each day, synced across both phones.",
   "dailyQuestionReminderTimeLabel": "Remind me at",
+  "dailyQuestionReminderTimesLabel": "Reminder times",
+  "dailyQuestionReminderAddTime": "Add a time",
+  "dailyQuestionReminderRemoveTime": "Remove reminder time {time}",
+  "@dailyQuestionReminderRemoveTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "dailyQuestionReminderNotifTitle": "Today's question is waiting 💌",
   "dailyQuestionReminderNotifBody": "Answer it to unlock your partner's reply.",
+  "dailyQuestionReminderNotifBodyAlt1": "There's a new question for the two of you — answer yours first 💞",
+  "dailyQuestionReminderNotifBodyAlt2": "A little question is waiting for you both, come answer it 🌸",
+  "dqPartnerOnlyNudgeTitle": "Just your partner left to answer 💌",
+  "dailyQuestionReminderEndOfDayHint": "If the question is still unfinished at the end of the day, you'll also be nudged at 21:00 — plus 22:00 and 23:00 if you haven't answered yet.",
+  "dqEndOfDayNudgeTitle": "The day is winding down 🌙",
+  "dqEndOfDayNudgeBody": "Today's question is still waiting — answer it before the day ends.",
+  "dqEndOfDayNudgePartnerBody": "Your partner hasn't answered today's question yet — give them a nudge.",
+  "dqStreakWarningTitle": "Your streak is about to break! 🔥",
+  "dqStreakWarningBody": "The day's almost over. Answer today's question to keep your {days}-day streak!",
+  "@dqStreakWarningBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dqStreakWarningPartnerBody": "Your partner hasn't answered yet. A little nudge keeps your {days}-day streak alive!",
+  "@dqStreakWarningPartnerBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dqStreakWarningStartBody": "The day's almost over! Answer today's question to start a new streak.",
+  "dqStreakWarningStartPartnerBody": "Your partner hasn't answered yet. Nudge them so you can start a streak together.",
+  "dqStreakWarningFinalTitle": "Less than an hour left! ⏳",
+  "dqStreakWarningFinalBody": "Answer now so your {days}-day streak doesn't break 🔥",
+  "@dqStreakWarningFinalBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dqStreakWarningFinalStartBody": "Answer now to start a new streak before the day ends 🌱",
   "reminderDailyTitle": "Another day of us 💕",
   "reminderDailyBody": "Open Dear Embeiu and count today together.",
   "reminderMilestoneApproachingTitle": "A milestone is near 💕",
@@ -700,6 +1126,8 @@
   },
   "remindersV2MilestoneScreenTitle": "Milestones & anniversaries",
   "remindersV2MilestoneScreenCaption": "Choose the milestones you want and when to be reminded.",
+  "milestoneBadge": "SPECIAL DAYS",
+  "milestoneHeaderSubtitle": "Pick milestones to be reminded of, with their own times.",
   "remindersV2MilestoneNext": "Next: {date}",
   "@remindersV2MilestoneNext": {
     "placeholders": {
@@ -753,13 +1181,32 @@
   "milestoneInactivityDesc": "A gentle nudge after 7 days without a new photo",
   "milestoneInactivitySub": "Reminds you after 7 photo-free days",
   "settingsTitle": "Settings",
+  "settingsBadge": "APP PREFERENCES",
+  "settingsHeaderSubtitle": "Reminders, notifications, language and your account.",
   "settingsProfileTileSubtitle": "Reminders, language, account",
   "settingsRemindersModuleTitle": "Reminders",
   "settingsRemindersModuleSubtitle": "Milestones, anniversaries & your own reminders",
+  "settingsRemindersEntryTitle": "Reminders",
+  "settingsRemindersEntrySubtitle": "Milestones, anniversaries and your own reminders",
+  "remindersHubBadge": "REMINDERS",
+  "remindersHubTitle": "Our reminders",
+  "remindersHubSubtitle": "Milestones, anniversaries and your own reminders — all in one place.",
+  "remindersHubMilestonesSection": "Milestones & anniversaries",
+  "remindersHubMilestonesSectionSub": "Pick the milestones to be reminded of and set their times.",
+  "remindersHubCustomSection": "Our reminders",
+  "remindersHubCustomSectionSub": "Create reminders for your own special days.",
   "settingsAccountModuleTitle": "Account & data",
   "settingsAccountModuleSubtitle": "Your story, data & account",
   "settingsAnalyticsTitle": "Share usage data",
   "settingsAnalyticsSubtitle": "Help improve the app with anonymous data. We never collect your private content.",
+  "settingsNotifTypesTitle": "Notification types",
+  "settingsNotifTypesSubtitle": "Mute the push types you'd rather not be interrupted by. They still appear in your notification center.",
+  "settingsNotifTypePhoto": "New photos",
+  "settingsNotifTypePhotoSubtitle": "When your partner posts a photo",
+  "settingsNotifTypeReaction": "Photo reactions",
+  "settingsNotifTypeReactionSubtitle": "When your partner reacts to your photo",
+  "settingsNotifTypeDailyQuestion": "Daily question",
+  "settingsNotifTypeDailyQuestionSubtitle": "When your partner answers today's question",
   "settingsEditStorySubtitle": "Edit names, anniversary date, photo",
   "settingsDefaultTimeLabel": "Default time",
   "settingsDefaultTimeSubtitle": "Used for milestones without a custom time",
@@ -781,6 +1228,8 @@
   "customRemindersEntryTitle": "Our reminders",
   "customRemindersEntrySubtitle": "Create your own special dates",
   "customRemindersScreenTitle": "Our reminders",
+  "customRemindersBadge": "YOUR OWN MOMENTS",
+  "customRemindersHeaderSubtitle": "Create reminders for your own special moments.",
   "customRemindersCount": "{count}/20",
   "@customRemindersCount": {
     "placeholders": {
@@ -804,12 +1253,14 @@
   "customRemindersEmptyTitle": "No reminders yet",
   "customRemindersEmptyBody": "Create your own moments: birthdays, monthsaries, special days…",
   "customRemindersEmptyCta": "Create your first reminder",
+  "customRemindersAddAnother": "Add a reminder",
   "customRemindersOffTitle": "Reminders are off",
   "customRemindersOffBody": "Turn on \"Love reminders\" in Profile so your reminders can work.",
   "customRemindersOffCta": "Turn on reminders",
   "customRemindersLimitMsg": "You've reached the max of 20 reminders. Delete one to add more.",
   "customRemindersAddTitle": "New reminder",
   "customRemindersEditTitle": "Edit reminder",
+  "customReminderFormBadge": "YOUR REMINDER",
   "customRemindersSave": "Save",
   "customRemindersCancel": "Cancel",
   "customRemindersSavedMsg": "Reminder saved 💌",
@@ -826,6 +1277,8 @@
   "customRemindersRepeatWeekly": "Weekly",
   "customRemindersRepeatMonthly": "Monthly",
   "customRemindersRepeatYearly": "Yearly",
+  "customRemindersNotifyPartnerLabel": "Also remind my partner",
+  "customRemindersNotifyPartnerSubtitle": "Your partner gets this reminder at the same time too",
   "customRemindersMetaOnce": "Once · {date} · {time}",
   "@customRemindersMetaOnce": {
     "placeholders": {
@@ -893,6 +1346,7 @@
   },
   "customRemindersDeleteConfirm": "Delete",
   "customRemindersDeletedMsg": "Reminder deleted",
+  "customRemindersUndoLabel": "Undo",
   "customRemindersNotifBodyFallback": "A special moment for the two of you 💞",
   "agreeToPrivacyPolicy": "I agree to the Privacy Policy",
   "@agreeToPrivacyPolicy": {
@@ -1178,7 +1632,7 @@
   "@deleteAccountTitle": {
     "description": "deleteAccountTitle"
   },
-  "editCoupleBadge": "EDIT COUPLE",
+  "editCoupleBadge": "COUPLE PROFILE",
   "@editCoupleBadge": {
     "description": "editCoupleBadge"
   },
@@ -1202,7 +1656,7 @@
   "@galleryTodayBadge": {
     "description": "galleryTodayBadge"
   },
-  "galleryTodayEmptySubtitle": "Don't let today slip by without a trace.",
+  "galleryTodayEmptySubtitle": "Every photo is a memory the two of you share.",
   "@galleryTodayEmptySubtitle": {
     "description": "galleryTodayEmptySubtitle"
   },
@@ -1355,6 +1809,7 @@
       }
     }
   },
+  "galleryEndOfFeed": "That's every memory 💕 — go make some new ones together",
   "galleryTodayMomentsCount": "{count} moments today",
   "@galleryTodayMomentsCount": {
     "description": "Count of moments posted today",
@@ -1434,7 +1889,6 @@
   "@guestCtaRegister": {
     "description": "CTA button opening the register screen"
   },
-
   "streakChipNoStreak": "Start a streak together",
   "@streakChipNoStreak": {
     "description": "Streak chip — active couple with no streak yet (shame-free invite)"
@@ -1443,25 +1897,30 @@
   "@streakChipRestart": {
     "description": "Streak chip — after a reset, positive restart framing"
   },
-  "streakChipActiveToday": "{n}-day streak · done for today ✨",
+  "streakChipActiveToday": "{n}-day streak · done for today",
   "@streakChipActiveToday": {
     "placeholders": {
-      "n": { "type": "int" }
+      "n": {
+        "type": "int"
+      }
     }
   },
   "streakChipInProgress": "{n}-day streak · today's your turn 🌸",
   "@streakChipInProgress": {
     "placeholders": {
-      "n": { "type": "int" }
+      "n": {
+        "type": "int"
+      }
     }
   },
   "streakChipAtRisk": "Your {n}-day streak is waiting 🫶",
   "@streakChipAtRisk": {
     "placeholders": {
-      "n": { "type": "int" }
+      "n": {
+        "type": "int"
+      }
     }
   },
-
   "streakSheetUnit": "days connected in a row",
   "streakSheetNoStreakTitle": "Light your first spark",
   "streakSheetNoStreakBody": "Each day you both answer the question, your streak grows. Let's begin 💞",
@@ -1471,34 +1930,42 @@
   "streakSheetInProgressBody": "Answer today's question to keep your {n}-day streak going 💞",
   "@streakSheetInProgressBody": {
     "placeholders": {
-      "n": { "type": "int" }
+      "n": {
+        "type": "int"
+      }
     }
   },
   "streakSheetAtRiskTitle": "One soft day left 🫶",
   "streakSheetAtRiskBody": "You missed a beat yesterday — totally okay! Answer today and your {n}-day streak picks right back up.",
   "@streakSheetAtRiskBody": {
     "placeholders": {
-      "n": { "type": "int" }
+      "n": {
+        "type": "int"
+      }
     }
   },
   "streakSheetRestartBody": "The old streak wrapped up, but every new day's a fresh start. Let's light it again 🌱",
   "streakSheetRecord": "Your record: {m} days 🌟",
   "@streakSheetRecord": {
     "placeholders": {
-      "m": { "type": "int" }
+      "m": {
+        "type": "int"
+      }
     }
   },
-
   "streakNextMilestone": "{n} days to your {m}-day milestone 🎉",
   "@streakNextMilestone": {
     "placeholders": {
-      "n": { "type": "int" },
-      "m": { "type": "int" }
+      "n": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
     }
   },
   "streakCtaAnswerNow": "Answer now",
   "streakCtaKeepGoing": "Keep it going",
-
   "streakMilestone3Title": "3 days already! 🌸",
   "streakMilestone3Body": "What a sweet start. You two are doing great 💞",
   "streakMilestone7Title": "A whole week! ✨",
@@ -1509,16 +1976,18 @@
   "streakMilestone100Body": "A hundred days answering together, growing together. Few couples make it this far 🌟",
   "streakMilestone365Title": "A full year! 👑",
   "streakMilestone365Body": "365 days of never missing your connection. This is your love story 💞👑",
-
   "streakJournalSummary": "{n}-day streak · longest {m}",
   "@streakJournalSummary": {
     "placeholders": {
-      "n": { "type": "int" },
-      "m": { "type": "int" }
+      "n": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
     }
   },
   "streakJournalSummaryNone": "Answer together each day to start a streak 🌸",
-
   "forgotPasswordLink": "Forgot password?",
   "@forgotPasswordLink": {
     "description": "forgotPasswordLink"
@@ -1555,7 +2024,9 @@
   "@forgotPasswordSentBody": {
     "description": "forgotPasswordSentBody",
     "placeholders": {
-      "email": { "type": "String" }
+      "email": {
+        "type": "String"
+      }
     }
   },
   "forgotPasswordResendLink": "Didn't get it? Resend",
@@ -1582,7 +2053,9 @@
   "@verifyEmailSubtitle": {
     "description": "verifyEmailSubtitle",
     "placeholders": {
-      "email": { "type": "String" }
+      "email": {
+        "type": "String"
+      }
     }
   },
   "verifyEmailBody": "Open the email, tap the verification link, then come back here and tap \"I've verified\".",
@@ -1601,7 +2074,9 @@
   "@verifyEmailResendCountdown": {
     "description": "verifyEmailResendCountdown",
     "placeholders": {
-      "time": { "type": "String" }
+      "time": {
+        "type": "String"
+      }
     }
   },
   "verifyEmailNotYet": "Not verified yet — please check your inbox and try again.",
@@ -1616,9 +2091,525 @@
   "@verifyEmailResendError": {
     "description": "verifyEmailResendError"
   },
-
   "setupWaitingCoupleCodeTitle": "Share this code to connect",
   "setupCoupleCodeDesc": "This is your couple's pairing code. Either of you can use it to reconnect.",
   "setupCoupleCodeRejoinHint": "Save this code — you can use it to rejoin your space at any time.",
-  "galleryNeedsCoupleToUpload": "Connect with your partner first before sharing photos 💞"
+  "galleryNeedsCoupleToUpload": "Connect with your partner first before sharing photos 💞",
+  "notifCenterTitle": "Notifications",
+  "notifCenterBadge": "WHAT'S NEW",
+  "notifCenterEmptyTitle": "No notifications yet",
+  "notifCenterEmptyBody": "Activity from the two of you will appear here.",
+  "notifGroupToday": "Today",
+  "notifGroupEarlier": "Earlier",
+  "notifUnreadCount": "{count} unread",
+  "@notifUnreadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifAllCaughtUp": "You're all caught up 💛",
+  "notifMarkAllRead": "Mark all read",
+  "notifClearAll": "Clear all",
+  "notifClearAllConfirmTitle": "Clear all notifications?",
+  "notifClearAllConfirmBody": "You won't be able to see these again.",
+  "notifDismiss": "Dismiss",
+  "notifGeneric": "You have a new notification",
+  "notifPhotoPosted": "{name} shared a new photo",
+  "@notifPhotoPosted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifPhotoReaction": "{name} reacted {emoji} to your photo",
+  "@notifPhotoReaction": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "emoji": {
+        "type": "String"
+      }
+    }
+  },
+  "notifPartnerJoined": "{name} paired up with you",
+  "@notifPartnerJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifPartnerLeft": "{name} left your shared space",
+  "@notifPartnerLeft": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifLoveNote": "{name} left you a love note",
+  "@notifLoveNote": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDailyQuestion": "{name} answered today's question",
+  "@notifDailyQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDailyQuestionBoth": "You and {name} both answered today's question 💞",
+  "@notifDailyQuestionBoth": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifChatMessage": "{name} sent you a message 💬",
+  "@notifChatMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forceUpdateBadge": "UPDATE",
+  "forceUpdateTitle": "Time to update",
+  "forceUpdateBody": "The version you're on is out of date. Update to the latest to keep making memories with your other half.",
+  "forceUpdateButton": "Update now",
+  "counterBgBadge": "BACKGROUND",
+  "counterBgTitle": "Counter background",
+  "counterBgSubtitleAll": "Pick which photos can back the day-counter card. Leave empty to cycle through them all.",
+  "counterBgSubtitleCount": "{count} photos picked for the counter background.",
+  "@counterBgSubtitleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "counterBgCoverLabel": "Cover",
+  "counterBgEmptyTitle": "No photos yet",
+  "counterBgEmptyBody": "Add some memories to your gallery first.",
+  "settingsCounterBgTitle": "Counter background",
+  "settingsCounterBgSubtitle": "Choose which photos show on the counter",
+  "counterBgSave": "Save",
+  "counterBgSavedMsg": "Counter background saved 💕",
+  "counterBgDiscardTitle": "Discard changes?",
+  "counterBgDiscardBody": "You have unsaved changes. Leave without saving?",
+  "counterBgDiscardLeave": "Leave",
+  "settingsChatBgTitle": "Chat background",
+  "settingsChatBgSubtitle": "Pick a photo to back your conversation",
+  "chatBgBadge": "CHAT BACKGROUND",
+  "chatBgTitle": "Chat background",
+  "chatBgSubtitle": "Pick one photo to back your conversation, or keep the default gradient.",
+  "chatBgFilterHint": "Only portrait, high-resolution photos are shown — they fill the screen without cropping or blurring.",
+  "chatBgNoneLabel": "Default",
+  "chatBgMeasuring": "Filtering photos…",
+  "chatBgNoneValidTitle": "No suitable photos yet",
+  "chatBgNoneValidBody": "Add a tall, sharp photo to your gallery — landscape or low-resolution photos can't be used as a chat background.",
+  "chatBgSavedMsg": "Chat background saved 💕",
+  "journeyTrailTitle": "Our journey",
+  "milestoneTrailNext": "{days} days to {label}",
+  "@milestoneTrailNext": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "milestoneTrailAllDone": "You've reached every milestone 🎉",
+  "profileAchievementsTitle": "Your badges",
+  "badgeStreakLabel": "day streak",
+  "badgeRecordLabel": "record",
+  "badgeMemoriesLabel": "memories",
+  "badgeJournalLabel": "journal",
+  "profileRecordsTitle": "Your records",
+  "profileRecordLongestStreak": "Longest streak",
+  "profileRecordDaysTogether": "Days together",
+  "profileRecordTotalMemories": "Total memories",
+  "profileRecordJournalEntries": "Questions answered",
+  "profileRecordStreakMilestones": "Streak milestones",
+  "profileJournalCountLabel": "{count} answered",
+  "@profileJournalCountLabel": {
+    "description": "Journal entry count value, e.g. '5 answered'",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "profileMemoriesTitle": "Our memories",
+  "profileMemoriesCountLabel": "{count} memories",
+  "@profileMemoriesCountLabel": {
+    "description": "Total memories subtitle in the memories sheet",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "profileMemoriesNextLabel": "{count} more to reach {milestone}",
+  "@profileMemoriesNextLabel": {
+    "description": "Motivation toward the next photo-count milestone",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "milestone": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeBadge": "LOVE TREE",
+  "loveTreeStage0": "Tiny seed",
+  "loveTreeStage1": "Sprout",
+  "loveTreeStage2": "Young tree",
+  "loveTreeStage3": "Flourishing tree",
+  "loveTreeStage4": "In full bloom",
+  "loveTreeFlowerCount": "{count} flowers bloomed",
+  "@loveTreeFlowerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeFlowerCountZero": "No flowers yet — let's grow it together",
+  "loveTreeSeedSubtitle": "Your journey starts right here 🌱",
+  "loveTreeBloomSubtitle": "Your tree is in full bloom ✨",
+  "loveTreeNewBloomBanner": "Your tree just bloomed {count} new flowers 🌸",
+  "@loveTreeNewBloomBanner": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeNewBloomBannerOne": "Your tree just bloomed a new flower 🌸",
+  "loveTreeNurtureTitle": "Grow it together",
+  "loveTreeNurtureStreakTitle": "Keep your daily streak",
+  "loveTreeNurtureStreakBody": "Answer daily so your streak lives on",
+  "loveTreeNurturePhotoTitle": "Add a memory",
+  "loveTreeNurturePhotoBody": "Every photo is a new flower",
+  "loveTreeNurtureTalkTitle": "Talk together today",
+  "loveTreeNurtureTalkBody": "Small moments grow the tree",
+  "loveTreeMilestonesTitle": "Milestones",
+  "loveTreeMilestoneDays": "{count} days together",
+  "@loveTreeMilestoneDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeMilestoneStreak": "{count}-day streak",
+  "@loveTreeMilestoneStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeMilestonePhotos": "{count} memories",
+  "@loveTreeMilestonePhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeMilestoneBloomed": "bloomed",
+  "loveTreeMilestoneDaysLeft": "{count} days to go",
+  "@loveTreeMilestoneDaysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeMilestoneStreakLeft": "{count} streak days to go",
+  "@loveTreeMilestoneStreakLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeMilestonePhotosLeft": "{count} photos to go",
+  "@loveTreeMilestonePhotosLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeMilestoneAllDone": "all done 🌟",
+  "loveTreeWaitingTitle": "Waiting for both of you",
+  "loveTreeWaitingBody": "The tree grows when you're both here. Invite your partner 💌",
+  "loveTreeWaitingCta": "Invite partner",
+  "loveTreeNoCoupleBody": "Connect with your partner to start growing 🌱",
+  "loveTreeCoachTooltip": "Tap to see this moment 🌸",
+  "loveTreeTapHint": "Tap a flower to relive a memory",
+  "loveTreeMomentDaysTitle": "{count} days together",
+  "@loveTreeMomentDaysTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeMomentPhotosTitle": "Memory #{count}",
+  "@loveTreeMomentPhotosTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeMomentStreakTitle": "{count}-day streak record",
+  "@loveTreeMomentStreakTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeMomentBloomedOn": "Bloomed on {date}",
+  "@loveTreeMomentBloomedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeMomentPhotoTakenOn": "Added on {date}",
+  "@loveTreeMomentPhotoTakenOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeMomentDaysCopy": "Every day together is one more petal in bloom 🌸",
+  "loveTreeMomentPhotosCopy": "A moment the two of you chose to keep 💞",
+  "loveTreeMomentStreakCopy": "The record you two once kept together. Start a new streak to beat it 🔥",
+  "loveTreeMomentViewInGallery": "View in Gallery",
+  "loveTreeLockedDays": "{count} days to go before this blooms 🌱",
+  "@loveTreeLockedDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeLockedPhotos": "{count} memories to go before this blooms 🌱",
+  "@loveTreeLockedPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeLockedStreak": "{count} streak days to go before this blooms 🌱",
+  "@loveTreeLockedStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeLockedPhotosCta": "Add a memory",
+  "loveTreeLockedStreakCta": "Answer today",
+  "loveTreeShareButton": "Share our tree",
+  "loveTreeShareStats": "{days} days together · {flowers} flowers in bloom",
+  "@loveTreeShareStats": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      },
+      "flowers": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeShareTagline": "The tree we grew together 🌳",
+  "loveTreeShareTaglineSeed": "Our tree just sprouted 🌱",
+  "loveTreeShareMessage": "Our love tree has bloomed {flowers} flowers after {days} days 🌳💞 — grow yours together on Dear Embeiu.",
+  "@loveTreeShareMessage": {
+    "placeholders": {
+      "flowers": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeShareFailed": "Couldn't create the card, please try again",
+  "partnerReminderNotifBody": "A reminder from your partner 💌",
+  "notifAnswerReaction": "{name} reacted {emoji} to your answer",
+  "@notifAnswerReaction": {
+    "description": "Notification center title when the partner reacts to your daily-question answer.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "emoji": {
+        "type": "String"
+      }
+    }
+  },
+  "answerReactionHint": "React to your partner's answer",
+  "@answerReactionHint": {
+    "description": "Hint under a revealed partner answer inviting a reaction."
+  },
+  "answerReactionAddTooltip": "Add a reaction",
+  "@answerReactionAddTooltip": {
+    "description": "Tooltip/a11y label for the answer reaction heart button."
+  },
+  "answerReactionRemoveTooltip": "Remove reaction",
+  "@answerReactionRemoveTooltip": {
+    "description": "Tooltip/a11y label to remove your answer reaction."
+  },
+  "answerReactionErrorRetry": "Couldn't send — tap to retry",
+  "@answerReactionErrorRetry": {
+    "description": "Shown when writing an answer reaction failed."
+  },
+  "careMessageBadge": "CARE NOTE",
+  "@careMessageBadge": {
+    "description": "Eyebrow chip on the send-a-care-note screen."
+  },
+  "careMessageEntryTitle": "Send a care note",
+  "@careMessageEntryTitle": {
+    "description": "Profile menu entry opening the care-note composer."
+  },
+  "careMessageEntrySubtitle": "A little message to warm their day",
+  "@careMessageEntrySubtitle": {
+    "description": "Subtitle of the profile care-note entry."
+  },
+  "careMessageQuickPicksTitle": "Quick picks",
+  "@careMessageQuickPicksTitle": {
+    "description": "Section title above the ready-made care-note chips."
+  },
+  "careMessageTitleLabel": "Title",
+  "@careMessageTitleLabel": {
+    "description": "Label of the care-note title field."
+  },
+  "careMessageTitleHint": "e.g. Missing you",
+  "@careMessageTitleHint": {
+    "description": "Hint of the care-note title field."
+  },
+  "careMessageBodyLabel": "Message",
+  "@careMessageBodyLabel": {
+    "description": "Label of the care-note body field."
+  },
+  "careMessageBodyHint": "Write something warm...",
+  "@careMessageBodyHint": {
+    "description": "Hint of the care-note body field."
+  },
+  "careMessageSendCta": "Send to your love 💌",
+  "@careMessageSendCta": {
+    "description": "Primary button that sends the care note."
+  },
+  "aiQuestionsSaveFailed": "Couldn't save that, please try again",
+  "@aiQuestionsSaveFailed": {"description": "aiQuestionsSaveFailed"},
+  "dailyQuestionPreparing": "Getting today's question ready…",
+  "@dailyQuestionPreparing": {"description": "dailyQuestionPreparing"},
+  "careMessageQueuedToast": "Slow network — your note will be sent as soon as you're back online 💌",
+  "@careMessageQueuedToast": {"description": "Toast when the care note write timed out offline and is queued"},
+  "careMessageSentToast": "Sent 💌",
+  "@careMessageSentToast": {
+    "description": "Snackbar after a care note was sent."
+  },
+  "careMessageErrorToast": "Couldn't send. Please try again.",
+  "@careMessageErrorToast": {
+    "description": "Snackbar when sending a care note failed."
+  },
+  "careMessageNeedCouple": "Pair up first to send a care note.",
+  "@careMessageNeedCouple": {
+    "description": "Shown when the user has no active couple yet."
+  },
+  "careMessageRecentTitle": "Recently sent",
+  "@careMessageRecentTitle": {
+    "description": "Section title above the recent care notes list."
+  },
+  "careMessageFromMe": "You",
+  "@careMessageFromMe": {
+    "description": "Author label on a care note you sent."
+  },
+  "careMessageFromPartner": "Your love",
+  "@careMessageFromPartner": {
+    "description": "Author label on a care note your partner sent."
+  },
+  "careQuick1Title": "Missing you 💕",
+  "@careQuick1Title": {
+    "description": "Quick-pick care note title 1."
+  },
+  "careQuick1Body": "Just thinking about you. How is your day going?",
+  "@careQuick1Body": {
+    "description": "Quick-pick care note body 1."
+  },
+  "careQuick2Title": "Drink some water 💧",
+  "@careQuick2Title": {
+    "description": "Quick-pick care note title 2."
+  },
+  "careQuick2Body": "Remember to stay hydrated today, okay?",
+  "@careQuick2Body": {
+    "description": "Quick-pick care note body 2."
+  },
+  "careQuick3Title": "Have you eaten? 🍚",
+  "@careQuick3Title": {
+    "description": "Quick-pick care note title 3."
+  },
+  "careQuick3Body": "Please eat on time today, no skipping meals.",
+  "@careQuick3Body": {
+    "description": "Quick-pick care note body 3."
+  },
+  "careQuick4Title": "Sleep early tonight 🌙",
+  "@careQuick4Title": {
+    "description": "Quick-pick care note title 4."
+  },
+  "careQuick4Body": "It is getting late, get some rest. Sweet dreams!",
+  "@careQuick4Body": {
+    "description": "Quick-pick care note body 4."
+  },
+  "careQuick5Title": "Love you so much ❤️",
+  "@careQuick5Title": {
+    "description": "Quick-pick care note title 5."
+  },
+  "careQuick5Body": "Just wanted to say I love you so much today.",
+  "@careQuick5Body": {
+    "description": "Quick-pick care note body 5."
+  },
+  "careQuick6Title": "You've got this 💪",
+  "@careQuick6Title": {
+    "description": "Quick-pick care note title 6."
+  },
+  "careQuick6Body": "Today looks tough, but you've got this. I am right here.",
+  "@careQuick6Body": {
+    "description": "Quick-pick care note body 6."
+  },
+  "notifCareMessage": "{name} sent you a care note",
+  "@notifCareMessage": {
+    "description": "Notification center title for a care note from the partner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

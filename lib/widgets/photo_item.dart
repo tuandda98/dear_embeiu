@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'dart:io';
 import '../theme/app_colors.dart';
 
@@ -43,7 +43,7 @@ class PhotoItem extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: AppColors.surfaceLight,
-                    child: Icon(LucideIcons.imageOff),
+                    child: Icon(IconsaxPlusLinear.gallery_remove),
                   );
                 },
               ),
@@ -108,7 +108,7 @@ class PhotoItem extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.all(6),
                       child: const Icon(
-                        LucideIcons.x,
+                        IconsaxPlusLinear.close_circle,
                         color: AppColors.white,
                         size: 16,
                       ),

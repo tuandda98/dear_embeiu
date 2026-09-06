@@ -356,6 +356,41 @@ Profile (gọn)
 - [x] Handoff nêu rõ DI CHUYỂN gì (giữ logic), file mới, widget/dialog tái dùng, control giờ-theo-mốc (Dv8), giữ force-open/custom/v2.
 - [x] Giữ độ "nguy hiểm" danger zone (compliance) — bê nguyên khối.
 
+## Redesign Profile v2 (2026-06-11 — user chốt toàn bộ)
+
+> Job statement: **Home = hôm nay · Gallery = kho ảnh · Hồ sơ = "chúng mình là ai + tủ kỷ vật + cổng quản trị".** Mỗi con số xuất hiện đúng 1 lần; số không dẫn tới đâu thì bỏ.
+
+**Bố cục mới (trên xuống):**
+1. **Header:** EyebrowChip + `pageTitleStyle` 32 — **BỎ subtitle** (`profileSubtitle` hết dùng, giữ ARB).
+2. **Hero danh tính** (r32, height 220, ảnh couple nền + scrim như cũ): **BỎ glass pill đếm-ngược** (dời xuống strip) + **BỎ avatar 72px** (lặp đúng ảnh nền). Nội dung dồn đáy: ourStoryBadge → AnimatedCoupleName 30 w800 → "Bắt đầu từ {date}". **MỚI: cả card tap được → push SetupScreen** (reload couple khi quay về, y hệt tile Settings) + đĩa ✎ 36 white .92 / pencil `accentLoveDeep` 18 top-right (cùng ngôn ngữ đĩa bell Home) làm affordance; Semantics = `editOurStoryBtn`; ripple trắng .12.
+3. **Stats "Bức tranh hành trình" = GIỮ NGUYÊN BẢN GỐC 2×2** (CHỐT sau 3 vòng cùng ngày 2026-06-11: strip 3 chip trắng → user chê "quá chán" → thử tint accent + icon squircle → user "revert như cũ = như lúc đầu, lúc chưa yêu cầu sửa" → **khôi phục nguyên văn section card cũ**): `_buildSectionCard` (sparkles + `journeySnapshotTitle/Subtitle`) + 4 `_buildModernStatCard` (rose favorite năm · coral calendar tháng · info calendarDays tổng ngày · lavender image ảnh — tint .10, icon squircle trắng .78 40/r14, value 26 w800, label 13). KHÔNG tappable, không callback Gallery (`onOpenGallery` đã gỡ khỏi ProfileScreen + home_screen). Key `profileChip*` hết dùng (giữ ARB). Info tiles cũ ("Thông tin & nhịp sống") vẫn BỎ như spec v2.
+4. **Section "Tủ kỷ niệm"** (MỚI — ẨN khi `isWaitingForPartner`; vòng 2 cùng ngày gom lại theo user): `SectionHeader` + **1 ContentCard grouped** với 3 hàng (IconBadge + title 15 w700 + chevron, InkWell ripple, hairline indent 58 — cùng ngôn ngữ flat-list Settings v2; bản đầu 3 tile viền riêng đã thay): 📖 Nhật ký câu hỏi → `JournalScreen` · 🕘 Nhật ký lời nhắn → `LoveNoteHistoryScreen` · 🔥 Chuỗi kết nối → `StreakSheet.show`. **Đổi lại: GỠ hàng archive links khỏi `TodayRitualCard` trên Home** (footer "Nhật ký | Lời nhắn cũ" + divider — key `journalLinkShort`/`loveNoteHistoryLinkShort` giữ ARB).
+5. **Mã mời** (chỉ khi waiting): giữ detail tile + `InviteActionButtons`, đứng độc lập (không bọc section card).
+6. **Cài đặt = 1 icon `HeaderIconButton` (settings, 44/r16) GÓC PHẢI TRÊN** ngang hàng EyebrowChip (vòng 2 cùng ngày theo user "chỉ giữ lại 1 cái icon, để ở trên góc phải") — XOÁ tile full-width cuối trang; Semantics `settingsTitle`.
+
+**Copy mới (vi/en):** `profileChipDaysLabel` "ngày bên nhau"/"days together" · `profileChipAnniversaryLabel` "ngày tới kỷ niệm"/"days to anniversary" · `profileChipAnniversaryTodayLabel` "kỷ niệm là hôm nay!"/"anniversary is today!" · `profileChipPhotosLabel` "kỷ niệm đã lưu"/"memories saved" · `profileMemoryChestTitle` "Tủ kỷ niệm"/"Memory chest" · `profileStreakTile` "Chuỗi kết nối"/"Connection streak".
+
+**Lý do (tóm tắt từ review):** trang cũ lặp 5 thông tin (đếm-ngược ×2 + ngày-bắt-đầu ×2 ngay trong trang, total days/years/months trùng Home), không stat nào tap được, không sửa được profile từ profile, archive cảm xúc bị under-sold thành 2 link 13px trên Home. Skeleton sync layout mới.
+
+## Redesign Settings v2 (2026-06-11 — user chốt toàn bộ, cùng đợt Profile v2)
+
+> Job statement: **Settings = phòng điều khiển** — chỉ control, không nội dung/archive. Mục tiêu: quét hết trang trong ~1,5 lần vuốt (trước: ~3). Chuyển từ "card-lồng-card" (section card có icon+title+subtitle bọc tile-có-viền) sang **grouped list phẳng** kiểu iOS/Android Settings: `SectionHeader` NGOÀI card → 1 `ContentCard`/nhóm → các hàng ngăn bằng hairline divider (indent 58, pattern account-info card sẵn có).
+
+**Bố cục mới (trên xuống):**
+1. **Header:** EyebrowChip + title — **BỎ subtitle** (`settingsHeaderSubtitle` hết dùng, giữ ARB; đồng bộ Profile v2).
+2. **Tài khoản** (ĐƯA LÊN ĐẦU — "đang đăng nhập bằng ai" định hướng mọi control dưới): card info read-only thuần (Tên hiển thị · Email). **Đăng xuất KHÔNG ở đây** — là BUTTON pill r999 h52 white .72 navy ở **CUỐI TRANG sau danger zone** (2 vòng feedback user 2026-06-11: ① action trong card info đọc như info → tách thành button; ② button thoát phải nằm cuối trang theo quy ước settings phổ quát — thứ tự quét: dùng-thường → ít-dùng → rời-đi).
+3. **Thông báo** (GỘP 2 section Nhắc nhở + Loại thông báo — user nghĩ theo chủ đề "app kêu về cái gì", không theo cơ chế local/push): master toggle (+desc) → nhắc câu hỏi mỗi ngày (switch + time row, độc lập master — giữ) → Cột mốc & kỷ niệm › (badge đếm, dim khi master off — giữ) → Lời nhắc của chúng mình › (badge, force-open gate Dv6 — giữ) → **sub-label micro-caps "ĐẨY TỪ NGƯỜI ẤY"** (11 w700, không card mới) → 3 toggle push (ảnh/tim/câu trả lời).
+4. **Chung:** Ngôn ngữ › (giá trị hiện tại) · toggle analytics (D1c) · **Chính sách quyền riêng tư** (nâng từ footer-link 12px lên hàng thật — compliance nên dễ thấy; icon externalLink).
+5. **Vùng nguy hiểm:** GIỮ NGUYÊN 100% khối hiện tại (3 mức severity + warning + divider "không thể hoàn tác" — compliance, không đụng).
+6. **Đăng xuất:** button pill cuối trang (sau danger zone — xem mục 2).
+7. **Footer version (MỚI):** "Dear Embeiu · v{x.y.z} ({build})" — textTertiary 12, center (`package_info_plus`).
+
+**XOÁ (hệ quả Profile v2 — nguyên tắc một-lối-vào):** section "Kỷ niệm"/Journal (đã có Tủ kỷ niệm Profile) · tile "Chỉnh sửa câu chuyện" (đã có hero tap-to-edit Profile) · mọi subtitle section (diễn giải lại title) · pill Đăng xuất nổi · footer-link privacy cũ. Key cũ giữ ARB.
+
+**Copy mới (vi/en):** `settingsSectionAccount` "Tài khoản"/"Account" · `settingsSectionNotifications` "Thông báo"/"Notifications" · `settingsSectionGeneral` "Chung"/"General" · `settingsPushGroupLabel` "Đẩy từ người ấy"/"Push from your partner".
+
 ## Nhật ký design
+- [2026-06-11] [Designer] **Redesign Settings v2** (user chốt toàn bộ): grouped list phẳng (SectionHeader ngoài + 1 ContentCard/nhóm + hairline rows) thay card-lồng-card; xoá 2 mục thừa sau Profile v2 (Journal, edit-story); gộp Thông báo local+push 1 nhóm với sub-label; Tài khoản lên đầu + Đăng xuất vào trong; privacy-policy lên hàng thật; danger zone giữ nguyên; footer version mới. 4 key l10n mới `settingsSection*`/`settingsPushGroupLabel`.
+- [2026-06-11] [Designer] **Redesign Profile v2** (user chốt toàn bộ sau review): hero tap-to-edit (bỏ pill + avatar lặp), strip Hành trình 3 chip thay Stats 2×2 + Info tiles (chip ảnh → Gallery), section MỚI "Tủ kỷ niệm" (Journal/History/Streak — dời từ footer TodayRitualCard Home về), bỏ subtitle trang/section. 6 key l10n mới prefix `profileChip*`/`profileMemoryChest`/`profileStreakTile`.
 - [2026-05-31] [Designer] Thiết kế feature **settings**: (1) Profile gọn còn hero+stats + tile "⚙️ Cài đặt"; (2) màn `SettingsScreen` 3 module (🔔 Nhắc nhở / 🌐 Ngôn ngữ / 👤 Tài khoản & dữ liệu) dạng section card kiểu iOS + danger card tách biệt + footer privacy; (3) sub "Cột mốc & kỷ niệm" thêm **Giờ mặc định** (tile đầu) + **giờ riêng mỗi mốc** (Dv8) bằng chip-giờ inline — mờ "Theo mặc định · {giờ}" khi null, đậm "{giờ} ✕" khi đặt riêng, ✕ = về mặc định; (4) chi tiết chip-giờ. Quyết định UX: module=`_buildSectionCard` tái dùng (không widget nhóm mới); control giờ INLINE từng mốc (không tách màn); "về mặc định" = nút ✕ 1-chạm không dialog; danger zone bê NGUYÊN khối vào module Tài khoản cuối Settings (giữ compliance); "Chỉnh sửa câu chuyện" đổi nút→tile. Copy song ngữ: prefix `settings*` cho nhãn mới + bảng tái dùng key cũ cho mọi mục di chuyển (giữ nguyên hành vi). Token bám design system, KHÔNG token mới.
 ```

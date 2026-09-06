@@ -10,6 +10,8 @@
 		<false/>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Dear Embeiu cần truy cập thư viện ảnh để bạn chọn và chia sẻ ảnh kỷ niệm với người ấy.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Dear Embeiu cần dùng camera để bạn chụp và đăng khoảnh khắc kỷ niệm với người ấy.</string>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleLocalizations</key>
@@ -35,6 +37,24 @@
 		<string>$(FLUTTER_BUILD_NAME)</string>
 		<key>CFBundleSignature</key>
 		<string>????</string>
+		<!-- Custom URL scheme so the branded email action page
+		     (docs/auth-action.html) can foreground the app after the user
+		     verifies their email / resets their password in the browser.
+		     The app only needs to come to the foreground — VerifyEmailScreen
+		     auto-polls on resume and advances on its own. -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>com.tony.dearembeiu</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>dearembeiu</string>
+				</array>
+			</dict>
+		</array>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
 		<key>LSRequiresIPhoneOS</key>

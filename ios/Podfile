@@ -37,6 +37,22 @@ target 'Runner' do
 end
 
 post_install do |installer|
+  # Seed the project-referenced GoogleService-Info.plist so it physically exists
+  # BEFORE Xcode validates build inputs. The real per-env copies live in
+  # ios/config/{dev,prod}/ and the in-build "Select GoogleService-Info (env)"
+  # phase swaps in the right one each build — but Xcode's build system checks
+  # that referenced resource files exist before ANY script phase runs. On a
+  # fresh checkout the file is absent (it was moved out of Runner/ in the
+  # dev/prod split and is now gitignored), so the first build dies with
+  # "Build input file cannot be found: .../Runner/GoogleService-Info.plist".
+  # Seed prod here (the SAFE fallback); Debug/Profile builds then get swapped to
+  # dev by the in-build phase. Runs every `pod install`; only writes when missing.
+  dest_plist = File.join(__dir__, 'Runner', 'GoogleService-Info.plist')
+  unless File.exist?(dest_plist)
+    seed_src = File.join(__dir__, 'config', 'prod', 'GoogleService-Info.plist')
+    FileUtils.cp(seed_src, dest_plist) if File.exist?(seed_src)
+  end
+
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
 

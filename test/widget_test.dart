@@ -41,7 +41,10 @@ void main() {
 
     // Assert on elements that don't depend on isUsingFirebase (false in tests,
     // where the subtitle becomes the local-fallback copy). Exact-match strings.
-    expect(find.text('Chào mừng trở lại'), findsOneWidget); // loginTitle
+    // The screen names itself with an EyebrowChip only — the old `loginTitle`
+    // heading was removed by the chip-only header redesign (2026-06-14), which
+    // left this test failing until 2026-08-09.
+    expect(find.text('CHÀO MỪNG TRỞ LẠI'), findsOneWidget); // welcomeBackBadge
     // "Quên mật khẩu?" link added in the 2026-06-05 forgot-password flow.
     expect(find.text('Quên mật khẩu?'), findsOneWidget);
     // Register link ("Tạo tài khoản") — at least once on the login screen.

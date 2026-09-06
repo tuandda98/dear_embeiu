@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --only firestore:rules,functions:notifyCareMessage --project tonyembeiu-dev 2>&1 | tail -30
+time_utc: 20260905T110540Z
+git_head: 674d2f4 (feature/care-and-catchup)
+dirty   : 22 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 674d2f4)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 674d2f4 -- functions` rồi redeploy

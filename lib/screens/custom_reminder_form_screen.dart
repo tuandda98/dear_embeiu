@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
 import '../models/custom_reminder.dart';
 import '../providers/custom_reminders_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/app_time_picker.dart';
+import '../widgets/content_card.dart';
+import '../widgets/sub_screen_header.dart';
 
 /// Add / edit form for a single custom reminder (full screen, push route).
 ///
@@ -32,6 +35,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
   late DateTime _date;
   late TimeOfDay _time;
   late ReminderRecurrence _recurrence;
+  bool _notifyPartner = false;
 
   bool _showNameError = false;
 
@@ -58,6 +62,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
       _time = TimeOfDay(hour: defaultWhen.hour, minute: defaultWhen.minute);
     }
     _recurrence = existing?.recurrence ?? ReminderRecurrence.once;
+    _notifyPartner = existing?.notifyPartner ?? false;
   }
 
   @override
@@ -111,7 +116,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
   }
 
   Future<void> _pickTime() async {
-    final picked = await showTimePicker(context: context, initialTime: _time);
+    final picked = await showAppTimePicker(context, initialTime: _time);
     if (picked != null) {
       setState(() => _time = picked);
     }
@@ -139,6 +144,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
         hour: _time.hour,
         minute: _time.minute,
         recurrence: _recurrence,
+        notifyPartner: _notifyPartner,
       );
       await provider.update(updated);
     } else {
@@ -149,6 +155,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
         hour: _time.hour,
         minute: _time.minute,
         recurrence: _recurrence,
+        notifyPartner: _notifyPartner,
       );
     }
     if (!mounted) {
@@ -224,58 +231,55 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final dateLabel = DateFormat.yMMMd().format(_date);
+    final dateLabel =
+        DateFormat.yMMMd(Localizations.localeOf(context).toString())
+            .format(_date);
     final timeLabel = _time.format(context);
 
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(
-              LucideIcons.chevronLeft,
-              color: AppColors.accentRose,
-            ),
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
-          title: Text(
-            widget.isEditing
-                ? l10n.customRemindersEditTitle
-                : l10n.customRemindersAddTitle,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          actions: [
-            Opacity(
-              opacity: _canSave ? 1 : 0.4,
-              child: TextButton(
-                onPressed: _canSave ? _save : null,
-                child: Text(
-                  l10n.customRemindersSave,
-                  style: const TextStyle(
-                    color: AppColors.accentRose,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        // Header redesign 2026-06-14: no app bar — the SubScreenHeader (back →
+        // chip → dynamic title, all left-aligned at the gutter, + the Save
+        // action) leads the form. No subtitle, to save room for the keyboard.
         body: SafeArea(
-          top: false,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                SubScreenHeader(
+                  badge: l10n.customReminderFormBadge,
+                  badgeIcon: IconsaxPlusLinear.notification_bing,
+                  title: widget.isEditing
+                      ? l10n.customRemindersEditTitle
+                      : l10n.customRemindersAddTitle,
+                  trailing: Opacity(
+                    opacity: _canSave ? 1 : 0.4,
+                    child: TextButton(
+                      onPressed: _canSave ? _save : null,
+                      child: Text(
+                        l10n.customRemindersSave,
+                        // Header ink vòng 4 (2026-06-11): navy textPrimary, no
+                        // shadow — white-on-blush failed contrast on real shots.
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 _buildFormCard(l10n, dateLabel, timeLabel),
+                // "Cũng nhắc người ấy" — only meaningful when in a couple
+                // (feature partner-nudge, 2026-06-30).
+                if (context.watch<CustomRemindersProvider>().canNotifyPartner) ...[
+                  const SizedBox(height: 16),
+                  _buildNotifyPartnerCard(l10n),
+                ],
                 if (widget.isEditing) ...[
                   const SizedBox(height: 24),
                   _buildDeleteSection(l10n),
@@ -290,20 +294,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
 
   Widget _buildFormCard(AppLocalizations l10n, String dateLabel,
       String timeLabel) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.84),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.82)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.045),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+    return ContentCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -319,7 +310,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
               hintText: l10n.customRemindersNameHint,
               counterText: '',
               prefixIcon: const Icon(
-                Icons.favorite_rounded,
+                IconsaxPlusBold.heart,
                 color: AppColors.accentRose,
               ),
               errorText:
@@ -347,7 +338,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
             children: [
               Expanded(
                 child: _pickerTile(
-                  icon: LucideIcons.calendar,
+                  icon: IconsaxPlusLinear.calendar,
                   label: l10n.customRemindersDateLabel,
                   value: dateLabel,
                   onTap: _pickDate,
@@ -356,7 +347,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _pickerTile(
-                  icon: LucideIcons.clock,
+                  icon: IconsaxPlusLinear.clock,
                   label: l10n.customRemindersTimeLabel,
                   value: timeLabel,
                   onTap: _pickTime,
@@ -369,7 +360,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
             Row(
               children: [
                 const Icon(
-                  LucideIcons.alertTriangle,
+                  IconsaxPlusLinear.warning_2,
                   color: AppColors.warning,
                   size: 16,
                 ),
@@ -402,6 +393,59 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
                 ],
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotifyPartnerCard(AppLocalizations l10n) {
+    return ContentCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.accentRose.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              IconsaxPlusBold.notification_bing,
+              color: AppColors.accentRose,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.customRemindersNotifyPartnerLabel,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.customRemindersNotifyPartnerSubtitle,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: _notifyPartner,
+            onChanged: (v) => setState(() => _notifyPartner = v),
+            activeThumbColor: AppColors.accentLove,
           ),
         ],
       ),
@@ -441,7 +485,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
         TextButton.icon(
           onPressed: _confirmDelete,
           icon: const Icon(
-            LucideIcons.trash2,
+            IconsaxPlusLinear.trash,
             color: AppColors.error,
           ),
           label: Text(
@@ -473,18 +517,23 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
     required String value,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.accentRose.withValues(alpha: 0.10),
+    return Material(
+      color: AppColors.white.withValues(alpha: 0.72),
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: AppColors.accentRose.withValues(alpha: 0.08),
+        highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: AppColors.accentRose.withValues(alpha: 0.10),
+            ),
           ),
-        ),
-        child: Column(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -501,15 +550,16 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                color: AppColors.accentRose,
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
+              Text(
+                value,
+                style: const TextStyle(
+                  color: AppColors.accentRose,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -517,28 +567,38 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
 
   Widget _repeatChip(ReminderRecurrence recurrence, AppLocalizations l10n) {
     final selected = _recurrence == recurrence;
-    return GestureDetector(
-      onTap: () => setState(() => _recurrence = recurrence),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          gradient: selected ? AppColors.sunsetRomance : null,
-          color: selected ? null : AppColors.white.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: selected
-                ? Colors.transparent
-                : AppColors.accentRose.withValues(alpha: 0.12),
-          ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        gradient: selected ? AppColors.sunsetRomance : null,
+        color: selected ? null : AppColors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: selected
+              ? Colors.transparent
+              : AppColors.accentRose.withValues(alpha: 0.12),
         ),
-        child: Text(
-          _recurrenceLabel(recurrence, l10n),
-          style: TextStyle(
-            color: selected ? AppColors.white : AppColors.textSecondary,
-            fontSize: 13,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => setState(() => _recurrence = recurrence),
+          borderRadius: BorderRadius.circular(999),
+          splashColor: selected
+              ? AppColors.white.withValues(alpha: 0.12)
+              : AppColors.accentRose.withValues(alpha: 0.08),
+          highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Text(
+              _recurrenceLabel(recurrence, l10n),
+              style: TextStyle(
+                color: selected ? AppColors.white : AppColors.textSecondary,
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+              ),
+            ),
           ),
         ),
       ),

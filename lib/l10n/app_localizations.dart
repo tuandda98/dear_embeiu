@@ -98,6 +98,342 @@ abstract class AppLocalizations {
     Locale('vi'),
   ];
 
+  /// Profile badge label under the care-notes count
+  ///
+  /// In en, this message translates to:
+  /// **'care notes'**
+  String get badgeCareLabel;
+
+  /// Eyebrow chip on the care-notes timeline screen.
+  ///
+  /// In en, this message translates to:
+  /// **'CARE NOTES'**
+  String get careTimelineBadge;
+
+  /// Link next to the recent care notes that opens the full timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get careTimelineSeeAll;
+
+  /// Profile tile opening the care-notes timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Care notes'**
+  String get careTimelineTile;
+
+  /// Subtitle of the profile care-timeline tile: how many care notes exist.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} notes between you'**
+  String careTimelineCount(int count);
+
+  /// Day header for care notes sent yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get careTimelineYesterday;
+
+  /// Empty state title on the care timeline (also the profile tile subtitle when the count is zero).
+  ///
+  /// In en, this message translates to:
+  /// **'No care notes yet'**
+  String get careTimelineEmptyTitle;
+
+  /// Empty state body on the care timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Every little note the two of you send lands here, in order.'**
+  String get careTimelineEmptyBody;
+
+  /// Empty state button opening the care-note composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the first care note'**
+  String get careTimelineEmptyCta;
+
+  /// Error state on the care timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the timeline.'**
+  String get careTimelineLoadError;
+
+  /// No description provided for @aiQuestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI-personalised questions'**
+  String get aiQuestionsTitle;
+
+  /// No description provided for @aiQuestionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses the last 30 days of both your answers to write a question just for the two of you. The data is only used to create questions, never for training. Turn it off any time.'**
+  String get aiQuestionsSubtitle;
+
+  /// No description provided for @aiQuestionsDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on personalised questions?'**
+  String get aiQuestionsDialogTitle;
+
+  /// No description provided for @aiQuestionsDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.'**
+  String get aiQuestionsDialogBody;
+
+  /// No description provided for @aiQuestionsDialogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get aiQuestionsDialogConfirm;
+
+  /// No description provided for @introSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get introSkip;
+
+  /// No description provided for @introNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get introNext;
+
+  /// No description provided for @introStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get introStart;
+
+  /// No description provided for @introSlide1Badge.
+  ///
+  /// In en, this message translates to:
+  /// **'LOVE COUNTER'**
+  String get introSlide1Badge;
+
+  /// No description provided for @introSlide1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Count every day together'**
+  String get introSlide1Title;
+
+  /// No description provided for @introSlide1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'See how long you have been together, reach every milestone, and watch your love tree grow day by day.'**
+  String get introSlide1Body;
+
+  /// No description provided for @introSlide2Badge.
+  ///
+  /// In en, this message translates to:
+  /// **'EVERY DAY'**
+  String get introSlide2Badge;
+
+  /// No description provided for @introSlide2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Memories & a question a day'**
+  String get introSlide2Title;
+
+  /// No description provided for @introSlide2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'A shared photo library, a daily question for both of you, your connection streak, and a chat corner just for the two of you.'**
+  String get introSlide2Body;
+
+  /// No description provided for @introSlide3Badge.
+  ///
+  /// In en, this message translates to:
+  /// **'IT TAKES TWO'**
+  String get introSlide3Badge;
+
+  /// No description provided for @introSlide3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'It takes both of you'**
+  String get introSlide3Title;
+
+  /// No description provided for @introSlide3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Dear Embeiu is a space for two. You create an invite code, your partner downloads the app (iOS/Android) and enters the code — that\'s it.'**
+  String get introSlide3Body;
+
+  /// No description provided for @featureTourBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'WHAT\'S NEW'**
+  String get featureTourBadge;
+
+  /// Feature tour sheet title, e.g. 'Version 1.6.0'
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String featureTourVersionTitle(String version);
+
+  /// No description provided for @featureTourGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get featureTourGotIt;
+
+  /// No description provided for @featureTourSettingsTile.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get featureTourSettingsTile;
+
+  /// No description provided for @featureTourSettingsTileSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Take another look at the latest features'**
+  String get featureTourSettingsTileSub;
+
+  /// No description provided for @featureTourCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a little care'**
+  String get featureTourCareTitle;
+
+  /// No description provided for @featureTourCareBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a short message and your partner gets a notification right away.'**
+  String get featureTourCareBody;
+
+  /// No description provided for @featureTourQuestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fresher daily questions'**
+  String get featureTourQuestionsTitle;
+
+  /// No description provided for @featureTourQuestionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions that follow the week, the month and your mood, a way to look back at old answers, and an optional AI personalisation you can turn on in Settings.'**
+  String get featureTourQuestionsBody;
+
+  /// No description provided for @featureTourInviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Easier to invite your partner'**
+  String get featureTourInviteTitle;
+
+  /// No description provided for @featureTourInviteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a download link together with your invite code, with step-by-step guidance.'**
+  String get featureTourInviteBody;
+
+  /// No description provided for @homeWaitingBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'WAITING FOR THEM'**
+  String get homeWaitingBadge;
+
+  /// No description provided for @homeWaitingStep1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the invite'**
+  String get homeWaitingStep1Title;
+
+  /// No description provided for @homeWaitingStep1Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Send this invite code to your partner in a message.'**
+  String get homeWaitingStep1Desc;
+
+  /// No description provided for @homeWaitingStep1Cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Send it to them 💌'**
+  String get homeWaitingStep1Cta;
+
+  /// No description provided for @homeWaitingStep1Copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get homeWaitingStep1Copy;
+
+  /// No description provided for @homeWaitingStep2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'They install the app and sign up'**
+  String get homeWaitingStep2Title;
+
+  /// No description provided for @homeWaitingStep2Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'They need to install Dear Embeiu (iOS/Android), sign up, then pick <Enter invite code>.'**
+  String get homeWaitingStep2Desc;
+
+  /// No description provided for @homeWaitingStep3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Entering the code is all it takes'**
+  String get homeWaitingStep3Title;
+
+  /// No description provided for @homeWaitingStep3Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Once you are paired the app switches over by itself and you get a notification.'**
+  String get homeWaitingStep3Desc;
+
+  /// No description provided for @homeWaitingMeanwhileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'While you wait, you can already:'**
+  String get homeWaitingMeanwhileTitle;
+
+  /// No description provided for @homeWaitingMeanwhileItem1.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your anniversary date'**
+  String get homeWaitingMeanwhileItem1;
+
+  /// No description provided for @homeWaitingMeanwhileItem2.
+  ///
+  /// In en, this message translates to:
+  /// **'Add memories'**
+  String get homeWaitingMeanwhileItem2;
+
+  /// No description provided for @homeWaitingMeanwhileItem3.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer today\'s question'**
+  String get homeWaitingMeanwhileItem3;
+
+  /// No description provided for @homeWaitingMeanwhileFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'They will see all of it when they join.'**
+  String get homeWaitingMeanwhileFooter;
+
+  /// No description provided for @inviteFollowUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner hasn\'t joined yet 💌'**
+  String get inviteFollowUpTitle;
+
+  /// No description provided for @inviteFollowUpBody24h.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the invite again — it only takes 10 seconds'**
+  String get inviteFollowUpBody24h;
+
+  /// No description provided for @inviteFollowUpBody72h.
+  ///
+  /// In en, this message translates to:
+  /// **'Our memories are waiting for them. Remind them to download the app'**
+  String get inviteFollowUpBody72h;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:
@@ -329,8 +665,14 @@ abstract class AppLocalizations {
   /// No description provided for @setupEditTitle.
   ///
   /// In en, this message translates to:
+  /// **'Refine the story of\n{me} ❤️ {partner}'**
+  String setupEditTitle(String me, String partner);
+
+  /// No description provided for @setupEditTitleGeneric.
+  ///
+  /// In en, this message translates to:
   /// **'Refine\nyour story'**
-  String get setupEditTitle;
+  String get setupEditTitleGeneric;
 
   /// No description provided for @setupTabCreate.
   ///
@@ -530,6 +872,12 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get navHome;
 
+  /// No description provided for @navChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get navChat;
+
   /// No description provided for @navMemories.
   ///
   /// In en, this message translates to:
@@ -541,6 +889,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile'**
   String get navProfile;
+
+  /// No description provided for @chatBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'JUST THE TWO OF US'**
+  String get chatBadge;
+
+  /// No description provided for @chatHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the two of you talk about everything.'**
+  String get chatHeaderSubtitle;
+
+  /// No description provided for @chatEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet — send your love the first one 💬'**
+  String get chatEmptyHint;
+
+  /// No description provided for @chatComposerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message your love…'**
+  String get chatComposerHint;
+
+  /// No description provided for @chatSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send your message. Please try again.'**
+  String get chatSendFailed;
+
+  /// No description provided for @chatSendSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Send message'**
+  String get chatSendSemantics;
+
+  /// No description provided for @chatSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get chatSending;
+
+  /// No description provided for @chatStatusSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get chatStatusSent;
+
+  /// No description provided for @chatStatusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get chatStatusDelivered;
+
+  /// No description provided for @chatStatusRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Seen'**
+  String get chatStatusRead;
+
+  /// No description provided for @lunarSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar calendar'**
+  String get lunarSectionTitle;
+
+  /// No description provided for @lunarDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar {month}/{day}'**
+  String lunarDateLabel(int month, int day);
+
+  /// No description provided for @lunarTodayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get lunarTodayLabel;
+
+  /// No description provided for @lunarNextNewMoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Next 1st'**
+  String get lunarNextNewMoon;
+
+  /// No description provided for @lunarNextFullMoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Next full moon'**
+  String get lunarNextFullMoon;
+
+  /// No description provided for @lunarReminderToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar-day reminder'**
+  String get lunarReminderToggle;
+
+  /// No description provided for @lunarReminderToggleSub.
+  ///
+  /// In en, this message translates to:
+  /// **'On your chosen days & times'**
+  String get lunarReminderToggleSub;
+
+  /// No description provided for @lunarNewMoonNotifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First day of the lunar month 🌙'**
+  String get lunarNewMoonNotifTitle;
+
+  /// No description provided for @lunarNewMoonNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is the first day of the lunar month.'**
+  String get lunarNewMoonNotifBody;
+
+  /// No description provided for @lunarFullMoonNotifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Full moon day 🌕'**
+  String get lunarFullMoonNotifTitle;
+
+  /// No description provided for @lunarFullMoonNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is the full moon (15th lunar day).'**
+  String get lunarFullMoonNotifBody;
+
+  /// No description provided for @lunarOtherDayNotifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar day {day} 🌙'**
+  String lunarOtherDayNotifTitle(int day);
+
+  /// No description provided for @lunarOtherDayNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is the {day}th day of the lunar month.'**
+  String lunarOtherDayNotifBody(int day);
+
+  /// No description provided for @lunarCalendarBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'LUNAR CALENDAR'**
+  String get lunarCalendarBadge;
+
+  /// No description provided for @lunarOpenCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Open lunar calendar'**
+  String get lunarOpenCalendar;
+
+  /// No description provided for @lunarRemindDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder days (lunar)'**
+  String get lunarRemindDaysLabel;
+
+  /// No description provided for @lunarRemindTimesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder times'**
+  String get lunarRemindTimesLabel;
+
+  /// No description provided for @lunarAddTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Add time'**
+  String get lunarAddTime;
+
+  /// No description provided for @chatUnreadDotSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'New message waiting'**
+  String get chatUnreadDotSemantics;
+
+  /// No description provided for @chatWaitingPartnerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One seat is still empty'**
+  String get chatWaitingPartnerTitle;
+
+  /// No description provided for @chatWaitingPartnerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite your partner to pair up and start your private chat.'**
+  String get chatWaitingPartnerBody;
+
+  /// No description provided for @chatWaitingPartnerCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite to pair'**
+  String get chatWaitingPartnerCta;
 
   /// No description provided for @ourStoryBadge.
   ///
@@ -559,6 +1099,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A good day to look back at your love story.'**
   String get homeSubtitle;
+
+  /// No description provided for @homeGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning,'**
+  String get homeGreetingMorning;
+
+  /// No description provided for @homeGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon,'**
+  String get homeGreetingAfternoon;
+
+  /// No description provided for @homeGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening,'**
+  String get homeGreetingEvening;
+
+  /// No description provided for @homeGreetingNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Up late,'**
+  String get homeGreetingNight;
+
+  /// No description provided for @homeGreetingTeaser1.
+  ///
+  /// In en, this message translates to:
+  /// **'Send them a big warm hug 🤗'**
+  String get homeGreetingTeaser1;
+
+  /// No description provided for @homeGreetingTeaser2.
+  ///
+  /// In en, this message translates to:
+  /// **'Said \"I love you\" today? 💕'**
+  String get homeGreetingTeaser2;
+
+  /// No description provided for @homeGreetingTeaser3.
+  ///
+  /// In en, this message translates to:
+  /// **'Send them a cute photo 📸'**
+  String get homeGreetingTeaser3;
+
+  /// No description provided for @homeGreetingTeaser4.
+  ///
+  /// In en, this message translates to:
+  /// **'They can\'t wait to hear from you 🕊️'**
+  String get homeGreetingTeaser4;
+
+  /// No description provided for @homeGreetingTeaser5.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t forget today\'s question ✨'**
+  String get homeGreetingTeaser5;
+
+  /// No description provided for @homeGreetingTeaser6.
+  ///
+  /// In en, this message translates to:
+  /// **'Send something sweet their way 🍯'**
+  String get homeGreetingTeaser6;
+
+  /// No description provided for @homeGreetingTeaser7.
+  ///
+  /// In en, this message translates to:
+  /// **'Say a little thank-you today 💞'**
+  String get homeGreetingTeaser7;
+
+  /// No description provided for @homeGreetingTeaser8.
+  ///
+  /// In en, this message translates to:
+  /// **'A calm moment together is enough 🍃'**
+  String get homeGreetingTeaser8;
+
+  /// No description provided for @homeGreetingTeaser9.
+  ///
+  /// In en, this message translates to:
+  /// **'A beautiful day to love 💖'**
+  String get homeGreetingTeaser9;
+
+  /// No description provided for @homeGreetingTeaser10.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell them you miss them 💭'**
+  String get homeGreetingTeaser10;
+
+  /// No description provided for @homeGreetingTeaser11.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep writing your love story together ✍️'**
+  String get homeGreetingTeaser11;
+
+  /// No description provided for @homeGreetingTeaser12.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your love streak going 🔥'**
+  String get homeGreetingTeaser12;
+
+  /// No description provided for @homeTodaySectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today, together'**
+  String get homeTodaySectionTitle;
+
+  /// No description provided for @dailyTapToAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to answer…'**
+  String get dailyTapToAnswer;
+
+  /// No description provided for @dailyPartnerAnsweredTeaser.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has answered 👀'**
+  String dailyPartnerAnsweredTeaser(String name);
+
+  /// No description provided for @dailyAnswerToReveal.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer to unlock their reply'**
+  String get dailyAnswerToReveal;
+
+  /// No description provided for @dailyBothAnsweredToday.
+  ///
+  /// In en, this message translates to:
+  /// **'You both answered today'**
+  String get dailyBothAnsweredToday;
+
+  /// No description provided for @dailyReadAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Read again'**
+  String get dailyReadAgain;
+
+  /// No description provided for @dailyCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse'**
+  String get dailyCollapse;
+
+  /// No description provided for @loveNoteSealedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A new note from {name}'**
+  String loveNoteSealedTitle(String name);
+
+  /// No description provided for @loveNoteSealedTap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to open 💌'**
+  String get loveNoteSealedTap;
+
+  /// No description provided for @loveNoteNewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW'**
+  String get loveNoteNewBadge;
+
+  /// No description provided for @loveNoteComposeCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Compose a message'**
+  String get loveNoteComposeCta;
+
+  /// No description provided for @loveNoteSheetTitleTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a note to {name}'**
+  String loveNoteSheetTitleTo(String name);
+
+  /// No description provided for @journalLinkShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal'**
+  String get journalLinkShort;
+
+  /// No description provided for @milestoneNextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestone: {label}'**
+  String milestoneNextLabel(String label);
+
+  /// No description provided for @milestoneDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days left'**
+  String milestoneDaysLeft(int count);
+
+  /// No description provided for @milestoneTodayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'today 🎉'**
+  String get milestoneTodayLabel;
+
+  /// No description provided for @onThisDayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 year ago 💞} other{{count} years ago 💞}}'**
+  String onThisDayShort(int count);
+
+  /// No description provided for @counterBgSwipeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe to change the photo'**
+  String get counterBgSwipeHint;
+
+  /// No description provided for @dailyQuestionPairedFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Once you\'re paired, you\'ll answer a question like this together every day 💞'**
+  String get dailyQuestionPairedFirst;
+
+  /// No description provided for @loveNoteHistoryLinkShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Past notes'**
+  String get loveNoteHistoryLinkShort;
+
+  /// No description provided for @loveNoteReplyCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply…'**
+  String get loveNoteReplyCta;
+
+  /// No description provided for @loveNoteSendFirstCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the first note…'**
+  String get loveNoteSendFirstCta;
+
+  /// No description provided for @loveNoteStartChat.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet — send each other the first one 💌'**
+  String get loveNoteStartChat;
+
+  /// No description provided for @loveNoteYouLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get loveNoteYouLabel;
+
+  /// No description provided for @notificationBellLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications, {count} unread'**
+  String notificationBellLabel(int count);
 
   /// No description provided for @youveBeenTogetherFor.
   ///
@@ -607,6 +1393,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Post a new photo for you both to keep'**
   String get addMemoryCtaSubtitle;
+
+  /// No description provided for @cinemaCardSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory: {caption}, photo {index} of {total}. Tap to view full screen.'**
+  String cinemaCardSemantics(String caption, int index, int total);
 
   /// No description provided for @memoriesCardTitle.
   ///
@@ -659,8 +1451,26 @@ abstract class AppLocalizations {
   /// No description provided for @daysUnit.
   ///
   /// In en, this message translates to:
-  /// **'days'**
+  /// **'Days'**
   String get daysUnit;
+
+  /// No description provided for @hoursShort.
+  ///
+  /// In en, this message translates to:
+  /// **'hr'**
+  String get hoursShort;
+
+  /// No description provided for @minutesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get minutesShort;
+
+  /// No description provided for @secondsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'sec'**
+  String get secondsShort;
 
   /// No description provided for @memoriesSaved.
   ///
@@ -854,6 +1664,12 @@ abstract class AppLocalizations {
   /// **'Your note was sent 💞'**
   String get loveNoteSaved;
 
+  /// No description provided for @loveNoteSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the note — please try again.'**
+  String get loveNoteSendFailed;
+
   /// No description provided for @loveNoteHistoryCta.
   ///
   /// In en, this message translates to:
@@ -871,6 +1687,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Every note you two have left for each other.'**
   String get loveNoteHistorySubtitle;
+
+  /// No description provided for @loveNoteHistoryBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'LOVE NOTES'**
+  String get loveNoteHistoryBadge;
+
+  /// No description provided for @loveNoteHistoryHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every note the two of you have sent.'**
+  String get loveNoteHistoryHeaderSubtitle;
 
   /// No description provided for @loveNoteHistoryEmpty.
   ///
@@ -950,6 +1778,132 @@ abstract class AppLocalizations {
   /// **'You both reacted 💞'**
   String get reactionBothLabel;
 
+  /// Short label inside the celebratory pill shown when both members reacted
+  ///
+  /// In en, this message translates to:
+  /// **'You both reacted'**
+  String get reactionBothShort;
+
+  /// Nudge shown when only the current user reacted, inviting the named partner to react too
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name} to react…'**
+  String reactionWaitingPartner(String name);
+
+  /// Generic nudge when only the current user reacted and the partner has no name yet
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your partner to react…'**
+  String get reactionWaitingPartnerGeneric;
+
+  /// Generic word for the partner when their name is not set yet
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner'**
+  String get reactionPartnerFallback;
+
+  /// No description provided for @moodCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s mood'**
+  String get moodCardTitle;
+
+  /// No description provided for @moodMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'You both feel the same today 💞'**
+  String get moodMatched;
+
+  /// No description provided for @moodShareCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your mood'**
+  String get moodShareCta;
+
+  /// No description provided for @moodUpdateCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Update mood'**
+  String get moodUpdateCta;
+
+  /// No description provided for @moodNotSharedYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to share'**
+  String get moodNotSharedYou;
+
+  /// Partner side of the mood card when they haven't shared today
+  ///
+  /// In en, this message translates to:
+  /// **'{name} hasn\'t shared today'**
+  String moodPartnerEmpty(String name);
+
+  /// No description provided for @moodSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How are you today?'**
+  String get moodSheetTitle;
+
+  /// No description provided for @moodNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a few words (optional)'**
+  String get moodNoteHint;
+
+  /// No description provided for @moodSaveCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Save mood'**
+  String get moodSaveCta;
+
+  /// No description provided for @moodHappy.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy'**
+  String get moodHappy;
+
+  /// No description provided for @moodLoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Loved'**
+  String get moodLoved;
+
+  /// No description provided for @moodMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing you'**
+  String get moodMissing;
+
+  /// No description provided for @moodCalm.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm'**
+  String get moodCalm;
+
+  /// No description provided for @moodMeh.
+  ///
+  /// In en, this message translates to:
+  /// **'Meh'**
+  String get moodMeh;
+
+  /// No description provided for @moodTired.
+  ///
+  /// In en, this message translates to:
+  /// **'Tired'**
+  String get moodTired;
+
+  /// No description provided for @moodSad.
+  ///
+  /// In en, this message translates to:
+  /// **'Sad'**
+  String get moodSad;
+
+  /// No description provided for @moodStressed.
+  ///
+  /// In en, this message translates to:
+  /// **'Stressed'**
+  String get moodStressed;
+
   /// No description provided for @dailyQuestionLabel.
   ///
   /// In en, this message translates to:
@@ -1027,6 +1981,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The questions you\'ve both answered.'**
   String get journalScreenSubtitle;
+
+  /// No description provided for @journalBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'QUESTION JOURNAL'**
+  String get journalBadge;
+
+  /// No description provided for @journalHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The questions you two have answered together.'**
+  String get journalHeaderSubtitle;
 
   /// No description provided for @journalSettingsTile.
   ///
@@ -1169,7 +2135,7 @@ abstract class AppLocalizations {
   /// No description provided for @privateGalleryBadge.
   ///
   /// In en, this message translates to:
-  /// **'PRIVATE GALLERY'**
+  /// **'PHOTO LIBRARY'**
   String get privateGalleryBadge;
 
   /// No description provided for @galleryTitle.
@@ -1271,14 +2237,128 @@ abstract class AppLocalizations {
   /// No description provided for @postNewPhotoBtn.
   ///
   /// In en, this message translates to:
-  /// **'Post new photo'**
+  /// **'Take photo'**
   String get postNewPhotoBtn;
 
   /// No description provided for @addMultipleBtn.
   ///
   /// In en, this message translates to:
-  /// **'Add multiple'**
+  /// **'Add photos'**
   String get addMultipleBtn;
+
+  /// No description provided for @cameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the camera. Try again or check camera permission (the Simulator has no camera — use a real device).'**
+  String get cameraUnavailable;
+
+  /// No description provided for @galleryDraftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review & post'**
+  String get galleryDraftTitle;
+
+  /// No description provided for @galleryDraftCaptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a shared caption (optional)…'**
+  String get galleryDraftCaptionHint;
+
+  /// No description provided for @galleryDraftEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'All photos removed.'**
+  String get galleryDraftEmpty;
+
+  /// No description provided for @galleryDraftPostBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Post {count} photos'**
+  String galleryDraftPostBtn(int count);
+
+  /// No description provided for @createPostTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New memory'**
+  String get createPostTitle;
+
+  /// No description provided for @createPostBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW MEMORY'**
+  String get createPostBadge;
+
+  /// No description provided for @createPostAuthorMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'Posted by {name} · {when}'**
+  String createPostAuthorMeta(String name, String when);
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @createPostCaptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s happening with you two today?…'**
+  String get createPostCaptionHint;
+
+  /// No description provided for @createPostAddMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get createPostAddMore;
+
+  /// No description provided for @createPostAddFromLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from library'**
+  String get createPostAddFromLibrary;
+
+  /// No description provided for @createPostPhotoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo} other{{count} photos}}'**
+  String createPostPhotoCount(int count);
+
+  /// No description provided for @createPostBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get createPostBtn;
+
+  /// No description provided for @createPostRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get createPostRemovePhoto;
+
+  /// No description provided for @createPostDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this memory?'**
+  String get createPostDiscardTitle;
+
+  /// No description provided for @createPostDiscardMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The caption you just wrote won\'t be saved.'**
+  String get createPostDiscardMessage;
+
+  /// No description provided for @createPostDiscardConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get createPostDiscardConfirm;
+
+  /// No description provided for @createPostDiscardKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get createPostDiscardKeep;
 
   /// No description provided for @addNewMemoryTitle.
   ///
@@ -1532,6 +2612,42 @@ abstract class AppLocalizations {
   /// **'Updating caption...'**
   String get updatingCaption;
 
+  /// No description provided for @photoOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo options'**
+  String get photoOptionsTitle;
+
+  /// No description provided for @replacePhotoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace photo'**
+  String get replacePhotoAction;
+
+  /// No description provided for @galleryReplacePhotoTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace photo'**
+  String get galleryReplacePhotoTooltip;
+
+  /// No description provided for @replacingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating photo...'**
+  String get replacingPhoto;
+
+  /// No description provided for @photoUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo updated'**
+  String get photoUpdatedSuccess;
+
+  /// No description provided for @photoUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update photo right now.'**
+  String get photoUpdateError;
+
   /// No description provided for @galleryLoadErrorTitle.
   ///
   /// In en, this message translates to:
@@ -1628,22 +2744,16 @@ abstract class AppLocalizations {
   /// **'Journey snapshot'**
   String get journeySnapshotTitle;
 
-  /// No description provided for @journeySnapshotSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'The standout numbers of your relationship, presented cleanly, modernly, and clearly.'**
-  String get journeySnapshotSubtitle;
-
   /// No description provided for @yearsTogether.
   ///
   /// In en, this message translates to:
-  /// **'Years together'**
+  /// **'Years'**
   String get yearsTogether;
 
   /// No description provided for @monthsRemaining.
   ///
   /// In en, this message translates to:
-  /// **'Months remaining'**
+  /// **'Months'**
   String get monthsRemaining;
 
   /// No description provided for @totalDaysLabel.
@@ -1651,6 +2761,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total days'**
   String get totalDaysLabel;
+
+  /// No description provided for @totalHoursLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total hours'**
+  String get totalHoursLabel;
 
   /// No description provided for @memoriesSavedLabel.
   ///
@@ -1729,6 +2845,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit our story'**
   String get editOurStoryBtn;
+
+  /// No description provided for @profileChipDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'days together'**
+  String get profileChipDaysLabel;
+
+  /// No description provided for @profileChipAnniversaryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'days to anniversary'**
+  String get profileChipAnniversaryLabel;
+
+  /// No description provided for @profileChipAnniversaryTodayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'anniversary is today!'**
+  String get profileChipAnniversaryTodayLabel;
+
+  /// No description provided for @profileChipPhotosLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'memories saved'**
+  String get profileChipPhotosLabel;
+
+  /// No description provided for @profileMemoryChestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory chest'**
+  String get profileMemoryChestTitle;
+
+  /// No description provided for @profileStreakTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection streak'**
+  String get profileStreakTile;
+
+  /// No description provided for @settingsSectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsSectionAccount;
+
+  /// No description provided for @settingsSectionNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get settingsSectionNotifications;
+
+  /// No description provided for @settingsSectionGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get settingsSectionGeneral;
+
+  /// No description provided for @settingsPushGroupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Push from your partner'**
+  String get settingsPushGroupLabel;
 
   /// No description provided for @proTipLabel.
   ///
@@ -1931,7 +3107,7 @@ abstract class AppLocalizations {
   /// No description provided for @inviteShareMessage.
   ///
   /// In en, this message translates to:
-  /// **'I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: {code}'**
+  /// **'I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: {code}\nGet the app & enter the code at: https://dearembeiu.com/get?code={code}'**
   String inviteShareMessage(String code);
 
   /// No description provided for @remindersTitle.
@@ -1979,7 +3155,7 @@ abstract class AppLocalizations {
   /// No description provided for @dailyQuestionReminderSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'A gentle daily nudge to answer together.'**
+  /// **'Nudges you both to answer each day, synced across both phones.'**
   String get dailyQuestionReminderSubtitle;
 
   /// No description provided for @dailyQuestionReminderTimeLabel.
@@ -1987,6 +3163,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remind me at'**
   String get dailyQuestionReminderTimeLabel;
+
+  /// No description provided for @dailyQuestionReminderTimesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder times'**
+  String get dailyQuestionReminderTimesLabel;
+
+  /// No description provided for @dailyQuestionReminderAddTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a time'**
+  String get dailyQuestionReminderAddTime;
+
+  /// No description provided for @dailyQuestionReminderRemoveTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove reminder time {time}'**
+  String dailyQuestionReminderRemoveTime(String time);
 
   /// No description provided for @dailyQuestionReminderNotifTitle.
   ///
@@ -1999,6 +3193,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Answer it to unlock your partner\'s reply.'**
   String get dailyQuestionReminderNotifBody;
+
+  /// No description provided for @dailyQuestionReminderNotifBodyAlt1.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s a new question for the two of you — answer yours first 💞'**
+  String get dailyQuestionReminderNotifBodyAlt1;
+
+  /// No description provided for @dailyQuestionReminderNotifBodyAlt2.
+  ///
+  /// In en, this message translates to:
+  /// **'A little question is waiting for you both, come answer it 🌸'**
+  String get dailyQuestionReminderNotifBodyAlt2;
+
+  /// No description provided for @dqPartnerOnlyNudgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Just your partner left to answer 💌'**
+  String get dqPartnerOnlyNudgeTitle;
+
+  /// No description provided for @dailyQuestionReminderEndOfDayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'If the question is still unfinished at the end of the day, you\'ll also be nudged at 21:00 — plus 22:00 and 23:00 if you haven\'t answered yet.'**
+  String get dailyQuestionReminderEndOfDayHint;
+
+  /// No description provided for @dqEndOfDayNudgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The day is winding down 🌙'**
+  String get dqEndOfDayNudgeTitle;
+
+  /// No description provided for @dqEndOfDayNudgeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s question is still waiting — answer it before the day ends.'**
+  String get dqEndOfDayNudgeBody;
+
+  /// No description provided for @dqEndOfDayNudgePartnerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner hasn\'t answered today\'s question yet — give them a nudge.'**
+  String get dqEndOfDayNudgePartnerBody;
+
+  /// No description provided for @dqStreakWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak is about to break! 🔥'**
+  String get dqStreakWarningTitle;
+
+  /// No description provided for @dqStreakWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The day\'s almost over. Answer today\'s question to keep your {days}-day streak!'**
+  String dqStreakWarningBody(int days);
+
+  /// No description provided for @dqStreakWarningPartnerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner hasn\'t answered yet. A little nudge keeps your {days}-day streak alive!'**
+  String dqStreakWarningPartnerBody(int days);
+
+  /// No description provided for @dqStreakWarningStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The day\'s almost over! Answer today\'s question to start a new streak.'**
+  String get dqStreakWarningStartBody;
+
+  /// No description provided for @dqStreakWarningStartPartnerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner hasn\'t answered yet. Nudge them so you can start a streak together.'**
+  String get dqStreakWarningStartPartnerBody;
+
+  /// No description provided for @dqStreakWarningFinalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Less than an hour left! ⏳'**
+  String get dqStreakWarningFinalTitle;
+
+  /// No description provided for @dqStreakWarningFinalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer now so your {days}-day streak doesn\'t break 🔥'**
+  String dqStreakWarningFinalBody(int days);
+
+  /// No description provided for @dqStreakWarningFinalStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer now to start a new streak before the day ends 🌱'**
+  String get dqStreakWarningFinalStartBody;
 
   /// No description provided for @reminderDailyTitle.
   ///
@@ -2089,6 +3373,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose the milestones you want and when to be reminded.'**
   String get remindersV2MilestoneScreenCaption;
+
+  /// No description provided for @milestoneBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'SPECIAL DAYS'**
+  String get milestoneBadge;
+
+  /// No description provided for @milestoneHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick milestones to be reminded of, with their own times.'**
+  String get milestoneHeaderSubtitle;
 
   /// No description provided for @remindersV2MilestoneNext.
   ///
@@ -2222,6 +3518,18 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTitle;
 
+  /// No description provided for @settingsBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'APP PREFERENCES'**
+  String get settingsBadge;
+
+  /// No description provided for @settingsHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders, notifications, language and your account.'**
+  String get settingsHeaderSubtitle;
+
   /// No description provided for @settingsProfileTileSubtitle.
   ///
   /// In en, this message translates to:
@@ -2239,6 +3547,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Milestones, anniversaries & your own reminders'**
   String get settingsRemindersModuleSubtitle;
+
+  /// No description provided for @settingsRemindersEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get settingsRemindersEntryTitle;
+
+  /// No description provided for @settingsRemindersEntrySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones, anniversaries and your own reminders'**
+  String get settingsRemindersEntrySubtitle;
+
+  /// No description provided for @remindersHubBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'REMINDERS'**
+  String get remindersHubBadge;
+
+  /// No description provided for @remindersHubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our reminders'**
+  String get remindersHubTitle;
+
+  /// No description provided for @remindersHubSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones, anniversaries and your own reminders — all in one place.'**
+  String get remindersHubSubtitle;
+
+  /// No description provided for @remindersHubMilestonesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones & anniversaries'**
+  String get remindersHubMilestonesSection;
+
+  /// No description provided for @remindersHubMilestonesSectionSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the milestones to be reminded of and set their times.'**
+  String get remindersHubMilestonesSectionSub;
+
+  /// No description provided for @remindersHubCustomSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Our reminders'**
+  String get remindersHubCustomSection;
+
+  /// No description provided for @remindersHubCustomSectionSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Create reminders for your own special days.'**
+  String get remindersHubCustomSectionSub;
 
   /// No description provided for @settingsAccountModuleTitle.
   ///
@@ -2263,6 +3625,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Help improve the app with anonymous data. We never collect your private content.'**
   String get settingsAnalyticsSubtitle;
+
+  /// No description provided for @settingsNotifTypesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification types'**
+  String get settingsNotifTypesTitle;
+
+  /// No description provided for @settingsNotifTypesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute the push types you\'d rather not be interrupted by. They still appear in your notification center.'**
+  String get settingsNotifTypesSubtitle;
+
+  /// No description provided for @settingsNotifTypePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'New photos'**
+  String get settingsNotifTypePhoto;
+
+  /// No description provided for @settingsNotifTypePhotoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When your partner posts a photo'**
+  String get settingsNotifTypePhotoSubtitle;
+
+  /// No description provided for @settingsNotifTypeReaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo reactions'**
+  String get settingsNotifTypeReaction;
+
+  /// No description provided for @settingsNotifTypeReactionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When your partner reacts to your photo'**
+  String get settingsNotifTypeReactionSubtitle;
+
+  /// No description provided for @settingsNotifTypeDailyQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily question'**
+  String get settingsNotifTypeDailyQuestion;
+
+  /// No description provided for @settingsNotifTypeDailyQuestionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When your partner answers today\'s question'**
+  String get settingsNotifTypeDailyQuestionSubtitle;
 
   /// No description provided for @settingsEditStorySubtitle.
   ///
@@ -2348,6 +3758,18 @@ abstract class AppLocalizations {
   /// **'Our reminders'**
   String get customRemindersScreenTitle;
 
+  /// No description provided for @customRemindersBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR OWN MOMENTS'**
+  String get customRemindersBadge;
+
+  /// No description provided for @customRemindersHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create reminders for your own special moments.'**
+  String get customRemindersHeaderSubtitle;
+
   /// No description provided for @customRemindersCount.
   ///
   /// In en, this message translates to:
@@ -2402,6 +3824,12 @@ abstract class AppLocalizations {
   /// **'Create your first reminder'**
   String get customRemindersEmptyCta;
 
+  /// No description provided for @customRemindersAddAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a reminder'**
+  String get customRemindersAddAnother;
+
   /// No description provided for @customRemindersOffTitle.
   ///
   /// In en, this message translates to:
@@ -2437,6 +3865,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit reminder'**
   String get customRemindersEditTitle;
+
+  /// No description provided for @customReminderFormBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR REMINDER'**
+  String get customReminderFormBadge;
 
   /// No description provided for @customRemindersSave.
   ///
@@ -2534,6 +3968,18 @@ abstract class AppLocalizations {
   /// **'Yearly'**
   String get customRemindersRepeatYearly;
 
+  /// No description provided for @customRemindersNotifyPartnerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Also remind my partner'**
+  String get customRemindersNotifyPartnerLabel;
+
+  /// No description provided for @customRemindersNotifyPartnerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner gets this reminder at the same time too'**
+  String get customRemindersNotifyPartnerSubtitle;
+
   /// No description provided for @customRemindersMetaOnce.
   ///
   /// In en, this message translates to:
@@ -2611,6 +4057,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminder deleted'**
   String get customRemindersDeletedMsg;
+
+  /// No description provided for @customRemindersUndoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get customRemindersUndoLabel;
 
   /// No description provided for @customRemindersNotifBodyFallback.
   ///
@@ -3047,7 +4499,7 @@ abstract class AppLocalizations {
   /// editCoupleBadge
   ///
   /// In en, this message translates to:
-  /// **'EDIT COUPLE'**
+  /// **'COUPLE PROFILE'**
   String get editCoupleBadge;
 
   /// galleryEditCaptionTooltip
@@ -3083,7 +4535,7 @@ abstract class AppLocalizations {
   /// galleryTodayEmptySubtitle
   ///
   /// In en, this message translates to:
-  /// **'Don\'t let today slip by without a trace.'**
+  /// **'Every photo is a memory the two of you share.'**
   String get galleryTodayEmptySubtitle;
 
   /// galleryTodayEmptyTitle
@@ -3266,6 +4718,12 @@ abstract class AppLocalizations {
   /// **'{month, select, 1{January {year}} 2{February {year}} 3{March {year}} 4{April {year}} 5{May {year}} 6{June {year}} 7{July {year}} 8{August {year}} 9{September {year}} 10{October {year}} 11{November {year}} 12{December {year}} other{{month} {year}}}'**
   String galleryMonthLabel(String month, String year);
 
+  /// No description provided for @galleryEndOfFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s every memory 💕 — go make some new ones together'**
+  String get galleryEndOfFeed;
+
   /// Count of moments posted today
   ///
   /// In en, this message translates to:
@@ -3377,7 +4835,7 @@ abstract class AppLocalizations {
   /// No description provided for @streakChipActiveToday.
   ///
   /// In en, this message translates to:
-  /// **'{n}-day streak · done for today ✨'**
+  /// **'{n}-day streak · done for today'**
   String streakChipActiveToday(int n);
 
   /// No description provided for @streakChipInProgress.
@@ -3703,6 +5161,966 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect with your partner first before sharing photos 💞'**
   String get galleryNeedsCoupleToUpload;
+
+  /// No description provided for @notifCenterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifCenterTitle;
+
+  /// No description provided for @notifCenterBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'WHAT\'S NEW'**
+  String get notifCenterBadge;
+
+  /// No description provided for @notifCenterEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get notifCenterEmptyTitle;
+
+  /// No description provided for @notifCenterEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity from the two of you will appear here.'**
+  String get notifCenterEmptyBody;
+
+  /// No description provided for @notifGroupToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get notifGroupToday;
+
+  /// No description provided for @notifGroupEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get notifGroupEarlier;
+
+  /// No description provided for @notifUnreadCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unread'**
+  String notifUnreadCount(int count);
+
+  /// No description provided for @notifAllCaughtUp.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up 💛'**
+  String get notifAllCaughtUp;
+
+  /// No description provided for @notifMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get notifMarkAllRead;
+
+  /// No description provided for @notifClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get notifClearAll;
+
+  /// No description provided for @notifClearAllConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all notifications?'**
+  String get notifClearAllConfirmTitle;
+
+  /// No description provided for @notifClearAllConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You won\'t be able to see these again.'**
+  String get notifClearAllConfirmBody;
+
+  /// No description provided for @notifDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get notifDismiss;
+
+  /// No description provided for @notifGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'You have a new notification'**
+  String get notifGeneric;
+
+  /// No description provided for @notifPhotoPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} shared a new photo'**
+  String notifPhotoPosted(String name);
+
+  /// No description provided for @notifPhotoReaction.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} reacted {emoji} to your photo'**
+  String notifPhotoReaction(String name, String emoji);
+
+  /// No description provided for @notifPartnerJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} paired up with you'**
+  String notifPartnerJoined(String name);
+
+  /// No description provided for @notifPartnerLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} left your shared space'**
+  String notifPartnerLeft(String name);
+
+  /// No description provided for @notifLoveNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} left you a love note'**
+  String notifLoveNote(String name);
+
+  /// No description provided for @notifDailyQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} answered today\'s question'**
+  String notifDailyQuestion(String name);
+
+  /// No description provided for @notifDailyQuestionBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'You and {name} both answered today\'s question 💞'**
+  String notifDailyQuestionBoth(String name);
+
+  /// No description provided for @notifChatMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent you a message 💬'**
+  String notifChatMessage(String name);
+
+  /// No description provided for @forceUpdateBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'UPDATE'**
+  String get forceUpdateBadge;
+
+  /// No description provided for @forceUpdateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to update'**
+  String get forceUpdateTitle;
+
+  /// No description provided for @forceUpdateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The version you\'re on is out of date. Update to the latest to keep making memories with your other half.'**
+  String get forceUpdateBody;
+
+  /// No description provided for @forceUpdateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Update now'**
+  String get forceUpdateButton;
+
+  /// No description provided for @counterBgBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'BACKGROUND'**
+  String get counterBgBadge;
+
+  /// No description provided for @counterBgTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Counter background'**
+  String get counterBgTitle;
+
+  /// No description provided for @counterBgSubtitleAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick which photos can back the day-counter card. Leave empty to cycle through them all.'**
+  String get counterBgSubtitleAll;
+
+  /// No description provided for @counterBgSubtitleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photos picked for the counter background.'**
+  String counterBgSubtitleCount(int count);
+
+  /// No description provided for @counterBgCoverLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover'**
+  String get counterBgCoverLabel;
+
+  /// No description provided for @counterBgEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No photos yet'**
+  String get counterBgEmptyTitle;
+
+  /// No description provided for @counterBgEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add some memories to your gallery first.'**
+  String get counterBgEmptyBody;
+
+  /// No description provided for @settingsCounterBgTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Counter background'**
+  String get settingsCounterBgTitle;
+
+  /// No description provided for @settingsCounterBgSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which photos show on the counter'**
+  String get settingsCounterBgSubtitle;
+
+  /// No description provided for @counterBgSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get counterBgSave;
+
+  /// No description provided for @counterBgSavedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Counter background saved 💕'**
+  String get counterBgSavedMsg;
+
+  /// No description provided for @counterBgDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes?'**
+  String get counterBgDiscardTitle;
+
+  /// No description provided for @counterBgDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved changes. Leave without saving?'**
+  String get counterBgDiscardBody;
+
+  /// No description provided for @counterBgDiscardLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get counterBgDiscardLeave;
+
+  /// No description provided for @settingsChatBgTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat background'**
+  String get settingsChatBgTitle;
+
+  /// No description provided for @settingsChatBgSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a photo to back your conversation'**
+  String get settingsChatBgSubtitle;
+
+  /// No description provided for @chatBgBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'CHAT BACKGROUND'**
+  String get chatBgBadge;
+
+  /// No description provided for @chatBgTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat background'**
+  String get chatBgTitle;
+
+  /// No description provided for @chatBgSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick one photo to back your conversation, or keep the default gradient.'**
+  String get chatBgSubtitle;
+
+  /// No description provided for @chatBgFilterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only portrait, high-resolution photos are shown — they fill the screen without cropping or blurring.'**
+  String get chatBgFilterHint;
+
+  /// No description provided for @chatBgNoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get chatBgNoneLabel;
+
+  /// No description provided for @chatBgMeasuring.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtering photos…'**
+  String get chatBgMeasuring;
+
+  /// No description provided for @chatBgNoneValidTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No suitable photos yet'**
+  String get chatBgNoneValidTitle;
+
+  /// No description provided for @chatBgNoneValidBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tall, sharp photo to your gallery — landscape or low-resolution photos can\'t be used as a chat background.'**
+  String get chatBgNoneValidBody;
+
+  /// No description provided for @chatBgSavedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat background saved 💕'**
+  String get chatBgSavedMsg;
+
+  /// No description provided for @journeyTrailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our journey'**
+  String get journeyTrailTitle;
+
+  /// No description provided for @milestoneTrailNext.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days to {label}'**
+  String milestoneTrailNext(int days, String label);
+
+  /// No description provided for @milestoneTrailAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve reached every milestone 🎉'**
+  String get milestoneTrailAllDone;
+
+  /// No description provided for @profileAchievementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your badges'**
+  String get profileAchievementsTitle;
+
+  /// No description provided for @badgeStreakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'day streak'**
+  String get badgeStreakLabel;
+
+  /// No description provided for @badgeRecordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'record'**
+  String get badgeRecordLabel;
+
+  /// No description provided for @badgeMemoriesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'memories'**
+  String get badgeMemoriesLabel;
+
+  /// No description provided for @badgeJournalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'journal'**
+  String get badgeJournalLabel;
+
+  /// No description provided for @profileRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your records'**
+  String get profileRecordsTitle;
+
+  /// No description provided for @profileRecordLongestStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest streak'**
+  String get profileRecordLongestStreak;
+
+  /// No description provided for @profileRecordDaysTogether.
+  ///
+  /// In en, this message translates to:
+  /// **'Days together'**
+  String get profileRecordDaysTogether;
+
+  /// No description provided for @profileRecordTotalMemories.
+  ///
+  /// In en, this message translates to:
+  /// **'Total memories'**
+  String get profileRecordTotalMemories;
+
+  /// No description provided for @profileRecordJournalEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions answered'**
+  String get profileRecordJournalEntries;
+
+  /// No description provided for @profileRecordStreakMilestones.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak milestones'**
+  String get profileRecordStreakMilestones;
+
+  /// Journal entry count value, e.g. '5 answered'
+  ///
+  /// In en, this message translates to:
+  /// **'{count} answered'**
+  String profileJournalCountLabel(String count);
+
+  /// No description provided for @profileMemoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our memories'**
+  String get profileMemoriesTitle;
+
+  /// Total memories subtitle in the memories sheet
+  ///
+  /// In en, this message translates to:
+  /// **'{count} memories'**
+  String profileMemoriesCountLabel(String count);
+
+  /// Motivation toward the next photo-count milestone
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more to reach {milestone}'**
+  String profileMemoriesNextLabel(String count, String milestone);
+
+  /// No description provided for @loveTreeBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'LOVE TREE'**
+  String get loveTreeBadge;
+
+  /// No description provided for @loveTreeStage0.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiny seed'**
+  String get loveTreeStage0;
+
+  /// No description provided for @loveTreeStage1.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprout'**
+  String get loveTreeStage1;
+
+  /// No description provided for @loveTreeStage2.
+  ///
+  /// In en, this message translates to:
+  /// **'Young tree'**
+  String get loveTreeStage2;
+
+  /// No description provided for @loveTreeStage3.
+  ///
+  /// In en, this message translates to:
+  /// **'Flourishing tree'**
+  String get loveTreeStage3;
+
+  /// No description provided for @loveTreeStage4.
+  ///
+  /// In en, this message translates to:
+  /// **'In full bloom'**
+  String get loveTreeStage4;
+
+  /// No description provided for @loveTreeFlowerCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} flowers bloomed'**
+  String loveTreeFlowerCount(int count);
+
+  /// No description provided for @loveTreeFlowerCountZero.
+  ///
+  /// In en, this message translates to:
+  /// **'No flowers yet — let\'s grow it together'**
+  String get loveTreeFlowerCountZero;
+
+  /// No description provided for @loveTreeSeedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your journey starts right here 🌱'**
+  String get loveTreeSeedSubtitle;
+
+  /// No description provided for @loveTreeBloomSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your tree is in full bloom ✨'**
+  String get loveTreeBloomSubtitle;
+
+  /// No description provided for @loveTreeNewBloomBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Your tree just bloomed {count} new flowers 🌸'**
+  String loveTreeNewBloomBanner(int count);
+
+  /// No description provided for @loveTreeNewBloomBannerOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Your tree just bloomed a new flower 🌸'**
+  String get loveTreeNewBloomBannerOne;
+
+  /// No description provided for @loveTreeNurtureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Grow it together'**
+  String get loveTreeNurtureTitle;
+
+  /// No description provided for @loveTreeNurtureStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your daily streak'**
+  String get loveTreeNurtureStreakTitle;
+
+  /// No description provided for @loveTreeNurtureStreakBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer daily so your streak lives on'**
+  String get loveTreeNurtureStreakBody;
+
+  /// No description provided for @loveTreeNurturePhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a memory'**
+  String get loveTreeNurturePhotoTitle;
+
+  /// No description provided for @loveTreeNurturePhotoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo is a new flower'**
+  String get loveTreeNurturePhotoBody;
+
+  /// No description provided for @loveTreeNurtureTalkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Talk together today'**
+  String get loveTreeNurtureTalkTitle;
+
+  /// No description provided for @loveTreeNurtureTalkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Small moments grow the tree'**
+  String get loveTreeNurtureTalkBody;
+
+  /// No description provided for @loveTreeMilestonesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones'**
+  String get loveTreeMilestonesTitle;
+
+  /// No description provided for @loveTreeMilestoneDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days together'**
+  String loveTreeMilestoneDays(int count);
+
+  /// No description provided for @loveTreeMilestoneStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}-day streak'**
+  String loveTreeMilestoneStreak(int count);
+
+  /// No description provided for @loveTreeMilestonePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} memories'**
+  String loveTreeMilestonePhotos(int count);
+
+  /// No description provided for @loveTreeMilestoneBloomed.
+  ///
+  /// In en, this message translates to:
+  /// **'bloomed'**
+  String get loveTreeMilestoneBloomed;
+
+  /// No description provided for @loveTreeMilestoneDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days to go'**
+  String loveTreeMilestoneDaysLeft(int count);
+
+  /// No description provided for @loveTreeMilestoneStreakLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} streak days to go'**
+  String loveTreeMilestoneStreakLeft(int count);
+
+  /// No description provided for @loveTreeMilestonePhotosLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photos to go'**
+  String loveTreeMilestonePhotosLeft(int count);
+
+  /// No description provided for @loveTreeMilestoneAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'all done 🌟'**
+  String get loveTreeMilestoneAllDone;
+
+  /// No description provided for @loveTreeWaitingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for both of you'**
+  String get loveTreeWaitingTitle;
+
+  /// No description provided for @loveTreeWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The tree grows when you\'re both here. Invite your partner 💌'**
+  String get loveTreeWaitingBody;
+
+  /// No description provided for @loveTreeWaitingCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite partner'**
+  String get loveTreeWaitingCta;
+
+  /// No description provided for @loveTreeNoCoupleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with your partner to start growing 🌱'**
+  String get loveTreeNoCoupleBody;
+
+  /// No description provided for @loveTreeCoachTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to see this moment 🌸'**
+  String get loveTreeCoachTooltip;
+
+  /// No description provided for @loveTreeTapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a flower to relive a memory'**
+  String get loveTreeTapHint;
+
+  /// No description provided for @loveTreeMomentDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days together'**
+  String loveTreeMomentDaysTitle(int count);
+
+  /// No description provided for @loveTreeMomentPhotosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory #{count}'**
+  String loveTreeMomentPhotosTitle(int count);
+
+  /// No description provided for @loveTreeMomentStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}-day streak record'**
+  String loveTreeMomentStreakTitle(int count);
+
+  /// No description provided for @loveTreeMomentBloomedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Bloomed on {date}'**
+  String loveTreeMomentBloomedOn(String date);
+
+  /// No description provided for @loveTreeMomentPhotoTakenOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Added on {date}'**
+  String loveTreeMomentPhotoTakenOn(String date);
+
+  /// No description provided for @loveTreeMomentDaysCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day together is one more petal in bloom 🌸'**
+  String get loveTreeMomentDaysCopy;
+
+  /// No description provided for @loveTreeMomentPhotosCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'A moment the two of you chose to keep 💞'**
+  String get loveTreeMomentPhotosCopy;
+
+  /// No description provided for @loveTreeMomentStreakCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'The record you two once kept together. Start a new streak to beat it 🔥'**
+  String get loveTreeMomentStreakCopy;
+
+  /// No description provided for @loveTreeMomentViewInGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'View in Gallery'**
+  String get loveTreeMomentViewInGallery;
+
+  /// No description provided for @loveTreeLockedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days to go before this blooms 🌱'**
+  String loveTreeLockedDays(int count);
+
+  /// No description provided for @loveTreeLockedPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} memories to go before this blooms 🌱'**
+  String loveTreeLockedPhotos(int count);
+
+  /// No description provided for @loveTreeLockedStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} streak days to go before this blooms 🌱'**
+  String loveTreeLockedStreak(int count);
+
+  /// No description provided for @loveTreeLockedPhotosCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a memory'**
+  String get loveTreeLockedPhotosCta;
+
+  /// No description provided for @loveTreeLockedStreakCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer today'**
+  String get loveTreeLockedStreakCta;
+
+  /// No description provided for @loveTreeShareButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Share our tree'**
+  String get loveTreeShareButton;
+
+  /// No description provided for @loveTreeShareStats.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days together · {flowers} flowers in bloom'**
+  String loveTreeShareStats(String days, String flowers);
+
+  /// No description provided for @loveTreeShareTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'The tree we grew together 🌳'**
+  String get loveTreeShareTagline;
+
+  /// No description provided for @loveTreeShareTaglineSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Our tree just sprouted 🌱'**
+  String get loveTreeShareTaglineSeed;
+
+  /// No description provided for @loveTreeShareMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Our love tree has bloomed {flowers} flowers after {days} days 🌳💞 — grow yours together on Dear Embeiu.'**
+  String loveTreeShareMessage(String flowers, String days);
+
+  /// No description provided for @loveTreeShareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create the card, please try again'**
+  String get loveTreeShareFailed;
+
+  /// No description provided for @partnerReminderNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A reminder from your partner 💌'**
+  String get partnerReminderNotifBody;
+
+  /// Notification center title when the partner reacts to your daily-question answer.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} reacted {emoji} to your answer'**
+  String notifAnswerReaction(String name, String emoji);
+
+  /// Hint under a revealed partner answer inviting a reaction.
+  ///
+  /// In en, this message translates to:
+  /// **'React to your partner\'s answer'**
+  String get answerReactionHint;
+
+  /// Tooltip/a11y label for the answer reaction heart button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a reaction'**
+  String get answerReactionAddTooltip;
+
+  /// Tooltip/a11y label to remove your answer reaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove reaction'**
+  String get answerReactionRemoveTooltip;
+
+  /// Shown when writing an answer reaction failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send — tap to retry'**
+  String get answerReactionErrorRetry;
+
+  /// Eyebrow chip on the send-a-care-note screen.
+  ///
+  /// In en, this message translates to:
+  /// **'CARE NOTE'**
+  String get careMessageBadge;
+
+  /// Profile menu entry opening the care-note composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a care note'**
+  String get careMessageEntryTitle;
+
+  /// Subtitle of the profile care-note entry.
+  ///
+  /// In en, this message translates to:
+  /// **'A little message to warm their day'**
+  String get careMessageEntrySubtitle;
+
+  /// Section title above the ready-made care-note chips.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick picks'**
+  String get careMessageQuickPicksTitle;
+
+  /// Label of the care-note title field.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get careMessageTitleLabel;
+
+  /// Hint of the care-note title field.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Missing you'**
+  String get careMessageTitleHint;
+
+  /// Label of the care-note body field.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get careMessageBodyLabel;
+
+  /// Hint of the care-note body field.
+  ///
+  /// In en, this message translates to:
+  /// **'Write something warm...'**
+  String get careMessageBodyHint;
+
+  /// Primary button that sends the care note.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to your love 💌'**
+  String get careMessageSendCta;
+
+  /// aiQuestionsSaveFailed
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save that, please try again'**
+  String get aiQuestionsSaveFailed;
+
+  /// dailyQuestionPreparing
+  ///
+  /// In en, this message translates to:
+  /// **'Getting today\'s question ready…'**
+  String get dailyQuestionPreparing;
+
+  /// Toast when the care note write timed out offline and is queued
+  ///
+  /// In en, this message translates to:
+  /// **'Slow network — your note will be sent as soon as you\'re back online 💌'**
+  String get careMessageQueuedToast;
+
+  /// Snackbar after a care note was sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent 💌'**
+  String get careMessageSentToast;
+
+  /// Snackbar when sending a care note failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Please try again.'**
+  String get careMessageErrorToast;
+
+  /// Shown when the user has no active couple yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair up first to send a care note.'**
+  String get careMessageNeedCouple;
+
+  /// Section title above the recent care notes list.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently sent'**
+  String get careMessageRecentTitle;
+
+  /// Author label on a care note you sent.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get careMessageFromMe;
+
+  /// Author label on a care note your partner sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your love'**
+  String get careMessageFromPartner;
+
+  /// Quick-pick care note title 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing you 💕'**
+  String get careQuick1Title;
+
+  /// Quick-pick care note body 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Just thinking about you. How is your day going?'**
+  String get careQuick1Body;
+
+  /// Quick-pick care note title 2.
+  ///
+  /// In en, this message translates to:
+  /// **'Drink some water 💧'**
+  String get careQuick2Title;
+
+  /// Quick-pick care note body 2.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember to stay hydrated today, okay?'**
+  String get careQuick2Body;
+
+  /// Quick-pick care note title 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Have you eaten? 🍚'**
+  String get careQuick3Title;
+
+  /// Quick-pick care note body 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Please eat on time today, no skipping meals.'**
+  String get careQuick3Body;
+
+  /// Quick-pick care note title 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep early tonight 🌙'**
+  String get careQuick4Title;
+
+  /// Quick-pick care note body 4.
+  ///
+  /// In en, this message translates to:
+  /// **'It is getting late, get some rest. Sweet dreams!'**
+  String get careQuick4Body;
+
+  /// Quick-pick care note title 5.
+  ///
+  /// In en, this message translates to:
+  /// **'Love you so much ❤️'**
+  String get careQuick5Title;
+
+  /// Quick-pick care note body 5.
+  ///
+  /// In en, this message translates to:
+  /// **'Just wanted to say I love you so much today.'**
+  String get careQuick5Body;
+
+  /// Quick-pick care note title 6.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve got this 💪'**
+  String get careQuick6Title;
+
+  /// Quick-pick care note body 6.
+  ///
+  /// In en, this message translates to:
+  /// **'Today looks tough, but you\'ve got this. I am right here.'**
+  String get careQuick6Body;
+
+  /// Notification center title for a care note from the partner.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent you a care note'**
+  String notifCareMessage(String name);
 }
 
 class _AppLocalizationsDelegate

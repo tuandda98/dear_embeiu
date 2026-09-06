@@ -1,140 +1,30 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
 import '../models/custom_reminder.dart';
 import '../providers/custom_reminders_provider.dart';
-import '../providers/reminder_provider.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_motion.dart';
+import '../widgets/entrance_reveal.dart';
 import '../widgets/shimmer_skeleton.dart';
+import '../widgets/sub_screen_header.dart';
 import 'custom_reminder_form_screen.dart';
 
 /// Manage screen for user-created custom reminders (D1–D9): list / empty /
-/// disabled(D7) / limit(D5) states, add via FAB, edit/toggle/swipe-delete.
+/// limit(D5) states, add via FAB, edit/toggle/swipe-delete.
+///
+/// The master-toggle dependency (D7) is gone (2026-06-14: master toggle
+/// removed) — custom reminders are always usable, so the disabled state and the
+/// force-open gate were dropped. The standalone screen is kept for direct
+/// navigation, but the merged [RemindersScreen] embeds [CustomRemindersBody] as
+/// one section.
 class CustomRemindersScreen extends StatelessWidget {
   const CustomRemindersScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-
-    return Consumer2<CustomRemindersProvider, ReminderProvider>(
-      builder: (context, customProvider, reminderProvider, _) {
-        // D7: custom reminders depend on the global reminders feature being on.
-        final remindersEnabled = reminderProvider.settings.enabled;
-        final reminders = customProvider.reminders;
-        final count = customProvider.count;
-        final atCapacity = customProvider.isAtCapacity;
-
-        final showFab = remindersEnabled && reminders.isNotEmpty;
-
-        return Container(
-          decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(
-                  LucideIcons.chevronLeft,
-                  color: AppColors.accentRose,
-                ),
-                onPressed: () => Navigator.of(context).maybePop(),
-              ),
-              title: Text(
-                l10n.customRemindersScreenTitle,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              actions: [
-                if (remindersEnabled)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: Center(
-                      child: Text(
-                        l10n.customRemindersCount(count),
-                        style: TextStyle(
-                          color: atCapacity
-                              ? AppColors.warning
-                              : AppColors.accentRose,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            floatingActionButton: showFab
-                ? FloatingActionButton(
-                    tooltip: l10n.customRemindersFabTooltip,
-                    backgroundColor: atCapacity
-                        ? AppColors.accentLove.withValues(alpha: 0.45)
-                        : AppColors.accentLove,
-                    onPressed: () => _onAddPressed(context, customProvider),
-                    child: const Icon(
-                      LucideIcons.plus,
-                      color: AppColors.white,
-                      size: 26,
-                    ),
-                  )
-                : null,
-            body: SafeArea(
-              top: false,
-              child: _buildBody(
-                context,
-                customProvider: customProvider,
-                remindersEnabled: remindersEnabled,
-                reminders: reminders,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildBody(
-    BuildContext context, {
-    required CustomRemindersProvider customProvider,
-    required bool remindersEnabled,
-    required List<CustomReminder> reminders,
-  }) {
-    if (!customProvider.isLoaded) {
-      // Content-shaped shimmer mirroring the reminder list rows.
-      return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-        itemCount: 5,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, index) =>
-            const ShimmerSkeleton(height: 76, borderRadius: 22),
-      );
-    }
-
-    if (!remindersEnabled) {
-      return _DisabledState(reminders: reminders);
-    }
-
-    if (reminders.isEmpty) {
-      return _EmptyState(
-        onCreate: () => _onAddPressed(context, customProvider),
-      );
-    }
-
-    return _ReminderList(reminders: reminders);
-  }
-
-  void _onAddPressed(
+  /// Push the "create reminder" form, guarding the D5 capacity cap first.
+  static void onAddPressed(
     BuildContext context,
     CustomRemindersProvider provider,
   ) {
@@ -150,6 +40,348 @@ class CustomRemindersScreen extends StatelessWidget {
       MaterialPageRoute<bool>(
         settings: const RouteSettings(name: 'CustomReminderForm'),
         builder: (_) => const CustomReminderFormScreen(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    return Consumer<CustomRemindersProvider>(
+      builder: (context, customProvider, _) {
+        final reminders = customProvider.reminders;
+        final count = customProvider.count;
+        final atCapacity = customProvider.isAtCapacity;
+
+        final showFab = reminders.isNotEmpty;
+
+        return Container(
+          decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            floatingActionButton: showFab
+                ? FloatingActionButton(
+                    tooltip: l10n.customRemindersFabTooltip,
+                    backgroundColor: atCapacity
+                        ? AppColors.accentLove.withValues(alpha: 0.45)
+                        : AppColors.accentLove,
+                    onPressed: () => onAddPressed(context, customProvider),
+                    child: const Icon(
+                      IconsaxPlusLinear.add,
+                      color: AppColors.white,
+                      size: 26,
+                    ),
+                  )
+                : null,
+            body: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: _ScreenHeader(
+                      trailing: _CountBadge(count: count, atCapacity: atCapacity),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildBody(
+                      context,
+                      customProvider: customProvider,
+                      reminders: reminders,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context, {
+    required CustomRemindersProvider customProvider,
+    required List<CustomReminder> reminders,
+  }) {
+    if (!customProvider.isLoaded) {
+      // Content-shaped shimmer mirroring the reminder list rows.
+      return ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        itemCount: 5,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) =>
+            const ShimmerSkeleton(height: 76, borderRadius: 22),
+      );
+    }
+
+    if (reminders.isEmpty) {
+      return _EmptyState(
+        onCreate: () => onAddPressed(context, customProvider),
+      );
+    }
+
+    return _ReminderList(reminders: reminders);
+  }
+}
+
+/// The custom-reminder content (loading shimmer / empty CTA / list), extracted
+/// so it can render both standalone ([CustomRemindersScreen]) and as a section
+/// inside the merged [RemindersScreen]. Lays out as a non-scrolling [Column]
+/// (the enclosing screen owns the scroll view); the "add" affordance is an
+/// inline button rather than a FAB so it sits naturally under the list.
+class CustomRemindersBody extends StatelessWidget {
+  const CustomRemindersBody({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<CustomRemindersProvider>(
+      builder: (context, customProvider, _) {
+        if (!customProvider.isLoaded) {
+          return Column(
+            children: [
+              for (var i = 0; i < 3; i++) ...[
+                const ShimmerSkeleton(height: 76, borderRadius: 22),
+                if (i < 2) const SizedBox(height: 12),
+              ],
+            ],
+          );
+        }
+
+        final reminders = customProvider.reminders;
+        final atCapacity = customProvider.isAtCapacity;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (reminders.isEmpty)
+              _InlineEmptyState(
+                onCreate: () =>
+                    CustomRemindersScreen.onAddPressed(context, customProvider),
+              )
+            else ...[
+              for (var i = 0; i < reminders.length; i++) ...[
+                _ReminderRow(reminder: reminders[i], order: i),
+                if (i < reminders.length - 1) const SizedBox(height: 12),
+              ],
+              const SizedBox(height: 14),
+              _AddReminderButton(
+                atCapacity: atCapacity,
+                onTap: () =>
+                    CustomRemindersScreen.onAddPressed(context, customProvider),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// A single custom-reminder row with swipe-to-delete + entrance reveal, used by
+/// the embedded [CustomRemindersBody].
+class _ReminderRow extends StatelessWidget {
+  const _ReminderRow({required this.reminder, required this.order});
+
+  final CustomReminder reminder;
+  final int order;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dismissible(
+      key: ValueKey(reminder.id),
+      direction: DismissDirection.endToStart,
+      dismissThresholds: const {DismissDirection.endToStart: 0.4},
+      movementDuration: const Duration(milliseconds: 220),
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        decoration: BoxDecoration(
+          color: AppColors.error.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: const Icon(IconsaxPlusLinear.trash, color: AppColors.white),
+      ),
+      confirmDismiss: (_) => _deleteWithUndo(context, reminder),
+      child: EntranceReveal(
+        order: order,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          opacity: reminder.enabled ? 1 : 0.55,
+          child: _ReminderCard(reminder: reminder, interactive: true),
+        ),
+      ),
+    );
+  }
+}
+
+/// Inline empty-state for the embedded body (no full-screen centring — it sits
+/// inside the merged scroll view under the section header).
+class _InlineEmptyState extends StatelessWidget {
+  const _InlineEmptyState({required this.onCreate});
+
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.accentRose.withValues(alpha: 0.10),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: const BoxDecoration(
+              gradient: AppColors.dreamyMint,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              IconsaxPlusLinear.notification_bing,
+              color: AppColors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.customRemindersEmptyTitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.customRemindersEmptyBody,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: FilledButton.icon(
+              onPressed: onCreate,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.accentLove,
+                foregroundColor: AppColors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              icon: const Icon(IconsaxPlusLinear.add),
+              label: Text(
+                l10n.customRemindersEmptyCta,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Add another reminder" button shown beneath a non-empty embedded list (the
+/// embedded body has no FAB). Dims + warns at the D5 capacity cap.
+class _AddReminderButton extends StatelessWidget {
+  const _AddReminderButton({required this.atCapacity, required this.onTap});
+
+  final bool atCapacity;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          foregroundColor:
+              atCapacity ? AppColors.warning : AppColors.accentLove,
+          side: BorderSide(
+            color: (atCapacity ? AppColors.warning : AppColors.accentLove)
+                .withValues(alpha: 0.40),
+          ),
+          backgroundColor: AppColors.white.withValues(alpha: 0.50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
+          ),
+        ),
+        icon: const Icon(IconsaxPlusLinear.add, size: 18),
+        label: Text(
+          l10n.customRemindersAddAnother,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Page header (vòng 5c)
+// -----------------------------------------------------------------------------
+
+/// Landing-style page header (header redesign 2026-06-14): the shared
+/// [SubScreenHeader] (back → chip → title → subtitle), with the x/20 counter as
+/// a trailing action. Pinned above the state switch so it shows in every state
+/// (loading / disabled / empty / list).
+class _ScreenHeader extends StatelessWidget {
+  const _ScreenHeader({this.trailing});
+
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: SubScreenHeader(
+        badge: l10n.customRemindersBadge,
+        badgeIcon: IconsaxPlusLinear.notification_bing,
+        title: l10n.customRemindersScreenTitle,
+        subtitle: l10n.customRemindersHeaderSubtitle,
+        trailing: trailing,
+      ),
+    );
+  }
+}
+
+/// The x/20 reminder counter shown as the header's trailing action. Navy
+/// textPrimary by default; warning when at capacity (header ink vòng 4 — white
+/// on blush failed contrast; warning stays semantic at capacity).
+class _CountBadge extends StatelessWidget {
+  const _CountBadge({required this.count, required this.atCapacity});
+
+  final int count;
+  final bool atCapacity;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      context.l10n.customRemindersCount(count),
+      style: TextStyle(
+        color: atCapacity ? AppColors.warning : AppColors.textPrimary,
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
       ),
     );
   }
@@ -181,7 +413,7 @@ class _EmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                LucideIcons.bellRing,
+                IconsaxPlusLinear.notification_bing,
                 color: AppColors.white,
                 size: 40,
               ),
@@ -219,7 +451,7 @@ class _EmptyState extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                 ),
-                icon: const Icon(LucideIcons.plus),
+                icon: const Icon(IconsaxPlusLinear.add),
                 label: Text(
                   l10n.customRemindersEmptyCta,
                   style: const TextStyle(fontWeight: FontWeight.w700),
@@ -229,104 +461,6 @@ class _EmptyState extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// Disabled state (D7) — global reminders are off
-// -----------------------------------------------------------------------------
-
-class _DisabledState extends StatelessWidget {
-  const _DisabledState({required this.reminders});
-
-  final List<CustomReminder> reminders;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.72),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-              color: AppColors.warning.withValues(alpha: 0.25),
-            ),
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Icon(
-                  LucideIcons.bellOff,
-                  color: AppColors.warning,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                l10n.customRemindersOffTitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.customRemindersOffBody,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: FilledButton(
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.accentLove,
-                    foregroundColor: AppColors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                  child: Text(
-                    l10n.customRemindersOffCta,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Show any existing reminders dimmed beneath the warning (read-only).
-        if (reminders.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          for (final reminder in reminders)
-            Opacity(
-              opacity: 0.55,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _ReminderCard(reminder: reminder, interactive: false),
-              ),
-            ),
-        ],
-      ],
     );
   }
 }
@@ -343,7 +477,7 @@ class _ReminderList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
       itemCount: reminders.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
@@ -360,10 +494,10 @@ class _ReminderList extends StatelessWidget {
               color: AppColors.error.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(22),
             ),
-            child: const Icon(LucideIcons.trash2, color: AppColors.white),
+            child: const Icon(IconsaxPlusLinear.trash, color: AppColors.white),
           ),
-          confirmDismiss: (_) => _confirmDelete(context, reminder),
-          child: _OnceEntrance(
+          confirmDismiss: (_) => _deleteWithUndo(context, reminder),
+          child: EntranceReveal(
             order: index,
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 200),
@@ -376,67 +510,39 @@ class _ReminderList extends StatelessWidget {
       },
     );
   }
+}
 
-  Future<bool> _confirmDelete(
-    BuildContext context,
-    CustomReminder reminder,
-  ) async {
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.cardSurface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
+/// Immediately delete a custom reminder and show an undo snackbar.
+/// No confirmation dialog — swipe = instant action, snackbar = safety net.
+Future<bool> _deleteWithUndo(
+  BuildContext context,
+  CustomReminder reminder,
+) async {
+  if (!context.mounted) return false;
+  final l10n = context.l10n;
+  final provider = context.read<CustomRemindersProvider>();
+  final messenger = ScaffoldMessenger.of(context);
+
+  await provider.delete(reminder.id);
+
+  if (!context.mounted) return true;
+  messenger
+    ..clearSnackBars()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(l10n.customRemindersDeletedMsg),
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: l10n.customRemindersUndoLabel,
+          onPressed: () {
+            if (context.mounted) {
+              context.read<CustomRemindersProvider>().restore(reminder);
+            }
+          },
         ),
-        title: Text(
-          l10n.customRemindersDeleteDialogTitle,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        content: Text(
-          l10n.customRemindersDeleteDialogBody(reminder.name),
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 14,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(
-              l10n.customRemindersCancel,
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(
-              l10n.customRemindersDeleteConfirm,
-              style: const TextStyle(
-                color: AppColors.error,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
       ),
     );
-    if (confirmed != true || !context.mounted) {
-      return false;
-    }
-    final provider = context.read<CustomRemindersProvider>();
-    final messenger = ScaffoldMessenger.of(context);
-    final deletedMsg = l10n.customRemindersDeletedMsg;
-    await provider.delete(reminder.id);
-    messenger
-      ..clearSnackBars()
-      ..showSnackBar(SnackBar(content: Text(deletedMsg)));
-    return true;
-  }
+  return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -463,7 +569,7 @@ class _ReminderCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: interactive ? () => _openEdit(context) : null,
-        splashColor: AppColors.accentRose.withValues(alpha: 0.12),
+        splashColor: AppColors.accentRose.withValues(alpha: 0.08),
         highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -518,26 +624,13 @@ class _ReminderCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            Column(
-              children: [
-                Switch.adaptive(
-                  value: reminder.enabled,
-                  activeThumbColor: AppColors.accentRose,
-                  onChanged: interactive
-                      ? (value) => provider.toggle(reminder.id, value)
-                      : null,
-                ),
-                if (interactive)
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    icon: const Icon(
-                      LucideIcons.moreVertical,
-                      color: AppColors.textSecondary,
-                    ),
-                    onPressed: () => _openMenu(context),
-                  ),
-              ],
+            const SizedBox(width: 4),
+            Switch.adaptive(
+              value: reminder.enabled,
+              activeThumbColor: AppColors.accentRose,
+              onChanged: interactive
+                  ? (value) => provider.toggle(reminder.id, value)
+                  : null,
             ),
           ],
           ),
@@ -571,8 +664,9 @@ class _ReminderCard extends StatelessWidget {
         ),
       );
     }
+    final locale = Localizations.localeOf(context).toString();
     return Text(
-      l10n.customRemindersNextFire(DateFormat.yMMMd().format(next)),
+      l10n.customRemindersNextFire(DateFormat.yMMMd(locale).format(next)),
       style: const TextStyle(
         color: AppColors.accentRose,
         fontSize: 12,
@@ -586,24 +680,25 @@ class _ReminderCard extends StatelessWidget {
     AppLocalizations l10n,
     String timeLabel,
   ) {
+    final locale = Localizations.localeOf(context).toString();
     switch (reminder.recurrence) {
       case ReminderRecurrence.once:
         return l10n.customRemindersMetaOnce(
-          DateFormat.yMMMd().format(reminder.date),
+          DateFormat.yMMMd(locale).format(reminder.date),
           timeLabel,
         );
       case ReminderRecurrence.daily:
         return l10n.customRemindersMetaDaily(timeLabel);
       case ReminderRecurrence.weekly:
         return l10n.customRemindersMetaWeekly(
-          DateFormat.EEEE().format(reminder.date),
+          DateFormat.EEEE(locale).format(reminder.date),
           timeLabel,
         );
       case ReminderRecurrence.monthly:
         return l10n.customRemindersMetaMonthly(reminder.date.day, timeLabel);
       case ReminderRecurrence.yearly:
         return l10n.customRemindersMetaYearly(
-          DateFormat.MMMd().format(reminder.date),
+          DateFormat.MMMd(locale).format(reminder.date),
           timeLabel,
         );
     }
@@ -612,15 +707,15 @@ class _ReminderCard extends StatelessWidget {
   IconData _iconFor(ReminderRecurrence recurrence) {
     switch (recurrence) {
       case ReminderRecurrence.once:
-        return LucideIcons.pin;
+        return IconsaxPlusLinear.location;
       case ReminderRecurrence.daily:
-        return LucideIcons.sun;
+        return IconsaxPlusLinear.sun_1;
       case ReminderRecurrence.weekly:
-        return LucideIcons.repeat;
+        return IconsaxPlusLinear.refresh_2;
       case ReminderRecurrence.monthly:
-        return LucideIcons.calendar;
+        return IconsaxPlusLinear.calendar;
       case ReminderRecurrence.yearly:
-        return LucideIcons.cake;
+        return IconsaxPlusLinear.cake;
     }
   }
 
@@ -633,156 +728,4 @@ class _ReminderCard extends StatelessWidget {
     );
   }
 
-  void _openMenu(BuildContext context) {
-    final l10n = context.l10n;
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: AppColors.cardSurface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(
-                  LucideIcons.pencil,
-                  color: AppColors.accentRose,
-                ),
-                title: Text(l10n.customRemindersItemMenuEdit),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  _openEdit(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  LucideIcons.trash2,
-                  color: AppColors.error,
-                ),
-                title: Text(l10n.customRemindersItemMenuDelete),
-                onTap: () async {
-                  Navigator.of(sheetContext).pop();
-                  await _deleteFromMenu(context);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _deleteFromMenu(BuildContext context) async {
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.cardSurface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-        ),
-        title: Text(
-          l10n.customRemindersDeleteDialogTitle,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        content: Text(
-          l10n.customRemindersDeleteDialogBody(reminder.name),
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 14,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(
-              l10n.customRemindersCancel,
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(
-              l10n.customRemindersDeleteConfirm,
-              style: const TextStyle(
-                color: AppColors.error,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) {
-      return;
-    }
-    final provider = context.read<CustomRemindersProvider>();
-    final messenger = ScaffoldMessenger.of(context);
-    final deletedMsg = l10n.customRemindersDeletedMsg;
-    await provider.delete(reminder.id);
-    messenger
-      ..clearSnackBars()
-      ..showSnackBar(SnackBar(content: Text(deletedMsg)));
-  }
-}
-
-/// Plays the shared fade+slide entrance once, the first time it is mounted,
-/// then renders its child statically (the list rebuilds on toggle/delete, so
-/// this guard stops the entrance replaying).
-class _OnceEntrance extends StatefulWidget {
-  const _OnceEntrance({required this.order, required this.child});
-
-  final int order;
-  final Widget child;
-
-  @override
-  State<_OnceEntrance> createState() => _OnceEntranceState();
-}
-
-class _OnceEntranceState extends State<_OnceEntrance> {
-  bool _played = false;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer(
-      AppMotion.entrance + AppMotion.stagger * widget.order,
-      () {
-        if (mounted) {
-          setState(() => _played = true);
-        }
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_played) {
-      return widget.child;
-    }
-    return widget.child
-        .animate()
-        .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
-        .slideY(
-          begin: 0.08,
-          end: 0,
-          duration: AppMotion.entrance,
-          curve: AppMotion.curve,
-          delay: AppMotion.stagger * widget.order,
-        );
-  }
 }

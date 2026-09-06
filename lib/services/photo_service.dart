@@ -40,24 +40,109 @@ class PhotoService {
   CollectionReference<Map<String, dynamic>> _photosCollection(String coupleId) =>
       _db.collection('couples').doc(coupleId).collection('photos');
 
-  Stream<List<Photo>> watchCouplePhotos(String coupleId) {
+  Photo _photoFromDoc(QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+      Photo.fromJson({
+        'id': doc.id,
+        ...doc.data(),
+      });
+
+  /// Streams the [limit] newest photos for the couple (the realtime "window",
+  /// feature pagination D1). Older photos are fetched on demand via
+  /// [fetchOlderPhotos] and accumulated by the provider.
+  Stream<List<Photo>> watchCouplePhotos(String coupleId, {int limit = 30}) {
     if (!isUsingFirebase || coupleId.trim().isEmpty) {
       return Stream<List<Photo>>.value(const <Photo>[]);
     }
 
     return _photosCollection(coupleId)
         .orderBy('uploadDate', descending: true)
+        .limit(limit)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) => Photo.fromJson({
-                  'id': doc.id,
-                  ...doc.data(),
-                }),
-              )
-              .toList(),
-        );
+        .map((snapshot) => snapshot.docs.map(_photoFromDoc).toList());
+  }
+
+  /// One-shot page of photos strictly older than [startAfter], newest first
+  /// (pagination D1). `uploadDate` is written as a client DateTime → stored as
+  /// a Firestore Timestamp, and read back with microsecond precision (see
+  /// [Photo._parseDateTime]) — so `Timestamp.fromDate` reconstructs the exact
+  /// stored cursor value.
+  Future<List<Photo>> fetchOlderPhotos(
+    String coupleId, {
+    required DateTime startAfter,
+    int limit = 30,
+  }) async {
+    if (!isUsingFirebase || coupleId.trim().isEmpty) {
+      return const <Photo>[];
+    }
+
+    final snapshot = await _photosCollection(coupleId)
+        .orderBy('uploadDate', descending: true)
+        .startAfter([Timestamp.fromDate(startAfter)])
+        .limit(limit)
+        .get();
+    return snapshot.docs.map(_photoFromDoc).toList();
+  }
+
+  /// Total number of photos via the server-side aggregate `count()` — does not
+  /// download any documents (pagination D2). Returns null when Firebase is
+  /// unavailable or the aggregate fails, so callers can fall back to the
+  /// locally-loaded length.
+  Future<int?> countPhotos(String coupleId) async {
+    if (!isUsingFirebase || coupleId.trim().isEmpty) {
+      return null;
+    }
+
+    try {
+      final snapshot = await _photosCollection(coupleId).count().get();
+      return snapshot.count;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Fetches every photo taken on today's month+day in earlier years
+  /// (pagination D3 — the Home "on this day" memory must not depend on the
+  /// realtime window). One small range query per candidate year, from
+  /// [since].year up to (but excluding) [today].year; years where the date
+  /// doesn't exist (Feb 29 in a non-leap year) are skipped.
+  Future<List<Photo>> fetchOnThisDay(
+    String coupleId, {
+    required DateTime today,
+    required DateTime since,
+  }) async {
+    if (!isUsingFirebase || coupleId.trim().isEmpty) {
+      return const <Photo>[];
+    }
+
+    final queries = <Future<QuerySnapshot<Map<String, dynamic>>>>[];
+    for (var year = since.year; year < today.year; year++) {
+      final dayStart = DateTime(year, today.month, today.day);
+      // Dart normalizes invalid dates (Feb 29 → Mar 1): skip those years.
+      if (dayStart.month != today.month || dayStart.day != today.day) {
+        continue;
+      }
+      queries.add(
+        _photosCollection(coupleId)
+            .where(
+              'uploadDate',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(dayStart),
+              isLessThan: Timestamp.fromDate(
+                dayStart.add(const Duration(days: 1)),
+              ),
+            )
+            .get(),
+      );
+    }
+
+    if (queries.isEmpty) {
+      return const <Photo>[];
+    }
+
+    final snapshots = await Future.wait(queries);
+    return [
+      for (final snapshot in snapshots)
+        for (final doc in snapshot.docs) _photoFromDoc(doc),
+    ];
   }
 
   Future<Photo> addPhoto({
@@ -146,6 +231,81 @@ class PhotoService {
             updatedPhoto.toFirestoreUpdate(),
             SetOptions(merge: true),
           );
+    } on FirebaseException catch (e) {
+      throw PhotoSyncException(_mapFirebaseError(e));
+    }
+  }
+
+  /// Replaces the image FILE of an already-posted [photo] (caption/date/author
+  /// stay). Uploads the new file to a fresh storage path (a per-replace
+  /// uniquifier so the CDN can't serve the stale cached image), merge-updates
+  /// the doc's `remoteUrl`/`storagePath`/`updatedAt`, then best-effort deletes
+  /// the old storage object. The immutable `coupleId`/`authorUserId`/
+  /// `uploadDate` are preserved, so the firestore.rules photo-update guard
+  /// passes (only the mutable image fields change).
+  Future<Photo> replacePhotoImage({
+    required AppUser currentUser,
+    required Photo photo,
+    required String localImagePath,
+  }) async {
+    final localCopyPath = await StorageService.savePhotoFile(localImagePath);
+    final now = DateTime.now();
+    final newLocalPath = localCopyPath ?? localImagePath;
+
+    // Local-only fallback (no Firebase / no couple): just swap the cached file.
+    if (!isUsingFirebase || !currentUser.hasCouple || photo.coupleId == null) {
+      if (photo.hasLocalPath && photo.path != newLocalPath) {
+        await StorageService.deletePhotoFile(photo.path);
+      }
+      return photo.copyWith(path: newLocalPath, updatedAt: now);
+    }
+
+    final file = File(localImagePath);
+    if (!await file.exists()) {
+      throw PhotoSyncException(AppL10n.strings.photoNotFoundToPost);
+    }
+
+    final coupleId = photo.coupleId!;
+    final extension = _guessFileExtension(localImagePath);
+    // New path (id + timestamp) so the download URL changes — replacing in place
+    // would let a cached old image linger behind the same URL.
+    final newStoragePath =
+        'couple_photos/$coupleId/${photo.id}_${now.millisecondsSinceEpoch}$extension';
+
+    try {
+      final uploadTask = await _bucket.ref(newStoragePath).putFile(
+            file,
+            SettableMetadata(contentType: _contentTypeForExtension(extension)),
+          );
+      final newRemoteUrl = await uploadTask.ref.getDownloadURL();
+
+      final oldStoragePath = photo.storagePath?.trim();
+      final updatedPhoto = photo.copyWith(
+        path: newLocalPath,
+        remoteUrl: newRemoteUrl,
+        storagePath: newStoragePath,
+        updatedAt: now,
+      );
+
+      await _photosCollection(coupleId).doc(photo.id).set(
+            updatedPhoto.toFirestoreUpdate(),
+            SetOptions(merge: true),
+          );
+
+      // Best-effort cleanup of the previous objects — never fail the replace if
+      // the old file is already gone / can't be removed.
+      if (oldStoragePath != null &&
+          oldStoragePath.isNotEmpty &&
+          oldStoragePath != newStoragePath) {
+        try {
+          await _bucket.ref(oldStoragePath).delete();
+        } catch (_) {}
+      }
+      if (photo.hasLocalPath && photo.path != newLocalPath) {
+        await StorageService.deletePhotoFile(photo.path);
+      }
+
+      return updatedPhoto;
     } on FirebaseException catch (e) {
       throw PhotoSyncException(_mapFirebaseError(e));
     }

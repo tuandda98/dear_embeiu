@@ -9,6 +9,194 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get badgeCareLabel => 'care notes';
+
+  @override
+  String get careTimelineBadge => 'CARE NOTES';
+
+  @override
+  String get careTimelineSeeAll => 'See all';
+
+  @override
+  String get careTimelineTile => 'Care notes';
+
+  @override
+  String careTimelineCount(int count) {
+    return '$count notes between you';
+  }
+
+  @override
+  String get careTimelineYesterday => 'Yesterday';
+
+  @override
+  String get careTimelineEmptyTitle => 'No care notes yet';
+
+  @override
+  String get careTimelineEmptyBody =>
+      'Every little note the two of you send lands here, in order.';
+
+  @override
+  String get careTimelineEmptyCta => 'Send the first care note';
+
+  @override
+  String get careTimelineLoadError => 'Couldn\'t load the timeline.';
+
+  @override
+  String get aiQuestionsTitle => 'AI-personalised questions';
+
+  @override
+  String get aiQuestionsSubtitle =>
+      'Uses the last 30 days of both your answers to write a question just for the two of you. The data is only used to create questions, never for training. Turn it off any time.';
+
+  @override
+  String get aiQuestionsDialogTitle => 'Turn on personalised questions?';
+
+  @override
+  String get aiQuestionsDialogBody =>
+      'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.';
+
+  @override
+  String get aiQuestionsDialogConfirm => 'Turn on';
+
+  @override
+  String get introSkip => 'Skip';
+
+  @override
+  String get introNext => 'Next';
+
+  @override
+  String get introStart => 'Get started';
+
+  @override
+  String get introSlide1Badge => 'LOVE COUNTER';
+
+  @override
+  String get introSlide1Title => 'Count every day together';
+
+  @override
+  String get introSlide1Body =>
+      'See how long you have been together, reach every milestone, and watch your love tree grow day by day.';
+
+  @override
+  String get introSlide2Badge => 'EVERY DAY';
+
+  @override
+  String get introSlide2Title => 'Memories & a question a day';
+
+  @override
+  String get introSlide2Body =>
+      'A shared photo library, a daily question for both of you, your connection streak, and a chat corner just for the two of you.';
+
+  @override
+  String get introSlide3Badge => 'IT TAKES TWO';
+
+  @override
+  String get introSlide3Title => 'It takes both of you';
+
+  @override
+  String get introSlide3Body =>
+      'Dear Embeiu is a space for two. You create an invite code, your partner downloads the app (iOS/Android) and enters the code — that\'s it.';
+
+  @override
+  String get featureTourBadge => 'WHAT\'S NEW';
+
+  @override
+  String featureTourVersionTitle(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get featureTourGotIt => 'Got it';
+
+  @override
+  String get featureTourSettingsTile => 'What\'s new';
+
+  @override
+  String get featureTourSettingsTileSub =>
+      'Take another look at the latest features';
+
+  @override
+  String get featureTourCareTitle => 'Send a little care';
+
+  @override
+  String get featureTourCareBody =>
+      'Write a short message and your partner gets a notification right away.';
+
+  @override
+  String get featureTourQuestionsTitle => 'Fresher daily questions';
+
+  @override
+  String get featureTourQuestionsBody =>
+      'Questions that follow the week, the month and your mood, a way to look back at old answers, and an optional AI personalisation you can turn on in Settings.';
+
+  @override
+  String get featureTourInviteTitle => 'Easier to invite your partner';
+
+  @override
+  String get featureTourInviteBody =>
+      'Share a download link together with your invite code, with step-by-step guidance.';
+
+  @override
+  String get homeWaitingBadge => 'WAITING FOR THEM';
+
+  @override
+  String get homeWaitingStep1Title => 'Send the invite';
+
+  @override
+  String get homeWaitingStep1Desc =>
+      'Send this invite code to your partner in a message.';
+
+  @override
+  String get homeWaitingStep1Cta => 'Send it to them 💌';
+
+  @override
+  String get homeWaitingStep1Copy => 'Copy code';
+
+  @override
+  String get homeWaitingStep2Title => 'They install the app and sign up';
+
+  @override
+  String get homeWaitingStep2Desc =>
+      'They need to install Dear Embeiu (iOS/Android), sign up, then pick <Enter invite code>.';
+
+  @override
+  String get homeWaitingStep3Title => 'Entering the code is all it takes';
+
+  @override
+  String get homeWaitingStep3Desc =>
+      'Once you are paired the app switches over by itself and you get a notification.';
+
+  @override
+  String get homeWaitingMeanwhileTitle => 'While you wait, you can already:';
+
+  @override
+  String get homeWaitingMeanwhileItem1 => 'Set your anniversary date';
+
+  @override
+  String get homeWaitingMeanwhileItem2 => 'Add memories';
+
+  @override
+  String get homeWaitingMeanwhileItem3 => 'Answer today\'s question';
+
+  @override
+  String get homeWaitingMeanwhileFooter =>
+      'They will see all of it when they join.';
+
+  @override
+  String get inviteFollowUpTitle => 'Your partner hasn\'t joined yet 💌';
+
+  @override
+  String get inviteFollowUpBody24h =>
+      'Send the invite again — it only takes 10 seconds';
+
+  @override
+  String get inviteFollowUpBody72h =>
+      'Our memories are waiting for them. Remind them to download the app';
+
+  @override
+  String get back => 'Back';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
@@ -126,7 +314,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupCreateTitle => 'Begin\nour story';
 
   @override
-  String get setupEditTitle => 'Refine\nyour story';
+  String setupEditTitle(String me, String partner) {
+    return 'Refine the story of\n$me ❤️ $partner';
+  }
+
+  @override
+  String get setupEditTitleGeneric => 'Refine\nyour story';
 
   @override
   String get setupTabCreate => 'Create';
@@ -236,10 +429,120 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navHome => 'Home';
 
   @override
+  String get navChat => 'Chat';
+
+  @override
   String get navMemories => 'Memories';
 
   @override
   String get navProfile => 'Profile';
+
+  @override
+  String get chatBadge => 'JUST THE TWO OF US';
+
+  @override
+  String get chatHeaderSubtitle =>
+      'Where the two of you talk about everything.';
+
+  @override
+  String get chatEmptyHint =>
+      'No messages yet — send your love the first one 💬';
+
+  @override
+  String get chatComposerHint => 'Message your love…';
+
+  @override
+  String get chatSendFailed => 'Couldn\'t send your message. Please try again.';
+
+  @override
+  String get chatSendSemantics => 'Send message';
+
+  @override
+  String get chatSending => 'Sending…';
+
+  @override
+  String get chatStatusSent => 'Sent';
+
+  @override
+  String get chatStatusDelivered => 'Delivered';
+
+  @override
+  String get chatStatusRead => 'Seen';
+
+  @override
+  String get lunarSectionTitle => 'Lunar calendar';
+
+  @override
+  String lunarDateLabel(int month, int day) {
+    return 'Lunar $month/$day';
+  }
+
+  @override
+  String get lunarTodayLabel => 'Today';
+
+  @override
+  String get lunarNextNewMoon => 'Next 1st';
+
+  @override
+  String get lunarNextFullMoon => 'Next full moon';
+
+  @override
+  String get lunarReminderToggle => 'Lunar-day reminder';
+
+  @override
+  String get lunarReminderToggleSub => 'On your chosen days & times';
+
+  @override
+  String get lunarNewMoonNotifTitle => 'First day of the lunar month 🌙';
+
+  @override
+  String get lunarNewMoonNotifBody =>
+      'Today is the first day of the lunar month.';
+
+  @override
+  String get lunarFullMoonNotifTitle => 'Full moon day 🌕';
+
+  @override
+  String get lunarFullMoonNotifBody =>
+      'Today is the full moon (15th lunar day).';
+
+  @override
+  String lunarOtherDayNotifTitle(int day) {
+    return 'Lunar day $day 🌙';
+  }
+
+  @override
+  String lunarOtherDayNotifBody(int day) {
+    return 'Today is the ${day}th day of the lunar month.';
+  }
+
+  @override
+  String get lunarCalendarBadge => 'LUNAR CALENDAR';
+
+  @override
+  String get lunarOpenCalendar => 'Open lunar calendar';
+
+  @override
+  String get lunarRemindDaysLabel => 'Reminder days (lunar)';
+
+  @override
+  String get lunarRemindTimesLabel => 'Reminder times';
+
+  @override
+  String get lunarAddTime => 'Add time';
+
+  @override
+  String get chatUnreadDotSemantics => 'New message waiting';
+
+  @override
+  String get chatWaitingPartnerTitle => 'One seat is still empty';
+
+  @override
+  String get chatWaitingPartnerBody =>
+      'Invite your partner to pair up and start your private chat.';
+
+  @override
+  String get chatWaitingPartnerCta => 'Invite to pair';
 
   @override
   String get ourStoryBadge => 'OUR STORY';
@@ -249,6 +552,151 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeSubtitle => 'A good day to look back at your love story.';
+
+  @override
+  String get homeGreetingMorning => 'Good morning,';
+
+  @override
+  String get homeGreetingAfternoon => 'Good afternoon,';
+
+  @override
+  String get homeGreetingEvening => 'Good evening,';
+
+  @override
+  String get homeGreetingNight => 'Up late,';
+
+  @override
+  String get homeGreetingTeaser1 => 'Send them a big warm hug 🤗';
+
+  @override
+  String get homeGreetingTeaser2 => 'Said \"I love you\" today? 💕';
+
+  @override
+  String get homeGreetingTeaser3 => 'Send them a cute photo 📸';
+
+  @override
+  String get homeGreetingTeaser4 => 'They can\'t wait to hear from you 🕊️';
+
+  @override
+  String get homeGreetingTeaser5 => 'Don\'t forget today\'s question ✨';
+
+  @override
+  String get homeGreetingTeaser6 => 'Send something sweet their way 🍯';
+
+  @override
+  String get homeGreetingTeaser7 => 'Say a little thank-you today 💞';
+
+  @override
+  String get homeGreetingTeaser8 => 'A calm moment together is enough 🍃';
+
+  @override
+  String get homeGreetingTeaser9 => 'A beautiful day to love 💖';
+
+  @override
+  String get homeGreetingTeaser10 => 'Tell them you miss them 💭';
+
+  @override
+  String get homeGreetingTeaser11 => 'Keep writing your love story together ✍️';
+
+  @override
+  String get homeGreetingTeaser12 => 'Keep your love streak going 🔥';
+
+  @override
+  String get homeTodaySectionTitle => 'Today, together';
+
+  @override
+  String get dailyTapToAnswer => 'Tap to answer…';
+
+  @override
+  String dailyPartnerAnsweredTeaser(String name) {
+    return '$name has answered 👀';
+  }
+
+  @override
+  String get dailyAnswerToReveal => 'Answer to unlock their reply';
+
+  @override
+  String get dailyBothAnsweredToday => 'You both answered today';
+
+  @override
+  String get dailyReadAgain => 'Read again';
+
+  @override
+  String get dailyCollapse => 'Collapse';
+
+  @override
+  String loveNoteSealedTitle(String name) {
+    return 'A new note from $name';
+  }
+
+  @override
+  String get loveNoteSealedTap => 'Tap to open 💌';
+
+  @override
+  String get loveNoteNewBadge => 'NEW';
+
+  @override
+  String get loveNoteComposeCta => 'Compose a message';
+
+  @override
+  String loveNoteSheetTitleTo(String name) {
+    return 'Send a note to $name';
+  }
+
+  @override
+  String get journalLinkShort => 'Journal';
+
+  @override
+  String milestoneNextLabel(String label) {
+    return 'Milestone: $label';
+  }
+
+  @override
+  String milestoneDaysLeft(int count) {
+    return '$count days left';
+  }
+
+  @override
+  String get milestoneTodayLabel => 'today 🎉';
+
+  @override
+  String onThisDayShort(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years ago 💞',
+      one: '1 year ago 💞',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get counterBgSwipeHint => 'Swipe to change the photo';
+
+  @override
+  String get dailyQuestionPairedFirst =>
+      'Once you\'re paired, you\'ll answer a question like this together every day 💞';
+
+  @override
+  String get loveNoteHistoryLinkShort => 'Past notes';
+
+  @override
+  String get loveNoteReplyCta => 'Reply…';
+
+  @override
+  String get loveNoteSendFirstCta => 'Send the first note…';
+
+  @override
+  String get loveNoteStartChat =>
+      'No notes yet — send each other the first one 💌';
+
+  @override
+  String get loveNoteYouLabel => 'You';
+
+  @override
+  String notificationBellLabel(int count) {
+    return 'Notifications, $count unread';
+  }
 
   @override
   String get youveBeenTogetherFor => 'YOU\'VE BEEN TOGETHER FOR';
@@ -279,6 +727,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addMemoryCtaSubtitle => 'Post a new photo for you both to keep';
 
   @override
+  String cinemaCardSemantics(String caption, int index, int total) {
+    return 'Memory: $caption, photo $index of $total. Tap to view full screen.';
+  }
+
+  @override
   String get memoriesCardTitle => 'Memories';
 
   @override
@@ -303,7 +756,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daysTogether => 'Days together';
 
   @override
-  String get daysUnit => 'days';
+  String get daysUnit => 'Days';
+
+  @override
+  String get hoursShort => 'hr';
+
+  @override
+  String get minutesShort => 'min';
+
+  @override
+  String get secondsShort => 'sec';
 
   @override
   String get memoriesSaved => 'Memories saved';
@@ -429,6 +891,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loveNoteSaved => 'Your note was sent 💞';
 
   @override
+  String get loveNoteSendFailed =>
+      'Couldn\'t send the note — please try again.';
+
+  @override
   String get loveNoteHistoryCta => 'See past notes';
 
   @override
@@ -437,6 +903,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get loveNoteHistorySubtitle =>
       'Every note you two have left for each other.';
+
+  @override
+  String get loveNoteHistoryBadge => 'LOVE NOTES';
+
+  @override
+  String get loveNoteHistoryHeaderSubtitle =>
+      'Every note the two of you have sent.';
 
   @override
   String get loveNoteHistoryEmpty =>
@@ -505,6 +978,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reactionBothLabel => 'You both reacted 💞';
 
   @override
+  String get reactionBothShort => 'You both reacted';
+
+  @override
+  String reactionWaitingPartner(String name) {
+    return 'Waiting for $name to react…';
+  }
+
+  @override
+  String get reactionWaitingPartnerGeneric =>
+      'Waiting for your partner to react…';
+
+  @override
+  String get reactionPartnerFallback => 'Your partner';
+
+  @override
+  String get moodCardTitle => 'Today\'s mood';
+
+  @override
+  String get moodMatched => 'You both feel the same today 💞';
+
+  @override
+  String get moodShareCta => 'Share your mood';
+
+  @override
+  String get moodUpdateCta => 'Update mood';
+
+  @override
+  String get moodNotSharedYou => 'Tap to share';
+
+  @override
+  String moodPartnerEmpty(String name) {
+    return '$name hasn\'t shared today';
+  }
+
+  @override
+  String get moodSheetTitle => 'How are you today?';
+
+  @override
+  String get moodNoteHint => 'Add a few words (optional)';
+
+  @override
+  String get moodSaveCta => 'Save mood';
+
+  @override
+  String get moodHappy => 'Happy';
+
+  @override
+  String get moodLoved => 'Loved';
+
+  @override
+  String get moodMissing => 'Missing you';
+
+  @override
+  String get moodCalm => 'Calm';
+
+  @override
+  String get moodMeh => 'Meh';
+
+  @override
+  String get moodTired => 'Tired';
+
+  @override
+  String get moodSad => 'Sad';
+
+  @override
+  String get moodStressed => 'Stressed';
+
+  @override
   String get dailyQuestionLabel => 'Today\'s question';
 
   @override
@@ -550,6 +1091,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get journalScreenSubtitle => 'The questions you\'ve both answered.';
+
+  @override
+  String get journalBadge => 'QUESTION JOURNAL';
+
+  @override
+  String get journalHeaderSubtitle =>
+      'The questions you two have answered together.';
 
   @override
   String get journalSettingsTile => 'Question journal';
@@ -643,7 +1191,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get privateGalleryBadge => 'PRIVATE GALLERY';
+  String get privateGalleryBadge => 'PHOTO LIBRARY';
 
   @override
   String get galleryTitle => 'Photo Library';
@@ -702,10 +1250,81 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privateFeedLabel => 'Private feed for you two';
 
   @override
-  String get postNewPhotoBtn => 'Post new photo';
+  String get postNewPhotoBtn => 'Take photo';
 
   @override
-  String get addMultipleBtn => 'Add multiple';
+  String get addMultipleBtn => 'Add photos';
+
+  @override
+  String get cameraUnavailable =>
+      'Couldn\'t open the camera. Try again or check camera permission (the Simulator has no camera — use a real device).';
+
+  @override
+  String get galleryDraftTitle => 'Review & post';
+
+  @override
+  String get galleryDraftCaptionHint => 'Add a shared caption (optional)…';
+
+  @override
+  String get galleryDraftEmpty => 'All photos removed.';
+
+  @override
+  String galleryDraftPostBtn(int count) {
+    return 'Post $count photos';
+  }
+
+  @override
+  String get createPostTitle => 'New memory';
+
+  @override
+  String get createPostBadge => 'NEW MEMORY';
+
+  @override
+  String createPostAuthorMeta(String name, String when) {
+    return 'Posted by $name · $when';
+  }
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get createPostCaptionHint => 'What\'s happening with you two today?…';
+
+  @override
+  String get createPostAddMore => 'Add';
+
+  @override
+  String get createPostAddFromLibrary => 'Add from library';
+
+  @override
+  String createPostPhotoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '$count photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get createPostBtn => 'Post';
+
+  @override
+  String get createPostRemovePhoto => 'Remove photo';
+
+  @override
+  String get createPostDiscardTitle => 'Discard this memory?';
+
+  @override
+  String get createPostDiscardMessage =>
+      'The caption you just wrote won\'t be saved.';
+
+  @override
+  String get createPostDiscardConfirm => 'Discard';
+
+  @override
+  String get createPostDiscardKeep => 'Keep editing';
 
   @override
   String get addNewMemoryTitle => 'Add a new memory today';
@@ -846,6 +1465,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updatingCaption => 'Updating caption...';
 
   @override
+  String get photoOptionsTitle => 'Photo options';
+
+  @override
+  String get replacePhotoAction => 'Replace photo';
+
+  @override
+  String get galleryReplacePhotoTooltip => 'Replace photo';
+
+  @override
+  String get replacingPhoto => 'Updating photo...';
+
+  @override
+  String get photoUpdatedSuccess => 'Photo updated';
+
+  @override
+  String get photoUpdateError => 'Could not update photo right now.';
+
+  @override
   String get galleryLoadErrorTitle => 'Couldn\'t load photos';
 
   @override
@@ -904,17 +1541,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journeySnapshotTitle => 'Journey snapshot';
 
   @override
-  String get journeySnapshotSubtitle =>
-      'The standout numbers of your relationship, presented cleanly, modernly, and clearly.';
+  String get yearsTogether => 'Years';
 
   @override
-  String get yearsTogether => 'Years together';
-
-  @override
-  String get monthsRemaining => 'Months remaining';
+  String get monthsRemaining => 'Months';
 
   @override
   String get totalDaysLabel => 'Total days';
+
+  @override
+  String get totalHoursLabel => 'Total hours';
 
   @override
   String get memoriesSavedLabel => 'Memories saved';
@@ -960,6 +1596,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editOurStoryBtn => 'Edit our story';
+
+  @override
+  String get profileChipDaysLabel => 'days together';
+
+  @override
+  String get profileChipAnniversaryLabel => 'days to anniversary';
+
+  @override
+  String get profileChipAnniversaryTodayLabel => 'anniversary is today!';
+
+  @override
+  String get profileChipPhotosLabel => 'memories saved';
+
+  @override
+  String get profileMemoryChestTitle => 'Memory chest';
+
+  @override
+  String get profileStreakTile => 'Connection streak';
+
+  @override
+  String get settingsSectionAccount => 'Account';
+
+  @override
+  String get settingsSectionNotifications => 'Notifications';
+
+  @override
+  String get settingsSectionGeneral => 'General';
+
+  @override
+  String get settingsPushGroupLabel => 'Push from your partner';
 
   @override
   String get proTipLabel => 'Pro tip';
@@ -1072,7 +1738,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String inviteShareMessage(String code) {
-    return 'I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: $code';
+    return 'I want to keep our memories together on Dear Embeiu 💞\nEnter this invite code to pair with me: $code\nGet the app & enter the code at: https://dearembeiu.com/get?code=$code';
   }
 
   @override
@@ -1100,10 +1766,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dailyQuestionReminderSubtitle =>
-      'A gentle daily nudge to answer together.';
+      'Nudges you both to answer each day, synced across both phones.';
 
   @override
   String get dailyQuestionReminderTimeLabel => 'Remind me at';
+
+  @override
+  String get dailyQuestionReminderTimesLabel => 'Reminder times';
+
+  @override
+  String get dailyQuestionReminderAddTime => 'Add a time';
+
+  @override
+  String dailyQuestionReminderRemoveTime(String time) {
+    return 'Remove reminder time $time';
+  }
 
   @override
   String get dailyQuestionReminderNotifTitle =>
@@ -1112,6 +1789,65 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dailyQuestionReminderNotifBody =>
       'Answer it to unlock your partner\'s reply.';
+
+  @override
+  String get dailyQuestionReminderNotifBodyAlt1 =>
+      'There\'s a new question for the two of you — answer yours first 💞';
+
+  @override
+  String get dailyQuestionReminderNotifBodyAlt2 =>
+      'A little question is waiting for you both, come answer it 🌸';
+
+  @override
+  String get dqPartnerOnlyNudgeTitle => 'Just your partner left to answer 💌';
+
+  @override
+  String get dailyQuestionReminderEndOfDayHint =>
+      'If the question is still unfinished at the end of the day, you\'ll also be nudged at 21:00 — plus 22:00 and 23:00 if you haven\'t answered yet.';
+
+  @override
+  String get dqEndOfDayNudgeTitle => 'The day is winding down 🌙';
+
+  @override
+  String get dqEndOfDayNudgeBody =>
+      'Today\'s question is still waiting — answer it before the day ends.';
+
+  @override
+  String get dqEndOfDayNudgePartnerBody =>
+      'Your partner hasn\'t answered today\'s question yet — give them a nudge.';
+
+  @override
+  String get dqStreakWarningTitle => 'Your streak is about to break! 🔥';
+
+  @override
+  String dqStreakWarningBody(int days) {
+    return 'The day\'s almost over. Answer today\'s question to keep your $days-day streak!';
+  }
+
+  @override
+  String dqStreakWarningPartnerBody(int days) {
+    return 'Your partner hasn\'t answered yet. A little nudge keeps your $days-day streak alive!';
+  }
+
+  @override
+  String get dqStreakWarningStartBody =>
+      'The day\'s almost over! Answer today\'s question to start a new streak.';
+
+  @override
+  String get dqStreakWarningStartPartnerBody =>
+      'Your partner hasn\'t answered yet. Nudge them so you can start a streak together.';
+
+  @override
+  String get dqStreakWarningFinalTitle => 'Less than an hour left! ⏳';
+
+  @override
+  String dqStreakWarningFinalBody(int days) {
+    return 'Answer now so your $days-day streak doesn\'t break 🔥';
+  }
+
+  @override
+  String get dqStreakWarningFinalStartBody =>
+      'Answer now to start a new streak before the day ends 🌱';
 
   @override
   String get reminderDailyTitle => 'Another day of us 💕';
@@ -1167,6 +1903,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get remindersV2MilestoneScreenCaption =>
       'Choose the milestones you want and when to be reminded.';
+
+  @override
+  String get milestoneBadge => 'SPECIAL DAYS';
+
+  @override
+  String get milestoneHeaderSubtitle =>
+      'Pick milestones to be reminded of, with their own times.';
 
   @override
   String remindersV2MilestoneNext(String date) {
@@ -1245,6 +1988,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
+  String get settingsBadge => 'APP PREFERENCES';
+
+  @override
+  String get settingsHeaderSubtitle =>
+      'Reminders, notifications, language and your account.';
+
+  @override
   String get settingsProfileTileSubtitle => 'Reminders, language, account';
 
   @override
@@ -1253,6 +2003,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsRemindersModuleSubtitle =>
       'Milestones, anniversaries & your own reminders';
+
+  @override
+  String get settingsRemindersEntryTitle => 'Reminders';
+
+  @override
+  String get settingsRemindersEntrySubtitle =>
+      'Milestones, anniversaries and your own reminders';
+
+  @override
+  String get remindersHubBadge => 'REMINDERS';
+
+  @override
+  String get remindersHubTitle => 'Our reminders';
+
+  @override
+  String get remindersHubSubtitle =>
+      'Milestones, anniversaries and your own reminders — all in one place.';
+
+  @override
+  String get remindersHubMilestonesSection => 'Milestones & anniversaries';
+
+  @override
+  String get remindersHubMilestonesSectionSub =>
+      'Pick the milestones to be reminded of and set their times.';
+
+  @override
+  String get remindersHubCustomSection => 'Our reminders';
+
+  @override
+  String get remindersHubCustomSectionSub =>
+      'Create reminders for your own special days.';
 
   @override
   String get settingsAccountModuleTitle => 'Account & data';
@@ -1266,6 +2047,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsAnalyticsSubtitle =>
       'Help improve the app with anonymous data. We never collect your private content.';
+
+  @override
+  String get settingsNotifTypesTitle => 'Notification types';
+
+  @override
+  String get settingsNotifTypesSubtitle =>
+      'Mute the push types you\'d rather not be interrupted by. They still appear in your notification center.';
+
+  @override
+  String get settingsNotifTypePhoto => 'New photos';
+
+  @override
+  String get settingsNotifTypePhotoSubtitle =>
+      'When your partner posts a photo';
+
+  @override
+  String get settingsNotifTypeReaction => 'Photo reactions';
+
+  @override
+  String get settingsNotifTypeReactionSubtitle =>
+      'When your partner reacts to your photo';
+
+  @override
+  String get settingsNotifTypeDailyQuestion => 'Daily question';
+
+  @override
+  String get settingsNotifTypeDailyQuestionSubtitle =>
+      'When your partner answers today\'s question';
 
   @override
   String get settingsEditStorySubtitle => 'Edit names, anniversary date, photo';
@@ -1315,6 +2124,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customRemindersScreenTitle => 'Our reminders';
 
   @override
+  String get customRemindersBadge => 'YOUR OWN MOMENTS';
+
+  @override
+  String get customRemindersHeaderSubtitle =>
+      'Create reminders for your own special moments.';
+
+  @override
   String customRemindersCount(int count) {
     return '$count/20';
   }
@@ -1347,6 +2163,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customRemindersEmptyCta => 'Create your first reminder';
 
   @override
+  String get customRemindersAddAnother => 'Add a reminder';
+
+  @override
   String get customRemindersOffTitle => 'Reminders are off';
 
   @override
@@ -1365,6 +2184,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customRemindersEditTitle => 'Edit reminder';
+
+  @override
+  String get customReminderFormBadge => 'YOUR REMINDER';
 
   @override
   String get customRemindersSave => 'Save';
@@ -1413,6 +2235,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customRemindersRepeatYearly => 'Yearly';
+
+  @override
+  String get customRemindersNotifyPartnerLabel => 'Also remind my partner';
+
+  @override
+  String get customRemindersNotifyPartnerSubtitle =>
+      'Your partner gets this reminder at the same time too';
 
   @override
   String customRemindersMetaOnce(String date, String time) {
@@ -1465,6 +2294,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customRemindersDeletedMsg => 'Reminder deleted';
+
+  @override
+  String get customRemindersUndoLabel => 'Undo';
 
   @override
   String get customRemindersNotifBodyFallback =>
@@ -1727,7 +2559,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteAccountTitle => 'Delete Account';
 
   @override
-  String get editCoupleBadge => 'EDIT COUPLE';
+  String get editCoupleBadge => 'COUPLE PROFILE';
 
   @override
   String get galleryEditCaptionTooltip => 'Edit caption';
@@ -1746,7 +2578,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get galleryTodayEmptySubtitle =>
-      'Don\'t let today slip by without a trace.';
+      'Every photo is a memory the two of you share.';
 
   @override
   String get galleryTodayEmptyTitle => 'No moments captured today yet';
@@ -1874,6 +2706,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get galleryEndOfFeed =>
+      'That\'s every memory 💕 — go make some new ones together';
+
+  @override
   String galleryTodayMomentsCount(int count) {
     return '$count moments today';
   }
@@ -1937,7 +2773,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String streakChipActiveToday(int n) {
-    return '$n-day streak · done for today ✨';
+    return '$n-day streak · done for today';
   }
 
   @override
@@ -2139,4 +2975,574 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get galleryNeedsCoupleToUpload =>
       'Connect with your partner first before sharing photos 💞';
+
+  @override
+  String get notifCenterTitle => 'Notifications';
+
+  @override
+  String get notifCenterBadge => 'WHAT\'S NEW';
+
+  @override
+  String get notifCenterEmptyTitle => 'No notifications yet';
+
+  @override
+  String get notifCenterEmptyBody =>
+      'Activity from the two of you will appear here.';
+
+  @override
+  String get notifGroupToday => 'Today';
+
+  @override
+  String get notifGroupEarlier => 'Earlier';
+
+  @override
+  String notifUnreadCount(int count) {
+    return '$count unread';
+  }
+
+  @override
+  String get notifAllCaughtUp => 'You\'re all caught up 💛';
+
+  @override
+  String get notifMarkAllRead => 'Mark all read';
+
+  @override
+  String get notifClearAll => 'Clear all';
+
+  @override
+  String get notifClearAllConfirmTitle => 'Clear all notifications?';
+
+  @override
+  String get notifClearAllConfirmBody =>
+      'You won\'t be able to see these again.';
+
+  @override
+  String get notifDismiss => 'Dismiss';
+
+  @override
+  String get notifGeneric => 'You have a new notification';
+
+  @override
+  String notifPhotoPosted(String name) {
+    return '$name shared a new photo';
+  }
+
+  @override
+  String notifPhotoReaction(String name, String emoji) {
+    return '$name reacted $emoji to your photo';
+  }
+
+  @override
+  String notifPartnerJoined(String name) {
+    return '$name paired up with you';
+  }
+
+  @override
+  String notifPartnerLeft(String name) {
+    return '$name left your shared space';
+  }
+
+  @override
+  String notifLoveNote(String name) {
+    return '$name left you a love note';
+  }
+
+  @override
+  String notifDailyQuestion(String name) {
+    return '$name answered today\'s question';
+  }
+
+  @override
+  String notifDailyQuestionBoth(String name) {
+    return 'You and $name both answered today\'s question 💞';
+  }
+
+  @override
+  String notifChatMessage(String name) {
+    return '$name sent you a message 💬';
+  }
+
+  @override
+  String get forceUpdateBadge => 'UPDATE';
+
+  @override
+  String get forceUpdateTitle => 'Time to update';
+
+  @override
+  String get forceUpdateBody =>
+      'The version you\'re on is out of date. Update to the latest to keep making memories with your other half.';
+
+  @override
+  String get forceUpdateButton => 'Update now';
+
+  @override
+  String get counterBgBadge => 'BACKGROUND';
+
+  @override
+  String get counterBgTitle => 'Counter background';
+
+  @override
+  String get counterBgSubtitleAll =>
+      'Pick which photos can back the day-counter card. Leave empty to cycle through them all.';
+
+  @override
+  String counterBgSubtitleCount(int count) {
+    return '$count photos picked for the counter background.';
+  }
+
+  @override
+  String get counterBgCoverLabel => 'Cover';
+
+  @override
+  String get counterBgEmptyTitle => 'No photos yet';
+
+  @override
+  String get counterBgEmptyBody => 'Add some memories to your gallery first.';
+
+  @override
+  String get settingsCounterBgTitle => 'Counter background';
+
+  @override
+  String get settingsCounterBgSubtitle =>
+      'Choose which photos show on the counter';
+
+  @override
+  String get counterBgSave => 'Save';
+
+  @override
+  String get counterBgSavedMsg => 'Counter background saved 💕';
+
+  @override
+  String get counterBgDiscardTitle => 'Discard changes?';
+
+  @override
+  String get counterBgDiscardBody =>
+      'You have unsaved changes. Leave without saving?';
+
+  @override
+  String get counterBgDiscardLeave => 'Leave';
+
+  @override
+  String get settingsChatBgTitle => 'Chat background';
+
+  @override
+  String get settingsChatBgSubtitle => 'Pick a photo to back your conversation';
+
+  @override
+  String get chatBgBadge => 'CHAT BACKGROUND';
+
+  @override
+  String get chatBgTitle => 'Chat background';
+
+  @override
+  String get chatBgSubtitle =>
+      'Pick one photo to back your conversation, or keep the default gradient.';
+
+  @override
+  String get chatBgFilterHint =>
+      'Only portrait, high-resolution photos are shown — they fill the screen without cropping or blurring.';
+
+  @override
+  String get chatBgNoneLabel => 'Default';
+
+  @override
+  String get chatBgMeasuring => 'Filtering photos…';
+
+  @override
+  String get chatBgNoneValidTitle => 'No suitable photos yet';
+
+  @override
+  String get chatBgNoneValidBody =>
+      'Add a tall, sharp photo to your gallery — landscape or low-resolution photos can\'t be used as a chat background.';
+
+  @override
+  String get chatBgSavedMsg => 'Chat background saved 💕';
+
+  @override
+  String get journeyTrailTitle => 'Our journey';
+
+  @override
+  String milestoneTrailNext(int days, String label) {
+    return '$days days to $label';
+  }
+
+  @override
+  String get milestoneTrailAllDone => 'You\'ve reached every milestone 🎉';
+
+  @override
+  String get profileAchievementsTitle => 'Your badges';
+
+  @override
+  String get badgeStreakLabel => 'day streak';
+
+  @override
+  String get badgeRecordLabel => 'record';
+
+  @override
+  String get badgeMemoriesLabel => 'memories';
+
+  @override
+  String get badgeJournalLabel => 'journal';
+
+  @override
+  String get profileRecordsTitle => 'Your records';
+
+  @override
+  String get profileRecordLongestStreak => 'Longest streak';
+
+  @override
+  String get profileRecordDaysTogether => 'Days together';
+
+  @override
+  String get profileRecordTotalMemories => 'Total memories';
+
+  @override
+  String get profileRecordJournalEntries => 'Questions answered';
+
+  @override
+  String get profileRecordStreakMilestones => 'Streak milestones';
+
+  @override
+  String profileJournalCountLabel(String count) {
+    return '$count answered';
+  }
+
+  @override
+  String get profileMemoriesTitle => 'Our memories';
+
+  @override
+  String profileMemoriesCountLabel(String count) {
+    return '$count memories';
+  }
+
+  @override
+  String profileMemoriesNextLabel(String count, String milestone) {
+    return '$count more to reach $milestone';
+  }
+
+  @override
+  String get loveTreeBadge => 'LOVE TREE';
+
+  @override
+  String get loveTreeStage0 => 'Tiny seed';
+
+  @override
+  String get loveTreeStage1 => 'Sprout';
+
+  @override
+  String get loveTreeStage2 => 'Young tree';
+
+  @override
+  String get loveTreeStage3 => 'Flourishing tree';
+
+  @override
+  String get loveTreeStage4 => 'In full bloom';
+
+  @override
+  String loveTreeFlowerCount(int count) {
+    return '$count flowers bloomed';
+  }
+
+  @override
+  String get loveTreeFlowerCountZero =>
+      'No flowers yet — let\'s grow it together';
+
+  @override
+  String get loveTreeSeedSubtitle => 'Your journey starts right here 🌱';
+
+  @override
+  String get loveTreeBloomSubtitle => 'Your tree is in full bloom ✨';
+
+  @override
+  String loveTreeNewBloomBanner(int count) {
+    return 'Your tree just bloomed $count new flowers 🌸';
+  }
+
+  @override
+  String get loveTreeNewBloomBannerOne =>
+      'Your tree just bloomed a new flower 🌸';
+
+  @override
+  String get loveTreeNurtureTitle => 'Grow it together';
+
+  @override
+  String get loveTreeNurtureStreakTitle => 'Keep your daily streak';
+
+  @override
+  String get loveTreeNurtureStreakBody =>
+      'Answer daily so your streak lives on';
+
+  @override
+  String get loveTreeNurturePhotoTitle => 'Add a memory';
+
+  @override
+  String get loveTreeNurturePhotoBody => 'Every photo is a new flower';
+
+  @override
+  String get loveTreeNurtureTalkTitle => 'Talk together today';
+
+  @override
+  String get loveTreeNurtureTalkBody => 'Small moments grow the tree';
+
+  @override
+  String get loveTreeMilestonesTitle => 'Milestones';
+
+  @override
+  String loveTreeMilestoneDays(int count) {
+    return '$count days together';
+  }
+
+  @override
+  String loveTreeMilestoneStreak(int count) {
+    return '$count-day streak';
+  }
+
+  @override
+  String loveTreeMilestonePhotos(int count) {
+    return '$count memories';
+  }
+
+  @override
+  String get loveTreeMilestoneBloomed => 'bloomed';
+
+  @override
+  String loveTreeMilestoneDaysLeft(int count) {
+    return '$count days to go';
+  }
+
+  @override
+  String loveTreeMilestoneStreakLeft(int count) {
+    return '$count streak days to go';
+  }
+
+  @override
+  String loveTreeMilestonePhotosLeft(int count) {
+    return '$count photos to go';
+  }
+
+  @override
+  String get loveTreeMilestoneAllDone => 'all done 🌟';
+
+  @override
+  String get loveTreeWaitingTitle => 'Waiting for both of you';
+
+  @override
+  String get loveTreeWaitingBody =>
+      'The tree grows when you\'re both here. Invite your partner 💌';
+
+  @override
+  String get loveTreeWaitingCta => 'Invite partner';
+
+  @override
+  String get loveTreeNoCoupleBody =>
+      'Connect with your partner to start growing 🌱';
+
+  @override
+  String get loveTreeCoachTooltip => 'Tap to see this moment 🌸';
+
+  @override
+  String get loveTreeTapHint => 'Tap a flower to relive a memory';
+
+  @override
+  String loveTreeMomentDaysTitle(int count) {
+    return '$count days together';
+  }
+
+  @override
+  String loveTreeMomentPhotosTitle(int count) {
+    return 'Memory #$count';
+  }
+
+  @override
+  String loveTreeMomentStreakTitle(int count) {
+    return '$count-day streak record';
+  }
+
+  @override
+  String loveTreeMomentBloomedOn(String date) {
+    return 'Bloomed on $date';
+  }
+
+  @override
+  String loveTreeMomentPhotoTakenOn(String date) {
+    return 'Added on $date';
+  }
+
+  @override
+  String get loveTreeMomentDaysCopy =>
+      'Every day together is one more petal in bloom 🌸';
+
+  @override
+  String get loveTreeMomentPhotosCopy =>
+      'A moment the two of you chose to keep 💞';
+
+  @override
+  String get loveTreeMomentStreakCopy =>
+      'The record you two once kept together. Start a new streak to beat it 🔥';
+
+  @override
+  String get loveTreeMomentViewInGallery => 'View in Gallery';
+
+  @override
+  String loveTreeLockedDays(int count) {
+    return '$count days to go before this blooms 🌱';
+  }
+
+  @override
+  String loveTreeLockedPhotos(int count) {
+    return '$count memories to go before this blooms 🌱';
+  }
+
+  @override
+  String loveTreeLockedStreak(int count) {
+    return '$count streak days to go before this blooms 🌱';
+  }
+
+  @override
+  String get loveTreeLockedPhotosCta => 'Add a memory';
+
+  @override
+  String get loveTreeLockedStreakCta => 'Answer today';
+
+  @override
+  String get loveTreeShareButton => 'Share our tree';
+
+  @override
+  String loveTreeShareStats(String days, String flowers) {
+    return '$days days together · $flowers flowers in bloom';
+  }
+
+  @override
+  String get loveTreeShareTagline => 'The tree we grew together 🌳';
+
+  @override
+  String get loveTreeShareTaglineSeed => 'Our tree just sprouted 🌱';
+
+  @override
+  String loveTreeShareMessage(String flowers, String days) {
+    return 'Our love tree has bloomed $flowers flowers after $days days 🌳💞 — grow yours together on Dear Embeiu.';
+  }
+
+  @override
+  String get loveTreeShareFailed =>
+      'Couldn\'t create the card, please try again';
+
+  @override
+  String get partnerReminderNotifBody => 'A reminder from your partner 💌';
+
+  @override
+  String notifAnswerReaction(String name, String emoji) {
+    return '$name reacted $emoji to your answer';
+  }
+
+  @override
+  String get answerReactionHint => 'React to your partner\'s answer';
+
+  @override
+  String get answerReactionAddTooltip => 'Add a reaction';
+
+  @override
+  String get answerReactionRemoveTooltip => 'Remove reaction';
+
+  @override
+  String get answerReactionErrorRetry => 'Couldn\'t send — tap to retry';
+
+  @override
+  String get careMessageBadge => 'CARE NOTE';
+
+  @override
+  String get careMessageEntryTitle => 'Send a care note';
+
+  @override
+  String get careMessageEntrySubtitle => 'A little message to warm their day';
+
+  @override
+  String get careMessageQuickPicksTitle => 'Quick picks';
+
+  @override
+  String get careMessageTitleLabel => 'Title';
+
+  @override
+  String get careMessageTitleHint => 'e.g. Missing you';
+
+  @override
+  String get careMessageBodyLabel => 'Message';
+
+  @override
+  String get careMessageBodyHint => 'Write something warm...';
+
+  @override
+  String get careMessageSendCta => 'Send to your love 💌';
+
+  @override
+  String get aiQuestionsSaveFailed => 'Couldn\'t save that, please try again';
+
+  @override
+  String get dailyQuestionPreparing => 'Getting today\'s question ready…';
+
+  @override
+  String get careMessageQueuedToast =>
+      'Slow network — your note will be sent as soon as you\'re back online 💌';
+
+  @override
+  String get careMessageSentToast => 'Sent 💌';
+
+  @override
+  String get careMessageErrorToast => 'Couldn\'t send. Please try again.';
+
+  @override
+  String get careMessageNeedCouple => 'Pair up first to send a care note.';
+
+  @override
+  String get careMessageRecentTitle => 'Recently sent';
+
+  @override
+  String get careMessageFromMe => 'You';
+
+  @override
+  String get careMessageFromPartner => 'Your love';
+
+  @override
+  String get careQuick1Title => 'Missing you 💕';
+
+  @override
+  String get careQuick1Body =>
+      'Just thinking about you. How is your day going?';
+
+  @override
+  String get careQuick2Title => 'Drink some water 💧';
+
+  @override
+  String get careQuick2Body => 'Remember to stay hydrated today, okay?';
+
+  @override
+  String get careQuick3Title => 'Have you eaten? 🍚';
+
+  @override
+  String get careQuick3Body => 'Please eat on time today, no skipping meals.';
+
+  @override
+  String get careQuick4Title => 'Sleep early tonight 🌙';
+
+  @override
+  String get careQuick4Body =>
+      'It is getting late, get some rest. Sweet dreams!';
+
+  @override
+  String get careQuick5Title => 'Love you so much ❤️';
+
+  @override
+  String get careQuick5Body => 'Just wanted to say I love you so much today.';
+
+  @override
+  String get careQuick6Title => 'You\'ve got this 💪';
+
+  @override
+  String get careQuick6Body =>
+      'Today looks tough, but you\'ve got this. I am right here.';
+
+  @override
+  String notifCareMessage(String name) {
+    return '$name sent you a care note';
+  }
 }

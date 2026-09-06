@@ -1,0 +1,7 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu; npx firebase-tools deploy --only firestore:rules,functions:notifyDailyAnswer --project tonyembeiu-dev 2>&1 | grep -E "✔|✖|Error|Deploy complete" | head -6; ls -td project/.firebase-deploy-log/*/ | head -1 | xargs basename
+time_utc: 20260905T122337Z
+git_head: fc81880 (feature/care-and-catchup)
+dirty   : 12 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout fc81880)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout fc81880 -- functions` rồi redeploy

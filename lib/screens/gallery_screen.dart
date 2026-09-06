@@ -1,32 +1,34 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
+import '../models/app_user.dart';
 import '../models/couple.dart';
 import '../models/photo.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
+import '../services/push_notification_service.dart';
 import '../providers/reaction_provider.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_motion.dart';
-import '../theme/app_theme.dart';
+import 'create_post_screen.dart';
 import '../widgets/animated_couple_name.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/blocking_loading_overlay.dart';
+import '../widgets/entrance_reveal.dart';
 import '../widgets/love_lottie.dart';
 import '../widgets/reaction_bar.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/shared_photo_view.dart';
+import '../widgets/shimmer_skeleton.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key, this.bottomInset = 0});
@@ -60,11 +62,11 @@ class GalleryScreen extends StatefulWidget {
         barrierDismissible: true,
         pageBuilder: (context, animation, secondaryAnimation) =>
             _FullscreenPhotoPreview(
-          photos: photos,
-          heroTags: heroTags,
-          initialIndex: initialIndex,
-          couple: couple,
-        ),
+              photos: photos,
+              heroTags: heroTags,
+              initialIndex: initialIndex,
+              couple: couple,
+            ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -77,12 +79,90 @@ class GalleryScreen extends StatefulWidget {
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
-  static const double _floatingTopShowcaseMaxHeight = 340;
+  // Header-unify 2026-06-14: the expanded showcase lost its page title +
+  // subtitle (chip-only header), so its natural height dropped ~47px.
+  // Sized to the expanded showcase content (eyebrow chip + composer card) with
+  // a small buffer for 2-line couple names — the old 296 left a ~70px dead gap
+  // below the card before the feed (user 2026-06-14: "consistent padding").
+  static const double _floatingTopShowcaseMaxHeight = 256;
   static const double _floatingTopShowcaseMinHeight = 122;
 
   // Per-photo heart-burst trigger counters; bump to replay the burst on a
   // double-tap (feed card). Keyed by photo id.
   final Map<String, int> _burstTriggers = <String, int>{};
+
+  // Deep-link target: a tapped photo/reaction notification wants this exact
+  // photo opened fullscreen. Set from [NotificationTapRouter.pendingPhotoId]
+  // (cold-start in initState, warm via listener); consumed in build once the
+  // photo list has loaded. Cleared when handled or when the photo is gone.
+  String? _pendingDeepLinkPhotoId;
+
+  @override
+  void initState() {
+    super.initState();
+    _pendingDeepLinkPhotoId = NotificationTapRouter.pendingPhotoId.value;
+    NotificationTapRouter.consumePhotoRequest();
+    NotificationTapRouter.pendingPhotoId.addListener(_onDeepLinkPhotoRequest);
+
+    // Love Tree "Thêm một kỷ niệm" shortcut (2026-06-17): open the add-photo
+    // composer when asked. It's only ever set while running (the tree is
+    // reachable in-app only), so drop any stale value and act on warm requests.
+    NotificationTapRouter.consumeComposeRequest();
+    NotificationTapRouter.pendingCompose.addListener(_onComposeRequest);
+  }
+
+  @override
+  void dispose() {
+    NotificationTapRouter.pendingPhotoId.removeListener(
+      _onDeepLinkPhotoRequest,
+    );
+    NotificationTapRouter.pendingCompose.removeListener(_onComposeRequest);
+    super.dispose();
+  }
+
+  /// Warm request from the Love Tree to open the add-photo composer. Deferred a
+  /// frame so the tab switch + the popped Love Tree route settle before the
+  /// native picker opens.
+  void _onComposeRequest() {
+    if (!NotificationTapRouter.pendingCompose.value) {
+      return;
+    }
+    NotificationTapRouter.consumeComposeRequest();
+    if (!mounted) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _pickMultiplePhotos();
+      }
+    });
+  }
+
+  /// Warm deep-link: a tap arrived while the app is running.
+  void _onDeepLinkPhotoRequest() {
+    final id = NotificationTapRouter.pendingPhotoId.value;
+    if (id == null) return;
+    NotificationTapRouter.consumePhotoRequest();
+    if (!mounted) return;
+    setState(() => _pendingDeepLinkPhotoId = id);
+  }
+
+  /// Opens the pending deep-link photo once [photos] is available. No-ops if
+  /// already handled; silently lands on the grid if the photo was deleted.
+  void _openDeepLinkPhoto(String id, List<Photo> photos, Couple? couple) {
+    if (_pendingDeepLinkPhotoId != id) return;
+    _pendingDeepLinkPhotoId = null;
+    final idx = photos.indexWhere((p) => p.id == id);
+    if (idx < 0) return;
+    final heroTags = [for (var i = 0; i < photos.length; i++) 'deeplink-$i'];
+    GalleryScreen.openPreview(
+      context,
+      photos: photos,
+      heroTags: heroTags,
+      initialIndex: idx,
+      couple: couple,
+    );
+  }
 
   /// Double-tap on a photo: drop a ❤️ (never a toggle-off — D2/§3) + burst.
   /// No-ops when there's no active Firebase couple (reactions are hidden).
@@ -103,7 +183,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
       reactionProvider.setReaction(photo.id, '❤️');
     }
   }
-
 
   Future<String?> _showCaptionDialog({
     required String title,
@@ -153,56 +232,37 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 85,
-      maxWidth: 1920,
-      maxHeight: 1920,
-    );
+    // Camera capture → COMPOSE (redesign 2026-06-14): snap one photo, then open
+    // the full-screen CreatePostScreen to preview + add a caption (and even add
+    // more photos from the library) before posting. No longer posts directly.
+    // The multi-add ("Thêm hình") flow opens the SAME compose screen.
+    //
+    // MUST be guarded: pickImage(camera) THROWS a PlatformException when the
+    // camera can't open — the iOS Simulator has no camera at all, and on real
+    // devices the permission can be denied / the camera busy. Unguarded, that
+    // exception crashed the app (bug 2026-06-14). Fail soft with a snackbar.
+    final XFile? pickedFile;
+    try {
+      pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.camera,
+        preferredCameraDevice: CameraDevice.rear,
+        imageQuality: 85,
+        maxWidth: 1920,
+        maxHeight: 1920,
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.cameraUnavailable)),
+        );
+      }
+      return;
+    }
     if (pickedFile == null || !mounted) {
       return;
     }
 
-    final l10n = context.l10n;
-    final caption = await _showCaptionDialog(
-      title: l10n.addCaptionOptionalTitle,
-      hint: l10n.addCaptionOptionalHint,
-    );
-
-    // null = user pressed Cancel (dismiss dialog) = cancel entire upload
-    if (caption == null || !mounted) {
-      return;
-    }
-
-    try {
-      await context.read<PhotoProvider>().addPhoto(
-        pickedFile.path,
-        currentUser: currentUser,
-        caption: caption.isNotEmpty ? caption : null,
-      );
-    } catch (_) {
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.read<PhotoProvider>().errorMessage ?? context.l10n.photoAddError,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.photoAddedSuccess)),
-    );
+    await _composeAndPost([pickedFile], currentUser);
   }
 
   Future<void> _pickMultiplePhotos() async {
@@ -228,17 +288,44 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
+    await _composeAndPost(pickedFiles, currentUser);
+  }
+
+  /// Shared post path for BOTH entries (camera 1 photo / library N photos,
+  /// redesign 2026-06-14): push the full-screen CreatePostScreen so the user
+  /// previews the photos + types one shared caption, then upload the kept files
+  /// through `addPhotosBatch` (single overlay + result snackbar). A null/empty
+  /// result = cancel (nothing posts).
+  Future<void> _composeAndPost(
+    List<XFile> initialFiles,
+    AppUser currentUser,
+  ) async {
+    // Normal push (slide from the right) — the compose screen now carries the
+    // standard SubScreenHeader back ←, so it behaves like every other pushed
+    // sub-screen, not an X-dismiss fullscreen dialog (header unify 2026-06-14).
+    final result = await Navigator.of(context).push<CreatePostResult>(
+      MaterialPageRoute<CreatePostResult>(
+        builder: (_) => CreatePostScreen(initialFiles: initialFiles),
+      ),
+    );
+    if (result == null || result.files.isEmpty || !mounted) {
+      return;
+    }
+
     final l10n = context.l10n;
-    final total = pickedFiles.length;
+    final total = result.files.length;
 
     // Single overlay across the whole batch (no per-photo flicker); one failed
-    // upload is skipped and counted, never aborts the rest.
+    // upload is skipped and counted, never aborts the rest. The shared caption
+    // is applied to every photo. A single camera photo goes through the SAME
+    // batch path for a unified "Uploading x/N" overlay.
     final successCount = await context.read<PhotoProvider>().addPhotosBatch(
-          pickedFiles.map((f) => f.path).toList(),
-          currentUser: currentUser,
-          progress: (current, totalCount) =>
-              l10n.uploadingPhotoProgress(current, totalCount),
-        );
+      result.files.map((f) => f.path).toList(),
+      currentUser: currentUser,
+      caption: result.caption,
+      progress: (current, totalCount) =>
+          l10n.uploadingPhotoProgress(current, totalCount),
+    );
 
     if (!mounted) {
       return;
@@ -288,7 +375,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            context.read<PhotoProvider>().errorMessage ?? context.l10n.captionUpdateError,
+            context.read<PhotoProvider>().errorMessage ??
+                context.l10n.captionUpdateError,
           ),
         ),
       );
@@ -299,8 +387,67 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.captionUpdatedSuccess)));
+  }
+
+  /// Replace the IMAGE of an already-posted [photo] (caption/date/author stay):
+  /// pick one new photo from the library, then run the provider replace path
+  /// (shared loading overlay + success/error snackbar). The act of picking a
+  /// new photo is itself the confirmation, so there's no extra dialog.
+  Future<void> _replacePhotoImage(Photo photo) async {
+    final currentUser = context.read<AuthProvider>().currentUser;
+    if (currentUser == null) {
+      return;
+    }
+
+    final XFile? picked;
+    try {
+      picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1920,
+        maxHeight: 1920,
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.photoUpdateError)),
+        );
+      }
+      return;
+    }
+    if (picked == null || !mounted) {
+      return;
+    }
+
+    try {
+      await context.read<PhotoProvider>().replacePhotoImage(
+            photo.id,
+            picked.path,
+            currentUser: currentUser,
+          );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.read<PhotoProvider>().errorMessage ??
+                context.l10n.photoUpdateError,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.captionUpdatedSuccess)),
+      SnackBar(content: Text(context.l10n.photoUpdatedSuccess)),
     );
   }
 
@@ -349,7 +496,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            context.read<PhotoProvider>().errorMessage ?? context.l10n.photoDeleteError,
+            context.read<PhotoProvider>().errorMessage ??
+                context.l10n.photoDeleteError,
           ),
         ),
       );
@@ -360,9 +508,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.photoDeletedSuccess)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.photoDeletedSuccess)));
   }
 
   // Opens the report bottom-sheet (Apple Guideline 1.2 UGC). Tapping a reason
@@ -376,18 +524,18 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
     final reporterUid = context.read<AuthProvider>().currentUser?.id ?? '';
     await context.read<PhotoProvider>().reportPhoto(
-          photo: photo,
-          reporterUid: reporterUid,
-          reason: reason,
-        );
+      photo: photo,
+      reporterUid: reporterUid,
+      reason: reason,
+    );
 
     if (!mounted) {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.reportSentConfirm)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.reportSentConfirm)));
   }
 
   // Returns a stable reason code (`inappropriate` / `spam` / `other`) or null
@@ -434,7 +582,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 Text(
                   l10n.reportPhotoSubtitle,
                   style: const TextStyle(
-                    fontSize: 13.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textSecondary,
                     height: 1.45,
@@ -506,9 +654,251 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 ),
               ),
               const Icon(
-                LucideIcons.chevronRight,
+                IconsaxPlusLinear.arrow_right_3,
                 size: 20,
                 color: AppColors.textTertiary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// On-brand action sheet for a posted photo (redesign 2026-06-21 — replaces
+  /// the plain overflow popup). A compact header (thumbnail + who/when) anchors
+  /// which photo you're acting on; then grouped rows with tinted icon badges:
+  /// the owner actions (edit caption / replace image / delete-in-red) in one
+  /// rounded card, the moderation report in its own card, plus a Cancel.
+  Future<void> _showPhotoActionsSheet(Photo photo) async {
+    final currentUserId = context.read<AuthProvider>().currentUser?.id;
+
+    final action = await showModalBottomSheet<_PhotoFeedAction>(
+      context: context,
+      backgroundColor: AppColors.cardSurface,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) {
+        final l10n = sheetContext.l10n;
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.textTertiary.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: SizedBox(
+                        width: 52,
+                        height: 52,
+                        child: SharedPhotoView(
+                          photo: photo,
+                          fit: BoxFit.cover,
+                          decodeWidth: 120,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.photoOptionsTitle,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            '${_feedPostedByLabel(photo)} · '
+                            '${_formatFeedDate(photo.uploadDate)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                _buildPhotoActionGroup(sheetContext, [
+                  _PhotoActionSpec(
+                    icon: IconsaxPlusLinear.edit_2,
+                    label: l10n.editCaptionAction,
+                    action: _PhotoFeedAction.editCaption,
+                  ),
+                  _PhotoActionSpec(
+                    icon: IconsaxPlusLinear.gallery_edit,
+                    label: l10n.replacePhotoAction,
+                    action: _PhotoFeedAction.replaceImage,
+                  ),
+                  if (currentUserId != null)
+                    _PhotoActionSpec(
+                      icon: IconsaxPlusLinear.trash,
+                      label: l10n.deletePhotoAction,
+                      action: _PhotoFeedAction.delete,
+                      tint: AppColors.error,
+                    ),
+                ]),
+                const SizedBox(height: 12),
+                _buildPhotoActionGroup(sheetContext, [
+                  _PhotoActionSpec(
+                    icon: IconsaxPlusLinear.flag,
+                    label: l10n.reportPhotoAction,
+                    action: _PhotoFeedAction.report,
+                    tint: AppColors.accentRose,
+                  ),
+                ]),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    style: TextButton.styleFrom(
+                      backgroundColor: AppColors.surfaceLight,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      l10n.cancel,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (action == null || !mounted) {
+      return;
+    }
+    switch (action) {
+      case _PhotoFeedAction.editCaption:
+        _editCaption(photo);
+      case _PhotoFeedAction.replaceImage:
+        _replacePhotoImage(photo);
+      case _PhotoFeedAction.delete:
+        _deletePhoto(photo);
+      case _PhotoFeedAction.report:
+        _reportPhoto(photo);
+    }
+  }
+
+  /// One rounded card holding action rows separated by hairline dividers
+  /// (indented to clear the icon badges).
+  Widget _buildPhotoActionGroup(
+    BuildContext sheetContext,
+    List<_PhotoActionSpec> specs,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < specs.length; i++) ...[
+            if (i > 0)
+              Divider(
+                height: 1,
+                thickness: 1,
+                indent: 64,
+                endIndent: 12,
+                color: AppColors.textTertiary.withValues(alpha: 0.12),
+              ),
+            _buildPhotoActionTile(
+              sheetContext,
+              specs[i],
+              first: i == 0,
+              last: i == specs.length - 1,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoActionTile(
+    BuildContext sheetContext,
+    _PhotoActionSpec spec, {
+    required bool first,
+    required bool last,
+  }) {
+    final tint = spec.tint ?? AppColors.accentLoveDeep;
+    final labelColor = spec.tint ?? AppColors.textPrimary;
+    final radius = BorderRadius.vertical(
+      top: Radius.circular(first ? 20 : 0),
+      bottom: Radius.circular(last ? 20 : 0),
+    );
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: radius,
+        onTap: () => Navigator.of(sheetContext).pop(spec.action),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: tint.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(spec.icon, size: 20, color: tint),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  spec.label,
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w600,
+                    color: labelColor,
+                  ),
+                ),
+              ),
+              Icon(
+                IconsaxPlusLinear.arrow_right_3,
+                size: 18,
+                color: AppColors.textTertiary.withValues(alpha: 0.6),
               ),
             ],
           ),
@@ -551,12 +941,16 @@ class _GalleryScreenState extends State<GalleryScreen> {
     Couple? couple,
     required List<String> heroTags,
   }) async {
-    if (!mounted || photos.isEmpty || initialIndex < 0 || initialIndex >= photos.length) {
+    if (!mounted ||
+        photos.isEmpty ||
+        initialIndex < 0 ||
+        initialIndex >= photos.length) {
       return;
     }
 
     final photo = photos[initialIndex];
-    if (!(photo.hasLocalPath && File(photo.path).existsSync()) && !photo.hasRemoteUrl) {
+    if (!(photo.hasLocalPath && File(photo.path).existsSync()) &&
+        !photo.hasRemoteUrl) {
       return;
     }
 
@@ -564,19 +958,18 @@ class _GalleryScreenState extends State<GalleryScreen> {
       PageRouteBuilder(
         opaque: false,
         barrierDismissible: true,
-        pageBuilder: (context, animation, secondaryAnimation) => _FullscreenPhotoPreview(
-          photos: photos,
-          heroTags: heroTags,
-          initialIndex: initialIndex,
-          couple: couple,
-          onEditCaption: _editCaption,
-          onReport: _reportPhoto,
-        ),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            _FullscreenPhotoPreview(
+              photos: photos,
+              heroTags: heroTags,
+              initialIndex: initialIndex,
+              couple: couple,
+              onEditCaption: _editCaption,
+              onReplaceImage: _replacePhotoImage,
+              onReport: _reportPhoto,
+            ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
       ),
     );
@@ -603,7 +996,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: AppColors.primaryGradient,
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.9), width: 2),
+        border: Border.all(
+          color: AppColors.white.withValues(alpha: 0.9),
+          width: 2,
+        ),
       ),
       child: ClipOval(
         child: SharedCouplePhotoView(
@@ -611,8 +1007,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           remoteUrl: couple?.couplePhotoUrl,
           fit: BoxFit.cover,
           // Avatar-sized slot → decode at the circle's physical size, not full-res.
-          decodeWidth:
-              (size * MediaQuery.of(context).devicePixelRatio).round(),
+          decodeWidth: (size * MediaQuery.of(context).devicePixelRatio).round(),
           placeholder: Center(
             child: Text(
               _initialsFromCouple(couple),
@@ -628,18 +1023,19 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
+  // Gallery content surface (design-unify C7): SOLID white like every other
+  // content card (B4) — no more translucent .84–.94 fills + white hairline
+  // borders. Shadow defaults to the standard black .06 blur 16 offset(0,10);
+  // the feed card keeps its slightly softer/longer shadow via the params.
   BoxDecoration _gallerySurfaceDecoration({
     required double radius,
-    double fillAlpha = 0.9,
-    double borderAlpha = 0.82,
-    double shadowAlpha = 0.045,
-    double blurRadius = 18,
+    double shadowAlpha = 0.06,
+    double blurRadius = 16,
     Offset offset = const Offset(0, 10),
   }) {
     return BoxDecoration(
-      color: AppColors.white.withValues(alpha: fillAlpha),
+      color: AppColors.cardSurface,
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: AppColors.white.withValues(alpha: borderAlpha)),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withValues(alpha: shadowAlpha),
@@ -652,7 +1048,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   Widget _buildPastelStoryBadge(
     String label, {
-    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(
+      horizontal: 10,
+      vertical: 5,
+    ),
     double fontSize = 10,
     Color? textColor,
   }) {
@@ -693,32 +1092,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Widget _buildGalleryEyebrow(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            LucideIcons.sparkles,
-            size: 12,
-            color: AppColors.white.withValues(alpha: 0.72),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-                style: AppTheme.pageEyebrowStyle(alpha: 0.88),
-          ),
-        ],
-      ),
-    );
+    // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink recolor
+    // of the original (user request 2026-06-11).
+    return EyebrowChip(label: label, icon: IconsaxPlusLinear.gallery_favorite);
   }
 
-  TextStyle _galleryCardTitleStyle({double size = 16.5}) {
+  TextStyle _galleryCardTitleStyle({double size = 16}) {
     return TextStyle(
       color: AppColors.textPrimary.withValues(alpha: 0.90),
       fontSize: size,
@@ -791,8 +1170,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   Widget _buildComposerCard(Couple? couple, int photoCount) {
     return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: _gallerySurfaceDecoration(radius: 24, fillAlpha: 0.84),
+      // 16 = unified gallery content-card inset (matches the today cards).
+      padding: const EdgeInsets.all(16),
+      decoration: _gallerySurfaceDecoration(radius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -812,7 +1192,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         context.l10n.addNewMemoryTitle,
                         style: TextStyle(
                           color: AppColors.textPrimary.withValues(alpha: 0.88),
-                          fontSize: 14.5,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.15,
                           height: 1.2,
@@ -830,11 +1210,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             creatorUserId: couple.createdByUserId,
                             spacing: 4,
                             runSpacing: 2,
-                            heartSize: 13,
+                            heartSize: 12,
                             heartColor: AppColors.accentRose,
                             textStyle: TextStyle(
-                              color: AppColors.textPrimary.withValues(alpha: 0.88),
-                              fontSize: 14.5,
+                              color: AppColors.textPrimary.withValues(
+                                alpha: 0.88,
+                              ),
+                              fontSize: 15,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.15,
                               height: 1.2,
@@ -843,8 +1225,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           Text(
                             context.l10n.whatNewToday,
                             style: TextStyle(
-                              color: AppColors.textPrimary.withValues(alpha: 0.88),
-                              fontSize: 14.5,
+                              color: AppColors.textPrimary.withValues(
+                                alpha: 0.88,
+                              ),
+                              fontSize: 15,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.15,
                               height: 1.2,
@@ -857,7 +1241,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       context.l10n.composerSubtitle,
                       style: _galleryBodyStyle(
                         color: AppColors.textPrimary,
-                        size: 11.5,
+                        size: 12,
                         alpha: 0.58,
                         weight: FontWeight.w500,
                         height: 1.4,
@@ -869,15 +1253,21 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          _MarqueeRow(
+          // Static chip row (user 2026-06-14): the 2 stat chips fit within the
+          // card, so they sit still inside the padding instead of an auto-
+          // scrolling ticker that clipped them at the edges. Wrap = graceful
+          // fallback to a second line if a locale label runs long.
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
               _buildFeedStatChip(
-                icon: LucideIcons.galleryHorizontalEnd,
+                icon: IconsaxPlusLinear.gallery,
                 label: context.l10n.momentsCount(photoCount),
                 color: AppColors.accentRose,
               ),
               _buildFeedStatChip(
-                icon: LucideIcons.bookOpen,
+                icon: IconsaxPlusLinear.book_1,
                 label: context.l10n.privateFeedLabel,
                 color: AppColors.info,
               ),
@@ -888,36 +1278,50 @@ class _GalleryScreenState extends State<GalleryScreen> {
             children: [
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: context.watch<PhotoProvider>().isLoading ? null : _pickAndAddPhoto,
+                  onPressed: context.watch<PhotoProvider>().isLoading
+                      ? null
+                      : _pickAndAddPhoto,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.accentRose,
                     foregroundColor: AppColors.white,
                     padding: const EdgeInsets.symmetric(vertical: 11),
                     minimumSize: Size.zero,
+                    // r16 = in-card button token (C7.8).
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    textStyle: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  icon: const Icon(LucideIcons.camera, size: 16),
+                  icon: const Icon(IconsaxPlusLinear.camera, size: 16),
                   label: Text(context.l10n.postNewPhotoBtn),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: context.watch<PhotoProvider>().isLoading ? null : _pickMultiplePhotos,
+                  onPressed: context.watch<PhotoProvider>().isLoading
+                      ? null
+                      : _pickMultiplePhotos,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.textPrimary,
-                    side: BorderSide(color: AppColors.accentRose.withValues(alpha: 0.24)),
+                    side: BorderSide(
+                      color: AppColors.accentRose.withValues(alpha: 0.24),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 11),
                     minimumSize: Size.zero,
+                    // r16 = in-card button token (C7.8).
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    textStyle: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  icon: const Icon(LucideIcons.layoutGrid, size: 16),
+                  icon: const Icon(IconsaxPlusLinear.grid_3, size: 16),
                   label: Text(context.l10n.addMultipleBtn),
                 ),
               ),
@@ -929,25 +1333,18 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Widget _buildFloatingTopShowcase(Couple? couple, int photoCount) {
+    // Unified tab header (user 2026-06-14): the big "Thư viện ảnh" title +
+    // subtitle were dropped — every tab now leads with just its chip. Top 16
+    // matches Home/Chat/Profile.
     return Container(
       color: Colors.transparent,
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildGalleryEyebrow(context.l10n.privateGalleryBadge),
-          const SizedBox(height: 6),
-          Text(
-            context.l10n.galleryTitle,
-            style: AppTheme.pageTitleStyle().copyWith(fontSize: 26),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            context.l10n.gallerySubtitle,
-            style: AppTheme.pageSubtitleStyle().copyWith(fontSize: 12),
-          ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           _buildComposerCard(couple, photoCount),
         ],
       ),
@@ -960,14 +1357,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: _gallerySurfaceDecoration(
-          radius: 24,
-          fillAlpha: 0.9,
-          borderAlpha: 0.86,
-          shadowAlpha: 0.035,
-          blurRadius: 16,
-          offset: const Offset(0, 8),
-        ),
+        decoration: _gallerySurfaceDecoration(radius: 24),
         child: Row(
           children: [
             _buildCoupleAvatar(couple, size: 42),
@@ -977,24 +1367,24 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                    if (couple == null)
-                      Text(
-                        context.l10n.addNewMemoryTitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: _galleryCardTitleStyle(size: 15.3),
-                      )
-                    else
-                      AnimatedCoupleName(
-                        person1Name: couple.person1Name,
-                        person2Name: couple.person2Name,
-                        creatorUserId: couple.createdByUserId,
-                        spacing: 5,
-                        runSpacing: 4,
-                        heartSize: 14,
-                        heartColor: AppColors.accentRose,
-                        textStyle: _galleryCardTitleStyle(size: 15.3),
-                      ),
+                  if (couple == null)
+                    Text(
+                      context.l10n.addNewMemoryTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _galleryCardTitleStyle(size: 15),
+                    )
+                  else
+                    AnimatedCoupleName(
+                      person1Name: couple.person1Name,
+                      person2Name: couple.person2Name,
+                      creatorUserId: couple.createdByUserId,
+                      spacing: 5,
+                      runSpacing: 4,
+                      heartSize: 12,
+                      heartColor: AppColors.accentRose,
+                      textStyle: _galleryCardTitleStyle(size: 15),
+                    ),
                   const SizedBox(height: 4),
                   Text(
                     context.l10n.compactCaption(photoCount),
@@ -1002,7 +1392,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: _galleryMetaStyle(
                       color: AppColors.textSecondary,
-                      size: 11.1,
+                      size: 11,
                       alpha: 0.82,
                       weight: FontWeight.w600,
                     ),
@@ -1012,22 +1402,26 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             const SizedBox(width: 8),
             IconButton.filled(
-              onPressed: context.watch<PhotoProvider>().isLoading ? null : _pickAndAddPhoto,
+              onPressed: context.watch<PhotoProvider>().isLoading
+                  ? null
+                  : _pickAndAddPhoto,
               style: IconButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
               ),
-              icon: const Icon(LucideIcons.camera, size: 18),
+              icon: const Icon(IconsaxPlusLinear.camera, size: 18),
               tooltip: context.l10n.postNewPhotoBtn,
             ),
             const SizedBox(width: 8),
             IconButton.filledTonal(
-              onPressed: context.watch<PhotoProvider>().isLoading ? null : _pickMultiplePhotos,
+              onPressed: context.watch<PhotoProvider>().isLoading
+                  ? null
+                  : _pickMultiplePhotos,
               style: IconButton.styleFrom(
                 backgroundColor: AppColors.accentCoral.withValues(alpha: 0.14),
                 foregroundColor: AppColors.accentCoral,
               ),
-              icon: const Icon(LucideIcons.layoutGrid, size: 18),
+              icon: const Icon(IconsaxPlusLinear.grid_3, size: 18),
               tooltip: context.l10n.addMultipleBtn,
             ),
           ],
@@ -1046,8 +1440,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   Widget _buildAddTodayPromptCard(Couple? couple) {
     return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: _gallerySurfaceDecoration(radius: 24, fillAlpha: 0.9),
+      // 16 = unified gallery content-card inset (matches the composer card).
+      padding: const EdgeInsets.all(16),
+      decoration: _gallerySurfaceDecoration(radius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -1062,7 +1457,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
-                  LucideIcons.sun,
+                  IconsaxPlusLinear.sun_1,
                   color: AppColors.accentRose,
                   size: 20,
                 ),
@@ -1074,7 +1469,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   children: [
                     Text(
                       context.l10n.galleryTodayEmptyTitle,
-                      style: _galleryCardTitleStyle(size: 14.5),
+                      style: _galleryCardTitleStyle(size: 15),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -1094,10 +1489,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed:
-                  context.watch<PhotoProvider>().isLoading
-                      ? null
-                      : _pickAndAddPhoto,
+              onPressed: context.watch<PhotoProvider>().isLoading
+                  ? null
+                  : _pickAndAddPhoto,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accentRose,
                 foregroundColor: AppColors.white,
@@ -1106,11 +1500,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 textStyle: const TextStyle(
-                  fontSize: 13.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              icon: const Icon(LucideIcons.camera, size: 17),
+              icon: const Icon(IconsaxPlusLinear.camera, size: 17),
               label: Text(context.l10n.galleryRecordTodayMoment),
             ),
           ),
@@ -1127,7 +1521,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _gallerySurfaceDecoration(radius: 24, fillAlpha: 0.9),
+      decoration: _gallerySurfaceDecoration(radius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -1141,7 +1535,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
-                  LucideIcons.checkCircle,
+                  IconsaxPlusLinear.tick_circle,
                   color: AppColors.success,
                   size: 18,
                 ),
@@ -1150,12 +1544,15 @@ class _GalleryScreenState extends State<GalleryScreen> {
               Expanded(
                 child: Text(
                   context.l10n.galleryTodayMomentsCount(todayPhotos.length),
-                  style: _galleryCardTitleStyle(size: 14.5),
+                  style: _galleryCardTitleStyle(size: 15),
                 ),
               ),
               _buildPastelStoryBadge(
                 context.l10n.galleryTodayBadge,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 fontSize: 10,
               ),
             ],
@@ -1170,34 +1567,48 @@ class _GalleryScreenState extends State<GalleryScreen> {
               separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final photo = todayPhotos[index];
-                return GestureDetector(
-                  onTap: () => _openPhotoPreview(
-                    todayPhotos,
-                    initialIndex: index,
-                    couple: couple,
-                    heroTags: heroTags,
-                  ),
-                  child: Hero(
-                    tag: heroTags[index],
-                    createRectTween: (begin, end) =>
-                        MaterialRectCenterArcTween(begin: begin, end: end),
-                    transitionOnUserGestures: true,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: SizedBox(
-                        width: 96,
-                        child: SharedPhotoView(
-                          photo: photo,
-                          fit: BoxFit.cover,
-                          // 96px slot → decode small (≈ 96 * DPR) to avoid
-                          // decoding a full-res bitmap for a strip thumbnail.
-                          decodeWidth: (96 *
-                                  MediaQuery.of(context).devicePixelRatio)
-                              .round(),
-                          placeholder: Container(
-                            color: AppColors.surfaceLight,
+                return Hero(
+                  tag: heroTags[index],
+                  createRectTween: (begin, end) =>
+                      MaterialRectCenterArcTween(begin: begin, end: end),
+                  transitionOnUserGestures: true,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: SizedBox(
+                      width: 96,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          SharedPhotoView(
+                            photo: photo,
+                            fit: BoxFit.cover,
+                            // 96px slot → decode small (≈ 96 * DPR) to avoid
+                            // decoding a full-res bitmap for a strip thumbnail.
+                            decodeWidth:
+                                (96 * MediaQuery.of(context).devicePixelRatio)
+                                    .round(),
+                            placeholder: Container(
+                              color: AppColors.surfaceLight,
+                            ),
                           ),
-                        ),
+                          // Ripple over the photo (white .12 on imagery, like
+                          // the cinema card) — replaces the bare
+                          // GestureDetector (C7.7).
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              splashColor: AppColors.white.withValues(
+                                alpha: 0.12,
+                              ),
+                              onTap: () => _openPhotoPreview(
+                                todayPhotos,
+                                initialIndex: index,
+                                couple: couple,
+                                heroTags: heroTags,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -1219,9 +1630,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
       decoration: _gallerySurfaceDecoration(
-        radius: 30,
-        fillAlpha: 0.94,
-        borderAlpha: 0.9,
+        radius: 28,
         shadowAlpha: 0.05,
         blurRadius: 20,
         offset: const Offset(0, 12),
@@ -1240,29 +1649,31 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                        if (couple == null)
-                          Text(
-                            context.l10n.youTwoLabel,
-                            style: _galleryCardTitleStyle(size: 15.6),
-                          )
-                        else
-                          AnimatedCoupleName(
-                            person1Name: couple.person1Name,
-                            person2Name: couple.person2Name,
-                            creatorUserId: couple.createdByUserId,
-                            spacing: 5,
-                            runSpacing: 4,
-                            heartSize: 14,
-                            heartColor: AppColors.accentRose,
-                            textStyle: _galleryCardTitleStyle(size: 15.6),
-                          ),
+                      if (couple == null)
+                        Text(
+                          context.l10n.youTwoLabel,
+                          style: _galleryCardTitleStyle(size: 16),
+                        )
+                      else
+                        AnimatedCoupleName(
+                          person1Name: couple.person1Name,
+                          person2Name: couple.person2Name,
+                          creatorUserId: couple.createdByUserId,
+                          spacing: 5,
+                          runSpacing: 4,
+                          heartSize: 12,
+                          heartColor: AppColors.accentRose,
+                          textStyle: _galleryCardTitleStyle(size: 16),
+                        ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
                           Icon(
-                            LucideIcons.user,
+                            IconsaxPlusLinear.user,
                             size: 14,
-                            color: AppColors.textSecondary.withValues(alpha: 0.72),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.72,
+                            ),
                           ),
                           const SizedBox(width: 6),
                           Flexible(
@@ -1271,7 +1682,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                               overflow: TextOverflow.ellipsis,
                               style: _galleryMetaStyle(
                                 color: AppColors.textSecondary,
-                                size: 11.7,
+                                size: 12,
                                 alpha: 0.72,
                                 weight: FontWeight.w700,
                               ),
@@ -1279,16 +1690,18 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           ),
                           const SizedBox(width: 12),
                           Icon(
-                            LucideIcons.clock,
+                            IconsaxPlusLinear.clock,
                             size: 14,
-                            color: AppColors.textSecondary.withValues(alpha: 0.72),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.72,
+                            ),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             _formatFeedDate(photo.uploadDate),
                             style: _galleryMetaStyle(
                               color: AppColors.textSecondary,
-                              size: 11.7,
+                              size: 12,
                               alpha: 0.68,
                               weight: FontWeight.w600,
                             ),
@@ -1298,56 +1711,15 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     ],
                   ),
                 ),
-                PopupMenuButton<_PhotoFeedAction>(
+                IconButton(
+                  onPressed: () => _showPhotoActionsSheet(photo),
+                  visualDensity: VisualDensity.compact,
+                  splashRadius: 22,
+                  tooltip: context.l10n.photoOptionsTitle,
                   icon: Icon(
-                    LucideIcons.moreHorizontal,
+                    IconsaxPlusLinear.more,
                     color: AppColors.textSecondary.withValues(alpha: 0.76),
                   ),
-                  onSelected: (action) {
-                    if (action == _PhotoFeedAction.editCaption) {
-                      _editCaption(photo);
-                      return;
-                    }
-
-                    if (action == _PhotoFeedAction.report) {
-                      _reportPhoto(photo);
-                      return;
-                    }
-
-                    _deletePhoto(photo);
-                  },
-                  itemBuilder: (context) {
-                    final currentUserId = context.read<AuthProvider>().currentUser?.id;
-                    return [
-                      PopupMenuItem(
-                        value: _PhotoFeedAction.editCaption,
-                        child: Text(context.l10n.editCaptionAction),
-                      ),
-                      if (currentUserId != null)
-                        PopupMenuItem(
-                          value: _PhotoFeedAction.delete,
-                          child: Text(context.l10n.deletePhotoAction),
-                        ),
-                      PopupMenuItem(
-                        value: _PhotoFeedAction.report,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              LucideIcons.flag,
-                              size: 18,
-                              color: AppColors.accentRose,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              context.l10n.reportPhotoAction,
-                              style: const TextStyle(color: AppColors.accentRose),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ];
-                  },
                 ),
               ],
             ),
@@ -1356,20 +1728,21 @@ class _GalleryScreenState extends State<GalleryScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: GestureDetector(
               onTap: () => _openPhotoPreview(
-                context.read<PhotoProvider>().sortedPhotos,
+                context.read<PhotoProvider>().feedPhotos,
                 initialIndex: index,
                 couple: couple,
                 heroTags: List.generate(
-                  context.read<PhotoProvider>().sortedPhotos.length,
+                  context.read<PhotoProvider>().feedPhotos.length,
                   (photoIndex) => _feedHeroTag(
-                    context.read<PhotoProvider>().sortedPhotos[photoIndex],
+                    context.read<PhotoProvider>().feedPhotos[photoIndex],
                     photoIndex,
                   ),
                 ),
               ),
               onDoubleTap: () => _onDoubleTapPhoto(photo),
+              // Card 28 − 4 = 24: keeps the −4 nested-radius ratio (C7.3).
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(26),
+                borderRadius: BorderRadius.circular(24),
                 child: Hero(
                   tag: heroTag,
                   createRectTween: (begin, end) =>
@@ -1387,18 +1760,21 @@ class _GalleryScreenState extends State<GalleryScreen> {
                           // physical px). With source already capped at 1920px
                           // this is effectively native, but bounds older/legacy
                           // full-res uploads to the visible size.
-                          decodeWidth: (MediaQuery.of(context).size.width *
-                                  MediaQuery.of(context).devicePixelRatio)
-                              .round(),
+                          decodeWidth:
+                              (MediaQuery.of(context).size.width *
+                                      MediaQuery.of(context).devicePixelRatio)
+                                  .round(),
                           placeholder: Container(
-                            color:
-                                AppColors.surfaceLight.withValues(alpha: 0.94),
+                            color: AppColors.surfaceLight.withValues(
+                              alpha: 0.94,
+                            ),
                             alignment: Alignment.center,
                             child: Icon(
-                              LucideIcons.imageOff,
+                              IconsaxPlusLinear.gallery_remove,
                               size: 40,
-                              color:
-                                  AppColors.textSecondary.withValues(alpha: 0.5),
+                              color: AppColors.textSecondary.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
                           ),
                         ),
@@ -1419,7 +1795,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 displayCaption,
                 style: TextStyle(
                   color: AppColors.textPrimary.withValues(alpha: 0.84),
-                  fontSize: 14.2,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
                   height: 1.62,
                   letterSpacing: 0.02,
@@ -1428,25 +1804,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
             )
           else
             const SizedBox(height: 14),
-          _buildReactionBar(couple, photo),
+          _FeedReactionBar(couple: couple, photo: photo),
         ],
       ),
-    );
-  }
-
-  /// The reaction surface under a feed card. Hidden entirely when there is no
-  /// active Firebase couple (guest / local) — no two-way loop to react into.
-  Widget _buildReactionBar(Couple? couple, Photo photo) {
-    final reactionProvider = context.watch<ReactionProvider>();
-    final myUid = context.read<AuthProvider>().currentUser?.id;
-    if (!reactionProvider.isReady || myUid == null || couple == null) {
-      return const SizedBox(height: 16);
-    }
-
-    return ReactionBar(
-      photo: photo,
-      couple: couple,
-      myUid: myUid,
     );
   }
 
@@ -1476,15 +1836,19 @@ class _GalleryScreenState extends State<GalleryScreen> {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            // Header ink vòng 4 (2026-06-11): near-solid white chip + navy ink
+            // — the thin glass chip with white type failed contrast on blush.
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.16),
+              color: AppColors.white.withValues(alpha: 0.72),
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+              border: Border.all(
+                color: AppColors.white.withValues(alpha: 0.65),
+              ),
             ),
             child: Text(
               label,
               style: TextStyle(
-                color: AppColors.white.withValues(alpha: 0.82),
+                color: AppColors.textPrimary.withValues(alpha: 0.75),
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.4,
@@ -1518,14 +1882,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         padding: const EdgeInsets.all(24),
         child: Container(
           padding: const EdgeInsets.all(24),
-          decoration: _gallerySurfaceDecoration(
-            radius: 30,
-            fillAlpha: 0.92,
-            borderAlpha: 0.88,
-            shadowAlpha: 0.05,
-            blurRadius: 20,
-            offset: const Offset(0, 12),
-          ),
+          decoration: _gallerySurfaceDecoration(radius: 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1537,7 +1894,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  LucideIcons.cloudOff,
+                  IconsaxPlusLinear.cloud_cross,
                   color: AppColors.accentRose,
                   size: 36,
                 ),
@@ -1548,7 +1905,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.textPrimary.withValues(alpha: 0.92),
-                  fontSize: 20.5,
+                  fontSize: 20,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.35,
                   height: 1.12,
@@ -1558,22 +1915,26 @@ class _GalleryScreenState extends State<GalleryScreen> {
               Text(
                 context.l10n.galleryLoadErrorSubtitle,
                 textAlign: TextAlign.center,
-                style: _galleryBodyStyle(size: 13.1, alpha: 0.82, height: 1.62),
+                style: _galleryBodyStyle(size: 13, alpha: 0.82, height: 1.62),
               ),
               const SizedBox(height: 22),
               FilledButton.icon(
-                onPressed:
-                    context.watch<PhotoProvider>().isLoading ? null : _retrySync,
+                onPressed: context.watch<PhotoProvider>().isLoading
+                    ? null
+                    : _retrySync,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accentRose,
                   foregroundColor: AppColors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  // r16 = in-card button token (C7.8).
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                icon: const Icon(LucideIcons.refreshCw),
+                icon: const Icon(IconsaxPlusLinear.refresh),
                 label: Text(context.l10n.galleryRetryBtn),
               ),
             ],
@@ -1589,14 +1950,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         padding: const EdgeInsets.all(24),
         child: Container(
           padding: const EdgeInsets.all(24),
-            decoration: _gallerySurfaceDecoration(
-              radius: 30,
-              fillAlpha: 0.92,
-              borderAlpha: 0.88,
-              shadowAlpha: 0.05,
-              blurRadius: 20,
-              offset: const Offset(0, 12),
-            ),
+          decoration: _gallerySurfaceDecoration(radius: 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1608,7 +1962,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  LucideIcons.bookOpen,
+                  IconsaxPlusLinear.book_1,
                   color: AppColors.white,
                   size: 38,
                 ),
@@ -1620,7 +1974,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textPrimary.withValues(alpha: 0.92),
-                    fontSize: 20.5,
+                    fontSize: 20,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.35,
                     height: 1.12,
@@ -1638,7 +1992,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: AppColors.textPrimary.withValues(alpha: 0.92),
-                        fontSize: 20.5,
+                        fontSize: 20,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.35,
                         height: 1.12,
@@ -1651,11 +2005,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       spacing: 6,
                       runSpacing: 4,
                       alignment: WrapAlignment.center,
-                      heartSize: 18,
+                      heartSize: 15,
                       heartColor: AppColors.accentRose,
                       textStyle: TextStyle(
                         color: AppColors.textPrimary.withValues(alpha: 0.92),
-                        fontSize: 20.5,
+                        fontSize: 20,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.35,
                         height: 1.12,
@@ -1674,20 +2028,26 @@ class _GalleryScreenState extends State<GalleryScreen> {
               Text(
                 context.l10n.emptyFeedContent,
                 textAlign: TextAlign.center,
-                style: _galleryBodyStyle(size: 13.1, alpha: 0.82, height: 1.62),
+                style: _galleryBodyStyle(size: 13, alpha: 0.82, height: 1.62),
               ),
               const SizedBox(height: 22),
               FilledButton.icon(
-                onPressed: context.watch<PhotoProvider>().isLoading ? null : _pickAndAddPhoto,
+                onPressed: context.watch<PhotoProvider>().isLoading
+                    ? null
+                    : _pickAndAddPhoto,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accentRose,
                   foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  // r16 = in-card button token (C7.8).
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                icon: const Icon(LucideIcons.imagePlus),
+                icon: const Icon(IconsaxPlusLinear.gallery_add),
                 label: Text(context.l10n.postFirstPhotoBtn),
               ),
             ],
@@ -1703,8 +2063,21 @@ class _GalleryScreenState extends State<GalleryScreen> {
       backgroundColor: Colors.transparent,
       body: Consumer2<PhotoProvider, CoupleProvider>(
         builder: (context, photoProvider, coupleProvider, _) {
-          final photos = photoProvider.sortedPhotos;
+          // Feed = the contiguous paginated prefix (pagination D1); on-this-day
+          // extras live only in `sortedPhotos` so the timeline has no holes.
+          final photos = photoProvider.feedPhotos;
           final couple = coupleProvider.couple;
+
+          // Deep-link: open the exact photo a tapped notification asked for,
+          // once the list has loaded (handles cold-start where photos arrive
+          // after the tap). Gated + self-clearing so it fires at most once.
+          final deepLinkId = _pendingDeepLinkPhotoId;
+          if (deepLinkId != null && !photoProvider.isLoading) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _openDeepLinkPhoto(deepLinkId, photos, couple);
+            });
+          }
+
           final feedItems = _buildFeedItems(photos);
           // Stream errored AND nothing to show → it's a load failure, not an
           // empty library. Render a retryable error state instead of "post your
@@ -1715,77 +2088,137 @@ class _GalleryScreenState extends State<GalleryScreen> {
           return BlockingLoadingOverlay(
             isVisible: photoProvider.isLoading,
             message: photoProvider.loadingMessage,
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: AppColors.secondaryGradient,
-              ),
-              child: RefreshIndicator(
-                onRefresh: _retrySync,
-                color: AppColors.accentRose,
+            // Transparent: dawnBlush is painted ONCE by the Home shell behind
+            // the tab IndexedStack (bg-unify 2026-06-14) so all 4 tabs match —
+            // a per-tab gradient Container restarted the diagonal at the tab
+            // top, shifting the colours vs the Home/Chat tabs.
+            child: RefreshIndicator(
+              onRefresh: _retrySync,
+              color: AppColors.accentRose,
+              backgroundColor: AppColors.white,
+              // Infinite scroll (pagination D1): nearing the bottom of the
+              // OUTER feed scrollable (depth 0 — ignore nested horizontal
+              // scrollers) fetches the next page of older photos. The
+              // provider guards re-entrancy, so spamming this is safe.
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (notification.depth == 0 &&
+                      notification.metrics.axis == Axis.vertical &&
+                      notification.metrics.extentAfter < 600) {
+                    photoProvider.loadMorePhotos();
+                  }
+                  return false;
+                },
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
                   ),
                   slivers: [
-                  SliverPersistentHeader(
-                    floating: false,
-                    pinned: true,
-                    delegate: _GalleryFloatingShowcaseHeaderDelegate(
-                      minHeaderExtent: _floatingTopShowcaseMinHeight,
-                      maxHeaderExtent: _floatingTopShowcaseMaxHeight,
-                      compactChild: _buildCompactTopShowcase(couple, photos.length),
-                      expandedChild: _buildFloatingTopShowcase(couple, photos.length),
-                    ),
-                  ),
-                  if (photos.isNotEmpty)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-                        child: _buildTodayCTACard(couple, photos),
+                    SliverPersistentHeader(
+                      floating: false,
+                      pinned: true,
+                      delegate: _GalleryFloatingShowcaseHeaderDelegate(
+                        minHeaderExtent: _floatingTopShowcaseMinHeight,
+                        maxHeaderExtent: _floatingTopShowcaseMaxHeight,
+                        // D2: show the aggregate TOTAL, not just the loaded page.
+                        compactChild: _buildCompactTopShowcase(
+                          couple,
+                          photoProvider.photoCount,
+                        ),
+                        expandedChild: _buildFloatingTopShowcase(
+                          couple,
+                          photoProvider.photoCount,
+                        ),
                       ),
                     ),
-                  if (hasLoadError) ...[
-                    SliverToBoxAdapter(child: _buildErrorState()),
-                    SliverPadding(
-                      padding: EdgeInsets.only(bottom: widget.bottomInset + 24),
-                    ),
-                  ]
-                  else if (photos.isEmpty) ...[
-                    SliverToBoxAdapter(child: _buildEmptyFeedState(couple)),
-                    SliverPadding(
-                      padding: EdgeInsets.only(bottom: widget.bottomInset + 24),
-                    ),
-                  ]
-                  else
-                    SliverPadding(
-                      padding: EdgeInsets.fromLTRB(
-                        16,
-                        0,
-                        16,
-                        widget.bottomInset + 32,
+                    if (photos.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                          child: _buildTodayCTACard(couple, photos),
+                        ),
                       ),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          final item = feedItems[index];
-                          if (item is _FeedMonthHeader) {
-                            return _buildMonthHeaderWidget(item.date);
-                          }
-                          final p = item as _FeedPhotoItem;
-                          final card =
-                              _buildPhotoFeedCard(couple, p.photo, p.originalIndex);
-                          // Only the first few cards get the staggered entrance;
-                          // deeper cards (revealed by scrolling) appear normally
-                          // so a long feed never lags or re-animates on recycle.
-                          if (p.originalIndex < 6) {
-                            return _OnceEntrance(
-                              order: p.originalIndex,
-                              child: card,
+                    if (hasLoadError) ...[
+                      SliverToBoxAdapter(child: _buildErrorState()),
+                      SliverPadding(
+                        padding: EdgeInsets.only(
+                          bottom: widget.bottomInset + 24,
+                        ),
+                      ),
+                    ] else if (photos.isEmpty) ...[
+                      SliverToBoxAdapter(child: _buildEmptyFeedState(couple)),
+                      SliverPadding(
+                        padding: EdgeInsets.only(
+                          bottom: widget.bottomInset + 24,
+                        ),
+                      ),
+                    ] else ...[
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            final item = feedItems[index];
+                            if (item is _FeedMonthHeader) {
+                              return _buildMonthHeaderWidget(item.date);
+                            }
+                            final p = item as _FeedPhotoItem;
+                            final card = _buildPhotoFeedCard(
+                              couple,
+                              p.photo,
+                              p.originalIndex,
                             );
-                          }
-                          return card;
-                        }, childCount: feedItems.length),
+                            // Only the first few cards get the staggered entrance;
+                            // deeper cards (revealed by scrolling) appear normally
+                            // so a long feed never lags or re-animates on recycle.
+                            if (p.originalIndex < 6) {
+                              return EntranceReveal(
+                                order: p.originalIndex,
+                                child: card,
+                              );
+                            }
+                            return card;
+                          }, childCount: feedItems.length),
+                        ),
                       ),
-                    ),
+                      // Pagination footer: shimmer while the next page loads;
+                      // a gentle sign-off once a LONG feed (>1 page) is fully
+                      // loaded. Short feeds get neither.
+                      if (photoProvider.isLoadingMore)
+                        const SliverToBoxAdapter(
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
+                            child: ShimmerSkeleton(
+                              width: double.infinity,
+                              height: 120,
+                              borderRadius: 24,
+                            ),
+                          ),
+                        )
+                      else if (!photoProvider.hasMorePhotos &&
+                          photos.length > 30)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                            child: Text(
+                              context.l10n.galleryEndOfFeed,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 13,
+                                height: 1.45,
+                              ),
+                            ),
+                          ),
+                        ),
+                      SliverPadding(
+                        padding: EdgeInsets.only(
+                          bottom: widget.bottomInset + 32,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1797,7 +2230,46 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 }
 
-enum _PhotoFeedAction { editCaption, delete, report }
+/// Isolated widget so only the reaction bar rebuilds on ReactionProvider
+/// changes, not the entire GalleryScreen (prevents a "dirty widget in wrong
+/// build scope" crash from context.watch inside _GalleryScreenState colliding
+/// with a layout callback elsewhere in the tree).
+class _FeedReactionBar extends StatelessWidget {
+  const _FeedReactionBar({required this.couple, required this.photo});
+
+  final Couple? couple;
+  final Photo photo;
+
+  @override
+  Widget build(BuildContext context) {
+    final reactionProvider = context.watch<ReactionProvider>();
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    if (!reactionProvider.isReady || myUid == null || couple == null) {
+      return const SizedBox(height: 16);
+    }
+    return ReactionBar(photo: photo, couple: couple!, myUid: myUid);
+  }
+}
+
+enum _PhotoFeedAction { editCaption, replaceImage, delete, report }
+
+/// One row in the photo-actions sheet (redesign 2026-06-21): an icon badge +
+/// label that pops [action]. [tint] colours the badge/icon/label (red for
+/// destructive delete, rose for report); null = neutral navy label on the
+/// app's accent badge.
+class _PhotoActionSpec {
+  const _PhotoActionSpec({
+    required this.icon,
+    required this.label,
+    required this.action,
+    this.tint,
+  });
+
+  final IconData icon;
+  final String label;
+  final _PhotoFeedAction action;
+  final Color? tint;
+}
 
 sealed class _FeedItem {}
 
@@ -1810,77 +2282,6 @@ class _FeedPhotoItem extends _FeedItem {
   _FeedPhotoItem(this.photo, this.originalIndex);
   final Photo photo;
   final int originalIndex;
-}
-
-class _MarqueeRow extends StatefulWidget {
-  const _MarqueeRow({required this.children});
-  final List<Widget> children;
-
-  @override
-  State<_MarqueeRow> createState() => _MarqueeRowState();
-}
-
-class _MarqueeRowState extends State<_MarqueeRow> {
-  final ScrollController _controller = ScrollController();
-  static const double _speed = 45.0; // pixels per second
-  static const int _repeatFactor = 300;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loop());
-  }
-
-  Future<void> _loop() async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    while (mounted && _controller.hasClients) {
-      final max = _controller.position.maxScrollExtent;
-      if (max <= 0) {
-        await Future.delayed(const Duration(milliseconds: 300));
-        continue;
-      }
-      final remaining = max - _controller.offset;
-      final durationMs = (remaining / _speed * 1000).round();
-      if (durationMs <= 0) {
-        _controller.jumpTo(0);
-        continue;
-      }
-      await _controller.animateTo(
-        max,
-        duration: Duration(milliseconds: durationMs),
-        curve: Curves.linear,
-      );
-      if (!mounted) break;
-      _controller.jumpTo(0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final count = widget.children.length;
-    return SizedBox(
-      height: 30,
-      child: ListView.builder(
-        controller: _controller,
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: count * _repeatFactor,
-        itemBuilder: (_, i) {
-          final child = widget.children[i % count];
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: child,
-          );
-        },
-      ),
-    );
-  }
 }
 
 class _GalleryFloatingShowcaseHeaderDelegate
@@ -1921,24 +2322,34 @@ class _GalleryFloatingShowcaseHeaderDelegate
     const compactRevealStart = 0.14;
     final handoffProgress = progress <= compactRevealStart
         ? 0.0
-        : ((progress - compactRevealStart) / (1 - compactRevealStart)).clamp(0.0, 1.0);
+        : ((progress - compactRevealStart) / (1 - compactRevealStart)).clamp(
+            0.0,
+            1.0,
+          );
     final compactProgress = Curves.easeInOutCubic.transform(handoffProgress);
     final expandedOpacity = 1 - Curves.easeOutCubic.transform(progress);
     final compactOpacity = Curves.easeInOut.transform(handoffProgress);
     final compactScale = lerpDouble(0.998, 1.0, compactProgress) ?? 1.0;
     final compactTranslateY = lerpDouble(3, 0, compactProgress) ?? 0.0;
     final expandedTranslateY = lerpDouble(0, -6, progress) ?? 0.0;
-    final backgroundShadowProgress = Curves.easeOutCubic.transform(compactOpacity);
+    final backgroundShadowProgress = Curves.easeOutCubic.transform(
+      compactOpacity,
+    );
 
+    // bg-unify 2026-06-14: the showcase scrim fades in ONLY as the header
+    // collapses. At rest (progress 0) it is fully transparent so the gallery
+    // tab shows the exact same dawnBlush as Home/Chat/Profile; it ramps up
+    // while scrolling so feed photos don't bleed under the pinned header.
+    final scrim = Curves.easeOut.transform(progress);
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.secondaryGradient.colors.first.withValues(alpha: 0.96),
-            AppColors.secondaryGradient.colors.last.withValues(alpha: 0.82),
-            AppColors.secondaryGradient.colors.last.withValues(alpha: 0.16),
+            AppColors.secondaryGradient.colors.first.withValues(alpha: 0.96 * scrim),
+            AppColors.secondaryGradient.colors.last.withValues(alpha: 0.82 * scrim),
+            AppColors.secondaryGradient.colors.last.withValues(alpha: 0.16 * scrim),
             Colors.transparent,
           ],
           stops: const [0.0, 0.42, 0.78, 1.0],
@@ -1946,7 +2357,9 @@ class _GalleryFloatingShowcaseHeaderDelegate
         boxShadow: overlapsContent && backgroundShadowProgress > 0.4
             ? [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.018 * backgroundShadowProgress),
+                  color: Colors.black.withValues(
+                    alpha: 0.018 * backgroundShadowProgress,
+                  ),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -2002,7 +2415,9 @@ class _GalleryFloatingShowcaseHeaderDelegate
   }
 
   @override
-  bool shouldRebuild(covariant _GalleryFloatingShowcaseHeaderDelegate oldDelegate) {
+  bool shouldRebuild(
+    covariant _GalleryFloatingShowcaseHeaderDelegate oldDelegate,
+  ) {
     return oldDelegate.minHeaderExtent != minHeaderExtent ||
         oldDelegate.maxHeaderExtent != maxHeaderExtent ||
         oldDelegate.compactChild != compactChild ||
@@ -2017,6 +2432,7 @@ class _FullscreenPhotoPreview extends StatefulWidget {
     required this.initialIndex,
     required this.couple,
     this.onEditCaption,
+    this.onReplaceImage,
     this.onReport,
   });
 
@@ -2025,10 +2441,12 @@ class _FullscreenPhotoPreview extends StatefulWidget {
   final int initialIndex;
   final Couple? couple;
   final void Function(Photo photo)? onEditCaption;
+  final void Function(Photo photo)? onReplaceImage;
   final void Function(Photo photo)? onReport;
 
   @override
-  State<_FullscreenPhotoPreview> createState() => _FullscreenPhotoPreviewState();
+  State<_FullscreenPhotoPreview> createState() =>
+      _FullscreenPhotoPreviewState();
 }
 
 class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
@@ -2064,19 +2482,23 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
       widget.photos.length,
       (_) => TransformationController(),
     );
-    _transformationListeners = List<VoidCallback>.generate(widget.photos.length, (index) {
-      return () {
-        final nextScale = _transformationControllers[index].value.getMaxScaleOnAxis();
-        if ((_pageScales[index] - nextScale).abs() < 0.01) {
-          return;
-        }
+    _transformationListeners = List<VoidCallback>.generate(
+      widget.photos.length,
+      (index) {
+        return () {
+          final nextScale = _transformationControllers[index].value
+              .getMaxScaleOnAxis();
+          if ((_pageScales[index] - nextScale).abs() < 0.01) {
+            return;
+          }
 
-        _pageScales[index] = nextScale;
-        if (mounted && index == _currentIndex) {
-          setState(() {});
-        }
-      };
-    });
+          _pageScales[index] = nextScale;
+          if (mounted && index == _currentIndex) {
+            setState(() {});
+          }
+        };
+      },
+    );
 
     for (var i = 0; i < _transformationControllers.length; i++) {
       _transformationControllers[i].addListener(_transformationListeners[i]);
@@ -2126,35 +2548,6 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
     }
   }
 
-  /// On-dark reaction row appended to the fullscreen info panel. Hidden when
-  /// there is no active Firebase couple (guest / local).
-  Widget _buildPreviewReactionRow(Photo photo) {
-    final reactionProvider = context.watch<ReactionProvider>();
-    final myUid = context.read<AuthProvider>().currentUser?.id;
-    if (!reactionProvider.isReady || myUid == null || widget.couple == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(height: 12),
-        Divider(
-          height: 1,
-          thickness: 1,
-          color: AppColors.white.withValues(alpha: 0.12),
-        ),
-        ReactionBar(
-          photo: photo,
-          couple: widget.couple,
-          myUid: myUid,
-          onDark: true,
-          padding: const EdgeInsets.only(top: 10),
-        ),
-      ],
-    );
-  }
-
   bool get _canDismissWithDrag => _pageScales[_currentIndex] <= 1.02;
 
   double get _dismissProgress =>
@@ -2175,7 +2568,10 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
     }
 
     final delta = details.primaryDelta ?? 0;
-    final nextOffset = (_verticalDragOffset + delta).clamp(0.0, double.infinity);
+    final nextOffset = (_verticalDragOffset + delta).clamp(
+      0.0,
+      double.infinity,
+    );
     if ((nextOffset - _verticalDragOffset).abs() < 0.1) {
       return;
     }
@@ -2221,7 +2617,10 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
     }
 
     final animation = Tween<double>(begin: start, end: 0).animate(
-      CurvedAnimation(parent: _dismissResetController, curve: Curves.easeOutCubic),
+      CurvedAnimation(
+        parent: _dismissResetController,
+        curve: Curves.easeOutCubic,
+      ),
     );
 
     void listener() {
@@ -2256,225 +2655,271 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
       backgroundColor: Colors.black.withValues(alpha: backgroundAlpha),
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onVerticalDragStart:
-            verticalDragHandlersEnabled ? _onVerticalDragStart : null,
-        onVerticalDragUpdate:
-            verticalDragHandlersEnabled ? _onVerticalDragUpdate : null,
-        onVerticalDragEnd: verticalDragHandlersEnabled ? _onVerticalDragEnd : null,
+        onVerticalDragStart: verticalDragHandlersEnabled
+            ? _onVerticalDragStart
+            : null,
+        onVerticalDragUpdate: verticalDragHandlersEnabled
+            ? _onVerticalDragUpdate
+            : null,
+        onVerticalDragEnd: verticalDragHandlersEnabled
+            ? _onVerticalDragEnd
+            : null,
         child: Transform.translate(
           offset: Offset(0, _verticalDragOffset),
           child: Transform.scale(
             scale: contentScale,
             child: Stack(
-        children: [
-          Positioned.fill(
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: widget.photos.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                  _verticalDragOffset = 0;
-                });
-              },
-              itemBuilder: (context, index) {
-                final photo = widget.photos[index];
-                final image = SharedPhotoView(
-                  photo: photo,
-                  fit: BoxFit.contain,
-                );
+              children: [
+                Positioned.fill(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: widget.photos.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentIndex = index;
+                        _verticalDragOffset = 0;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      final photo = widget.photos[index];
+                      final image = SharedPhotoView(
+                        photo: photo,
+                        fit: BoxFit.contain,
+                      );
 
-                final child = Center(
-                  child: InteractiveViewer(
-                    transformationController: _transformationControllers[index],
-                    minScale: 0.9,
-                    maxScale: 4,
-                    child: index == widget.initialIndex
-                        ? Hero(
-                            tag: widget.heroTags[index],
-                            createRectTween: (begin, end) =>
-                                MaterialRectCenterArcTween(begin: begin, end: end),
-                            transitionOnUserGestures: true,
-                            child: image,
-                          )
-                        : image,
-                  ),
-                );
+                      final child = Center(
+                        child: InteractiveViewer(
+                          transformationController:
+                              _transformationControllers[index],
+                          minScale: 0.9,
+                          maxScale: 4,
+                          child: index == widget.initialIndex
+                              ? Hero(
+                                  tag: widget.heroTags[index],
+                                  createRectTween: (begin, end) =>
+                                      MaterialRectCenterArcTween(
+                                        begin: begin,
+                                        end: end,
+                                      ),
+                                  transitionOnUserGestures: true,
+                                  child: image,
+                                )
+                              : image,
+                        ),
+                      );
 
-                // Double-tap → ❤️ + burst, drawn over the image. The burst is
-                // pointer-ignoring so it never blocks pan/zoom underneath.
-                return GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onDoubleTap: () => _onDoubleTapPhoto(photo),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      child,
-                      HeartBurstOverlay(trigger: _burstTriggers[photo.id] ?? 0),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 12,
-            right: 16,
-            child: Opacity(
-              opacity: overlayOpacity,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (widget.onReport != null) ...[
-                    IconButton.filledTonal(
-                      onPressed: () => widget.onReport!(currentPhoto),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.black.withValues(alpha: 0.28),
-                        foregroundColor: AppColors.white,
-                      ),
-                      icon: const Icon(LucideIcons.flag),
-                      tooltip: context.l10n.reportPhotoAction,
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  if (widget.onEditCaption != null)
-                    IconButton.filledTonal(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        widget.onEditCaption!(currentPhoto);
-                      },
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.black.withValues(alpha: 0.28),
-                        foregroundColor: AppColors.white,
-                      ),
-                      icon: const Icon(LucideIcons.pencil),
-                      tooltip: context.l10n.galleryEditCaptionTooltip,
-                    ),
-                  const SizedBox(width: 8),
-                  IconButton.filledTonal(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.black.withValues(alpha: 0.28),
-                      foregroundColor: AppColors.white,
-                    ),
-                    icon: const Icon(LucideIcons.x),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: MediaQuery.of(context).padding.bottom + 20,
-            child: Opacity(
-              opacity: overlayOpacity,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.36),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: AppColors.white.withValues(alpha: 0.12),
+                      // Double-tap → ❤️ + burst, drawn over the image. The burst is
+                      // pointer-ignoring so it never blocks pan/zoom underneath.
+                      return GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onDoubleTap: () => _onDoubleTapPhoto(photo),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            child,
+                            HeartBurstOverlay(
+                              trigger: _burstTriggers[photo.id] ?? 0,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (widget.couple == null)
-                        Text(
-                          context.l10n.youTwoLabel,
-                          style: TextStyle(
-                            color: AppColors.white.withValues(alpha: 0.96),
-                            fontSize: 15.6,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.15,
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 12,
+                  right: 16,
+                  child: Opacity(
+                    opacity: overlayOpacity,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.onReport != null) ...[
+                          IconButton.filledTonal(
+                            onPressed: () => widget.onReport!(currentPhoto),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black.withValues(
+                                alpha: 0.28,
+                              ),
+                              foregroundColor: AppColors.white,
+                            ),
+                            icon: const Icon(IconsaxPlusLinear.flag),
+                            tooltip: context.l10n.reportPhotoAction,
                           ),
-                        )
-                      else
-                        AnimatedCoupleName(
-                          person1Name: widget.couple!.person1Name,
-                          person2Name: widget.couple!.person2Name,
-                          creatorUserId: widget.couple!.createdByUserId,
-                          spacing: 6,
-                          runSpacing: 4,
-                          heartSize: 14,
-                          heartColor: AppColors.white,
-                          textStyle: TextStyle(
-                            color: AppColors.white.withValues(alpha: 0.96),
-                            fontSize: 15.6,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.15,
+                          const SizedBox(width: 8),
+                        ],
+                        if (widget.onReplaceImage != null) ...[
+                          IconButton.filledTonal(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              widget.onReplaceImage!(currentPhoto);
+                            },
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black.withValues(
+                                alpha: 0.28,
+                              ),
+                              foregroundColor: AppColors.white,
+                            ),
+                            icon: const Icon(IconsaxPlusLinear.gallery_edit),
+                            tooltip: context.l10n.galleryReplacePhotoTooltip,
                           ),
-                        ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _previewPostedByLabel(currentPhoto),
-                        style: TextStyle(
-                          color: AppColors.white.withValues(alpha: 0.82),
-                          fontSize: 12.4,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.06,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatFeedDate(currentPhoto.uploadDate),
-                        style: TextStyle(
-                          color: AppColors.white.withValues(alpha: 0.72),
-                          fontSize: 12.1,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.06,
-                        ),
-                      ),
-                      if (currentPhoto.caption?.trim().isNotEmpty == true) ...[
-                        const SizedBox(height: 10),
-                        Text(
-                          currentPhoto.caption!.trim(),
-                          style: TextStyle(
-                            color: AppColors.white.withValues(alpha: 0.94),
-                            fontSize: 14.2,
-                            fontWeight: FontWeight.w500,
-                            height: 1.58,
+                          const SizedBox(width: 8),
+                        ],
+                        if (widget.onEditCaption != null)
+                          IconButton.filledTonal(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              widget.onEditCaption!(currentPhoto);
+                            },
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black.withValues(
+                                alpha: 0.28,
+                              ),
+                              foregroundColor: AppColors.white,
+                            ),
+                            icon: const Icon(IconsaxPlusLinear.edit_2),
+                            tooltip: context.l10n.galleryEditCaptionTooltip,
                           ),
+                        const SizedBox(width: 8),
+                        IconButton.filledTonal(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.black.withValues(
+                              alpha: 0.28,
+                            ),
+                            foregroundColor: AppColors.white,
+                          ),
+                          icon: const Icon(IconsaxPlusLinear.close_circle),
                         ),
                       ],
-                      _buildPreviewReactionRow(currentPhoto),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
-          if (widget.photos.length > 1)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: MediaQuery.of(context).padding.bottom + 124,
-              child: Opacity(
-                opacity: overlayOpacity,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.28),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '${_currentIndex + 1} / ${widget.photos.length}',
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                Positioned(
+                  left: 20,
+                  right: 20,
+                  bottom: MediaQuery.of(context).padding.bottom + 20,
+                  child: Opacity(
+                    opacity: overlayOpacity,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.36),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: AppColors.white.withValues(alpha: 0.12),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (widget.couple == null)
+                              Text(
+                                context.l10n.youTwoLabel,
+                                style: TextStyle(
+                                  color: AppColors.white.withValues(
+                                    alpha: 0.96,
+                                  ),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.15,
+                                ),
+                              )
+                            else
+                              AnimatedCoupleName(
+                                person1Name: widget.couple!.person1Name,
+                                person2Name: widget.couple!.person2Name,
+                                creatorUserId: widget.couple!.createdByUserId,
+                                spacing: 6,
+                                runSpacing: 4,
+                                heartSize: 12,
+                                heartColor: AppColors.white,
+                                textStyle: TextStyle(
+                                  color: AppColors.white.withValues(
+                                    alpha: 0.96,
+                                  ),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.15,
+                                ),
+                              ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _previewPostedByLabel(currentPhoto),
+                              style: TextStyle(
+                                color: AppColors.white.withValues(alpha: 0.82),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.06,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _formatFeedDate(currentPhoto.uploadDate),
+                              style: TextStyle(
+                                color: AppColors.white.withValues(alpha: 0.72),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.06,
+                              ),
+                            ),
+                            if (currentPhoto.caption?.trim().isNotEmpty ==
+                                true) ...[
+                              const SizedBox(height: 10),
+                              Text(
+                                currentPhoto.caption!.trim(),
+                                style: TextStyle(
+                                  color: AppColors.white.withValues(
+                                    alpha: 0.94,
+                                  ),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  height: 1.58,
+                                ),
+                              ),
+                            ],
+                            _PreviewReactionRow(
+                              photo: currentPhoto,
+                              couple: widget.couple,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-        ],
+                if (widget.photos.length > 1)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: MediaQuery.of(context).padding.bottom + 124,
+                    child: Opacity(
+                      opacity: overlayOpacity,
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.28),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '${_currentIndex + 1} / ${widget.photos.length}',
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -2483,57 +2928,38 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
   }
 }
 
-/// Plays the shared fade+slide entrance once, the first time it is mounted,
-/// then renders its child statically. Used for the first few feed cards so the
-/// gallery enters smoothly without re-animating on rebuild or scroll-recycle.
-class _OnceEntrance extends StatefulWidget {
-  const _OnceEntrance({required this.order, required this.child});
+/// Isolated widget so only the on-dark reaction row rebuilds on ReactionProvider
+/// changes, not the entire _FullscreenPhotoPreviewState.
+class _PreviewReactionRow extends StatelessWidget {
+  const _PreviewReactionRow({required this.photo, required this.couple});
 
-  final int order;
-  final Widget child;
-
-  @override
-  State<_OnceEntrance> createState() => _OnceEntranceState();
-}
-
-class _OnceEntranceState extends State<_OnceEntrance> {
-  bool _played = false;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer(
-      AppMotion.entrance + AppMotion.stagger * widget.order,
-      () {
-        if (mounted) {
-          setState(() => _played = true);
-        }
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
+  final Photo photo;
+  final Couple? couple;
 
   @override
   Widget build(BuildContext context) {
-    if (_played) {
-      return widget.child;
+    final reactionProvider = context.watch<ReactionProvider>();
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    if (!reactionProvider.isReady || myUid == null || couple == null) {
+      return const SizedBox.shrink();
     }
-    return widget.child
-        .animate()
-        .fadeIn(duration: AppMotion.entrance, curve: AppMotion.curve)
-        .slideY(
-          begin: 0.08,
-          end: 0,
-          duration: AppMotion.entrance,
-          curve: AppMotion.curve,
-          delay: AppMotion.stagger * widget.order,
-        );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: 12),
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: AppColors.white.withValues(alpha: 0.12),
+        ),
+        ReactionBar(
+          photo: photo,
+          couple: couple!,
+          myUid: myUid,
+          onDark: true,
+          padding: const EdgeInsets.only(top: 10),
+        ),
+      ],
+    );
   }
 }
-

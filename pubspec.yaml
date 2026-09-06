@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.1+6
+version: 1.6.1+21
 
 environment:
   sdk: ^3.11.4
@@ -84,17 +84,26 @@ dependencies:
   timezone: ^0.10.1
   flutter_timezone: ^4.1.1
 
-  # UI/UX revamp foundation (Đợt 1): fonts, motion, skeletons, celebration
-  google_fonts: ^6.2.1
+  # UI/UX revamp foundation (Đợt 1): motion, skeletons, celebration.
+  # Typography is bundled (Be Vietnam Pro in assets/fonts) — no runtime font
+  # fetch, so we dropped google_fonts (was the cause of iOS diacritic glitches).
   flutter_animate: ^4.5.2
   shimmer: ^3.0.0
-  lucide_icons: ^0.257.0
+  # Icon set: migrated Lucide → Iconsax 2026-06-14 (user "re-design toàn icon").
+  # iconsax_plus = full Iconsax set, 3 weights (Linear/Bold/Broken). lucide_icons
+  # fully removed (0 usages). Policy: Linear default, Bold for nav-selected +
+  # accents/badges; in-app brand loader heart kept as Material favorite.
+  iconsax_plus: ^1.0.0
   confetti: ^0.8.0
 
   # Lottie "moment" animations (feature lottie-moments, Đợt 2 revamp).
   # Dùng có chọn lọc ở vài khoảnh khắc cảm xúc; slot thiếu file tự fallback.
   lottie: ^3.3.3
   firebase_analytics: ^12.4.2
+  package_info_plus: ^9.0.1
+  # Android-only native force/flexible update via Google Play In-App Updates
+  # (feature auto-store-update). iOS uses the iTunes Lookup API instead.
+  in_app_update: ^4.2.3
 
 dev_dependencies:
   flutter_test:
@@ -127,6 +136,41 @@ flutter:
   # thư mục mới được bundle — slot thiếu file thì widget LoveLottie tự fallback.
   assets:
     - assets/lottie/
+
+  # Bundled app fonts (OFL, full Vietnamese, offline — never fetched at
+  # runtime). Active family: Quicksand (rounded, "mịn màng nhẹ nhàng",
+  # 2026-06-10). Max real weight is 700 — w800 call-sites resolve to the Bold
+  # file (declared twice on purpose). Be Vietnam Pro stays bundled as the
+  # previous family for a cheap rollback.
+  fonts:
+    - family: Quicksand
+      fonts:
+        - asset: assets/fonts/Quicksand-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Quicksand-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Quicksand-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Quicksand-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Quicksand-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Quicksand-Bold.ttf
+          weight: 800
+    - family: Be Vietnam Pro
+      fonts:
+        - asset: assets/fonts/BeVietnamPro-Light.ttf
+          weight: 300
+        - asset: assets/fonts/BeVietnamPro-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/BeVietnamPro-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/BeVietnamPro-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BeVietnamPro-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/BeVietnamPro-ExtraBold.ttf
+          weight: 800
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

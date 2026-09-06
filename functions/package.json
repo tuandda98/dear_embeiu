@@ -11,8 +11,8 @@
     "deploy": "firebase deploy --only functions"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.124.0",
     "firebase-admin": "^13.0.2",
     "firebase-functions": "^6.0.1"
   }
 }
-

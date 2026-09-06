@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <meta name="supported-color-schemes" content="light" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Dear Embeiu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    /* ── Dear Embeiu — "Sunset Romance" brand tokens ──────────────────── */
+    :root {
+      --sunset1: #ff6b9d;
+      --sunset3: #ffb6c1;
+      --accent: #ff4d6d;       /* primary button / heart */
+      --accent-deep: #e63956;
+      --ink: #1a1a2e;          /* textPrimary navy */
+      --ink-soft: #3a3a4e;
+      --ink-muted: #8a8a9a;
+      --card: #ffffff;
+      --warning-bg: #fff5f8;
+      --warning-line: rgba(255, 77, 109, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      background: #fff1f5;
+      background-image:
+        radial-gradient(120% 80% at 50% -10%, #ffe1ec 0%, rgba(255, 225, 236, 0) 60%),
+        linear-gradient(160deg, #fff5f8 0%, #ffe9f1 48%, #ffe0ec 100%);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px 18px;
+    }
+
+    .wrap { width: 100%; max-width: 440px; }
+
+    .card {
+      background: var(--card);
+      border-radius: 28px;
+      padding: 36px 28px 30px;
+      box-shadow: 0 18px 48px rgba(255, 107, 157, 0.18),
+        0 2px 8px rgba(26, 26, 46, 0.04);
+      text-align: center;
+      animation: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .badge {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 20px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--sunset1) 0%, var(--sunset3) 100%);
+      box-shadow: 0 10px 24px rgba(255, 107, 157, 0.34);
+    }
+    .badge.soft {
+      background: rgba(255, 77, 109, 0.10);
+      box-shadow: none;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 23px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: var(--ink);
+    }
+
+    p.msg {
+      margin: 0 0 4px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--ink-soft);
+    }
+    p.sub {
+      margin: 14px 0 0;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--ink-muted);
+    }
+
+    .btn {
+      display: inline-block;
+      width: 100%;
+      margin-top: 24px;
+      padding: 16px 24px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(255, 77, 109, 0.32);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled { opacity: 0.55; cursor: default; box-shadow: none; }
+
+    .field {
+      text-align: left;
+      margin-top: 18px;
+    }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      margin: 0 0 7px 4px;
+    }
+    .field input {
+      width: 100%;
+      padding: 15px 16px;
+      border: 1.5px solid #f0dde4;
+      border-radius: 16px;
+      background: #fff;
+      font-family: inherit;
+      font-size: 16px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(255, 77, 109, 0.10);
+    }
+
+    .formError {
+      margin: 14px 2px 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--accent-deep);
+      text-align: left;
+      min-height: 0;
+    }
+
+    .spinner {
+      width: 34px;
+      height: 34px;
+      margin: 6px auto 0;
+      border-radius: 999px;
+      border: 3px solid rgba(255, 77, 109, 0.18);
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .foot {
+      margin-top: 22px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(138, 138, 154, 0.92);
+    }
+    .foot .brand { font-weight: 600; color: var(--ink-muted); }
+
+    .hidden { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card { animation: none; }
+      .spinner { animation-duration: 1.4s; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="card">
+      <!-- Filled in by JS depending on the action mode / result. -->
+      <div class="badge soft" id="badge">💌</div>
+      <div class="spinner" id="spinner"></div>
+      <h1 id="title" class="hidden"></h1>
+      <p class="msg" id="message"></p>
+
+      <!-- Password-reset form (shown only for mode=resetPassword) -->
+      <form id="resetForm" class="hidden" autocomplete="on">
+        <div class="field">
+          <label for="pw1" id="pw1Label"></label>
+          <input id="pw1" type="password" autocomplete="new-password" minlength="6" />
+        </div>
+        <div class="field">
+          <label for="pw2" id="pw2Label"></label>
+          <input id="pw2" type="password" autocomplete="new-password" minlength="6" />
+        </div>
+        <div class="formError" id="formError"></div>
+        <button class="btn" type="submit" id="resetSubmit"></button>
+      </form>
+
+      <!-- Primary action (open app) — shown on success / error -->
+      <a class="btn hidden" id="openApp" href="#"></a>
+      <p class="sub hidden" id="subNote"></p>
+    </div>
+
+    <div class="foot">
+      <div class="brand">Dear Embeiu</div>
+      <div id="footTag">Lưu giữ kỷ niệm &amp; đếm ngày yêu 💞</div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    // ── Deep link back into the native app ────────────────────────────────
+    // The app registers the custom scheme `dearembeiu://` (iOS Info.plist +
+    // Android intent-filter). Opening it foregrounds the existing app instance;
+    // the VerifyEmailScreen already auto-polls on resume, so it advances on its
+    // own. The host part is irrelevant to behaviour — it only foregrounds.
+    var APP_LINK = 'dearembeiu://verified';
+    var IDENTITY_BASE = 'https://identitytoolkit.googleapis.com/v1/accounts:';
+
+    // ── Bilingual copy (vi default, en) ───────────────────────────────────
+    var COPY = {
+      vi: {
+        footTag: 'Lưu giữ kỷ niệm & đếm ngày yêu 💞',
+        working: 'Đang xử lý…',
+        openApp: 'Mở Dear Embeiu',
+        backHint: 'Bạn có thể quay lại app — Dear Embeiu sẽ tự tiếp tục. 💞',
+        // verifyEmail
+        verifyOkTitle: 'Đã xác thực email! 💞',
+        verifyOkMsg: 'Tài khoản của bạn đã sẵn sàng. Quay lại Dear Embeiu để bắt đầu lưu giữ kỷ niệm cùng người ấy nhé.',
+        // recoverEmail
+        recoverOkTitle: 'Đã khôi phục email 💞',
+        recoverOkMsg: 'Email đăng nhập của bạn đã được khôi phục thành công.',
+        // resetPassword form
+        resetTitle: 'Đặt lại mật khẩu',
+        resetMsg: 'Tạo mật khẩu mới cho tài khoản <b></b>.',
+        pw1: 'Mật khẩu mới',
+        pw2: 'Nhập lại mật khẩu',
+        resetBtn: 'Đổi mật khẩu',
+        resetWorking: 'Đang đổi…',
+        errTooShort: 'Mật khẩu cần ít nhất 6 ký tự.',
+        errMismatch: 'Hai mật khẩu chưa khớp nhau.',
+        resetOkTitle: 'Đã đổi mật khẩu 💞',
+        resetOkMsg: 'Mật khẩu mới đã được lưu. Quay lại Dear Embeiu và đăng nhập nhé.',
+        // errors
+        errTitle: 'Liên kết đã hết hạn',
+        errExpired: 'Liên kết này đã hết hạn hoặc đã được dùng rồi. Hãy mở Dear Embeiu và gửi lại một liên kết mới.',
+        errInvalid: 'Liên kết không hợp lệ. Hãy mở Dear Embeiu và thử lại nhé.',
+        errGeneric: 'Có lỗi xảy ra. Hãy mở Dear Embeiu và thử lại nhé.',
+      },
+      en: {
+        footTag: 'Keep your memories & count the days in love 💞',
+        working: 'Working…',
+        openApp: 'Open Dear Embeiu',
+        backHint: 'You can return to the app — Dear Embeiu will continue on its own. 💞',
+        verifyOkTitle: 'Email verified! 💞',
+        verifyOkMsg: 'Your account is ready. Head back to Dear Embeiu to start keeping memories with your love.',
+        recoverOkTitle: 'Email recovered 💞',
+        recoverOkMsg: 'Your sign-in email has been successfully restored.',
+        resetTitle: 'Reset password',
+        resetMsg: 'Create a new password for <b></b>.',
+        pw1: 'New password',
+        pw2: 'Confirm password',
+        resetBtn: 'Change password',
+        resetWorking: 'Changing…',
+        errTooShort: 'Password must be at least 6 characters.',
+        errMismatch: 'The two passwords don’t match.',
+        resetOkTitle: 'Password changed 💞',
+        resetOkMsg: 'Your new password is saved. Head back to Dear Embeiu and sign in.',
+        errTitle: 'Link expired',
+        errExpired: 'This link has expired or has already been used. Open Dear Embeiu and request a new one.',
+        errInvalid: 'This link is invalid. Open Dear Embeiu and try again.',
+        errGeneric: 'Something went wrong. Open Dear Embeiu and try again.',
+      },
+    };
+
+    // ── Tiny DOM helpers ──────────────────────────────────────────────────
+    function $(id) { return document.getElementById(id); }
+    function show(el) { el.classList.remove('hidden'); }
+    function hide(el) { el.classList.add('hidden'); }
+
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name) || '';
+    }
+
+    var lang = (getParam('lang') || '').trim().toLowerCase().slice(0, 2);
+    var t = COPY[lang] || COPY.vi;
+    document.documentElement.lang = COPY[lang] ? lang : 'vi';
+    $('footTag').textContent = t.footTag;
+
+    var mode = getParam('mode');
+    var oobCode = getParam('oobCode');
+    var apiKey = getParam('apiKey');
+
+    // ── Render helpers ────────────────────────────────────────────────────
+    function setOpenAppButton() {
+      var btn = $('openApp');
+      btn.textContent = t.openApp;
+      btn.setAttribute('href', APP_LINK);
+      show(btn);
+      $('subNote').textContent = t.backHint;
+      show($('subNote'));
+    }
+
+    function renderSuccess(emoji, title, message, opts) {
+      opts = opts || {};
+      hide($('spinner'));
+      hide($('resetForm'));
+      var badge = $('badge');
+      badge.className = 'badge';
+      badge.textContent = emoji;
+      $('title').textContent = title;
+      show($('title'));
+      $('message').innerHTML = message;
+      setOpenAppButton();
+      // Best-effort auto-return on mobile (a user-gesture button is also shown,
+      // which is the reliable path). Desktop has no app, so skip.
+      if (opts.autoReturn && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        setTimeout(function () { window.location.href = APP_LINK; }, 1400);
+      }
+    }
+
+    function renderError(kind) {
+      hide($('spinner'));
+      hide($('resetForm'));
+      var badge = $('badge');
+      badge.className = 'badge soft';
+      badge.textContent = '💔';
+      $('title').textContent = t.errTitle;
+      show($('title'));
+      var msg = kind === 'expired' ? t.errExpired
+        : kind === 'invalid' ? t.errInvalid
+        : t.errGeneric;
+      $('message').textContent = msg;
+      setOpenAppButton();
+    }
+
+    // Map Firebase identitytoolkit error messages to a coarse kind.
+    function errorKind(serverMessage) {
+      var m = (serverMessage || '').toUpperCase();
+      if (m.indexOf('EXPIRED_OOB_CODE') !== -1) return 'expired';
+      if (m.indexOf('INVALID_OOB_CODE') !== -1 || m.indexOf('OOB') !== -1) return 'invalid';
+      if (m.indexOf('USER_DISABLED') !== -1 || m.indexOf('USER_NOT_FOUND') !== -1) return 'invalid';
+      return 'generic';
+    }
+
+    function postJson(method, body) {
+      return fetch(IDENTITY_BASE + method + '?key=' + encodeURIComponent(apiKey), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }).then(function (res) {
+        return res.json().then(function (data) {
+          return { ok: res.ok, data: data };
+        });
+      });
+    }
+
+    // ── Action flows ──────────────────────────────────────────────────────
+
+    // verifyEmail / recoverEmail / verifyAndChangeEmail → applyActionCode
+    // (REST equivalent: accounts:update with { oobCode }).
+    function applyCode(successEmoji, successTitle, successMsg) {
+      postJson('update', { oobCode: oobCode })
+        .then(function (r) {
+          if (r.ok) {
+            renderSuccess(successEmoji, successTitle, successMsg, { autoReturn: true });
+          } else {
+            renderError(errorKind(r.data && r.data.error && r.data.error.message));
+          }
+        })
+        .catch(function () { renderError('generic'); });
+    }
+
+    // resetPassword → first verify the code (get the email), then show a form.
+    function startResetPassword() {
+      postJson('resetPassword', { oobCode: oobCode })
+        .then(function (r) {
+          if (!r.ok) {
+            renderError(errorKind(r.data && r.data.error && r.data.error.message));
+            return;
+          }
+          var email = (r.data && r.data.email) || '';
+          showResetForm(email);
+        })
+        .catch(function () { renderError('generic'); });
+    }
+
+    function showResetForm(email) {
+      hide($('spinner'));
+      var badge = $('badge');
+      badge.className = 'badge soft';
+      badge.textContent = '🔑';
+      $('title').textContent = t.resetTitle;
+      show($('title'));
+      var msgEl = $('message');
+      msgEl.innerHTML = t.resetMsg;
+      var slot = msgEl.querySelector('b');
+      if (slot) slot.textContent = email;
+      $('pw1Label').textContent = t.pw1;
+      $('pw2Label').textContent = t.pw2;
+      $('resetSubmit').textContent = t.resetBtn;
+      show($('resetForm'));
+      $('pw1').focus();
+
+      $('resetForm').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        submitNewPassword();
+      });
+    }
+
+    function submitNewPassword() {
+      var pw1 = $('pw1').value;
+      var pw2 = $('pw2').value;
+      var err = $('formError');
+      if (pw1.length < 6) { err.textContent = t.errTooShort; return; }
+      if (pw1 !== pw2) { err.textContent = t.errMismatch; return; }
+      err.textContent = '';
+
+      var btn = $('resetSubmit');
+      btn.disabled = true;
+      btn.textContent = t.resetWorking;
+
+      postJson('resetPassword', { oobCode: oobCode, newPassword: pw1 })
+        .then(function (r) {
+          if (r.ok) {
+            renderSuccess('💞', t.resetOkTitle, t.resetOkMsg, { autoReturn: false });
+          } else {
+            btn.disabled = false;
+            btn.textContent = t.resetBtn;
+            var kind = errorKind(r.data && r.data.error && r.data.error.message);
+            err.textContent = kind === 'expired' ? t.errExpired
+              : kind === 'invalid' ? t.errInvalid : t.errGeneric;
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = t.resetBtn;
+          err.textContent = t.errGeneric;
+        });
+    }
+
+    // ── Boot ──────────────────────────────────────────────────────────────
+    (function boot() {
+      $('message').textContent = t.working;
+      if (!oobCode || !apiKey || !mode) {
+        renderError('invalid');
+        return;
+      }
+      switch (mode) {
+        case 'verifyEmail':
+          applyCode('💞', t.verifyOkTitle, t.verifyOkMsg);
+          break;
+        case 'verifyAndChangeEmail':
+          applyCode('💞', t.verifyOkTitle, t.verifyOkMsg);
+          break;
+        case 'recoverEmail':
+          applyCode('💌', t.recoverOkTitle, t.recoverOkMsg);
+          break;
+        case 'resetPassword':
+          startResetPassword();
+          break;
+        default:
+          renderError('invalid');
+      }
+    })();
+  </script>
+</body>
+</html>

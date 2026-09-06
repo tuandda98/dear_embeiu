@@ -35,6 +35,9 @@ class AnalyticsEvents {
   static const String reminderCreated = 'reminder_created';
   static const String notificationOpened = 'notification_opened';
   static const String languageChanged = 'language_changed';
+  static const String counterBgSwiped = 'counter_bg_swiped';
+  static const String memoryCinemaOpened = 'memory_cinema_opened';
+  static const String loveNoteEnvelopeOpened = 'love_note_envelope_opened';
   static const String accountDeleted = 'account_deleted';
 
   // --- Param keys ---
@@ -42,6 +45,7 @@ class AnalyticsEvents {
   static const String pResult = 'result'; // couple_join_attempt
   static const String pIsFirst = 'is_first'; // photo_posted
   static const String pAction = 'action'; // love_note_set / reaction_set
+  static const String pSurface = 'surface'; // reaction_set: photo / daily_answer
   static const String pRepeat = 'repeat'; // reminder_created
   static const String pType = 'type'; // notification_opened
   static const String pLocale = 'locale'; // language_changed
@@ -278,9 +282,16 @@ class AnalyticsService {
       );
 
   /// [action] is `add` / `change` / `remove` (NOT which emoji or whose photo).
-  void logReactionSet(String action) => logEvent(
+  /// [action] is `add` / `change` / `remove`; [surface] says WHICH thing was
+  /// reacted to (`photo` by default, `daily_answer` for daily-question answers)
+  /// so the two reaction surfaces stay separable in the funnel. Never carries
+  /// the emoji or any content.
+  void logReactionSet(String action, {String surface = 'photo'}) => logEvent(
         AnalyticsEvents.reactionSet,
-        params: {AnalyticsEvents.pAction: action},
+        params: {
+          AnalyticsEvents.pAction: action,
+          AnalyticsEvents.pSurface: surface,
+        },
       );
 
   void logDailyQuestionAnswered() =>
@@ -303,6 +314,17 @@ class AnalyticsService {
       );
 
   /// [locale] is `en`, `vi` or `system`.
+  /// Swiped the home counter-card background photo (feature home).
+  void logCounterBgSwiped() => logEvent(AnalyticsEvents.counterBgSwiped);
+
+  /// Opened the Memory Cinema viewer on Home (feature home).
+  void logMemoryCinemaOpened() =>
+      logEvent(AnalyticsEvents.memoryCinemaOpened);
+
+  /// Opened (unsealed) an unread love-note envelope on Home (feature home).
+  void logLoveNoteEnvelopeOpened() =>
+      logEvent(AnalyticsEvents.loveNoteEnvelopeOpened);
+
   void logLanguageChanged(String locale) => logEvent(
         AnalyticsEvents.languageChanged,
         params: {AnalyticsEvents.pLocale: locale},

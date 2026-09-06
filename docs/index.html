@@ -3,100 +3,945 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dear Embeiu</title>
+  <title>Dear Embeiu — Kỷ Niệm Của Chúng Mình</title>
+  <meta name="description" content="Dear Embeiu — App dành cho các cặp đôi. Đếm từng ngày yêu, lưu ảnh kỷ niệm, nhắn tin yêu thương và cùng nhau xây dựng tổ ấm kỹ thuật số." />
+  <meta name="theme-color" content="#FF6B9D" />
+  <meta property="og:title" content="Dear Embeiu — Kỷ Niệm Của Chúng Mình" />
+  <meta property="og:description" content="App dành cho các cặp đôi. Đếm ngày yêu, lưu ảnh kỷ niệm, nhắn tin yêu thương." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://dearembeiu.com/" />
+  <link rel="canonical" href="https://dearembeiu.com/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
   <style>
+    /* ─── Variables ─── */
+    :root {
+      --pink:        #FF6B9D;
+      --pink-deep:   #E63956;
+      --pink-light:  #FFB6C1;
+      --pink-pale:   #FFF0F5;
+      --pink-mist:   #FFE4EF;
+      --navy:        #1A1A2E;
+      --muted:       #6B7280;
+      --muted-light: #9CA3AF;
+      --white:       #FFFFFF;
+      --border:      rgba(255,107,157,.14);
+      --shadow-pink: 0 20px 56px rgba(255,107,157,.20);
+      --shadow-soft: 0 4px 20px rgba(26,26,46,.07);
+      --r-card:      24px;
+      --r-pill:      999px;
+      --r-sm:        16px;
+      --font:        'Quicksand', -apple-system, sans-serif;
+    }
+
+    /* ─── Reset ─── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 60%, #fbcfe8 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      color: #1f2937;
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); color: var(--navy); background: var(--pink-pale); overflow-x: hidden; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── Nav ─── */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,240,245,.88);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
     }
-    .card {
-      background: white;
-      border-radius: 28px;
-      padding: 56px 48px;
-      max-width: 520px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 24px 64px rgba(236,72,153,0.14), 0 4px 16px rgba(0,0,0,0.05);
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      height: 64px; padding: 0 28px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
     }
-    .logo { font-size: 56px; margin-bottom: 20px; }
-    h1 {
-      font-size: 32px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #ec4899, #be185d);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 8px;
+    .nav-logo { display: flex; align-items: center; gap: 9px; font-size: 1.05rem; font-weight: 700; flex-shrink: 0; }
+    .nav-logo .lh { font-size: 20px; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { font-size: .88rem; font-weight: 600; color: var(--muted); transition: color .2s; }
+    .nav-links a:hover { color: var(--pink); }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+
+    /* Language toggle */
+    .lang-toggle {
+      display: flex; gap: 2px;
+      background: rgba(255,107,157,.08); border: 1.5px solid var(--border);
+      border-radius: var(--r-pill); padding: 3px;
     }
-    .tagline {
-      color: #6b7280;
-      font-size: 16px;
-      margin-bottom: 40px;
-      line-height: 1.5;
+    .lt-btn {
+      border: none; background: transparent; cursor: pointer;
+      font-family: var(--font); font-size: .75rem; font-weight: 700;
+      color: var(--muted); padding: 5px 11px; border-radius: var(--r-pill);
+      transition: all .2s; line-height: 1;
     }
-    .links { display: flex; flex-direction: column; gap: 12px; }
-    a.link {
-      display: block;
-      padding: 16px 24px;
-      border-radius: 16px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 15px;
-      transition: opacity 0.2s, transform 0.15s;
+    .lt-btn.active { background: var(--pink); color: #fff; box-shadow: 0 2px 8px rgba(255,107,157,.40); }
+    .lt-btn:not(.active):hover { color: var(--pink); }
+
+    .nav-cta {
+      background: linear-gradient(135deg, var(--pink), var(--pink-deep));
+      color: #fff; padding: 10px 22px;
+      border-radius: var(--r-pill); font-size: .88rem; font-weight: 700;
+      box-shadow: 0 6px 20px rgba(255,107,157,.38);
+      transition: opacity .2s, transform .15s; white-space: nowrap;
     }
-    a.link:hover { opacity: 0.85; transform: translateY(-1px); }
-    .link-primary { background: linear-gradient(135deg, #ec4899, #be185d); color: white; }
-    .link-secondary { background: #f9fafb; color: #374151; border: 1.5px solid #f3f4f6; }
-    .support {
-      margin-top: 36px;
-      padding: 24px;
-      background: #fdf2f8;
-      border-radius: 20px;
-      border: 1.5px solid #fce7f3;
-      text-align: left;
+    .nav-cta:hover { opacity: .9; transform: translateY(-1px); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* ─── Hero ─── */
+    .hero {
+      position: relative; min-height: 92vh;
+      padding: 72px 28px 64px;
+      display: flex; align-items: center;
+      background: linear-gradient(155deg, #FFF5FA 0%, var(--pink-mist) 55%, #FFD6E7 100%);
+      overflow: hidden;
     }
-    .support h2 { font-size: 18px; font-weight: 700; color: #be185d; margin-bottom: 10px; }
-    .support p { font-size: 14px; line-height: 1.6; color: #4b5563; margin-bottom: 10px; }
-    .support a { color: #ec4899; font-weight: 600; text-decoration: none; }
-    .support a:hover { text-decoration: underline; }
-    .support .muted { font-size: 13px; color: #9ca3af; }
-    footer { margin-top: 28px; font-size: 13px; color: #d1d5db; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .45; pointer-events: none; }
+    .blob-1 { width:640px; height:640px; background: radial-gradient(circle,#FF6B9D,transparent); top:-220px; right:-160px; }
+    .blob-2 { width:420px; height:420px; background: radial-gradient(circle,#FFB6C1,transparent); bottom:-120px; left:-100px; }
+    .blob-3 { width:300px; height:300px; background: radial-gradient(circle,#A78BFA28,transparent); top:42%; left:38%; }
+
+    .hero-inner {
+      max-width: 1100px; margin: 0 auto; width: 100%;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
+      align-items: center; position: relative; z-index: 1;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: var(--r-pill); padding: 6px 16px;
+      font-size: .78rem; font-weight: 700; color: var(--pink);
+      margin-bottom: 22px; box-shadow: var(--shadow-soft); letter-spacing: .02em;
+    }
+    .hero h1 { font-size: clamp(2.4rem,5.5vw,3.8rem); font-weight: 700; line-height: 1.13; margin-bottom: 20px; }
+    .grad { background: linear-gradient(135deg, var(--pink), var(--pink-deep)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 1.08rem; color: var(--muted); font-weight: 500; line-height: 1.7; max-width: 440px; margin-bottom: 38px; }
+    .hero-btns { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 36px; }
+
+    .btn-store {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 13px 22px; border-radius: var(--r-sm);
+      font-family: var(--font); cursor: pointer; border: none;
+      transition: transform .2s, opacity .2s;
+    }
+    .btn-store:hover { transform: translateY(-2px); opacity: .9; }
+    .btn-dark { background: var(--navy); color: #fff; box-shadow: 0 8px 28px rgba(26,26,46,.28); }
+    .btn-light { background: #fff; color: var(--navy); border: 1.5px solid var(--border); box-shadow: var(--shadow-soft); }
+    .bs-icon { font-size: 22px; line-height: 1; }
+    .bs-text { text-align: left; }
+    .bs-sub  { display: block; font-size: .68rem; font-weight: 600; opacity: .62; line-height: 1; margin-bottom: 2px; }
+    .bs-main { display: block; font-size: .95rem; font-weight: 700; line-height: 1.2; }
+
+    .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,.7); border: 1.5px solid var(--border);
+      border-radius: var(--r-pill); padding: 5px 13px;
+      font-size: .78rem; font-weight: 600; color: var(--muted);
+      backdrop-filter: blur(8px);
+    }
+
+    /* Phone mockup */
+    .hero-visual { display: flex; justify-content: center; align-items: center; position: relative; }
+    .phone-wrap { position: relative; display: inline-block; }
+    .phone-frame {
+      width: 270px; height: 560px; background: #111118;
+      border-radius: 50px; padding: 10px;
+      box-shadow:
+        0 56px 100px rgba(15,15,30,.50),
+        0 0 0 1.5px rgba(255,255,255,.10),
+        inset 0 0 0 1px rgba(255,255,255,.04);
+      position: relative; z-index: 2;
+    }
+    .phone-frame::before {
+      content: '';
+      position: absolute;
+      right: -3px; top: 110px;
+      width: 3px; height: 56px;
+      background: #1A1A28; border-radius: 0 3px 3px 0;
+      box-shadow: 0 72px 0 #1A1A28;
+    }
+    .phone-frame::after {
+      content: '';
+      position: absolute;
+      left: -3px; top: 130px;
+      width: 3px; height: 38px;
+      background: #1A1A28; border-radius: 3px 0 0 3px;
+      box-shadow: 0 52px 0 #1A1A28;
+    }
+    .phone-screen {
+      width: 100%; height: 100%;
+      background: linear-gradient(160deg,#FFC4CF 0%,#EAB8E4 55%,#C8A8E9 100%);
+      border-radius: 42px; overflow: hidden; position: relative;
+      display: flex; flex-direction: column;
+    }
+
+    /* Dynamic island */
+    .ps-di {
+      width: 80px; height: 23px; background: #111118;
+      border-radius: 12px; margin: 8px auto 2px; flex-shrink: 0;
+    }
+
+    /* Status bar */
+    .ps-status {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 18px 4px; font-size: 10.5px; font-weight: 800;
+      color: var(--navy); flex-shrink: 0;
+    }
+    .ps-signal { display: flex; align-items: center; gap: 3px; }
+    .ps-bar { width: 3px; background: var(--navy); border-radius: 1px; }
+    .ps-bar:nth-child(1){height:5px} .ps-bar:nth-child(2){height:7px} .ps-bar:nth-child(3){height:9px} .ps-bar:nth-child(4){height:11px;opacity:.3}
+    .ps-battery {
+      width: 18px; height: 9px; border: 1.5px solid var(--navy); border-radius: 2px;
+      position: relative; display: flex; align-items: center; padding: 1px;
+    }
+    .ps-battery::after { content:''; position:absolute; right:-4px; top:50%; transform:translateY(-50%); width:2px; height:5px; background:var(--navy); border-radius:0 1px 1px 0; opacity:.4; }
+    .ps-battery-fill { background: var(--navy); border-radius: 1px; flex:1; height:100%; }
+
+    /* Header */
+    .ps-header {
+      padding: 2px 12px 8px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .ps-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,.80); backdrop-filter: blur(10px);
+      border-radius: 999px; padding: 5px 12px 5px 10px;
+      font-size: 8px; font-weight: 700; color: var(--navy);
+      letter-spacing: 1.3px; text-transform: uppercase;
+    }
+    .ps-bell {
+      position: relative; width: 34px; height: 34px;
+      background: rgba(255,255,255,.80); backdrop-filter: blur(10px);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .ps-bell-badge {
+      position: absolute; top: 4px; right: 4px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #E63956; border: 2px solid #FFC4CF;
+      font-size: 7px; font-weight: 800; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Counter card */
+    .ps-counter {
+      margin: 0 10px 8px;
+      background: linear-gradient(135deg,#FF6B9D 0%,#FF8FA3 55%,#FFB6C1 100%);
+      border: 1.2px solid rgba(255,255,255,.28);
+      border-radius: 22px; padding: 12px 14px 11px;
+      color: #fff; text-align: center;
+      box-shadow: 0 10px 28px rgba(255,107,157,.38);
+      flex-shrink: 0; position: relative; overflow: hidden;
+    }
+    .ps-counter::before {
+      content:''; position:absolute; top:-20px; left:-10px;
+      width:90px; height:90px;
+      background: radial-gradient(circle,rgba(255,255,255,.22) 0%,transparent 70%);
+      border-radius:50%; pointer-events:none;
+    }
+    .ps-counter-label { font-size: 7px; font-weight: 800; letter-spacing: .14em; opacity: .82; text-transform: uppercase; margin-bottom: 4px; }
+    .ps-counter-num   { font-size: 58px; font-weight: 800; line-height: 1; letter-spacing: -2px; text-shadow: 0 3px 12px rgba(0,0,0,.10); }
+    .ps-counter-sub   { font-size: 10px; opacity: .90; margin-top: 3px; font-weight: 600; }
+    .ps-counter-ymd   { font-size: 7.5px; opacity: .65; margin-top: 4px; font-weight: 500; margin-bottom: 8px; }
+
+    /* Milestone row */
+    .ps-milestone {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 4px;
+    }
+    .ps-milestone-lbl { font-size: 8px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 3px; }
+    .ps-milestone-rem { font-size: 8px; font-weight: 600; color: rgba(255,255,255,.68); }
+    .ps-progress-bar {
+      height: 4px; background: rgba(255,255,255,.22);
+      border-radius: 999px; margin-bottom: 7px; overflow: hidden;
+    }
+    .ps-progress-fill { height:100%; background: rgba(255,255,255,.85); border-radius:999px; width:68%; }
+
+    /* Streak chip in card */
+    .ps-streak-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(255,255,255,.18); border-radius: 999px;
+      padding: 3px 11px; font-size: 8.5px; font-weight: 700; color: #fff;
+      border: 1px solid rgba(255,255,255,.22);
+    }
+
+    /* Today card */
+    .ps-today-title {
+      font-size: 13px; font-weight: 700; color: var(--navy);
+      padding: 0 12px 6px;
+    }
+    .ps-today-card {
+      margin: 0 10px 0;
+      background: rgba(255,255,255,.82); backdrop-filter: blur(8px);
+      border-radius: 16px; padding: 11px 12px;
+      border: 1px solid rgba(255,255,255,.65);
+    }
+    .ps-today-q { font-size: 10px; font-weight: 600; color: var(--navy); line-height: 1.45; margin-bottom: 7px; }
+    .ps-compose {
+      background: rgba(255,107,157,.07);
+      border: 1.2px dashed rgba(255,107,157,.38);
+      border-radius: 10px; padding: 6px 10px;
+      font-size: 8.5px; color: rgba(26,26,46,.38); font-weight: 500;
+    }
+
+    /* Floating glass bottom nav */
+    .ps-tabs {
+      margin: auto 8px 8px;
+      height: 50px; flex-shrink: 0;
+      background: rgba(26,26,46,.16); backdrop-filter: blur(20px);
+      border-radius: 25px; border: 1px solid rgba(255,255,255,.38);
+      display: flex; align-items: center; padding: 4px; gap: 2px;
+      box-shadow: 0 4px 16px rgba(26,26,46,.10);
+    }
+    .ps-tab {
+      flex: 1; height: 100%; border-radius: 21px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px; font-size: 7px; color: rgba(26,26,46,.42); font-weight: 700;
+    }
+    .ps-tab.on {
+      background: linear-gradient(135deg,#FF6B9D,#FF4D6D);
+      color: #fff;
+      box-shadow: 0 3px 8px rgba(255,77,109,.38);
+    }
+    .ps-tab-ic { font-size: 17px; line-height: 1; }
+
+    /* Floating notification cards */
+    .fc {
+      position: absolute; z-index: 3;
+      background: #fff;
+      border-radius: var(--r-pill);
+      padding: 10px 16px;
+      box-shadow: 0 8px 32px rgba(26,26,46,.14), 0 0 0 1px rgba(0,0,0,.04);
+      font-size: .78rem; font-weight: 700; white-space: nowrap; color: var(--navy);
+      animation: floatY 4s ease-in-out infinite;
+    }
+    .fc.fc1 { top: 8%;  left: -52px; animation-delay: 0s; }
+    .fc.fc2 { bottom: 18%; right: -56px; animation-delay: -1.6s; }
+    .fc.fc3 { top: 58%; left: -64px; animation-delay: -3.1s; }
+    @keyframes floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+    /* ─── Section commons ─── */
+    .section-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--pink-pale); border: 1.5px solid var(--border);
+      border-radius: var(--r-pill); padding: 5px 15px;
+      font-size: .76rem; font-weight: 700; color: var(--pink);
+      margin-bottom: 14px; letter-spacing: .02em;
+    }
+    .tc { text-align: center; }
+    h2.sec { font-size: clamp(1.7rem,3.8vw,2.4rem); font-weight: 700; line-height: 1.2; margin-bottom: 12px; }
+    p.sec-sub { color: var(--muted); font-size: 1rem; font-weight: 500; line-height: 1.7; max-width: 540px; margin: 0 auto 56px; }
+
+    /* ─── Features ─── */
+    .features { padding: 100px 28px; background: #fff; }
+    .features-inner { max-width: 1100px; margin: 0 auto; }
+    .feat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+    .feat-card { background: var(--pink-pale); border: 1.5px solid var(--border); border-radius: var(--r-card); padding: 30px 26px; transition: transform .25s, box-shadow .25s; }
+    .feat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-pink); }
+    .feat-card.hero-card { background: linear-gradient(135deg,#FF6B9D,#E63956); border-color: transparent; }
+    .feat-card.hero-card .fi { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.28); }
+    .feat-card.hero-card .ft { color: #fff; }
+    .feat-card.hero-card .fd { color: rgba(255,255,255,.84); }
+    .fi { width: 50px; height: 50px; background: rgba(255,107,157,.1); border: 1.5px solid rgba(255,107,157,.2); border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 23px; margin-bottom: 18px; }
+    .ft { font-size: .98rem; font-weight: 700; color: var(--navy); margin-bottom: 7px; }
+    .fd { font-size: .86rem; color: var(--muted); line-height: 1.65; font-weight: 500; }
+
+    /* ─── How it works ─── */
+    .how { padding: 100px 28px; background: linear-gradient(155deg,#FFF0F5 0%,var(--pink-mist) 100%); }
+    .how-inner { max-width: 960px; margin: 0 auto; }
+    .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 28px; margin-top: 56px; }
+    .step { text-align: center; position: relative; }
+    .step-num { width: 56px; height: 56px; background: linear-gradient(135deg,var(--pink),var(--pink-deep)); border-radius: 50%; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; color: #fff; box-shadow: 0 8px 24px rgba(255,107,157,.42); position: relative; z-index: 1; }
+    .step-line { position: absolute; top: 28px; left: calc(50% + 36px); right: calc(-50% + 36px); height: 2px; background: linear-gradient(90deg,var(--pink),var(--pink-light)); }
+    .step:last-child .step-line { display: none; }
+    .step-em { font-size: 2.2rem; margin: 18px 0 12px; display: block; }
+    .step-t { font-size: .98rem; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .step-d { font-size: .86rem; color: var(--muted); line-height: 1.65; font-weight: 500; }
+
+    /* ─── Quote ─── */
+    .quote-section { padding: 80px 28px; background: #fff; }
+    .quote-inner { max-width: 720px; margin: 0 auto; text-align: center; }
+    .quote-marks { font-size: 4rem; color: var(--pink); line-height: .8; margin-bottom: 8px; opacity: .35; }
+    .quote-text  { font-size: 1.25rem; font-weight: 600; line-height: 1.7; color: var(--navy); margin-bottom: 24px; font-style: italic; }
+    .quote-from  { font-size: .85rem; font-weight: 600; color: var(--muted); }
+
+    /* ─── Download ─── */
+    .download { padding: 100px 28px; background: var(--navy); text-align: center; position: relative; overflow: hidden; }
+    .download::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 80% at 18% 50%,rgba(255,107,157,.14),transparent), radial-gradient(ellipse 60% 80% at 82% 50%,rgba(167,139,250,.09),transparent); }
+    .download-inner { max-width: 620px; margin: 0 auto; position: relative; z-index: 1; }
+    .dl-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,107,157,.14); border: 1.5px solid rgba(255,107,157,.25); border-radius: var(--r-pill); padding: 5px 15px; font-size: .76rem; font-weight: 700; color: var(--pink-light); margin-bottom: 22px; letter-spacing: .02em; }
+    .download h2 { color: #fff; margin-bottom: 14px; }
+    .download p  { color: rgba(255,255,255,.58); font-size: 1rem; line-height: 1.65; font-weight: 500; margin-bottom: 40px; }
+    .dl-btns { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+    .btn-dl { display: inline-flex; align-items: center; gap: 12px; padding: 15px 26px; border-radius: var(--r-sm); font-family: var(--font); cursor: pointer; border: none; min-width: 176px; transition: transform .2s, opacity .2s; }
+    .btn-dl:hover { transform: translateY(-2px); opacity: .9; }
+    .btn-ios { background: #fff; color: var(--navy); box-shadow: 0 10px 32px rgba(255,255,255,.14); }
+    .btn-and { background: rgba(255,255,255,.1); color: #fff; border: 1.5px solid rgba(255,255,255,.2); }
+    .dl-ic { font-size: 24px; }
+    .dl-t { text-align: left; }
+    .dl-sub  { display: block; font-size: .68rem; font-weight: 600; opacity: .6; margin-bottom: 2px; }
+    .dl-main { display: block; font-size: 1rem; font-weight: 700; }
+    .dl-note { margin-top: 22px; font-size: .78rem; color: rgba(255,255,255,.3); font-weight: 500; }
+
+    /* ─── Footer ─── */
+    footer { background: #0D0D1C; padding: 52px 28px 32px; }
+    .ft-inner { max-width: 1100px; margin: 0 auto; }
+    .ft-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 40px; flex-wrap: wrap; margin-bottom: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .ft-brand .ft-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.05rem; color: #fff; margin-bottom: 10px; }
+    .ft-brand p { font-size: .84rem; color: rgba(255,255,255,.42); line-height: 1.65; max-width: 260px; }
+    .ft-col h4 { font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.55); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+    .ft-col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .ft-col a { font-size: .86rem; color: rgba(255,255,255,.44); font-weight: 500; transition: color .2s; }
+    .ft-col a:hover { color: var(--pink); }
+    .ft-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: .8rem; color: rgba(255,255,255,.28); font-weight: 500; }
+    .ft-bottom a { color: rgba(255,255,255,.28); transition: color .2s; }
+    .ft-bottom a:hover { color: var(--pink); }
+
+    /* ─── Scroll reveal ─── */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+    .reveal.d1 { transition-delay: .08s; }
+    .reveal.d2 { transition-delay: .16s; }
+    .reveal.d3 { transition-delay: .24s; }
+    .reveal.d4 { transition-delay: .32s; }
+    .reveal.d5 { transition-delay: .40s; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 44px; text-align: center; }
+      .hero-sub { margin-left: auto; margin-right: auto; }
+      .hero-btns, .hero-pills { justify-content: center; }
+      .hero-visual { order: -1; }
+      .fc.fc3 { display: none; }
+      .fc.fc1 { left: -20px; }
+      .fc.fc2 { right: -20px; }
+      .feat-grid { grid-template-columns: repeat(2,1fr); }
+      .steps { grid-template-columns: 1fr; }
+      .step-line { display: none !important; }
+      .step { max-width: 340px; margin: 0 auto; }
+    }
+    @media (max-width: 600px) {
+      .feat-grid { grid-template-columns: 1fr; }
+      .dl-btns { flex-direction: column; align-items: center; }
+      .ft-top { flex-direction: column; }
+      .ft-bottom { flex-direction: column; text-align: center; }
+      .phone-frame { width: 230px; height: 480px; border-radius: 44px; }
+      .phone-screen { border-radius: 36px; }
+      .ps-counter-num { font-size: 42px; }
+    }
+
+    /* Real screenshot inside phone frame */
+    .phone-shot { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* ═══ SCREENSHOTS GALLERY ═══ */
+    .shots { padding: 92px 24px 40px; }
+    .shots-inner { max-width: 1100px; margin: 0 auto; }
+    .shots-grid {
+      display: flex; gap: 28px; justify-content: center;
+      flex-wrap: wrap; margin-top: 48px;
+    }
+    .shot-card { text-align: center; }
+    .shot-frame {
+      width: 232px; height: 482px; background: #111118;
+      border-radius: 42px; padding: 8px; margin: 0 auto;
+      box-shadow: 0 36px 70px rgba(15,15,30,.34), 0 0 0 1.5px rgba(255,255,255,.10);
+      transition: transform .35s cubic-bezier(.22,.61,.36,1);
+    }
+    .shot-card:hover .shot-frame { transform: translateY(-8px); }
+    .shot-screen {
+      width: 100%; height: 100%; border-radius: 36px;
+      overflow: hidden; background: #FFC4CF;
+    }
+    .shot-screen img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .shot-cap {
+      margin-top: 18px; font-weight: 700; font-size: 15px; color: var(--navy);
+    }
+    .shot-sub { font-size: 13px; color: rgba(26,26,46,.55); margin-top: 2px; }
+    @media (max-width: 600px) {
+      .shots { padding: 64px 20px 24px; }
+      .shot-frame { width: 210px; height: 436px; border-radius: 38px; }
+      .shot-screen { border-radius: 32px; }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="logo">💌</div>
-    <h1>Dear Embeiu</h1>
-    <p class="tagline">Lưu giữ kỷ niệm và đếm từng ngày yêu cùng người ấy</p>
-    <div class="links">
-      <a class="link link-primary" href="privacy-policy.html">📄 Chính sách quyền riêng tư</a>
-      <a class="link link-secondary" href="account-deletion.html">🗑️ Yêu cầu xoá tài khoản</a>
+
+  <!-- ═══ NAV ═══ -->
+  <nav class="nav" aria-label="Navigation chính">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <span class="lh">💌</span>
+        <span>Dear Embeiu</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features"    data-vi="Tính năng"  data-en="Features">Tính năng</a>
+        <a href="#screenshots" data-vi="Giao diện"  data-en="Screenshots">Giao diện</a>
+        <a href="#how"         data-vi="Cách dùng"  data-en="How it works">Cách dùng</a>
+        <a href="#support"     data-vi="Liên hệ"    data-en="Contact">Liên hệ</a>
+      </div>
+      <div class="nav-right">
+        <div class="lang-toggle" role="group" aria-label="Language / Ngôn ngữ">
+          <button class="lt-btn active" data-lang="vi" onclick="setLang('vi')" aria-pressed="true">VI</button>
+          <button class="lt-btn"        data-lang="en" onclick="setLang('en')" aria-pressed="false">EN</button>
+        </div>
+        <a href="#download" class="nav-cta" data-vi="Tải ứng dụng" data-en="Download">Tải ứng dụng</a>
+      </div>
     </div>
+  </nav>
 
-    <section class="support" id="support">
-      <h2>🛟 Hỗ trợ &amp; Liên hệ / Support &amp; Contact</h2>
-      <p>
-        Bạn cần trợ giúp, gặp lỗi, hay có câu hỏi về Dear Embeiu? Hãy gửi email cho chúng tôi —
-        chúng tôi thường phản hồi trong vòng 1–2 ngày làm việc.<br>
-        <em>Need help, found a bug, or have a question about Dear Embeiu? Email us and we usually reply within 1–2 business days.</em>
-      </p>
-      <p>
-        ✉️ Email: <a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a>
-      </p>
-      <p class="muted">
-        Các chủ đề hỗ trợ phổ biến: ghép đôi qua mã mời, đăng &amp; đồng bộ ảnh, lời nhắc, xoá tài khoản.<br>
-        Common topics: pairing by invite code, photo upload &amp; sync, reminders, account deletion.
-      </p>
-    </section>
+  <!-- ═══ HERO ═══ -->
+  <section class="hero" aria-labelledby="hero-h1">
+    <div class="blob blob-1" aria-hidden="true"></div>
+    <div class="blob blob-2" aria-hidden="true"></div>
+    <div class="blob blob-3" aria-hidden="true"></div>
 
-    <footer>© 2026 Dear Embeiu</footer>
-  </div>
+    <div class="hero-inner">
+      <div>
+        <div class="hero-badge"
+          data-vi="💕 Dành riêng cho các cặp đôi"
+          data-en="💕 Made for couples">💕 Dành riêng cho các cặp đôi</div>
+
+        <h1 id="hero-h1"
+          data-vi="Lưu giữ<br><span class='grad'>kỷ niệm</span><br>cùng người ấy"
+          data-en="Preserve<br><span class='grad'>memories</span><br>with your partner">
+          Lưu giữ<br><span class="grad">kỷ niệm</span><br>cùng người ấy
+        </h1>
+
+        <p class="hero-sub"
+          data-vi="Dear Embeiu là không gian riêng tư của hai người — đếm từng ngày yêu, lưu ảnh kỷ niệm chung, nhắn tin yêu thương và không bao giờ bỏ lỡ những khoảnh khắc đặc biệt."
+          data-en="Dear Embeiu is your private couple space — count every day in love, share photo memories, send sweet messages, and never miss a special moment together.">
+          Dear Embeiu là không gian riêng tư của hai người — đếm từng ngày yêu, lưu ảnh kỷ niệm chung, nhắn tin yêu thương và không bao giờ bỏ lỡ những khoảnh khắc đặc biệt.
+        </p>
+
+        <div class="hero-btns">
+          <a href="https://apps.apple.com/app/id6775165592" class="btn-store btn-dark" id="hero-appstore" target="_blank" rel="noopener">
+            <span class="bs-icon">🍎</span>
+            <span class="bs-text">
+              <span class="bs-sub" data-vi="Tải trên" data-en="Download on">Tải trên</span>
+              <span class="bs-main">App Store</span>
+            </span>
+          </a>
+          <a href="https://play.google.com/store/apps/details?id=com.tony.dearembeiu" class="btn-store btn-light" id="hero-googleplay" target="_blank" rel="noopener">
+            <span class="bs-icon">▶</span>
+            <span class="bs-text">
+              <span class="bs-sub" data-vi="Tải trên" data-en="Get it on">Tải trên</span>
+              <span class="bs-main">Google Play</span>
+            </span>
+          </a>
+        </div>
+
+        <div class="hero-pills">
+          <span class="pill" data-vi="✅ Miễn phí hoàn toàn"  data-en="✅ Completely free">✅ Miễn phí hoàn toàn</span>
+          <span class="pill" data-vi="🔒 Riêng tư &amp; an toàn" data-en="🔒 Private &amp; secure">🔒 Riêng tư &amp; an toàn</span>
+          <span class="pill" data-vi="🇻🇳 Tiếng Việt"           data-en="🇻🇳 Vietnamese">🇻🇳 Tiếng Việt</span>
+          <span class="pill">📱 iOS &amp; Android</span>
+        </div>
+      </div>
+
+      <!-- Phone mockup -->
+      <div class="hero-visual">
+        <div class="phone-wrap">
+          <div class="fc fc1" aria-hidden="true"
+            data-vi="🎊 Ngày yêu thứ <b style='color:var(--pink)'>365</b> 🎉"
+            data-en="🎊 Day <b style='color:var(--pink)'>365</b> together 🎉">
+            🎊 Ngày yêu thứ <b style="color:var(--pink)">365</b> 🎉
+          </div>
+          <div class="fc fc2" aria-hidden="true"
+            data-vi="📷 Ảnh mới từ người ấy ✨"
+            data-en="📷 New photo from your partner ✨">
+            📷 Ảnh mới từ người ấy ✨
+          </div>
+          <div class="fc fc3" aria-hidden="true"
+            data-vi="🔥 Streak 7 ngày!"
+            data-en="🔥 7-day streak!">
+            🔥 Streak 7 ngày!
+          </div>
+
+          <div class="phone-frame">
+            <div class="phone-screen">
+              <img class="phone-shot" src="screenshots/home-counter.jpg"
+                   alt="Giao diện Dear Embeiu — đếm ngày yêu / Dear Embeiu app — day counter"
+                   loading="eager" width="750" height="1626" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FEATURES ═══ -->
+  <section class="features" id="features" aria-labelledby="feat-h2">
+    <div class="features-inner">
+      <div class="tc">
+        <div class="section-tag"
+          data-vi="✨ Tính năng"
+          data-en="✨ Features">✨ Tính năng</div>
+        <h2 class="sec" id="feat-h2"
+          data-vi="Mọi thứ hai người cần"
+          data-en="Everything you both need">Mọi thứ hai người cần</h2>
+        <p class="sec-sub"
+          data-vi="Từ đếm ngày yêu đến lưu giữ ký ức — Dear Embeiu có đủ để hai người gắn kết sâu hơn mỗi ngày."
+          data-en="From counting days in love to preserving memories — Dear Embeiu has everything to help you grow closer every day.">
+          Từ đếm ngày yêu đến lưu giữ ký ức — Dear Embeiu có đủ để hai người gắn kết sâu hơn mỗi ngày.
+        </p>
+      </div>
+
+      <div class="feat-grid">
+        <div class="feat-card hero-card reveal">
+          <div class="fi">💕</div>
+          <div class="ft" data-vi="Đếm ngày yêu" data-en="Day Counter">Đếm ngày yêu</div>
+          <p class="fd"
+            data-vi="Nhìn thấy rõ bao nhiêu ngày, tháng, năm hai người đã bên nhau. Mỗi ngày trôi qua là một cột mốc đáng nhớ."
+            data-en="See exactly how many days, months, and years you've been together. Every day that passes is a milestone worth celebrating.">
+            Nhìn thấy rõ bao nhiêu ngày, tháng, năm hai người đã bên nhau. Mỗi ngày trôi qua là một cột mốc đáng nhớ.
+          </p>
+        </div>
+        <div class="feat-card reveal d1">
+          <div class="fi">📸</div>
+          <div class="ft" data-vi="Album ảnh dùng chung" data-en="Shared Photo Album">Album ảnh dùng chung</div>
+          <p class="fd"
+            data-vi="Cả hai cùng đăng ảnh vào một album riêng tư — kỷ niệm được lưu giữ an toàn và đồng bộ realtime."
+            data-en="Both of you can upload photos to a private album — memories kept safe and synced in real time.">
+            Cả hai cùng đăng ảnh vào một album riêng tư — kỷ niệm được lưu giữ an toàn và đồng bộ realtime.
+          </p>
+        </div>
+        <div class="feat-card reveal d2">
+          <div class="fi">💬</div>
+          <div class="ft" data-vi="Nhắn tin yêu thương" data-en="Sweet Messages">Nhắn tin yêu thương</div>
+          <p class="fd"
+            data-vi="Không gian chat riêng tư chỉ dành cho hai người — gửi đi những lời ngọt ngào bất cứ lúc nào."
+            data-en="A private chat space just for the two of you — send sweet, heartfelt words whenever you feel like it.">
+            Không gian chat riêng tư chỉ dành cho hai người — gửi đi những lời ngọt ngào bất cứ lúc nào.
+          </p>
+        </div>
+        <div class="feat-card reveal d3">
+          <div class="fi">🔥</div>
+          <div class="ft" data-vi="Chuỗi ngày yêu (Streak)" data-en="Love Streak">Chuỗi ngày yêu (Streak)</div>
+          <p class="fd"
+            data-vi="Cùng trả lời câu hỏi hằng ngày để giữ &ldquo;ngọn lửa&rdquo; streak — sự gắn kết được đo bằng những khoảnh khắc nhỏ."
+            data-en="Answer daily questions together to keep your love streak alive — connection built through small, meaningful moments.">
+            Cùng trả lời câu hỏi hằng ngày để giữ &ldquo;ngọn lửa&rdquo; streak — sự gắn kết được đo bằng những khoảnh khắc nhỏ.
+          </p>
+        </div>
+        <div class="feat-card reveal d4">
+          <div class="fi">❓</div>
+          <div class="ft" data-vi="Câu hỏi hằng ngày" data-en="Daily Question">Câu hỏi hằng ngày</div>
+          <p class="fd"
+            data-vi="Mỗi ngày một câu hỏi thú vị để hai người khám phá nhau sâu hơn — từ ước mơ đến ký ức ấu thơ."
+            data-en="A new question every day to discover each other more deeply — from dreams to childhood memories.">
+            Mỗi ngày một câu hỏi thú vị để hai người khám phá nhau sâu hơn — từ ước mơ đến ký ức ấu thơ.
+          </p>
+        </div>
+        <div class="feat-card reveal d5">
+          <div class="fi">📅</div>
+          <div class="ft" data-vi="Lời nhắc kỷ niệm" data-en="Anniversary Reminders">Lời nhắc kỷ niệm</div>
+          <p class="fd"
+            data-vi="Đặt nhắc nhở cho 100 ngày, 1 năm, ngày lễ tình nhân... không bao giờ bỏ lỡ những mốc quan trọng."
+            data-en="Set reminders for 100 days, 1 year, Valentine's Day... never miss an important milestone again.">
+            Đặt nhắc nhở cho 100 ngày, 1 năm, ngày lễ tình nhân... không bao giờ bỏ lỡ những mốc quan trọng.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SCREENSHOTS ═══ -->
+  <section class="shots" id="screenshots" aria-labelledby="shots-h2">
+    <div class="shots-inner">
+      <div class="tc">
+        <div class="section-tag"
+          data-vi="📱 Giao diện"
+          data-en="📱 Screenshots">📱 Giao diện</div>
+        <h2 class="sec" id="shots-h2"
+          data-vi="Nhìn là yêu ngay"
+          data-en="Love at first sight">Nhìn là yêu ngay</h2>
+        <p class="sec-sub"
+          data-vi="Thiết kế ấm áp, riêng tư — mỗi màn hình là một góc nhỏ dành riêng cho hai người."
+          data-en="Warm, private design — every screen is a little corner made just for the two of you.">
+          Thiết kế ấm áp, riêng tư — mỗi màn hình là một góc nhỏ dành riêng cho hai người.
+        </p>
+      </div>
+
+      <div class="shots-grid">
+        <div class="shot-card reveal">
+          <div class="shot-frame"><div class="shot-screen">
+            <img src="screenshots/home-counter.jpg" loading="lazy" width="750" height="1626"
+                 alt="Đếm ngày yêu với ảnh kỷ niệm / Day counter with memory photo" />
+          </div></div>
+          <div class="shot-cap" data-vi="Đếm ngày yêu" data-en="Day counter">Đếm ngày yêu</div>
+          <div class="shot-sub" data-vi="Ảnh nền là kỷ niệm của hai người" data-en="Your own memory as the background">Ảnh nền là kỷ niệm của hai người</div>
+        </div>
+
+        <div class="shot-card reveal d1">
+          <div class="shot-frame"><div class="shot-screen">
+            <img src="screenshots/home-today.jpg" loading="lazy" width="750" height="1626"
+                 alt="Câu hỏi hằng ngày và tâm trạng / Daily question and mood" />
+          </div></div>
+          <div class="shot-cap" data-vi="Hôm nay của chúng mình" data-en="Today, together">Hôm nay của chúng mình</div>
+          <div class="shot-sub" data-vi="Câu hỏi mỗi ngày · tâm trạng hôm nay" data-en="Daily question · today's mood">Câu hỏi mỗi ngày · tâm trạng hôm nay</div>
+        </div>
+
+        <div class="shot-card reveal d2">
+          <div class="shot-frame"><div class="shot-screen">
+            <img src="screenshots/chat.jpg?v=2" loading="lazy" width="750" height="1626"
+                 alt="Nhắn tin riêng tư cho người ấy / Private chat with your partner" />
+          </div></div>
+          <div class="shot-cap" data-vi="Nhắn tin yêu thương" data-en="Sweet messages">Nhắn tin yêu thương</div>
+          <div class="shot-sub" data-vi="Không gian chat chỉ của hai người" data-en="A chat space just for two">Không gian chat chỉ của hai người</div>
+        </div>
+
+        <div class="shot-card reveal d3">
+          <div class="shot-frame"><div class="shot-screen">
+            <img src="screenshots/home-counter-photobooth.jpg" loading="lazy" width="750" height="1626"
+                 alt="Tùy chọn ảnh nền thẻ đếm / Customizable counter background" />
+          </div></div>
+          <div class="shot-cap" data-vi="Chỉnh ảnh theo ý thích" data-en="Make it yours">Chỉnh ảnh theo ý thích</div>
+          <div class="shot-sub" data-vi="Đổi ảnh nền thẻ đếm bất cứ lúc nào" data-en="Swap the counter photo anytime">Đổi ảnh nền thẻ đếm bất cứ lúc nào</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ HOW IT WORKS ═══ -->
+  <section class="how" id="how" aria-labelledby="how-h2">
+    <div class="how-inner">
+      <div class="tc">
+        <div class="section-tag"
+          data-vi="🚀 Bắt đầu"
+          data-en="🚀 Get started">🚀 Bắt đầu</div>
+        <h2 class="sec" id="how-h2"
+          data-vi="Chỉ 3 bước đơn giản"
+          data-en="Just 3 simple steps">Chỉ 3 bước đơn giản</h2>
+        <p class="sec-sub"
+          data-vi="Ghép đôi với người ấy và bắt đầu lưu giữ kỷ niệm chỉ trong vài phút — hoàn toàn miễn phí."
+          data-en="Connect with your partner and start preserving memories in just a few minutes — completely free.">
+          Ghép đôi với người ấy và bắt đầu lưu giữ kỷ niệm chỉ trong vài phút — hoàn toàn miễn phí.
+        </p>
+      </div>
+      <div class="steps">
+        <div class="step reveal">
+          <div class="step-line" aria-hidden="true"></div>
+          <div class="step-num" aria-hidden="true">1</div>
+          <span class="step-em">📱</span>
+          <div class="step-t"
+            data-vi="Tải &amp; tạo tài khoản"
+            data-en="Download &amp; sign up">Tải &amp; tạo tài khoản</div>
+          <p class="step-d"
+            data-vi="Đăng ký bằng email trong vài giây. Miễn phí, không cần thẻ tín dụng."
+            data-en="Sign up with your email in seconds. Free, no credit card needed.">
+            Đăng ký bằng email trong vài giây. Miễn phí, không cần thẻ tín dụng.
+          </p>
+        </div>
+        <div class="step reveal d2">
+          <div class="step-line" aria-hidden="true"></div>
+          <div class="step-num" aria-hidden="true">2</div>
+          <span class="step-em">🔗</span>
+          <div class="step-t"
+            data-vi="Chia sẻ mã mời"
+            data-en="Share your invite code">Chia sẻ mã mời</div>
+          <p class="step-d"
+            data-vi="Gửi mã 6 ký tự đặc biệt cho người ấy. Họ nhập mã là hai người ghép đôi ngay lập tức."
+            data-en="Send your unique 6-character code to your partner. They enter it and you're connected instantly.">
+            Gửi mã 6 ký tự đặc biệt cho người ấy. Họ nhập mã là hai người ghép đôi ngay lập tức.
+          </p>
+        </div>
+        <div class="step reveal d4">
+          <div class="step-num" aria-hidden="true">3</div>
+          <span class="step-em">💕</span>
+          <div class="step-t"
+            data-vi="Cùng lưu kỷ niệm"
+            data-en="Preserve memories together">Cùng lưu kỷ niệm</div>
+          <p class="step-d"
+            data-vi="Từ khoảnh khắc đó, mọi kỷ niệm đẹp đều có nơi để lưu giữ và cùng nhìn lại mãi mãi."
+            data-en="From that moment on, every beautiful memory has a place to live and be cherished together forever.">
+            Từ khoảnh khắc đó, mọi kỷ niệm đẹp đều có nơi để lưu giữ và cùng nhìn lại mãi mãi.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ QUOTE ═══ -->
+  <section class="quote-section" aria-label="Quote">
+    <div class="quote-inner reveal">
+      <div class="quote-marks" aria-hidden="true">"</div>
+      <p class="quote-text"
+        data-vi="Không cần đếm follower, chẳng cần story công khai — chỉ là một góc nhỏ riêng tư, của riêng hai người."
+        data-en="Not follower counts, not public stories — just a quiet, private space made for the two of you.">
+        Không cần đếm follower, chẳng cần story công khai — chỉ là một góc nhỏ riêng tư, của riêng hai người.
+      </p>
+      <div class="quote-from"
+        data-vi="Dear Embeiu — Kỷ Niệm Của Chúng Mình"
+        data-en="Dear Embeiu — Our Memories">
+        Dear Embeiu — Kỷ Niệm Của Chúng Mình
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ DOWNLOAD ═══ -->
+  <section class="download" id="download" aria-labelledby="dl-h2">
+    <div class="download-inner">
+      <div class="dl-tag"
+        data-vi="📲 Tải ngay"
+        data-en="📲 Download now">📲 Tải ngay</div>
+      <h2 class="sec" id="dl-h2"
+        data-vi="Bắt đầu hành trình<br>tình yêu của bạn"
+        data-en="Begin your<br>love journey">
+        Bắt đầu hành trình<br>tình yêu của bạn
+      </h2>
+      <p data-vi="Miễn phí. Không quảng cáo. Chỉ dành riêng cho hai người bạn yêu."
+         data-en="Free. No ads. Made just for the two of you.">
+        Miễn phí. Không quảng cáo. Chỉ dành riêng cho hai người bạn yêu.
+      </p>
+      <div class="dl-btns">
+        <a href="https://apps.apple.com/app/id6775165592" class="btn-dl btn-ios" id="dl-appstore" target="_blank" rel="noopener">
+          <span class="dl-ic">🍎</span>
+          <span class="dl-t">
+            <span class="dl-sub" data-vi="Tải trên" data-en="Download on">Tải trên</span>
+            <span class="dl-main">App Store</span>
+          </span>
+        </a>
+        <a href="https://play.google.com/store/apps/details?id=com.tony.dearembeiu" class="btn-dl btn-and" id="dl-googleplay" target="_blank" rel="noopener">
+          <span class="dl-ic">▶</span>
+          <span class="dl-t">
+            <span class="dl-sub" data-vi="Tải trên" data-en="Get it on">Tải trên</span>
+            <span class="dl-main">Google Play</span>
+          </span>
+        </a>
+      </div>
+      <p class="dl-note"
+        data-vi="Yêu cầu iOS 14.0+ &nbsp;·&nbsp; Android 6.0+"
+        data-en="Requires iOS 14.0+ &nbsp;·&nbsp; Android 6.0+">
+        Yêu cầu iOS 14.0+ &nbsp;·&nbsp; Android 6.0+
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer id="support">
+    <div class="ft-inner">
+      <div class="ft-top">
+        <div class="ft-brand">
+          <div class="ft-logo"><span>💌</span><span>Dear Embeiu</span></div>
+          <p data-vi="Không gian riêng tư dành cho các cặp đôi — lưu giữ kỷ niệm và đếm từng ngày yêu."
+             data-en="A private space for couples — preserve memories and count every day in love.">
+            Không gian riêng tư dành cho các cặp đôi — lưu giữ kỷ niệm và đếm từng ngày yêu.
+          </p>
+        </div>
+
+        <div class="ft-col">
+          <h4 data-vi="Pháp lý" data-en="Legal">Pháp lý</h4>
+          <ul>
+            <li><a href="privacy-policy.html"   data-vi="Chính sách quyền riêng tư"   data-en="Privacy Policy">Chính sách quyền riêng tư</a></li>
+            <li><a href="account-deletion.html" data-vi="Yêu cầu xoá tài khoản"       data-en="Account Deletion">Yêu cầu xoá tài khoản</a></li>
+          </ul>
+        </div>
+
+        <div class="ft-col">
+          <h4 data-vi="Hỗ trợ" data-en="Support">Hỗ trợ</h4>
+          <ul>
+            <li><a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a></li>
+            <li><a href="#features" data-vi="Tính năng"    data-en="Features">Tính năng</a></li>
+            <li><a href="#download" data-vi="Tải ứng dụng" data-en="Download">Tải ứng dụng</a></li>
+          </ul>
+        </div>
+
+        <div class="ft-col">
+          <h4 data-vi="Thông tin" data-en="Info">Thông tin</h4>
+          <ul>
+            <li><a href="#how" data-vi="Cách dùng" data-en="How it works">Cách dùng</a></li>
+            <li><a href="https://apps.apple.com/app/id6775165592" target="_blank" rel="noopener" data-vi="App Store (iOS)" data-en="App Store (iOS)">App Store (iOS)</a></li>
+            <li><a href="https://play.google.com/store/apps/details?id=com.tony.dearembeiu" target="_blank" rel="noopener" data-vi="Google Play (Android)" data-en="Google Play (Android)">Google Play (Android)</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ft-bottom">
+        <span data-vi="© 2026 Dear Embeiu · Được làm bằng tình yêu của anh By 💕 dành cho Embeiu tại Việt Nam"
+              data-en="© 2026 Dear Embeiu · Made with anh By's love 💕 for Embeiu in Vietnam">
+          © 2026 Dear Embeiu · Được làm bằng tình yêu của anh By 💕 dành cho Embeiu tại Việt Nam
+        </span>
+        <span>
+          <a href="privacy-policy.html"   data-vi="Chính sách bảo mật" data-en="Privacy Policy">Chính sách bảo mật</a>
+          &nbsp;·&nbsp;
+          <a href="account-deletion.html" data-vi="Xoá tài khoản"     data-en="Account Deletion">Xoá tài khoản</a>
+          &nbsp;·&nbsp;
+          <a href="mailto:thesavior9820@gmail.com" data-vi="Liên hệ" data-en="Contact">Liên hệ</a>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ─── i18n ───
+    const META = {
+      vi: {
+        title: 'Dear Embeiu — Kỷ Niệm Của Chúng Mình',
+        desc:  'Dear Embeiu — App dành cho các cặp đôi. Đếm từng ngày yêu, lưu ảnh kỷ niệm, nhắn tin yêu thương.',
+      },
+      en: {
+        title: 'Dear Embeiu — Our Memories',
+        desc:  'Dear Embeiu — The couple app. Count days in love, share photo memories, send sweet messages.',
+      },
+    };
+
+    function setLang(lang) {
+      // Validate
+      if (lang !== 'vi' && lang !== 'en') lang = 'vi';
+
+      // Update html[lang]
+      document.documentElement.lang = lang;
+
+      // Update page meta
+      document.title = META[lang].title;
+      const descMeta = document.querySelector('meta[name="description"]');
+      if (descMeta) descMeta.content = META[lang].desc;
+
+      // Update all [data-vi][data-en] elements
+      document.querySelectorAll('[data-' + lang + ']').forEach(el => {
+        const val = el.getAttribute('data-' + lang);
+        if (val !== null) el.innerHTML = val;
+      });
+
+      // Toggle button state
+      document.querySelectorAll('.lt-btn').forEach(btn => {
+        const active = btn.dataset.lang === lang;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', String(active));
+      });
+
+      // Persist
+      try { localStorage.setItem('de_lang', lang); } catch(e) {}
+    }
+
+    // Auto-detect: localStorage → browser language → default vi
+    (function initLang() {
+      let lang;
+      try { lang = localStorage.getItem('de_lang'); } catch(e) {}
+      if (!lang) {
+        const nav = (navigator.language || navigator.userLanguage || 'vi').toLowerCase();
+        lang = nav.startsWith('en') ? 'en' : 'vi';
+      }
+      setLang(lang);
+    })();
+
+    // ─── Scroll reveal ───
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1, rootMargin: '0px 0px -36px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ─── Smooth-scroll anchors ───
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const id = a.getAttribute('href');
+        if (!id || id === '#') return;
+        const el = document.querySelector(id);
+        if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      });
+    });
+  </script>
+
 </body>
 </html>

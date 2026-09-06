@@ -3,255 +3,342 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Xoá tài khoản — Dear Embeiu</title>
+  <title>Xoá Tài Khoản — Dear Embeiu</title>
+  <meta name="description" content="Hướng dẫn xoá tài khoản Dear Embeiu và toàn bộ dữ liệu của bạn." />
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --pink:        #FF6B9D;
+      --pink-deep:   #E63956;
+      --pink-light:  #FFB6C1;
+      --pink-pale:   #FFF0F5;
+      --pink-mist:   #FFE4EF;
+      --navy:        #1A1A2E;
+      --muted:       #6B7280;
+      --muted-light: #9CA3AF;
+      --border:      rgba(255,107,157,.14);
+      --shadow-pink: 0 20px 56px rgba(255,107,157,.20);
+      --shadow-soft: 0 4px 20px rgba(26,26,46,.07);
+      --r-card:      24px;
+      --r-pill:      999px;
+      --r-sm:        16px;
+      --font:        'Quicksand', -apple-system, sans-serif;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); color: var(--navy); background: var(--pink-pale); min-height: 100vh; }
+    a { color: var(--pink); text-decoration: none; }
+    a:hover { text-decoration: underline; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fbcfe8 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      color: #1f2937;
-    }
+    /* ─── i18n ─── */
+    html[lang="en"] .vi-only { display: none; }
+    html[lang="vi"] .en-only { display: none; }
 
-    .card {
-      background: white;
-      border-radius: 24px;
-      padding: 48px 40px;
-      max-width: 560px;
-      width: 100%;
-      box-shadow: 0 20px 60px rgba(236, 72, 153, 0.12), 0 4px 16px rgba(0,0,0,0.06);
-    }
+    /* ─── Nav ─── */
+    .nav { position: sticky; top: 0; z-index: 100; background: rgba(255,240,245,.88); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); }
+    .nav-inner { max-width: 1100px; margin: 0 auto; height: 64px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .nav-logo { display: flex; align-items: center; gap: 9px; font-size: 1.05rem; font-weight: 700; flex-shrink: 0; }
+    .nav-logo a { color: var(--navy); }
+    .nav-logo a:hover { text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .lang-toggle { display: flex; gap: 2px; background: rgba(255,107,157,.08); border: 1.5px solid var(--border); border-radius: var(--r-pill); padding: 3px; }
+    .lt-btn { border: none; background: transparent; cursor: pointer; font-family: var(--font); font-size: .75rem; font-weight: 700; color: var(--muted); padding: 5px 11px; border-radius: var(--r-pill); transition: all .2s; line-height: 1; }
+    .lt-btn.active { background: var(--pink); color: #fff; box-shadow: 0 2px 8px rgba(255,107,157,.40); }
+    .lt-btn:not(.active):hover { color: var(--pink); }
+    .nav-back { display: inline-flex; align-items: center; gap: 6px; font-size: .88rem; font-weight: 700; color: var(--muted); padding: 10px 18px; border-radius: var(--r-pill); border: 1.5px solid var(--border); background: #fff; transition: color .2s, border-color .2s; white-space: nowrap; }
+    .nav-back:hover { color: var(--pink); border-color: rgba(255,107,157,.35); text-decoration: none; }
 
-    .logo {
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, #ec4899, #be185d);
-      border-radius: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 24px;
-      font-size: 32px;
-    }
+    /* ─── Page hero ─── */
+    .page-hero { padding: 56px 28px 48px; background: linear-gradient(155deg,#FFF5FA 0%,var(--pink-mist) 60%,#FFD6E7 100%); border-bottom: 1px solid var(--border); }
+    .page-hero-inner { max-width: 640px; margin: 0 auto; }
+    .page-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.8); border: 1.5px solid var(--border); border-radius: var(--r-pill); padding: 5px 15px; font-size: .76rem; font-weight: 700; color: var(--pink); margin-bottom: 16px; letter-spacing: .02em; backdrop-filter: blur(8px); }
+    .page-hero h1 { font-size: clamp(1.7rem,4vw,2.4rem); font-weight: 700; line-height: 1.2; color: var(--navy); margin-bottom: 12px; }
+    .page-hero-sub { font-size: 1rem; color: var(--muted); line-height: 1.65; font-weight: 500; }
+    .page-hero-sub strong { color: var(--navy); }
 
-    h1 {
-      font-size: 26px;
-      font-weight: 700;
-      color: #111827;
-      margin-bottom: 8px;
-    }
+    /* ─── Content ─── */
+    .content-wrap { max-width: 640px; margin: 0 auto; padding: 52px 28px 80px; }
 
-    .subtitle {
-      color: #6b7280;
-      font-size: 15px;
-      margin-bottom: 32px;
-      line-height: 1.5;
-    }
+    .sec-label { font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted-light); margin-bottom: 16px; }
 
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #9ca3af;
-      margin-bottom: 12px;
-    }
+    /* Method cards */
+    .method-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-card); padding: 24px; margin-bottom: 14px; transition: border-color .2s, box-shadow .2s; }
+    .method-card:hover { border-color: rgba(255,107,157,.3); box-shadow: var(--shadow-pink); }
+    .method-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+    .method-ic { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .method-ic.pink { background: var(--pink-pale); }
+    .method-ic.blue { background: #EFF6FF; }
+    .method-name { font-size: .98rem; font-weight: 700; color: var(--navy); }
+    .method-step { font-size: .78rem; font-weight: 600; color: var(--muted-light); }
+    .method-desc { font-size: .88rem; color: var(--muted); line-height: 1.65; font-weight: 500; }
+    .method-desc strong { color: var(--navy); }
 
-    .method {
-      border: 1.5px solid #f3f4f6;
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 16px;
-      transition: border-color 0.2s;
-    }
+    .btn-action { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 11px 20px; border-radius: var(--r-sm); font-family: var(--font); font-size: .88rem; font-weight: 700; cursor: pointer; border: none; transition: opacity .2s, transform .15s; text-decoration: none; }
+    .btn-action:hover { opacity: .88; transform: translateY(-1px); text-decoration: none; }
+    .btn-pink { background: linear-gradient(135deg,var(--pink),var(--pink-deep)); color: #fff; box-shadow: 0 6px 18px rgba(255,107,157,.35); }
+    .btn-navy { background: var(--navy); color: #fff; box-shadow: 0 6px 18px rgba(26,26,46,.2); }
 
-    .method:hover { border-color: #fbcfe8; }
+    /* Warning box */
+    .warn-box { background: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: var(--r-sm); padding: 16px 20px; margin: 28px 0; font-size: .88rem; color: #92400E; line-height: 1.65; font-weight: 500; }
+    .warn-box strong { color: #B45309; }
 
-    .method-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
+    /* Data list */
+    .data-card { background: #fff; border: 1.5px solid var(--border); border-radius: var(--r-card); padding: 24px 26px; margin: 0 0 32px; }
+    .data-card-title { font-size: .88rem; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
+    .data-items { display: flex; flex-direction: column; gap: 8px; }
+    .data-item { display: flex; align-items: flex-start; gap: 10px; font-size: .88rem; color: var(--muted); line-height: 1.55; font-weight: 500; }
+    .data-item .check { color: var(--pink); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
 
-    .method-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
+    /* ─── Footer ─── */
+    footer { background: #0D0D1C; padding: 40px 28px 28px; }
+    .ft-inner { max-width: 1100px; margin: 0 auto; }
+    .ft-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .ft-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 8px; }
+    .ft-brand p { font-size: .82rem; color: rgba(255,255,255,.4); line-height: 1.6; max-width: 240px; }
+    .ft-col h4 { font-size: .76rem; font-weight: 700; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+    .ft-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .ft-col a { font-size: .84rem; color: rgba(255,255,255,.4); font-weight: 500; transition: color .2s; text-decoration: none; }
+    .ft-col a:hover { color: var(--pink); }
+    .ft-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: .78rem; color: rgba(255,255,255,.26); font-weight: 500; }
+    .ft-bottom a { color: rgba(255,255,255,.26); transition: color .2s; text-decoration: none; }
+    .ft-bottom a:hover { color: var(--pink); }
 
-    .method-icon.pink  { background: #fdf2f8; }
-    .method-icon.blue  { background: #eff6ff; }
-
-    .method-name {
-      font-weight: 600;
-      font-size: 15px;
-      color: #111827;
-    }
-
-    .method-desc {
-      font-size: 14px;
-      color: #6b7280;
-      line-height: 1.55;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 14px;
-      padding: 10px 20px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: opacity 0.2s;
-    }
-
-    .btn:hover { opacity: 0.82; }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #ec4899, #be185d);
-      color: white;
-    }
-
-    .btn-secondary {
-      background: #eff6ff;
-      color: #1d4ed8;
-    }
-
-    .warning {
-      background: #fff7ed;
-      border: 1.5px solid #fed7aa;
-      border-radius: 12px;
-      padding: 16px;
-      font-size: 14px;
-      color: #92400e;
-      margin: 24px 0;
-      line-height: 1.5;
-    }
-
-    .warning strong { color: #b45309; }
-
-    .data-list {
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin: 24px 0;
-    }
-
-    .data-list p {
-      font-size: 13px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 8px;
-    }
-
-    .data-list ul {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .data-list li {
-      font-size: 14px;
-      color: #6b7280;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-    }
-
-    .data-list li::before {
-      content: "✓";
-      color: #ec4899;
-      font-weight: 700;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
-    footer {
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: 1px solid #f3f4f6;
-      font-size: 13px;
-      color: #9ca3af;
-      text-align: center;
-    }
-
-    footer a { color: #ec4899; text-decoration: none; }
+    @media (max-width: 600px) { .content-wrap { padding: 36px 20px 60px; } .ft-top { flex-direction: column; } .ft-bottom { flex-direction: column; text-align: center; } }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="logo">💌</div>
 
-    <h1>Xoá tài khoản Dear Embeiu</h1>
-    <p class="subtitle">
-      Bạn có thể xoá tài khoản và toàn bộ dữ liệu của mình theo hai cách dưới đây.
-      Quá trình xoá sẽ được hoàn tất trong vòng <strong>30 ngày</strong>.
-    </p>
-
-    <p class="section-title">Cách xoá tài khoản</p>
-
-    <div class="method">
-      <div class="method-header">
-        <div class="method-icon pink">📱</div>
-        <span class="method-name">Cách 1 — Xoá trực tiếp trong app (nhanh nhất)</span>
+  <!-- ═══ NAV ═══ -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <a href="index.html">💌 Dear Embeiu</a>
       </div>
-      <p class="method-desc">
-        Mở app Dear Embeiu → vào tab <strong>Hồ sơ</strong> → cuộn xuống mục
-        <strong>Vùng nguy hiểm</strong> → chọn <strong>Xoá tài khoản</strong>
-        và xác nhận. Tài khoản sẽ bị xoá ngay lập tức.
+      <div class="nav-right">
+        <div class="lang-toggle" role="group" aria-label="Language / Ngôn ngữ">
+          <button class="lt-btn active" data-lang="vi" onclick="setLang('vi')" aria-pressed="true">VI</button>
+          <button class="lt-btn"        data-lang="en" onclick="setLang('en')" aria-pressed="false">EN</button>
+        </div>
+        <a href="index.html" class="nav-back">
+          <span class="vi-only">← Trang chủ</span>
+          <span class="en-only">← Home</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ PAGE HERO ═══ -->
+  <div class="page-hero">
+    <div class="page-hero-inner">
+      <div class="page-tag">
+        <span class="vi-only">🗑️ Quản lý tài khoản</span>
+        <span class="en-only">🗑️ Account management</span>
+      </div>
+      <h1>
+        <span class="vi-only">Xoá tài khoản<br>Dear Embeiu</span>
+        <span class="en-only">Delete your<br>Dear Embeiu account</span>
+      </h1>
+      <p class="page-hero-sub">
+        <span class="vi-only">Bạn có thể xoá tài khoản và toàn bộ dữ liệu theo hai cách dưới đây. Quá trình xoá hoàn tất trong vòng <strong>30 ngày</strong>.</span>
+        <span class="en-only">You can delete your account and all associated data in two ways below. The deletion process is completed within <strong>30 days</strong>.</span>
       </p>
     </div>
+  </div>
 
-    <div class="method">
-      <div class="method-header">
-        <div class="method-icon blue">✉️</div>
-        <span class="method-name">Cách 2 — Gửi yêu cầu qua email</span>
+  <!-- ═══ CONTENT ═══ -->
+  <div class="content-wrap">
+
+    <div class="sec-label">
+      <span class="vi-only">Cách xoá tài khoản</span>
+      <span class="en-only">How to delete your account</span>
+    </div>
+
+    <!-- Method 1 -->
+    <div class="method-card">
+      <div class="method-head">
+        <div class="method-ic pink">📱</div>
+        <div>
+          <div class="method-step">
+            <span class="vi-only">Cách 1 — Nhanh nhất</span>
+            <span class="en-only">Method 1 — Fastest</span>
+          </div>
+          <div class="method-name">
+            <span class="vi-only">Xoá trực tiếp trong app</span>
+            <span class="en-only">Delete directly in the app</span>
+          </div>
+        </div>
       </div>
       <p class="method-desc">
-        Nếu bạn không thể truy cập app, gửi email đến địa chỉ bên dưới với tiêu đề
-        <strong>"Yêu cầu xoá tài khoản"</strong> và kèm theo địa chỉ email đã đăng ký.
+        <span class="vi-only">Mở app Dear Embeiu → vào tab <strong>Hồ sơ</strong> → cuộn xuống mục <strong>Vùng nguy hiểm</strong> → chọn <strong>Xoá tài khoản</strong> và xác nhận. Tài khoản sẽ bị xoá ngay lập tức.</span>
+        <span class="en-only">Open Dear Embeiu → go to the <strong>Profile</strong> tab → scroll down to <strong>Danger Zone</strong> → tap <strong>Delete Account</strong> and confirm. Your account will be deleted immediately.</span>
       </p>
-      <a class="btn btn-secondary"
-         href="mailto:thesavior9820@gmail.com?subject=Yêu%20cầu%20xoá%20tài%20khoản%20Dear%20Embeiu&body=Địa%20chỉ%20email%20đã%20đăng%20ký%3A%20[email%20của%20bạn]">
-        ✉️ Gửi yêu cầu qua email
+      <a href="index.html#download" class="btn-action btn-pink">
+        <span class="vi-only">📱 Tải ứng dụng</span>
+        <span class="en-only">📱 Get the app</span>
       </a>
     </div>
 
-    <div class="warning">
-      <strong>⚠️ Lưu ý:</strong> Việc xoá tài khoản là <strong>không thể hoàn tác</strong>.
-      Toàn bộ dữ liệu của bạn sẽ bị xoá vĩnh viễn sau 30 ngày kể từ ngày yêu cầu.
+    <!-- Method 2 -->
+    <div class="method-card">
+      <div class="method-head">
+        <div class="method-ic blue">✉️</div>
+        <div>
+          <div class="method-step">
+            <span class="vi-only">Cách 2 — Qua email</span>
+            <span class="en-only">Method 2 — Via email</span>
+          </div>
+          <div class="method-name">
+            <span class="vi-only">Gửi yêu cầu qua email</span>
+            <span class="en-only">Send a deletion request by email</span>
+          </div>
+        </div>
+      </div>
+      <p class="method-desc">
+        <span class="vi-only">Nếu bạn không thể truy cập app, gửi email đến địa chỉ bên dưới với tiêu đề <strong>"Yêu cầu xoá tài khoản"</strong> kèm theo địa chỉ email đã đăng ký.</span>
+        <span class="en-only">If you can't access the app, send an email to the address below with the subject <strong>"Account Deletion Request"</strong> and include the email address you registered with.</span>
+      </p>
+      <a class="btn-action btn-navy"
+         href="mailto:thesavior9820@gmail.com?subject=Yêu%20cầu%20xoá%20tài%20khoản%20Dear%20Embeiu&body=Địa%20chỉ%20email%20đã%20đăng%20ký%3A%20"
+         id="email-btn">
+        <span class="vi-only">✉️ Gửi yêu cầu qua email</span>
+        <span class="en-only">✉️ Send deletion request</span>
+      </a>
     </div>
 
-    <div class="data-list">
-      <p>Dữ liệu sẽ bị xoá vĩnh viễn:</p>
-      <ul>
-        <li>Thông tin tài khoản (email, tên hiển thị)</li>
-        <li>Toàn bộ ảnh và caption trong thư viện</li>
-        <li>Thông tin cặp đôi (tên, ngày kỷ niệm, ảnh cặp đôi)</li>
-        <li>Mã mời và dữ liệu ghép cặp</li>
-        <li>Token thông báo đẩy</li>
-        <li>Bộ nhớ đệm cục bộ trên thiết bị</li>
-      </ul>
+    <!-- Warning -->
+    <div class="warn-box">
+      <strong>
+        <span class="vi-only">⚠️ Lưu ý quan trọng:</span>
+        <span class="en-only">⚠️ Important notice:</span>
+      </strong>
+      <span class="vi-only"> Việc xoá tài khoản là <strong>không thể hoàn tác</strong>. Toàn bộ dữ liệu của bạn sẽ bị xoá vĩnh viễn sau 30 ngày kể từ ngày yêu cầu.</span>
+      <span class="en-only"> Account deletion is <strong>irreversible</strong>. All your data will be permanently deleted within 30 days of the request.</span>
     </div>
 
-    <footer>
-      <p>Dear Embeiu · <a href="privacy-policy.html">Chính sách quyền riêng tư</a></p>
-      <p style="margin-top:6px">Liên hệ: <a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a></p>
-    </footer>
-  </div>
+    <!-- Data list -->
+    <div class="data-card">
+      <div class="data-card-title">
+        <span class="vi-only">🗑️ Dữ liệu sẽ bị xoá vĩnh viễn:</span>
+        <span class="en-only">🗑️ Data that will be permanently deleted:</span>
+      </div>
+      <div class="data-items">
+        <div class="data-item">
+          <span class="check">✓</span>
+          <span class="vi-only">Thông tin tài khoản (email, tên hiển thị)</span>
+          <span class="en-only">Account information (email, display name)</span>
+        </div>
+        <div class="data-item">
+          <span class="check">✓</span>
+          <span class="vi-only">Toàn bộ ảnh và chú thích trong thư viện</span>
+          <span class="en-only">All photos and captions in the gallery</span>
+        </div>
+        <div class="data-item">
+          <span class="check">✓</span>
+          <span class="vi-only">Thông tin cặp đôi (tên, ngày kỷ niệm, ảnh cặp đôi)</span>
+          <span class="en-only">Couple information (names, anniversary date, couple photo)</span>
+        </div>
+        <div class="data-item">
+          <span class="check">✓</span>
+          <span class="vi-only">Tin nhắn chat và lịch sử trò chuyện</span>
+          <span class="en-only">Chat messages and conversation history</span>
+        </div>
+        <div class="data-item">
+          <span class="check">✓</span>
+          <span class="vi-only">Mã mời và dữ liệu ghép cặp</span>
+          <span class="en-only">Invite code and pairing data</span>
+        </div>
+        <div class="data-item">
+          <span class="check">✓</span>
+          <span class="vi-only">Token thông báo đẩy (FCM)</span>
+          <span class="en-only">Push notification token (FCM)</span>
+        </div>
+        <div class="data-item">
+          <span class="check">✓</span>
+          <span class="vi-only">Bộ nhớ đệm cục bộ trên thiết bị</span>
+          <span class="en-only">Local cache data on your device</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content-wrap -->
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer>
+    <div class="ft-inner">
+      <div class="ft-top">
+        <div class="ft-brand">
+          <div class="ft-logo"><span>💌</span><span>Dear Embeiu</span></div>
+          <p class="vi-only">Không gian riêng tư dành cho các cặp đôi.</p>
+          <p class="en-only">A private space for couples.</p>
+        </div>
+        <div class="ft-col">
+          <h4 class="vi-only">Pháp lý</h4>
+          <h4 class="en-only">Legal</h4>
+          <ul>
+            <li><a href="privacy-policy.html" class="vi-only">Chính sách quyền riêng tư</a><a href="privacy-policy.html" class="en-only">Privacy Policy</a></li>
+            <li><a href="account-deletion.html" class="vi-only">Yêu cầu xoá tài khoản</a><a href="account-deletion.html" class="en-only">Account Deletion</a></li>
+          </ul>
+        </div>
+        <div class="ft-col">
+          <h4 class="vi-only">Hỗ trợ</h4>
+          <h4 class="en-only">Support</h4>
+          <ul>
+            <li><a href="mailto:thesavior9820@gmail.com">thesavior9820@gmail.com</a></li>
+            <li><a href="index.html#download" class="vi-only">Tải ứng dụng</a><a href="index.html#download" class="en-only">Download</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="ft-bottom">
+        <span class="vi-only">© 2026 Dear Embeiu · Được làm với 💕 tại Việt Nam</span>
+        <span class="en-only">© 2026 Dear Embeiu · Made with 💕 in Vietnam</span>
+        <span>
+          <a href="privacy-policy.html" class="vi-only">Chính sách bảo mật</a><a href="privacy-policy.html" class="en-only">Privacy Policy</a>
+          &nbsp;·&nbsp;
+          <a href="account-deletion.html" class="vi-only">Xoá tài khoản</a><a href="account-deletion.html" class="en-only">Account Deletion</a>
+          &nbsp;·&nbsp;
+          <a href="mailto:thesavior9820@gmail.com" class="vi-only">Liên hệ</a><a href="mailto:thesavior9820@gmail.com" class="en-only">Contact</a>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const META = {
+      vi: { title: 'Xoá Tài Khoản — Dear Embeiu' },
+      en: { title: 'Account Deletion — Dear Embeiu' },
+    };
+    function setLang(lang) {
+      if (lang !== 'vi' && lang !== 'en') lang = 'vi';
+      document.documentElement.lang = lang;
+      document.title = META[lang].title;
+      // Update email link subject/body for current language
+      const emailBtn = document.getElementById('email-btn');
+      if (emailBtn) {
+        const subj = lang === 'vi'
+          ? 'Yêu%20cầu%20xoá%20tài%20khoản%20Dear%20Embeiu'
+          : 'Dear%20Embeiu%20Account%20Deletion%20Request';
+        const body = lang === 'vi'
+          ? 'Địa%20chỉ%20email%20đã%20đăng%20ký%3A%20'
+          : 'Registered%20email%20address%3A%20';
+        emailBtn.href = 'mailto:thesavior9820@gmail.com?subject=' + subj + '&body=' + body;
+      }
+      document.querySelectorAll('.lt-btn').forEach(btn => {
+        const active = btn.dataset.lang === lang;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', String(active));
+      });
+      try { localStorage.setItem('de_lang', lang); } catch(e) {}
+    }
+    (function() {
+      let lang;
+      try { lang = localStorage.getItem('de_lang'); } catch(e) {}
+      if (!lang) { const nav = (navigator.language || 'vi').toLowerCase(); lang = nav.startsWith('en') ? 'en' : 'vi'; }
+      setLang(lang);
+    })();
+  </script>
+
 </body>
 </html>

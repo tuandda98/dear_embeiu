@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --only firestore:rules,functions:notifyDailyAnswer,functions:generateDailyQuestion --project tonyembeiu-dev 2>&1 | grep -E "✔|✖|Error|error|Deploy complete|Successful" | head -12; ls -t project/.firebase-deploy-log | head -1
+time_utc: 20260905T120412Z
+git_head: 9332239 (feature/care-and-catchup)
+dirty   : 36 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 9332239)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 9332239 -- functions` rồi redeploy

@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --only firestore:rules 2>&1 | tail -5
+time_utc: 20260610T080702Z
+git_head: 454983e (release/1.1.6)
+dirty   : 28 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 454983e)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 454983e -- functions` rồi redeploy

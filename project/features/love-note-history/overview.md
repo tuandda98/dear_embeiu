@@ -1,5 +1,7 @@
 # Feature: Love-note history (Nhật ký lời nhắn)
 
+> ⚠️ **RETIRED 2026-06-14** — feature Love Note (lời nhắn 2 chiều + nhật ký) đã **huỷ khỏi client**, thay hoàn toàn bằng tab **Chat**. User chốt: "gộp lịch sử love note cũ vào Chat rồi huỷ luôn, giờ chỉ xài Chat". Đã xoá `love_note_history_screen` + `LoveNoteProvider`/`LoveNoteService` + model `love_note` + wiring. **Auto-migrate** lịch sử cũ → Chat (CF `mirrorNoteHistoryToChat` trigger realtime + `migrateLoveNotesToChat` callable backfill, idempotent). **Backend GIỮ NGUYÊN** (rules `notes`/`noteHistory` + CF `notifyLoveNote`) để app 1.1.0 đang live không vỡ (backward-compat). Chi tiết migration ở [`../chat/dev.md`](../chat/dev.md). Phần dưới giữ làm lịch sử thiết kế.
+
 > Tạo 2026-06-04 (autonomous "caffeine mode"). Xuất phát từ câu hỏi PO của user:
 > "phần lời nhắn — có nên lưu lịch sử tin nhắn 2 người không? có nên re-UI cho nổi bật?"
 

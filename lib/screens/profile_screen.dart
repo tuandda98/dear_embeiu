@@ -1,7 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter/services.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -10,135 +11,171 @@ import '../models/couple.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
+import '../providers/streak_provider.dart';
+import '../services/care_message_service.dart';
+import '../services/daily_question_service.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
 import '../widgets/animated_couple_name.dart';
+import '../widgets/content_card.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/blocking_loading_overlay.dart';
+import '../widgets/header_icon_button.dart';
+import '../widgets/icon_badge.dart';
 import '../widgets/invite_action_buttons.dart';
+import '../widgets/milestone_trail.dart';
+import '../widgets/section_header.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/shimmer_skeleton.dart';
+import '../widgets/memories_sheet.dart';
+import '../widgets/records_sheet.dart';
+import '../widgets/streak_sheet.dart';
+import 'care_timeline_screen.dart';
+import 'journal_screen.dart';
 import 'settings_screen.dart';
+import 'setup_screen.dart';
 
+/// Profile v2 (redesign 2026-06-11): identity + memory chest + admin gateway.
+/// Every number appears exactly once — the daily/live numbers live on Home;
+/// this tab holds the static record (hero identity card, journey strip) and
+/// the archives (journal / note history / streak) moved here from Home.
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key, this.bottomInset = 0});
+  const ProfileScreen({super.key, this.bottomInset = 0, this.onRequestTab});
 
   final double bottomInset;
 
+  /// Switches the Home shell's bottom-nav tab (e.g. a badge jumping to Gallery).
+  final void Function(int index)? onRequestTab;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Consumer2<CoupleProvider, PhotoProvider>(
-        builder: (context, coupleProvider, photoProvider, _) {
-          final authProvider = context.watch<AuthProvider>();
-          final currentUser = authProvider.currentUser;
-          final isBusy = coupleProvider.isLoading || photoProvider.isLoading;
-          final busyMessage = coupleProvider.isLoading
-              ? coupleProvider.loadingMessage
-              : photoProvider.loadingMessage;
+    // No nested Scaffold (header unify 2026-06-14): Profile renders straight
+    // into the Home shell's Scaffold + SafeArea like the Chat tab. It uses no
+    // Scaffold services (SnackBar/FAB) and its bg is transparent, so its own
+    // Scaffold was redundant.
+    return Consumer2<CoupleProvider, PhotoProvider>(
+      builder: (context, coupleProvider, photoProvider, _) {
+        final authProvider = context.watch<AuthProvider>();
+        final currentUser = authProvider.currentUser;
+        final isBusy = coupleProvider.isLoading || photoProvider.isLoading;
+        final busyMessage = coupleProvider.isLoading
+            ? coupleProvider.loadingMessage
+            : photoProvider.loadingMessage;
 
-          if (coupleProvider.couple == null) {
-            return BlockingLoadingOverlay(
-              isVisible: isBusy,
-              message: busyMessage,
-              child: _buildProfileLoadingSkeleton(context),
-            );
-          }
-
-          final couple = coupleProvider.couple!;
-          final photoCount = photoProvider.photoCount;
-          final totalDays = _daysTogether(couple.anniversaryDate);
-          final years = totalDays ~/ 365;
-          final months = (totalDays % 365) ~/ 30;
-          final nextAnniversary = _getNextAnniversary(couple.anniversaryDate);
-          final daysUntilAnniversary = _daysUntil(nextAnniversary);
-
+        if (coupleProvider.couple == null) {
           return BlockingLoadingOverlay(
             isVisible: isBusy,
             message: busyMessage,
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: AppColors.secondaryGradient,
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildPageHeader(context),
-                      const SizedBox(height: 20),
-                      _buildHeroCard(
-                        context,
-                        couple: couple,
-                        daysUntilAnniversary: daysUntilAnniversary,
-                      ),
-                      const SizedBox(height: 18),
-                      _buildStatsSection(
-                        context,
-                        years: years,
-                        months: months,
-                        totalDays: totalDays,
-                        photoCount: photoCount,
-                      ),
-                      const SizedBox(height: 18),
-                      _buildCoupleInfoSection(
-                        context,
-                        couple: couple,
-                        inviteCode: currentUser?.inviteCode,
-                        daysUntilAnniversary: daysUntilAnniversary,
-                      ),
-                      const SizedBox(height: 18),
-                      _buildSettingsTile(context),
-                    ],
+            child: _buildProfileLoadingSkeleton(context),
+          );
+        }
+
+        final couple = coupleProvider.couple!;
+        final totalDays = _daysTogether(couple.anniversaryDate);
+        final inviteCode = currentUser?.inviteCode;
+
+        return BlockingLoadingOverlay(
+          isVisible: isBusy,
+          message: busyMessage,
+          // Transparent: the shared dawnBlush bg is painted ONCE by the Home
+          // shell behind the tab IndexedStack (bg-unify 2026-06-14), so all 4
+          // tabs read identically. A per-tab gradient Container restarted the
+          // diagonal at the tab top → a ~60px colour shift vs the Home/Chat
+          // tabs (which show the outer container).
+          child: SafeArea(
+            // Home's shell SafeArea already applied the top inset for every
+            // tab, so skip top here (a no-op in portrait) — never double-pad.
+            top: false,
+            bottom: false,
+            // Pinned chip header (header unify 2026-06-14): a fixed top row +
+            // an Expanded scroll below, so the chip/settings stay put like the
+            // Chat tab. NB: the actual fix that made the top padding EVEN across
+            // tabs lives in _buildPageHeader — the header Row uses
+            // crossAxisAlignment.start so the 44px settings icon doesn't
+            // vertically-centre (and thus push down) the shorter chip.
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: _buildPageHeader(context),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(16, 20, 16, bottomInset),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeroCard(context, couple: couple),
+                        const SizedBox(height: 18),
+                        _buildJourneyTrail(context, totalDays: totalDays),
+                        // Achievements need a partner (streak/journal exist
+                        // only once both are present); while waiting, the
+                        // invite block takes the slot.
+                        if (!couple.isWaitingForPartner) ...[
+                          const SizedBox(height: 24),
+                          _AchievementsGrid(
+                            coupleId: couple.id,
+                            totalDays: totalDays,
+                            onRequestTab: onRequestTab,
+                          ),
+                        ],
+                        if (inviteCode != null &&
+                            inviteCode.trim().isNotEmpty &&
+                            couple.isWaitingForPartner) ...[
+                          const SizedBox(height: 18),
+                          _buildDetailTile(
+                            icon: IconsaxPlusLinear.key,
+                            title: context.l10n.yourInviteCodeLabel,
+                            value: inviteCode,
+                            tint: AppColors.warning,
+                            belowValue: InviteActionButtons(
+                              code: inviteCode,
+                              onDark: false,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
   /// Content-shaped shimmer shown while the couple profile is loading,
-  /// mirroring the real layout (header, hero card, 2x2 stats, info tiles).
+  /// mirroring the real layout (header, hero, journey strip, chest tiles).
   Widget _buildProfileLoadingSkeleton(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(20, topPadding + 20, 20, 20),
+      padding: EdgeInsets.fromLTRB(16, topPadding + 16, 16, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ShimmerSkeleton(width: 140, height: 22, borderRadius: 8),
-          const SizedBox(height: 24),
+          Row(
+            children: const [
+              ShimmerSkeleton(width: 150, height: 24, borderRadius: 999),
+              Spacer(),
+              // Bare settings glyph (no squircle box since 2026-06-11).
+              ShimmerSkeleton(width: 24, height: 24, borderRadius: 8),
+            ],
+          ),
+          const SizedBox(height: 20),
           // Couple hero card (radius 32).
-          const ShimmerSkeleton(height: 240, borderRadius: 32),
+          const ShimmerSkeleton(height: 220, borderRadius: 32),
+          const SizedBox(height: 18),
+          // "Our journey" milestone-trail card.
+          const ShimmerSkeleton(height: 160, borderRadius: 24),
           const SizedBox(height: 24),
-          // 2x2 stats grid.
-          Row(
-            children: const [
-              Expanded(child: ShimmerSkeleton(height: 92, borderRadius: 22)),
-              SizedBox(width: 14),
-              Expanded(child: ShimmerSkeleton(height: 92, borderRadius: 22)),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: const [
-              Expanded(child: ShimmerSkeleton(height: 92, borderRadius: 22)),
-              SizedBox(width: 14),
-              Expanded(child: ShimmerSkeleton(height: 92, borderRadius: 22)),
-            ],
-          ),
-          const SizedBox(height: 24),
-          // Info tiles.
-          const ShimmerSkeleton(height: 64, borderRadius: 22),
+          // Achievements: section title + a 2×2 badge grid.
+          const ShimmerSkeleton(width: 150, height: 22, borderRadius: 8),
           const SizedBox(height: 12),
-          const ShimmerSkeleton(height: 64, borderRadius: 22),
+          const ShimmerSkeleton(height: 232, borderRadius: 24),
         ],
       ),
     );
@@ -147,54 +184,49 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildPageHeader(BuildContext context) {
     final l10n = context.l10n;
 
-    return Column(
+    // Unified tab header (user 2026-06-14): every tab is now a single chip
+    // row + a right-aligned action icon — the big page title was dropped so
+    // all four tabs share one header height/shape. See chat/gallery/home.
+    //
+    // crossAxisAlignment.start (header-padding unify 2026-06-14): the settings
+    // icon (44) is taller than the chip (~27), and the Row's default centre
+    // alignment pushed the chip DOWN ~8pt vs the icon-less Chat/Gallery chips.
+    // Top-aligning lands the chip at exactly the same Y as every other tab.
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                LucideIcons.sparkles,
-                size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.loveProfileBadge,
-                style: AppTheme.pageEyebrowStyle(),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        Text(
-          l10n.profileTitle,
-          style: AppTheme.pageTitleStyle(),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          l10n.profileSubtitle,
-          style: AppTheme.pageSubtitleStyle(),
+        EyebrowChip(label: l10n.loveProfileBadge, icon: IconsaxPlusBold.lovely),
+        const Spacer(),
+        // Settings entry = ONE squircle at the page's top-right (user
+        // 2026-06-11) — replaces the full-width tile that closed the page.
+        HeaderIconButton(
+          icon: IconsaxPlusLinear.setting_2,
+          semanticsLabel: l10n.settingsTitle,
+          onTap: () => _openSettings(context),
         ),
       ],
     );
   }
 
-  Widget _buildHeroCard(
-    BuildContext context, {
-    required Couple couple,
-    required int daysUntilAnniversary,
-  }) {
+  void _openSettings(BuildContext context) {
+    HapticFeedback.selectionClick();
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        settings: const RouteSettings(name: 'Settings'),
+        builder: (_) => const SettingsScreen(),
+      ),
+    );
+  }
+
+  /// Identity hero: couple photo (or gradient + initials) with the names and
+  /// since-date pinned to the bottom. The whole card opens the edit-story
+  /// flow — profile is where users expect to edit their profile — with a
+  /// pencil disc as the visible affordance.
+  Widget _buildHeroCard(BuildContext context, {required Couple couple}) {
     final l10n = context.l10n;
 
     return Container(
+      height: 220,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(32),
         border: Border.all(color: AppColors.white.withValues(alpha: 0.16)),
@@ -214,448 +246,252 @@ class ProfileScreen extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: Stack(
+          fit: StackFit.expand,
           children: [
-            Positioned.fill(
-              child: (couple.couplePhotoPath?.trim().isNotEmpty == true ||
-                      couple.couplePhotoUrl?.trim().isNotEmpty == true)
-                  ? Transform.scale(
-                      scale: 1.04,
-                      child: ImageFiltered(
-                        imageFilter: ImageFilter.blur(sigmaX: 0.6, sigmaY: 0.6),
-                        child: SharedCouplePhotoView(
-                          localPath: couple.couplePhotoPath,
-                          remoteUrl: couple.couplePhotoUrl,
-                          fit: BoxFit.cover,
-                          // Cover banner → cap at screen width (physical px);
-                          // it's blurred so this never costs visible quality.
-                          decodeWidth: (MediaQuery.of(context).size.width *
-                                  MediaQuery.of(context).devicePixelRatio)
-                              .round(),
-                        ),
+            (couple.couplePhotoPath?.trim().isNotEmpty == true ||
+                    couple.couplePhotoUrl?.trim().isNotEmpty == true)
+                ? Transform.scale(
+                    scale: 1.04,
+                    child: ImageFiltered(
+                      imageFilter: ImageFilter.blur(sigmaX: 0.6, sigmaY: 0.6),
+                      child: SharedCouplePhotoView(
+                        localPath: couple.couplePhotoPath,
+                        remoteUrl: couple.couplePhotoUrl,
+                        fit: BoxFit.cover,
+                        // Cover banner → cap at screen width (physical px);
+                        // it's blurred so this never costs visible quality.
+                        decodeWidth:
+                            (MediaQuery.of(context).size.width *
+                                    MediaQuery.of(context).devicePixelRatio)
+                                .round(),
                       ),
-                    )
-                  : DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.accentRose.withValues(alpha: 0.88),
-                            AppColors.primaryGradientEnd.withValues(alpha: 0.94),
-                          ],
-                        ),
+                    ),
+                  )
+                : DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.accentRose.withValues(alpha: 0.88),
+                          AppColors.primaryGradientEnd.withValues(alpha: 0.94),
+                        ],
                       ),
-                      child: Center(
-                        child: Text(
-                          _initials(couple),
-                          style: TextStyle(
-                            color: AppColors.white.withValues(alpha: 0.94),
-                            fontSize: 56,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 2,
-                          ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _initials(couple),
+                        style: TextStyle(
+                          color: AppColors.white.withValues(alpha: 0.94),
+                          fontSize: 56,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 2,
                         ),
                       ),
                     ),
-            ),
-                        Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: RadialGradient(
-                                center: const Alignment(-0.62, -0.86),
-                                radius: 1.05,
-                                colors: [
-                                  AppColors.white.withValues(alpha: 0.16),
-                                  AppColors.accentRose.withValues(alpha: 0.14),
-                                  Colors.transparent,
-                                ],
-                                stops: const [0.0, 0.28, 0.78],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: -36,
-                          right: -26,
-                          child: Container(
-                            width: 170,
-                            height: 170,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [
-                                  AppColors.primaryGradientEnd.withValues(alpha: 0.34),
-                                  AppColors.accentRose.withValues(alpha: 0.18),
-                                  Colors.transparent,
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.02),
-                                  Colors.transparent,
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                                  Colors.black.withValues(alpha: 0.08),
-                                  Colors.black.withValues(alpha: 0.22),
-                                  Colors.black.withValues(alpha: 0.68),
-                    ],
-                                stops: const [0.0, 0.34, 1.0],
                   ),
+            // Soft top-left highlight keeps the photo from reading flat.
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(-0.62, -0.86),
+                  radius: 1.05,
+                  colors: [
+                    AppColors.white.withValues(alpha: 0.16),
+                    AppColors.accentRose.withValues(alpha: 0.14),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.28, 0.78],
                 ),
               ),
             ),
-                        Positioned(
-                          left: 22,
-                          right: 22,
-                          bottom: 108,
-                          child: Container(
-                            height: 72,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  AppColors.accentRose.withValues(alpha: 0.10),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(28),
-                            ),
-                          ),
-                        ),
+            // Bottom scrim so the white identity text always reads.
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.08),
+                    Colors.black.withValues(alpha: 0.22),
+                    Colors.black.withValues(alpha: 0.68),
+                  ],
+                  stops: const [0.0, 0.34, 1.0],
+                ),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(22),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildGlassPill(
-                    icon: LucideIcons.sparkles,
-                                isProminent: true,
-                    label: daysUntilAnniversary == 0
-                        ? l10n.todayIsAnniversaryProfile
-                        : l10n.daysUntilAnniversaryProfile(daysUntilAnniversary),
+                  Text(
+                    l10n.ourStoryBadge,
+                    style: TextStyle(
+                      color: AppColors.white.withValues(alpha: 0.72),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.3,
+                    ),
                   ),
-                              const SizedBox(height: 106),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _buildAvatarBadge(context, couple),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.ourStoryBadge,
-                              style: TextStyle(
-                                color: AppColors.white.withValues(alpha: 0.72),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.3,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            AnimatedCoupleName(
-                              person1Name: couple.person1Name,
-                              person2Name: couple.person2Name,
-                              creatorUserId: couple.createdByUserId,
-                              spacing: 8,
-                              runSpacing: 6,
-                              heartSize: 26,
-                              heartColor: AppColors.white,
-                              textStyle: TextStyle(
-                                color: AppColors.white,
-                                fontSize: 30,
-                                fontWeight: FontWeight.w800,
-                                height: 1.02,
-                                letterSpacing: -0.7,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black.withValues(alpha: 0.24),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              l10n.daysOfUsSince(
-                                _formatDate(context, couple.anniversaryDate),
-                              ),
-                              style: TextStyle(
-                                color: AppColors.white.withValues(alpha: 0.82),
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.15,
-                              ),
-                            ),
-                          ],
+                  const SizedBox(height: 6),
+                  AnimatedCoupleName(
+                    person1Name: couple.person1Name,
+                    person2Name: couple.person2Name,
+                    creatorUserId: couple.createdByUserId,
+                    spacing: 8,
+                    runSpacing: 6,
+                    heartSize: 26,
+                    heartColor: AppColors.white,
+                    pulseHeart: true, // hero header — breathes like the Home counter
+                    textStyle: TextStyle(
+                      color: AppColors.white,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      height: 1.02,
+                      letterSpacing: -0.7,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.24),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.daysOfUsSince(
+                      _formatDate(context, couple.anniversaryDate),
+                    ),
+                    style: TextStyle(
+                      color: AppColors.white.withValues(alpha: 0.82),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Ripple above the content, below the pencil disc.
+            Positioned.fill(
+              child: Material(
+                color: Colors.transparent,
+                child: Semantics(
+                  button: true,
+                  label: l10n.editOurStoryBtn,
+                  child: InkWell(
+                    splashColor: AppColors.white.withValues(alpha: 0.12),
+                    onTap: () => _openEditStory(context),
+                  ),
+                ),
+              ),
+            ),
+            // Edit affordance — same visual language as Home's bell disc.
+            Positioned(
+              top: 14,
+              right: 14,
+              child: IgnorePointer(
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withValues(alpha: 0.92),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accentRose.withValues(alpha: 0.25),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsSection(
-    BuildContext context, {
-    required int years,
-    required int months,
-    required int totalDays,
-    required int photoCount,
-  }) {
-    final l10n = context.l10n;
-
-    return _buildSectionCard(
-      title: l10n.journeySnapshotTitle,
-      subtitle: l10n.journeySnapshotSubtitle,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _buildModernStatCard(
-                  icon: Icons.favorite_rounded,
-                  value: '$years',
-                  label: l10n.yearsTogether,
-                  color: AppColors.accentRose,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildModernStatCard(
-                  icon: LucideIcons.calendar,
-                  value: '$months',
-                  label: l10n.monthsRemaining,
-                  color: AppColors.accentCoral,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildModernStatCard(
-                  icon: LucideIcons.calendarDays,
-                  value: '$totalDays',
-                  label: l10n.totalDaysLabel,
-                  color: AppColors.info,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildModernStatCard(
-                  icon: LucideIcons.image,
-                  value: '$photoCount',
-                  label: l10n.memoriesSavedLabel,
-                  color: AppColors.accentGold,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCoupleInfoSection(
-    BuildContext context, {
-    required Couple couple,
-    required String? inviteCode,
-    required int daysUntilAnniversary,
-  }) {
-    final l10n = context.l10n;
-
-    return _buildSectionCard(
-      title: l10n.infoAndRhythmTitle,
-      subtitle: l10n.infoAndRhythmSubtitle,
-      child: Column(
-        children: [
-          _buildDetailTile(
-            icon: LucideIcons.calendar,
-            title: l10n.loveStartDateLabel,
-            value: _formatDate(context, couple.anniversaryDate),
-            tint: AppColors.accentRose,
-          ),
-          const SizedBox(height: 12),
-          _buildDetailTile(
-            icon: LucideIcons.partyPopper,
-            title: l10n.upcomingMilestoneLabel,
-            value: daysUntilAnniversary == 0
-                ? l10n.todaySpecialMsg
-                : l10n.daysUntilNextMsg(daysUntilAnniversary),
-            tint: AppColors.accentGold,
-          ),
-          if (inviteCode != null && inviteCode.trim().isNotEmpty && couple.isWaitingForPartner) ...[
-            const SizedBox(height: 12),
-            _buildDetailTile(
-              icon: LucideIcons.keyRound,
-              title: l10n.yourInviteCodeLabel,
-              value: inviteCode,
-              tint: AppColors.warning,
-              belowValue: InviteActionButtons(
-                code: inviteCode,
-                onDark: false,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  /// Single full-width tile that opens the app-wide Settings screen. Replaces
-  /// the reminders/language/danger/edit sections that moved into Settings.
-  Widget _buildSettingsTile(BuildContext context) {
-    final l10n = context.l10n;
-
-    return Stack(
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.72),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: AppColors.accentRose.withValues(alpha: 0.10),
-            ),
-          ),
-          child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.accentRose.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(
-                LucideIcons.settings,
-                color: AppColors.accentRose,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.settingsTitle,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  child: const Icon(
+                    IconsaxPlusLinear.edit_2,
+                    size: 17,
+                    color: AppColors.accentLoveDeep,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.settingsProfileTileSubtitle,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              LucideIcons.chevronRight,
-              color: AppColors.textSecondary.withValues(alpha: 0.5),
-            ),
-          ],
-          ),
-        ),
-        // Ripple overlay on top of the filled tile, clipped to its radius.
-        Positioned.fill(
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  settings: const RouteSettings(name: 'Settings'),
-                  builder: (_) => const SettingsScreen(),
                 ),
               ),
-              borderRadius: BorderRadius.circular(22),
-              splashColor: AppColors.accentRose.withValues(alpha: 0.12),
-              highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
-              child: const SizedBox.expand(),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
+  void _openEditStory(BuildContext context) {
+    HapticFeedback.selectionClick();
+    final coupleProvider = context.read<CoupleProvider>();
+    final currentUser = context.read<AuthProvider>().currentUser;
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute<void>(
+            settings: const RouteSettings(name: 'SetupScreen'),
+            builder: (_) => const SetupScreen(),
+          ),
+        )
+        .then((_) => coupleProvider.loadCoupleForUser(currentUser));
+  }
+
+  /// "Bức tranh hành trình" — the ORIGINAL 2×2 stat grid, restored verbatim
+  /// (user 2026-06-11: revert to the pre-redesign version — the journey-strip
+  /// takes, both white and tinted, were dropped).
+  /// Journey trail (Profile redesign 2026-06-14, Concept B): a horizontal
+  /// milestone stepper replacing the old 4-stat grid (which showed the same
+  /// day-count in four units). The big day number lives on the hero card.
+  Widget _buildJourneyTrail(BuildContext context, {required int totalDays}) {
+    final l10n = context.l10n;
+    return _buildSectionCard(
+      icon: IconsaxPlusLinear.map,
+      title: l10n.journeyTrailTitle,
+      child: MilestoneTrail(totalDays: totalDays),
+    );
+  }
+
+  // Section card = solid-white ContentCard (design-unify C8/B4) with the
+  // canonical in-card header: Lucide icon 20 rose + title 16 w800 ls-0.2 (A2,
+  // same voice as TodayRitualCard headers).
   Widget _buildSectionCard({
+    required IconData icon,
     required String title,
-    required String subtitle,
+    String? subtitle,
     required Widget child,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.84),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.82)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.045),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+    return ContentCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
+          Row(
+            children: [
+              Icon(icon, color: AppColors.accentRose, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              height: 1.5,
+          if (subtitle != null && subtitle.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                height: 1.5,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 18),
           child,
         ],
@@ -663,54 +499,11 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildModernStatCard({
-    required IconData icon,
-    required String value,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: color.withValues(alpha: 0.10)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.78),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            value,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // The "Huy hiệu của chúng mình" achievements grid lives in its own stateful
+  // widget (_AchievementsGrid, end of file) so it can cache the journal-count
+  // aggregation across the Profile's frequent rebuilds.
+
+
 
   Widget _buildDetailTile({
     required IconData icon,
@@ -729,15 +522,7 @@ class ProfileScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: tint.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: tint, size: 20),
-          ),
+          IconBadge(icon, tint: tint),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -773,130 +558,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGlassPill({
-    required IconData icon,
-    required String label,
-    bool isProminent = false,
-  }) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isProminent ? 14 : 12,
-        vertical: isProminent ? 12 : 10,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isProminent
-              ? [
-                  AppColors.white.withValues(alpha: 0.26),
-                  AppColors.accentRose.withValues(alpha: 0.18),
-                ]
-              : [
-                  AppColors.white.withValues(alpha: 0.18),
-                  AppColors.white.withValues(alpha: 0.10),
-                ],
-        ),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: isProminent
-              ? AppColors.white.withValues(alpha: 0.32)
-              : AppColors.white.withValues(alpha: 0.22),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isProminent ? 0.12 : 0.08),
-            blurRadius: isProminent ? 16 : 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: isProminent ? 24 : 22,
-            height: isProminent ? 24 : 22,
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: isProminent ? 0.20 : 0.14),
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.white.withValues(alpha: 0.20)),
-            ),
-            child: Icon(
-              icon,
-              color: AppColors.white,
-              size: isProminent ? 14 : 12,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: AppColors.white.withValues(alpha: 0.95),
-                fontSize: isProminent ? 12.5 : 12,
-                fontWeight: isProminent ? FontWeight.w700 : FontWeight.w600,
-                letterSpacing: isProminent ? 0.12 : 0,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAvatarBadge(BuildContext context, Couple couple) {
-    return Container(
-      width: 72,
-      height: 72,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.white.withValues(alpha: 0.96),
-            AppColors.white.withValues(alpha: 0.36),
-          ],
-        ),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.38), width: 1.4),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.22),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(3),
-        child: ClipOval(
-          child: SharedCouplePhotoView(
-            localPath: couple.couplePhotoPath,
-            remoteUrl: couple.couplePhotoUrl,
-            fit: BoxFit.cover,
-            // 72px avatar → decode ≈ 72 * DPR.
-            decodeWidth:
-                (72 * MediaQuery.of(context).devicePixelRatio).round(),
-            placeholder: Container(
-              decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-              child: Center(
-                child: Text(
-                  _initials(couple),
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   String _initials(Couple couple) {
     final first = couple.person1Name.trim().isNotEmpty
         ? couple.person1Name.trim().characters.first.toUpperCase()
@@ -918,26 +579,332 @@ class ProfileScreen extends StatelessWidget {
     return today.difference(start).inDays;
   }
 
-  DateTime _getNextAnniversary(DateTime anniversaryDate) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    var next = DateTime(now.year, anniversaryDate.month, anniversaryDate.day);
-
-    if (!next.isAfter(today)) {
-      next = DateTime(now.year + 1, anniversaryDate.month, anniversaryDate.day);
-    }
-
-    return next;
-  }
-
-  int _daysUntil(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return date.difference(today).inDays;
-  }
-
   String _formatDate(BuildContext context, DateTime date) {
     return DateFormat(context.l10n.fullDateFormat).format(date);
   }
-
 }
+
+/// The "Huy hiệu của chúng mình" 2×2 badge grid (Profile redesign 2026-06-18).
+///
+/// Stateful so the journal-entry count (a one-shot Firestore `count()`
+/// aggregation) is fetched once and cached, instead of re-querying on every
+/// Profile rebuild. Every badge shows a real number + a small corner chevron
+/// ("tap for detail", uniform across all four — no bare arrow tile any more) and
+/// opens a focused detail: streak sheet / records sheet / memories sheet /
+/// journal screen.
+class _AchievementsGrid extends StatefulWidget {
+  const _AchievementsGrid({
+    required this.coupleId,
+    required this.totalDays,
+    required this.onRequestTab,
+  });
+
+  final String coupleId;
+  final int totalDays;
+  final void Function(int index)? onRequestTab;
+
+  @override
+  State<_AchievementsGrid> createState() => _AchievementsGridState();
+}
+
+class _AchievementsGridState extends State<_AchievementsGrid> {
+  int? _journalCount; // null while the aggregation is in flight
+  int? _careCount; // care notes (feature care-message), same shimmer rule
+
+  @override
+  void initState() {
+    super.initState();
+    _loadJournalCount();
+    _loadCareCount();
+  }
+
+  Future<void> _loadCareCount() async {
+    final count = await CareMessageService().countAll(widget.coupleId);
+    if (mounted) {
+      setState(() => _careCount = count);
+    }
+  }
+
+  Future<void> _loadJournalCount() async {
+    final count =
+        await DailyQuestionService().countJournalEntries(widget.coupleId);
+    if (mounted) {
+      setState(() => _journalCount = count);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final streak = context.watch<StreakProvider>();
+    final photoProvider = context.watch<PhotoProvider>();
+    final photoCount = photoProvider.photoCount;
+    final nf = NumberFormat.decimalPattern(
+      Localizations.localeOf(context).toString(),
+    );
+
+    final milestonesReached = StreakProvider.milestones
+        .where((m) => streak.longestStreak >= m)
+        .length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(title: l10n.profileAchievementsTitle),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.flash,
+                medalGradient: _MedalPalette.streak.gradient,
+                accent: _MedalPalette.streak.accent,
+                value: nf.format(streak.currentStreak),
+                label: l10n.badgeStreakLabel,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  StreakSheet.show(context);
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.cup,
+                medalGradient: _MedalPalette.record.gradient,
+                accent: _MedalPalette.record.accent,
+                value: nf.format(streak.longestStreak),
+                label: l10n.badgeRecordLabel,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  RecordsSheet.show(
+                    context,
+                    longestStreak: streak.longestStreak,
+                    daysTogether: widget.totalDays,
+                    photoCount: photoCount,
+                    journalCount: _journalCount ?? 0,
+                    milestonesReached: milestonesReached,
+                    milestonesTotal: StreakProvider.milestones.length,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.gallery,
+                medalGradient: _MedalPalette.memories.gradient,
+                accent: _MedalPalette.memories.accent,
+                value: nf.format(photoCount),
+                label: l10n.badgeMemoriesLabel,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  MemoriesSheet.show(
+                    context,
+                    photoCount: photoCount,
+                    recentPhotos: photoProvider.photos,
+                    onViewAll: () => widget.onRequestTab?.call(2),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.book_1,
+                medalGradient: _MedalPalette.journal.gradient,
+                accent: _MedalPalette.journal.accent,
+                // null only briefly while the count loads → slim shimmer, never
+                // a bare arrow (the old inconsistency this redesign removes).
+                value: _journalCount == null ? null : nf.format(_journalCount!),
+                label: l10n.badgeJournalLabel,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      settings: const RouteSettings(name: 'Journal'),
+                      builder: (_) => const JournalScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Care notes (feature care-message, 2026-09-05): a keepsake count like
+        // the journal, so it lives in this grid as a full-width fifth badge
+        // (user: no standalone tiles; compose stays on the Home header 💌).
+        Row(
+          children: [
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.message_favorite,
+                medalGradient: _MedalPalette.care.gradient,
+                accent: _MedalPalette.care.accent,
+                value: _careCount == null ? null : nf.format(_careCount!),
+                label: l10n.badgeCareLabel,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  openCareTimeline(context);
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// One achievement tile rendered as a real "medal": a gradient medallion that
+  /// glows with its own colored halo (the focal point), a hero number in the
+  /// medal's accent color, and a label. White card lifts it off the dawnBlush
+  /// background; each medal carries a distinct-but-on-brand color so the 2×2
+  /// grid reads as four separate badges, not one repeated tile.
+  Widget _badgeCard({
+    required IconData icon,
+    required List<Color> medalGradient, // light → deep, fills the medallion
+    required Color accent, // hero number + halo glow (the deep end)
+    required String? value,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    const br = BorderRadius.all(Radius.circular(24));
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: br,
+      child: InkWell(
+        borderRadius: br,
+        onTap: onTap,
+        splashColor: accent.withValues(alpha: 0.10),
+        highlightColor: accent.withValues(alpha: 0.05),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: br,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Gradient medallion with a soft colored glow — the focal
+                    // point that makes each tile pop off the white card.
+                    Container(
+                      width: 54,
+                      height: 54,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: medalGradient,
+                        ),
+                        borderRadius: BorderRadius.circular(17),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.34),
+                            blurRadius: 14,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Icon(icon, color: AppColors.white, size: 27),
+                    ),
+                    const Spacer(),
+                    // Tap-for-detail affordance.
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Icon(
+                        IconsaxPlusLinear.arrow_right_3,
+                        size: 16,
+                        color: accent.withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Hero value / shimmer while the journal count loads.
+                value != null
+                    ? Text(
+                        value,
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          height: 1,
+                          letterSpacing: -0.5,
+                        ),
+                      )
+                    : ShimmerSkeleton(width: 48, height: 22, borderRadius: 6),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Per-badge medal palette — distinct yet all within the Sunset Romance family
+/// (cool red · violet · warm coral · berry rose). `gradient` fills the
+/// medallion (saturated enough for a white icon); `accent` is the deep end used
+/// for the hero number and the medallion's glow.
+class _MedalPalette {
+  const _MedalPalette(this.gradient, this.accent);
+  final List<Color> gradient;
+  final Color accent;
+
+  static const streak = _MedalPalette(
+    [AppColors.sunset1, AppColors.accentLove], // #FF6B9D → #FF4D6D
+    AppColors.accentLove,
+  );
+  static const record = _MedalPalette(
+    [AppColors.accentLavender, AppColors.accentLavenderDeep], // #A78BFA → #7C5CD6
+    AppColors.accentLavenderDeep,
+  );
+  static const memories = _MedalPalette(
+    [Color(0xFFFF8A6E), Color(0xFFFF5C7A)], // warm coral → pink
+    Color(0xFFFF5C7A),
+  );
+  static const care = _MedalPalette(
+    [AppColors.accentRose, AppColors.accentLoveDeep],
+    AppColors.accentLoveDeep,
+  );
+  static const journal = _MedalPalette(
+    [Color(0xFFF58BB8), Color(0xFFDB5793)], // berry rose
+    Color(0xFFD44A85),
+  );
+}
+
+/// Entry point for the care-note TIMELINE (feature care-message, 2026-09-05) —
+/// sits right under the composer tile and shows how many notes the couple has
+/// exchanged.
+///
+/// Stateful for the same reason as [_AchievementsGrid]: the total is a one-shot
+/// Firestore `count()` aggregation, so it's fetched once and cached instead of
+/// re-querying on every Profile rebuild.

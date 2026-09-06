@@ -58,6 +58,8 @@ class CustomReminder {
     required this.minute,
     required this.recurrence,
     this.enabled = true,
+    this.notifyPartner = false,
+    this.partnerReminderId,
   });
 
   /// Notification id in the reserved 2000–2999 band (D6).
@@ -82,6 +84,15 @@ class CustomReminder {
 
   final bool enabled;
 
+  /// When true, this reminder is ALSO sent to the partner (feature
+  /// partner-nudge, 2026-06-30): a linked doc in `couples/{id}/partnerReminders`
+  /// arms it on the partner's device too. Default false (never surprise-notify).
+  final bool notifyPartner;
+
+  /// Firestore doc id of the linked partner-reminder mirror (null when not
+  /// mirrored). Lets edits/deletes/toggles keep the partner copy in sync.
+  final String? partnerReminderId;
+
   CustomReminder copyWith({
     int? id,
     String? name,
@@ -92,6 +103,9 @@ class CustomReminder {
     int? minute,
     ReminderRecurrence? recurrence,
     bool? enabled,
+    bool? notifyPartner,
+    String? partnerReminderId,
+    bool clearPartnerReminderId = false,
   }) {
     return CustomReminder(
       id: id ?? this.id,
@@ -102,6 +116,10 @@ class CustomReminder {
       minute: minute ?? this.minute,
       recurrence: recurrence ?? this.recurrence,
       enabled: enabled ?? this.enabled,
+      notifyPartner: notifyPartner ?? this.notifyPartner,
+      partnerReminderId: clearPartnerReminderId
+          ? null
+          : (partnerReminderId ?? this.partnerReminderId),
     );
   }
 
@@ -117,6 +135,8 @@ class CustomReminder {
       'minute': minute,
       'recurrence': recurrence.storageKey,
       'enabled': enabled,
+      'notifyPartner': notifyPartner,
+      'partnerReminderId': partnerReminderId,
     };
   }
 
@@ -135,6 +155,11 @@ class CustomReminder {
         map['recurrence'] as String?,
       ),
       enabled: (map['enabled'] as bool?) ?? true,
+      notifyPartner: (map['notifyPartner'] as bool?) ?? false,
+      partnerReminderId: () {
+        final raw = map['partnerReminderId'] as String?;
+        return (raw != null && raw.isNotEmpty) ? raw : null;
+      }(),
     );
   }
 }

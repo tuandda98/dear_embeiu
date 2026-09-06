@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -10,8 +10,9 @@ import '../app/app_urls.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
+import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/header_icon_button.dart';
 import '../widgets/language_toggle_button.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -85,10 +86,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final nextRoute = authProvider.isUsingFirebase
           ? AppRoutes.verifyEmail
           : AppRoutes.authGate;
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        nextRoute,
-        (route) => false,
-      );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(nextRoute, (route) => false);
       return;
     }
 
@@ -118,25 +118,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Clear the top-bar (back button + language toggle)
-                        // so a tall form never pushes the header under them.
+                        // Clear the top-bar (back button + centered chip +
+                        // language toggle) so a tall form never pushes the
+                        // content under them.
                         const SizedBox(height: 52),
-                        _buildHeader(authProvider),
-                        const SizedBox(height: 24),
+                        if (authProvider.bootstrapMessage != null) ...[
+                          _buildStatusBanner(
+                            label: authProvider.authSourceLabel,
+                            message: authProvider.bootstrapMessage!,
+                            icon: authProvider.isUsingFirebase
+                                ? IconsaxPlusLinear.cloud
+                                : IconsaxPlusLinear.cloud_cross,
+                            color: authProvider.isUsingFirebase
+                                ? AppColors.success
+                                : AppColors.warning,
+                          ),
+                          const SizedBox(height: 24),
+                        ],
                         _buildFormCard(authProvider),
                       ],
                     ),
                   ),
                 ),
               ),
+              // Header redesign (2026-06-14): the eyebrow chip is centered on
+              // the top-bar, level with the back squircle (left) and language
+              // toggle (right) — the page title + subtitle were removed.
               Positioned(
-                top: 4,
-                left: 4,
-                child: IconButton(
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  icon: const Icon(
-                    LucideIcons.arrowLeft,
-                    color: AppColors.white,
+                top: 8,
+                left: 16,
+                child: HeaderIconButton(
+                  icon: IconsaxPlusLinear.arrow_left,
+                  onTap: () => Navigator.of(context).maybePop(),
+                  semanticsLabel: context.l10n.back,
+                ),
+              ),
+              Positioned(
+                top: 8,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: SizedBox(
+                    height: 44,
+                    child: Center(
+                      child: EyebrowChip(
+                        label: context.l10n.createAccountBadge,
+                        icon: IconsaxPlusLinear.user_add,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -152,64 +181,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildHeader(AuthProvider authProvider) {
-    final l10n = context.l10n;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                LucideIcons.userPlus,
-                size: 14,
-                color: AppColors.white.withValues(alpha: 0.92),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.createAccountBadge,
-                style: AppTheme.pageEyebrowStyle(),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 18),
-        Text(
-          l10n.registerTitle,
-          style: AppTheme.pageTitleStyle(),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          authProvider.isUsingFirebase
-              ? l10n.registerSubtitle
-              : l10n.registerLocalFallback,
-          style: AppTheme.pageSubtitleStyle(alpha: 0.84),
-        ),
-        if (authProvider.bootstrapMessage != null) ...[
-          const SizedBox(height: 14),
-          _buildStatusBanner(
-            label: authProvider.authSourceLabel,
-            message: authProvider.bootstrapMessage!,
-            icon: authProvider.isUsingFirebase
-                ? LucideIcons.cloud
-                : LucideIcons.cloudOff,
-            color: authProvider.isUsingFirebase
-                ? AppColors.success
-                : AppColors.warning,
-          ),
-        ],
-      ],
-    );
-  }
-
+  // The chip/title/subtitle were removed in the 2026-06-14 header redesign
+  // (chip now lives centered on the top-bar). Only the bootstrap status banner
+  // remains, rendered inline in build().
   Widget _buildStatusBanner({
     required String label,
     required String message,
@@ -220,9 +194,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.16),
+        // Light card + dark ink (C1.4): white-on-glass failed contrast on the
+        // blush gradient — match the Home waiting-banner language instead.
+        color: AppColors.white.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +220,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Text(
                   label,
                   style: const TextStyle(
-                    color: AppColors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -253,7 +229,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Text(
                   message,
                   style: const TextStyle(
-                    color: AppColors.white,
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                     height: 1.45,
                   ),
@@ -292,7 +268,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 textInputAction: TextInputAction.next,
                 decoration: _buildInputDecoration(
                   hint: l10n.displayNameHint,
-                  icon: LucideIcons.user,
+                  icon: IconsaxPlusLinear.user,
                 ),
                 validator: (value) {
                   final text = value?.trim() ?? '';
@@ -315,7 +291,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 textInputAction: TextInputAction.next,
                 decoration: _buildInputDecoration(
                   hint: l10n.emailHint,
-                  icon: LucideIcons.mail,
+                  icon: IconsaxPlusLinear.sms,
                 ),
                 validator: (value) {
                   final text = value?.trim() ?? '';
@@ -338,15 +314,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 textInputAction: TextInputAction.next,
                 decoration: _buildInputDecoration(
                   hint: l10n.passwordHint,
-                  icon: LucideIcons.lock,
+                  icon: IconsaxPlusLinear.lock,
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() => _obscurePassword = !_obscurePassword);
                     },
                     icon: Icon(
-                      _obscurePassword
-                          ? LucideIcons.eye
-                          : LucideIcons.eyeOff,
+                      _obscurePassword ? IconsaxPlusLinear.eye : IconsaxPlusLinear.eye_slash,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -373,17 +347,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onFieldSubmitted: (_) => _submit(),
                 decoration: _buildInputDecoration(
                   hint: l10n.confirmPasswordHint,
-                  icon: LucideIcons.shieldCheck,
+                  icon: IconsaxPlusLinear.shield_tick,
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(
-                        () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                        () =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
                       );
                     },
                     icon: Icon(
                       _obscureConfirmPassword
-                          ? LucideIcons.eye
-                          : LucideIcons.eyeOff,
+                          ? IconsaxPlusLinear.eye
+                          : IconsaxPlusLinear.eye_slash,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -401,36 +376,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () => launchUrl(
-                Uri.parse(AppUrls.privacyPolicy),
-                mode: LaunchMode.externalApplication,
-              ),
-              child: GlassCard(
-                borderRadius: 14,
-                blur: 14,
-                fillAlpha: 0.12,
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l10n.privacyDisclosure,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 11.5,
-                          height: 1.5,
+            // Material+InkWell (C2): rose ripple paints on the transparent
+            // Material BEHIND the mostly-transparent glass chip.
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => launchUrl(
+                  Uri.parse(AppUrls.privacyPolicy),
+                  mode: LaunchMode.externalApplication,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                splashColor: AppColors.accentRose.withValues(alpha: 0.08),
+                highlightColor: Colors.transparent,
+                child: GlassCard(
+                  borderRadius: 14,
+                  blur: 14,
+                  fillAlpha: 0.12,
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.privacyDisclosure,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            height: 1.5,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    const Icon(
-                      LucideIcons.externalLink,
-                      size: 14,
-                      color: AppColors.textTertiary,
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      const Icon(
+                        IconsaxPlusLinear.export_1,
+                        size: 14,
+                        color: AppColors.textTertiary,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -461,7 +444,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       side: BorderSide(
                         color: _showTermsError
-                            ? Colors.red.shade400
+                            ? AppColors.error
                             : AppColors.textSecondary.withValues(alpha: 0.5),
                         width: 1.5,
                       ),
@@ -472,7 +455,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         l10n.agreeToPrivacyPolicy,
                         style: TextStyle(
                           color: _showTermsError
-                              ? Colors.red.shade400
+                              ? AppColors.error
                               : AppColors.textSecondary,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -489,9 +472,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 padding: const EdgeInsets.only(left: 12, top: 2),
                 child: Text(
                   l10n.mustAgreeToPrivacyPolicy,
-                  style: TextStyle(
-                    color: Colors.red.shade400,
-                    fontSize: 11.5,
+                  style: const TextStyle(
+                    color: AppColors.error,
+                    fontSize: 12,
                     height: 1.4,
                   ),
                 ),
@@ -500,14 +483,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
+              height: 52,
               child: FilledButton(
                 onPressed: authProvider.isLoading ? null : _submit,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accentRose,
                   foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(999),
                   ),
                 ),
                 child: authProvider.isLoading
@@ -544,8 +527,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       // opened straight from /guest a pop would return to guest,
                       // contradicting the "back to sign in" label. Swapping in
                       // place keeps the stack at guest→[login|register].
-                      Navigator.of(context)
-                          .pushReplacementNamed(AppRoutes.login);
+                      Navigator.of(
+                        context,
+                      ).pushReplacementNamed(AppRoutes.login);
                     },
                     child: Text(l10n.backToSignIn),
                   ),
@@ -558,10 +542,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildFieldBlock({
-    required String label,
-    required Widget child,
-  }) {
+  Widget _buildFieldBlock({required String label, required Widget child}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -592,9 +573,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       filled: true,
       fillColor: AppColors.white.withValues(alpha: 0.92),
       hintStyle: const TextStyle(
-        color: AppColors.textPrimary,
+        color: AppColors.textSecondary,
         fontSize: 14,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w500,
       ),
       errorMaxLines: 2,
       errorStyle: const TextStyle(
