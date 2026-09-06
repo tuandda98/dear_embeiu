@@ -899,7 +899,83 @@ class ReminderProvider extends ChangeNotifier {
     'Embe trả lời rồi mình cùng xem câu của nhau nha 💞',
   ];
 
-  static const String _personalMedicineTitle = 'Tới giờ uống thuốc rồi 💊';
+  // Lời nhắc uống thuốc — mỗi ngày xoay một bộ lời khác nhau (title mở đầu bằng
+  // "Anh By"/"Anh yêu", body là lời chúc / lời thương kèm nhắc uống thuốc) để
+  // embe không đọc mãi đúng một câu. Ba khung giờ trong ngày lấy 3 bộ liên tiếp.
+  static const List<({String title, String body})> _personalMedicineMessages =
+      <({String title, String body})>[
+    (
+      title: 'Anh By nhắc embe nè 💊',
+      body: 'Chúc embe một ngày thật nhẹ nhàng nha, nhớ uống thuốc đúng giờ giùm anh By 🥰',
+    ),
+    (
+      title: 'Anh yêu nhắc chút xíu 💗',
+      body: 'Uống thuốc rồi nghỉ ngơi nha embe, embe khoẻ là anh By vui cả ngày 💕',
+    ),
+    (
+      title: 'Anh By thương embe 🌷',
+      body: 'Tới giờ uống thuốc rồi đó, uống xong nhớ uống thêm miếng nước ấm nha embe',
+    ),
+    (
+      title: 'Anh yêu gửi embe 💌',
+      body: 'Chúc embe hôm nay vui vẻ thật nhiều, đừng quên uống thuốc đúng giờ nha em',
+    ),
+    (
+      title: 'Anh By ở đây nè 🤍',
+      body: 'Embe uống thuốc đi nào, chúng mình cùng cố gắng khoẻ mạnh mỗi ngày nha',
+    ),
+    (
+      title: 'Anh yêu nhắc embe 💊',
+      body: 'Ngày mới nhẹ nhàng nha embe, uống thuốc xong rồi muốn làm gì cũng được hết 😘',
+    ),
+    (
+      title: 'Anh By nè embe ơi 💞',
+      body: 'Nhớ uống thuốc nha, anh By thương embe nhiều lắm đó',
+    ),
+    (
+      title: 'Anh yêu chúc embe ☀️',
+      body: 'Chúc embe một ngày bình yên, uống thuốc đúng giờ để chúng mình còn đi chơi dài dài nha',
+    ),
+    (
+      title: 'Anh By nhắc nhẹ 🌼',
+      body: 'Uống thuốc rồi hít thở thật sâu nha embe, mọi chuyện rồi sẽ ổn thôi',
+    ),
+    (
+      title: 'Anh yêu thương embe 💗',
+      body: 'Tới giờ thuốc của embe rồi, uống ngoan cho anh By yên tâm nha',
+    ),
+    (
+      title: 'Anh By gửi embe 🍀',
+      body: 'Chúc embe hôm nay việc gì cũng suôn sẻ, nhớ uống thuốc nha em',
+    ),
+    (
+      title: 'Anh yêu nhắc nè 💊',
+      body: 'Embe uống thuốc chưa đó? Uống đi rồi kể anh By nghe hôm nay của embe nha',
+    ),
+    (
+      title: 'Anh By luôn bên embe 🫶',
+      body: 'Uống thuốc đúng giờ nha, có anh By đồng hành với embe mỗi ngày mà',
+    ),
+    (
+      title: 'Anh yêu nhắc embe ơi 🌸',
+      body: 'Chúc embe một ngày dịu dàng như embe vậy đó, nhớ uống thuốc nha',
+    ),
+    (
+      title: 'Anh By thương lắm 💖',
+      body: 'Uống thuốc đi embe, khoẻ mạnh rồi chúng mình cùng đếm thêm thật nhiều ngày bên nhau nha',
+    ),
+  ];
+
+  /// Mốc đếm ngày để xoay vòng nội dung lời nhắc (chỉ dùng làm gốc số học).
+  static final DateTime _epoch = DateTime(2020, 1, 1);
+
+  /// Khung giờ uống thuốc (cố định) — nội dung lấy từ [_personalMedicineMessages].
+  static const List<({int hour, int minute})> _personalMedicineTimes =
+      <({int hour, int minute})>[
+    (hour: 9, minute: 59),
+    (hour: 10, minute: 10),
+    (hour: 10, minute: 30),
+  ];
 
   // Day the medicine band was last (re)armed; null = not the gated account.
   String? _personalMedicineDayKey;
@@ -957,27 +1033,25 @@ class ReminderProvider extends ChangeNotifier {
     // the question state is still loading, so meds aren't tied to the DQ stream.
     if (_personalMedicineDayKey != dayKey) {
       _personalMedicineDayKey = dayKey;
-      await _service.schedulePersonalMedicineDaily(const [
-        (
-          hour: 9,
-          minute: 59,
-          title: _personalMedicineTitle,
-          body:
-              'Embe ơi, uống thuốc đúng giờ cho khỏe nha, anh By thương embe 🥰',
-        ),
-        (
-          hour: 10,
-          minute: 10,
-          title: _personalMedicineTitle,
-          body: 'Anh By nhắc embe uống thuốc nè, đừng quên nha 💕',
-        ),
-        (
-          hour: 10,
-          minute: 30,
-          title: _personalMedicineTitle,
-          body: 'Uống thuốc đúng giờ nha embe, để anh By yên tâm 💗',
-        ),
-      ]);
+      // Xoay nội dung theo ngày: mỗi ngày dịch pool đi 1 bước, ba khung giờ dùng
+      // 3 bộ liên tiếp ⇒ trong ngày không trùng nhau, qua ngày lại là lời mới.
+      final dayIndex =
+          DateTime(now.year, now.month, now.day).difference(_epoch).inDays;
+      final base = dayIndex % _personalMedicineMessages.length;
+      final medicineSlots =
+          <({int hour, int minute, String title, String body})>[];
+      for (var i = 0; i < _personalMedicineTimes.length; i++) {
+        final time = _personalMedicineTimes[i];
+        final message = _personalMedicineMessages[
+            (base + i) % _personalMedicineMessages.length];
+        medicineSlots.add((
+          hour: time.hour,
+          minute: time.minute,
+          title: message.title,
+          body: message.body,
+        ));
+      }
+      await _service.schedulePersonalMedicineDaily(medicineSlots);
     }
 
     // Hourly "answer the question" nudges — act ONLY on a settled state (see the
