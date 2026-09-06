@@ -899,86 +899,237 @@ class ReminderProvider extends ChangeNotifier {
     'Embe trả lời rồi mình cùng xem câu của nhau nha 💞',
   ];
 
-  // Lời nhắc uống thuốc — mỗi ngày xoay một bộ lời khác nhau (title mở đầu bằng
-  // "Anh By"/"Anh yêu", body là lời chúc / lời thương kèm nhắc uống thuốc) để
-  // embe không đọc mãi đúng một câu. Ba khung giờ trong ngày lấy 3 bộ liên tiếp.
-  static const List<({String title, String body})> _personalMedicineMessages =
+  // Lời hỏi thăm hằng ngày cho embe (band 1100–1109). ⟪Trước 2026-09-07 đây là
+  // nhắc uống thuốc — user bỏ uống thuốc, đổi hẳn sang lời quan tâm.⟫ Ba khung
+  // giờ, mỗi khung một pool riêng theo đúng ngữ cảnh buổi đó:
+  //   • sáng   — nhắc ăn sáng + chúc ngày mới
+  //   • trưa   — hỏi thăm hôm nay thế nào / đang làm gì / ăn trưa chưa
+  //   • tối    — có nhớ anh không / kết ngày ấm áp
+  // Nội dung XOAY theo ngày bằng bước nguyên tố cùng nhau với độ dài pool (xem
+  // [_rotatingIndex]) ⇒ trông ngẫu nhiên nhưng duyệt hết pool rồi mới lặp lại,
+  // KHÔNG có chuyện hai ngày liền nhau trùng câu.
+  static const List<({String title, String body})> _personalCareMorning =
       <({String title, String body})>[
     (
-      title: 'Anh By nhắc embe nè 💊',
-      body: 'Chúc embe một ngày thật nhẹ nhàng nha, nhớ uống thuốc đúng giờ giùm anh By 🥰',
+      title: 'Anh By nhắc embe ăn sáng nè 🥐',
+      body: 'Dậy chưa embe, ăn sáng đàng hoàng rồi hẵng làm gì thì làm nha',
     ),
     (
-      title: 'Anh yêu nhắc chút xíu 💗',
-      body: 'Uống thuốc rồi nghỉ ngơi nha embe, embe khoẻ là anh By vui cả ngày 💕',
+      title: 'Anh yêu chúc embe buổi sáng ☀️',
+      body: 'Chúc embe ngày mới nhẹ nhàng, nhớ ăn sáng ngon miệng nha em',
+    ),
+    (
+      title: 'Anh By nè embe ơi 🍜',
+      body: 'Sáng nay embe ăn gì đó? Kể anh By nghe với nha',
+    ),
+    (
+      title: 'Anh yêu nhắc chút xíu 🥛',
+      body: 'Đừng bỏ bữa sáng nha embe, ăn rồi mới có sức thương anh By chứ 😘',
     ),
     (
       title: 'Anh By thương embe 🌷',
-      body: 'Tới giờ uống thuốc rồi đó, uống xong nhớ uống thêm miếng nước ấm nha embe',
+      body: 'Buổi sáng của embe thế nào rồi? Ăn sáng chưa đó em',
     ),
     (
       title: 'Anh yêu gửi embe 💌',
-      body: 'Chúc embe hôm nay vui vẻ thật nhiều, đừng quên uống thuốc đúng giờ nha em',
+      body: 'Chúc embe buổi sáng vui vẻ, ăn sáng no rồi ngày sẽ dễ thương hơn nhiều',
     ),
     (
       title: 'Anh By ở đây nè 🤍',
-      body: 'Embe uống thuốc đi nào, chúng mình cùng cố gắng khoẻ mạnh mỗi ngày nha',
+      body: 'Embe ăn sáng đi nha, anh By đâu có ở đó nhắc tận nơi được 🥺',
     ),
     (
-      title: 'Anh yêu nhắc embe 💊',
-      body: 'Ngày mới nhẹ nhàng nha embe, uống thuốc xong rồi muốn làm gì cũng được hết 😘',
+      title: 'Anh yêu nhắc embe 🍞',
+      body: 'Ăn sáng tử tế một bữa nha em, đừng qua loa nữa nha',
     ),
     (
-      title: 'Anh By nè embe ơi 💞',
-      body: 'Nhớ uống thuốc nha, anh By thương embe nhiều lắm đó',
+      title: 'Anh By chúc embe ngày mới 🌞',
+      body: 'Mong hôm nay của embe suôn sẻ hết, mà nhớ ăn sáng trước đã nha',
     ),
     (
-      title: 'Anh yêu chúc embe ☀️',
-      body: 'Chúc embe một ngày bình yên, uống thuốc đúng giờ để chúng mình còn đi chơi dài dài nha',
+      title: 'Anh yêu nè 💞',
+      body: 'Embe dậy nổi chưa đó? Ăn sáng rồi nhắn cho anh By một câu nha',
     ),
     (
       title: 'Anh By nhắc nhẹ 🌼',
-      body: 'Uống thuốc rồi hít thở thật sâu nha embe, mọi chuyện rồi sẽ ổn thôi',
+      body: 'Bữa sáng quan trọng lắm đó embe, ăn rồi mới khoẻ cả ngày',
     ),
     (
       title: 'Anh yêu thương embe 💗',
-      body: 'Tới giờ thuốc của embe rồi, uống ngoan cho anh By yên tâm nha',
+      body: 'Sáng nay bên đó trời sao rồi em? Ăn sáng cho ấm bụng cái đã nha',
     ),
     (
       title: 'Anh By gửi embe 🍀',
-      body: 'Chúc embe hôm nay việc gì cũng suôn sẻ, nhớ uống thuốc nha em',
+      body: 'Chúc embe một buổi sáng thật êm, ăn sáng ngon rồi mọi thứ dễ hơn',
     ),
     (
-      title: 'Anh yêu nhắc nè 💊',
-      body: 'Embe uống thuốc chưa đó? Uống đi rồi kể anh By nghe hôm nay của embe nha',
+      title: 'Anh yêu nhắc embe ơi 🥰',
+      body: 'Ăn sáng chưa embe? Chưa thì đi ăn liền cho anh By yên tâm nha',
     ),
     (
-      title: 'Anh By luôn bên embe 🫶',
-      body: 'Uống thuốc đúng giờ nha, có anh By đồng hành với embe mỗi ngày mà',
+      title: 'Anh By nè 💖',
+      body: 'Ngày mới rồi đó embe, ăn sáng xong chúng mình cùng cố gắng nha',
+    ),
+  ];
+
+  static const List<({String title, String body})> _personalCareMidday =
+      <({String title, String body})>[
+    (
+      title: 'Anh By hỏi thăm nè 💗',
+      body: 'Hôm nay của embe sao rồi? Có gì vui kể anh By nghe với',
     ),
     (
-      title: 'Anh yêu nhắc embe ơi 🌸',
-      body: 'Chúc embe một ngày dịu dàng như embe vậy đó, nhớ uống thuốc nha',
+      title: 'Anh yêu nè embe ơi 🌸',
+      body: 'Embe đang làm gì đó? Nhớ nghỉ tay một xíu nha',
+    ),
+    (
+      title: 'Anh By ở đây 🤍',
+      body: 'Trưa rồi đó, embe ăn cơm chưa hay lại quên nữa rồi?',
+    ),
+    (
+      title: 'Anh yêu nhắc chút 🍚',
+      body: 'Bận gì thì bận, ăn trưa đã nha embe',
+    ),
+    (
+      title: 'Anh By nè 💞',
+      body: 'Hôm nay có chuyện gì làm embe mệt không? Nói anh By nghe nha',
+    ),
+    (
+      title: 'Anh yêu hỏi nhẹ 🌷',
+      body: 'Embe đang làm gì mà im re vậy đó?',
+    ),
+    (
+      title: 'Anh By thương embe 💕',
+      body: 'Nửa ngày trôi qua rồi, embe vẫn ổn chứ em?',
+    ),
+    (
+      title: 'Anh yêu nè 🍀',
+      body: 'Hôm nay mà hơi khó thì hít thở sâu một cái nha, có anh By đây rồi',
+    ),
+    (
+      title: 'Anh By hỏi xíu 😌',
+      body: 'Trưa nay embe ăn gì đó? Ngon không kể anh nghe',
+    ),
+    (
+      title: 'Anh yêu nhắc embe 💌',
+      body: 'Nghỉ trưa một chút đi em, làm hoài không tốt đâu',
+    ),
+    (
+      title: 'Anh By nè embe ơi ☀️',
+      body: 'Hôm nay có gì làm embe cười chưa? Chưa thì để anh By làm cho',
+    ),
+    (
+      title: 'Anh yêu quan tâm chút 💖',
+      body: 'Uống đủ nước chưa em? Nhớ chăm mình giùm anh By nha',
+    ),
+    (
+      title: 'Anh By đây nè 🫶',
+      body: 'Embe đang ở đâu, làm gì, có nhớ anh By không đó? 👀',
+    ),
+    (
+      title: 'Anh yêu gửi embe 🌼',
+      body: 'Chúc embe buổi chiều nhẹ nhàng, việc gì khó thì để mai tính',
+    ),
+    (
+      title: 'Anh By nè 💗',
+      body: 'Hôm nay của embe được mấy điểm? Kể anh nghe đi nào',
+    ),
+  ];
+
+  static const List<({String title, String body})> _personalCareEvening =
+      <({String title, String body})>[
+    (
+      title: 'Anh By nhớ embe 💗',
+      body: 'Embe có nhớ anh By không đó? Anh thì nhớ cả ngày rồi',
+    ),
+    (
+      title: 'Anh yêu nè 🌙',
+      body: 'Tối rồi, hôm nay của embe kết thúc ra sao?',
+    ),
+    (
+      title: 'Anh By đây nè 🫶',
+      body: 'Embe đang làm gì đó? Nhắn cho anh By một câu đi nào',
+    ),
+    (
+      title: 'Anh yêu thương embe 💞',
+      body: 'Ngày dài rồi, nghỉ ngơi sớm nha em',
+    ),
+    (
+      title: 'Anh By nè embe ơi ✨',
+      body: 'Kể anh By nghe hôm nay embe vui nhất chuyện gì đi',
+    ),
+    (
+      title: 'Anh yêu hỏi nhỏ 👀',
+      body: 'Nói thật đi, hôm nay embe nhớ anh By mấy lần rồi?',
     ),
     (
       title: 'Anh By thương lắm 💖',
-      body: 'Uống thuốc đi embe, khoẻ mạnh rồi chúng mình cùng đếm thêm thật nhiều ngày bên nhau nha',
+      body: 'Cảm ơn embe vì hôm nay cũng đã cố gắng rồi nha',
+    ),
+    (
+      title: 'Anh yêu nè 🌷',
+      body: 'Tắm rửa xong chưa em? Nghỉ sớm cho khoẻ nha',
+    ),
+    (
+      title: 'Anh By ở đây 🤍',
+      body: 'Có chuyện gì trong ngày chưa kể thì kể anh By nghe nè',
+    ),
+    (
+      title: 'Anh yêu nhắn embe 💌',
+      body: 'Chúc embe buổi tối bình yên, mai lại là một ngày mới',
+    ),
+    (
+      title: 'Anh By nhớ nè 💕',
+      body: 'Ước gì giờ này có embe ở đây thiệt đó',
+    ),
+    (
+      title: 'Anh yêu nè embe ơi 🌜',
+      body: 'Hôm nay mệt lắm phải không? Ôm embe một cái nè',
+    ),
+    (
+      title: 'Anh By hỏi chút 😚',
+      body: 'Embe ngủ chưa? Chưa thì nhớ anh By một xíu rồi hẵng ngủ nha',
+    ),
+    (
+      title: 'Anh yêu chúc embe 🌟',
+      body: 'Ngủ ngon nha embe, mơ một giấc thật đẹp',
+    ),
+    (
+      title: 'Anh By thương embe 💗',
+      body: 'Ngày nào có embe cũng là ngày dễ thương hết á',
     ),
   ];
 
   /// Mốc đếm ngày để xoay vòng nội dung lời nhắc (chỉ dùng làm gốc số học).
   static final DateTime _epoch = DateTime(2020, 1, 1);
 
-  /// Khung giờ uống thuốc (cố định) — nội dung lấy từ [_personalMedicineMessages].
-  static const List<({int hour, int minute})> _personalMedicineTimes =
-      <({int hour, int minute})>[
-    (hour: 9, minute: 59),
-    (hour: 10, minute: 10),
-    (hour: 10, minute: 30),
+  /// Ba khung giờ hỏi thăm + pool tương ứng.
+  static final List<
+      ({int hour, int minute, List<({String title, String body})> pool})>
+      _personalCareSlots = <({
+    int hour,
+    int minute,
+    List<({String title, String body})> pool
+  })>[
+    (hour: 7, minute: 45, pool: _personalCareMorning),
+    (hour: 13, minute: 30, pool: _personalCareMidday),
+    (hour: 20, minute: 30, pool: _personalCareEvening),
   ];
 
-  // Day the medicine band was last (re)armed; null = not the gated account.
-  String? _personalMedicineDayKey;
+  /// Chỉ số xoay vòng "trông ngẫu nhiên mà không lặp": nhảy [_rotationStep] bước
+  /// mỗi ngày. Bước 7 nguyên tố cùng 15 (độ dài mỗi pool) nên phải đi hết pool
+  /// rồi mới quay lại câu cũ; [seed] làm ba khung giờ lệch pha nhau.
+  static const int _rotationStep = 7;
+
+  static int _rotatingIndex(int dayIndex, int seed, int length) {
+    if (length <= 0) {
+      return 0;
+    }
+    return ((dayIndex * _rotationStep + seed * 5) % length + length) % length;
+  }
+
+  // Day the care band was last (re)armed; null = not the gated account.
+  String? _personalCareDayKey;
   // Last applied "$iAnswered|$dayKey" for the hourly-question band; null = none.
   String? _personalQuestionSignature;
 
@@ -986,8 +1137,9 @@ class ReminderProvider extends ChangeNotifier {
   /// every daily-question update (+ once on launch). ONLY the gated account
   /// ([_personalAccountEmail]) gets them; any other signed-in account clears the
   /// bands. LOCAL only.
-  ///  • medicine 9:59 / 10:10 / 10:30 — daily, ALWAYS (uống thuốc đúng giờ);
-  ///    debounced on the day so it (re)arms at most once per day.
+  ///  • lời hỏi thăm 7:45 / 13:30 / 20:30 — daily, ALWAYS (ăn sáng · hôm nay
+  ///    thế nào · có nhớ anh không); nội dung xoay theo ngày, debounced on the
+  ///    day so it (re)arms at most once per day.
   ///  • "trả lời câu hỏi" every hour 7h–22h — today's remaining hours, but only
   ///    while she hasn't answered yet; stops the moment [iAnswered] is true.
   ///
@@ -1011,11 +1163,11 @@ class ReminderProvider extends ChangeNotifier {
     if (!isTarget) {
       // Debounce the cleared state so a non-gated account doesn't re-cancel on
       // every provider notification.
-      if (_personalMedicineDayKey == null &&
+      if (_personalCareDayKey == null &&
           _personalQuestionSignature == null) {
         return;
       }
-      _personalMedicineDayKey = null;
+      _personalCareDayKey = null;
       _personalQuestionSignature = null;
       // cancelPersonalReminders() also clears the catch-up band (1140–1159);
       // drop its debounce key too or a same-day re-login won't re-arm it.
@@ -1027,31 +1179,27 @@ class ReminderProvider extends ChangeNotifier {
     final now = DateTime.now();
     final dayKey = '${now.year}-${now.month}-${now.day}';
 
-    // Medicine — daily-recurring, unconditional. Re-arm at most once per day
-    // (the plugin keeps firing across days on its own; we only re-assert when the
-    // day rolls over or this account just became the gated one). Runs even while
-    // the question state is still loading, so meds aren't tied to the DQ stream.
-    if (_personalMedicineDayKey != dayKey) {
-      _personalMedicineDayKey = dayKey;
-      // Xoay nội dung theo ngày: mỗi ngày dịch pool đi 1 bước, ba khung giờ dùng
-      // 3 bộ liên tiếp ⇒ trong ngày không trùng nhau, qua ngày lại là lời mới.
+    // Lời hỏi thăm — daily-recurring, vô điều kiện. Re-arm nhiều nhất 1 lần/ngày
+    // (plugin tự lặp qua ngày; ta chỉ khẳng định lại khi sang ngày mới hoặc khi
+    // account này vừa thành account gated). Chạy cả khi câu hỏi còn loading.
+    if (_personalCareDayKey != dayKey) {
+      _personalCareDayKey = dayKey;
       final dayIndex =
           DateTime(now.year, now.month, now.day).difference(_epoch).inDays;
-      final base = dayIndex % _personalMedicineMessages.length;
-      final medicineSlots =
+      final careSlots =
           <({int hour, int minute, String title, String body})>[];
-      for (var i = 0; i < _personalMedicineTimes.length; i++) {
-        final time = _personalMedicineTimes[i];
-        final message = _personalMedicineMessages[
-            (base + i) % _personalMedicineMessages.length];
-        medicineSlots.add((
-          hour: time.hour,
-          minute: time.minute,
+      for (var i = 0; i < _personalCareSlots.length; i++) {
+        final slot = _personalCareSlots[i];
+        final message =
+            slot.pool[_rotatingIndex(dayIndex, i, slot.pool.length)];
+        careSlots.add((
+          hour: slot.hour,
+          minute: slot.minute,
           title: message.title,
           body: message.body,
         ));
       }
-      await _service.schedulePersonalMedicineDaily(medicineSlots);
+      await _service.schedulePersonalCareDaily(careSlots);
     }
 
     // Hourly "answer the question" nudges — act ONLY on a settled state (see the

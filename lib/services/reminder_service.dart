@@ -118,11 +118,13 @@ class ReminderService {
 
   // Personal "anh By → embe" nudges (account-gated, 2026-06-20). Two bands, both
   // outside [_autoIds] (owned only by the gated account's refresh):
-  //   • medicine 1100–1109 — DAILY-RECURRING (uống thuốc đúng giờ), unconditional.
+  //   • care 1100–1109 — DAILY-RECURRING lời hỏi thăm/quan tâm (ăn sáng, hôm nay
+  //     thế nào, có nhớ anh không…), unconditional. ⟪trước 2026-09-07 là nhắc
+  //     uống thuốc — user bỏ uống thuốc, đổi hẳn sang lời quan tâm⟫
   //   • question 1110–1139 — ONE-SHOT for today's remaining hours (nhắc trả lời
   //     câu hỏi); cleared once she's answered, re-armed daily by the provider.
-  static const int _idPersonalMedicineBase = 1100;
-  static const int _maxPersonalMedicine = 10;
+  static const int _idPersonalCareBase = 1100;
+  static const int _maxPersonalCare = 10;
   static const int _idPersonalQuestionBase = 1110;
   static const int _maxPersonalQuestion = 30;
   //   • catch-up 1140–1159 — ONE-SHOT for today's remaining slots (feature
@@ -609,22 +611,22 @@ class ReminderService {
   // gated account's [ReminderProvider.refreshPersonalReminders].
   // ---------------------------------------------------------------------------
 
-  /// Daily-recurring medicine nudges — each [slot] repeats every day at its
-  /// hour:minute (so it fires even without re-opening the app). Clears the band
-  /// first; an empty list simply cancels everything.
-  Future<void> schedulePersonalMedicineDaily(
+  /// Daily-recurring care nudges (lời hỏi thăm) — each [slot] repeats every day
+  /// at its hour:minute (so it fires even without re-opening the app). Clears
+  /// the band first; an empty list simply cancels everything.
+  Future<void> schedulePersonalCareDaily(
     List<({int hour, int minute, String title, String body})> slots,
   ) async {
     await initialize();
     if (!_initialized) {
       return;
     }
-    await cancelPersonalMedicine();
-    final capped = slots.take(_maxPersonalMedicine).toList();
+    await cancelPersonalCare();
+    final capped = slots.take(_maxPersonalCare).toList();
     for (var i = 0; i < capped.length; i++) {
       final s = capped[i];
       await _scheduleAt(
-        id: _idPersonalMedicineBase + i,
+        id: _idPersonalCareBase + i,
         when: _nextDaily(s.hour, s.minute),
         title: s.title,
         body: s.body,
@@ -633,13 +635,13 @@ class ReminderService {
     }
   }
 
-  Future<void> cancelPersonalMedicine() async {
+  Future<void> cancelPersonalCare() async {
     if (!_initialized) {
       return;
     }
-    for (var i = 0; i < _maxPersonalMedicine; i++) {
+    for (var i = 0; i < _maxPersonalCare; i++) {
       try {
-        await _plugin.cancel(_idPersonalMedicineBase + i);
+        await _plugin.cancel(_idPersonalCareBase + i);
       } catch (_) {
         // Already in the desired state.
       }
@@ -809,7 +811,7 @@ class ReminderService {
   /// Cancel ALL personal bands — used when the signed-in account is not the
   /// gated one (or on reset).
   Future<void> cancelPersonalReminders() async {
-    await cancelPersonalMedicine();
+    await cancelPersonalCare();
     await cancelPersonalQuestion();
     await cancelPersonalCatchup();
   }
