@@ -109,6 +109,7 @@ class DailyQuestionService {
     // exact day it was answered (PO decision A: never re-derive — the bank may
     // shift later). Best-effort: a marker failure must not fail answering.
     final parsedDate = _dateFromKey(dateKey);
+    var markerWritten = true;
     try {
       await _dailyAnswers(coupleId).doc(dateKey).set({
         'date': dateKey,
@@ -118,27 +119,186 @@ class DailyQuestionService {
       }, SetOptions(merge: true));
     } catch (_) {
       // Ignore — the answer itself is already saved; the marker is auxiliary.
+      markerWritten = false;
     }
 
     // Streak flag (feature streak, D-PO-2): once BOTH members have answered
     // today, stamp `bothAnswered`/`revealedAt` on the marker so StreakProvider
     // can list revealed days cheaply (filter client-side, no responses fan-out).
-    // Set client-side here (no Cloud Function) — additive to the marker so the
-    // member-write rule still validates (date/questionVi/questionEn stay present
-    // via merge). Best-effort: a failure must never fail answering.
-    try {
-      final responses = await _responses(coupleId, dateKey).get();
-      // `responses` holds at most two docs (one per member). Both present →
-      // today is revealed.
-      if (responses.docs.length >= 2) {
-        await _dailyAnswers(coupleId).doc(dateKey).set({
-          'bothAnswered': true,
-          'revealedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-      }
-    } catch (_) {
-      // Ignore — the streak flag is auxiliary; the answer is already saved.
+    // Best-effort: a failure must never fail answering — and it no longer loses
+    // the day for good either, [ensureRevealMarker]/[healRevealMarkers] re-run
+    // the same check later (see the self-heal note there).
+    await ensureRevealMarker(
+      coupleId: coupleId,
+      dateKey: dateKey,
+      // Marker just written → its fields are known; passing them skips a read
+      // AND keeps the day's question snapshot untouched. If that write failed,
+      // pass nothing so the marker is re-read (and re-created if need be).
+      markerData: markerWritten
+          ? {
+              'date': dateKey,
+              'questionVi': questionTextForCouple(parsedDate, coupleId, 'vi'),
+              'questionEn': questionTextForCouple(parsedDate, coupleId, 'en'),
+            }
+          : null,
+    );
+  }
+
+  // ── Streak marker self-heal ───────────────────────────────────────────────
+  // The `bothAnswered` flag used to be written exactly ONCE — by whoever
+  // answered second, in the same call that saved their answer. Any hiccup at
+  // that instant (app killed, connection dropped, the `responses` read served
+  // from an offline cache that hadn't seen the partner's answer yet) left the
+  // day flagless FOREVER: both partners had answered, but the streak skipped
+  // the day and the chain broke. Nothing ever re-checked. These two methods are
+  // that missing re-check — the flag is derived data, so we recompute it from
+  // the responses (the source of truth) whenever we look at a day again.
+
+  /// Makes sure [dateKey]'s marker carries `bothAnswered` when both members
+  /// really did answer. Returns true when it repaired the marker.
+  ///
+  /// Pass [markerData] when the caller already holds the marker's fields (from
+  /// a query snapshot or a write it just made) to skip a read — importantly,
+  /// that also preserves the marker's ORIGINAL `questionVi`/`questionEn`
+  /// snapshot (decision A: never re-derive a past day's question). The bank is
+  /// consulted only when the marker is missing those fields entirely, since the
+  /// security rule requires them on every marker write.
+  ///
+  /// Fail-soft: returns false on any error — a repair is never worth breaking a
+  /// caller over.
+  Future<bool> ensureRevealMarker({
+    required String coupleId,
+    required String dateKey,
+    Map<String, dynamic>? markerData,
+  }) async {
+    if (!isUsingFirebase || coupleId.trim().isEmpty || dateKey.trim().isEmpty) {
+      return false;
     }
+
+    try {
+      var data = markerData;
+      if (data == null) {
+        final marker = await _dailyAnswers(coupleId).doc(dateKey).get();
+        data = marker.data();
+      }
+      if (data != null && data['bothAnswered'] == true) {
+        return false; // Already revealed — nothing to heal.
+      }
+
+      final responses = await _responses(coupleId, dateKey).get();
+      final answered = responses.docs.where((doc) {
+        final text = doc.data()['text'] as String?;
+        return text != null && text.trim().isNotEmpty;
+      }).length;
+      // At most two docs (one per member). Both present → the day is revealed.
+      if (answered < 2) {
+        return false;
+      }
+
+      await _dailyAnswers(coupleId)
+          .doc(dateKey)
+          .set(_revealPayload(coupleId, dateKey, data), SetOptions(merge: true));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Re-checks recent marker docs and repairs every day that both members
+  /// answered but that never got flagged — i.e. mends a streak broken by a lost
+  /// flag rather than by a missed day.
+  ///
+  /// Scans the newest [scanLimit] markers, considers only the last
+  /// [withinDays] days (an older gap is history, not the live chain) and
+  /// follows at most [maxChecks] flagless days into their `responses`, so the
+  /// scan can never fan out into an unbounded pile of reads. Already-flagged
+  /// days cost nothing extra — they're read as part of the marker page.
+  ///
+  /// Returns how many days it healed. Fail-soft: 0 on any error.
+  Future<int> healRevealMarkers({
+    required String coupleId,
+    int withinDays = 90,
+    int scanLimit = 120,
+    int maxChecks = 25,
+  }) async {
+    if (!isUsingFirebase || coupleId.trim().isEmpty) {
+      return 0;
+    }
+
+    try {
+      final snapshot = await _dailyAnswers(coupleId)
+          .orderBy('date', descending: true)
+          .limit(scanLimit)
+          .get();
+
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final cutoff = today.subtract(Duration(days: withinDays));
+
+      var checked = 0;
+      var healed = 0;
+      for (final marker in snapshot.docs) {
+        if (checked >= maxChecks) {
+          break;
+        }
+        final data = marker.data();
+        if (data['bothAnswered'] == true) {
+          continue;
+        }
+        final key = (data['date'] as String?)?.trim();
+        final dateKey = (key != null && key.isNotEmpty) ? key : marker.id;
+        final parsed = DateTime.tryParse(dateKey);
+        if (parsed == null) {
+          continue;
+        }
+        if (DateTime(parsed.year, parsed.month, parsed.day).isBefore(cutoff)) {
+          // Markers come back newest-first → everything after this is older too.
+          break;
+        }
+        checked++;
+        if (await ensureRevealMarker(
+          coupleId: coupleId,
+          dateKey: dateKey,
+          markerData: data,
+        )) {
+          healed++;
+        }
+      }
+      return healed;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  /// The marker fields to write when flagging a day revealed. Keeps the day's
+  /// existing question snapshot when it has one; only a marker missing those
+  /// fields gets them re-derived from the bank, because the security rule
+  /// requires `date`/`questionVi`/`questionEn` to be present on every write.
+  Map<String, dynamic> _revealPayload(
+    String coupleId,
+    String dateKey,
+    Map<String, dynamic>? existing,
+  ) {
+    final payload = <String, dynamic>{
+      'bothAnswered': true,
+      'revealedAt': FieldValue.serverTimestamp(),
+    };
+
+    bool hasText(String field) =>
+        (existing?[field] as String?)?.trim().isNotEmpty == true;
+
+    if (!hasText('date') || !hasText('questionVi') || !hasText('questionEn')) {
+      final parsedDate = _dateFromKey(dateKey);
+      payload['date'] = dateKey;
+      payload['questionVi'] = hasText('questionVi')
+          ? existing!['questionVi']
+          : questionTextForCouple(parsedDate, coupleId, 'vi');
+      payload['questionEn'] = hasText('questionEn')
+          ? existing!['questionEn']
+          : questionTextForCouple(parsedDate, coupleId, 'en');
+    }
+
+    return payload;
   }
 
   /// Loads a page of revealed journal days for [coupleId], newest first.

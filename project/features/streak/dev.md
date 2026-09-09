@@ -50,7 +50,7 @@
 ## Giới hạn v1 (lệch/giảm so với design — cần Tester soi)
 - **`longestStreak` ≤ 180 ngày** mới chính xác (D-PO-1: suy từ cửa sổ marker đã tải, KHÔNG lưu trên couple doc). Kỷ lục thực >180 ngày sẽ bị cắt còn 180.
 - **`bothAnswered` chỉ có từ b3 trở đi.** Các ngày reveal LỊCH SỬ (trước khi ship cờ này) KHÔNG có marker `bothAnswered` → streak thực tế tính từ thời điểm ship. Cặp đang có chuỗi cũ sẽ thấy chuỗi "bắt đầu lại" — chấp nhận v1 (không backfill).
-- **`bothAnswered` set client-side** (best-effort): nếu device thứ 2 mất mạng đúng lúc set cờ, ngày đó tạm thiếu cờ tới lần ghi sau; reveal UI (Daily card) vẫn đúng vì dựa trên `hasRevealed` của responses, độc lập cờ.
+- **`bothAnswered` set client-side** (best-effort): nếu device thứ 2 mất mạng đúng lúc set cờ, ngày đó tạm thiếu cờ — **từ 2026-09-09 KHÔNG còn mất vĩnh viễn**: app tự vá (self-heal, xem Nhật ký 2026-09-09). Reveal UI (Daily card) vẫn luôn đúng vì dựa trên `hasRevealed` của responses, độc lập cờ.
 - **CTA "Trả lời ngay"** v1 chỉ `Navigator.maybePop()` (Daily Question card ở ngay dưới hero) — KHÔNG `Scrollable.ensureVisible` (design §6 cho phép v1 chỉ pop).
 - **Chip không pulse** khi reveal mới trong phiên (design §5.2 mô tả pulse 420ms) — chip cập nhật state tức thì, KHÔNG animation pulse. Glow theo state vẫn đúng. Có thể bổ sung Đợt sau (không chặn).
 - D-PO-3: KHÔNG badge "🔥 30" persistent trên chip (chip 1 dòng). D-PO-4: KHÔNG LoveLottie slot mốc (confetti cho cả 5 mốc).
@@ -66,6 +66,7 @@
 - [x] i18n: thêm ~30 key §9 CẢ en+vi, dọn 2 stub cũ, `gen-l10n` OK
 - [x] `flutter analyze` sạch (No issues found)
 - [x] Không hardcode chuỗi (qua l10n)
+- [x] **Self-heal cờ `bothAnswered` (2026-09-09)** — `ensureRevealMarker` + `healRevealMarkers` trong `DailyQuestionService`, wire ở StreakProvider (cold-start) + DailyQuestionProvider (khi reveal trong phiên); script admin `scripts/heal-streak-markers.js` vá data sẵn có
 
 ## Nhật ký implement
 - [2026-06-04] [Dev] Implement Couple Streak shame-free (b3) thuần client: StreakService + StreakProvider (enum 5 state, thuật toán liên tiếp + đệm 1 ngày, longest≤180, milestone one-shot guard Hive `streak_state`). UI 3 surface: StreakChip (footerExtra CounterCard), StreakSheet (explainer + milestone celebration confetti/count-up), Journal summary. Marker `bothAnswered` set client-side trong `daily_question_service.submitAnswer` (D-PO-2, additive, KHÔNG deploy rules/CF). i18n ~30 key vi+en, dọn 2 stub cũ. `flutter gen-l10n` + `flutter analyze` sạch. `flutter test`: 22 pass, 1 fail pre-existing (`widget_test.dart` login copy, không liên quan streak). KHÔNG commit/deploy.
@@ -74,3 +75,13 @@ fvm flutter gen-l10n   → OK (l10n.yaml)
 fvm flutter analyze    → No issues found!
 fvm flutter test       → 1 fail pre-existing (widget_test.dart), phần còn lại pass
 ```
+
+- [2026-09-09] [Dev] **Vá bug mất chuỗi trên prod (account dodaoanhtuan@gmail.com).** *Nguyên nhân gốc:* cờ `bothAnswered` chỉ được ghi ĐÚNG MỘT LẦN — bởi người trả lời thứ hai, ngay trong `submitAnswer`. Lượt ghi đó hỏng (mất mạng, app bị kill, hoặc lượt `responses.get()` rơi vào cache offline chưa thấy câu của partner → đếm ra 1) là ngày đó thiếu cờ **vĩnh viễn**: cả hai ĐÃ trả lời (Journal/Daily card vẫn hiện đủ) nhưng streak bỏ qua ngày ấy → chuỗi đứt. Không có đường nào kiểm lại. *Sửa:* cờ là **dữ liệu suy ra** nên tính lại từ `responses` (nguồn sự thật) mỗi lần nhìn lại ngày đó —
+  - `DailyQuestionService.ensureRevealMarker(coupleId, dateKey, [markerData])`: đủ 2 response có text mà marker chưa có cờ → ghi bù (merge). `submitAnswer` giờ dùng chính hàm này (bỏ đoạn set cờ inline, hết trùng logic).
+  - `DailyQuestionService.healRevealMarkers(coupleId)`: quét marker mới nhất (limit 120), chỉ xét trong 90 ngày, chỉ đi sâu vào `responses` của ngày THIẾU cờ và tối đa 25 ngày/lần chạy → chặn fan-out đọc.
+  - Wire: `StreakProvider` gọi heal **1 lần/couple/phiên** khi bắt đầu watch (fire-and-forget; write rơi vào đúng collection đang stream nên chuỗi tự liền, không cần reload). `DailyQuestionProvider` gọi `ensureRevealMarker` cho HÔM NAY khi thấy `hasRevealed` — bịt đúng ca race "cả hai trả lời lúc app đang mở, mỗi bên đọc chỉ thấy 1".
+  - Giữ decision A (không re-derive câu hỏi cũ): heal chỉ ghi `bothAnswered`/`revealedAt`; chỉ lấy `questionVi/En` từ bank khi marker THIẾU hẳn field (rules bắt buộc có `date`/`questionVi`/`questionEn` mỗi lượt ghi).
+  - Fail-soft toàn bộ (mọi lỗi → false/0, không toast, không chặn trả lời). **KHÔNG đụng `firestore.rules`/functions** — merge lên marker đã có đủ 3 field nên rule hiện tại pass.
+  - `scripts/heal-streak-markers.js` (Node + firebase-admin): vá NGAY data prod theo `--email` hoặc `--couple`, mặc định dry-run, ghi thật khi `--apply`.
+  - ⚠️ Chưa chạy được `flutter analyze`/`flutter test` — container remote không có Flutter SDK. Cần chạy lại ở máy dev trước khi ship.
+

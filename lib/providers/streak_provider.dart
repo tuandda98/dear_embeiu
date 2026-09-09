@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../services/daily_question_service.dart';
 import '../services/streak_service.dart';
 
 /// The streak's UI state (feature streak). Drives the chip/sheet copy + visuals.
@@ -30,10 +31,15 @@ enum StreakState {
 /// fail-soft: any read error leaves the state [StreakState.hidden] so the UI can
 /// simply hide the chip. Never throws, never toasts.
 class StreakProvider extends ChangeNotifier {
-  StreakProvider({StreakService? service})
-      : _service = service ?? StreakService();
+  StreakProvider({StreakService? service, DailyQuestionService? repairService})
+      : _service = service ?? StreakService(),
+        _repairService = repairService ?? DailyQuestionService();
 
   final StreakService _service;
+
+  /// Owns the `bothAnswered` marker write — used here only to mend days whose
+  /// flag went missing even though both partners answered (see [_healOnce]).
+  final DailyQuestionService _repairService;
 
   /// Milestones celebrated (design §6). Ordered for `nextMilestone` lookup.
   static const List<int> milestones = [3, 7, 30, 100, 365];
@@ -43,6 +49,10 @@ class StreakProvider extends ChangeNotifier {
   StreamSubscription<List<String>>? _subscription;
   String? _coupleId;
   bool _coupleActive = false;
+
+  /// Couples already self-healed in this app session — the repair scan is a
+  /// once-per-couple cold-start job, not something to re-run on every rewatch.
+  final Set<String> _healedCouples = <String>{};
 
   StreakState _state = StreakState.hidden;
   int _currentStreak = 0;
@@ -144,6 +154,8 @@ class StreakProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
+    _healOnce(coupleId);
+
     _subscription?.cancel();
     _subscription = _service.watchRevealedDates(coupleId).listen(
       (dates) => _recompute(dates),
@@ -155,6 +167,19 @@ class StreakProvider extends ChangeNotifier {
         notifyListeners();
       },
     );
+  }
+
+  /// Mends days that both partners answered but that never got their
+  /// `bothAnswered` flag (a dropped write on the second answer used to break
+  /// the chain permanently). Fire-and-forget: the repair writes land in the
+  /// marker collection we're already streaming, so a healed day simply shows up
+  /// as a revealed day and the streak re-counts itself. Runs at most once per
+  /// couple per session and never surfaces an error.
+  void _healOnce(String coupleId) {
+    if (!_healedCouples.add(coupleId)) {
+      return;
+    }
+    unawaited(_repairService.healRevealMarkers(coupleId: coupleId));
   }
 
   /// Stops watching and resets (sign-out / leaving a couple).

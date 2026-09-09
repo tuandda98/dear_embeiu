@@ -29,6 +29,13 @@ class DailyQuestionProvider extends ChangeNotifier {
   // whenever we (re)subscribe for a new couple/uid/day.
   bool _revealLogged = false;
 
+  // Streak self-heal guard — once per (couple, uid, day) we make sure a day both
+  // partners answered really carries its `bothAnswered` marker flag. The flag is
+  // normally stamped by whoever answers second; when both answer while the app
+  // is open (or that write is lost), each side could see only one response and
+  // skip it, silently breaking the streak on a day that WAS answered.
+  bool _markerEnsured = false;
+
   /// Today's shared question text in [langCode], resolved from the device-local
   /// date and the active couple so both partners see the same prompt on the same
   /// day — while different couples get their own no-repeat ordering.
@@ -109,6 +116,7 @@ class DailyQuestionProvider extends ChangeNotifier {
     }
     // New (couple, uid, day) window → allow the reveal event to fire once more.
     _revealLogged = false;
+    _markerEnsured = false;
     _subscription?.cancel();
     _subscription = _service.watchResponses(coupleId, _dateKey).listen(
       (answers) {
@@ -119,6 +127,14 @@ class DailyQuestionProvider extends ChangeNotifier {
         if (!_revealLogged && hasRevealed) {
           _revealLogged = true;
           AnalyticsService.instance.logDailyQuestionRevealed();
+        }
+        // Today is revealed → make sure the streak marker says so too.
+        // Fire-and-forget, no-ops when the flag is already there.
+        if (!_markerEnsured && hasRevealed && _service.isUsingFirebase) {
+          _markerEnsured = true;
+          unawaited(
+            _service.ensureRevealMarker(coupleId: coupleId, dateKey: _dateKey),
+          );
         }
         notifyListeners();
       },
