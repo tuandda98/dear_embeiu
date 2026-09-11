@@ -107,7 +107,7 @@ iOS (`ios/Runner/Info.plist`):
 
 Firebase project `tonyembeiu` (us-central1). `.firebaserc`: `default`=`tonyembeiu-dev` (an toàn, bare deploy không trúng prod), alias `prod`. **Deploy prod PHẢI `--project prod`.**
 
-**⚠️ BILLING (sự cố 2026-09-09→09-11):** PROD từng mất billing 2,5 ngày vì billing account cũ `018C08…` bị ĐÓNG → Storage không ghi (không đăng ảnh) + CF không chạy (không push, cả 2 nền tảng). Đã gắn lại sang `01CB1D…` "Firebase Payment" (cùng DEV) 2026-09-11. Chi tiết + cách kiểm tra/relink: [`project/firebase.md`](project/firebase.md) §Billing + `scripts/prod-health-check.sh`. Thấy log CF "billing is disabled" → nghĩ ngay billing account, KHÔNG phải code.
+**⚠️ BILLING (sự cố 2026-09-09→09-11):** PROD từng mất billing 2,5 ngày vì billing account cũ `018C08…` bị ĐÓNG → Storage không ghi (không đăng ảnh) + CF không chạy (không push, cả 2 nền tảng). Đã gắn lại sang `01CB1D…` "Firebase Payment" (cùng DEV) 2026-09-11. Chi tiết + cách kiểm tra/relink: [`project/firebase.md`](project/firebase.md) §Billing + `scripts/prod-health-check.sh`. Thấy log CF "billing is disabled" → nghĩ ngay billing account, KHÔNG phải code. **Hậu quả kéo theo:** AR `gcf-artifacts` xoá image >30 ngày (policy Firebase CLI) ⇒ sau outage 16/21 service mất container không khởi động được → đã **redeploy 15 function lên PROD 2026-09-11** (code HEAD, không đổi). Function nào >30 ngày chưa redeploy = chỉ sống nhờ cache Cloud Run.
 
 **Dev/Prod split:** `--release` → PROD (`com.tony.dearembeiu`); debug/profile → DEV (`com.tony.dearembeiu.dev`). Chi tiết setup: [`DEV_PROD_SETUP.md`](DEV_PROD_SETUP.md) + [`project/firebase.md`](project/firebase.md).
 

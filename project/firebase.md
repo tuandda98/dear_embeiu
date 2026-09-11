@@ -29,6 +29,10 @@
 
 **Bản đồ billing account (2026-09-11):** `01CB1D…` Firebase Payment (mở) = PROD + DEV · `01450E…` Firebase Payment (mở) = project `dear-embeiu` (khác) · `018C08…` Paiement de Firebase (ĐÓNG — cũ của PROD) · `012900…` My Billing Account (đóng). **Vì sao `018C08` đóng: KHÔNG tra được qua API — user tự xem Console Billing (nghi thẻ hết hạn/thanh toán thất bại).**
 
+**Hậu quả thứ 2 — MẤT IMAGE CONTAINER (phát hiện 15:26 UTC):** repo Artifact Registry `gcf-artifacts` có cleanup policy `firebase-functions-cleanup` (Firebase CLI tự đặt): **DELETE mọi image cũ hơn 30 ngày**. Function không redeploy trong 30 ngày → image bị xoá, Cloud Run chỉ còn chạy nhờ bản container đã import theo revision. Đợt tắt billing làm bản import của nhiều revision mất luôn ⇒ sau khi bật lại billing, **16/21 service không khởi động được** (`429 no available instance` / `500` hạ tầng; revision mới tạo bằng PATCH fail `Image ... not found`). Chỉ 5 function deploy trong 30 ngày gần nhất còn image (care/generateDailyQuestion/dailyAnswerReaction/birthday×2). **Fix:** `firebase deploy --only functions:<15 hàm> --project prod` (code HEAD, KHÔNG sửa dòng nào — chỉ dựng lại image; `notifyDailyAnswer` + 4 hàm còn image không đụng). Verify 15:34 UTC: 21/21 service có image, 5 callable trả `401` từ code hàm, `notifyDailyAnswerReaction` xử lý dần hàng đợi Pub/Sub retry (sự kiện dồn 2,5 ngày → rải rác `429` lúc scale-from-zero, Pub/Sub tự retry). ⚠️ **Bài học:** đừng để function nào >30 ngày không redeploy nếu billing có nguy cơ gián đoạn; hoặc nới policy (`npx firebase-tools functions:artifacts:setpolicy --days 365 --project prod`, tốn vài trăm MB storage) — CHƯA làm, chờ user chốt.
+
+**Billing account `01CB1D…` (xem Console 15:33 UTC):** postpay, số dư ₫0, ngưỡng ₫2.000.000, có 1 thẻ Mastercard primary (hạn 08/2030). User tự thêm thẻ dự phòng ở *Manage payment methods*.
+
 **Kiểm tra nhanh:** `scripts/prod-health-check.sh` (billing account open? · ghi thử Storage · probe callable) — dùng token của `firebase-tools login`, không cần gcloud. Nếu lại thấy "billing is disabled" → chạy script, relink sang account đang `open:true`.
 
 ## Backward-compat
