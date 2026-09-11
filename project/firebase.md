@@ -19,6 +19,18 @@
 - ⚠️ Lần ĐẦU deploy 2nd-gen functions lên project mới: trigger-Firestore (Eventarc) có thể FAIL *"Permission denied while using the Eventarc Service Agent"* — **retry sau ~2-3 phút là OK** (chờ service-agent propagate).
 - Chi tiết đầy đủ: [`DEV_PROD_SETUP.md`](../DEV_PROD_SETUP.md).
 
+## Billing (⚠️ SỰ CỐ 2026-09-09 → 09-11: PROD mất billing 2,5 ngày)
+
+**Triệu chứng:** không đăng ảnh được (Storage từ chối ghi) + KHÔNG push nào tới (cả iOS lẫn Android — 2 user thật đều iOS nên "push iOS hỏng"). CF log prod toàn `The request failed because billing is disabled for this project.` / `instance could not start successfully` từ **2026-09-09 01:32 UTC**.
+
+**Root cause:** billing account gắn với PROD `tonyembeiu` là `018C08-2436A0-4F5E9A` "Paiement de Firebase" bị **ĐÓNG (`open:false`)** (Cloud Billing API vẫn báo `billingEnabled:true` ở tầng project — phải đọc `billingAccounts` để thấy account đóng). Cloud Run (CF v2) + Storage đều đòi Blaze ⇒ chết đồng loạt. Firestore/Auth vẫn chạy (Spark quota) nên chat/câu hỏi vẫn ghi được, chuỗi không mất — chỉ mất push + ảnh.
+
+**Fix 2026-09-11 (Claude, ~15:07 UTC):** `PUT cloudbilling/v1/projects/tonyembeiu/billingInfo {billingAccountName: billingAccounts/01CB1D-2C87B4-46F5FD}` — gắn PROD sang account **`01CB1D…` "Firebase Payment" (đang mở, CÙNG account DEV dùng)**. Verify: ghi/xoá object thử vào bucket prod OK · callable trả `UNAUTHENTICATED` từ code hàm (container sống) · gửi silent push (content-available) tới 3 token iOS thật OK ⇒ APNs prod bình thường. Lan truyền tới Cloud Run mất **vài phút** (vẫn còn "billing is disabled" 2 phút sau relink). Tiện thể xoá 1 doc `devices` trùng token của `thaohathao14` (doc cũ 08-23) — tránh push đúp.
+
+**Bản đồ billing account (2026-09-11):** `01CB1D…` Firebase Payment (mở) = PROD + DEV · `01450E…` Firebase Payment (mở) = project `dear-embeiu` (khác) · `018C08…` Paiement de Firebase (ĐÓNG — cũ của PROD) · `012900…` My Billing Account (đóng). **Vì sao `018C08` đóng: KHÔNG tra được qua API — user tự xem Console Billing (nghi thẻ hết hạn/thanh toán thất bại).**
+
+**Kiểm tra nhanh:** `scripts/prod-health-check.sh` (billing account open? · ghi thử Storage · probe callable) — dùng token của `firebase-tools login`, không cần gcloud. Nếu lại thấy "billing is disabled" → chạy script, relink sang account đang `open:true`.
+
 ## Backward-compat
 
 ⚠️ Backend prod DÙNG CHUNG cho mọi version app đang cài (1.0 cũ + 1.1 mới). Field optional thêm sau (`coupleCode`/`languageCode`/`sessionToken`) PHẢI đọc bằng `data.get('field', null)` trong rules — KHÔNG `data.field` trực tiếp (key vắng mặt do app cũ không gửi → engine báo "undefined" → DENY → app 1.0 vỡ `permission-denied`). Đã vá 3 field này + có test `firestore.backward-compat.test.js` khoá. Sửa rules = **chỉ ADDITIVE**, không siết cái app cũ đang dùng.
