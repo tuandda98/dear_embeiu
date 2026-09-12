@@ -51,12 +51,27 @@ class BankQuestionSource implements QuestionSource {
     }
   }
 
+  /// The ids in [askedBankIds] that refer to a real entry of THIS bank. Ids
+  /// outside the range (a build with a different bank, bad data) are ignored
+  /// so they can never make the bank look exhausted early.
+  static Set<int> _inRangeAsked(List<int> askedBankIds, int n) =>
+      askedBankIds.where((i) => i >= 0 && i < n).toSet();
+
+  /// True once every bank entry has been asked — the engine then records the
+  /// next pick as the start of a FRESH cycle (state reset) so the no-repeat
+  /// walk resumes instead of degrading to a repeating per-day random pick.
+  static bool isExhausted(List<int> askedBankIds) {
+    final n = bankLength;
+    return n > 0 && _inRangeAsked(askedBankIds, n).length >= n;
+  }
+
   /// Deterministic pick, exposed for tests and for the engine's fallback path.
   ///
   /// Walks a (coupleId + dateKey)-seeded permutation of all bank indices and
   /// returns the first one NOT in [askedBankIds]. When the couple has exhausted
   /// the bank, the asked set is treated as empty (a fresh cycle begins) rather
-  /// than leaving the card blank.
+  /// than leaving the card blank — see [isExhausted] for how the engine resets
+  /// the stored state so the new cycle is no-repeat too.
   static QuestionCandidate? pick({
     required String coupleId,
     required String dateKey,
@@ -69,15 +84,16 @@ class BankQuestionSource implements QuestionSource {
     }
     final seed = stableQuestionHash('$coupleId|$dateKey');
     final perm = deterministicPermutation(n, seed);
-    final asked = askedBankIds.toSet();
+    var asked = _inRangeAsked(askedBankIds, n);
+    if (asked.length >= n) {
+      asked = const <int>{};
+    }
 
     int chosen = perm[0];
-    if (asked.length < n) {
-      for (final index in perm) {
-        if (!asked.contains(index)) {
-          chosen = index;
-          break;
-        }
+    for (final index in perm) {
+      if (!asked.contains(index)) {
+        chosen = index;
+        break;
       }
     }
 

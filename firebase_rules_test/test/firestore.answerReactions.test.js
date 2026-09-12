@@ -85,6 +85,25 @@ describe('firestore: daily-answer reactions', () => {
     );
   });
 
+  it('forbids reacting under an answer author who is NOT a couple member', async () => {
+    // dave is an outsider — a member must not be able to aim the reaction
+    // push/inbox at him (or at an ex-partner) by forging the author segment.
+    await seedDoc(`couples/c1/dailyAnswers/${DATE}/responses/dave`, {
+      authorUserId: 'dave',
+      text: 'stray',
+      answeredAt: TS,
+    });
+    await assertFails(
+      setDoc(
+        doc(
+          authedDb('alice'),
+          `couples/c1/dailyAnswers/${DATE}/responses/dave/answerReactions/alice`,
+        ),
+        validReaction('alice'),
+      ),
+    );
+  });
+
   it('lets the answer author read the reaction directly', async () => {
     await seedDoc(`${BOB_ANSWER}/answerReactions/alice`, validReaction('alice'));
     await assertSucceeds(

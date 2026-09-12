@@ -14,6 +14,7 @@ import 'package:intl/intl.dart';
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import 'analytics_service.dart';
+import 'daily_question_service.dart';
 import 'firebase_bootstrap_service.dart';
 import 'notification_settings_service.dart';
 import 'reminder_service.dart';
@@ -53,6 +54,17 @@ Future<void> _cancelStaleDailyQuestionNudges(RemoteMessage message) async {
   final data = message.data;
   if (data['type'] != 'daily_question' ||
       '${data['bothAnswered']}'.trim().toLowerCase() != 'true') {
+    return;
+  }
+  // Only TODAY's completion may cancel today's bands (code-review 2026-09-12).
+  // A push about yesterday that was queued while the phone was off arrives the
+  // moment the app wakes — right after Home armed today's nudges — and would
+  // silently wipe them for the whole day (the backstop band only starts
+  // tomorrow). Pushes from a CF that predates the `date` key keep the old,
+  // unconditional behaviour.
+  final pushDate = '${data['date'] ?? ''}'.trim();
+  if (pushDate.isNotEmpty &&
+      pushDate != DailyQuestionService.dateKey(DateTime.now())) {
     return;
   }
   await ReminderService.instance.cancelDailyQuestionBands();

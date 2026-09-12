@@ -1160,6 +1160,10 @@ exports.notifyDailyAnswer = onDocumentCreated(
         // with copy that has become false ("người ấy chưa trả lời", "sắp lỡ mất
         // chuỗi"). FCM data values must be strings.
         bothAnswered: bothAnswered ? "true" : "false",
+        // Which day the pair completed (code-review 2026-09-12): a push about
+        // YESTERDAY that only arrives when the app wakes this morning must not
+        // cancel TODAY's freshly armed nudges. Older clients ignore the key.
+        date,
       },
       // Only the pair-completing push needs to wake the recipient's app (iOS
       // content-available + Android data-only companion); the "answer yours to
@@ -1346,6 +1350,30 @@ exports.notifyDailyAnswerReaction = onDocumentCreated(
 
     // Defence in depth — the rules already forbid reacting to your own answer.
     if (reactorUid === answerAuthorUid) {
+      return;
+    }
+
+    // Both the reactor AND the answer author (a path segment the rules only
+    // pin as of 2026-09-12) must be CURRENT members of the couple — otherwise a
+    // member could aim this push/inbox at any uid. Fail CLOSED: a membership
+    // lookup we can't complete is not a reason to notify a stranger.
+    try {
+      const coupleSnap = await db.collection("couples").doc(coupleId).get();
+      const memberIds = Array.isArray(coupleSnap.get("memberIds")) ?
+        coupleSnap.get("memberIds") : [];
+      if (!memberIds.includes(answerAuthorUid) || !memberIds.includes(reactorUid)) {
+        logger.warn("Answer reaction notification skipped: author or reactor is not a couple member.", {
+          coupleId,
+          answerAuthorUid,
+          reactorUid,
+        });
+        return;
+      }
+    } catch (err) {
+      logger.warn("Answer reaction notification skipped: could not verify couple membership.", {
+        coupleId,
+        message: err && err.message,
+      });
       return;
     }
 

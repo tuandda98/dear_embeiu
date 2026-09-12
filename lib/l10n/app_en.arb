@@ -539,6 +539,7 @@
     "description": "Tooltip / a11y label for the heart button when it would remove the user's reaction"
   },
   "reactionErrorRetry": "Couldn't react, try again",
+  "dailyQuestionSubmitError": "Couldn't send your answer. Please try again.",
   "@reactionErrorRetry": {
     "description": "SnackBar shown when writing a reaction fails and was rolled back"
   },

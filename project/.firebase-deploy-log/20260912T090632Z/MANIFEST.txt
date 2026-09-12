@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --project dev --only firestore:rules,functions:notifyDailyAnswerReaction,functions:notifyDailyAnswer 2>&1 | grep -E "✔|✖|Error|error" | tail -8
+time_utc: 20260912T090632Z
+git_head: 8abc80b (release/1.6.1)
+dirty   : 22 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 8abc80b)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 8abc80b -- functions` rồi redeploy

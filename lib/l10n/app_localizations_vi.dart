@@ -969,6 +969,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get reactionErrorRetry => 'Chưa thả được tim, thử lại nhé';
 
   @override
+  String get dailyQuestionSubmitError =>
+      'Chưa gửi được câu trả lời, thử lại nhé.';
+
+  @override
   String reactionPartnerReacted(String name, String emoji) {
     return '$name đã thả $emoji';
   }
@@ -3362,7 +3366,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get loveTreeMomentPhotosCopy =>
-      'Một khoảnh khắc hai đứa đã cùng lưu giữ 💞';
+      'Một khoảnh khắc chúng mình đã cùng lưu giữ 💞';
 
   @override
   String get loveTreeMomentStreakCopy =>

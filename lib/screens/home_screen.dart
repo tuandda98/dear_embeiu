@@ -396,6 +396,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // streak update we re-arm the 21/22/23h local nudges from live habit state, so
   // they fire only while today's question isn't both-answered yet.
   DailyQuestionProvider? _dqProvider;
+  MoodProvider? _moodProvider;
 
   /// Guards [FeatureTour.maybeShow] to one attempt per Home lifetime.
   bool _featureTourChecked = false;
@@ -484,6 +485,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _chatProvider = context.read<ChatProvider>();
     _dqProvider!.addListener(_refreshDqSafetyNet);
     _streakProvider!.addListener(_refreshDqSafetyNet);
+    _moodProvider = context.read<MoodProvider>();
+    _moodProvider!.addListener(_refreshDqSafetyNet);
     WidgetsBinding.instance.addPostFrameCallback((_) => _refreshDqSafetyNet());
     // "Có gì mới" tour (feature onboarding, 2026-09-05): once per build, after
     // the first frame settles and never on top of the catch-up gate.
@@ -509,6 +512,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _streakProvider?.removeListener(_onStreakChanged);
     _streakProvider?.removeListener(_refreshDqSafetyNet);
     _dqProvider?.removeListener(_refreshDqSafetyNet);
+    _moodProvider?.removeListener(_refreshDqSafetyNet);
     _bgHintTimer?.cancel();
     _stopChatPresence();
     WidgetsBinding.instance.removeObserver(this);
@@ -526,6 +530,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // every account but the gated one.
     if (state == AppLifecycleState.resumed) {
       _maybeRunCatchup(force: true);
+      // A `bothAnswered` push handled while we were away may have cancelled
+      // today's daily-question bands (or the day may have rolled over): drop
+      // the "already armed" debounce and re-evaluate from live state.
+      context.read<ReminderProvider>().invalidateDailyQuestionSchedule();
+      _refreshDqSafetyNet();
     }
     // Chat presence (presence-suppress 2026-06-19): only meaningful while the
     // chat tab is the active screen. Backgrounding clears presence so the
@@ -579,6 +588,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final streak = _streakProvider;
     if (dq == null || streak == null) {
       return;
+    }
+    // Day rollover while the app stayed open: the streak stream is silent until
+    // a marker changes, so re-derive from the cached snapshot (no-op same day).
+    streak.recomputeIfDayChanged();
+    // Re-feed the engine — it holds its first resolve until streak/mood have
+    // loaded (see _syncQuestionContext), and this listener is what fires when
+    // they do.
+    final coupleForSync = context.read<CoupleProvider>().couple;
+    final uidForSync = context.read<AuthProvider>().currentUser?.id;
+    if (coupleForSync != null &&
+        coupleForSync.id.isNotEmpty &&
+        uidForSync != null) {
+      _syncQuestionContext(coupleForSync, uidForSync);
     }
     final reminders = context.read<ReminderProvider>();
     // Private "anh By → embe" nudges, gated to one account (2026-06-20). Evaluated
@@ -638,8 +660,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       (m) => m != myUid,
       orElse: () => '',
     );
+    final streak = context.read<StreakProvider>();
     context.read<DailyQuestionProvider>().updateContext(
-      currentStreak: context.read<StreakProvider>().currentStreak,
+      currentStreak: streak.isLoading ? null : streak.currentStreak,
       myMood: moods.myMood?.mood,
       partnerMood: moods.partnerMood?.mood,
       // Still loading → unknown (-1), never 0. A couple with no photos at all
@@ -648,6 +671,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       partnerUid: partnerUid,
       languageCode: Localizations.localeOf(context).languageCode,
       anniversaryDate: couple.anniversaryDate,
+      // Hold the once-a-day resolve until streak + moods have their first
+      // snapshot: a cold start otherwise freezes `streak 0 / mood null` into the
+      // marker for BOTH phones and the streak/mood templates never fire.
+      // `_refreshDqSafetyNet` (listening to streak/mood/dq) re-syncs when they
+      // land.
+      signalsReady: !streak.isLoading && !moods.isLoading,
     );
   }
 

@@ -1766,6 +1766,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t react, try again'**
   String get reactionErrorRetry;
 
+  /// No description provided for @dailyQuestionSubmitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send your answer. Please try again.'**
+  String get dailyQuestionSubmitError;
+
   /// a11y label / tooltip for the partner's reaction chip
   ///
   /// In en, this message translates to:

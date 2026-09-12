@@ -520,7 +520,7 @@ class ReminderService {
   /// arrives, today's armed nudges have become false ("người ấy chưa trả lời")
   /// and must be dropped even though no UI is alive to re-evaluate them.
   ///
-  /// ⚠️ Deliberately does NOT touch the repeating backstop band (1020–1029):
+  /// ⚠️ Deliberately does NOT touch the one-shot backstop band (1020–1033):
   /// today being finished says nothing about tomorrow, and that band is the only
   /// reminder a user who stops opening the app will ever get.
   Future<void> cancelDailyQuestionBands() async {

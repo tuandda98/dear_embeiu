@@ -970,6 +970,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reactionErrorRetry => 'Couldn\'t react, try again';
 
   @override
+  String get dailyQuestionSubmitError =>
+      'Couldn\'t send your answer. Please try again.';
+
+  @override
   String reactionPartnerReacted(String name, String emoji) {
     return '$name reacted $emoji';
   }

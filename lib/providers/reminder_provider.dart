@@ -1450,6 +1450,26 @@ class ReminderProvider extends ChangeNotifier {
     // Also drop the repeating backstop — without a couple there is nothing to
     // answer, and this band would otherwise keep firing daily forever.
     await _service.cancelDailyQuestionBackstop();
+    // And the account-gated personal bands (care 1100–1109 is a DAILY repeat,
+    // hourly 1110–1139, catch-up 1140–1159): only HomeScreen's hook used to
+    // clear them, and there is no Home after sign-out / account deletion — the
+    // "Anh By…" notifications kept firing every day on a logged-out phone
+    // (code-review 2026-09-12). Reset the debounce keys too so a same-day
+    // re-login re-arms them.
+    _personalCareDayKey = null;
+    _personalQuestionSignature = null;
+    _personalCatchupSignature = null;
+    _suppressSharedDqReminders = false;
+    await _service.cancelPersonalReminders();
+  }
+
+  /// Forgets the "already armed" debounce for today's daily-question bands so
+  /// the next [refreshDailyQuestionSafetyNet]/[sync] re-arms them even when
+  /// the inputs look unchanged. Call on app resume: a `bothAnswered` push
+  /// handled while Home was away may have cancelled the bands underneath us.
+  void invalidateDailyQuestionSchedule() {
+    _eodSignature = null;
+    _dqScheduleSignature = null;
   }
 
   @override

@@ -685,12 +685,6 @@ service cloud.firestore {
         allow create, update: if isCoupleMember(coupleId)
           && reactorUid == request.auth.uid
           && reactorUid != answerAuthorUid
-          // The ANSWER AUTHOR segment must be a current member too (code-review
-          // 2026-09-12): the CF pushes/inboxes whoever sits in that segment, so
-          // without this pin a member could aim a notification at any uid (an
-          // ex-partner, a stranger). Same couple doc as isCoupleMember → no
-          // extra read.
-          && answerAuthorUid in get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds
           && request.resource.data.keys().hasOnly(
               ['reactorUserId', 'emoji', 'coupleId', 'date', 'reactedAt'])
           && request.resource.data.reactorUserId == request.auth.uid

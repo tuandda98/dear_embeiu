@@ -200,6 +200,40 @@ void main() {
       expect(asked.toSet().length, asked.length);
     });
 
+    test('an exhausted bank starts a fresh cycle instead of going blank', () {
+      final all = List<int>.generate(BankQuestionSource.bankLength, (i) => i);
+      expect(BankQuestionSource.isExhausted(all), isTrue);
+      final pick = BankQuestionSource.pick(
+        coupleId: 'couple-abc',
+        dateKey: '2026-09-12',
+        askedBankIds: all,
+      );
+      expect(pick, isNotNull);
+      expect(pick!.questionId,
+          inInclusiveRange(0, BankQuestionSource.bankLength - 1));
+      // One short of exhausted → still no-repeat on the last remaining id.
+      final nearly = all.sublist(1);
+      expect(BankQuestionSource.isExhausted(nearly), isFalse);
+      final last = BankQuestionSource.pick(
+        coupleId: 'couple-abc',
+        dateKey: '2026-09-12',
+        askedBankIds: nearly,
+      );
+      expect(last!.questionId, 0);
+    });
+
+    test('out-of-range asked ids never count towards exhaustion', () {
+      final junk = List<int>.generate(
+          BankQuestionSource.bankLength, (i) => i + 100000);
+      expect(BankQuestionSource.isExhausted(junk), isFalse);
+      final pick = BankQuestionSource.pick(
+        coupleId: 'couple-abc',
+        dateKey: '2026-09-12',
+        askedBankIds: [...junk, -1],
+      );
+      expect(pick, isNotNull);
+    });
+
     test('appending to the bank does not shift existing indices', () {
       expect(BankQuestionSource.bankLength,
           dailyQuestions.length + dailyQuestionsExtra.length);
