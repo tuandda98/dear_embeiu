@@ -17,7 +17,8 @@ cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/null)
 # sau ; & | (, hoặc sau `npx`) + theo sau là `deploy`. Neo như vậy để KHÔNG bắt nhầm
 # các lệnh chỉ NHẮC TỚI chuỗi "firebase deploy" trong echo/grep/comment.
 # Bỏ qua functions:log, projects:list, firestore:delete, v.v. (không có `deploy` ngay sau).
-printf '%s' "$cmd" | grep -qiE '(^|[;&|(])[[:space:]]*(npx[[:space:]]+(-y[[:space:]]+)?)?firebase(-tools)?[[:space:]]+deploy([[:space:]]|$)' || exit 0
+# (2026-09-12) cho phép tiền tố biến môi trường kiểu `NODE_OPTIONS="…" npx firebase-tools deploy`.
+printf '%s' "$cmd" | grep -qiE '(^|[;&|(])[[:space:]]*([A-Z_][A-Z0-9_]*=("[^"]*"|[^[:space:]]*)[[:space:]]+)*(npx[[:space:]]+(-y[[:space:]]+)?)?firebase(-tools)?[[:space:]]+deploy([[:space:]]|$)' || exit 0
 
 ts=$(date -u +%Y%m%dT%H%M%SZ)
 log_dir="$ROOT/project/.firebase-deploy-log"
