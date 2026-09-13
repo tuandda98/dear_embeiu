@@ -3656,8 +3656,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsVs => 'vs';
 
   @override
-  String get rpsWaitingBody =>
-      'Người ấy đã nhận thông báo. Khi cả hai cùng ở đây, ván chơi bắt đầu ngay.';
+  String get rpsWaitingBody => 'Đã gửi lời mời. Chờ người ấy vào nhé…';
 
   @override
   String get rpsWaitingBodyInvitee =>

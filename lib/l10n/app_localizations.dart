@@ -6338,10 +6338,10 @@ abstract class AppLocalizations {
   /// **'vs'**
   String get rpsVs;
 
-  /// Waiting screen body for the inviter.
+  /// Waiting screen body for the inviter. Neutral on purpose (Tester RPS-21): the CF may skip the push (partner still on the previous result screen), so never claim they were notified.
   ///
   /// In en, this message translates to:
-  /// **'They\'ve been notified. The round starts the moment you\'re both here.'**
+  /// **'Invite sent. Waiting for your person…'**
   String get rpsWaitingBody;
 
   /// Waiting screen body for the invitee.

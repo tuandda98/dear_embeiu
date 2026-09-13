@@ -8,6 +8,10 @@ import 'package:flutter/foundation.dart';
 import '../models/rps_game.dart';
 import 'firebase_bootstrap_service.dart';
 
+/// How many open games the couple-wide listener keeps (see
+/// [RpsGameService.watchOpenGames]).
+const int rpsOpenGamesWindow = 5;
+
 /// One page of finished games for the history screen (same cursor shape as
 /// [CareMessagePage]): pass [lastDoc] back as `startAfter` for the next page.
 class RpsHistoryPage {
@@ -48,6 +52,73 @@ class RpsClockSample {
   Duration get offset => serverStamp.difference(
     sentAt.add(Duration(microseconds: rtt.inMicroseconds ~/ 2)),
   );
+}
+
+/// One event of the couple's open-games listener: the docs plus whether the
+/// SDK served them from its local cache (offline / not yet synced). Only
+/// consecutive NON-cache events are trusted as "live" for the server-clock
+/// estimate taken before any game is entered (Tester RPS-23).
+class RpsOpenGamesSnapshot {
+  const RpsOpenGamesSnapshot({required this.games, required this.fromCache});
+
+  final List<RpsGame> games;
+  final bool fromCache;
+}
+
+/// Server stamps that were written JUST NOW, judged by diffing two
+/// consecutive live snapshots of the open-games query (Tester RPS-23 — a
+/// server-clock hint before the first heartbeat). A stamp counts only when
+/// it changed between [previous] and [current]:
+/// - a `presence` beat that is new / newer than before,
+/// - `startedAt` / `createdAt` going from null (pending or absent) to a value,
+/// - the `createdAt` of a doc that newly entered the set, provided it can't
+///   be an OLD doc sliding into the query window ([windowLimit]): either the
+///   window wasn't full before, or it is newer than every doc seen before.
+///
+/// Every such stamp was committed before the snapshot reached the device, so
+/// `stamp − receivedAt` is a LOWER bound of the server − device offset; the
+/// caller keeps the maximum. Old stamps (the initial load, anything unchanged)
+/// are never returned — their age is unknown.
+List<DateTime> rpsFreshServerStamps({
+  required List<RpsGame> previous,
+  required List<RpsGame> current,
+  required int windowLimit,
+}) {
+  final before = <String, RpsGame>{for (final g in previous) g.id: g};
+  DateTime? newestBefore;
+  for (final g in previous) {
+    final at = g.createdAt;
+    if (at != null && (newestBefore == null || at.isAfter(newestBefore))) {
+      newestBefore = at;
+    }
+  }
+  final fresh = <DateTime>[];
+  for (final game in current) {
+    final old = before[game.id];
+    if (old == null) {
+      final created = game.createdAt;
+      final canBeSlideIn = previous.length >= windowLimit;
+      if (created != null &&
+          (!canBeSlideIn ||
+              (newestBefore != null && created.isAfter(newestBefore)))) {
+        fresh.add(created);
+      }
+      continue;
+    }
+    for (final entry in game.presence.entries) {
+      final was = old.presence[entry.key];
+      if (was == null || entry.value.isAfter(was)) {
+        fresh.add(entry.value);
+      }
+    }
+    if (old.startedAt == null && game.startedAt != null) {
+      fresh.add(game.startedAt!);
+    }
+    if (old.createdAt == null && game.createdAt != null) {
+      fresh.add(game.createdAt!);
+    }
+  }
+  return fresh;
 }
 
 /// Firestore access for rock-paper-scissors (feature rps-game, 2026-09-13):
@@ -225,9 +296,21 @@ class RpsGameService {
   /// settled — and the provider picks the first LIVE one with
   /// [RpsGame.pickOpen] against server time. Needs the composite index
   /// `(type ASC, status ASC, createdAt DESC)`.
-  Stream<List<RpsGame>> watchOpenGames(String coupleId, {int limit = 5}) {
+  Stream<List<RpsGame>> watchOpenGames(String coupleId, {int limit = 5}) =>
+      watchOpenGameSnapshots(coupleId, limit: limit).map((s) => s.games);
+
+  /// [watchOpenGames] plus the cache flag of each event. Listens WITH
+  /// metadata changes so going offline surfaces as a `fromCache` event —
+  /// the provider then stops treating the next server event's diff as live
+  /// (it may carry stamps written while we were away — Tester RPS-23).
+  Stream<RpsOpenGamesSnapshot> watchOpenGameSnapshots(
+    String coupleId, {
+    int limit = rpsOpenGamesWindow,
+  }) {
     if (_blank(coupleId) || !isUsingFirebase) {
-      return Stream<List<RpsGame>>.value(const <RpsGame>[]);
+      return Stream<RpsOpenGamesSnapshot>.value(
+        const RpsOpenGamesSnapshot(games: <RpsGame>[], fromCache: true),
+      );
     }
     return _games(coupleId.trim())
         .where('type', isEqualTo: RpsGame.typeKey)
@@ -240,11 +323,14 @@ class RpsGameService {
         )
         .orderBy('createdAt', descending: true)
         .limit(limit)
-        .snapshots()
+        .snapshots(includeMetadataChanges: true)
         .map(
-          (snap) => snap.docs
-              .map((doc) => RpsGame.fromFirestore(doc.id, doc.data()))
-              .toList(growable: false),
+          (snap) => RpsOpenGamesSnapshot(
+            games: snap.docs
+                .map((doc) => RpsGame.fromFirestore(doc.id, doc.data()))
+                .toList(growable: false),
+            fromCache: snap.metadata.isFromCache,
+          ),
         )
         .handleError((Object e) {
           debugPrint('RpsGameService.watchOpenGames error: $e');
@@ -310,6 +396,29 @@ class RpsGameService {
           : RpsClockSample(sentAt: sentAt, ackAt: ackAt, serverStamp: stamp);
     } catch (_) {
       return null; // cache miss — no sample this beat
+    }
+  }
+
+  /// Drops `presence.{uid}` (Tester RPS-19/RPS-20): I left the game screen,
+  /// a page covered it, or the app went to the background. Without this my
+  /// last beat stays "fresh" for up to 10s (start rule / `startIfBothPresent`)
+  /// and 30s (the CF skips a rematch push while the partner's presence on the
+  /// previous game is fresh) — the partner could start a round I can't see,
+  /// or send a rematch I'm never told about. The rules let me delete my OWN
+  /// key only. Fail-soft and fire-and-forget safe; a later heartbeat from the
+  /// same device is ordered after it, so resuming simply re-stamps.
+  Future<bool> clearPresence(String coupleId, String gameId, String uid) async {
+    if (_blank(coupleId) || _blank(gameId) || _blank(uid) || !isUsingFirebase) {
+      return false;
+    }
+    try {
+      await _game(coupleId.trim(), gameId.trim()).update(<String, dynamic>{
+        'presence.${uid.trim()}': FieldValue.delete(),
+      });
+      return true;
+    } catch (e) {
+      debugPrint('RpsGameService.clearPresence failed: $e');
+      return false;
     }
   }
 

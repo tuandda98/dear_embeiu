@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show AppLifecycleState;
 
 import 'package:cloud_firestore/cloud_firestore.dart' show DocumentSnapshot;
 import 'package:flutter/foundation.dart';
@@ -36,6 +37,39 @@ enum RpsPhase {
   cancelled,
 }
 
+/// How the game screen's presence reacts to an app lifecycle change (Tester
+/// RPS-3 / RPS-19 / RPS-20) — see [rpsPresenceActionFor].
+enum RpsPresenceAction {
+  /// Foreground again: beat right away, then every 3s.
+  beat,
+
+  /// Maybe just a glance away (notification shade, control centre, a system
+  /// prompt): stop beating now, but only drop my presence if it lasts past a
+  /// short grace — so a flicker doesn't cost two writes.
+  pauseTransient,
+
+  /// Really gone (backgrounded / closing): stop beating and drop my presence
+  /// right away, while the OS still lets the write out.
+  pauseAndClear,
+}
+
+/// `resumed` → beat · `inactive` → [RpsPresenceAction.pauseTransient] ·
+/// `hidden`/`paused`/`detached` → [RpsPresenceAction.pauseAndClear]. Both
+/// platforms pass through `inactive` → `hidden` → `paused` on the way to the
+/// background within milliseconds, so a real leave is escalated at once.
+RpsPresenceAction rpsPresenceActionFor(AppLifecycleState state) {
+  switch (state) {
+    case AppLifecycleState.resumed:
+      return RpsPresenceAction.beat;
+    case AppLifecycleState.inactive:
+      return RpsPresenceAction.pauseTransient;
+    case AppLifecycleState.hidden:
+    case AppLifecycleState.paused:
+    case AppLifecycleState.detached:
+      return RpsPresenceAction.pauseAndClear;
+  }
+}
+
 /// State for rock-paper-scissors (feature rps-game, 2026-09-13).
 ///
 /// Two independent layers:
@@ -53,7 +87,10 @@ enum RpsPhase {
 ///    the top-most one drives the game; when it goes away the one below gets
 ///    its game back instead of being left on an idle provider. The top screen
 ///    also pauses/resumes the heartbeat with the app lifecycle and when a page
-///    covers it (Tester RPS-3) so a phone in the pocket isn't "present".
+///    covers it (Tester RPS-3) so a phone in the pocket isn't "present" —
+///    and DELETES my presence stamp when it pauses or goes away (Tester
+///    RPS-19/RPS-20), instead of letting the last beat look fresh for 10s
+///    (start) / 30s (CF rematch push skip).
 ///
 /// Every write is fail-soft (see [RpsGameService]); the provider never throws
 /// into the UI — a refused move simply unlocks the buttons again.
@@ -87,11 +124,21 @@ class RpsGameProvider extends ChangeNotifier {
   /// `startedAt + countdown + grace` = 7s).
   static const Duration _maxMoveTimeout = Duration(seconds: 7);
 
+  /// An `inactive` pause shorter than this doesn't drop my presence (see
+  /// [RpsPresenceAction.pauseTransient]).
+  static const Duration _transientPauseGrace = Duration(milliseconds: 1500);
+
+  /// A server-clock hint from the open-games stream (Tester RPS-23) claiming
+  /// more than this is discarded: device clocks are NTP-synced to well under
+  /// that, so such a sample is far more likely a stamp we received late
+  /// (app suspended, listener reconnecting) than real skew.
+  static const Duration _maxSnapshotOffset = Duration(minutes: 1);
+
   // ---- couple-wide ----
   String? _coupleId;
   String? _myUid;
   String? _partnerUid;
-  StreamSubscription<List<RpsGame>>? _openSub;
+  StreamSubscription<RpsOpenGamesSnapshot>? _openSub;
 
   /// Newest-first open games from the stream — [openGame] picks the first
   /// LIVE one against server time on every read (so an invite that ages past
@@ -126,6 +173,12 @@ class RpsGameProvider extends ChangeNotifier {
   /// top). While paused the provider also never flips `invited → playing`.
   bool _heartbeatPaused = false;
 
+  /// Delayed presence delete after a transient (`inactive`) pause.
+  Timer? _presenceClearTimer;
+
+  /// My presence on the current game was already deleted in this pause.
+  bool _presenceCleared = false;
+
   /// Why the last [invite]/[rematch]/[renewInvite] returned null.
   RpsActionError? _lastActionError;
 
@@ -155,6 +208,18 @@ class RpsGameProvider extends ChangeNotifier {
   /// (a device property); the sample quality resets on each [enter].
   Duration _clockOffset = Duration.zero;
   Duration? _clockSampleRtt;
+
+  /// A heartbeat sample (error ≤ RTT/2) has set [_clockOffset] — from then
+  /// on the coarser open-games hints are ignored.
+  bool _offsetFromHeartbeat = false;
+
+  /// Best (largest) lower bound of the offset seen on the open-games stream
+  /// before any heartbeat sample (Tester RPS-23).
+  Duration? _snapshotOffset;
+
+  /// The previous open-games event came from the server (not the cache), so
+  /// the next server event's diff shows writes that JUST happened.
+  bool _openLive = false;
 
   // ------------------------------------------------------------------ getters
 
@@ -303,6 +368,21 @@ class RpsGameProvider extends ChangeNotifier {
   /// Buttons are tappable only during the live countdown, once.
   bool get canChoose => phase == RpsPhase.countdown && !_moveInFlight;
 
+  /// The clock is over and only the server's verdict is missing: `resolving`
+  /// (no hand from me), or `chosenWaiting` once the clock hit 0 — the screen
+  /// shows "Đang mở kết quả…" for both and, past 6s, "Kết nối chậm / Tải
+  /// lại" (Tester RPS-22: that used to arm for `resolving` only, so a player
+  /// who HAD picked and then went offline was stuck on "Đang mở kết quả…").
+  bool get isSettling {
+    final p = phase;
+    if (p == RpsPhase.resolving) {
+      return true;
+    }
+    return p == RpsPhase.chosenWaiting &&
+        _currentGame?.startedAt != null &&
+        countdownRemaining == Duration.zero;
+  }
+
   /// Only the creator can cancel, and only while still waiting.
   bool get canCancel {
     final g = _currentGame;
@@ -437,15 +517,31 @@ class RpsGameProvider extends ChangeNotifier {
     _coupleId = coupleId;
     _myUid = myUid;
     _openSub?.cancel();
+    _openLive = false;
     _openSub = _service
-        .watchOpenGames(coupleId)
+        .watchOpenGameSnapshots(coupleId)
         .listen(_onOpenGames, onError: (_) {});
     notifyListeners();
   }
 
-  void _onOpenGames(List<RpsGame> games) {
+  void _onOpenGames(RpsOpenGamesSnapshot snapshot) {
+    final receivedAt = DateTime.now();
     final coupleId = _coupleId;
     final previous = _openCandidates;
+    final games = snapshot.games;
+    // RPS-23: estimate the server clock before any game is entered, from
+    // stamps written just now (diff of two consecutive live events).
+    if (_openLive && !snapshot.fromCache) {
+      _sampleClockFromStamps(
+        rpsFreshServerStamps(
+          previous: previous,
+          current: games,
+          windowLimit: rpsOpenGamesWindow,
+        ),
+        receivedAt,
+      );
+    }
+    _openLive = !snapshot.fromCache;
     _openCandidates = games;
     if (coupleId != null) {
       // A round that was `playing` and left the open set can only have
@@ -509,6 +605,7 @@ class RpsGameProvider extends ChangeNotifier {
   void clear() {
     _openSub?.cancel();
     _openSub = null;
+    _openLive = false;
     _openCandidates = const <RpsGame>[];
     _deadCleanupAt.clear();
     _finishedHandled.clear();
@@ -827,7 +924,10 @@ class RpsGameProvider extends ChangeNotifier {
     if (!wasTop) {
       return;
     }
-    _leaveInternal();
+    // Off the game screen → my stamp must not stay "fresh" (RPS-19/RPS-20).
+    // Issued BEFORE a screen underneath re-enters and beats, and writes from
+    // one device apply in order, so that beat still wins.
+    _leaveInternal(clearPresence: true);
     // Called from `State.dispose`: the widget tree is locked there, so a
     // synchronous notifyListeners() throws "markNeedsBuild() called when
     // widget tree was locked" (seen on the emulator 2026-09-14 — the old
@@ -875,7 +975,10 @@ class RpsGameProvider extends ChangeNotifier {
     if (_currentGameId == gameId && _gameSub != null) {
       return;
     }
-    _leaveInternal();
+    // Switching games (rematch / follow / renew): I'm no longer on the old
+    // one — its presence goes too, so e.g. the CF's rematch check on it
+    // doesn't see me "still watching" (RPS-19).
+    _leaveInternal(clearPresence: true);
     _currentGameId = gameId;
     _currentLoaded = false;
     notifyListeners();
@@ -901,6 +1004,9 @@ class RpsGameProvider extends ChangeNotifier {
 
   void _startHeartbeat(String coupleId, String gameId, String me) {
     _heartbeatTimer?.cancel();
+    _presenceClearTimer?.cancel();
+    _presenceClearTimer = null;
+    _presenceCleared = false;
     _beat(coupleId, gameId, me);
     _heartbeatTimer = Timer.periodic(RpsTiming.heartbeat, (_) {
       _beat(coupleId, gameId, me);
@@ -908,23 +1014,50 @@ class RpsGameProvider extends ChangeNotifier {
   }
 
   /// Stop announcing presence (Tester RPS-3): the app went to the background
-  /// / the screen got covered. The partner's phone sees my stamp age past 10s
-  /// and won't start a round I can't see; the result push (CF, >8s stale)
-  /// reaches me. No-op unless [owner] is the driving screen.
-  void pauseHeartbeat({Object? owner}) {
-    if (!_isTopOwner(owner) || _heartbeatPaused) {
+  /// / the screen got covered. No-op unless [owner] is the driving screen.
+  ///
+  /// Tester RPS-19/RPS-20: just stopping the beats left my last stamp
+  /// "fresh" for up to 10s (the partner could start a round I can't see —
+  /// I then lost it as "Bỏ lượt") and 30s for the CF's rematch check (the
+  /// partner's "Chơi lại" skipped my push + inbox). So my `presence` key is
+  /// deleted as well: right away by default, or — [transient] (`inactive`,
+  /// maybe just the notification shade) — only if the pause outlives a short
+  /// grace. It goes regardless of the round's state: a locked move is already
+  /// written, presence only gates the start and the pushes. Dialogs / sheets
+  /// never get here (the route observer only sees pages).
+  void pauseHeartbeat({Object? owner, bool transient = false}) {
+    if (!_isTopOwner(owner)) {
       return;
     }
-    _heartbeatPaused = true;
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = null;
+    if (!_heartbeatPaused) {
+      _heartbeatPaused = true;
+      _heartbeatTimer?.cancel();
+      _heartbeatTimer = null;
+    }
+    if (_presenceCleared) {
+      return;
+    }
+    if (transient) {
+      _presenceClearTimer ??= Timer(_transientPauseGrace, () {
+        _presenceClearTimer = null;
+        if (_heartbeatPaused && !_disposed) {
+          _clearMyPresence();
+        }
+      });
+      return;
+    }
+    // `inactive` escalating to `hidden`/`paused`: don't wait out the grace.
+    _clearMyPresence();
   }
 
-  /// Back on the screen: beat immediately, then every 3s again.
+  /// Back on the screen: beat immediately, then every 3s again (a pending
+  /// transient clear is dropped — nothing was deleted yet).
   void resumeHeartbeat({Object? owner}) {
     if (!_isTopOwner(owner)) {
       return;
     }
+    _presenceClearTimer?.cancel();
+    _presenceClearTimer = null;
     final wasPaused = _heartbeatPaused;
     _heartbeatPaused = false;
     final coupleId = _coupleId;
@@ -936,6 +1069,21 @@ class RpsGameProvider extends ChangeNotifier {
     if (wasPaused || _heartbeatTimer == null) {
       _startHeartbeat(coupleId, gameId, me);
     }
+  }
+
+  /// Deletes my stamp on the current game, once per pause. Guarded on the
+  /// ids: after [clear] (sign-out / no couple) there is nothing to touch.
+  void _clearMyPresence() {
+    _presenceClearTimer?.cancel();
+    _presenceClearTimer = null;
+    final coupleId = _coupleId;
+    final me = _myUid;
+    final gameId = _currentGameId;
+    if (coupleId == null || me == null || gameId == null) {
+      return;
+    }
+    _presenceCleared = true;
+    unawaited(_service.clearPresence(coupleId, gameId, me));
   }
 
   /// True while the driving screen has paused the heartbeat.
@@ -959,6 +1107,7 @@ class RpsGameProvider extends ChangeNotifier {
       return;
     }
     _clockSampleRtt = rtt;
+    _offsetFromHeartbeat = true;
     final previous = _clockOffset;
     _clockOffset = sample.offset;
     if ((_clockOffset - previous).abs() > const Duration(milliseconds: 250)) {
@@ -970,6 +1119,35 @@ class RpsGameProvider extends ChangeNotifier {
     }
   }
 
+  /// Tester RPS-23: the offset used to stay 0 until the first heartbeat, i.e.
+  /// until a game screen was open — the Home card and the dead-game clean-up
+  /// judged invite TTL / round grace on the raw device clock. [stamps] were
+  /// committed just before [receivedAt] ([rpsFreshServerStamps]), so each
+  /// `stamp − receivedAt` UNDER-estimates the true offset by the delivery
+  /// latency; the maximum seen is the best estimate. Used only until a
+  /// heartbeat sample exists; no sample → old behaviour (device clock).
+  void _sampleClockFromStamps(List<DateTime> stamps, DateTime receivedAt) {
+    if (stamps.isEmpty || _offsetFromHeartbeat) {
+      return;
+    }
+    var newest = stamps.first;
+    for (final t in stamps) {
+      if (t.isAfter(newest)) {
+        newest = t;
+      }
+    }
+    final sample = newest.difference(receivedAt);
+    if (sample.abs() > _maxSnapshotOffset) {
+      return;
+    }
+    final best = _snapshotOffset;
+    if (best != null && sample <= best) {
+      return;
+    }
+    _snapshotOffset = sample;
+    _clockOffset = sample;
+  }
+
   /// Detach from the current game (keeps the owner records — see [detach]
   /// for a screen going away). The couple-wide open game watch keeps running.
   void leave() {
@@ -977,7 +1155,20 @@ class RpsGameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _leaveInternal() {
+  void _leaveInternal({bool clearPresence = false}) {
+    final coupleId = _coupleId;
+    final me = _myUid;
+    final gameId = _currentGameId;
+    if (clearPresence &&
+        !_presenceCleared &&
+        coupleId != null &&
+        me != null &&
+        gameId != null) {
+      unawaited(_service.clearPresence(coupleId, gameId, me));
+    }
+    _presenceClearTimer?.cancel();
+    _presenceClearTimer = null;
+    _presenceCleared = false;
     _gameSub?.cancel();
     _gameSub = null;
     _moveSub?.cancel();

@@ -4,7 +4,7 @@
 
 - **Feature:** rps-game
 - **Ưu tiên:** P1 (user yêu cầu 2026-09-13)
-- **Trạng thái:** 📋 Spec → 🎨 Design + 💻 Dev backend song song
+- **Trạng thái:** 🧪 Test PASS trên DEV (2 vòng Tester + smoke-test 2 máy) — ⏳ chờ user: deploy PROD + ship trong release 1.7.0
 - **Tạo ngày:** 2026-09-13
 - **Liên quan:** [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · bối cảnh [`../../../CLAUDE.md`](../../../CLAUDE.md)
 
@@ -79,5 +79,6 @@
 - [ ] analyze 0 · test pass · rules-test pass · DEV deployed (rules + indexes + 4 CF). PROD chờ lệnh user.
 
 ## Changelog
+- [2026-09-14] [PO] Tester vòng 2 PASS (không P0/P1); vá thêm RPS-19..23 (xoá presence khi rời màn, copy chờ, Tải lại khi mất mạng, offset sớm) → test 127/127, runtime Android xác nhận presence xoá/beat đúng. Acceptance §7: đạt trên DEV trừ "push <5s" (DEV thiếu APNs/FCM emulator — verify khi lên PROD/Android thật). Feature KHÔNG đóng Done: chờ user lệnh deploy PROD + release.
 - [2026-09-14] [PO] Tester vòng 1 FAIL (3 P1 + gian lận start-1-mình). Backend vá RPS-5/10/11/14/16 (rules-test 289, DEV deployed, `notifyRpsResult` đã xoá khỏi DEV). PO chốt ngưỡng push kết quả = 8s. Client vá RPS-1..4,6..9,12,13,15,18 sau smoke-test.
 - [2026-09-13] [PO] Tạo spec từ yêu cầu user; chốt data contract + CF + máy trạng thái. Spawn Designer + Dev backend song song, Dev client sau design, Tester cuối.

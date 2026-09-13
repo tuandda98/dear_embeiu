@@ -30,3 +30,35 @@
 **Điểm mạnh (đừng báo nhầm):** chống lộ lựa chọn ĐẠT (get/list/collectionGroup moves đều DENY khi playing); client không ghi được finished/result; resolve+finish idempotent; CF người nhận = memberIds (không lặp lỗ answerAuthorUid); startIfBothPresent transaction; index khớp; routing push/inbox đồng bộ 2 chỗ; không leak Timer/Subscription; Reduce Motion đủ; l10n khớp, không "hai đứa".
 
 **Chưa verify (cần runtime):** push invite <5s trên Android thật; lệch đếm 2 máy; heartbeat nền Android; tour đè màn; `count()` isNull field lồng; glyph medallion; a11y TalkBack.
+
+## [2026-09-14] [Tester] Nghiệm thu vòng 2 (commit 86ba602) — ✅ PASS (không chặn ship; khuyến nghị vá RPS-19/20 trước PROD)
+
+**Đã chạy:** analyze 0 · test 105/105 · rules-test 289 · probe rules 4/4 (xoá presence của mình OK → partner start DENY; không xoá được key partner) · runtime 2 máy DEV (Android emu test1 VI + iPhone 16 sim test2 EN) · log CF DEV.
+
+| RPS | Vòng 2 | Ghi chú |
+|---|---|---|
+| 1 | fixed | Rematch song song → 1 ván `rematch_<root>_2`; nhánh thua race chạy thật |
+| 2 | fixed | Invite −11' có rematchOf không kéo màn kết quả, tự expired, không badge |
+| 3 | partial | Nền >10s / Lịch sử che → không start; còn cửa sổ ≤10s (RPS-20) |
+| 4 | fixed | Offset 11s đo được, 2 máy cùng số |
+| 5, 10, 11 | fixed | rules-test |
+| 6, 12, 15 | fixed (chỉ code) | |
+| 7 | fixed (chỉ code) | Chưa runtime (build 22 < entry tour 23) |
+| 8 | fixed | Mất mạng giữa lúc đếm → "Bỏ lượt", "Chơi lại" vẫn bấm được |
+| 9 | fixed | Nhắc lại → huỷ + tạo mới + inbox |
+| 13 | fixed | iOS: push-tap từ Lịch sử → về đúng màn chơi |
+| 14 | fixed | Không còn notifyRpsResult; push chỉ từ lời gọi chốt ván |
+| 16 | fixed | Lệch nhỏ ngoài feature: `reactionPartnerFallback` EN "Your partner" |
+| 17 | chấp nhận | |
+| 18 | fixed | Tuần / Profile / Lịch sử khớp |
+
+| ID | Mức | Vị trí | Mô tả | Đề xuất |
+|---|---|---|---|---|
+| RPS-19 | P2 | functions:1583 + provider detach/pause | B rời màn kết quả, A "Chơi lại" trong 30s → CF bỏ push+inbox, B không biết; màn chờ ghi sai "đã nhận thông báo" | Client xoá `presence.{me}` khi pause/detach |
+| RPS-20 | P2 | provider pauseHeartbeat | A rủ rồi xuống nền, B vào ≤10s → ván start, A thua "Bỏ lượt" | Cùng cách vá |
+| RPS-21 | P3 | game screen copy màn chờ | "Người ấy đã nhận thông báo" sai khi CF bỏ qua | Copy trung tính |
+| RPS-22 | P3 | game screen `_slowTimer` | Đã chọn + offline + hết giờ: kẹt "Đang mở kết quả…" | Timer chậm cho cả chosenWaiting |
+| RPS-23 | P3 | provider serverNow | Offset chỉ đo khi đã vào ván | Đo offset sớm |
+
+**Runtime DEV:** ván thường PASS · rematch song song PASS · nền >10s PASS (≤10s = RPS-20) · timeout 1 bên/cả hai + chip Bỏ lượt PASS · invite >10' PASS · push-tap iOS từ Lịch sử PASS · log CF sạch.
+**Chưa verify:** banner push thật, tour build 23, catch-up, RPS-12, TalkBack, Reduce Motion, ≤360pt.

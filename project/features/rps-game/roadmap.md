@@ -2,16 +2,16 @@
 
 > Kế hoạch chi tiết NỘI BỘ feature này. PO sở hữu.
 
-- **Trạng thái feature:** 🎨 Design + 💻 Dev (backend + client nền song song) — 2026-09-13
+- **Trạng thái feature:** 🧪 Test PASS trên DEV — chờ deploy PROD + release 1.7.0 (2026-09-14)
 
 ## Phân phase (Now / Next / Later)
 
 ### 🟢 Phase 1 — v1 chơi được 2 máy (P1) — đang làm
-- [ ] Backend: rules `games`/`moves` + 2 index + 4 CF (`notifyRpsInvite`, `resolveRpsGame`, `finishRpsGame`, `notifyRpsResult`) + rules-test ≥14 + deploy DEV
-- [ ] Client nền: model/service/provider + wire session_resolver + push tap routing + l10n cơ bản + unit test judge
-- [ ] Design spec: điểm vào Home/Profile, 4 trạng thái màn chơi, màn lịch sử, copy vi/en
-- [ ] Client UI: `RpsGameScreen` + `RpsHistoryScreen` + entry + badge lời mời
-- [ ] Tester: rules + logic + smoke 2 máy DEV (test1/test2)
+- [x] Backend: rules `games`/`moves` + 2 index + 4 CF (`notifyRpsInvite`, `resolveRpsGame`, `finishRpsGame`, `notifyRpsResult`) + rules-test ≥14 + deploy DEV
+- [x] Client nền: model/service/provider + wire session_resolver + push tap routing + l10n cơ bản + unit test judge
+- [x] Design spec: điểm vào Home/Profile, 4 trạng thái màn chơi, màn lịch sử, copy vi/en
+- [x] Client UI: `RpsGameScreen` + `RpsHistoryScreen` + entry + badge lời mời
+- [x] Tester: rules + logic + smoke 2 máy DEV (test1/test2)
 - *Xong khi:* acceptance §7 overview pass; PROD deploy chờ lệnh user; ship trong release kế (1.7.0 MINOR).
 
 ### 🟡 Phase 2 — Nice to have
@@ -23,6 +23,7 @@
 - [ ] Trò chơi khác dùng chung khung `games` (đoán số, tung xúc xắc…)
 
 ## Mốc đã đạt
+- [2026-09-14] Tester vòng 2 PASS, vá RPS-19..23, test 127/127, rules-test 289.
 - [2026-09-13] Spec PO chốt (overview §3–§7); spawn 3 agent song song.
 
 ## Ghi chú phụ thuộc

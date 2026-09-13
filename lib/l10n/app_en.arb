@@ -2801,9 +2801,9 @@
   "@rpsVs": {
     "description": "The small 'vs' pill between the two players."
   },
-  "rpsWaitingBody": "They've been notified. The round starts the moment you're both here.",
+  "rpsWaitingBody": "Invite sent. Waiting for your person…",
   "@rpsWaitingBody": {
-    "description": "Waiting screen body for the inviter."
+    "description": "Waiting screen body for the inviter. Neutral on purpose (Tester RPS-21): the CF may skip the push (partner still on the previous result screen), so never claim they were notified."
   },
   "rpsWaitingBodyInvitee": "Connecting to your person… The round starts once you're both here.",
   "@rpsWaitingBodyInvitee": {

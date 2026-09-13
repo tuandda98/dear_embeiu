@@ -3669,8 +3669,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rpsVs => 'vs';
 
   @override
-  String get rpsWaitingBody =>
-      'They\'ve been notified. The round starts the moment you\'re both here.';
+  String get rpsWaitingBody => 'Invite sent. Waiting for your person…';
 
   @override
   String get rpsWaitingBodyInvitee =>

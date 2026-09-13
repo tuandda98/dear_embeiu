@@ -138,6 +138,9 @@ class _RpsGameScreenState extends State<RpsGameScreen>
   Timer? _cooldownTimer;
   Timer? _slowTimer;
   bool _resolvingSlow = false;
+
+  /// Last seen [RpsGameProvider.isSettling] — arms [_slowTimer].
+  bool _settling = false;
   String? _followedRematchId;
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
@@ -159,8 +162,12 @@ class _RpsGameScreenState extends State<RpsGameScreen>
     WidgetsBinding.instance.addObserver(this);
     final lifecycle = WidgetsBinding.instance.lifecycleState;
     _appActive = lifecycle == null || lifecycle == AppLifecycleState.resumed;
-    if (!_appActive) {
-      _provider.pauseHeartbeat(owner: this);
+    if (lifecycle != null && !_appActive) {
+      _provider.pauseHeartbeat(
+        owner: this,
+        transient:
+            rpsPresenceActionFor(lifecycle) == RpsPresenceAction.pauseTransient,
+      );
     }
     _ringTicker = AnimationController(
       vsync: this,
@@ -216,7 +223,8 @@ class _RpsGameScreenState extends State<RpsGameScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // The ring reads server time on every frame, so pausing/resuming the
     // ticker can't drift — it just saves frames while backgrounded.
-    if (state == AppLifecycleState.resumed) {
+    final action = rpsPresenceActionFor(state);
+    if (action == RpsPresenceAction.beat) {
       _appActive = true;
       _syncRingTicker(_provider.phase);
       if (!_routeCovered) {
@@ -228,16 +236,22 @@ class _RpsGameScreenState extends State<RpsGameScreen>
     // inactive / hidden / paused / detached: not looking at the round any
     // more (Tester RPS-3 — Android kept beating from the background, so the
     // partner started a round I lost without seeing, and the CF thought I was
-    // still watching and skipped my result push).
+    // still watching and skipped my result push). The provider also deletes
+    // my presence stamp (RPS-19/RPS-20) — after a short grace for `inactive`,
+    // at once when really backgrounded.
     _appActive = false;
     if (state == AppLifecycleState.paused) {
       _ringTicker.stop();
     }
-    _provider.pauseHeartbeat(owner: this);
+    _provider.pauseHeartbeat(
+      owner: this,
+      transient: action == RpsPresenceAction.pauseTransient,
+    );
   }
 
   // RouteAware — another PAGE (history…) covering the game screen means I'm
   // not on it; dialogs/sheets don't count (observer is typed on PageRoute).
+  // A deliberate navigation, so presence is dropped right away (RPS-20).
   @override
   void didPushNext() {
     _routeCovered = true;
@@ -301,6 +315,26 @@ class _RpsGameScreenState extends State<RpsGameScreen>
       _lastPhase = phase;
     }
 
+    // "Kết nối chậm… / Tải lại" after 6s of settling — `resolving` AND a
+    // picked hand whose clock ran out (Tester RPS-22: the latter doesn't
+    // change the phase, so it used to never arm and an offline player who
+    // had picked sat on "Đang mở kết quả…" forever).
+    final settling = _provider.isSettling;
+    if (settling != _settling) {
+      changed = true;
+      _settling = settling;
+      _slowTimer?.cancel();
+      _slowTimer = null;
+      _resolvingSlow = false;
+      if (settling) {
+        _slowTimer = Timer(_slowResolve, () {
+          if (mounted) {
+            setState(() => _resolvingSlow = true);
+          }
+        });
+      }
+    }
+
     // Per-second haptics while the clock runs (design §5.1).
     if (phase == RpsPhase.countdown || phase == RpsPhase.chosenWaiting) {
       final secs = _provider.countdownSeconds;
@@ -362,18 +396,6 @@ class _RpsGameScreenState extends State<RpsGameScreen>
       _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (mounted) {
           setState(() {});
-        }
-      });
-    }
-
-    // "Kết nối chậm…" after 6s of resolving.
-    _slowTimer?.cancel();
-    _slowTimer = null;
-    _resolvingSlow = false;
-    if (to == RpsPhase.resolving) {
-      _slowTimer = Timer(_slowResolve, () {
-        if (mounted) {
-          setState(() => _resolvingSlow = true);
         }
       });
     }
@@ -1262,14 +1284,10 @@ class _PlayView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final phase = provider.phase;
     // "Đang mở kết quả…" also once MY hand is in and the clock hit 0 — the
     // provider keeps `chosenWaiting` there, but there's nothing left to wait
-    // for except the server.
-    final resolving =
-        phase == RpsPhase.resolving ||
-        (phase == RpsPhase.chosenWaiting &&
-            provider.countdownRemaining == Duration.zero);
+    // for except the server ([RpsGameProvider.isSettling]).
+    final resolving = provider.isSettling;
     final compact = MediaQuery.sizeOf(context).width <= 360;
 
     final Widget caption;

@@ -2143,9 +2143,9 @@
   "@rpsVs": {
     "description": "The small 'vs' pill between the two players."
   },
-  "rpsWaitingBody": "Người ấy đã nhận thông báo. Khi cả hai cùng ở đây, ván chơi bắt đầu ngay.",
+  "rpsWaitingBody": "Đã gửi lời mời. Chờ người ấy vào nhé…",
   "@rpsWaitingBody": {
-    "description": "Waiting screen body for the inviter."
+    "description": "Waiting screen body for the inviter. Neutral on purpose (Tester RPS-21): the CF may skip the push (partner still on the previous result screen), so never claim they were notified."
   },
   "rpsWaitingBodyInvitee": "Đang kết nối với người ấy… Ván chơi bắt đầu khi cả hai cùng ở đây.",
   "@rpsWaitingBodyInvitee": {
