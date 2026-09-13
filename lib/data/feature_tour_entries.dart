@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import '../screens/care_message_screen.dart';
+import '../screens/rps_game_screen.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../l10n/app_localizations.dart';
@@ -64,5 +65,13 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
     icon: IconsaxPlusLinear.user_add,
     title: (l10n) => l10n.featureTourInviteTitle,
     body: (l10n) => l10n.featureTourInviteBody,
+  ),
+  // ---- Build 23 ------------------------------------------------------------
+  FeatureTourEntry(
+    sinceBuild: 23,
+    icon: IconsaxPlusLinear.game,
+    title: (l10n) => l10n.featureTourRpsTitle,
+    body: (l10n) => l10n.featureTourRpsBody,
+    onOpen: (context) => openRpsGame(context),
   ),
 ];

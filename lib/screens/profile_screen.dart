@@ -11,6 +11,7 @@ import '../models/couple.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
+import '../providers/rps_game_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/care_message_service.dart';
 import '../services/daily_question_service.dart';
@@ -28,9 +29,12 @@ import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/memories_sheet.dart';
 import '../widgets/records_sheet.dart';
+import '../widgets/rps_invite_card.dart' show rpsMedalAccent, rpsMedalGradient;
 import '../widgets/streak_sheet.dart';
 import 'care_timeline_screen.dart';
 import 'journal_screen.dart';
+import 'rps_game_screen.dart';
+import 'rps_history_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
 
@@ -344,7 +348,8 @@ class ProfileScreen extends StatelessWidget {
                     runSpacing: 6,
                     heartSize: 26,
                     heartColor: AppColors.white,
-                    pulseHeart: true, // hero header — breathes like the Home counter
+                    pulseHeart:
+                        true, // hero header — breathes like the Home counter
                     textStyle: TextStyle(
                       color: AppColors.white,
                       fontSize: 30,
@@ -503,8 +508,6 @@ class ProfileScreen extends StatelessWidget {
   // widget (_AchievementsGrid, end of file) so it can cache the journal-count
   // aggregation across the Profile's frequent rebuilds.
 
-
-
   Widget _buildDetailTile({
     required IconData icon,
     required String title,
@@ -626,8 +629,9 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
   }
 
   Future<void> _loadJournalCount() async {
-    final count =
-        await DailyQuestionService().countJournalEntries(widget.coupleId);
+    final count = await DailyQuestionService().countJournalEntries(
+      widget.coupleId,
+    );
     if (mounted) {
       setState(() => _journalCount = count);
     }
@@ -642,6 +646,19 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
     final nf = NumberFormat.decimalPattern(
       Localizations.localeOf(context).toString(),
     );
+    // Rock-paper-scissors badge (feature rps-game): all-time W – D – L from
+    // the provider's cached aggregation (one lazy load), plus a dot while the
+    // partner's invite is waiting on me.
+    final rps = context.watch<RpsGameProvider>();
+    final rpsScore = rps.totalScore;
+    if (rpsScore == null && !rps.isTotalScoreLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<RpsGameProvider>().loadTotalScore();
+        }
+      });
+    }
+    final rpsInviteId = rps.hasPendingInvite ? rps.openGame?.id : null;
 
     final milestonesReached = StreakProvider.milestones
         .where((m) => streak.longestStreak >= m)
@@ -737,8 +754,10 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
         ),
         const SizedBox(height: 12),
         // Care notes (feature care-message, 2026-09-05): a keepsake count like
-        // the journal, so it lives in this grid as a full-width fifth badge
-        // (user: no standalone tiles; compose stays on the Home header 💌).
+        // the journal, so it lives in this grid (user: no standalone tiles;
+        // compose stays on the Home header 💌). Paired with the
+        // rock-paper-scissors badge (feature rps-game, design D2) so the grid
+        // closes on an even 2×3.
         Row(
           children: [
             Expanded(
@@ -751,6 +770,60 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
                 onTap: () {
                   HapticFeedback.selectionClick();
                   openCareTimeline(context);
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _badgeCard(
+                icon: IconsaxPlusBold.game,
+                medalGradient: _MedalPalette.game.gradient,
+                accent: _MedalPalette.game.accent,
+                // "W – D – L" (en dashes) — three numbers, so a notch smaller
+                // than the single-number badges.
+                value: rpsScore == null
+                    ? null
+                    : l10n.rpsScoreFormat(
+                        nf.format(rpsScore.wins),
+                        nf.format(rpsScore.draws),
+                        nf.format(rpsScore.losses),
+                      ),
+                valueSize: 22,
+                valueSemantics: rpsScore == null
+                    ? null
+                    : l10n.rpsScoreSemantics(
+                        nf.format(rpsScore.wins),
+                        nf.format(rpsScore.draws),
+                        nf.format(rpsScore.losses),
+                      ),
+                medalOverlay: rpsInviteId == null
+                    ? null
+                    : Positioned(
+                        top: -3,
+                        right: -3,
+                        child: Container(
+                          width: 9,
+                          height: 9,
+                          decoration: BoxDecoration(
+                            color: AppColors.accentLove,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.white,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                label: l10n.rpsGameTitle,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  // A pending invite from the partner takes precedence over
+                  // the history (design §5.7).
+                  if (rpsInviteId != null) {
+                    openRpsGame(context, gameId: rpsInviteId);
+                  } else {
+                    openRpsHistory(context);
+                  }
                 },
               ),
             ),
@@ -772,6 +845,9 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
     required String? value,
     required String label,
     required VoidCallback onTap,
+    double valueSize = 28,
+    String? valueSemantics, // spoken form when the value isn't a plain number
+    Widget? medalOverlay, // e.g. the rps "pending invite" dot on the medallion
   }) {
     const br = BorderRadius.all(Radius.circular(24));
 
@@ -805,26 +881,32 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
                   children: [
                     // Gradient medallion with a soft colored glow — the focal
                     // point that makes each tile pop off the white card.
-                    Container(
-                      width: 54,
-                      height: 54,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: medalGradient,
-                        ),
-                        borderRadius: BorderRadius.circular(17),
-                        boxShadow: [
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.34),
-                            blurRadius: 14,
-                            offset: const Offset(0, 6),
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 54,
+                          height: 54,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: medalGradient,
+                            ),
+                            borderRadius: BorderRadius.circular(17),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accent.withValues(alpha: 0.34),
+                                blurRadius: 14,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Icon(icon, color: AppColors.white, size: 27),
+                          child: Icon(icon, color: AppColors.white, size: 27),
+                        ),
+                        ?medalOverlay,
+                      ],
                     ),
                     const Spacer(),
                     // Tap-for-detail affordance.
@@ -843,9 +925,12 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
                 value != null
                     ? Text(
                         value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        semanticsLabel: valueSemantics,
                         style: TextStyle(
                           color: accent,
-                          fontSize: 28,
+                          fontSize: valueSize,
                           fontWeight: FontWeight.w800,
                           height: 1,
                           letterSpacing: -0.5,
@@ -884,21 +969,29 @@ class _MedalPalette {
     AppColors.accentLove,
   );
   static const record = _MedalPalette(
-    [AppColors.accentLavender, AppColors.accentLavenderDeep], // #A78BFA → #7C5CD6
+    [
+      AppColors.accentLavender,
+      AppColors.accentLavenderDeep,
+    ], // #A78BFA → #7C5CD6
     AppColors.accentLavenderDeep,
   );
   static const memories = _MedalPalette(
     [Color(0xFFFF8A6E), Color(0xFFFF5C7A)], // warm coral → pink
     Color(0xFFFF5C7A),
   );
-  static const care = _MedalPalette(
-    [AppColors.accentRose, AppColors.accentLoveDeep],
+  static const care = _MedalPalette([
+    AppColors.accentRose,
     AppColors.accentLoveDeep,
-  );
+  ], AppColors.accentLoveDeep);
   static const journal = _MedalPalette(
     [Color(0xFFF58BB8), Color(0xFFDB5793)], // berry rose
     Color(0xFFD44A85),
   );
+
+  /// Rock-paper-scissors (feature rps-game, design §0): peach → sunset1 — a
+  /// warmer sixth hue so the badge reads as its own; shared with the Home
+  /// entry card's medallion.
+  static const game = _MedalPalette(rpsMedalGradient, rpsMedalAccent);
 }
 
 /// Entry point for the care-note TIMELINE (feature care-message, 2026-09-05) —

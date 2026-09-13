@@ -303,6 +303,19 @@ class _NotificationTile extends StatelessWidget {
               if (n.type == AppNotificationType.dailyQuestion) {
                 NotificationTapRouter.pendingHomeFocus.value = 'daily_question';
               }
+              // Rock-paper-scissors (feature rps-game): same plumbing as the
+              // push tap — Home consumes the focus and opens the game/history.
+              if (n.type == AppNotificationType.rpsInvite) {
+                final gameId = n.gameId;
+                if (gameId != null && gameId.isNotEmpty) {
+                  NotificationTapRouter.pendingRpsGameId.value = gameId;
+                }
+                NotificationTapRouter.pendingHomeFocus.value =
+                    NotificationTapRouter.focusRpsGame;
+              } else if (n.type == AppNotificationType.rpsResult) {
+                NotificationTapRouter.pendingHomeFocus.value =
+                    NotificationTapRouter.focusRpsHistory;
+              }
               NotificationTapRouter.pendingHomeTab.value = n.targetHomeTab;
               Navigator.of(context).maybePop();
             },
@@ -450,6 +463,10 @@ class _NotificationTile extends StatelessWidget {
         // Verbatim: a care note's whole point is the partner's own words — only
         // fall back to a template if an older backend omitted the title.
         return n.title ?? l10n.notifCareMessage(name);
+      case AppNotificationType.rpsInvite:
+        return l10n.notifRpsInvite(name);
+      case AppNotificationType.rpsResult:
+        return l10n.notifRpsResult(name);
       case AppNotificationType.unknown:
         return l10n.notifGeneric;
     }
@@ -527,6 +544,9 @@ class _Avatar extends StatelessWidget {
         return (IconsaxPlusLinear.messages, AppColors.accentLove);
       case AppNotificationType.careMessage:
         return (IconsaxPlusLinear.message_favorite, AppColors.accentLoveDeep);
+      case AppNotificationType.rpsInvite:
+      case AppNotificationType.rpsResult:
+        return (IconsaxPlusLinear.game, AppColors.accentLavenderDeep);
       case AppNotificationType.unknown:
         return (IconsaxPlusLinear.notification, AppColors.textSecondary);
     }

@@ -40,6 +40,10 @@ class AnalyticsEvents {
   static const String loveNoteEnvelopeOpened = 'love_note_envelope_opened';
   static const String accountDeleted = 'account_deleted';
 
+  // --- Rock-paper-scissors (feature rps-game, 2026-09-13) ---
+  static const String rpsInviteSent = 'rps_invite_sent';
+  static const String rpsGameFinished = 'rps_game_finished';
+
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
   static const String pResult = 'result'; // couple_join_attempt
@@ -49,6 +53,7 @@ class AnalyticsEvents {
   static const String pRepeat = 'repeat'; // reminder_created
   static const String pType = 'type'; // notification_opened
   static const String pLocale = 'locale'; // language_changed
+  static const String pRematch = 'rematch'; // rps_invite_sent (bool)
 
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
@@ -331,6 +336,20 @@ class AnalyticsService {
       );
 
   void logAccountDeleted() => logEvent(AnalyticsEvents.accountDeleted);
+
+  /// Rock-paper-scissors invite created (feature rps-game). [rematch] = it
+  /// was a "Chơi lại" from a result screen. No ids, no content.
+  void logRpsInviteSent({bool rematch = false}) => logEvent(
+        AnalyticsEvents.rpsInviteSent,
+        params: {AnalyticsEvents.pRematch: rematch},
+      );
+
+  /// A rock-paper-scissors game reached `finished`. [result] is the outcome
+  /// from THIS user's side: `win` / `lose` / `draw` (enum name, never content).
+  void logRpsGameFinished(String result) => logEvent(
+        AnalyticsEvents.rpsGameFinished,
+        params: {AnalyticsEvents.pResult: result},
+      );
 
   // ---------------------------------------------------------------------------
   // User id + properties. D2 — user_id = Firebase uid while authed (an id, not

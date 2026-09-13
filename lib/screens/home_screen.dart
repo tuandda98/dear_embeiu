@@ -44,6 +44,7 @@ import '../widgets/shimmer_skeleton.dart';
 import '../widgets/streak_chip.dart';
 import '../providers/mood_provider.dart';
 import '../widgets/mood_card.dart';
+import '../widgets/rps_invite_card.dart';
 import '../widgets/today_ritual_card.dart';
 import '../widgets/streak_sheet.dart';
 import 'chat_screen.dart';
@@ -51,6 +52,8 @@ import 'profile_screen.dart';
 import 'gallery_screen.dart';
 import 'care_message_screen.dart';
 import 'notification_center_screen.dart';
+import 'rps_game_screen.dart' show openRpsGame;
+import 'rps_history_screen.dart' show openRpsHistory;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -220,8 +223,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       setState(() => _chatBgKey = key);
       try {
-        Hive.box<String>('app_settings')
-            .put('chat_bg_photo_$coupleId', key ?? '');
+        Hive.box<String>(
+          'app_settings',
+        ).put('chat_bg_photo_$coupleId', key ?? '');
       } catch (_) {
         // Cache only — the in-memory value is already set.
       }
@@ -653,9 +657,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final photoProvider = context.read<PhotoProvider>();
     final photos = photoProvider.photos;
     final now = DateTime.now();
-    final weekStart = DateTime(now.year, now.month, now.day - (now.weekday - 1));
-    final photosThisWeek =
-        photos.where((p) => !p.uploadDate.isBefore(weekStart)).length;
+    final weekStart = DateTime(
+      now.year,
+      now.month,
+      now.day - (now.weekday - 1),
+    );
+    final photosThisWeek = photos
+        .where((p) => !p.uploadDate.isBefore(weekStart))
+        .length;
     final partnerUid = couple.memberIds.firstWhere(
       (m) => m != myUid,
       orElse: () => '',
@@ -760,9 +769,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Xong rồi, cảm ơn embe 💕')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Xong rồi, cảm ơn embe 💕')));
     } finally {
       _catchupBusy = false;
     }
@@ -809,12 +818,68 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _applyPendingFocus(focus);
   }
 
-  /// Routes a Home-focus request to the matching card. Currently only the
-  /// daily-question card; add more `case`s as other Home cards get deep-links.
+  /// Routes a Home-focus request to the matching card / screen: the
+  /// daily-question card, or (feature rps-game) the rock-paper-scissors game
+  /// / history. Add more `case`s as other Home cards get deep-links.
   void _applyPendingFocus(String? focus) {
-    if (focus == 'daily_question') {
-      _scrollToCard(_dailyQuestionKey);
+    switch (focus) {
+      case 'daily_question':
+        _scrollToCard(_dailyQuestionKey);
+      case NotificationTapRouter.focusRpsGame:
+        // gameId was published BEFORE the focus (push + notification center),
+        // so it's readable here even on a cold start (initState).
+        final gameId = NotificationTapRouter.pendingRpsGameId.value;
+        NotificationTapRouter.consumeRpsGameRequest();
+        _openRpsGameRoute(gameId);
+      case NotificationTapRouter.focusRpsHistory:
+        _openRpsHistoryRoute();
+      default:
+        break;
     }
+  }
+
+  /// Opens the rock-paper-scissors game screen for [gameId] (null = the
+  /// couple's open game / a fresh invite). Called from a tapped `rps_invite`
+  /// push or inbox item — possibly from initState on a cold start, so the
+  /// navigation is deferred to a post-frame callback (the route is pushed on
+  /// top of Home, which is already the resolver's destination).
+  void _openRpsGameRoute(String? gameId) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      // Already on the game screen (warm tap while playing) → don't stack a
+      // second one; the provider follows the open game by itself.
+      if (_isRouteOnTop('RpsGame')) {
+        return;
+      }
+      openRpsGame(context, gameId: gameId);
+    });
+  }
+
+  /// Opens the rock-paper-scissors history (score + past games). Called from a
+  /// tapped `rps_result` push. Same cold-start caveat as [_openRpsGameRoute].
+  void _openRpsHistoryRoute() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      if (_isRouteOnTop('RpsHistory')) {
+        return;
+      }
+      openRpsHistory(context);
+    });
+  }
+
+  /// True when the topmost route of this navigator carries [name] (set via
+  /// `RouteSettings(name:)` by the `open…Screen` helpers).
+  bool _isRouteOnTop(String name) {
+    String? top;
+    Navigator.of(context).popUntil((route) {
+      top = route.settings.name;
+      return true; // never actually pops — just peeks at the top route
+    });
+    return top == name;
   }
 
   /// Smoothly scrolls the Home tab so the [key]'d card is in view. Deferred so
@@ -1074,67 +1139,65 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 SafeArea(
                   bottom: false,
                   child: IndexedStack(
-                      index: _selectedIndex,
-                      // TickerMode: IndexedStack keeps every tab alive, but the
-                      // hidden tabs must not keep animating (aurora, Ken Burns,
-                      // pulses) or ticking their timers — battery + jank.
-                      children: [
-                        TickerMode(
-                          enabled: _selectedIndex == 0,
-                          child: _buildHomeTab(
-                            couple,
-                            counterData,
-                            photoProvider.sortedPhotos,
-                            photoProvider.isLoading,
-                            bottomInset,
+                    index: _selectedIndex,
+                    // TickerMode: IndexedStack keeps every tab alive, but the
+                    // hidden tabs must not keep animating (aurora, Ken Burns,
+                    // pulses) or ticking their timers — battery + jank.
+                    children: [
+                      TickerMode(
+                        enabled: _selectedIndex == 0,
+                        child: _buildHomeTab(
+                          couple,
+                          counterData,
+                          photoProvider.sortedPhotos,
+                          photoProvider.isLoading,
+                          bottomInset,
+                        ),
+                      ),
+                      TickerMode(
+                        enabled: _selectedIndex == 1,
+                        child: ChatScreen(
+                          // HomeScreen's context sits ABOVE the Scaffold, so
+                          // it still sees the raw keyboard inset the Scaffold
+                          // strips from its body's MediaQuery.
+                          keyboardVisible: mediaQuery.viewInsets.bottom > 0,
+                          // Photo backdrop active → the back arrow needs its
+                          // frosted disc to stay legible over dark regions.
+                          hasBackground: chatBg != null,
+                          onRequestTab: (index) {
+                            if (index >= 0 && index < _navigationItems.length) {
+                              _selectTab(index);
+                            }
+                          },
+                          // Back leaves the chat drill-in for the tab the user
+                          // came from (Home if none). Guard against returning to
+                          // chat itself.
+                          onBack: () => _selectTab(
+                            _previousIndex == _chatTabIndex
+                                ? 0
+                                : _previousIndex,
                           ),
                         ),
-                        TickerMode(
-                          enabled: _selectedIndex == 1,
-                          child: ChatScreen(
-                            // HomeScreen's context sits ABOVE the Scaffold, so
-                            // it still sees the raw keyboard inset the Scaffold
-                            // strips from its body's MediaQuery.
-                            keyboardVisible: mediaQuery.viewInsets.bottom > 0,
-                            // Photo backdrop active → the back arrow needs its
-                            // frosted disc to stay legible over dark regions.
-                            hasBackground: chatBg != null,
-                            onRequestTab: (index) {
-                              if (index >= 0 &&
-                                  index < _navigationItems.length) {
-                                _selectTab(index);
-                              }
-                            },
-                            // Back leaves the chat drill-in for the tab the user
-                            // came from (Home if none). Guard against returning to
-                            // chat itself.
-                            onBack: () => _selectTab(
-                              _previousIndex == _chatTabIndex
-                                  ? 0
-                                  : _previousIndex,
-                            ),
-                          ),
+                      ),
+                      TickerMode(
+                        enabled: _selectedIndex == 2,
+                        child: GalleryScreen(bottomInset: bottomInset),
+                      ),
+                      TickerMode(
+                        enabled: _selectedIndex == 3,
+                        child: ProfileScreen(
+                          bottomInset: bottomInset,
+                          // A Profile badge (e.g. "Kỷ niệm") can jump to a tab.
+                          onRequestTab: (index) {
+                            if (index >= 0 && index < _navigationItems.length) {
+                              _selectTab(index);
+                            }
+                          },
                         ),
-                        TickerMode(
-                          enabled: _selectedIndex == 2,
-                          child: GalleryScreen(bottomInset: bottomInset),
-                        ),
-                        TickerMode(
-                          enabled: _selectedIndex == 3,
-                          child: ProfileScreen(
-                            bottomInset: bottomInset,
-                            // A Profile badge (e.g. "Kỷ niệm") can jump to a tab.
-                            onRequestTab: (index) {
-                              if (index >= 0 &&
-                                  index < _navigationItems.length) {
-                                _selectTab(index);
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                ),
                 Positioned(
                   left: _floatingNavMargin,
                   right: _floatingNavMargin,
@@ -1510,9 +1573,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             myUid,
           );
           context.read<ReactionProvider>().watchForCouple(couple.id, myUid);
-          context
-              .read<AnswerReactionProvider>()
-              .watchForCouple(couple.id, myUid);
+          context.read<AnswerReactionProvider>().watchForCouple(
+            couple.id,
+            myUid,
+          );
           // Mood (feature mood) — re-arm so the card is live + resets at midnight.
           context.read<MoodProvider>().watchForCouple(couple.id, myUid);
           // Chat stream (feature chat) — must run from Home so the unread dot
@@ -1594,7 +1658,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           runSpacing: 4,
                           heartSize: 18,
                           heartColor: AppColors.white,
-                          pulseHeart: true, // hero counter — the one heart that breathes
+                          pulseHeart:
+                              true, // hero counter — the one heart that breathes
                           textStyle: const TextStyle(
                             color: AppColors.white,
                             fontSize: 20,
@@ -1697,12 +1762,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             if (!couple.isWaitingForPartner) ...[
               const SizedBox(height: 16),
               _gutter(_entrance(4, MoodCard(couple: couple))),
+              // Rock-paper-scissors entry (feature rps-game, design D1): a
+              // small card that also carries the "người ấy đang rủ" badge.
+              const SizedBox(height: 16),
+              _gutter(_entrance(5, const RpsInviteCard())),
             ],
             // ── Nhóm 2: Kỷ niệm — create + browse.
             const SizedBox(height: 28),
             _gutter(
               _entrance(
-                5,
+                6,
                 SectionHeader(
                   title: l10n.recentMemoriesTitle,
                   subtitle: photos.isEmpty ? l10n.addPhotosPrompt : null,
@@ -1718,7 +1787,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // Memory cinema sits in the standard gutter like every other card
             // (user 2026-06-11) — the section pads itself inside.
             _entrance(
-              6,
+              7,
               _buildRecentPhotosSection(
                 recentPhotos,
                 isUploadingPhoto,

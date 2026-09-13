@@ -1954,5 +1954,423 @@
         "type": "String"
       }
     }
+  },
+  "rpsGameTitle": "Oẳn tù tì",
+  "@rpsGameTitle": {
+    "description": "Name of the rock-paper-scissors mini game (feature rps-game)."
+  },
+  "rpsGameBadge": "OẲN TÙ TÌ",
+  "@rpsGameBadge": {
+    "description": "Uppercase eyebrow chip naming the rock-paper-scissors screen."
+  },
+  "rpsChoiceRock": "Búa",
+  "@rpsChoiceRock": {
+    "description": "Rock-paper-scissors hand: rock."
+  },
+  "rpsChoicePaper": "Bao",
+  "@rpsChoicePaper": {
+    "description": "Rock-paper-scissors hand: paper."
+  },
+  "rpsChoiceScissors": "Kéo",
+  "@rpsChoiceScissors": {
+    "description": "Rock-paper-scissors hand: scissors."
+  },
+  "rpsChoiceNone": "Bỏ lượt",
+  "@rpsChoiceNone": {
+    "description": "Rock-paper-scissors: the player didn't pick before the timer ran out (history + result)."
+  },
+  "rpsResultWin": "Bạn thắng 🎉",
+  "@rpsResultWin": {
+    "description": "Rock-paper-scissors result headline when the current user won."
+  },
+  "rpsResultLose": "Người ấy thắng 😝",
+  "@rpsResultLose": {
+    "description": "Rock-paper-scissors result headline when the partner won."
+  },
+  "rpsResultDraw": "Hoà 🤝",
+  "@rpsResultDraw": {
+    "description": "Rock-paper-scissors result headline for a draw."
+  },
+  "rpsWaitingPartner": "Đang chờ người ấy…",
+  "@rpsWaitingPartner": {
+    "description": "Rock-paper-scissors: invite sent, the partner hasn't opened the game yet."
+  },
+  "rpsChosenWaiting": "Đã chọn ✓ · Chờ người ấy…",
+  "@rpsChosenWaiting": {
+    "description": "Rock-paper-scissors: the user has picked a hand and is waiting for the partner."
+  },
+  "rpsExpired": "Lời mời đã hết hạn",
+  "@rpsExpired": {
+    "description": "Rock-paper-scissors: the invite went unanswered for 10 minutes."
+  },
+  "rpsCancelled": "Người ấy đã huỷ lời mời",
+  "@rpsCancelled": {
+    "description": "Rock-paper-scissors: the inviter withdrew the invite."
+  },
+  "rpsScoreLabel": "Mình – Hoà – Người ấy",
+  "@rpsScoreLabel": {
+    "description": "Rock-paper-scissors history: label for the overall score line (wins – draws – losses)."
+  },
+  "notifRpsInvite": "{name} rủ bạn oẳn tù tì!",
+  "@notifRpsInvite": {
+    "description": "Notification center title for a rock-paper-scissors invite from the partner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifRpsResult": "Ván oẳn tù tì với {name} đã có kết quả",
+  "@notifRpsResult": {
+    "description": "Notification center title when a rock-paper-scissors game finished.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsHistoryBadge": "LỊCH SỬ VÁN",
+  "@rpsHistoryBadge": {
+    "description": "Uppercase eyebrow chip on the rock-paper-scissors history screen."
+  },
+  "rpsEntryIdleSubtitle": "Rủ người ấy một ván nhé",
+  "@rpsEntryIdleSubtitle": {
+    "description": "Home card subtitle when no game is open."
+  },
+  "rpsEntryWeekScore": "Tuần này {win} – {draw} – {loss}",
+  "@rpsEntryWeekScore": {
+    "description": "Home card score line for the current week (wins – draws – losses).",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsEntryInvitedTitle": "Người ấy đang rủ!",
+  "@rpsEntryInvitedTitle": {
+    "description": "Home card title when the partner has an open invite."
+  },
+  "rpsEntryInvitedSubtitle": "Vào chọn trong 5 giây ⏱️",
+  "@rpsEntryInvitedSubtitle": {
+    "description": "Home card subtitle when the partner has an open invite."
+  },
+  "rpsEntryPendingSubtitle": "Lời mời còn hiệu lực 10 phút",
+  "@rpsEntryPendingSubtitle": {
+    "description": "Home card subtitle while my own invite is pending."
+  },
+  "rpsEntryCtaPlay": "Chơi",
+  "@rpsEntryCtaPlay": {
+    "description": "Home card CTA (idle)."
+  },
+  "rpsEntryCtaJoin": "Vào chơi",
+  "@rpsEntryCtaJoin": {
+    "description": "Home card CTA when the partner invited me."
+  },
+  "rpsEntryCtaOpen": "Mở",
+  "@rpsEntryCtaOpen": {
+    "description": "Home card CTA while my invite is pending."
+  },
+  "rpsScoreFormat": "{win} – {draw} – {loss}",
+  "@rpsScoreFormat": {
+    "description": "Score triple (wins – draws – losses) with en dashes.",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsScoreSemantics": "Tỉ số: bạn {win}, hoà {draw}, người ấy {loss}",
+  "@rpsScoreSemantics": {
+    "description": "Accessibility label for the score triple.",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsChoiceSemantics": "Chọn {choice}",
+  "@rpsChoiceSemantics": {
+    "description": "Accessibility label for a hand button.",
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsRulesHint": "Kéo cắt Bao · Bao bọc Búa · Búa đập Kéo",
+  "@rpsRulesHint": {
+    "description": "One-line rules reminder under the three hand buttons."
+  },
+  "rpsRuleScissorsPaper": "Kéo cắt Bao",
+  "@rpsRuleScissorsPaper": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsRulePaperRock": "Bao bọc Búa",
+  "@rpsRulePaperRock": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsRuleRockScissors": "Búa đập Kéo",
+  "@rpsRuleRockScissors": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsMeLabel": "Mình",
+  "@rpsMeLabel": {
+    "description": "Label under my avatar / my card."
+  },
+  "rpsPartnerLabel": "Người ấy",
+  "@rpsPartnerLabel": {
+    "description": "Label under the partner's avatar / card."
+  },
+  "rpsVs": "vs",
+  "@rpsVs": {
+    "description": "The small 'vs' pill between the two players."
+  },
+  "rpsWaitingBody": "Người ấy đã nhận thông báo. Khi cả hai cùng ở đây, ván chơi bắt đầu ngay.",
+  "@rpsWaitingBody": {
+    "description": "Waiting screen body for the inviter."
+  },
+  "rpsWaitingBodyInvitee": "Đang kết nối với người ấy… Ván chơi bắt đầu khi cả hai cùng ở đây.",
+  "@rpsWaitingBodyInvitee": {
+    "description": "Waiting screen body for the invitee."
+  },
+  "rpsNudgeCta": "Nhắc lại",
+  "@rpsNudgeCta": {
+    "description": "Waiting screen: re-send the invite push."
+  },
+  "rpsNudgeCooldown": "Nhắc lại ({seconds}s)",
+  "@rpsNudgeCooldown": {
+    "description": "Waiting screen nudge button while on cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsNudgeSentToast": "Đã nhắc người ấy lần nữa 🔔",
+  "@rpsNudgeSentToast": {
+    "description": "Toast after re-sending the invite."
+  },
+  "rpsCancelCta": "Huỷ lời mời",
+  "@rpsCancelCta": {
+    "description": "Waiting screen: creator withdraws the invite."
+  },
+  "rpsCloseCta": "Đóng",
+  "@rpsCloseCta": {
+    "description": "Tertiary close button on the game screen."
+  },
+  "rpsCancelledToast": "Đã huỷ lời mời",
+  "@rpsCancelledToast": {
+    "description": "Toast after the creator cancelled the invite."
+  },
+  "rpsCountdownPrompt": "Chọn ngay!",
+  "@rpsCountdownPrompt": {
+    "description": "Prompt under the countdown ring."
+  },
+  "rpsCountdownUnit": "GIÂY",
+  "@rpsCountdownUnit": {
+    "description": "Micro-caps unit under the countdown number."
+  },
+  "rpsCountdownSemantics": "Còn {seconds} giây",
+  "@rpsCountdownSemantics": {
+    "description": "Accessibility live label for the countdown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsResolving": "Đang mở kết quả…",
+  "@rpsResolving": {
+    "description": "Caption while the server settles the round."
+  },
+  "rpsResolvingSlow": "Kết nối chậm một chút…",
+  "@rpsResolvingSlow": {
+    "description": "Caption when settling takes more than 6 seconds."
+  },
+  "rpsReloadCta": "Tải lại",
+  "@rpsReloadCta": {
+    "description": "Button to re-read the game when settling is slow."
+  },
+  "rpsOfflineHint": "Mất mạng — đồng hồ vẫn chạy, lựa chọn sẽ gửi khi có mạng",
+  "@rpsOfflineHint": {
+    "description": "Offline strip above the hand buttons."
+  },
+  "rpsResultDrawSub": "Cùng ra {choice}",
+  "@rpsResultDrawSub": {
+    "description": "Result subtitle for a draw.",
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsResultTimeoutPartner": "Người ấy không kịp chọn",
+  "@rpsResultTimeoutPartner": {
+    "description": "Result subtitle when the partner skipped."
+  },
+  "rpsResultTimeoutMe": "Bạn không kịp chọn",
+  "@rpsResultTimeoutMe": {
+    "description": "Result subtitle when I skipped."
+  },
+  "rpsResultTimeoutBoth": "Cả hai bỏ lượt — ván này hoà",
+  "@rpsResultTimeoutBoth": {
+    "description": "Result subtitle when both skipped."
+  },
+  "rpsRematchCta": "Chơi lại",
+  "@rpsRematchCta": {
+    "description": "Result screen primary CTA."
+  },
+  "rpsHistoryCta": "Xem lịch sử",
+  "@rpsHistoryCta": {
+    "description": "Result screen secondary CTA."
+  },
+  "rpsRematchToast": "Người ấy rủ chơi lại!",
+  "@rpsRematchToast": {
+    "description": "Toast when the partner created a rematch while I'm on the result screen."
+  },
+  "rpsResultSemantics": "{title}. Bạn ra {mine}, người ấy ra {theirs}.",
+  "@rpsResultSemantics": {
+    "description": "Accessibility summary of the result.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "mine": {
+        "type": "String"
+      },
+      "theirs": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsExpiredBody": "Người ấy không kịp vào trong 10 phút. Rủ lại khi cả hai rảnh nhé.",
+  "@rpsExpiredBody": {
+    "description": "Body of the expired-invite state."
+  },
+  "rpsCancelledBody": "Không sao, chúng mình có thể chơi ván khác bất cứ lúc nào.",
+  "@rpsCancelledBody": {
+    "description": "Body of the cancelled-invite state."
+  },
+  "rpsInviteAgainCta": "Rủ lại",
+  "@rpsInviteAgainCta": {
+    "description": "CTA on the expired/cancelled states."
+  },
+  "rpsErrorTitle": "Chưa mở được ván chơi",
+  "@rpsErrorTitle": {
+    "description": "Error state title on the game screen."
+  },
+  "rpsErrorBody": "Kiểm tra mạng rồi thử lại nhé.",
+  "@rpsErrorBody": {
+    "description": "Error state body on the game screen."
+  },
+  "rpsNeedCouple": "Cần có người ấy trong app để chơi cùng.",
+  "@rpsNeedCouple": {
+    "description": "Shown when there is no partner to play with."
+  },
+  "rpsScoreMe": "MÌNH",
+  "@rpsScoreMe": {
+    "description": "Scoreboard column header (mine)."
+  },
+  "rpsScoreDraw": "HOÀ",
+  "@rpsScoreDraw": {
+    "description": "Scoreboard column header (draws)."
+  },
+  "rpsScorePartner": "NGƯỜI ẤY",
+  "@rpsScorePartner": {
+    "description": "Scoreboard column header (partner)."
+  },
+  "rpsHistoryTotal": "{count} ván đã chơi",
+  "@rpsHistoryTotal": {
+    "description": "Scoreboard footer: total rounds.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsHistoryWinStreak": "Chuỗi thắng: {count}",
+  "@rpsHistoryWinStreak": {
+    "description": "Scoreboard footer: my current win streak (hidden at 0).",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsOutcomeWin": "Bạn thắng",
+  "@rpsOutcomeWin": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeLoss": "Người ấy thắng",
+  "@rpsOutcomeLoss": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeDraw": "Hoà",
+  "@rpsOutcomeDraw": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeSkipped": "Bỏ lượt",
+  "@rpsOutcomeSkipped": {
+    "description": "History row outcome pill when a hand was missing."
+  },
+  "rpsHistoryRowSemantics": "{time}: bạn {mine}, người ấy {theirs}, {outcome}",
+  "@rpsHistoryRowSemantics": {
+    "description": "Accessibility label for a history row.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "mine": {
+        "type": "String"
+      },
+      "theirs": {
+        "type": "String"
+      },
+      "outcome": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsHistoryEmptyTitle": "Chưa có ván nào",
+  "@rpsHistoryEmptyTitle": {
+    "description": "History empty state title."
+  },
+  "rpsHistoryEmptyBody": "Mọi ván oẳn tù tì của chúng mình sẽ được lưu lại ở đây — kể cả ván hoà.",
+  "@rpsHistoryEmptyBody": {
+    "description": "History empty state body."
+  },
+  "rpsHistoryEmptyCta": "Rủ người ấy một ván",
+  "@rpsHistoryEmptyCta": {
+    "description": "History empty state CTA."
+  },
+  "rpsHistoryLoadError": "Chưa tải được lịch sử.",
+  "@rpsHistoryLoadError": {
+    "description": "History error state title."
+  },
+  "featureTourRpsTitle": "Oẳn tù tì cùng người ấy",
+  "@featureTourRpsTitle": {
+    "description": "Feature tour entry title (build 23)."
+  },
+  "featureTourRpsBody": "Rủ một ván, cả hai cùng chọn trong 5 giây, kết quả lộ cùng lúc. Lịch sử và tỉ số lưu ở Hồ sơ.",
+  "@featureTourRpsBody": {
+    "description": "Feature tour entry body (build 23)."
   }
 }

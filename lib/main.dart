@@ -29,6 +29,7 @@ import 'providers/photo_provider.dart';
 import 'providers/answer_reaction_provider.dart';
 import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
+import 'providers/rps_game_provider.dart';
 import 'providers/streak_provider.dart';
 import 'screens/force_update_screen.dart';
 import 'screens/forgot_password_screen.dart';
@@ -300,6 +301,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           value: widget.customRemindersProvider,
         ),
         ChangeNotifierProvider(create: (_) => PartnerReminderProvider()),
+        // Rock-paper-scissors (feature rps-game, 2026-09-13) — watch wired in
+        // SessionResolver like mood/chat.
+        ChangeNotifierProvider(create: (_) => RpsGameProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {

@@ -125,6 +125,28 @@ class NotificationTapRouter {
     }
   }
 
+  /// [pendingHomeFocus] value for a tapped `rps_invite` push / inbox item:
+  /// HomeScreen opens the rock-paper-scissors game whose id is in
+  /// [pendingRpsGameId] (feature rps-game, 2026-09-13).
+  static const String focusRpsGame = 'rps_game';
+
+  /// [pendingHomeFocus] value for a tapped `rps_result` push: HomeScreen opens
+  /// the rock-paper-scissors history.
+  static const String focusRpsHistory = 'rps_history';
+
+  /// Game id that accompanies a [focusRpsGame] focus request. Set BEFORE the
+  /// focus value (cold-start: both are set in `initialize()` before HomeScreen
+  /// mounts, so its initState can read them together). null = none.
+  static final ValueNotifier<String?> pendingRpsGameId =
+      ValueNotifier<String?>(null);
+
+  /// Marks the pending game deep-link as handled.
+  static void consumeRpsGameRequest() {
+    if (pendingRpsGameId.value != null) {
+      pendingRpsGameId.value = null;
+    }
+  }
+
   /// A request to open the Gallery's add-photo composer (the Love Tree
   /// "Thêm một kỷ niệm" shortcut, 2026-06-17). true = open the multi-image
   /// picker once the Gallery tab is shown; [GalleryScreen] consumes it. Only
@@ -448,6 +470,7 @@ class PushNotificationService {
     _applyRoute(
       message.data['type'] as String?,
       (message.data['photoId'] as String?)?.trim(),
+      gameId: (message.data['gameId'] as String?)?.trim(),
     );
   }
 
@@ -465,6 +488,7 @@ class PushNotificationService {
       _applyRoute(
         data['type'] as String?,
         (data['photoId'] as String?)?.toString().trim(),
+        gameId: data['gameId']?.toString().trim(),
       );
     } catch (_) {
       _applyRoute(payload, null);
@@ -474,7 +498,7 @@ class PushNotificationService {
   /// Routes a notification (push tap OR a foreground banner tap) to the home tab
   /// / deep-link target for its [type]. Unknown/absent types are ignored (no tab
   /// change, no malformed analytics event).
-  void _applyRoute(String? type, String? photoId) {
+  void _applyRoute(String? type, String? photoId, {String? gameId}) {
     switch (type) {
       case 'photo_posted':
         NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
@@ -530,6 +554,23 @@ class PushNotificationService {
         // Scheduled-reminder confirmation (feature partner-nudge): A set a
         // shared reminder for B — just bring the app to Home.
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        break;
+      case 'rps_invite':
+        // Rock-paper-scissors invite (feature rps-game): land on Home and open
+        // that exact game. gameId is published FIRST so a cold-start Home
+        // reads both in one initState pass.
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        if (gameId != null && gameId.isNotEmpty) {
+          NotificationTapRouter.pendingRpsGameId.value = gameId;
+        }
+        NotificationTapRouter.pendingHomeFocus.value =
+            NotificationTapRouter.focusRpsGame;
+        break;
+      case 'rps_result':
+        // Game settled while I was away → the history (score + that game).
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        NotificationTapRouter.pendingHomeFocus.value =
+            NotificationTapRouter.focusRpsHistory;
         break;
       default:
         // Unknown or absent type — leave the current tab untouched and don't

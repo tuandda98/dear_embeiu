@@ -1563,6 +1563,490 @@ exports.notifyCareMessage = onDocumentCreated(
   },
 );
 
+// ── Oẳn tù tì (feature rps-game, 2026-09-13) ───────────────────────────────
+// Realtime rock-paper-scissors between the two members. The client drives
+// `invited → playing` (both present) and writes its own `moves/{uid}`; the
+// server owns the OUTCOME: `resolveRpsGame` closes the game as soon as both
+// moves exist, `finishRpsGame` (callable) closes it after the 5s round + 2s
+// grace when a move is missing (missing = 'none'). Both are idempotent through
+// a transaction that re-reads `status`, so two phones (or the trigger and the
+// callable) racing can only ever finish a game once.
+//
+// Win rule: rock > scissors > paper > rock.
+const RPS_CHOICES = ["rock", "paper", "scissors"];
+const RPS_BEATS = {rock: "scissors", scissors: "paper", paper: "rock"};
+const RPS_ROUND_MS = 5 * 1000;
+const RPS_GRACE_MS = 2 * 1000;
+// Rematch invite: skip the push when the partner's presence on the PREVIOUS
+// game is this fresh — they are still on the result screen and the client
+// follows the new game by itself.
+const RPS_REMATCH_PRESENCE_FRESH_MS = 30 * 1000;
+// Result push: only members whose presence is older than this (they left the
+// game screen) get told; the ones still watching see the reveal live.
+const RPS_RESULT_PRESENCE_STALE_MS = 20 * 1000;
+
+const RPS_COPY = {
+  vi: {
+    partnerFallback: "Người ấy",
+    inviteTitle: (name) => `${name} rủ bạn oẳn tù tì! ✌️✊✋`,
+    inviteBody: "Vào chọn Kéo / Búa / Bao trong 5 giây ⏱️",
+    resultTitle: "Oẳn tù tì",
+    resultWin: "Bạn thắng ván oẳn tù tì 🎉",
+    resultLose: (name) => `${name} thắng rồi 😝`,
+    resultDraw: "Hoà! Chơi lại ván nữa nhé ✌️",
+  },
+  en: {
+    partnerFallback: "Your partner",
+    inviteTitle: (name) => `${name} challenged you to rock-paper-scissors! ✌️✊✋`,
+    inviteBody: "Jump in and pick within 5 seconds ⏱️",
+    resultTitle: "Rock-paper-scissors",
+    resultWin: "You won the rock-paper-scissors round 🎉",
+    resultLose: (name) => `${name} won this one 😝`,
+    resultDraw: "It's a draw! Play again? ✌️",
+  },
+};
+
+function rpsCopyFor(languageCode) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  return RPS_COPY[code] || RPS_COPY.vi;
+}
+
+// `actorName` may be empty — the fallback is picked per RECIPIENT language.
+function buildRpsInviteText(languageCode, actorName) {
+  const copy = rpsCopyFor(languageCode);
+  const name = `${actorName || ""}`.trim() || copy.partnerFallback;
+  return {title: copy.inviteTitle(name), body: copy.inviteBody};
+}
+
+// outcome: 'win' | 'lose' | 'draw' from the RECIPIENT's point of view.
+function buildRpsResultText(languageCode, outcome, winnerName) {
+  const copy = rpsCopyFor(languageCode);
+  const name = `${winnerName || ""}`.trim() || copy.partnerFallback;
+  let body = copy.resultDraw;
+  if (outcome === "win") {
+    body = copy.resultWin;
+  } else if (outcome === "lose") {
+    body = copy.resultLose(name);
+  }
+  return {title: copy.resultTitle, body};
+}
+
+// Millis of a Firestore Timestamp / Date / number-ish value, or null.
+function rpsToMillis(value) {
+  if (!value) {
+    return null;
+  }
+  if (typeof value.toMillis === "function") {
+    return value.toMillis();
+  }
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  return null;
+}
+
+function rpsPresenceMillis(presence, uid) {
+  if (!presence || typeof presence !== "object") {
+    return null;
+  }
+  return rpsToMillis(presence[uid]);
+}
+
+function rpsNormalizeChoice(value) {
+  const choice = `${value || ""}`.trim().toLowerCase();
+  return RPS_CHOICES.includes(choice) ? choice : "none";
+}
+
+// memberIds: exactly the two players; choices: {uid: 'rock'|'paper'|'scissors'|'none'}.
+// Returns the `result` map stored on the game doc.
+function rpsComputeResult(memberIds, choices) {
+  const [a, b] = memberIds;
+  const ca = rpsNormalizeChoice(choices[a]);
+  const cb = rpsNormalizeChoice(choices[b]);
+  const bothPlayed = ca !== "none" && cb !== "none";
+  let winnerUid = null;
+  if (bothPlayed) {
+    if (RPS_BEATS[ca] === cb) {
+      winnerUid = a;
+    } else if (RPS_BEATS[cb] === ca) {
+      winnerUid = b;
+    }
+  } else if (ca !== "none") {
+    winnerUid = a;
+  } else if (cb !== "none") {
+    winnerUid = b;
+  }
+  return {
+    winnerUid,
+    choices: {[a]: ca, [b]: cb},
+    reason: bothPlayed ? "normal" : "timeout",
+  };
+}
+
+async function rpsLoadMemberIds(coupleId) {
+  const coupleSnap = await db.collection("couples").doc(coupleId).get();
+  if (!coupleSnap.exists) {
+    return null;
+  }
+  const memberIds = Array.isArray(coupleSnap.get("memberIds")) ?
+    coupleSnap.get("memberIds") : [];
+  return memberIds.filter((id) => typeof id === "string" && id.trim());
+}
+
+async function rpsLoadDisplayName(uid) {
+  if (!uid) {
+    return "";
+  }
+  try {
+    const snap = await db.collection("users").doc(uid).get();
+    return `${(snap.exists && snap.get("displayName")) || ""}`.trim();
+  } catch (err) {
+    logger.warn("rps: could not load display name.", {uid, message: err && err.message});
+    return "";
+  }
+}
+
+// Closes `gameRef` inside a transaction. `requireBothMoves` = trigger path
+// (only finish when both moves are in); otherwise = timeout path (missing
+// move → 'none', but only once `startedAt + 7s` has passed).
+// Resolves to {ok, reason?, result?, already?}.
+async function rpsFinishInTransaction(gameRef, memberIds, {requireBothMoves}) {
+  return db.runTransaction(async (tx) => {
+    const gameSnap = await tx.get(gameRef);
+    if (!gameSnap.exists) {
+      return {ok: false, reason: "not_found"};
+    }
+    const game = gameSnap.data() || {};
+    if (game.status === "finished") {
+      return {ok: true, already: true, result: game.result || null};
+    }
+    if (game.status !== "playing") {
+      return {ok: false, reason: "not_playing"};
+    }
+    const startedAtMs = rpsToMillis(game.startedAt);
+    if (startedAtMs === null) {
+      return {ok: false, reason: "not_started"};
+    }
+
+    const movesSnap = await tx.get(gameRef.collection("moves"));
+    const choices = {};
+    for (const moveDoc of movesSnap.docs) {
+      if (memberIds.includes(moveDoc.id)) {
+        choices[moveDoc.id] = rpsNormalizeChoice(moveDoc.get("choice"));
+      }
+    }
+    const playedCount = memberIds.filter((uid) => choices[uid] && choices[uid] !== "none").length;
+
+    if (playedCount < memberIds.length) {
+      if (requireBothMoves) {
+        return {ok: false, reason: "waiting_for_moves"};
+      }
+      const deadlineMs = startedAtMs + RPS_ROUND_MS + RPS_GRACE_MS;
+      const nowMs = Date.now();
+      if (nowMs < deadlineMs) {
+        return {ok: false, reason: "too_early", retryAfterMs: deadlineMs - nowMs};
+      }
+    }
+
+    const result = rpsComputeResult(memberIds, choices);
+    tx.update(gameRef, {
+      status: "finished",
+      result,
+      finishedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return {ok: true, result};
+  });
+}
+
+// A rủ B: push + inbox to the partner. Skipped for a rematch whose partner is
+// still watching the previous game's result screen (presence fresh < 30s) —
+// the client there follows the new game on its own, a push would just nag.
+exports.notifyRpsInvite = onDocumentCreated(
+  {document: "couples/{coupleId}/games/{gameId}", region: "us-central1"},
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      logger.warn("RPS invite notification skipped because snapshot is missing.");
+      return;
+    }
+
+    const game = snapshot.data() || {};
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const gameId = `${event.params.gameId || ""}`.trim();
+    const createdBy = `${game.createdBy || ""}`.trim();
+
+    if (game.type !== "rps" || game.status !== "invited") {
+      return;
+    }
+    if (!coupleId || !gameId || !createdBy) {
+      logger.warn("RPS invite notification skipped because required fields are missing.", {
+        coupleId,
+        gameId,
+        createdBy,
+      });
+      return;
+    }
+
+    const memberIds = await rpsLoadMemberIds(coupleId);
+    if (!memberIds) {
+      logger.warn("RPS invite notification skipped because couple document was not found.", {coupleId});
+      return;
+    }
+    // Fail closed: the creator must be a current member, else no one is notified.
+    if (!memberIds.includes(createdBy)) {
+      logger.warn("RPS invite notification skipped: creator is not a couple member.", {coupleId, createdBy});
+      return;
+    }
+    const recipientIds = memberIds.filter((id) => id !== createdBy);
+    if (recipientIds.length === 0) {
+      logger.info("RPS invite notification skipped because there is no partner to notify yet.", {coupleId});
+      return;
+    }
+
+    const rematchOf = `${game.rematchOf || ""}`.trim();
+    if (rematchOf) {
+      try {
+        const prevSnap = await db
+          .collection("couples").doc(coupleId)
+          .collection("games").doc(rematchOf)
+          .get();
+        const partnerPresenceMs = prevSnap.exists ?
+          rpsPresenceMillis(prevSnap.get("presence"), recipientIds[0]) : null;
+        if (partnerPresenceMs !== null &&
+            Date.now() - partnerPresenceMs < RPS_REMATCH_PRESENCE_FRESH_MS) {
+          logger.info("RPS invite notification skipped: partner is still on the previous game.", {
+            coupleId,
+            gameId,
+            rematchOf,
+          });
+          return;
+        }
+      } catch (err) {
+        // Fail open: an unreadable previous game is not a reason to swallow the invite.
+        logger.warn("RPS invite: could not read the rematch source game.", {
+          coupleId,
+          gameId,
+          rematchOf,
+          message: err && err.message,
+        });
+      }
+    }
+
+    // Left RAW so the fallback localizes per recipient device.
+    const actorName = await rpsLoadDisplayName(createdBy);
+
+    const inboxPayload = {
+      type: "rps_invite",
+      coupleId,
+      gameId,
+      actorUserId: createdBy,
+    };
+    if (actorName) {
+      inboxPayload.actorName = actorName;
+    }
+    await writeInboxNotifications(recipientIds, inboxPayload);
+
+    const result = await sendToRecipientDevices(
+      recipientIds,
+      (languageCode) => buildRpsInviteText(languageCode, actorName),
+      {type: "rps_invite", coupleId, gameId},
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("RPS invite notification skipped because recipient has no active FCM tokens.", {
+        coupleId,
+        gameId,
+      });
+      return;
+    }
+    if (result.failures.length > 0) {
+      logger.warn("RPS invite notification had delivery failures.", {
+        coupleId,
+        gameId,
+        failures: result.failures,
+      });
+    }
+    logger.info("Processed RPS invite notification.", {
+      coupleId,
+      gameId,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
+// Second move lands → close the game (reason 'normal'). Idempotent.
+exports.resolveRpsGame = onDocumentCreated(
+  {document: "couples/{coupleId}/games/{gameId}/moves/{uid}", region: "us-central1"},
+  async (event) => {
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const gameId = `${event.params.gameId || ""}`.trim();
+    if (!coupleId || !gameId) {
+      return;
+    }
+
+    const memberIds = await rpsLoadMemberIds(coupleId);
+    if (!memberIds || memberIds.length < 2) {
+      logger.warn("resolveRpsGame skipped: couple missing or has fewer than two members.", {
+        coupleId,
+        gameId,
+      });
+      return;
+    }
+
+    const gameRef = db.collection("couples").doc(coupleId).collection("games").doc(gameId);
+    try {
+      const outcome = await rpsFinishInTransaction(gameRef, memberIds, {requireBothMoves: true});
+      logger.info("resolveRpsGame processed.", {coupleId, gameId, outcome: outcome.reason || (outcome.already ? "already" : "finished")});
+    } catch (err) {
+      logger.error("resolveRpsGame failed.", {coupleId, gameId, message: err && err.message});
+    }
+  },
+);
+
+// Client calls this when its countdown hit zero (+ grace) and the game is
+// still `playing`: closes the game with whatever moves exist, missing = 'none'
+// (reason 'timeout'). Both phones may call; the transaction writes once.
+exports.finishRpsGame = onCall(
+  {region: "us-central1", timeoutSeconds: 30, memory: "256MiB"},
+  async (request) => {
+    const uid = request.auth && request.auth.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+
+    const data = request.data || {};
+    const coupleId = `${data.coupleId || ""}`.trim();
+    const gameId = `${data.gameId || ""}`.trim();
+    if (!coupleId || !gameId) {
+      throw new HttpsError("invalid-argument", "coupleId and gameId are required.");
+    }
+
+    const memberIds = await rpsLoadMemberIds(coupleId);
+    if (!memberIds) {
+      throw new HttpsError("not-found", "Couple not found.");
+    }
+    if (!memberIds.includes(uid)) {
+      throw new HttpsError("permission-denied", "Not a member of this couple.");
+    }
+    if (memberIds.length < 2) {
+      return {ok: false, reason: "no_partner"};
+    }
+
+    const gameRef = db.collection("couples").doc(coupleId).collection("games").doc(gameId);
+    try {
+      const outcome = await rpsFinishInTransaction(gameRef, memberIds, {requireBothMoves: false});
+      if (outcome.reason === "not_found") {
+        throw new HttpsError("not-found", "Game not found.");
+      }
+      logger.info("finishRpsGame processed.", {
+        coupleId,
+        gameId,
+        uid,
+        ok: outcome.ok,
+        reason: outcome.reason || null,
+        already: outcome.already === true,
+      });
+      return outcome;
+    } catch (err) {
+      if (err instanceof HttpsError) {
+        throw err;
+      }
+      logger.error("finishRpsGame failed.", {coupleId, gameId, message: err && err.message});
+      throw new HttpsError("internal", "Could not finish the game.");
+    }
+  },
+);
+
+// status → finished: tell the members who already LEFT the game screen
+// (presence older than 20s / never present) how it ended. Members still
+// watching see the reveal live. Push only — the history screen is the record,
+// so no inbox item.
+exports.notifyRpsResult = onDocumentUpdated(
+  {document: "couples/{coupleId}/games/{gameId}", region: "us-central1"},
+  async (event) => {
+    const change = event.data;
+    if (!change || !change.after) {
+      return;
+    }
+    const before = (change.before && change.before.data()) || {};
+    const after = change.after.data() || {};
+    if (after.type !== "rps" || after.status !== "finished" || before.status === "finished") {
+      return;
+    }
+
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const gameId = `${event.params.gameId || ""}`.trim();
+    if (!coupleId || !gameId) {
+      return;
+    }
+
+    const memberIds = await rpsLoadMemberIds(coupleId);
+    if (!memberIds || memberIds.length === 0) {
+      logger.warn("RPS result notification skipped because couple document was not found.", {coupleId, gameId});
+      return;
+    }
+
+    const result = (after.result && typeof after.result === "object") ? after.result : {};
+    const winnerUid = typeof result.winnerUid === "string" ? result.winnerUid : null;
+    const nowMs = Date.now();
+    const recipientIds = memberIds.filter((uid) => {
+      const presenceMs = rpsPresenceMillis(after.presence, uid);
+      return presenceMs === null || nowMs - presenceMs > RPS_RESULT_PRESENCE_STALE_MS;
+    });
+    if (recipientIds.length === 0) {
+      logger.info("RPS result notification skipped: both members are still on the game screen.", {
+        coupleId,
+        gameId,
+      });
+      return;
+    }
+
+    // Left RAW so the fallback localizes per recipient device.
+    const winnerName = winnerUid ? await rpsLoadDisplayName(winnerUid) : "";
+
+    let attemptedTokens = 0;
+    let successCount = 0;
+    let failureCount = 0;
+    for (const recipientId of recipientIds) {
+      let outcome = "draw";
+      if (winnerUid) {
+        outcome = winnerUid === recipientId ? "win" : "lose";
+      }
+      const sendResult = await sendToRecipientDevices(
+        [recipientId],
+        (languageCode) => buildRpsResultText(languageCode, outcome, winnerName),
+        {type: "rps_result", coupleId, gameId},
+      );
+      attemptedTokens += sendResult.deviceCount;
+      successCount += sendResult.successCount;
+      failureCount += sendResult.failureCount;
+      if (sendResult.failures.length > 0) {
+        logger.warn("RPS result notification had delivery failures.", {
+          coupleId,
+          gameId,
+          recipientId,
+          failures: sendResult.failures,
+        });
+      }
+    }
+
+    logger.info("Processed RPS result notification.", {
+      coupleId,
+      gameId,
+      recipients: recipientIds.length,
+      attemptedTokens,
+      successCount,
+      failureCount,
+    });
+  },
+);
+
 // Shared device-fan-out used by the partner-photo and partner-joined pushes.
 // Collects every notifications-enabled device token for the recipients, builds
 // one localized message per device (via `buildText(languageCode)`), sends them

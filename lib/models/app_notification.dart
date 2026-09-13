@@ -23,6 +23,14 @@ enum AppNotificationType {
   /// carry the partner's own words and are shown verbatim.
   careMessage,
 
+  /// Partner challenged you to rock-paper-scissors (feature rps-game,
+  /// 2026-09-13). Carries [AppNotification.gameId]; tap opens that game.
+  rpsInvite,
+
+  /// A rock-paper-scissors game finished (push-only per spec — no inbox doc is
+  /// written today; parsed for forward-compat). Tap opens the history.
+  rpsResult,
+
   /// A type this app build doesn't recognise (forward-compat: a newer backend
   /// could send a new type). Rendered with a generic fallback, routes to Home.
   unknown,
@@ -48,6 +56,10 @@ AppNotificationType appNotificationTypeFromString(String? raw) {
       return AppNotificationType.chatMessage;
     case 'care_message':
       return AppNotificationType.careMessage;
+    case 'rps_invite':
+      return AppNotificationType.rpsInvite;
+    case 'rps_result':
+      return AppNotificationType.rpsResult;
     default:
       return AppNotificationType.unknown;
   }
@@ -72,6 +84,7 @@ class AppNotification {
     this.title,
     this.body,
     this.careMessageId,
+    this.gameId,
   });
 
   final String id;
@@ -107,6 +120,10 @@ class AppNotification {
   /// 2026-09-05). Null on notes written before the timeline shipped.
   final String? careMessageId;
 
+  /// rps_invite / rps_result only: id of the `games` doc, so a tap can open
+  /// that exact game (feature rps-game, 2026-09-13).
+  final String? gameId;
+
   /// Which Home bottom-nav tab this notification should open when tapped.
   /// Photo-related → Gallery (2); chat → Chat (1); everything else → Home (0).
   /// ⚠️ Indices shifted when the chat tab landed at 1 (feature chat,
@@ -134,6 +151,11 @@ class AppNotification {
       // The notification center opens a care note in the care TIMELINE
       // (scrolled to that note); Home is only the cold-start push fallback.
       case AppNotificationType.careMessage:
+      // Rock-paper-scissors lives off Home: the center publishes a Home-focus
+      // (`rps_game` + gameId / `rps_history`) alongside this tab — matches the
+      // 'rps_invite'/'rps_result' branches in push_notification_service.dart.
+      case AppNotificationType.rpsInvite:
+      case AppNotificationType.rpsResult:
       case AppNotificationType.unknown:
         return 0; // Home
     }
@@ -158,6 +180,7 @@ class AppNotification {
       title: _nullableString(data['title']),
       body: _nullableString(data['body']),
       careMessageId: _nullableString(data['careMessageId']),
+      gameId: _nullableString(data['gameId']),
     );
   }
 
@@ -180,6 +203,7 @@ class AppNotification {
       title: title,
       body: body,
       careMessageId: careMessageId,
+      gameId: gameId,
     );
   }
 

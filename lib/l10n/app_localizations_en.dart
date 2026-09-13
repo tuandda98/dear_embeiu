@@ -3549,4 +3549,283 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifCareMessage(String name) {
     return '$name sent you a care note';
   }
+
+  @override
+  String get rpsGameTitle => 'Rock Paper Scissors';
+
+  @override
+  String get rpsGameBadge => 'ROCK PAPER SCISSORS';
+
+  @override
+  String get rpsChoiceRock => 'Rock';
+
+  @override
+  String get rpsChoicePaper => 'Paper';
+
+  @override
+  String get rpsChoiceScissors => 'Scissors';
+
+  @override
+  String get rpsChoiceNone => 'Skipped';
+
+  @override
+  String get rpsResultWin => 'You win 🎉';
+
+  @override
+  String get rpsResultLose => 'Your person wins 😝';
+
+  @override
+  String get rpsResultDraw => 'It\'s a draw 🤝';
+
+  @override
+  String get rpsWaitingPartner => 'Waiting for your person…';
+
+  @override
+  String get rpsChosenWaiting => 'Locked in ✓ · Waiting for your person…';
+
+  @override
+  String get rpsExpired => 'This invite has expired';
+
+  @override
+  String get rpsCancelled => 'Your person cancelled the invite';
+
+  @override
+  String get rpsScoreLabel => 'You – Draws – Partner';
+
+  @override
+  String notifRpsInvite(String name) {
+    return '$name challenged you to rock-paper-scissors!';
+  }
+
+  @override
+  String notifRpsResult(String name) {
+    return 'Your rock-paper-scissors game with $name is over';
+  }
+
+  @override
+  String get rpsHistoryBadge => 'MATCH HISTORY';
+
+  @override
+  String get rpsEntryIdleSubtitle => 'Challenge your person to a round';
+
+  @override
+  String rpsEntryWeekScore(String win, String draw, String loss) {
+    return 'This week $win – $draw – $loss';
+  }
+
+  @override
+  String get rpsEntryInvitedTitle => 'Your person is challenging you!';
+
+  @override
+  String get rpsEntryInvitedSubtitle => 'Pick within 5 seconds ⏱️';
+
+  @override
+  String get rpsEntryPendingSubtitle => 'Invite stays open for 10 minutes';
+
+  @override
+  String get rpsEntryCtaPlay => 'Play';
+
+  @override
+  String get rpsEntryCtaJoin => 'Join';
+
+  @override
+  String get rpsEntryCtaOpen => 'Open';
+
+  @override
+  String rpsScoreFormat(String win, String draw, String loss) {
+    return '$win – $draw – $loss';
+  }
+
+  @override
+  String rpsScoreSemantics(String win, String draw, String loss) {
+    return 'Score: you $win, draw $draw, your person $loss';
+  }
+
+  @override
+  String rpsChoiceSemantics(String choice) {
+    return 'Pick $choice';
+  }
+
+  @override
+  String get rpsRulesHint =>
+      'Scissors cut Paper · Paper wraps Rock · Rock breaks Scissors';
+
+  @override
+  String get rpsRuleScissorsPaper => 'Scissors cut Paper';
+
+  @override
+  String get rpsRulePaperRock => 'Paper wraps Rock';
+
+  @override
+  String get rpsRuleRockScissors => 'Rock breaks Scissors';
+
+  @override
+  String get rpsMeLabel => 'Me';
+
+  @override
+  String get rpsPartnerLabel => 'Your person';
+
+  @override
+  String get rpsVs => 'vs';
+
+  @override
+  String get rpsWaitingBody =>
+      'They\'ve been notified. The round starts the moment you\'re both here.';
+
+  @override
+  String get rpsWaitingBodyInvitee =>
+      'Connecting to your person… The round starts once you\'re both here.';
+
+  @override
+  String get rpsNudgeCta => 'Nudge again';
+
+  @override
+  String rpsNudgeCooldown(String seconds) {
+    return 'Nudge again (${seconds}s)';
+  }
+
+  @override
+  String get rpsNudgeSentToast => 'Nudged your person again 🔔';
+
+  @override
+  String get rpsCancelCta => 'Cancel invite';
+
+  @override
+  String get rpsCloseCta => 'Close';
+
+  @override
+  String get rpsCancelledToast => 'Invite cancelled';
+
+  @override
+  String get rpsCountdownPrompt => 'Pick now!';
+
+  @override
+  String get rpsCountdownUnit => 'SEC';
+
+  @override
+  String rpsCountdownSemantics(String seconds) {
+    return '$seconds seconds left';
+  }
+
+  @override
+  String get rpsResolving => 'Revealing…';
+
+  @override
+  String get rpsResolvingSlow => 'Connection is a bit slow…';
+
+  @override
+  String get rpsReloadCta => 'Reload';
+
+  @override
+  String get rpsOfflineHint =>
+      'Offline — the clock keeps running; your pick sends once you\'re back online';
+
+  @override
+  String rpsResultDrawSub(String choice) {
+    return 'Both picked $choice';
+  }
+
+  @override
+  String get rpsResultTimeoutPartner => 'Your person didn\'t pick in time';
+
+  @override
+  String get rpsResultTimeoutMe => 'You didn\'t pick in time';
+
+  @override
+  String get rpsResultTimeoutBoth => 'Both skipped — this round is a draw';
+
+  @override
+  String get rpsRematchCta => 'Play again';
+
+  @override
+  String get rpsHistoryCta => 'View history';
+
+  @override
+  String get rpsRematchToast => 'Your person wants a rematch!';
+
+  @override
+  String rpsResultSemantics(String title, String mine, String theirs) {
+    return '$title. You picked $mine, your person picked $theirs.';
+  }
+
+  @override
+  String get rpsExpiredBody =>
+      'Your person didn\'t make it within 10 minutes. Try again when you\'re both free.';
+
+  @override
+  String get rpsCancelledBody =>
+      'No worries — you two can play another round any time.';
+
+  @override
+  String get rpsInviteAgainCta => 'Challenge again';
+
+  @override
+  String get rpsErrorTitle => 'Couldn\'t open the round';
+
+  @override
+  String get rpsErrorBody => 'Check your connection and try again.';
+
+  @override
+  String get rpsNeedCouple => 'You need your person in the app to play.';
+
+  @override
+  String get rpsScoreMe => 'ME';
+
+  @override
+  String get rpsScoreDraw => 'DRAW';
+
+  @override
+  String get rpsScorePartner => 'THEM';
+
+  @override
+  String rpsHistoryTotal(String count) {
+    return '$count rounds played';
+  }
+
+  @override
+  String rpsHistoryWinStreak(String count) {
+    return 'Win streak: $count';
+  }
+
+  @override
+  String get rpsOutcomeWin => 'You won';
+
+  @override
+  String get rpsOutcomeLoss => 'They won';
+
+  @override
+  String get rpsOutcomeDraw => 'Draw';
+
+  @override
+  String get rpsOutcomeSkipped => 'Skipped';
+
+  @override
+  String rpsHistoryRowSemantics(
+    String time,
+    String mine,
+    String theirs,
+    String outcome,
+  ) {
+    return '$time: you $mine, your person $theirs, $outcome';
+  }
+
+  @override
+  String get rpsHistoryEmptyTitle => 'No rounds yet';
+
+  @override
+  String get rpsHistoryEmptyBody =>
+      'Every round you two play lands here — draws included.';
+
+  @override
+  String get rpsHistoryEmptyCta => 'Challenge your person';
+
+  @override
+  String get rpsHistoryLoadError => 'Couldn\'t load the history.';
+
+  @override
+  String get featureTourRpsTitle => 'Rock-paper-scissors together';
+
+  @override
+  String get featureTourRpsBody =>
+      'Send a challenge, both pick within 5 seconds, the reveal is simultaneous. History and score live on your Profile.';
 }

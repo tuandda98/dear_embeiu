@@ -6127,6 +6127,491 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} sent you a care note'**
   String notifCareMessage(String name);
+
+  /// Name of the rock-paper-scissors mini game (feature rps-game).
+  ///
+  /// In en, this message translates to:
+  /// **'Rock Paper Scissors'**
+  String get rpsGameTitle;
+
+  /// Uppercase eyebrow chip naming the rock-paper-scissors screen.
+  ///
+  /// In en, this message translates to:
+  /// **'ROCK PAPER SCISSORS'**
+  String get rpsGameBadge;
+
+  /// Rock-paper-scissors hand: rock.
+  ///
+  /// In en, this message translates to:
+  /// **'Rock'**
+  String get rpsChoiceRock;
+
+  /// Rock-paper-scissors hand: paper.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper'**
+  String get rpsChoicePaper;
+
+  /// Rock-paper-scissors hand: scissors.
+  ///
+  /// In en, this message translates to:
+  /// **'Scissors'**
+  String get rpsChoiceScissors;
+
+  /// Rock-paper-scissors: the player didn't pick before the timer ran out (history + result).
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get rpsChoiceNone;
+
+  /// Rock-paper-scissors result headline when the current user won.
+  ///
+  /// In en, this message translates to:
+  /// **'You win 🎉'**
+  String get rpsResultWin;
+
+  /// Rock-paper-scissors result headline when the partner won.
+  ///
+  /// In en, this message translates to:
+  /// **'Your person wins 😝'**
+  String get rpsResultLose;
+
+  /// Rock-paper-scissors result headline for a draw.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s a draw 🤝'**
+  String get rpsResultDraw;
+
+  /// Rock-paper-scissors: invite sent, the partner hasn't opened the game yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your person…'**
+  String get rpsWaitingPartner;
+
+  /// Rock-paper-scissors: the user has picked a hand and is waiting for the partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked in ✓ · Waiting for your person…'**
+  String get rpsChosenWaiting;
+
+  /// Rock-paper-scissors: the invite went unanswered for 10 minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'This invite has expired'**
+  String get rpsExpired;
+
+  /// Rock-paper-scissors: the inviter withdrew the invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Your person cancelled the invite'**
+  String get rpsCancelled;
+
+  /// Rock-paper-scissors history: label for the overall score line (wins – draws – losses).
+  ///
+  /// In en, this message translates to:
+  /// **'You – Draws – Partner'**
+  String get rpsScoreLabel;
+
+  /// Notification center title for a rock-paper-scissors invite from the partner.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} challenged you to rock-paper-scissors!'**
+  String notifRpsInvite(String name);
+
+  /// Notification center title when a rock-paper-scissors game finished.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rock-paper-scissors game with {name} is over'**
+  String notifRpsResult(String name);
+
+  /// Uppercase eyebrow chip on the rock-paper-scissors history screen.
+  ///
+  /// In en, this message translates to:
+  /// **'MATCH HISTORY'**
+  String get rpsHistoryBadge;
+
+  /// Home card subtitle when no game is open.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge your person to a round'**
+  String get rpsEntryIdleSubtitle;
+
+  /// Home card score line for the current week (wins – draws – losses).
+  ///
+  /// In en, this message translates to:
+  /// **'This week {win} – {draw} – {loss}'**
+  String rpsEntryWeekScore(String win, String draw, String loss);
+
+  /// Home card title when the partner has an open invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Your person is challenging you!'**
+  String get rpsEntryInvitedTitle;
+
+  /// Home card subtitle when the partner has an open invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick within 5 seconds ⏱️'**
+  String get rpsEntryInvitedSubtitle;
+
+  /// Home card subtitle while my own invite is pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite stays open for 10 minutes'**
+  String get rpsEntryPendingSubtitle;
+
+  /// Home card CTA (idle).
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get rpsEntryCtaPlay;
+
+  /// Home card CTA when the partner invited me.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get rpsEntryCtaJoin;
+
+  /// Home card CTA while my invite is pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get rpsEntryCtaOpen;
+
+  /// Score triple (wins – draws – losses) with en dashes.
+  ///
+  /// In en, this message translates to:
+  /// **'{win} – {draw} – {loss}'**
+  String rpsScoreFormat(String win, String draw, String loss);
+
+  /// Accessibility label for the score triple.
+  ///
+  /// In en, this message translates to:
+  /// **'Score: you {win}, draw {draw}, your person {loss}'**
+  String rpsScoreSemantics(String win, String draw, String loss);
+
+  /// Accessibility label for a hand button.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick {choice}'**
+  String rpsChoiceSemantics(String choice);
+
+  /// One-line rules reminder under the three hand buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'Scissors cut Paper · Paper wraps Rock · Rock breaks Scissors'**
+  String get rpsRulesHint;
+
+  /// Rule line shown on the result screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Scissors cut Paper'**
+  String get rpsRuleScissorsPaper;
+
+  /// Rule line shown on the result screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper wraps Rock'**
+  String get rpsRulePaperRock;
+
+  /// Rule line shown on the result screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Rock breaks Scissors'**
+  String get rpsRuleRockScissors;
+
+  /// Label under my avatar / my card.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get rpsMeLabel;
+
+  /// Label under the partner's avatar / card.
+  ///
+  /// In en, this message translates to:
+  /// **'Your person'**
+  String get rpsPartnerLabel;
+
+  /// The small 'vs' pill between the two players.
+  ///
+  /// In en, this message translates to:
+  /// **'vs'**
+  String get rpsVs;
+
+  /// Waiting screen body for the inviter.
+  ///
+  /// In en, this message translates to:
+  /// **'They\'ve been notified. The round starts the moment you\'re both here.'**
+  String get rpsWaitingBody;
+
+  /// Waiting screen body for the invitee.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting to your person… The round starts once you\'re both here.'**
+  String get rpsWaitingBodyInvitee;
+
+  /// Waiting screen: re-send the invite push.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudge again'**
+  String get rpsNudgeCta;
+
+  /// Waiting screen nudge button while on cooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudge again ({seconds}s)'**
+  String rpsNudgeCooldown(String seconds);
+
+  /// Toast after re-sending the invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudged your person again 🔔'**
+  String get rpsNudgeSentToast;
+
+  /// Waiting screen: creator withdraws the invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel invite'**
+  String get rpsCancelCta;
+
+  /// Tertiary close button on the game screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get rpsCloseCta;
+
+  /// Toast after the creator cancelled the invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite cancelled'**
+  String get rpsCancelledToast;
+
+  /// Prompt under the countdown ring.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick now!'**
+  String get rpsCountdownPrompt;
+
+  /// Micro-caps unit under the countdown number.
+  ///
+  /// In en, this message translates to:
+  /// **'SEC'**
+  String get rpsCountdownUnit;
+
+  /// Accessibility live label for the countdown.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} seconds left'**
+  String rpsCountdownSemantics(String seconds);
+
+  /// Caption while the server settles the round.
+  ///
+  /// In en, this message translates to:
+  /// **'Revealing…'**
+  String get rpsResolving;
+
+  /// Caption when settling takes more than 6 seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection is a bit slow…'**
+  String get rpsResolvingSlow;
+
+  /// Button to re-read the game when settling is slow.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get rpsReloadCta;
+
+  /// Offline strip above the hand buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline — the clock keeps running; your pick sends once you\'re back online'**
+  String get rpsOfflineHint;
+
+  /// Result subtitle for a draw.
+  ///
+  /// In en, this message translates to:
+  /// **'Both picked {choice}'**
+  String rpsResultDrawSub(String choice);
+
+  /// Result subtitle when the partner skipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Your person didn\'t pick in time'**
+  String get rpsResultTimeoutPartner;
+
+  /// Result subtitle when I skipped.
+  ///
+  /// In en, this message translates to:
+  /// **'You didn\'t pick in time'**
+  String get rpsResultTimeoutMe;
+
+  /// Result subtitle when both skipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Both skipped — this round is a draw'**
+  String get rpsResultTimeoutBoth;
+
+  /// Result screen primary CTA.
+  ///
+  /// In en, this message translates to:
+  /// **'Play again'**
+  String get rpsRematchCta;
+
+  /// Result screen secondary CTA.
+  ///
+  /// In en, this message translates to:
+  /// **'View history'**
+  String get rpsHistoryCta;
+
+  /// Toast when the partner created a rematch while I'm on the result screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Your person wants a rematch!'**
+  String get rpsRematchToast;
+
+  /// Accessibility summary of the result.
+  ///
+  /// In en, this message translates to:
+  /// **'{title}. You picked {mine}, your person picked {theirs}.'**
+  String rpsResultSemantics(String title, String mine, String theirs);
+
+  /// Body of the expired-invite state.
+  ///
+  /// In en, this message translates to:
+  /// **'Your person didn\'t make it within 10 minutes. Try again when you\'re both free.'**
+  String get rpsExpiredBody;
+
+  /// Body of the cancelled-invite state.
+  ///
+  /// In en, this message translates to:
+  /// **'No worries — you two can play another round any time.'**
+  String get rpsCancelledBody;
+
+  /// CTA on the expired/cancelled states.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge again'**
+  String get rpsInviteAgainCta;
+
+  /// Error state title on the game screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the round'**
+  String get rpsErrorTitle;
+
+  /// Error state body on the game screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get rpsErrorBody;
+
+  /// Shown when there is no partner to play with.
+  ///
+  /// In en, this message translates to:
+  /// **'You need your person in the app to play.'**
+  String get rpsNeedCouple;
+
+  /// Scoreboard column header (mine).
+  ///
+  /// In en, this message translates to:
+  /// **'ME'**
+  String get rpsScoreMe;
+
+  /// Scoreboard column header (draws).
+  ///
+  /// In en, this message translates to:
+  /// **'DRAW'**
+  String get rpsScoreDraw;
+
+  /// Scoreboard column header (partner).
+  ///
+  /// In en, this message translates to:
+  /// **'THEM'**
+  String get rpsScorePartner;
+
+  /// Scoreboard footer: total rounds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} rounds played'**
+  String rpsHistoryTotal(String count);
+
+  /// Scoreboard footer: my current win streak (hidden at 0).
+  ///
+  /// In en, this message translates to:
+  /// **'Win streak: {count}'**
+  String rpsHistoryWinStreak(String count);
+
+  /// History row outcome pill.
+  ///
+  /// In en, this message translates to:
+  /// **'You won'**
+  String get rpsOutcomeWin;
+
+  /// History row outcome pill.
+  ///
+  /// In en, this message translates to:
+  /// **'They won'**
+  String get rpsOutcomeLoss;
+
+  /// History row outcome pill.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get rpsOutcomeDraw;
+
+  /// History row outcome pill when a hand was missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get rpsOutcomeSkipped;
+
+  /// Accessibility label for a history row.
+  ///
+  /// In en, this message translates to:
+  /// **'{time}: you {mine}, your person {theirs}, {outcome}'**
+  String rpsHistoryRowSemantics(
+    String time,
+    String mine,
+    String theirs,
+    String outcome,
+  );
+
+  /// History empty state title.
+  ///
+  /// In en, this message translates to:
+  /// **'No rounds yet'**
+  String get rpsHistoryEmptyTitle;
+
+  /// History empty state body.
+  ///
+  /// In en, this message translates to:
+  /// **'Every round you two play lands here — draws included.'**
+  String get rpsHistoryEmptyBody;
+
+  /// History empty state CTA.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge your person'**
+  String get rpsHistoryEmptyCta;
+
+  /// History error state title.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the history.'**
+  String get rpsHistoryLoadError;
+
+  /// Feature tour entry title (build 23).
+  ///
+  /// In en, this message translates to:
+  /// **'Rock-paper-scissors together'**
+  String get featureTourRpsTitle;
+
+  /// Feature tour entry body (build 23).
+  ///
+  /// In en, this message translates to:
+  /// **'Send a challenge, both pick within 5 seconds, the reveal is simultaneous. History and score live on your Profile.'**
+  String get featureTourRpsBody;
 }
 
 class _AppLocalizationsDelegate

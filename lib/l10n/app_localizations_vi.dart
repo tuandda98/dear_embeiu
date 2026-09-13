@@ -3537,4 +3537,282 @@ class AppLocalizationsVi extends AppLocalizations {
   String notifCareMessage(String name) {
     return '$name gửi lời quan tâm';
   }
+
+  @override
+  String get rpsGameTitle => 'Oẳn tù tì';
+
+  @override
+  String get rpsGameBadge => 'OẲN TÙ TÌ';
+
+  @override
+  String get rpsChoiceRock => 'Búa';
+
+  @override
+  String get rpsChoicePaper => 'Bao';
+
+  @override
+  String get rpsChoiceScissors => 'Kéo';
+
+  @override
+  String get rpsChoiceNone => 'Bỏ lượt';
+
+  @override
+  String get rpsResultWin => 'Bạn thắng 🎉';
+
+  @override
+  String get rpsResultLose => 'Người ấy thắng 😝';
+
+  @override
+  String get rpsResultDraw => 'Hoà 🤝';
+
+  @override
+  String get rpsWaitingPartner => 'Đang chờ người ấy…';
+
+  @override
+  String get rpsChosenWaiting => 'Đã chọn ✓ · Chờ người ấy…';
+
+  @override
+  String get rpsExpired => 'Lời mời đã hết hạn';
+
+  @override
+  String get rpsCancelled => 'Người ấy đã huỷ lời mời';
+
+  @override
+  String get rpsScoreLabel => 'Mình – Hoà – Người ấy';
+
+  @override
+  String notifRpsInvite(String name) {
+    return '$name rủ bạn oẳn tù tì!';
+  }
+
+  @override
+  String notifRpsResult(String name) {
+    return 'Ván oẳn tù tì với $name đã có kết quả';
+  }
+
+  @override
+  String get rpsHistoryBadge => 'LỊCH SỬ VÁN';
+
+  @override
+  String get rpsEntryIdleSubtitle => 'Rủ người ấy một ván nhé';
+
+  @override
+  String rpsEntryWeekScore(String win, String draw, String loss) {
+    return 'Tuần này $win – $draw – $loss';
+  }
+
+  @override
+  String get rpsEntryInvitedTitle => 'Người ấy đang rủ!';
+
+  @override
+  String get rpsEntryInvitedSubtitle => 'Vào chọn trong 5 giây ⏱️';
+
+  @override
+  String get rpsEntryPendingSubtitle => 'Lời mời còn hiệu lực 10 phút';
+
+  @override
+  String get rpsEntryCtaPlay => 'Chơi';
+
+  @override
+  String get rpsEntryCtaJoin => 'Vào chơi';
+
+  @override
+  String get rpsEntryCtaOpen => 'Mở';
+
+  @override
+  String rpsScoreFormat(String win, String draw, String loss) {
+    return '$win – $draw – $loss';
+  }
+
+  @override
+  String rpsScoreSemantics(String win, String draw, String loss) {
+    return 'Tỉ số: bạn $win, hoà $draw, người ấy $loss';
+  }
+
+  @override
+  String rpsChoiceSemantics(String choice) {
+    return 'Chọn $choice';
+  }
+
+  @override
+  String get rpsRulesHint => 'Kéo cắt Bao · Bao bọc Búa · Búa đập Kéo';
+
+  @override
+  String get rpsRuleScissorsPaper => 'Kéo cắt Bao';
+
+  @override
+  String get rpsRulePaperRock => 'Bao bọc Búa';
+
+  @override
+  String get rpsRuleRockScissors => 'Búa đập Kéo';
+
+  @override
+  String get rpsMeLabel => 'Mình';
+
+  @override
+  String get rpsPartnerLabel => 'Người ấy';
+
+  @override
+  String get rpsVs => 'vs';
+
+  @override
+  String get rpsWaitingBody =>
+      'Người ấy đã nhận thông báo. Khi cả hai cùng ở đây, ván chơi bắt đầu ngay.';
+
+  @override
+  String get rpsWaitingBodyInvitee =>
+      'Đang kết nối với người ấy… Ván chơi bắt đầu khi cả hai cùng ở đây.';
+
+  @override
+  String get rpsNudgeCta => 'Nhắc lại';
+
+  @override
+  String rpsNudgeCooldown(String seconds) {
+    return 'Nhắc lại (${seconds}s)';
+  }
+
+  @override
+  String get rpsNudgeSentToast => 'Đã nhắc người ấy lần nữa 🔔';
+
+  @override
+  String get rpsCancelCta => 'Huỷ lời mời';
+
+  @override
+  String get rpsCloseCta => 'Đóng';
+
+  @override
+  String get rpsCancelledToast => 'Đã huỷ lời mời';
+
+  @override
+  String get rpsCountdownPrompt => 'Chọn ngay!';
+
+  @override
+  String get rpsCountdownUnit => 'GIÂY';
+
+  @override
+  String rpsCountdownSemantics(String seconds) {
+    return 'Còn $seconds giây';
+  }
+
+  @override
+  String get rpsResolving => 'Đang mở kết quả…';
+
+  @override
+  String get rpsResolvingSlow => 'Kết nối chậm một chút…';
+
+  @override
+  String get rpsReloadCta => 'Tải lại';
+
+  @override
+  String get rpsOfflineHint =>
+      'Mất mạng — đồng hồ vẫn chạy, lựa chọn sẽ gửi khi có mạng';
+
+  @override
+  String rpsResultDrawSub(String choice) {
+    return 'Cùng ra $choice';
+  }
+
+  @override
+  String get rpsResultTimeoutPartner => 'Người ấy không kịp chọn';
+
+  @override
+  String get rpsResultTimeoutMe => 'Bạn không kịp chọn';
+
+  @override
+  String get rpsResultTimeoutBoth => 'Cả hai bỏ lượt — ván này hoà';
+
+  @override
+  String get rpsRematchCta => 'Chơi lại';
+
+  @override
+  String get rpsHistoryCta => 'Xem lịch sử';
+
+  @override
+  String get rpsRematchToast => 'Người ấy rủ chơi lại!';
+
+  @override
+  String rpsResultSemantics(String title, String mine, String theirs) {
+    return '$title. Bạn ra $mine, người ấy ra $theirs.';
+  }
+
+  @override
+  String get rpsExpiredBody =>
+      'Người ấy không kịp vào trong 10 phút. Rủ lại khi cả hai rảnh nhé.';
+
+  @override
+  String get rpsCancelledBody =>
+      'Không sao, chúng mình có thể chơi ván khác bất cứ lúc nào.';
+
+  @override
+  String get rpsInviteAgainCta => 'Rủ lại';
+
+  @override
+  String get rpsErrorTitle => 'Chưa mở được ván chơi';
+
+  @override
+  String get rpsErrorBody => 'Kiểm tra mạng rồi thử lại nhé.';
+
+  @override
+  String get rpsNeedCouple => 'Cần có người ấy trong app để chơi cùng.';
+
+  @override
+  String get rpsScoreMe => 'MÌNH';
+
+  @override
+  String get rpsScoreDraw => 'HOÀ';
+
+  @override
+  String get rpsScorePartner => 'NGƯỜI ẤY';
+
+  @override
+  String rpsHistoryTotal(String count) {
+    return '$count ván đã chơi';
+  }
+
+  @override
+  String rpsHistoryWinStreak(String count) {
+    return 'Chuỗi thắng: $count';
+  }
+
+  @override
+  String get rpsOutcomeWin => 'Bạn thắng';
+
+  @override
+  String get rpsOutcomeLoss => 'Người ấy thắng';
+
+  @override
+  String get rpsOutcomeDraw => 'Hoà';
+
+  @override
+  String get rpsOutcomeSkipped => 'Bỏ lượt';
+
+  @override
+  String rpsHistoryRowSemantics(
+    String time,
+    String mine,
+    String theirs,
+    String outcome,
+  ) {
+    return '$time: bạn $mine, người ấy $theirs, $outcome';
+  }
+
+  @override
+  String get rpsHistoryEmptyTitle => 'Chưa có ván nào';
+
+  @override
+  String get rpsHistoryEmptyBody =>
+      'Mọi ván oẳn tù tì của chúng mình sẽ được lưu lại ở đây — kể cả ván hoà.';
+
+  @override
+  String get rpsHistoryEmptyCta => 'Rủ người ấy một ván';
+
+  @override
+  String get rpsHistoryLoadError => 'Chưa tải được lịch sử.';
+
+  @override
+  String get featureTourRpsTitle => 'Oẳn tù tì cùng người ấy';
+
+  @override
+  String get featureTourRpsBody =>
+      'Rủ một ván, cả hai cùng chọn trong 5 giây, kết quả lộ cùng lúc. Lịch sử và tỉ số lưu ở Hồ sơ.';
 }

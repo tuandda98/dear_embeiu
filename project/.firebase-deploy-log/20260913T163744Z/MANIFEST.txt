@@ -1,0 +1,7 @@
+command : grep -c "^  it(" firebase_rules_test/test/firestore.rpsGame.test.js && NODE_OPTIONS="--dns-result-order=ipv4first" npx firebase-tools deploy --project dev --only firestore:rules,firestore:indexes,functions:notifyRpsInvite,functions:resolveRpsGame,functions:finishRpsGame,functions:notifyRpsResult 2>&1 | tail -40
+time_utc: 20260913T163744Z
+git_head: 1b3b641 (feature/rps-game)
+dirty   : 17 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 1b3b641)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 1b3b641 -- functions` rồi redeploy

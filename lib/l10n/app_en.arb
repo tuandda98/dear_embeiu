@@ -2612,5 +2612,423 @@
         "type": "String"
       }
     }
+  },
+  "rpsGameTitle": "Rock Paper Scissors",
+  "@rpsGameTitle": {
+    "description": "Name of the rock-paper-scissors mini game (feature rps-game)."
+  },
+  "rpsGameBadge": "ROCK PAPER SCISSORS",
+  "@rpsGameBadge": {
+    "description": "Uppercase eyebrow chip naming the rock-paper-scissors screen."
+  },
+  "rpsChoiceRock": "Rock",
+  "@rpsChoiceRock": {
+    "description": "Rock-paper-scissors hand: rock."
+  },
+  "rpsChoicePaper": "Paper",
+  "@rpsChoicePaper": {
+    "description": "Rock-paper-scissors hand: paper."
+  },
+  "rpsChoiceScissors": "Scissors",
+  "@rpsChoiceScissors": {
+    "description": "Rock-paper-scissors hand: scissors."
+  },
+  "rpsChoiceNone": "Skipped",
+  "@rpsChoiceNone": {
+    "description": "Rock-paper-scissors: the player didn't pick before the timer ran out (history + result)."
+  },
+  "rpsResultWin": "You win 🎉",
+  "@rpsResultWin": {
+    "description": "Rock-paper-scissors result headline when the current user won."
+  },
+  "rpsResultLose": "Your person wins 😝",
+  "@rpsResultLose": {
+    "description": "Rock-paper-scissors result headline when the partner won."
+  },
+  "rpsResultDraw": "It's a draw 🤝",
+  "@rpsResultDraw": {
+    "description": "Rock-paper-scissors result headline for a draw."
+  },
+  "rpsWaitingPartner": "Waiting for your person…",
+  "@rpsWaitingPartner": {
+    "description": "Rock-paper-scissors: invite sent, the partner hasn't opened the game yet."
+  },
+  "rpsChosenWaiting": "Locked in ✓ · Waiting for your person…",
+  "@rpsChosenWaiting": {
+    "description": "Rock-paper-scissors: the user has picked a hand and is waiting for the partner."
+  },
+  "rpsExpired": "This invite has expired",
+  "@rpsExpired": {
+    "description": "Rock-paper-scissors: the invite went unanswered for 10 minutes."
+  },
+  "rpsCancelled": "Your person cancelled the invite",
+  "@rpsCancelled": {
+    "description": "Rock-paper-scissors: the inviter withdrew the invite."
+  },
+  "rpsScoreLabel": "You – Draws – Partner",
+  "@rpsScoreLabel": {
+    "description": "Rock-paper-scissors history: label for the overall score line (wins – draws – losses)."
+  },
+  "notifRpsInvite": "{name} challenged you to rock-paper-scissors!",
+  "@notifRpsInvite": {
+    "description": "Notification center title for a rock-paper-scissors invite from the partner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifRpsResult": "Your rock-paper-scissors game with {name} is over",
+  "@notifRpsResult": {
+    "description": "Notification center title when a rock-paper-scissors game finished.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsHistoryBadge": "MATCH HISTORY",
+  "@rpsHistoryBadge": {
+    "description": "Uppercase eyebrow chip on the rock-paper-scissors history screen."
+  },
+  "rpsEntryIdleSubtitle": "Challenge your person to a round",
+  "@rpsEntryIdleSubtitle": {
+    "description": "Home card subtitle when no game is open."
+  },
+  "rpsEntryWeekScore": "This week {win} – {draw} – {loss}",
+  "@rpsEntryWeekScore": {
+    "description": "Home card score line for the current week (wins – draws – losses).",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsEntryInvitedTitle": "Your person is challenging you!",
+  "@rpsEntryInvitedTitle": {
+    "description": "Home card title when the partner has an open invite."
+  },
+  "rpsEntryInvitedSubtitle": "Pick within 5 seconds ⏱️",
+  "@rpsEntryInvitedSubtitle": {
+    "description": "Home card subtitle when the partner has an open invite."
+  },
+  "rpsEntryPendingSubtitle": "Invite stays open for 10 minutes",
+  "@rpsEntryPendingSubtitle": {
+    "description": "Home card subtitle while my own invite is pending."
+  },
+  "rpsEntryCtaPlay": "Play",
+  "@rpsEntryCtaPlay": {
+    "description": "Home card CTA (idle)."
+  },
+  "rpsEntryCtaJoin": "Join",
+  "@rpsEntryCtaJoin": {
+    "description": "Home card CTA when the partner invited me."
+  },
+  "rpsEntryCtaOpen": "Open",
+  "@rpsEntryCtaOpen": {
+    "description": "Home card CTA while my invite is pending."
+  },
+  "rpsScoreFormat": "{win} – {draw} – {loss}",
+  "@rpsScoreFormat": {
+    "description": "Score triple (wins – draws – losses) with en dashes.",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsScoreSemantics": "Score: you {win}, draw {draw}, your person {loss}",
+  "@rpsScoreSemantics": {
+    "description": "Accessibility label for the score triple.",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsChoiceSemantics": "Pick {choice}",
+  "@rpsChoiceSemantics": {
+    "description": "Accessibility label for a hand button.",
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsRulesHint": "Scissors cut Paper · Paper wraps Rock · Rock breaks Scissors",
+  "@rpsRulesHint": {
+    "description": "One-line rules reminder under the three hand buttons."
+  },
+  "rpsRuleScissorsPaper": "Scissors cut Paper",
+  "@rpsRuleScissorsPaper": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsRulePaperRock": "Paper wraps Rock",
+  "@rpsRulePaperRock": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsRuleRockScissors": "Rock breaks Scissors",
+  "@rpsRuleRockScissors": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsMeLabel": "Me",
+  "@rpsMeLabel": {
+    "description": "Label under my avatar / my card."
+  },
+  "rpsPartnerLabel": "Your person",
+  "@rpsPartnerLabel": {
+    "description": "Label under the partner's avatar / card."
+  },
+  "rpsVs": "vs",
+  "@rpsVs": {
+    "description": "The small 'vs' pill between the two players."
+  },
+  "rpsWaitingBody": "They've been notified. The round starts the moment you're both here.",
+  "@rpsWaitingBody": {
+    "description": "Waiting screen body for the inviter."
+  },
+  "rpsWaitingBodyInvitee": "Connecting to your person… The round starts once you're both here.",
+  "@rpsWaitingBodyInvitee": {
+    "description": "Waiting screen body for the invitee."
+  },
+  "rpsNudgeCta": "Nudge again",
+  "@rpsNudgeCta": {
+    "description": "Waiting screen: re-send the invite push."
+  },
+  "rpsNudgeCooldown": "Nudge again ({seconds}s)",
+  "@rpsNudgeCooldown": {
+    "description": "Waiting screen nudge button while on cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsNudgeSentToast": "Nudged your person again 🔔",
+  "@rpsNudgeSentToast": {
+    "description": "Toast after re-sending the invite."
+  },
+  "rpsCancelCta": "Cancel invite",
+  "@rpsCancelCta": {
+    "description": "Waiting screen: creator withdraws the invite."
+  },
+  "rpsCloseCta": "Close",
+  "@rpsCloseCta": {
+    "description": "Tertiary close button on the game screen."
+  },
+  "rpsCancelledToast": "Invite cancelled",
+  "@rpsCancelledToast": {
+    "description": "Toast after the creator cancelled the invite."
+  },
+  "rpsCountdownPrompt": "Pick now!",
+  "@rpsCountdownPrompt": {
+    "description": "Prompt under the countdown ring."
+  },
+  "rpsCountdownUnit": "SEC",
+  "@rpsCountdownUnit": {
+    "description": "Micro-caps unit under the countdown number."
+  },
+  "rpsCountdownSemantics": "{seconds} seconds left",
+  "@rpsCountdownSemantics": {
+    "description": "Accessibility live label for the countdown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsResolving": "Revealing…",
+  "@rpsResolving": {
+    "description": "Caption while the server settles the round."
+  },
+  "rpsResolvingSlow": "Connection is a bit slow…",
+  "@rpsResolvingSlow": {
+    "description": "Caption when settling takes more than 6 seconds."
+  },
+  "rpsReloadCta": "Reload",
+  "@rpsReloadCta": {
+    "description": "Button to re-read the game when settling is slow."
+  },
+  "rpsOfflineHint": "Offline — the clock keeps running; your pick sends once you're back online",
+  "@rpsOfflineHint": {
+    "description": "Offline strip above the hand buttons."
+  },
+  "rpsResultDrawSub": "Both picked {choice}",
+  "@rpsResultDrawSub": {
+    "description": "Result subtitle for a draw.",
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsResultTimeoutPartner": "Your person didn't pick in time",
+  "@rpsResultTimeoutPartner": {
+    "description": "Result subtitle when the partner skipped."
+  },
+  "rpsResultTimeoutMe": "You didn't pick in time",
+  "@rpsResultTimeoutMe": {
+    "description": "Result subtitle when I skipped."
+  },
+  "rpsResultTimeoutBoth": "Both skipped — this round is a draw",
+  "@rpsResultTimeoutBoth": {
+    "description": "Result subtitle when both skipped."
+  },
+  "rpsRematchCta": "Play again",
+  "@rpsRematchCta": {
+    "description": "Result screen primary CTA."
+  },
+  "rpsHistoryCta": "View history",
+  "@rpsHistoryCta": {
+    "description": "Result screen secondary CTA."
+  },
+  "rpsRematchToast": "Your person wants a rematch!",
+  "@rpsRematchToast": {
+    "description": "Toast when the partner created a rematch while I'm on the result screen."
+  },
+  "rpsResultSemantics": "{title}. You picked {mine}, your person picked {theirs}.",
+  "@rpsResultSemantics": {
+    "description": "Accessibility summary of the result.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "mine": {
+        "type": "String"
+      },
+      "theirs": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsExpiredBody": "Your person didn't make it within 10 minutes. Try again when you're both free.",
+  "@rpsExpiredBody": {
+    "description": "Body of the expired-invite state."
+  },
+  "rpsCancelledBody": "No worries — you two can play another round any time.",
+  "@rpsCancelledBody": {
+    "description": "Body of the cancelled-invite state."
+  },
+  "rpsInviteAgainCta": "Challenge again",
+  "@rpsInviteAgainCta": {
+    "description": "CTA on the expired/cancelled states."
+  },
+  "rpsErrorTitle": "Couldn't open the round",
+  "@rpsErrorTitle": {
+    "description": "Error state title on the game screen."
+  },
+  "rpsErrorBody": "Check your connection and try again.",
+  "@rpsErrorBody": {
+    "description": "Error state body on the game screen."
+  },
+  "rpsNeedCouple": "You need your person in the app to play.",
+  "@rpsNeedCouple": {
+    "description": "Shown when there is no partner to play with."
+  },
+  "rpsScoreMe": "ME",
+  "@rpsScoreMe": {
+    "description": "Scoreboard column header (mine)."
+  },
+  "rpsScoreDraw": "DRAW",
+  "@rpsScoreDraw": {
+    "description": "Scoreboard column header (draws)."
+  },
+  "rpsScorePartner": "THEM",
+  "@rpsScorePartner": {
+    "description": "Scoreboard column header (partner)."
+  },
+  "rpsHistoryTotal": "{count} rounds played",
+  "@rpsHistoryTotal": {
+    "description": "Scoreboard footer: total rounds.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsHistoryWinStreak": "Win streak: {count}",
+  "@rpsHistoryWinStreak": {
+    "description": "Scoreboard footer: my current win streak (hidden at 0).",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsOutcomeWin": "You won",
+  "@rpsOutcomeWin": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeLoss": "They won",
+  "@rpsOutcomeLoss": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeDraw": "Draw",
+  "@rpsOutcomeDraw": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeSkipped": "Skipped",
+  "@rpsOutcomeSkipped": {
+    "description": "History row outcome pill when a hand was missing."
+  },
+  "rpsHistoryRowSemantics": "{time}: you {mine}, your person {theirs}, {outcome}",
+  "@rpsHistoryRowSemantics": {
+    "description": "Accessibility label for a history row.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "mine": {
+        "type": "String"
+      },
+      "theirs": {
+        "type": "String"
+      },
+      "outcome": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsHistoryEmptyTitle": "No rounds yet",
+  "@rpsHistoryEmptyTitle": {
+    "description": "History empty state title."
+  },
+  "rpsHistoryEmptyBody": "Every round you two play lands here — draws included.",
+  "@rpsHistoryEmptyBody": {
+    "description": "History empty state body."
+  },
+  "rpsHistoryEmptyCta": "Challenge your person",
+  "@rpsHistoryEmptyCta": {
+    "description": "History empty state CTA."
+  },
+  "rpsHistoryLoadError": "Couldn't load the history.",
+  "@rpsHistoryLoadError": {
+    "description": "History error state title."
+  },
+  "featureTourRpsTitle": "Rock-paper-scissors together",
+  "@featureTourRpsTitle": {
+    "description": "Feature tour entry title (build 23)."
+  },
+  "featureTourRpsBody": "Send a challenge, both pick within 5 seconds, the reveal is simultaneous. History and score live on your Profile.",
+  "@featureTourRpsBody": {
+    "description": "Feature tour entry body (build 23)."
   }
 }

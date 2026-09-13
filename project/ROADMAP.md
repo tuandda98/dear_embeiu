@@ -115,3 +115,5 @@ Theo `../CLAUDE.md` mục 11 (Product roadmap):
 ---
 
 *Khi tạo feature mới: copy `_templates/` (gồm `roadmap.md`) → `features/<ten-feature>/`, thêm dòng vào bảng phù hợp, xoá khỏi Backlog. Mỗi feature tự quản phase chi tiết trong `roadmap.md` của nó.*
+
+| rps-game | Oẳn tù tì realtime 2 người (rủ qua push · đếm 5s · lịch sử) | P1 | 📋 Spec → 🎨/💻 song song | 2026-09-13 |
