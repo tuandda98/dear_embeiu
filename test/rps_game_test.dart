@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dear_embeiu/models/rps_game.dart';
+import 'package:dear_embeiu/services/rps_game_service.dart';
 
 void main() {
   group('RpsResult.judge — the law rock > scissors > paper > rock', () {
@@ -272,6 +273,214 @@ void main() {
       expect(score.losses, 1);
       expect(score.draws, 1);
       expect(score.total, 4);
+    });
+  });
+
+  group('RpsClockSample — server clock offset (smoke-test 2026-09-13)', () {
+    test('device 13s behind: offset = stamp − RTT midpoint', () {
+      final sentAt = DateTime.utc(2026, 9, 13, 17, 18, 0);
+      final sample = RpsClockSample(
+        sentAt: sentAt,
+        ackAt: sentAt.add(const Duration(milliseconds: 300)),
+        // Server stamped mid-flight, and its clock is 13s ahead of the device.
+        serverStamp: sentAt.add(const Duration(seconds: 13, milliseconds: 150)),
+      );
+      expect(sample.rtt, const Duration(milliseconds: 300));
+      expect(sample.offset, const Duration(seconds: 13));
+    });
+
+    test('countdown judged on server time stays in sync despite skew', () {
+      final started = DateTime.utc(2026, 9, 13, 17, 20, 0);
+      final game = RpsGame(
+        id: 'g',
+        createdBy: 'a',
+        status: RpsGameStatus.playing,
+        startedAt: started,
+      );
+      // Device clock 13s behind the server, 2s into the round (server time).
+      final deviceNow = started.add(const Duration(seconds: 2 - 13));
+      const offset = Duration(seconds: 13);
+      // Raw device clock: frozen at the full 5s (the bug).
+      expect(game.countdownRemaining(now: deviceNow), RpsTiming.countdown);
+      // Corrected: 3s left, like the partner's phone.
+      expect(
+        game.countdownRemaining(now: deviceNow.add(offset)),
+        const Duration(seconds: 3),
+      );
+    });
+  });
+
+  group('Open-game selection (Tester RPS-1/RPS-2)', () {
+    final t0 = DateTime.utc(2026, 9, 14, 9, 0, 0);
+    RpsGame game(
+      String id, {
+      required RpsGameStatus status,
+      String createdBy = 'b',
+      DateTime? createdAt,
+      DateTime? startedAt,
+      String? rematchOf,
+    }) =>
+        RpsGame(
+          id: id,
+          createdBy: createdBy,
+          status: status,
+          createdAt: createdAt,
+          startedAt: startedAt,
+          rematchOf: rematchOf,
+        );
+
+    test('isDeadOpen: stale invite + round past grace are dead', () {
+      final invite =
+          game('i', status: RpsGameStatus.invited, createdAt: t0);
+      expect(invite.isDeadOpen(now: t0.add(const Duration(minutes: 9))),
+          isFalse);
+      expect(invite.isDeadOpen(now: t0.add(const Duration(minutes: 10))),
+          isTrue);
+      final round = game('p',
+          status: RpsGameStatus.playing, createdAt: t0, startedAt: t0);
+      expect(round.isDeadOpen(now: t0.add(const Duration(seconds: 6))),
+          isFalse);
+      expect(round.isDeadOpen(now: t0.add(const Duration(seconds: 7))),
+          isTrue);
+      // A closed game is never "dead open" — it just isn't open.
+      expect(
+        game('f', status: RpsGameStatus.finished, createdAt: t0)
+            .isDeadOpen(now: t0.add(const Duration(days: 1))),
+        isFalse,
+      );
+    });
+
+    test('pickOpen skips dead docs and returns the newest live one', () {
+      final now = t0.add(const Duration(minutes: 12));
+      final staleInvite = game('stale',
+          status: RpsGameStatus.invited, createdAt: t0); // 12' old
+      final stuckRound = game('stuck',
+          status: RpsGameStatus.playing,
+          createdAt: now.subtract(const Duration(minutes: 1)),
+          startedAt: now.subtract(const Duration(seconds: 30)));
+      final liveInvite = game('live',
+          status: RpsGameStatus.invited,
+          createdAt: now.subtract(const Duration(minutes: 2)));
+      // Newest first, as the stream delivers them.
+      expect(
+        RpsGame.pickOpen(<RpsGame>[stuckRound, liveInvite, staleInvite],
+                now: now)
+            ?.id,
+        'live',
+      );
+      expect(RpsGame.pickOpen(<RpsGame>[stuckRound, staleInvite], now: now),
+          isNull);
+      expect(RpsGame.pickOpen(const <RpsGame>[], now: now), isNull);
+    });
+
+    test('closed game follows its own rematch or a newer game only', () {
+      final finished = game('g1',
+          status: RpsGameStatus.finished, createdBy: 'a', createdAt: t0);
+      final rematch = game(rpsRematchGameId('g1'),
+          status: RpsGameStatus.invited,
+          createdAt: t0.add(const Duration(minutes: 1)),
+          rematchOf: 'g1');
+      final older = game('g0',
+          status: RpsGameStatus.invited,
+          createdAt: t0.subtract(const Duration(minutes: 3)));
+      final newer = game('g2',
+          status: RpsGameStatus.invited,
+          createdAt: t0.add(const Duration(minutes: 2)));
+      expect(
+          RpsGame.shouldFollow(current: finished, open: rematch, myUid: 'a'),
+          isTrue);
+      expect(RpsGame.shouldFollow(current: finished, open: newer, myUid: 'a'),
+          isTrue);
+      // Never dragged back to an OLDER open doc (the RPS-2 bug).
+      expect(RpsGame.shouldFollow(current: finished, open: older, myUid: 'a'),
+          isFalse);
+      // Never to a game I created myself.
+      final mine = game('g3',
+          status: RpsGameStatus.invited,
+          createdBy: 'a',
+          createdAt: t0.add(const Duration(minutes: 5)));
+      expect(RpsGame.shouldFollow(current: finished, open: mine, myUid: 'a'),
+          isFalse);
+      // Pending server stamp on either side → not provably newer.
+      expect(
+        RpsGame.shouldFollow(
+          current: finished,
+          open: game('g4', status: RpsGameStatus.invited),
+          myUid: 'a',
+        ),
+        isFalse,
+      );
+    });
+
+    test('waiting: twin rematches converge on the partner\'s / newer game',
+        () {
+      final myRematch = game('mine',
+          status: RpsGameStatus.invited,
+          createdBy: 'a',
+          createdAt: t0.add(const Duration(seconds: 2)),
+          rematchOf: 'g1');
+      final theirTwin = game('theirs',
+          status: RpsGameStatus.invited,
+          createdAt: t0.add(const Duration(seconds: 1)),
+          rematchOf: 'g1');
+      // Same source round → follow even though theirs is a hair older.
+      expect(
+          RpsGame.shouldFollow(current: myRematch, open: theirTwin, myUid: 'a'),
+          isTrue);
+      // The deterministic target of my source round.
+      final target = game(rpsRematchGameId('g1'),
+          status: RpsGameStatus.invited, createdAt: t0);
+      expect(
+          RpsGame.shouldFollow(current: myRematch, open: target, myUid: 'a'),
+          isTrue);
+      // Unrelated OLDER invite while waiting → stay.
+      final plainWaiting = game('w',
+          status: RpsGameStatus.invited, createdBy: 'a', createdAt: t0);
+      final olderInvite = game('o',
+          status: RpsGameStatus.invited,
+          createdAt: t0.subtract(const Duration(seconds: 5)));
+      expect(
+          RpsGame.shouldFollow(
+              current: plainWaiting, open: olderInvite, myUid: 'a'),
+          isFalse);
+      // Newer invite from the partner (both tapped "Chơi" at once) → follow;
+      // the partner's phone sees the same newest game, so they converge.
+      final newerInvite = game('n',
+          status: RpsGameStatus.invited,
+          createdAt: t0.add(const Duration(seconds: 1)));
+      expect(
+          RpsGame.shouldFollow(
+              current: plainWaiting, open: newerInvite, myUid: 'a'),
+          isTrue);
+    });
+
+    test('never switches away mid-round', () {
+      final round = game('p',
+          status: RpsGameStatus.playing,
+          createdBy: 'a',
+          createdAt: t0,
+          startedAt: t0);
+      final newer = game('n',
+          status: RpsGameStatus.invited,
+          createdAt: t0.add(const Duration(minutes: 1)),
+          rematchOf: 'p');
+      expect(RpsGame.shouldFollow(current: round, open: newer, myUid: 'a'),
+          isFalse);
+    });
+
+    test('rpsRematchGameId is deterministic and bounded along a chain', () {
+      const root = 'AbCdEfGhIjKlMnOpQrSt';
+      expect(rpsRematchGameId(root), 'rematch_$root');
+      expect(rpsRematchGameId('rematch_$root'), 'rematch_${root}_2');
+      expect(rpsRematchGameId('rematch_${root}_2'), 'rematch_${root}_3');
+      // Same input → same id on both phones.
+      expect(rpsRematchGameId(root), rpsRematchGameId(root));
+      // 500 rounds later the id is still short.
+      var id = root;
+      for (var i = 0; i < 500; i++) {
+        id = rpsRematchGameId(id);
+      }
+      expect(id, 'rematch_${root}_500');
     });
   });
 }

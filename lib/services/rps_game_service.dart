@@ -27,6 +27,29 @@ class RpsHistoryPage {
   final bool hasMore;
 }
 
+/// One heartbeat round-trip: device clock before the write ([sentAt]) and at
+/// its acknowledgement ([ackAt]), plus the server-resolved stamp the write
+/// produced ([serverStamp]). Feeds [RpsGameProvider]'s server-clock offset so
+/// the countdown doesn't depend on the phone's own clock being right.
+class RpsClockSample {
+  const RpsClockSample({
+    required this.sentAt,
+    required this.ackAt,
+    required this.serverStamp,
+  });
+
+  final DateTime sentAt;
+  final DateTime ackAt;
+  final DateTime serverStamp;
+
+  Duration get rtt => ackAt.difference(sentAt);
+
+  /// server − device, assuming the stamp was taken mid-flight.
+  Duration get offset => serverStamp.difference(
+    sentAt.add(Duration(microseconds: rtt.inMicroseconds ~/ 2)),
+  );
+}
+
 /// Firestore access for rock-paper-scissors (feature rps-game, 2026-09-13):
 /// `couples/{coupleId}/games/{gameId}` + `moves/{uid}` — contract in
 /// `project/features/rps-game/overview.md` §3.
@@ -91,18 +114,89 @@ class RpsGameService {
     }
     try {
       final ref = _games(coupleId.trim()).doc();
-      await ref.set(<String, dynamic>{
-        'type': RpsGame.typeKey,
-        'createdBy': uid.trim(),
-        'status': RpsGameStatus.invited.key,
-        'createdAt': FieldValue.serverTimestamp(),
-        'presence': <String, dynamic>{uid.trim(): FieldValue.serverTimestamp()},
-        if (rematchOf != null && !_blank(rematchOf))
-          'rematchOf': rematchOf.trim(),
-      });
+      await ref.set(_createPayload(uid, rematchOf));
       return ref.id;
     } catch (e) {
       debugPrint('RpsGameService.createGame failed: $e');
+      return null;
+    }
+  }
+
+  /// The `invited` create payload — exactly the rules' create `hasOnly` set.
+  static Map<String, dynamic> _createPayload(
+    String uid,
+    String? rematchOf,
+  ) => <String, dynamic>{
+    'type': RpsGame.typeKey,
+    'createdBy': uid.trim(),
+    'status': RpsGameStatus.invited.key,
+    'createdAt': FieldValue.serverTimestamp(),
+    'presence': <String, dynamic>{uid.trim(): FieldValue.serverTimestamp()},
+    if (rematchOf != null && !_blank(rematchOf)) 'rematchOf': rematchOf.trim(),
+  };
+
+  /// Get-or-create an `invited` game at a FIXED id (Tester RPS-1: the
+  /// "Chơi lại" game lives at [rpsRematchGameId] so both phones tapping at
+  /// once meet in ONE game). Transaction: doc already there → nothing is
+  /// written and the existing game comes back (`created: false`); otherwise
+  /// it is created. Two racing creates: one commits, the other's transaction
+  /// retries, sees the doc and joins it. A plain `set` would not do — on an
+  /// existing doc it is evaluated as an UPDATE and the rules deny it
+  /// (`createdAt` is immutable).
+  ///
+  /// Null when nothing could be read/written (no Firebase, offline — a
+  /// transaction needs the server — or a rule denied).
+  Future<({String id, bool created, RpsGame? existing})?> createGameWithId({
+    required String coupleId,
+    required String uid,
+    required String gameId,
+    String? rematchOf,
+  }) async {
+    if (_blank(coupleId) || _blank(uid) || _blank(gameId) || !isUsingFirebase) {
+      return null;
+    }
+    final ref = _game(coupleId.trim(), gameId.trim());
+    try {
+      return await _db
+          .runTransaction<({String id, bool created, RpsGame? existing})>((
+            tx,
+          ) async {
+            final snap = await tx.get(ref);
+            final data = snap.data();
+            if (snap.exists && data != null) {
+              return (
+                id: ref.id,
+                created: false,
+                existing: RpsGame.fromFirestore(snap.id, data),
+              );
+            }
+            tx.set(ref, _createPayload(uid, rematchOf));
+            return (id: ref.id, created: true, existing: null);
+          });
+    } catch (e) {
+      debugPrint('RpsGameService.createGameWithId failed: $e');
+      // Lost the race in a way the transaction didn't absorb → if the doc is
+      // there now, join it.
+      final existing = await fetchGame(coupleId, gameId);
+      return existing == null
+          ? null
+          : (id: existing.id, created: false, existing: existing);
+    }
+  }
+
+  /// One-shot read of a game (null when missing / unreadable / off Firebase).
+  Future<RpsGame?> fetchGame(String coupleId, String gameId) async {
+    if (_blank(coupleId) || _blank(gameId) || !isUsingFirebase) {
+      return null;
+    }
+    try {
+      final snap = await _game(coupleId.trim(), gameId.trim()).get();
+      final data = snap.data();
+      return (snap.exists && data != null)
+          ? RpsGame.fromFirestore(snap.id, data)
+          : null;
+    } catch (e) {
+      debugPrint('RpsGameService.fetchGame failed: $e');
       return null;
     }
   }
@@ -125,11 +219,15 @@ class RpsGameService {
         });
   }
 
-  /// Streams the couple's single open game (`invited`/`playing`, newest), or
-  /// null. Needs the composite index `(type ASC, status ASC, createdAt DESC)`.
-  Stream<RpsGame?> watchOpenGame(String coupleId) {
+  /// Streams the couple's newest [limit] open (`invited`/`playing`) games,
+  /// newest first. Several, not one (Tester RPS-2): the newest may be a dead
+  /// doc — an invite past its TTL nobody flipped to `expired`, a round nobody
+  /// settled — and the provider picks the first LIVE one with
+  /// [RpsGame.pickOpen] against server time. Needs the composite index
+  /// `(type ASC, status ASC, createdAt DESC)`.
+  Stream<List<RpsGame>> watchOpenGames(String coupleId, {int limit = 5}) {
     if (_blank(coupleId) || !isUsingFirebase) {
-      return Stream<RpsGame?>.value(null);
+      return Stream<List<RpsGame>>.value(const <RpsGame>[]);
     }
     return _games(coupleId.trim())
         .where('type', isEqualTo: RpsGame.typeKey)
@@ -141,17 +239,15 @@ class RpsGameService {
           ],
         )
         .orderBy('createdAt', descending: true)
-        .limit(1)
+        .limit(limit)
         .snapshots()
-        .map((snap) {
-          if (snap.docs.isEmpty) {
-            return null;
-          }
-          final doc = snap.docs.first;
-          return RpsGame.fromFirestore(doc.id, doc.data());
-        })
+        .map(
+          (snap) => snap.docs
+              .map((doc) => RpsGame.fromFirestore(doc.id, doc.data()))
+              .toList(growable: false),
+        )
         .handleError((Object e) {
-          debugPrint('RpsGameService.watchOpenGame error: $e');
+          debugPrint('RpsGameService.watchOpenGames error: $e');
         });
   }
 
@@ -176,17 +272,44 @@ class RpsGameService {
 
   /// Presence heartbeat: `presence.{uid} = serverTimestamp` (dot-path merge —
   /// touches only my key, as the rules require). Fire-and-forget safe.
-  Future<void> heartbeat(String coupleId, String gameId, String uid) async {
+  ///
+  /// Doubles as a server-clock probe: once the write is acknowledged, the
+  /// cached doc holds the server-resolved stamp of THIS beat, so
+  /// `(sentAt, ackAt, serverStamp)` bounds the device↔server clock offset
+  /// (error ≤ RTT/2). Returns null when the write failed or the resolved stamp
+  /// can't be read back (a newer beat still pending reads as null — skipped).
+  Future<RpsClockSample?> heartbeat(
+    String coupleId,
+    String gameId,
+    String uid,
+  ) async {
     if (_blank(coupleId) || _blank(gameId) || _blank(uid) || !isUsingFirebase) {
-      return;
+      return null;
     }
+    final ref = _game(coupleId.trim(), gameId.trim());
+    final key = uid.trim();
+    final DateTime sentAt;
+    final DateTime ackAt;
     try {
-      await _game(coupleId.trim(), gameId.trim()).update(<String, dynamic>{
-        'presence.${uid.trim()}': FieldValue.serverTimestamp(),
+      sentAt = DateTime.now();
+      await ref.update(<String, dynamic>{
+        'presence.$key': FieldValue.serverTimestamp(),
       });
+      ackAt = DateTime.now();
     } catch (e) {
       // Game gone / status closed by a rule — a missed beat is harmless.
       debugPrint('RpsGameService.heartbeat failed: $e');
+      return null;
+    }
+    try {
+      final snap = await ref.get(const GetOptions(source: Source.cache));
+      final presence = snap.data()?['presence'];
+      final stamp = presence is Map ? rpsParseTimestamp(presence[key]) : null;
+      return stamp == null
+          ? null
+          : RpsClockSample(sentAt: sentAt, ackAt: ackAt, serverStamp: stamp);
+    } catch (_) {
+      return null; // cache miss — no sample this beat
     }
   }
 
@@ -242,11 +365,18 @@ class RpsGameService {
   /// Locks in my hand: `moves/{uid} = {choice, createdAt}` (create-only —
   /// a second attempt is denied by the rules, as is one after the deadline).
   /// Returns false when the write was refused, so the UI can un-lock.
+  ///
+  /// [timeout] (Tester RPS-8): offline, a Firestore write never completes
+  /// until the network returns, which used to leave the caller hanging. Past
+  /// the round's deadline the answer can only be "refused" anyway, so give up
+  /// after [timeout] and report false. The queued write may still reach the
+  /// server later — the rules then reject it (`request.time` past 7s).
   Future<bool> submitMove({
     required String coupleId,
     required String gameId,
     required String uid,
     required RpsChoice choice,
+    Duration? timeout,
   }) async {
     if (_blank(coupleId) ||
         _blank(gameId) ||
@@ -256,13 +386,17 @@ class RpsGameService {
       return false;
     }
     try {
-      await _move(coupleId.trim(), gameId.trim(), uid.trim()).set(
+      final write = _move(coupleId.trim(), gameId.trim(), uid.trim()).set(
         <String, dynamic>{
           'choice': choice.key,
           'createdAt': FieldValue.serverTimestamp(),
         },
       );
+      await (timeout == null ? write : write.timeout(timeout));
       return true;
+    } on TimeoutException {
+      debugPrint('RpsGameService.submitMove timed out after $timeout');
+      return false;
     } catch (e) {
       debugPrint('RpsGameService.submitMove failed: $e');
       return false;
@@ -293,10 +427,12 @@ class RpsGameService {
 
   /// `invited → expired` when the invite is older than [RpsTiming.inviteTtl]
   /// (transaction: re-checks status + age before writing). Either member may
-  /// do it. Returns true only when THIS call expired it.
+  /// do it. Returns true only when THIS call expired it. [now] = best estimate
+  /// of SERVER time (the rule compares `createdAt` with `request.time`).
   Future<bool> expireIfStale({
     required String coupleId,
     required String gameId,
+    DateTime? now,
   }) async {
     if (_blank(coupleId) || _blank(gameId) || !isUsingFirebase) {
       return false;
@@ -310,7 +446,7 @@ class RpsGameService {
           return false;
         }
         final game = RpsGame.fromFirestore(snap.id, data);
-        if (!game.isInviteStale()) {
+        if (!game.isInviteStale(now: now)) {
           return false;
         }
         tx.update(ref, <String, dynamic>{

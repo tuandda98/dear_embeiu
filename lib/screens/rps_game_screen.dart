@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
+import '../app/route_observers.dart';
 import '../l10n/l10n.dart';
 import '../models/couple.dart';
 import '../models/rps_game.dart';
@@ -29,11 +30,28 @@ import 'rps_history_screen.dart';
 /// the screen shows expired/cancelled/result itself when the game is closed).
 /// One route name for every entry point (Home card, Profile badge, push tap),
 /// same shape as [openCareMessageScreen].
+///
+/// Never stacks a second game screen (Tester RPS-13): when one is already
+/// mounted anywhere in the stack (e.g. game → history → tapped push), pop
+/// back down to it and hand it [gameId] instead — two game screens used to
+/// fight over the one provider and the lower one was left on a skeleton.
 void openRpsGame(BuildContext context, {String? gameId}) {
   HapticFeedback.selectionClick();
-  Navigator.of(context).push(
+  final navigator = Navigator.of(context);
+  final existing = _RpsGameScreenState._topMounted;
+  if (existing != null) {
+    navigator.popUntil(
+      (route) =>
+          route.settings.name == RpsGameScreen.routeName || route.isFirst,
+    );
+    if (gameId != null && gameId.trim().isNotEmpty) {
+      existing._switchTo(gameId.trim());
+    }
+    return;
+  }
+  navigator.push(
     MaterialPageRoute<void>(
-      settings: const RouteSettings(name: 'RpsGame'),
+      settings: const RouteSettings(name: RpsGameScreen.routeName),
       builder: (_) => RpsGameScreen(gameId: gameId),
     ),
   );
@@ -62,12 +80,31 @@ class RpsGameScreen extends StatefulWidget {
 
   final String? gameId;
 
+  /// `RouteSettings.name` of the game route (analytics + stack guards).
+  static const String routeName = 'RpsGame';
+
+  /// How many game screens are mounted right now. Home listens to it to hold
+  /// the "Có gì mới" sheet / catch-up gate while a round may be running
+  /// (Tester RPS-7) and to retry them once the game closes. Listeners may be
+  /// notified mid-build/dispose — defer any UI work.
+  static final ValueNotifier<int> mountedCount = ValueNotifier<int>(0);
+
+  /// A game screen is somewhere in the navigator stack.
+  static bool get isOpen => mountedCount.value > 0;
+
   @override
   State<RpsGameScreen> createState() => _RpsGameScreenState();
 }
 
 class _RpsGameScreenState extends State<RpsGameScreen>
-    with WidgetsBindingObserver, TickerProviderStateMixin {
+    with WidgetsBindingObserver, TickerProviderStateMixin, RouteAware {
+  /// Mounted game screens, bottom → top (see [openRpsGame]).
+  static final List<_RpsGameScreenState> _mountedStates =
+      <_RpsGameScreenState>[];
+
+  static _RpsGameScreenState? get _topMounted =>
+      _mountedStates.isEmpty ? null : _mountedStates.last;
+
   /// "Nhắc lại" is allowed once per minute after an invite was sent
   /// (design D7 — the CF pushes on every create).
   static const Duration _nudgeCooldown = Duration(seconds: 60);
@@ -105,12 +142,26 @@ class _RpsGameScreenState extends State<RpsGameScreen>
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
 
+  /// Presence heartbeat gating (Tester RPS-3): the app must be in the
+  /// foreground AND this page uncovered for me to count as "on the screen".
+  bool _appActive = true;
+  bool _routeCovered = false;
+  PageRoute<dynamic>? _subscribedRoute;
+
   @override
   void initState() {
     super.initState();
+    _mountedStates.add(this);
+    RpsGameScreen.mountedCount.value = _mountedStates.length;
     _provider = context.read<RpsGameProvider>();
+    _provider.attach(this);
     _provider.addListener(_onProviderChanged);
     WidgetsBinding.instance.addObserver(this);
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    _appActive = lifecycle == null || lifecycle == AppLifecycleState.resumed;
+    if (!_appActive) {
+      _provider.pauseHeartbeat(owner: this);
+    }
     _ringTicker = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
@@ -132,13 +183,26 @@ class _RpsGameScreenState extends State<RpsGameScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _reduceMotion = AppMotion.reduceMotion(context);
+    final route = ModalRoute.of(context);
+    if (route is PageRoute<dynamic> && !identical(route, _subscribedRoute)) {
+      if (_subscribedRoute != null) {
+        appPageRouteObserver.unsubscribe(this);
+      }
+      _subscribedRoute = route;
+      appPageRouteObserver.subscribe(this, route);
+    }
   }
 
   @override
   void dispose() {
+    _mountedStates.remove(this);
+    RpsGameScreen.mountedCount.value = _mountedStates.length;
+    appPageRouteObserver.unsubscribe(this);
     _provider.removeListener(_onProviderChanged);
     WidgetsBinding.instance.removeObserver(this);
-    _provider.leave();
+    // Not a blanket `leave()`: if another game screen sits below this one it
+    // gets its game back (Tester RPS-13).
+    _provider.detach(this);
     _clearRevealTimers();
     _cooldownTimer?.cancel();
     _slowTimer?.cancel();
@@ -153,10 +217,53 @@ class _RpsGameScreenState extends State<RpsGameScreen>
     // The ring reads server time on every frame, so pausing/resuming the
     // ticker can't drift — it just saves frames while backgrounded.
     if (state == AppLifecycleState.resumed) {
+      _appActive = true;
       _syncRingTicker(_provider.phase);
-    } else if (state == AppLifecycleState.paused) {
+      if (!_routeCovered) {
+        // Beats immediately — the partner sees me back within one RTT.
+        _provider.resumeHeartbeat(owner: this);
+      }
+      return;
+    }
+    // inactive / hidden / paused / detached: not looking at the round any
+    // more (Tester RPS-3 — Android kept beating from the background, so the
+    // partner started a round I lost without seeing, and the CF thought I was
+    // still watching and skipped my result push).
+    _appActive = false;
+    if (state == AppLifecycleState.paused) {
       _ringTicker.stop();
     }
+    _provider.pauseHeartbeat(owner: this);
+  }
+
+  // RouteAware — another PAGE (history…) covering the game screen means I'm
+  // not on it; dialogs/sheets don't count (observer is typed on PageRoute).
+  @override
+  void didPushNext() {
+    _routeCovered = true;
+    _provider.pauseHeartbeat(owner: this);
+  }
+
+  @override
+  void didPopNext() {
+    _routeCovered = false;
+    if (_appActive) {
+      _provider.resumeHeartbeat(owner: this);
+    }
+  }
+
+  /// Show [gameId] on this (already mounted) screen — a tapped push / inbox
+  /// item while the game screen is somewhere in the stack ([openRpsGame]).
+  void _switchTo(String gameId) {
+    if (!mounted || gameId == _provider.currentGameId) {
+      return;
+    }
+    setState(() {
+      _initFailed = false;
+      _seenLivePhase = false;
+      _followedRematchId = null;
+    });
+    _provider.enter(gameId, owner: this);
   }
 
   // ------------------------------------------------------------- lifecycle
@@ -172,7 +279,7 @@ class _RpsGameScreenState extends State<RpsGameScreen>
     setState(() => _initFailed = false);
     final id = widget.gameId;
     if (id != null && id.trim().isNotEmpty) {
-      _provider.enter(id);
+      _provider.enter(id, owner: this);
       return;
     }
     final created = await _provider.invite();
@@ -209,25 +316,24 @@ class _RpsGameScreenState extends State<RpsGameScreen>
       }
     }
 
-    // Partner started a rematch while I'm on a closed game → follow it.
-    final open = _provider.openGame;
-    final me = _provider.myUid;
-    final closed =
-        phase == RpsPhase.result ||
-        phase == RpsPhase.expired ||
-        phase == RpsPhase.cancelled;
-    if (closed &&
-        open != null &&
-        open.isOpen &&
-        open.id != _provider.currentGameId &&
-        me != null &&
-        !open.isCreatedBy(me) &&
-        _followedRematchId != open.id) {
-      _followedRematchId = open.id;
-      _provider.enter(open.id);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(context.l10n.rpsRematchToast)));
+    // Partner's rematch / newer invite → follow it. The decision lives in
+    // [RpsGame.shouldFollow] (Tester RPS-1/RPS-2): from a closed game only to
+    // its own rematch or something newer — never back to an older dead doc;
+    // while waiting, to the partner's twin rematch / newer invite so two
+    // racing "Chơi lại" taps converge on one game.
+    final target = _provider.followTarget;
+    if (target != null && _followedRematchId != target.id) {
+      _followedRematchId = target.id;
+      final fromClosed =
+          phase == RpsPhase.result ||
+          phase == RpsPhase.expired ||
+          phase == RpsPhase.cancelled;
+      unawaited(_provider.followOpenGame(target));
+      if (fromClosed) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.rpsRematchToast)));
+      }
     }
 
     if (changed) {
@@ -357,7 +463,7 @@ class _RpsGameScreenState extends State<RpsGameScreen>
     if (created == null) {
       return Duration.zero;
     }
-    final left = _nudgeCooldown - DateTime.now().difference(created);
+    final left = _nudgeCooldown - _provider.serverNow.difference(created);
     return left.isNegative ? Duration.zero : left;
   }
 
@@ -391,7 +497,24 @@ class _RpsGameScreenState extends State<RpsGameScreen>
 
   Future<void> _rematch() async {
     HapticFeedback.selectionClick();
-    await _provider.rematch();
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final id = await _provider.rematch();
+    if (!mounted || id != null) {
+      return;
+    }
+    final error = _provider.lastActionError;
+    if (error != null) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            error == RpsActionError.needCouple
+                ? l10n.rpsNeedCouple
+                : l10n.rpsErrorBody,
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _inviteAgain() async {
@@ -409,7 +532,7 @@ class _RpsGameScreenState extends State<RpsGameScreen>
       return;
     }
     _provider.leave();
-    _provider.enter(id);
+    _provider.enter(id, owner: this);
     setState(() => _resolvingSlow = false);
   }
 
@@ -531,7 +654,9 @@ class _RpsGameScreenState extends State<RpsGameScreen>
         key: const ValueKey('error'),
         icon: IconsaxPlusLinear.cloud_cross,
         title: l10n.rpsErrorTitle,
-        body: provider.partnerUid == null && provider.isReady
+        body:
+            provider.lastActionError == RpsActionError.needCouple ||
+                (provider.isReady && !provider.hasPartner)
             ? l10n.rpsNeedCouple
             : l10n.rpsErrorBody,
         ctaLabel: l10n.journalRetry,
@@ -1190,7 +1315,9 @@ class _PlayView extends StatelessWidget {
             animation: ticker,
             builder: (context, _) {
               final game = provider.currentGame;
-              final remaining = game?.countdownRemaining() ?? Duration.zero;
+              final remaining =
+                  game?.countdownRemaining(now: provider.serverNow) ??
+                  Duration.zero;
               final secs = (remaining.inMilliseconds + 999) ~/ 1000;
               final total = RpsTiming.countdown.inMilliseconds;
               final fraction = reduceMotion

@@ -244,10 +244,17 @@ class SessionResolver {
       customRemindersProvider.setCouple(currentUser.coupleId!, currentUser.id);
       // Rock-paper-scissors (feature rps-game): stream the couple's open game
       // so Home/Profile can badge a pending invite. Partner uid = the other
-      // memberId ('' while still waiting — the provider then infers it from
-      // the game doc's presence).
-      final rpsPartnerUid = (coupleProvider.couple?.memberIds ?? const [])
-          .firstWhere((id) => id != currentUser.id, orElse: () => '');
+      // memberId; '' while the couple is still `waiting_partner` — the
+      // provider then refuses to create games (Tester RPS-12). HomeScreen
+      // re-arms this with the live couple, so a partner joining mid-session
+      // unlocks it.
+      final rpsCouple = coupleProvider.couple;
+      final rpsPartnerUid = (rpsCouple == null || rpsCouple.isWaitingForPartner)
+          ? ''
+          : rpsCouple.memberIds.firstWhere(
+              (id) => id != currentUser.id,
+              orElse: () => '',
+            );
       rpsGameProvider.watchForCouple(
         currentUser.coupleId!,
         currentUser.id,

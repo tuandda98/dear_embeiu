@@ -651,7 +651,10 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
     // partner's invite is waiting on me.
     final rps = context.watch<RpsGameProvider>();
     final rpsScore = rps.totalScore;
-    if (rpsScore == null && !rps.isTotalScoreLoading) {
+    // Only while not loaded / not loading / not in the 30s post-failure
+    // backoff (Tester RPS-6 — a failing count() used to re-fire three reads
+    // on every rebuild).
+    if (rps.shouldAutoLoadTotalScore) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.read<RpsGameProvider>().loadTotalScore();
@@ -921,19 +924,35 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                // Hero value / shimmer while the journal count loads.
+                // Hero value / shimmer while the journal count loads. The
+                // line box stays 28 tall even for a smaller [valueSize] (the
+                // rps "W – D – L") so both tiles of a row keep the same height
+                // — a shorter tile gets centred by the Row and sits ~3pt low
+                // (smoke-test 2026-09-13).
+                // scaleDown: a long value (rps "123 – 45 – 118") shrinks to
+                // the tile instead of being cut with an ellipsis (RPS-18);
+                // short values render at full size as before.
                 value != null
-                    ? Text(
-                        value,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        semanticsLabel: valueSemantics,
-                        style: TextStyle(
-                          color: accent,
-                          fontSize: valueSize,
-                          fontWeight: FontWeight.w800,
-                          height: 1,
-                          letterSpacing: -0.5,
+                    ? SizedBox(
+                        height: valueSize < 28 ? 28 : valueSize,
+                        child: Align(
+                          alignment: Alignment.bottomLeft,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.bottomLeft,
+                            child: Text(
+                              value,
+                              maxLines: 1,
+                              semanticsLabel: valueSemantics,
+                              style: TextStyle(
+                                color: accent,
+                                fontSize: valueSize,
+                                fontWeight: FontWeight.w800,
+                                height: 1,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ),
                         ),
                       )
                     : ShimmerSkeleton(width: 48, height: 22, borderRadius: 6),

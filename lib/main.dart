@@ -14,6 +14,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
 import 'app/app_routes.dart';
+import 'app/route_observers.dart';
 import 'providers/auth_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/couple_provider.dart';
@@ -349,6 +350,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             navigatorObservers: [
               if (AnalyticsService.instance.observer != null)
                 AnalyticsService.instance.observer!,
+              // Page cover/uncover events for RouteAware screens (rps-game
+              // pauses its presence heartbeat while covered).
+              appPageRouteObserver,
             ],
             debugShowCheckedModeBanner: false,
             routes: {

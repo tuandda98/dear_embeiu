@@ -1,0 +1,7 @@
+command : cat .firebaserc && NODE_OPTIONS="--dns-result-order=ipv4first" npx firebase-tools deploy --project dev --only firestore:rules,functions:resolveRpsGame,functions:finishRpsGame,functions:notifyRpsInvite 2>&1 | tail -30
+time_utc: 20260913T172316Z
+git_head: c345281 (feature/rps-game)
+dirty   : 10 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout c345281)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout c345281 -- functions` rồi redeploy

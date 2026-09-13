@@ -10,10 +10,15 @@
 
 const {
   doc,
+  collection,
+  collectionGroup,
+  query,
+  getDocs,
   setDoc,
   getDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   serverTimestamp,
 } = require('firebase/firestore');
 const {
@@ -22,6 +27,7 @@ const {
   authedDb,
   seedDoc,
   seedActiveCouple,
+  seedWaitingCouple,
   TS,
 } = require('./helpers');
 
@@ -168,9 +174,41 @@ describe('firestore: rps game', () => {
     );
   });
 
-  // ---- invited → playing ---------------------------------------------------
-  it('lets a member start the game with a server-stamped startedAt', async () => {
+  it('rejects a presence value that is not the server clock (RPS-11)', async () => {
     await seedDoc(GAME, seededGame());
+    // Backdated / pre-dated client timestamps.
+    await assertFails(
+      updateDoc(doc(authedDb('bob'), GAME), {'presence.bob': new Date()}),
+    );
+    await assertFails(
+      updateDoc(doc(authedDb('bob'), GAME), {'presence.bob': new Date(Date.now() + 60 * 1000)}),
+    );
+    await assertFails(
+      updateDoc(doc(authedDb('alice'), GAME), {'presence.alice': secondsAgo(30)}),
+    );
+    // Same on create.
+    await assertFails(
+      setDoc(doc(authedDb('bob'), 'couples/c1/games/g2'), validGame('bob', {
+        presence: {bob: new Date()},
+      })),
+    );
+  });
+
+  it('rejects wiping the whole presence map (would drop the partner key)', async () => {
+    await seedDoc(GAME, seededGame({presence: {alice: secondsAgo(1)}}));
+    await assertFails(
+      updateDoc(doc(authedDb('bob'), GAME), {presence: deleteField()}),
+    );
+    await assertFails(
+      updateDoc(doc(authedDb('bob'), GAME), {presence: {bob: serverTimestamp()}}),
+    );
+  });
+
+  // ---- invited → playing ---------------------------------------------------
+  // Starting needs the PARTNER's presence on the doc, fresher than 10s by the
+  // server clock (RPS-5 — no starting alone to farm timeout wins).
+  it('lets a member start the game when the partner is present (fresh <10s)', async () => {
+    await seedDoc(GAME, seededGame({presence: {alice: secondsAgo(2)}}));
     await assertSucceeds(
       updateDoc(doc(authedDb('bob'), GAME), {
         status: 'playing',
@@ -180,8 +218,55 @@ describe('firestore: rps game', () => {
     );
   });
 
+  it('rejects starting alone (partner never present on the game)', async () => {
+    // alice created the game and is present; bob never opened it.
+    await seedDoc(GAME, seededGame({presence: {alice: secondsAgo(1)}}));
+    await assertFails(
+      updateDoc(doc(authedDb('alice'), GAME), {
+        status: 'playing',
+        startedAt: serverTimestamp(),
+        'presence.alice': serverTimestamp(),
+      }),
+    );
+    // No presence map at all.
+    const noPresence = seededGame();
+    delete noPresence.presence;
+    await seedDoc(GAME, noPresence);
+    await assertFails(
+      updateDoc(doc(authedDb('alice'), GAME), {
+        status: 'playing',
+        startedAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('rejects starting when the partner presence is 11s old', async () => {
+    await seedDoc(GAME, seededGame({presence: {alice: secondsAgo(11), bob: secondsAgo(1)}}));
+    await assertFails(
+      updateDoc(doc(authedDb('bob'), GAME), {
+        status: 'playing',
+        startedAt: serverTimestamp(),
+        'presence.bob': serverTimestamp(),
+      }),
+    );
+  });
+
+  it('rejects starting a game in a 1-member (waiting) couple', async () => {
+    await seedWaitingCouple('cw', 'carol');
+    const WG = 'couples/cw/games/g1';
+    // Creating is harmless (client blocks it — RPS-12) but can never start.
+    await assertSucceeds(setDoc(doc(authedDb('carol'), WG), validGame('carol')));
+    await assertFails(
+      updateDoc(doc(authedDb('carol'), WG), {
+        status: 'playing',
+        startedAt: serverTimestamp(),
+        'presence.carol': serverTimestamp(),
+      }),
+    );
+  });
+
   it('rejects starting with a wrong or missing startedAt', async () => {
-    await seedDoc(GAME, seededGame());
+    await seedDoc(GAME, seededGame({presence: {alice: secondsAgo(1)}}));
     await assertFails(
       updateDoc(doc(authedDb('bob'), GAME), {status: 'playing', startedAt: TS}),
     );
@@ -191,7 +276,7 @@ describe('firestore: rps game', () => {
   });
 
   it('rejects starting when startedAt already exists', async () => {
-    await seedDoc(GAME, seededGame({startedAt: TS}));
+    await seedDoc(GAME, seededGame({presence: {alice: secondsAgo(1)}, startedAt: TS}));
     await assertFails(
       updateDoc(doc(authedDb('bob'), GAME), {status: 'playing', startedAt: serverTimestamp()}),
     );
@@ -219,6 +304,46 @@ describe('firestore: rps game', () => {
     await seedDoc(GAME, seededGame());
     await assertFails(
       updateDoc(doc(authedDb('alice'), GAME), {status: 'cancelled', cancelledBy: 'bob'}),
+    );
+  });
+
+  it('rejects cancelledBy without the invited → cancelled transition (RPS-10)', async () => {
+    await seedDoc(GAME, seededGame());
+    // Partner planting their own uid on an invited game.
+    await assertFails(
+      updateDoc(doc(authedDb('bob'), GAME), {cancelledBy: 'bob'}),
+    );
+    // Even the creator can't set it without actually cancelling.
+    await assertFails(
+      updateDoc(doc(authedDb('alice'), GAME), {cancelledBy: 'alice'}),
+    );
+    // Nor piggy-back it on a heartbeat / on a playing game.
+    await assertFails(
+      updateDoc(doc(authedDb('bob'), GAME), {
+        'presence.bob': serverTimestamp(),
+        cancelledBy: 'bob',
+      }),
+    );
+    await seedDoc(GAME, seededGame({status: 'playing', startedAt: TS}));
+    await assertFails(
+      updateDoc(doc(authedDb('alice'), GAME), {cancelledBy: 'alice'}),
+    );
+  });
+
+  it('keeps heartbeats working on a doc that already carries cancelledBy', async () => {
+    await seedDoc(GAME, seededGame({status: 'cancelled', cancelledBy: 'alice'}));
+    await assertSucceeds(
+      updateDoc(doc(authedDb('bob'), GAME), {'presence.bob': serverTimestamp()}),
+    );
+    await assertFails(
+      updateDoc(doc(authedDb('bob'), GAME), {cancelledBy: 'bob'}),
+    );
+  });
+
+  it('lets the creator cancel without cancelledBy', async () => {
+    await seedDoc(GAME, seededGame());
+    await assertSucceeds(
+      updateDoc(doc(authedDb('alice'), GAME), {status: 'cancelled', updatedAt: serverTimestamp()}),
     );
   });
 
@@ -360,6 +485,29 @@ describe('firestore: rps game', () => {
     await seedDoc(MOVE('bob'), {choice: 'paper', createdAt: TS});
     await assertSucceeds(getDoc(doc(authedDb('alice'), MOVE('bob'))));
     await assertSucceeds(getDoc(doc(authedDb('bob'), MOVE('alice'))));
+  });
+
+  it('forbids listing the moves subcollection while playing', async () => {
+    await seedDoc(GAME, seededGame({status: 'playing', startedAt: secondsAgo(1)}));
+    await seedDoc(MOVE('alice'), {choice: 'rock', createdAt: TS});
+    await seedDoc(MOVE('bob'), {choice: 'paper', createdAt: TS});
+    await assertFails(getDocs(collection(authedDb('alice'), `${GAME}/moves`)));
+    await assertFails(getDocs(collection(authedDb('bob'), `${GAME}/moves`)));
+  });
+
+  it('allows listing the moves of a finished game', async () => {
+    await seedDoc(GAME, seededGame({status: 'finished', startedAt: TS, finishedAt: TS}));
+    await seedDoc(MOVE('alice'), {choice: 'rock', createdAt: TS});
+    await seedDoc(MOVE('bob'), {choice: 'paper', createdAt: TS});
+    await assertSucceeds(getDocs(collection(authedDb('alice'), `${GAME}/moves`)));
+  });
+
+  it('forbids a collectionGroup query on moves (playing or finished)', async () => {
+    await seedDoc(GAME, seededGame({status: 'playing', startedAt: secondsAgo(1)}));
+    await seedDoc(MOVE('bob'), {choice: 'paper', createdAt: TS});
+    await assertFails(getDocs(query(collectionGroup(authedDb('alice'), 'moves'))));
+    await seedDoc(GAME, seededGame({status: 'finished', startedAt: TS, finishedAt: TS}));
+    await assertFails(getDocs(query(collectionGroup(authedDb('alice'), 'moves'))));
   });
 
   it('forbids an outsider reading any move', async () => {

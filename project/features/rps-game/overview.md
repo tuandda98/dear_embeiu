@@ -46,7 +46,7 @@
 - **`notifyRpsInvite`** — onCreate `games/{gameId}` (type rps, status invited): push tới partner `type:'rps_invite'`, data `{type, coupleId, gameId}`, copy localize vi/en ("<Tên> rủ bạn oẳn tù tì! Vào chọn trong 5 giây ⏱️" / "<Name> challenged you to rock-paper-scissors!"), + inbox `type:'rps_invite'` (actorName, gameId). **Skip push+inbox** khi `rematchOf` trỏ ván mà `presence[partner]` tươi < 30s (người kia đang ở màn kết quả, client tự theo ván mới).
 - **`resolveRpsGame`** — onCreate `moves/{uid}`: đọc 2 move; nếu đủ 2 → transaction set `status:'finished', finishedAt, result{winnerUid, choices, reason:'normal'}` (idempotent: bỏ qua nếu đã finished).
 - **`finishRpsGame`** — callable `{coupleId, gameId}` (auth + member): nếu `status=='playing'` và `now >= startedAt + 5s + 2s` → đọc moves có gì lấy nấy, thiếu = `'none'` → result (1 người chọn → người đó thắng; cả 2 none → hoà, reason `'timeout'`) → set finished. Idempotent. Client gọi khi hết đếm ngược mà chưa thấy finished (cả 2 máy có thể gọi, server chỉ ghi 1 lần).
-- **`notifyRpsResult`** — onUpdate games (status → finished): push tới thành viên có `presence` CŨ hơn 20s (đã rời màn) `type:'rps_result'` copy theo kết quả của người nhận ("Bạn thắng ván oẳn tù tì 🎉" / "Người ấy thắng rồi 😝" / "Hoà!"); KHÔNG inbox (lịch sử đã có trong app).
+- ~~`notifyRpsResult` onUpdate~~ **GỠ 2026-09-14 (RPS-14: bắn ~40 lần/phút do heartbeat)** → thay bằng hàm nội bộ `sendRpsResultPushes` gọi NGAY sau transaction chuyển `finished` trong `resolveRpsGame`/`finishRpsGame` (chỉ bên thực sự chuyển, không khi `already`): push `type:'rps_result'` tới thành viên có `presence` cũ hơn **8s** (PO chốt 2026-09-14, hạ từ 20s — heartbeat 3s ⇒ lỡ 2 nhịp = đã rời màn; kết hợp RPS-3 dừng heartbeat khi app xuống nền ⇒ người rời giữa lúc đếm vẫn nhận push) hoặc không có presence; copy theo góc nhìn người nhận (design §9.7); KHÔNG inbox.
 - Luật thắng: rock > scissors > paper > rock. Luôn dùng `sendToRecipientDevices` + `writeInboxNotifications` sẵn có; thêm `rps_invite` vào `PUSH_TYPE_PREF_FIELD` = không (chưa có pref riêng, như care_message).
 
 ## 4. Máy trạng thái & luồng UX
@@ -79,4 +79,5 @@
 - [ ] analyze 0 · test pass · rules-test pass · DEV deployed (rules + indexes + 4 CF). PROD chờ lệnh user.
 
 ## Changelog
+- [2026-09-14] [PO] Tester vòng 1 FAIL (3 P1 + gian lận start-1-mình). Backend vá RPS-5/10/11/14/16 (rules-test 289, DEV deployed, `notifyRpsResult` đã xoá khỏi DEV). PO chốt ngưỡng push kết quả = 8s. Client vá RPS-1..4,6..9,12,13,15,18 sau smoke-test.
 - [2026-09-13] [PO] Tạo spec từ yêu cầu user; chốt data contract + CF + máy trạng thái. Spawn Designer + Dev backend song song, Dev client sau design, Tester cuối.

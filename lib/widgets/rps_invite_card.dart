@@ -50,7 +50,7 @@ class RpsInviteCard extends StatelessWidget {
         open.isOpen &&
         me != null &&
         open.isCreatedBy(me) &&
-        !open.isInviteStale();
+        !open.isInviteStale(now: provider.serverNow);
 
     // Week score needs the first history page — one lazy load, cached in the
     // provider (no shimmer here: the card just shows the idle subtitle until
@@ -162,9 +162,11 @@ class RpsInviteCard extends StatelessWidget {
       child: card,
     );
 
+    // onTap on the node (Tester RPS-15) — the InkTile is excluded below.
     return Semantics(
       button: true,
       label: '$title. $subtitle',
+      onTap: handleTap,
       child: ExcludeSemantics(
         child: InkTile(borderRadius: 24, onTap: handleTap, child: outlined),
       ),

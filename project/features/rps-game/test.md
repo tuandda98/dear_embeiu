@@ -1,32 +1,32 @@
-# 🧪 Test — <Tên feature>
+# Test — Oẳn tù tì (rps-game)
 
-> Tester sở hữu. Đọc cả `overview.md` + `design.md` + `dev.md`. CHỈ test, KHÔNG sửa code. Output: PASS hoặc FAIL (kèm bug report).
+> File Tester sở hữu (Tester read-only nên PO chép báo cáo vào đây).
 
-- **Trạng thái test:** <chưa test | đang test | PASS | FAIL>
-- **Người/role:** Master Tester
+## [2026-09-14] [Tester] Nghiệm thu code-level (commit c345281) — ❌ FAIL
 
-## Phạm vi test
-<feature/case nào>
+**Đã chạy:** analyze 0 · flutter test 97/97 · rules-test 278 · probe emulator 8/8 (scratch — xác nhận RPS-5/10/11 + chặn list/collectionGroup moves). Backend thuần additive → app 1.6.x không vỡ.
 
-## Test case
-| # | Loại | Mô tả | Kỳ vọng | Kết quả |
-|---|------|-------|---------|---------|
-| 1 | happy | <…> | <…> | ⬜ |
-| 2 | edge | <…> | <…> | ⬜ |
-| 3 | negative | <…> | <…> | ⬜ |
-| 4 | đa ngôn ngữ | <…> | <…> | ⬜ |
-| 5 | offline / 2 thiết bị couple | <…> | <…> | ⬜ |
-| 6 | cold start | <…> | <…> | ⬜ |
+| ID | Mức | Vị trí | Mô tả | Đề xuất |
+|---|---|---|---|---|
+| RPS-1 | P1 | provider `rematch()` · game screen follow | Cả hai bấm "Chơi lại" gần như cùng lúc → 2 ván riêng, cả hai kẹt "Đang chờ" (CF skip push vì presence ván trước còn tươi). | Rematch doc id tất định `rematch_<prevGameId>`; create fail → enter. |
+| RPS-2 | P1 | service `watchOpenGame` · provider · invite card | Ván mở CŨ (invite >10' chưa expire / playing kẹt) được coi là hiện hành → màn kết quả bị kéo sang ván chết, `hasPendingInvite` giả, "Chơi lại" theo ván cũ. | Lọc stale/pastGrace ở client, `invite()` expire trước khi tạo, follow chỉ khi `rematchOf == current` hoặc mới hơn. |
+| RPS-3 | P1 | provider heartbeat · game screen | Heartbeat 3s không gắn lifecycle → Android nền/khoá máy vẫn "present" → partner vào là đếm, người ở nền thua và không nhận push kết quả. | Pause/resume heartbeat theo lifecycle + khi route không top. |
+| RPS-4 | P2 | model `countdownRemaining/isPastGrace` | Đồng hồ = clock máy − `startedAt` server, không bù offset → máy lệch giờ thua oan / tap bị rules từ chối. | Ước lượng serverOffset từ snapshot không pending. |
+| RPS-5 | P2 gian lận | rules transition `invited→playing` | Không kiểm presence partner → tự start 1 mình, ghi move, gọi finish sau 7s → thắng timeout (farm chuỗi). | Rules: `presence[partner] > request.time - 10s`. |
+| RPS-6 | P2 | profile `loadTotalScore` | `countScore` lỗi → vòng lặp retry vô hạn mỗi rebuild (3 count() read/lượt). | Backoff ≥30s / 1 lần/phiên. |
+| RPS-7 | P2 | home tour + catch-up | Sheet "Có gì mới"/CatchupGate đè lên màn chơi khi cold-start từ push → thua lúc đếm. | Bỏ qua khi route top là RpsGame / có focus rps. |
+| RPS-8 | P2 | service `submitMove` · copy offline | Offline khi đếm: busy treo → "Chơi lại" disabled; copy "gửi khi có mạng" sai. | Timeout submitMove, không giữ busy toàn cục, sửa copy. |
+| RPS-9 | P3 | `renewInvite` | Bỏ qua kết quả cancel → bỏ rơi partner vừa vào. | Chỉ tạo mới khi cancel OK. |
+| RPS-10 | P3 | rules `cancelledBy` | Ghi `cancelledBy` không kèm transition → griefing chặn heartbeat. | Chỉ cho khi `invited→cancelled`. |
+| RPS-11 | P3 | rules presence | Giá trị presence không pin `== request.time`. | Pin (cần cho RPS-5). |
+| RPS-12 | P3 | invite khi waiting_partner | Tạo ván trong couple 1 người. | Chặn khi partnerUid rỗng → `rpsNeedCouple`. |
+| RPS-13 | P3 | home route guard | 2 RpsGameScreen chồng nhau (qua History + tap push) → màn dưới kẹt skeleton. | Guard theo stack / ref-count enter-leave. |
+| RPS-14 | P3 | CF `notifyRpsResult` onUpdate | ~40 invocation/phút/ván do heartbeat; rời <20s trước finish không nhận push. | Gửi push trong transaction finish, bỏ onUpdate. |
+| RPS-15 | P3 | a11y tile/card | `Semantics(button)` không có onTap. | Truyền onTap. |
+| RPS-16 | P3 | copy CF | "Your partner" vs "Your person"; lệch design §9.7. | Đồng bộ copy. |
+| RPS-17 | P3 | mixed-version | App 1.6.x nhận push invite nhưng không có màn. | Chấp nhận + release notes. |
+| RPS-18 | P3 | totalScore/badge | Lệch khi ván finish ngoài màn; 3 chữ số bị cắt. | Refresh khi finished qua stream; FittedBox. |
 
-*(Kết quả: ✅ pass · ❌ fail · ⬜ chưa chạy)*
+**Điểm mạnh (đừng báo nhầm):** chống lộ lựa chọn ĐẠT (get/list/collectionGroup moves đều DENY khi playing); client không ghi được finished/result; resolve+finish idempotent; CF người nhận = memberIds (không lặp lỗ answerAuthorUid); startIfBothPresent transaction; index khớp; routing push/inbox đồng bộ 2 chỗ; không leak Timer/Subscription; Reduce Motion đủ; l10n khớp, không "hai đứa".
 
-## Bug report (nếu FAIL)
-### BUG-1: <tiêu đề>
-- **Severity:** <critical | major | minor>
-- **File/màn hình:** <file:line>
-- **Expected:** <…>
-- **Actual:** <…>
-- **Steps to reproduce:** 1) … 2) … (ghi nhánh Firebase/local nếu liên quan)
-
-## Nhật ký test
-- [<YYYY-MM-DD>] [Tester] <đã test gì / kết quả>
+**Chưa verify (cần runtime):** push invite <5s trên Android thật; lệch đếm 2 máy; heartbeat nền Android; tour đè màn; `count()` isNull field lồng; glyph medallion; a11y TalkBack.

@@ -24,6 +24,7 @@ import '../providers/photo_provider.dart';
 import '../providers/answer_reaction_provider.dart';
 import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
+import '../providers/rps_game_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/catchup_service.dart';
@@ -52,7 +53,7 @@ import 'profile_screen.dart';
 import 'gallery_screen.dart';
 import 'care_message_screen.dart';
 import 'notification_center_screen.dart';
-import 'rps_game_screen.dart' show openRpsGame;
+import 'rps_game_screen.dart' show RpsGameScreen, openRpsGame;
 import 'rps_history_screen.dart' show openRpsHistory;
 
 class HomeScreen extends StatefulWidget {
@@ -405,6 +406,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Guards [FeatureTour.maybeShow] to one attempt per Home lifetime.
   bool _featureTourChecked = false;
 
+  // Rock-paper-scissors (Tester RPS-7): the tour sheet / catch-up gate must
+  // not land on top of a round (cold start from an `rps_invite` push → the
+  // sheet covered the countdown and the player lost). Held while a game
+  // screen is open or about to open, retried once it closes.
+  bool _featureTourDeferred = false;
+  bool _catchupDeferred = false;
+  DateTime? _rpsRouteRequestedAt;
+
   /// Captured in initState so the chat presence heartbeat can be cleared safely
   /// from dispose without touching a deactivated BuildContext (presence-suppress
   /// 2026-06-19).
@@ -495,13 +504,71 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // "Có gì mới" tour (feature onboarding, 2026-09-05): once per build, after
     // the first frame settles and never on top of the catch-up gate.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future<void>.delayed(const Duration(milliseconds: 900), () {
-        if (!mounted || _featureTourChecked || CatchupGate.isShowing) {
-          return;
-        }
-        _featureTourChecked = true;
-        FeatureTour.maybeShow(context, onOpenTab: _selectTab);
-      });
+      Future<void>.delayed(const Duration(milliseconds: 900), _tryFeatureTour);
+    });
+    RpsGameScreen.mountedCount.addListener(_onRpsScreensChanged);
+  }
+
+  /// One "Có gì mới" attempt — held (not recorded as seen) while a
+  /// rock-paper-scissors round is on screen or about to be (RPS-7).
+  Future<void> _tryFeatureTour() async {
+    if (!mounted || _featureTourChecked || CatchupGate.isShowing) {
+      return;
+    }
+    if (_rpsGameActive) {
+      _featureTourDeferred = true;
+      return;
+    }
+    _featureTourChecked = true;
+    final handled = await FeatureTour.maybeShow(
+      context,
+      onOpenTab: _selectTab,
+      deferIf: () => _rpsGameActive,
+    );
+    if (!handled) {
+      _featureTourChecked = false;
+      _featureTourDeferred = true;
+    }
+  }
+
+  /// A game screen is open, or a tapped `rps_invite` is on its way to open
+  /// one (focus/game id published but not consumed yet, or consumed < 3s ago
+  /// and the route not mounted yet).
+  bool get _rpsGameActive {
+    if (RpsGameScreen.isOpen ||
+        NotificationTapRouter.pendingRpsGameId.value != null ||
+        NotificationTapRouter.pendingHomeFocus.value ==
+            NotificationTapRouter.focusRpsGame) {
+      return true;
+    }
+    final requested = _rpsRouteRequestedAt;
+    return requested != null &&
+        DateTime.now().difference(requested) < const Duration(seconds: 3);
+  }
+
+  /// [RpsGameScreen.mountedCount] changed (may fire mid-build / dispose —
+  /// everything here is deferred). Last game screen closed → run whatever
+  /// was held for it.
+  void _onRpsScreensChanged() {
+    if (RpsGameScreen.isOpen) {
+      _rpsRouteRequestedAt = null; // the requested route has mounted
+      return;
+    }
+    if (!_featureTourDeferred && !_catchupDeferred) {
+      return;
+    }
+    Future<void>.delayed(const Duration(milliseconds: 700), () {
+      if (!mounted || _rpsGameActive) {
+        return;
+      }
+      if (_featureTourDeferred) {
+        _featureTourDeferred = false;
+        _tryFeatureTour();
+      }
+      if (_catchupDeferred) {
+        _catchupDeferred = false;
+        _maybeRunCatchup(force: true);
+      }
     });
   }
 
@@ -513,6 +580,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     NotificationTapRouter.pendingHomeFocus.removeListener(
       _onNotificationFocusRequest,
     );
+    RpsGameScreen.mountedCount.removeListener(_onRpsScreensChanged);
     _streakProvider?.removeListener(_onStreakChanged);
     _streakProvider?.removeListener(_refreshDqSafetyNet);
     _dqProvider?.removeListener(_refreshDqSafetyNet);
@@ -698,6 +766,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!CatchupService.isGatedEmail(email)) {
       return;
     }
+    // Never block a rock-paper-scissors round (RPS-7) — retried when the
+    // game screen closes.
+    if (_rpsGameActive) {
+      _catchupDeferred = true;
+      return;
+    }
     final myUid = auth.currentUser?.id;
     final couple = context.read<CoupleProvider>().couple;
     if (myUid == null ||
@@ -750,6 +824,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         missedCount: missed.length,
       );
       if (missed.isEmpty || !mounted) {
+        return;
+      }
+      if (_rpsGameActive) {
+        // A round opened while the backlog was being scanned — hold the gate.
+        _catchupDeferred = true;
+        _catchupLastCheck = null;
         return;
       }
       await CatchupGate.show(
@@ -844,15 +924,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// navigation is deferred to a post-frame callback (the route is pushed on
   /// top of Home, which is already the resolver's destination).
   void _openRpsGameRoute(String? gameId) {
+    // Holds the tour / catch-up gate until the route has mounted (RPS-7).
+    _rpsRouteRequestedAt = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
-      // Already on the game screen (warm tap while playing) → don't stack a
-      // second one; the provider follows the open game by itself.
-      if (_isRouteOnTop('RpsGame')) {
-        return;
-      }
+      // A game screen already in the stack (even under the history screen)
+      // is popped back to and switched to [gameId] instead of stacking a
+      // second one — handled inside [openRpsGame] (Tester RPS-13).
       openRpsGame(context, gameId: gameId);
     });
   }
@@ -1579,6 +1659,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           );
           // Mood (feature mood) — re-arm so the card is live + resets at midnight.
           context.read<MoodProvider>().watchForCouple(couple.id, myUid);
+          // Rock-paper-scissors — re-arm with the live partner so a partner
+          // joining mid-session unlocks invites ('' while waiting, RPS-12).
+          context.read<RpsGameProvider>().watchForCouple(
+            couple.id,
+            myUid,
+            couple.isWaitingForPartner
+                ? ''
+                : couple.memberIds.firstWhere(
+                    (id) => id != myUid,
+                    orElse: () => '',
+                  ),
+          );
           // Chat stream (feature chat) — must run from Home so the unread dot
           // works on every tab. watchForCouple no-ops when unchanged.
           context.read<ChatProvider>().watchForCouple(couple.id, myUid);

@@ -199,11 +199,15 @@ class _RpsChoiceTileState extends State<RpsChoiceTile> {
       ),
     );
 
+    // onTap on the Semantics node itself (Tester RPS-15): the InkWell below
+    // sits inside ExcludeSemantics, so without it TalkBack/VoiceOver announce
+    // a button that does nothing on double-tap.
     return Semantics(
       button: true,
       selected: selected,
       enabled: _tappable,
       label: l10n.rpsChoiceSemantics(label),
+      onTap: _tappable ? _handleTap : null,
       child: ExcludeSemantics(
         child: IgnorePointer(
           ignoring: !_tappable,

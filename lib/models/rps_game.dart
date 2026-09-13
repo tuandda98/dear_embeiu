@@ -370,6 +370,74 @@ class RpsGame {
         RpsTiming.countdown + RpsTiming.grace;
   }
 
+  /// Still `invited`/`playing` on the server but nobody can play it any more
+  /// (Tester RPS-2): an invite past its TTL that no client flipped to
+  /// `expired` yet, or a round past `countdown + grace` that no client asked
+  /// the callable to settle. Such a game must never be treated as "the
+  /// couple's current game". [now] = best SERVER-time estimate.
+  bool isDeadOpen({required DateTime now}) =>
+      (isInvited && isInviteStale(now: now)) ||
+      (isPlaying && isPastGrace(now: now));
+
+  /// Strictly newer than [other] by server `createdAt`. A missing stamp (a
+  /// create still pending locally) never counts as newer — the two phones
+  /// must agree, and only the server stamp is shared.
+  bool isNewerThan(RpsGame other) {
+    final mine = createdAt;
+    final theirs = other.createdAt;
+    return mine != null && theirs != null && mine.isAfter(theirs);
+  }
+
+  /// The couple's current open game from newest-first [candidates] (the
+  /// open-games stream): the first one that is open and not
+  /// [isDeadOpen]. Both phones read the same docs, so they agree on it.
+  static RpsGame? pickOpen(Iterable<RpsGame> candidates, {required DateTime now}) {
+    for (final game in candidates) {
+      if (game.isOpen && !game.isDeadOpen(now: now)) {
+        return game;
+      }
+    }
+    return null;
+  }
+
+  /// Whether the game screen showing [current] should switch to [open] (the
+  /// [pickOpen] result) — Tester RPS-1/RPS-2:
+  /// - never to a game I created (I entered it myself) or the same game;
+  /// - from a CLOSED game (result/expired/cancelled): only to its own rematch
+  ///   (`open.rematchOf == current.id`) or a strictly newer game — never
+  ///   back to an older, dead-looking one;
+  /// - while WAITING on an invite: to the partner's game when both are
+  ///   rematches of the same round (two "Chơi lại" taps that raced), to the
+  ///   deterministic rematch target, or to a strictly newer invite — both
+  ///   phones pick the same newest game, so they converge instead of each
+  ///   waiting on its own;
+  /// - never mid-round (`playing`).
+  static bool shouldFollow({
+    required RpsGame current,
+    required RpsGame open,
+    required String myUid,
+  }) {
+    if (open.id == current.id || !open.isOpen || open.isCreatedBy(myUid)) {
+      return false;
+    }
+    switch (current.status) {
+      case RpsGameStatus.playing:
+        return false;
+      case RpsGameStatus.invited:
+        final source = current.rematchOf;
+        if (source != null &&
+            (open.rematchOf == source || open.id == rpsRematchGameId(source))) {
+          return true;
+        }
+        return open.isNewerThan(current);
+      case RpsGameStatus.finished:
+      case RpsGameStatus.cancelled:
+      case RpsGameStatus.expired:
+      case RpsGameStatus.unknown:
+        return open.rematchOf == current.id || open.isNewerThan(current);
+    }
+  }
+
   factory RpsGame.fromFirestore(String id, Map<String, dynamic> data) {
     final rawPresence = data['presence'];
     final presence = <String, DateTime>{};
@@ -423,6 +491,26 @@ class RpsGame {
     return null;
   }
 }
+
+/// Deterministic doc id of the "Chơi lại" game for [previousGameId] (Tester
+/// RPS-1): both phones tapping "Chơi lại" at once land on the SAME doc — the
+/// first create wins, the second finds it and just joins.
+///
+/// `rematch_<prev>` for the first rematch of a round; a rematch OF a rematch
+/// keeps the root and counts rounds (`rematch_<root>_2`, `_3`, …) instead of
+/// nesting `rematch_rematch_…` — a long evening of "Chơi lại" would otherwise
+/// grow the id ~8 bytes per round toward Firestore's 1500-byte doc-id cap.
+String rpsRematchGameId(String previousGameId) {
+  final prev = previousGameId.trim();
+  final match = _rpsRematchIdPattern.firstMatch(prev);
+  if (match == null) {
+    return 'rematch_$prev';
+  }
+  final round = int.tryParse(match.group(2) ?? '') ?? 1;
+  return 'rematch_${match.group(1)}_${round + 1}';
+}
+
+final RegExp _rpsRematchIdPattern = RegExp(r'^rematch_([A-Za-z0-9]+)(?:_(\d+))?$');
 
 /// Win/loss/draw tally from MY side, computed from a list of finished games.
 class RpsScore {

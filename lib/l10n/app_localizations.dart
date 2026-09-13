@@ -6425,7 +6425,7 @@ abstract class AppLocalizations {
   /// Offline strip above the hand buttons.
   ///
   /// In en, this message translates to:
-  /// **'Offline — the clock keeps running; your pick sends once you\'re back online'**
+  /// **'Offline — the clock keeps running; your pick only counts if it gets through before time\'s up'**
   String get rpsOfflineHint;
 
   /// Result subtitle for a draw.
@@ -6479,7 +6479,7 @@ abstract class AppLocalizations {
   /// Body of the expired-invite state.
   ///
   /// In en, this message translates to:
-  /// **'Your person didn\'t make it within 10 minutes. Try again when you\'re both free.'**
+  /// **'This invite expired after 10 minutes. Start a new round!'**
   String get rpsExpiredBody;
 
   /// Body of the cancelled-invite state.

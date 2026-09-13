@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -236,16 +238,28 @@ class AnalyticsService {
       clean = <String, Object>{};
       params.forEach((key, value) {
         if (value == null) return;
-        if (value is String || value is num || value is bool) {
+        if (value is String || value is num) {
           clean![key] = value;
+        } else if (value is bool) {
+          // The plugin only accepts String/num (debug assertion — it threw
+          // straight into the caller, e.g. RpsGameProvider.invite after the
+          // game was already created, found 2026-09-14). GA4 convention: 1/0.
+          clean![key] = value ? 1 : 0;
         }
       });
       if (clean.isEmpty) {
         clean = null;
       }
     }
-    // Fire-and-forget; analytics latency must never block the caller.
-    analytics.logEvent(name: name, parameters: clean);
+    // Fire-and-forget; analytics latency must never block the caller — nor
+    // may an analytics error escape into it.
+    try {
+      unawaited(
+        analytics.logEvent(name: name, parameters: clean).catchError((_) {}),
+      );
+    } catch (e) {
+      debugPrint('AnalyticsService.logEvent($name) failed: $e');
+    }
   }
 
   // ---------------------------------------------------------------------------

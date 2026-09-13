@@ -2867,7 +2867,7 @@
   "@rpsReloadCta": {
     "description": "Button to re-read the game when settling is slow."
   },
-  "rpsOfflineHint": "Offline — the clock keeps running; your pick sends once you're back online",
+  "rpsOfflineHint": "Offline — the clock keeps running; your pick only counts if it gets through before time's up",
   "@rpsOfflineHint": {
     "description": "Offline strip above the hand buttons."
   },
@@ -2919,7 +2919,7 @@
       }
     }
   },
-  "rpsExpiredBody": "Your person didn't make it within 10 minutes. Try again when you're both free.",
+  "rpsExpiredBody": "This invite expired after 10 minutes. Start a new round!",
   "@rpsExpiredBody": {
     "description": "Body of the expired-invite state."
   },

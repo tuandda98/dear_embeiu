@@ -2209,7 +2209,7 @@
   "@rpsReloadCta": {
     "description": "Button to re-read the game when settling is slow."
   },
-  "rpsOfflineHint": "Mất mạng — đồng hồ vẫn chạy, lựa chọn sẽ gửi khi có mạng",
+  "rpsOfflineHint": "Mất mạng — đồng hồ vẫn chạy, lựa chọn chỉ được tính nếu kịp gửi trước khi hết giờ",
   "@rpsOfflineHint": {
     "description": "Offline strip above the hand buttons."
   },
@@ -2261,7 +2261,7 @@
       }
     }
   },
-  "rpsExpiredBody": "Người ấy không kịp vào trong 10 phút. Rủ lại khi cả hai rảnh nhé.",
+  "rpsExpiredBody": "Lời mời quá 10 phút nên đã hết hạn. Rủ lại nhé!",
   "@rpsExpiredBody": {
     "description": "Body of the expired-invite state."
   },

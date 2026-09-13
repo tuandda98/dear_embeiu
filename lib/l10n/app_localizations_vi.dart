@@ -3705,7 +3705,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get rpsOfflineHint =>
-      'Mất mạng — đồng hồ vẫn chạy, lựa chọn sẽ gửi khi có mạng';
+      'Mất mạng — đồng hồ vẫn chạy, lựa chọn chỉ được tính nếu kịp gửi trước khi hết giờ';
 
   @override
   String rpsResultDrawSub(String choice) {
@@ -3737,7 +3737,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get rpsExpiredBody =>
-      'Người ấy không kịp vào trong 10 phút. Rủ lại khi cả hai rảnh nhé.';
+      'Lời mời quá 10 phút nên đã hết hạn. Rủ lại nhé!';
 
   @override
   String get rpsCancelledBody =>

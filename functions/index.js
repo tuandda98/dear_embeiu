@@ -1582,27 +1582,41 @@ const RPS_GRACE_MS = 2 * 1000;
 // follows the new game by itself.
 const RPS_REMATCH_PRESENCE_FRESH_MS = 30 * 1000;
 // Result push: only members whose presence is older than this (they left the
-// game screen) get told; the ones still watching see the reveal live.
-const RPS_RESULT_PRESENCE_STALE_MS = 20 * 1000;
+// game screen) get told; the ones still watching see the reveal live. 8s = two
+// missed 3s heartbeats (PO 2026-09-14, down from 20s): with the client pausing
+// its heartbeat when the app backgrounds / the game route is covered (RPS-3),
+// someone who leaves mid-countdown now still gets the result push.
+const RPS_RESULT_PRESENCE_STALE_MS = 8 * 1000;
 
+// Copy = design.md §9.7. `<name>` (invite only) is the sender's RAW display
+// name; empty → `partnerFallback` in the RECIPIENT's language (EN "Your person"
+// matches the app's own fallback). Result pushes are phrased from the
+// recipient's point of view; a timeout round keeps the win/lose/draw title but
+// swaps the body for `resultTimeoutBody`.
 const RPS_COPY = {
   vi: {
     partnerFallback: "Người ấy",
-    inviteTitle: (name) => `${name} rủ bạn oẳn tù tì! ✌️✊✋`,
-    inviteBody: "Vào chọn Kéo / Búa / Bao trong 5 giây ⏱️",
-    resultTitle: "Oẳn tù tì",
-    resultWin: "Bạn thắng ván oẳn tù tì 🎉",
-    resultLose: (name) => `${name} thắng rồi 😝`,
-    resultDraw: "Hoà! Chơi lại ván nữa nhé ✌️",
+    inviteTitle: "Oẳn tù tì! ✌️✊✋",
+    inviteBody: (name) => `${name} rủ bạn chơi một ván — vào chọn trong 5 giây ⏱️`,
+    resultWinTitle: "Bạn thắng rồi 🎉",
+    resultWinBody: "Ván oẳn tù tì vừa rồi là của bạn. Xem lại trong lịch sử nhé.",
+    resultLoseTitle: "Người ấy thắng rồi 😝",
+    resultLoseBody: "Thua một ván thôi mà — rủ chơi lại cho đỡ tức nào.",
+    resultDrawTitle: "Hoà! 🤝",
+    resultDrawBody: "Chúng mình ra giống nhau. Thêm ván nữa để phân thắng bại?",
+    resultTimeoutBody: "Ván vừa rồi có người không kịp chọn.",
   },
   en: {
-    partnerFallback: "Your partner",
-    inviteTitle: (name) => `${name} challenged you to rock-paper-scissors! ✌️✊✋`,
-    inviteBody: "Jump in and pick within 5 seconds ⏱️",
-    resultTitle: "Rock-paper-scissors",
-    resultWin: "You won the rock-paper-scissors round 🎉",
-    resultLose: (name) => `${name} won this one 😝`,
-    resultDraw: "It's a draw! Play again? ✌️",
+    partnerFallback: "Your person",
+    inviteTitle: "Rock, paper, scissors! ✌️✊✋",
+    inviteBody: (name) => `${name} challenged you to a round — pick within 5 seconds ⏱️`,
+    resultWinTitle: "You won 🎉",
+    resultWinBody: "That round was yours. Check the history to relive it.",
+    resultLoseTitle: "Your person won 😝",
+    resultLoseBody: "Just one round — challenge them to a rematch.",
+    resultDrawTitle: "A draw! 🤝",
+    resultDrawBody: "You both picked the same. One more to settle it?",
+    resultTimeoutBody: "Someone didn't pick in time that round.",
   },
 };
 
@@ -1615,20 +1629,26 @@ function rpsCopyFor(languageCode) {
 function buildRpsInviteText(languageCode, actorName) {
   const copy = rpsCopyFor(languageCode);
   const name = `${actorName || ""}`.trim() || copy.partnerFallback;
-  return {title: copy.inviteTitle(name), body: copy.inviteBody};
+  return {title: copy.inviteTitle, body: copy.inviteBody(name)};
 }
 
-// outcome: 'win' | 'lose' | 'draw' from the RECIPIENT's point of view.
-function buildRpsResultText(languageCode, outcome, winnerName) {
+// outcome: 'win' | 'lose' | 'draw' from the RECIPIENT's point of view;
+// reason: the stored `result.reason` ('normal' | 'timeout').
+function buildRpsResultText(languageCode, outcome, reason) {
   const copy = rpsCopyFor(languageCode);
-  const name = `${winnerName || ""}`.trim() || copy.partnerFallback;
-  let body = copy.resultDraw;
+  let title = copy.resultDrawTitle;
+  let body = copy.resultDrawBody;
   if (outcome === "win") {
-    body = copy.resultWin;
+    title = copy.resultWinTitle;
+    body = copy.resultWinBody;
   } else if (outcome === "lose") {
-    body = copy.resultLose(name);
+    title = copy.resultLoseTitle;
+    body = copy.resultLoseBody;
   }
-  return {title: copy.resultTitle, body};
+  if (reason === "timeout") {
+    body = copy.resultTimeoutBody;
+  }
+  return {title, body};
 }
 
 // Millis of a Firestore Timestamp / Date / number-ish value, or null.
@@ -1712,7 +1732,8 @@ async function rpsLoadDisplayName(uid) {
 // Closes `gameRef` inside a transaction. `requireBothMoves` = trigger path
 // (only finish when both moves are in); otherwise = timeout path (missing
 // move → 'none', but only once `startedAt + 7s` has passed).
-// Resolves to {ok, reason?, result?, already?}.
+// Resolves to {ok, reason?, result?, already?, finishedGame?} — `finishedGame`
+// only for the call that committed the finish (see sendRpsResultPushes).
 async function rpsFinishInTransaction(gameRef, memberIds, {requireBothMoves}) {
   return db.runTransaction(async (tx) => {
     const gameSnap = await tx.get(gameRef);
@@ -1758,8 +1779,82 @@ async function rpsFinishInTransaction(gameRef, memberIds, {requireBothMoves}) {
       finishedAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-    return {ok: true, result};
+    // `finishedGame` = the doc as THIS call committed it (presence as read in
+    // the transaction) — only returned to the caller that actually flipped the
+    // game to finished, so the result push goes out exactly once.
+    return {ok: true, result, finishedGame: {...game, status: "finished", result}};
   });
+}
+
+// Result push (RPS-14 — replaces the old onDocumentUpdated trigger, which fired
+// on every 3s presence heartbeat ≈ 40 invocations/min/game). Called ONLY by the
+// resolveRpsGame / finishRpsGame call whose transaction moved the game to
+// `finished` (never on `already`). Tells the members who already LEFT the game
+// screen (presence older than 8s / never present) how it ended; members still
+// watching see the reveal live. Push only — the history screen is the record,
+// so no inbox item. Never throws: a push failure must not fail the finish.
+async function sendRpsResultPushes(coupleId, gameId, gameDataAfter) {
+  try {
+    const game = gameDataAfter || {};
+    const memberIds = await rpsLoadMemberIds(coupleId);
+    if (!memberIds || memberIds.length === 0) {
+      logger.warn("RPS result notification skipped because couple document was not found.", {coupleId, gameId});
+      return;
+    }
+
+    const result = (game.result && typeof game.result === "object") ? game.result : {};
+    const winnerUid = typeof result.winnerUid === "string" ? result.winnerUid : null;
+    const reason = result.reason === "timeout" ? "timeout" : "normal";
+    const nowMs = Date.now();
+    const recipientIds = memberIds.filter((uid) => {
+      const presenceMs = rpsPresenceMillis(game.presence, uid);
+      return presenceMs === null || nowMs - presenceMs > RPS_RESULT_PRESENCE_STALE_MS;
+    });
+    if (recipientIds.length === 0) {
+      logger.info("RPS result notification skipped: both members are still on the game screen.", {
+        coupleId,
+        gameId,
+      });
+      return;
+    }
+
+    let attemptedTokens = 0;
+    let successCount = 0;
+    let failureCount = 0;
+    for (const recipientId of recipientIds) {
+      let outcome = "draw";
+      if (winnerUid) {
+        outcome = winnerUid === recipientId ? "win" : "lose";
+      }
+      const sendResult = await sendToRecipientDevices(
+        [recipientId],
+        (languageCode) => buildRpsResultText(languageCode, outcome, reason),
+        {type: "rps_result", coupleId, gameId},
+      );
+      attemptedTokens += sendResult.deviceCount;
+      successCount += sendResult.successCount;
+      failureCount += sendResult.failureCount;
+      if (sendResult.failures.length > 0) {
+        logger.warn("RPS result notification had delivery failures.", {
+          coupleId,
+          gameId,
+          recipientId,
+          failures: sendResult.failures,
+        });
+      }
+    }
+
+    logger.info("Processed RPS result notification.", {
+      coupleId,
+      gameId,
+      recipients: recipientIds.length,
+      attemptedTokens,
+      successCount,
+      failureCount,
+    });
+  } catch (err) {
+    logger.error("RPS result notification failed.", {coupleId, gameId, message: err && err.message});
+  }
 }
 
 // A rủ B: push + inbox to the partner. Skipped for a rematch whose partner is
@@ -1903,6 +1998,9 @@ exports.resolveRpsGame = onDocumentCreated(
     try {
       const outcome = await rpsFinishInTransaction(gameRef, memberIds, {requireBothMoves: true});
       logger.info("resolveRpsGame processed.", {coupleId, gameId, outcome: outcome.reason || (outcome.already ? "already" : "finished")});
+      if (outcome.ok && !outcome.already && outcome.finishedGame) {
+        await sendRpsResultPushes(coupleId, gameId, outcome.finishedGame);
+      }
     } catch (err) {
       logger.error("resolveRpsGame failed.", {coupleId, gameId, message: err && err.message});
     }
@@ -1952,7 +2050,13 @@ exports.finishRpsGame = onCall(
         reason: outcome.reason || null,
         already: outcome.already === true,
       });
-      return outcome;
+      const {finishedGame, ...response} = outcome;
+      if (outcome.ok && !outcome.already && finishedGame) {
+        // Awaited before returning: gen2 CPU is throttled once the response is
+        // sent, so a fire-and-forget push could be dropped.
+        await sendRpsResultPushes(coupleId, gameId, finishedGame);
+      }
+      return response;
     } catch (err) {
       if (err instanceof HttpsError) {
         throw err;
@@ -1960,90 +2064,6 @@ exports.finishRpsGame = onCall(
       logger.error("finishRpsGame failed.", {coupleId, gameId, message: err && err.message});
       throw new HttpsError("internal", "Could not finish the game.");
     }
-  },
-);
-
-// status → finished: tell the members who already LEFT the game screen
-// (presence older than 20s / never present) how it ended. Members still
-// watching see the reveal live. Push only — the history screen is the record,
-// so no inbox item.
-exports.notifyRpsResult = onDocumentUpdated(
-  {document: "couples/{coupleId}/games/{gameId}", region: "us-central1"},
-  async (event) => {
-    const change = event.data;
-    if (!change || !change.after) {
-      return;
-    }
-    const before = (change.before && change.before.data()) || {};
-    const after = change.after.data() || {};
-    if (after.type !== "rps" || after.status !== "finished" || before.status === "finished") {
-      return;
-    }
-
-    const coupleId = `${event.params.coupleId || ""}`.trim();
-    const gameId = `${event.params.gameId || ""}`.trim();
-    if (!coupleId || !gameId) {
-      return;
-    }
-
-    const memberIds = await rpsLoadMemberIds(coupleId);
-    if (!memberIds || memberIds.length === 0) {
-      logger.warn("RPS result notification skipped because couple document was not found.", {coupleId, gameId});
-      return;
-    }
-
-    const result = (after.result && typeof after.result === "object") ? after.result : {};
-    const winnerUid = typeof result.winnerUid === "string" ? result.winnerUid : null;
-    const nowMs = Date.now();
-    const recipientIds = memberIds.filter((uid) => {
-      const presenceMs = rpsPresenceMillis(after.presence, uid);
-      return presenceMs === null || nowMs - presenceMs > RPS_RESULT_PRESENCE_STALE_MS;
-    });
-    if (recipientIds.length === 0) {
-      logger.info("RPS result notification skipped: both members are still on the game screen.", {
-        coupleId,
-        gameId,
-      });
-      return;
-    }
-
-    // Left RAW so the fallback localizes per recipient device.
-    const winnerName = winnerUid ? await rpsLoadDisplayName(winnerUid) : "";
-
-    let attemptedTokens = 0;
-    let successCount = 0;
-    let failureCount = 0;
-    for (const recipientId of recipientIds) {
-      let outcome = "draw";
-      if (winnerUid) {
-        outcome = winnerUid === recipientId ? "win" : "lose";
-      }
-      const sendResult = await sendToRecipientDevices(
-        [recipientId],
-        (languageCode) => buildRpsResultText(languageCode, outcome, winnerName),
-        {type: "rps_result", coupleId, gameId},
-      );
-      attemptedTokens += sendResult.deviceCount;
-      successCount += sendResult.successCount;
-      failureCount += sendResult.failureCount;
-      if (sendResult.failures.length > 0) {
-        logger.warn("RPS result notification had delivery failures.", {
-          coupleId,
-          gameId,
-          recipientId,
-          failures: sendResult.failures,
-        });
-      }
-    }
-
-    logger.info("Processed RPS result notification.", {
-      coupleId,
-      gameId,
-      recipients: recipientIds.length,
-      attemptedTokens,
-      successCount,
-      failureCount,
-    });
   },
 );
 

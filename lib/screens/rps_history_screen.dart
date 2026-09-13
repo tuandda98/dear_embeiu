@@ -411,6 +411,15 @@ class _HistoryRow extends StatelessWidget {
       }
     }
 
+    // PO 2026-09-14: a round only ONE side skipped keeps its win/lose pill
+    // (it counts in the score) and the skipper's hand becomes a small
+    // "⏳ Bỏ lượt" chip; both skipped → two ⏳ + the "Bỏ lượt" pill.
+    final oneSideSkipped = skipped && outcome != RpsOutcome.draw;
+    Widget hand(RpsChoice choice, Color? ring) =>
+        oneSideSkipped && !choice.isHand
+        ? _SkippedChip(label: l10n.rpsChoiceNone)
+        : _HandGlyph(choice: choice, ring: ring);
+
     return Semantics(
       label: l10n.rpsHistoryRowSemantics(
         time,
@@ -435,9 +444,9 @@ class _HistoryRow extends StatelessWidget {
                   ),
                 ),
               ),
-              _HandGlyph(
-                choice: mine,
-                ring: outcome == RpsOutcome.win
+              hand(
+                mine,
+                outcome == RpsOutcome.win
                     ? AppColors.accentRose.withValues(alpha: 0.12)
                     : null,
               ),
@@ -452,33 +461,76 @@ class _HistoryRow extends StatelessWidget {
                   ),
                 ),
               ),
-              _HandGlyph(
-                choice: theirs,
-                ring: outcome == RpsOutcome.lose
+              hand(
+                theirs,
+                outcome == RpsOutcome.lose
                     ? AppColors.accentLavender.withValues(alpha: 0.12)
                     : null,
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: pillFill,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  pillLabel,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: pillInk,
+              const SizedBox(width: 8),
+              // The pill absorbs any squeeze (≤320pt + a skipped chip): it
+              // ellipsizes instead of overflowing the row.
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: pillFill,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      pillLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: pillInk,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "⏳ Bỏ lượt" in place of a hand the player didn't throw in a round the
+/// OTHER side won by timeout (PO 2026-09-14) — neutral textTertiary tint like
+/// the "Bỏ lượt" pill, 30pt tall to line up with [_HandGlyph].
+class _SkippedChip extends StatelessWidget {
+  const _SkippedChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 30,
+      constraints: const BoxConstraints(maxWidth: 92),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.textTertiary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        '${rpsChoiceGlyph(RpsChoice.none)} $label',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textTertiary,
+          height: 1,
         ),
       ),
     );

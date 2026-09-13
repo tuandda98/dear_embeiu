@@ -3718,7 +3718,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rpsOfflineHint =>
-      'Offline — the clock keeps running; your pick sends once you\'re back online';
+      'Offline — the clock keeps running; your pick only counts if it gets through before time\'s up';
 
   @override
   String rpsResultDrawSub(String choice) {
@@ -3750,7 +3750,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rpsExpiredBody =>
-      'Your person didn\'t make it within 10 minutes. Try again when you\'re both free.';
+      'This invite expired after 10 minutes. Start a new round!';
 
   @override
   String get rpsCancelledBody =>
