@@ -4,7 +4,7 @@
 
 - **Feature:** rps-game
 - **Ưu tiên:** P1 (user yêu cầu 2026-09-13)
-- **Trạng thái:** 💻 Dev lại (đổi luật 2026-09-14: bỏ "bỏ lượt", chờ đủ 2 người ra tay + nhắc) — sau đó Tester vòng 3
+- **Trạng thái:** 🚀 Đã ship trong 1.7.0+23 (submit CẢ 2 store 2026-09-14, PROD backend deployed) — chờ duyệt; ✅ Done khi 1.7.0 live + verify push thật trên máy thật
 - **Tạo ngày:** 2026-09-13
 - **Liên quan:** [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · bối cảnh [`../../../CLAUDE.md`](../../../CLAUDE.md)
 
@@ -131,3 +131,4 @@
 
 - [2026-09-14] [PO] Đổi luật theo user: bỏ "bỏ lượt", chờ đủ 2 người ra tay, CF ghi `moved` + push/inbox `rps_moved`, callable `nudgeRpsPlayer`, gỡ `finishRpsGame`.
 - [2026-09-14] [PO] Chốt 3 câu Designer (addendum luật mới): (1) KHÔNG thêm "Bỏ ván sau 24h" ở v1 — đúng ý user "chờ tới khi ra tay"; giới hạn đã biết: ván `playing` treo nếu người ấy không bao giờ ra (đang chặn rủ ván mới) → để Phase 2; (2) giữ card state "ván đang dở"; (3) push nhắc tay dùng chung copy `rps_moved`. Copy push mời bỏ "vào chọn trong 5 giây".
+- [2026-09-14] [PO] Tester vòng 3 PASS → vá RPS-24..27 → release 1.7.0+23: PROD deploy rules+indexes+3 CF, submit App Store (Waiting for Review) + Play (đang xem xét).
