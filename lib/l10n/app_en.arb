@@ -2710,7 +2710,7 @@
       }
     }
   },
-  "rpsEntryInvitedTitle": "Your person is challenging you!",
+  "rpsEntryInvitedTitle": "You're challenged!",
   "@rpsEntryInvitedTitle": {
     "description": "Home card title when the partner has an open invite."
   },
@@ -3081,7 +3081,7 @@
   "@rpsChosenLeaveHint": {
     "description": "Play screen hint under the nudge button: leaving is fine, the result is pushed."
   },
-  "rpsEntryMyTurnSubtitle": "Your move — they're waiting 😄",
+  "rpsEntryMyTurnSubtitle": "Your turn — go ahead 😄",
   "@rpsEntryMyTurnSubtitle": {
     "description": "Home card subtitle when the partner has thrown and I have not."
   },
@@ -3089,15 +3089,15 @@
   "@rpsEntryUnplayedTitle": {
     "description": "Home card title: a started round where nobody has thrown yet."
   },
-  "rpsEntryUnplayedSubtitle": "Nobody has thrown yet — go first",
+  "rpsEntryUnplayedSubtitle": "No one's thrown — go first",
   "@rpsEntryUnplayedSubtitle": {
     "description": "Home card subtitle for rpsEntryUnplayedTitle."
   },
-  "rpsEntryAwaitingTitle": "Waiting for your person's move",
+  "rpsEntryAwaitingTitle": "Waiting for their move",
   "@rpsEntryAwaitingTitle": {
     "description": "Home card title: I have thrown, the partner has not."
   },
-  "rpsEntryAwaitingSubtitle": "You've thrown · we'll tell you the result",
+  "rpsEntryAwaitingSubtitle": "You've thrown · we'll tell you",
   "@rpsEntryAwaitingSubtitle": {
     "description": "Home card subtitle for rpsEntryAwaitingTitle."
   },

@@ -6245,7 +6245,7 @@ abstract class AppLocalizations {
   /// Home card title when the partner has an open invite.
   ///
   /// In en, this message translates to:
-  /// **'Your person is challenging you!'**
+  /// **'You\'re challenged!'**
   String get rpsEntryInvitedTitle;
 
   /// Home card subtitle when the partner has an open invite.
@@ -6676,7 +6676,7 @@ abstract class AppLocalizations {
   /// Home card subtitle when the partner has thrown and I have not.
   ///
   /// In en, this message translates to:
-  /// **'Your move — they\'re waiting 😄'**
+  /// **'Your turn — go ahead 😄'**
   String get rpsEntryMyTurnSubtitle;
 
   /// Home card title: a started round where nobody has thrown yet.
@@ -6688,19 +6688,19 @@ abstract class AppLocalizations {
   /// Home card subtitle for rpsEntryUnplayedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Nobody has thrown yet — go first'**
+  /// **'No one\'s thrown — go first'**
   String get rpsEntryUnplayedSubtitle;
 
   /// Home card title: I have thrown, the partner has not.
   ///
   /// In en, this message translates to:
-  /// **'Waiting for your person\'s move'**
+  /// **'Waiting for their move'**
   String get rpsEntryAwaitingTitle;
 
   /// Home card subtitle for rpsEntryAwaitingTitle.
   ///
   /// In en, this message translates to:
-  /// **'You\'ve thrown · we\'ll tell you the result'**
+  /// **'You\'ve thrown · we\'ll tell you'**
   String get rpsEntryAwaitingSubtitle;
 
   /// Home card CTA to open a started round and throw.

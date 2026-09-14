@@ -62,3 +62,20 @@
 
 **Runtime DEV:** ván thường PASS · rematch song song PASS · nền >10s PASS (≤10s = RPS-20) · timeout 1 bên/cả hai + chip Bỏ lượt PASS · invite >10' PASS · push-tap iOS từ Lịch sử PASS · log CF sạch.
 **Chưa verify:** banner push thật, tour build 23, catch-up, RPS-12, TalkBack, Reduce Motion, ≤360pt.
+
+## [2026-09-14] [Tester] Nghiệm thu vòng 3 — đổi luật "không bỏ lượt" (commit 48a6479) — ✅ PASS (không P0/P1; khuyến nghị vá RPS-24 + RPS-25 trước PROD/1.7.0)
+
+**Đã chạy:** analyze 0 · test 139/139 · rules-test 295 · DEV còn đúng 3 CF rps · runtime 2 máy DEV + watcher firebase-admin + log CF. Từ ~00:45Z thao tác phía test2 bằng firebase-admin (payload y hệt client); ~00:58Z user tự thao tác → dừng.
+
+**Runtime:** (1) ván thường PASS · (2) không ai ra trong 5s → ván không kết thúc, ra lúc +25s và +7m13s vẫn tính PASS · (3) B đang ở màn thấy dải "đã ra rồi", không push PASS · (4) B rời màn → inbox `rps_moved`, tap mở đúng ván PASS · (5) Nhắc + cooldown đúng giây kể cả vào lại PASS · (6) kill app giữa ván → vào thẳng đúng trạng thái PASS · (7) Home card các state + dot Profile PASS · (8) chơi lại song song 1 ván PASS (mô phỏng) · (9) log CF 0 lỗi, không còn finishRpsGame PASS.
+
+| ID | Mức | Vị trí | Mô tả | Đề xuất |
+|---|---|---|---|---|
+| RPS-24 | P2 (hồi quy AC §7) | provider `enter → _leaveInternal(clearPresence)` · CF `notifyRpsInvite` | Chơi lại khi cả hai ở màn kết quả vẫn push+inbox mời (3/4 lần): máy kia theo ván mới & xoá presence ván cũ trước khi CF đọc | CF đọc lại chính ván mới: bỏ qua nếu đã `playing` hoặc presence người nhận còn mới; client không xoá presence ván cũ khi đổi ván từ màn kết quả |
+| RPS-25 | P2 (bền vững) | CF `resolveRpsGame` nuốt lỗi, không retry · `_reload` | Resolve lỗi ở move thứ 2 → ván kẹt `playing` mãi, 1-ván-mở chặn chơi tiếp | "Tải lại"/nudge gọi resolve idempotent khi đủ 2 move, hoặc trigger retry |
+| RPS-26 | P3 | dải "đã ra rồi" · card Home (VI) | Chữ VI bị cắt trên 411dp | Rút gọn copy / 2 dòng |
+| RPS-27 | P3 | game screen AnimatedSwitcher | Khối "Nhắc người ấy" hiện/ẩn đẩy ring+3 nút ~48dp | `layoutBuilder` căn trên |
+| RPS-28 | P3 | nudge vs trigger | Bấm nhắc trong cửa sổ cold start → 2 `rps_moved` gần nhau | Chấp nhận |
+
+**Hồi quy vòng 1–2:** giữ nguyên, trừ RPS-19 phá check bỏ push khi chơi lại → RPS-24.
+**Chưa verify:** banner push thật, haptic, ring "thở"/Reduce Motion/TalkBack, offline thật khi đã chọn, RPS-25 runtime (fault injection), tour build 23.

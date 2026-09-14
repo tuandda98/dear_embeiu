@@ -2056,7 +2056,7 @@
   "@rpsEntryInvitedTitle": {
     "description": "Home card title when the partner has an open invite."
   },
-  "rpsEntryInvitedSubtitle": "Vào chơi ngay — người ấy đang chờ",
+  "rpsEntryInvitedSubtitle": "Vào chơi ngay nhé",
   "@rpsEntryInvitedSubtitle": {
     "description": "Home card subtitle when the partner has an open invite."
   },
@@ -2385,7 +2385,7 @@
   "@rpsPartnerMovedTitle": {
     "description": "Play screen banner + Home card title: the partner has thrown, I have not (never says which hand)."
   },
-  "rpsPartnerMovedBody": "Tới lượt bạn — chọn một tay bên dưới nhé",
+  "rpsPartnerMovedBody": "Tới lượt bạn — chọn tay bên dưới",
   "@rpsPartnerMovedBody": {
     "description": "Play screen banner body under rpsPartnerMovedTitle."
   },
@@ -2423,7 +2423,7 @@
   "@rpsChosenLeaveHint": {
     "description": "Play screen hint under the nudge button: leaving is fine, the result is pushed."
   },
-  "rpsEntryMyTurnSubtitle": "Tới lượt bạn — người ấy đang chờ đó 😄",
+  "rpsEntryMyTurnSubtitle": "Tới lượt bạn, ra tay nhé 😄",
   "@rpsEntryMyTurnSubtitle": {
     "description": "Home card subtitle when the partner has thrown and I have not."
   },
@@ -2431,7 +2431,7 @@
   "@rpsEntryUnplayedTitle": {
     "description": "Home card title: a started round where nobody has thrown yet."
   },
-  "rpsEntryUnplayedSubtitle": "Chưa ai ra tay — vào ra trước nhé",
+  "rpsEntryUnplayedSubtitle": "Chưa ai ra — vào trước nhé",
   "@rpsEntryUnplayedSubtitle": {
     "description": "Home card subtitle for rpsEntryUnplayedTitle."
   },
@@ -2439,7 +2439,7 @@
   "@rpsEntryAwaitingTitle": {
     "description": "Home card title: I have thrown, the partner has not."
   },
-  "rpsEntryAwaitingSubtitle": "Bạn đã ra rồi · có kết quả sẽ báo bạn",
+  "rpsEntryAwaitingSubtitle": "Bạn đã ra · có kết quả sẽ báo",
   "@rpsEntryAwaitingSubtitle": {
     "description": "Home card subtitle for rpsEntryAwaitingTitle."
   },

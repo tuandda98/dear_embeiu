@@ -1593,6 +1593,10 @@ const RPS_REMATCH_PRESENCE_FRESH_MS = 30 * 1000;
 // when the app backgrounds / the game route is covered (RPS-3/19/20), someone
 // who left the screen still gets the push.
 const RPS_RESULT_PRESENCE_STALE_MS = 8 * 1000;
+// resolveRpsGame runs with `retry: true` (Tester RPS-25); a move event older
+// than this stops being retried (a permanent failure must not loop for the
+// whole retention window — the players can still unstick it via the nudge).
+const RPS_RESOLVE_RETRY_MAX_AGE_MS = 60 * 60 * 1000;
 
 // Copy = design.md §9.7 + overview "ĐỔI LUẬT" 2026-09-14 (`rps_moved`).
 // `<name>` (invite + moved) is the sender's RAW display name; empty →
@@ -1936,7 +1940,9 @@ async function sendRpsResultPushes(coupleId, gameId, gameDataAfter) {
 
 // A rủ B: push + inbox to the partner. Skipped for a rematch whose partner is
 // still watching the previous game's result screen (presence fresh < 30s) —
-// the client there follows the new game on its own, a push would just nag.
+// the client there follows the new game on its own, a push would just nag —
+// or who is already on the rematch itself / it is no longer `invited`
+// (Tester RPS-24: the new game is re-read right before sending).
 exports.notifyRpsInvite = onDocumentCreated(
   {document: "couples/{coupleId}/games/{gameId}", region: "us-central1"},
   async (event) => {
@@ -2006,6 +2012,41 @@ exports.notifyRpsInvite = onDocumentCreated(
           message: err && err.message,
         });
       }
+
+      // Tester RPS-24: the partner's phone may already have followed THIS
+      // game (and its previous-game stamp may be gone) by the time we get
+      // here. Re-read the new game: already started / closed, or the partner
+      // beating on it right now ⇒ they are on the screen, no push + inbox.
+      try {
+        const freshSnap = await snapshot.ref.get();
+        const fresh = freshSnap.exists ? (freshSnap.data() || {}) : null;
+        if (!fresh || fresh.status !== "invited") {
+          logger.info("RPS invite notification skipped: the rematch is no longer an open invite.", {
+            coupleId,
+            gameId,
+            rematchOf,
+            status: fresh ? fresh.status || null : "missing",
+          });
+          return;
+        }
+        const freshPresenceMs = rpsPresenceMillis(fresh.presence, recipientIds[0]);
+        if (freshPresenceMs !== null &&
+            Date.now() - freshPresenceMs <= RPS_RESULT_PRESENCE_STALE_MS) {
+          logger.info("RPS invite notification skipped: partner is already on the rematch.", {
+            coupleId,
+            gameId,
+            rematchOf,
+          });
+          return;
+        }
+      } catch (err) {
+        logger.warn("RPS invite: could not re-read the rematch game.", {
+          coupleId,
+          gameId,
+          rematchOf,
+          message: err && err.message,
+        });
+      }
     }
 
     // Left RAW so the fallback localizes per recipient device.
@@ -2057,8 +2098,16 @@ exports.notifyRpsInvite = onDocumentCreated(
 // the other player, but only when they are OFF the game screen (presence older
 // than 8s / absent) — on screen the UI shows it live. Idempotent: a replayed
 // trigger adds no stamp ⇒ no second push.
+//
+// Tester RPS-25: `retry: true` + a real failure is RETHROWN (it used to be
+// logged and swallowed ⇒ a failed second move left the game `playing` for
+// good, and one-open-game then blocked any new round). Replays are safe: the
+// transaction re-reads everything and a finished game / an existing stamp
+// makes the replay a no-op (no second push). Events older than
+// RPS_RESOLVE_RETRY_MAX_AGE_MS stop retrying (logged) — `nudgeRpsPlayer`
+// is the manual way out for those.
 exports.resolveRpsGame = onDocumentCreated(
-  {document: "couples/{coupleId}/games/{gameId}/moves/{uid}", region: "us-central1"},
+  {document: "couples/{coupleId}/games/{gameId}/moves/{uid}", region: "us-central1", retry: true},
   async (event) => {
     const coupleId = `${event.params.coupleId || ""}`.trim();
     const gameId = `${event.params.gameId || ""}`.trim();
@@ -2136,7 +2185,17 @@ exports.resolveRpsGame = onDocumentCreated(
       }
       await sendRpsMovedNotification(coupleId, gameId, actorUid, recipientId, "auto");
     } catch (err) {
-      logger.error("resolveRpsGame failed.", {coupleId, gameId, message: err && err.message});
+      const eventMs = Date.parse(event.time || "");
+      const tooOld = Number.isFinite(eventMs) && Date.now() - eventMs > RPS_RESOLVE_RETRY_MAX_AGE_MS;
+      logger.error("resolveRpsGame failed.", {
+        coupleId,
+        gameId,
+        willRetry: !tooOld,
+        message: err && err.message,
+      });
+      if (!tooOld) {
+        throw err;
+      }
     }
   },
 );
@@ -2149,6 +2208,10 @@ exports.resolveRpsGame = onDocumentCreated(
 //   {ok:false, reason:'not_playing'}            — missing / not `playing` game
 //   {ok:false, reason:'not_moved'}              — the caller hasn't thrown yet
 //   {ok:false, reason:'partner_moved'}          — nothing to nudge
+//   {ok:false, reason:'resolved'}               — both hands were in but the
+//       game was still `playing` (resolveRpsGame failed — Tester RPS-25):
+//       this call closed it (idempotent, result push if IT finished it). The
+//       client's "Tải lại" on the resolving screen calls this on purpose.
 //   {ok:false, reason:'cooldown', retryAfterMs} — nudged < 60s ago
 exports.nudgeRpsPlayer = onCall(
   {region: "us-central1", timeoutSeconds: 30, memory: "256MiB"},
@@ -2200,7 +2263,13 @@ exports.nudgeRpsPlayer = onCall(
           return {ok: false, reason: "not_moved"};
         }
         if (moved[partnerUid] || partnerMoveSnap.exists) {
-          return {ok: false, reason: "partner_moved"};
+          // Both move docs in while still `playing` ⇒ the resolve trigger
+          // missed; close it right after this transaction (RPS-25).
+          return {
+            ok: false,
+            reason: "partner_moved",
+            stuck: myMoveSnap.exists && partnerMoveSnap.exists,
+          };
         }
         const lastNudgeMs = rpsToMillis(game.lastNudgeAt);
         const nowMs = Date.now();
@@ -2217,6 +2286,34 @@ exports.nudgeRpsPlayer = onCall(
     } catch (err) {
       logger.error("nudgeRpsPlayer failed.", {coupleId, gameId, message: err && err.message});
       throw new HttpsError("internal", "Could not nudge the other player.");
+    }
+
+    if (outcome.stuck) {
+      delete outcome.stuck;
+      try {
+        // Same idempotent finish as the trigger: re-reads the game + both
+        // moves; only the call that flips it to `finished` sends the result.
+        const resolved = await rpsRecordMoveInTransaction(gameRef, memberIds);
+        if (resolved.ok && !resolved.waiting) {
+          if (!resolved.already && resolved.finishedGame) {
+            await sendRpsResultPushes(coupleId, gameId, resolved.finishedGame);
+          }
+          logger.info("nudgeRpsPlayer resolved a stuck game.", {
+            coupleId,
+            gameId,
+            uid,
+            finishedHere: !resolved.already,
+          });
+          return {ok: false, reason: "resolved"};
+        }
+      } catch (err) {
+        // Stay on `partner_moved` (client: silent) — "Tải lại" can retry.
+        logger.error("nudgeRpsPlayer could not resolve a stuck game.", {
+          coupleId,
+          gameId,
+          message: err && err.message,
+        });
+      }
     }
 
     logger.info("nudgeRpsPlayer processed.", {

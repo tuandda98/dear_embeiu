@@ -3605,7 +3605,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsEntryInvitedTitle => 'Người ấy đang rủ!';
 
   @override
-  String get rpsEntryInvitedSubtitle => 'Vào chơi ngay — người ấy đang chờ';
+  String get rpsEntryInvitedSubtitle => 'Vào chơi ngay nhé';
 
   @override
   String get rpsEntryPendingSubtitle => 'Lời mời còn hiệu lực 10 phút';
@@ -3826,7 +3826,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsPartnerMovedTitle => 'Người ấy đã ra rồi!';
 
   @override
-  String get rpsPartnerMovedBody => 'Tới lượt bạn — chọn một tay bên dưới nhé';
+  String get rpsPartnerMovedBody => 'Tới lượt bạn — chọn tay bên dưới';
 
   @override
   String get rpsMoveNudgeCta => 'Nhắc người ấy';
@@ -3851,20 +3851,19 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsChosenLeaveHint => 'Bạn cứ rời đi — có kết quả sẽ báo bạn ngay';
 
   @override
-  String get rpsEntryMyTurnSubtitle => 'Tới lượt bạn — người ấy đang chờ đó 😄';
+  String get rpsEntryMyTurnSubtitle => 'Tới lượt bạn, ra tay nhé 😄';
 
   @override
   String get rpsEntryUnplayedTitle => 'Ván đang dở';
 
   @override
-  String get rpsEntryUnplayedSubtitle => 'Chưa ai ra tay — vào ra trước nhé';
+  String get rpsEntryUnplayedSubtitle => 'Chưa ai ra — vào trước nhé';
 
   @override
   String get rpsEntryAwaitingTitle => 'Đang chờ người ấy ra';
 
   @override
-  String get rpsEntryAwaitingSubtitle =>
-      'Bạn đã ra rồi · có kết quả sẽ báo bạn';
+  String get rpsEntryAwaitingSubtitle => 'Bạn đã ra · có kết quả sẽ báo';
 
   @override
   String get rpsEntryCtaThrow => 'Ra tay';

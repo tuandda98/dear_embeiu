@@ -1060,6 +1060,7 @@ class RpsGameProvider extends ChangeNotifier {
             result.retryAfter ?? RpsTiming.nudgeCooldown,
           );
         case RpsNudgeStatus.partnerMoved:
+        case RpsNudgeStatus.resolved:
         case RpsNudgeStatus.notPlaying:
         case RpsNudgeStatus.notMoved:
         case RpsNudgeStatus.failed:
@@ -1068,6 +1069,26 @@ class RpsGameProvider extends ChangeNotifier {
     }
     notifyListeners();
     return result;
+  }
+
+  /// "Tải lại" on the resolving screen (Tester RPS-25): both hands are in but
+  /// no verdict came. Asks `nudgeRpsPlayer`, which closes a round whose
+  /// resolve trigger failed (answer `resolved`). It can't push the partner
+  /// from here: [RpsPhase.resolving] means their hand is in (server stamp),
+  /// so the callable only ever answers `resolved` / `partner_moved` /
+  /// `not_playing` / `not_moved`. Never throws; the game stream brings the
+  /// result.
+  Future<RpsNudgeStatus> resolveStuck() async {
+    final coupleId = _coupleId;
+    final gameId = _currentGameId;
+    if (coupleId == null || gameId == null || phase != RpsPhase.resolving) {
+      return RpsNudgeStatus.notPlaying;
+    }
+    final result = await _service.nudgePartner(
+      coupleId: coupleId,
+      gameId: gameId,
+    );
+    return result.status;
   }
 
   /// Creator withdraws a pending invite.
@@ -1165,8 +1186,17 @@ class RpsGameProvider extends ChangeNotifier {
     }
     // Switching games (rematch / follow / renew): I'm no longer on the old
     // one — its presence goes too, so e.g. the CF's rematch check on it
-    // doesn't see me "still watching" (RPS-19).
-    _leaveInternal(clearPresence: true);
+    // doesn't see me "still watching" (RPS-19). EXCEPT when the old game is
+    // FINISHED (result screen → its rematch / the partner's new game, still on
+    // the game screen — Tester RPS-24): deleting that stamp is exactly what
+    // made `notifyRpsInvite` push + inbox me a rematch I was already looking
+    // at. A finished game's stamp gates nothing else (its result push is
+    // already out) and just ages out; really leaving the screen / going to
+    // the background still clears the CURRENT game (detach / pauseHeartbeat).
+    final old = _currentGame;
+    final oldFinished =
+        old != null && old.id == _currentGameId && old.isFinished;
+    _leaveInternal(clearPresence: !oldFinished);
     _currentGameId = gameId;
     _currentLoaded = false;
     notifyListeners();

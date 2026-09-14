@@ -3614,7 +3614,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get rpsEntryInvitedTitle => 'Your person is challenging you!';
+  String get rpsEntryInvitedTitle => 'You\'re challenged!';
 
   @override
   String get rpsEntryInvitedSubtitle => 'Hop in — they\'re waiting';
@@ -3864,20 +3864,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Feel free to step away — we\'ll tell you the result';
 
   @override
-  String get rpsEntryMyTurnSubtitle => 'Your move — they\'re waiting 😄';
+  String get rpsEntryMyTurnSubtitle => 'Your turn — go ahead 😄';
 
   @override
   String get rpsEntryUnplayedTitle => 'Round in progress';
 
   @override
-  String get rpsEntryUnplayedSubtitle => 'Nobody has thrown yet — go first';
+  String get rpsEntryUnplayedSubtitle => 'No one\'s thrown — go first';
 
   @override
-  String get rpsEntryAwaitingTitle => 'Waiting for your person\'s move';
+  String get rpsEntryAwaitingTitle => 'Waiting for their move';
 
   @override
-  String get rpsEntryAwaitingSubtitle =>
-      'You\'ve thrown · we\'ll tell you the result';
+  String get rpsEntryAwaitingSubtitle => 'You\'ve thrown · we\'ll tell you';
 
   @override
   String get rpsEntryCtaThrow => 'Throw';

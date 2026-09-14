@@ -134,6 +134,11 @@ enum RpsNudgeStatus {
   /// The partner has thrown in the meantime (the round is resolving).
   partnerMoved,
 
+  /// Both hands were in but the round was still `playing` (the server's
+  /// resolve trigger had failed — Tester RPS-25): the callable closed it now.
+  /// Nothing was sent to the partner; the game stream brings the result.
+  resolved,
+
   /// The round isn't `playing` any more (finished / gone).
   notPlaying,
 
@@ -176,6 +181,8 @@ class RpsNudgeResult {
         );
       case 'partner_moved':
         return const RpsNudgeResult(RpsNudgeStatus.partnerMoved);
+      case 'resolved':
+        return const RpsNudgeResult(RpsNudgeStatus.resolved);
       case 'not_playing':
         return const RpsNudgeResult(RpsNudgeStatus.notPlaying);
       case 'not_moved':

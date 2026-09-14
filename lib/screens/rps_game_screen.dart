@@ -608,7 +608,8 @@ class _RpsGameScreenState extends State<RpsGameScreen>
   }
 
   /// "Nhắc người ấy" (addendum A3): snackbar per callable answer —
-  /// `partner_moved` / `not_playing` stay silent (the UI moves on by itself).
+  /// `partner_moved` / `resolved` / `not_playing` stay silent (the UI moves
+  /// on by itself; `resolved` = the server just closed a stuck round, RPS-25).
   Future<void> _nudgeMove() async {
     HapticFeedback.selectionClick();
     final messenger = ScaffoldMessenger.of(context);
@@ -626,6 +627,7 @@ class _RpsGameScreenState extends State<RpsGameScreen>
             (result.retryAfter ?? RpsTiming.nudgeCooldown).inMilliseconds;
         message = l10n.rpsMoveNudgeTooSoon(((ms + 999) ~/ 1000).toString());
       case RpsNudgeStatus.partnerMoved:
+      case RpsNudgeStatus.resolved:
       case RpsNudgeStatus.notPlaying:
         message = null;
       case RpsNudgeStatus.notMoved:
@@ -684,12 +686,17 @@ class _RpsGameScreenState extends State<RpsGameScreen>
     }
   }
 
+  /// "Tải lại" (resolving > 6s): re-attach the streams AND ask the server to
+  /// close the round if its resolve trigger failed (Tester RPS-25) — every
+  /// answer stays silent, the result arrives through the game stream.
   void _reload() {
     HapticFeedback.selectionClick();
     final id = _provider.currentGameId;
     if (id == null) {
       return;
     }
+    // Before leave(): it reads the current game/phase synchronously.
+    unawaited(_provider.resolveStuck());
     _provider.leave();
     _provider.enter(id, owner: this);
     setState(() => _resolvingSlow = false);
@@ -752,6 +759,15 @@ class _RpsGameScreenState extends State<RpsGameScreen>
                             duration: AppMotion.base,
                             switchInCurve: AppMotion.curve,
                             switchOutCurve: AppMotion.curve,
+                            // Top-anchored like the Reduce Motion branch
+                            // (Tester RPS-27): the default centred Stack
+                            // re-centred the shrink-wrapped play view, so the
+                            // "Nhắc người ấy" block appearing below pushed the
+                            // ring + 3 hands up by half its height.
+                            layoutBuilder: (current, previous) => Stack(
+                              alignment: Alignment.topCenter,
+                              children: <Widget>[...previous, ?current],
+                            ),
                             transitionBuilder: (child, anim) => FadeTransition(
                               opacity: anim,
                               child: ScaleTransition(

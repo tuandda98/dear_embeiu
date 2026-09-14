@@ -256,6 +256,33 @@ void main() {
       expect(service.log, <String>['beat:g1', 'clear:g1', 'beat:g2']);
     });
 
+    providerTest(
+      'switching away from a FINISHED game keeps its stamp (RPS-24)',
+      (tester) async {
+        await tester.pump();
+        service.game.add(
+          RpsGame(
+            id: 'g1',
+            createdBy: 'you',
+            status: RpsGameStatus.finished,
+            createdAt: DateTime.now().subtract(const Duration(minutes: 1)),
+          ),
+        );
+        await tester.pump();
+        // Result screen → the rematch: the old stamp is what tells
+        // notifyRpsInvite "still on the screen, don't push".
+        provider.enter('g2', owner: screen);
+        await tester.pump();
+        expect(service.log, <String>['beat:g1', 'beat:g2']);
+        expect(service.clears, isEmpty);
+
+        // Really leaving the screen still clears the CURRENT game.
+        provider.detach(screen);
+        await tester.pump();
+        expect(service.clears, <String>['g2']);
+      },
+    );
+
     providerTest('detach of the top screen: clear BEFORE the lower one beats', (
       tester,
     ) async {
@@ -415,6 +442,27 @@ void main() {
       expect(provider.phase, RpsPhase.resolving);
       expect(provider.isSettling, isTrue);
       expect(provider.canNudge, isFalse);
+    });
+
+    providerTest('"Tải lại" asks the server only while resolving (RPS-25)', (
+      tester,
+    ) async {
+      await tester.pump();
+      // Not resolving (my hand in, partner's not) → no call.
+      service.move.add(const RpsMove(uid: 'me', choice: RpsChoice.paper));
+      await show(tester, playing(const Duration(seconds: 20)));
+      expect(await provider.resolveStuck(), RpsNudgeStatus.notPlaying);
+      expect(service.nudges, 0);
+
+      // Both hands in, still `playing` → the callable closes it.
+      service.nudgeAnswer = const RpsNudgeResult(RpsNudgeStatus.resolved);
+      await show(
+        tester,
+        playing(const Duration(seconds: 20), moved: {'you': DateTime.now()}),
+      );
+      expect(provider.phase, RpsPhase.resolving);
+      expect(await provider.resolveStuck(), RpsNudgeStatus.resolved);
+      expect(service.nudges, 1);
     });
 
     providerTest('reopened: CF says my hand is in before my move doc streams', (
@@ -579,6 +627,10 @@ void main() {
           'reason': 'partner_moved',
         }).status,
         RpsNudgeStatus.partnerMoved,
+      );
+      expect(
+        RpsNudgeResult.fromResponse({'ok': false, 'reason': 'resolved'}).status,
+        RpsNudgeStatus.resolved,
       );
       expect(
         RpsNudgeResult.fromResponse({
