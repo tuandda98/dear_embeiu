@@ -74,4 +74,4 @@ ios/Runner/GoogleService-Info.plist
 
 # Figma integration — chứa API token, không commit
 .env.figma
-figma_screenshots/
+figma_screenshots/scripts/store-upload/.bin/

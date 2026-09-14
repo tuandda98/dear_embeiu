@@ -31,6 +31,8 @@ sleep 12
 "$B/winlist" Transporter | grep -q "\[Mở\]\|\[Open\]" && { echo "✗ panel Mở vẫn còn — kiểm tra tay"; exit 1; }
 # Nút CHUYỂN GIAO của dòng đầu "Đang hoạt động": toạ độ tương đối theo layout Transporter 1600×816 (đo 2026-09-13).
 read X Y W H <<< "$("$B/winbounds" "$MAIN")"
-"$B/click" "$(python3 -c "print(int($X + 0.898*$W))")" "$(python3 -c "print(int($Y + 0.183*$H))")"
+osascript -e 'tell application "Transporter" to activate' -e 'delay 1'
+# Tỉ lệ đo lại 2026-09-14 trên màn hình thật (nút ở 0.899·W, 0.219·H); 0.183 cũ trúng mép trên → trượt.
+"$B/click" "$(python3 -c "print(int($X + 0.899*$W))")" "$(python3 -c "print(int($Y + 0.219*$H))")"
 sleep 5; screencapture -x -l "$MAIN" /tmp/transporter-after-deliver.png
 echo "✓ đã bấm CHUYỂN GIAO — xem /tmp/transporter-after-deliver.png (phải thấy 'ĐANG TẢI LÊN ỨNG DỤNG')"

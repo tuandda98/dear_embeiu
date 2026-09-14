@@ -1,0 +1,7 @@
+command : NODE_OPTIONS="--dns-result-order=ipv4first" npx firebase-tools deploy --project prod --only functions:notifyRpsInvite,functions:resolveRpsGame,functions:nudgeRpsPlayer --force 2>&1 | grep -E "✔|✖|Error|error|Successful|create|update" | tail -12
+time_utc: 20260914T012252Z
+git_head: 18fc3e3 (release/1.7.0)
+dirty   : 2 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 18fc3e3)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 18fc3e3 -- functions` rồi redeploy
