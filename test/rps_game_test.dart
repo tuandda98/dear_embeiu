@@ -149,7 +149,8 @@ void main() {
       expect(game.result, isNull);
       expect(game.startedAt, isNull);
       expect(game.countdownRemaining(), isNull);
-      expect(game.isPastGrace(), isFalse);
+      expect(game.moved, isEmpty);
+      expect(game.lastNudgeAt, isNull);
       // No createdAt → can't be judged stale.
       expect(game.isInviteStale(), isFalse);
     });
@@ -165,6 +166,31 @@ void main() {
       expect(r.choiceOf('uid-b'), RpsChoice.none);
       expect(r.reason, RpsResultReason.timeout);
       expect(RpsResult.fromMap('nope'), isNull);
+    });
+
+    test('parses moved + lastNudgeAt (CF-only fields, no-skip rule)', () {
+      final game = RpsGame.fromFirestore('g4', <String, dynamic>{
+        'createdBy': 'uid-a',
+        'status': 'playing',
+        'startedAt': started.toIso8601String(),
+        'moved': <String, dynamic>{
+          'uid-b': started.add(const Duration(seconds: 3)).toIso8601String(),
+          '  ': started.toIso8601String(), // blank key dropped
+          'uid-c': 'not a date', // unparseable stamp dropped
+        },
+        'lastNudgeAt': started.add(const Duration(seconds: 40)).toIso8601String(),
+      });
+      expect(game.moved.keys, <String>['uid-b']);
+      expect(game.hasMoved('uid-b'), isTrue);
+      expect(game.hasMoved('uid-a'), isFalse);
+      expect(game.partnerMoved('uid-a'), isTrue);
+      expect(game.partnerMoved('uid-b'), isFalse);
+      expect(game.lastNudgeAt, started.add(const Duration(seconds: 40)));
+      // `moved` also tells who the partner is before any presence.
+      expect(game.partnerOf('uid-a'), 'uid-b');
+      final map = game.toMap();
+      expect((map['moved'] as Map).keys, <String>['uid-b']);
+      expect(map['lastNudgeAt'], isNotNull);
     });
 
     test('toMap emits Firestore keys', () {
@@ -214,10 +240,39 @@ void main() {
       );
     });
 
-    test('isPastGrace flips at countdown + grace', () {
-      final g = playing();
-      expect(g.isPastGrace(now: started.add(const Duration(seconds: 6))), false);
-      expect(g.isPastGrace(now: started.add(const Duration(seconds: 7))), true);
+    test('nudgeCooldownRemaining counts 60s from the server lastNudgeAt', () {
+      expect(
+        playing().nudgeCooldownRemaining(now: started),
+        Duration.zero,
+        reason: 'never nudged',
+      );
+      final g = RpsGame(
+        id: 'g',
+        createdBy: 'uid-a',
+        status: RpsGameStatus.playing,
+        startedAt: started,
+        lastNudgeAt: started,
+      );
+      expect(g.nudgeCooldownRemaining(now: started), RpsTiming.nudgeCooldown);
+      expect(
+        g.nudgeCooldownRemaining(now: started.add(const Duration(seconds: 13))),
+        const Duration(seconds: 47),
+      );
+      expect(
+        g.nudgeCooldownRemaining(now: started.add(const Duration(seconds: 60))),
+        Duration.zero,
+      );
+      expect(
+        g.nudgeCooldownRemaining(now: started.add(const Duration(minutes: 5))),
+        Duration.zero,
+      );
+      // A server stamp slightly "in the future" (clock estimate) is clamped.
+      expect(
+        g.nudgeCooldownRemaining(
+          now: started.subtract(const Duration(seconds: 2)),
+        ),
+        RpsTiming.nudgeCooldown,
+      );
     });
 
     test('presence freshness + invite staleness', () {
@@ -329,7 +384,7 @@ void main() {
           rematchOf: rematchOf,
         );
 
-    test('isDeadOpen: stale invite + round past grace are dead', () {
+    test('isDeadOpen: only a stale invite — a playing round never dies', () {
       final invite =
           game('i', status: RpsGameStatus.invited, createdAt: t0);
       expect(invite.isDeadOpen(now: t0.add(const Duration(minutes: 9))),
@@ -338,10 +393,15 @@ void main() {
           isTrue);
       final round = game('p',
           status: RpsGameStatus.playing, createdAt: t0, startedAt: t0);
-      expect(round.isDeadOpen(now: t0.add(const Duration(seconds: 6))),
-          isFalse);
-      expect(round.isDeadOpen(now: t0.add(const Duration(seconds: 7))),
-          isTrue);
+      // No-skip rule (2026-09-14): 7s, 5 minutes, 3 days — still alive.
+      for (final age in const <Duration>[
+        Duration(seconds: 6),
+        Duration(seconds: 7),
+        Duration(minutes: 5),
+        Duration(days: 3),
+      ]) {
+        expect(round.isDeadOpen(now: t0.add(age)), isFalse, reason: '$age');
+      }
       // A closed game is never "dead open" — it just isn't open.
       expect(
         game('f', status: RpsGameStatus.finished, createdAt: t0)
@@ -350,27 +410,37 @@ void main() {
       );
     });
 
-    test('pickOpen skips dead docs and returns the newest live one', () {
+    test('pickOpen skips stale invites and returns the newest live one', () {
       final now = t0.add(const Duration(minutes: 12));
       final staleInvite = game('stale',
           status: RpsGameStatus.invited, createdAt: t0); // 12' old
-      final stuckRound = game('stuck',
-          status: RpsGameStatus.playing,
-          createdAt: now.subtract(const Duration(minutes: 1)),
-          startedAt: now.subtract(const Duration(seconds: 30)));
       final liveInvite = game('live',
           status: RpsGameStatus.invited,
           createdAt: now.subtract(const Duration(minutes: 2)));
       // Newest first, as the stream delivers them.
       expect(
-        RpsGame.pickOpen(<RpsGame>[stuckRound, liveInvite, staleInvite],
-                now: now)
-            ?.id,
+        RpsGame.pickOpen(<RpsGame>[staleInvite, liveInvite], now: now)?.id,
         'live',
       );
-      expect(RpsGame.pickOpen(<RpsGame>[stuckRound, staleInvite], now: now),
-          isNull);
+      expect(RpsGame.pickOpen(<RpsGame>[staleInvite], now: now), isNull);
       expect(RpsGame.pickOpen(const <RpsGame>[], now: now), isNull);
+    });
+
+    test('pickOpen: a playing round long past the beat is still the game', () {
+      final now = t0.add(const Duration(hours: 30));
+      final oldRound = game('round',
+          status: RpsGameStatus.playing,
+          createdAt: t0,
+          startedAt: t0.add(const Duration(seconds: 20)));
+      final staleInvite = game('stale',
+          status: RpsGameStatus.invited,
+          createdAt: now.subtract(const Duration(minutes: 11)));
+      // A newer but stale invite doesn't shadow it; the round wins.
+      expect(
+        RpsGame.pickOpen(<RpsGame>[staleInvite, oldRound], now: now)?.id,
+        'round',
+      );
+      expect(RpsGame.pickOpen(<RpsGame>[oldRound], now: now)?.id, 'round');
     });
 
     test('closed game follows its own rematch or a newer game only', () {

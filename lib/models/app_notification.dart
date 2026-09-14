@@ -27,6 +27,12 @@ enum AppNotificationType {
   /// 2026-09-13). Carries [AppNotification.gameId]; tap opens that game.
   rpsInvite,
 
+  /// The partner has thrown their hand and it's my move (feature rps-game,
+  /// no-skip rule 2026-09-14 — CF `resolveRpsGame` when I'm away, or the
+  /// partner's "Nhắc người ấy"). Carries [AppNotification.gameId]; tap opens
+  /// that round, exactly like [rpsInvite].
+  rpsMoved,
+
   /// A rock-paper-scissors game finished (push-only per spec — no inbox doc is
   /// written today; parsed for forward-compat). Tap opens the history.
   rpsResult,
@@ -58,6 +64,8 @@ AppNotificationType appNotificationTypeFromString(String? raw) {
       return AppNotificationType.careMessage;
     case 'rps_invite':
       return AppNotificationType.rpsInvite;
+    case 'rps_moved':
+      return AppNotificationType.rpsMoved;
     case 'rps_result':
       return AppNotificationType.rpsResult;
     default:
@@ -120,7 +128,7 @@ class AppNotification {
   /// 2026-09-05). Null on notes written before the timeline shipped.
   final String? careMessageId;
 
-  /// rps_invite / rps_result only: id of the `games` doc, so a tap can open
+  /// rps_invite / rps_moved / rps_result only: id of the `games` doc, so a tap can open
   /// that exact game (feature rps-game, 2026-09-13).
   final String? gameId;
 
@@ -153,8 +161,10 @@ class AppNotification {
       case AppNotificationType.careMessage:
       // Rock-paper-scissors lives off Home: the center publishes a Home-focus
       // (`rps_game` + gameId / `rps_history`) alongside this tab — matches the
-      // 'rps_invite'/'rps_result' branches in push_notification_service.dart.
+      // 'rps_invite'/'rps_moved'/'rps_result' branches in
+      // push_notification_service.dart.
       case AppNotificationType.rpsInvite:
+      case AppNotificationType.rpsMoved:
       case AppNotificationType.rpsResult:
       case AppNotificationType.unknown:
         return 0; // Home

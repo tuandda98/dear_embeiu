@@ -3581,7 +3581,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rpsWaitingPartner => 'Waiting for your person…';
 
   @override
-  String get rpsChosenWaiting => 'Locked in ✓ · Waiting for your person…';
+  String get rpsChosenWaiting => 'You\'ve thrown ✓ · Waiting for your person…';
 
   @override
   String get rpsExpired => 'This invite has expired';
@@ -3617,7 +3617,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rpsEntryInvitedTitle => 'Your person is challenging you!';
 
   @override
-  String get rpsEntryInvitedSubtitle => 'Pick within 5 seconds ⏱️';
+  String get rpsEntryInvitedSubtitle => 'Hop in — they\'re waiting';
 
   @override
   String get rpsEntryPendingSubtitle => 'Invite stays open for 10 minutes';
@@ -3717,7 +3717,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rpsOfflineHint =>
-      'Offline — the clock keeps running; your pick only counts if it gets through before time\'s up';
+      'Offline — your pick will go through once you\'re back online';
 
   @override
   String rpsResultDrawSub(String choice) {
@@ -3826,5 +3826,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featureTourRpsBody =>
-      'Send a challenge, both pick within 5 seconds, the reveal is simultaneous. History and score live on your Profile.';
+      'Send a challenge, count it down together and throw. No skipping — whoever hasn\'t thrown gets a nudge, and the reveal waits for both of you. History and score live on your Profile.';
+
+  @override
+  String get rpsOpenPrompt => 'Go on, throw! No skipping here 😄';
+
+  @override
+  String get rpsOpenRingSemantics => 'No time limit — throw when you\'re ready';
+
+  @override
+  String get rpsPartnerMovedTitle => 'Your person has thrown!';
+
+  @override
+  String get rpsPartnerMovedBody => 'Your move — pick a hand below';
+
+  @override
+  String get rpsMoveNudgeCta => 'Nudge your person';
+
+  @override
+  String rpsMoveNudgeCooldown(String seconds) {
+    return 'Nudged · again in ${seconds}s';
+  }
+
+  @override
+  String get rpsMoveNudgeSentToast => 'Nudged your person 🔔';
+
+  @override
+  String rpsMoveNudgeTooSoon(String seconds) {
+    return 'You just nudged — try again in ${seconds}s';
+  }
+
+  @override
+  String get rpsMoveNudgeFailed => 'Couldn\'t send the nudge — try again';
+
+  @override
+  String get rpsChosenLeaveHint =>
+      'Feel free to step away — we\'ll tell you the result';
+
+  @override
+  String get rpsEntryMyTurnSubtitle => 'Your move — they\'re waiting 😄';
+
+  @override
+  String get rpsEntryUnplayedTitle => 'Round in progress';
+
+  @override
+  String get rpsEntryUnplayedSubtitle => 'Nobody has thrown yet — go first';
+
+  @override
+  String get rpsEntryAwaitingTitle => 'Waiting for your person\'s move';
+
+  @override
+  String get rpsEntryAwaitingSubtitle =>
+      'You\'ve thrown · we\'ll tell you the result';
+
+  @override
+  String get rpsEntryCtaThrow => 'Throw';
+
+  @override
+  String notifRpsMoved(String name) {
+    return '$name has thrown — your move!';
+  }
 }

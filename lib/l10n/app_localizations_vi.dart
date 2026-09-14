@@ -3569,7 +3569,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsWaitingPartner => 'Đang chờ người ấy…';
 
   @override
-  String get rpsChosenWaiting => 'Đã chọn ✓ · Chờ người ấy…';
+  String get rpsChosenWaiting => 'Bạn đã ra rồi ✓ · Chờ người ấy ra…';
 
   @override
   String get rpsExpired => 'Lời mời đã hết hạn';
@@ -3605,7 +3605,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsEntryInvitedTitle => 'Người ấy đang rủ!';
 
   @override
-  String get rpsEntryInvitedSubtitle => 'Vào chọn trong 5 giây ⏱️';
+  String get rpsEntryInvitedSubtitle => 'Vào chơi ngay — người ấy đang chờ';
 
   @override
   String get rpsEntryPendingSubtitle => 'Lời mời còn hiệu lực 10 phút';
@@ -3704,7 +3704,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get rpsOfflineHint =>
-      'Mất mạng — đồng hồ vẫn chạy, lựa chọn chỉ được tính nếu kịp gửi trước khi hết giờ';
+      'Mất mạng — lựa chọn của bạn sẽ được gửi khi có mạng lại';
 
   @override
   String rpsResultDrawSub(String choice) {
@@ -3813,5 +3813,64 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get featureTourRpsBody =>
-      'Rủ một ván, cả hai cùng chọn trong 5 giây, kết quả lộ cùng lúc. Lịch sử và tỉ số lưu ở Hồ sơ.';
+      'Rủ một ván, cùng đếm oẳn tù tì rồi ra tay. Không có bỏ lượt — ai chưa ra sẽ được nhắc, kết quả lộ khi cả hai đã chọn. Lịch sử và tỉ số ở Hồ sơ.';
+
+  @override
+  String get rpsOpenPrompt => 'Ra đi! Không có bỏ lượt đâu 😄';
+
+  @override
+  String get rpsOpenRingSemantics =>
+      'Không giới hạn thời gian, ra tay khi bạn sẵn sàng';
+
+  @override
+  String get rpsPartnerMovedTitle => 'Người ấy đã ra rồi!';
+
+  @override
+  String get rpsPartnerMovedBody => 'Tới lượt bạn — chọn một tay bên dưới nhé';
+
+  @override
+  String get rpsMoveNudgeCta => 'Nhắc người ấy';
+
+  @override
+  String rpsMoveNudgeCooldown(String seconds) {
+    return 'Đã nhắc · nhắc lại sau ${seconds}s';
+  }
+
+  @override
+  String get rpsMoveNudgeSentToast => 'Đã nhắc người ấy 🔔';
+
+  @override
+  String rpsMoveNudgeTooSoon(String seconds) {
+    return 'Vừa nhắc rồi — đợi ${seconds}s nữa nhé';
+  }
+
+  @override
+  String get rpsMoveNudgeFailed => 'Chưa gửi được lời nhắc, thử lại nhé';
+
+  @override
+  String get rpsChosenLeaveHint => 'Bạn cứ rời đi — có kết quả sẽ báo bạn ngay';
+
+  @override
+  String get rpsEntryMyTurnSubtitle => 'Tới lượt bạn — người ấy đang chờ đó 😄';
+
+  @override
+  String get rpsEntryUnplayedTitle => 'Ván đang dở';
+
+  @override
+  String get rpsEntryUnplayedSubtitle => 'Chưa ai ra tay — vào ra trước nhé';
+
+  @override
+  String get rpsEntryAwaitingTitle => 'Đang chờ người ấy ra';
+
+  @override
+  String get rpsEntryAwaitingSubtitle =>
+      'Bạn đã ra rồi · có kết quả sẽ báo bạn';
+
+  @override
+  String get rpsEntryCtaThrow => 'Ra tay';
+
+  @override
+  String notifRpsMoved(String name) {
+    return '$name đã ra rồi — tới lượt bạn!';
+  }
 }

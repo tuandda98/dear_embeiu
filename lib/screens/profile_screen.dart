@@ -648,7 +648,8 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
     );
     // Rock-paper-scissors badge (feature rps-game): all-time W – D – L from
     // the provider's cached aggregation (one lazy load), plus a dot while the
-    // partner's invite is waiting on me.
+    // partner is waiting on me: their invite, or a started round where they
+    // have thrown and I haven't (no-skip rule, design addendum §C).
     final rps = context.watch<RpsGameProvider>();
     final rpsScore = rps.totalScore;
     // Only while not loaded / not loading / not in the 30s post-failure
@@ -661,7 +662,9 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
         }
       });
     }
-    final rpsInviteId = rps.hasPendingInvite ? rps.openGame?.id : null;
+    final rpsInviteId = (rps.hasPendingInvite || rps.isMyTurn)
+        ? rps.openGame?.id
+        : null;
 
     final milestonesReached = StreakProvider.milestones
         .where((m) => streak.longestStreak >= m)
@@ -820,8 +823,10 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
                 label: l10n.rpsGameTitle,
                 onTap: () {
                   HapticFeedback.selectionClick();
-                  // A pending invite from the partner takes precedence over
-                  // the history (design §5.7).
+                  // The partner waiting on me (invite / "tới lượt bạn")
+                  // takes precedence over the history (design §5.7 +
+                  // addendum §C); unplayed / awaiting rounds are the Home
+                  // card's job.
                   if (rpsInviteId != null) {
                     openRpsGame(context, gameId: rpsInviteId);
                   } else {

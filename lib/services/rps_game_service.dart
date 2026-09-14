@@ -121,6 +121,71 @@ List<DateTime> rpsFreshServerStamps({
   return fresh;
 }
 
+/// What the `nudgeRpsPlayer` callable answered (2026-09-14 no-skip rule —
+/// "Nhắc người ấy" after I have thrown).
+enum RpsNudgeStatus {
+  /// Push + inbox `rps_moved` sent to the partner; the server stamped
+  /// `lastNudgeAt` (cooldown 60s starts now).
+  sent,
+
+  /// Too soon after the previous nudge — see [RpsNudgeResult.retryAfter].
+  cooldown,
+
+  /// The partner has thrown in the meantime (the round is resolving).
+  partnerMoved,
+
+  /// The round isn't `playing` any more (finished / gone).
+  notPlaying,
+
+  /// The server doesn't see my hand yet (my move write still in flight).
+  notMoved,
+
+  /// Network / auth / unexpected error — nothing was sent.
+  failed,
+}
+
+/// Result of [RpsGameService.nudgePartner].
+class RpsNudgeResult {
+  const RpsNudgeResult(this.status, {this.retryAfter});
+
+  final RpsNudgeStatus status;
+
+  /// [RpsNudgeStatus.cooldown] only: how long until the server allows the
+  /// next nudge (`retryAfterMs`).
+  final Duration? retryAfter;
+
+  bool get isSent => status == RpsNudgeStatus.sent;
+
+  /// Maps the callable's `{ok, reason, retryAfterMs}` payload.
+  static RpsNudgeResult fromResponse(dynamic data) {
+    if (data is! Map) {
+      return const RpsNudgeResult(RpsNudgeStatus.failed);
+    }
+    if (data['ok'] == true) {
+      return const RpsNudgeResult(RpsNudgeStatus.sent);
+    }
+    switch ((data['reason'] ?? '').toString().trim()) {
+      case 'cooldown':
+        final raw = data['retryAfterMs'];
+        final ms = raw is num ? raw.round() : int.tryParse('$raw');
+        return RpsNudgeResult(
+          RpsNudgeStatus.cooldown,
+          retryAfter: (ms == null || ms <= 0)
+              ? RpsTiming.nudgeCooldown
+              : Duration(milliseconds: ms),
+        );
+      case 'partner_moved':
+        return const RpsNudgeResult(RpsNudgeStatus.partnerMoved);
+      case 'not_playing':
+        return const RpsNudgeResult(RpsNudgeStatus.notPlaying);
+      case 'not_moved':
+        return const RpsNudgeResult(RpsNudgeStatus.notMoved);
+      default:
+        return const RpsNudgeResult(RpsNudgeStatus.failed);
+    }
+  }
+}
+
 /// Firestore access for rock-paper-scissors (feature rps-game, 2026-09-13):
 /// `couples/{coupleId}/games/{gameId}` + `moves/{uid}` — contract in
 /// `project/features/rps-game/overview.md` §3.
@@ -134,14 +199,15 @@ List<DateTime> rpsFreshServerStamps({
 /// ⚠️ Rules are `hasOnly`-strict: the create payload MUST stay exactly
 /// `[type, createdBy, status, createdAt, presence, rematchOf, updatedAt]`
 /// (subset), `createdAt == request.time` (serverTimestamp), and `presence`
-/// may only carry MY uid. `finishedAt`/`result` are Admin-SDK-only.
+/// may only carry MY uid. `finishedAt`/`result`/`moved`/`lastNudgeAt` are
+/// Admin-SDK-only (a heartbeat merely carries them along untouched).
 class RpsGameService {
   RpsGameService({FirebaseFirestore? firestore, FirebaseFunctions? functions})
     : _firestore = firestore,
       _functions = functions;
 
   static const String _region = 'us-central1';
-  static const String _finishCallable = 'finishRpsGame';
+  static const String _nudgeCallable = 'nudgeRpsPlayer';
 
   final FirebaseFirestore? _firestore;
   final FirebaseFunctions? _functions;
@@ -292,10 +358,10 @@ class RpsGameService {
 
   /// Streams the couple's newest [limit] open (`invited`/`playing`) games,
   /// newest first. Several, not one (Tester RPS-2): the newest may be a dead
-  /// doc — an invite past its TTL nobody flipped to `expired`, a round nobody
-  /// settled — and the provider picks the first LIVE one with
-  /// [RpsGame.pickOpen] against server time. Needs the composite index
-  /// `(type ASC, status ASC, createdAt DESC)`.
+  /// doc — an invite past its TTL nobody flipped to `expired` (a `playing`
+  /// round is never dead: it waits for both hands) — and the provider picks
+  /// the first LIVE one with [RpsGame.pickOpen] against server time. Needs
+  /// the composite index `(type ASC, status ASC, createdAt DESC)`.
   Stream<List<RpsGame>> watchOpenGames(String coupleId, {int limit = 5}) =>
       watchOpenGameSnapshots(coupleId, limit: limit).map((s) => s.games);
 
@@ -472,20 +538,19 @@ class RpsGameService {
   }
 
   /// Locks in my hand: `moves/{uid} = {choice, createdAt}` (create-only —
-  /// a second attempt is denied by the rules, as is one after the deadline).
-  /// Returns false when the write was refused, so the UI can un-lock.
+  /// a second attempt is denied by the rules). Since the 2026-09-14 no-skip
+  /// rule there is NO deadline: the rules accept it any time the game is
+  /// `playing`. Completes true once the server acknowledged it, false when it
+  /// was refused (round no longer `playing`, already thrown) or can't be sent.
   ///
-  /// [timeout] (Tester RPS-8): offline, a Firestore write never completes
-  /// until the network returns, which used to leave the caller hanging. Past
-  /// the round's deadline the answer can only be "refused" anyway, so give up
-  /// after [timeout] and report false. The queued write may still reach the
-  /// server later — the rules then reject it (`request.time` past 7s).
+  /// Offline the future only completes when the network returns (the write
+  /// sits in Firestore's queue and my `moves` doc already shows it locally);
+  /// the provider bounds how long it WAITS, not the write itself.
   Future<bool> submitMove({
     required String coupleId,
     required String gameId,
     required String uid,
     required RpsChoice choice,
-    Duration? timeout,
   }) async {
     if (_blank(coupleId) ||
         _blank(gameId) ||
@@ -495,17 +560,13 @@ class RpsGameService {
       return false;
     }
     try {
-      final write = _move(coupleId.trim(), gameId.trim(), uid.trim()).set(
+      await _move(coupleId.trim(), gameId.trim(), uid.trim()).set(
         <String, dynamic>{
           'choice': choice.key,
           'createdAt': FieldValue.serverTimestamp(),
         },
       );
-      await (timeout == null ? write : write.timeout(timeout));
       return true;
-    } on TimeoutException {
-      debugPrint('RpsGameService.submitMove timed out after $timeout');
-      return false;
     } catch (e) {
       debugPrint('RpsGameService.submitMove failed: $e');
       return false;
@@ -570,38 +631,42 @@ class RpsGameService {
     }
   }
 
-  /// Asks the `finishRpsGame` callable to settle a `playing` game whose
-  /// deadline (+grace) has passed with a hand missing. Idempotent server-side;
-  /// both phones may call it. Fail-soft: false on any error (the watcher will
-  /// still see `finished` if the other phone got through).
-  Future<bool> finishViaCallable({
+  /// "Nhắc người ấy" (2026-09-14 no-skip rule): asks the `nudgeRpsPlayer`
+  /// callable to push + inbox `rps_moved` to the partner who hasn't thrown.
+  /// The server owns every rule (I have thrown, the partner hasn't, 60s since
+  /// `lastNudgeAt`) and answers `{ok}` or `{ok:false, reason, retryAfterMs}`
+  /// instead of throwing. Fail-soft: any error → [RpsNudgeStatus.failed].
+  ///
+  /// (The retired `finishRpsGame` callable is gone from the backend — a round
+  /// only ends when both hands are in, via the `resolveRpsGame` trigger.)
+  Future<RpsNudgeResult> nudgePartner({
     required String coupleId,
     required String gameId,
   }) async {
     if (_blank(coupleId) || _blank(gameId) || !isUsingFirebase) {
-      return false;
+      return const RpsNudgeResult(RpsNudgeStatus.failed);
     }
     try {
-      final response = await _fns.httpsCallable(_finishCallable).call<dynamic>(
-        <String, dynamic>{'coupleId': coupleId.trim(), 'gameId': gameId.trim()},
-      );
-      // The callable answers `{ok:false, reason:'too_early'|'not_playing'}`
-      // instead of throwing when it declines — surface that as false so the
-      // provider's retry cadence (3s) keeps polling until the server agrees.
-      final data = response.data;
-      if (data is Map && data['ok'] == false) {
-        debugPrint(
-          'RpsGameService.finishViaCallable declined: ${data['reason']}',
-        );
-        return false;
+      final response = await _fns
+          .httpsCallable(
+            _nudgeCallable,
+            options: HttpsCallableOptions(timeout: const Duration(seconds: 15)),
+          )
+          .call<dynamic>(<String, dynamic>{
+            'coupleId': coupleId.trim(),
+            'gameId': gameId.trim(),
+          });
+      final result = RpsNudgeResult.fromResponse(response.data);
+      if (!result.isSent) {
+        debugPrint('RpsGameService.nudgePartner declined: ${result.status}');
       }
-      return true;
+      return result;
     } on FirebaseFunctionsException catch (e) {
-      debugPrint('RpsGameService.finishViaCallable ${e.code}: ${e.message}');
-      return false;
+      debugPrint('RpsGameService.nudgePartner ${e.code}: ${e.message}');
+      return const RpsNudgeResult(RpsNudgeStatus.failed);
     } catch (e) {
-      debugPrint('RpsGameService.finishViaCallable failed: $e');
-      return false;
+      debugPrint('RpsGameService.nudgePartner failed: $e');
+      return const RpsNudgeResult(RpsNudgeStatus.failed);
     }
   }
 

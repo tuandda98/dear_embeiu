@@ -2635,7 +2635,7 @@
   },
   "rpsChoiceNone": "Skipped",
   "@rpsChoiceNone": {
-    "description": "Rock-paper-scissors: the player didn't pick before the timer ran out (history + result)."
+    "description": "Rock-paper-scissors: the player didn't pick before the timer ran out (history + result). Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it."
   },
   "rpsResultWin": "You win 🎉",
   "@rpsResultWin": {
@@ -2653,7 +2653,7 @@
   "@rpsWaitingPartner": {
     "description": "Rock-paper-scissors: invite sent, the partner hasn't opened the game yet."
   },
-  "rpsChosenWaiting": "Locked in ✓ · Waiting for your person…",
+  "rpsChosenWaiting": "You've thrown ✓ · Waiting for your person…",
   "@rpsChosenWaiting": {
     "description": "Rock-paper-scissors: the user has picked a hand and is waiting for the partner."
   },
@@ -2714,7 +2714,7 @@
   "@rpsEntryInvitedTitle": {
     "description": "Home card title when the partner has an open invite."
   },
-  "rpsEntryInvitedSubtitle": "Pick within 5 seconds ⏱️",
+  "rpsEntryInvitedSubtitle": "Hop in — they're waiting",
   "@rpsEntryInvitedSubtitle": {
     "description": "Home card subtitle when the partner has an open invite."
   },
@@ -2867,7 +2867,7 @@
   "@rpsReloadCta": {
     "description": "Button to re-read the game when settling is slow."
   },
-  "rpsOfflineHint": "Offline — the clock keeps running; your pick only counts if it gets through before time's up",
+  "rpsOfflineHint": "Offline — your pick will go through once you're back online",
   "@rpsOfflineHint": {
     "description": "Offline strip above the hand buttons."
   },
@@ -2882,15 +2882,15 @@
   },
   "rpsResultTimeoutPartner": "Your person didn't pick in time",
   "@rpsResultTimeoutPartner": {
-    "description": "Result subtitle when the partner skipped."
+    "description": "Result subtitle when the partner skipped. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it."
   },
   "rpsResultTimeoutMe": "You didn't pick in time",
   "@rpsResultTimeoutMe": {
-    "description": "Result subtitle when I skipped."
+    "description": "Result subtitle when I skipped. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it."
   },
   "rpsResultTimeoutBoth": "Both skipped — this round is a draw",
   "@rpsResultTimeoutBoth": {
-    "description": "Result subtitle when both skipped."
+    "description": "Result subtitle when both skipped. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it."
   },
   "rpsRematchCta": "Play again",
   "@rpsRematchCta": {
@@ -2987,7 +2987,7 @@
   },
   "rpsOutcomeSkipped": "Skipped",
   "@rpsOutcomeSkipped": {
-    "description": "History row outcome pill when a hand was missing."
+    "description": "History row outcome pill when a hand was missing. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it."
   },
   "rpsHistoryRowSemantics": "{time}: you {mine}, your person {theirs}, {outcome}",
   "@rpsHistoryRowSemantics": {
@@ -3027,8 +3027,91 @@
   "@featureTourRpsTitle": {
     "description": "Feature tour entry title (build 23)."
   },
-  "featureTourRpsBody": "Send a challenge, both pick within 5 seconds, the reveal is simultaneous. History and score live on your Profile.",
+  "featureTourRpsBody": "Send a challenge, count it down together and throw. No skipping — whoever hasn't thrown gets a nudge, and the reveal waits for both of you. History and score live on your Profile.",
   "@featureTourRpsBody": {
     "description": "Feature tour entry body (build 23)."
+  },
+  "rpsOpenPrompt": "Go on, throw! No skipping here 😄",
+  "@rpsOpenPrompt": {
+    "description": "Play screen caption once the 5s beat is over and nobody has thrown (no time limit)."
+  },
+  "rpsOpenRingSemantics": "No time limit — throw when you're ready",
+  "@rpsOpenRingSemantics": {
+    "description": "Screen-reader label of the ring once the 5s beat is over."
+  },
+  "rpsPartnerMovedTitle": "Your person has thrown!",
+  "@rpsPartnerMovedTitle": {
+    "description": "Play screen banner + Home card title: the partner has thrown, I have not (never says which hand)."
+  },
+  "rpsPartnerMovedBody": "Your move — pick a hand below",
+  "@rpsPartnerMovedBody": {
+    "description": "Play screen banner body under rpsPartnerMovedTitle."
+  },
+  "rpsMoveNudgeCta": "Nudge your person",
+  "@rpsMoveNudgeCta": {
+    "description": "Play screen: I have thrown, ask the partner (push) to throw too."
+  },
+  "rpsMoveNudgeCooldown": "Nudged · again in {seconds}s",
+  "@rpsMoveNudgeCooldown": {
+    "description": "Play screen nudge button during its 60s cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsMoveNudgeSentToast": "Nudged your person 🔔",
+  "@rpsMoveNudgeSentToast": {
+    "description": "Snackbar after the move nudge was sent."
+  },
+  "rpsMoveNudgeTooSoon": "You just nudged — try again in {seconds}s",
+  "@rpsMoveNudgeTooSoon": {
+    "description": "Snackbar when the server refused the move nudge because of the cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsMoveNudgeFailed": "Couldn't send the nudge — try again",
+  "@rpsMoveNudgeFailed": {
+    "description": "Snackbar when the move nudge failed (network / other error)."
+  },
+  "rpsChosenLeaveHint": "Feel free to step away — we'll tell you the result",
+  "@rpsChosenLeaveHint": {
+    "description": "Play screen hint under the nudge button: leaving is fine, the result is pushed."
+  },
+  "rpsEntryMyTurnSubtitle": "Your move — they're waiting 😄",
+  "@rpsEntryMyTurnSubtitle": {
+    "description": "Home card subtitle when the partner has thrown and I have not."
+  },
+  "rpsEntryUnplayedTitle": "Round in progress",
+  "@rpsEntryUnplayedTitle": {
+    "description": "Home card title: a started round where nobody has thrown yet."
+  },
+  "rpsEntryUnplayedSubtitle": "Nobody has thrown yet — go first",
+  "@rpsEntryUnplayedSubtitle": {
+    "description": "Home card subtitle for rpsEntryUnplayedTitle."
+  },
+  "rpsEntryAwaitingTitle": "Waiting for your person's move",
+  "@rpsEntryAwaitingTitle": {
+    "description": "Home card title: I have thrown, the partner has not."
+  },
+  "rpsEntryAwaitingSubtitle": "You've thrown · we'll tell you the result",
+  "@rpsEntryAwaitingSubtitle": {
+    "description": "Home card subtitle for rpsEntryAwaitingTitle."
+  },
+  "rpsEntryCtaThrow": "Throw",
+  "@rpsEntryCtaThrow": {
+    "description": "Home card CTA to open a started round and throw."
+  },
+  "notifRpsMoved": "{name} has thrown — your move!",
+  "@notifRpsMoved": {
+    "description": "Notification center title: the partner threw in rock-paper-scissors and it is my move.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

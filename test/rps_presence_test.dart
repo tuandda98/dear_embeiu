@@ -69,10 +69,38 @@ class _FakeRpsService extends RpsGameService {
   }) async => false;
 
   @override
-  Future<bool> finishViaCallable({
+  Future<RpsGame?> fetchGame(String coupleId, String gameId) async => null;
+
+  /// Moves written through [submitMove] (`gameId:choice`).
+  final List<String> moves = <String>[];
+
+  /// Answer of the next [submitMove] (null = never completes, like offline).
+  Completer<bool>? moveWrite;
+
+  @override
+  Future<bool> submitMove({
     required String coupleId,
     required String gameId,
-  }) async => false;
+    required String uid,
+    required RpsChoice choice,
+  }) {
+    moves.add('$gameId:${choice.key}');
+    final pending = moveWrite;
+    return pending == null ? Future<bool>.value(true) : pending.future;
+  }
+
+  /// `nudgeRpsPlayer` calls and the answer the fake gives.
+  int nudges = 0;
+  RpsNudgeResult nudgeAnswer = const RpsNudgeResult(RpsNudgeStatus.sent);
+
+  @override
+  Future<RpsNudgeResult> nudgePartner({
+    required String coupleId,
+    required String gameId,
+  }) async {
+    nudges++;
+    return nudgeAnswer;
+  }
 
   Future<void> close() async {
     await open.close();
@@ -260,7 +288,7 @@ void main() {
     });
   });
 
-  group('RpsGameProvider.isSettling (Tester RPS-22)', () {
+  group('RpsGameProvider phases — no-skip rule (2026-09-14)', () {
     late _FakeRpsService service;
     late RpsGameProvider provider;
     final screen = Object();
@@ -281,55 +309,387 @@ void main() {
       });
     }
 
-    RpsGame playing(DateTime? startedAt) => RpsGame(
-      id: 'g1',
-      createdBy: 'you',
-      status: RpsGameStatus.playing,
-      createdAt: DateTime.now().subtract(const Duration(seconds: 30)),
-      startedAt: startedAt,
-    );
+    /// A `playing` round that started [ago] before now (null = startedAt not
+    /// echoed yet), with optional CF `moved` stamps / `lastNudgeAt`.
+    RpsGame playing(
+      Duration? ago, {
+      Map<String, DateTime> moved = const <String, DateTime>{},
+      DateTime? lastNudgeAt,
+    }) {
+      final now = DateTime.now();
+      return RpsGame(
+        id: 'g1',
+        createdBy: 'you',
+        status: RpsGameStatus.playing,
+        createdAt: now.subtract(const Duration(minutes: 1)),
+        startedAt: ago == null ? null : now.subtract(ago),
+        moved: moved,
+        lastNudgeAt: lastNudgeAt,
+      );
+    }
 
-    providerTest('picked + clock over → settling (not only `resolving`)', (
+    Future<void> show(WidgetTester tester, RpsGame game) async {
+      service.game.add(game);
+      await tester.pump();
+    }
+
+    providerTest('nobody thrown: countdown in the beat, yourTurn after it', (
+      tester,
+    ) async {
+      await tester.pump();
+      await show(tester, playing(const Duration(seconds: 2)));
+      expect(provider.phase, RpsPhase.countdown);
+      expect(provider.isCountingDown, isTrue);
+      expect(provider.canChoose, isTrue);
+
+      // Past the 5s beat nothing ends: no resolving, no settling, still
+      // tappable — 7s, 30s, 5 minutes, a day.
+      for (final ago in const <Duration>[
+        Duration(seconds: 7),
+        Duration(seconds: 30),
+        Duration(minutes: 5),
+        Duration(days: 1),
+      ]) {
+        await show(tester, playing(ago));
+        expect(provider.phase, RpsPhase.yourTurn, reason: '$ago');
+        expect(provider.isCountingDown, isFalse);
+        expect(provider.isSettling, isFalse);
+        expect(provider.canChoose, isTrue);
+      }
+    });
+
+    providerTest('startedAt not echoed yet → the full beat', (tester) async {
+      await tester.pump();
+      await show(tester, playing(null));
+      expect(provider.phase, RpsPhase.countdown);
+      expect(provider.countdownRemaining, RpsTiming.countdown);
+      expect(provider.isCountingDown, isTrue);
+    });
+
+    providerTest('partner thrown → partnerMovedYourTurn, even in the beat', (
+      tester,
+    ) async {
+      await tester.pump();
+      final t = DateTime.now();
+      await show(
+        tester,
+        playing(const Duration(seconds: 1), moved: {'you': t}),
+      );
+      expect(provider.phase, RpsPhase.partnerMovedYourTurn);
+      expect(provider.isCountingDown, isTrue, reason: 'ring keeps counting');
+      expect(provider.partnerHasMoved, isTrue);
+      expect(provider.canChoose, isTrue);
+
+      await show(
+        tester,
+        playing(const Duration(minutes: 3), moved: {'you': t}),
+      );
+      expect(provider.phase, RpsPhase.partnerMovedYourTurn);
+      expect(provider.isCountingDown, isFalse);
+    });
+
+    providerTest('my hand in, partner not → chosenWaiting (never settling)', (
       tester,
     ) async {
       await tester.pump();
       service.move.add(const RpsMove(uid: 'me', choice: RpsChoice.rock));
-      service.game.add(
-        playing(DateTime.now().subtract(const Duration(seconds: 2))),
-      );
-      await tester.pump();
+      await show(tester, playing(const Duration(seconds: 2)));
       expect(provider.phase, RpsPhase.chosenWaiting);
-      expect(provider.isSettling, isFalse, reason: 'clock still running');
+      expect(provider.canChoose, isFalse);
 
-      service.game.add(
-        playing(DateTime.now().subtract(const Duration(seconds: 6))),
-      );
-      await tester.pump();
+      await show(tester, playing(const Duration(seconds: 40)));
       expect(provider.phase, RpsPhase.chosenWaiting);
-      expect(provider.isSettling, isTrue);
+      expect(provider.isSettling, isFalse);
+      expect(provider.canNudge, isTrue);
     });
 
-    providerTest('no hand + clock over (`resolving`) → settling', (
-      tester,
-    ) async {
-      await tester.pump();
-      service.game.add(
-        playing(DateTime.now().subtract(const Duration(seconds: 6))),
-      );
-      await tester.pump();
-      expect(provider.phase, RpsPhase.resolving);
-      expect(provider.isSettling, isTrue);
-    });
-
-    providerTest('picked before `startedAt` echoed back → not settling', (
+    providerTest('both hands in → resolving (settling) until the CF', (
       tester,
     ) async {
       await tester.pump();
       service.move.add(const RpsMove(uid: 'me', choice: RpsChoice.paper));
-      service.game.add(playing(null));
+      await show(
+        tester,
+        playing(const Duration(seconds: 20), moved: {'you': DateTime.now()}),
+      );
+      expect(provider.phase, RpsPhase.resolving);
+      expect(provider.isSettling, isTrue);
+      expect(provider.canNudge, isFalse);
+    });
+
+    providerTest('reopened: CF says my hand is in before my move doc streams', (
+      tester,
+    ) async {
       await tester.pump();
+      await show(
+        tester,
+        playing(const Duration(hours: 2), moved: {'me': DateTime.now()}),
+      );
+      expect(provider.myChoice, isNull);
+      expect(provider.iHaveMoved, isTrue);
       expect(provider.phase, RpsPhase.chosenWaiting);
-      expect(provider.isSettling, isFalse);
+      expect(provider.canChoose, isFalse);
+    });
+
+    providerTest('partner "just threw" edge: live only, not on reopen', (
+      tester,
+    ) async {
+      await tester.pump();
+      // First snapshot already has the partner's hand → a reopened round.
+      await show(
+        tester,
+        playing(const Duration(minutes: 1), moved: {'you': DateTime.now()}),
+      );
+      expect(provider.partnerMovedEdges, 0);
+
+      // Switch to a fresh round and watch the partner throw live.
+      provider.enter('g2', owner: screen);
+      await tester.pump();
+      await show(tester, playing(const Duration(seconds: 8)));
+      expect(provider.partnerMovedEdges, 0);
+      await show(
+        tester,
+        playing(const Duration(seconds: 9), moved: {'you': DateTime.now()}),
+      );
+      expect(provider.partnerMovedEdges, 1);
+      // Later snapshots (heartbeats) don't re-fire it.
+      await show(
+        tester,
+        playing(const Duration(seconds: 12), moved: {'you': DateTime.now()}),
+      );
+      expect(provider.partnerMovedEdges, 1);
+    });
+
+    providerTest('choose works past the beat; offline keeps the lock', (
+      tester,
+    ) async {
+      await tester.pump();
+      await show(tester, playing(const Duration(minutes: 10)));
+      service.moveWrite = Completer<bool>(); // never acked (offline)
+      unawaited(provider.choose(RpsChoice.scissors));
+      await tester.pump();
+      expect(service.moves, <String>['g1:scissors']);
+      expect(provider.myChoice, RpsChoice.scissors);
+      expect(provider.phase, RpsPhase.chosenWaiting);
+
+      // The caller stops waiting after ~10s; the hand stays locked in.
+      await tester.pump(const Duration(seconds: 11));
+      expect(provider.myChoice, RpsChoice.scissors);
+      expect(provider.canChoose, isFalse);
+
+      // The queued write is finally refused → unlock.
+      service.moveWrite!.complete(false);
+      await tester.pump();
+      expect(provider.myChoice, isNull);
+      expect(provider.canChoose, isTrue);
+    });
+
+    providerTest('nudge cooldown follows the server lastNudgeAt', (
+      tester,
+    ) async {
+      await tester.pump();
+      service.move.add(const RpsMove(uid: 'me', choice: RpsChoice.rock));
+      await show(
+        tester,
+        playing(
+          const Duration(minutes: 1),
+          lastNudgeAt: DateTime.now().subtract(const Duration(seconds: 13)),
+        ),
+      );
+      final left = provider.nudgeCooldownRemaining;
+      expect(left.inSeconds, inInclusiveRange(45, 47));
+      expect(provider.canNudge, isFalse);
+      // Still cooling → answered locally, the callable isn't hit.
+      final early = await provider.nudge();
+      expect(early.status, RpsNudgeStatus.cooldown);
+      expect(service.nudges, 0);
+
+      // Cooldown over (stamp 61s old) → nudge goes out.
+      await show(
+        tester,
+        playing(
+          const Duration(minutes: 2),
+          lastNudgeAt: DateTime.now().subtract(const Duration(seconds: 61)),
+        ),
+      );
+      expect(provider.canNudge, isTrue);
+      final sent = await provider.nudge();
+      expect(sent.isSent, isTrue);
+      expect(service.nudges, 1);
+      // Before lastNudgeAt echoes back, a local 60s floor holds the button.
+      expect(
+        provider.nudgeCooldownRemaining.inSeconds,
+        inInclusiveRange(58, 60),
+      );
+      expect(provider.canNudge, isFalse);
+    });
+
+    providerTest('nudge: server cooldown answer sets the local floor', (
+      tester,
+    ) async {
+      await tester.pump();
+      service.move.add(const RpsMove(uid: 'me', choice: RpsChoice.rock));
+      await show(tester, playing(const Duration(minutes: 1)));
+      service.nudgeAnswer = const RpsNudgeResult(
+        RpsNudgeStatus.cooldown,
+        retryAfter: Duration(seconds: 20),
+      );
+      final r = await provider.nudge();
+      expect(r.status, RpsNudgeStatus.cooldown);
+      expect(
+        provider.nudgeCooldownRemaining.inSeconds,
+        inInclusiveRange(18, 20),
+      );
+    });
+
+    providerTest('nudge only while chosenWaiting', (tester) async {
+      await tester.pump();
+      await show(tester, playing(const Duration(minutes: 1)));
+      expect(provider.phase, RpsPhase.yourTurn);
+      expect(provider.canNudge, isFalse);
+      final r = await provider.nudge();
+      expect(r.isSent, isFalse);
+      expect(service.nudges, 0);
+    });
+  });
+
+  group('RpsNudgeResult.fromResponse', () {
+    test('maps every callable answer', () {
+      expect(
+        RpsNudgeResult.fromResponse({'ok': true}).status,
+        RpsNudgeStatus.sent,
+      );
+      final cd = RpsNudgeResult.fromResponse({
+        'ok': false,
+        'reason': 'cooldown',
+        'retryAfterMs': 41250,
+      });
+      expect(cd.status, RpsNudgeStatus.cooldown);
+      expect(cd.retryAfter, const Duration(milliseconds: 41250));
+      expect(
+        RpsNudgeResult.fromResponse({
+          'ok': false,
+          'reason': 'cooldown',
+        }).retryAfter,
+        RpsTiming.nudgeCooldown,
+      );
+      expect(
+        RpsNudgeResult.fromResponse({
+          'ok': false,
+          'reason': 'partner_moved',
+        }).status,
+        RpsNudgeStatus.partnerMoved,
+      );
+      expect(
+        RpsNudgeResult.fromResponse({
+          'ok': false,
+          'reason': 'not_playing',
+        }).status,
+        RpsNudgeStatus.notPlaying,
+      );
+      expect(
+        RpsNudgeResult.fromResponse({
+          'ok': false,
+          'reason': 'not_moved',
+        }).status,
+        RpsNudgeStatus.notMoved,
+      );
+      expect(
+        RpsNudgeResult.fromResponse({'ok': false, 'reason': '??'}).status,
+        RpsNudgeStatus.failed,
+      );
+      expect(RpsNudgeResult.fromResponse(null).status, RpsNudgeStatus.failed);
+    });
+  });
+
+  group('RpsGameProvider.openState — Home card / Profile dot order', () {
+    late _FakeRpsService service;
+    late RpsGameProvider provider;
+
+    void providerTest(String name, Future<void> Function(WidgetTester) body) {
+      testWidgets(name, (tester) async {
+        service = _FakeRpsService();
+        provider = RpsGameProvider(service: service);
+        provider.watchForCouple('c1', 'me', 'you');
+        try {
+          await body(tester);
+        } finally {
+          provider.dispose();
+          await service.close();
+        }
+      });
+    }
+
+    Future<void> emit(WidgetTester tester, List<RpsGame> games) async {
+      service.open.add(RpsOpenGamesSnapshot(games: games, fromCache: false));
+      await tester.pump();
+    }
+
+    RpsGame round(Map<String, DateTime> moved) {
+      final now = DateTime.now();
+      return RpsGame(
+        id: 'r',
+        createdBy: 'you',
+        status: RpsGameStatus.playing,
+        createdAt: now.subtract(const Duration(days: 2)),
+        startedAt: now.subtract(const Duration(days: 2)),
+        moved: moved,
+      );
+    }
+
+    providerTest('each open game maps to its state', (tester) async {
+      await tester.pump();
+      expect(provider.openState, RpsOpenState.none);
+
+      final t = DateTime.now();
+      await emit(tester, [
+        round({'you': t}),
+      ]);
+      expect(provider.openState, RpsOpenState.myTurn);
+      expect(provider.isMyTurn, isTrue);
+
+      await emit(tester, [round({})]);
+      expect(provider.openState, RpsOpenState.unplayed);
+      expect(provider.isMyTurn, isFalse);
+
+      await emit(tester, [
+        round({'me': t}),
+      ]);
+      expect(provider.openState, RpsOpenState.awaitingPartner);
+
+      final now = DateTime.now();
+      await emit(tester, [
+        RpsGame(
+          id: 'i',
+          createdBy: 'you',
+          status: RpsGameStatus.invited,
+          createdAt: now.subtract(const Duration(minutes: 1)),
+        ),
+      ]);
+      expect(provider.openState, RpsOpenState.invitedByPartner);
+      expect(provider.hasPendingInvite, isTrue);
+
+      await emit(tester, [
+        RpsGame(
+          id: 'm',
+          createdBy: 'me',
+          status: RpsGameStatus.invited,
+          createdAt: now.subtract(const Duration(minutes: 1)),
+        ),
+      ]);
+      expect(provider.openState, RpsOpenState.myInvitePending);
+
+      // Stale invite → nothing; a 2-day-old round is still "the game".
+      await emit(tester, [
+        RpsGame(
+          id: 'old',
+          createdBy: 'you',
+          status: RpsGameStatus.invited,
+          createdAt: now.subtract(const Duration(minutes: 11)),
+        ),
+      ]);
+      expect(provider.openState, RpsOpenState.none);
+      expect(provider.openGame, isNull);
     });
   });
 

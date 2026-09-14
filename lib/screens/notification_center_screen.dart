@@ -305,7 +305,8 @@ class _NotificationTile extends StatelessWidget {
               }
               // Rock-paper-scissors (feature rps-game): same plumbing as the
               // push tap — Home consumes the focus and opens the game/history.
-              if (n.type == AppNotificationType.rpsInvite) {
+              if (n.type == AppNotificationType.rpsInvite ||
+                  n.type == AppNotificationType.rpsMoved) {
                 final gameId = n.gameId;
                 if (gameId != null && gameId.isNotEmpty) {
                   NotificationTapRouter.pendingRpsGameId.value = gameId;
@@ -465,6 +466,12 @@ class _NotificationTile extends StatelessWidget {
         return n.title ?? l10n.notifCareMessage(name);
       case AppNotificationType.rpsInvite:
         return l10n.notifRpsInvite(name);
+      case AppNotificationType.rpsMoved:
+        // Name dropped by the CF when blank → "Người ấy" / "Your person"
+        // (design addendum C2), not the photo poster fallback.
+        return l10n.notifRpsMoved(
+          n.actorName.isNotEmpty ? n.actorName : l10n.reactionPartnerFallback,
+        );
       case AppNotificationType.rpsResult:
         return l10n.notifRpsResult(name);
       case AppNotificationType.unknown:
@@ -545,6 +552,7 @@ class _Avatar extends StatelessWidget {
       case AppNotificationType.careMessage:
         return (IconsaxPlusLinear.message_favorite, AppColors.accentLoveDeep);
       case AppNotificationType.rpsInvite:
+      case AppNotificationType.rpsMoved:
       case AppNotificationType.rpsResult:
         return (IconsaxPlusLinear.game, AppColors.accentLavenderDeep);
       case AppNotificationType.unknown:

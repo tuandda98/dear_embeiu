@@ -14,6 +14,7 @@ import '../models/couple.dart';
 import '../models/rps_game.dart';
 import '../providers/couple_provider.dart';
 import '../providers/rps_game_provider.dart';
+import '../services/rps_game_service.dart' show RpsNudgeStatus;
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
@@ -69,12 +70,15 @@ String rpsMemberName(Couple? couple, String? uid, String fallback) {
 }
 
 /// "Oẳn tù tì" — one round of rock-paper-scissors with the partner
-/// (overview §4, design §4.3). Renders [RpsGameProvider.phase]:
-/// waiting → countdown → chosenWaiting/resolving → result, plus the
-/// expired / cancelled / error dead-ends. All game logic (heartbeat,
-/// auto-start, ticker, auto-finish) lives in the provider; this screen only
-/// choreographs (ring, "1·2·3!" reveal, confetti, haptics) and calls
-/// `choose` / `rematch` / `cancel` / `renewInvite`.
+/// (overview §4, design §4.3 + addendum 2026-09-14). Renders
+/// [RpsGameProvider.phase]: waiting → countdown (5s beat) → yourTurn /
+/// partnerMovedYourTurn / chosenWaiting → resolving → result, plus the
+/// expired / cancelled / error dead-ends. No-skip rule: the round never ends
+/// on the clock — past the beat the ring "opens" (refills + breathes) and
+/// the hands stay tappable until both are in. All game logic (heartbeat,
+/// auto-start, ticker) lives in the provider; this screen only choreographs
+/// (ring, "Người ấy đã ra rồi" banner, "1·2·3!" reveal, confetti, haptics)
+/// and calls `choose` / `nudge` / `rematch` / `cancel` / `renewInvite`.
 class RpsGameScreen extends StatefulWidget {
   const RpsGameScreen({super.key, this.gameId});
 
@@ -114,9 +118,18 @@ class _RpsGameScreenState extends State<RpsGameScreen>
 
   late final RpsGameProvider _provider;
 
-  /// Drives per-frame ring repaints while the clock runs (the remaining time
-  /// itself is read from the game's server `startedAt`, so no drift).
+  /// Drives per-frame ring repaints while the 5s beat runs (the remaining
+  /// time itself is read from the game's server `startedAt`, so no drift).
+  /// Stopped once the ring is in its "open" mode (addendum A1).
   late final AnimationController _ringTicker;
+
+  /// Ring refill 0→1 (320ms) at the moment the beat hits 0 while watching —
+  /// "still open, take your time" instead of an empty "time's up" ring.
+  late final AnimationController _ringRefill;
+
+  /// Arc "breathing" (alpha 1.0 ↔ 0.6, 800ms each way) while it's my turn
+  /// past the beat. Off under Reduce Motion / once my hand is in.
+  late final AnimationController _ringBreath;
   late final ConfettiController _confetti;
 
   bool _initFailed = false;
@@ -125,6 +138,21 @@ class _RpsGameScreenState extends State<RpsGameScreen>
 
   RpsPhase? _lastPhase;
   int? _lastSeconds;
+
+  /// Game the per-game trackers below belong to (reset on a switch).
+  String? _trackedGameId;
+
+  /// [RpsGameProvider.partnerMovedEdges] already handled (haptic + banner).
+  int _seenPartnerEdges = 0;
+
+  /// The partner threw WHILE this screen watched → the banner animates in +
+  /// flashes its border; a reopened round shows it statically.
+  bool _partnerMovedLive = false;
+
+  /// The first `playing` phase seen for this game was `chosenWaiting` (a
+  /// reopened round where my hand is already in) → the nudge block shows at
+  /// once, even inside the 5s beat (addendum A3/A5).
+  bool? _openedChosen;
 
   /// A live phase (waiting/countdown/chosen) was seen on THIS screen, so a
   /// result that arrives afterwards gets the full "1·2·3!" reveal. Opening a
@@ -173,6 +201,15 @@ class _RpsGameScreenState extends State<RpsGameScreen>
       vsync: this,
       duration: const Duration(seconds: 1),
     );
+    _ringRefill = AnimationController(
+      vsync: this,
+      duration: AppMotion.slow,
+      value: 1,
+    );
+    _ringBreath = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
     _confetti = ConfettiController(
       duration: const Duration(milliseconds: 2500),
     );
@@ -190,6 +227,7 @@ class _RpsGameScreenState extends State<RpsGameScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _reduceMotion = AppMotion.reduceMotion(context);
+    _syncRingAnimations();
     final route = ModalRoute.of(context);
     if (route is PageRoute<dynamic> && !identical(route, _subscribedRoute)) {
       if (_subscribedRoute != null) {
@@ -215,6 +253,8 @@ class _RpsGameScreenState extends State<RpsGameScreen>
     _slowTimer?.cancel();
     _connectivitySub?.cancel();
     _ringTicker.dispose();
+    _ringRefill.dispose();
+    _ringBreath.dispose();
     _confetti.dispose();
     super.dispose();
   }
@@ -226,7 +266,7 @@ class _RpsGameScreenState extends State<RpsGameScreen>
     final action = rpsPresenceActionFor(state);
     if (action == RpsPresenceAction.beat) {
       _appActive = true;
-      _syncRingTicker(_provider.phase);
+      _syncRingAnimations();
       if (!_routeCovered) {
         // Beats immediately — the partner sees me back within one RTT.
         _provider.resumeHeartbeat(owner: this);
@@ -242,6 +282,7 @@ class _RpsGameScreenState extends State<RpsGameScreen>
     _appActive = false;
     if (state == AppLifecycleState.paused) {
       _ringTicker.stop();
+      _ringBreath.stop();
     }
     _provider.pauseHeartbeat(
       owner: this,
@@ -276,6 +317,7 @@ class _RpsGameScreenState extends State<RpsGameScreen>
       _initFailed = false;
       _seenLivePhase = false;
       _followedRematchId = null;
+      _resetGameTrackers(null);
     });
     _provider.enter(gameId, owner: this);
   }
@@ -315,10 +357,9 @@ class _RpsGameScreenState extends State<RpsGameScreen>
       _lastPhase = phase;
     }
 
-    // "Kết nối chậm… / Tải lại" after 6s of settling — `resolving` AND a
-    // picked hand whose clock ran out (Tester RPS-22: the latter doesn't
-    // change the phase, so it used to never arm and an offline player who
-    // had picked sat on "Đang mở kết quả…" forever).
+    // "Kết nối chậm… / Tải lại" after 6s of settling — both hands are in and
+    // only the CF's verdict is missing (Tester RPS-22; since the no-skip rule
+    // that is exactly `resolving`).
     final settling = _provider.isSettling;
     if (settling != _settling) {
       changed = true;
@@ -335,20 +376,55 @@ class _RpsGameScreenState extends State<RpsGameScreen>
       }
     }
 
-    // Per-second haptics while the clock runs (design §5.1).
-    if (phase == RpsPhase.countdown || phase == RpsPhase.chosenWaiting) {
-      final secs = _provider.countdownSeconds;
+    // Per-game trackers follow the game on screen (rematch / follow / tap).
+    if (_provider.currentGameId != _trackedGameId) {
+      changed = true;
+      _resetGameTrackers(_provider.currentGameId);
+    }
+
+    if (_isRoundPhase(phase)) {
+      _openedChosen ??= phase == RpsPhase.chosenWaiting;
+
+      // Per-second haptics while the beat runs (addendum A6). A round opened
+      // past the beat starts at 0 with no previous second → silent, and the
+      // ring is drawn full straight away (no refill).
+      final secs = _provider.isCountingDown ? _provider.countdownSeconds : 0;
       if (secs != _lastSeconds) {
-        if (_lastSeconds != null) {
+        final live = _lastSeconds != null;
+        _lastSeconds = secs;
+        if (live) {
           if (secs == 0) {
-            HapticFeedback.heavyImpact();
+            // "Ra!" — a heavy tap only if my hand isn't in yet.
+            if (_provider.iHaveMoved) {
+              HapticFeedback.selectionClick();
+            } else {
+              HapticFeedback.heavyImpact();
+            }
+            if (_reduceMotion) {
+              _ringRefill.value = 1;
+            } else {
+              _ringRefill.forward(from: 0);
+            }
           } else {
             HapticFeedback.selectionClick();
           }
         }
-        _lastSeconds = secs;
       }
+
+      // "Người ấy vừa ra" while I'm watching (addendum A2): one light tap.
+      final edges = _provider.partnerMovedEdges;
+      if (edges > _seenPartnerEdges) {
+        _seenPartnerEdges = edges;
+        if (phase == RpsPhase.partnerMovedYourTurn) {
+          changed = true;
+          _partnerMovedLive = true;
+          HapticFeedback.lightImpact();
+        }
+      }
+    } else {
+      _lastSeconds = null;
     }
+    _syncRingAnimations();
 
     // Partner's rematch / newer invite → follow it. The decision lives in
     // [RpsGame.shouldFollow] (Tester RPS-1/RPS-2): from a closed game only to
@@ -376,23 +452,20 @@ class _RpsGameScreenState extends State<RpsGameScreen>
   }
 
   void _onPhaseChanged(RpsPhase? from, RpsPhase to) {
-    _syncRingTicker(to);
-
-    if (to == RpsPhase.waiting ||
-        to == RpsPhase.countdown ||
-        to == RpsPhase.chosenWaiting) {
+    if (to == RpsPhase.waiting || _isRoundPhase(to)) {
       _seenLivePhase = true;
     }
-    if (to == RpsPhase.countdown && from != RpsPhase.chosenWaiting) {
-      // "Bắt đầu!" — one heavy tap as the ring appears.
+    if (from == RpsPhase.waiting && to == RpsPhase.countdown) {
+      // "Bắt đầu!" — one heavy tap as the ring appears (invited → playing
+      // seen live; a reopened round never gets it — addendum A5/A6).
       HapticFeedback.heavyImpact();
-      _lastSeconds = null;
     }
 
-    // Cooldown label ticks only while waiting as the creator.
+    // Cooldown labels tick once a second: "Nhắc lại" while waiting as the
+    // creator, "Nhắc người ấy" while my hand is in.
     _cooldownTimer?.cancel();
     _cooldownTimer = null;
-    if (to == RpsPhase.waiting) {
+    if (to == RpsPhase.waiting || to == RpsPhase.chosenWaiting) {
       _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (mounted) {
           setState(() {});
@@ -409,17 +482,49 @@ class _RpsGameScreenState extends State<RpsGameScreen>
     }
   }
 
-  void _syncRingTicker(RpsPhase phase) {
-    final running =
-        phase == RpsPhase.countdown ||
-        phase == RpsPhase.chosenWaiting ||
-        phase == RpsPhase.resolving;
-    if (running && !_reduceMotion) {
+  static bool _isRoundPhase(RpsPhase phase) =>
+      phase == RpsPhase.countdown ||
+      phase == RpsPhase.yourTurn ||
+      phase == RpsPhase.partnerMovedYourTurn ||
+      phase == RpsPhase.chosenWaiting ||
+      phase == RpsPhase.resolving;
+
+  void _resetGameTrackers(String? gameId) {
+    _trackedGameId = gameId;
+    _lastSeconds = null;
+    _seenPartnerEdges = _provider.partnerMovedEdges;
+    _partnerMovedLive = false;
+    _openedChosen = null;
+    _ringRefill.value = 1;
+  }
+
+  /// Per-frame ticker only during the 5s beat; the breathing arc only past
+  /// it while it's my turn (yourTurn / partnerMovedYourTurn). Both off under
+  /// Reduce Motion (the ring then updates once a second / sits still).
+  void _syncRingAnimations() {
+    final phase = _provider.phase;
+    final round = _isRoundPhase(phase);
+    final counting = round && _provider.isCountingDown;
+    final visible = _appActive && !_reduceMotion;
+    if (counting && visible) {
       if (!_ringTicker.isAnimating) {
         _ringTicker.repeat();
       }
     } else {
       _ringTicker.stop();
+    }
+    final breathe =
+        visible &&
+        !counting &&
+        (phase == RpsPhase.yourTurn || phase == RpsPhase.partnerMovedYourTurn);
+    if (breathe) {
+      if (!_ringBreath.isAnimating) {
+        _ringBreath.repeat(reverse: true);
+      }
+    } else if (_ringBreath.isAnimating || _ringBreath.value != 0) {
+      _ringBreath
+        ..stop()
+        ..value = 0;
     }
   }
 
@@ -500,6 +605,38 @@ class _RpsGameScreenState extends State<RpsGameScreen>
     if (id != null) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.rpsNudgeSentToast)));
     }
+  }
+
+  /// "Nhắc người ấy" (addendum A3): snackbar per callable answer —
+  /// `partner_moved` / `not_playing` stay silent (the UI moves on by itself).
+  Future<void> _nudgeMove() async {
+    HapticFeedback.selectionClick();
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final result = await _provider.nudge();
+    if (!mounted) {
+      return;
+    }
+    final String? message;
+    switch (result.status) {
+      case RpsNudgeStatus.sent:
+        message = l10n.rpsMoveNudgeSentToast;
+      case RpsNudgeStatus.cooldown:
+        final ms =
+            (result.retryAfter ?? RpsTiming.nudgeCooldown).inMilliseconds;
+        message = l10n.rpsMoveNudgeTooSoon(((ms + 999) ~/ 1000).toString());
+      case RpsNudgeStatus.partnerMoved:
+      case RpsNudgeStatus.notPlaying:
+        message = null;
+      case RpsNudgeStatus.notMoved:
+      case RpsNudgeStatus.failed:
+        message = l10n.rpsMoveNudgeFailed;
+    }
+    if (message != null) {
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    }
+    setState(() {});
   }
 
   Future<void> _cancel() async {
@@ -723,15 +860,25 @@ class _RpsGameScreenState extends State<RpsGameScreen>
         );
 
       case RpsPhase.countdown:
+      case RpsPhase.yourTurn:
+      case RpsPhase.partnerMovedYourTurn:
       case RpsPhase.chosenWaiting:
       case RpsPhase.resolving:
         return _PlayView(
           key: const ValueKey('play'),
           provider: provider,
           ticker: _ringTicker,
+          refill: _ringRefill,
+          breath: _ringBreath,
           reduceMotion: _reduceMotion,
           offline: _offline,
           resolvingSlow: _resolvingSlow,
+          partnerName: partnerName,
+          partnerMovedLive: _partnerMovedLive,
+          showNudge:
+              provider.phase == RpsPhase.chosenWaiting &&
+              (!provider.isCountingDown || (_openedChosen ?? false)),
+          onNudge: _nudgeMove,
           onReload: _reload,
         );
 
@@ -821,30 +968,70 @@ class _PrimaryPill extends StatelessWidget {
   }
 }
 
+/// Outlined navy pill (h48). [icon] sits before the label like
+/// [_PrimaryPill]; [busy] swaps the content for a small spinner (addendum A3
+/// "Nhắc người ấy" while sending). Disabled = faded border + secondary ink.
 class _SecondaryPill extends StatelessWidget {
-  const _SecondaryPill({required this.label, required this.onTap});
+  const _SecondaryPill({
+    required this.label,
+    required this.onTap,
+    this.icon,
+    this.busy = false,
+  });
 
   final String label;
   final VoidCallback? onTap;
+  final IconData? icon;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onTap != null && !busy;
+    final Widget child;
+    if (busy) {
+      child = const SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: AppColors.textPrimary,
+        ),
+      );
+    } else {
+      child = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[Icon(icon, size: 18), const SizedBox(width: 8)],
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      );
+    }
     return SizedBox(
       height: 48,
       width: double.infinity,
       child: OutlinedButton(
-        onPressed: onTap,
+        onPressed: enabled ? onTap : null,
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textPrimary,
-          side: const BorderSide(color: AppColors.textPrimary, width: 1.4),
+          disabledForegroundColor: AppColors.textSecondary,
+          side: BorderSide(
+            color: enabled || busy
+                ? AppColors.textPrimary
+                : AppColors.textPrimary.withValues(alpha: 0.28),
+            width: 1.4,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(999),
           ),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-        ),
+        child: child,
       ),
     );
   }
@@ -1181,7 +1368,7 @@ class _VsPill extends StatelessWidget {
 /// Three dots fading in turn after "Đang chờ người ấy". Static "…" under
 /// Reduce Motion.
 class _BlinkingDots extends StatefulWidget {
-  const _BlinkingDots({required this.reduceMotion});
+  const _BlinkingDots({super.key, required this.reduceMotion});
 
   final bool reduceMotion;
 
@@ -1257,22 +1444,48 @@ class _PlayView extends StatelessWidget {
     super.key,
     required this.provider,
     required this.ticker,
+    required this.refill,
+    required this.breath,
     required this.reduceMotion,
     required this.offline,
     required this.resolvingSlow,
+    required this.partnerName,
+    required this.partnerMovedLive,
+    required this.showNudge,
+    required this.onNudge,
     required this.onReload,
   });
 
   final RpsGameProvider provider;
   final Animation<double> ticker;
+  final Animation<double> refill;
+  final Animation<double> breath;
   final bool reduceMotion;
   final bool offline;
   final bool resolvingSlow;
+  final String partnerName;
+
+  /// The partner threw while this screen watched (banner animates in).
+  final bool partnerMovedLive;
+
+  /// The "Nhắc người ấy" block is visible (addendum A3).
+  final bool showNudge;
+  final VoidCallback onNudge;
   final VoidCallback onReload;
 
+  /// Height of the fixed status slot between the ring and the hands — the
+  /// hands never move when its content changes (addendum N2).
+  static const double _slotHeight = 64;
+
   RpsChoiceTileState _tileState(RpsChoice choice) {
-    if (provider.hasChosen) {
-      return provider.myChoice == choice
+    if (provider.iHaveMoved) {
+      final mine = provider.myChoice;
+      if (mine == null) {
+        // Reopened round: the CF says my hand is in, my move doc hasn't
+        // streamed back yet — lock without guessing which one.
+        return RpsChoiceTileState.disabled;
+      }
+      return mine == choice
           ? RpsChoiceTileState.selected
           : RpsChoiceTileState.dimmed;
     }
@@ -1281,48 +1494,91 @@ class _PlayView extends StatelessWidget {
         : RpsChoiceTileState.disabled;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    // "Đang mở kết quả…" also once MY hand is in and the clock hit 0 — the
-    // provider keeps `chosenWaiting` there, but there's nothing left to wait
-    // for except the server ([RpsGameProvider.isSettling]).
-    final resolving = provider.isSettling;
-    final compact = MediaQuery.sizeOf(context).width <= 360;
+  static const TextStyle _captionStyle = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
 
-    final Widget caption;
-    if (resolving) {
-      caption = Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            resolvingSlow ? l10n.rpsResolvingSlow : l10n.rpsResolving,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
+  /// Content of the 64pt slot + its switcher key (prompt / open / banner /
+  /// chosen / resolving[-slow]).
+  (String, Widget) _slot(AppLocalizations l10n) {
+    if (provider.isSettling) {
+      return (
+        resolvingSlow ? 'resolving-slow' : 'resolving',
+        Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                resolvingSlow ? l10n.rpsResolvingSlow : l10n.rpsResolving,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: _captionStyle,
+              ),
+              if (resolvingSlow)
+                TextButton(
+                  onPressed: onReload,
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.textSecondary,
+                    minimumSize: const Size(44, 36),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  child: Text(
+                    l10n.rpsReloadCta,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+            ],
           ),
-          if (resolvingSlow) ...[
-            const SizedBox(height: 4),
-            _TertiaryButton(label: l10n.rpsReloadCta, onTap: onReload),
-          ],
-        ],
-      );
-    } else if (provider.hasChosen) {
-      caption = _ChosenCaption(text: l10n.rpsChosenWaiting);
-    } else {
-      caption = Text(
-        l10n.rpsCountdownPrompt,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
         ),
       );
     }
+    if (provider.iHaveMoved) {
+      return (
+        'chosen',
+        Center(child: _ChosenCaption(text: l10n.rpsChosenWaiting)),
+      );
+    }
+    if (provider.partnerHasMoved) {
+      return (
+        'banner',
+        _PartnerMovedBanner(
+          partnerName: partnerName,
+          title: l10n.rpsPartnerMovedTitle,
+          body: l10n.rpsPartnerMovedBody,
+          live: partnerMovedLive,
+          reduceMotion: reduceMotion,
+        ),
+      );
+    }
+    final open = !provider.isCountingDown;
+    return (
+      open ? 'open' : 'prompt',
+      Center(
+        child: Text(
+          open ? l10n.rpsOpenPrompt : l10n.rpsCountdownPrompt,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: _captionStyle,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final resolving = provider.isSettling;
+    final compact = MediaQuery.sizeOf(context).width <= 360;
+    final (slotKey, slotChild) = _slot(l10n);
+    final nudgeLeft = provider.nudgeCooldownRemaining;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -1330,30 +1586,69 @@ class _PlayView extends StatelessWidget {
       child: Column(
         children: [
           AnimatedBuilder(
-            animation: ticker,
+            animation: Listenable.merge(<Listenable>[ticker, refill, breath]),
             builder: (context, _) {
-              final game = provider.currentGame;
-              final remaining =
-                  game?.countdownRemaining(now: provider.serverNow) ??
-                  Duration.zero;
+              final counting = provider.isCountingDown;
+              final remaining = provider.countdownRemaining;
               final secs = (remaining.inMilliseconds + 999) ~/ 1000;
               final total = RpsTiming.countdown.inMilliseconds;
-              final fraction = reduceMotion
-                  ? secs / RpsTiming.countdown.inSeconds
-                  : remaining.inMilliseconds / total;
+              final double fraction;
+              if (!counting) {
+                // Open mode: refilled (tween only when it hit 0 live).
+                fraction = reduceMotion ? 1 : refill.value;
+              } else {
+                fraction = reduceMotion
+                    ? secs / RpsTiming.countdown.inSeconds
+                    : remaining.inMilliseconds / total;
+              }
+              final arcAlpha =
+                  1 - 0.4 * Curves.easeInOut.transform(breath.value);
               return _CountdownRing(
                 fraction: fraction.clamp(0.0, 1.0),
                 seconds: secs,
+                open: !counting,
+                arcAlpha: arcAlpha,
                 resolving: resolving,
                 reduceMotion: reduceMotion,
                 unit: l10n.rpsCountdownUnit,
-                semantics: l10n.rpsCountdownSemantics(secs.toString()),
+                semantics: counting
+                    ? l10n.rpsCountdownSemantics(secs.toString())
+                    : l10n.rpsOpenRingSemantics,
               );
             },
           ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: _slotHeight,
+            width: double.infinity,
+            child: AnimatedSwitcher(
+              duration: reduceMotion ? AppMotion.fast : AppMotion.base,
+              switchInCurve: AppMotion.curve,
+              switchOutCurve: AppMotion.curve,
+              layoutBuilder: (current, previous) => Stack(
+                fit: StackFit.expand,
+                children: <Widget>[...previous, ?current],
+              ),
+              transitionBuilder: (child, anim) {
+                final fade = FadeTransition(opacity: anim, child: child);
+                if (reduceMotion || child.key != const ValueKey('banner')) {
+                  return fade;
+                }
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, -0.2),
+                    end: Offset.zero,
+                  ).animate(anim),
+                  child: ScaleTransition(
+                    scale: Tween<double>(begin: 0.96, end: 1).animate(anim),
+                    child: fade,
+                  ),
+                );
+              },
+              child: KeyedSubtree(key: ValueKey(slotKey), child: slotChild),
+            ),
+          ),
           const SizedBox(height: 16),
-          caption,
-          const SizedBox(height: 24),
           if (offline) ...[
             _OfflineStrip(text: l10n.rpsOfflineHint),
             const SizedBox(height: 12),
@@ -1381,13 +1676,282 @@ class _PlayView extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 12, color: AppColors.textTertiary),
           ),
+          AnimatedSwitcher(
+            duration: reduceMotion ? AppMotion.fast : AppMotion.base,
+            reverseDuration: AppMotion.fast,
+            switchInCurve: AppMotion.curve,
+            switchOutCurve: AppMotion.curve,
+            transitionBuilder: (child, anim) {
+              final fade = FadeTransition(opacity: anim, child: child);
+              if (reduceMotion) {
+                return fade;
+              }
+              return AnimatedBuilder(
+                animation: anim,
+                builder: (context, child) => Transform.translate(
+                  offset: Offset(0, 8 * (1 - anim.value)),
+                  child: child,
+                ),
+                child: fade,
+              );
+            },
+            child: showNudge
+                ? Padding(
+                    key: const ValueKey('nudge'),
+                    padding: const EdgeInsets.only(top: 24),
+                    child: Column(
+                      children: [
+                        _SecondaryPill(
+                          icon: nudgeLeft > Duration.zero
+                              ? IconsaxPlusLinear.tick_circle
+                              : IconsaxPlusLinear.notification,
+                          label: nudgeLeft > Duration.zero
+                              ? l10n.rpsMoveNudgeCooldown(
+                                  ((nudgeLeft.inMilliseconds + 999) ~/ 1000)
+                                      .toString(),
+                                )
+                              : l10n.rpsMoveNudgeCta,
+                          busy: provider.isNudging,
+                          onTap: provider.canNudge ? onNudge : null,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.rpsChosenLeaveHint,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            height: 1.35,
+                            color: AppColors.textTertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(key: ValueKey('no-nudge')),
+          ),
         ],
       ),
     );
   }
 }
 
-/// "Đã chọn ✓ · Chờ người ấy…" with the check in deep rose.
+/// "Người ấy đã ra rồi!" banner filling the 64pt slot (addendum A2): white
+/// card, rose .45 1.5px border, the partner's lavender initial with a tick,
+/// title + body, and an arrow bobbing 3× toward the hands. Never names or
+/// hints the hand. Not a button. [live] (the partner threw while I watched)
+/// flashes the border once after it slides in.
+class _PartnerMovedBanner extends StatefulWidget {
+  const _PartnerMovedBanner({
+    required this.partnerName,
+    required this.title,
+    required this.body,
+    required this.live,
+    required this.reduceMotion,
+  });
+
+  final String partnerName;
+  final String title;
+  final String body;
+  final bool live;
+  final bool reduceMotion;
+
+  @override
+  State<_PartnerMovedBanner> createState() => _PartnerMovedBannerState();
+}
+
+class _PartnerMovedBannerState extends State<_PartnerMovedBanner>
+    with TickerProviderStateMixin {
+  /// Arrow bob: 0→3→0px, 1200ms, 3 times then still.
+  late final AnimationController _bob = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  );
+
+  /// Border flash α .45→.90→.45 over 600ms, once, after the entrance.
+  late final AnimationController _flash = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 600),
+  );
+  Timer? _flashDelay;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.reduceMotion) {
+      unawaited(_bob.repeat(count: 3).orCancel.catchError((Object _) {}));
+      if (widget.live) {
+        _flashDelay = Timer(AppMotion.base, () {
+          if (mounted) {
+            unawaited(_flash.forward().orCancel.catchError((Object _) {}));
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _flashDelay?.cancel();
+    _bob.dispose();
+    _flash.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = widget.partnerName.trim();
+    final initial = trimmed.isEmpty
+        ? '?'
+        : trimmed.characters.first.toUpperCase();
+    return Semantics(
+      liveRegion: true,
+      label: '${widget.title}. ${widget.body}',
+      child: ExcludeSemantics(
+        child: AnimatedBuilder(
+          animation: _flash,
+          builder: (context, child) {
+            // Triangle .45 → .90 → .45 across the flash.
+            final t = Curves.easeInOut.transform(
+              1 - (2 * _flash.value - 1).abs(),
+            );
+            return Container(
+              height: _PlayView._slotHeight,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.accentLove.withValues(
+                    alpha: 0.45 + 0.45 * t,
+                  ),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 16,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: child,
+            );
+          },
+          child: Row(
+            children: [
+              SizedBox(
+                width: 38,
+                height: 38,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.accentLavender,
+                            AppColors.accentLavenderDeep,
+                          ],
+                        ),
+                      ),
+                      child: Text(
+                        initial,
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          height: 1,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: -2,
+                      bottom: -2,
+                      child: Container(
+                        width: 16,
+                        height: 16,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(
+                          color: AppColors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          IconsaxPlusBold.tick_circle,
+                          size: 14,
+                          color: AppColors.accentLoveDeep,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.accentLoveDeep,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.body,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              AnimatedBuilder(
+                animation: _bob,
+                builder: (context, child) {
+                  final t = Curves.easeInOut.transform(
+                    1 - (2 * _bob.value - 1).abs(),
+                  );
+                  return Transform.translate(
+                    offset: Offset(0, 3 * t),
+                    child: child,
+                  );
+                },
+                child: const Icon(
+                  IconsaxPlusLinear.arrow_down,
+                  size: 18,
+                  color: AppColors.accentLove,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "Bạn đã ra rồi ✓ · Chờ người ấy ra…" with the check in deep rose.
 class _ChosenCaption extends StatelessWidget {
   const _ChosenCaption({required this.text});
 
@@ -1459,15 +2023,19 @@ class _OfflineStrip extends StatelessWidget {
   }
 }
 
-/// 168pt ring (design §5.4): white .55 track, sunsetRomance sweep that
-/// shrinks counter-clockwise as time runs out (solid deep rose in the final
-/// second), the whole-seconds number in the middle (56 w800, switching with a
-/// 200ms scale-pop) and "GIÂY" underneath. While resolving the number gives
-/// way to three blinking dots.
+/// 168pt ring (design §5.4 + addendum A1): white .55 track, sunsetRomance
+/// sweep that shrinks counter-clockwise during the 5s beat (solid deep rose
+/// in the final second), the whole-seconds number in the middle (56 w800,
+/// switching with a 200ms scale-pop) and "GIÂY" underneath. Past the beat
+/// ([open], no-skip rule) the ring is FULL again — never an empty "time's
+/// up" ring — its arc may breathe ([arcAlpha]) and the centre shows
+/// "✌️✊✋". While resolving the centre gives way to three blinking dots.
 class _CountdownRing extends StatelessWidget {
   const _CountdownRing({
     required this.fraction,
     required this.seconds,
+    required this.open,
+    required this.arcAlpha,
     required this.resolving,
     required this.reduceMotion,
     required this.unit,
@@ -1476,6 +2044,8 @@ class _CountdownRing extends StatelessWidget {
 
   final double fraction;
   final int seconds;
+  final bool open;
+  final double arcAlpha;
   final bool resolving;
   final bool reduceMotion;
   final String unit;
@@ -1483,23 +2053,35 @@ class _CountdownRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final urgent = !resolving && seconds <= 1;
+    final urgent = !resolving && !open && seconds <= 1;
     final numberColor = urgent
         ? AppColors.accentLoveDeep
         : AppColors.textPrimary;
-    final Widget center = resolving
-        ? _BlinkingDots(reduceMotion: reduceMotion)
-        : Text(
-            '$seconds',
-            key: ValueKey<int>(seconds),
-            style: TextStyle(
-              fontSize: 56,
-              fontWeight: FontWeight.w800,
-              height: 1,
-              letterSpacing: -1,
-              color: numberColor,
-            ),
-          );
+    final Widget center;
+    if (resolving) {
+      center = _BlinkingDots(
+        key: const ValueKey('dots'),
+        reduceMotion: reduceMotion,
+      );
+    } else if (open) {
+      center = const Text(
+        '✌️✊✋',
+        key: ValueKey('open'),
+        style: TextStyle(fontSize: 26, height: 1, letterSpacing: -1),
+      );
+    } else {
+      center = Text(
+        '$seconds',
+        key: ValueKey<int>(seconds),
+        style: TextStyle(
+          fontSize: 56,
+          fontWeight: FontWeight.w800,
+          height: 1,
+          letterSpacing: -1,
+          color: numberColor,
+        ),
+      );
+    }
 
     return Semantics(
       liveRegion: true,
@@ -1512,6 +2094,7 @@ class _CountdownRing extends StatelessWidget {
             painter: _RingPainter(
               fraction: resolving ? 0 : fraction,
               urgent: urgent,
+              alpha: arcAlpha,
             ),
             child: Center(
               child: Column(
@@ -1542,13 +2125,18 @@ class _CountdownRing extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    unit,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.4,
-                      color: AppColors.textPrimary.withValues(alpha: 0.55),
+                  // Hidden in open mode but keeps its line so the centre
+                  // doesn't jump (addendum A1).
+                  Opacity(
+                    opacity: open ? 0 : 1,
+                    child: Text(
+                      unit,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.4,
+                        color: AppColors.textPrimary.withValues(alpha: 0.55),
+                      ),
                     ),
                   ),
                 ],
@@ -1562,10 +2150,17 @@ class _CountdownRing extends StatelessWidget {
 }
 
 class _RingPainter extends CustomPainter {
-  const _RingPainter({required this.fraction, required this.urgent});
+  const _RingPainter({
+    required this.fraction,
+    required this.urgent,
+    this.alpha = 1,
+  });
 
   final double fraction;
   final bool urgent;
+
+  /// Arc opacity (the "breathing" of the open ring); the track stays solid.
+  final double alpha;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1583,17 +2178,22 @@ class _RingPainter extends CustomPainter {
     if (fraction <= 0) {
       return;
     }
+    final a = alpha.clamp(0.0, 1.0);
     final progress = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = stroke
       ..strokeCap = StrokeCap.round;
     if (urgent) {
-      progress.color = AppColors.accentLoveDeep;
+      progress.color = AppColors.accentLoveDeep.withValues(alpha: a);
     } else {
-      progress.shader = const SweepGradient(
+      progress.shader = SweepGradient(
         startAngle: -math.pi / 2,
         endAngle: 3 * math.pi / 2,
-        colors: [AppColors.sunset3, AppColors.sunset2, AppColors.sunset1],
+        colors: [
+          AppColors.sunset3.withValues(alpha: a),
+          AppColors.sunset2.withValues(alpha: a),
+          AppColors.sunset1.withValues(alpha: a),
+        ],
       ).createShader(rect);
     }
     // Sweep counter-clockwise from 12 o'clock so the arc "unwinds".
@@ -1608,7 +2208,7 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RingPainter old) =>
-      old.fraction != fraction || old.urgent != urgent;
+      old.fraction != fraction || old.urgent != urgent || old.alpha != alpha;
 }
 
 // ── Result ───────────────────────────────────────────────────────────────────

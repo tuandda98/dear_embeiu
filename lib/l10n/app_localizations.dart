@@ -6158,7 +6158,7 @@ abstract class AppLocalizations {
   /// **'Scissors'**
   String get rpsChoiceScissors;
 
-  /// Rock-paper-scissors: the player didn't pick before the timer ran out (history + result).
+  /// Rock-paper-scissors: the player didn't pick before the timer ran out (history + result). Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it.
   ///
   /// In en, this message translates to:
   /// **'Skipped'**
@@ -6191,7 +6191,7 @@ abstract class AppLocalizations {
   /// Rock-paper-scissors: the user has picked a hand and is waiting for the partner.
   ///
   /// In en, this message translates to:
-  /// **'Locked in ✓ · Waiting for your person…'**
+  /// **'You\'ve thrown ✓ · Waiting for your person…'**
   String get rpsChosenWaiting;
 
   /// Rock-paper-scissors: the invite went unanswered for 10 minutes.
@@ -6251,7 +6251,7 @@ abstract class AppLocalizations {
   /// Home card subtitle when the partner has an open invite.
   ///
   /// In en, this message translates to:
-  /// **'Pick within 5 seconds ⏱️'**
+  /// **'Hop in — they\'re waiting'**
   String get rpsEntryInvitedSubtitle;
 
   /// Home card subtitle while my own invite is pending.
@@ -6425,7 +6425,7 @@ abstract class AppLocalizations {
   /// Offline strip above the hand buttons.
   ///
   /// In en, this message translates to:
-  /// **'Offline — the clock keeps running; your pick only counts if it gets through before time\'s up'**
+  /// **'Offline — your pick will go through once you\'re back online'**
   String get rpsOfflineHint;
 
   /// Result subtitle for a draw.
@@ -6434,19 +6434,19 @@ abstract class AppLocalizations {
   /// **'Both picked {choice}'**
   String rpsResultDrawSub(String choice);
 
-  /// Result subtitle when the partner skipped.
+  /// Result subtitle when the partner skipped. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it.
   ///
   /// In en, this message translates to:
   /// **'Your person didn\'t pick in time'**
   String get rpsResultTimeoutPartner;
 
-  /// Result subtitle when I skipped.
+  /// Result subtitle when I skipped. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it.
   ///
   /// In en, this message translates to:
   /// **'You didn\'t pick in time'**
   String get rpsResultTimeoutMe;
 
-  /// Result subtitle when both skipped.
+  /// Result subtitle when both skipped. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it.
   ///
   /// In en, this message translates to:
   /// **'Both skipped — this round is a draw'**
@@ -6560,7 +6560,7 @@ abstract class AppLocalizations {
   /// **'Draw'**
   String get rpsOutcomeDraw;
 
-  /// History row outcome pill when a hand was missing.
+  /// History row outcome pill when a hand was missing. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it.
   ///
   /// In en, this message translates to:
   /// **'Skipped'**
@@ -6610,8 +6610,110 @@ abstract class AppLocalizations {
   /// Feature tour entry body (build 23).
   ///
   /// In en, this message translates to:
-  /// **'Send a challenge, both pick within 5 seconds, the reveal is simultaneous. History and score live on your Profile.'**
+  /// **'Send a challenge, count it down together and throw. No skipping — whoever hasn\'t thrown gets a nudge, and the reveal waits for both of you. History and score live on your Profile.'**
   String get featureTourRpsBody;
+
+  /// Play screen caption once the 5s beat is over and nobody has thrown (no time limit).
+  ///
+  /// In en, this message translates to:
+  /// **'Go on, throw! No skipping here 😄'**
+  String get rpsOpenPrompt;
+
+  /// Screen-reader label of the ring once the 5s beat is over.
+  ///
+  /// In en, this message translates to:
+  /// **'No time limit — throw when you\'re ready'**
+  String get rpsOpenRingSemantics;
+
+  /// Play screen banner + Home card title: the partner has thrown, I have not (never says which hand).
+  ///
+  /// In en, this message translates to:
+  /// **'Your person has thrown!'**
+  String get rpsPartnerMovedTitle;
+
+  /// Play screen banner body under rpsPartnerMovedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your move — pick a hand below'**
+  String get rpsPartnerMovedBody;
+
+  /// Play screen: I have thrown, ask the partner (push) to throw too.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudge your person'**
+  String get rpsMoveNudgeCta;
+
+  /// Play screen nudge button during its 60s cooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudged · again in {seconds}s'**
+  String rpsMoveNudgeCooldown(String seconds);
+
+  /// Snackbar after the move nudge was sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudged your person 🔔'**
+  String get rpsMoveNudgeSentToast;
+
+  /// Snackbar when the server refused the move nudge because of the cooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'You just nudged — try again in {seconds}s'**
+  String rpsMoveNudgeTooSoon(String seconds);
+
+  /// Snackbar when the move nudge failed (network / other error).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the nudge — try again'**
+  String get rpsMoveNudgeFailed;
+
+  /// Play screen hint under the nudge button: leaving is fine, the result is pushed.
+  ///
+  /// In en, this message translates to:
+  /// **'Feel free to step away — we\'ll tell you the result'**
+  String get rpsChosenLeaveHint;
+
+  /// Home card subtitle when the partner has thrown and I have not.
+  ///
+  /// In en, this message translates to:
+  /// **'Your move — they\'re waiting 😄'**
+  String get rpsEntryMyTurnSubtitle;
+
+  /// Home card title: a started round where nobody has thrown yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Round in progress'**
+  String get rpsEntryUnplayedTitle;
+
+  /// Home card subtitle for rpsEntryUnplayedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody has thrown yet — go first'**
+  String get rpsEntryUnplayedSubtitle;
+
+  /// Home card title: I have thrown, the partner has not.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your person\'s move'**
+  String get rpsEntryAwaitingTitle;
+
+  /// Home card subtitle for rpsEntryAwaitingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve thrown · we\'ll tell you the result'**
+  String get rpsEntryAwaitingSubtitle;
+
+  /// Home card CTA to open a started round and throw.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw'**
+  String get rpsEntryCtaThrow;
+
+  /// Notification center title: the partner threw in rock-paper-scissors and it is my move.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has thrown — your move!'**
+  String notifRpsMoved(String name);
 }
 
 class _AppLocalizationsDelegate

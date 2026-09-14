@@ -22,15 +22,24 @@ const List<Color> rpsMedalGradient = <Color>[
 /// Accent for the game medal glow / inbox icon.
 const Color rpsMedalAccent = Color(0xFFF26D5B);
 
-/// Home entry for rock-paper-scissors (feature rps-game, design §4.1) —
-/// sits right under the mood card in "Hôm nay của chúng mình". Three states:
+/// Home entry for rock-paper-scissors (feature rps-game, design §4.1 +
+/// addendum 2026-09-14 §B) — sits right under the mood card in "Hôm nay của
+/// chúng mình". Six states, in priority order ([RpsOpenState]):
 ///
-/// - **idle** — "Rủ người ấy một ván nhé" (+ this week's score when there is
-///   one) · CTA "Chơi" (navy);
-/// - **invitedByPartner** — rose outline + dot, "Người ấy đang rủ!" ·
-///   CTA "Vào chơi" (sunsetRomance) — the in-app badge for a pending invite;
-/// - **myInvitePending** — "Đang chờ người ấy…" · CTA "Mở" (outlined).
+/// 1. **myTurn** — the partner has thrown, I haven't: rose outline + dot,
+///    "Người ấy đã ra rồi!" · CTA "Ra tay" (sunsetRomance);
+/// 2. **invitedByPartner** — rose outline + dot, "Người ấy đang rủ!" ·
+///    CTA "Vào chơi" (sunsetRomance) — the in-app badge for a pending invite;
+/// 3. **unplayed** — a started round nobody has thrown in yet: "Ván đang dở"
+///    · CTA "Ra tay" (navy);
+/// 4. **awaitingPartner** — my hand is in: "Đang chờ người ấy ra" · CTA "Mở"
+///    (outlined);
+/// 5. **myInvitePending** — "Đang chờ người ấy…" · CTA "Mở" (outlined);
+/// 6. **idle** — "Rủ người ấy một ván nhé" (+ this week's score when there
+///    is one) · CTA "Chơi" (navy).
 ///
+/// No-skip rule: a started round never expires, so states 1/3/4 can last for
+/// days — tapping re-enters that round ("1 ván mở tại 1 thời điểm").
 /// The whole card is tappable (InkTile ripple); the CTA is the visual
 /// affordance. Hidden by the caller while the couple is still waiting for a
 /// partner (same rule as the mood card).
@@ -42,15 +51,11 @@ class RpsInviteCard extends StatelessWidget {
     final l10n = context.l10n;
     final provider = context.watch<RpsGameProvider>();
     final open = provider.openGame;
-    final me = provider.myUid;
-    final invited = provider.hasPendingInvite;
-    final pending =
-        !invited &&
-        open != null &&
-        open.isOpen &&
-        me != null &&
-        open.isCreatedBy(me) &&
-        !open.isInviteStale(now: provider.serverNow);
+    final state = provider.openState;
+    // Only the states where the partner is waiting on ME get the rose
+    // outline + dot (design addendum N6).
+    final highlighted =
+        state == RpsOpenState.myTurn || state == RpsOpenState.invitedByPartner;
 
     // Week score needs the first history page — one lazy load, cached in the
     // provider (no shimmer here: the card just shows the idle subtitle until
@@ -67,36 +72,62 @@ class RpsInviteCard extends StatelessWidget {
     final String subtitle;
     final String cta;
     final Color titleColor;
-    if (invited) {
-      title = l10n.rpsEntryInvitedTitle;
-      subtitle = l10n.rpsEntryInvitedSubtitle;
-      cta = l10n.rpsEntryCtaJoin;
-      titleColor = AppColors.accentLoveDeep;
-    } else if (pending) {
-      title = l10n.rpsWaitingPartner;
-      subtitle = l10n.rpsEntryPendingSubtitle;
-      cta = l10n.rpsEntryCtaOpen;
-      titleColor = AppColors.textPrimary;
-    } else {
-      final week = provider.weekScore;
-      final nf = NumberFormat.decimalPattern(
-        Localizations.localeOf(context).toString(),
-      );
-      title = l10n.rpsGameTitle;
-      subtitle = week.total == 0
-          ? l10n.rpsEntryIdleSubtitle
-          : l10n.rpsEntryWeekScore(
-              nf.format(week.wins),
-              nf.format(week.draws),
-              nf.format(week.losses),
-            );
-      cta = l10n.rpsEntryCtaPlay;
-      titleColor = AppColors.textPrimary;
+    final _CtaStyle ctaStyle;
+    switch (state) {
+      case RpsOpenState.myTurn:
+        title = l10n.rpsPartnerMovedTitle;
+        subtitle = l10n.rpsEntryMyTurnSubtitle;
+        cta = l10n.rpsEntryCtaThrow;
+        titleColor = AppColors.accentLoveDeep;
+        ctaStyle = _CtaStyle.gradient;
+      case RpsOpenState.invitedByPartner:
+        title = l10n.rpsEntryInvitedTitle;
+        subtitle = l10n.rpsEntryInvitedSubtitle;
+        cta = l10n.rpsEntryCtaJoin;
+        titleColor = AppColors.accentLoveDeep;
+        ctaStyle = _CtaStyle.gradient;
+      case RpsOpenState.unplayed:
+        title = l10n.rpsEntryUnplayedTitle;
+        subtitle = l10n.rpsEntryUnplayedSubtitle;
+        cta = l10n.rpsEntryCtaThrow;
+        titleColor = AppColors.textPrimary;
+        ctaStyle = _CtaStyle.navy;
+      case RpsOpenState.awaitingPartner:
+        title = l10n.rpsEntryAwaitingTitle;
+        subtitle = l10n.rpsEntryAwaitingSubtitle;
+        cta = l10n.rpsEntryCtaOpen;
+        titleColor = AppColors.textPrimary;
+        ctaStyle = _CtaStyle.outlined;
+      case RpsOpenState.myInvitePending:
+        title = l10n.rpsWaitingPartner;
+        subtitle = l10n.rpsEntryPendingSubtitle;
+        cta = l10n.rpsEntryCtaOpen;
+        titleColor = AppColors.textPrimary;
+        ctaStyle = _CtaStyle.outlined;
+      case RpsOpenState.none:
+        final week = provider.weekScore;
+        final nf = NumberFormat.decimalPattern(
+          Localizations.localeOf(context).toString(),
+        );
+        title = l10n.rpsGameTitle;
+        subtitle = week.total == 0
+            ? l10n.rpsEntryIdleSubtitle
+            : l10n.rpsEntryWeekScore(
+                nf.format(week.wins),
+                nf.format(week.draws),
+                nf.format(week.losses),
+              );
+        cta = l10n.rpsEntryCtaPlay;
+        titleColor = AppColors.textPrimary;
+        ctaStyle = _CtaStyle.navy;
     }
 
     void handleTap() {
       HapticFeedback.selectionClick();
-      openRpsGame(context, gameId: (invited || pending) ? open?.id : null);
+      openRpsGame(
+        context,
+        gameId: state == RpsOpenState.none ? null : open?.id,
+      );
     }
 
     final card = ContentCard(
@@ -104,7 +135,7 @@ class RpsInviteCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Row(
         children: [
-          _Medallion(showDot: invited),
+          _Medallion(showDot: highlighted),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -136,17 +167,12 @@ class RpsInviteCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          _Cta(
-            label: cta,
-            style: invited
-                ? _CtaStyle.gradient
-                : (pending ? _CtaStyle.outlined : _CtaStyle.navy),
-          ),
+          _Cta(label: cta, style: ctaStyle),
         ],
       ),
     );
 
-    // Rose outline when the partner is waiting on me (design D3).
+    // Rose outline when the partner is waiting on me (design D3 / N6).
     final outlined = AnimatedContainer(
       duration: AppMotion.reduceMotion(context)
           ? Duration.zero
@@ -155,7 +181,7 @@ class RpsInviteCard extends StatelessWidget {
       foregroundDecoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppColors.accentLove.withValues(alpha: invited ? 0.45 : 0),
+          color: AppColors.accentLove.withValues(alpha: highlighted ? 0.45 : 0),
           width: 1.5,
         ),
       ),
@@ -229,7 +255,8 @@ class _Medallion extends StatelessWidget {
 
 enum _CtaStyle { navy, gradient, outlined }
 
-/// 40pt pill: navy (idle) · sunsetRomance (invited) · outlined (pending).
+/// 40pt pill: navy (idle / unplayed) · sunsetRomance (myTurn / invited) ·
+/// outlined (awaitingPartner / myInvitePending).
 /// Purely visual — the InkTile over the whole card handles the tap.
 class _Cta extends StatelessWidget {
   const _Cta({required this.label, required this.style});

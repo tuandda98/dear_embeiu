@@ -1995,7 +1995,7 @@
   "@rpsWaitingPartner": {
     "description": "Rock-paper-scissors: invite sent, the partner hasn't opened the game yet."
   },
-  "rpsChosenWaiting": "Đã chọn ✓ · Chờ người ấy…",
+  "rpsChosenWaiting": "Bạn đã ra rồi ✓ · Chờ người ấy ra…",
   "@rpsChosenWaiting": {
     "description": "Rock-paper-scissors: the user has picked a hand and is waiting for the partner."
   },
@@ -2056,7 +2056,7 @@
   "@rpsEntryInvitedTitle": {
     "description": "Home card title when the partner has an open invite."
   },
-  "rpsEntryInvitedSubtitle": "Vào chọn trong 5 giây ⏱️",
+  "rpsEntryInvitedSubtitle": "Vào chơi ngay — người ấy đang chờ",
   "@rpsEntryInvitedSubtitle": {
     "description": "Home card subtitle when the partner has an open invite."
   },
@@ -2209,7 +2209,7 @@
   "@rpsReloadCta": {
     "description": "Button to re-read the game when settling is slow."
   },
-  "rpsOfflineHint": "Mất mạng — đồng hồ vẫn chạy, lựa chọn chỉ được tính nếu kịp gửi trước khi hết giờ",
+  "rpsOfflineHint": "Mất mạng — lựa chọn của bạn sẽ được gửi khi có mạng lại",
   "@rpsOfflineHint": {
     "description": "Offline strip above the hand buttons."
   },
@@ -2369,8 +2369,91 @@
   "@featureTourRpsTitle": {
     "description": "Feature tour entry title (build 23)."
   },
-  "featureTourRpsBody": "Rủ một ván, cả hai cùng chọn trong 5 giây, kết quả lộ cùng lúc. Lịch sử và tỉ số lưu ở Hồ sơ.",
+  "featureTourRpsBody": "Rủ một ván, cùng đếm oẳn tù tì rồi ra tay. Không có bỏ lượt — ai chưa ra sẽ được nhắc, kết quả lộ khi cả hai đã chọn. Lịch sử và tỉ số ở Hồ sơ.",
   "@featureTourRpsBody": {
     "description": "Feature tour entry body (build 23)."
+  },
+  "rpsOpenPrompt": "Ra đi! Không có bỏ lượt đâu 😄",
+  "@rpsOpenPrompt": {
+    "description": "Play screen caption once the 5s beat is over and nobody has thrown (no time limit)."
+  },
+  "rpsOpenRingSemantics": "Không giới hạn thời gian, ra tay khi bạn sẵn sàng",
+  "@rpsOpenRingSemantics": {
+    "description": "Screen-reader label of the ring once the 5s beat is over."
+  },
+  "rpsPartnerMovedTitle": "Người ấy đã ra rồi!",
+  "@rpsPartnerMovedTitle": {
+    "description": "Play screen banner + Home card title: the partner has thrown, I have not (never says which hand)."
+  },
+  "rpsPartnerMovedBody": "Tới lượt bạn — chọn một tay bên dưới nhé",
+  "@rpsPartnerMovedBody": {
+    "description": "Play screen banner body under rpsPartnerMovedTitle."
+  },
+  "rpsMoveNudgeCta": "Nhắc người ấy",
+  "@rpsMoveNudgeCta": {
+    "description": "Play screen: I have thrown, ask the partner (push) to throw too."
+  },
+  "rpsMoveNudgeCooldown": "Đã nhắc · nhắc lại sau {seconds}s",
+  "@rpsMoveNudgeCooldown": {
+    "description": "Play screen nudge button during its 60s cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsMoveNudgeSentToast": "Đã nhắc người ấy 🔔",
+  "@rpsMoveNudgeSentToast": {
+    "description": "Snackbar after the move nudge was sent."
+  },
+  "rpsMoveNudgeTooSoon": "Vừa nhắc rồi — đợi {seconds}s nữa nhé",
+  "@rpsMoveNudgeTooSoon": {
+    "description": "Snackbar when the server refused the move nudge because of the cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsMoveNudgeFailed": "Chưa gửi được lời nhắc, thử lại nhé",
+  "@rpsMoveNudgeFailed": {
+    "description": "Snackbar when the move nudge failed (network / other error)."
+  },
+  "rpsChosenLeaveHint": "Bạn cứ rời đi — có kết quả sẽ báo bạn ngay",
+  "@rpsChosenLeaveHint": {
+    "description": "Play screen hint under the nudge button: leaving is fine, the result is pushed."
+  },
+  "rpsEntryMyTurnSubtitle": "Tới lượt bạn — người ấy đang chờ đó 😄",
+  "@rpsEntryMyTurnSubtitle": {
+    "description": "Home card subtitle when the partner has thrown and I have not."
+  },
+  "rpsEntryUnplayedTitle": "Ván đang dở",
+  "@rpsEntryUnplayedTitle": {
+    "description": "Home card title: a started round where nobody has thrown yet."
+  },
+  "rpsEntryUnplayedSubtitle": "Chưa ai ra tay — vào ra trước nhé",
+  "@rpsEntryUnplayedSubtitle": {
+    "description": "Home card subtitle for rpsEntryUnplayedTitle."
+  },
+  "rpsEntryAwaitingTitle": "Đang chờ người ấy ra",
+  "@rpsEntryAwaitingTitle": {
+    "description": "Home card title: I have thrown, the partner has not."
+  },
+  "rpsEntryAwaitingSubtitle": "Bạn đã ra rồi · có kết quả sẽ báo bạn",
+  "@rpsEntryAwaitingSubtitle": {
+    "description": "Home card subtitle for rpsEntryAwaitingTitle."
+  },
+  "rpsEntryCtaThrow": "Ra tay",
+  "@rpsEntryCtaThrow": {
+    "description": "Home card CTA to open a started round and throw."
+  },
+  "notifRpsMoved": "{name} đã ra rồi — tới lượt bạn!",
+  "@notifRpsMoved": {
+    "description": "Notification center title: the partner threw in rock-paper-scissors and it is my move.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

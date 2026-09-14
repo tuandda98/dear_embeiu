@@ -125,7 +125,8 @@ class NotificationTapRouter {
     }
   }
 
-  /// [pendingHomeFocus] value for a tapped `rps_invite` push / inbox item:
+  /// [pendingHomeFocus] value for a tapped `rps_invite` / `rps_moved` push /
+  /// inbox item:
   /// HomeScreen opens the rock-paper-scissors game whose id is in
   /// [pendingRpsGameId] (feature rps-game, 2026-09-13).
   static const String focusRpsGame = 'rps_game';
@@ -556,9 +557,12 @@ class PushNotificationService {
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;
       case 'rps_invite':
-        // Rock-paper-scissors invite (feature rps-game): land on Home and open
-        // that exact game. gameId is published FIRST so a cold-start Home
-        // reads both in one initState pass.
+      case 'rps_moved':
+        // Rock-paper-scissors invite / "người ấy đã ra rồi" (feature rps-game,
+        // no-skip rule 2026-09-14): land on Home and open that exact game.
+        // gameId is published FIRST so a cold-start Home reads both in one
+        // initState pass. Keep in sync with AppNotification.targetHomeTab +
+        // the notification center tap.
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         if (gameId != null && gameId.isNotEmpty) {
           NotificationTapRouter.pendingRpsGameId.value = gameId;

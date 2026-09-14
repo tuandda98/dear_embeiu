@@ -4,7 +4,7 @@
 
 - **Feature:** rps-game
 - **Ưu tiên:** P1 (user yêu cầu 2026-09-13)
-- **Trạng thái:** 🧪 Test PASS trên DEV (2 vòng Tester + smoke-test 2 máy) — ⏳ chờ user: deploy PROD + ship trong release 1.7.0
+- **Trạng thái:** 💻 Dev lại (đổi luật 2026-09-14: bỏ "bỏ lượt", chờ đủ 2 người ra tay + nhắc) — sau đó Tester vòng 3
 - **Tạo ngày:** 2026-09-13
 - **Liên quan:** [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · bối cảnh [`../../../CLAUDE.md`](../../../CLAUDE.md)
 
@@ -82,3 +82,52 @@
 - [2026-09-14] [PO] Tester vòng 2 PASS (không P0/P1); vá thêm RPS-19..23 (xoá presence khi rời màn, copy chờ, Tải lại khi mất mạng, offset sớm) → test 127/127, runtime Android xác nhận presence xoá/beat đúng. Acceptance §7: đạt trên DEV trừ "push <5s" (DEV thiếu APNs/FCM emulator — verify khi lên PROD/Android thật). Feature KHÔNG đóng Done: chờ user lệnh deploy PROD + release.
 - [2026-09-14] [PO] Tester vòng 1 FAIL (3 P1 + gian lận start-1-mình). Backend vá RPS-5/10/11/14/16 (rules-test 289, DEV deployed, `notifyRpsResult` đã xoá khỏi DEV). PO chốt ngưỡng push kết quả = 8s. Client vá RPS-1..4,6..9,12,13,15,18 sau smoke-test.
 - [2026-09-13] [PO] Tạo spec từ yêu cầu user; chốt data contract + CF + máy trạng thái. Spawn Designer + Dev backend song song, Dev client sau design, Tester cuối.
+
+---
+
+## 🔁 [2026-09-14] ĐỔI LUẬT (user yêu cầu): KHÔNG CÒN "BỎ LƯỢT" — chờ tới khi cả hai ra tay + nhắc người chưa ra
+
+> Yêu cầu gốc: *"không có trạng thái bỏ lượt, chờ người ấy hoặc tôi ra thì mới thôi nhưng sẽ nhắc là đã ra rồi"*.
+> Mục này **ghi đè** §2 (luật hết giờ), §3.2 (hạn 7s của move), §3.4 (`finishRpsGame`), §4 bước 3–4, §7 (AC hết giờ). Phần còn lại giữ nguyên.
+
+### Luật mới
+1. Ván `playing` **chỉ kết thúc khi đủ 2 move**. Không có timeout, không có `'none'`, không có reason `'timeout'` cho ván mới (dữ liệu DEV cũ có timeout vẫn phải hiển thị đúng trong Lịch sử).
+2. Đếm ngược 5s (từ `startedAt`) giữ làm **nhịp "oẳn tù tì"**; về 0 thì nút vẫn bấm được, chỉ đổi chữ. Ván vẫn cần **cả hai cùng có mặt** mới bắt đầu (giữ rule start cần presence partner).
+3. Sau khi bắt đầu, ai cũng có thể **rời màn và quay lại ra tay sau** (không giới hạn thời gian). Ván `playing` **không bao giờ tự hết hạn**; lời mời `invited` vẫn hết hạn sau 10'.
+4. Vẫn 1 ván mở tại 1 thời điểm: bấm "Chơi" khi đang có ván `playing` dở → vào ván đó.
+
+### Nhắc "đã ra rồi"
+- Game doc thêm field **`moved: {uid: timestamp}`** — **CHỈ CF ghi** (client không ghi được). Cho biết ai đã ra (KHÔNG lộ ra cái gì — lựa chọn vẫn khoá tới `finished`).
+- CF `resolveRpsGame` (onCreate move), trong transaction: ghi `moved.{uid}`; nếu đủ 2 → finished + result + `sendRpsResultPushes` như cũ; nếu mới 1 → gửi **push + inbox `type:'rps_moved'`** tới người chưa ra **nếu presence của họ cũ >8s / vắng** (đang ở màn thì UI tự hiện, không push).
+- Callable **`nudgeRpsPlayer({coupleId, gameId})`**: auth + member; game `playing`; caller ĐÃ ra, partner CHƯA; `lastNudgeAt` (CF ghi) cũ hơn 60s → set `lastNudgeAt` + push + inbox `rps_moved` tới partner (bất kể presence). Trả `{ok, retryAfterMs?}`.
+- Copy `rps_moved` — VI: title "Người ấy đã ra rồi! ✊✋✌️", body "Tới lượt bạn — người ấy đang chờ đó 😄". EN: "Your person has thrown! ✊✋✌️" / "Your move — they're waiting for you 😄". Fallback tên như cũ.
+- **Gỡ `finishRpsGame`** (code + xoá function trên DEV; chưa từng lên prod).
+
+### Rules (delta)
+- `moves` create: BỎ điều kiện `request.time < startedAt + 7s`; giữ cha `status == 'playing'`, create-only, hasOnly, choice hợp lệ, `createdAt == request.time`, đọc move người kia chỉ khi `finished`.
+- `games` update: `moved`, `lastNudgeAt` thuộc nhóm client KHÔNG được ghi/đổi (như `result/finishedAt`); thêm vào hasOnly.
+- Transition `playing → *` vẫn chỉ CF.
+
+### UX màn chơi (sau khi đã bắt đầu)
+| Tình huống | Hiển thị |
+|---|---|
+| 0–5s đầu, mình chưa ra | Vòng đếm như cũ, "Chọn ngay!" |
+| Qua 5s, mình chưa ra, người ấy chưa ra | Vòng đầy/tĩnh, "Ra đi! Không có bỏ lượt đâu 😄", nút bấm được |
+| Mình chưa ra, **người ấy đã ra** | Dải nổi bật "Người ấy đã ra rồi! Tới lượt bạn", haptic nhẹ 1 lần khi chuyển |
+| Mình đã ra, người ấy chưa | "Bạn đã ra rồi · chờ người ấy ra…" + nút **"Nhắc người ấy"** (cooldown 60s, hiện giây còn lại) |
+| Cả hai đã ra, chờ CF | "Đang mở kết quả…" (resolving) như cũ |
+| Mở lại ván dở sau khi rời | Không đếm lại; vào thẳng trạng thái tương ứng ở trên |
+
+- Home card thêm 2 trạng thái: **"Người ấy đã ra rồi — tới lượt bạn!"** (CTA "Ra tay", viền nổi bật + dot) và **"Đang chờ người ấy ra"** (CTA "Mở"). Profile dot khi người ấy đã ra mà mình chưa.
+- Push/inbox tap `rps_moved` → mở đúng ván (như `rps_invite`), sửa ĐỦ 2 chỗ map (push tap + Notification center).
+- Feature tour + mọi copy nhắc "5 giây"/"bỏ lượt" phải đổi cho khớp luật mới (không hứa hẹn thua khi hết giờ).
+
+### Acceptance (thay AC hết giờ ở §7)
+- [ ] Hết 5s không ai chọn → ván KHÔNG kết thúc; ra tay lúc 30s, 5 phút, sau khi thoát app vào lại đều được tính.
+- [ ] Một người ra → người kia (đã rời màn) nhận push + inbox "Người ấy đã ra rồi"; đang ở màn thì thấy dải báo, không push.
+- [ ] "Nhắc người ấy" gửi push lại, cooldown 60s ở cả client lẫn server.
+- [ ] Không lộ lựa chọn trước khi `finished` (rules-test giữ nguyên); client không ghi được `moved`/`lastNudgeAt`.
+- [ ] Lịch sử ván cũ có timeout (DEV) vẫn hiển thị đúng; ván mới không bao giờ có "Bỏ lượt".
+
+- [2026-09-14] [PO] Đổi luật theo user: bỏ "bỏ lượt", chờ đủ 2 người ra tay, CF ghi `moved` + push/inbox `rps_moved`, callable `nudgeRpsPlayer`, gỡ `finishRpsGame`.
+- [2026-09-14] [PO] Chốt 3 câu Designer (addendum luật mới): (1) KHÔNG thêm "Bỏ ván sau 24h" ở v1 — đúng ý user "chờ tới khi ra tay"; giới hạn đã biết: ván `playing` treo nếu người ấy không bao giờ ra (đang chặn rủ ván mới) → để Phase 2; (2) giữ card state "ván đang dở"; (3) push nhắc tay dùng chung copy `rps_moved`. Copy push mời bỏ "vào chọn trong 5 giây".

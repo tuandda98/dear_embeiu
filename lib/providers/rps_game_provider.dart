@@ -21,14 +21,25 @@ enum RpsPhase {
   /// `invited` — one of us is on the screen, waiting for the other.
   waiting,
 
-  /// `playing`, clock running, I haven't picked.
+  /// `playing`, inside the 5s "oẳn tù tì" beat, nobody has thrown yet.
   countdown,
 
-  /// `playing`, I've locked a hand, waiting for the partner / the clock.
+  /// `playing`, the 5s beat is over, nobody has thrown yet. NOT a timeout
+  /// (2026-09-14 no-skip rule): the round waits — the ring switches to its
+  /// "open" mode and the hands stay tappable.
+  yourTurn,
+
+  /// `playing`, the partner has thrown (CF `moved` stamp), I haven't — at any
+  /// time, even inside the 5s beat (the ring keeps counting, see
+  /// [RpsGameProvider.isCountingDown]). The screen shows "Người ấy đã ra rồi".
+  partnerMovedYourTurn,
+
+  /// `playing`, my hand is in, the partner's isn't — "Nhắc người ấy" is
+  /// available once the beat is over ([RpsGameProvider.nudge]).
   chosenWaiting,
 
-  /// `playing` but the clock hit 0 without my hand — the server (callable /
-  /// CF) is settling the game. Buttons stay locked.
+  /// `playing`, BOTH hands are in, waiting for the CF (`resolveRpsGame`) to
+  /// flip the game to `finished`. Buttons stay locked.
   resolving,
 
   /// `finished` — `result` is available.
@@ -70,6 +81,30 @@ RpsPresenceAction rpsPresenceActionFor(AppLifecycleState state) {
   }
 }
 
+/// The couple's open game from MY side, for the Home card / Profile dot
+/// (design addendum 2026-09-14 §B). Declared in the card's priority order —
+/// [RpsGameProvider.openState] returns the first that applies.
+enum RpsOpenState {
+  /// A started round where the partner has thrown and I haven't (rose
+  /// outline + dot).
+  myTurn,
+
+  /// The partner's `invited` game I haven't joined (rose outline + dot).
+  invitedByPartner,
+
+  /// A started round where nobody has thrown yet (both left during the beat).
+  unplayed,
+
+  /// A started round where my hand is in and the partner's isn't.
+  awaitingPartner,
+
+  /// My own `invited` game, still waiting for the partner to come in.
+  myInvitePending,
+
+  /// No live open game.
+  none,
+}
+
 /// State for rock-paper-scissors (feature rps-game, 2026-09-13).
 ///
 /// Two independent layers:
@@ -78,10 +113,15 @@ RpsPresenceAction rpsPresenceActionFor(AppLifecycleState state) {
 ///    OPEN game so Home/Profile can badge a pending invite without the screen
 ///    being open.
 /// 2. **In-screen** — `enter(gameId)` / `leave()` drive one game: heartbeat
-///    (3s), auto-start when both are present, the 100ms countdown ticker,
-///    auto-finish via the callable once the deadline + grace passed, and
-///    auto-expire of a stale invite. The screen only calls `choose`,
-///    `rematch`, `cancel`.
+///    (3s), auto-start when both are present, the 100ms ticker during the 5s
+///    beat, and auto-expire of a stale invite. The screen only calls
+///    `choose`, `nudge`, `rematch`, `cancel`.
+///
+///    No-skip rule (2026-09-14): a `playing` round ends ONLY when both hands
+///    are in (CF `resolveRpsGame`) — there is no deadline, no client-side
+///    finish, and a round is never "dead" on the clock. Either player may leave
+///    and come back to throw later; the CF stamps `moved.{uid}` so the other
+///    side sees "Người ấy đã ra rồi" (+ push/inbox `rps_moved` when away).
 ///
 ///    Game screens register as OWNERS (`attach`/`detach`, Tester RPS-13): only
 ///    the top-most one drives the game; when it goes away the one below gets
@@ -103,10 +143,6 @@ class RpsGameProvider extends ChangeNotifier {
   /// Ticker cadence while the countdown runs.
   static const Duration _tick = Duration(milliseconds: 100);
 
-  /// Minimum spacing between `finishRpsGame` attempts for one game (the
-  /// callable is idempotent, but don't hammer it while offline).
-  static const Duration _finishRetryEvery = Duration(seconds: 3);
-
   /// Heartbeat round-trips slower than this don't feed the clock offset (the
   /// estimate's error is RTT/2, and a slow ack could straddle the next beat).
   static const Duration _maxClockSampleRtt = Duration(seconds: 2);
@@ -116,13 +152,15 @@ class RpsGameProvider extends ChangeNotifier {
   /// while offline).
   static const Duration _totalScoreRetryAfter = Duration(seconds: 30);
 
-  /// Spacing between clean-up attempts (expire / finish) on the same dead
-  /// open game from the couple-wide stream.
+  /// Spacing between clean-up attempts (expire) on the same stale invite
+  /// from the couple-wide stream.
   static const Duration _deadCleanupEvery = Duration(seconds: 60);
 
-  /// Upper bound for one move write (rules accept a move until
-  /// `startedAt + countdown + grace` = 7s).
-  static const Duration _maxMoveTimeout = Duration(seconds: 7);
+  /// How long [choose] WAITS for the server to acknowledge a move. There is
+  /// no deadline any more, so this is only about not hanging the caller: past
+  /// it an offline write stays queued (and locked in on screen — "lựa chọn
+  /// của bạn sẽ được gửi khi có mạng lại") and settles whenever it lands.
+  static const Duration _moveNetworkTimeout = Duration(seconds: 10);
 
   /// An `inactive` pause shorter than this doesn't drop my presence (see
   /// [RpsPresenceAction.pauseTransient]).
@@ -158,8 +196,23 @@ class RpsGameProvider extends ChangeNotifier {
   Timer? _tickTimer;
   bool _startInFlight = false;
   bool _expireInFlight = false;
-  DateTime? _lastFinishAttempt;
   String? _loggedFinishedGameId;
+
+  /// Whether the partner had thrown in the previous snapshot of the current
+  /// game (null before the first one) — to spot the live "just threw" edge.
+  bool? _partnerMovedSeen;
+
+  /// Bumped on every live not-thrown → thrown edge of the partner on the
+  /// current game (never for the first snapshot = a reopened round). The
+  /// screen rings `lightImpact` once per bump (design addendum A2/A6).
+  int _partnerMovedEdges = 0;
+
+  /// "Nhắc người ấy" callable in flight.
+  bool _nudgeInFlight = false;
+
+  /// Local cooldown floor (SERVER time) until `lastNudgeAt` echoes back —
+  /// set from an `ok` (now + 60s) or a `cooldown` answer (now + retryAfter).
+  DateTime? _nudgeLocalUntil;
   bool _actionBusy = false;
 
   /// A move write is in flight — guards a double tap WITHOUT the global
@@ -310,14 +363,43 @@ class RpsGameProvider extends ChangeNotifier {
 
   bool get hasChosen => myChoice != null;
 
+  /// My hand is in: my own move (doc / optimistic) or the CF's `moved` stamp
+  /// for me (a reopened round before my move doc streamed in).
+  bool get iHaveMoved {
+    final me = _myUid;
+    final g = _currentGame;
+    return hasChosen || (me != null && g != null && g.hasMoved(me));
+  }
+
+  /// The partner's hand is in (CF `moved` stamp) — never WHICH hand.
+  bool get partnerHasMoved {
+    final me = _myUid;
+    final g = _currentGame;
+    return me != null && g != null && g.isPlaying && g.partnerMoved(me);
+  }
+
+  /// Live not-thrown → thrown edges of the partner seen on the current game
+  /// (see [_partnerMovedEdges]); 0 for a round opened already in that state.
+  int get partnerMovedEdges => _partnerMovedEdges;
+
   /// True while an action (invite/rematch/cancel/choose) is being written —
   /// lets the screen disable its buttons.
   bool get isBusy => _actionBusy;
 
-  /// Time left to pick (0..5s). [Duration.zero] when the clock ran out or the
-  /// game isn't `playing`.
-  Duration get countdownRemaining =>
-      _currentGame?.countdownRemaining(now: serverNow) ?? Duration.zero;
+  /// Time left of the 5s beat (0..5s). [Duration.zero] once it's over or the
+  /// game isn't `playing` — which ends NOTHING (no-skip rule).
+  /// A round whose `startedAt` hasn't echoed back yet has just begun → the
+  /// full beat.
+  Duration get countdownRemaining {
+    final g = _currentGame;
+    if (g == null || !g.isPlaying) {
+      return Duration.zero;
+    }
+    if (g.startedAt == null) {
+      return RpsTiming.countdown;
+    }
+    return g.countdownRemaining(now: serverNow) ?? Duration.zero;
+  }
 
   /// Whole seconds left, rounded UP (5,4,3,2,1,0) — what the big number shows.
   int get countdownSeconds {
@@ -330,6 +412,10 @@ class RpsGameProvider extends ChangeNotifier {
     final total = RpsTiming.countdown.inMilliseconds;
     return total == 0 ? 0 : countdownRemaining.inMilliseconds / total;
   }
+
+  /// `playing` and still inside the 5s beat (or `startedAt` not echoed yet —
+  /// the round has just begun). False = the ring's "open" mode.
+  bool get isCountingDown => countdownRemaining > Duration.zero;
 
   RpsPhase get phase {
     if (_currentGameId == null) {
@@ -344,16 +430,18 @@ class RpsGameProvider extends ChangeNotifier {
       case RpsGameStatus.invited:
         return RpsPhase.waiting;
       case RpsGameStatus.playing:
-        if (hasChosen) {
+        final mine = iHaveMoved;
+        final theirs = partnerHasMoved;
+        if (mine && theirs) {
+          return RpsPhase.resolving;
+        }
+        if (mine) {
           return RpsPhase.chosenWaiting;
         }
-        if (game.startedAt == null) {
-          // Transitioned locally; server timestamp not echoed yet.
-          return RpsPhase.countdown;
+        if (theirs) {
+          return RpsPhase.partnerMovedYourTurn;
         }
-        return countdownRemaining > Duration.zero
-            ? RpsPhase.countdown
-            : RpsPhase.resolving;
+        return isCountingDown ? RpsPhase.countdown : RpsPhase.yourTurn;
       case RpsGameStatus.finished:
         return RpsPhase.result;
       case RpsGameStatus.expired:
@@ -365,23 +453,76 @@ class RpsGameProvider extends ChangeNotifier {
     }
   }
 
-  /// Buttons are tappable only during the live countdown, once.
-  bool get canChoose => phase == RpsPhase.countdown && !_moveInFlight;
-
-  /// The clock is over and only the server's verdict is missing: `resolving`
-  /// (no hand from me), or `chosenWaiting` once the clock hit 0 — the screen
-  /// shows "Đang mở kết quả…" for both and, past 6s, "Kết nối chậm / Tải
-  /// lại" (Tester RPS-22: that used to arm for `resolving` only, so a player
-  /// who HAD picked and then went offline was stuck on "Đang mở kết quả…").
-  bool get isSettling {
-    final p = phase;
-    if (p == RpsPhase.resolving) {
-      return true;
-    }
-    return p == RpsPhase.chosenWaiting &&
-        _currentGame?.startedAt != null &&
-        countdownRemaining == Duration.zero;
+  /// The hands are tappable while the round is `playing` and my hand isn't
+  /// in — with no time limit (no-skip rule), once.
+  bool get canChoose {
+    final g = _currentGame;
+    return g != null && g.isPlaying && !iHaveMoved && !_moveInFlight;
   }
+
+  /// Both hands are in and only the server's verdict is missing — the screen
+  /// shows "Đang mở kết quả…" and, past 6s, "Kết nối chậm / Tải lại" (Tester
+  /// RPS-22). Since the no-skip rule this is exactly [RpsPhase.resolving]:
+  /// a clock running out no longer means anything is being settled.
+  bool get isSettling => phase == RpsPhase.resolving;
+
+  /// "Nhắc người ấy" callable in flight.
+  bool get isNudging => _nudgeInFlight;
+
+  /// Time left before "Nhắc người ấy" is allowed again: the server's
+  /// `lastNudgeAt` (+60s) — shared by both phones and survives a reopen — or,
+  /// until that echoes back, the local floor from the callable's answer.
+  Duration get nudgeCooldownRemaining {
+    final now = serverNow;
+    final fromServer =
+        _currentGame?.nudgeCooldownRemaining(now: now) ?? Duration.zero;
+    final until = _nudgeLocalUntil;
+    final local = until == null ? Duration.zero : until.difference(now);
+    final best = local > fromServer ? local : fromServer;
+    return best.isNegative ? Duration.zero : best;
+  }
+
+  /// "Nhắc người ấy" can be tapped right now.
+  bool get canNudge =>
+      phase == RpsPhase.chosenWaiting &&
+      !_nudgeInFlight &&
+      nudgeCooldownRemaining == Duration.zero;
+
+  /// The couple's open game from my side (Home card / Profile dot) — the
+  /// first matching [RpsOpenState] in priority order.
+  RpsOpenState get openState {
+    final g = openGame;
+    final me = _myUid;
+    if (g == null || me == null) {
+      return RpsOpenState.none;
+    }
+    if (g.isPlaying) {
+      final mine = g.hasMoved(me) || (g.id == _currentGameId && hasChosen);
+      final theirs = g.partnerMoved(me);
+      if (theirs && !mine) {
+        return RpsOpenState.myTurn;
+      }
+      if (mine && !theirs) {
+        return RpsOpenState.awaitingPartner;
+      }
+      if (!mine && !theirs) {
+        return RpsOpenState.unplayed;
+      }
+      // Both in → resolving; the CF flips it to `finished` within seconds.
+      return RpsOpenState.awaitingPartner;
+    }
+    if (hasPendingInvite) {
+      return RpsOpenState.invitedByPartner;
+    }
+    if (g.isInvited && g.isCreatedBy(me) && !g.isInviteStale(now: serverNow)) {
+      return RpsOpenState.myInvitePending;
+    }
+    return RpsOpenState.none;
+  }
+
+  /// A started round is waiting on MY hand (the partner has thrown) — the
+  /// Profile / Home dot, alongside [hasPendingInvite].
+  bool get isMyTurn => openState == RpsOpenState.myTurn;
 
   /// Only the creator can cancel, and only while still waiting.
   bool get canCancel {
@@ -560,10 +701,10 @@ class RpsGameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Best-effort server clean-up of dead open docs (stale invite → `expired`,
-  /// unsettled round → callable finish) so they stop shadowing the couple's
-  /// real state. Rate-limited per game; the on-screen game is left to its own
-  /// ticker.
+  /// Best-effort server clean-up of dead open docs (stale invite → `expired`)
+  /// so they stop shadowing the couple's real state. Rate-limited per game;
+  /// the on-screen game is left to its own snapshot handler. A `playing`
+  /// round is never dead (no-skip rule) and is never touched here.
   void _cleanUpDeadOpenGames(String coupleId, List<RpsGame> games) {
     final now = serverNow;
     final wall = DateTime.now();
@@ -576,15 +717,9 @@ class RpsGameProvider extends ChangeNotifier {
         continue;
       }
       _deadCleanupAt[game.id] = wall;
-      if (game.isInvited) {
-        unawaited(
-          _service.expireIfStale(coupleId: coupleId, gameId: game.id, now: now),
-        );
-      } else {
-        unawaited(
-          _service.finishViaCallable(coupleId: coupleId, gameId: game.id),
-        );
-      }
+      unawaited(
+        _service.expireIfStale(coupleId: coupleId, gameId: game.id, now: now),
+      );
     }
   }
 
@@ -626,9 +761,10 @@ class RpsGameProvider extends ChangeNotifier {
   /// (the CF pushes the partner). Returns the gameId entered, or null when
   /// nothing could be written ([lastActionError] says why).
   ///
-  /// Only a LIVE open game is joined ([openGame] skips stale invites and
-  /// unsettled rounds — Tester RPS-2); dead invites are flipped to `expired`
-  /// before the new one is created so they stop shadowing it.
+  /// Only a LIVE open game is joined ([openGame] skips stale invites —
+  /// Tester RPS-2; a `playing` round of any age IS live and is re-entered,
+  /// no-skip rule); dead invites are flipped to `expired` before the new one
+  /// is created so they stop shadowing it.
   Future<String?> invite() async {
     final coupleId = _coupleId;
     final me = _myUid;
@@ -664,8 +800,7 @@ class RpsGameProvider extends ChangeNotifier {
   }
 
   /// Flips every stale invite in the open set to `expired` (bounded wait —
-  /// a slow clean-up must not hold the new invite hostage). Unsettled rounds
-  /// are handed to the callable fire-and-forget.
+  /// a slow clean-up must not hold the new invite hostage).
   Future<void> _expireDeadInvites(String coupleId) async {
     final now = serverNow;
     final pending = <Future<bool>>[];
@@ -674,15 +809,9 @@ class RpsGameProvider extends ChangeNotifier {
         continue;
       }
       _deadCleanupAt[game.id] = DateTime.now();
-      if (game.isInvited) {
-        pending.add(
-          _service.expireIfStale(coupleId: coupleId, gameId: game.id, now: now),
-        );
-      } else {
-        unawaited(
-          _service.finishViaCallable(coupleId: coupleId, gameId: game.id),
-        );
-      }
+      pending.add(
+        _service.expireIfStale(coupleId: coupleId, gameId: game.id, now: now),
+      );
     }
     if (pending.isEmpty) {
       return;
@@ -830,13 +959,15 @@ class RpsGameProvider extends ChangeNotifier {
     }
   }
 
-  /// Lock in my hand. Returns false when refused (too late / not playing /
-  /// already chosen / no answer before the deadline) — the optimistic lock is
-  /// rolled back in that case.
+  /// Lock in my hand — any time while the round is `playing` (no-skip rule,
+  /// no deadline). Returns false when refused (not playing / already thrown)
+  /// — the optimistic lock is rolled back in that case.
   ///
-  /// Tester RPS-8: the write is bounded by the time the rules would still
-  /// accept it (deadline + grace, ≤7s), and it no longer holds the global
-  /// [isBusy] — an offline pick can't disable "Chơi lại" on the result.
+  /// Offline (Tester RPS-8 + no-skip rule): the caller waits at most
+  /// [_moveNetworkTimeout]; after that the write stays QUEUED and my hand
+  /// stays locked in (it will count whenever the network returns). Only if
+  /// that queued write is finally refused is the lock rolled back. It never
+  /// holds the global [isBusy], so an offline pick can't disable "Chơi lại".
   Future<bool> choose(RpsChoice choice) async {
     final coupleId = _coupleId;
     final me = _myUid;
@@ -851,35 +982,92 @@ class RpsGameProvider extends ChangeNotifier {
     _pendingChoice = choice;
     _moveInFlight = true;
     notifyListeners();
-    final ok = await _service.submitMove(
+    final write = _service.submitMove(
       coupleId: coupleId,
       gameId: gameId,
       uid: me,
       choice: choice,
-      timeout: _moveTimeout(_currentGame),
     );
-    _moveInFlight = false;
-    if (!ok && _currentGameId == gameId) {
-      _pendingChoice = null;
+    bool? ok;
+    try {
+      ok = await write.timeout(_moveNetworkTimeout);
+    } on TimeoutException {
+      ok = null; // still queued — see below
+    }
+    if (_disposed) {
+      return ok ?? true;
+    }
+    if (_currentGameId == gameId) {
+      _moveInFlight = false;
+      if (ok == false) {
+        _pendingChoice = null;
+      }
+    }
+    if (ok == null) {
+      // Offline: keep the lock; roll back only if the queued write is refused
+      // once it finally reaches the server.
+      unawaited(
+        write.then((sent) {
+          if (!sent &&
+              !_disposed &&
+              _currentGameId == gameId &&
+              _myMove == null &&
+              _pendingChoice == choice) {
+            _pendingChoice = null;
+            notifyListeners();
+          }
+        }),
+      );
     }
     notifyListeners();
-    return ok;
+    return ok ?? true;
   }
 
-  /// How long a move write may take: until `startedAt + countdown + grace`
-  /// by the server clock, clamped to 1..7s.
-  Duration _moveTimeout(RpsGame? game) {
-    final started = game?.startedAt;
-    if (started == null) {
-      return _maxMoveTimeout;
+  /// "Nhắc người ấy" (design addendum A3): my hand is in, the partner's isn't
+  /// → the `nudgeRpsPlayer` callable pushes + inboxes `rps_moved` to them.
+  /// The server enforces the 60s cooldown from `lastNudgeAt`; a `sent` /
+  /// `cooldown` answer also sets a local floor so the button counts down
+  /// before that field echoes back. Never throws.
+  Future<RpsNudgeResult> nudge() async {
+    final coupleId = _coupleId;
+    final gameId = _currentGameId;
+    if (coupleId == null ||
+        gameId == null ||
+        _nudgeInFlight ||
+        phase != RpsPhase.chosenWaiting) {
+      return const RpsNudgeResult(RpsNudgeStatus.notPlaying);
     }
-    final left = started
-        .add(RpsTiming.countdown + RpsTiming.grace)
-        .difference(serverNow);
-    if (left < const Duration(seconds: 1)) {
-      return const Duration(seconds: 1);
+    final left = nudgeCooldownRemaining;
+    if (left > Duration.zero) {
+      return RpsNudgeResult(RpsNudgeStatus.cooldown, retryAfter: left);
     }
-    return left > _maxMoveTimeout ? _maxMoveTimeout : left;
+    _nudgeInFlight = true;
+    notifyListeners();
+    final result = await _service.nudgePartner(
+      coupleId: coupleId,
+      gameId: gameId,
+    );
+    if (_disposed) {
+      return result;
+    }
+    _nudgeInFlight = false;
+    if (_currentGameId == gameId) {
+      switch (result.status) {
+        case RpsNudgeStatus.sent:
+          _nudgeLocalUntil = serverNow.add(RpsTiming.nudgeCooldown);
+        case RpsNudgeStatus.cooldown:
+          _nudgeLocalUntil = serverNow.add(
+            result.retryAfter ?? RpsTiming.nudgeCooldown,
+          );
+        case RpsNudgeStatus.partnerMoved:
+        case RpsNudgeStatus.notPlaying:
+        case RpsNudgeStatus.notMoved:
+        case RpsNudgeStatus.failed:
+          break;
+      }
+    }
+    notifyListeners();
+    return result;
   }
 
   /// Creator withdraws a pending invite.
@@ -1184,7 +1372,10 @@ class RpsGameProvider extends ChangeNotifier {
     _moveInFlight = false;
     _startInFlight = false;
     _expireInFlight = false;
-    _lastFinishAttempt = null;
+    _partnerMovedSeen = null;
+    _partnerMovedEdges = 0;
+    _nudgeInFlight = false;
+    _nudgeLocalUntil = null;
   }
 
   void _onGameSnapshot(RpsGame? game) {
@@ -1202,6 +1393,14 @@ class RpsGameProvider extends ChangeNotifier {
       return;
     }
 
+    // "Người ấy vừa ra" edge — only between two snapshots of this game, so a
+    // round reopened already in that state (tap on `rps_moved`) doesn't ring.
+    final partnerMoved = game.isPlaying && game.partnerMoved(me);
+    if (_partnerMovedSeen == false && partnerMoved) {
+      _partnerMovedEdges++;
+    }
+    _partnerMovedSeen = partnerMoved;
+
     switch (game.status) {
       case RpsGameStatus.invited:
         _stopTicker();
@@ -1211,8 +1410,13 @@ class RpsGameProvider extends ChangeNotifier {
           _maybeStart(coupleId, gameId, me, game);
         }
       case RpsGameStatus.playing:
-        _startTicker();
-        _maybeFinish(coupleId, gameId, game);
+        // The ticker only drives the 5s beat; afterwards nothing is timed —
+        // the round waits for both hands (no-skip rule).
+        if (isCountingDown) {
+          _startTicker();
+        } else {
+          _stopTicker();
+        }
       case RpsGameStatus.finished:
         _stopTicker();
         _onFinished(game, me);
@@ -1264,21 +1468,6 @@ class RpsGameProvider extends ChangeNotifier {
     );
   }
 
-  /// Past deadline + grace and still `playing` → ask the callable to settle
-  /// (rate-limited; both phones may call, server writes once).
-  void _maybeFinish(String coupleId, String gameId, RpsGame game) {
-    if (!game.isPastGrace(now: serverNow)) {
-      return;
-    }
-    final last = _lastFinishAttempt;
-    final now = DateTime.now();
-    if (last != null && now.difference(last) < _finishRetryEvery) {
-      return;
-    }
-    _lastFinishAttempt = now;
-    unawaited(_service.finishViaCallable(coupleId: coupleId, gameId: gameId));
-  }
-
   void _onFinished(RpsGame game, String me) {
     // Analytics once per game (no content — just the outcome enum).
     if (_loggedFinishedGameId != game.id) {
@@ -1314,14 +1503,12 @@ class RpsGameProvider extends ChangeNotifier {
     }
     _tickTimer = Timer.periodic(_tick, (_) {
       final game = _currentGame;
-      if (game == null || !game.isPlaying) {
+      if (game == null || !game.isPlaying || !isCountingDown) {
+        // The beat is over (or the round moved on): one last notify flips
+        // `countdown` → `yourTurn`, then nothing is timed any more.
         _stopTicker();
+        notifyListeners();
         return;
-      }
-      final coupleId = _coupleId;
-      final gameId = _currentGameId;
-      if (coupleId != null && gameId != null) {
-        _maybeFinish(coupleId, gameId, game);
       }
       notifyListeners();
     });

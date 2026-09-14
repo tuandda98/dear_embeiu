@@ -3,10 +3,12 @@
 //
 // The client may only: create an `invited` game (creator pinned), heartbeat
 // its OWN presence key, and drive invited → playing / cancelled / expired.
-// `finished`, `result`, `finishedAt` are Cloud-Function-only. A move is
-// create-once, only while `playing` and within startedAt + 7s; the partner's
-// move stays unreadable until the game is `finished` (anti-cheat lives here,
-// not in the UI).
+// `finished`, `result`, `finishedAt`, `moved`, `lastNudgeAt` are
+// Cloud-Function-only. A move is create-once, only while `playing` — with NO
+// deadline since the 2026-09-14 rule change (no "skip turn": the round waits
+// for both players); the partner's move stays unreadable until the game is
+// `finished` (anti-cheat lives here, not in the UI), even though the parent's
+// `moved` map says who has already thrown.
 
 const {
   doc,
@@ -98,6 +100,15 @@ describe('firestore: rps game', () => {
     await assertFails(setDoc(doc(authedDb('alice'), GAME), noType));
     await assertFails(
       setDoc(doc(authedDb('alice'), GAME), validGame('alice', {type: 'tictactoe'})),
+    );
+  });
+
+  it('rejects creating with the CF-only moved / lastNudgeAt fields', async () => {
+    await assertFails(
+      setDoc(doc(authedDb('alice'), GAME), validGame('alice', {moved: {alice: serverTimestamp()}})),
+    );
+    await assertFails(
+      setDoc(doc(authedDb('alice'), GAME), validGame('alice', {lastNudgeAt: serverTimestamp()})),
     );
   });
 
@@ -387,6 +398,45 @@ describe('firestore: rps game', () => {
     );
   });
 
+  it('forbids clients adding moved / lastNudgeAt (2026-09-14)', async () => {
+    await seedDoc(GAME, seededGame({status: 'playing', startedAt: secondsAgo(30)}));
+    const alice = doc(authedDb('alice'), GAME);
+    await assertFails(updateDoc(alice, {moved: {alice: serverTimestamp()}}));
+    await assertFails(updateDoc(alice, {'moved.alice': serverTimestamp()}));
+    await assertFails(updateDoc(alice, {'moved.bob': serverTimestamp()}));
+    await assertFails(updateDoc(alice, {lastNudgeAt: serverTimestamp()}));
+    // Piggy-backed on a legit heartbeat: still denied.
+    await assertFails(updateDoc(alice, {
+      'presence.alice': serverTimestamp(),
+      'moved.alice': serverTimestamp(),
+    }));
+    await assertFails(updateDoc(alice, {
+      'presence.alice': serverTimestamp(),
+      lastNudgeAt: serverTimestamp(),
+    }));
+  });
+
+  it('forbids clients changing or dropping moved / lastNudgeAt written by the CF', async () => {
+    await seedDoc(GAME, seededGame({
+      status: 'playing',
+      startedAt: secondsAgo(30),
+      moved: {alice: TS},
+      lastNudgeAt: TS,
+    }));
+    const alice = doc(authedDb('alice'), GAME);
+    const bob = doc(authedDb('bob'), GAME);
+    // bob pretends to have thrown / wipes alice's stamp
+    await assertFails(updateDoc(bob, {'moved.bob': serverTimestamp()}));
+    await assertFails(updateDoc(bob, {'moved.alice': deleteField()}));
+    await assertFails(updateDoc(bob, {moved: deleteField()}));
+    // alice resets the nudge cooldown
+    await assertFails(updateDoc(alice, {lastNudgeAt: deleteField()}));
+    await assertFails(updateDoc(alice, {lastNudgeAt: serverTimestamp()}));
+    // …while a plain heartbeat carrying both fields through still works.
+    await assertSucceeds(updateDoc(alice, {'presence.alice': serverTimestamp()}));
+    await assertSucceeds(updateDoc(bob, {'presence.bob': serverTimestamp()}));
+  });
+
   it('forbids tampering with a stored result', async () => {
     await seedDoc(GAME, seededGame({
       status: 'finished',
@@ -422,7 +472,7 @@ describe('firestore: rps game', () => {
     ...overrides,
   });
 
-  it('lets a member submit a move while playing and within 7s', async () => {
+  it('lets a member submit a move while playing (just started)', async () => {
     await seedDoc(GAME, seededGame({status: 'playing', startedAt: secondsAgo(1)}));
     await assertSucceeds(setDoc(doc(authedDb('alice'), MOVE('alice')), validMove()));
     await assertSucceeds(setDoc(doc(authedDb('bob'), MOVE('bob')), validMove({choice: 'paper'})));
@@ -433,8 +483,28 @@ describe('firestore: rps game', () => {
     await assertFails(setDoc(doc(authedDb('alice'), MOVE('alice')), validMove()));
   });
 
-  it('rejects a move after startedAt + 7s', async () => {
+  it('accepts a move long after startedAt + 7s — no skip turn (2026-09-14)', async () => {
     await seedDoc(GAME, seededGame({status: 'playing', startedAt: secondsAgo(10)}));
+    await assertSucceeds(setDoc(doc(authedDb('alice'), MOVE('alice')), validMove()));
+  });
+
+  it('accepts a move minutes later, after the partner has thrown', async () => {
+    await seedDoc(GAME, seededGame({
+      status: 'playing',
+      startedAt: minutesAgo(5),
+      moved: {alice: TS},
+      lastNudgeAt: TS,
+    }));
+    await seedDoc(MOVE('alice'), {choice: 'rock', createdAt: TS});
+    await assertSucceeds(setDoc(doc(authedDb('bob'), MOVE('bob')), validMove({choice: 'paper'})));
+  });
+
+  it('still rejects a late move on a game that is not playing', async () => {
+    await seedDoc(GAME, seededGame({createdAt: minutesAgo(5)}));
+    await assertFails(setDoc(doc(authedDb('alice'), MOVE('alice')), validMove()));
+    await seedDoc(GAME, seededGame({status: 'expired', createdAt: minutesAgo(11)}));
+    await assertFails(setDoc(doc(authedDb('alice'), MOVE('alice')), validMove()));
+    await seedDoc(GAME, seededGame({status: 'cancelled', cancelledBy: 'alice'}));
     await assertFails(setDoc(doc(authedDb('alice'), MOVE('alice')), validMove()));
   });
 
@@ -477,6 +547,20 @@ describe('firestore: rps game', () => {
     // partner's move: hidden while playing
     await assertFails(getDoc(doc(authedDb('alice'), MOVE('bob'))));
     await assertFails(getDoc(doc(authedDb('bob'), MOVE('alice'))));
+  });
+
+  it('keeps the partner\'s move hidden while playing even when moved says they threw', async () => {
+    await seedDoc(GAME, seededGame({
+      status: 'playing',
+      startedAt: minutesAgo(3),
+      moved: {alice: TS, bob: TS},
+    }));
+    await seedDoc(MOVE('alice'), {choice: 'rock', createdAt: TS});
+    await seedDoc(MOVE('bob'), {choice: 'paper', createdAt: TS});
+    await assertFails(getDoc(doc(authedDb('alice'), MOVE('bob'))));
+    await assertFails(getDoc(doc(authedDb('bob'), MOVE('alice'))));
+    await assertFails(getDocs(collection(authedDb('alice'), `${GAME}/moves`)));
+    await assertSucceeds(getDoc(doc(authedDb('alice'), MOVE('alice'))));
   });
 
   it('reveals both moves once the game is finished', async () => {

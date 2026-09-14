@@ -12,12 +12,15 @@ library;
 class RpsTiming {
   RpsTiming._();
 
-  /// How long both players have to pick once the game is `playing`.
+  /// The "oẳn tù tì" beat once the game is `playing` (ring 5→0). Since the
+  /// 2026-09-14 no-skip rule it is ONLY a rhythm: the round never ends on the
+  /// clock — it finishes when both hands are in (CF `resolveRpsGame`), and a
+  /// move is accepted any time while the game is `playing`.
   static const Duration countdown = Duration(seconds: 5);
 
-  /// Network grace AFTER the countdown: the rules still accept a move until
-  /// `startedAt + countdown + grace`; the callable finisher refuses before it.
-  static const Duration grace = Duration(seconds: 2);
+  /// Spacing between two "Nhắc người ấy" pushes on one round — the callable
+  /// `nudgeRpsPlayer` enforces the same 60s from `games/{id}.lastNudgeAt`.
+  static const Duration nudgeCooldown = Duration(seconds: 60);
 
   /// Presence heartbeat interval while on the game screen.
   static const Duration heartbeat = Duration(seconds: 3);
@@ -32,6 +35,9 @@ class RpsTiming {
 
 /// The three hands + [none] (= no pick before the deadline; only ever appears
 /// inside a finished game's `result.choices`, never in a `moves` doc).
+/// ⚠️ [none] is LEGACY since the 2026-09-14 no-skip rule — new rounds always
+/// carry two real hands — but finished rounds from before still hold it, so
+/// it must keep parsing/rendering (history "Bỏ lượt", result ⏳).
 enum RpsChoice {
   rock,
   paper,
@@ -115,7 +121,8 @@ enum RpsGameStatus {
 }
 
 /// Why a game ended: both hands thrown ([normal]) or the deadline hit with at
-/// least one missing hand ([timeout]).
+/// least one missing hand ([timeout] — LEGACY: only rounds settled before the
+/// 2026-09-14 no-skip rule; the CF now writes `normal` only).
 enum RpsResultReason {
   normal,
   timeout;
@@ -131,9 +138,10 @@ enum RpsResultReason {
 /// A finished game seen from ONE player's side.
 enum RpsOutcome { win, lose, draw }
 
-/// `games/{id}.result` — written ONLY by Cloud Functions (`resolveRpsGame` /
-/// `finishRpsGame`); the client merely reads it. [judge] re-implements the
-/// same law locally (optimistic reveal + unit tests + history score).
+/// `games/{id}.result` — written ONLY by Cloud Functions (`resolveRpsGame`;
+/// the retired `finishRpsGame` wrote the legacy timeout ones); the client
+/// merely reads it. [judge] re-implements the same law locally (optimistic
+/// reveal + unit tests + history score).
 class RpsResult {
   const RpsResult({
     required this.winnerUid,
@@ -274,6 +282,8 @@ class RpsGame {
     this.result,
     this.cancelledBy,
     this.updatedAt,
+    this.moved = const <String, DateTime>{},
+    this.lastNudgeAt,
   });
 
   static const String typeKey = 'rps';
@@ -293,6 +303,15 @@ class RpsGame {
   final String? cancelledBy;
   final DateTime? updatedAt;
 
+  /// `{uid: when that player's hand landed}` — written ONLY by the CF
+  /// (`resolveRpsGame`, 2026-09-14 no-skip rule). Says WHO has thrown, never
+  /// WHAT: the hands stay unreadable until `finished`.
+  final Map<String, DateTime> moved;
+
+  /// Last "Nhắc người ấy" push on this round (CF `nudgeRpsPlayer` only) — the
+  /// 60s cooldown is measured from it so every phone shows the same seconds.
+  final DateTime? lastNudgeAt;
+
   bool get isInvited => status == RpsGameStatus.invited;
   bool get isPlaying => status == RpsGameStatus.playing;
   bool get isFinished => status == RpsGameStatus.finished;
@@ -302,9 +321,9 @@ class RpsGame {
   bool isCreatedBy(String uid) => createdBy == uid;
 
   /// The other member's uid as far as this doc knows it (from presence /
-  /// result); null until the partner has touched the game.
+  /// moved / result); null until the partner has touched the game.
   String? partnerOf(String uid) {
-    for (final key in presence.keys) {
+    for (final key in <String>[...presence.keys, ...moved.keys]) {
       if (key != uid) {
         return key;
       }
@@ -345,8 +364,34 @@ class RpsGame {
     return (now ?? DateTime.now()).difference(created) >= RpsTiming.inviteTtl;
   }
 
-  /// Time left to pick, clamped to `0..countdown`. Null when not `playing` or
-  /// `startedAt` hasn't come back from the server yet.
+  /// [uid]'s hand is in (per the CF's `moved` stamp). The client also knows
+  /// its OWN move from its `moves/{uid}` doc before the CF stamps it — the
+  /// provider combines both.
+  bool hasMoved(String uid) => moved.containsKey(uid);
+
+  /// Someone other than [myUid] has thrown (the only other member is the
+  /// partner, so this is "người ấy đã ra rồi").
+  bool partnerMoved(String myUid) => moved.keys.any((uid) => uid != myUid);
+
+  /// Time left before another "Nhắc người ấy" is allowed, from the server's
+  /// [lastNudgeAt] ([now] = best SERVER-time estimate). Zero when never
+  /// nudged or the cooldown has run out.
+  Duration nudgeCooldownRemaining({required DateTime now}) {
+    final last = lastNudgeAt;
+    if (last == null) {
+      return Duration.zero;
+    }
+    final left = RpsTiming.nudgeCooldown - now.difference(last);
+    if (left.isNegative) {
+      return Duration.zero;
+    }
+    return left > RpsTiming.nudgeCooldown ? RpsTiming.nudgeCooldown : left;
+  }
+
+  /// Time left of the 5s beat, clamped to `0..countdown`. Null when not
+  /// `playing` or `startedAt` hasn't come back from the server yet. Zero does
+  /// NOT end anything any more (no-skip rule) — it only switches the ring to
+  /// its "open" mode.
   Duration? countdownRemaining({DateTime? now}) {
     final started = startedAt;
     if (!isPlaying || started == null) {
@@ -360,24 +405,16 @@ class RpsGame {
     return left > RpsTiming.countdown ? RpsTiming.countdown : left;
   }
 
-  /// Past `startedAt + countdown + grace` — the server will accept a finish.
-  bool isPastGrace({DateTime? now}) {
-    final started = startedAt;
-    if (!isPlaying || started == null) {
-      return false;
-    }
-    return (now ?? DateTime.now()).difference(started) >=
-        RpsTiming.countdown + RpsTiming.grace;
-  }
-
-  /// Still `invited`/`playing` on the server but nobody can play it any more
-  /// (Tester RPS-2): an invite past its TTL that no client flipped to
-  /// `expired` yet, or a round past `countdown + grace` that no client asked
-  /// the callable to settle. Such a game must never be treated as "the
-  /// couple's current game". [now] = best SERVER-time estimate.
+  /// Still `invited` on the server but nobody can join it any more (Tester
+  /// RPS-2): an invite past its TTL that no client flipped to `expired` yet.
+  /// Such a game must never be treated as "the couple's current game".
+  /// [now] = best SERVER-time estimate.
+  ///
+  /// A `playing` round is NEVER dead (2026-09-14 no-skip rule): it waits —
+  /// for minutes, days — until both hands are in, and stays the couple's
+  /// current game (Home card "tới lượt bạn" / "đang chờ người ấy ra").
   bool isDeadOpen({required DateTime now}) =>
-      (isInvited && isInviteStale(now: now)) ||
-      (isPlaying && isPastGrace(now: now));
+      isInvited && isInviteStale(now: now);
 
   /// Strictly newer than [other] by server `createdAt`. A missing stamp (a
   /// create still pending locally) never counts as newer — the two phones
@@ -390,7 +427,8 @@ class RpsGame {
 
   /// The couple's current open game from newest-first [candidates] (the
   /// open-games stream): the first one that is open and not
-  /// [isDeadOpen]. Both phones read the same docs, so they agree on it.
+  /// [isDeadOpen] (so a `playing` round, however old, always wins over a
+  /// newer stale invite). Both phones read the same docs, so they agree on it.
   static RpsGame? pickOpen(Iterable<RpsGame> candidates, {required DateTime now}) {
     for (final game in candidates) {
       if (game.isOpen && !game.isDeadOpen(now: now)) {
@@ -439,31 +477,38 @@ class RpsGame {
   }
 
   factory RpsGame.fromFirestore(String id, Map<String, dynamic> data) {
-    final rawPresence = data['presence'];
-    final presence = <String, DateTime>{};
-    if (rawPresence is Map) {
-      for (final entry in rawPresence.entries) {
-        final stamp = rpsParseTimestamp(entry.value);
-        final uid = entry.key.toString().trim();
-        if (stamp != null && uid.isNotEmpty) {
-          presence[uid] = stamp;
-        }
-      }
-    }
     return RpsGame(
       id: id,
       type: (data['type'] as String?)?.trim() ?? typeKey,
       createdBy: (data['createdBy'] as String?)?.trim() ?? '',
       status: RpsGameStatus.fromKey(data['status']),
       createdAt: rpsParseTimestamp(data['createdAt']),
-      presence: presence,
+      presence: _stampMap(data['presence']),
       startedAt: rpsParseTimestamp(data['startedAt']),
       rematchOf: _nullableString(data['rematchOf']),
       finishedAt: rpsParseTimestamp(data['finishedAt']),
       result: RpsResult.fromMap(data['result']),
       cancelledBy: _nullableString(data['cancelledBy']),
       updatedAt: rpsParseTimestamp(data['updatedAt']),
+      moved: _stampMap(data['moved']),
+      lastNudgeAt: rpsParseTimestamp(data['lastNudgeAt']),
     );
+  }
+
+  /// `{uid: timestamp}` maps (`presence`, `moved`): unparseable stamps and
+  /// blank keys are dropped instead of throwing.
+  static Map<String, DateTime> _stampMap(dynamic raw) {
+    final out = <String, DateTime>{};
+    if (raw is Map) {
+      for (final entry in raw.entries) {
+        final stamp = rpsParseTimestamp(entry.value);
+        final uid = entry.key.toString().trim();
+        if (stamp != null && uid.isNotEmpty) {
+          out[uid] = stamp;
+        }
+      }
+    }
+    return out;
   }
 
   /// Plain-value snapshot (timestamps as ISO strings). NOT the create payload —
@@ -481,6 +526,9 @@ class RpsGame {
         if (result != null) 'result': result!.toMap(),
         if (cancelledBy != null) 'cancelledBy': cancelledBy,
         if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+        if (moved.isNotEmpty)
+          'moved': moved.map((uid, t) => MapEntry(uid, t.toIso8601String())),
+        if (lastNudgeAt != null) 'lastNudgeAt': lastNudgeAt!.toIso8601String(),
       };
 
   static String? _nullableString(dynamic value) {
