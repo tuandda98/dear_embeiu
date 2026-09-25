@@ -226,9 +226,11 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
           ),
         ),
         if (_showRevealLottie)
-          const IgnorePointer(
-            child: Positioned(
-              top: -8,
+          // Positioned must be the Stack's direct child — wrapping it in
+          // IgnorePointer crashed (ParentData cast) on every reveal.
+          const Positioned(
+            top: -8,
+            child: IgnorePointer(
               child: LoveLottie(slot: LoveLottieSlot.dailyReveal, height: 120),
             ),
           ),
