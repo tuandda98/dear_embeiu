@@ -105,6 +105,10 @@ dependencies:
   # (feature auto-store-update). iOS uses the iTunes Lookup API instead.
   in_app_update: ^4.2.3
 
+  # App Check (chống lạm dụng): xác minh request đến từ app thật.
+  # Chỉ thu thập token + metrics; các API vẫn Unenforced nên không chặn ai.
+  firebase_app_check: ^0.4.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
