@@ -9,6 +9,7 @@ IPA="${1:-build/ios/ipa/dear_embeiu.ipa}"; IPA="$(cd "$(dirname "$IPA")" && pwd)
 [ -f "$IPA" ] || { echo "✗ không thấy $IPA"; exit 1; }
 D="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; B="$D/.bin"; mkdir -p "$B"
 for t in click winbounds winlist; do [ -x "$B/$t" ] || swiftc -O -o "$B/$t" "$D/$t.swift" 2>/dev/null; done
+calc() { awk "BEGIN{printf \"%d\", $1}"; }  # thay python3 (shim Xcode, hỏng khi chưa đồng ý license)
 snap() { "$B/winlist" Transporter | awk -F'\t' '$3=="[]" && $2+0>=0 {print}' | sort -t' ' -k3 -rn | head -1; }
 
 echo "→ mở Transporter"; open -a Transporter; sleep 4
@@ -26,13 +27,13 @@ osascript -e 'tell application "System Events" to tell process "Transporter"' \
   -e 'keystroke "g" using {command down, shift down}' -e 'delay 1.5' -e 'keystroke "a" using {command down}' -e 'keystroke "v" using {command down}' -e 'delay 1.5' -e 'keystroke return' -e 'delay 3' -e 'end tell'
 # Nút "Mở" của panel: panel là process riêng (không có AX) → click theo bounds góc dưới phải.
 PANEL=$("$B/winlist" Transporter | grep "\[Mở\]\|\[Open\]" | cut -f1 | head -1)
-if [ -n "$PANEL" ]; then read PX PY PW PH <<< "$("$B/winbounds" "$PANEL")"; "$B/click" "$(python3 -c "print(int($PX+0.936*$PW))")" "$(python3 -c "print(int($PY+0.933*$PH))")"; fi
+if [ -n "$PANEL" ]; then read PX PY PW PH <<< "$("$B/winbounds" "$PANEL")"; "$B/click" "$(calc "$PX+0.936*$PW")" "$(calc "$PY+0.933*$PH")"; fi
 sleep 12
 "$B/winlist" Transporter | grep -q "\[Mở\]\|\[Open\]" && { echo "✗ panel Mở vẫn còn — kiểm tra tay"; exit 1; }
 # Nút CHUYỂN GIAO của dòng đầu "Đang hoạt động": toạ độ tương đối theo layout Transporter 1600×816 (đo 2026-09-13).
 read X Y W H <<< "$("$B/winbounds" "$MAIN")"
 osascript -e 'tell application "Transporter" to activate' -e 'delay 1'
 # Tỉ lệ đo lại 2026-09-14 trên màn hình thật (nút ở 0.899·W, 0.219·H); 0.183 cũ trúng mép trên → trượt.
-"$B/click" "$(python3 -c "print(int($X + 0.899*$W))")" "$(python3 -c "print(int($Y + 0.219*$H))")"
+"$B/click" "$(calc "$X + 0.899*$W")" "$(calc "$Y + 0.219*$H")"
 sleep 5; screencapture -x -l "$MAIN" /tmp/transporter-after-deliver.png
 echo "✓ đã bấm CHUYỂN GIAO — xem /tmp/transporter-after-deliver.png (phải thấy 'ĐANG TẢI LÊN ỨNG DỤNG')"
