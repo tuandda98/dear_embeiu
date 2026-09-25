@@ -2,7 +2,7 @@
 
 > Dev sở hữu. Đọc `overview.md` trước.
 
-- **Trạng thái dev:** xong (client + console PROD) — chờ ship cùng release kế tiếp
+- **Trạng thái dev:** xong + verify (client + console PROD) — commit `a57c76f` trên branch `feature/app-check`, chờ ship cùng release kế tiếp
 - **Người/role:** Dev
 
 ## Kế hoạch kỹ thuật
@@ -41,6 +41,8 @@ await FirebaseAppCheck.instance.activate(
 - [x] `flutter analyze` sạch (0 issue)
 - [x] `flutter test` 141/141 pass
 - [x] Không hardcode chuỗi hiển thị (feature không có UI)
+- [x] Build Android verify: `flutter build apk --debug` OK + dex có `io/flutter/plugins/firebase/appcheck/FirebaseAppCheckPlugin` + `GeneratedPluginRegistrant.java:39` đăng ký plugin
+- [x] iOS `pod install` OK — `FirebaseAppCheck (12.15.0)` + `AppCheckCore (11.3.2)` + `firebase_app_check (0.4.5)` vào `Podfile.lock`
 - [ ] Build release CẢ 2 nền tảng ở lần release kế tiếp
 
 ## Nhật ký implement
@@ -59,3 +61,6 @@ await FirebaseAppCheck.instance.activate(
 3. **Enforce CF trước** (chỗ tốn tiền nhất): trong `functions/index.js`, với `generateDailyQuestion` thêm chặn `if (!request.app) throw new HttpsError('failed-precondition', ...)`. Đây là code nên kiểm soát được, khác với nút Enforce của Console.
 4. **Enforce Storage → Firestore** khi verified đã cao. Bật từng cái một, theo dõi Crashlytics giữa mỗi bước.
 5. **Debug token cho DEV** (khi cần test): chạy debug build, tìm dòng log `Enter this debug secret into the allow list...` (Android: logcat; iOS: Xcode console) → Firebase Console DEV → App Check → app → ⋮ → Manage debug tokens → dán vào.
+
+- [2026-09-26] [Dev] ⚠️ **Sự cố phối hợp:** giữa chừng có phiên Claude song song làm hotfix crash 1.7.1 → `git stash` phần App Check này để hotfix đi sạch (đúng, không phải lỗi). Sau khi 1.7.1+24 submit xong đã `stash pop`, merge lại giữ `version: 1.7.1+24`, chạy lại `pub get` + `pod install` + verify. **Bài học:** `flutter pub get` chạy trước khi cây thư mục bị revert thì `.flutter-plugins-dependencies` vẫn ghi theo bản cũ ⇒ `pod install` im lặng bỏ qua plugin (Podfile.lock không đổi 1 dòng nào) và APK build ra KHÔNG có plugin mà vẫn exit 0. Luôn verify bằng `.flutter-plugins-dependencies` + grep dex, đừng tin exit code.
+- [2026-09-26] [Dev] Commit `a57c76f` trên `feature/app-check` (tách khỏi `release/1.7.1` sau khi bản đó đã submit). Chưa merge vào release nào.
