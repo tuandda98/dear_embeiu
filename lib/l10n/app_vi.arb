@@ -835,7 +835,7 @@
   "authSessionNotReady": "Phiên đăng nhập chưa sẵn sàng. Bạn thử đăng nhập lại giúp mình nhé.",
   "authSessionUnavailable": "Chưa đăng nhập được, bạn thử lại nhé.",
   "authTooManyRequests": "Có quá nhiều lần thử đăng nhập. Bạn đợi vài phút rồi thử lại nhé.",
-  "authUserDisabled": "Tài khoản này đang bị khoá nên chưa đăng nhập được.",
+  "authUserDisabled": "Tài khoản này đã bị khoá nên không đăng nhập được.",
   "authWeakPassword": "Mật khẩu còn yếu, bạn chọn mật khẩu mạnh hơn nhé.",
   "authWrongPassword": "Mật khẩu chưa đúng, bạn kiểm tra lại nhé.",
   "bootstrapAndroidNotReady": "App chưa kết nối được máy chủ, dữ liệu tạm lưu trên máy này.",
@@ -898,7 +898,7 @@
   "photoFileNotFoundStorage": "Không tìm thấy ảnh này trên máy chủ.",
   "photoFirebaseUnavailable": "Chưa kết nối được máy chủ, có thể do mạng chập chờn. Bạn thử lại sau ít phút nhé.",
   "photoNotFoundToPost": "Không tìm thấy ảnh để đăng.",
-  "photoStorageUnauthorized": "Máy chủ đang từ chối thao tác với ảnh này.",
+  "photoStorageUnauthorized": "Chưa làm được việc này với ảnh. Bạn thử đăng xuất rồi đăng nhập lại nhé.",
   "photoSyncGeneric": "Chưa đồng bộ được ảnh. Bạn thử lại sau nhé.",
   "photoSyncPermissionDenied": "Bạn chưa có quyền đồng bộ ảnh. Thử đăng xuất rồi đăng nhập lại nhé.",
   "photoSyncSessionExpired": "Phiên đăng nhập đã hết hạn. Bạn đăng nhập lại giúp mình nhé.",
@@ -2616,11 +2616,11 @@
   "@sleepLoadFailed": {
     "description": "Sleep: partner nights failed to load"
   },
-  "sleepHowBody1": "App coi khoảng điện thoại nằm yên lâu nhất trong đêm (từ 18h đến 14h hôm sau, dài 3 đến 16 tiếng) là giấc ngủ. Khoảng nào xong trước 1 giờ sáng, như lúc để sạc buổi tối, chỉ được tính khi không còn khoảng nào khác.",
+  "sleepHowBody1": "App coi khoảng điện thoại nằm yên lâu nhất trong đêm là giấc ngủ, tính từ 18h tới 14h hôm sau, dài 3 đến 16 tiếng. Khoảng kết thúc trước 1 giờ sáng, như lúc cắm sạc buổi tối, chỉ được tính khi đêm đó không có khoảng nào muộn hơn.",
   "@sleepHowBody1": {
     "description": "Sleep explainer paragraph (Android)"
   },
-  "sleepHowBody1Ios": "App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h đến 14h hôm sau. Giấc chợp mắt xong trước 1 giờ sáng chỉ được tính khi cả đêm không có giấc nào khác.",
+  "sleepHowBody1Ios": "App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h tới 14h hôm sau. Giấc chợp mắt kết thúc trước 1 giờ sáng chỉ được tính khi đêm đó không có giấc nào muộn hơn.",
   "@sleepHowBody1Ios": {
     "description": "Sleep explainer paragraph (iOS)"
   },

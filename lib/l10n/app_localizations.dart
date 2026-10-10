@@ -2915,7 +2915,7 @@ abstract class AppLocalizations {
   /// authFirebaseAuthGeneric
   ///
   /// In en, this message translates to:
-  /// **'Something went wrong with your account. Please try again.'**
+  /// **'Couldn\'t verify your account. Please try again.'**
   String get authFirebaseAuthGeneric;
 
   /// authFirebaseUserCreateFailed
@@ -2939,7 +2939,7 @@ abstract class AppLocalizations {
   /// authFirestoreUnavailable
   ///
   /// In en, this message translates to:
-  /// **'Can\'t reach the server right now, maybe a network hiccup. Please try again in a few minutes.'**
+  /// **'Can\'t reach the server right now. It might be a network hiccup, so try again in a few minutes.'**
   String get authFirestoreUnavailable;
 
   /// authInvalidCredential
@@ -3089,7 +3089,7 @@ abstract class AppLocalizations {
   /// coupleFirebaseUnavailable
   ///
   /// In en, this message translates to:
-  /// **'Can\'t reach the server right now, maybe a network hiccup. Please try again in a few minutes.'**
+  /// **'Can\'t reach the server right now. It might be a network hiccup, so try again in a few minutes.'**
   String get coupleFirebaseUnavailable;
 
   /// coupleFull
@@ -3359,7 +3359,7 @@ abstract class AppLocalizations {
   /// photoFirebaseUnavailable
   ///
   /// In en, this message translates to:
-  /// **'Can\'t reach the server right now, maybe a network hiccup. Please try again in a few minutes.'**
+  /// **'Can\'t reach the server right now. It might be a network hiccup, so try again in a few minutes.'**
   String get photoFirebaseUnavailable;
 
   /// photoNotFoundToPost
@@ -3371,7 +3371,7 @@ abstract class AppLocalizations {
   /// photoStorageUnauthorized
   ///
   /// In en, this message translates to:
-  /// **'The server won\'t allow this action on the photo.'**
+  /// **'You can\'t do that with this photo right now. Try signing out and back in.'**
   String get photoStorageUnauthorized;
 
   /// photoSyncGeneric
@@ -5986,13 +5986,13 @@ abstract class AppLocalizations {
   /// Sleep explainer paragraph (Android)
   ///
   /// In en, this message translates to:
-  /// **'The app counts the longest stretch your phone sits untouched overnight (6 pm to 2 pm, 3 to 16 hours) as sleep. A stretch that ends before 1 am, like charging in the evening, only counts when there is nothing later.'**
+  /// **'The app counts the longest stretch your phone sits untouched overnight as sleep, between 6 pm and 2 pm the next day, lasting 3 to 16 hours. A stretch that ends before 1 am, like charging in the evening, only counts when there\'s nothing later that night.'**
   String get sleepHowBody1;
 
   /// Sleep explainer paragraph (iOS)
   ///
   /// In en, this message translates to:
-  /// **'The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm. A nap that ends before 1 am only counts when there is nothing later that night.'**
+  /// **'The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm the next day. A nap that ends before 1 am only counts when there\'s nothing later that night.'**
   String get sleepHowBody1Ios;
 
   /// Sleep explainer paragraph (Android)

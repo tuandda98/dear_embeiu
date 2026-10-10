@@ -959,7 +959,7 @@
   "@authEmailPasswordNotEnabled": {
     "description": "authEmailPasswordNotEnabled"
   },
-  "authFirebaseAuthGeneric": "Something went wrong with your account. Please try again.",
+  "authFirebaseAuthGeneric": "Couldn't verify your account. Please try again.",
   "@authFirebaseAuthGeneric": {
     "description": "authFirebaseAuthGeneric"
   },
@@ -975,7 +975,7 @@
   "@authFirestorePermissionDenied": {
     "description": "authFirestorePermissionDenied"
   },
-  "authFirestoreUnavailable": "Can't reach the server right now, maybe a network hiccup. Please try again in a few minutes.",
+  "authFirestoreUnavailable": "Can't reach the server right now. It might be a network hiccup, so try again in a few minutes.",
   "@authFirestoreUnavailable": {
     "description": "authFirestoreUnavailable"
   },
@@ -1075,7 +1075,7 @@
   "@coupleEnterCodeFirst": {
     "description": "coupleEnterCodeFirst"
   },
-  "coupleFirebaseUnavailable": "Can't reach the server right now, maybe a network hiccup. Please try again in a few minutes.",
+  "coupleFirebaseUnavailable": "Can't reach the server right now. It might be a network hiccup, so try again in a few minutes.",
   "@coupleFirebaseUnavailable": {
     "description": "coupleFirebaseUnavailable"
   },
@@ -1255,7 +1255,7 @@
   "@photoFileNotFoundStorage": {
     "description": "photoFileNotFoundStorage"
   },
-  "photoFirebaseUnavailable": "Can't reach the server right now, maybe a network hiccup. Please try again in a few minutes.",
+  "photoFirebaseUnavailable": "Can't reach the server right now. It might be a network hiccup, so try again in a few minutes.",
   "@photoFirebaseUnavailable": {
     "description": "photoFirebaseUnavailable"
   },
@@ -1263,7 +1263,7 @@
   "@photoNotFoundToPost": {
     "description": "photoNotFoundToPost"
   },
-  "photoStorageUnauthorized": "The server won't allow this action on the photo.",
+  "photoStorageUnauthorized": "You can't do that with this photo right now. Try signing out and back in.",
   "@photoStorageUnauthorized": {
     "description": "photoStorageUnauthorized"
   },
@@ -3218,11 +3218,11 @@
   "@sleepLoadFailed": {
     "description": "Sleep: partner nights failed to load"
   },
-  "sleepHowBody1": "The app counts the longest stretch your phone sits untouched overnight (6 pm to 2 pm, 3 to 16 hours) as sleep. A stretch that ends before 1 am, like charging in the evening, only counts when there is nothing later.",
+  "sleepHowBody1": "The app counts the longest stretch your phone sits untouched overnight as sleep, between 6 pm and 2 pm the next day, lasting 3 to 16 hours. A stretch that ends before 1 am, like charging in the evening, only counts when there's nothing later that night.",
   "@sleepHowBody1": {
     "description": "Sleep explainer paragraph (Android)"
   },
-  "sleepHowBody1Ios": "The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm. A nap that ends before 1 am only counts when there is nothing later that night.",
+  "sleepHowBody1Ios": "The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm the next day. A nap that ends before 1 am only counts when there's nothing later that night.",
   "@sleepHowBody1Ios": {
     "description": "Sleep explainer paragraph (iOS)"
   },

@@ -664,7 +664,7 @@ const List<QuestionTemplate> questionTemplates = <QuestionTemplate>[
   // mood_partner: the mood is the OTHER phone's partner, but the sentence lands
   // on the shared marker and BOTH read it — so never "người ấy"/"your partner"
   // (the one who set the mood would read about themselves). "Một người trong
-  // chúng mình" reads right from either side.
+  // chúng mình" / "có người" read right from either side.
   QuestionTemplate(
     group: kTplGroupMoodPartner,
     topic: 'ease',
@@ -676,21 +676,21 @@ const List<QuestionTemplate> questionTemplates = <QuestionTemplate>[
     group: kTplGroupMoodPartner,
     topic: 'ease',
     variant: 2,
-    vi: 'Một người trong chúng mình đang thấy $kTplMood. Những lúc như vậy, bạn muốn được nghe câu gì nhất?',
+    vi: 'Hôm nay có người đang thấy $kTplMood đó. Những lúc như vậy, bạn muốn được nghe câu gì nhất?',
     en: 'One of us feels $kTplMood today. When you feel that way, what do you most want to hear?',
   ),
   QuestionTemplate(
     group: kTplGroupMoodPartner,
     topic: 'understand',
     variant: 1,
-    vi: 'Hôm nay một người trong chúng mình thấy $kTplMood. Những ngày như vậy, bạn thường cần gì nhất?',
-    en: 'One of us feels $kTplMood today. On days like that, what do you need most?',
+    vi: 'Hôm nay một người trong chúng mình thấy $kTplMood. Những ngày như vậy, điều gì làm bạn thấy dễ chịu nhất?',
+    en: 'One of us feels $kTplMood today. On days like that, what makes you feel most at ease?',
   ),
   QuestionTemplate(
     group: kTplGroupMoodPartner,
     topic: 'accompany',
     variant: 1,
-    vi: 'Hôm nay có một người trong chúng mình đang thấy $kTplMood. Bạn muốn chúng mình ở bên nhau theo cách nào?',
+    vi: 'Hôm nay có người đang thấy $kTplMood đó. Bạn muốn chúng mình ở bên nhau theo cách nào?',
     en: 'One of us is feeling $kTplMood today. How would you like us to spend time together?',
   ),
   QuestionTemplate(

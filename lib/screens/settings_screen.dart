@@ -1104,7 +1104,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 return;
               }
 
-              if (result == 'session-gone') {
+              // A second `requires-recent-login` means the server still
+              // rejects the session: never show that sentinel as text.
+              if (result == 'session-gone' ||
+                  result == 'requires-recent-login') {
                 // No local session left to re-auth — send them to sign in again.
                 Navigator.of(ctx).pop();
                 ScaffoldMessenger.of(context)

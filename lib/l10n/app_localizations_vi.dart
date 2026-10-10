@@ -1669,7 +1669,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get authUserDisabled =>
-      'Tài khoản này đang bị khoá nên chưa đăng nhập được.';
+      'Tài khoản này đã bị khoá nên không đăng nhập được.';
 
   @override
   String get authWeakPassword =>
@@ -1894,7 +1894,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get photoStorageUnauthorized =>
-      'Máy chủ đang từ chối thao tác với ảnh này.';
+      'Chưa làm được việc này với ảnh. Bạn thử đăng xuất rồi đăng nhập lại nhé.';
 
   @override
   String get photoSyncGeneric => 'Chưa đồng bộ được ảnh. Bạn thử lại sau nhé.';
@@ -3485,11 +3485,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sleepHowBody1 =>
-      'App coi khoảng điện thoại nằm yên lâu nhất trong đêm (từ 18h đến 14h hôm sau, dài 3 đến 16 tiếng) là giấc ngủ. Khoảng nào xong trước 1 giờ sáng, như lúc để sạc buổi tối, chỉ được tính khi không còn khoảng nào khác.';
+      'App coi khoảng điện thoại nằm yên lâu nhất trong đêm là giấc ngủ, tính từ 18h tới 14h hôm sau, dài 3 đến 16 tiếng. Khoảng kết thúc trước 1 giờ sáng, như lúc cắm sạc buổi tối, chỉ được tính khi đêm đó không có khoảng nào muộn hơn.';
 
   @override
   String get sleepHowBody1Ios =>
-      'App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h đến 14h hôm sau. Giấc chợp mắt xong trước 1 giờ sáng chỉ được tính khi cả đêm không có giấc nào khác.';
+      'App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h tới 14h hôm sau. Giấc chợp mắt kết thúc trước 1 giờ sáng chỉ được tính khi đêm đó không có giấc nào muộn hơn.';
 
   @override
   String get sleepHowBody2 =>

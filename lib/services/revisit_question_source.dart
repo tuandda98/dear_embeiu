@@ -220,7 +220,9 @@ List<RevisitTarget> revisitTargetsFor(DateTime today) {
   return <RevisitTarget>[
     RevisitTarget(
       bucket: revisitBucketYear,
-      date: base.subtract(const Duration(days: 365)),
+      // Calendar year, not 365 days: across a leap year the two differ by a
+      // day and "ngày này năm ngoái" would quote the wrong day.
+      date: monthsAgo(base, 12),
       toleranceDays: 2,
     ),
     RevisitTarget(

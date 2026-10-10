@@ -405,7 +405,7 @@ class AuthService {
       // CF returns success for unknown email (anti-enumeration) so we only
       // surface real errors (network failure, Resend down, etc.).
       throw AuthException(
-        _mapCallableError(e, AppL10n.strings.forgotPasswordNetworkError),
+        mapCallableError(e, AppL10n.strings.forgotPasswordNetworkError),
       );
     }
   }
@@ -419,7 +419,7 @@ class AuthService {
       await _sendCustomVerificationEmail();
     } on FirebaseFunctionsException catch (e) {
       throw AuthException(
-        _mapCallableError(e, AppL10n.strings.verifyEmailResendError),
+        mapCallableError(e, AppL10n.strings.verifyEmailResendError),
       );
     } on FirebaseAuthException catch (e) {
       throw AuthException(_mapFirebaseAuthError(e));
@@ -546,7 +546,7 @@ class AuthService {
         throw AuthException('requires-recent-login');
       }
       throw AuthException(
-        _mapCallableError(e, AppL10n.strings.deleteAccountFailed),
+        mapCallableError(e, AppL10n.strings.deleteAccountFailed),
       );
     }
 
@@ -723,12 +723,20 @@ class AuthService {
   /// request), so that is shown as-is. Anything the SDK makes up itself — offline
   /// ("UNAVAILABLE" on Android, `unknown` + an OS sentence on iOS), a timeout, or a
   /// crash that only says "INTERNAL" — gets local copy instead.
-  String _mapCallableError(FirebaseFunctionsException exception, String fallback) {
+  @visibleForTesting
+  static String mapCallableError(
+    FirebaseFunctionsException exception,
+    String fallback,
+  ) {
     switch (exception.code) {
       case 'unavailable':
       case 'deadline-exceeded':
       case 'unknown':
         return AppL10n.strings.authNetworkError;
+      // The framework rejects a stale token itself with a bare English
+      // "Unauthenticated"; ours only use this code for "sign in again".
+      case 'unauthenticated':
+        return AppL10n.strings.authSessionNotReady;
     }
     final message = (exception.message ?? '').trim();
     // Bare status names ("INTERNAL", "NOT FOUND") come from the SDK, not from us.

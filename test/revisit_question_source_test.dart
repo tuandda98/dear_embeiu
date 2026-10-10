@@ -192,6 +192,20 @@ void main() {
       );
     });
 
+    test('mốc năm là cùng ngày năm ngoái, kể cả qua năm nhuận', () {
+      final pick = pickRevisitDate(
+        today: DateTime(2028, 12, 24),
+        availableDateKeys: <String>['2027-12-24', '2027-12-25'],
+        seedKey: 'couple-1|2028-12-24',
+      );
+      expect(pick!.dateKey, '2027-12-24');
+      expect(pick.exact, isTrue);
+      expect(
+        revisitTargetsFor(DateTime(2028, 2, 29)).first.date,
+        DateTime.utc(2027, 2, 28),
+      );
+    });
+
     test('ngày khớp đúng luôn thắng ngày lệch, với mọi seed', () {
       // 365 ngày trước 2026-09-05 là 2025-09-05.
       for (var i = 0; i < 20; i++) {
