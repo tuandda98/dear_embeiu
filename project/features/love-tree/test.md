@@ -183,3 +183,45 @@ Probe nháp ngoài repo, dùng font Quicksand thật: layout 320/360/375/390/412
 10. Đủ 6 sao, iOS.
 
 - [2026-10-11] [Dev → Tester] Đã vá #13 (sheet giữ icon sáng), #14 (quầng màu trời quanh nhãn che nét viền), #15 + #16 (dòng trạng thái thành 1 Text tự xuống dòng: không cắt tên, không mất "· chưa", trình đọc đọc 1 câu), #18 ("còn N…" xuống dưới tên), #19 (đồng hồ trời không chạy khi đã cuộn qua hoặc khi bật Reduce Motion). Không làm #17 (lệch dưới nửa giây lúc pop). Probe của Tester chạy lại: S2 "Bạn · chưa" = 1 node/người · S3 sheet → icon sáng · chữ 150%/200% vi/en 360/390dp: 0 lỗi tràn · bật RM ở đỉnh → màn hình đứng yên. analyze 0 · test 216/216.
+
+## [2026-10-11] [Tester] Nghiệm thu v3 "Chòm sao hôm nay" vòng 3 (code-level, bản vá e7627b8, kiểm trên HEAD 5d54d2a) — VERDICT: PASS
+
+Trong 6 lỗi Dev đã vá, 4 lỗi đạt hẳn (#13, #16, #18, #19), 2 lỗi vá một phần (#14, #15). Không có lỗi Chặn hay Nên sửa. Thêm 3 lỗi Nhỏ (#20–#22); #22 có từ v2 và chỉ hiện ở bản debug. #17 bỏ qua theo quyết định của Dev.
+`flutter analyze`: No issues found · `flutter test`: 216/216 · `test/today_constellation_test.dart`: 22/22. Probe trên bản export HEAD, font Quicksand thật, 320–412dp × chữ 100/130/150/200%, tên 8/23/31 ký tự, vi/en; thanh trạng thái Android + iOS, Semantics, đồng hồ trời, render PNG 3x có/không quầng.
+
+### Kiểm lỗi vòng 2
+| # | Kết luận | Bằng chứng |
+|---|---|---|
+| 13 | Đã vá | Đỉnh Cây: icon sáng khi mở bộ chọn tâm trạng, MomentSheet, hộp thoại (cả iOS). Đẩy trang: 16ms đã tối; pop về: sáng; cuộn qua trời rồi mở sheet: tối; đóng Cây: tối. Còn hở: #20. |
+| 14 | Vá một phần | Quầng mờ chỉ làm nét viền dịu đi (còn 42–49% độ sáng sát nét chữ); ở cỡ thật nét vẫn chạy qua "g" và "T", để lại vệt xám trong lòng chữ "g". |
+| 15 | Vá một phần | 90 cấu hình không tràn. Nhưng ở chữ 200% cột chữ chỉ còn 34–82dp → tiêu đề vỡ từng chữ cái, hàng cao tới 2.051dp ở 320dp. |
+| 16 | Đã vá | Mỗi người đúng 1 node Semantics ("Bạn · chưa", "<tên> ✓"). |
+| 18 | Đã vá | Dòng phụ: "còn N…" dưới tên ở mọi cấu hình, hết tràn. Dòng chính: #21. |
+| 19 | Đã vá | Tắt RM khi đã cuộn qua trời: trời đứng yên, 0 ticker; bật RM ở đỉnh: `pumpAndSettle` dừng được; bị trang khác che: dừng. |
+
+### Hồi quy
+- Dòng trạng thái nhiều dòng: thẻ không vỡ ở chữ 100–130% từ 360dp; nút "Làm ngay" căn giữa theo cột chữ. Chấm màu lệch tâm dòng đầu 1dp (100%) → 10dp (200%).
+- Quầng: ruột chữ không mờ (1–2/255); quanh chữ chênh ≤ 6/255; hơi tối quanh quầng trăng (16–22/255) và phần tô hồng khi 6/6 (26–31/255) — ở cỡ thật không thấy bẩn.
+- Đồng hồ trời chạy ngay khi mở Cây (RM tắt, không cuộn).
+
+### Lỗi mới
+| # | Mức | Chỗ | Kịch bản → hậu quả | Gợi ý sửa |
+|---|---|---|---|---|
+| 20 | Nhỏ (hiếm) | `love_tree_screen.dart:331-336`; `mood_card.dart:201-208`; `moment_sheet.dart:102-108` | Hệ quả phụ #13: máy nhỏ chữ lớn, bộ chọn tâm trạng nền trắng phủ lên thanh trạng thái mà icon vẫn sáng (360×640 chữ 150/200%, 375×667 chữ 200%). | `useSafeArea: true` cho `showMoodPicker` và `MomentSheet._present`. |
+| 21 | Nhỏ | `love_tree_screen.dart:1659-1706` | Dòng chính "Bông tiếp theo" vẫn đặt "còn N…" cạnh tên; bông kế là mốc chuỗi: en 200% tràn 7,6–48px, vi 200% tràn 15px ở 320dp. | Đưa "còn N…" xuống dưới tên như dòng phụ. |
+| 22 | Nhỏ (debug, có từ v2) | `love_tree_screen.dart:1031-1034`, `:1079` | Back khỏi Cây trước khi dấu "chạm vào bông" hiện: `dispose()` tạo `_fade` (late final) trên element đã gỡ → assert, `dispose()` của Cây không chạy, icon thanh trạng thái còn sáng trên Home. | Tạo `_fade` trong `initState`. |
+
+### Ngoài phạm vi
+- Bộ chọn tâm trạng tràn đáy 4,6px (chữ 150%) / 75px (chữ 200%) ở 360×640 (`mood_card.dart:544`), mở từ Home cũng bị.
+- Tiếng Anh không chia số ít: "1 memories", "1 photos to go", "1 streak days to go", "1 days to go".
+
+### [CẦN TEST runtime]
+1. Máy thật, tim đủ 6/6, tiếng Việt: nét viền qua chữ "Tâm trạng" (#14).
+2. Android màn nhỏ, chữ 150–200%: ở đỉnh Cây bấm "Chia sẻ ngay", giờ/pin đọc được không (#20); MomentSheet có ảnh.
+3. Android 14 chữ 200%, iOS cỡ chữ trợ năng: "Việc nhỏ hôm nay" (#15), "Bông tiếp theo" khi bông kế là mốc chuỗi (#21).
+4. TalkBack/VoiceOver: "Bạn · chưa" đọc liền một câu (#16).
+5. Bật/tắt Reduce Motion khi đang ở Cây (#19).
+6. Bản debug: lần đầu vào Cây khi đã có hoa, back ngay (#22).
+7. Giữ từ vòng 2: qua 0:00; performance overlay; hai máy thật; đủ 6 sao trên iOS.
+
+- [2026-10-11] [Dev] Đã vá cả 3 lỗi mới + 2 lỗi vá dở + 2 mục ngoài phạm vi: #20 (`useSafeArea` cho 2 sheet), #21 ("còn N…" xuống dưới tên ở dòng chính), #22 (`_fade` tạo trong `initState`), #14 (viền chữ sắc 8 hướng màu trời thay quầng mờ), #15 (chữ ≥150%: nút "Làm ngay" xuống dưới phần chữ), bộ chọn tâm trạng cuộn được khi không đủ chỗ, tiếng Anh chia số ít cho 5 key (`1 day to go`, `1 memory`…). Probe vòng 3 của Tester chạy lại: a22 không lỗi + icon tối; a13d bộ chọn dừng ở mép thanh trạng thái, 0 lỗi mọi cấu hình; a15 chữ 200% hết vỡ giữa từ, hàng cao 130–202dp; a21 không tràn. analyze 0 · test 219/219.

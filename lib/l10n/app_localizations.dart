@@ -4343,7 +4343,7 @@ abstract class AppLocalizations {
   /// No description provided for @loveTreeMilestoneDays.
   ///
   /// In en, this message translates to:
-  /// **'{count} days together'**
+  /// **'{count, plural, =1{1 day together} other{{count} days together}}'**
   String loveTreeMilestoneDays(int count);
 
   /// No description provided for @loveTreeMilestoneStreak.
@@ -4355,25 +4355,25 @@ abstract class AppLocalizations {
   /// No description provided for @loveTreeMilestonePhotos.
   ///
   /// In en, this message translates to:
-  /// **'{count} memories'**
+  /// **'{count, plural, =1{1 memory} other{{count} memories}}'**
   String loveTreeMilestonePhotos(int count);
 
   /// No description provided for @loveTreeMilestoneDaysLeft.
   ///
   /// In en, this message translates to:
-  /// **'{count} days to go'**
+  /// **'{count, plural, =1{1 day to go} other{{count} days to go}}'**
   String loveTreeMilestoneDaysLeft(int count);
 
   /// No description provided for @loveTreeMilestoneStreakLeft.
   ///
   /// In en, this message translates to:
-  /// **'{count} streak days to go'**
+  /// **'{count, plural, =1{1 streak day to go} other{{count} streak days to go}}'**
   String loveTreeMilestoneStreakLeft(int count);
 
   /// No description provided for @loveTreeMilestonePhotosLeft.
   ///
   /// In en, this message translates to:
-  /// **'{count} photos to go'**
+  /// **'{count, plural, =1{1 photo to go} other{{count} photos to go}}'**
   String loveTreeMilestonePhotosLeft(int count);
 
   /// No description provided for @loveTreeWaitingTitle.

@@ -1027,11 +1027,10 @@ class _TapCoachMarkState extends State<_TapCoachMark>
   /// Drives the ripple + tap-dot pulse (only when motion is on).
   AnimationController? _pulse;
 
-  /// Fade in/out of the whole coach cluster.
-  late final AnimationController _fade = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 280),
-  );
+  /// Fade in/out of the whole coach cluster. Made in initState: created
+  /// lazily in dispose() (screen left before the hint showed) it would look
+  /// up a deactivated element.
+  late final AnimationController _fade;
 
   bool _visible = false;
   bool _dismissed = false;
@@ -1041,6 +1040,10 @@ class _TapCoachMarkState extends State<_TapCoachMark>
   @override
   void initState() {
     super.initState();
+    _fade = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
     if (!widget.reduceMotion) {
       _pulse = AnimationController(
         vsync: this,
@@ -1691,16 +1694,18 @@ class _NextFlowerCard extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
+                          // Under the name, not beside it (same as the rows
+                          // below): "còn 1 ngày chuỗi" is long.
+                          const SizedBox(height: 2),
+                          Text(
+                            _remainingLabel(l10n, m.kind, remaining),
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _remainingLabel(l10n, m.kind, remaining),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -1872,85 +1877,104 @@ class _TodayTasksCard extends StatelessWidget {
       ],
     );
 
+    // Big text (≥150%): the button goes under the text, or the text column
+    // shrinks to a few letters a line.
+    final stacked = MediaQuery.textScalerOf(context).scale(10) >= 15;
     final rows = <Widget>[];
     for (final task in CareTask.values) {
       final mine = sky.lit(true, task);
+      final icon = IconBadge(switch (task) {
+        CareTask.question => IconsaxPlusLinear.message_question,
+        CareTask.mood => IconsaxPlusLinear.emoji_happy,
+        CareTask.message => IconsaxPlusLinear.messages_2,
+      });
+      final texts = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            switch (task) {
+              CareTask.question => l10n.loveTreeTaskQuestion,
+              CareTask.mood => l10n.loveTreeTaskMood,
+              CareTask.message => l10n.loveTreeTaskMessage,
+            },
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 10,
+            runSpacing: 4,
+            children: [
+              status(l10n.reactionYouLabel, mine, myColor),
+              status(partnerName, sky.lit(false, task), partnerColor),
+            ],
+          ),
+        ],
+      );
+      final Widget action = mine
+          ? Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_rounded,
+                size: 18,
+                color: AppColors.success,
+              ),
+            )
+          : SizedBox(
+              height: 44,
+              child: ElevatedButton(
+                onPressed: () {
+                  HapticFeedback.selectionClick();
+                  onAct(task);
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(0, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  textStyle: const TextStyle(
+                    fontFamily: AppTheme.fontFamily,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                child: Text(l10n.loveTreeDoNow),
+              ),
+            );
       rows.add(
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              IconBadge(switch (task) {
-                CareTask.question => IconsaxPlusLinear.message_question,
-                CareTask.mood => IconsaxPlusLinear.emoji_happy,
-                CareTask.message => IconsaxPlusLinear.messages_2,
-              }),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: stacked
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      switch (task) {
-                        CareTask.question => l10n.loveTreeTaskQuestion,
-                        CareTask.mood => l10n.loveTreeTaskMood,
-                        CareTask.message => l10n.loveTreeTaskMessage,
-                      },
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 4,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        status(l10n.reactionYouLabel, mine, myColor),
-                        status(partnerName, sky.lit(false, task), partnerColor),
+                        icon,
+                        const SizedBox(width: 12),
+                        Expanded(child: texts),
                       ],
                     ),
+                    const SizedBox(height: 10),
+                    Align(alignment: Alignment.centerRight, child: action),
+                  ],
+                )
+              : Row(
+                  children: [
+                    icon,
+                    const SizedBox(width: 12),
+                    Expanded(child: texts),
+                    const SizedBox(width: 8),
+                    action,
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              if (mine)
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.14),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check_rounded,
-                    size: 18,
-                    color: AppColors.success,
-                  ),
-                )
-              else
-                SizedBox(
-                  height: 44,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      HapticFeedback.selectionClick();
-                      onAct(task);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(0, 44),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      textStyle: const TextStyle(
-                        fontFamily: AppTheme.fontFamily,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    child: Text(l10n.loveTreeDoNow),
-                  ),
-                ),
-            ],
-          ),
         ),
       );
     }

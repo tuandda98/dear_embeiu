@@ -201,6 +201,9 @@ void showMoodPicker(BuildContext context) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    // Tall on a small screen with big text: stop under the status bar
+    // (opened over the Love Tree's night sky the icons there are light).
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
     builder: (_) => ChangeNotifierProvider<MoodProvider>.value(
       value: provider,
@@ -541,80 +544,83 @@ class _MoodPickerSheetState extends State<_MoodPickerSheet> {
               color: AppColors.cardSurface,
               borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.textTertiary.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  l10n.moodSheetTitle,
-                  textAlign: TextAlign.center,
-                  style: AppTheme.displaySerif(
-                    size: 22,
-                    weight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 10,
-                  runSpacing: 12,
-                  children: [
-                    for (final o in kMoodOptions)
-                      _MoodChoice(
-                        option: o,
-                        label: moodLabel(l10n, o.key),
-                        selected: _selected == o.key,
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _selected = o.key);
-                        },
+            child: SingleChildScrollView(
+              // Small screen + big text: scroll instead of overflowing.
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.textTertiary.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                TextField(
-                  controller: _noteController,
-                  maxLength: kMoodNoteMaxLength,
-                  minLines: 1,
-                  maxLines: 3,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    hintText: l10n.moodNoteHint,
-                    counterText: '',
-                    filled: true,
-                    fillColor: AppColors.surfaceLight,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _selected == null ? null : _save,
-                    child: Text(l10n.moodSaveCta),
+                  const SizedBox(height: 18),
+                  Text(
+                    l10n.moodSheetTitle,
+                    textAlign: TextAlign.center,
+                    style: AppTheme.displaySerif(
+                      size: 22,
+                      weight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.2,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 18),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    runSpacing: 12,
+                    children: [
+                      for (final o in kMoodOptions)
+                        _MoodChoice(
+                          option: o,
+                          label: moodLabel(l10n, o.key),
+                          selected: _selected == o.key,
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _selected = o.key);
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  TextField(
+                    controller: _noteController,
+                    maxLength: kMoodNoteMaxLength,
+                    minLines: 1,
+                    maxLines: 3,
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(
+                      hintText: l10n.moodNoteHint,
+                      counterText: '',
+                      filled: true,
+                      fillColor: AppColors.surfaceLight,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _selected == null ? null : _save,
+                      child: Text(l10n.moodSaveCta),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

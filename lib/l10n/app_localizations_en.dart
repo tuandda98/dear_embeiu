@@ -2513,7 +2513,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String loveTreeMilestoneDays(int count) {
-    return '$count days together';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days together',
+      one: '1 day together',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2523,22 +2529,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String loveTreeMilestonePhotos(int count) {
-    return '$count memories';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count memories',
+      one: '1 memory',
+    );
+    return '$_temp0';
   }
 
   @override
   String loveTreeMilestoneDaysLeft(int count) {
-    return '$count days to go';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days to go',
+      one: '1 day to go',
+    );
+    return '$_temp0';
   }
 
   @override
   String loveTreeMilestoneStreakLeft(int count) {
-    return '$count streak days to go';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count streak days to go',
+      one: '1 streak day to go',
+    );
+    return '$_temp0';
   }
 
   @override
   String loveTreeMilestonePhotosLeft(int count) {
-    return '$count photos to go';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos to go',
+      one: '1 photo to go',
+    );
+    return '$_temp0';
   }
 
   @override

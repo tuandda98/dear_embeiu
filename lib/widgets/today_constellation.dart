@@ -274,6 +274,20 @@ String _starLabel(AppLocalizations l10n, CareTask t) => switch (t) {
   CareTask.message => l10n.loveTreeStarMessage,
 };
 
+/// A crisp outline in the sky's colour around a star label: it cuts the
+/// heart's line where it runs under the letters ("Tâm trạng" sits on it).
+const List<Shadow> _kLabelOutline = [
+  Shadow(color: _kLabelSky, offset: Offset(1.4, 0), blurRadius: 0.6),
+  Shadow(color: _kLabelSky, offset: Offset(-1.4, 0), blurRadius: 0.6),
+  Shadow(color: _kLabelSky, offset: Offset(0, 1.4), blurRadius: 0.6),
+  Shadow(color: _kLabelSky, offset: Offset(0, -1.4), blurRadius: 0.6),
+  Shadow(color: _kLabelSky, offset: Offset(1, 1), blurRadius: 0.6),
+  Shadow(color: _kLabelSky, offset: Offset(-1, 1), blurRadius: 0.6),
+  Shadow(color: _kLabelSky, offset: Offset(1, -1), blurRadius: 0.6),
+  Shadow(color: _kLabelSky, offset: Offset(-1, -1), blurRadius: 0.6),
+];
+const Color _kLabelSky = Color(0xFF2E2A52);
+
 /// The night-sky block of the Love Tree: the 6-star heart, its title + count,
 /// a one-line explanation, the halves legend and a detail panel for the tapped
 /// star (with "do it now" for my own unlit stars, "send some care" for theirs).
@@ -381,12 +395,7 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
             fontSize: 12,
             fontWeight: FontWeight.w700,
             height: 16 / 12,
-            // A halo in the sky's colour cuts the heart's outline where it
-            // runs under the letters ("Tâm trạng" sits on it).
-            shadows: const [
-              Shadow(color: Color(0xFF2E2A52), blurRadius: 2),
-              Shadow(color: Color(0xFF2E2A52), blurRadius: 5),
-            ],
+            shadows: _kLabelOutline,
           ),
         ),
       );

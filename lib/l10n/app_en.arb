@@ -1812,7 +1812,7 @@
     }
   },
   "loveTreeNewBloomBannerOne": "Your tree just bloomed a new flower 🌸",
-  "loveTreeMilestoneDays": "{count} days together",
+  "loveTreeMilestoneDays": "{count, plural, =1{1 day together} other{{count} days together}}",
   "@loveTreeMilestoneDays": {
     "placeholders": {
       "count": {
@@ -1828,7 +1828,7 @@
       }
     }
   },
-  "loveTreeMilestonePhotos": "{count} memories",
+  "loveTreeMilestonePhotos": "{count, plural, =1{1 memory} other{{count} memories}}",
   "@loveTreeMilestonePhotos": {
     "placeholders": {
       "count": {
@@ -1836,7 +1836,7 @@
       }
     }
   },
-  "loveTreeMilestoneDaysLeft": "{count} days to go",
+  "loveTreeMilestoneDaysLeft": "{count, plural, =1{1 day to go} other{{count} days to go}}",
   "@loveTreeMilestoneDaysLeft": {
     "placeholders": {
       "count": {
@@ -1844,7 +1844,7 @@
       }
     }
   },
-  "loveTreeMilestoneStreakLeft": "{count} streak days to go",
+  "loveTreeMilestoneStreakLeft": "{count, plural, =1{1 streak day to go} other{{count} streak days to go}}",
   "@loveTreeMilestoneStreakLeft": {
     "placeholders": {
       "count": {
@@ -1852,7 +1852,7 @@
       }
     }
   },
-  "loveTreeMilestonePhotosLeft": "{count} photos to go",
+  "loveTreeMilestonePhotosLeft": "{count, plural, =1{1 photo to go} other{{count} photos to go}}",
   "@loveTreeMilestonePhotosLeft": {
     "placeholders": {
       "count": {
