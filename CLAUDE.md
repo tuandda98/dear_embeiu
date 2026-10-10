@@ -6,7 +6,7 @@
 >
 > 📚 **Tài liệu chi tiết (tách khỏi CLAUDE.md cho gọn — ĐỌC khi làm việc liên quan, file dưới KHÔNG tự nạp vào phiên):** Design system (token/màu/layout từng screen) → [`project/design-system.md`](project/design-system.md) · Mô hình 4 vai + orchestrator + catalog rủi ro Tester → [`project/roles.md`](project/roles.md) · Product strategy (đối thủ/monetization) → [`project/strategy.md`](project/strategy.md) · **Kiến trúc chi tiết** (services/providers/models/screens/nav gotchas) → [`project/architecture.md`](project/architecture.md) · **Firebase chi tiết** (Firestore rules/CF/Dev-Prod/backward-compat) → [`project/firebase.md`](project/firebase.md) · **Build gotchas** (iOS IPA/simulator/hooks) → [`project/build-guide.md`](project/build-guide.md). Các mục 2/5/8/9/10/12/13 dưới đây chỉ là tóm tắt — cần chi tiết thì mở đúng file.
 
-## 0. Operating rules (ĐỌC TRƯỚC — 6 luật bất biến)
+## 0. Operating rules (ĐỌC TRƯỚC — 7 luật bất biến)
 
 > Chi tiết & lý do ở [Quy ước làm việc](#quy-ước-làm-việc-với-claude) (cuối file) + `project/roles.md`. Đây là bản rút gọn front-load để bám sát mọi phiên.
 
@@ -16,6 +16,11 @@
 4. **Đĩa là nguồn sự thật:** verify bằng đọc file + `flutter analyze` (qua toolchain đúng của máy — xem #2), KHÔNG tin báo cáo suông. Mâu thuẫn → đĩa thắng. **Đụng `firestore.rules`/`storage.rules`/`functions/index.js` → chạy `scripts/test-firebase-rules.sh` trước khi coi là xong (có Stop hook tự enforce — xem §13).**
 5. **Tự cập nhật context:** thay đổi gì xong → tự cập nhật `project/features/<ten>/` + `project/ROADMAP.md` (+ file này nếu đụng toàn dự án), không cần nhắc. **Git commit/push: ĐƯỢC phép tự làm, không cần hỏi** (user gỡ luật 2026-08-22 — "giờ được push thoải mái"). Vẫn theo quy ước: branch `release/<x.y.z>` cho release, KHÔNG force-push, KHÔNG push thẳng `main`. **Deploy Firebase:** ĐƯỢC phép chạy không cần hỏi khi task cần (rules/storage/functions); mỗi deploy TỰ GHI VẾT để restore vào `project/.firebase-deploy-log/` (hook `trace-firebase-deploy.sh`: snapshot rules + git HEAD + thời điểm; cách restore ở đầu `HISTORY.md`).
 6. **Slash command nhanh** (`.claude/commands/`): **`/lead`** = 1 đầu mối mặc định (tự chọn lăng kính theo câu, bật pipeline khi xây feature) · `/po` `/designer` `/dev` `/tester` `/feature-new` `/roadmap` `/done`. **Mode mặc định = Mode 1 (PO Orchestrate):** xây feature thì user chỉ nói với Lead/PO, PO tự spawn subagent `.claude/agents/` (`dev`/`designer`/`tester`/`po`) — tester read-only (không sửa được code). Việc nhỏ / hỏi nhanh → nói thẳng, khỏi nghi thức.
+7. **Văn phong viết** (user cài 2026-10-10 — áp cho MỌI văn bản: trả lời user, tài liệu `project/`, release notes, copy trong app):
+   - Tiếng Việt tự nhiên, gần đời sống; không dịch từng chữ từ tiếng Anh. **Cấm cụm sáo rỗng kiểu AI:** "Trong kỷ nguyên số", "Hành trình đầy cảm xúc", "Đột phá", "Giải pháp toàn diện", "Chúng ta hãy cùng khám phá", "Có thể nói rằng".
+   - Câu ngắn và dài đan xen; tránh câu nhồi nhiều mệnh đề. Mỗi đoạn 1–2 ý, tối đa 3–4 dòng.
+   - Ưu tiên câu chủ động. **Show, don't tell:** đưa ví dụ, con số, tình huống thật thay cho nói chung chung (vd thay "tăng trải nghiệm" bằng "mở app là thấy đêm qua người ấy ngủ 6g 50p").
+   - Copy trong app vẫn giữ luật xưng hô "chúng mình" (không "hai đứa").
 
 ---
 
