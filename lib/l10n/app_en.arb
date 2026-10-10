@@ -1819,7 +1819,6 @@
     }
   },
   "loveTreeSeedSubtitle": "Your journey starts right here 🌱",
-  "loveTreeBloomSubtitle": "Your tree is in full bloom ✨",
   "loveTreeNewBloomBanner": "Your tree just bloomed {count} new flowers 🌸",
   "@loveTreeNewBloomBanner": {
     "placeholders": {
@@ -1829,14 +1828,6 @@
     }
   },
   "loveTreeNewBloomBannerOne": "Your tree just bloomed a new flower 🌸",
-  "loveTreeNurtureTitle": "Grow it together",
-  "loveTreeNurtureStreakTitle": "Keep your daily streak",
-  "loveTreeNurtureStreakBody": "Answer daily so your streak lives on",
-  "loveTreeNurturePhotoTitle": "Add a memory",
-  "loveTreeNurturePhotoBody": "Every photo is a new flower",
-  "loveTreeNurtureTalkTitle": "Talk together today",
-  "loveTreeNurtureTalkBody": "Small moments grow the tree",
-  "loveTreeMilestonesTitle": "Milestones",
   "loveTreeMilestoneDays": "{count} days together",
   "@loveTreeMilestoneDays": {
     "placeholders": {
@@ -1861,7 +1852,6 @@
       }
     }
   },
-  "loveTreeMilestoneBloomed": "bloomed",
   "loveTreeMilestoneDaysLeft": "{count} days to go",
   "@loveTreeMilestoneDaysLeft": {
     "placeholders": {
@@ -1891,7 +1881,6 @@
   "loveTreeWaitingCta": "Invite partner",
   "loveTreeNoCoupleBody": "Connect with your partner to start growing 🌱",
   "loveTreeCoachTooltip": "Tap to see this moment 🌸",
-  "loveTreeTapHint": "Tap a flower to relive a memory",
   "loveTreeMomentDaysTitle": "{count} days together",
   "@loveTreeMomentDaysTitle": {
     "placeholders": {
@@ -3307,6 +3296,262 @@
     "description": "Sleep: spelled-out duration with no leftover minutes",
     "placeholders": {
       "h": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeSkyTitle": "Today's constellation",
+  "@loveTreeSkyTitle": {
+    "description": "Love tree v3: title above the 6-star heart"
+  },
+  "loveTreeSkyExplain": "Every little thing we do for each other today lights a star. When both halves glow, the heart is complete.",
+  "@loveTreeSkyExplain": {
+    "description": "Love tree v3: what the constellation means"
+  },
+  "loveTreeLeftHalf": "Left half: You",
+  "@loveTreeLeftHalf": {
+    "description": "Love tree v3 legend"
+  },
+  "loveTreeRightHalf": "Right half: {name}",
+  "@loveTreeRightHalf": {
+    "description": "Love tree v3 legend",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarQuestion": "Question",
+  "@loveTreeStarQuestion": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeStarMood": "Mood",
+  "@loveTreeStarMood": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeStarMessage": "Message",
+  "@loveTreeStarMessage": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeTapStar": "Tap a star to see more",
+  "@loveTreeTapStar": {
+    "description": "Love tree v3: hint under the constellation"
+  },
+  "loveTreeHeartFull": "Today's heart is complete",
+  "@loveTreeHeartFull": {
+    "description": "Love tree v3: all six stars lit"
+  },
+  "loveTreeTaskQuestion": "Answer today's question",
+  "@loveTreeTaskQuestion": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeTaskMood": "Share your mood",
+  "@loveTreeTaskMood": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeTaskMessage": "Send each other a message",
+  "@loveTreeTaskMessage": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeStarAnsweredAt": "{name} answered at {time}",
+  "@loveTreeStarAnsweredAt": {
+    "description": "Love tree v3 star detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarMoodAt": "{mood} · {time}",
+  "@loveTreeStarMoodAt": {
+    "description": "Love tree v3 star detail: mood picked + time",
+    "placeholders": {
+      "mood": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarMessagedAt": "{name} messaged at {time}",
+  "@loveTreeStarMessagedAt": {
+    "description": "Love tree v3 star detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarDone": "Done for today",
+  "@loveTreeStarDone": {
+    "description": "Love tree v3 star detail when the time is unknown"
+  },
+  "loveTreeStarNoAnswer": "Today's question isn't answered yet",
+  "@loveTreeStarNoAnswer": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeStarNoMood": "No mood shared yet today",
+  "@loveTreeStarNoMood": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeStarNoMessage": "No message yet today",
+  "@loveTreeStarNoMessage": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeActAnswer": "Answer now",
+  "@loveTreeActAnswer": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeActMood": "Share now",
+  "@loveTreeActMood": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeActMessage": "Message now",
+  "@loveTreeActMessage": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeNudge": "Send some care",
+  "@loveTreeNudge": {
+    "description": "Love tree v3: partner's unlit star opens the care message screen"
+  },
+  "loveTreeClosePanel": "Close",
+  "@loveTreeClosePanel": {
+    "description": "Love tree v3: close the star detail (screen reader)"
+  },
+  "loveTreeStarSemantics": "{name} · {task} · {state}",
+  "@loveTreeStarSemantics": {
+    "description": "Love tree v3: star button (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "task": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarLit": "lit",
+  "@loveTreeStarLit": {
+    "description": "Love tree v3: star state (screen reader)"
+  },
+  "loveTreeStarUnlit": "not lit yet",
+  "@loveTreeStarUnlit": {
+    "description": "Love tree v3: star state (screen reader)"
+  },
+  "loveTreeFlowersExplain": "Each flower is one of our milestones. Tap one to look back.",
+  "@loveTreeFlowersExplain": {
+    "description": "Love tree v3: under the flower count"
+  },
+  "loveTreeKindDays": "Days together",
+  "@loveTreeKindDays": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeKindStreak": "Question streak",
+  "@loveTreeKindStreak": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeKindPhotos": "Photo memories",
+  "@loveTreeKindPhotos": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeNextFlower": "NEXT FLOWER",
+  "@loveTreeNextFlower": {
+    "description": "Love tree v3: next milestone card caption"
+  },
+  "loveTreeNextProgressDays": "{current}/{target} days together",
+  "@loveTreeNextProgressDays": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeNextProgressStreak": "{current}/{target} streak days",
+  "@loveTreeNextProgressStreak": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeNextProgressPhotos": "{current}/{target} photos",
+  "@loveTreeNextProgressPhotos": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeTodayTasks": "Little things today",
+  "@loveTreeTodayTasks": {
+    "description": "Love tree v3: section title"
+  },
+  "loveTreeTaskDone": "{name} ✓",
+  "@loveTreeTaskDone": {
+    "description": "Love tree v3: task done by that person",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeTaskPending": "{name} · not yet",
+  "@loveTreeTaskPending": {
+    "description": "Love tree v3: task not done yet by that person",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeDoNow": "Do it now",
+  "@loveTreeDoNow": {
+    "description": "Love tree v3: task row button"
+  },
+  "loveTreeBloomedTitle": "Bloomed milestones",
+  "@loveTreeBloomedTitle": {
+    "description": "Love tree v3: section title above the milestone chips"
+  },
+  "loveTreeShowLess": "Show less",
+  "@loveTreeShowLess": {
+    "description": "Love tree v3: collapse the milestone chips"
+  },
+  "homeConstellationPill": "{lit}/6 stars",
+  "@homeConstellationPill": {
+    "description": "Home: Love Tree entry pill next to the today section",
+    "placeholders": {
+      "lit": {
+        "type": "int"
+      }
+    }
+  },
+  "homeConstellationSemantics": "Today's constellation: {lit} of 6 stars. Opens the Love Tree",
+  "@homeConstellationSemantics": {
+    "description": "Home: Love Tree entry pill (screen reader)",
+    "placeholders": {
+      "lit": {
         "type": "int"
       }
     }

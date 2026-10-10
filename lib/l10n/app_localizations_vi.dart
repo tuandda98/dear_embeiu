@@ -2482,39 +2482,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loveTreeSeedSubtitle => 'Hai bạn vừa gieo hạt mầm đầu tiên 🌱';
 
   @override
-  String get loveTreeBloomSubtitle => 'Cây của hai bạn đang rực rỡ ✨';
-
-  @override
   String loveTreeNewBloomBanner(int count) {
     return 'Cây vừa nở $count bông mới 🌸';
   }
 
   @override
   String get loveTreeNewBloomBannerOne => 'Cây vừa nở một bông mới 🌸';
-
-  @override
-  String get loveTreeNurtureTitle => 'Cùng vun đắp';
-
-  @override
-  String get loveTreeNurtureStreakTitle => 'Giữ chuỗi mỗi ngày';
-
-  @override
-  String get loveTreeNurtureStreakBody => 'Trả lời câu hỏi để chuỗi không đứt';
-
-  @override
-  String get loveTreeNurturePhotoTitle => 'Thêm một kỷ niệm';
-
-  @override
-  String get loveTreeNurturePhotoBody => 'Mỗi tấm ảnh là một bông hoa mới';
-
-  @override
-  String get loveTreeNurtureTalkTitle => 'Cùng trò chuyện hôm nay';
-
-  @override
-  String get loveTreeNurtureTalkBody => 'Hỏi han nhau mỗi ngày cũng là vun cây';
-
-  @override
-  String get loveTreeMilestonesTitle => 'Cột mốc';
 
   @override
   String loveTreeMilestoneDays(int count) {
@@ -2530,9 +2503,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String loveTreeMilestonePhotos(int count) {
     return '$count ảnh kỷ niệm';
   }
-
-  @override
-  String get loveTreeMilestoneBloomed => 'đã nở';
 
   @override
   String loveTreeMilestoneDaysLeft(int count) {
@@ -2565,9 +2535,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get loveTreeCoachTooltip => 'Chạm để xem khoảnh khắc 🌸';
-
-  @override
-  String get loveTreeTapHint => 'Chạm vào từng bông để xem kỷ niệm';
 
   @override
   String loveTreeMomentDaysTitle(int count) {
@@ -3565,5 +3532,160 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String sleepHoursLong(int h) {
     return '$h giờ';
+  }
+
+  @override
+  String get loveTreeSkyTitle => 'Chòm sao hôm nay';
+
+  @override
+  String get loveTreeSkyExplain =>
+      'Mỗi việc nhỏ chúng mình làm cho nhau hôm nay thắp một ngôi sao. Đủ cả hai nửa, trái tim sáng trọn.';
+
+  @override
+  String get loveTreeLeftHalf => 'Nửa trái: Bạn';
+
+  @override
+  String loveTreeRightHalf(String name) {
+    return 'Nửa phải: $name';
+  }
+
+  @override
+  String get loveTreeStarQuestion => 'Câu hỏi';
+
+  @override
+  String get loveTreeStarMood => 'Tâm trạng';
+
+  @override
+  String get loveTreeStarMessage => 'Nhắn tin';
+
+  @override
+  String get loveTreeTapStar => 'Chạm vào một ngôi sao để xem chi tiết';
+
+  @override
+  String get loveTreeHeartFull => 'Trái tim hôm nay đã sáng trọn';
+
+  @override
+  String get loveTreeTaskQuestion => 'Trả lời câu hỏi hôm nay';
+
+  @override
+  String get loveTreeTaskMood => 'Chia sẻ tâm trạng';
+
+  @override
+  String get loveTreeTaskMessage => 'Nhắn cho nhau một câu';
+
+  @override
+  String loveTreeStarAnsweredAt(String name, String time) {
+    return '$name đã trả lời lúc $time';
+  }
+
+  @override
+  String loveTreeStarMoodAt(String mood, String time) {
+    return '$mood · $time';
+  }
+
+  @override
+  String loveTreeStarMessagedAt(String name, String time) {
+    return '$name đã nhắn lúc $time';
+  }
+
+  @override
+  String get loveTreeStarDone => 'Đã xong hôm nay';
+
+  @override
+  String get loveTreeStarNoAnswer => 'Chưa trả lời câu hỏi hôm nay';
+
+  @override
+  String get loveTreeStarNoMood => 'Chưa chia sẻ tâm trạng hôm nay';
+
+  @override
+  String get loveTreeStarNoMessage => 'Chưa nhắn gì hôm nay';
+
+  @override
+  String get loveTreeActAnswer => 'Trả lời ngay';
+
+  @override
+  String get loveTreeActMood => 'Chia sẻ ngay';
+
+  @override
+  String get loveTreeActMessage => 'Nhắn ngay';
+
+  @override
+  String get loveTreeNudge => 'Gửi lời quan tâm';
+
+  @override
+  String get loveTreeClosePanel => 'Đóng';
+
+  @override
+  String loveTreeStarSemantics(String name, String task, String state) {
+    return '$name · $task · $state';
+  }
+
+  @override
+  String get loveTreeStarLit => 'đã thắp';
+
+  @override
+  String get loveTreeStarUnlit => 'chưa thắp';
+
+  @override
+  String get loveTreeFlowersExplain =>
+      'Mỗi bông là một cột mốc của chúng mình. Chạm vào bông hoa để xem lại.';
+
+  @override
+  String get loveTreeKindDays => 'Ngày bên nhau';
+
+  @override
+  String get loveTreeKindStreak => 'Chuỗi câu hỏi';
+
+  @override
+  String get loveTreeKindPhotos => 'Kỷ niệm ảnh';
+
+  @override
+  String get loveTreeNextFlower => 'BÔNG TIẾP THEO';
+
+  @override
+  String loveTreeNextProgressDays(int current, int target) {
+    return '$current/$target ngày bên nhau';
+  }
+
+  @override
+  String loveTreeNextProgressStreak(int current, int target) {
+    return '$current/$target ngày chuỗi';
+  }
+
+  @override
+  String loveTreeNextProgressPhotos(int current, int target) {
+    return '$current/$target ảnh';
+  }
+
+  @override
+  String get loveTreeTodayTasks => 'Việc nhỏ hôm nay';
+
+  @override
+  String loveTreeTaskDone(String name) {
+    return '$name ✓';
+  }
+
+  @override
+  String loveTreeTaskPending(String name) {
+    return '$name · chưa';
+  }
+
+  @override
+  String get loveTreeDoNow => 'Làm ngay';
+
+  @override
+  String get loveTreeBloomedTitle => 'Cột mốc đã nở';
+
+  @override
+  String get loveTreeShowLess => 'Thu gọn';
+
+  @override
+  String homeConstellationPill(int lit) {
+    return '$lit/6 sao';
+  }
+
+  @override
+  String homeConstellationSemantics(int lit) {
+    return 'Chòm sao hôm nay: $lit trên 6 sao. Mở Cây Tình Yêu';
   }
 }

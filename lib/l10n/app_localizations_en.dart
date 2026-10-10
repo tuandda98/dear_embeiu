@@ -2498,9 +2498,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loveTreeSeedSubtitle => 'Your journey starts right here 🌱';
 
   @override
-  String get loveTreeBloomSubtitle => 'Your tree is in full bloom ✨';
-
-  @override
   String loveTreeNewBloomBanner(int count) {
     return 'Your tree just bloomed $count new flowers 🌸';
   }
@@ -2508,31 +2505,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get loveTreeNewBloomBannerOne =>
       'Your tree just bloomed a new flower 🌸';
-
-  @override
-  String get loveTreeNurtureTitle => 'Grow it together';
-
-  @override
-  String get loveTreeNurtureStreakTitle => 'Keep your daily streak';
-
-  @override
-  String get loveTreeNurtureStreakBody =>
-      'Answer daily so your streak lives on';
-
-  @override
-  String get loveTreeNurturePhotoTitle => 'Add a memory';
-
-  @override
-  String get loveTreeNurturePhotoBody => 'Every photo is a new flower';
-
-  @override
-  String get loveTreeNurtureTalkTitle => 'Talk together today';
-
-  @override
-  String get loveTreeNurtureTalkBody => 'Small moments grow the tree';
-
-  @override
-  String get loveTreeMilestonesTitle => 'Milestones';
 
   @override
   String loveTreeMilestoneDays(int count) {
@@ -2548,9 +2520,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String loveTreeMilestonePhotos(int count) {
     return '$count memories';
   }
-
-  @override
-  String get loveTreeMilestoneBloomed => 'bloomed';
 
   @override
   String loveTreeMilestoneDaysLeft(int count) {
@@ -2583,9 +2552,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loveTreeCoachTooltip => 'Tap to see this moment 🌸';
-
-  @override
-  String get loveTreeTapHint => 'Tap a flower to relive a memory';
 
   @override
   String loveTreeMomentDaysTitle(int count) {
@@ -3589,5 +3555,160 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String sleepHoursLong(int h) {
     return '$h hr';
+  }
+
+  @override
+  String get loveTreeSkyTitle => 'Today\'s constellation';
+
+  @override
+  String get loveTreeSkyExplain =>
+      'Every little thing we do for each other today lights a star. When both halves glow, the heart is complete.';
+
+  @override
+  String get loveTreeLeftHalf => 'Left half: You';
+
+  @override
+  String loveTreeRightHalf(String name) {
+    return 'Right half: $name';
+  }
+
+  @override
+  String get loveTreeStarQuestion => 'Question';
+
+  @override
+  String get loveTreeStarMood => 'Mood';
+
+  @override
+  String get loveTreeStarMessage => 'Message';
+
+  @override
+  String get loveTreeTapStar => 'Tap a star to see more';
+
+  @override
+  String get loveTreeHeartFull => 'Today\'s heart is complete';
+
+  @override
+  String get loveTreeTaskQuestion => 'Answer today\'s question';
+
+  @override
+  String get loveTreeTaskMood => 'Share your mood';
+
+  @override
+  String get loveTreeTaskMessage => 'Send each other a message';
+
+  @override
+  String loveTreeStarAnsweredAt(String name, String time) {
+    return '$name answered at $time';
+  }
+
+  @override
+  String loveTreeStarMoodAt(String mood, String time) {
+    return '$mood · $time';
+  }
+
+  @override
+  String loveTreeStarMessagedAt(String name, String time) {
+    return '$name messaged at $time';
+  }
+
+  @override
+  String get loveTreeStarDone => 'Done for today';
+
+  @override
+  String get loveTreeStarNoAnswer => 'Today\'s question isn\'t answered yet';
+
+  @override
+  String get loveTreeStarNoMood => 'No mood shared yet today';
+
+  @override
+  String get loveTreeStarNoMessage => 'No message yet today';
+
+  @override
+  String get loveTreeActAnswer => 'Answer now';
+
+  @override
+  String get loveTreeActMood => 'Share now';
+
+  @override
+  String get loveTreeActMessage => 'Message now';
+
+  @override
+  String get loveTreeNudge => 'Send some care';
+
+  @override
+  String get loveTreeClosePanel => 'Close';
+
+  @override
+  String loveTreeStarSemantics(String name, String task, String state) {
+    return '$name · $task · $state';
+  }
+
+  @override
+  String get loveTreeStarLit => 'lit';
+
+  @override
+  String get loveTreeStarUnlit => 'not lit yet';
+
+  @override
+  String get loveTreeFlowersExplain =>
+      'Each flower is one of our milestones. Tap one to look back.';
+
+  @override
+  String get loveTreeKindDays => 'Days together';
+
+  @override
+  String get loveTreeKindStreak => 'Question streak';
+
+  @override
+  String get loveTreeKindPhotos => 'Photo memories';
+
+  @override
+  String get loveTreeNextFlower => 'NEXT FLOWER';
+
+  @override
+  String loveTreeNextProgressDays(int current, int target) {
+    return '$current/$target days together';
+  }
+
+  @override
+  String loveTreeNextProgressStreak(int current, int target) {
+    return '$current/$target streak days';
+  }
+
+  @override
+  String loveTreeNextProgressPhotos(int current, int target) {
+    return '$current/$target photos';
+  }
+
+  @override
+  String get loveTreeTodayTasks => 'Little things today';
+
+  @override
+  String loveTreeTaskDone(String name) {
+    return '$name ✓';
+  }
+
+  @override
+  String loveTreeTaskPending(String name) {
+    return '$name · not yet';
+  }
+
+  @override
+  String get loveTreeDoNow => 'Do it now';
+
+  @override
+  String get loveTreeBloomedTitle => 'Bloomed milestones';
+
+  @override
+  String get loveTreeShowLess => 'Show less';
+
+  @override
+  String homeConstellationPill(int lit) {
+    return '$lit/6 stars';
+  }
+
+  @override
+  String homeConstellationSemantics(int lit) {
+    return 'Today\'s constellation: $lit of 6 stars. Opens the Love Tree';
   }
 }

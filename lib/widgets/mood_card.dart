@@ -189,18 +189,24 @@ class MoodCard extends StatelessWidget {
     );
   }
 
-  void _openPicker(BuildContext context, Mood? current) {
-    HapticFeedback.selectionClick();
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ChangeNotifierProvider<MoodProvider>.value(
-        value: context.read<MoodProvider>(),
-        child: _MoodPickerSheet(current: current),
-      ),
-    );
-  }
+  void _openPicker(BuildContext context, Mood? current) =>
+      showMoodPicker(context);
+}
+
+/// Opens today's mood picker from anywhere (this card, the Love Tree's "Chia sẻ
+/// ngay").
+void showMoodPicker(BuildContext context) {
+  HapticFeedback.selectionClick();
+  final provider = context.read<MoodProvider>();
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => ChangeNotifierProvider<MoodProvider>.value(
+      value: provider,
+      child: _MoodPickerSheet(current: provider.myMood),
+    ),
+  );
 }
 
 /// One half of the card: a member's label + their mood (emoji + note) or an

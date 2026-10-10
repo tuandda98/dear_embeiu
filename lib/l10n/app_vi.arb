@@ -1262,21 +1262,11 @@
   "loveTreeStage0": "Hạt mầm",
   "loveTreeFlowerCount": "{count} bông hoa đã nở",
   "loveTreeSeedSubtitle": "Hai bạn vừa gieo hạt mầm đầu tiên 🌱",
-  "loveTreeBloomSubtitle": "Cây của hai bạn đang rực rỡ ✨",
   "loveTreeNewBloomBanner": "Cây vừa nở {count} bông mới 🌸",
   "loveTreeNewBloomBannerOne": "Cây vừa nở một bông mới 🌸",
-  "loveTreeNurtureTitle": "Cùng vun đắp",
-  "loveTreeNurtureStreakTitle": "Giữ chuỗi mỗi ngày",
-  "loveTreeNurtureStreakBody": "Trả lời câu hỏi để chuỗi không đứt",
-  "loveTreeNurturePhotoTitle": "Thêm một kỷ niệm",
-  "loveTreeNurturePhotoBody": "Mỗi tấm ảnh là một bông hoa mới",
-  "loveTreeNurtureTalkTitle": "Cùng trò chuyện hôm nay",
-  "loveTreeNurtureTalkBody": "Hỏi han nhau mỗi ngày cũng là vun cây",
-  "loveTreeMilestonesTitle": "Cột mốc",
   "loveTreeMilestoneDays": "{count} ngày bên nhau",
   "loveTreeMilestoneStreak": "Chuỗi {count} ngày",
   "loveTreeMilestonePhotos": "{count} ảnh kỷ niệm",
-  "loveTreeMilestoneBloomed": "đã nở",
   "loveTreeMilestoneDaysLeft": "còn {count} ngày",
   "loveTreeMilestoneStreakLeft": "còn {count} ngày chuỗi",
   "loveTreeMilestonePhotosLeft": "còn {count} ảnh",
@@ -1285,7 +1275,6 @@
   "loveTreeWaitingCta": "Mời người ấy",
   "loveTreeNoCoupleBody": "Ghép đôi với người ấy để bắt đầu trồng cây nhé 🌱",
   "loveTreeCoachTooltip": "Chạm để xem khoảnh khắc 🌸",
-  "loveTreeTapHint": "Chạm vào từng bông để xem kỷ niệm",
   "loveTreeMomentDaysTitle": "{count} ngày bên nhau",
   "@loveTreeMomentDaysTitle": {
     "placeholders": {
@@ -2701,6 +2690,262 @@
     "description": "Sleep: spelled-out duration with no leftover minutes",
     "placeholders": {
       "h": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeSkyTitle": "Chòm sao hôm nay",
+  "@loveTreeSkyTitle": {
+    "description": "Love tree v3: title above the 6-star heart"
+  },
+  "loveTreeSkyExplain": "Mỗi việc nhỏ chúng mình làm cho nhau hôm nay thắp một ngôi sao. Đủ cả hai nửa, trái tim sáng trọn.",
+  "@loveTreeSkyExplain": {
+    "description": "Love tree v3: what the constellation means"
+  },
+  "loveTreeLeftHalf": "Nửa trái: Bạn",
+  "@loveTreeLeftHalf": {
+    "description": "Love tree v3 legend"
+  },
+  "loveTreeRightHalf": "Nửa phải: {name}",
+  "@loveTreeRightHalf": {
+    "description": "Love tree v3 legend",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarQuestion": "Câu hỏi",
+  "@loveTreeStarQuestion": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeStarMood": "Tâm trạng",
+  "@loveTreeStarMood": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeStarMessage": "Nhắn tin",
+  "@loveTreeStarMessage": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeTapStar": "Chạm vào một ngôi sao để xem chi tiết",
+  "@loveTreeTapStar": {
+    "description": "Love tree v3: hint under the constellation"
+  },
+  "loveTreeHeartFull": "Trái tim hôm nay đã sáng trọn",
+  "@loveTreeHeartFull": {
+    "description": "Love tree v3: all six stars lit"
+  },
+  "loveTreeTaskQuestion": "Trả lời câu hỏi hôm nay",
+  "@loveTreeTaskQuestion": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeTaskMood": "Chia sẻ tâm trạng",
+  "@loveTreeTaskMood": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeTaskMessage": "Nhắn cho nhau một câu",
+  "@loveTreeTaskMessage": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeStarAnsweredAt": "{name} đã trả lời lúc {time}",
+  "@loveTreeStarAnsweredAt": {
+    "description": "Love tree v3 star detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarMoodAt": "{mood} · {time}",
+  "@loveTreeStarMoodAt": {
+    "description": "Love tree v3 star detail: mood picked + time",
+    "placeholders": {
+      "mood": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarMessagedAt": "{name} đã nhắn lúc {time}",
+  "@loveTreeStarMessagedAt": {
+    "description": "Love tree v3 star detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarDone": "Đã xong hôm nay",
+  "@loveTreeStarDone": {
+    "description": "Love tree v3 star detail when the time is unknown"
+  },
+  "loveTreeStarNoAnswer": "Chưa trả lời câu hỏi hôm nay",
+  "@loveTreeStarNoAnswer": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeStarNoMood": "Chưa chia sẻ tâm trạng hôm nay",
+  "@loveTreeStarNoMood": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeStarNoMessage": "Chưa nhắn gì hôm nay",
+  "@loveTreeStarNoMessage": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeActAnswer": "Trả lời ngay",
+  "@loveTreeActAnswer": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeActMood": "Chia sẻ ngay",
+  "@loveTreeActMood": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeActMessage": "Nhắn ngay",
+  "@loveTreeActMessage": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeNudge": "Gửi lời quan tâm",
+  "@loveTreeNudge": {
+    "description": "Love tree v3: partner's unlit star opens the care message screen"
+  },
+  "loveTreeClosePanel": "Đóng",
+  "@loveTreeClosePanel": {
+    "description": "Love tree v3: close the star detail (screen reader)"
+  },
+  "loveTreeStarSemantics": "{name} · {task} · {state}",
+  "@loveTreeStarSemantics": {
+    "description": "Love tree v3: star button (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "task": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarLit": "đã thắp",
+  "@loveTreeStarLit": {
+    "description": "Love tree v3: star state (screen reader)"
+  },
+  "loveTreeStarUnlit": "chưa thắp",
+  "@loveTreeStarUnlit": {
+    "description": "Love tree v3: star state (screen reader)"
+  },
+  "loveTreeFlowersExplain": "Mỗi bông là một cột mốc của chúng mình. Chạm vào bông hoa để xem lại.",
+  "@loveTreeFlowersExplain": {
+    "description": "Love tree v3: under the flower count"
+  },
+  "loveTreeKindDays": "Ngày bên nhau",
+  "@loveTreeKindDays": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeKindStreak": "Chuỗi câu hỏi",
+  "@loveTreeKindStreak": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeKindPhotos": "Kỷ niệm ảnh",
+  "@loveTreeKindPhotos": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeNextFlower": "BÔNG TIẾP THEO",
+  "@loveTreeNextFlower": {
+    "description": "Love tree v3: next milestone card caption"
+  },
+  "loveTreeNextProgressDays": "{current}/{target} ngày bên nhau",
+  "@loveTreeNextProgressDays": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeNextProgressStreak": "{current}/{target} ngày chuỗi",
+  "@loveTreeNextProgressStreak": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeNextProgressPhotos": "{current}/{target} ảnh",
+  "@loveTreeNextProgressPhotos": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeTodayTasks": "Việc nhỏ hôm nay",
+  "@loveTreeTodayTasks": {
+    "description": "Love tree v3: section title"
+  },
+  "loveTreeTaskDone": "{name} ✓",
+  "@loveTreeTaskDone": {
+    "description": "Love tree v3: task done by that person",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeTaskPending": "{name} · chưa",
+  "@loveTreeTaskPending": {
+    "description": "Love tree v3: task not done yet by that person",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeDoNow": "Làm ngay",
+  "@loveTreeDoNow": {
+    "description": "Love tree v3: task row button"
+  },
+  "loveTreeBloomedTitle": "Cột mốc đã nở",
+  "@loveTreeBloomedTitle": {
+    "description": "Love tree v3: section title above the milestone chips"
+  },
+  "loveTreeShowLess": "Thu gọn",
+  "@loveTreeShowLess": {
+    "description": "Love tree v3: collapse the milestone chips"
+  },
+  "homeConstellationPill": "{lit}/6 sao",
+  "@homeConstellationPill": {
+    "description": "Home: Love Tree entry pill next to the today section",
+    "placeholders": {
+      "lit": {
+        "type": "int"
+      }
+    }
+  },
+  "homeConstellationSemantics": "Chòm sao hôm nay: {lit} trên 6 sao. Mở Cây Tình Yêu",
+  "@homeConstellationSemantics": {
+    "description": "Home: Love Tree entry pill (screen reader)",
+    "placeholders": {
+      "lit": {
         "type": "int"
       }
     }

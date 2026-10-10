@@ -48,11 +48,13 @@ import '../providers/mood_provider.dart';
 import '../widgets/mood_card.dart';
 import '../widgets/rps_invite_card.dart';
 import '../widgets/sleep/sleep_card.dart';
+import '../widgets/today_constellation.dart';
 import '../widgets/today_ritual_card.dart';
 import '../widgets/streak_sheet.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'gallery_screen.dart';
+import 'love_tree_screen.dart' show openLoveTree;
 import 'care_message_screen.dart';
 import 'notification_center_screen.dart';
 import 'rps_game_screen.dart' show RpsGameScreen, openRpsGame;
@@ -1853,7 +1855,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // ── Nhóm 1: Hôm nay của chúng mình — daily actions first (habit loop).
             const SizedBox(height: 28),
             _gutter(
-              _entrance(3, SectionHeader(title: l10n.homeTodaySectionTitle)),
+              _entrance(
+                3,
+                Row(
+                  children: [
+                    Expanded(
+                      child: SectionHeader(title: l10n.homeTodaySectionTitle),
+                    ),
+                    // Love Tree v3 entry: today's constellation count.
+                    if (!couple.isWaitingForPartner) ...[
+                      const SizedBox(width: 8),
+                      ConstellationPill(onTap: () => openLoveTree(context)),
+                    ],
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 12),
             KeyedSubtree(

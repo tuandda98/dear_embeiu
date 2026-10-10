@@ -16,38 +16,36 @@ import 'package:share_plus/share_plus.dart';
 import '../l10n/l10n.dart';
 import '../models/couple.dart';
 import '../models/photo.dart';
+import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
+import '../providers/sleep_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/love_tree_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
+import '../theme/person_palette.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/content_card.dart';
 import '../widgets/entrance_reveal.dart';
 import '../widgets/header_icon_button.dart';
 import '../widgets/icon_badge.dart';
-import '../widgets/ink_tile.dart';
 import '../widgets/moment_sheet.dart';
+import '../widgets/mood_card.dart' show showMoodPicker;
+import '../widgets/section_header.dart';
 import '../widgets/shimmer_skeleton.dart';
+import '../widgets/sleep/sleep_format.dart';
 import '../widgets/sub_screen_header.dart';
+import '../widgets/today_constellation.dart';
+import 'care_message_screen.dart' show openCareMessageScreen;
 
 // ── Living-tree environment (v2 #2) ──────────────────────────────────────────
 
-/// Time-of-day sky band (design §B.1).
-enum SkyPhase { dawn, day, dusk, night }
-
-/// Season band (design §B.3).
+/// Season band (design §B.3) — tints the foliage. The sky itself is always
+/// night since v3 (2026-10-11): it carries today's constellation.
 enum Season { spring, summer, autumn, winter }
-
-SkyPhase skyPhaseForHour(int hour) {
-  if (hour >= 5 && hour < 9) return SkyPhase.dawn;
-  if (hour >= 9 && hour < 16) return SkyPhase.day;
-  if (hour >= 16 && hour < 19) return SkyPhase.dusk;
-  return SkyPhase.night;
-}
 
 Season seasonForMonth(int month) {
   if (month >= 2 && month <= 4) return Season.spring;
@@ -132,6 +130,16 @@ class _TreeData {
   final LoveTreeStage stage;
 }
 
+/// Opens the Love Tree (StreakChip on the counter, the "4/6 sao" pill on Home).
+void openLoveTree(BuildContext context) {
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      settings: const RouteSettings(name: 'LoveTree'),
+      builder: (_) => const LoveTreeScreen(),
+    ),
+  );
+}
+
 /// Love Tree (feature love-tree, 2026-06-14) — a pushed sub-screen reached by
 /// tapping the [StreakChip]. A single tree, dressed 100% in [CustomPaint] (no
 /// art assets), whose flowers ARE the couple's milestones (days / longest
@@ -173,9 +181,8 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
   bool _coachEligible = false;
   bool _coachDismissed = false;
 
-  /// Sky + season chosen ONCE at entry (v2 #2) — not ticked per second (saves
-  /// battery; "the tree changes when you reopen" is enough).
-  late final SkyPhase _phase = skyPhaseForHour(DateTime.now().hour);
+  /// Season chosen ONCE at entry (v2 #2) — "the tree changes when you reopen"
+  /// is enough.
   late final Season _season = seasonForMonth(DateTime.now().month);
 
   /// One shared controller drives every idle particle + flower sway (B.6 — at
@@ -188,16 +195,15 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
   _ShareCardData? _shareCardData;
   bool _sharing = false;
 
+  /// The page scrolls under a transparent status bar; once the night sky has
+  /// scrolled away, a frosted strip keeps text from running under the icons.
+  final GlobalKey _skyKey = GlobalKey();
+  bool _pastSky = false;
+
   late final ConfettiController _confetti = ConfettiController(
     duration: const Duration(milliseconds: 700),
   );
 
-  /// v3 prototype switch (2026-06-18): when true the hero is the
-  /// [_ConstellationSky] (the "infinite" star metaphor); when false it's the
-  /// [_TreeHero]. Reverted to the TREE per user 2026-06-18 ("revert lại thành
-  /// cái cây") — the star code stays dormant behind this flag for a possible
-  /// revisit. Non-const so neither code path is dead.
-  final bool _useConstellation = false;
 
   @override
   void initState() {
@@ -273,21 +279,34 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     // body agree. Null → a non-garden state (no-couple / waiting / loading).
     final data = _resolveTree(couple, streak, photo);
 
-    // The share button shows only for an active couple that has a garden.
-    final canShare = data != null;
+    // The ambient clock only spins when there's any motion to drive.
+    final ambient = reduceMotion ? null : _ambientController();
 
-    // Full-bleed night sky (user 2026-06-18: "full background cả header cả
-    // width, nhìn như bầu trời đêm 1/2 màn hình"): the sky is its OWN layer at
-    // the back of the stack, covering the top ~55% of the screen edge-to-edge —
-    // behind the status bar + header — and fading to transparent (SkyBackdrop-
-    // Painter) so it melts into the dawnBlush page below. The tree hero is now
-    // transparent and sits over it.
-    final screenSize = MediaQuery.of(context).size;
-    final skyHeight = screenSize.height * 0.55;
-
-    // The daytime sun is now painted INSIDE SkyBackdropPainter as a soft glowing
-    // orb — same idiom as the painted moon — replacing the old flat cartoon
-    // Lottie (user 2026-06-19: "mặt trời quá xấu" → chọn "vầng sáng mềm").
+    // v3 (2026-10-11): the header scrolls with the page so the night sky can
+    // sit behind it (a sub-screen header may be the first item of the scroll —
+    // design-unify rule). The back/share discs stay frosted on the dark sky.
+    final header = Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        MediaQuery.paddingOf(context).top + 16,
+        20,
+        4,
+      ),
+      child: SubScreenHeader(
+        badge: l10n.loveTreeBadge,
+        badgeIcon: IconsaxPlusLinear.magic_star,
+        onBackground: true,
+        trailing: data != null
+            ? HeaderIconButton(
+                icon: IconsaxPlusLinear.share,
+                iconColor: AppColors.accentLoveDeep,
+                backed: true,
+                semanticsLabel: l10n.loveTreeShareButton,
+                onTap: () => _shareTree(context, data),
+              )
+            : null,
+      ),
+    );
 
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
@@ -295,69 +314,52 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-            // 1. The full-bleed sky: gradient + drifting clouds (night: moon +
-            //    star field). Decorative — never intercepts taps. Drifts /
-            //    twinkles on the shared ambient clock; a clean static frame
-            //    under Reduce Motion (t = -1).
+            NotificationListener<ScrollUpdateNotification>(
+              onNotification: (n) {
+                final skyHeight = _skyKey.currentContext?.size?.height ?? 900;
+                final past =
+                    n.metrics.pixels >
+                    skyHeight - MediaQuery.paddingOf(context).top - 40;
+                if (past != _pastSky) {
+                  setState(() => _pastSky = past);
+                }
+                return false;
+              },
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.only(
+                  bottom: 32 + MediaQuery.paddingOf(context).bottom,
+                ),
+                child: _buildBody(
+                context,
+                l10n,
+                  header: header,
+                  couple: couple,
+                  photo: photo,
+                  reduceMotion: reduceMotion,
+                  ambient: ambient,
+                  data: data,
+                ),
+              ),
+            ),
             Positioned(
               top: 0,
               left: 0,
               right: 0,
-              height: skyHeight,
+              height: MediaQuery.paddingOf(context).top,
               child: IgnorePointer(
-                child: reduceMotion
-                    ? CustomPaint(
-                        painter:
-                            SkyBackdropPainter(phase: _phase, season: _season),
-                      )
-                    : AnimatedBuilder(
-                        animation: _ambientController(),
-                        builder: (context, _) => CustomPaint(
-                          painter: SkyBackdropPainter(
-                            phase: _phase,
-                            season: _season,
-                            t: _ambient!.value,
-                          ),
-                        ),
+                child: AnimatedOpacity(
+                  opacity: _pastSky ? 1 : 0,
+                  duration: reduceMotion ? Duration.zero : AppMotion.fast,
+                  child: ClipRect(
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: ColoredBox(
+                        color: AppColors.white.withValues(alpha: 0.45),
                       ),
-              ),
-            ),
-
-            // 2. Header + body (transparent) over the sky. The back/share discs
-            // are frosted (onBackground/backed) so they read on the dark night
-            // band; the centered white chip is legible on its own.
-            SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                    child: SubScreenHeader(
-                      badge: l10n.loveTreeBadge,
-                      badgeIcon: IconsaxPlusLinear.magic_star,
-                      onBackground: true,
-                      trailing: canShare
-                          ? HeaderIconButton(
-                              icon: IconsaxPlusLinear.share,
-                              iconColor: AppColors.accentLoveDeep,
-                              backed: true,
-                              semanticsLabel: l10n.loveTreeShareButton,
-                              onTap: () => _shareTree(context, data),
-                            )
-                          : null,
                     ),
                   ),
-                  Expanded(
-                    child: _buildBody(
-                      context,
-                      l10n,
-                      couple: couple,
-                      streak: streak,
-                      photo: photo,
-                      reduceMotion: reduceMotion,
-                      data: data,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
 
@@ -427,39 +429,45 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
   Widget _buildBody(
     BuildContext context,
     AppLocalizations l10n, {
+    required Widget header,
     required Couple? couple,
-    required StreakProvider streak,
     required PhotoProvider photo,
     required bool reduceMotion,
+    required AnimationController? ambient,
     required _TreeData? data,
   }) {
-    // No-couple / waiting → no garden, just the seed + an invite message.
-    if (couple == null) {
-      return _StateMessage(
-        title: l10n.loveTreeStage0,
-        body: l10n.loveTreeNoCoupleBody,
-        reduceMotion: reduceMotion,
+    // No couple / waiting / first streak load → a short night band with the
+    // header, then the message (or skeleton) on the light page.
+    if (couple == null || couple.isWaitingForPartner || data == null) {
+      final Widget content;
+      if (couple == null) {
+        content = _StateMessage(
+          title: l10n.loveTreeStage0,
+          body: l10n.loveTreeNoCoupleBody,
+        );
+      } else if (couple.isWaitingForPartner) {
+        content = _StateMessage(
+          title: l10n.loveTreeWaitingTitle,
+          body: l10n.loveTreeWaitingBody,
+          ctaLabel: l10n.loveTreeWaitingCta,
+          onCta: () => Navigator.of(context).maybePop(),
+        );
+      } else {
+        content = const _LoadingTree();
+      }
+      return Column(
+        children: [
+          _NightSky(
+            ambient: ambient,
+            child: Column(children: [header, const SizedBox(height: 120)]),
+          ),
+          content,
+        ],
       );
-    }
-    if (couple.isWaitingForPartner) {
-      return _StateMessage(
-        title: l10n.loveTreeWaitingTitle,
-        body: l10n.loveTreeWaitingBody,
-        reduceMotion: reduceMotion,
-        ctaLabel: l10n.loveTreeWaitingCta,
-        onCta: () => Navigator.of(context).maybePop(),
-      );
-    }
-
-    // Loading the streak window for the first time → skeleton (avoid jumping
-    // the flower count from 0 up to the real value).
-    if (data == null) {
-      return const _LoadingTree();
     }
 
     final flowerCount = data.flowerCount;
     final reached = data.reached;
-    final stage = data.stage;
 
     final newCount = _coupleId == null
         ? 0
@@ -482,94 +490,110 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     // stays in sync (e.g. the very first open at 0 flowers).
     _commitSeen(flowerCount);
 
-    // The ambient clock only spins when there's any motion to drive.
-    final ambient = reduceMotion ? null : _ambientController();
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    final partnerName = SleepFormat.partnerName(context, data.couple, myUid);
+    final next = _nextMilestones(data);
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 1. The hero (transparent — the full-bleed night sky is painted by
-          //    the screen behind it). v3 prototype: a CONSTELLATION of stars
-          //    (the "infinite" metaphor) instead of the tree; flip
-          //    `_useConstellation` to roll back to the tree.
-          if (_useConstellation)
-            _ConstellationSky(
-              reached: reached,
-              newFromIndexInReached: flowerCount - newCount,
-              reduceMotion: reduceMotion,
-              ambient: ambient,
-              anniversary: data.couple.anniversaryDate,
-              photoProvider: photo,
-            )
-          else
-            _TreeHero(
-              stage: stage,
-              reached: reached,
-              newFromIndexInReached: flowerCount - newCount,
-              reduceMotion: reduceMotion,
-              confetti: _confetti,
-              phase: _phase,
-              season: _season,
-              ambient: ambient,
-              anniversary: data.couple.anniversaryDate,
-              photoProvider: photo,
-              // Coach mark: only when eligible (flag not set) AND there are
-              // flowers to point at; delayed past any bloom in `_TreeHero`.
-              showCoach: _coachEligible && flowerCount > 0,
-              hasNewBlooms: hasNewBlooms,
-              onCoachDismissed: _dismissCoach,
-            ),
-
-          // 2. Caption (permanent affordance — only when there are flowers).
-          if (flowerCount > 0) ...[
-            const SizedBox(height: 10),
-            _TapHintCaption(l10n: l10n),
-            const SizedBox(height: 14),
-          ] else
-            const SizedBox(height: 16),
-
-          // 3. Flower count (stage title removed 2026-06-19 — user request).
-          Text(
-            _stageSubtitle(l10n, stage, flowerCount),
-            textAlign: TextAlign.center,
-            style: AppTheme.pageSubtitleStyle(shadowed: false),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 1. The night sky = TODAY: header, the 6-star heart, then the branch
+        //    whose flowers are the whole journey.
+        _NightSky(
+          key: _skyKey,
+          ambient: ambient,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              header,
+              const SizedBox(height: 22),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TodayConstellationSection(
+                  partnerName: partnerName,
+                  onAct: (task) => _doTask(context, task),
+                  onNudge: () => openCareMessageScreen(context),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _TreeHero(
+                  stage: data.stage,
+                  reached: reached,
+                  newFromIndexInReached: flowerCount - newCount,
+                  reduceMotion: reduceMotion,
+                  confetti: _confetti,
+                  season: _season,
+                  ambient: ambient,
+                  anniversary: data.couple.anniversaryDate,
+                  photoProvider: photo,
+                  // Coach mark: only when eligible (flag not set) AND there
+                  // are flowers to point at; delayed past any bloom.
+                  showCoach: _coachEligible && flowerCount > 0,
+                  hasNewBlooms: hasNewBlooms,
+                  onCoachDismissed: _dismissCoach,
+                ),
+              ),
+            ],
           ),
+        ),
 
-          // 4. Bloom banner (only when there are new flowers).
-          if (hasNewBlooms) ...[
-            const SizedBox(height: 16),
-            _BloomBanner(
-              count: newCount,
-              reduceMotion: reduceMotion,
-              onShare: () => _shareTree(context, data),
-            ),
-          ],
-
-          const SizedBox(height: 20),
-
-          // 5. "Grow it together".
-          EntranceReveal(order: 1, child: _NurtureCard(l10n: l10n)),
-          const SizedBox(height: 16),
-
-          // 6. Milestones.
-          EntranceReveal(
-            order: 2,
-            child: _MilestonesCard(
-              l10n: l10n,
-              milestones: data.milestones,
-              days: data.days,
-              longestStreak: data.longestStreak,
-              photoCount: data.photoCount,
-              anniversary: data.couple.anniversaryDate,
-              photoProvider: photo,
-            ),
+        // 2. On the light page: what the flowers mean, the next one, today's
+        //    little things, every bloomed milestone.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _FlowersHeader(flowerCount: flowerCount),
+              if (hasNewBlooms) ...[
+                const SizedBox(height: 16),
+                _BloomBanner(
+                  count: newCount,
+                  reduceMotion: reduceMotion,
+                  onShare: () => _shareTree(context, data),
+                ),
+              ],
+              if (next.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                EntranceReveal(order: 1, child: _NextFlowerCard(next: next)),
+              ],
+              const SizedBox(height: 28),
+              SectionHeader(title: l10n.loveTreeTodayTasks),
+              const SizedBox(height: 12),
+              EntranceReveal(
+                order: 2,
+                child: _TodayTasksCard(
+                  partnerName: partnerName,
+                  onAct: (task) => _doTask(context, task),
+                ),
+              ),
+              if (reached.isNotEmpty) ...[
+                const SizedBox(height: 28),
+                _BloomedChips(
+                  reached: reached,
+                  anniversary: data.couple.anniversaryDate,
+                  photo: photo,
+                ),
+              ],
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
+  }
+
+  /// One of my unlit stars / a "Làm ngay": answer → Home's question card,
+  /// mood → the picker right here, message → the Chat tab.
+  void _doTask(BuildContext context, CareTask task) {
+    switch (task) {
+      case CareTask.question:
+        _goToDailyQuestion(context);
+      case CareTask.mood:
+        showMoodPicker(context);
+      case CareTask.message:
+        _goToChat(context);
+    }
   }
 
   /// Renders the share card off-screen → PNG → OS share sheet (v2 #3). Errors
@@ -666,20 +690,6 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     image.dispose();
     return byteData?.buffer.asUint8List();
   }
-
-  String _stageSubtitle(
-    AppLocalizations l10n,
-    LoveTreeStage stage,
-    int flowerCount,
-  ) {
-    if (flowerCount == 0) {
-      return l10n.loveTreeSeedSubtitle;
-    }
-    if (stage == LoveTreeStage.bloom) {
-      return l10n.loveTreeBloomSubtitle;
-    }
-    return l10n.loveTreeFlowerCount(flowerCount);
-  }
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -695,6 +705,14 @@ double _flowerDiameter(int index, int count) {
 }
 
 double _flowerRadius(int index, int count) => _flowerDiameter(index, count) / 2;
+
+/// Branch area height. v3 shares the sky with the constellation above it, so
+/// it's shorter than v2's ~52% (design v3: branch ≈ 250–380pt).
+double _treeHeight(BuildContext context) {
+  final media = MediaQuery.of(context);
+  final usable = media.size.height - media.padding.vertical;
+  return (usable * 0.42).clamp(300.0, 380.0);
+}
 
 /// Transparent hit-target padding around a flower so even the small (28px)
 /// rim flowers get a ≥44px tap area (design §A.1). The visible flower is NOT
@@ -752,7 +770,6 @@ class _TreeHero extends StatelessWidget {
     required this.newFromIndexInReached,
     required this.reduceMotion,
     required this.confetti,
-    required this.phase,
     required this.season,
     required this.ambient,
     required this.anniversary,
@@ -773,8 +790,7 @@ class _TreeHero extends StatelessWidget {
   final bool reduceMotion;
   final ConfettiController confetti;
 
-  /// Sky band + season chosen at entry (v2 #2).
-  final SkyPhase phase;
+  /// Season chosen at entry (v2 #2) — tints the foliage.
   final Season season;
 
   /// Shared idle clock (null under Reduce Motion).
@@ -797,13 +813,8 @@ class _TreeHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    // Tree area = ~52% of usable height, clamped (design §1/§8).
-    final usable = media.size.height - media.padding.vertical;
-    final treeHeight = (usable * 0.52).clamp(360.0, 460.0);
-
     return SizedBox(
-      height: treeHeight,
+      height: _treeHeight(context),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final size = Size(constraints.maxWidth, constraints.maxHeight);
@@ -864,8 +875,6 @@ class _TreeHero extends StatelessWidget {
               Positioned.fill(
                 child: IgnorePointer(
                   child: _AmbientParticles(
-                    phase: phase,
-                    season: season,
                     reduceMotion: reduceMotion,
                     ambient: ambient,
                   ),
@@ -937,203 +946,6 @@ class _TreeHero extends StatelessWidget {
     }
     return best;
   }
-}
-
-// ───────────────────────────────────────────────────────────────────────────
-// Constellation sky (v3 prototype, 2026-06-18) — the "infinite" memory metaphor
-// ───────────────────────────────────────────────────────────────────────────
-
-/// Prototype that replaces the tree hero: every reached milestone becomes a
-/// STAR, laid along a gently rising meander and joined by faint constellation
-/// lines (oldest → newest). Tiny stars stay elegant even at hundreds — unlike
-/// big flowers — and a future pan/zoom canvas makes the sky literally endless
-/// (user 2026-06-18: "ý tưởng gì mà nó vô cực"). Reuses the same milestone data,
-/// per-kind hue, ambient clock and tap → MomentSheet as the tree, so flipping
-/// [_LoveTreeScreenState._useConstellation] swaps the two with one line.
-class _ConstellationSky extends StatelessWidget {
-  const _ConstellationSky({
-    required this.reached,
-    required this.newFromIndexInReached,
-    required this.reduceMotion,
-    required this.ambient,
-    required this.anniversary,
-    required this.photoProvider,
-  });
-
-  final List<LoveTreeMilestone> reached;
-  final int newFromIndexInReached;
-  final bool reduceMotion;
-  final AnimationController? ambient;
-  final DateTime anniversary;
-  final PhotoProvider photoProvider;
-
-  @override
-  Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final usable = media.size.height - media.padding.vertical;
-    final skyHeight = (usable * 0.52).clamp(360.0, 460.0);
-
-    return SizedBox(
-      height: skyHeight,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final size = Size(constraints.maxWidth, constraints.maxHeight);
-          final positions = _starPositions(size, reached.length);
-
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Constellation lines + glowing stars; twinkle driven by the
-              // shared ambient clock (static under Reduce Motion).
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: CustomPaint(
-                    painter: _ConstellationPainter(
-                      positions: positions,
-                      reached: reached,
-                      newFromIndex: newFromIndexInReached,
-                      reduceMotion: reduceMotion,
-                      clock: reduceMotion ? null : ambient,
-                    ),
-                  ),
-                ),
-              ),
-
-              // Transparent ≥44px tap targets over each star → MomentSheet.
-              for (var i = 0; i < reached.length; i++)
-                Positioned(
-                  left: positions[i].dx - 22,
-                  top: positions[i].dy - 22,
-                  width: 44,
-                  height: 44,
-                  child: Semantics(
-                    button: true,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _openMomentSheet(
-                        context,
-                        reached[i],
-                        anniversary: anniversary,
-                        photo: photoProvider,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  /// Deterministic star layout: a gentle bottom-left → top-right meander with a
-  /// sine wobble + per-index hash jitter, so the joining lines read as one
-  /// growing constellation and a star never jumps slot when newer ones unlock.
-  static List<Offset> _starPositions(Size size, int count) {
-    final w = size.width;
-    final h = size.height;
-    final pts = <Offset>[];
-    for (var i = 0; i < count; i++) {
-      final t = count <= 1 ? 0.5 : i / (count - 1);
-      final wobble = math.sin(t * math.pi * 2.4) * 0.12 * w;
-      final jx = ((_bloomHash(i) % 13) - 6) / 100.0 * w;
-      final jy = ((_bloomHash(i * 31 + 7) % 13) - 6) / 100.0 * h;
-      final x = (0.16 + 0.68 * t) * w + wobble + jx;
-      final y = (0.82 - 0.70 * t) * h + jy;
-      pts.add(Offset(x.clamp(0.08 * w, 0.92 * w), y.clamp(0.08 * h, 0.92 * h)));
-    }
-    return pts;
-  }
-}
-
-/// Paints the constellation: faint joining lines + each star's coloured halo,
-/// bright core and (for the newest) a sparkle cross. Twinkle reads the ambient
-/// [clock]; a null clock = static (Reduce Motion).
-class _ConstellationPainter extends CustomPainter {
-  _ConstellationPainter({
-    required this.positions,
-    required this.reached,
-    required this.newFromIndex,
-    required this.reduceMotion,
-    Listenable? clock,
-  }) : _clock = clock,
-       super(repaint: clock);
-
-  final List<Offset> positions;
-  final List<LoveTreeMilestone> reached;
-  final int newFromIndex;
-  final bool reduceMotion;
-  final Listenable? _clock;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (positions.isEmpty) {
-      return;
-    }
-    final clock = _clock;
-    final phase = (!reduceMotion && clock is Animation<double>)
-        ? clock.value
-        : 0.0;
-
-    // 1. Faint lines joining consecutive stars, brightening toward the newest.
-    for (var i = 1; i < positions.length; i++) {
-      final tNorm = i / positions.length;
-      final line = Paint()
-        ..color = AppColors.white.withValues(alpha: 0.10 + 0.16 * tNorm)
-        ..strokeWidth = 1.0
-        ..style = PaintingStyle.stroke;
-      canvas.drawLine(positions[i - 1], positions[i], line);
-    }
-
-    // 2. Stars: coloured halo (per kind) + white core + sparkle on new ones.
-    for (var i = 0; i < positions.length; i++) {
-      final c = positions[i];
-      final isNew = i >= newFromIndex;
-      final hue = LoveTreeService.nucleusColor(reached[i].kind);
-      final twinkle = reduceMotion
-          ? 1.0
-          : 0.75 + 0.25 * math.sin(phase * math.pi * 2 + i * 1.7);
-      final coreR = isNew ? 3.4 : 2.6;
-      final haloR = (isNew ? 16.0 : 11.0) * (0.9 + 0.1 * twinkle);
-
-      canvas.drawCircle(
-        c,
-        haloR,
-        Paint()
-          ..shader = RadialGradient(
-            colors: [
-              hue.withValues(alpha: (isNew ? 0.55 : 0.40) * twinkle),
-              hue.withValues(alpha: 0.0),
-            ],
-          ).createShader(Rect.fromCircle(center: c, radius: haloR)),
-      );
-
-      canvas.drawCircle(
-        c,
-        coreR,
-        Paint()
-          ..color = AppColors.white.withValues(
-            alpha: 0.92 * (0.7 + 0.3 * twinkle),
-          ),
-      );
-
-      if (isNew) {
-        final cross = Paint()
-          ..color = AppColors.white.withValues(alpha: 0.65 * twinkle)
-          ..strokeWidth = 1.0;
-        final r = coreR + 4;
-        canvas.drawLine(c.translate(-r, 0), c.translate(r, 0), cross);
-        canvas.drawLine(c.translate(0, -r), c.translate(0, r), cross);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_ConstellationPainter old) =>
-      old.positions != positions ||
-      old.reached != reached ||
-      old.newFromIndex != newFromIndex ||
-      old.reduceMotion != reduceMotion;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -1469,62 +1281,18 @@ class _CoachPainter extends CustomPainter {
       oldDelegate.flowerDiameter != flowerDiameter;
 }
 
-// ───────────────────────────────────────────────────────────────────────────
-// Tap-hint caption (v2.1 §B.2) — permanent "tap a flower" affordance
-// ───────────────────────────────────────────────────────────────────────────
-
-/// The always-on caption below the tree ("Tap a flower to relive a memory") —
-/// a quiet icon + line on the blush background, shown whenever there is ≥1
-/// flower. No pill, no animation.
-class _TapHintCaption extends StatelessWidget {
-  const _TapHintCaption({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(
-          IconsaxPlusLinear.finger_cricle,
-          size: 14,
-          color: AppColors.accentRose,
-        ),
-        const SizedBox(width: 6),
-        Flexible(
-          child: Text(
-            l10n.loveTreeTapHint,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: AppTheme.fontFamily,
-              color: AppColors.textSecondary,
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Loading placeholder: a grey static tree silhouette + two shimmer pills.
+/// Loading placeholder: a grey static branch silhouette + two shimmer pills.
 class _LoadingTree extends StatelessWidget {
   const _LoadingTree();
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final usable = media.size.height - media.padding.vertical;
-    final treeHeight = (usable * 0.52).clamp(360.0, 460.0);
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           SizedBox(
-            height: treeHeight,
+            height: _treeHeight(context),
             child: CustomPaint(
               size: Size.infinite,
               painter: kTreeRenderer.treePainter(
@@ -1663,267 +1431,487 @@ class _SharePill extends StatelessWidget {
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// "Grow it together"
+// v3 (2026-10-11) — below the sky: flower count, next flower, today's little
+// things, bloomed milestones. The old "Cùng vun đắp" tiles + 21-row milestone
+// list were replaced (user: "chưa hiểu ý nghĩa, không hay dùng").
 // ───────────────────────────────────────────────────────────────────────────
 
-class _NurtureCard extends StatelessWidget {
-  const _NurtureCard({required this.l10n});
+/// The Love Tree is a route pushed over Home, which owns the tabs + the
+/// daily-question card and listens to [NotificationTapRouter]: each shortcut
+/// signals its destination, then pops back so Home applies it — the same bridge
+/// notification deep-links use.
+void _goToDailyQuestion(BuildContext context) {
+  NotificationTapRouter.pendingHomeTab.value = 0;
+  NotificationTapRouter.pendingHomeFocus.value = 'daily_question';
+  Navigator.of(context).maybePop();
+}
 
-  final AppLocalizations l10n;
+void _goToChat(BuildContext context) {
+  NotificationTapRouter.pendingHomeTab.value = 1;
+  Navigator.of(context).maybePop();
+}
+
+String _milestoneLabel(AppLocalizations l10n, LoveTreeMilestone m) =>
+    switch (m.kind) {
+      FlowerKind.days => l10n.loveTreeMilestoneDays(m.value),
+      FlowerKind.streak => l10n.loveTreeMilestoneStreak(m.value),
+      FlowerKind.photos => l10n.loveTreeMilestonePhotos(m.value),
+    };
+
+String _kindLabel(AppLocalizations l10n, FlowerKind kind) => switch (kind) {
+  FlowerKind.days => l10n.loveTreeKindDays,
+  FlowerKind.streak => l10n.loveTreeKindStreak,
+  FlowerKind.photos => l10n.loveTreeKindPhotos,
+};
+
+/// The nearest unreached milestone of each kind with its current progress,
+/// closest-to-blooming (progress / target) first.
+List<({LoveTreeMilestone milestone, int progress})> _nextMilestones(
+  _TreeData data,
+) {
+  int progressOf(FlowerKind kind) => switch (kind) {
+    FlowerKind.days => data.days,
+    FlowerKind.streak => data.longestStreak,
+    FlowerKind.photos => data.photoCount,
+  };
+  final out = <({LoveTreeMilestone milestone, int progress})>[];
+  for (final kind in FlowerKind.values) {
+    for (final m in data.milestones) {
+      if (m.kind == kind && !m.reached) {
+        out.add((milestone: m, progress: progressOf(kind)));
+        break;
+      }
+    }
+  }
+  out.sort(
+    (a, b) => (b.progress / b.milestone.value).compareTo(
+      a.progress / a.milestone.value,
+    ),
+  );
+  return out;
+}
+
+/// "N bông hoa đã nở" + what a flower means + the three kinds.
+class _FlowersHeader extends StatelessWidget {
+  const _FlowersHeader({required this.flowerCount});
+
+  final int flowerCount;
 
   @override
   Widget build(BuildContext context) {
-    return ContentCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                IconsaxPlusLinear.tree,
-                size: 18,
-                color: AppColors.accentRose,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.loveTreeNurtureTitle,
-                style: const TextStyle(
-                  fontFamily: AppTheme.fontFamily,
-                  color: AppColors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          // Each tile pops the tree and routes Home to the matching action
-          // (user 2026-06-17): keep streak → today's question, add a memory →
-          // the Gallery add-photo composer, chat → the Chat tab.
-          _NurtureTile(
-            icon: IconsaxPlusLinear.flash,
-            tint: AppColors.accentCoral,
-            title: l10n.loveTreeNurtureStreakTitle,
-            body: l10n.loveTreeNurtureStreakBody,
-            onTap: () => _goToDailyQuestion(context),
-          ),
-          const SizedBox(height: 10),
-          _NurtureTile(
-            icon: IconsaxPlusLinear.gallery,
-            tint: AppColors.accentLavender,
-            title: l10n.loveTreeNurturePhotoTitle,
-            body: l10n.loveTreeNurturePhotoBody,
-            onTap: () => _goToAddMemory(context),
-          ),
-          const SizedBox(height: 10),
-          _NurtureTile(
-            icon: IconsaxPlusLinear.messages,
-            tint: AppColors.accentRose,
-            title: l10n.loveTreeNurtureTalkTitle,
-            body: l10n.loveTreeNurtureTalkBody,
-            onTap: () => _goToChat(context),
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          flowerCount == 0
+              ? l10n.loveTreeSeedSubtitle
+              : l10n.loveTreeFlowerCount(flowerCount),
+          style: AppTheme.sectionTitleStyle(),
+        ),
+        if (flowerCount > 0) ...[
+          const SizedBox(height: 4),
+          Text(
+            l10n.loveTreeFlowersExplain,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              height: 1.45,
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  /// The Love Tree is a route pushed over Home, which owns the tabs + the
-  /// daily-question card and listens to [NotificationTapRouter]. So each
-  /// shortcut signals the destination through the router, then pops back to let
-  /// Home apply it — the same bridge notification deep-links use.
-
-  /// Keep-streak → Home tab, daily-question card scrolled into view.
-  void _goToDailyQuestion(BuildContext context) {
-    NotificationTapRouter.pendingHomeTab.value = 0;
-    NotificationTapRouter.pendingHomeFocus.value = 'daily_question';
-    Navigator.of(context).maybePop();
-  }
-
-  /// Add-a-memory → Gallery tab with its add-photo composer opened.
-  void _goToAddMemory(BuildContext context) {
-    NotificationTapRouter.pendingHomeTab.value = 2;
-    NotificationTapRouter.pendingCompose.value = true;
-    Navigator.of(context).maybePop();
-  }
-
-  /// Chat-today → Chat tab.
-  void _goToChat(BuildContext context) {
-    NotificationTapRouter.pendingHomeTab.value = 1;
-    Navigator.of(context).maybePop();
-  }
-}
-
-class _NurtureTile extends StatelessWidget {
-  const _NurtureTile({
-    required this.icon,
-    required this.tint,
-    required this.title,
-    required this.body,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final Color tint;
-  final String title;
-  final String body;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkTile(
-      borderRadius: 22,
-      onTap: () {
-        HapticFeedback.selectionClick();
-        onTap();
-      },
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: Row(
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            IconBadge(icon, tint: tint),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontFamily: AppTheme.fontFamily,
-                      color: AppColors.textPrimary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
+            for (final kind in FlowerKind.values)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.72),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: AppColors.white.withValues(alpha: 0.65),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    body,
-                    style: const TextStyle(
-                      fontFamily: AppTheme.fontFamily,
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      height: 1.3,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _Dot(color: LoveTreeService.nucleusColor(kind)),
+                    const SizedBox(width: 6),
+                    Text(
+                      _kindLabel(l10n, kind),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(
-              IconsaxPlusLinear.arrow_right_3,
-              size: 18,
-              color: AppColors.textTertiary,
-            ),
           ],
         ),
-      ),
+      ],
     );
   }
 }
 
-// ───────────────────────────────────────────────────────────────────────────
-// Milestones list
-// ───────────────────────────────────────────────────────────────────────────
+class _Dot extends StatelessWidget {
+  const _Dot({required this.color, this.filled = true});
 
-class _MilestonesCard extends StatelessWidget {
-  const _MilestonesCard({
-    required this.l10n,
-    required this.milestones,
-    required this.days,
-    required this.longestStreak,
-    required this.photoCount,
-    required this.anniversary,
-    required this.photoProvider,
-  });
+  final Color color;
+  final bool filled;
 
-  final AppLocalizations l10n;
-  final List<LoveTreeMilestone> milestones;
-  final int days;
-  final int longestStreak;
-  final int photoCount;
-  final DateTime anniversary;
-  final PhotoProvider photoProvider;
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 8,
+    height: 8,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: filled ? color : Colors.transparent,
+      border: filled ? null : Border.all(color: color, width: 1.5),
+    ),
+  );
+}
+
+/// "Bông tiếp theo": the milestone closest to blooming, big, with a progress
+/// bar; the other kinds' next milestones as mini rows. Tapping the main one
+/// shows how far it still is (locked moment sheet).
+class _NextFlowerCard extends StatelessWidget {
+  const _NextFlowerCard({required this.next});
+
+  final List<({LoveTreeMilestone milestone, int progress})> next;
 
   @override
   Widget build(BuildContext context) {
-    final rows = <Widget>[];
+    final l10n = context.l10n;
+    final main = next.first;
+    final m = main.milestone;
+    final color = LoveTreeService.nucleusColor(m.kind);
+    final remaining = (m.value - main.progress).clamp(1, m.value);
 
-    final reached = milestones.where((m) => m.reached).toList();
-    for (final m in reached) {
+    return ContentCard(
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            MomentSheet.showLocked(
+              context,
+              kind: m.kind,
+              value: m.value,
+              remaining: remaining,
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    SizedBox.square(
+                      dimension: 40,
+                      child: kTreeRenderer.flowerWidget(
+                        kind: m.kind,
+                        diameter: 40,
+                        isNew: false,
+                        bloomOrder: 0,
+                        reduceMotion: true,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.loveTreeNextFlower,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _milestoneLabel(l10n, m),
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _remainingLabel(l10n, m.kind, remaining),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _Bar(value: main.progress / m.value, color: color, height: 8),
+                const SizedBox(height: 6),
+                Text(
+                  switch (m.kind) {
+                    FlowerKind.days => l10n.loveTreeNextProgressDays(
+                      main.progress,
+                      m.value,
+                    ),
+                    FlowerKind.streak => l10n.loveTreeNextProgressStreak(
+                      main.progress,
+                      m.value,
+                    ),
+                    FlowerKind.photos => l10n.loveTreeNextProgressPhotos(
+                      main.progress,
+                      m.value,
+                    ),
+                  },
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (next.length > 1) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    height: 1,
+                    color: AppColors.textSecondary.withValues(alpha: 0.10),
+                  ),
+                  for (final other in next.skip(1))
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Row(
+                        children: [
+                          _Dot(
+                            color: LoveTreeService.nucleusColor(
+                              other.milestone.kind,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _milestoneLabel(l10n, other.milestone),
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 64,
+                            child: _Bar(
+                              value: other.progress / other.milestone.value,
+                              color: LoveTreeService.nucleusColor(
+                                other.milestone.kind,
+                              ),
+                              height: 6,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            _remainingLabel(
+                              l10n,
+                              other.milestone.kind,
+                              (other.milestone.value - other.progress).clamp(
+                                1,
+                                other.milestone.value,
+                              ),
+                            ),
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _remainingLabel(
+    AppLocalizations l10n,
+    FlowerKind kind,
+    int n,
+  ) => switch (kind) {
+    FlowerKind.days => l10n.loveTreeMilestoneDaysLeft(n),
+    FlowerKind.streak => l10n.loveTreeMilestoneStreakLeft(n),
+    FlowerKind.photos => l10n.loveTreeMilestonePhotosLeft(n),
+  };
+}
+
+class _Bar extends StatelessWidget {
+  const _Bar({required this.value, required this.color, required this.height});
+
+  final double value;
+  final Color color;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(999),
+    child: LinearProgressIndicator(
+      value: value.clamp(0.0, 1.0),
+      minHeight: height,
+      color: color,
+      backgroundColor: AppColors.surfaceLight,
+    ),
+  );
+}
+
+/// "Việc nhỏ hôm nay": the three things that light today's stars, who has
+/// done them, and "Làm ngay" for mine.
+class _TodayTasksCard extends StatelessWidget {
+  const _TodayTasksCard({required this.partnerName, required this.onAct});
+
+  final String partnerName;
+  final void Function(CareTask task) onAct;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final sky = TodayConstellation.watch(context);
+    final sleep = context.watch<SleepProvider>();
+    final myColor = PersonPalette.colorOf(sleep.myColorId);
+    final partnerColor = PersonPalette.colorOf(sleep.partnerColorId);
+
+    Widget status(String name, bool done, Color color) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _Dot(color: color, filled: done),
+        const SizedBox(width: 5),
+        Text(
+          done ? l10n.loveTreeTaskDone(name) : l10n.loveTreeTaskPending(name),
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+
+    final rows = <Widget>[];
+    for (final task in CareTask.values) {
+      final mine = sky.lit(true, task);
       rows.add(
-        _MilestoneRow(
-          label: _label(m),
-          kind: m.kind,
-          reached: true,
-          onTap: () => _openMomentSheet(
-            context,
-            m,
-            anniversary: anniversary,
-            photo: photoProvider,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              IconBadge(switch (task) {
+                CareTask.question => IconsaxPlusLinear.message_question,
+                CareTask.mood => IconsaxPlusLinear.emoji_happy,
+                CareTask.message => IconsaxPlusLinear.messages_2,
+              }),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      switch (task) {
+                        CareTask.question => l10n.loveTreeTaskQuestion,
+                        CareTask.mood => l10n.loveTreeTaskMood,
+                        CareTask.message => l10n.loveTreeTaskMessage,
+                      },
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 4,
+                      children: [
+                        status(l10n.reactionYouLabel, mine, myColor),
+                        status(
+                          partnerName,
+                          sky.lit(false, task),
+                          partnerColor,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (mine)
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.14),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    size: 18,
+                    color: AppColors.success,
+                  ),
+                )
+              else
+                SizedBox(
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
+                      onAct(task);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(0, 44),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      textStyle: const TextStyle(
+                        fontFamily: AppTheme.fontFamily,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    child: Text(l10n.loveTreeDoNow),
+                  ),
+                ),
+            ],
           ),
         ),
       );
     }
 
-    // One "next" row per kind (the nearest unreached milestone of each).
-    for (final kind in FlowerKind.values) {
-      final next = milestones
-          .where((m) => m.kind == kind && !m.reached)
-          .fold<LoveTreeMilestone?>(null, (a, b) => a ?? b);
-      if (next != null) {
-        rows.add(
-          _MilestoneRow(
-            label: _label(next),
-            kind: kind,
-            reached: false,
-            remaining: _remaining(next),
-            onTap: () => MomentSheet.showLocked(
-              context,
-              kind: kind,
-              value: next.value,
-              remaining: _remainingCount(next),
-            ),
-          ),
-        );
-      }
-    }
-
     return ContentCard(
+      padding: EdgeInsets.zero,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Icon(
-                IconsaxPlusLinear.flag,
-                size: 18,
-                color: AppColors.accentRose,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.loveTreeMilestonesTitle,
-                style: const TextStyle(
-                  fontFamily: AppTheme.fontFamily,
-                  color: AppColors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          for (int i = 0; i < rows.length; i++) ...[
+          for (var i = 0; i < rows.length; i++) ...[
             if (i > 0)
               Container(
-                margin: const EdgeInsets.only(left: 56),
                 height: 1,
-                color: AppColors.textTertiary.withValues(alpha: 0.12),
+                color: AppColors.textSecondary.withValues(alpha: 0.10),
               ),
             rows[i],
           ],
@@ -1931,164 +1919,118 @@ class _MilestonesCard extends StatelessWidget {
       ),
     );
   }
-
-  String _label(LoveTreeMilestone m) {
-    switch (m.kind) {
-      case FlowerKind.days:
-        return l10n.loveTreeMilestoneDays(m.value);
-      case FlowerKind.streak:
-        return l10n.loveTreeMilestoneStreak(m.value);
-      case FlowerKind.photos:
-        return l10n.loveTreeMilestonePhotos(m.value);
-    }
-  }
-
-  String _remaining(LoveTreeMilestone m) {
-    final n = _remainingCount(m);
-    switch (m.kind) {
-      case FlowerKind.days:
-        return l10n.loveTreeMilestoneDaysLeft(n);
-      case FlowerKind.streak:
-        return l10n.loveTreeMilestoneStreakLeft(n);
-      case FlowerKind.photos:
-        return l10n.loveTreeMilestonePhotosLeft(n);
-    }
-  }
-
-  /// How far the unreached milestone [m] still is (clamped ≥1).
-  int _remainingCount(LoveTreeMilestone m) {
-    switch (m.kind) {
-      case FlowerKind.days:
-        return (m.value - days).clamp(1, m.value);
-      case FlowerKind.streak:
-        return (m.value - longestStreak).clamp(1, m.value);
-      case FlowerKind.photos:
-        return (m.value - photoCount).clamp(1, m.value);
-    }
-  }
 }
 
-class _MilestoneRow extends StatelessWidget {
-  const _MilestoneRow({
-    required this.label,
-    required this.kind,
+/// "Cột mốc đã nở": every bloomed milestone as a tappable chip — the biggest
+/// of each kind first — collapsed to 8 with "Xem tất cả".
+class _BloomedChips extends StatefulWidget {
+  const _BloomedChips({
     required this.reached,
-    this.remaining,
-    this.onTap,
+    required this.anniversary,
+    required this.photo,
   });
 
-  final String label;
-  final FlowerKind kind;
-  final bool reached;
-  final String? remaining;
+  final List<LoveTreeMilestone> reached;
+  final DateTime anniversary;
+  final PhotoProvider photo;
 
-  /// Opens the moment sheet (bloomed) or the locked hint (next).
-  final VoidCallback? onTap;
+  @override
+  State<_BloomedChips> createState() => _BloomedChipsState();
+}
+
+class _BloomedChipsState extends State<_BloomedChips> {
+  static const int _collapsed = 8;
+  bool _expanded = false;
+
+  /// Biggest milestone of each kind first, round-robin across kinds.
+  List<LoveTreeMilestone> get _ordered {
+    final byKind = {
+      for (final kind in FlowerKind.values)
+        kind: widget.reached.where((m) => m.kind == kind).toList()
+          ..sort((a, b) => b.value.compareTo(a.value)),
+    };
+    final out = <LoveTreeMilestone>[];
+    for (var i = 0; out.length < widget.reached.length; i++) {
+      for (final kind in FlowerKind.values) {
+        final list = byKind[kind]!;
+        if (i < list.length) {
+          out.add(list[i]);
+        }
+      }
+    }
+    return out;
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final discColor = LoveTreeService.nucleusColor(kind);
-    final icon = LoveTreeService.nucleusIcon(kind);
+    final all = _ordered;
+    final canCollapse = all.length > _collapsed;
+    final shown = _expanded || !canCollapse ? all : all.take(_collapsed);
 
-    final row = Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          // Mini nucleus disc (16px) — filled when reached, outlined when next.
-          Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: reached ? discColor : Colors.transparent,
-              border: reached
-                  ? null
-                  : Border.all(color: AppColors.textTertiary, width: 1.4),
-            ),
-            child: Icon(
-              icon,
-              size: 10,
-              color: reached ? AppColors.white : AppColors.textTertiary,
-            ),
-          ),
-          const SizedBox(width: 24),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontFamily: AppTheme.fontFamily,
-                color: reached ? AppColors.textPrimary : AppColors.textTertiary,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionHeader(
+          title: l10n.loveTreeBloomedTitle,
+          actionLabel: canCollapse
+              ? (_expanded ? l10n.loveTreeShowLess : l10n.seeAll)
+              : null,
+          onActionTap: canCollapse
+              ? () => setState(() => _expanded = !_expanded)
+              : null,
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final m in shown)
+              Material(
+                color: AppColors.white,
+                shape: const StadiumBorder(),
+                shadowColor: Colors.black.withValues(alpha: 0.20),
+                elevation: 1.5,
+                child: InkWell(
+                  customBorder: const StadiumBorder(),
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    _openMomentSheet(
+                      context,
+                      m,
+                      anniversary: widget.anniversary,
+                      photo: widget.photo,
+                    );
+                  },
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 36),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _Dot(color: LoveTreeService.nucleusColor(m.kind)),
+                          const SizedBox(width: 6),
+                          Text(
+                            _milestoneLabel(l10n, m),
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          if (reached)
-            _BloomedChip(l10n: l10n)
-          else
-            Text(
-              remaining ?? '',
-              style: const TextStyle(
-                fontFamily: AppTheme.fontFamily,
-                color: AppColors.textSecondary,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-        ],
-      ),
-    );
-
-    final content = Opacity(opacity: reached ? 1.0 : 0.65, child: row);
-    if (onTap == null) {
-      return content;
-    }
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        splashColor: AppColors.accentRose.withValues(alpha: 0.08),
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap!();
-        },
-        child: content,
-      ),
-    );
-  }
-}
-
-class _BloomedChip extends StatelessWidget {
-  const _BloomedChip({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.success.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.check_rounded, size: 12, color: AppColors.success),
-          const SizedBox(width: 4),
-          Text(
-            l10n.loveTreeMilestoneBloomed,
-            style: const TextStyle(
-              fontFamily: AppTheme.fontFamily,
-              color: AppColors.success,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -2101,14 +2043,12 @@ class _StateMessage extends StatelessWidget {
   const _StateMessage({
     required this.title,
     required this.body,
-    required this.reduceMotion,
     this.ctaLabel,
     this.onCta,
   });
 
   final String title;
   final String body;
-  final bool reduceMotion;
   final String? ctaLabel;
   final VoidCallback? onCta;
 
@@ -2118,9 +2058,8 @@ class _StateMessage extends StatelessWidget {
     final usable = media.size.height - media.padding.vertical;
     final treeHeight = (usable * 0.40).clamp(280.0, 380.0);
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         children: [
           SizedBox(
@@ -3367,22 +3306,49 @@ class _StageSpec {
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// Sky backdrop (v2 #2 §B.1/B.2) — time-of-day gradient + static stars (night)
+// Night sky (v3, 2026-10-11) — always night now (user chose to drop the four
+// time-of-day skies): it carries today's constellation. Part of the SCROLLING
+// page, under the header + constellation + branch, fading into the blush where
+// the cards begin so text below always sits on a light ground.
 // ───────────────────────────────────────────────────────────────────────────
 
-/// The sky layer painted BELOW the tree: a soft top-fading gradient by hour,
-/// plus deterministic static stars at night. Always static (kept even under
-/// Reduce Motion); repaints only when phase/season/size change.
+/// Paints [SkyBackdropPainter] behind [child], animated on the shared [ambient]
+/// clock (null = static Reduce-Motion frame).
+class _NightSky extends StatelessWidget {
+  const _NightSky({super.key, required this.ambient, required this.child});
+
+  final AnimationController? ambient;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final top = MediaQuery.paddingOf(context).top;
+    final clock = ambient;
+    final sky = clock == null
+        ? CustomPaint(painter: SkyBackdropPainter(topInset: top))
+        : AnimatedBuilder(
+            animation: clock,
+            builder: (context, _) => CustomPaint(
+              painter: SkyBackdropPainter(topInset: top, t: clock.value),
+            ),
+          );
+    return Stack(
+      children: [
+        Positioned.fill(child: IgnorePointer(child: sky)),
+        child,
+      ],
+    );
+  }
+}
+
+/// Gradient `#2E2A52 → #3A3160 → #4A3D6B → soft violet → transparent`, 20 fixed
+/// background stars and a 26px cream moon top-right below the header. [t]
+/// drives a gentle twinkle + the moon's breathing glow (−1 = static frame).
 class SkyBackdropPainter extends CustomPainter {
-  SkyBackdropPainter({required this.phase, required this.season, this.t = -1});
+  SkyBackdropPainter({required this.topInset, this.t = -1});
 
-  final SkyPhase phase;
-  final Season season;
-
-  /// Ambient clock phase in [0,1) when animating, or -1 for the static
-  /// (Reduce-Motion) frame. Drives the gentle cloud drift, sun/moon glow
-  /// "breathing", star twinkle and the gliding birds — all kept subtle (dịu
-  /// mắt). At -1 every animated term collapses to a clean still frame.
+  /// Status-bar height — the moon sits below the header, not under it.
+  final double topInset;
   final double t;
 
   bool get _moving => t >= 0;
@@ -3390,168 +3356,28 @@ class SkyBackdropPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // Gradient stops per phase (top → bottom → transparent). Only covers ~72%
-    // of the area so the mound + bokeh below stay clean.
-    // Per-phase gradient (love-tree daytime skies 2026-06-19). Warm sunrise →
-    // bright midday → golden dusk → deep night, kept harmonious with the app's
-    // pink "Sunset Romance" palette so the sky melts into dawnBlush below.
-    final List<Color> colors;
-    switch (phase) {
-      case SkyPhase.dawn: // buổi sáng — soft fresh blue sky (user 2026-06-19:
-        // "bg buổi sáng phải là màu xanh da trời", chọn tông pastel dịu). A hair
-        // lighter & cooler than midday so morning reads airy; the warm painted
-        // sun rising low-left supplies the only warmth, and it melts quickly
-        // into the dawnBlush pink below where the tree sits.
-        colors = [
-          const Color(0xFFC8E6F7).withValues(alpha: 0.56),
-          const Color(0xFFE4F2FB).withValues(alpha: 0.34),
-          const Color(0xFFEFF7FC).withValues(alpha: 0.08),
-        ];
-        break;
-      case SkyPhase.day: // buổi trưa — bright clear sky blue (the bluest of the
-        // day; pastel per user choice). Slightly more saturated than dawn.
-        colors = [
-          const Color(0xFFB8DEF5).withValues(alpha: 0.62),
-          const Color(0xFFDCEFFB).withValues(alpha: 0.40),
-          const Color(0xFFEAF5FC).withValues(alpha: 0.10),
-        ];
-        break;
-      case SkyPhase.dusk: // buổi chiều — golden hour
-        colors = [
-          const Color(0xFFFF9E6E).withValues(alpha: 0.62),
-          const Color(0xFFFF6B9D).withValues(alpha: 0.46),
-          const Color(0xFFC8A8E9).withValues(alpha: 0.34),
-        ];
-        break;
-      case SkyPhase.night:
-        colors = [
-          const Color(0xFF2E2A52).withValues(alpha: 0.80),
-          const Color(0xFF4A3D6B).withValues(alpha: 0.64),
-          const Color(0xFF6B5A8C).withValues(alpha: 0.42),
-        ];
-        break;
-    }
-
-    // Full-bleed sky (love-tree 2026-06-18): the gradient now spans the WHOLE
-    // box (it reaches up behind the header and runs full width) and fades to a
-    // fully-transparent tail so the sky melts into the dawnBlush page below with
-    // no hard horizontal seam.
-    final rect = Rect.fromLTWH(0, 0, w, h);
-    final paint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [...colors, colors.last.withValues(alpha: 0.0)],
-        stops: const [0.0, 0.34, 0.60, 1.0],
-      ).createShader(rect);
-    canvas.drawRect(rect, paint);
-
-    // Celestial scene per phase. Daytime = JUST drifting clouds here (the SUN is
-    // a Lottie overlay drawn by the widget tree — see build()); night keeps its
-    // painted moon + full star field. Clouds drift / stars twinkle when [t] >= 0;
-    // a clean static frame under Reduce Motion (t == -1). (user: "sky chỉ mặt
-    // trời + mây, bỏ đàn chim; mặt trời để Lottie".)
-    switch (phase) {
-      // Header-safe composition (2026-06-19): the top ~28% of the sky band is a
-      // CLEAN zone reserved for the header (back · title chip · share) — the sun
-      // + clouds used to crowd into it and read as clutter. Everything celestial
-      // now lives in the open sky BELOW the header, balanced sun-on-one-side /
-      // clouds-on-the-other so no bright core ever sits under a corner control.
-      case SkyPhase.dawn: // sunrise — warm sun low-left, clouds drifting right
-        _paintSun(canvas, Offset(w * 0.22, h * 0.43), h * 0.056,
-            const Color(0xFFFFE6B8), const Color(0xFFFFD49A));
-        _paintCloud(canvas, Offset(w * 0.66, h * 0.33), h * 0.052, 0.6,
-            driftPhase: 0.0);
-        _paintCloud(canvas, Offset(w * 0.47, h * 0.44), h * 0.042, 0.7,
-            driftPhase: 1.6);
-        _paintCloud(canvas, Offset(w * 0.86, h * 0.41), h * 0.036, 0.5,
-            driftPhase: 2.8);
-        break;
-      case SkyPhase.day: // bright midday — small high sun upper-right, clouds left
-        _paintSun(canvas, Offset(w * 0.74, h * 0.37), h * 0.044,
-            const Color(0xFFFFF4D8), const Color(0xFFFFE6AE));
-        _paintCloud(canvas, Offset(w * 0.24, h * 0.33), h * 0.056, 0.8,
-            driftPhase: 0.0);
-        _paintCloud(canvas, Offset(w * 0.48, h * 0.44), h * 0.046, 0.65,
-            driftPhase: 1.2);
-        _paintCloud(canvas, Offset(w * 0.13, h * 0.45), h * 0.034, 0.5,
-            driftPhase: 3.2);
-        break;
-      case SkyPhase.dusk: // golden hour — big warm setting sun right, clouds left
-        _paintSun(canvas, Offset(w * 0.74, h * 0.49), h * 0.066,
-            const Color(0xFFFFC785), const Color(0xFFFF9E6E));
-        _paintCloud(canvas, Offset(w * 0.28, h * 0.33), h * 0.050, 0.7,
-            driftPhase: 0.0, tint: const Color(0xFFFFC09A));
-        _paintCloud(canvas, Offset(w * 0.52, h * 0.44), h * 0.042, 0.6,
-            driftPhase: 1.4, tint: const Color(0xFFFFAEB8));
-        _paintCloud(canvas, Offset(w * 0.16, h * 0.40), h * 0.036, 0.5,
-            driftPhase: 2.6, tint: const Color(0xFFE7AED0));
-        break;
-      case SkyPhase.night: // moon + full star field (unchanged — its identity)
-        _paintMoon(canvas, Offset(w * 0.79, h * 0.15), h * 0.044);
-        _paintStars(canvas, size);
-        break;
-    }
-  }
-
-  /// A soft cloud: a few lightly-blurred blobs clustered. [strength] scales
-  /// opacity. [driftPhase] offsets the gentle horizontal sway so clouds don't
-  /// drift in lockstep (dx = 0 on the static frame). [tint] warms the white for
-  /// golden-hour clouds (null = pure white).
-  void _paintCloud(Canvas canvas, Offset c0, double r, double strength,
-      {double driftPhase = 0, Color? tint}) {
-    final dx = _moving ? math.sin(_tau + driftPhase) * r * 1.4 : 0.0;
-    final c = c0.translate(dx, 0);
-    final base =
-        tint == null ? AppColors.white : Color.lerp(AppColors.white, tint, 0.5)!;
-    final p = Paint()
-      ..color = base.withValues(alpha: 0.82 * strength)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.16);
-    canvas.drawCircle(c, r, p);
-    canvas.drawCircle(c.translate(r * 0.95, r * 0.18), r * 0.78, p);
-    canvas.drawCircle(c.translate(-r * 0.9, r * 0.22), r * 0.7, p);
-    canvas.drawCircle(c.translate(r * 0.1, -r * 0.22), r * 0.72, p);
-  }
-
-  /// A soft glowing sun (daytime phases) — a warm orb wrapped in a wide radial
-  /// halo with NO hard rays (user 2026-06-19 chose "vầng sáng mềm" over the flat
-  /// cartoon Lottie). Same idiom as [_paintMoon]: the halo gently breathes on
-  /// the ambient clock, and the orb edge is faintly blurred so it melts into the
-  /// glow rather than reading as a hard disc. [core] = orb colour, [glow] = halo.
-  void _paintSun(Canvas canvas, Offset c, double r, Color core, Color glow) {
-    final pulse = _moving ? 1 + 0.05 * math.sin(_tau) : 1.0;
-    final glowR = r * 3.2 * pulse;
-    // Wide soft halo (warm light bleeding into the sky).
-    canvas.drawCircle(
-      c,
-      glowR,
+    final rect = Offset.zero & size;
+    canvas.drawRect(
+      rect,
       Paint()
-        ..shader = RadialGradient(
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
           colors: [
-            glow.withValues(alpha: 0.45 * pulse),
-            glow.withValues(alpha: 0.16),
-            glow.withValues(alpha: 0.0),
+            Color(0xFF2E2A52),
+            Color(0xFF3A3160),
+            Color(0xFF4A3D6B),
+            Color(0x8C6B5A8C),
+            Color(0x00C8A8E9),
           ],
-          stops: const [0.0, 0.5, 1.0],
-        ).createShader(Rect.fromCircle(center: c, radius: glowR)),
+          stops: [0.0, 0.42, 0.66, 0.84, 1.0],
+        ).createShader(rect),
     );
-    // The orb: a soft radial fill (bright highlight → warm rim) with a faint
-    // blur so the edge dissolves into the halo (no hard cartoon disc).
-    canvas.drawCircle(
-      c,
-      r,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [Color.lerp(core, AppColors.white, 0.55)!, core],
-        ).createShader(Rect.fromCircle(center: c, radius: r))
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.10),
-    );
+    _paintStars(canvas, size);
+    _paintMoon(canvas, Offset(size.width - 43, topInset + 104), 13);
   }
 
-  /// A soft full moon with a gentle glow (night) that breathes on the clock.
+  /// A soft full moon with a gentle glow that breathes on the clock.
   void _paintMoon(Canvas canvas, Offset c, double r) {
     const moonColor = Color(0xFFFFF6D6);
     final pulse = _moving ? 1 + 0.05 * math.sin(_tau) : 1.0;
@@ -3570,125 +3396,88 @@ class SkyBackdropPainter extends CustomPainter {
     canvas.drawCircle(c, r, Paint()..color = moonColor.withValues(alpha: 0.92));
   }
 
-  // 14 deterministic stars in the upper band (fraction x, y, r, alpha).
+  // 20 fixed stars (x fraction, y in the top 640pt, radius, alpha), kept
+  // mostly to the sides so they never compete with the constellation.
   static const List<List<double>> _stars = [
-    [0.12, 0.10, 2.0, 0.85],
-    [0.22, 0.20, 1.2, 0.55],
-    [0.34, 0.08, 1.6, 0.70],
-    [0.46, 0.15, 1.0, 0.50],
-    [0.58, 0.07, 2.2, 0.90],
-    [0.68, 0.18, 1.4, 0.65],
-    [0.78, 0.10, 1.8, 0.80],
-    [0.86, 0.22, 1.1, 0.55],
-    [0.16, 0.32, 1.3, 0.60],
-    [0.40, 0.30, 1.0, 0.50],
-    [0.62, 0.34, 1.5, 0.70],
-    [0.74, 0.40, 1.2, 0.55],
-    [0.30, 0.42, 1.4, 0.60],
-    [0.88, 0.36, 1.0, 0.50],
+    [0.05, 40, 1.6, 0.60],
+    [0.14, 96, 1.0, 0.40],
+    [0.24, 26, 1.2, 0.50],
+    [0.36, 70, 1.0, 0.35],
+    [0.47, 20, 1.8, 0.55],
+    [0.58, 58, 1.0, 0.40],
+    [0.68, 26, 1.2, 0.45],
+    [0.09, 192, 1.0, 0.30],
+    [0.91, 166, 1.6, 0.50],
+    [0.83, 230, 1.0, 0.30],
+    [0.04, 307, 1.2, 0.35],
+    [0.95, 320, 1.0, 0.30],
+    [0.12, 422, 1.0, 0.25],
+    [0.88, 410, 1.4, 0.30],
+    [0.50, 448, 1.0, 0.22],
+    [0.28, 512, 1.0, 0.22],
+    [0.72, 538, 1.0, 0.22],
+    [0.06, 560, 1.2, 0.20],
+    [0.94, 600, 1.0, 0.20],
+    [0.40, 620, 1.0, 0.18],
   ];
 
-  /// [alphaScale] dims the whole field — full at night, faint (early stars) at
-  /// dusk.
-  void _paintStars(Canvas canvas, Size size, {double alphaScale = 1.0}) {
+  void _paintStars(Canvas canvas, Size size) {
     for (var i = 0; i < _stars.length; i++) {
       final s = _stars[i];
-      final c = Offset(size.width * s[0], size.height * s[1]);
-      // Per-star twinkle: each fades on its own phase so the field shimmers
-      // rather than pulsing as one. Static frame → full brightness.
+      if (s[1] > size.height) {
+        continue;
+      }
+      // Each star fades on its own phase so the field shimmers, not pulses.
       final tw = _moving
           ? (0.55 + 0.45 * math.sin(_tau + i * 1.3)).clamp(0.0, 1.0)
           : 1.0;
-      final paint = Paint()
-        ..color = AppColors.white.withValues(alpha: s[3] * alphaScale * tw);
-      canvas.drawCircle(c, s[2], paint);
-      // A few brighter stars get a tiny "+" sparkle (only when clearly visible).
-      if (s[2] >= 1.8 && alphaScale >= 0.8) {
-        final cross = Paint()
-          ..color = AppColors.white.withValues(alpha: 0.70 * alphaScale * tw)
-          ..strokeWidth = 0.8;
-        canvas.drawLine(c.translate(-3, 0), c.translate(3, 0), cross);
-        canvas.drawLine(c.translate(0, -3), c.translate(0, 3), cross);
-      }
+      canvas.drawCircle(
+        Offset(size.width * s[0], s[1]),
+        s[2],
+        Paint()..color = AppColors.white.withValues(alpha: s[3] * tw),
+      );
     }
   }
 
   @override
   bool shouldRepaint(SkyBackdropPainter oldDelegate) =>
-      oldDelegate.phase != phase ||
-      oldDelegate.season != season ||
-      oldDelegate.t != t;
+      oldDelegate.t != t || oldDelegate.topInset != topInset;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// Ambient idle particles (v2 #2 §B.2/B.3/B.4) — fireflies / falling petals
+// Ambient idle particles (v2 #2 §B.2/B.4) — fireflies around the branch
 // ───────────────────────────────────────────────────────────────────────────
 
-/// Idle particles overlaid on the tree: fireflies at night, falling petals
-/// (spring) / leaves (autumn) otherwise, capped at ≤9 (design §B.6). Driven by
-/// one shared [ambient] clock. Under Reduce Motion the particles are drawn
-/// STATIC (fireflies at rest, petals scattered on the mound) — never blank.
+/// Fireflies drifting around the branch (the sky is always night since v3),
+/// capped at 5 (design §B.6). Driven by the shared [ambient] clock; drawn at
+/// rest under Reduce Motion — never blank.
 class _AmbientParticles extends StatelessWidget {
-  const _AmbientParticles({
-    required this.phase,
-    required this.season,
-    required this.reduceMotion,
-    required this.ambient,
-  });
+  const _AmbientParticles({required this.reduceMotion, required this.ambient});
 
-  final SkyPhase phase;
-  final Season season;
   final bool reduceMotion;
   final AnimationController? ambient;
 
-  bool get _fireflies => phase == SkyPhase.night;
-  bool get _falling =>
-      !_fireflies && (season == Season.spring || season == Season.autumn);
-
   @override
   Widget build(BuildContext context) {
-    if (!_fireflies && !_falling) {
-      return const SizedBox.shrink();
-    }
-    final painter = _ParticlesPainter(
-      phase: phase,
-      season: season,
-      fireflies: _fireflies,
-      // t = clock phase; -1 marks the static (Reduce Motion) frame.
-      t: -1,
-    );
-
-    if (reduceMotion || ambient == null) {
-      return CustomPaint(painter: painter, size: Size.infinite);
+    final clock = ambient;
+    if (reduceMotion || clock == null) {
+      return const CustomPaint(
+        painter: _FirefliesPainter(t: -1),
+        size: Size.infinite,
+      );
     }
     return AnimatedBuilder(
-      animation: ambient!,
-      builder: (context, _) {
-        return CustomPaint(
-          painter: _ParticlesPainter(
-            phase: phase,
-            season: season,
-            fireflies: _fireflies,
-            t: ambient!.value,
-          ),
-          size: Size.infinite,
-        );
-      },
+      animation: clock,
+      builder: (context, _) => CustomPaint(
+        painter: _FirefliesPainter(t: clock.value),
+        size: Size.infinite,
+      ),
     );
   }
 }
 
-class _ParticlesPainter extends CustomPainter {
-  _ParticlesPainter({
-    required this.phase,
-    required this.season,
-    required this.fireflies,
-    required this.t,
-  });
-
-  final SkyPhase phase;
-  final Season season;
-  final bool fireflies;
+class _FirefliesPainter extends CustomPainter {
+  const _FirefliesPainter({required this.t});
 
   /// Clock phase 0..1, or -1 for the static Reduce-Motion frame.
   final double t;
@@ -3697,14 +3486,6 @@ class _ParticlesPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (fireflies) {
-      _paintFireflies(canvas, size);
-    } else {
-      _paintFalling(canvas, size);
-    }
-  }
-
-  void _paintFireflies(Canvas canvas, Size size) {
     const count = 5;
     // Anchor positions (fractions) around + below the canopy.
     const anchors = <List<double>>[
@@ -3746,55 +3527,8 @@ class _ParticlesPainter extends CustomPainter {
     }
   }
 
-  void _paintFalling(Canvas canvas, Size size) {
-    const count = 4;
-    final spring = season == Season.spring;
-    // Falling sakura petals (v2.2 §C.6): soft pink in spring, a warmer amber
-    // tinge in autumn (keeps the four seasons distinguishable). Each petal is
-    // a small notched sakura petal, not a teardrop leaf.
-    final petalColor = spring
-        ? const Color(0xFFFF8FA3)
-        : const Color(0xFFF0B95A);
-    final fill = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [const Color(0xFFFFD6E0), petalColor],
-      ).createShader(const Rect.fromLTWH(-6, -10, 12, 12));
-    for (var i = 0; i < count; i++) {
-      final xBase = (0.30 + i * 0.16) % 1.0;
-      double progress;
-      double swayX;
-      double rot;
-      if (_static) {
-        // Scattered around the branch foot (like fallen petals) — calm frame.
-        progress = 0.82 + (i % 2) * 0.06;
-        swayX = (i.isEven ? -1 : 1) * 0.04;
-        rot = i * 0.9;
-      } else {
-        // Falls from the upper area (y .15) down (y .88), looping, phase-offset.
-        progress = ((t + i / count) % 1.0);
-        // Petals flutter side to side a touch more than leaves did.
-        swayX = math.sin((progress * 2 * math.pi) + i) * 0.06;
-        rot = progress * 4 + i; // gentle tumble
-      }
-      final x = size.width * (xBase + swayX);
-      final y = size.height * (0.15 + progress * 0.73);
-      canvas.save();
-      canvas.translate(x, y);
-      canvas.rotate(rot);
-      // A small single sakura petal (~10px) with a soft V-notch tip.
-      canvas.drawPath(_sakuraPetalPath(10.0), fill);
-      canvas.restore();
-    }
-  }
-
   @override
-  bool shouldRepaint(_ParticlesPainter oldDelegate) =>
-      oldDelegate.t != t ||
-      oldDelegate.fireflies != fireflies ||
-      oldDelegate.season != season ||
-      oldDelegate.phase != phase;
+  bool shouldRepaint(_FirefliesPainter oldDelegate) => oldDelegate.t != t;
 }
 
 // ───────────────────────────────────────────────────────────────────────────

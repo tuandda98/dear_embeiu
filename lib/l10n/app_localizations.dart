@@ -4316,12 +4316,6 @@ abstract class AppLocalizations {
   /// **'Your journey starts right here 🌱'**
   String get loveTreeSeedSubtitle;
 
-  /// No description provided for @loveTreeBloomSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your tree is in full bloom ✨'**
-  String get loveTreeBloomSubtitle;
-
   /// No description provided for @loveTreeNewBloomBanner.
   ///
   /// In en, this message translates to:
@@ -4333,54 +4327,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your tree just bloomed a new flower 🌸'**
   String get loveTreeNewBloomBannerOne;
-
-  /// No description provided for @loveTreeNurtureTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Grow it together'**
-  String get loveTreeNurtureTitle;
-
-  /// No description provided for @loveTreeNurtureStreakTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep your daily streak'**
-  String get loveTreeNurtureStreakTitle;
-
-  /// No description provided for @loveTreeNurtureStreakBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Answer daily so your streak lives on'**
-  String get loveTreeNurtureStreakBody;
-
-  /// No description provided for @loveTreeNurturePhotoTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a memory'**
-  String get loveTreeNurturePhotoTitle;
-
-  /// No description provided for @loveTreeNurturePhotoBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Every photo is a new flower'**
-  String get loveTreeNurturePhotoBody;
-
-  /// No description provided for @loveTreeNurtureTalkTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Talk together today'**
-  String get loveTreeNurtureTalkTitle;
-
-  /// No description provided for @loveTreeNurtureTalkBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Small moments grow the tree'**
-  String get loveTreeNurtureTalkBody;
-
-  /// No description provided for @loveTreeMilestonesTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Milestones'**
-  String get loveTreeMilestonesTitle;
 
   /// No description provided for @loveTreeMilestoneDays.
   ///
@@ -4399,12 +4345,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} memories'**
   String loveTreeMilestonePhotos(int count);
-
-  /// No description provided for @loveTreeMilestoneBloomed.
-  ///
-  /// In en, this message translates to:
-  /// **'bloomed'**
-  String get loveTreeMilestoneBloomed;
 
   /// No description provided for @loveTreeMilestoneDaysLeft.
   ///
@@ -4453,12 +4393,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to see this moment 🌸'**
   String get loveTreeCoachTooltip;
-
-  /// No description provided for @loveTreeTapHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap a flower to relive a memory'**
-  String get loveTreeTapHint;
 
   /// No description provided for @loveTreeMomentDaysTitle.
   ///
@@ -6120,6 +6054,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{h} hr'**
   String sleepHoursLong(int h);
+
+  /// Love tree v3: title above the 6-star heart
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s constellation'**
+  String get loveTreeSkyTitle;
+
+  /// Love tree v3: what the constellation means
+  ///
+  /// In en, this message translates to:
+  /// **'Every little thing we do for each other today lights a star. When both halves glow, the heart is complete.'**
+  String get loveTreeSkyExplain;
+
+  /// Love tree v3 legend
+  ///
+  /// In en, this message translates to:
+  /// **'Left half: You'**
+  String get loveTreeLeftHalf;
+
+  /// Love tree v3 legend
+  ///
+  /// In en, this message translates to:
+  /// **'Right half: {name}'**
+  String loveTreeRightHalf(String name);
+
+  /// Love tree v3: label next to a star
+  ///
+  /// In en, this message translates to:
+  /// **'Question'**
+  String get loveTreeStarQuestion;
+
+  /// Love tree v3: label next to a star
+  ///
+  /// In en, this message translates to:
+  /// **'Mood'**
+  String get loveTreeStarMood;
+
+  /// Love tree v3: label next to a star
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get loveTreeStarMessage;
+
+  /// Love tree v3: hint under the constellation
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a star to see more'**
+  String get loveTreeTapStar;
+
+  /// Love tree v3: all six stars lit
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s heart is complete'**
+  String get loveTreeHeartFull;
+
+  /// Love tree v3: one of the three small things
+  ///
+  /// In en, this message translates to:
+  /// **'Answer today\'s question'**
+  String get loveTreeTaskQuestion;
+
+  /// Love tree v3: one of the three small things
+  ///
+  /// In en, this message translates to:
+  /// **'Share your mood'**
+  String get loveTreeTaskMood;
+
+  /// Love tree v3: one of the three small things
+  ///
+  /// In en, this message translates to:
+  /// **'Send each other a message'**
+  String get loveTreeTaskMessage;
+
+  /// Love tree v3 star detail
+  ///
+  /// In en, this message translates to:
+  /// **'{name} answered at {time}'**
+  String loveTreeStarAnsweredAt(String name, String time);
+
+  /// Love tree v3 star detail: mood picked + time
+  ///
+  /// In en, this message translates to:
+  /// **'{mood} · {time}'**
+  String loveTreeStarMoodAt(String mood, String time);
+
+  /// Love tree v3 star detail
+  ///
+  /// In en, this message translates to:
+  /// **'{name} messaged at {time}'**
+  String loveTreeStarMessagedAt(String name, String time);
+
+  /// Love tree v3 star detail when the time is unknown
+  ///
+  /// In en, this message translates to:
+  /// **'Done for today'**
+  String get loveTreeStarDone;
+
+  /// Love tree v3 star detail
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s question isn\'t answered yet'**
+  String get loveTreeStarNoAnswer;
+
+  /// Love tree v3 star detail
+  ///
+  /// In en, this message translates to:
+  /// **'No mood shared yet today'**
+  String get loveTreeStarNoMood;
+
+  /// Love tree v3 star detail
+  ///
+  /// In en, this message translates to:
+  /// **'No message yet today'**
+  String get loveTreeStarNoMessage;
+
+  /// Love tree v3: act on my unlit star
+  ///
+  /// In en, this message translates to:
+  /// **'Answer now'**
+  String get loveTreeActAnswer;
+
+  /// Love tree v3: act on my unlit star
+  ///
+  /// In en, this message translates to:
+  /// **'Share now'**
+  String get loveTreeActMood;
+
+  /// Love tree v3: act on my unlit star
+  ///
+  /// In en, this message translates to:
+  /// **'Message now'**
+  String get loveTreeActMessage;
+
+  /// Love tree v3: partner's unlit star opens the care message screen
+  ///
+  /// In en, this message translates to:
+  /// **'Send some care'**
+  String get loveTreeNudge;
+
+  /// Love tree v3: close the star detail (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get loveTreeClosePanel;
+
+  /// Love tree v3: star button (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {task} · {state}'**
+  String loveTreeStarSemantics(String name, String task, String state);
+
+  /// Love tree v3: star state (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'lit'**
+  String get loveTreeStarLit;
+
+  /// Love tree v3: star state (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'not lit yet'**
+  String get loveTreeStarUnlit;
+
+  /// Love tree v3: under the flower count
+  ///
+  /// In en, this message translates to:
+  /// **'Each flower is one of our milestones. Tap one to look back.'**
+  String get loveTreeFlowersExplain;
+
+  /// Love tree v3: flower kind chip
+  ///
+  /// In en, this message translates to:
+  /// **'Days together'**
+  String get loveTreeKindDays;
+
+  /// Love tree v3: flower kind chip
+  ///
+  /// In en, this message translates to:
+  /// **'Question streak'**
+  String get loveTreeKindStreak;
+
+  /// Love tree v3: flower kind chip
+  ///
+  /// In en, this message translates to:
+  /// **'Photo memories'**
+  String get loveTreeKindPhotos;
+
+  /// Love tree v3: next milestone card caption
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT FLOWER'**
+  String get loveTreeNextFlower;
+
+  /// Love tree v3: next milestone progress
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{target} days together'**
+  String loveTreeNextProgressDays(int current, int target);
+
+  /// Love tree v3: next milestone progress
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{target} streak days'**
+  String loveTreeNextProgressStreak(int current, int target);
+
+  /// Love tree v3: next milestone progress
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{target} photos'**
+  String loveTreeNextProgressPhotos(int current, int target);
+
+  /// Love tree v3: section title
+  ///
+  /// In en, this message translates to:
+  /// **'Little things today'**
+  String get loveTreeTodayTasks;
+
+  /// Love tree v3: task done by that person
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ✓'**
+  String loveTreeTaskDone(String name);
+
+  /// Love tree v3: task not done yet by that person
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · not yet'**
+  String loveTreeTaskPending(String name);
+
+  /// Love tree v3: task row button
+  ///
+  /// In en, this message translates to:
+  /// **'Do it now'**
+  String get loveTreeDoNow;
+
+  /// Love tree v3: section title above the milestone chips
+  ///
+  /// In en, this message translates to:
+  /// **'Bloomed milestones'**
+  String get loveTreeBloomedTitle;
+
+  /// Love tree v3: collapse the milestone chips
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get loveTreeShowLess;
+
+  /// Home: Love Tree entry pill next to the today section
+  ///
+  /// In en, this message translates to:
+  /// **'{lit}/6 stars'**
+  String homeConstellationPill(int lit);
+
+  /// Home: Love Tree entry pill (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s constellation: {lit} of 6 stars. Opens the Love Tree'**
+  String homeConstellationSemantics(int lit);
 }
 
 class _AppLocalizationsDelegate
