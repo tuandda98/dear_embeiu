@@ -3,7 +3,7 @@
 > Tester sở hữu. Đọc cả `design.md` + `dev.md`. CHỈ test, KHÔNG sửa code. Output: PASS hoặc FAIL (kèm bug report).
 > Agent Tester chỉ đọc được file, nên main session chép nguyên văn kết quả vào đây.
 
-- **Trạng thái test:** FAIL — vòng 1 code-level (2026-10-11): 0 chặn · 6 nên sửa · 10 nhỏ. Dev đã vá S1–S6 và phần lớn lỗi nhỏ (xem `dev.md` 2026-10-11 "vòng 1"), chờ Tester vòng 2.
+- **Trạng thái test:** FAIL — vòng 2 code-level (2026-10-11): 0 chặn · 2 nên sửa (S2 nhánh rời couple · N1) · 5 nhỏ mới (N2–N6). Vòng 1: 0 chặn · 6 nên sửa · 10 nhỏ, đã vá. Dev đã vá vòng 2 (xem `dev.md` "vòng 2"), chờ Tester vòng 3.
 - **Người/role:** Master Tester
 
 ## Bug report (vòng 1)
@@ -49,3 +49,69 @@
 
 ## Nhật ký test
 - [2026-10-11] [Tester] Vòng 1 code-level: analyze 0 · test 163/163 · rules-test 330 · chạy thử 7 ca biên của calculator. FAIL: 0 chặn, 6 nên sửa (S1–S6), 10 nhỏ.
+
+## Vòng 2 — 2026-10-11 (code-level, HEAD 7768dd4; code sleep giống hệt 0e00ae0)
+
+- **Trạng thái test:** FAIL vòng 2: 0 chặn · 2 nên sửa (S2 còn nhánh rời couple · N1 hồi quy) · 5 nhỏ mới (N2–N6).
+
+### Lỗi vòng 1 sau khi vá
+| # | Kết luận | Bằng chứng (file:line) | Ghi chú |
+|---|---|---|---|
+| S1 | Đã vá | `sleep_provider.dart:463-476`, `:521`, `:547-549`; `sleep_sheets.dart:271-296` | Bật theo dõi, chia sẻ, đổi màu, sửa đêm không còn chờ Firestore. [CẦN TEST runtime offline] |
+| S2 | Vá một phần | `functions/index.js:2838-2848`, `:2923-2932`; `couple_service.dart:672-689` so với `:690-720` | Xoá tài khoản và trường hợp người cuối rời đi đã xoá `sleep/`. Còn khi A rời couple mà B ở lại thì client tự ghi chuyển trạng thái, KHÔNG gọi `leaveCoupleCleanup`. Kết quả: `sleep/A` và `nights/*` vẫn nằm lại. `dev.md` ghi hàm dùng chung cho `leaveCoupleCleanup`, nhưng client chỉ gọi hàm đó ở nhánh còn một người. Rules vẫn chặn đọc, nên đây là dữ liệu sót lại chứ không lộ ra ngoài. Nên sửa trước PROD, ví dụ thêm `recursiveDelete(sleep/{uid người rời})` vào trigger `notifyPartnerLeft`. |
+| S3 | Đã vá | `sleep_calculator.dart:166-171`; test `:142-145`; `firestore.rules:619` | Khối dài hơn 16 giờ bị bỏ. Khối đúng 16g00 vẫn được nhận, khớp rules `<=`. Việc chuyển fingerprint ra sau lúc ghi xong lại gây ra N1. Máy bỏ quên vẫn lọt ở N3. |
+| S4 | Đã vá | `sleep_sheets.dart:578-601`, `:754` | So bằng `TimeOfDay` (giờ + phút), giá trị ban đầu đã bỏ giây. Đổi giờ rồi đổi lại thì nút Lưu vẫn xám. |
+| S5 | Đã vá | `sleep_provider.dart:227-239` | Mỗi snapshot có `share == true` đều gọi `_syncRecent`, không đọc thêm doc nào. [CẦN TEST 2 máy] |
+| S6 | Đã vá 2 ca vòng 1, kèm tác dụng phụ N2 (PO quyết) | `sleep_calculator.dart:172-187`, `:251-264`; test `:147-183` | Ca (a) giờ ra 03:06–07:00, tức 3g54p. Vẫn hụt 2g30p, nhưng đó là do khoảng gộp 5 phút, đúng spec. |
+| Nhỏ 1: `_share` thiếu mounted/try | Đã vá (gián tiếp) | `sleep_provider.dart:463-476`; `sleep_sheets.dart:290-296` | `setShare` trả về ngay và không ném lỗi, nên sheet đóng luôn. |
+| Nhỏ 2: bấm công tắc liên tiếp | Đã vá | `sleep_provider.dart:52`, `:473-475` | Các lệnh chạy tuần tự, dữ liệu cuối cùng đúng. Công tắc vẫn còn nhảy ngược (N4). |
+| Nhỏ 3: đổi tài khoản lúc đang nạp | Đã vá | `sleep_provider.dart:170-183` | Sau `loadFingerprints` (`:188`) chưa kiểm lại. Lỗ này chỉ có trên lý thuyết. |
+| Nhỏ 4: đọc nhiều | Vá một phần | `:234`; `:28`, `:274-278` | Hydrate giờ chỉ chạy khi máy chưa có fingerprint. Stream của người ấy vẫn lấy 400 ngày, nên mỗi lần mở app lạnh sau hơn 30 phút có thể đọc lại tới khoảng 365 doc (sau 1 năm). |
+| Nhỏ 5: cài lại app | Chưa vá (A1) · Vá một phần (màu) | `:225`, `:547` | Card vẫn về A1 (dev ghi nợ). Phần màu: online đã an toàn. Offline với cache trống thì snapshot "không có doc" vẫn đặt `_myProfileLoaded = true`, nên màu đã chọn bị ghi đè. [suy luận theo SDK, CẦN TEST] |
+| Nhỏ 6: người mới thừa hưởng lịch sử | Để PO quyết | — | Chưa đổi. |
+| Nhỏ 7: giờ dậy trước nửa đêm | Đã vá | `sleep_sheets.dart:613-625` | Chạy thử: dậy 22:30 được neo về tối hôm trước. Đêm 01/11 dậy 19:00 ra 31/10 19:00. |
+| Nhỏ 8: A11y/UI | Đã vá | `sleep_card.dart:544`; `sleep_screen.dart:1845`, `:1347`; `sleep_format.dart:82` | `DateFormat.Md` ra vi "3/11", en "11/3". |
+| Nhỏ 9: thiếu test | Vá một phần | `test/sleep_calculator_test.dart:141-183` | Calculator có thêm 4 test. Provider vẫn chưa có test nào. |
+| Nhỏ 10: iOS Health | Chưa vá / việc của PO | `ios/Runner/Info.plist:13-14`; `PrivacyInfo.xcprivacy` | Mô tả quyền chỉ có tiếng Việt, không có `InfoPlist.strings`. PrivacyInfo chưa khai báo Health. |
+
+### Lỗi mới
+| # | Mức | Chỗ | Kịch bản → hậu quả | Gợi ý sửa |
+|---|---|---|---|---|
+| N1 | Nên sửa (hồi quy) | `sleep_provider.dart:394-412`, `:638-647` | [Firebase, đang chia sẻ] 1) Mạng yếu hoặc offline. 2) Mở app, app quét ra đêm D, lệnh đẩy D bị treo. 3) Bạn xoá D. `_syncRecent` chỉ gửi lệnh xoá khi `_fingerprints` có D, mà giờ fingerprint chỉ ghi sau khi đẩy xong, nên lệnh xoá không được gửi. 4) App bị tắt trước khi có mạng lại. Lệnh đẩy đã nằm trong hàng đợi của Firestore nên vẫn lên server, còn lệnh xoá thì không bao giờ được gửi. Người ấy thấy đêm bạn đã xoá cho tới khi bạn tắt chia sẻ. Nếu app vẫn sống thì đêm đó hiện tới lần đồng bộ sau. Bản vòng 1 không bị lỗi này. | Trước khi đẩy, ghi dấu "đang đẩy" vào `_fingerprints` (lưu cả Hive). Đẩy xong thì thay bằng fingerprint thật. Nhánh xoá giữ nguyên `containsKey`. Cách này vẫn thử lại được khi lỗi mà không mất lệnh xoá. |
+| N2 | Nhỏ (PO quyết) | `sleep_calculator.dart:172-187`, `:263-264` | Chạy thử 3 ca. (1) Làm ca đêm, điện thoại để trong tủ đồ 23:00–03:30, ngủ 07:00–14:00: app ra 23:00–03:30. Trước bản vá app ra đúng 07:00–14:00. (2) Để máy yên 18:30–00:15, cầm máy 25 phút, ngủ 00:40–06:00: app ra 18:30–00:15, vì chỉ cần chạm qua 0h 15 phút là được tính "phủ 0–5h". (3) Health: Watch ghi ngủ 19:00–22:10, ban đêm chỉ có "nằm trên giường" 23:00–07:00: app ra 19:00–22:10. | Cách A: chỉ hạ hạng khối KẾT THÚC trước 0h, phần còn lại vẫn chọn khối dài nhất. Cách này giữ đúng ca vòng 1 và sửa lại ca (1), nhưng ca (2) vẫn sai. Cách B: chọn khối phủ 0–5h nhiều nhất. Cách này sửa được (2) nhưng (1) sai. Health: nếu mẫu "ngủ" không phủ 0–5h mà mẫu "nằm trên giường" có thì lấy "nằm trên giường". |
+| N3 | Nhỏ | `sleep_calculator.dart:128-134`, `:166-168` | Trần 16 giờ được đo sau khi đã cắt theo cửa sổ 18:00–14:00. (1) Máy hết pin lúc 16:00, sạc lại lúc 09:30: app ra đêm 18:00–09:30, tức 15g30p, trăng tròn. (2) Máy nằm yên 18:00–10:30, cầm 10 phút, rồi lại nằm yên tới 15:00: khối 16g30p bị bỏ, app lấy 10:40–14:00 (3g20p) làm "đêm" và đẩy cho người ấy. | So trần 16 giờ trên khoảng tắt màn hình gốc, trước khi cắt. Nếu có khoảng dài hơn 16 giờ chạm vào cửa sổ thì coi cả đêm là không có dữ liệu. |
+| N4 | Nhỏ | `sleep_provider.dart:223-226`, `:470` | Bấm tắt rồi bật lại trong khoảng 1 giây. Lệnh sau phải chờ server xác nhận lệnh trước. Trong lúc chờ, snapshot của lệnh trước về (`updatedAt` serverTimestamp đổi giá trị) và ghi đè `_myProfile`. Công tắc nhảy về giá trị cũ 1–3 giây rồi mới đúng. Nếu offline thì nó nhảy lúc có mạng lại. Dữ liệu cuối cùng vẫn đúng. [CẦN TEST runtime] | Khi còn lệnh chia sẻ đang chờ thì giữ giá trị `share` lạc quan, không lấy từ snapshot. |
+| N5 | Nhỏ | `sleep_provider.dart:478-497`, `:385-391` | Lệnh đẩy toàn bộ lịch sử chỉ chạy sau khi server xác nhận cờ, và chỉ tồn tại trong bộ nhớ. Bấm Chia sẻ (sheet đóng ngay), rồi app bị tắt trước khi có mạng. Lần mở sau chỉ có `_syncRecent` đẩy 7 ngày gần nhất. Các đêm cũ hơn không bao giờ được đẩy lên, nên lịch của người ấy thiếu các tháng trước. | Cho `_syncRecent` đẩy cả các đêm cũ CHƯA có fingerprint (rules cho phép tạo đêm cũ). Chỉ bỏ qua các đêm cũ đã có fingerprint. |
+| N6 | Nhỏ | `app_vi.arb:2631`, `:2635`; `app_en.arb:3237`, `:3241` | Sheet "App tính thế nào?" vẫn nói app lấy khoảng "lâu nhất/dài nhất". Thuật toán giờ ưu tiên khối phủ 0–5h và bỏ khối dài hơn 16 giờ. Ví dụ ở ca S6a, khối dài nhất 18:00–22:30 bị bỏ qua. Màn hình minh bạch đang mô tả sai cách tính. | Viết lại cho khớp, ví dụ "…khoảng nằm yên dài nhất quanh nửa đêm (0–5h sáng), tối đa 16 tiếng…". |
+
+### Các điểm hồi quy được hỏi
+- Hàng đợi `_shareOps`: lỗi giữa chuỗi không làm kẹt các lệnh sau, vì `catchError` nằm bên trong `then` (`:474`). Một lệnh chưa được xác nhận (offline) sẽ giữ cả chuỗi, đúng ý thiết kế. Riêng `clear()` (`:196-210`) không gán lại `_shareOps`. Lệnh treo của tài khoản cũ có thể chặn lệnh chia sẻ của tài khoản đăng nhập sau trong cùng phiên app. [suy luận, rất hiếm]
+- `catchError` có nuốt lỗi: lỗi chia sẻ không hiện thông báo nào. Nếu ghi cờ bị từ chối thì snapshot tự kéo công tắc về, chấp nhận được. Nếu xoá từng doc trong `deleteAllNights` lỗi (`sleep_service.dart:283`) thì im lặng.
+- `Future<T>.catchError`: cả 5 chỗ `catchError` (tính cả `_quiet`) đều gọi trên `Future<void>`, nên không có lỗi kiểu lúc chạy.
+- Offline: không có vòng lặp vô hạn. Ghi đêm không kích hoạt listener hồ sơ, và `_markSynced` không gọi notify. Có đẩy trùng: mỗi lần resume, snapshot hay lưu đêm lại xếp thêm một lệnh ghi cho các đêm chưa được xác nhận. Số lệnh có giới hạn, chỉ tốn lượt ghi.
+- Listener hồ sơ: `_syncRecent` chạy ở mỗi snapshot có `share == true` nhưng không đọc doc nào. Hydrate chạy nhiều nhất một lần cho mỗi couple trong một phiên, và chỉ khi máy chưa có fingerprint.
+
+### Ca biên đã chạy (17 ca, script tạm ngoài repo)
+- 16g00 được nhận (khớp rules). 16g01 ra null. 18:00→14:00 ra null.
+- Hoà điểm giữa hai khối trong 0–5h: lấy khối sau. Khối buổi tối kết thúc đúng 00:00 không được tính là phủ 0–5h.
+- Health: mẫu "ngủ" 2g30p + "nằm trên giường" 8g thì lấy 8g. Mẫu "ngủ" dài 16g30p bị bỏ, lấy "nằm trên giường".
+- Sheet sửa: dậy 22:30 → tối hôm trước. 17:59 → cùng ngày. 18:00 → tối hôm trước. 18:00→10:00 = 16g, hợp lệ. 23:00→23:00 = 24g, bị chặn.
+- Các ca ra sai: xem N2, N3.
+
+### Số liệu
+- `flutter analyze` (Flutter 3.41.6): No issues found.
+- `flutter test`: 167/167, trong đó calculator 26.
+- `scripts/test-firebase-rules.sh`: 330 passing, exit 0. Script chỉ kiểm cú pháp `functions/index.js`, nên `recursiveDelete` mới thêm chưa có test tự động nào.
+
+### Cần test tay [CẦN TEST runtime]
+1. Offline (S1, N1, N5): bật chế độ máy bay → Bật theo dõi → Cấp quyền → Chia sẻ (sheet phải đóng ngay). Bật/tắt chia sẻ 3 lần. Sửa một đêm, xoá đêm vừa quét. Vuốt tắt app. Có mạng rồi mở lại, kiểm Firestore: cờ đúng với lần bấm cuối, đêm đã xoá không còn, có đủ các đêm cũ hơn 7 ngày.
+2. Online, bấm tắt rồi bật trong 1 giây: công tắc có nhảy ngược không (N4).
+3. Hai máy (S5): A đang chia sẻ, mở app lạnh buổi sáng. B phải thấy "Đêm qua" sau vài giây.
+4. Trên DEV (S2): A chia sẻ rồi xoá tài khoản → `couples/{c}/sleep/A` phải mất. A rời couple khi B ở lại → hiện dữ liệu còn nguyên (lỗi đang mở). Người cuối rời → cả `sleep/` phải mất. Vết deploy CF DEV `20261010T182234Z` ghi exit "?", cần xác nhận function đã thật sự lên.
+5. Android thật: đêm có lần cầm máy quá 5 phút; để máy yên cả buổi tối; máy hết pin qua đêm; làm ca đêm.
+6. iPhone thật: popup quyền Sức khoẻ; có Watch và chỉ có iPhone; không có dữ liệu thì hiện banner M. Build IPA có HealthKit capability. Badge iOS.
+7. Sheet sửa: mở đêm tự ghi thì Lưu xám; đổi 1 phút thì Lưu sáng; đổi lại thì xám.
+8. Màn 320dp, chữ 130% và 200%: lưới màu không tràn. Tiêu đề đêm bằng tiếng Anh.
+
+### Nhật ký
+- [2026-10-11] [Tester] Vòng 2 code-level: analyze 0 · test 167/167 · rules-test 330 · chạy thử 17 ca biên. FAIL: 0 chặn, 2 nên sửa (S2 còn nhánh rời couple, N1 hồi quy), 5 nhỏ mới (N2–N6). S1/S3/S4/S5 đạt.

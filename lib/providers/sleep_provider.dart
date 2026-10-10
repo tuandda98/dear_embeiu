@@ -51,6 +51,15 @@ class SleepProvider extends ChangeNotifier {
   /// the "delete everything" land after the re-upload.
   Future<void> _shareOps = Future<void>.value();
 
+  /// The share value last asked for, until its write lands: the profile
+  /// stream must not flip the switch back to an older value meanwhile.
+  bool? _pendingShare;
+  int _shareSeq = 0;
+  SleepProfile? _remoteProfile;
+
+  /// Fingerprint of a night whose upload is on its way.
+  static const String _kPushing = 'pushing';
+
   StreamSubscription<SleepProfile?>? _myProfileSub;
   StreamSubscription<SleepProfile?>? _partnerProfileSub;
   StreamSubscription<Map<String, SleepNight>>? _partnerNightsSub;
@@ -185,7 +194,11 @@ class SleepProvider extends ChangeNotifier {
     if (!sameCouple) {
       _hydrated = false;
       _myProfileLoaded = false;
-      _fingerprints = await _service.loadFingerprints(myUid, coupleId);
+      final fingerprints = await _service.loadFingerprints(myUid, coupleId);
+      if (_uid != myUid || _coupleId != coupleId) {
+        return;
+      }
+      _fingerprints = fingerprints;
       _watchMyProfile();
     }
     _watchPartner();
@@ -203,9 +216,15 @@ class SleepProvider extends ChangeNotifier {
     _local = <String, SleepNight?>{};
     _fingerprints = <String, String>{};
     _myProfile = null;
+    _remoteProfile = null;
     _partnerProfile = null;
     _partnerNights = const <String, SleepNight>{};
     _hydrated = false;
+    _myProfileLoaded = false;
+    // A write of the previous account still waiting must not hold this one's.
+    _shareOps = Future<void>.value();
+    _pendingShare = null;
+    _shareSeq++;
     notifyListeners();
   }
 
@@ -221,10 +240,14 @@ class SleepProvider extends ChangeNotifier {
       return;
     }
     _myProfileSub = _service.watchProfile(coupleId, uid).listen((profile) {
-      _myProfile = profile;
+      _remoteProfile = profile;
+      final pending = _pendingShare;
+      _myProfile = pending == null
+          ? profile
+          : SleepProfile(share: pending, color: profile?.color ?? _myChoice);
       _myProfileLoaded = true;
       notifyListeners();
-      if (profile?.share != true) {
+      if (!myShare) {
         return;
       }
       // Cold start: the scan may finish before this lands and skip the upload,
@@ -374,43 +397,88 @@ class SleepProvider extends ChangeNotifier {
   bool get _canShare =>
       _service.isUsingFirebase && _coupleId != null && _uid != null;
 
-  /// Pushes changed nights of the editable window while sharing. Older nights
-  /// are frozen remotely (rules), so they are left alone.
+  /// Pushes my nights while sharing (see [planSync]).
   Future<void> _syncRecent() async {
     if (!_canShare || !myShare) {
       return;
     }
     final coupleId = _coupleId!;
     final uid = _uid!;
-    final cutoff = sleepDateKey(
-      DateTime.now().subtract(const Duration(days: kSleepEditableDays)),
+    final plan = planSync(
+      _local,
+      _fingerprints,
+      sleepDateKey(
+        DateTime.now().subtract(const Duration(days: kSleepEditableDays)),
+      ),
     );
-    for (final entry in _local.entries) {
-      if (entry.key.compareTo(cutoff) < 0) {
-        continue;
-      }
-      final date = entry.key;
-      final night = entry.value;
-      if (night == null) {
-        if (_fingerprints.containsKey(date)) {
-          unawaited(
-            _service
-                .deleteNight(coupleId, uid, date)
-                .then((_) => _markSynced(uid, coupleId, date, null))
-                .catchError((_) {}),
-          );
-        }
-      } else if (_fingerprints[date] != night.fingerprint) {
-        // Fingerprint only once the write lands: a rejected or failed put is
-        // retried on the next sync instead of being skipped forever.
-        unawaited(
-          _service
-              .putNight(coupleId, uid, night)
-              .then((_) => _markSynced(uid, coupleId, date, night.fingerprint))
-              .catchError((_) {}),
-        );
-      }
+    for (final date in plan.deletes) {
+      unawaited(
+        _service
+            .deleteNight(coupleId, uid, date)
+            // Rejected = never created or out of reach: nothing to undo.
+            .whenComplete(() => _markSynced(uid, coupleId, date, null))
+            .catchError((_) {}),
+      );
     }
+    if (plan.pushes.isEmpty) {
+      return;
+    }
+    await _markPushing(uid, coupleId, plan.pushes);
+    for (final night in plan.pushes) {
+      // The real fingerprint only once the write lands: a failed put of a
+      // recent night is retried on the next sync.
+      unawaited(
+        _service
+            .putNight(coupleId, uid, night)
+            .then(
+              (_) => _markSynced(uid, coupleId, night.date, night.fingerprint),
+            )
+            .catchError((_) {}),
+      );
+    }
+  }
+
+  /// What a sync sends. Inside the editable window (dates >= [cutoff]):
+  /// nights whose fingerprint changed, and deletes for nights that went up or
+  /// are on their way. Older: only nights that never went up (sharing turned
+  /// on, app killed before the upload) — the ones already up are frozen
+  /// remotely (rules).
+  @visibleForTesting
+  static ({List<SleepNight> pushes, List<String> deletes}) planSync(
+    Map<String, SleepNight?> local,
+    Map<String, String> fingerprints,
+    String cutoff,
+  ) {
+    final pushes = <SleepNight>[];
+    final deletes = <String>[];
+    local.forEach((date, night) {
+      final known = fingerprints.containsKey(date);
+      if (date.compareTo(cutoff) < 0) {
+        if (night != null && !known) {
+          pushes.add(night);
+        }
+      } else if (night == null) {
+        if (known) {
+          deletes.add(date);
+        }
+      } else if (fingerprints[date] != night.fingerprint) {
+        pushes.add(night);
+      }
+    });
+    return (pushes: pushes, deletes: deletes);
+  }
+
+  /// Marks nights as on their way up BEFORE writing them, so a delete issued
+  /// before the ack still goes out (it checks `containsKey`).
+  Future<void> _markPushing(
+    String uid,
+    String coupleId,
+    List<SleepNight> nights,
+  ) async {
+    for (final night in nights) {
+      _fingerprints[night.date] = _kPushing;
+    }
+    await _service.saveFingerprints(uid, coupleId, _fingerprints);
   }
 
   Future<void> _markSynced(
@@ -468,11 +536,23 @@ class SleepProvider extends ChangeNotifier {
     final uid = _uid!;
     final color = _myChoice ?? myColorId;
     _myProfile = SleepProfile(share: share, color: color);
+    _pendingShare = share;
+    final seq = ++_shareSeq;
     notifyListeners();
     // Never awaited by the UI: offline, Firestore only acks once back online.
-    _shareOps = _shareOps.then(
-      (_) => _applyShare(coupleId, uid, share, color).catchError((_) {}),
-    );
+    _shareOps = _shareOps
+        .then(
+          (_) => _applyShare(coupleId, uid, share, color).catchError((_) {}),
+        )
+        .whenComplete(() {
+          if (seq != _shareSeq) {
+            return; // a newer tap (or another account) took over
+          }
+          // Back to what the server holds — the old value if it refused.
+          _pendingShare = null;
+          _myProfile = _remoteProfile ?? _myProfile;
+          notifyListeners();
+        });
   }
 
   Future<void> _applyShare(
@@ -483,23 +563,31 @@ class SleepProvider extends ChangeNotifier {
   ) async {
     // Flag first, in its own commit: the rules read it with get().
     await _service.setProfile(coupleId, uid, share: share, color: color);
-    if (share) {
-      final nights = myNights.values.toList();
-      await Future.wait([
-        for (final night in nights)
-          _quiet(
-            _service
-                .putNight(coupleId, uid, night)
-                .then<void>((_) {
-                  _fingerprints[night.date] = night.fingerprint;
-                }),
-          ),
-      ]);
-    } else {
+    bool current() => _uid == uid && _coupleId == coupleId;
+    if (!share) {
       await _service.deleteAllNights(coupleId, uid);
-      _fingerprints.clear();
+      if (current()) {
+        _fingerprints.clear();
+        await _service.saveFingerprints(uid, coupleId, _fingerprints);
+      }
+      return;
     }
-    if (_uid == uid && _coupleId == coupleId) {
+    if (!current()) {
+      return; // signed out meanwhile: never push another account's nights
+    }
+    final nights = myNights.values.toList();
+    await _markPushing(uid, coupleId, nights);
+    await Future.wait([
+      for (final night in nights)
+        _quiet(
+          _service.putNight(coupleId, uid, night).then<void>((_) {
+            if (current()) {
+              _fingerprints[night.date] = night.fingerprint;
+            }
+          }),
+        ),
+    ]);
+    if (current()) {
       await _service.saveFingerprints(uid, coupleId, _fingerprints);
     }
   }

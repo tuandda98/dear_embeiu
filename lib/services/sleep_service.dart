@@ -203,16 +203,21 @@ class SleepService {
     if (!isUsingFirebase || coupleId.isEmpty || uid.isEmpty) {
       return Stream<SleepProfile?>.value(null);
     }
-    return _profile(coupleId, uid).snapshots().map((snap) {
-      final data = snap.data();
-      if (data == null) {
-        return null;
-      }
-      return SleepProfile(
-        share: data['share'] == true,
-        color: data['color'] as String?,
-      );
-    });
+    // "No profile" only counts once the server says so: an empty cache
+    // (reinstall, offline) must not look like a member who never set up.
+    return _profile(coupleId, uid)
+        .snapshots()
+        .where((snap) => snap.exists || !snap.metadata.isFromCache)
+        .map((snap) {
+          final data = snap.data();
+          if (data == null) {
+            return null;
+          }
+          return SleepProfile(
+            share: data['share'] == true,
+            color: data['color'] as String?,
+          );
+        });
   }
 
   /// A member's shared nights since [sinceKey] ('YYYY-MM-DD'). Only readable

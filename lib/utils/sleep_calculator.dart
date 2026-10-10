@@ -8,10 +8,10 @@ import '../models/sleep_night.dart';
 /// A night belongs to its WAKE-UP date D and is searched for inside the window
 /// [D-1 18:00, D 14:00). Inside it we take the "resting" spans (Android: screen
 /// off · iOS: asleep in Apple Health), fold short interruptions into the sleep
-/// (each counted as an awakening) and keep the longest block — if it lasts at
-/// least 3 hours (and at most 16 — longer is a phone left alone). Blocks that
-/// cover 00:00–05:00 win over evening ones. Nothing found → no night (never
-/// invented).
+/// (each counted as an awakening) and keep the longest block of 3–16 hours.
+/// A block that ends by 01:00 is an evening and only counts when nothing later
+/// does. A span over 16 hours is a phone left alone; across the deep night it
+/// voids the night. Nothing found → no night (never invented).
 
 /// One screen transition from Android UsageStats (SCREEN_INTERACTIVE = on).
 class ScreenEvent {
@@ -124,8 +124,18 @@ SleepNight? computeNight({
   required SleepSource source,
 }) {
   final w = sleepWindow(wakeDate);
+  final midnight = DateTime(wakeDate.year, wakeDate.month, wakeDate.day);
   final clipped = <RestSpan>[];
   for (final s in spans) {
+    // Measured before clipping: a phone flat from 16:00 to 09:30 is not a
+    // 15-hour night. Over the deep night it hides the whole night.
+    if (s.length > rules.maxSleep) {
+      if (s.start.isBefore(midnight.add(const Duration(hours: 5))) &&
+          s.end.isAfter(midnight)) {
+        return null;
+      }
+      continue;
+    }
     final start = s.start.isBefore(w.start) ? w.start : s.start;
     final end = s.end.isAfter(w.end) ? w.end : s.end;
     if (end.isAfter(start)) {
@@ -169,15 +179,12 @@ SleepNight? computeNight({
   if (candidates.isEmpty) {
     return null;
   }
-  // Prefer blocks that cover the deep night (00:00–05:00): a phone left alone
-  // all evening must not beat a real night cut in two by a 6-minute pickup.
-  // Without such a block (night shift) fall back to the longest.
-  final coreStart = DateTime(wakeDate.year, wakeDate.month, wakeDate.day);
-  final coreEnd = coreStart.add(const Duration(hours: 5));
-  final inCore = candidates
-      .where((b) => b.start.isBefore(coreEnd) && b.end.isAfter(coreStart))
+  // An evening (phone charging through a film) must not beat a real night cut
+  // in two by a 6-minute pickup; a night shift still keeps its day sleep.
+  final late = candidates
+      .where((b) => b.end.isAfter(_nightStart(wakeDate)))
       .toList();
-  final pool = inCore.isEmpty ? candidates : inCore;
+  final pool = late.isEmpty ? candidates : late;
   var best = pool.first;
   for (final b in pool.skip(1)) {
     // `>=` → on a tie keep the later block (the one closer to the morning).
@@ -257,14 +264,21 @@ Map<String, SleepNight?> computeHealthNights(
       rules: SleepRules.health,
       source: SleepSource.health,
     );
-    // Asleep samples first; when they give nothing (none, or only a short
-    // evening doze) fall back to "in bed" — an iPhone without a Watch only
-    // records time in bed.
-    out[sleepDateKey(d)] =
-        from(_kHealthAsleep.contains) ?? from((v) => v == _kHealthInBed);
+    // Asleep samples first. An iPhone without a Watch only records "in bed",
+    // and an evening doze must not beat a whole night in bed.
+    final asleep = from(_kHealthAsleep.contains);
+    final inBed = from((v) => v == _kHealthInBed);
+    bool late(SleepNight? n) => n != null && n.wakeAt.isAfter(_nightStart(d));
+    out[sleepDateKey(d)] = late(asleep) || !late(inBed)
+        ? asleep ?? inBed
+        : inBed;
   }
   return out;
 }
+
+/// Rest that ends by 01:00 of [wakeDate] is an evening, not the night.
+DateTime _nightStart(DateTime wakeDate) =>
+    DateTime(wakeDate.year, wakeDate.month, wakeDate.day, 1);
 
 /// Merges overlapping / touching spans (several Health sources write the same
 /// night).

@@ -408,6 +408,44 @@ exports.notifyPartnerLeft = onDocumentUpdated(
       ),
     );
 
+    // Sleep (feature sleep). The leaver's data would stay behind: the client
+    // leave write skips leaveCoupleCleanup when a partner remains, and the
+    // leaver can no longer reach it. Whoever stays stops sharing (user
+    // 2026-10-11): a partner joining later must not inherit the old history.
+    // Their nights stay on their phone; switching sharing back on re-uploads.
+    const sleepRef = db.collection("couples").doc(coupleId).collection("sleep");
+    const sleepCleanup = [db.recursiveDelete(sleepRef.doc(leaverUid))];
+    for (const uid of recipientIds) {
+      sleepCleanup.push(
+        sleepRef
+          .doc(uid)
+          .get()
+          .then(async (snap) => {
+            if (!snap.exists) {
+              return;
+            }
+            // Flag first: the rules stop reads as soon as share is false.
+            await snap.ref.set(
+              {share: false, updatedAt: admin.firestore.FieldValue.serverTimestamp()},
+              {merge: true},
+            );
+            await db.recursiveDelete(snap.ref.collection("nights"));
+          }),
+      );
+    }
+    await Promise.all(
+      sleepCleanup.map((p) =>
+        p.catch((err) => {
+          logger.warn("Could not clean up sleep data on partner left.", {
+            coupleId,
+            leaverUid,
+            message: err && err.message,
+          });
+          return null;
+        }),
+      ),
+    );
+
     // Leaver display name: prefer their user profile (still exists — they only
     // left the couple), fall back to "Người ấy" via normalizeActorName.
     let leaverName = "";

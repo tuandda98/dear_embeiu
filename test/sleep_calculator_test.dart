@@ -182,6 +182,67 @@ void main() {
     });
   });
 
+  group('edge cases (Tester round 2)', () {
+    test('night shift: a phone idle in a locker loses to the day sleep', () {
+      final n = screenNight([
+        off(at(9, 23)),
+        on(at(10, 3, 30)),
+        off(at(10, 7)),
+        on(at(10, 14)),
+      ], now: at(10, 14, 30))!;
+      expect(n.bedAt, at(10, 7));
+      expect(n.wakeAt, at(10, 14));
+    });
+
+    test('an evening ending just past midnight loses to the night after', () {
+      final n = screenNight([
+        off(at(9, 18, 30)),
+        on(at(10, 0, 15)),
+        off(at(10, 0, 40)),
+        on(at(10, 6)),
+      ])!;
+      expect(n.bedAt, at(10, 0, 40));
+      expect(n.wakeAt, at(10, 6));
+    });
+
+    test('a flat battery across the night is no night, not 15 hours', () {
+      expect(screenNight([off(at(9, 16)), on(at(10, 9, 30))]), isNull);
+    });
+
+    test('a forgotten phone does not turn the late morning into a night', () {
+      final n = screenNight([
+        off(at(9, 18)),
+        on(at(10, 10, 30)),
+        off(at(10, 10, 40)),
+        on(at(10, 15)),
+      ], now: at(10, 15, 30));
+      expect(n, isNull);
+    });
+
+    test('a phone forgotten the day before does not void tonight', () {
+      final n = computeScreenNights(
+        [off(at(8, 14)), on(at(9, 22)), off(at(9, 23, 30)), on(at(10, 7))],
+        wakeDates: [wake],
+        now: at(10, 12),
+      )['2026-10-10']!;
+      expect(n.bedAt, at(9, 23, 30));
+      expect(n.wakeAt, at(10, 7));
+    });
+
+    test('Health: an evening nap loses to a whole night in bed', () {
+      final r = computeHealthNights(
+        [
+          HealthSleepSample(at(9, 19), at(9, 22, 10), 3),
+          HealthSleepSample(at(9, 23), at(10, 7), 0),
+        ],
+        wakeDates: [wake],
+        now: at(10, 12),
+      )['2026-10-10']!;
+      expect(r.bedAt, at(9, 23));
+      expect(r.wakeAt, at(10, 7));
+    });
+  });
+
   group('Apple Health → night', () {
     test('awake gaps up to 30 min are awakenings inside one night', () {
       final r = computeHealthNights(
