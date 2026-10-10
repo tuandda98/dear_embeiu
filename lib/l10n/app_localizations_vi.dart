@@ -3485,11 +3485,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sleepHowBody1 =>
-      'App coi khoảng điện thoại nằm yên lâu nhất trong đêm là giấc ngủ, tính từ 18h tới 14h hôm sau, dài 3 đến 16 tiếng. Khoảng kết thúc trước 1 giờ sáng, như lúc cắm sạc buổi tối, chỉ được tính khi đêm đó không có khoảng nào muộn hơn.';
+      'App coi khoảng điện thoại nằm yên lâu nhất trong đêm là giấc ngủ, tính từ 18h tới 14h hôm sau, dài 3 đến 16 tiếng. Khoảng kết thúc trước 1 giờ sáng, như lúc cắm sạc buổi tối, chỉ được tính khi đêm đó không có khoảng nào kéo dài sau 1 giờ.';
 
   @override
   String get sleepHowBody1Ios =>
-      'App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h tới 14h hôm sau. Giấc chợp mắt kết thúc trước 1 giờ sáng chỉ được tính khi đêm đó không có giấc nào muộn hơn.';
+      'App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h tới 14h hôm sau. Giấc dưới 3 tiếng hoặc quá 16 tiếng không được tính. Giấc kết thúc trước 1 giờ sáng chỉ được tính khi đêm đó không có giấc nào kéo dài sau 1 giờ.';
 
   @override
   String get sleepHowBody2 =>

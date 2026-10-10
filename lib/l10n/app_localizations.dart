@@ -5986,13 +5986,13 @@ abstract class AppLocalizations {
   /// Sleep explainer paragraph (Android)
   ///
   /// In en, this message translates to:
-  /// **'The app counts the longest stretch your phone sits untouched overnight as sleep, between 6 pm and 2 pm the next day, lasting 3 to 16 hours. A stretch that ends before 1 am, like charging in the evening, only counts when there\'s nothing later that night.'**
+  /// **'The app counts the longest stretch your phone sits untouched overnight as sleep, between 6 pm and 2 pm the next day, lasting 3 to 16 hours. A stretch that ends before 1 am, like charging in the evening, only counts when nothing that night lasts past 1 am.'**
   String get sleepHowBody1;
 
   /// Sleep explainer paragraph (iOS)
   ///
   /// In en, this message translates to:
-  /// **'The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm the next day. A nap that ends before 1 am only counts when there\'s nothing later that night.'**
+  /// **'The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm the next day. Sleep under 3 hours or over 16 hours doesn\'t count. Sleep that ends before 1 am only counts when nothing that night lasts past 1 am.'**
   String get sleepHowBody1Ios;
 
   /// Sleep explainer paragraph (Android)

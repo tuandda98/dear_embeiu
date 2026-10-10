@@ -31,6 +31,7 @@ Hai chế độ mỗi API:
 
 ## 3. Phạm vi
 - **Trong phạm vi:** client gửi token (Firestore/Storage/Functions/Auth), đăng ký app ở Firebase Console PROD, giữ Unenforced.
+- **Trước khi enforce Cloud Functions (Tester văn phong 2026-10-11):** client map lỗi `unauthenticated` thành "Phiên đăng nhập chưa sẵn sàng… đăng nhập lại". Nếu enforce App Check cho `deleteAccount` thì hộp thoại xoá tài khoản đưa người dùng về Home với câu "đăng nhập lại" vô ích → phải đăng xuất trước, hoặc hiện `deleteAccountFailed`. Nếu enforce cho `sendCustomPasswordResetEmail` thì màn Quên mật khẩu (chưa đăng nhập) sẽ hiện câu "đăng nhập lại" → cần câu riêng cho mã lỗi App Check.
 - **Ngoài phạm vi (làm sau):** bật Enforce; App Check cho Cloud Functions (phải tự kiểm `request.app` trong `functions/index.js`); project DEV; entitlement App Attest cho iOS.
 
 ## 4. Quyết định đã chốt (decision log)

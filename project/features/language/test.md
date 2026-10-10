@@ -2,7 +2,7 @@
 
 > Tester sở hữu. Đọc [overview.md](overview.md) + [design.md](design.md) + [dev.md](dev.md). CHỈ test, KHÔNG sửa code. Output: PASS/FAIL + bug report.
 
-- **Trạng thái test:** 🧪 Rà văn phong 2026-10-11 (commit `f62e907`): Tester vòng 1 FAIL (0 chặn · 3 nhỏ) → Dev đã vá, chờ vòng 2 (xem cuối file). Language v2: ✅ PASS (2026-05-31). Static: flutter analyze sạch (4 blocker cũ đã fix). Runtime (user test): switch ngôn ngữ / ngày tháng / cold start / iOS Settings / push 2 máy — pass. Functions đã deploy. → PO FINAL VERIFY OK → ✅ Done.
+- **Trạng thái test:** 🧪 Rà văn phong 2026-10-11 (commit `f62e907`): vòng 1 FAIL (3 nhỏ) → vòng 2 FAIL (1 nhỏ: câu giải thích giấc ngủ iOS) → Dev đã vá cả hai (xem cuối file). Language v2: ✅ PASS (2026-05-31). Static: flutter analyze sạch (4 blocker cũ đã fix). Runtime (user test): switch ngôn ngữ / ngày tháng / cold start / iOS Settings / push 2 máy — pass. Functions đã deploy. → PO FINAL VERIFY OK → ✅ Done.
   - *Lịch sử:* [2026-05-30] FAIL — 4 lỗi compile (generated-l10n + call-site lệch pha) → Dev fix xong.
 - **Người/role:** Master Tester
 
@@ -176,3 +176,40 @@ Tổng hợp 4 lỗi `dart analyze`; tất cả phải sửa trước khi test r
 10. Sau khi deploy PROD 3 function: chạy lại mục 2–4 trên bản release.
 
 - [2026-10-11] [Dev → Tester] Đã vá #1 (`unauthenticated` → `authSessionNotReady`, hàm thành `AuthService.mapCallableError` + 2 test), #2 (mốc năm = `monthsAgo(base, 12)` + test 24/12/2028 và 29/02/2028), #3 (dialog coi `requires-recent-login` lần hai như `session-gone`) và viết lại các câu ở bảng trên (riêng mẫu tâm trạng: đổi 2/4 mẫu sang "Hôm nay có người đang thấy … đó"; EN giữ "One of us"). Chờ Tester vòng 2.
+
+## Nghiệm thu vòng 2 — commit `77c2cd9` "vá theo Tester vòng 1 phần văn phong" · 2026-10-11 · Master Tester
+
+**Kết luận: FAIL — 0 chặn · 0 lớn · 1 nhỏ.** Ba lỗi vòng 1 đã vá đúng và test mới bắt được hồi quy. Bảng câu chữ áp đủ 9/9. Còn một chỗ: đoạn giải thích giấc ngủ trên iPhone (`sleepHowBody1Ios`, VI + EN) không nói mức 3–16 tiếng, lại gọi khối buổi tối là "giấc chợp mắt", nên người đọc hiểu sai. Lỗi có từ đề xuất vòng 1, Dev chỉ áp đúng đề xuất. Sửa: 2 chuỗi ARB + `gen-l10n`.
+
+### Bảng kiểm
+| # | Hạng mục | Kết quả | Bằng chứng |
+|---|---|---|---|
+| 1 | #1: `AuthService.mapCallableError` có nhánh `unauthenticated` | Đạt | `auth_service.dart:738-739` → `authSessionNotReady`. Luồng xoá tài khoản không bị ảnh hưởng (`:545-547` đổi sang `requires-recent-login` trước khi gọi mapper). Màn Xác thực email có nút Đăng xuất nên lời khuyên làm theo được. |
+| 2 | #2: mốc năm = `monthsAgo(base, 12)` | Đạt | `revisit_question_source.dart:225`. Quét 2.557 ngày (2027–2033): mốc luôn là cùng ngày năm ngoái; 29/02 kẹp về 28/02; ±1/±2 → "Khoảng…"; ±3 → loại. |
+| 3 | #3: `requires-recent-login` lần hai như `session-gone` | Đạt | `settings_screen.dart:1109-1124`. Không còn chỗ nào đưa sentinel lên màn. Xem N2. [CẦN TEST runtime] |
+| 4 | Bảng "Câu nên viết lại" vòng 1 | Đạt 9/9 | |
+| 5 | Văn phong câu mới (luật 7) | Đạt | |
+| 6 | `sleepHowBody1` (Android) khớp thuật toán | Đạt | Một ca hiếm lệch, xem N1. |
+| 7 | `sleepHowBody1Ios` khớp thuật toán | **Chưa đạt** | L1. |
+| 8 | Test mới bắt được hồi quy | Đạt cho #1, #2 | Gỡ nhánh `unauthenticated` → đỏ; trả mốc năm về `−365 ngày` → đỏ; lùi năm không kẹp → đỏ ở 29/02. |
+| 9 | i18n | Đạt | 1.036 key mỗi file, 0 lệch. |
+
+### Lỗi mới
+| # | Mức | Chỗ | Expected | Actual |
+|---|---|---|---|---|
+| L1 | Nhỏ: câu chữ nói sai thuật toán | `app_vi.arb:2623`, `app_en.arb:3225` (`sleepHowBody1Ios`) | Nói rõ khối phải dài 3–16 tiếng như bản Android. | Không nhắc 3–16 tiếng, gọi khối buổi tối là "giấc chợp mắt" / "a nap" → người đọc hiểu chợp mắt buổi tối vẫn được tính; thực tế mọi khối dưới 3 tiếng bị bỏ. |
+
+### Nhận xét, không tính lỗi
+- **N1:** chữ "muộn hơn" lệch code ở một ca hiếm: hai khoảng buổi tối 18:00–21:30 và 21:40–00:50 → app lấy khoảng đầu dù sau nó còn khoảng muộn hơn. Câu chính xác: "…không có khoảng nào kéo dài qua 1 giờ sáng".
+- **N2:** ở #3, người dùng về Home chứ không về màn đăng nhập (phiên vẫn còn sau khi nhập đúng mật khẩu), trong khi thông báo bảo "đăng nhập lại". Hôm nay gần như không gặp; chỉ xuất hiện nếu sau này enforce App Check cho `deleteAccount`. Khi enforce: đăng xuất trước khi về auth gate, hoặc hiện `deleteAccountFailed`.
+- **R5:** nếu enforce App Check cho `sendCustomPasswordResetEmail`, bản app không có token sẽ hiện "Phiên đăng nhập chưa sẵn sàng…" ở màn Quên mật khẩu cho người chưa đăng nhập. Ghi vào kế hoạch enforce của `features/app-check`.
+
+### Ngoài phạm vi (nợ)
+- auth: xoá tài khoản thất bại thì watcher "mỗi tài khoản một máy" bị tắt tới khi mở lại app (`auth_provider.dart:347-350` huỷ `_tokenSub`, nhánh lỗi không gắn lại). Có từ `bc07661`.
+- Nhìn lại: chỉ quét 150 marker mới nhất → cặp trả lời đều mỗi ngày không bao giờ chạm mốc một năm (thiết kế có từ trước).
+
+### Số liệu thật
+- `flutter analyze`: No issues found · `flutter test`: 208/208 · 2 file test mới: 36/36 · ARB 1.036 key, 0 lệch.
+
+- [2026-10-11] [Tester] Vòng 2 (commit `77c2cd9`): FAIL — 0 chặn · 0 lớn · 1 nhỏ (L1). 3 lỗi vòng 1 đạt, test bắt được hồi quy, bảng câu chữ 9/9.
+- [2026-10-11] [Dev] Đã sửa L1 và N1: `sleepHowBody1Ios` (VI+EN) nói rõ "dưới 3 tiếng hoặc quá 16 tiếng không được tính"; cả bản Android lẫn iOS đổi "không có khoảng nào muộn hơn" → "không có khoảng nào kéo dài sau 1 giờ" (đúng điều kiện code: khối kết thúc sau 01:00). N2/R5 ghi vào kế hoạch enforce của `features/app-check`.
