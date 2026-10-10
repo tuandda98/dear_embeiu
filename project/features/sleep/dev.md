@@ -98,3 +98,4 @@
   - **N18:** `distinct` chỉ áp cho hồ sơ của mình (trong `_watchMyProfile`); hồ sơ người ấy giữ mọi sự kiện để stream đêm được đăng ký lại.
   - Test: +2 provider (N14, N15), +1 calculator (N16) — cả 3 đỏ trên code vòng 3. Tổng giấc ngủ 47 (calculator 36 · sync 4 · provider 7).
   - Kiểm: analyze 0 · test 219/219.
+- [2026-10-11] [Dev] **Vá theo Tester vòng 5:** áp đúng gói 6 dòng Tester đã thử — `_syncRecent` thoát khi còn lệnh chia sẻ đang chờ (chặn cả `refresh`/`onResume`/`saveNight`/`deleteNight`, không chỉ listener), `setShare` đẩy lại một lần khi lệnh cuối xong (đêm sửa trong lúc chờ), listener vẫn kéo lịch sử về (chỉ đọc) khi máy chưa biết gì dù đang chờ lệnh "bật". +2 test của Tester (N14b, N19). analyze 0 · test 221/221 (giấc ngủ 49: calculator 36 · sync 4 · provider 9).

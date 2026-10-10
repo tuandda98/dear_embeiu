@@ -92,6 +92,16 @@ class FakeSleepService extends SleepService {
   }
 }
 
+/// Also returns my own shared nights from the server (a new phone).
+class RemoteFakeSleepService extends FakeSleepService {
+  Map<String, SleepNight> remote = {};
+  @override
+  Future<Map<String, SleepNight>> fetchNights(
+    String coupleId,
+    String uid,
+  ) async => Map.of(remote);
+}
+
 SleepNight night(int daysAgo) {
   final d = DateTime.now().subtract(Duration(days: daysAgo));
   final wake = DateTime(d.year, d.month, d.day, 7);
@@ -187,6 +197,47 @@ void main() {
       service.profile('c', 'me').add(const SleepProfile(share: true));
       await pumpEventQueue();
       expect(service.calls, contains('put ${n.date}'));
+    },
+  );
+
+  test(
+    'N14b: a resume or an edit while my "on" is pending pushes nothing',
+    () async {
+      final n = night(1);
+      final (provider, service) = await start(
+        nights: {n.date: n},
+        share: false,
+      );
+      service.holdFlag = Completer<void>();
+      await provider.setShare(true);
+      await provider.onResume();
+      await provider.saveNight(
+        n.date,
+        n.bedAt.add(const Duration(minutes: 10)),
+        n.wakeAt,
+      );
+      await pumpEventQueue();
+      expect(service.calls.where((c) => c.startsWith('put')), isEmpty);
+      service.holdFlag!.complete();
+      await pumpEventQueue();
+      expect(service.calls.where((c) => c == 'put ${n.date}'), hasLength(1));
+    },
+  );
+
+  test(
+    'N19: new phone, "on" tapped before my profile loaded → history back',
+    () async {
+      final old = night(30);
+      final service = RemoteFakeSleepService()..remote = {old.date: old};
+      final provider = SleepProvider(service: service);
+      await provider.watchForCouple('c', 'me', 'partner');
+      service.holdFlag = Completer<void>();
+      await provider.setShare(true);
+      service.profile('c', 'me').add(const SleepProfile(share: true));
+      await pumpEventQueue();
+      service.holdFlag!.complete();
+      await pumpEventQueue();
+      expect(provider.myNights.keys, contains(old.date));
     },
   );
 

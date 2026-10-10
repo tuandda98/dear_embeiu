@@ -290,6 +290,11 @@ class SleepProvider extends ChangeNotifier {
           // A share change of mine is on its way: it uploads once its flag has
           // landed. Pushing here would queue nights ahead of a quick "off".
           if (pending != null) {
+            // Read-only: a new phone still gets my history back.
+            if (!_hydrated && _fingerprints.isEmpty) {
+              _hydrated = true;
+              unawaited(_hydrateFromRemote());
+            }
             return;
           }
           // A wipe died with the app, then sharing came back on: the server holds
@@ -447,7 +452,8 @@ class SleepProvider extends ChangeNotifier {
 
   /// Pushes my nights while sharing (see [planSync]).
   Future<void> _syncRecent() async {
-    if (!_canShare || !myShare) {
+    // A share change still on its way uploads once its flag has landed.
+    if (!_canShare || !myShare || _pendingShare != null) {
       return;
     }
     final coupleId = _coupleId!;
@@ -642,6 +648,7 @@ class SleepProvider extends ChangeNotifier {
           _pendingShare = null;
           _myProfile = _remoteProfile ?? _myProfile;
           notifyListeners();
+          unawaited(_syncRecent()); // edits made while it was pending
         });
   }
 

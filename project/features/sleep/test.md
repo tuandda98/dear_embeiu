@@ -3,7 +3,7 @@
 > Tester sở hữu. Đọc cả `design.md` + `dev.md`. CHỈ test, KHÔNG sửa code. Output: PASS hoặc FAIL (kèm bug report).
 > Agent Tester chỉ đọc được file, nên main session chép nguyên văn kết quả vào đây.
 
-- **Trạng thái test:** FAIL — vòng 4 code-level (2026-10-11): 0 chặn · 0 nên sửa · 5 nhỏ (N14–N18). Dev đã vá hết theo gợi ý Tester (xem `dev.md` "vòng 4"), chờ Tester vòng 5. Vòng 1–3: đã vá.
+- **Trạng thái test:** vòng 5 code-level (2026-10-11): 0 chặn · 0 nên sửa · 2 nhỏ (N14 đường phụ, N19) → Dev đã áp đúng gói vá + test Tester đã thử (71/71). Không còn lỗi chặn/nên sửa nào mở. Còn: test tay trên máy thật (iOS/Apple Health, 2 máy, offline). Vòng 1–4: đã vá.
 - **Người/role:** Master Tester
 
 ## Bug report (vòng 1)
@@ -213,3 +213,38 @@
 
 - [2026-10-11] [Tester] Vòng 4 code-level (HEAD 5d54d2a): analyze 0 · test 216/216 · FAIL: 0 chặn, 0 nên sửa, 5 nhỏ (N14–N18).
 - [2026-10-11] [Dev → Tester] Đã vá N14–N18 theo đúng gợi ý của Tester (chi tiết `dev.md` "vòng 4"), +3 test (N14, N15, N16 — đều đỏ trên code vòng 3). analyze 0 · test 219/219. Chờ Tester vòng 5 (kiểm nhanh).
+
+## Vòng 5 — 2026-10-11 (code-level, kiểm nhanh, HEAD d04b3fc)
+
+- **Trạng thái test:** FAIL vòng 5: 0 chặn · 0 nên sửa · 2 nhỏ (N14 còn đường phụ, N19 mới). N15–N18 đã vá. Không mục nào chặn phát hành.
+
+### Lỗi vòng 4 sau khi vá
+| # | Kết luận | Bằng chứng | Ghi chú |
+|---|---|---|---|
+| N14 | Vá một phần | Listener `sleep_provider.dart:290-294` đã chặn; `_syncRecent` `:449-452` thì chưa | Còn 3 chỗ gọi `_syncRecent` khi lệnh "bật" đang chờ: `refresh` (qua `onResume`, `enableTracking`), `saveNight`, `deleteNight`. T10–T12: người ấy đọc được 3 đêm; T13: mỗi đêm ghi 2 lần. |
+| N15 | Đã vá | `_wipe`, listener, `_clearShared` | T6a, T6b nay đủ 3 đêm. Test N15 đỏ trên code cũ. |
+| N16 | Đã vá | `sleep_calculator.dart:166-167` | Trên 28 ca cũ chỉ C1, C2, C3, C8 đổi; cầm máy trước 01:00 vẫn không gộp. |
+| N17 | Đã vá | `:205-207`, `:244` | U2, U3 đạt. |
+| N18 | Đã vá | provider `:262-269`; service không còn `distinct` | Hồ sơ người ấy đăng ký lại được stream đêm. |
+
+### Lỗi mới / còn lại
+| # | Mức | Chỗ | Kịch bản → hậu quả | Gợi ý sửa (Tester đã thử trên bản sao) |
+|---|---|---|---|---|
+| N14 (còn) | Nhỏ (riêng tư + chi phí) | `sleep_provider.dart:449-452` | Máy bay → bật chia sẻ → ra Home rồi mở lại (hoặc sửa một đêm) → tắt chia sẻ → vuốt tắt app → có mạng: Firestore gửi [bật, 3 đêm, tắt] → người ấy đọc được 3 đêm vài giây. | `_syncRecent`: thoát khi `_pendingShare != null`; `whenComplete` của `setShare`: `unawaited(_syncRecent())` để đẩy đêm sửa trong lúc chờ. |
+| N19 | Nhỏ (lý thuyết, hồi quy do `return` sớm) | `sleep_provider.dart:292-294` | Cài lại app/đổi máy khi đang chia sẻ, mạng chậm, bấm "Chia sẻ" trước khi hồ sơ tải xong → sự kiện "bật" rơi vào nhánh `return` → lịch sử không được kéo về; về sau tắt chia sẻ thì bản duy nhất trên server bị xoá. | Trong nhánh `pending != null`: hydrate (chỉ đọc) khi máy chưa biết gì. |
+
+**Ghi chú cho PO (không tính lỗi):** máy để yên từ 17:00, 03:00 xem giờ 2 phút, ngủ nướng tới 11:00 → nay app không ra đêm nào (khối gộp 17 tiếng > trần 16) thay vì 18:00–03:00 sai giờ dậy. Đúng tinh thần "không bịa".
+
+### Harness
+- Vòng 4 chạy lại không chỉnh: 11/11 kịch bản hàng đợi đạt (T1: 0 đêm lộ; T4: 0 put; T6a/T6b đủ đêm; T9: 1 lần ghi mỗi đêm). U1a–d, U2, U3, N18 đạt.
+- Thêm vòng 5: T10–T12 sai (N14), T13 ghi 6 lần cho 3 đêm, kịch bản kéo lịch sử sai (N19), 8 ca biên X1–X8 (cầm máy đúng 01:00 không gộp, 01:00:00.001 thì gộp).
+- Gói vá thử 6 dòng (N14 + N19): 71/71 (harness 24 + test giấc ngủ 47); 2 test sẵn dán (N14b, N19) đỏ trên HEAD, xanh trên bản vá.
+
+### Số liệu
+- `flutter analyze` (HEAD d04b3fc): No issues found · `flutter test`: 219/219 (giấc ngủ 47) · 3 test vòng 4 đỏ trên `d04b3fc^`, xanh trên HEAD.
+
+### Cần test runtime
+- N14b: máy bay → bật chia sẻ → ra Home rồi vào lại → tắt chia sẻ → vuốt tắt app → có mạng, mở lại. Máy người ấy không được nháy lịch.
+
+- [2026-10-11] [Tester] Vòng 5 code-level (HEAD d04b3fc): analyze 0 · test 219/219 · FAIL: 0 chặn, 0 nên sửa, 2 nhỏ (N14 còn đường phụ, N19).
+- [2026-10-11] [Dev → Tester] Áp đúng gói vá 6 dòng của Tester + 2 test của Tester (N14b, N19 — đều đỏ trên code cũ). analyze 0 · test 221/221 (giấc ngủ 49).
