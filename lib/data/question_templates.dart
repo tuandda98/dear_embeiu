@@ -23,7 +23,7 @@ library;
 /// Placeholder tokens replaced at proposal time.
 const String kTplDays = '%days%'; // days remaining until a milestone
 const String kTplMilestone = '%milestone%'; // the milestone itself, in days
-const String kTplMood = '%mood%'; // partner's mood word, localized
+const String kTplMood = '%mood%'; // mood word of whoever set it, localized
 const String kTplStreak = '%streak%'; // current streak length, in days
 
 /// One template. Immutable data only — no logic lives here.
@@ -78,11 +78,12 @@ const String kTplGroupStreakMilestone = 'streak_milestone';
 /// Localized mood words for [kTplMood] — mirrors `kMoodOptions` keys in
 /// `models/mood.dart`. Kept here (not in the ARB) because the sentence is
 /// stored in BOTH languages on the marker, so it can't depend on the reader's
-/// device language.
+/// device language. Same reason the words must not point at a reader ("nhớ
+/// bạn"): both partners read the one sentence.
 const Map<String, String> kMoodWordVi = <String, String>{
   'happy': 'vui',
   'loved': 'hạnh phúc',
-  'missing': 'nhớ bạn',
+  'missing': 'nhớ nửa kia',
   'calm': 'bình yên',
   'meh': 'bình thường',
   'tired': 'mệt',
@@ -660,33 +661,37 @@ const List<QuestionTemplate> questionTemplates = <QuestionTemplate>[
     vi: 'Gần $kTplMilestone ngày bên nhau rồi, bạn thấy chúng mình đã trưởng thành hơn ở điểm nào?',
     en: 'Nearly $kTplMilestone days together. What has grown the most between us?',
   ),
+  // mood_partner: the mood is the OTHER phone's partner, but the sentence lands
+  // on the shared marker and BOTH read it — so never "người ấy"/"your partner"
+  // (the one who set the mood would read about themselves). "Một người trong
+  // chúng mình" reads right from either side.
   QuestionTemplate(
     group: kTplGroupMoodPartner,
     topic: 'ease',
     variant: 1,
-    vi: 'Hôm nay người ấy thấy $kTplMood. Bạn có thể làm gì để ngày của người ấy dễ chịu hơn?',
-    en: 'Your partner feels $kTplMood today. What could you do to make it lighter for them?',
+    vi: 'Hôm nay một người trong chúng mình thấy $kTplMood. Tối nay chúng mình làm gì cùng nhau thì hợp nhất?',
+    en: 'One of us feels $kTplMood today. What would be the best thing to do together tonight?',
   ),
   QuestionTemplate(
     group: kTplGroupMoodPartner,
     topic: 'ease',
     variant: 2,
-    vi: 'Người ấy chia sẻ hôm nay đang thấy $kTplMood. Lúc này bạn muốn nói gì với người ấy?',
-    en: 'Your partner feels $kTplMood today. What would you like to say to them right now?',
+    vi: 'Một người trong chúng mình đang thấy $kTplMood. Những lúc như vậy, bạn muốn được nghe câu gì nhất?',
+    en: 'One of us feels $kTplMood today. When you feel that way, what do you most want to hear?',
   ),
   QuestionTemplate(
     group: kTplGroupMoodPartner,
     topic: 'understand',
     variant: 1,
-    vi: 'Người ấy đang thấy $kTplMood. Những lúc bạn cũng thấy vậy, bạn thường cần gì nhất?',
-    en: 'When you feel $kTplMood the way your partner does today, what helps you most?',
+    vi: 'Hôm nay một người trong chúng mình thấy $kTplMood. Những ngày như vậy, bạn thường cần gì nhất?',
+    en: 'One of us feels $kTplMood today. On days like that, what do you need most?',
   ),
   QuestionTemplate(
     group: kTplGroupMoodPartner,
     topic: 'accompany',
     variant: 1,
-    vi: 'Tâm trạng hôm nay của người ấy: $kTplMood. Bạn muốn ở bên người ấy theo cách nào?',
-    en: 'Your partner is feeling $kTplMood today. How do you want to be there for them?',
+    vi: 'Hôm nay có một người trong chúng mình đang thấy $kTplMood. Bạn muốn chúng mình ở bên nhau theo cách nào?',
+    en: 'One of us is feeling $kTplMood today. How would you like us to spend time together?',
   ),
   QuestionTemplate(
     group: kTplGroupNoPhotosWeekend,

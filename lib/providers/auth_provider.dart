@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/auth_status.dart';
 import '../services/analytics_service.dart';
@@ -179,7 +180,8 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = 'Could not initialize session: $e';
+      debugPrint('AuthProvider.initialize failed: $e');
+      _errorMessage = AppL10n.strings.authSessionNotReady;
     } finally {
       _isInitialized = true;
       // Start watching session liveness once the initial state is settled (#3).
@@ -220,7 +222,8 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = 'Sign in failed: $e';
+      debugPrint('AuthProvider.signIn failed: $e');
+      _errorMessage = AppL10n.strings.authSessionUnavailable;
       return false;
     } finally {
       _setLoading(false);
@@ -263,7 +266,8 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = 'Account creation failed: $e';
+      debugPrint('AuthProvider.signUp failed: $e');
+      _errorMessage = AppL10n.strings.authFirebaseUserCreateFailed;
       return false;
     } finally {
       _setLoading(false);
@@ -312,7 +316,8 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       // Sign-out failed — the session is still alive, so re-arm detection.
       _intentionalAuthClear = false;
-      _errorMessage = 'Sign out failed: $e';
+      debugPrint('AuthProvider.signOut failed: $e');
+      _errorMessage = AppL10n.strings.signOutFailedMsg;
       return false;
     } finally {
       _setLoading(false);
@@ -361,7 +366,8 @@ class AuthProvider extends ChangeNotifier {
       return e.message;
     } catch (e) {
       _intentionalAuthClear = false;
-      _errorMessage = 'Delete account failed: $e';
+      debugPrint('AuthProvider.deleteAccount failed: $e');
+      _errorMessage = AppL10n.strings.deleteAccountFailed;
       return _errorMessage;
     } finally {
       _setLoading(false);
@@ -384,7 +390,8 @@ class AuthProvider extends ChangeNotifier {
       return e.message;
     } catch (e) {
       _setLoading(false);
-      return 'Reauth failed: $e';
+      debugPrint('AuthProvider.reauthenticate failed: $e');
+      return AppL10n.strings.authFirebaseAuthGeneric;
     }
     _setLoading(false);
     // Token is fresh now — retry the authoritative server-side delete.
@@ -403,7 +410,8 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = e.message;
       return false;
     } catch (e) {
-      _errorMessage = 'Password reset failed: $e';
+      debugPrint('AuthProvider.requestPasswordReset failed: $e');
+      _errorMessage = AppL10n.strings.forgotPasswordNetworkError;
       return false;
     }
   }
@@ -419,7 +427,8 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = e.message;
       return false;
     } catch (e) {
-      _errorMessage = 'Resend verification failed: $e';
+      debugPrint('AuthProvider.resendVerificationEmail failed: $e');
+      _errorMessage = AppL10n.strings.verifyEmailResendError;
       return false;
     }
   }

@@ -145,24 +145,10 @@
   "inviteCodeTiedToAccount": "Mã gắn với tài khoản bạn",
   "setupErrorNoAccount": "Không tìm thấy tài khoản. Bạn đăng nhập lại nhé.",
   "setupErrorFillRequired": "Điền đủ tên hai bạn và ngày kỷ niệm nhé.",
-  "setupErrorSaveCouple": "Chưa lưu được thông tin cặp đôi: {error}",
-  "@setupErrorSaveCouple": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "setupErrorSaveCouple": "Chưa lưu được thông tin cặp đôi. Bạn thử lại nhé.",
   "setupErrorNoAccountShort": "Không tìm thấy tài khoản.",
   "setupErrorNoInviteCode": "Bạn hãy nhập mã mời trước nhé.",
-  "setupErrorJoinCouple": "Chưa ghép đôi được: {error}",
-  "@setupErrorJoinCouple": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "setupErrorJoinCouple": "Chưa ghép đôi được. Bạn thử lại nhé.",
   "setupSuccessConnected": "Ghép đôi thành công rồi 💞",
   "navHome": "Trang chủ",
   "navChat": "Trò chuyện",
@@ -849,6 +835,7 @@
   "authSessionNotReady": "Phiên đăng nhập chưa sẵn sàng. Bạn thử đăng nhập lại giúp mình nhé.",
   "authSessionUnavailable": "Chưa đăng nhập được, bạn thử lại nhé.",
   "authTooManyRequests": "Có quá nhiều lần thử đăng nhập. Bạn đợi vài phút rồi thử lại nhé.",
+  "authUserDisabled": "Tài khoản này đang bị khoá nên chưa đăng nhập được.",
   "authWeakPassword": "Mật khẩu còn yếu, bạn chọn mật khẩu mạnh hơn nhé.",
   "authWrongPassword": "Mật khẩu chưa đúng, bạn kiểm tra lại nhé.",
   "bootstrapAndroidNotReady": "App chưa kết nối được máy chủ, dữ liệu tạm lưu trên máy này.",
@@ -928,8 +915,8 @@
   "signOutFailedMsg": "Chưa đăng xuất được. Bạn kiểm tra kết nối rồi thử lại nhé.",
   "welcomeBackBadge": "CHÀO MỪNG TRỞ LẠI",
   "counterDuration": "{years} năm, {months} tháng, {days} ngày",
-  "coupleLoadError": "Không thể tải thông tin cặp đôi: {error}",
-  "coupleSyncError": "Không thể đồng bộ thông tin cặp đôi: {error}",
+  "coupleLoadError": "Chưa tải được thông tin cặp đôi. Bạn thử lại nhé.",
+  "coupleSyncError": "Chưa đồng bộ được thông tin cặp đôi. Bạn thử lại nhé.",
   "galleryMonthLabel": "{month, select, 1{Tháng 01 • {year}} 2{Tháng 02 • {year}} 3{Tháng 03 • {year}} 4{Tháng 04 • {year}} 5{Tháng 05 • {year}} 6{Tháng 06 • {year}} 7{Tháng 07 • {year}} 8{Tháng 08 • {year}} 9{Tháng 09 • {year}} 10{Tháng 10 • {year}} 11{Tháng 11 • {year}} 12{Tháng 12 • {year}} other{Tháng {month} • {year}}}",
   "galleryTodayMomentsCount": "{count} khoảnh khắc hôm nay",
   "galleryEndOfFeed": "Đã xem hết kỷ niệm rồi 💕 Cùng nhau tạo thêm kỷ niệm mới nhé",
@@ -979,6 +966,7 @@
   },
   "streakSheetUnit": "ngày kết nối liên tiếp",
   "streakSheetNoStreakTitle": "Thắp ngọn lửa đầu tiên",
+  "streakSheetRestartTitle": "Thắp lại ngọn lửa",
   "streakSheetNoStreakBody": "Mỗi ngày chúng mình cùng trả lời câu hỏi là chuỗi lại dài thêm. Cùng bắt đầu nhé 💞",
   "streakSheetActiveTitle": "Chúng mình đang giữ lửa 💞",
   "streakSheetActiveBody": "Hôm nay xong rồi đó! Hẹn gặp ở câu hỏi ngày mai nha.",
@@ -1261,7 +1249,7 @@
   "loveTreeBadge": "CÂY TÌNH YÊU",
   "loveTreeStage0": "Hạt mầm",
   "loveTreeFlowerCount": "{count} bông hoa đã nở",
-  "loveTreeSeedSubtitle": "Hai bạn vừa gieo hạt mầm đầu tiên 🌱",
+  "loveTreeSeedSubtitle": "Chúng mình vừa gieo hạt mầm đầu tiên 🌱",
   "loveTreeNewBloomBanner": "Cây vừa nở {count} bông mới 🌸",
   "loveTreeNewBloomBannerOne": "Cây vừa nở một bông mới 🌸",
   "loveTreeMilestoneDays": "{count} ngày bên nhau",
@@ -2628,11 +2616,11 @@
   "@sleepLoadFailed": {
     "description": "Sleep: partner nights failed to load"
   },
-  "sleepHowBody1": "App coi khoảng điện thoại nằm yên lâu nhất trong đêm (từ 18h đến 14h hôm sau, ít nhất 3 tiếng) là giấc ngủ.",
+  "sleepHowBody1": "App coi khoảng điện thoại nằm yên lâu nhất trong đêm (từ 18h đến 14h hôm sau, dài 3 đến 16 tiếng) là giấc ngủ. Khoảng nào xong trước 1 giờ sáng, như lúc để sạc buổi tối, chỉ được tính khi không còn khoảng nào khác.",
   "@sleepHowBody1": {
     "description": "Sleep explainer paragraph (Android)"
   },
-  "sleepHowBody1Ios": "App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h đến 14h hôm sau.",
+  "sleepHowBody1Ios": "App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h đến 14h hôm sau. Giấc chợp mắt xong trước 1 giờ sáng chỉ được tính khi cả đêm không có giấc nào khác.",
   "@sleepHowBody1Ios": {
     "description": "Sleep explainer paragraph (iOS)"
   },
@@ -2931,15 +2919,6 @@
   "loveTreeShowLess": "Thu gọn",
   "@loveTreeShowLess": {
     "description": "Love tree v3: collapse the milestone chips"
-  },
-  "homeConstellationPill": "{lit}/6 sao",
-  "@homeConstellationPill": {
-    "description": "Home: Love Tree entry pill next to the today section",
-    "placeholders": {
-      "lit": {
-        "type": "int"
-      }
-    }
   },
   "homeConstellationSemantics": "Chòm sao hôm nay: {lit} trên 6 sao. Mở Cây Tình Yêu",
   "@homeConstellationSemantics": {

@@ -7,6 +7,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../l10n/app_l10n.dart';
@@ -552,7 +553,8 @@ class CoupleService {
           case 'unavailable':
             throw CoupleException(AppL10n.strings.coupleFirebaseUnavailable);
           default:
-            throw CoupleException(e.message ?? AppL10n.strings.coupleJoinGeneric);
+            debugPrint('CoupleService join error ${e.code}: ${e.message}');
+            throw CoupleException(AppL10n.strings.coupleJoinGeneric);
         }
       }
     }
@@ -955,7 +957,9 @@ class CoupleService {
       case 'unavailable':
         return l10n.coupleFirebaseUnavailable;
       default:
-        return exception.message ?? l10n.coupleSaveGeneric;
+        // Firebase's own message is English and technical — log it, never show it.
+        debugPrint('CoupleService error ${exception.code}: ${exception.message}');
+        return l10n.coupleSaveGeneric;
     }
   }
 
@@ -970,7 +974,8 @@ class CoupleService {
       case 'unavailable':
         return l10n.couplePhotoUploadUnavailable;
       default:
-        return exception.message ?? l10n.couplePhotoUploadGeneric;
+        debugPrint('CoupleService photo error ${exception.code}: ${exception.message}');
+        return l10n.couplePhotoUploadGeneric;
     }
   }
 

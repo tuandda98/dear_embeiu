@@ -779,8 +779,8 @@ abstract class AppLocalizations {
   /// No description provided for @setupErrorSaveCouple.
   ///
   /// In en, this message translates to:
-  /// **'Could not save couple info: {error}'**
-  String setupErrorSaveCouple(String error);
+  /// **'Couldn\'t save your couple info. Please try again.'**
+  String get setupErrorSaveCouple;
 
   /// No description provided for @setupErrorNoAccountShort.
   ///
@@ -797,8 +797,8 @@ abstract class AppLocalizations {
   /// No description provided for @setupErrorJoinCouple.
   ///
   /// In en, this message translates to:
-  /// **'Could not join couple: {error}'**
-  String setupErrorJoinCouple(String error);
+  /// **'Couldn\'t pair up. Please try again.'**
+  String get setupErrorJoinCouple;
 
   /// No description provided for @setupSuccessConnected.
   ///
@@ -2897,7 +2897,7 @@ abstract class AppLocalizations {
   /// authConfigNotFound
   ///
   /// In en, this message translates to:
-  /// **'Firebase Authentication for this project isn\'t enabled, or Email/Password is off. In Firebase Console > Authentication > Sign-in method > Email/Password, turn it on.'**
+  /// **'Email sign-in isn\'t available right now. Please try again later.'**
   String get authConfigNotFound;
 
   /// authEmailAlreadyUsed
@@ -2909,37 +2909,37 @@ abstract class AppLocalizations {
   /// authEmailPasswordNotEnabled
   ///
   /// In en, this message translates to:
-  /// **'Firebase Authentication isn\'t fully set up for Email/Password. In Firebase Console > Authentication > Sign-in method, enable Email/Password.'**
+  /// **'Email sign-in isn\'t available right now. Please try again later.'**
   String get authEmailPasswordNotEnabled;
 
   /// authFirebaseAuthGeneric
   ///
   /// In en, this message translates to:
-  /// **'A Firebase Auth error occurred.'**
+  /// **'Something went wrong with your account. Please try again.'**
   String get authFirebaseAuthGeneric;
 
   /// authFirebaseUserCreateFailed
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t create your Firebase account.'**
+  /// **'Couldn\'t create your account. Please try again.'**
   String get authFirebaseUserCreateFailed;
 
   /// authFirestoreGeneric
   ///
   /// In en, this message translates to:
-  /// **'A Firestore error occurred.'**
+  /// **'Couldn\'t sync your account data. Please try again.'**
   String get authFirestoreGeneric;
 
   /// authFirestorePermissionDenied
   ///
   /// In en, this message translates to:
-  /// **'Firestore is blocking writes to user data. Check this app\'s Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.'**
+  /// **'The server didn\'t accept your account info. Please try again in a few minutes.'**
   String get authFirestorePermissionDenied;
 
   /// authFirestoreUnavailable
   ///
   /// In en, this message translates to:
-  /// **'Firestore is currently unavailable or the network is unstable. Please try again in a few minutes.'**
+  /// **'Can\'t reach the server right now, maybe a network hiccup. Please try again in a few minutes.'**
   String get authFirestoreUnavailable;
 
   /// authInvalidCredential
@@ -2969,19 +2969,19 @@ abstract class AppLocalizations {
   /// authNetworkError
   ///
   /// In en, this message translates to:
-  /// **'No stable network connection to sign in to Firebase.'**
+  /// **'Your connection seems unstable. Check it and try again.'**
   String get authNetworkError;
 
   /// authSessionNotReady
   ///
   /// In en, this message translates to:
-  /// **'Your Firebase session isn\'t ready. Please sign in again.'**
+  /// **'Your session isn\'t ready yet. Please sign in again.'**
   String get authSessionNotReady;
 
   /// authSessionUnavailable
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t get your Firebase session.'**
+  /// **'Couldn\'t sign you in. Please try again.'**
   String get authSessionUnavailable;
 
   /// authTooManyRequests
@@ -2989,6 +2989,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Too many sign-in attempts — please try again in a few minutes.'**
   String get authTooManyRequests;
+
+  /// Sign-in error: FirebaseAuth user-disabled
+  ///
+  /// In en, this message translates to:
+  /// **'This account has been disabled, so you can\'t sign in.'**
+  String get authUserDisabled;
 
   /// authWeakPassword
   ///
@@ -3083,7 +3089,7 @@ abstract class AppLocalizations {
   /// coupleFirebaseUnavailable
   ///
   /// In en, this message translates to:
-  /// **'Firebase is currently unavailable or the network is unstable. Please try again in a few minutes.'**
+  /// **'Can\'t reach the server right now, maybe a network hiccup. Please try again in a few minutes.'**
   String get coupleFirebaseUnavailable;
 
   /// coupleFull
@@ -3149,25 +3155,25 @@ abstract class AppLocalizations {
   /// couplePhotoUploadGeneric
   ///
   /// In en, this message translates to:
-  /// **'The couple photo couldn\'t be uploaded to Firebase Storage.'**
+  /// **'Couldn\'t upload your couple photo. Try changing it again later.'**
   String get couplePhotoUploadGeneric;
 
   /// couplePhotoUploadPermission
   ///
   /// In en, this message translates to:
-  /// **'The couple photo couldn\'t be uploaded to Firebase Storage. Your couple info was saved first — deploy `storage.rules`, then try changing the photo again.'**
+  /// **'Couldn\'t upload your couple photo. Your couple info is saved, so just try changing the photo again later.'**
   String get couplePhotoUploadPermission;
 
   /// couplePhotoUploadSessionInvalid
   ///
   /// In en, this message translates to:
-  /// **'The couple photo couldn\'t be uploaded because your Firebase session is no longer valid.'**
+  /// **'Couldn\'t upload your couple photo because your session expired. Sign in again, then change the photo.'**
   String get couplePhotoUploadSessionInvalid;
 
   /// couplePhotoUploadUnavailable
   ///
   /// In en, this message translates to:
-  /// **'The couple photo couldn\'t be uploaded because Firebase Storage or the network is temporarily unstable.'**
+  /// **'Couldn\'t upload your couple photo. The network or server is acting up. Please try again later.'**
   String get couplePhotoUploadUnavailable;
 
   /// coupleSaveGeneric
@@ -3191,13 +3197,13 @@ abstract class AppLocalizations {
   /// coupleSessionInvalid
   ///
   /// In en, this message translates to:
-  /// **'Your Firebase session is no longer valid. Please sign in again.'**
+  /// **'Your session has expired. Please sign in again.'**
   String get coupleSessionInvalid;
 
   /// coupleSessionNotReadyRelogin
   ///
   /// In en, this message translates to:
-  /// **'Your Firebase session isn\'t ready. Please sign out and back in.'**
+  /// **'Your session isn\'t ready yet. Please sign out and back in.'**
   String get coupleSessionNotReadyRelogin;
 
   /// coupleSpaceInvalidRegenerate
@@ -3347,13 +3353,13 @@ abstract class AppLocalizations {
   /// photoFileNotFoundStorage
   ///
   /// In en, this message translates to:
-  /// **'The photo file wasn\'t found on Firebase Storage.'**
+  /// **'This photo couldn\'t be found on the server.'**
   String get photoFileNotFoundStorage;
 
   /// photoFirebaseUnavailable
   ///
   /// In en, this message translates to:
-  /// **'Firebase is currently unavailable or the network is unstable.'**
+  /// **'Can\'t reach the server right now, maybe a network hiccup. Please try again in a few minutes.'**
   String get photoFirebaseUnavailable;
 
   /// photoNotFoundToPost
@@ -3365,7 +3371,7 @@ abstract class AppLocalizations {
   /// photoStorageUnauthorized
   ///
   /// In en, this message translates to:
-  /// **'Firebase Storage is refusing this photo operation.'**
+  /// **'The server won\'t allow this action on the photo.'**
   String get photoStorageUnauthorized;
 
   /// photoSyncGeneric
@@ -3377,13 +3383,13 @@ abstract class AppLocalizations {
   /// photoSyncPermissionDenied
   ///
   /// In en, this message translates to:
-  /// **'You don\'t have permission to sync photos. Check `firestore.rules` and `storage.rules` on Firebase.'**
+  /// **'You don\'t have permission to sync photos yet. Try signing out and back in.'**
   String get photoSyncPermissionDenied;
 
   /// photoSyncSessionExpired
   ///
   /// In en, this message translates to:
-  /// **'Your Firebase session has expired. Please sign in again.'**
+  /// **'Your session has expired. Please sign in again.'**
   String get photoSyncSessionExpired;
 
   /// posterNameFallback
@@ -3467,14 +3473,14 @@ abstract class AppLocalizations {
   /// Error loading couple info
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t load couple info: {error}'**
-  String coupleLoadError(String error);
+  /// **'Couldn\'t load your couple info. Please try again.'**
+  String get coupleLoadError;
 
   /// Error syncing couple info
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t sync couple info: {error}'**
-  String coupleSyncError(String error);
+  /// **'Couldn\'t sync your couple info. Please try again.'**
+  String get coupleSyncError;
 
   /// Month header label in gallery
   ///
@@ -3607,6 +3613,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Light your first spark'**
   String get streakSheetNoStreakTitle;
+
+  /// Streak sheet title when the couple had a streak before and it reset
+  ///
+  /// In en, this message translates to:
+  /// **'Light the spark again'**
+  String get streakSheetRestartTitle;
 
   /// No description provided for @streakSheetNoStreakBody.
   ///
@@ -5974,13 +5986,13 @@ abstract class AppLocalizations {
   /// Sleep explainer paragraph (Android)
   ///
   /// In en, this message translates to:
-  /// **'The app counts the longest stretch your phone sits untouched overnight (6 pm to 2 pm, at least 3 hours) as sleep.'**
+  /// **'The app counts the longest stretch your phone sits untouched overnight (6 pm to 2 pm, 3 to 16 hours) as sleep. A stretch that ends before 1 am, like charging in the evening, only counts when there is nothing later.'**
   String get sleepHowBody1;
 
   /// Sleep explainer paragraph (iOS)
   ///
   /// In en, this message translates to:
-  /// **'The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm.'**
+  /// **'The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm. A nap that ends before 1 am only counts when there is nothing later that night.'**
   String get sleepHowBody1Ios;
 
   /// Sleep explainer paragraph (Android)
@@ -6300,12 +6312,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show less'**
   String get loveTreeShowLess;
-
-  /// Home: Love Tree entry pill next to the today section
-  ///
-  /// In en, this message translates to:
-  /// **'{lit}/6 stars'**
-  String homeConstellationPill(int lit);
 
   /// Home: Love Tree entry pill (screen reader)
   ///

@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 
@@ -403,7 +404,9 @@ class AuthService {
     } on FirebaseFunctionsException catch (e) {
       // CF returns success for unknown email (anti-enumeration) so we only
       // surface real errors (network failure, Resend down, etc.).
-      throw AuthException(e.message ?? AppL10n.strings.forgotPasswordNetworkError);
+      throw AuthException(
+        _mapCallableError(e, AppL10n.strings.forgotPasswordNetworkError),
+      );
     }
   }
 
@@ -415,7 +418,9 @@ class AuthService {
     try {
       await _sendCustomVerificationEmail();
     } on FirebaseFunctionsException catch (e) {
-      throw AuthException(e.message ?? AppL10n.strings.authNetworkError);
+      throw AuthException(
+        _mapCallableError(e, AppL10n.strings.verifyEmailResendError),
+      );
     } on FirebaseAuthException catch (e) {
       throw AuthException(_mapFirebaseAuthError(e));
     }
@@ -531,7 +536,8 @@ class AuthService {
       // shorter timeout would false-fail a deletion that is actually succeeding.
       await _functions
           .httpsCallable('deleteAccount')
-          .call<dynamic>()
+          // `lang` picks the language of the server's error message.
+          .call<dynamic>(<String, dynamic>{'lang': _activeLanguageCode})
           .timeout(const Duration(seconds: 60));
     } on TimeoutException {
       throw AuthException(AppL10n.strings.authNetworkError);
@@ -539,7 +545,9 @@ class AuthService {
       if (e.code == 'unauthenticated') {
         throw AuthException('requires-recent-login');
       }
-      throw AuthException(e.message ?? AppL10n.strings.deleteAccountFailed);
+      throw AuthException(
+        _mapCallableError(e, AppL10n.strings.deleteAccountFailed),
+      );
     }
 
     await purgePersistedSession();
@@ -683,11 +691,15 @@ class AuthService {
         return l10n.authTooManyRequests;
       case 'network-request-failed':
         return l10n.authNetworkError;
+      case 'user-disabled':
+        return l10n.authUserDisabled;
       default:
         if (rawMessage.contains('CONFIGURATION_NOT_FOUND')) {
           return l10n.authConfigNotFound;
         }
-        return exception.message ?? l10n.authFirebaseAuthGeneric;
+        // Firebase's own message is English and technical — log it, never show it.
+        debugPrint('AuthService auth error ${exception.code}: $rawMessage');
+        return l10n.authFirebaseAuthGeneric;
     }
   }
 
@@ -701,8 +713,30 @@ class AuthService {
       case 'unavailable':
         return l10n.authFirestoreUnavailable;
       default:
-        return exception.message ?? l10n.authFirestoreGeneric;
+        debugPrint('AuthService firestore error ${exception.code}: ${exception.message}');
+        return l10n.authFirestoreGeneric;
     }
+  }
+
+  /// What to show for a failed callable. Our functions throw HttpsError copy
+  /// already in the user's language (picked from `lang`/`languageCode` in the
+  /// request), so that is shown as-is. Anything the SDK makes up itself — offline
+  /// ("UNAVAILABLE" on Android, `unknown` + an OS sentence on iOS), a timeout, or a
+  /// crash that only says "INTERNAL" — gets local copy instead.
+  String _mapCallableError(FirebaseFunctionsException exception, String fallback) {
+    switch (exception.code) {
+      case 'unavailable':
+      case 'deadline-exceeded':
+      case 'unknown':
+        return AppL10n.strings.authNetworkError;
+    }
+    final message = (exception.message ?? '').trim();
+    // Bare status names ("INTERNAL", "NOT FOUND") come from the SDK, not from us.
+    if (message.isEmpty || message == message.toUpperCase()) {
+      debugPrint('AuthService callable error ${exception.code}: $message');
+      return fallback;
+    }
+    return message;
   }
 
   Future<void> _ensureFirebaseSessionReady(User firebaseUser) async {

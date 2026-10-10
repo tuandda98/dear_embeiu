@@ -2617,6 +2617,46 @@ function sanitizeInboxPayload(payload) {
   return out;
 }
 
+// Copy for the HttpsError messages the app shows as-is (feature language,
+// 2026-10-11): released builds put `e.message` straight on screen, so it must
+// be in the reader's language. The caller says which — `lang` (newer builds) or
+// the `languageCode` the email callables have always sent for the email copy.
+// Neither → Vietnamese, exactly what released builds got before.
+const CALLABLE_ERROR_COPY = {
+  vi: {
+    signInToDelete: "Bạn cần đăng nhập để xoá tài khoản.",
+    deleteCoupleFailed: "Chưa xoá được dữ liệu chung của cặp đôi. Bạn thử lại nhé.",
+    deleteAccountFailed: "Chưa xoá xong tài khoản. Bạn thử lại nhé.",
+    signInToVerify: "Bạn cần đăng nhập để gửi email xác thực.",
+    accountLoadFailed: "Chưa lấy được thông tin tài khoản. Bạn thử lại nhé.",
+    noEmail: "Tài khoản chưa có email.",
+    verifyLinkFailed: "Chưa tạo được liên kết xác thực. Bạn thử lại nhé.",
+    verifySendFailed: "Không gửi được email xác thực. Bạn thử lại nhé.",
+    invalidEmail: "Email không hợp lệ.",
+    resetLinkFailed: "Chưa tạo được liên kết đặt lại mật khẩu. Bạn thử lại nhé.",
+    resetSendFailed: "Không gửi được email đặt lại mật khẩu. Bạn thử lại nhé.",
+  },
+  en: {
+    signInToDelete: "Please sign in to delete your account.",
+    deleteCoupleFailed: "Couldn't delete your shared couple data. Please try again.",
+    deleteAccountFailed: "Couldn't finish deleting your account. Please try again.",
+    signInToVerify: "Please sign in to send the verification email.",
+    accountLoadFailed: "Couldn't load your account. Please try again.",
+    noEmail: "This account has no email address.",
+    verifyLinkFailed: "Couldn't create the verification link. Please try again.",
+    verifySendFailed: "Couldn't send the verification email. Please try again.",
+    invalidEmail: "That email isn't valid.",
+    resetLinkFailed: "Couldn't create the password reset link. Please try again.",
+    resetSendFailed: "Couldn't send the password reset email. Please try again.",
+  },
+};
+
+function callableErrorCopy(request) {
+  const data = request.data || {};
+  const code = `${data.lang || data.languageCode || ""}`.trim().toLowerCase();
+  return CALLABLE_ERROR_COPY[code] || CALLABLE_ERROR_COPY.vi;
+}
+
 // Callable that fully erases the signed-in user's account. It runs with admin
 // privileges so it can remove the things the client is forbidden to delete
 // directly under the Firestore security rules (`users/{uid}` and
@@ -2626,12 +2666,10 @@ function sanitizeInboxPayload(payload) {
 exports.deleteAccount = onCall(
   {region: "us-central1"},
   async (request) => {
+    const copy = callableErrorCopy(request);
     const uid = request.auth && request.auth.uid;
     if (!uid) {
-      throw new HttpsError(
-        "unauthenticated",
-        "Bạn cần đăng nhập để xoá tài khoản.",
-      );
+      throw new HttpsError("unauthenticated", copy.signInToDelete);
     }
 
     const userRef = db.collection("users").doc(uid);
@@ -2650,7 +2688,7 @@ exports.deleteAccount = onCall(
           coupleId,
           message: err && err.message,
         });
-        throw new HttpsError("internal", "Chưa xoá được dữ liệu chung của cặp đôi. Bạn thử lại nhé.");
+        throw new HttpsError("internal", copy.deleteCoupleFailed);
       }
     }
 
@@ -2691,7 +2729,7 @@ exports.deleteAccount = onCall(
       // auth/user-not-found means it's already gone — treat as success.
       if (code !== "auth/user-not-found") {
         logger.error("Failed to delete Auth user during account deletion.", {uid, code});
-        throw new HttpsError("internal", "Chưa xoá xong tài khoản. Bạn thử lại nhé.");
+        throw new HttpsError("internal", copy.deleteAccountFailed);
       }
     }
 
@@ -2758,12 +2796,10 @@ exports.leaveCoupleCleanup = onCall(
 exports.sendCustomVerificationEmail = onCall(
   {region: "us-central1", secrets: [RESEND_API_KEY]},
   async (request) => {
+    const copy = callableErrorCopy(request);
     const uid = request.auth && request.auth.uid;
     if (!uid) {
-      throw new HttpsError(
-        "unauthenticated",
-        "Bạn cần đăng nhập để gửi email xác thực.",
-      );
+      throw new HttpsError("unauthenticated", copy.signInToVerify);
     }
 
     // Pull the authoritative email/name/verified state from the Auth record
@@ -2777,12 +2813,12 @@ exports.sendCustomVerificationEmail = onCall(
         uid,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Chưa lấy được thông tin tài khoản. Bạn thử lại nhé.");
+      throw new HttpsError("internal", copy.accountLoadFailed);
     }
 
     const email = `${userRecord.email || ""}`.trim();
     if (!email) {
-      throw new HttpsError("failed-precondition", "Tài khoản chưa có email.");
+      throw new HttpsError("failed-precondition", copy.noEmail);
     }
 
     // Already verified — nothing to send. Tell the client so it can skip.
@@ -2801,7 +2837,7 @@ exports.sendCustomVerificationEmail = onCall(
         uid,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Chưa tạo được liên kết xác thực. Bạn thử lại nhé.");
+      throw new HttpsError("internal", copy.verifyLinkFailed);
     }
 
     // Language for the email copy comes from the client device locale (same
@@ -2837,7 +2873,7 @@ exports.sendCustomVerificationEmail = onCall(
         uid,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không gửi được email xác thực. Bạn thử lại nhé.");
+      throw new HttpsError("internal", copy.verifySendFailed);
     }
 
     if (!response.ok) {
@@ -2848,7 +2884,7 @@ exports.sendCustomVerificationEmail = onCall(
         detail: detail.slice(0, 500),
       });
       // Surface as a failure so the client can show "Resend" / retry.
-      throw new HttpsError("internal", "Không gửi được email xác thực. Bạn thử lại nhé.");
+      throw new HttpsError("internal", copy.verifySendFailed);
     }
 
     logger.info("Custom verification email sent.", {uid, lang});
@@ -3317,9 +3353,10 @@ function truncateText(value, maxLength) {
 exports.sendCustomPasswordResetEmail = onCall(
   {region: "us-central1", secrets: [RESEND_API_KEY]},
   async (request) => {
+    const copy = callableErrorCopy(request);
     const email = `${(request.data && request.data.email) || ""}`.trim().toLowerCase();
     if (!email) {
-      throw new HttpsError("invalid-argument", "Email không hợp lệ.");
+      throw new HttpsError("invalid-argument", copy.invalidEmail);
     }
 
     const lang = `${(request.data && request.data.languageCode) || ""}`
@@ -3340,7 +3377,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         email,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu. Bạn thử lại nhé.");
+      throw new HttpsError("internal", copy.resetSendFailed);
     }
 
     // Generate the official Firebase password reset link.
@@ -3352,7 +3389,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         email,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Chưa tạo được liên kết đặt lại mật khẩu. Bạn thử lại nhé.");
+      throw new HttpsError("internal", copy.resetLinkFailed);
     }
 
     const name = `${userRecord.displayName || ""}`.trim();
@@ -3382,7 +3419,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         email,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu. Bạn thử lại nhé.");
+      throw new HttpsError("internal", copy.resetSendFailed);
     }
 
     if (!response.ok) {
@@ -3392,7 +3429,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         status: response.status,
         detail: detail.slice(0, 500),
       });
-      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu. Bạn thử lại nhé.");
+      throw new HttpsError("internal", copy.resetSendFailed);
     }
 
     logger.info("Password reset email sent.", {email, lang});

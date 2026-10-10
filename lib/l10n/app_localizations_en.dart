@@ -372,9 +372,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please fill in both names and the anniversary date.';
 
   @override
-  String setupErrorSaveCouple(String error) {
-    return 'Could not save couple info: $error';
-  }
+  String get setupErrorSaveCouple =>
+      'Couldn\'t save your couple info. Please try again.';
 
   @override
   String get setupErrorNoAccountShort => 'No account found.';
@@ -383,9 +382,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupErrorNoInviteCode => 'Please enter the invite code first.';
 
   @override
-  String setupErrorJoinCouple(String error) {
-    return 'Could not join couple: $error';
-  }
+  String get setupErrorJoinCouple => 'Couldn\'t pair up. Please try again.';
 
   @override
   String get setupSuccessConnected => 'Connected successfully 💞';
@@ -1629,32 +1626,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authConfigNotFound =>
-      'Firebase Authentication for this project isn\'t enabled, or Email/Password is off. In Firebase Console > Authentication > Sign-in method > Email/Password, turn it on.';
+      'Email sign-in isn\'t available right now. Please try again later.';
 
   @override
   String get authEmailAlreadyUsed => 'This email is already in use.';
 
   @override
   String get authEmailPasswordNotEnabled =>
-      'Firebase Authentication isn\'t fully set up for Email/Password. In Firebase Console > Authentication > Sign-in method, enable Email/Password.';
+      'Email sign-in isn\'t available right now. Please try again later.';
 
   @override
-  String get authFirebaseAuthGeneric => 'A Firebase Auth error occurred.';
+  String get authFirebaseAuthGeneric =>
+      'Something went wrong with your account. Please try again.';
 
   @override
   String get authFirebaseUserCreateFailed =>
-      'Couldn\'t create your Firebase account.';
+      'Couldn\'t create your account. Please try again.';
 
   @override
-  String get authFirestoreGeneric => 'A Firestore error occurred.';
+  String get authFirestoreGeneric =>
+      'Couldn\'t sync your account data. Please try again.';
 
   @override
   String get authFirestorePermissionDenied =>
-      'Firestore is blocking writes to user data. Check this app\'s Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.';
+      'The server didn\'t accept your account info. Please try again in a few minutes.';
 
   @override
   String get authFirestoreUnavailable =>
-      'Firestore is currently unavailable or the network is unstable. Please try again in a few minutes.';
+      'Can\'t reach the server right now, maybe a network hiccup. Please try again in a few minutes.';
 
   @override
   String get authInvalidCredential => 'Email or password is incorrect.';
@@ -1672,18 +1671,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authNetworkError =>
-      'No stable network connection to sign in to Firebase.';
+      'Your connection seems unstable. Check it and try again.';
 
   @override
   String get authSessionNotReady =>
-      'Your Firebase session isn\'t ready. Please sign in again.';
+      'Your session isn\'t ready yet. Please sign in again.';
 
   @override
-  String get authSessionUnavailable => 'Couldn\'t get your Firebase session.';
+  String get authSessionUnavailable =>
+      'Couldn\'t sign you in. Please try again.';
 
   @override
   String get authTooManyRequests =>
       'Too many sign-in attempts — please try again in a few minutes.';
+
+  @override
+  String get authUserDisabled =>
+      'This account has been disabled, so you can\'t sign in.';
 
   @override
   String get authWeakPassword =>
@@ -1744,7 +1748,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get coupleFirebaseUnavailable =>
-      'Firebase is currently unavailable or the network is unstable. Please try again in a few minutes.';
+      'Can\'t reach the server right now, maybe a network hiccup. Please try again in a few minutes.';
 
   @override
   String get coupleFull => 'This couple already has two people.';
@@ -1782,19 +1786,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get couplePhotoUploadGeneric =>
-      'The couple photo couldn\'t be uploaded to Firebase Storage.';
+      'Couldn\'t upload your couple photo. Try changing it again later.';
 
   @override
   String get couplePhotoUploadPermission =>
-      'The couple photo couldn\'t be uploaded to Firebase Storage. Your couple info was saved first — deploy `storage.rules`, then try changing the photo again.';
+      'Couldn\'t upload your couple photo. Your couple info is saved, so just try changing the photo again later.';
 
   @override
   String get couplePhotoUploadSessionInvalid =>
-      'The couple photo couldn\'t be uploaded because your Firebase session is no longer valid.';
+      'Couldn\'t upload your couple photo because your session expired. Sign in again, then change the photo.';
 
   @override
   String get couplePhotoUploadUnavailable =>
-      'The couple photo couldn\'t be uploaded because Firebase Storage or the network is temporarily unstable.';
+      'Couldn\'t upload your couple photo. The network or server is acting up. Please try again later.';
 
   @override
   String get coupleSaveGeneric => 'Couldn\'t save couple info right now.';
@@ -1809,11 +1813,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get coupleSessionInvalid =>
-      'Your Firebase session is no longer valid. Please sign in again.';
+      'Your session has expired. Please sign in again.';
 
   @override
   String get coupleSessionNotReadyRelogin =>
-      'Your Firebase session isn\'t ready. Please sign out and back in.';
+      'Your session isn\'t ready yet. Please sign out and back in.';
 
   @override
   String get coupleSpaceInvalidRegenerate =>
@@ -1898,29 +1902,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get photoFileNotFoundStorage =>
-      'The photo file wasn\'t found on Firebase Storage.';
+      'This photo couldn\'t be found on the server.';
 
   @override
   String get photoFirebaseUnavailable =>
-      'Firebase is currently unavailable or the network is unstable.';
+      'Can\'t reach the server right now, maybe a network hiccup. Please try again in a few minutes.';
 
   @override
   String get photoNotFoundToPost => 'Couldn\'t find the photo to post.';
 
   @override
   String get photoStorageUnauthorized =>
-      'Firebase Storage is refusing this photo operation.';
+      'The server won\'t allow this action on the photo.';
 
   @override
   String get photoSyncGeneric => 'Couldn\'t sync photos right now.';
 
   @override
   String get photoSyncPermissionDenied =>
-      'You don\'t have permission to sync photos. Check `firestore.rules` and `storage.rules` on Firebase.';
+      'You don\'t have permission to sync photos yet. Try signing out and back in.';
 
   @override
   String get photoSyncSessionExpired =>
-      'Your Firebase session has expired. Please sign in again.';
+      'Your session has expired. Please sign in again.';
 
   @override
   String get posterNameFallback => 'Your partner';
@@ -1968,14 +1972,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String coupleLoadError(String error) {
-    return 'Couldn\'t load couple info: $error';
-  }
+  String get coupleLoadError =>
+      'Couldn\'t load your couple info. Please try again.';
 
   @override
-  String coupleSyncError(String error) {
-    return 'Couldn\'t sync couple info: $error';
-  }
+  String get coupleSyncError =>
+      'Couldn\'t sync your couple info. Please try again.';
 
   @override
   String galleryMonthLabel(String month, String year) {
@@ -2072,6 +2074,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get streakSheetNoStreakTitle => 'Light your first spark';
+
+  @override
+  String get streakSheetRestartTitle => 'Light the spark again';
 
   @override
   String get streakSheetNoStreakBody =>
@@ -3506,11 +3511,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sleepHowBody1 =>
-      'The app counts the longest stretch your phone sits untouched overnight (6 pm to 2 pm, at least 3 hours) as sleep.';
+      'The app counts the longest stretch your phone sits untouched overnight (6 pm to 2 pm, 3 to 16 hours) as sleep. A stretch that ends before 1 am, like charging in the evening, only counts when there is nothing later.';
 
   @override
   String get sleepHowBody1Ios =>
-      'The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm.';
+      'The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm. A nap that ends before 1 am only counts when there is nothing later that night.';
 
   @override
   String get sleepHowBody2 =>
@@ -3701,11 +3706,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loveTreeShowLess => 'Show less';
-
-  @override
-  String homeConstellationPill(int lit) {
-    return '$lit/6 stars';
-  }
 
   @override
   String homeConstellationSemantics(int lit) {

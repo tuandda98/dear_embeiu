@@ -155,24 +155,10 @@
   "inviteCodeTiedToAccount": "Code tied to your account",
   "setupErrorNoAccount": "No account found. Please sign in again.",
   "setupErrorFillRequired": "Please fill in both names and the anniversary date.",
-  "setupErrorSaveCouple": "Could not save couple info: {error}",
-  "@setupErrorSaveCouple": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "setupErrorSaveCouple": "Couldn't save your couple info. Please try again.",
   "setupErrorNoAccountShort": "No account found.",
   "setupErrorNoInviteCode": "Please enter the invite code first.",
-  "setupErrorJoinCouple": "Could not join couple: {error}",
-  "@setupErrorJoinCouple": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "setupErrorJoinCouple": "Couldn't pair up. Please try again.",
   "setupSuccessConnected": "Connected successfully 💞",
   "navHome": "Home",
   "navChat": "Chat",
@@ -961,7 +947,7 @@
   "@authAccountNotFound": {
     "description": "authAccountNotFound"
   },
-  "authConfigNotFound": "Firebase Authentication for this project isn't enabled, or Email/Password is off. In Firebase Console > Authentication > Sign-in method > Email/Password, turn it on.",
+  "authConfigNotFound": "Email sign-in isn't available right now. Please try again later.",
   "@authConfigNotFound": {
     "description": "authConfigNotFound"
   },
@@ -969,27 +955,27 @@
   "@authEmailAlreadyUsed": {
     "description": "authEmailAlreadyUsed"
   },
-  "authEmailPasswordNotEnabled": "Firebase Authentication isn't fully set up for Email/Password. In Firebase Console > Authentication > Sign-in method, enable Email/Password.",
+  "authEmailPasswordNotEnabled": "Email sign-in isn't available right now. Please try again later.",
   "@authEmailPasswordNotEnabled": {
     "description": "authEmailPasswordNotEnabled"
   },
-  "authFirebaseAuthGeneric": "A Firebase Auth error occurred.",
+  "authFirebaseAuthGeneric": "Something went wrong with your account. Please try again.",
   "@authFirebaseAuthGeneric": {
     "description": "authFirebaseAuthGeneric"
   },
-  "authFirebaseUserCreateFailed": "Couldn't create your Firebase account.",
+  "authFirebaseUserCreateFailed": "Couldn't create your account. Please try again.",
   "@authFirebaseUserCreateFailed": {
     "description": "authFirebaseUserCreateFailed"
   },
-  "authFirestoreGeneric": "A Firestore error occurred.",
+  "authFirestoreGeneric": "Couldn't sync your account data. Please try again.",
   "@authFirestoreGeneric": {
     "description": "authFirestoreGeneric"
   },
-  "authFirestorePermissionDenied": "Firestore is blocking writes to user data. Check this app's Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.",
+  "authFirestorePermissionDenied": "The server didn't accept your account info. Please try again in a few minutes.",
   "@authFirestorePermissionDenied": {
     "description": "authFirestorePermissionDenied"
   },
-  "authFirestoreUnavailable": "Firestore is currently unavailable or the network is unstable. Please try again in a few minutes.",
+  "authFirestoreUnavailable": "Can't reach the server right now, maybe a network hiccup. Please try again in a few minutes.",
   "@authFirestoreUnavailable": {
     "description": "authFirestoreUnavailable"
   },
@@ -1009,21 +995,25 @@
   "@authInviteCodeUnavailable": {
     "description": "authInviteCodeUnavailable"
   },
-  "authNetworkError": "No stable network connection to sign in to Firebase.",
+  "authNetworkError": "Your connection seems unstable. Check it and try again.",
   "@authNetworkError": {
     "description": "authNetworkError"
   },
-  "authSessionNotReady": "Your Firebase session isn't ready. Please sign in again.",
+  "authSessionNotReady": "Your session isn't ready yet. Please sign in again.",
   "@authSessionNotReady": {
     "description": "authSessionNotReady"
   },
-  "authSessionUnavailable": "Couldn't get your Firebase session.",
+  "authSessionUnavailable": "Couldn't sign you in. Please try again.",
   "@authSessionUnavailable": {
     "description": "authSessionUnavailable"
   },
   "authTooManyRequests": "Too many sign-in attempts — please try again in a few minutes.",
   "@authTooManyRequests": {
     "description": "authTooManyRequests"
+  },
+  "authUserDisabled": "This account has been disabled, so you can't sign in.",
+  "@authUserDisabled": {
+    "description": "Sign-in error: FirebaseAuth user-disabled"
   },
   "authWeakPassword": "That password is too weak — please choose a stronger one.",
   "@authWeakPassword": {
@@ -1085,7 +1075,7 @@
   "@coupleEnterCodeFirst": {
     "description": "coupleEnterCodeFirst"
   },
-  "coupleFirebaseUnavailable": "Firebase is currently unavailable or the network is unstable. Please try again in a few minutes.",
+  "coupleFirebaseUnavailable": "Can't reach the server right now, maybe a network hiccup. Please try again in a few minutes.",
   "@coupleFirebaseUnavailable": {
     "description": "coupleFirebaseUnavailable"
   },
@@ -1129,19 +1119,19 @@
   "@couplePartnerHasNoSpace": {
     "description": "couplePartnerHasNoSpace"
   },
-  "couplePhotoUploadGeneric": "The couple photo couldn't be uploaded to Firebase Storage.",
+  "couplePhotoUploadGeneric": "Couldn't upload your couple photo. Try changing it again later.",
   "@couplePhotoUploadGeneric": {
     "description": "couplePhotoUploadGeneric"
   },
-  "couplePhotoUploadPermission": "The couple photo couldn't be uploaded to Firebase Storage. Your couple info was saved first — deploy `storage.rules`, then try changing the photo again.",
+  "couplePhotoUploadPermission": "Couldn't upload your couple photo. Your couple info is saved, so just try changing the photo again later.",
   "@couplePhotoUploadPermission": {
     "description": "couplePhotoUploadPermission"
   },
-  "couplePhotoUploadSessionInvalid": "The couple photo couldn't be uploaded because your Firebase session is no longer valid.",
+  "couplePhotoUploadSessionInvalid": "Couldn't upload your couple photo because your session expired. Sign in again, then change the photo.",
   "@couplePhotoUploadSessionInvalid": {
     "description": "couplePhotoUploadSessionInvalid"
   },
-  "couplePhotoUploadUnavailable": "The couple photo couldn't be uploaded because Firebase Storage or the network is temporarily unstable.",
+  "couplePhotoUploadUnavailable": "Couldn't upload your couple photo. The network or server is acting up. Please try again later.",
   "@couplePhotoUploadUnavailable": {
     "description": "couplePhotoUploadUnavailable"
   },
@@ -1157,11 +1147,11 @@
   "@coupleSessionExpiredJoin": {
     "description": "coupleSessionExpiredJoin"
   },
-  "coupleSessionInvalid": "Your Firebase session is no longer valid. Please sign in again.",
+  "coupleSessionInvalid": "Your session has expired. Please sign in again.",
   "@coupleSessionInvalid": {
     "description": "coupleSessionInvalid"
   },
-  "coupleSessionNotReadyRelogin": "Your Firebase session isn't ready. Please sign out and back in.",
+  "coupleSessionNotReadyRelogin": "Your session isn't ready yet. Please sign out and back in.",
   "@coupleSessionNotReadyRelogin": {
     "description": "coupleSessionNotReadyRelogin"
   },
@@ -1261,11 +1251,11 @@
   "@photoConnectCoupleFirst": {
     "description": "photoConnectCoupleFirst"
   },
-  "photoFileNotFoundStorage": "The photo file wasn't found on Firebase Storage.",
+  "photoFileNotFoundStorage": "This photo couldn't be found on the server.",
   "@photoFileNotFoundStorage": {
     "description": "photoFileNotFoundStorage"
   },
-  "photoFirebaseUnavailable": "Firebase is currently unavailable or the network is unstable.",
+  "photoFirebaseUnavailable": "Can't reach the server right now, maybe a network hiccup. Please try again in a few minutes.",
   "@photoFirebaseUnavailable": {
     "description": "photoFirebaseUnavailable"
   },
@@ -1273,7 +1263,7 @@
   "@photoNotFoundToPost": {
     "description": "photoNotFoundToPost"
   },
-  "photoStorageUnauthorized": "Firebase Storage is refusing this photo operation.",
+  "photoStorageUnauthorized": "The server won't allow this action on the photo.",
   "@photoStorageUnauthorized": {
     "description": "photoStorageUnauthorized"
   },
@@ -1281,11 +1271,11 @@
   "@photoSyncGeneric": {
     "description": "photoSyncGeneric"
   },
-  "photoSyncPermissionDenied": "You don't have permission to sync photos. Check `firestore.rules` and `storage.rules` on Firebase.",
+  "photoSyncPermissionDenied": "You don't have permission to sync photos yet. Try signing out and back in.",
   "@photoSyncPermissionDenied": {
     "description": "photoSyncPermissionDenied"
   },
-  "photoSyncSessionExpired": "Your Firebase session has expired. Please sign in again.",
+  "photoSyncSessionExpired": "Your session has expired. Please sign in again.",
   "@photoSyncSessionExpired": {
     "description": "photoSyncSessionExpired"
   },
@@ -1352,23 +1342,13 @@
       }
     }
   },
-  "coupleLoadError": "Couldn't load couple info: {error}",
+  "coupleLoadError": "Couldn't load your couple info. Please try again.",
   "@coupleLoadError": {
-    "description": "Error loading couple info",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
+    "description": "Error loading couple info"
   },
-  "coupleSyncError": "Couldn't sync couple info: {error}",
+  "coupleSyncError": "Couldn't sync your couple info. Please try again.",
   "@coupleSyncError": {
-    "description": "Error syncing couple info",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
+    "description": "Error syncing couple info"
   },
   "galleryMonthLabel": "{month, select, 1{January {year}} 2{February {year}} 3{March {year}} 4{April {year}} 5{May {year}} 6{June {year}} 7{July {year}} 8{August {year}} 9{September {year}} 10{October {year}} 11{November {year}} 12{December {year}} other{{month} {year}}}",
   "@galleryMonthLabel": {
@@ -1479,6 +1459,10 @@
   },
   "streakSheetUnit": "days connected in a row",
   "streakSheetNoStreakTitle": "Light your first spark",
+  "streakSheetRestartTitle": "Light the spark again",
+  "@streakSheetRestartTitle": {
+    "description": "Streak sheet title when the couple had a streak before and it reset"
+  },
   "streakSheetNoStreakBody": "Each day you both answer the question, your streak grows. Let's begin 💞",
   "streakSheetActiveTitle": "You're keeping the spark alive 💞",
   "streakSheetActiveBody": "All done today! See you at tomorrow's question.",
@@ -3234,11 +3218,11 @@
   "@sleepLoadFailed": {
     "description": "Sleep: partner nights failed to load"
   },
-  "sleepHowBody1": "The app counts the longest stretch your phone sits untouched overnight (6 pm to 2 pm, at least 3 hours) as sleep.",
+  "sleepHowBody1": "The app counts the longest stretch your phone sits untouched overnight (6 pm to 2 pm, 3 to 16 hours) as sleep. A stretch that ends before 1 am, like charging in the evening, only counts when there is nothing later.",
   "@sleepHowBody1": {
     "description": "Sleep explainer paragraph (Android)"
   },
-  "sleepHowBody1Ios": "The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm.",
+  "sleepHowBody1Ios": "The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm. A nap that ends before 1 am only counts when there is nothing later that night.",
   "@sleepHowBody1Ios": {
     "description": "Sleep explainer paragraph (iOS)"
   },
@@ -3537,15 +3521,6 @@
   "loveTreeShowLess": "Show less",
   "@loveTreeShowLess": {
     "description": "Love tree v3: collapse the milestone chips"
-  },
-  "homeConstellationPill": "{lit}/6 stars",
-  "@homeConstellationPill": {
-    "description": "Home: Love Tree entry pill next to the today section",
-    "placeholders": {
-      "lit": {
-        "type": "int"
-      }
-    }
   },
   "homeConstellationSemantics": "Today's constellation: {lit} of 6 stars. Opens the Love Tree",
   "@homeConstellationSemantics": {

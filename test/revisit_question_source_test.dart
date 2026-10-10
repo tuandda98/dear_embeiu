@@ -191,6 +191,40 @@ void main() {
         isNull,
       );
     });
+
+    test('ngày khớp đúng luôn thắng ngày lệch, với mọi seed', () {
+      // 365 ngày trước 2026-09-05 là 2025-09-05.
+      for (var i = 0; i < 20; i++) {
+        final pick = pickRevisitDate(
+          today: today,
+          availableDateKeys: <String>['2025-09-03', '2025-09-05', '2025-09-07'],
+          seedKey: 'couple-$i|2026-09-05',
+        );
+        expect(pick!.dateKey, '2025-09-05');
+        expect(pick.exact, isTrue);
+      }
+    });
+
+    test('không có ngày khớp đúng → lấy ngày gần nhất, đánh dấu lệch', () {
+      final pick = pickRevisitDate(
+        today: today,
+        availableDateKeys: <String>['2025-09-03', '2025-09-06'],
+        seedKey: seed,
+      );
+      expect(pick!.bucket, revisitBucketYear);
+      expect(pick.dateKey, '2025-09-06');
+      expect(pick.exact, isFalse);
+    });
+
+    test('ngày tháng trước (clamp) vẫn là khớp đúng', () {
+      final pick = pickRevisitDate(
+        today: DateTime(2026, 3, 31),
+        availableDateKeys: <String>['2026-02-28'],
+        seedKey: seed,
+      );
+      expect(pick!.bucket, revisitBucketMonth);
+      expect(pick.exact, isTrue);
+    });
   });
 
   group('truncateForQuote', () {
@@ -279,6 +313,37 @@ void main() {
       expect(a.vi, b.vi);
     });
 
+    test('ngày lệch → câu "khoảng", không nói "đúng/tròn/ngày này"', () {
+      const exactWords = <String>['đúng', 'tròn', 'ngày này'];
+      const exactWordsEn = <String>['exactly', 'full year', 'on this day'];
+      for (final bucket in <String>[
+        revisitBucketYear,
+        revisitBucketHundred,
+        revisitBucketThirty,
+      ]) {
+        for (var i = 0; i < 12; i++) {
+          final text = renderRevisitQuestion(
+            bucket: bucket,
+            oldQuestionVi: oldVi,
+            oldQuestionEn: oldEn,
+            seedKey: 'couple-$i|2026-09-05',
+            exact: false,
+          );
+          final vi = text.vi.toLowerCase();
+          final en = text.en.toLowerCase();
+          expect(vi.contains('khoảng'), isTrue, reason: text.vi);
+          expect(en.contains('about') || en.contains('around'), isTrue,
+              reason: text.en);
+          for (final w in exactWords) {
+            expect(vi.contains(w), isFalse, reason: '$bucket: ${text.vi}');
+          }
+          for (final w in exactWordsEn) {
+            expect(en.contains(w), isFalse, reason: '$bucket: ${text.en}');
+          }
+        }
+      }
+    });
+
     test('bucket lạ → fallback mẫu 30 ngày, không crash', () {
       final text = renderRevisitQuestion(
         bucket: 'không-tồn-tại',
@@ -309,6 +374,24 @@ void main() {
           // Giọng văn: "chúng mình", không dùng "hai đứa".
           expect(t.viPrefix.contains('hai đứa'), isFalse, reason: bucket);
           expect(t.viSuffix.contains('hai đứa'), isFalse, reason: bucket);
+        }
+      }
+    });
+
+    test('mẫu "khoảng" có cho 365/100/30, không có cho tháng (luôn khớp đúng)',
+        () {
+      expect(revisitTemplatesApprox.keys.toSet(), <String>{
+        revisitBucketYear,
+        revisitBucketHundred,
+        revisitBucketThirty,
+      });
+      for (final variants in revisitTemplatesApprox.values) {
+        expect(variants, isNotEmpty);
+        for (final t in variants) {
+          final joined = t.viPrefix + t.viSuffix + t.enPrefix + t.enSuffix;
+          expect(joined.contains('{'), isFalse);
+          expect(joined.contains('}'), isFalse);
+          expect(joined.contains('hai đứa'), isFalse);
         }
       }
     });

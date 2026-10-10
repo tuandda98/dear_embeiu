@@ -371,9 +371,8 @@ class AppLocalizationsVi extends AppLocalizations {
       'Điền đủ tên hai bạn và ngày kỷ niệm nhé.';
 
   @override
-  String setupErrorSaveCouple(String error) {
-    return 'Chưa lưu được thông tin cặp đôi: $error';
-  }
+  String get setupErrorSaveCouple =>
+      'Chưa lưu được thông tin cặp đôi. Bạn thử lại nhé.';
 
   @override
   String get setupErrorNoAccountShort => 'Không tìm thấy tài khoản.';
@@ -382,9 +381,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get setupErrorNoInviteCode => 'Bạn hãy nhập mã mời trước nhé.';
 
   @override
-  String setupErrorJoinCouple(String error) {
-    return 'Chưa ghép đôi được: $error';
-  }
+  String get setupErrorJoinCouple => 'Chưa ghép đôi được. Bạn thử lại nhé.';
 
   @override
   String get setupSuccessConnected => 'Ghép đôi thành công rồi 💞';
@@ -1671,6 +1668,10 @@ class AppLocalizationsVi extends AppLocalizations {
       'Có quá nhiều lần thử đăng nhập. Bạn đợi vài phút rồi thử lại nhé.';
 
   @override
+  String get authUserDisabled =>
+      'Tài khoản này đang bị khoá nên chưa đăng nhập được.';
+
+  @override
   String get authWeakPassword =>
       'Mật khẩu còn yếu, bạn chọn mật khẩu mạnh hơn nhé.';
 
@@ -1952,14 +1953,12 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String coupleLoadError(String error) {
-    return 'Không thể tải thông tin cặp đôi: $error';
-  }
+  String get coupleLoadError =>
+      'Chưa tải được thông tin cặp đôi. Bạn thử lại nhé.';
 
   @override
-  String coupleSyncError(String error) {
-    return 'Không thể đồng bộ thông tin cặp đôi: $error';
-  }
+  String get coupleSyncError =>
+      'Chưa đồng bộ được thông tin cặp đôi. Bạn thử lại nhé.';
 
   @override
   String galleryMonthLabel(String month, String year) {
@@ -2056,6 +2055,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get streakSheetNoStreakTitle => 'Thắp ngọn lửa đầu tiên';
+
+  @override
+  String get streakSheetRestartTitle => 'Thắp lại ngọn lửa';
 
   @override
   String get streakSheetNoStreakBody =>
@@ -2479,7 +2481,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get loveTreeSeedSubtitle => 'Hai bạn vừa gieo hạt mầm đầu tiên 🌱';
+  String get loveTreeSeedSubtitle => 'Chúng mình vừa gieo hạt mầm đầu tiên 🌱';
 
   @override
   String loveTreeNewBloomBanner(int count) {
@@ -3483,11 +3485,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sleepHowBody1 =>
-      'App coi khoảng điện thoại nằm yên lâu nhất trong đêm (từ 18h đến 14h hôm sau, ít nhất 3 tiếng) là giấc ngủ.';
+      'App coi khoảng điện thoại nằm yên lâu nhất trong đêm (từ 18h đến 14h hôm sau, dài 3 đến 16 tiếng) là giấc ngủ. Khoảng nào xong trước 1 giờ sáng, như lúc để sạc buổi tối, chỉ được tính khi không còn khoảng nào khác.';
 
   @override
   String get sleepHowBody1Ios =>
-      'App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h đến 14h hôm sau.';
+      'App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h đến 14h hôm sau. Giấc chợp mắt xong trước 1 giờ sáng chỉ được tính khi cả đêm không có giấc nào khác.';
 
   @override
   String get sleepHowBody2 =>
@@ -3678,11 +3680,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get loveTreeShowLess => 'Thu gọn';
-
-  @override
-  String homeConstellationPill(int lit) {
-    return '$lit/6 sao';
-  }
 
   @override
   String homeConstellationSemantics(int lit) {

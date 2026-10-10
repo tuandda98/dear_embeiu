@@ -336,6 +336,34 @@ void main() {
       expect(unknown, isNull);
     });
 
+    test('mood question reads right for BOTH partners (shared marker)',
+        () async {
+      // The phone that resolves first sees its partner's mood, but the text is
+      // stored once and read by both — the mood's owner included. So nothing
+      // may point at "the partner" or at the reader as the one feeling it.
+      for (final t in templatesForGroup(kTplGroupMoodPartner)) {
+        expect(t.vi.contains('người ấy'), isFalse, reason: t.key);
+        expect(t.en.toLowerCase().contains('your partner'), isFalse,
+            reason: t.key);
+      }
+      for (final word in kMoodWordVi.values) {
+        expect(word.contains('bạn'), isFalse, reason: word);
+      }
+      for (final mood in kMoodWordVi.keys) {
+        for (int day = 1; day <= 8; day++) {
+          final q = await source.proposeGroup(
+            ctxFor(DateTime(2026, 9, day), partnerMood: mood),
+            kTplGroupMoodPartner,
+          );
+          expect(q, isNotNull, reason: mood);
+          expect(q!.questionVi.contains(kMoodWordVi[mood]!), isTrue,
+              reason: q.questionVi);
+          expect(q.questionEn.contains(kMoodWordEn[mood]!), isTrue,
+              reason: q.questionEn);
+        }
+      }
+    });
+
     test('milestone copy only counts down BEFORE the milestone', () async {
       // 100 days after 2024-01-01 is 2024-04-10; two days before → "còn 2".
       final before = await source.proposeGroup(
