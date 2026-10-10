@@ -2,7 +2,7 @@
 
 > Kế hoạch chi tiết NỘI BỘ feature này (chia phase/version, thứ tự làm). Khác với `../../ROADMAP.md` (toàn cảnh mọi feature). PO sở hữu; cập nhật khi phạm vi feature đổi.
 
-- **Trạng thái feature:** 🧪 **Code-level: Tester 5 vòng, không còn lỗi chặn/nên sửa nào mở (vòng 5: 2 lỗi nhỏ, đã áp gói vá Tester tự thử) → còn test tay trên máy thật** (analyze 0 · test 167/167 · rules-test 330 · rules + CF `deleteAccount`/`leaveCoupleCleanup` DEV deployed · smoke Android DEV). Còn thiếu: thử tay luồng iOS/Apple Health trên máy thật hoặc simulator. Chi tiết: `dev.md`. Mockup: https://claude.ai/artifact/9Gmj2jJViF5DPeBCNSmsvF · spec: `design.md`.
+- **Trạng thái feature:** ✅ **Tester PASS code-level (vòng 6, 2026-10-11)** → còn test tay trên máy thật (iOS/Apple Health, 2 máy, offline) + việc PO trước khi phát hành (analyze 0 · test 167/167 · rules-test 330 · rules + CF `deleteAccount`/`leaveCoupleCleanup` DEV deployed · smoke Android DEV). Còn thiếu: thử tay luồng iOS/Apple Health trên máy thật hoặc simulator. Chi tiết: `dev.md`. Mockup: https://claude.ai/artifact/9Gmj2jJViF5DPeBCNSmsvF · spec: `design.md`.
 
 ## ▶️ BẮT ĐẦU PHIÊN DEV TỪ ĐÂY (handoff 2026-10-10)
 1. Đọc `design.md` (nguồn sự thật — mockup lệch thì spec thắng). `overview.md` PO chưa viết: phạm vi Phase 1 dưới đây là bản chốt tạm của Lead theo các quyết định user đã đưa trong `design.md` (Đầu vào · R1–R4 · màu riêng · lịch trăng).
@@ -33,6 +33,7 @@
 - Kiểm chính sách Google Play cho `PACKAGE_USAGE_STATS` + cập nhật khai báo An toàn dữ liệu & privacy policy; App Store: App Privacy (Health). Bắt buộc TRƯỚC khi phát hành, không cần trước khi code.
 
 ## Mốc đã đạt
+- [2026-10-11] ✅ Tester vòng 6 PASS code-level (vòng 3–5: vá N7–N19; riêng tư N8 quan trọng nhất)
 - [2026-10-11] 🧪 Tester vòng 2 FAIL → 💻 Dev vá; user chốt thuật toán (dài nhất, bỏ khoảng xong trước 1h) + người ở lại tự tắt chia sẻ khi người ấy rời đi
 - [2026-10-11] 🧪 Tester vòng 1 FAIL → 💻 Dev vá S1–S6 + phần lớn lỗi nhỏ — chờ Tester vòng 2
 - [2026-10-11] 💻 Dev Phase 1 xong (chi tiết `dev.md`) — chờ Tester

@@ -3,7 +3,7 @@
 > Tester sở hữu. Đọc cả `design.md` + `dev.md`. CHỈ test, KHÔNG sửa code. Output: PASS hoặc FAIL (kèm bug report).
 > Agent Tester chỉ đọc được file, nên main session chép nguyên văn kết quả vào đây.
 
-- **Trạng thái test:** vòng 5 code-level (2026-10-11): 0 chặn · 0 nên sửa · 2 nhỏ (N14 đường phụ, N19) → Dev đã áp đúng gói vá + test Tester đã thử (71/71). Không còn lỗi chặn/nên sửa nào mở. Còn: test tay trên máy thật (iOS/Apple Health, 2 máy, offline). Vòng 1–4: đã vá.
+- **Trạng thái test:** ✅ **PASS code-level vòng 6 (2026-10-11)** — 0 chặn · 0 nên sửa. 6 vòng: vòng 1–5 FAIL (đều đã vá), vòng 6 PASS. Ghi nợ nhỏ: N20, N21 (cuối file), stream 400 ngày, mô tả quyền Health chỉ tiếng Việt, card về A1 sau khi cài lại. Còn: test tay trên máy thật (iOS/Apple Health, 2 máy cùng couple, offline).
 - **Người/role:** Master Tester
 
 ## Bug report (vòng 1)
@@ -248,3 +248,39 @@
 
 - [2026-10-11] [Tester] Vòng 5 code-level (HEAD d04b3fc): analyze 0 · test 219/219 · FAIL: 0 chặn, 0 nên sửa, 2 nhỏ (N14 còn đường phụ, N19).
 - [2026-10-11] [Dev → Tester] Áp đúng gói vá 6 dòng của Tester + 2 test của Tester (N14b, N19 — đều đỏ trên code cũ). analyze 0 · test 221/221 (giấc ngủ 49).
+
+## Vòng 6 — 2026-10-11 (code-level, xác nhận, HEAD 4656cf4) — PASS
+
+- **Trạng thái test:** PASS vòng 6: 0 chặn · 0 nên sửa. N14, N19 đã vá, bản vá không gây hồi quy. 2 nhỏ ghi nợ (N20, N21), đều có từ trước, cho kết quả y hệt trên `d04b3fc`.
+- Bản vá: `sleep_provider.dart` ở HEAD giống từng byte bản vá thử vòng 5. Test N14b, N19 khớp bản nháp. Trên `d04b3fc`: provider 7/9 (2 đỏ); trên HEAD: 9/9.
+
+### N14 / N19
+| # | Kết luận | Bằng chứng |
+|---|---|---|
+| N14 | Đã vá | `_syncRecent` `:456` thoát khi còn lệnh chờ; `whenComplete` `:651` đồng bộ lại một lần. T10, T11: 0 lần ghi, không lộ đêm nào (trước: lộ 3). T12: 0 đêm lộ. T13: 3 lần ghi cho 3 đêm (trước: 6). Còn một đường qua khởi động lại → N20. |
+| N19 | Đã vá (ca mạng chậm) | `:292-298`. Máy mới kéo về đủ 4/4 đêm (trước: 1/4). Chi phí: lịch sử về trước khi cờ lên thì `_applyShare` gửi lại cả lịch sử, đêm > 8 ngày bị rules chặn ghi đè (dữ liệu không đổi), chỉ một lần. Còn khe offline → N21. |
+
+### Ba chỗ vừa đổi
+- `_syncRecent` thoát khi đang chờ: không đêm nào bị bỏ rơi. Lệnh "bật" cuối bị từ chối: 0 lần ghi, công tắc về tắt; bấm lại thì lên đủ đêm kể cả đêm sửa lúc chờ. Lệnh "tắt" bị từ chối: vẫn chia sẻ, đêm sửa lúc chờ được đẩy ngay. App chết khi đang chờ: mở lại đủ đêm.
+- `unawaited(_syncRecent())` trong `whenComplete`: chỉ chạy khi `seq` khớp. Sửa đêm lúc put đang bay: lên đúng bản sửa, 4 lần ghi (trước: 7).
+- Hydrate trong nhánh chờ: chỉ đọc (rules cho chủ đọc đêm của mình kể cả khi `share=false`), tối đa 1 lần mỗi phiên, không chạy khi còn dấu `~wiping`.
+
+### Lỗi nhỏ ghi nợ (có từ trước, không do bản vá)
+| # | Mức | Chỗ | Kịch bản → hậu quả | Gợi ý |
+|---|---|---|---|---|
+| N20 | Nhỏ (riêng tư, vài giây) | `sleep_provider.dart:310-315` | Máy bay → bật chia sẻ → vuốt tắt app → mở lại (vẫn máy bay) → tắt chia sẻ → bật mạng. Phiên mới không biết lệnh "bật" còn trong hàng đợi Firestore → đẩy đêm ra sau nó → server nhận [bật, 3 đêm, tắt] → người ấy đọc được 3 đêm vài giây. | `watchProfile` trả kèm `hasPendingWrites`; listener coi "bật nhưng server chưa xác nhận" như đang chờ. |
+| N21 | Nhỏ (lý thuyết) | `_hydrateFromRemote` `:592-617`, `sleep_service.dart:244-247` | Máy mới bấm "Chia sẻ" lúc offline (hoặc mạng chậm ~10 giây): `get()` trả cache rỗng, app coi như đã kéo về; phiên sau không kéo lại. Tắt chia sẻ thì bản duy nhất trên server bị xoá. | `fetchNights` dùng `Source.server`; lỗi thì không đánh dấu đã kéo; cờ lưu Hive để phiên sau thử lại. |
+
+Đã thử, không tính lỗi: S1b (hồ sơ chưa tồn tại mà "bật" bị từ chối → công tắc kẹt "bật" tới lần mở sau), S3 (hydrate về muộn sau một lần xoá).
+
+### Harness
+- Vòng 4: 11/11 kịch bản hàng đợi, nhật ký ghi giống hệt `d04b3fc`. Vòng 5: T10–T13 4/4 · U1a–d, U2, U3 6/6 · partner 3/3 · hydrate 1/1 · r5_provider 2/2 — tổng 27/27. Bộ vòng 5 + test giấc ngủ: 73/73. Calculator 36 ca biên ra y hệt vòng 5. Vòng 6 thêm 10 kịch bản: HEAD đạt mọi assert; trên `d04b3fc` S1, S2a đỏ.
+
+### Số liệu
+- `flutter analyze` (HEAD 4656cf4): No issues found · `flutter test`: 221/221 (giấc ngủ 49 = calculator 36 + provider 9 + sync 4).
+
+### Cần test runtime
+- N14b: máy bay → bật chia sẻ → ra Home rồi vào lại → tắt chia sẻ → vuốt tắt app → có mạng, mở lại → máy người ấy không nháy lịch.
+- N20 (lỗi đã biết): máy bay → bật → vuốt tắt app → mở lại (vẫn máy bay) → tắt → có mạng → dự kiến người ấy thấy lịch nháy vài giây.
+
+- [2026-10-11] [Tester] Vòng 6 code-level (HEAD 4656cf4): analyze 0 · test 221/221 · harness 27/27 + 10 kịch bản mới · **PASS**: 0 chặn, 0 nên sửa; N14, N19 đã vá; N20, N21 ghi nợ.
