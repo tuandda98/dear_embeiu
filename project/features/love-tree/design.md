@@ -1252,8 +1252,84 @@ CHỈ green (2–3 lá) + bloom (3–4 lá). Lá non sakura **xanh-ngả-hồng*
 
 ---
 
+
+# Design Spec v3 — "Bầu trời = hôm nay · Cành hoa = cả hành trình" (ĐỀ XUẤT, 2026-10-10)
+
+> Trạng thái: **đề xuất, chờ user/PO chốt** — đổi ý nghĩa sản phẩm (thêm lớp "việc quan tâm mỗi ngày"), không chỉ đổi giao diện.
+> Mockup bấm thử: https://claude.ai/artifact/DHEgLnJFVET9Wx8FL6tZSo (chạm sao · chạm hoa · "Làm ngay" · tweak `scenario` 0/6 · 4/6 · 6/6).
+
+## Vì sao làm lại (user 2026-10-10: "chưa hiểu được ý nghĩa cũng không hay dùng phần này")
+Đọc code `love_tree_screen.dart` (5.073 dòng) + docs:
+1. **Bầu trời không mang thông tin** — 4 buổi theo giờ thật chỉ để trang trí; người dùng không biết nó nói gì.
+2. **Hoa không tự giải thích** — 3 nguồn cột mốc (ngày bên nhau 30…1314 · chuỗi dài nhất 3…365 · số ảnh 1…100) chỉ phân biệt bằng icon nhỏ ở nhuỵ; trùng ý với Huy hiệu/Hành trình ở Profile.
+3. **Không có lý do quay lại** — hoa nở thưa (mốc cách nhau hàng tuần/tháng) ⇒ mở ra thường không có gì mới.
+4. **Khó tìm** — lối vào duy nhất là StreakChip trên thẻ đếm, chữ của chip nói về chuỗi chứ không nói về cây.
+
+## Ý tưởng
+Mỗi phần một nghĩa, ghi rõ ngay trên màn:
+- **Bầu trời = HÔM NAY**: **chòm sao trái tim 6 sao**. Nửa trái = bạn, nửa phải = người ấy. Mỗi người có 3 sao = 3 việc nhỏ: **Trả lời câu hỏi · Chia sẻ tâm trạng · Nhắn cho nhau một câu**. Đủ 6 sao ⇒ đường viền trái tim sáng trọn + lấp lánh ở đỉnh tim. Reset lúc 0:00.
+  - Đường nối: đỉnh tim (giữa 2 sao "Câu hỏi") sáng khi CẢ HAI đã trả lời; đáy tim (giữa 2 sao "Nhắn tin") sáng khi cả hai đã nhắn; cạnh bên sáng khi 2 sao liền kề cùng một người đều sáng ⇒ trái tim chỉ "khép" khi cả hai cùng góp.
+  - Không phán xét: sao chưa thắp chỉ mờ (viền trắng α .62), không chữ "lỡ", không đỏ.
+- **Cành hoa = CẢ HÀNH TRÌNH**: giữ cành sakura v2.2 + logic cột mốc hiện tại (không đổi data). Thêm chú thích chữ + chip 3 loại + card **"Bông tiếp theo"** (tiến độ + "còn N ngày/ảnh") để luôn có thứ để chờ.
+- **Bỏ 4 buổi trời** → luôn là trời đêm (user thích trời đêm nhất; bầu trời giờ có việc để làm).
+
+## Bố cục (390pt, trên xuống)
+1. Nền dawnBlush + lớp trời đêm full-bleed cao ~760 (`#2E2A52` → `#3A3160` 42% → `#4A3D6B` 66% → tím mờ → trong suốt), 20 sao nền tĩnh, trăng kem `#FFF6D6` 26px góc phải (quầng mềm, có thể "thở" như cũ; Reduce Motion → tĩnh).
+2. Header giữ nguyên ngôn ngữ cũ: back + share = đĩa frosted 44 (white .72), chip "CÂY TÌNH YÊU".
+3. **Chòm sao** khung 260×216 giữa màn. Toạ độ (trong khung): Câu hỏi L(70,40)/R(190,40) · Tâm trạng L(30,104)/R(230,104) · Nhắn tin L(82,162)/R(178,162) · đỉnh lõm (130,66) · mũi tim (130,206). Sao = hình sao 4 cánh: sáng 26px kem `#FFF6D6` + quầng `drop-shadow` 6px màu người (pha trắng 42%, cùng `personPalette` của feature sleep); chưa thắp 18px viền trắng α .62. Mỗi sao là nút 44×44, nhãn chữ 12 w700 cạnh sao (trái căn phải / phải căn trái), trắng (sáng) hoặc trắng α .72. Đường nối sáng = kem α .85 1.8px; chưa = trắng α .22 1px nét đứt 3-5. Trái tim trọn: tô `#FF8FA3` α .24 + sao lấp lánh ở mũi tim.
+4. Tiêu đề "Chòm sao hôm nay" 20 w700 trắng + pill "4/6" (trắng α .16, viền α .26). Câu giải thích 13 w500 trắng α .88 (≤ 300 rộng). Chú giải 12 w600: chấm màu "Nửa trái: Bạn" · "Nửa phải: <tên>".
+5. Vùng chi tiết cao 76: mặc định gợi ý "Chạm vào một ngôi sao để xem chi tiết"; khi trọn: "Trái tim hôm nay đã sáng trọn"; khi chạm sao: panel frosted (trắng α .12, viền α .22, r16) — chấm màu + "<Ai> · <việc>" 14 w700 + trạng thái 12 ("Bạn thấy Bình yên · 08:12" / "Minh Anh chưa chia sẻ tâm trạng") + nút: sao của MÌNH chưa thắp → nút trắng chữ navy "Trả lời ngay / Chia sẻ ngay / Nhắn ngay" (đi tới đúng chỗ); sao NGƯỜI ẤY chưa thắp → nút viền trắng "Gửi lời quan tâm" (mở care-message); × đóng.
+6. **Tuần này**: 7 tim 26px (T2…CN), tô từ đáy theo số sao/6 (`#FF8FA3`), viền trắng α .6; hôm nay viền trắng đặc + nhãn "Nay"; ngày tới viền α .28 không tô. Bên phải: "N ngày trái tim sáng trọn".
+7. **Cành hoa** (vẽ bằng painter hiện có) nằm ở vùng trời đêm tan vào nền hồng; mỗi bông là nút 44 → MomentSheet như cũ.
+8. "N bông đã nở" 22 w700 + "Mỗi bông là một cột mốc của chúng mình. Chạm vào bông hoa để xem lại." 13 w500 **textPrimary** (xám trên nền tím nhạt chỉ 4,2:1) + 3 chip loại (chấm màu nhuỵ): Ngày bên nhau `#FF4D6D` · Chuỗi câu hỏi `#E63956` · Kỷ niệm ảnh `#A78BFA`.
+9. **Card "Bông tiếp theo"** (ContentCard): bông mini 40 + micro-caps "BÔNG TIẾP THEO" + tên mốc 16 w700 + "còn N ngày" + thanh 8px + "337/365 ngày bên nhau"; dưới hairline: 2 mốc kế của 2 loại còn lại (thanh mini 64px + "còn …").
+10. **Card "Việc nhỏ hôm nay"** (ContentCard, 3 hàng): IconBadge + tên việc + 2 trạng thái có chấm màu ("Bạn ✓" / "Minh Anh · chưa"); việc của mình chưa làm → nút navy "Làm ngay" h44; xong → dấu ✓ xanh.
+11. **"Cột mốc đã nở"** = chip gọn (thay danh sách 21 hàng) + "Xem tất cả".
+
+## Lối vào
+- **Home**: nút cạnh tiêu đề nhóm "Hôm nay của chúng mình": icon chòm sao mini (6 chấm, chấm đặc = đã thắp) + "4/6 sao" + chevron, pill trắng α .72 h44 (họ `EyebrowChip`) → mở Cây Tình Yêu. Có thể thêm 1 dòng gợi ý dưới nhóm: "Còn 2 sao: bạn chưa nhắn tin · <tên> chưa chia sẻ tâm trạng".
+- StreakChip ở thẻ đếm giữ làm lối vào phụ như cũ.
+
+## Dữ liệu (Dev/PO xác nhận — đều có sẵn, không cần collection mới)
+- Câu hỏi: `dailyAnswers/{hôm nay}/responses/{uid}` · Tâm trạng: `moods/{uid}.date == hôm nay` · Nhắn tin: có ≥ 1 `messages` của uid đó với `createdAt` hôm nay (theo giờ máy người xem). Tính ở client; các provider này đã được watch ở `session_resolver`.
+- Tuần này: cần lịch sử 7 ngày của 3 việc — câu hỏi/tâm trạng có (tâm trạng chỉ giữ 1 doc/người ⇒ **cần lưu lịch sử hoặc chấp nhận chỉ tính hôm nay** — câu hỏi mở cho PO), tin nhắn query theo ngày.
+- Cột mốc hoa: giữ nguyên `love_tree_service` (không đổi).
+
+## Copy (VI / EN)
+| Key | VI | EN |
+|---|---|---|
+| loveTreeSkyTitle | Chòm sao hôm nay | Tonight's constellation |
+| loveTreeSkyExplain | Mỗi việc nhỏ chúng mình làm cho nhau hôm nay thắp một ngôi sao. Đủ cả hai nửa, trái tim sáng trọn. | Every little thing we do for each other today lights a star. Both halves lit, the heart glows. |
+| loveTreeLeftHalf | Nửa trái: Bạn | Left half: You |
+| loveTreeRightHalf | Nửa phải: {name} | Right half: {name} |
+| loveTreeStarQuestion | Câu hỏi | Question |
+| loveTreeStarMood | Tâm trạng | Mood |
+| loveTreeStarMessage | Nhắn tin | Message |
+| loveTreeTapStar | Chạm vào một ngôi sao để xem chi tiết | Tap a star to see more |
+| loveTreeHeartFull | Trái tim hôm nay đã sáng trọn | Today's heart is fully lit |
+| loveTreeWeek | Tuần này | This week |
+| loveTreeFullDays | {count} ngày trái tim sáng trọn | {count} days fully lit |
+| loveTreeToday | Nay | Today |
+| loveTreeFlowersTitle | {count} bông đã nở | {count} flowers bloomed |
+| loveTreeFlowersExplain | Mỗi bông là một cột mốc của chúng mình. Chạm vào bông hoa để xem lại. | Each flower is one of our milestones. Tap one to relive it. |
+| loveTreeKindDays / Streak / Photos | Ngày bên nhau / Chuỗi câu hỏi / Kỷ niệm ảnh | Days together / Question streak / Photo memories |
+| loveTreeNextFlower | BÔNG TIẾP THEO | NEXT FLOWER |
+| loveTreeTodayTasks | Việc nhỏ hôm nay | Little things today |
+| loveTreeTaskQuestion / Mood / Message | Trả lời câu hỏi hôm nay / Chia sẻ tâm trạng / Nhắn cho nhau một câu | Answer today's question / Share your mood / Send each other a message |
+| loveTreeDoNow | Làm ngay | Do it now |
+| loveTreeNudge | Gửi lời quan tâm | Send some care |
+| loveTreeBloomedTitle | Cột mốc đã nở | Bloomed milestones |
+| homeConstellationPill | {lit}/6 sao | {lit}/6 stars |
+
+## Câu hỏi mở cho user/PO
+1. Có đồng ý thêm lớp "việc quan tâm mỗi ngày" (đổi ý nghĩa cây) không, hay chỉ muốn làm rõ phần cột mốc?
+2. 3 việc đã chọn (câu hỏi · tâm trạng · nhắn tin) có đúng không? Có muốn thay "nhắn tin" bằng "gửi lời quan tâm" hoặc "ảnh mới"?
+3. Lịch sử tâm trạng 7 ngày cho dải "Tuần này" (hiện chỉ lưu tâm trạng hôm nay).
+4. Bỏ hẳn bầu trời 4 buổi (luôn là đêm) — đồng ý không?
+
 ## Changelog
 - [2026-06-14] [Designer] Tạo design spec đầy đủ LoveTreeScreen: layout + wireframe, 5 stage cây (path/shape, hex thân/lá từng stage), hoa 5-cánh + nhuỵ-đĩa-Lucide 3 loại (ngày/streak/ảnh), thuật toán rải hoa xác định (golden-angle + jitter theo index), animation nở hoa (scale/pop/sparkle stagger + reduceMotion), "Cùng vun đắp" 3 InkTile, list cột mốc đã-nở/kế-tiếp, 6 states (0 hoa/hoa mới/nở rộ/loading/error/waiting-no-couple), token hex/size đầy đủ, copy vi+en (30 key), 12 acceptance criteria. Xác nhận dựng 100% bằng CustomPaint/shape — KHÔNG cần asset art.
 - [2026-06-18] [Designer] Thêm "## Design Spec v2" (3 cải tiến: #1 bottom sheet "Khoảnh khắc này" bấm hoa = bản đồ ký ức 4 biến thể days/photos/streak/locked tái dùng pattern sheet chuẩn; #2 cây sống động = 4 lớp trời theo giờ + 4 mùa theo tháng + sao/đom đóm/bướm/sway idle với token hex + Reduce Motion matrix chính xác; #3 thẻ "Khoe cây" 4:5 off-screen RepaintBoundary→PNG→share_plus với layout/gradient/typography tự chứa + 2 entry point). Token hex/size đầy đủ, copy vi+en (~14 key mới), edge cases, Dev notes giữ-logic. KHÔNG sửa milestone math / data source.
 - [2026-06-18] [Designer] Thêm "# Design Spec v2.1" (A nâng cấp CustomPaint + B coach mark). **(A)** Cây: thân/cành bézier cong + gradient ngang tạo khối + vân thân; tán 3 lớp back/mid/front (đa sắc xanh, mid GIỮ `canopyCenter`/`canopyR` cũ → hoa không lệch) + bóng mềm + lá 3-stop; seed/sprout nâng cấp (lá ±32°, giọt sương, bóng gốc). Hoa: 6 cánh 2 lớp (lớp sau xoay +30° scale .86) + gradient cánh 3-stop tâm sáng + bóng dưới hoa; nhuỵ disc highlight radial + viền trong + icon shadow (GIỮ `nucleusD`/icon kind). Đề xuất ranh giới `LoveTreeRenderer` (paintTree + flowerWidget, contract neo `canopyGeometry`/hộp diameter) cho v3 drop SVG/Lottie. **(B)** Coach mark 1-lần/cặp (Hive `love_tree_coach_<coupleId>`): ripple `accentLoveDeep` + tap-dot + tooltip navy .92 chữ trắng trỏ bông gần ĐỈNH tán (dy nhỏ nhất), delay sau bloom, ẩn khi chạm/4s, Reduce-Motion → tĩnh; caption thường trực dưới cây "Chạm vào mỗi bông…" khi ≥1 hoa. Token hex/size/duration đầy đủ; 2 key l10n vi+en (`loveTreeCoachTooltip`/`loveTreeTapHint`); 10 AC; Dev notes 9 mục giữ-logic. GIỮ NGUYÊN: milestone math, bloom positions, stage thresholds, sky/season, MomentSheet, share, lastSeen.
 - [2026-06-18] [Designer] Thêm "# Design Spec v2.2 — CÀNH HOA ANH ĐÀO" (pivot visual: bỏ cây-tán-blob-xanh → cành sakura nghiêng). **§A Hình học cành:** cành chính 1 cubic bézier mọc đáy-trái P0(.16,.96)→ngọn P3(.74,.20) cong chữ-S, dày thuôn gốc→ngọn (FILL-outline + gradient vuông góc tạo khối, KHÔNG stroke đều), bark nâu ấm `#A8755C→#724631` (không xám); nhánh phụ bézier rẽ tại tBranch (young 1 / green 2 / bloom 3 nhánh); 5 stage = tEnd 0.34→1.0 + số nhánh + mật độ blossom (bảng `_BranchSpec` tEnd/wBase/wTip/bark/nhánh/bud/leaf). seed=cành trơ + 1–2 NỤ KÍN (thay 2 lá-mầm). **§B Anchor blossom DỌC cành** (thay scatter golden-angle): phân bổ blossom vào segments theo độ dài, base_t dàn đều + jitter t/độ-lệch CỐ ĐỊNH qua `_bloomHash` (deterministic, không Random), lệch vuông góc ±(wHalf+r) so le 2 bên + clamp trong canvas; `canopyGeometry` đổi nghĩa center=ngọn cành/radius notional, `_coachTargetIndex` GIỮ. **§C Blossom vẽ lại:** 5 cánh sakura có KHÍA chữ-V đỉnh + gradient 3-stop `#FFF0F4→#FFD6E0→petalEdge(kind)` + bóng dưới hoa; nhuỵ = glow mềm (BỎ viền chip) + 6–7 chấm tua vàng-kem `#FFE6A8` (đặc trưng sakura) + đĩa tâm + icon kind NHỎ trắng ở tâm (GIỮ nucleusIcon/Color); nụ kín; lá sakura xanh-ngả-hồng RẤT ít (green/bloom); ambient = CÁNH sakura rơi (thay lá); sky 4 giờ + 4 mùa GIỮ, nghiêng tông sakura/xuân. **§D Ranh giới `SakuraBranchRenderer implements LoveTreeRenderer`** (giữ interface, đổi `kTreeRenderer`, giữ PaintTreeRenderer rollback); contract: 1 nguồn `SakuraBranchGeometry` chung cho painter + bloomPositions (blossom đậu đúng mép cành). Token §F hex đầy đủ; **0 key l10n mới** (tái dùng key cũ — metaphor "cây/nở hoa" vẫn dùng cho sakura); 10 AC; Dev notes 9 mục. GIỮ NGUYÊN: milestone math, thresholds, tap→MomentSheet, share, sky/season, coach/caption, deep-link, bloom-anim/lastSeen, hit≥44, Reduce-Motion.
+- [2026-10-10] [Designer] Thêm "# Design Spec v3" (ĐỀ XUẤT): bầu trời = chòm sao trái tim 6 sao cho việc quan tâm hôm nay (nửa trái bạn · nửa phải người ấy), cành hoa giữ cột mốc + chú thích + card "Bông tiếp theo", bỏ 4 buổi trời, lối vào mới cạnh tiêu đề "Hôm nay của chúng mình". Lý do: user "chưa hiểu ý nghĩa, không hay dùng". Mockup: https://claude.ai/artifact/DHEgLnJFVET9Wx8FL6tZSo. Chờ chốt 4 câu hỏi mở.
