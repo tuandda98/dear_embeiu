@@ -896,7 +896,7 @@ class ReminderProvider extends ChangeNotifier {
     'Embe ơi, trả lời câu hỏi hôm nay cho anh By với nha 🥰',
     'Anh By đang đợi câu trả lời của embe nè 💗',
     'Dành chút xíu trả lời câu hỏi nha embe, anh By thương 🌷',
-    'Embe trả lời rồi mình cùng xem câu của nhau nha 💞',
+    'Embe trả lời đi rồi mình cùng xem câu của nhau nha 💞',
   ];
 
   // Lời hỏi thăm hằng ngày cho embe (band 1100–1109). ⟪Trước 2026-09-07 đây là
@@ -915,7 +915,7 @@ class ReminderProvider extends ChangeNotifier {
       body: 'Dậy chưa embe, ăn sáng đàng hoàng rồi hẵng làm gì thì làm nha',
     ),
     (
-      title: 'Anh yêu chúc embe buổi sáng ☀️',
+      title: 'Anh yêu chào buổi sáng nè ☀️',
       body: 'Chúc embe ngày mới nhẹ nhàng, nhớ ăn sáng ngon miệng nha em',
     ),
     (
@@ -928,11 +928,11 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh By thương embe 🌷',
-      body: 'Buổi sáng của embe thế nào rồi? Ăn sáng chưa đó em',
+      body: 'Sáng nay embe thế nào rồi? Ăn sáng chưa đó em',
     ),
     (
       title: 'Anh yêu gửi embe 💌',
-      body: 'Chúc embe buổi sáng vui vẻ, ăn sáng no rồi ngày sẽ dễ thương hơn nhiều',
+      body: 'Chúc embe buổi sáng vui vẻ, ăn sáng cho no rồi cả ngày sẽ dễ thương hơn nhiều',
     ),
     (
       title: 'Anh By ở đây nè 🤍',
@@ -940,11 +940,11 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh yêu nhắc embe 🍞',
-      body: 'Ăn sáng tử tế một bữa nha em, đừng qua loa nữa nha',
+      body: 'Ăn sáng tử tế một bữa nha em, đừng ăn qua loa nữa',
     ),
     (
       title: 'Anh By chúc embe ngày mới 🌞',
-      body: 'Mong hôm nay của embe suôn sẻ hết, mà nhớ ăn sáng trước đã nha',
+      body: 'Mong hôm nay embe làm gì cũng suôn sẻ, mà nhớ ăn sáng trước đã nha',
     ),
     (
       title: 'Anh yêu nè 💞',
@@ -960,10 +960,10 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh By gửi embe 🍀',
-      body: 'Chúc embe một buổi sáng thật êm, ăn sáng ngon rồi mọi thứ dễ hơn',
+      body: 'Sáng nay cứ thong thả thôi nha embe, ăn sáng ngon rồi việc gì cũng xuôi',
     ),
     (
-      title: 'Anh yêu nhắc embe ơi 🥰',
+      title: 'Anh yêu nhắc nè embe ơi 🥰',
       body: 'Ăn sáng chưa embe? Chưa thì đi ăn liền cho anh By yên tâm nha',
     ),
     (
@@ -976,7 +976,7 @@ class ReminderProvider extends ChangeNotifier {
       <({String title, String body})>[
     (
       title: 'Anh By hỏi thăm nè 💗',
-      body: 'Hôm nay của embe sao rồi? Có gì vui kể anh By nghe với',
+      body: 'Hôm nay embe sao rồi? Có gì vui kể anh By nghe với',
     ),
     (
       title: 'Anh yêu nè embe ơi 🌸',
@@ -1000,11 +1000,11 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh By thương embe 💕',
-      body: 'Nửa ngày trôi qua rồi, embe vẫn ổn chứ em?',
+      body: 'Nửa ngày trôi qua rồi, embe vẫn ổn chứ?',
     ),
     (
       title: 'Anh yêu nè 🍀',
-      body: 'Hôm nay mà hơi khó thì hít thở sâu một cái nha, có anh By đây rồi',
+      body: 'Hôm nay gặp chuyện gì khó thì hít thở sâu một cái nha, có anh By đây rồi',
     ),
     (
       title: 'Anh By hỏi xíu 😌',
@@ -1032,7 +1032,7 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh By nè 💗',
-      body: 'Hôm nay của embe được mấy điểm? Kể anh nghe đi nào',
+      body: 'Hôm nay embe tự chấm mấy điểm? Kể anh nghe đi nào',
     ),
   ];
 
@@ -1044,7 +1044,7 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh yêu nè 🌙',
-      body: 'Tối rồi, hôm nay của embe kết thúc ra sao?',
+      body: 'Tối rồi, hôm nay mọi chuyện ổn hết không embe?',
     ),
     (
       title: 'Anh By đây nè 🫶',
@@ -1052,7 +1052,7 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh yêu thương embe 💞',
-      body: 'Ngày dài rồi, nghỉ ngơi sớm nha em',
+      body: 'Cả ngày vất vả rồi, nghỉ ngơi sớm nha em',
     ),
     (
       title: 'Anh By nè embe ơi ✨',
@@ -1064,7 +1064,7 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh By thương lắm 💖',
-      body: 'Cảm ơn embe vì hôm nay cũng đã cố gắng rồi nha',
+      body: 'Hôm nay embe cũng cố gắng nhiều rồi, giỏi lắm nha',
     ),
     (
       title: 'Anh yêu nè 🌷',
@@ -1092,7 +1092,7 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh yêu chúc embe 🌟',
-      body: 'Ngủ ngon nha embe, mơ một giấc thật đẹp',
+      body: 'Ngủ ngon, mơ đẹp nha embe',
     ),
     (
       title: 'Anh By thương embe 💗',
@@ -1260,9 +1260,9 @@ class ReminderProvider extends ChangeNotifier {
   /// Every title starts with "Anh By <3 " (user requirement).
   static const List<String> _personalCatchupTitles = <String>[
     'Anh By <3 nhớ embe nè',
-    'Anh By <3 đợi embe xíu nha',
+    'Anh By <3 đang đợi embe đó',
     'Anh By <3 gửi embe chút thương',
-    'Anh By <3 nhắc embe nhẹ nhàng',
+    'Anh By <3 nhắc nhẹ embe nha',
   ];
 
   // Last applied "$missedCount|$dayKey"; null = band not owned (non-gated
@@ -1277,8 +1277,8 @@ class ReminderProvider extends ChangeNotifier {
     'Anh By tò mò câu trả lời của embe lắm, còn $missed câu thôi à 🥺',
     'Trả lời nốt $missed câu là chuỗi của chúng mình lại đẹp liền, cố lên embe 💞',
     'Anh By thương embe nhiều, dành 1 phút cho $missed câu hỏi cũ nha 🌷',
-    'Embe của anh By ơi, $missed câu hỏi đang chờ được embe trả lời nè 💕',
-    'Mở app trả lời giúp anh By $missed câu nha, anh By đọc là vui cả ngày 🥰',
+    'Embe của anh By ơi, còn $missed câu hỏi đang chờ em trả lời nè 💕',
+    'Mở app trả lời giúp anh By $missed câu nha, anh đọc là vui cả ngày 🥰',
   ];
 
   /// (Re)arm or clear the catch-up nudges. Wired from HomeScreen after every

@@ -14,12 +14,12 @@ const COPY = {
     preheader: "Bạn vừa yêu cầu đặt lại mật khẩu. Nhấn vào link bên dưới để tiếp tục.",
     greeting: (name) => (name ? `Chào ${name},` : "Chào bạn,"),
     body:
-      "Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản Dear Embeiu của bạn. " +
+      "Dear Embeiu vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. " +
       "Nhấn vào nút bên dưới để tạo mật khẩu mới. Link sẽ hết hạn sau 1 giờ.",
     button: "Đặt lại mật khẩu",
     fallbackIntro: "Nút không bấm được? Sao chép và mở link này trên trình duyệt:",
     securityNote:
-      "🔒 Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này — tài khoản của bạn vẫn an toàn.",
+      "🔒 Nếu không phải bạn yêu cầu, cứ bỏ qua email này. Mật khẩu của bạn vẫn giữ nguyên.",
     footerLine: "Dear Embeiu · dearembeiu.com",
     footerTagline: "Lưu giữ kỷ niệm & đếm ngày yêu 💞",
     footerCopyright: "© Dear Embeiu",

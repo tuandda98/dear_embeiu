@@ -2612,7 +2612,7 @@ exports.deleteAccount = onCall(
           coupleId,
           message: err && err.message,
         });
-        throw new HttpsError("internal", "Không thể xoá dữ liệu cặp đôi. Vui lòng thử lại.");
+        throw new HttpsError("internal", "Chưa xoá được dữ liệu chung của cặp đôi. Bạn thử lại nhé.");
       }
     }
 
@@ -2653,7 +2653,7 @@ exports.deleteAccount = onCall(
       // auth/user-not-found means it's already gone — treat as success.
       if (code !== "auth/user-not-found") {
         logger.error("Failed to delete Auth user during account deletion.", {uid, code});
-        throw new HttpsError("internal", "Không thể xoá tài khoản đăng nhập. Vui lòng thử lại.");
+        throw new HttpsError("internal", "Chưa xoá xong tài khoản. Bạn thử lại nhé.");
       }
     }
 
@@ -2739,7 +2739,7 @@ exports.sendCustomVerificationEmail = onCall(
         uid,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không thể đọc thông tin tài khoản.");
+      throw new HttpsError("internal", "Chưa lấy được thông tin tài khoản. Bạn thử lại nhé.");
     }
 
     const email = `${userRecord.email || ""}`.trim();
@@ -2763,7 +2763,7 @@ exports.sendCustomVerificationEmail = onCall(
         uid,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không thể tạo liên kết xác thực.");
+      throw new HttpsError("internal", "Chưa tạo được liên kết xác thực. Bạn thử lại nhé.");
     }
 
     // Language for the email copy comes from the client device locale (same
@@ -2799,7 +2799,7 @@ exports.sendCustomVerificationEmail = onCall(
         uid,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không gửi được email xác thực.");
+      throw new HttpsError("internal", "Không gửi được email xác thực. Bạn thử lại nhé.");
     }
 
     if (!response.ok) {
@@ -2810,7 +2810,7 @@ exports.sendCustomVerificationEmail = onCall(
         detail: detail.slice(0, 500),
       });
       // Surface as a failure so the client can show "Resend" / retry.
-      throw new HttpsError("internal", "Không gửi được email xác thực.");
+      throw new HttpsError("internal", "Không gửi được email xác thực. Bạn thử lại nhé.");
     }
 
     logger.info("Custom verification email sent.", {uid, lang});
@@ -2989,7 +2989,7 @@ function buildPhotoNotificationText(languageCode, authorName, caption) {
 const PARTNER_JOINED_COPY = {
   vi: {
     title: (name) => `${name} đã ghép đôi cùng bạn 💞`,
-    body: "Hai bạn đã kết nối rồi — cùng bắt đầu lưu kỷ niệm nhé!",
+    body: "Từ giờ chúng mình cùng lưu ảnh và trả lời câu hỏi mỗi ngày nhé!",
   },
   en: {
     title: (name) => `${name} just paired up with you 💞`,
@@ -3011,7 +3011,7 @@ function buildPartnerJoinedText(languageCode, joinerName) {
 const PARTNER_LEFT_COPY = {
   vi: {
     title: (name) => `${name} đã rời khỏi không gian chung`,
-    body: "Khi nào sẵn sàng, hai bạn có thể kết nối lại nhé 💛",
+    body: "Khi cả hai sẵn sàng, cứ ghép đôi lại nhé 💛",
   },
   en: {
     title: (name) => `${name} has left your shared space`,
@@ -3055,7 +3055,7 @@ function buildLoveNoteText(languageCode, authorName, noteText) {
 const CHAT_MESSAGE_COPY = {
   vi: {
     title: "Tin nhắn mới 💬",
-    body: (author) => `${author} vừa gửi cho bạn một tin nhắn 💌`,
+    body: (author) => `${author} vừa nhắn cho bạn 💌`,
   },
   en: {
     title: "New message 💬",
@@ -3068,7 +3068,7 @@ const CHAT_MESSAGE_COPY = {
 const PARTNER_MOOD_COPY = {
   vi: {
     title: "Tâm trạng hôm nay 💗",
-    // Show the mood when we recognise it ("Anh Tuấn đang thấy Nhớ"); otherwise a
+    // Show the mood when we recognise it ("Anh Tuấn đang thấy nhớ bạn"); otherwise a
     // gentle generic nudge.
     body: (name, moodLabel) => moodLabel ?
       `${name} đang thấy ${moodLabel}` :
@@ -3086,8 +3086,8 @@ const PARTNER_MOOD_COPY = {
 // name the mood. Unknown keys fall back to the generic copy above.
 const MOOD_LABELS = {
   vi: {
-    happy: "Vui", loved: "Hạnh phúc", missing: "Nhớ", calm: "Bình yên",
-    meh: "Bình thường", tired: "Mệt", sad: "Buồn", stressed: "Căng thẳng",
+    happy: "vui", loved: "hạnh phúc", missing: "nhớ bạn", calm: "bình yên",
+    meh: "bình thường", tired: "mệt", sad: "buồn", stressed: "căng thẳng",
   },
   en: {
     happy: "Happy", loved: "Loved", missing: "Missing you", calm: "Calm",
@@ -3121,8 +3121,8 @@ const PARTNER_REMINDER_SET_COPY = {
   vi: {
     title: "Lời nhắc từ người ấy ⏰",
     body: (name, text, hhmm) => hhmm ?
-      `${name} đặt nhắc bạn: ${text} lúc ${hhmm}` :
-      `${name} đặt nhắc bạn: ${text}`,
+      `${name} đặt lời nhắc cho bạn lúc ${hhmm}: ${text}` :
+      `${name} đặt lời nhắc cho bạn: ${text}`,
   },
   en: {
     title: "A reminder from your partner ⏰",
@@ -3164,7 +3164,7 @@ const DAILY_QUESTION_COPY = {
     // normalizeActorName() would hardcode Vietnamese on an English device.
     partnerFallback: "Người ấy",
     title: (author) => `${author} đã trả lời câu hỏi hôm nay 💞`,
-    body: "Trả lời câu hỏi của bạn để mở khoá câu trả lời của người ấy nhé.",
+    body: "Tới lượt bạn. Trả lời xong là xem được người ấy viết gì nhé.",
     bodyBoth: "Cả hai đã trả lời rồi — mở app xem câu trả lời của nhau nhé!",
   },
   en: {
@@ -3279,7 +3279,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         email,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không thể xử lý yêu cầu.");
+      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu. Bạn thử lại nhé.");
     }
 
     // Generate the official Firebase password reset link.
@@ -3291,7 +3291,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         email,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không thể tạo liên kết đặt lại mật khẩu.");
+      throw new HttpsError("internal", "Chưa tạo được liên kết đặt lại mật khẩu. Bạn thử lại nhé.");
     }
 
     const name = `${userRecord.displayName || ""}`.trim();
@@ -3321,7 +3321,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         email,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu.");
+      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu. Bạn thử lại nhé.");
     }
 
     if (!response.ok) {
@@ -3331,7 +3331,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         status: response.status,
         detail: detail.slice(0, 500),
       });
-      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu.");
+      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu. Bạn thử lại nhé.");
     }
 
     logger.info("Password reset email sent.", {email, lang});
@@ -3379,6 +3379,9 @@ const AI_QUESTION_SYSTEM_PROMPT = [
   "- Mỗi bản tối đa 200 ký tự, chỉ một câu hỏi duy nhất.",
   "- Giọng ấm áp, nhẹ nhàng, tôn trọng; hỏi để hai người kể cho nhau nghe.",
   "- Tiếng Việt xưng hô \"chúng mình\" / \"người ấy\" / \"bạn\". KHÔNG dùng tên riêng, KHÔNG dùng \"hai đứa\".",
+  "- Bản tiếng Việt viết tự nhiên như người Việt nói với nhau, không dịch từng chữ từ bản tiếng Anh.",
+  "- Câu ngắn, cụ thể (một việc nhỏ, một kỷ niệm, một tình huống), tránh câu hỏi chung chung.",
+  "- Không dùng cụm sáo rỗng như \"hành trình đầy cảm xúc\", \"trong kỷ nguyên số\", \"đột phá\", \"giải pháp toàn diện\", \"chúng ta hãy cùng khám phá\", \"có thể nói rằng\".",
   "- Dựa vào chủ đề và câu trả lời gần đây để hỏi sâu hơn hoặc nối tiếp (ví dụ nhắc lại một dự định họ từng nói).",
   "- Phù hợp với thứ trong tuần, cột mốc hoặc tâm trạng hôm nay nếu có dữ liệu.",
   "- KHÔNG lặp lại chủ đề của 14 ngày gần nhất.",

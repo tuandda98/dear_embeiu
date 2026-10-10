@@ -21,7 +21,7 @@ const COPY = {
     greeting: (name) => (name ? `Chào ${name},` : "Chào bạn,"),
     body:
       "Chỉ còn một bước nữa để bắt đầu lưu giữ kỷ niệm cùng người ấy. " +
-      "Xác nhận email của bạn để mở khóa không gian riêng của hai người nhé. 💞",
+      "Xác nhận email để mở khoá không gian riêng của hai người nhé. 💞",
     button: "Xác thực email",
     fallbackIntro: "Nút không bấm được? Sao chép và mở link này trên trình duyệt:",
     securityNote:

@@ -18,14 +18,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get careTimelineSeeAll => 'Xem tất cả';
 
   @override
-  String get careTimelineTile => 'Lời quan tâm';
-
-  @override
-  String careTimelineCount(int count) {
-    return '$count lời nhắn cho nhau';
-  }
-
-  @override
   String get careTimelineYesterday => 'Hôm qua';
 
   @override
@@ -33,7 +25,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get careTimelineEmptyBody =>
-      'Mỗi lời nhắn nhỏ chúng mình gửi nhau đều được giữ lại ở đây, theo thứ tự thời gian.';
+      'Mỗi lời nhắn nhỏ chúng mình gửi nhau sẽ nằm lại ở đây, xếp theo từng ngày.';
 
   @override
   String get careTimelineEmptyCta => 'Gửi lời quan tâm đầu tiên';
@@ -42,18 +34,18 @@ class AppLocalizationsVi extends AppLocalizations {
   String get careTimelineLoadError => 'Chưa tải được dòng thời gian.';
 
   @override
-  String get aiQuestionsTitle => 'Câu hỏi cá nhân hoá bằng AI';
+  String get aiQuestionsTitle => 'Câu hỏi do AI soạn riêng';
 
   @override
   String get aiQuestionsSubtitle =>
-      'Dùng 30 ngày câu trả lời gần nhất của cả hai để tạo câu hỏi riêng cho chúng mình. Dữ liệu chỉ dùng để tạo câu hỏi, không dùng để huấn luyện. Tắt bất cứ lúc nào.';
+      'AI đọc câu trả lời 30 ngày gần nhất của cả hai rồi soạn câu hỏi riêng cho chúng mình. Những câu trả lời này chỉ dùng để soạn câu hỏi, không dùng để huấn luyện AI. Tắt lúc nào cũng được.';
 
   @override
-  String get aiQuestionsDialogTitle => 'Bật câu hỏi cá nhân hoá?';
+  String get aiQuestionsDialogTitle => 'Bật câu hỏi do AI soạn?';
 
   @override
   String get aiQuestionsDialogBody =>
-      'Cài đặt này áp dụng cho cả hai: người ấy cũng sẽ thấy câu hỏi do AI tạo. Chúng mình chỉ đọc 30 ngày câu trả lời gần nhất để tạo câu hỏi, không dùng để huấn luyện, và có thể tắt bất cứ lúc nào. Câu hỏi AI bắt đầu từ câu hỏi ngày mai.';
+      'Cài đặt này dùng chung cho cả hai: người ấy cũng sẽ thấy câu hỏi do AI soạn. AI chỉ đọc câu trả lời 30 ngày gần nhất để soạn câu hỏi. Những câu trả lời này không dùng để huấn luyện AI. Bạn tắt lúc nào cũng được. Câu hỏi AI bắt đầu từ ngày mai.';
 
   @override
   String get aiQuestionsDialogConfirm => 'Bật';
@@ -122,11 +114,11 @@ class AppLocalizationsVi extends AppLocalizations {
       'Soạn một lời nhắn ngắn, người ấy nhận thông báo ngay.';
 
   @override
-  String get featureTourQuestionsTitle => 'Câu hỏi mỗi ngày mới hơn';
+  String get featureTourQuestionsTitle => 'Câu hỏi mỗi ngày mới mẻ hơn';
 
   @override
   String get featureTourQuestionsBody =>
-      'Câu hỏi theo tuần, theo tháng và theo tâm trạng, xem lại câu trả lời cũ, và tuỳ chọn AI cá nhân hoá có thể bật trong Cài đặt.';
+      'Câu hỏi đổi theo tuần, tháng và tâm trạng, có hôm còn rủ chúng mình nhìn lại câu trả lời cũ. Muốn AI soạn câu hỏi riêng thì bật trong Cài đặt.';
 
   @override
   String get featureTourInviteTitle => 'Mời người ấy dễ hơn';
@@ -156,7 +148,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get homeWaitingStep2Desc =>
-      'Người ấy cần cài Dear Embeiu (iOS/Android), đăng ký rồi chọn <Nhập mã mời>.';
+      'Người ấy cần cài Dear Embeiu (iOS/Android), đăng ký rồi chọn <Tham gia bằng mã>.';
 
   @override
   String get homeWaitingStep3Title => 'Nhập mã là xong';
@@ -195,22 +187,19 @@ class AppLocalizationsVi extends AppLocalizations {
   String get back => 'Quay lại';
 
   @override
-  String get cancel => 'Hủy';
+  String get cancel => 'Huỷ';
 
   @override
   String get save => 'Lưu';
 
   @override
-  String get delete => 'Xóa';
+  String get delete => 'Xoá';
 
   @override
   String get edit => 'Chỉnh sửa';
 
   @override
   String get continueBtn => 'Tiếp tục';
-
-  @override
-  String get keep => 'Giữ lại';
 
   @override
   String get splashTagline => 'Câu chuyện của chúng mình';
@@ -222,23 +211,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get checkingSession => 'Đang kiểm tra phiên đăng nhập...';
 
   @override
-  String get loginTitle => 'Chào mừng trở lại';
-
-  @override
-  String get loginSubtitle => 'Đăng nhập để tiếp tục đếm từng ngày bên nhau.';
-
-  @override
-  String get loginLocalFallback =>
-      'Đang dùng local fallback — Firebase sẽ được kết nối sau.';
-
-  @override
   String get emailLabel => 'Email';
 
   @override
   String get emailHint => 'you@example.com';
 
   @override
-  String get emailRequired => 'Vui lòng nhập email';
+  String get emailRequired => 'Bạn chưa nhập email';
 
   @override
   String get emailInvalid => 'Email không hợp lệ';
@@ -250,7 +229,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get passwordHint => 'Ít nhất 6 ký tự';
 
   @override
-  String get passwordRequired => 'Vui lòng nhập mật khẩu';
+  String get passwordRequired => 'Bạn chưa nhập mật khẩu';
 
   @override
   String get passwordTooShort => 'Mật khẩu cần ít nhất 6 ký tự';
@@ -265,23 +244,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get createAccountLink => 'Tạo tài khoản';
 
   @override
-  String get registerTitle => 'Bắt đầu\ncâu chuyện tình';
-
-  @override
-  String get registerSubtitle => 'Tạo tài khoản để lưu giữ từng ngày bên nhau.';
-
-  @override
-  String get registerLocalFallback =>
-      'Đang dùng local fallback — Firebase sẽ được kết nối sau.';
-
-  @override
   String get displayNameLabel => 'Tên hiển thị';
 
   @override
   String get displayNameHint => 'Tên của bạn';
 
   @override
-  String get displayNameRequired => 'Vui lòng nhập tên hiển thị';
+  String get displayNameRequired => 'Bạn chưa nhập tên hiển thị';
 
   @override
   String get displayNameTooShort => 'Tên quá ngắn';
@@ -293,7 +262,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get confirmPasswordHint => 'Nhập lại mật khẩu';
 
   @override
-  String get confirmPasswordRequired => 'Vui lòng xác nhận mật khẩu';
+  String get confirmPasswordRequired => 'Bạn chưa nhập lại mật khẩu';
 
   @override
   String get passwordsMismatch => 'Mật khẩu chưa khớp';
@@ -308,7 +277,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get backToSignIn => 'Quay lại đăng nhập';
 
   @override
-  String get setupCreateTitle => 'Bắt đầu\ncâu chuyện của hai mình';
+  String get setupCreateTitle => 'Bắt đầu\ncâu chuyện của chúng mình';
 
   @override
   String setupEditTitle(String me, String partner) {
@@ -325,22 +294,22 @@ class AppLocalizationsVi extends AppLocalizations {
   String get setupTabJoin => 'Tham gia bằng mã';
 
   @override
-  String get inviteCodeDialogTitle => 'Mã mời tài khoản của bạn';
+  String get inviteCodeDialogTitle => 'Mã mời của bạn';
 
   @override
   String get inviteCodeDialogContent =>
-      'Mã mời này gắn trực tiếp với tài khoản của bạn. Gửi nó cho người còn lại để họ đăng nhập bằng tài khoản riêng và nhập vào màn hình tham gia cặp đôi.';
+      'Mã này gắn với tài khoản của bạn. Gửi mã cho người ấy. Người ấy chỉ cần đăng nhập tài khoản riêng rồi nhập mã ở mục <Tham gia bằng mã>.';
 
   @override
   String get sectionAboutCouple => 'Thông tin cặp đôi';
 
   @override
   String get setupEditSectionDesc =>
-      'Chỉnh sửa thông tin chung — tên, ngày kỷ niệm, ảnh đôi.';
+      'Chỉnh sửa thông tin chung: tên, ngày kỷ niệm, ảnh đôi.';
 
   @override
   String get setupCreateSectionDesc =>
-      'Tạo không gian trước, sau đó chia sẻ mã mời với người ấy.';
+      'Tạo không gian trước, rồi gửi mã mời cho người ấy.';
 
   @override
   String get yourNameLabel => 'Tên của bạn';
@@ -364,7 +333,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get couplePhotoLabel => 'Ảnh đôi';
 
   @override
-  String get couplePhotoHint => 'Thêm ảnh đôi (tùy chọn)';
+  String get couplePhotoHint => 'Thêm ảnh đôi (tuỳ chọn)';
 
   @override
   String get couplePhotoSelected => 'Đã chọn ảnh';
@@ -373,7 +342,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get saveChangesBtn => 'Lưu thay đổi';
 
   @override
-  String get createOurSpaceBtn => 'Tạo không gian của hai mình';
+  String get createOurSpaceBtn => 'Tạo không gian của chúng mình';
 
   @override
   String get useInviteCodeTitle => 'Dùng mã mời';
@@ -391,9 +360,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get yourInviteCodeTitle => 'Mã mời của bạn';
 
   @override
-  String get sendToPartnerHint => 'Gửi mã này cho người ấy';
-
-  @override
   String get inviteCodeTiedToAccount => 'Mã gắn với tài khoản bạn';
 
   @override
@@ -402,11 +368,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get setupErrorFillRequired =>
-      'Vui lòng điền đầy đủ tên hai bạn và ngày kỷ niệm.';
+      'Điền đủ tên hai bạn và ngày kỷ niệm nhé.';
 
   @override
   String setupErrorSaveCouple(String error) {
-    return 'Không thể lưu thông tin cặp đôi: $error';
+    return 'Chưa lưu được thông tin cặp đôi: $error';
   }
 
   @override
@@ -417,11 +383,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String setupErrorJoinCouple(String error) {
-    return 'Không thể tham gia cặp đôi: $error';
+    return 'Chưa ghép đôi được: $error';
   }
 
   @override
-  String get setupSuccessConnected => 'Kết nối thành công rồi 💞';
+  String get setupSuccessConnected => 'Ghép đôi thành công rồi 💞';
 
   @override
   String get navHome => 'Trang chủ';
@@ -439,11 +405,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chatBadge => 'CHUYỆN CỦA CHÚNG MÌNH';
 
   @override
-  String get chatHeaderSubtitle => 'Nơi chúng mình nói đủ thứ chuyện trên đời.';
-
-  @override
   String get chatEmptyHint =>
-      'Chưa có tin nhắn nào — gửi lời đầu tiên cho người ấy nhé 💬';
+      'Chưa có tin nhắn nào, gửi lời đầu tiên cho người ấy nhé 💬';
 
   @override
   String get chatComposerHint => 'Nhắn gì đó cho người ấy…';
@@ -543,13 +506,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get ourStoryBadge => 'CÂU CHUYỆN CỦA CHÚNG MÌNH';
 
   @override
-  String get helloGreeting => 'Xin chào,';
-
-  @override
-  String get homeSubtitle =>
-      'Hôm nay là ngày tốt để nhìn lại câu chuyện tình yêu.';
-
-  @override
   String get homeGreetingMorning => 'Chào buổi sáng,';
 
   @override
@@ -560,44 +516,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get homeGreetingNight => 'Khuya rồi đó,';
-
-  @override
-  String get homeGreetingTeaser1 => 'Gửi người ấy một cái ôm thật chặt 🤗';
-
-  @override
-  String get homeGreetingTeaser2 => 'Hôm nay đã nói yêu người ấy chưa? 💕';
-
-  @override
-  String get homeGreetingTeaser3 => 'Gửi người ấy một tấm ảnh xinh nhé 📸';
-
-  @override
-  String get homeGreetingTeaser4 => 'Người ấy đang chờ tin của bạn đó 🕊️';
-
-  @override
-  String get homeGreetingTeaser5 => 'Đừng quên câu hỏi hôm nay nha ✨';
-
-  @override
-  String get homeGreetingTeaser6 => 'Một lời ngọt ngào cho người ấy nào 🍯';
-
-  @override
-  String get homeGreetingTeaser7 => 'Nói một lời cảm ơn nhỏ xíu hôm nay nhé 💞';
-
-  @override
-  String get homeGreetingTeaser8 =>
-      'Một khoảnh khắc bình yên bên nhau là đủ rồi 🍃';
-
-  @override
-  String get homeGreetingTeaser9 => 'Một ngày thật đẹp để yêu thương 💖';
-
-  @override
-  String get homeGreetingTeaser10 => 'Nhắn người ấy là bạn đang nhớ họ nha 💭';
-
-  @override
-  String get homeGreetingTeaser11 =>
-      'Cùng nhau viết tiếp chuyện tình của chúng mình ✍️';
-
-  @override
-  String get homeGreetingTeaser12 => 'Cùng nhau giữ chuỗi ngày yêu nhé 🔥';
 
   @override
   String get homeTodaySectionTitle => 'Hôm nay của chúng mình';
@@ -622,28 +540,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get dailyCollapse => 'Thu gọn';
-
-  @override
-  String loveNoteSealedTitle(String name) {
-    return 'Lời nhắn mới từ $name';
-  }
-
-  @override
-  String get loveNoteSealedTap => 'Chạm để mở 💌';
-
-  @override
-  String get loveNoteNewBadge => 'MỚI';
-
-  @override
-  String get loveNoteComposeCta => 'Soạn tin nhắn';
-
-  @override
-  String loveNoteSheetTitleTo(String name) {
-    return 'Gửi lời nhắn cho $name';
-  }
-
-  @override
-  String get journalLinkShort => 'Nhật ký';
 
   @override
   String milestoneNextLabel(String label) {
@@ -676,22 +572,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Ghép đôi xong là chúng mình sẽ cùng trả lời một câu hỏi như vầy mỗi ngày 💞';
 
   @override
-  String get loveNoteHistoryLinkShort => 'Lời nhắn cũ';
-
-  @override
-  String get loveNoteReplyCta => 'Nhắn lại…';
-
-  @override
-  String get loveNoteSendFirstCta => 'Gửi lời nhắn đầu tiên…';
-
-  @override
-  String get loveNoteStartChat =>
-      'Chưa có lời nhắn nào — gửi cho nhau lời đầu tiên nhé 💌';
-
-  @override
-  String get loveNoteYouLabel => 'Bạn';
-
-  @override
   String notificationBellLabel(int count) {
     return 'Thông báo, $count chưa đọc';
   }
@@ -709,48 +589,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String daysUntilNextAnniversary(int count) {
-    return 'Còn $count ngày tới kỷ niệm tiếp theo';
+    return 'Còn $count ngày nữa là tới ngày kỷ niệm';
   }
-
-  @override
-  String get quickMomentsTitle => 'Khoảnh khắc nhanh';
-
-  @override
-  String get quickMomentsSubtitle =>
-      'Lối tắt để xem lại câu chuyện của hai bạn';
 
   @override
   String get addMemoryCta => 'Thêm kỷ niệm';
-
-  @override
-  String get addMemoryCtaSubtitle => 'Đăng một tấm ảnh mới cho cả hai cùng xem';
-
-  @override
-  String cinemaCardSemantics(String caption, int index, int total) {
-    return 'Kỷ niệm: $caption, ảnh $index trên $total. Chạm để xem toàn màn hình.';
-  }
-
-  @override
-  String get memoriesCardTitle => 'Kỷ niệm';
-
-  @override
-  String get viewAllPhotos => 'Xem tất cả ảnh';
-
-  @override
-  String get profileCardTitle => 'Hồ sơ';
-
-  @override
-  String get updateInfo => 'Cập nhật thông tin';
-
-  @override
-  String get milestoneCardTitle => 'Cột mốc';
-
-  @override
-  String get loveInNumbersTitle => 'Tình yêu qua con số';
-
-  @override
-  String get loveInNumbersSubtitle =>
-      'Những thống kê nhỏ từ hành trình của hai bạn';
 
   @override
   String get daysTogether => 'Ngày bên nhau';
@@ -768,151 +611,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String get secondsShort => 'giây';
 
   @override
-  String get memoriesSaved => 'Kỷ niệm đã lưu';
-
-  @override
-  String get photosUnit => 'ảnh';
-
-  @override
-  String get nextAnniversaryLabel => 'Kỷ niệm tiếp theo';
-
-  @override
-  String get daysAway => 'ngày nữa';
-
-  @override
-  String get nextMilestoneTitle => 'Cột mốc tiếp theo';
-
-  @override
-  String get milestoneProgressTitle => 'Tiến trình cột mốc';
-
-  @override
-  String get milestoneProgressSubtitle =>
-      'Nhẹ nhàng tiến về con số ngọt ngào tiếp theo';
-
-  @override
   String get recentMemoriesTitle => 'Kỷ niệm gần đây';
 
   @override
-  String onThisDayTitle(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count năm trước',
-    );
-    return 'Ngày này $_temp0 💞';
-  }
-
-  @override
-  String get onThisDaySubtitle => 'Một kỷ niệm đúng vào ngày này';
-
-  @override
-  String get addPhotosPrompt => 'Thêm vài ảnh để bắt đầu thư tình của hai bạn';
-
-  @override
-  String get latestMomentsSubtitle =>
-      'Một vài khoảnh khắc mới nhất của hai bạn';
+  String get addPhotosPrompt => 'Ảnh hai bạn đăng sẽ hiện ở đây';
 
   @override
   String get seeAll => 'Xem tất cả';
 
   @override
   String get addPhotosEmpty =>
-      'Thêm vài ảnh để bắt đầu lấp đầy bức thư tình này.';
-
-  @override
-  String get yourStorySoFar => 'Câu chuyện của hai bạn';
-
-  @override
-  String get whenItAllBegan => 'Khi tất cả bắt đầu';
-
-  @override
-  String whenItAllBeganSubtitle(String name1, String name2, String date) {
-    return '$name1 & $name2 vào $date';
-  }
-
-  @override
-  String monthiversaries(int count) {
-    return '$count tháng kỷ niệm';
-  }
-
-  @override
-  String get monthiversaryDesc =>
-      'Mỗi tháng là thêm một lớp hiểu biết và trìu mến.';
-
-  @override
-  String memoriesCaptured(int count) {
-    return '$count kỷ niệm đã lưu';
-  }
-
-  @override
-  String get memoriesCapturedDesc =>
-      'Thư viện của hai bạn đang trở thành một album nhỏ xinh.';
-
-  @override
-  String get loveNoteLabel => 'Ghi chú tình yêu';
-
-  @override
-  String loveNoteQuote(int count) {
-    return '\"$count ngày không chỉ là thời gian — đó là từng khoảnh khắc nhẹ nhàng, từng lựa chọn ở lại, từng điều nhỏ bé chúng mình chia sẻ.\"';
-  }
-
-  @override
-  String loveNoteFromPartner(String name) {
-    return 'Lời nhắn từ $name';
-  }
-
-  @override
-  String loveNoteEmptyFromPartner(String name) {
-    return 'Chưa có lời nhắn từ $name';
-  }
-
-  @override
-  String get loveNoteWriteCta => 'Viết lời nhắn';
-
-  @override
-  String get loveNoteEditCta => 'Sửa lời nhắn';
-
-  @override
-  String get loveNoteWaitingPartner =>
-      'Mời người ấy để cùng để lại lời nhắn cho nhau.';
-
-  @override
-  String get loveNoteSheetTitle => 'Lời nhắn của bạn';
-
-  @override
-  String get loveNoteSheetHint => 'Viết điều gì đó ngọt ngào cho người ấy…';
-
-  @override
-  String loveNoteCharCount(int count) {
-    return '$count/140';
-  }
-
-  @override
-  String get loveNoteSaved => 'Đã gửi lời nhắn 💞';
-
-  @override
-  String get loveNoteSendFailed => 'Chưa gửi được lời nhắn — thử lại nhé.';
-
-  @override
-  String get loveNoteHistoryCta => 'Xem lại lời nhắn cũ';
-
-  @override
-  String get loveNoteHistoryTitle => 'Nhật ký lời nhắn';
-
-  @override
-  String get loveNoteHistorySubtitle =>
-      'Tất cả những lời hai bạn đã để lại cho nhau.';
-
-  @override
-  String get loveNoteHistoryBadge => 'LỜI NHẮN YÊU THƯƠNG';
-
-  @override
-  String get loveNoteHistoryHeaderSubtitle =>
-      'Tất cả lời nhắn hai bạn đã gửi nhau.';
-
-  @override
-  String get loveNoteHistoryEmpty =>
-      'Chưa có lời nhắn nào được lưu. Những lời hai bạn gửi nhau sẽ được giữ ở đây.';
+      'Chạm vào khung ảnh bên dưới để đăng tấm đầu tiên.';
 
   @override
   String get loveNoteJustNow => 'vừa xong';
@@ -960,9 +669,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get reactionAddTooltip => 'Thả tim';
 
   @override
-  String get reactionChangeTooltip => 'Đổi cảm xúc';
-
-  @override
   String get reactionRemoveTooltip => 'Gỡ cảm xúc';
 
   @override
@@ -971,14 +677,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get dailyQuestionSubmitError =>
       'Chưa gửi được câu trả lời, thử lại nhé.';
-
-  @override
-  String reactionPartnerReacted(String name, String emoji) {
-    return '$name đã thả $emoji';
-  }
-
-  @override
-  String get reactionBothLabel => 'Cả hai đã thả tim 💞';
 
   @override
   String get reactionBothShort => 'Cả hai đã thả tim';
@@ -1054,11 +752,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get dailyQuestionHint => 'Viết câu trả lời của bạn…';
 
   @override
-  String dailyQuestionCharCount(int count) {
-    return '$count/280';
-  }
-
-  @override
   String get dailyQuestionSend => 'Gửi';
 
   @override
@@ -1076,35 +769,13 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get dailyQuestionWaitingPartner =>
-      'Sẽ mở khoá khi người ấy tham gia và trả lời nhé.';
-
-  @override
-  String get dailyQuestionRevealHint =>
-      'Cả hai đã trả lời — cùng xem hai bạn đã nói gì nhé 💞';
+      'Người ấy nhập mã mời và trả lời xong là mở khoá nhé.';
 
   @override
   String get dailyQuestionSent => 'Đã gửi câu trả lời của bạn 💞';
 
   @override
-  String get journalEntryCta => 'Xem lại nhật ký';
-
-  @override
-  String get journalScreenTitle => 'Nhật ký câu hỏi';
-
-  @override
-  String get journalScreenSubtitle => 'Những câu hỏi hai bạn đã cùng trả lời.';
-
-  @override
   String get journalBadge => 'NHẬT KÝ CÂU HỎI';
-
-  @override
-  String get journalHeaderSubtitle => 'Những câu hỏi hai bạn đã cùng trả lời.';
-
-  @override
-  String get journalSettingsTile => 'Nhật ký câu hỏi';
-
-  @override
-  String get journalSettingsSection => 'Kỷ niệm';
 
   @override
   String get journalYourAnswerLabel => 'CÂU TRẢ LỜI CỦA BẠN';
@@ -1118,18 +789,18 @@ class AppLocalizationsVi extends AppLocalizations {
   String get journalLoadMore => 'Xem thêm';
 
   @override
-  String get journalEmptyTitle => 'Chưa có kỷ niệm câu hỏi nào';
+  String get journalEmptyTitle => 'Nhật ký còn trống';
 
   @override
   String get journalEmptyBody =>
-      'Khi cả hai cùng trả lời câu hỏi trong ngày, khoảnh khắc đó sẽ được lưu vào đây.';
+      'Ngày nào cả hai cùng trả lời, câu hỏi và hai câu trả lời hôm đó sẽ nằm ở đây.';
 
   @override
   String get journalEmptyCta => 'Trả lời câu hôm nay';
 
   @override
   String get journalEmptyNoPartnerBody =>
-      'Mời người ấy để cùng nhau bắt đầu viết nhật ký.';
+      'Mời người ấy vào để chúng mình cùng viết nhật ký nhé.';
 
   @override
   String get journalEmptyNoPartnerCta => 'Mời người ấy';
@@ -1139,9 +810,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get journalRetry => 'Thử lại';
-
-  @override
-  String get loveNoteYourNoteLabel => 'LỜI NHẮN CỦA BẠN';
 
   @override
   String get milestoneReached => 'Hai bạn vừa đạt một cột mốc đẹp ✨';
@@ -1195,46 +863,32 @@ class AppLocalizationsVi extends AppLocalizations {
   String get privateGalleryBadge => 'THƯ VIỆN ẢNH';
 
   @override
-  String get galleryTitle => 'Thư viện ảnh';
+  String get addCaptionOptionalTitle => 'Thêm chú thích (tuỳ chọn)';
 
   @override
-  String get gallerySubtitle =>
-      'Vuốt lên nhẹ để gọi lại nhanh khung đăng ảnh và quản lý kỷ niệm.';
-
-  @override
-  String get addCaptionTitle => 'Thêm chú thích';
-
-  @override
-  String get addCaptionHint => 'Viết vài dòng về khoảnh khắc này...';
-
-  @override
-  String get addCaptionOptionalTitle => 'Thêm chú thích (tùy chọn)';
-
-  @override
-  String get addCaptionOptionalHint => 'Viết điều gì đó thật đáng nhớ...';
+  String get addCaptionOptionalHint => 'Viết vài dòng về tấm ảnh này...';
 
   @override
   String get editCaptionTitle => 'Chỉnh sửa chú thích';
 
   @override
-  String get editCaptionHint => 'Khoảnh khắc này đáng nhớ thế nào?';
+  String get editCaptionHint => 'Lúc chụp tấm này có chuyện gì?';
 
   @override
-  String get deletePhotoTitle => 'Xóa ảnh này?';
+  String get deletePhotoTitle => 'Xoá ảnh này?';
 
   @override
-  String get deletePhotoContent =>
-      'Khoảnh khắc này sẽ bị xóa khỏi nhật ký của hai bạn.';
+  String get deletePhotoContent => 'Cả hai bạn sẽ không còn thấy ảnh này nữa.';
 
   @override
   String get keepPhotoBtn => 'Giữ lại';
 
   @override
-  String get deletePhotoBtn => 'Xóa';
+  String get deletePhotoBtn => 'Xoá';
 
   @override
   String postedByLabel(String name) {
-    return 'Đăng bởi $name';
+    return '$name đăng';
   }
 
   @override
@@ -1243,12 +897,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String daysTogetherCount(int count) {
-    return '$count ngày bên nhau';
-  }
-
-  @override
-  String get privateFeedLabel => 'Feed riêng của hai bạn';
+  String get privateFeedLabel => 'Chỉ hai bạn xem được';
 
   @override
   String get postNewPhotoBtn => 'Chụp hình';
@@ -1258,39 +907,21 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get cameraUnavailable =>
-      'Không mở được camera. Hãy thử lại hoặc kiểm tra quyền camera (máy ảo không có camera — dùng điện thoại thật nhé).';
-
-  @override
-  String get galleryDraftTitle => 'Xem trước & đăng';
-
-  @override
-  String get galleryDraftCaptionHint =>
-      'Thêm chú thích chung (không bắt buộc)…';
-
-  @override
-  String get galleryDraftEmpty => 'Đã bỏ hết ảnh.';
-
-  @override
-  String galleryDraftPostBtn(int count) {
-    return 'Đăng $count ảnh';
-  }
-
-  @override
-  String get createPostTitle => 'Kỷ niệm mới';
+      'Chưa mở được camera. Bạn thử lại hoặc vào Cài đặt của máy, bật quyền camera cho app nhé.';
 
   @override
   String get createPostBadge => 'KỶ NIỆM MỚI';
 
   @override
   String createPostAuthorMeta(String name, String when) {
-    return 'Đăng bởi $name · $when';
+    return '$name đăng · $when';
   }
 
   @override
   String get today => 'Hôm nay';
 
   @override
-  String get createPostCaptionHint => 'Hôm nay của hai bạn có gì?…';
+  String get createPostCaptionHint => 'Hôm nay hai bạn có gì mới?…';
 
   @override
   String get createPostAddMore => 'Thêm ảnh';
@@ -1313,8 +944,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get createPostDiscardTitle => 'Bỏ kỷ niệm này?';
 
   @override
-  String get createPostDiscardMessage =>
-      'Phần chú thích chúng mình vừa viết sẽ không được lưu.';
+  String get createPostDiscardMessage => 'Chú thích bạn vừa viết sẽ mất luôn.';
 
   @override
   String get createPostDiscardConfirm => 'Bỏ';
@@ -1330,49 +960,18 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get composerSubtitle =>
-      'Để thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.';
+      'Chụp một tấm, viết vài dòng là có thêm một kỷ niệm.';
 
   @override
   String compactCaption(int count) {
-    return '$count khoảnh khắc · Vuốt thêm để bung khung đăng ảnh';
-  }
-
-  @override
-  String get todayInLoveBadge => 'HÔM NAY TRONG TÌNH YÊU';
-
-  @override
-  String get storyStripBadge => 'DẢI STORY';
-
-  @override
-  String get memoriesTodayTitle => 'Kỷ niệm hôm nay';
-
-  @override
-  String get recentPhotosTitle => 'Ảnh gần đây';
-
-  @override
-  String get memoriesTodaySubtitle =>
-      'Những khoảnh khắc được lưu đúng ngày này, dịu dàng và rất riêng.';
-
-  @override
-  String get recentPhotosSubtitle =>
-      'Một dải story nhỏ để xem nhanh những khoảnh khắc mới nhất của hai bạn.';
-
-  @override
-  String get memoryBadge => 'Kỷ niệm';
-
-  @override
-  String get newBadge => 'Mới';
-
-  @override
-  String momentLabel(int number) {
-    return 'Khoảnh khắc #$number';
+    return '$count khoảnh khắc · Cuộn lên đầu để bung khung đăng ảnh';
   }
 
   @override
   String get editCaptionAction => 'Chỉnh sửa chú thích';
 
   @override
-  String get deletePhotoAction => 'Xóa ảnh';
+  String get deletePhotoAction => 'Xoá ảnh';
 
   @override
   String get reportPhotoAction => 'Báo cáo ảnh';
@@ -1381,7 +980,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get reportPhotoTitle => 'Báo cáo ảnh';
 
   @override
-  String get reportPhotoSubtitle => 'Cho chúng tôi biết vấn đề với ảnh này.';
+  String get reportPhotoSubtitle => 'Ảnh này có gì không ổn?';
 
   @override
   String get reportReasonInappropriate => 'Nội dung không phù hợp';
@@ -1399,29 +998,23 @@ class AppLocalizationsVi extends AppLocalizations {
   String get reportSentConfirm => 'Đã gửi báo cáo, cảm ơn bạn.';
 
   @override
-  String get editAction => 'Chỉnh sửa';
-
-  @override
-  String get deleteAction => 'Xóa';
-
-  @override
-  String get startNewfeedTitle => 'Bắt đầu tạo newfeed kỷ niệm';
+  String get startNewfeedTitle => 'Bắt đầu lưu giữ kỷ niệm';
 
   @override
   String get postFirstMomentOf => 'Hãy đăng khoảnh khắc đầu tiên của';
 
   @override
   String get emptyFeedContent =>
-      'Khi thêm ảnh, thư viện này sẽ trở thành một newfeed tình yêu riêng tư với những dòng thời gian thật dễ nhìn và cảm xúc.';
+      'Mỗi tấm ảnh hai bạn đăng sẽ hiện ở đây, kèm ngày giờ và chú thích.';
 
   @override
   String get postFirstPhotoBtn => 'Đăng ảnh đầu tiên';
 
   @override
-  String get photoAddedSuccess => 'Thêm ảnh thành công!';
+  String get photoAddedSuccess => 'Đã thêm ảnh!';
 
   @override
-  String get photoAddError => 'Không thể đăng ảnh lúc này.';
+  String get photoAddError => 'Chưa đăng được ảnh, thử lại nhé.';
 
   @override
   String multiplePhotosAdded(int count) {
@@ -1432,13 +1025,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get captionUpdatedSuccess => 'Đã cập nhật chú thích';
 
   @override
-  String get captionUpdateError => 'Không thể cập nhật chú thích.';
+  String get captionUpdateError => 'Chưa lưu được chú thích, thử lại nhé.';
 
   @override
-  String get photoDeletedSuccess => 'Đã xóa ảnh';
+  String get photoDeletedSuccess => 'Đã xoá ảnh';
 
   @override
-  String get photoDeleteError => 'Không thể xóa ảnh lúc này.';
+  String get photoDeleteError => 'Chưa xoá được ảnh, thử lại nhé.';
 
   @override
   String get youTwoLabel => 'Hai bạn';
@@ -1455,13 +1048,13 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get deletingPhoto => 'Đang xóa ảnh...';
+  String get deletingPhoto => 'Đang xoá ảnh...';
 
   @override
   String get updatingCaption => 'Đang cập nhật chú thích...';
 
   @override
-  String get photoOptionsTitle => 'Tùy chọn ảnh';
+  String get photoOptionsTitle => 'Tuỳ chọn ảnh';
 
   @override
   String get replacePhotoAction => 'Đổi ảnh khác';
@@ -1483,14 +1076,14 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get galleryLoadErrorSubtitle =>
-      'Kỷ niệm của bạn vẫn an toàn — chỉ là chưa kết nối tới được lúc này.';
+      'Kỷ niệm vẫn còn nguyên, chỉ là lúc này chưa tải về được.';
 
   @override
   String get galleryRetryBtn => 'Thử lại';
 
   @override
   String multiPhotosResultPartial(int success, int total, int failed) {
-    return 'Đã đăng $success/$total, $failed ảnh lỗi';
+    return 'Đã đăng $success/$total ảnh, $failed ảnh chưa lên được';
   }
 
   @override
@@ -1508,108 +1101,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loveProfileBadge => 'HỒ SƠ TÌNH YÊU';
 
   @override
-  String get profileTitle => 'Hồ sơ của hai bạn';
-
-  @override
-  String get profileSubtitle =>
-      'Một góc riêng để nhìn lại hành trình yêu nhau, cột mốc và album kỷ ức của hai bạn.';
-
-  @override
-  String get todayIsAnniversaryProfile => 'Hôm nay là ngày kỷ niệm ✨';
-
-  @override
-  String daysUntilAnniversaryProfile(int count) {
-    return 'Còn $count ngày tới kỷ niệm tiếp theo';
-  }
-
-  @override
-  String khoanhKhacCount(int count) {
-    return '$count khoảnh khắc';
-  }
-
-  @override
-  String get privateDiaryLabel => 'Nhật ký riêng tư';
-
-  @override
-  String get loveMilestonesLabel => 'Mốc yêu thương';
-
-  @override
-  String get journeySnapshotTitle => 'Bức tranh hành trình';
-
-  @override
   String get yearsTogether => 'Năm';
 
   @override
   String get monthsRemaining => 'Tháng';
 
   @override
-  String get totalDaysLabel => 'Tổng số ngày';
-
-  @override
-  String get totalHoursLabel => 'Tổng số giờ';
-
-  @override
-  String get memoriesSavedLabel => 'Khoảnh khắc lưu';
-
-  @override
-  String get infoAndRhythmTitle => 'Thông tin & nhịp sống';
-
-  @override
-  String get infoAndRhythmSubtitle =>
-      'Một cách nhìn rõ ràng hơn về ngày bắt đầu, album và cột mốc sắp tới.';
-
-  @override
-  String get loveStartDateLabel => 'Ngày yêu nhau';
-
-  @override
-  String get yourInviteCodeLabel => 'Mã mời tài khoản của bạn';
-
-  @override
-  String get memoryAlbumLabel => 'Thư viện kỷ niệm';
-
-  @override
-  String memoryAlbumValue(int count) {
-    return '$count ảnh đang được lưu trong album riêng';
-  }
-
-  @override
-  String get upcomingMilestoneLabel => 'Cột mốc gần nhất';
-
-  @override
-  String get todaySpecialMsg => 'Hôm nay là ngày thật đặc biệt của hai bạn';
-
-  @override
-  String daysUntilNextMsg(int count) {
-    return 'Còn $count ngày nữa tới kỷ niệm tiếp theo';
-  }
-
-  @override
-  String get customizeProfileTitle => 'Tùy chỉnh hồ sơ';
-
-  @override
-  String get customizeProfileSubtitle =>
-      'Cập nhật tên, ngày yêu và ảnh đôi để trang hồ sơ luôn phản ánh đúng hành trình hiện tại.';
+  String get yourInviteCodeLabel => 'Mã mời riêng của bạn';
 
   @override
   String get editOurStoryBtn => 'Chỉnh sửa câu chuyện';
-
-  @override
-  String get profileChipDaysLabel => 'ngày bên nhau';
-
-  @override
-  String get profileChipAnniversaryLabel => 'ngày tới kỷ niệm';
-
-  @override
-  String get profileChipAnniversaryTodayLabel => 'kỷ niệm là hôm nay!';
-
-  @override
-  String get profileChipPhotosLabel => 'kỷ niệm đã lưu';
-
-  @override
-  String get profileMemoryChestTitle => 'Tủ kỷ niệm';
-
-  @override
-  String get profileStreakTile => 'Chuỗi kết nối';
 
   @override
   String get settingsSectionAccount => 'Tài khoản';
@@ -1621,55 +1122,41 @@ class AppLocalizationsVi extends AppLocalizations {
   String get settingsSectionGeneral => 'Chung';
 
   @override
-  String get settingsPushGroupLabel => 'Đẩy từ người ấy';
-
-  @override
-  String get proTipLabel => 'Mẹo nhỏ';
-
-  @override
-  String get proTipContent =>
-      'Một ảnh đôi sáng, cận mặt và có nhiều khoảng thở sẽ giúp phần hero ở hồ sơ trông sang hơn hẳn.';
-
-  @override
   String get dataManagementTitle => 'Quản lý dữ liệu';
 
   @override
   String get dataManagementDesc =>
-      'Một người chỉ được xóa cache trên máy này hoặc rời khỏi couple. Muốn xóa dữ liệu chung, cả hai phải cùng xác nhận.';
+      'Một mình bạn chỉ xoá được dữ liệu trên máy này hoặc rời cặp đôi. Muốn xoá dữ liệu chung, cả hai phải cùng xác nhận.';
 
   @override
-  String get clearLocalDataBtn => 'Xóa dữ liệu trên máy này';
+  String get clearLocalDataBtn => 'Xoá dữ liệu trên máy này';
 
   @override
   String get localFallbackWarning =>
-      'App đang ở local fallback nên chưa hỗ trợ xóa cache riêng an toàn. Bạn có thể rời khỏi couple local hiện tại nếu muốn làm mới.';
+      'App đang chạy trên máy này (chưa kết nối máy chủ) nên chưa xoá riêng dữ liệu tạm được. Muốn làm mới, bạn có thể rời cặp đôi hiện tại.';
 
   @override
-  String get leaveCoupleBtn => 'Rời khỏi couple';
+  String get leaveCoupleBtn => 'Rời cặp đôi';
 
   @override
-  String get clearDataNote =>
-      'Xóa toàn bộ dữ liệu chung hiện chưa cho phép từ một phía. Ở sprint sau, mình sẽ đổi sang flow cần cả hai cùng xác nhận.';
-
-  @override
-  String get clearLocalDialogTitle => 'Xóa dữ liệu trên máy này';
+  String get clearLocalDialogTitle => 'Xoá dữ liệu trên máy này';
 
   @override
   String get clearLocalDialogContent =>
-      'Thao tác này chỉ xóa cache trên thiết bị hiện tại. Dữ liệu chung trên Firebase vẫn được giữ nguyên và sẽ tải lại khi cần.';
+      'Việc này chỉ xoá dữ liệu tạm trên máy này. Dữ liệu chung vẫn còn trên máy chủ và sẽ tự tải lại khi cần.';
 
   @override
-  String get clearLocalActionBtn => 'Xóa local';
+  String get clearLocalActionBtn => 'Xoá';
 
   @override
-  String get leaveCoupleDialogTitle => 'Rời khỏi couple';
+  String get leaveCoupleDialogTitle => 'Rời cặp đôi?';
 
   @override
   String get leaveCoupleDialogContent =>
-      'Bạn sẽ rời khỏi không gian couple hiện tại. Người còn lại vẫn giữ dữ liệu chung. Bạn không thể xóa toàn bộ dữ liệu chung chỉ từ một phía.';
+      'Bạn sẽ rời không gian chung này. Dữ liệu chung vẫn ở lại với người ấy, một mình bạn không xoá được.';
 
   @override
-  String get leaveCoupleActionBtn => 'Rời khỏi couple';
+  String get leaveCoupleActionBtn => 'Rời cặp đôi';
 
   @override
   String get leaveCoupleDeleteAllTitle =>
@@ -1677,24 +1164,21 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get leaveCoupleDeleteAllContent =>
-      'Bạn là thành viên cuối cùng. Khi rời đi, TẤT CẢ kỷ niệm chung — ảnh, lời nhắn, nhật ký câu hỏi — sẽ bị xoá vĩnh viễn và KHÔNG THỂ khôi phục.';
+      'Chỉ còn mình bạn ở lại. Khi rời đi, TẤT CẢ kỷ niệm chung — ảnh, lời nhắn, nhật ký câu hỏi — sẽ bị xoá vĩnh viễn và KHÔNG THỂ khôi phục.';
 
   @override
   String get leaveCoupleDeleteAllBtn => 'Xoá tất cả';
 
   @override
   String get leaveCoupleError =>
-      'Chưa rời khỏi couple được lúc này. Kiểm tra kết nối mạng rồi thử lại nhé.';
+      'Chưa rời cặp đôi được lúc này. Kiểm tra kết nối mạng rồi thử lại nhé.';
 
   @override
   String get localDataClearedMsg =>
-      'Đã xóa dữ liệu local trên máy này. Dữ liệu chung trên cloud vẫn được giữ nguyên.';
+      'Đã xoá dữ liệu tạm trên máy này. Dữ liệu chung trên máy chủ vẫn còn nguyên.';
 
   @override
   String get languageTitle => 'Ngôn ngữ';
-
-  @override
-  String get languageSubtitle => 'Chọn ngôn ngữ hiển thị của ứng dụng';
 
   @override
   String get languageSystem => 'Theo hệ thống';
@@ -1703,19 +1187,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get languageSystemDesc => 'Theo ngôn ngữ thiết bị';
 
   @override
-  String get languageEnglish => 'English';
-
-  @override
-  String get languageVietnamese => 'Tiếng Việt';
-
-  @override
   String get loadingCoupleInfo => 'Đang tải thông tin cặp đôi...';
 
   @override
-  String get savingCoupleSpace => 'Đang lưu không gian cặp đôi...';
+  String get savingCoupleSpace => 'Đang tạo không gian của chúng mình...';
 
   @override
-  String get connectingCouple => 'Đang kết nối cặp đôi...';
+  String get connectingCouple => 'Đang ghép đôi...';
 
   @override
   String get updatingCoupleInfo => 'Đang cập nhật thông tin cặp đôi...';
@@ -1738,23 +1216,6 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get remindersTitle => 'Nhắc nhở yêu thương';
-
-  @override
-  String get remindersSubtitle =>
-      'Những lời nhắc nhẹ nhàng để câu chuyện thêm đong đầy';
-
-  @override
-  String get remindersToggleLabel => 'Nhắc cột mốc & kỷ niệm';
-
-  @override
-  String get remindersToggleDesc =>
-      'Tự nhắc các cột mốc & kỷ niệm bạn chọn. Cần bật để dùng \"Lời nhắc của chúng mình\".';
-
-  @override
-  String get remindersTimeLabel => 'Giờ nhắc';
-
-  @override
   String get remindersPermissionDeniedMsg =>
       'Hãy bật thông báo trong Cài đặt để nhận lời nhắc.';
 
@@ -1763,21 +1224,10 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get dailyQuestionReminderSubtitle =>
-      'Nhắc cả hai cùng trả lời mỗi ngày, đồng bộ trên cả hai máy.';
-
-  @override
-  String get dailyQuestionReminderTimeLabel => 'Nhắc lúc';
-
-  @override
-  String get dailyQuestionReminderTimesLabel => 'Giờ nhắc';
+      'Nhắc cả hai cùng trả lời mỗi ngày, hai máy dùng chung giờ nhắc.';
 
   @override
   String get dailyQuestionReminderAddTime => 'Thêm giờ nhắc';
-
-  @override
-  String dailyQuestionReminderRemoveTime(String time) {
-    return 'Xoá giờ nhắc $time';
-  }
 
   @override
   String get dailyQuestionReminderNotifTitle => 'Câu hỏi hôm nay đang chờ 💌';
@@ -1788,7 +1238,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get dailyQuestionReminderNotifBodyAlt1 =>
-      'Hôm nay chúng mình có một câu hỏi mới — bạn trả lời trước nha 💞';
+      'Hôm nay chúng mình có câu hỏi mới, bạn trả lời phần mình nha 💞';
 
   @override
   String get dailyQuestionReminderNotifBodyAlt2 =>
@@ -1799,7 +1249,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get dailyQuestionReminderEndOfDayHint =>
-      'Nếu cuối ngày câu hỏi vẫn chưa xong, chúng mình được nhắc thêm lúc 21:00 — và cả 22:00, 23:00 nếu bạn vẫn chưa trả lời.';
+      'Cuối ngày mà câu hỏi chưa xong, app nhắc thêm lúc 21:00. Nếu bạn vẫn chưa trả lời, app nhắc tiếp lúc 22:00 và 23:00.';
 
   @override
   String get dqEndOfDayNudgeTitle => 'Ngày sắp khép lại rồi 🌙';
@@ -1813,7 +1263,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Người ấy chưa trả lời câu hỏi hôm nay — nhắc một câu cho kịp nhé.';
 
   @override
-  String get dqStreakWarningTitle => 'Sắp lỡ mất chuỗi rồi! 🔥';
+  String get dqStreakWarningTitle => 'Chuỗi sắp đứt rồi! 🔥';
 
   @override
   String dqStreakWarningBody(int days) {
@@ -1821,17 +1271,8 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String dqStreakWarningPartnerBody(int days) {
-    return 'Người ấy chưa trả lời. Nhắc nhẹ một câu để khỏi đứt chuỗi $days ngày nhé!';
-  }
-
-  @override
   String get dqStreakWarningStartBody =>
       'Sắp hết ngày rồi! Trả lời câu hỏi để mở chuỗi mới cho chúng mình nhé.';
-
-  @override
-  String get dqStreakWarningStartPartnerBody =>
-      'Người ấy chưa trả lời. Nhắc một câu để chúng mình cùng bắt đầu chuỗi nhé.';
 
   @override
   String get dqStreakWarningFinalTitle => 'Còn chưa đầy 1 tiếng nữa thôi! ⏳';
@@ -1846,21 +1287,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Trả lời ngay để chúng mình mở chuỗi mới trước khi hết ngày nhé 🌱';
 
   @override
-  String get reminderDailyTitle => 'Thêm một ngày của chúng mình 💕';
-
-  @override
-  String get reminderDailyBody =>
-      'Mở Dear Embeiu và cùng đếm thêm một ngày bên nhau nhé.';
-
-  @override
-  String get reminderMilestoneApproachingTitle => 'Sắp đến cột mốc rồi 💕';
-
-  @override
-  String reminderMilestoneApproachingBody(int count, String milestone) {
-    return 'Còn $count ngày nữa là đến cột mốc $milestone!';
-  }
-
-  @override
   String get reminderMilestoneTodayTitle => 'Đã đến cột mốc 🎉';
 
   @override
@@ -1873,20 +1299,13 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get reminderAnniversaryBody =>
-      'Hôm nay hãy cùng mừng thêm một năm yêu thương 💕';
+      'Hôm nay chúng mình tròn thêm một năm bên nhau 💕';
 
   @override
-  String get reminderInactivityTitle => 'Nhớ những khoảnh khắc 💭';
+  String get reminderInactivityTitle => 'Lâu rồi chưa có ảnh mới 💭';
 
   @override
-  String get reminderInactivityBody =>
-      'Đã lâu rồi — cùng thêm một kỷ niệm mới nhé 💕';
-
-  @override
-  String get remindersV2MilestoneEntryTitle => 'Cột mốc & kỷ niệm';
-
-  @override
-  String get remindersV2MilestoneEntrySubtitle => 'Chọn cột mốc muốn được nhắc';
+  String get reminderInactivityBody => 'Cùng thêm một kỷ niệm mới nhé 💕';
 
   @override
   String remindersV2MilestoneCountBadge(int count) {
@@ -1895,10 +1314,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get remindersV2MilestoneScreenTitle => 'Cột mốc & kỷ niệm';
-
-  @override
-  String get remindersV2MilestoneScreenCaption =>
-      'Chọn cột mốc muốn được nhắc và giờ nhắc.';
 
   @override
   String get milestoneBadge => 'NHỮNG NGÀY ĐẶC BIỆT';
@@ -1930,7 +1345,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String remindersV2MilestoneYearsLabel(int count) {
-    return '$count năm';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count năm',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1967,7 +1387,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get milestoneYearlyTitle => 'Kỷ niệm hằng năm';
 
   @override
-  String get milestoneYearlyDesc => 'Mỗi năm tròn ngày yêu nhau';
+  String get milestoneYearlyDesc => 'Đúng ngày yêu nhau mỗi năm';
 
   @override
   String get milestoneInactivityTitle => 'Lâu chưa đăng ảnh';
@@ -1989,16 +1409,6 @@ class AppLocalizationsVi extends AppLocalizations {
       'Nhắc nhở, thông báo, ngôn ngữ và tài khoản của hai bạn.';
 
   @override
-  String get settingsProfileTileSubtitle => 'Nhắc nhở, ngôn ngữ, tài khoản';
-
-  @override
-  String get settingsRemindersModuleTitle => 'Nhắc nhở';
-
-  @override
-  String get settingsRemindersModuleSubtitle =>
-      'Cột mốc, kỷ niệm & lời nhắc riêng';
-
-  @override
   String get settingsRemindersEntryTitle => 'Lời nhắc';
 
   @override
@@ -2013,105 +1423,17 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get remindersHubSubtitle =>
-      'Cột mốc, kỷ niệm và những lời nhắc riêng — tất cả ở một nơi.';
-
-  @override
-  String get remindersHubMilestonesSection => 'Cột mốc & kỷ niệm';
-
-  @override
-  String get remindersHubMilestonesSectionSub =>
-      'Chọn cột mốc muốn được nhắc và đặt giờ riêng.';
-
-  @override
-  String get remindersHubCustomSection => 'Lời nhắc của chúng mình';
-
-  @override
-  String get remindersHubCustomSectionSub =>
-      'Tự tạo lời nhắc cho những dịp riêng của hai bạn.';
-
-  @override
-  String get settingsAccountModuleTitle => 'Tài khoản & dữ liệu';
-
-  @override
-  String get settingsAccountModuleSubtitle => 'Câu chuyện, dữ liệu & tài khoản';
+      'Cột mốc, kỷ niệm và lời nhắc riêng của hai bạn.';
 
   @override
   String get settingsAnalyticsTitle => 'Chia sẻ dữ liệu sử dụng';
 
   @override
   String get settingsAnalyticsSubtitle =>
-      'Giúp cải thiện app bằng dữ liệu ẩn danh. Không bao giờ thu thập nội dung riêng tư của bạn.';
-
-  @override
-  String get settingsNotifTypesTitle => 'Loại thông báo';
-
-  @override
-  String get settingsNotifTypesSubtitle =>
-      'Tắt loại push bạn không muốn bị làm phiền. Chúng vẫn xuất hiện trong trung tâm thông báo.';
-
-  @override
-  String get settingsNotifTypePhoto => 'Ảnh mới';
-
-  @override
-  String get settingsNotifTypePhotoSubtitle => 'Khi người ấy đăng ảnh mới';
-
-  @override
-  String get settingsNotifTypeReaction => 'Thả tim ảnh';
-
-  @override
-  String get settingsNotifTypeReactionSubtitle =>
-      'Khi người ấy thả cảm xúc vào ảnh của bạn';
-
-  @override
-  String get settingsNotifTypeDailyQuestion => 'Câu hỏi hôm nay';
-
-  @override
-  String get settingsNotifTypeDailyQuestionSubtitle =>
-      'Khi người ấy trả lời câu hỏi hôm nay';
-
-  @override
-  String get settingsEditStorySubtitle => 'Đổi tên, ngày yêu, ảnh đại diện';
-
-  @override
-  String get settingsDefaultTimeLabel => 'Giờ mặc định';
-
-  @override
-  String get settingsDefaultTimeSubtitle =>
-      'Áp dụng cho mốc chưa đặt giờ riêng';
-
-  @override
-  String settingsMilestoneUsesDefault(String time) {
-    return 'Theo mặc định · $time';
-  }
-
-  @override
-  String get settingsMilestoneCustomTimeReset => 'Về giờ mặc định';
-
-  @override
-  String get remindersV2ForceOpenTitle => 'Bật nhắc nhở để tiếp tục';
-
-  @override
-  String get remindersV2ForceOpenBody =>
-      'Bạn cần bật \"Nhắc cột mốc & kỷ niệm\" để tạo và nhận lời nhắc riêng của hai bạn.';
-
-  @override
-  String get remindersV2ForceOpenConfirm => 'Bật';
-
-  @override
-  String get remindersV2ForceOpenLater => 'Để sau';
-
-  @override
-  String get remindersV2ForceOpenDeniedMsg =>
-      'Chưa cấp quyền thông báo. Hãy bật thông báo trong Cài đặt để tiếp tục.';
+      'Gửi dữ liệu ẩn danh giúp app tốt hơn. Ảnh, tin nhắn và mọi nội dung riêng tư của bạn không bao giờ nằm trong đó.';
 
   @override
   String get languageSearchHint => 'Tìm ngôn ngữ';
-
-  @override
-  String get customRemindersEntryTitle => 'Lời nhắc của chúng mình';
-
-  @override
-  String get customRemindersEntrySubtitle => 'Tự tạo mốc riêng của hai bạn';
 
   @override
   String get customRemindersScreenTitle => 'Lời nhắc của chúng mình';
@@ -2140,33 +1462,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String get customRemindersFabTooltip => 'Thêm lời nhắc';
 
   @override
-  String get customRemindersItemMenuEdit => 'Sửa';
-
-  @override
-  String get customRemindersItemMenuDelete => 'Xoá';
-
-  @override
   String get customRemindersEmptyTitle => 'Chưa có lời nhắc nào';
 
   @override
   String get customRemindersEmptyBody =>
-      'Tạo mốc riêng của hai bạn: sinh nhật, monthsary, ngày đặc biệt…';
+      'Tạo mốc riêng của hai bạn: sinh nhật, ngày tròn tháng, ngày hẹn đầu tiên…';
 
   @override
   String get customRemindersEmptyCta => 'Tạo lời nhắc đầu tiên';
 
   @override
   String get customRemindersAddAnother => 'Thêm lời nhắc';
-
-  @override
-  String get customRemindersOffTitle => 'Lời nhắc đang tắt';
-
-  @override
-  String get customRemindersOffBody =>
-      'Hãy bật \"Nhắc nhớ yêu thương\" ở trang Hồ sơ để các lời nhắc có hiệu lực.';
-
-  @override
-  String get customRemindersOffCta => 'Bật lời nhắc';
 
   @override
   String get customRemindersLimitMsg =>
@@ -2302,36 +1608,38 @@ class AppLocalizationsVi extends AppLocalizations {
   String get appTitle => 'Kỷ Niệm Của Chúng Mình';
 
   @override
-  String get authAccountNotFound => 'Không tìm thấy tài khoản với email này.';
+  String get authAccountNotFound => 'Chưa có tài khoản nào dùng email này.';
 
   @override
   String get authConfigNotFound =>
-      'Firebase Authentication của project này chưa được bật hoặc chưa bật Email/Password. Bạn vào Firebase Console > Authentication > Sign-in method > Email/Password để bật lên.';
+      'Hiện chưa đăng nhập bằng email được. Bạn thử lại sau nhé.';
 
   @override
-  String get authEmailAlreadyUsed => 'Email này đã được sử dụng rồi.';
+  String get authEmailAlreadyUsed => 'Email này đã có tài khoản rồi.';
 
   @override
   String get authEmailPasswordNotEnabled =>
-      'Firebase Authentication chưa được cấu hình đầy đủ cho Email/Password. Bạn vào Firebase Console > Authentication > Sign-in method và bật Email/Password nhé.';
+      'Hiện chưa đăng nhập bằng email được. Bạn thử lại sau nhé.';
 
   @override
-  String get authFirebaseAuthGeneric => 'Đã có lỗi Firebase Auth xảy ra.';
+  String get authFirebaseAuthGeneric =>
+      'Có lỗi khi xác thực tài khoản. Bạn thử lại nhé.';
 
   @override
   String get authFirebaseUserCreateFailed =>
-      'Không tạo được người dùng Firebase.';
+      'Chưa tạo được tài khoản, bạn thử lại nhé.';
 
   @override
-  String get authFirestoreGeneric => 'Đã có lỗi Firestore xảy ra.';
+  String get authFirestoreGeneric =>
+      'Chưa đồng bộ được dữ liệu tài khoản. Bạn thử lại nhé.';
 
   @override
   String get authFirestorePermissionDenied =>
-      'Firestore đang chặn quyền ghi dữ liệu người dùng. Hãy kiểm tra Firestore Rules của project đang kết nối và cho phép user đã đăng nhập tạo/ghi `users/<uid>` cùng `invite_codes/<code>` của chính họ.';
+      'Chưa lưu được thông tin tài khoản vì máy chủ từ chối. Bạn thử lại sau ít phút nhé.';
 
   @override
   String get authFirestoreUnavailable =>
-      'Firestore hiện chưa khả dụng hoặc mạng không ổn định. Bạn thử lại sau ít phút nhé.';
+      'Chưa kết nối được máy chủ, có thể do mạng chập chờn. Bạn thử lại sau ít phút nhé.';
 
   @override
   String get authInvalidCredential => 'Email hoặc mật khẩu chưa đúng.';
@@ -2349,19 +1657,18 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get authNetworkError =>
-      'Không có kết nối mạng ổn định để đăng nhập Firebase.';
+      'Mạng đang chập chờn. Bạn kiểm tra kết nối rồi thử lại nhé.';
 
   @override
   String get authSessionNotReady =>
-      'Phiên đăng nhập Firebase chưa sẵn sàng. Bạn thử đăng nhập lại giúp mình nhé.';
+      'Phiên đăng nhập chưa sẵn sàng. Bạn thử đăng nhập lại giúp mình nhé.';
 
   @override
-  String get authSessionUnavailable =>
-      'Không thể lấy phiên đăng nhập Firebase.';
+  String get authSessionUnavailable => 'Chưa đăng nhập được, bạn thử lại nhé.';
 
   @override
   String get authTooManyRequests =>
-      'Bạn thử lại sau ít phút nhé, hiện có quá nhiều yêu cầu đăng nhập.';
+      'Có quá nhiều lần thử đăng nhập. Bạn đợi vài phút rồi thử lại nhé.';
 
   @override
   String get authWeakPassword =>
@@ -2372,34 +1679,34 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get bootstrapAndroidNotReady =>
-      'Firebase Android chưa sẵn sàng. Kiểm tra lại `android/app/google-services.json` và package name của app.';
+      'App chưa kết nối được máy chủ, dữ liệu tạm lưu trên máy này.';
 
   @override
   String get bootstrapIosNotConfigured =>
-      'Bạn đang chạy iOS nhưng project chưa có `GoogleService-Info.plist`, nên app đang rơi về local fallback.';
+      'App chưa kết nối được máy chủ, dữ liệu tạm lưu trên máy này.';
 
   @override
   String get bootstrapLinuxNotConfigured =>
-      'Firebase cho Linux chưa được cấu hình nên app đang chạy local fallback.';
+      'Bản Linux chưa kết nối máy chủ, dữ liệu tạm lưu trên máy này.';
 
   @override
   String get bootstrapMacosNotConfigured =>
-      'Firebase cho macOS chưa được cấu hình nên app đang chạy local fallback.';
+      'Bản macOS chưa kết nối máy chủ, dữ liệu tạm lưu trên máy này.';
 
   @override
   String get bootstrapPlatformNotConfigured =>
-      'Firebase chưa được cấu hình cho platform hiện tại nên app đang chạy local fallback.';
+      'Thiết bị này chưa kết nối máy chủ, dữ liệu tạm lưu trên máy.';
 
   @override
   String get bootstrapWebNotConfigured =>
-      'Firebase chưa được cấu hình cho Web nên app đang chạy local fallback.';
+      'Bản web chưa kết nối máy chủ, dữ liệu tạm lưu trên trình duyệt này.';
 
   @override
   String get bootstrapWindowsNotConfigured =>
-      'Firebase cho Windows chưa được cấu hình nên app đang chạy local fallback.';
+      'Bản Windows chưa kết nối máy chủ, dữ liệu tạm lưu trên máy này.';
 
   @override
-  String get coupleAlreadyInCouple => 'Tài khoản này đã thuộc một cặp đôi rồi.';
+  String get coupleAlreadyInCouple => 'Tài khoản này đã ghép đôi rồi.';
 
   @override
   String get coupleAlreadyInThisCouple => 'Bạn đã ở trong cặp đôi này rồi.';
@@ -2410,45 +1717,46 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get coupleCodeNoLongerValid =>
-      'Mã mời này không còn trỏ tới một cặp đôi hợp lệ nữa.';
+      'Mã mời này không còn dùng được nữa. Bạn nhờ người ấy tạo lại mã mời nhé.';
 
   @override
   String get coupleCodeNotFoundLocal =>
-      'Không tìm thấy mã kết nối trong local fallback.';
+      'Không tìm thấy mã mời trên máy này (chưa kết nối máy chủ).';
 
   @override
-  String get coupleEnterCodeFirst => 'Bạn hãy nhập mã kết nối trước nhé.';
+  String get coupleEnterCodeFirst => 'Bạn hãy nhập mã mời trước nhé.';
 
   @override
   String get coupleFirebaseUnavailable =>
-      'Firebase hiện chưa khả dụng hoặc mạng chưa ổn định. Bạn thử lại sau ít phút nhé.';
+      'Chưa kết nối được máy chủ, có thể do mạng chập chờn. Bạn thử lại sau ít phút nhé.';
 
   @override
   String get coupleFull => 'Cặp đôi này đã đủ 2 người rồi.';
 
   @override
-  String get coupleFullLocal => 'Cặp đôi local này đã đủ 2 người rồi.';
+  String get coupleFullLocal => 'Cặp đôi trên máy này đã đủ 2 người rồi.';
 
   @override
   String get coupleInviteCodeInvalid =>
-      'Mã mời không hợp lệ hoặc không còn tồn tại.';
+      'Mã mời không đúng hoặc không còn dùng được.';
 
   @override
-  String get coupleJoinGeneric => 'Không thể kết nối bằng mã mời lúc này.';
+  String get coupleJoinGeneric =>
+      'Chưa kết nối được bằng mã mời. Bạn thử lại sau nhé.';
 
   @override
   String get coupleJoinPermissionDenied =>
-      'Không thể kết nối bằng mã mời này. Có thể không gian cặp đôi đã thay đổi hoặc không còn hợp lệ — bạn nhờ người ấy tạo lại mã mời, hoặc đăng xuất/đăng nhập lại rồi thử nhé.';
+      'Chưa kết nối được bằng mã mời này. Có thể không gian cặp đôi đã thay đổi hoặc không còn dùng được. Bạn nhờ người ấy tạo lại mã mời, hoặc đăng xuất rồi đăng nhập lại và thử lần nữa nhé.';
 
   @override
-  String get coupleMatchedLocal => 'Đã ghép cặp trong local fallback mode.';
+  String get coupleMatchedLocal =>
+      'Đã ghép đôi trên máy này (chưa kết nối máy chủ).';
 
   @override
   String get coupleNoDataToUpdate => 'Chưa có thông tin cặp đôi để cập nhật.';
 
   @override
-  String get coupleNotFoundForCode =>
-      'Không tìm thấy cặp đôi tương ứng với mã này.';
+  String get coupleNotFoundForCode => 'Không tìm thấy cặp đôi nào dùng mã này.';
 
   @override
   String get coupleOnboardingBadge => 'BẮT ĐẦU';
@@ -2459,49 +1767,50 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get couplePhotoUploadGeneric =>
-      'Ảnh đôi chưa upload được lên Firebase Storage.';
+      'Chưa tải được ảnh đôi lên. Bạn thử đổi ảnh lại sau nhé.';
 
   @override
   String get couplePhotoUploadPermission =>
-      'Ảnh đôi chưa upload được lên Firebase Storage. Mình vẫn lưu thông tin cặp đôi trước, bạn deploy `storage.rules` rồi thử đổi ảnh lại sau nhé.';
+      'Chưa tải được ảnh đôi lên. Mình đã lưu thông tin cặp đôi trước, bạn thử đổi ảnh lại sau nhé.';
 
   @override
   String get couplePhotoUploadSessionInvalid =>
-      'Ảnh đôi chưa upload được vì phiên đăng nhập Firebase không còn hợp lệ.';
+      'Chưa tải được ảnh đôi lên vì phiên đăng nhập không còn hiệu lực. Bạn đăng nhập lại rồi đổi ảnh nhé.';
 
   @override
   String get couplePhotoUploadUnavailable =>
-      'Ảnh đôi chưa upload được vì Firebase Storage hoặc mạng đang tạm thời không ổn định.';
+      'Chưa tải được ảnh đôi lên vì mạng hoặc máy chủ đang chập chờn. Bạn thử lại sau nhé.';
 
   @override
-  String get coupleSaveGeneric => 'Không thể lưu thông tin cặp đôi lúc này.';
+  String get coupleSaveGeneric =>
+      'Chưa lưu được thông tin cặp đôi. Bạn thử lại sau nhé.';
 
   @override
   String get coupleSavePermissionDenied =>
-      'Không thể lưu thông tin cặp đôi do quyền truy cập bị từ chối. Dữ liệu có thể đang ở trạng thái không hợp lệ — bạn thử đăng xuất/đăng nhập lại rồi thử lại nhé.';
+      'Chưa lưu được thông tin cặp đôi vì máy chủ từ chối. Có thể dữ liệu đang bị lỗi, bạn đăng xuất rồi đăng nhập lại và thử lần nữa nhé.';
 
   @override
   String get coupleSessionExpiredJoin =>
-      'Phiên đăng nhập đã hết hạn. Bạn đăng nhập lại rồi thử kết nối lại nhé.';
+      'Phiên đăng nhập đã hết hạn. Bạn đăng nhập lại rồi thử kết nối lần nữa nhé.';
 
   @override
   String get coupleSessionInvalid =>
-      'Phiên đăng nhập Firebase không còn hợp lệ. Bạn đăng nhập lại giúp mình nhé.';
+      'Phiên đăng nhập không còn hiệu lực. Bạn đăng nhập lại giúp mình nhé.';
 
   @override
   String get coupleSessionNotReadyRelogin =>
-      'Phiên đăng nhập Firebase chưa sẵn sàng. Bạn đăng xuất rồi đăng nhập lại giúp mình nhé.';
+      'Phiên đăng nhập chưa sẵn sàng. Bạn đăng xuất rồi đăng nhập lại giúp mình nhé.';
 
   @override
   String get coupleSpaceInvalidRegenerate =>
-      'Mã mời này đang trỏ tới một không gian cặp đôi không còn hợp lệ. Bạn nhờ người ấy tạo lại mã mời rồi thử lại nhé.';
+      'Không gian cặp đôi của mã mời này không còn dùng được. Bạn nhờ người ấy tạo lại mã mời rồi thử lại nhé.';
 
   @override
   String get coupleUpdatedSuccess => 'Đã cập nhật thông tin cặp đôi.';
 
   @override
   String get coupleUserNotFoundForCreate =>
-      'Không tìm thấy người dùng hiện tại để tạo cặp đôi.';
+      'Không tìm thấy tài khoản của bạn để tạo cặp đôi. Bạn đăng nhập lại nhé.';
 
   @override
   String get createAccountBadge => 'TẠO TÀI KHOẢN';
@@ -2510,29 +1819,20 @@ class AppLocalizationsVi extends AppLocalizations {
   String get defaultDisplayName => 'Người dùng mới';
 
   @override
-  String get deleteAccountBtn => 'Xóa tài khoản';
+  String get deleteAccountBtn => 'Xoá tài khoản';
 
   @override
-  String get deleteAccountConfirmBtn => 'Xóa vĩnh viễn';
-
-  @override
-  String get deleteAccountDesc =>
-      'Xóa vĩnh viễn tài khoản và toàn bộ dữ liệu của bạn';
+  String get deleteAccountConfirmBtn => 'Xoá vĩnh viễn';
 
   @override
   String get deleteAccountDialogContent =>
-      'Hành động này không thể hoàn tác. Toàn bộ dữ liệu của bạn bao gồm ảnh và thông tin cặp đôi sẽ bị xóa vĩnh viễn.';
+      'Việc này không thể hoàn tác. Toàn bộ dữ liệu của bạn, gồm ảnh và thông tin cặp đôi, sẽ bị xoá vĩnh viễn.';
 
   @override
-  String get deleteAccountDialogTitle => 'Xóa tài khoản?';
+  String get deleteAccountDialogTitle => 'Xoá tài khoản?';
 
   @override
-  String get deleteAccountFailed =>
-      'Hiện chưa thể xoá tài khoản. Vui lòng thử lại.';
-
-  @override
-  String get deleteAccountRequiresReloginMsg =>
-      'Vui lòng đăng xuất, đăng nhập lại và thử lại để xác nhận danh tính';
+  String get deleteAccountFailed => 'Chưa xoá được tài khoản. Bạn thử lại nhé.';
 
   @override
   String get deleteAccountReauthTitle => 'Xác minh đó là bạn';
@@ -2543,13 +1843,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get deleteAccountSessionExpiredMsg =>
-      'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại rồi xoá tài khoản.';
-
-  @override
-  String get deleteAccountSuccessMsg => 'Tài khoản đã được xóa';
-
-  @override
-  String get deleteAccountTitle => 'Xóa tài khoản';
+      'Phiên đăng nhập đã hết hạn. Bạn đăng nhập lại rồi xoá tài khoản nhé.';
 
   @override
   String get editCoupleBadge => 'HỒ SƠ CẶP ĐÔI';
@@ -2571,64 +1865,53 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get galleryTodayEmptySubtitle =>
-      'Mỗi tấm ảnh là một kỷ niệm chung của nhau.';
+      'Mỗi tấm ảnh là một kỷ niệm của chúng mình.';
 
   @override
   String get galleryTodayEmptyTitle => 'Hôm nay chưa có khoảnh khắc nào';
 
   @override
-  String get homeWaitingPartnerSubtitle =>
-      'Chia sẻ mã mời với người ấy để bắt đầu hành trình cùng nhau.';
-
-  @override
-  String get homeWaitingPartnerTitle => 'Chờ bạn đồng hành';
-
-  @override
   String get leavingCouple => 'Đang rời cặp đôi...';
 
   @override
-  String get loveHomeBadge => 'TRANG CHỦ';
-
-  @override
   String get mustAgreeToPrivacyPolicy =>
-      'Vui lòng đồng ý với chính sách bảo mật để tiếp tục';
+      'Bạn cần đồng ý với Chính sách bảo mật để tiếp tục';
 
   @override
   String get photoConnectCoupleFirst =>
-      'Bạn cần kết nối couple trước khi đăng ảnh.';
+      'Bạn cần ghép đôi trước khi đăng ảnh nhé.';
 
   @override
-  String get photoFileNotFoundStorage =>
-      'Không tìm thấy file ảnh trên Firebase Storage.';
+  String get photoFileNotFoundStorage => 'Không tìm thấy ảnh này trên máy chủ.';
 
   @override
   String get photoFirebaseUnavailable =>
-      'Firebase hiện chưa khả dụng hoặc mạng chưa ổn định.';
+      'Chưa kết nối được máy chủ, có thể do mạng chập chờn. Bạn thử lại sau ít phút nhé.';
 
   @override
   String get photoNotFoundToPost => 'Không tìm thấy ảnh để đăng.';
 
   @override
   String get photoStorageUnauthorized =>
-      'Firebase Storage đang từ chối thao tác với ảnh này.';
+      'Máy chủ đang từ chối thao tác với ảnh này.';
 
   @override
-  String get photoSyncGeneric => 'Không thể đồng bộ ảnh lúc này.';
+  String get photoSyncGeneric => 'Chưa đồng bộ được ảnh. Bạn thử lại sau nhé.';
 
   @override
   String get photoSyncPermissionDenied =>
-      'Bạn chưa có quyền đồng bộ ảnh. Hãy kiểm tra `firestore.rules` và `storage.rules` trên Firebase.';
+      'Bạn chưa có quyền đồng bộ ảnh. Thử đăng xuất rồi đăng nhập lại nhé.';
 
   @override
   String get photoSyncSessionExpired =>
-      'Phiên đăng nhập Firebase đã hết hạn. Bạn đăng nhập lại giúp mình nhé.';
+      'Phiên đăng nhập đã hết hạn. Bạn đăng nhập lại giúp mình nhé.';
 
   @override
   String get posterNameFallback => 'Người ấy';
 
   @override
   String get privacyDisclosure =>
-      'Bằng cách tạo tài khoản, bạn đồng ý với Chính sách bảo mật của chúng tôi. Chúng tôi thu thập email, tên hiển thị và ảnh bạn chia sẻ để cung cấp dịch vụ.';
+      'Khi tạo tài khoản, bạn đồng ý với Chính sách bảo mật của chúng tôi. Chúng tôi thu thập email, tên hiển thị và ảnh bạn chia sẻ để cung cấp dịch vụ.';
 
   @override
   String get privacyPolicyLabel => 'Chính sách bảo mật';
@@ -2658,7 +1941,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get signOutFailedMsg =>
-      'Không thể đăng xuất. Vui lòng kiểm tra kết nối và thử lại.';
+      'Chưa đăng xuất được. Bạn kiểm tra kết nối rồi thử lại nhé.';
 
   @override
   String get welcomeBackBadge => 'CHÀO MỪNG TRỞ LẠI';
@@ -2700,23 +1983,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get galleryEndOfFeed =>
-      'Đã hết kỷ niệm 💕, hãy tạo thêm kỷ niệm mới cùng nhau nhé';
+      'Đã xem hết kỷ niệm rồi 💕 Cùng nhau tạo thêm kỷ niệm mới nhé';
 
   @override
   String galleryTodayMomentsCount(int count) {
     return '$count khoảnh khắc hôm nay';
   }
-
-  @override
-  String homeCounterStartFrom(String date) {
-    return 'Bắt đầu từ $date';
-  }
-
-  @override
-  String get guestTryWithoutLogin => 'Dùng thử không cần đăng nhập';
-
-  @override
-  String get guestLoginDivider => 'hoặc';
 
   @override
   String get guestModeBadge => 'Chế độ dùng thử';
@@ -2726,7 +1998,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get guestCounterSubtitle =>
-      'Nhập ngày hai bạn bắt đầu để xem đã bên nhau bao lâu.';
+      'Chọn ngày hai bạn bắt đầu yêu để xem đã bên nhau bao lâu.';
 
   @override
   String get guestEmptyTitle => 'Bắt đầu đếm ngày yêu của bạn';
@@ -2771,7 +2043,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String streakChipInProgress(int n) {
-    return '$n ngày kết nối · tới lượt hôm nay 🌸';
+    return '$n ngày kết nối · chờ trả lời hôm nay 🌸';
   }
 
   @override
@@ -2805,16 +2077,16 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get streakSheetAtRiskTitle => 'Còn một nhịp đệm thôi 🫶';
+  String get streakSheetAtRiskTitle => 'Vẫn còn kịp nè 🫶';
 
   @override
   String streakSheetAtRiskBody(int n) {
-    return 'Hôm qua chúng mình lỡ một nhịp — không sao cả! Trả lời hôm nay là chuỗi $n ngày tiếp tục liền.';
+    return 'Hôm qua chúng mình lỡ một nhịp, không sao cả! Trả lời hôm nay là chuỗi $n ngày tiếp tục liền.';
   }
 
   @override
   String get streakSheetRestartBody =>
-      'Chuỗi cũ khép lại rồi, nhưng mỗi ngày mới là một khởi đầu. Cùng thắp lại nào 🌱';
+      'Chuỗi cũ khép lại rồi. Hôm nay chúng mình cùng trả lời câu hỏi là thắp lại được ngay 🌱';
 
   @override
   String streakSheetRecord(int m) {
@@ -2823,7 +2095,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String streakNextMilestone(int n, int m) {
-    return 'Còn $n ngày tới mốc $m 🎉';
+    return 'Còn $n ngày tới mốc $m ngày 🎉';
   }
 
   @override
@@ -2840,32 +2112,32 @@ class AppLocalizationsVi extends AppLocalizations {
       'Khởi đầu thật đáng yêu. Chúng mình đang làm tốt lắm 💞';
 
   @override
-  String get streakMilestone7Title => 'Trọn một tuần! ✨';
+  String get streakMilestone7Title => 'Tròn một tuần! ✨';
 
   @override
   String get streakMilestone7Body =>
       '7 ngày liền chúng mình không lỡ nhịp nào. Tự hào ghê!';
 
   @override
-  String get streakMilestone30Title => '30 ngày bên nhau mỗi ngày! 🔥';
+  String get streakMilestone30Title => 'Tròn 30 ngày liền! 🔥';
 
   @override
   String get streakMilestone30Body =>
-      'Một tháng giữ lửa — đây là thói quen của chúng mình rồi đấy 💞';
+      'Một tháng giữ lửa, giờ thành thói quen của chúng mình rồi đấy 💞';
 
   @override
   String get streakMilestone100Title => '100 ngày! 💯';
 
   @override
   String get streakMilestone100Body =>
-      'Trăm ngày cùng nhau trả lời, cùng nhau lớn lên. Hiếm cặp nào làm được như chúng mình 🌟';
+      'Trăm ngày cùng nhau trả lời, hiểu nhau thêm từng chút. Hiếm cặp nào làm được như chúng mình 🌟';
 
   @override
   String get streakMilestone365Title => 'Tròn một năm! 👑';
 
   @override
   String get streakMilestone365Body =>
-      '365 ngày không lỡ một nhịp kết nối. Đây là chuyện tình của riêng chúng mình 💞👑';
+      '365 ngày chưa lỡ nhịp nào. Cả năm trời, ngày nào chúng mình cũng có nhau 💞👑';
 
   @override
   String streakJournalSummary(int n, int m) {
@@ -2880,14 +2152,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get forgotPasswordLink => 'Quên mật khẩu?';
 
   @override
-  String get forgotPasswordBadge => 'KHÔI PHỤC TRUY CẬP';
-
-  @override
-  String get forgotPasswordTitle => 'Quên mật khẩu?';
-
-  @override
-  String get forgotPasswordSubtitle =>
-      'Nhập email của bạn, mình sẽ gửi liên kết để đặt lại mật khẩu.';
+  String get forgotPasswordBadge => 'LẤY LẠI MẬT KHẨU';
 
   @override
   String get forgotPasswordEmailHeading => 'Email';
@@ -2921,14 +2186,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get verifyEmailBadge => 'XÁC THỰC EMAIL';
 
   @override
-  String get verifyEmailTitle => 'Xác thực email của bạn';
-
-  @override
-  String verifyEmailSubtitle(String email) {
-    return 'Mình đã gửi liên kết xác thực tới $email.';
-  }
-
-  @override
   String get verifyEmailBody =>
       'Mở email, bấm vào liên kết xác thực, rồi quay lại đây và bấm \"Tôi đã xác thực\".';
 
@@ -2945,7 +2202,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get verifyEmailNotYet =>
-      'Chưa thấy xác thực — bạn kiểm tra lại hộp thư rồi thử lại nhé.';
+      'Email vẫn chưa được xác thực. Bạn mở hộp thư, bấm vào liên kết rồi thử lại nhé.';
 
   @override
   String get verifyEmailSuccess => 'Đã xác thực! Đang đưa bạn vào...';
@@ -2960,11 +2217,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get setupCoupleCodeDesc =>
-      'Đây là mã ghép đôi của hai bạn. Cả hai đều dùng mã này để kết nối lại nếu cần.';
+      'Đây là mã mời chung của hai bạn. Cả hai đều dùng mã này để kết nối lại nếu cần.';
 
   @override
   String get setupCoupleCodeRejoinHint =>
-      'Lưu mã lại — bạn có thể dùng nó để quay lại không gian này bất cứ lúc nào.';
+      'Lưu mã lại nhé, lúc nào cần quay lại không gian này cũng dùng được.';
 
   @override
   String get galleryNeedsCoupleToUpload =>
@@ -2981,7 +2238,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get notifCenterEmptyBody =>
-      'Hoạt động của hai bạn sẽ xuất hiện ở đây.';
+      'Ảnh mới, tin nhắn của người ấy sẽ hiện ở đây.';
 
   @override
   String get notifGroupToday => 'Hôm nay';
@@ -2995,7 +2252,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get notifAllCaughtUp => 'Hai bạn đã xem hết rồi 💛';
+  String get notifAllCaughtUp => 'Bạn đã xem hết rồi 💛';
 
   @override
   String get notifMarkAllRead => 'Đánh dấu đã đọc';
@@ -3009,9 +2266,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get notifClearAllConfirmBody =>
       'Bạn sẽ không xem lại được những thông báo này.';
-
-  @override
-  String get notifDismiss => 'Xoá';
 
   @override
   String get notifGeneric => 'Bạn có thông báo mới';
@@ -3053,7 +2307,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String notifChatMessage(String name) {
-    return '$name vừa gửi cho bạn một tin nhắn 💬';
+    return '$name vừa nhắn tin cho bạn 💬';
   }
 
   @override
@@ -3077,7 +2331,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get counterBgSubtitleAll =>
-      'Chọn ảnh được dùng làm nền thẻ đếm ngày. Bỏ trống thì xoay vòng tất cả ảnh.';
+      'Chọn ảnh muốn làm nền thẻ đếm ngày. Bỏ trống thì thẻ sẽ xoay vòng tất cả ảnh.';
 
   @override
   String counterBgSubtitleCount(int count) {
@@ -3085,7 +2339,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get counterBgCoverLabel => 'Ảnh đại diện';
+  String get counterBgCoverLabel => 'Ảnh đôi';
 
   @override
   String get counterBgEmptyTitle => 'Chưa có ảnh nào';
@@ -3110,8 +2364,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get counterBgDiscardTitle => 'Bỏ thay đổi?';
 
   @override
-  String get counterBgDiscardBody =>
-      'Bạn có thay đổi chưa lưu. Thoát mà không lưu nhé?';
+  String get counterBgDiscardBody => 'Bạn chưa lưu thay đổi. Vẫn thoát chứ?';
 
   @override
   String get counterBgDiscardLeave => 'Thoát';
@@ -3134,7 +2387,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get chatBgFilterHint =>
-      'Chỉ hiện ảnh dọc, độ phân giải cao — phủ kín màn hình mà không bị cắt hay vỡ nét.';
+      'Chỉ hiện ảnh dọc, đủ nét để phủ kín màn hình mà không bị cắt hay vỡ hình.';
 
   @override
   String get chatBgNoneLabel => 'Mặc định';
@@ -3147,22 +2400,21 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get chatBgNoneValidBody =>
-      'Hãy thêm ảnh dọc, sắc nét vào thư viện — ảnh ngang hoặc độ phân giải thấp không dùng làm nền chat được.';
+      'Thêm ảnh dọc, sắc nét vào thư viện nhé. Ảnh ngang hoặc kém nét thì không làm nền chat được.';
 
   @override
   String get chatBgSavedMsg => 'Đã lưu ảnh nền chat 💕';
 
   @override
-  String get journeyTrailTitle => 'Hành trình của chúng mình';
+  String get journeyTrailTitle => 'Cột mốc của chúng mình';
 
   @override
   String milestoneTrailNext(int days, String label) {
-    return 'Còn $days ngày tới $label';
+    return 'Còn $days ngày tới mốc $label';
   }
 
   @override
-  String get milestoneTrailAllDone =>
-      'Hai bạn đã chinh phục mọi cột mốc rồi 🎉';
+  String get milestoneTrailAllDone => 'Hai bạn đã đi qua mọi cột mốc rồi 🎉';
 
   @override
   String get profileAchievementsTitle => 'Huy hiệu của chúng mình';
@@ -3195,7 +2447,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get profileRecordJournalEntries => 'Câu hỏi đã trả lời';
 
   @override
-  String get profileRecordStreakMilestones => 'Cột mốc chuỗi đạt';
+  String get profileRecordStreakMilestones => 'Mốc chuỗi đã đạt';
 
   @override
   String profileJournalCountLabel(String count) {
@@ -3222,27 +2474,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loveTreeStage0 => 'Hạt mầm';
 
   @override
-  String get loveTreeStage1 => 'Mầm non';
-
-  @override
-  String get loveTreeStage2 => 'Cây non';
-
-  @override
-  String get loveTreeStage3 => 'Cây xanh';
-
-  @override
-  String get loveTreeStage4 => 'Nở rộ';
-
-  @override
   String loveTreeFlowerCount(int count) {
     return '$count bông hoa đã nở';
   }
 
   @override
-  String get loveTreeFlowerCountZero => 'Chưa có bông nào — hãy cùng vun đắp';
-
-  @override
-  String get loveTreeSeedSubtitle => 'Hành trình của hai bạn bắt đầu từ đây 🌱';
+  String get loveTreeSeedSubtitle => 'Hai bạn vừa gieo hạt mầm đầu tiên 🌱';
 
   @override
   String get loveTreeBloomSubtitle => 'Cây của hai bạn đang rực rỡ ✨';
@@ -3274,7 +2511,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loveTreeNurtureTalkTitle => 'Cùng trò chuyện hôm nay';
 
   @override
-  String get loveTreeNurtureTalkBody => 'Những khoảnh khắc nhỏ nuôi cây lớn';
+  String get loveTreeNurtureTalkBody => 'Hỏi han nhau mỗi ngày cũng là vun cây';
 
   @override
   String get loveTreeMilestonesTitle => 'Cột mốc';
@@ -3313,9 +2550,6 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get loveTreeMilestoneAllDone => 'đã đủ 🌟';
-
-  @override
   String get loveTreeWaitingTitle => 'Cây đang chờ cả hai';
 
   @override
@@ -3327,13 +2561,13 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get loveTreeNoCoupleBody =>
-      'Hãy kết nối với người ấy để bắt đầu trồng cây 🌱';
+      'Ghép đôi với người ấy để bắt đầu trồng cây nhé 🌱';
 
   @override
   String get loveTreeCoachTooltip => 'Chạm để xem khoảnh khắc 🌸';
 
   @override
-  String get loveTreeTapHint => 'Chạm vào mỗi bông để xem kỷ niệm';
+  String get loveTreeTapHint => 'Chạm vào từng bông để xem kỷ niệm';
 
   @override
   String loveTreeMomentDaysTitle(int count) {
@@ -3366,28 +2600,28 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get loveTreeMomentPhotosCopy =>
-      'Một khoảnh khắc chúng mình đã cùng lưu giữ 💞';
+      'Tấm ảnh chúng mình đã cùng giữ lại 💞';
 
   @override
   String get loveTreeMomentStreakCopy =>
-      'Kỷ lục các bạn từng cùng nhau giữ. Bắt đầu chuỗi mới để vượt nó nhé 🔥';
+      'Chuỗi dài nhất hai bạn từng giữ được. Bắt đầu chuỗi mới để phá kỷ lục này nhé 🔥';
 
   @override
   String get loveTreeMomentViewInGallery => 'Xem trong Thư viện';
 
   @override
   String loveTreeLockedDays(int count) {
-    return 'Còn $count ngày nữa để nở 🌱';
+    return 'Còn $count ngày nữa là nở 🌱';
   }
 
   @override
   String loveTreeLockedPhotos(int count) {
-    return 'Còn $count kỷ niệm nữa để nở 🌱';
+    return 'Còn $count kỷ niệm nữa là nở 🌱';
   }
 
   @override
   String loveTreeLockedStreak(int count) {
-    return 'Còn $count ngày chuỗi nữa để nở 🌱';
+    return 'Còn $count ngày chuỗi nữa là nở 🌱';
   }
 
   @override
@@ -3408,15 +2642,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loveTreeShareTagline => 'Cây tình yêu của chúng mình 🌳';
 
   @override
-  String get loveTreeShareTaglineSeed => 'Cây vừa gieo mầm 🌱';
+  String get loveTreeShareTaglineSeed => 'Cây vừa nảy mầm 🌱';
 
   @override
   String loveTreeShareMessage(String flowers, String days) {
     return 'Cây tình yêu của chúng mình đã nở $flowers bông hoa sau $days ngày 🌳💞 — vun cây cùng người ấy trên Dear Embeiu.';
   }
-
-  @override
-  String get loveTreeShareFailed => 'Không tạo được thẻ, thử lại nhé';
 
   @override
   String get partnerReminderNotifBody => 'Người ấy nhắc bạn 💌';
@@ -3443,10 +2674,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get careMessageEntryTitle => 'Gửi quan tâm';
-
-  @override
-  String get careMessageEntrySubtitle =>
-      'Một lời nhắn nhỏ cho người ấy ấm lòng';
 
   @override
   String get careMessageQuickPicksTitle => 'Gợi ý nhanh';
@@ -3484,7 +2711,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get careMessageNeedCouple =>
-      'Cần ghép đôi trước khi gửi quan tâm nhé.';
+      'Cần ghép đôi trước khi gửi lời quan tâm nhé.';
 
   @override
   String get careMessageRecentTitle => 'Đã gửi gần đây';
@@ -3511,7 +2738,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get careQuick3Title => 'Ăn cơm chưa? 🍚';
 
   @override
-  String get careQuick3Body => 'Nhớ ăn đúng bữa nha, đừng bỏ bữa nhé.';
+  String get careQuick3Body => 'Nhớ ăn cơm đúng bữa, đừng bỏ bữa nha.';
 
   @override
   String get careQuick4Title => 'Ngủ sớm nha 🌙';
@@ -3531,7 +2758,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get careQuick6Body =>
-      'Hôm nay chắc mệt lắm. Cố lên nha, luôn có chúng mình ở đây.';
+      'Hôm nay chắc mệt lắm. Cố lên nha, luôn có mình ở đây mà.';
 
   @override
   String notifCareMessage(String name) {
@@ -3578,9 +2805,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsCancelled => 'Người ấy đã huỷ lời mời';
 
   @override
-  String get rpsScoreLabel => 'Mình – Hoà – Người ấy';
-
-  @override
   String notifRpsInvite(String name) {
     return '$name rủ bạn oẳn tù tì!';
   }
@@ -3608,7 +2832,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsEntryInvitedSubtitle => 'Vào chơi ngay nhé';
 
   @override
-  String get rpsEntryPendingSubtitle => 'Lời mời còn hiệu lực 10 phút';
+  String get rpsEntryPendingSubtitle => 'Lời mời hết hạn sau 10 phút';
 
   @override
   String get rpsEntryCtaPlay => 'Chơi';
@@ -3660,7 +2884,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get rpsWaitingBodyInvitee =>
-      'Đang kết nối với người ấy… Ván chơi bắt đầu khi cả hai cùng ở đây.';
+      'Đang kết nối với người ấy… Cả hai cùng có mặt là bắt đầu.';
 
   @override
   String get rpsNudgeCta => 'Nhắc lại';
@@ -3697,14 +2921,14 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsResolving => 'Đang mở kết quả…';
 
   @override
-  String get rpsResolvingSlow => 'Kết nối chậm một chút…';
+  String get rpsResolvingSlow => 'Mạng đang hơi chậm…';
 
   @override
   String get rpsReloadCta => 'Tải lại';
 
   @override
   String get rpsOfflineHint =>
-      'Mất mạng — lựa chọn của bạn sẽ được gửi khi có mạng lại';
+      'Mất mạng rồi, có mạng lại sẽ tự gửi lựa chọn của bạn';
 
   @override
   String rpsResultDrawSub(String choice) {
@@ -3739,8 +2963,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Lời mời quá 10 phút nên đã hết hạn. Rủ lại nhé!';
 
   @override
-  String get rpsCancelledBody =>
-      'Không sao, chúng mình có thể chơi ván khác bất cứ lúc nào.';
+  String get rpsCancelledBody => 'Không sao, lúc nào rủ ván khác cũng được mà.';
 
   @override
   String get rpsInviteAgainCta => 'Rủ lại';
@@ -3752,7 +2975,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsErrorBody => 'Kiểm tra mạng rồi thử lại nhé.';
 
   @override
-  String get rpsNeedCouple => 'Cần có người ấy trong app để chơi cùng.';
+  String get rpsNeedCouple =>
+      'Ghép đôi với người ấy rồi mới chơi cùng được nhé.';
 
   @override
   String get rpsScoreMe => 'MÌNH';
@@ -3765,7 +2989,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String rpsHistoryTotal(String count) {
-    return '$count ván đã chơi';
+    return 'Đã chơi $count ván';
   }
 
   @override
@@ -3800,23 +3024,20 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get rpsHistoryEmptyBody =>
-      'Mọi ván oẳn tù tì của chúng mình sẽ được lưu lại ở đây — kể cả ván hoà.';
+      'Ván nào chúng mình chơi cũng sẽ nằm ở đây, kể cả ván hoà.';
 
   @override
   String get rpsHistoryEmptyCta => 'Rủ người ấy một ván';
-
-  @override
-  String get rpsHistoryLoadError => 'Chưa tải được lịch sử.';
 
   @override
   String get featureTourRpsTitle => 'Oẳn tù tì cùng người ấy';
 
   @override
   String get featureTourRpsBody =>
-      'Rủ một ván, cùng đếm oẳn tù tì rồi ra tay. Không có bỏ lượt — ai chưa ra sẽ được nhắc, kết quả lộ khi cả hai đã chọn. Lịch sử và tỉ số ở Hồ sơ.';
+      'Rủ một ván, cùng đếm oẳn tù tì rồi ra tay. Không có chuyện bỏ lượt, ai chưa ra thì app nhắc. Cả hai chọn xong mới lộ kết quả. Lịch sử và tỉ số nằm ở Hồ sơ.';
 
   @override
-  String get rpsOpenPrompt => 'Ra đi! Không có bỏ lượt đâu 😄';
+  String get rpsOpenPrompt => 'Ra tay đi! Không có bỏ lượt đâu 😄';
 
   @override
   String get rpsOpenRingSemantics =>
@@ -3848,7 +3069,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsMoveNudgeFailed => 'Chưa gửi được lời nhắc, thử lại nhé';
 
   @override
-  String get rpsChosenLeaveHint => 'Bạn cứ rời đi — có kết quả sẽ báo bạn ngay';
+  String get rpsChosenLeaveHint =>
+      'Cứ làm việc khác nhé, có kết quả là báo bạn ngay';
 
   @override
   String get rpsEntryMyTurnSubtitle => 'Tới lượt bạn, ra tay nhé 😄';
