@@ -136,3 +136,50 @@ Tổng: 0 Chặn · 5 Nên sửa · 7 Nhỏ.
 9. Hai máy thật: B nhắn tin, đổi tâm trạng, trả lời câu hỏi → nửa phải trên máy A sáng tức thì; thử thêm tin đang gửi lúc offline.
 
 - [2026-10-11] [Dev → Tester] Dev đã vá 11/12 lỗi vòng 1 (#7 ghi nợ; #9 sửa ở ARB), thêm `test/today_constellation_test.dart` (22 test, font Quicksand thật). Chờ Tester vòng 2. Chi tiết: `dev.md` 2026-10-11.
+
+## [2026-10-11] [Tester] Nghiệm thu v3 "Chòm sao hôm nay" vòng 2 (code-level, bản vá 1f70ce3, kiểm trên HEAD 77c2cd9) — VERDICT: PASS
+
+5/5 lỗi Nên sửa của vòng 1 đã vá; riêng #4 mới vá một phần, phần còn hở xếp Nhỏ (#13, #17). Tổng: 0 Chặn · 0 Nên sửa · 7 Nhỏ mới (#13–#19). #7 vẫn là nợ có chủ đích.
+`flutter analyze` (3.41.6): No issues found · `flutter test`: 208/208 · `test/today_constellation_test.dart`: 22/22.
+Probe nháp ngoài repo, dùng font Quicksand thật: layout 320/360/375/390/412dp × chữ 100/130% (thêm 150/200%), vi/en; Semantics; thanh trạng thái (sheet, pop, vuốt lùi iOS); ticker; cô lập repaint; render PNG.
+
+### Kiểm lỗi vòng 1
+| # | Kết luận | Chỗ (HEAD) | Bằng chứng |
+|---|---|---|---|
+| 1 | Đã vá | `love_tree_screen.dart:1840-1859` | 50 cấu hình: 0 exception. Đuôi "· chưa" luôn còn. Ở chữ lớn còn hở: #15. |
+| 2 | Đã vá | `today_constellation.dart:369-408` | Nhãn Tâm trạng luôn nằm trong khung 260, mọi bề rộng, vi/en. Không đè sao sáng. Còn hở: #14. |
+| 3 | Đã vá | `today_constellation.dart:339, 666, 875` | Sao, nút × và pill đều có `SemanticsAction.tap`; chạm tay và tap qua trình đọc màn hình đều gọi 1 lần. |
+| 4 | Vá một phần | `love_tree_screen.dart:63-69, 256-262, 324-327` | Đỉnh trời sáng, cuộn qua tối, trang che tối, pop về sáng, đóng Cây tối. Còn hở: #13 (sheet), #17 (lúc pop). |
+| 5 | Đã vá | `today_constellation.dart:103-163`, `:166-220` | Provider giữ câu trả lời hôm qua → pill và section hiện 0/6. MidnightBuilder hẹn lại, rebuild khi resume, huỷ khi dispose; DST Asia/Beirut đúng. Phần kế thừa: provider chỉ sang ngày khi Home rebuild. |
+| 6 | Đã vá | `home_screen.dart:1857-1877` | Pill 72,3×44 căn phải dưới tiêu đề; tiêu đề 1 dòng ở 320–412dp chữ 100%. |
+| 7 | Nợ có chủ đích | `today_constellation.dart:118-135` | Cửa sổ 50 tin. |
+| 8 | Đã vá | `love_tree_screen.dart:2044`; `today_constellation.dart:670-672` | Chip cao 44; nút × 44×44. |
+| 9 | Đã vá | `app_vi.arb:1252` | "Chúng mình vừa gieo hạt mầm đầu tiên…". |
+| 10 | Đã vá | `love_tree_screen.dart:546, 3377, 343-347` | Trái tim không vẽ lại theo trời; ticker dừng khi cuộn qua trời. Còn hở (hiếm): #19. |
+| 11 | Đã vá | `today_constellation.dart:584-589` | Mood lạ chỉ hiện giờ. |
+| 12 | Đã vá | `test/today_constellation_test.dart` | 22/22 pass. |
+
+### Lỗi mới
+| # | Mức | Chỗ | Kịch bản → hậu quả | Gợi ý sửa |
+|---|---|---|---|---|
+| 13 | Nhỏ | `love_tree_screen.dart:324` | Mở sheet (bông hoa, bộ chọn tâm trạng) ở đỉnh Cây: Cây mất `isCurrent` → icon thanh trạng thái chuyển tối trên nền trời navy đã bị phủ đen. | Chỉ coi là "bị che" khi phía trên là trang: `isCurrent \|\| secondaryAnimation?.status == dismissed`. |
+| 14 | Nhỏ | `today_constellation.dart:395-407` | Nét viền tim nối sao Tâm trạng xuống sao Nhắn tin cắt ngang nhãn "Tâm trạng" (chữ "g" bên trái, "Tâ" bên phải), rõ khi tim sáng. | Viền chữ bằng màu trời, hoặc dời nhãn. |
+| 15 | Nhỏ | `love_tree_screen.dart:1840-1859`, `:1864-1940` | Cột trạng thái chung hàng với nút "Làm ngay": 320dp chữ 130% tên "Bạn" bị ép còn trống; chữ 200% tràn 4–34px. | Đưa trạng thái xuống dưới hoặc cho xuống dòng. |
+| 16 | Nhỏ | `love_tree_screen.dart:1840-1859` | Tên và đuôi là 2 Text riêng → trình đọc màn hình dừng 2 lần mỗi người. | Gộp semantics. |
+| 17 | Nhỏ | `love_tree_screen.dart:256-262`, `:324` | Lúc pop, icon sáng còn ~464ms trên Home (Android); vuốt lùi iOS giữ nửa chừng: icon sáng trên Home. | Chọn style theo `animation.value`, hoặc chấp nhận. |
+| 18 | Nhỏ | `love_tree_screen.dart:1726-1775` | Dòng phụ "Bông tiếp theo": 320dp chữ 130% vỡ chữ giữa từ; en chữ 200% tràn 21px. | Cho chữ "còn N…" co lại hoặc ẩn thanh khi hẹp. |
+| 19 | Nhỏ (hiếm) | `love_tree_screen.dart:248-253`, `:293`, `:343-347` | Đổi Reduce Motion lúc đang xem: tắt RM khi đã cuộn qua trời → controller mới `repeat()` dù trời khuất; bật RM ở đỉnh → `_ambient` vẫn chạy. | Chỉ `repeat()` khi `!_pastSky`; dừng khi RM bật. |
+
+### [CẦN TEST runtime]
+1. Máy thật tiếng Việt khi tim sáng: nét viền qua chữ "Tâm trạng" (#14).
+2. Đỉnh Cây mở bông hoa / bộ chọn tâm trạng: giờ và pin có đọc được không (#13); back, vuốt lùi iOS nửa chừng (#17).
+3. 320dp chữ 130%, Android 14 cỡ chữ lớn nhất: thẻ Việc nhỏ (#15), Bông tiếp theo (#18).
+4. TalkBack/VoiceOver: sao, nút ×, pill, thẻ Việc nhỏ (#16).
+5. Để Cây mở qua 0:00; app chạy nền qua đêm; máy ngủ lâu rồi mở.
+6. Bật/tắt Reduce Motion khi đang ở Cây (#19).
+7. Android tầm trung, performance overlay.
+8. Android 360×640: thanh điều hướng trên nền trời tím.
+9. Hai máy thật: B nhắn/đổi tâm trạng/trả lời → nửa phải máy A sáng ngay; sau 0:00 sao Câu hỏi của B.
+10. Đủ 6 sao, iOS.
+
+- [2026-10-11] [Dev → Tester] Đã vá #13 (sheet giữ icon sáng), #14 (quầng màu trời quanh nhãn che nét viền), #15 + #16 (dòng trạng thái thành 1 Text tự xuống dòng: không cắt tên, không mất "· chưa", trình đọc đọc 1 câu), #18 ("còn N…" xuống dưới tên), #19 (đồng hồ trời không chạy khi đã cuộn qua hoặc khi bật Reduce Motion). Không làm #17 (lệch dưới nửa giây lúc pop). Probe của Tester chạy lại: S2 "Bạn · chưa" = 1 node/người · S3 sheet → icon sáng · chữ 150%/200% vi/en 360/390dp: 0 lỗi tràn · bật RM ở đỉnh → màn hình đứng yên. analyze 0 · test 216/216.

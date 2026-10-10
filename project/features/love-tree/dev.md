@@ -216,3 +216,4 @@ Sau khi thêm mặt trời+mây, chúng chen vào dải header → vầng nắng
 - `flutter test` (cây thật): 205/205.
 - Bản export HEAD + 4 file của tôi: analyze sạch, 189/189. Dựng bản này vì giữa chừng có phiên khác sửa dở `auth_service.dart` + ARB chưa gen.
 - Không commit, không push.
+- [2026-10-11] [Dev] **Vá 6 lỗi nhỏ Tester vòng 2** (vòng 2 đã PASS): thanh trạng thái giữ icon sáng khi sheet mở trên trời (`isCurrent || secondaryAnimation dismissed`); nhãn sao có quầng màu trời che nét viền tim; dòng trạng thái "Việc nhỏ hôm nay" = 1 Text tự xuống dòng (bỏ mẹo chuỗi rỗng): không cắt tên, không mất "· chưa", không tràn ở chữ 200%, trình đọc màn hình đọc một câu; "Bông tiếp theo": "còn N…" xuống dưới tên; đồng hồ trời không tự `repeat()` khi đã cuộn qua hoặc đang bật Reduce Motion. Không làm #17 (icon sáng thêm < 0,5 giây lúc pop). Kiểm bằng probe của Tester + analyze 0 · test 216/216.

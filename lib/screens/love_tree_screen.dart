@@ -249,7 +249,7 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     return _ambient ??= AnimationController(
       vsync: this,
       duration: const Duration(seconds: 8),
-    )..repeat();
+    );
   }
 
   @override
@@ -289,8 +289,14 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     // body agree. Null → a non-garden state (no-couple / waiting / loading).
     final data = _resolveTree(couple, streak, photo);
 
-    // The ambient clock only spins when there's any motion to drive.
+    // The ambient clock only spins when there's any motion to drive — and
+    // Reduce Motion can flip while the screen is open.
     final ambient = reduceMotion ? null : _ambientController();
+    if (ambient == null) {
+      _ambient?.stop();
+    } else if (!_pastSky && !ambient.isAnimating) {
+      ambient.repeat();
+    }
 
     // v3 (2026-10-11): the header scrolls with the page so the night sky can
     // sit behind it (a sub-screen header may be the first item of the scroll —
@@ -320,8 +326,14 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
 
     // Light status-bar icons while the navy sky is under them; dark again once
     // it scrolls away or a screen is pushed on top (main.dart sets the style
-    // once — nothing else would restore it).
-    final onSky = !_pastSky && (ModalRoute.of(context)?.isCurrent ?? true);
+    // once — nothing else would restore it). A sheet on top keeps the sky
+    // (darker, under its scrim): only a page drives secondaryAnimation.
+    final route = ModalRoute.of(context);
+    final onSky =
+        !_pastSky &&
+        (route == null ||
+            route.isCurrent ||
+            route.secondaryAnimation?.status == AnimationStatus.dismissed);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _systemBars(onSky: onSky),
@@ -1734,16 +1746,38 @@ class _NextFlowerCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 10),
+                          // "còn N…" under the name, not beside it: on a
+                          // narrow screen or with big text both still wrap.
                           Expanded(
-                            child: Text(
-                              _milestoneLabel(l10n, other.milestone),
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _milestoneLabel(l10n, other.milestone),
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _remainingLabel(
+                                    l10n,
+                                    other.milestone.kind,
+                                    (other.milestone.value - other.progress)
+                                        .clamp(1, other.milestone.value),
+                                  ),
+                                  style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          const SizedBox(width: 10),
                           SizedBox(
                             width: 64,
                             child: _Bar(
@@ -1752,22 +1786,6 @@ class _NextFlowerCard extends StatelessWidget {
                                 other.milestone.kind,
                               ),
                               height: 6,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            _remainingLabel(
-                              l10n,
-                              other.milestone.kind,
-                              (other.milestone.value - other.progress).clamp(
-                                1,
-                                other.milestone.value,
-                              ),
-                            ),
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -1830,30 +1848,26 @@ class _TodayTasksCard extends StatelessWidget {
     final myColor = PersonPalette.colorOf(sleep.myColorId);
     final partnerColor = PersonPalette.colorOf(sleep.partnerColorId);
 
-    const statusStyle = TextStyle(
-      color: AppColors.textSecondary,
-      fontSize: 12,
-      fontWeight: FontWeight.w600,
-    );
-    // Only a long name gives way; "✓" / "· chưa" always stays readable (both
-    // strings start with the name, so an empty name leaves just the suffix).
+    // Wraps instead of cutting: a long name or big text never hides "✓" /
+    // "· chưa", and a screen reader hears one phrase per person.
     Widget status(String name, bool done, Color color) => Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Dot(color: color, filled: done),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: _Dot(color: color, filled: done),
+        ),
         const SizedBox(width: 5),
         Flexible(
           child: Text(
-            name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: statusStyle,
+            done ? l10n.loveTreeTaskDone(name) : l10n.loveTreeTaskPending(name),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        Text(
-          done ? l10n.loveTreeTaskDone('') : l10n.loveTreeTaskPending(''),
-          maxLines: 1,
-          style: statusStyle,
         ),
       ],
     );

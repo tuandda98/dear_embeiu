@@ -381,6 +381,12 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
             fontSize: 12,
             fontWeight: FontWeight.w700,
             height: 16 / 12,
+            // A halo in the sky's colour cuts the heart's outline where it
+            // runs under the letters ("Tâm trạng" sits on it).
+            shadows: const [
+              Shadow(color: Color(0xFF2E2A52), blurRadius: 2),
+              Shadow(color: Color(0xFF2E2A52), blurRadius: 5),
+            ],
           ),
         ),
       );
