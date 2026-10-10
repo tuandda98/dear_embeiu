@@ -76,7 +76,11 @@ class SleepFormat {
   static String nightTitle(AppLocalizations l10n, String wakeKey) {
     final wake = sleepDateFromKey(wakeKey) ?? DateTime.now();
     final eve = DateTime(wake.year, wake.month, wake.day - 1);
-    return l10n.sleepNightTitle('${eve.day}', '${wake.day}/${wake.month}');
+    // Day + month in the locale's order (vi "10/10" d/M · en "10/10" M/d).
+    return l10n.sleepNightTitle(
+      '${eve.day}',
+      DateFormat.Md(l10n.localeName).format(wake),
+    );
   }
 
   /// The partner's display name, same rule as the mood card.

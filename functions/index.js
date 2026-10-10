@@ -2835,6 +2835,18 @@ async function handleCoupleOnAccountDeletion(coupleId, uid) {
     (id) => typeof id === "string" && id.trim() && id !== uid,
   );
 
+  // Sleep (feature sleep): the leaver's profile + shared nights (data that can
+  // come from Apple Health). Rules already hide them from whoever is in the
+  // couple next, but the leaver can no longer delete them — do it here.
+  await db.recursiveDelete(coupleRef.collection("sleep").doc(uid)).catch((err) => {
+    logger.warn("Failed to delete the leaving member's sleep data.", {
+      coupleId,
+      uid,
+      message: err && err.message,
+    });
+    return null;
+  });
+
   if (remaining.length === 0) {
     await deleteCoupleCompletely(coupleRef, data);
     return;
@@ -2901,6 +2913,17 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
   tasks.push(
     db.recursiveDelete(coupleRef.collection("dailyAnswers")).catch((err) => {
       logger.warn("Failed to recursively delete dailyAnswers during couple teardown.", {
+        coupleId: coupleRef.id,
+        message: err && err.message,
+      });
+      return null;
+    }),
+  );
+
+  // Sleep (feature sleep): every member's profile + nights.
+  tasks.push(
+    db.recursiveDelete(coupleRef.collection("sleep")).catch((err) => {
+      logger.warn("Failed to recursively delete sleep during couple teardown.", {
         coupleId: coupleRef.id,
         message: err && err.message,
       });

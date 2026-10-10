@@ -2,7 +2,7 @@
 
 > Kế hoạch chi tiết NỘI BỘ feature này (chia phase/version, thứ tự làm). Khác với `../../ROADMAP.md` (toàn cảnh mọi feature). PO sở hữu; cập nhật khi phạm vi feature đổi.
 
-- **Trạng thái feature:** 💻 **Dev Phase 1 xong 2026-10-11 → chờ 🧪 Tester** (analyze 0 · test 163/163 · rules-test 330 · rules DEV deployed · smoke Android DEV). Còn thiếu: thử tay luồng iOS/Apple Health trên máy thật hoặc simulator. Chi tiết: `dev.md`. Mockup: https://claude.ai/artifact/9Gmj2jJViF5DPeBCNSmsvF · spec: `design.md`.
+- **Trạng thái feature:** 🧪 **Tester vòng 1 FAIL (0 chặn · 6 nên sửa) → Dev đã vá 2026-10-11 → chờ Tester vòng 2** (analyze 0 · test 167/167 · rules-test 330 · rules + CF `deleteAccount`/`leaveCoupleCleanup` DEV deployed · smoke Android DEV). Còn thiếu: thử tay luồng iOS/Apple Health trên máy thật hoặc simulator. Chi tiết: `dev.md`. Mockup: https://claude.ai/artifact/9Gmj2jJViF5DPeBCNSmsvF · spec: `design.md`.
 
 ## ▶️ BẮT ĐẦU PHIÊN DEV TỪ ĐÂY (handoff 2026-10-10)
 1. Đọc `design.md` (nguồn sự thật — mockup lệch thì spec thắng). `overview.md` PO chưa viết: phạm vi Phase 1 dưới đây là bản chốt tạm của Lead theo các quyết định user đã đưa trong `design.md` (Đầu vào · R1–R4 · màu riêng · lịch trăng).
@@ -27,12 +27,13 @@
 - [ ] Push "<tên> vừa dậy" (opt-in) · nút "Rủ người ấy chia sẻ" · đọc Health Connect trên Android · widget màn hình chính.
 
 ### ⚪ Phase 3 (Later)
-- [ ] Lịch ngủ mục tiêu chung · nối với Cây Tình Yêu (nếu v3 chòm sao được chốt).
+- [ ] Lịch ngủ mục tiêu chung · nối với Cây Tình Yêu (v3 chòm sao đã làm 2026-10-11 — có thể thêm sao "ngủ" sau).
 
 ## Việc của PO / user (song song, không chặn code DEV)
 - Kiểm chính sách Google Play cho `PACKAGE_USAGE_STATS` + cập nhật khai báo An toàn dữ liệu & privacy policy; App Store: App Privacy (Health). Bắt buộc TRƯỚC khi phát hành, không cần trước khi code.
 
 ## Mốc đã đạt
+- [2026-10-11] 🧪 Tester vòng 1 FAIL → 💻 Dev vá S1–S6 + phần lớn lỗi nhỏ — chờ Tester vòng 2
 - [2026-10-11] 💻 Dev Phase 1 xong (chi tiết `dev.md`) — chờ Tester
 - [2026-10-10] 🎨 Design spec v1 (`design.md`)
 - [2026-10-10] User chốt luật "cho sửa nhưng minh bạch" (R1–R4 trong `design.md`) + mockup tương tác 5 artboard
@@ -41,4 +42,4 @@
 
 ## Ghi chú phụ thuộc
 - Dùng lại: `MoodCard` (lấy tên người ấy), `_MonthCalendarCard` của `lunar_calendar_screen.dart`, `SubScreenHeader`, `ContentCard`, `IconBadge`, `showAppTimePicker`, bảng màu đêm của `SkyBackdropPainter` (`love_tree_screen.dart`).
-- Cây Tình Yêu v3 (chòm sao) **chưa chốt** — đừng code trong phiên này; xem `../love-tree/design.md` §v3 (4 câu hỏi mở).
+- Cây Tình Yêu v3 (chòm sao) đã chốt + code 2026-10-11 (xem `../love-tree/dev.md`); chưa nối với giấc ngủ.

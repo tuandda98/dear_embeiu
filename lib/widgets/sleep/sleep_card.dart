@@ -541,7 +541,7 @@ class _UnderlinedLink extends StatelessWidget {
         onTap();
       },
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 36),
+        constraints: const BoxConstraints(minHeight: 44),
         child: Align(
           alignment: Alignment.centerLeft,
           widthFactor: 1,

@@ -45,6 +45,11 @@ class SleepProvider extends ChangeNotifier {
   Map<String, SleepNight> _partnerNights = const <String, SleepNight>{};
   bool _partnerLoadFailed = false;
   bool _hydrated = false;
+  bool _myProfileLoaded = false;
+
+  /// Share on/off writes run one after another, so a quick off→on can't let
+  /// the "delete everything" land after the re-upload.
+  Future<void> _shareOps = Future<void>.value();
 
   StreamSubscription<SleepProfile?>? _myProfileSub;
   StreamSubscription<SleepProfile?>? _partnerProfileSub;
@@ -162,19 +167,24 @@ class SleepProvider extends ChangeNotifier {
       _local = <String, SleepNight?>{};
       _settings = const SleepSettings();
       notifyListeners();
-      _settings = await _service.loadSettings(myUid);
-      _local = await _service.loadNights(myUid);
-      if (_uid != myUid) {
-        return; // switched again while loading
-      }
-      _supported = await SleepPlatform.isSupported();
+      final settings = await _service.loadSettings(myUid);
+      final nights = await _service.loadNights(myUid);
+      final supported = await SleepPlatform.isSupported();
       // Known before the first frame, so Android doesn't flash "permission
       // needed" (A2) until the first scan finishes.
-      _permission = await SleepPlatform.hasPermission();
+      final permission = await SleepPlatform.hasPermission();
+      if (_uid != myUid) {
+        return; // account switched while loading — never mix two users' data
+      }
+      _settings = settings;
+      _local = nights;
+      _supported = supported;
+      _permission = permission;
       _loaded = true;
     }
     if (!sameCouple) {
       _hydrated = false;
+      _myProfileLoaded = false;
       _fingerprints = await _service.loadFingerprints(myUid, coupleId);
       _watchMyProfile();
     }
@@ -212,10 +222,20 @@ class SleepProvider extends ChangeNotifier {
     }
     _myProfileSub = _service.watchProfile(coupleId, uid).listen((profile) {
       _myProfile = profile;
+      _myProfileLoaded = true;
       notifyListeners();
-      if (profile?.share == true && !_hydrated) {
+      if (profile?.share != true) {
+        return;
+      }
+      // Cold start: the scan may finish before this lands and skip the upload,
+      // so sync here too (fingerprints skip what's already up). Pull my own
+      // shared history back first only when this device knows nothing about
+      // it (reinstall / new phone) — not on every launch.
+      if (!_hydrated && _fingerprints.isEmpty) {
         _hydrated = true;
-        unawaited(_hydrateFromRemote());
+        unawaited(_hydrateFromRemote().then((_) => _syncRecent()));
+      } else {
+        unawaited(_syncRecent());
       }
     }, onError: (_) {});
   }
@@ -365,26 +385,49 @@ class SleepProvider extends ChangeNotifier {
     final cutoff = sleepDateKey(
       DateTime.now().subtract(const Duration(days: kSleepEditableDays)),
     );
-    var dirty = false;
     for (final entry in _local.entries) {
       if (entry.key.compareTo(cutoff) < 0) {
         continue;
       }
+      final date = entry.key;
       final night = entry.value;
       if (night == null) {
-        if (_fingerprints.remove(entry.key) != null) {
-          dirty = true;
-          unawaited(_quiet(_service.deleteNight(coupleId, uid, entry.key)));
+        if (_fingerprints.containsKey(date)) {
+          unawaited(
+            _service
+                .deleteNight(coupleId, uid, date)
+                .then((_) => _markSynced(uid, coupleId, date, null))
+                .catchError((_) {}),
+          );
         }
-      } else if (_fingerprints[entry.key] != night.fingerprint) {
-        _fingerprints[entry.key] = night.fingerprint;
-        dirty = true;
-        unawaited(_quiet(_service.putNight(coupleId, uid, night)));
+      } else if (_fingerprints[date] != night.fingerprint) {
+        // Fingerprint only once the write lands: a rejected or failed put is
+        // retried on the next sync instead of being skipped forever.
+        unawaited(
+          _service
+              .putNight(coupleId, uid, night)
+              .then((_) => _markSynced(uid, coupleId, date, night.fingerprint))
+              .catchError((_) {}),
+        );
       }
     }
-    if (dirty) {
-      await _service.saveFingerprints(uid, coupleId, _fingerprints);
+  }
+
+  Future<void> _markSynced(
+    String uid,
+    String coupleId,
+    String date,
+    String? fingerprint,
+  ) async {
+    if (_uid != uid || _coupleId != coupleId) {
+      return;
     }
+    if (fingerprint == null) {
+      _fingerprints.remove(date);
+    } else {
+      _fingerprints[date] = fingerprint;
+    }
+    await _service.saveFingerprints(uid, coupleId, _fingerprints);
   }
 
   /// Reinstall / new phone while sharing: pull my own shared nights back.
@@ -426,20 +469,39 @@ class SleepProvider extends ChangeNotifier {
     final color = _myChoice ?? myColorId;
     _myProfile = SleepProfile(share: share, color: color);
     notifyListeners();
+    // Never awaited by the UI: offline, Firestore only acks once back online.
+    _shareOps = _shareOps.then(
+      (_) => _applyShare(coupleId, uid, share, color).catchError((_) {}),
+    );
+  }
+
+  Future<void> _applyShare(
+    String coupleId,
+    String uid,
+    bool share,
+    String color,
+  ) async {
+    // Flag first, in its own commit: the rules read it with get().
     await _service.setProfile(coupleId, uid, share: share, color: color);
     if (share) {
+      final nights = myNights.values.toList();
       await Future.wait([
-        for (final night in myNights.values)
-          _quiet(_service.putNight(coupleId, uid, night)),
+        for (final night in nights)
+          _quiet(
+            _service
+                .putNight(coupleId, uid, night)
+                .then<void>((_) {
+                  _fingerprints[night.date] = night.fingerprint;
+                }),
+          ),
       ]);
-      _fingerprints = {
-        for (final night in myNights.values) night.date: night.fingerprint,
-      };
     } else {
       await _service.deleteAllNights(coupleId, uid);
-      _fingerprints = <String, String>{};
+      _fingerprints.clear();
     }
-    await _service.saveFingerprints(uid, coupleId, _fingerprints);
+    if (_uid == uid && _coupleId == coupleId) {
+      await _service.saveFingerprints(uid, coupleId, _fingerprints);
+    }
   }
 
   Future<void> setColor(String colorId) async {
@@ -456,7 +518,7 @@ class SleepProvider extends ChangeNotifier {
     notifyListeners();
     await _service.saveSettings(uid, _settings);
     if (_canShare) {
-      await _quiet(_service.setProfile(_coupleId!, uid, color: colorId));
+      unawaited(_quiet(_service.setProfile(_coupleId!, uid, color: colorId)));
     }
   }
 
@@ -479,10 +541,11 @@ class SleepProvider extends ChangeNotifier {
     );
     notifyListeners();
     await _service.saveSettings(uid, _settings);
-    if (_canShare && _myProfile == null) {
-      // Colour only: the profile stream may not have landed yet (fresh
-      // install), and a merge must never switch an existing share off.
-      await _quiet(_service.setProfile(_coupleId!, uid, color: color));
+    // Colour only, and only once the stream proved there's no profile yet — a
+    // merge must never switch an existing share off or overwrite a colour
+    // that simply hasn't loaded. Not awaited (offline would block the sheet).
+    if (_canShare && _myProfileLoaded && _myProfile == null) {
+      unawaited(_quiet(_service.setProfile(_coupleId!, uid, color: color)));
     }
     await refresh();
   }

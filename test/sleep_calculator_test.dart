@@ -138,6 +138,50 @@ void main() {
     });
   });
 
+  group('edge cases (Tester round 1)', () {
+    test('a phone left alone 18:00 → 14:00 is not a 20-hour night', () {
+      final n = screenNight([off(at(9, 17)), on(at(10, 15))]);
+      expect(n, isNull);
+    });
+
+    test('an idle evening does not beat a night cut by a 6-minute pickup', () {
+      final n = screenNight([
+        off(at(9, 18)),
+        on(at(9, 22, 30)),
+        off(at(10, 0, 30)),
+        on(at(10, 3)),
+        off(at(10, 3, 6)),
+        on(at(10, 7)),
+      ])!;
+      expect(n.bedAt, at(10, 3, 6));
+      expect(n.wakeAt, at(10, 7));
+    });
+
+    test('night shift (no block in 00:00–05:00) keeps the longest block', () {
+      final n = screenNight([
+        off(at(9, 19)),
+        on(at(9, 22, 30)),
+        off(at(10, 6)),
+        on(at(10, 13)),
+      ], now: at(10, 13, 30))!;
+      expect(n.bedAt, at(10, 6));
+      expect(n.wakeAt, at(10, 13));
+    });
+
+    test('Health: a short evening "asleep" falls back to "in bed"', () {
+      final r = computeHealthNights(
+        [
+          HealthSleepSample(at(9, 19), at(9, 19, 20), 3),
+          HealthSleepSample(at(9, 23), at(10, 7), 0),
+        ],
+        wakeDates: [wake],
+        now: at(10, 12),
+      )['2026-10-10']!;
+      expect(r.bedAt, at(9, 23));
+      expect(r.wakeAt, at(10, 7));
+    });
+  });
+
   group('Apple Health → night', () {
     test('awake gaps up to 30 min are awakenings inside one night', () {
       final r = computeHealthNights(

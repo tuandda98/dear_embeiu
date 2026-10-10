@@ -9,7 +9,9 @@ import '../models/sleep_night.dart';
 /// [D-1 18:00, D 14:00). Inside it we take the "resting" spans (Android: screen
 /// off · iOS: asleep in Apple Health), fold short interruptions into the sleep
 /// (each counted as an awakening) and keep the longest block — if it lasts at
-/// least 3 hours. Nothing found → no night (never invented).
+/// least 3 hours (and at most 16 — longer is a phone left alone). Blocks that
+/// cover 00:00–05:00 win over evening ones. Nothing found → no night (never
+/// invented).
 
 /// One screen transition from Android UsageStats (SCREEN_INTERACTIVE = on).
 class ScreenEvent {
@@ -45,6 +47,7 @@ class SleepRules {
     required this.mergeGap,
     required this.minSleep,
     required this.noise,
+    this.maxSleep = const Duration(hours: 16),
   });
 
   /// Interruptions up to this long stay inside the sleep (= awakenings).
@@ -52,6 +55,10 @@ class SleepRules {
 
   /// Shortest block that counts as a night.
   final Duration minSleep;
+
+  /// Longer than this is a phone left alone (forgotten, switched off), not a
+  /// night — same cap as the edit sheet and the Firestore rule.
+  final Duration maxSleep;
 
   /// Interruptions shorter than this are folded in silently (not counted).
   final Duration noise;
@@ -154,15 +161,29 @@ SleepNight? computeNight({
   }
   blocks.add((start: start, end: end, wakeUps: wakeUps));
 
-  var best = blocks.first;
-  for (final b in blocks.skip(1)) {
+  Duration len(({DateTime start, DateTime end, List<DateTime> wakeUps}) b) =>
+      b.end.difference(b.start);
+  final candidates = blocks
+      .where((b) => len(b) >= rules.minSleep && len(b) <= rules.maxSleep)
+      .toList();
+  if (candidates.isEmpty) {
+    return null;
+  }
+  // Prefer blocks that cover the deep night (00:00–05:00): a phone left alone
+  // all evening must not beat a real night cut in two by a 6-minute pickup.
+  // Without such a block (night shift) fall back to the longest.
+  final coreStart = DateTime(wakeDate.year, wakeDate.month, wakeDate.day);
+  final coreEnd = coreStart.add(const Duration(hours: 5));
+  final inCore = candidates
+      .where((b) => b.start.isBefore(coreEnd) && b.end.isAfter(coreStart))
+      .toList();
+  final pool = inCore.isEmpty ? candidates : inCore;
+  var best = pool.first;
+  for (final b in pool.skip(1)) {
     // `>=` → on a tie keep the later block (the one closer to the morning).
-    if (b.end.difference(b.start) >= best.end.difference(best.start)) {
+    if (len(b) >= len(best)) {
       best = b;
     }
-  }
-  if (best.end.difference(best.start) < rules.minSleep) {
-    return null;
   }
   return SleepNight(
     date: sleepDateKey(wakeDate),
@@ -227,18 +248,20 @@ Map<String, SleepNight?> computeHealthNights(
     final inWindow = samples
         .where((s) => s.end.isAfter(w.start) && s.start.isBefore(w.end))
         .toList();
-    var chosen = inWindow
-        .where((s) => _kHealthAsleep.contains(s.value))
-        .toList();
-    if (chosen.isEmpty) {
-      chosen = inWindow.where((s) => s.value == _kHealthInBed).toList();
-    }
-    out[sleepDateKey(d)] = computeNight(
+    SleepNight? from(bool Function(int value) keep) => computeNight(
       wakeDate: d,
-      spans: unionSpans([for (final s in chosen) RestSpan(s.start, s.end)]),
+      spans: unionSpans([
+        for (final s in inWindow)
+          if (keep(s.value)) RestSpan(s.start, s.end),
+      ]),
       rules: SleepRules.health,
       source: SleepSource.health,
     );
+    // Asleep samples first; when they give nothing (none, or only a short
+    // evening doze) fall back to "in bed" — an iPhone without a Watch only
+    // records time in bed.
+    out[sleepDateKey(d)] =
+        from(_kHealthAsleep.contains) ?? from((v) => v == _kHealthInBed);
   }
   return out;
 }

@@ -1344,7 +1344,7 @@ class _PersonRow extends StatelessWidget {
                           semanticsLabel: l10n.sleepEditButton,
                           onTap: onEdit!,
                         )
-                      : const SizedBox(width: 34),
+                      : const SizedBox(width: 44),
               ],
             ),
           ),
@@ -1840,7 +1840,9 @@ class _ColorPicker extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 8,
             crossAxisSpacing: 6,
-            childAspectRatio: 1.15,
+            // Fixed height (not an aspect ratio) so narrow screens and large
+            // text sizes don't clip the swatch label.
+            mainAxisExtent: 48 + 18 * MediaQuery.textScalerOf(context).scale(1),
             children: [
               for (final c in PersonPalette.colors)
                 _Swatch(

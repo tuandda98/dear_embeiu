@@ -575,6 +575,8 @@ class _EditSheet extends StatefulWidget {
 class _EditSheetState extends State<_EditSheet> {
   late TimeOfDay _bed;
   late TimeOfDay _wake;
+  late final TimeOfDay _initialBed;
+  late final TimeOfDay _initialWake;
   bool _busy = false;
   SleepNight? _existing;
 
@@ -589,7 +591,14 @@ class _EditSheetState extends State<_EditSheet> {
     _wake = n == null
         ? const TimeOfDay(hour: 7, minute: 0)
         : TimeOfDay.fromDateTime(n.wakeAt);
+    _initialBed = _bed;
+    _initialWake = _wake;
   }
+
+  /// Saving an untouched night would still stamp "Đã sửa" for the partner —
+  /// only allow it once a time actually changed (a new night can always save).
+  bool get _changed =>
+      _existing == null || _bed != _initialBed || _wake != _initialWake;
 
   /// Wake is anchored on the night's date; a wake time earlier than the bed
   /// time simply means the night crossed midnight.
@@ -603,10 +612,12 @@ class _EditSheetState extends State<_EditSheet> {
 
   ({DateTime bedAt, DateTime wakeAt}) get _times {
     final day = sleepDateFromKey(widget.dateKey) ?? DateTime.now();
+    // The night's window runs 18:00 the evening before → 14:00: a wake time
+    // from 18:00 on belongs to the evening before, not to the next night.
     final wakeAt = DateTime(
       day.year,
       day.month,
-      day.day,
+      _wake.hour >= 18 ? day.day - 1 : day.day,
       _wake.hour,
       _wake.minute,
     );
@@ -740,7 +751,7 @@ class _EditSheetState extends State<_EditSheet> {
           SizedBox(
             height: 52,
             child: ElevatedButton(
-              onPressed: _busy || !_valid ? null : _save,
+              onPressed: _busy || !_valid || !_changed ? null : _save,
               child: Text(l10n.save),
             ),
           ),
