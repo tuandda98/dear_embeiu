@@ -61,6 +61,11 @@ class SleepProvider extends ChangeNotifier {
   /// Fingerprint of a night whose upload is on its way.
   static const String _kPushing = 'pushing';
 
+  /// Kept in the fingerprint map while "delete everything" runs. It survives
+  /// the app being killed: the next launch then knows the server holds
+  /// anything between none and all of my nights.
+  static const String _kWiping = '~wiping';
+
   StreamSubscription<SleepProfile?>? _myProfileSub;
   StreamSubscription<SleepProfile?>? _partnerProfileSub;
   StreamSubscription<Map<String, SleepNight>>? _partnerNightsSub;
@@ -195,7 +200,11 @@ class SleepProvider extends ChangeNotifier {
     if (!sameCouple) {
       _hydrated = false;
       _myProfileLoaded = false;
-      // Another couple: none of the old one's sharing state carries over.
+      // Another couple: none of the old one's sharing state carries over —
+      // and the old couple's profile stream must not land in between.
+      _myProfileSub?.cancel();
+      _myProfileSub = null;
+      _clearingShared = false;
       _myProfile = null;
       _remoteProfile = null;
       _pendingShare = null;
@@ -232,6 +241,7 @@ class SleepProvider extends ChangeNotifier {
     _shareOps = Future<void>.value();
     _pendingShare = null;
     _shareSeq++;
+    _clearingShared = false;
     notifyListeners();
   }
 
@@ -246,34 +256,59 @@ class SleepProvider extends ChangeNotifier {
     if (coupleId == null || uid == null || !_service.isUsingFirebase) {
       return;
     }
-    _myProfileSub = _service.watchProfile(coupleId, uid).listen((profile) {
-      _remoteProfile = profile;
-      final pending = _pendingShare;
-      _myProfile = pending == null
-          ? profile
-          : SleepProfile(share: pending, color: profile?.color ?? _myChoice);
-      _myProfileLoaded = true;
-      notifyListeners();
-      if (!myShare) {
-        // Not shared, yet this phone still has nights marked as up there: a
-        // delete that died with the app, or a partner leaving (the CF turned
-        // sharing off). Finish the job so "off" really means deleted.
-        if (pending == null && _fingerprints.isNotEmpty) {
-          _clearShared(coupleId, uid);
-        }
-        return;
-      }
-      // Cold start: the scan may finish before this lands and skip the upload,
-      // so sync here too (fingerprints skip what's already up). Pull my own
-      // shared history back first only when this device knows nothing about
-      // it (reinstall / new phone) — not on every launch.
-      if (!_hydrated && _fingerprints.isEmpty) {
-        _hydrated = true;
-        unawaited(_hydrateFromRemote().then((_) => _syncRecent()));
-      } else {
-        unawaited(_syncRecent());
-      }
-    }, onError: (_) {});
+    // Metadata-only events (pending write acked, cache → server) carry
+    // nothing new for my own profile; the partner's stream keeps them, they
+    // re-arm its nights stream.
+    _myProfileSub = _service
+        .watchProfile(coupleId, uid)
+        .distinct(
+          (a, b) =>
+              (a == null) == (b == null) &&
+              a?.share == b?.share &&
+              a?.color == b?.color,
+        )
+        .listen((profile) {
+          _remoteProfile = profile;
+          final pending = _pendingShare;
+          _myProfile = pending == null
+              ? profile
+              : SleepProfile(
+                  share: pending,
+                  color: profile?.color ?? _myChoice,
+                );
+          _myProfileLoaded = true;
+          notifyListeners();
+          if (!myShare) {
+            // Not shared, yet this phone still has nights marked as up there: a
+            // delete that died with the app, or a partner leaving (the CF turned
+            // sharing off). Finish the job so "off" really means deleted.
+            if (pending == null && _fingerprints.isNotEmpty) {
+              _clearShared(coupleId, uid);
+            }
+            return;
+          }
+          // A share change of mine is on its way: it uploads once its flag has
+          // landed. Pushing here would queue nights ahead of a quick "off".
+          if (pending != null) {
+            return;
+          }
+          // A wipe died with the app, then sharing came back on: the server holds
+          // some or none of my nights — pull what's there, push the rest.
+          if (_fingerprints.remove(_kWiping) != null) {
+            _hydrated = false;
+            unawaited(_service.saveFingerprints(uid, coupleId, _fingerprints));
+          }
+          // Cold start: the scan may finish before this lands and skip the upload,
+          // so sync here too (fingerprints skip what's already up). Pull my own
+          // shared history back first only when this device knows nothing about
+          // it (reinstall / new phone) — not on every launch.
+          if (!_hydrated && _fingerprints.isEmpty) {
+            _hydrated = true;
+            unawaited(_hydrateFromRemote().then((_) => _syncRecent()));
+          } else {
+            unawaited(_syncRecent());
+          }
+        }, onError: (_) {});
   }
 
   void _watchPartner() {
@@ -494,15 +529,27 @@ class SleepProvider extends ChangeNotifier {
     }
     _clearingShared = true;
     _shareOps = _shareOps
-        .then((_) async {
-          await _service.deleteAllNights(coupleId, uid);
-          if (_uid == uid && _coupleId == coupleId) {
-            _fingerprints.clear();
-            await _service.saveFingerprints(uid, coupleId, _fingerprints);
-          }
-        })
+        .then((_) => _wipe(coupleId, uid))
         .catchError((_) {})
         .whenComplete(() => _clearingShared = false);
+  }
+
+  /// Deletes every shared night. The fingerprints go first (with the
+  /// [_kWiping] mark), so a wipe cut short by a killed app can't leave this
+  /// phone believing nights are still up when sharing comes back on.
+  Future<void> _wipe(String coupleId, String uid) async {
+    bool current() => _uid == uid && _coupleId == coupleId;
+    if (current()) {
+      _fingerprints
+        ..clear()
+        ..[_kWiping] = '1';
+      await _service.saveFingerprints(uid, coupleId, _fingerprints);
+    }
+    await _service.deleteAllNights(coupleId, uid);
+    if (current()) {
+      _fingerprints.remove(_kWiping);
+      await _service.saveFingerprints(uid, coupleId, _fingerprints);
+    }
   }
 
   /// Marks nights as on their way up BEFORE writing them, so a delete issued
@@ -608,11 +655,7 @@ class SleepProvider extends ChangeNotifier {
     await flag;
     bool current() => _uid == uid && _coupleId == coupleId;
     if (!share) {
-      await _service.deleteAllNights(coupleId, uid);
-      if (current()) {
-        _fingerprints.clear();
-        await _service.saveFingerprints(uid, coupleId, _fingerprints);
-      }
+      await _wipe(coupleId, uid);
       return;
     }
     if (!current()) {

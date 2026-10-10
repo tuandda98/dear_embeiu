@@ -206,7 +206,7 @@ class SleepService {
     // "No profile" only counts once the server says so: an empty cache
     // (reinstall, offline) must not look like a member who never set up. The
     // server confirming "still no doc" is a metadata-only change, hence
-    // includeMetadataChanges; `distinct` drops the other metadata events.
+    // includeMetadataChanges.
     return _profile(coupleId, uid)
         .snapshots(includeMetadataChanges: true)
         .where((snap) => snap.exists || !snap.metadata.isFromCache)
@@ -219,13 +219,7 @@ class SleepService {
             share: data['share'] == true,
             color: data['color'] as String?,
           );
-        })
-        .distinct(
-          (a, b) =>
-              (a == null) == (b == null) &&
-              a?.share == b?.share &&
-              a?.color == b?.color,
-        );
+        });
   }
 
   /// A member's shared nights since [sinceKey] ('YYYY-MM-DD'). Only readable

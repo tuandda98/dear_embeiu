@@ -3,7 +3,7 @@
 > Tester sở hữu. Đọc cả `design.md` + `dev.md`. CHỈ test, KHÔNG sửa code. Output: PASS hoặc FAIL (kèm bug report).
 > Agent Tester chỉ đọc được file, nên main session chép nguyên văn kết quả vào đây.
 
-- **Trạng thái test:** FAIL — vòng 3 code-level (2026-10-11): 0 chặn · 1 nên sửa (N8 riêng tư) · 6 nhỏ (N7, N9–N13). Dev đã vá hết (xem `dev.md` "vòng 3"), chờ Tester vòng 4. Vòng 1, 2: đã vá.
+- **Trạng thái test:** FAIL — vòng 4 code-level (2026-10-11): 0 chặn · 0 nên sửa · 5 nhỏ (N14–N18). Dev đã vá hết theo gợi ý Tester (xem `dev.md` "vòng 4"), chờ Tester vòng 5. Vòng 1–3: đã vá.
 - **Người/role:** Master Tester
 
 ## Bug report (vòng 1)
@@ -167,3 +167,49 @@
 
 - [2026-10-11] [Tester] Vòng 3 code-level (HEAD 77c2cd9): analyze 0 · test 208/208 · rules-test 330 · 24 ca calculator + 8 ca harness provider. FAIL: 0 chặn, 1 nên sửa (N8), 6 nhỏ (N7, N9–N13).
 - [2026-10-11] [Dev → Tester] Đã vá N7–N13 (chi tiết `dev.md` "vòng 3"), thêm `test/sleep_provider_test.dart` (5 test, dựng từ harness của Tester) + 3 test calculator. Đã kiểm trên DEV thật: CF `notifyPartnerLeft` dọn đúng trong 3 giây (couple test). Chờ Tester vòng 4.
+
+## Vòng 4 — 2026-10-11 (code-level, HEAD 5d54d2a; code giấc ngủ giống 800bb8e)
+
+- **Trạng thái test:** FAIL vòng 4: 0 chặn · 0 nên sửa · 5 nhỏ mới (N14–N18). N8 (riêng tư) đã vá. 7/7 lỗi vòng 3 đã vá ở code (N13 còn khe → N17). Không mục nào chặn phát hành.
+
+### Lỗi vòng 3 sau khi vá
+| # | Kết luận | Bằng chứng | Ghi chú |
+|---|---|---|---|
+| N7 | Đã vá (đọc mã SDK), cần test runtime | `sleep_service.dart:211-228`; FlutterFire 6.6.0 chuyển `includeMetadataChanges` thành `MetadataChanges.INCLUDE` | Server xác nhận "không có doc" tới được listener. `distinct` ảnh hưởng hồ sơ người ấy: N18. |
+| N8 | Đã vá | `sleep_provider.dart:583-589`, `:608`; test N8 | Offline bật → tắt → tắt app → có mạng: server `share=false`, 0 đêm. Còn cửa sổ vài giây: N14. |
+| N9 | Đã vá | `:257-264`, `:491-506`; test N9 | Người ấy rời đi khi app đóng → bật lại: đủ đêm. Tắt rồi app chết trước khi xoá → mở lại: 0 đêm. Còn khe: N15. |
+| N10 | Đã vá | `sleep_calculator.dart:128`, `:135-139` | Biên 02:30 chặt: kết thúc/bắt đầu đúng 02:30 không huỷ, lệch 1 ms thì huỷ. Khoảng đúng 16g00 trùm 02:30 vẫn là đêm 16 tiếng. |
+| N11 | Đã vá ca gốc, sinh tác dụng phụ | `:130`, `:145-147`, `:165` | Tác dụng phụ: N16. |
+| N12 | Đã vá | `sleep_provider.dart:440`, `:486-487`, `:624`; test N12 | |
+| N13 | Đã vá, còn khe vài ms | `:195-203`; test N13 | Gộp vào N17. |
+
+### Lỗi mới
+| # | Mức | Chỗ | Kịch bản → hậu quả | Gợi ý sửa |
+|---|---|---|---|---|
+| N14 | Nhỏ (riêng tư + chi phí) | `sleep_provider.dart:270-275` | Listener gọi `_syncRecent` ngay khi thấy snapshot "bật" chưa được server xác nhận → các đêm vào hàng đợi TRƯỚC lệnh "tắt" bấm sau đó. (a) Máy bay → Bật → Tắt → tắt app → có mạng: Firestore gửi [bật, N đêm, tắt] → người ấy đọc được N đêm vài giây. (b) Mỗi lần bật chia sẻ, mỗi đêm bị ghi 2 lần. | Listener chỉ `_syncRecent` khi `pending == null`. |
+| N15 | Nhỏ (hiếm, người ấy thiếu dữ liệu lâu) | `sleep_provider.dart:610-616`, `:496-503` | Đang chia sẻ: Tắt → trong lúc xoá chưa xong bấm Bật → tắt app. Firestore gửi [xoá…, bật] nhưng phần "đẩy toàn bộ" mất theo app; fingerprint chỉ bị xoá SAU khi xoá xong nên vẫn ghi "đã lên" → mở lại: server bật mà 0 đêm. | Ghi dấu "đang xoá" (và xoá fingerprint) TRƯỚC khi xoá; bỏ dấu khi xong. Listener: tắt + dấu → dọn tiếp; bật + dấu → hydrate rồi sync. |
+| N16 | Nhỏ (PO quyết, từ cách vá N11) | `sleep_calculator.dart:145-147`, `:165` | Máy nằm yên từ trước 18:00, 03:00 xem giờ 2 phút → app ra 18:00 → 03:00 (mất đoạn 03:02 → 07:00). Thông báo sáng màn 10 giây lúc 03:00 cũng cắt đêm. | Chỉ chặn gộp khi lần cầm máy rơi trước 01:00: `end != openEnd \|\| end.isAfter(_nightStart(wakeDate))`. |
+| N17 | Nhỏ (lý thuyết) | `sleep_provider.dart:59`, `:195-209` | (a) `_clearingShared` vẫn `true` sau `clear()`/đổi couple nếu lần dọn trước treo. (b) Đổi couple: listener hồ sơ couple cũ còn sống trong lúc `await loadFingerprints`. | Reset `_clearingShared`; huỷ `_myProfileSub` trước `await`. |
+| N18 | Nhỏ (suy luận) | `sleep_service.dart:223-228` | `distinct` áp cả cho hồ sơ người ấy → người ấy tắt rồi bật nhanh khi stream đêm đã kết thúc → không đăng ký lại → lịch người ấy trống tới khi mở lại app. | Chỉ áp `distinct` cho hồ sơ của mình. |
+
+### Trả lời các điểm được hỏi (tóm tắt)
+- Không có Future lỗi nào lọt ra (U1a–c). Thứ tự ghi qua 5 kịch bản online/offline đều cho kết quả cuối đúng. Put xếp sau cờ "tắt" đều bị rules từ chối, không đêm nào lên khi cờ tắt. `_clearShared` không chạy oan trên một máy, không lặp. Hồ sơ của mình với metadata + `distinct` không mất sự kiện cần thiết.
+- Khe vòng 3 vẫn còn: app chết giữa lúc ghi `pushing` và lúc `put` vào hàng đợi → đêm cũ đó không lên.
+- Sửa ghi chú: test N1 xanh trên 77c2cd9 (N1 vá từ vòng 2) — là chốt chống hồi quy.
+
+### Số liệu
+- `flutter analyze` (HEAD 5d54d2a): No issues found · `flutter test`: 216/216 (giấc ngủ 44) · test mới chạy trên code vòng 3: provider 4/5 đỏ, calculator 3/3 đỏ.
+- 28 ca biên calculator · 11 kịch bản mô phỏng hàng đợi Firestore (9 đạt, 2 sai → N15) · harness đơn vị 5 ca · harness hồ sơ người ấy 1 ca.
+- Gợi ý sửa đã thử trên bản sao: N14 + N15 → 11/11 kịch bản + 5/5 test provider; N16 → 35/35 test calculator.
+
+### Cần test tay [CẦN TEST runtime]
+1. N8/N14, máy bay: Bật → Tắt → vuốt tắt app → bật mạng, mở lại → `share == false`, `nights` rỗng; máy người ấy không nháy lịch.
+2. N15, mạng chậm: đang chia sẻ, Tắt rồi Bật ngay, vuốt tắt app → mở lại, `nights` đủ.
+3. N7: tài khoản chưa có `sleep/{uid}`, bật theo dõi không chia sẻ → doc có `color`.
+4. N9: tắt chia sẻ rồi vuốt tắt app → mở lại online, `nights` rỗng. Người ấy rời đi khi app đóng → công tắc tắt; bật lại → đủ đêm.
+5. N18: hai máy, B tắt rồi bật nhanh khi A đang mở màn Giấc ngủ → lịch B vẫn hiện.
+6. Android thật: hết pin chiều rồi sạc lúc ngủ; sạc từ 17:00 có tin nhắn lúc 3h; quên máy cả ngày; ca đêm.
+7. iPhone thật; màn 320dp, chữ 130/200%, tiếng Anh; bấm công tắc 3 lần nhanh.
+
+- [2026-10-11] [Tester] Vòng 4 code-level (HEAD 5d54d2a): analyze 0 · test 216/216 · FAIL: 0 chặn, 0 nên sửa, 5 nhỏ (N14–N18).
+- [2026-10-11] [Dev → Tester] Đã vá N14–N18 theo đúng gợi ý của Tester (chi tiết `dev.md` "vòng 4"), +3 test (N14, N15, N16 — đều đỏ trên code vòng 3). analyze 0 · test 219/219. Chờ Tester vòng 5 (kiểm nhanh).

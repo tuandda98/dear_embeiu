@@ -16,6 +16,7 @@ class FakeSleepService extends SleepService {
   Completer<void>? holdFlag; // the flag write is never acked (offline)
   Completer<void>? holdPut;
   Completer<void>? holdSave; // a slow Hive write of the fingerprints
+  Completer<void>? holdDeleteAll;
 
   StreamController<SleepProfile?> profile(String coupleId, String uid) =>
       _profiles.putIfAbsent(
@@ -85,8 +86,10 @@ class FakeSleepService extends SleepService {
   Future<void> deleteNight(String coupleId, String uid, String date) async =>
       calls.add('delete $date');
   @override
-  Future<void> deleteAllNights(String coupleId, String uid) async =>
-      calls.add('deleteAll');
+  Future<void> deleteAllNights(String coupleId, String uid) async {
+    calls.add('deleteAll');
+    await holdDeleteAll?.future;
+  }
 }
 
 SleepNight night(int daysAgo) {
@@ -146,6 +149,44 @@ void main() {
       await pumpEventQueue();
       expect(service.calls, contains('deleteAll'));
       expect(service.fingerprints, isEmpty);
+    },
+  );
+
+  test('N14: nothing is pushed until my "on" has landed', () async {
+    final n = night(1);
+    final (provider, service) = await start(nights: {n.date: n}, share: false);
+    service.holdFlag = Completer<void>();
+    await provider.setShare(true);
+    // The SDK shows my pending write at once.
+    service.profile('c', 'me').add(const SleepProfile(share: true));
+    await pumpEventQueue();
+    expect(service.calls.where((c) => c.startsWith('put')), isEmpty);
+    service.holdFlag!.complete();
+    await pumpEventQueue();
+    expect(service.calls.where((c) => c == 'put ${n.date}'), hasLength(1));
+  });
+
+  test(
+    'N15: a wipe cut short, then "on" again → the nights go back up',
+    () async {
+      final n = night(1);
+      final (first, service) = await start(
+        nights: {n.date: n},
+        fingerprints: {n.date: n.fingerprint},
+        share: true,
+      );
+      service.holdDeleteAll = Completer<void>(); // the wipe never finishes
+      await first.setShare(false);
+      await first.setShare(true);
+      await pumpEventQueue();
+      first.clear(); // the app is killed
+      service.calls.clear();
+      // Firestore replays [off, deletes…, on]; the upload of the "on" is gone.
+      final second = SleepProvider(service: service);
+      await second.watchForCouple('c', 'me', 'partner');
+      service.profile('c', 'me').add(const SleepProfile(share: true));
+      await pumpEventQueue();
+      expect(service.calls, contains('put ${n.date}'));
     },
   );
 

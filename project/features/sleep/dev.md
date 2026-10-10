@@ -90,3 +90,11 @@
   - Kiểm trên DEV thật (script `scratchpad/smoke/cf_leave_test.js` trên couple `test_couple_dev`, rồi chạy lại seed): A rời → `sleep/{A}` mất, `sleep/{B}` `share:false` giữ màu, nights 0 — sau 3 giây. Smoke Android DEV: bật/tắt chia sẻ trong 0,4 giây → công tắc không nhảy ngược, Firestore cuối cùng `share:true` + đêm lên lại; sheet "App tính thế nào?" hiện câu mới.
   - Còn nợ: nhánh dự phòng khi `leaveCoupleCleanup` lỗi không xoá `sleep/` (cùng loại notes/dailyAnswers); CF `set(share:false)` lỗi thì không thử lại; stream 400 ngày; mô tả quyền Health chỉ tiếng Việt.
   - Kiểm: analyze 0 · test 216/216.
+- [2026-10-11] [Dev] **Vá theo Tester vòng 4** (0 chặn · 0 nên sửa · 5 nhỏ), theo đúng các gợi ý Tester đã thử trên bản sao:
+  - **N14:** listener không đẩy đêm khi còn lệnh chia sẻ đang chờ — việc đẩy để `_applyShare` làm sau khi cờ được server nhận (hết cảnh đêm vào hàng đợi trước một lệnh "tắt" bấm sau; mỗi đêm chỉ ghi 1 lần khi bật).
+  - **N15:** `_wipe` xoá fingerprint + đặt dấu `~wiping` (lưu Hive) TRƯỚC khi xoá đêm, bỏ dấu khi xong. Listener: tắt + dấu → dọn tiếp; bật + dấu → bỏ dấu, hydrate rồi sync. Hết ca "tắt rồi bật nhanh, tắt app → server bật mà 0 đêm".
+  - **N16 (Dev chọn theo gợi ý Tester, PO có thể lật lại):** khoảng đã chạy từ trước 18:00 chỉ không được gộp khi lần cầm máy rơi trước 01:00; sau 01:00 thì gộp (giờ dậy đúng, đổi lại bắt đầu từ 18:00 vì không biết giờ ngủ thật).
+  - **N17:** reset `_clearingShared` ở `clear()` và khi đổi couple; huỷ listener hồ sơ couple cũ trước khi `await`.
+  - **N18:** `distinct` chỉ áp cho hồ sơ của mình (trong `_watchMyProfile`); hồ sơ người ấy giữ mọi sự kiện để stream đêm được đăng ký lại.
+  - Test: +2 provider (N14, N15), +1 calculator (N16) — cả 3 đỏ trên code vòng 3. Tổng giấc ngủ 47 (calculator 36 · sync 4 · provider 7).
+  - Kiểm: analyze 0 · test 219/219.

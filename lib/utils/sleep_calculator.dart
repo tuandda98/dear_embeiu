@@ -161,8 +161,10 @@ SleepNight? computeNight({
   for (final s in clipped.skip(1)) {
     final gap = s.start.difference(end);
     // A phone idle since the afternoon (or flat) never absorbs the night
-    // through a short look before bed.
-    if (gap <= rules.mergeGap && end != openEnd) {
+    // through a short look before bed. After 01:00 it's a look in the night:
+    // merged, so the wake-up time stays right.
+    if (gap <= rules.mergeGap &&
+        (end != openEnd || end.isAfter(_nightStart(wakeDate)))) {
       if (gap >= rules.noise) {
         wakeUps.add(end);
       }

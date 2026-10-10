@@ -266,6 +266,18 @@ void main() {
       expect(n.wakeAt, at(10, 4, 30));
     });
 
+    test('idle since the afternoon + a look at 03:00 keeps the morning', () {
+      final n = screenNight([
+        off(at(9, 16)),
+        on(at(10, 3)),
+        off(at(10, 3, 2)),
+        on(at(10, 7)),
+      ])!;
+      expect(n.bedAt, at(9, 18));
+      expect(n.wakeAt, at(10, 7));
+      expect(n.wakeUps, [9 * 60]);
+    });
+
     test('idle since the afternoon + a 3-minute look is not a 13h night', () {
       final n = screenNight([
         off(at(9, 15)),
