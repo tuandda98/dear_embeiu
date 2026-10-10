@@ -2027,5 +2027,682 @@
         "type": "String"
       }
     }
+  },
+  "sleepCardTitle": "Đêm qua",
+  "@sleepCardTitle": {
+    "description": "Sleep: Home card title"
+  },
+  "sleepBadge": "GIẤC NGỦ",
+  "@sleepBadge": {
+    "description": "Sleep screen header chip"
+  },
+  "sleepYou": "Bạn",
+  "@sleepYou": {
+    "description": "Sleep: label for my own data"
+  },
+  "sleepUnitHour": "g",
+  "@sleepUnitHour": {
+    "description": "Sleep: hour unit after a big number (7g 15p)"
+  },
+  "sleepUnitMinute": "p",
+  "@sleepUnitMinute": {
+    "description": "Sleep: minute unit after a big number"
+  },
+  "sleepDurationShort": "{h}g {m}p",
+  "@sleepDurationShort": {
+    "description": "Sleep: compact duration",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepMinutesShort": "{m}p",
+  "@sleepMinutesShort": {
+    "description": "Sleep: compact duration under one hour",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepDurationLong": "{h} giờ {m} phút",
+  "@sleepDurationLong": {
+    "description": "Sleep: spelled-out duration (screen readers, edit total)",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogether": "Ngủ cùng lúc {duration}",
+  "@sleepTogether": {
+    "description": "Sleep: overlap of both sleeps",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepWentFirst": "{name} ngủ trước {duration}",
+  "@sleepWentFirst": {
+    "description": "Sleep: who fell asleep first, shown when 10+ min apart",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepNoOverlap": "Đêm qua hai bạn không ngủ cùng lúc",
+  "@sleepNoOverlap": {
+    "description": "Sleep card footer when the two sleeps did not overlap"
+  },
+  "sleepSetupPitch": "Để điện thoại tự ghi giấc ngủ, sáng nào cũng biết đêm qua người ấy ngủ ra sao.",
+  "@sleepSetupPitch": {
+    "description": "Sleep card before tracking is on"
+  },
+  "sleepEnableCta": "Bật theo dõi",
+  "@sleepEnableCta": {
+    "description": "Sleep card CTA opening the setup sheet"
+  },
+  "sleepHide": "Ẩn",
+  "@sleepHide": {
+    "description": "Sleep card: hide for 30 days"
+  },
+  "sleepNotRecorded": "Chưa ghi nhận",
+  "@sleepNotRecorded": {
+    "description": "Sleep: no night found for me"
+  },
+  "sleepLogManually": "Ghi tay",
+  "@sleepLogManually": {
+    "description": "Sleep: link opening the edit sheet to log a night by hand"
+  },
+  "sleepPartnerNotShared": "Chưa chia sẻ",
+  "@sleepPartnerNotShared": {
+    "description": "Sleep card: partner does not share"
+  },
+  "sleepPartnerNotSharedLong": "{name} chưa chia sẻ giấc ngủ",
+  "@sleepPartnerNotSharedLong": {
+    "description": "Sleep screen: partner does not share",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepNoData": "Chưa có dữ liệu",
+  "@sleepNoData": {
+    "description": "Sleep: partner shares but has no night"
+  },
+  "sleepNeedsPermission": "Cần cấp lại quyền",
+  "@sleepNeedsPermission": {
+    "description": "Sleep: Android usage access lost"
+  },
+  "sleepOpenSettings": "Mở cài đặt",
+  "@sleepOpenSettings": {
+    "description": "Sleep: open the permission settings"
+  },
+  "sleepPermissionBanner": "App chưa được xem lúc màn hình bật, tắt nên chưa ghi được giấc ngủ. Bạn bật lại trong Cài đặt → Quyền truy cập dữ liệu sử dụng nhé.",
+  "@sleepPermissionBanner": {
+    "description": "Sleep screen banner when Android usage access is off"
+  },
+  "sleepViewBoth": "Cả hai",
+  "@sleepViewBoth": {
+    "description": "Sleep screen segmented: both people"
+  },
+  "sleepPrevMonth": "Tháng trước",
+  "@sleepPrevMonth": {
+    "description": "Sleep calendar arrow (screen reader)"
+  },
+  "sleepNextMonth": "Tháng sau",
+  "@sleepNextMonth": {
+    "description": "Sleep calendar arrow (screen reader)"
+  },
+  "sleepNightTitle": "Đêm {d1} → sáng {d2}",
+  "@sleepNightTitle": {
+    "description": "Sleep night detail title, d1 = day of the evening, d2 = wake date (10/10)",
+    "placeholders": {
+      "d1": {
+        "type": "String"
+      },
+      "d2": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepAwakenings": "{count, plural, other{Thức giấc {count} lần}}",
+  "@sleepAwakenings": {
+    "description": "Sleep: number of short wake-ups",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepNoAwakenings": "Ngủ một mạch",
+  "@sleepNoAwakenings": {
+    "description": "Sleep: no wake-up"
+  },
+  "sleepSourceEdited": "Đã sửa",
+  "@sleepSourceEdited": {
+    "description": "Sleep label: night edited by its owner (everyone sees it)"
+  },
+  "sleepSourceManual": "Ghi tay",
+  "@sleepSourceManual": {
+    "description": "Sleep label: night logged by hand (everyone sees it)"
+  },
+  "sleepSourceHealth": "Apple Health",
+  "@sleepSourceHealth": {
+    "description": "Sleep source name"
+  },
+  "sleepSourcePhone": "Điện thoại (tự động)",
+  "@sleepSourcePhone": {
+    "description": "Sleep source name on Android"
+  },
+  "sleepSourceRow": "Nguồn: {source}",
+  "@sleepSourceRow": {
+    "description": "Sleep settings row",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMonthSection": "Tháng này",
+  "@sleepMonthSection": {
+    "description": "Sleep stats section title for the current month"
+  },
+  "sleepPerNight": "/đêm",
+  "@sleepPerNight": {
+    "description": "Sleep stats unit after the average"
+  },
+  "sleepAvgTimes": "Ngủ ~{bed} · Dậy ~{wake}",
+  "@sleepAvgTimes": {
+    "description": "Sleep stats: average bed and wake time",
+    "placeholders": {
+      "bed": {
+        "type": "String"
+      },
+      "wake": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepFullNights": "{count, plural, other{{count} đêm tròn giấc}}",
+  "@sleepFullNights": {
+    "description": "Sleep stats: nights of 8 hours or more",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepOfNights": "{count, plural, other{trên {count} đêm}}",
+  "@sleepOfNights": {
+    "description": "Sleep stats: nights with data",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogetherNights": "{count, plural, other{{count} đêm ngủ cùng lúc từ 7 tiếng}}",
+  "@sleepTogetherNights": {
+    "description": "Sleep stats: nights with 7h+ overlap",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogetherAvg": "trung bình {duration} mỗi đêm",
+  "@sleepTogetherAvg": {
+    "description": "Sleep stats: average overlap",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareToggle": "Chia sẻ với người ấy",
+  "@sleepShareToggle": {
+    "description": "Sleep settings switch"
+  },
+  "sleepShareToggleSub": "Tắt thì chỉ mình bạn xem được.",
+  "@sleepShareToggleSub": {
+    "description": "Sleep settings switch subtitle"
+  },
+  "sleepHowItWorks": "App tính giấc ngủ thế nào?",
+  "@sleepHowItWorks": {
+    "description": "Sleep settings row + explainer sheet title"
+  },
+  "sleepMyColor": "Màu trăng của bạn",
+  "@sleepMyColor": {
+    "description": "Sleep settings: color picker title"
+  },
+  "sleepMyColorSub": "{name} đang dùng màu {color}. Màu quá giống ({blocked}) bị khoá.",
+  "@sleepMyColorSub": {
+    "description": "Sleep color picker subtitle",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "color": {
+        "type": "String"
+      },
+      "blocked": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMyColorSubNoBlock": "{name} đang dùng màu {color}.",
+  "@sleepMyColorSubNoBlock": {
+    "description": "Sleep color picker subtitle when nothing else is locked",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMyColorSolo": "Màu này đánh dấu giấc ngủ của bạn ở mọi chỗ.",
+  "@sleepMyColorSolo": {
+    "description": "Sleep color picker subtitle without partner data"
+  },
+  "sleepColorTakenSemantics": "Màu của {name}",
+  "@sleepColorTakenSemantics": {
+    "description": "Sleep color picker: swatch used by the partner (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorTooClose": "Quá giống màu của {name}",
+  "@sleepColorTooClose": {
+    "description": "Sleep color picker: locked swatch (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorAutoChanged": "Màu bạn chọn trùng với người ấy nên tạm hiện màu {color}.",
+  "@sleepColorAutoChanged": {
+    "description": "Sleep color picker when both picked clashing colors",
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorRose": "Hồng",
+  "@sleepColorRose": {
+    "description": "Sleep color name"
+  },
+  "sleepColorPurple": "Tím",
+  "@sleepColorPurple": {
+    "description": "Sleep color name"
+  },
+  "sleepColorBlue": "Xanh dương",
+  "@sleepColorBlue": {
+    "description": "Sleep color name"
+  },
+  "sleepColorTeal": "Ngọc",
+  "@sleepColorTeal": {
+    "description": "Sleep color name"
+  },
+  "sleepColorOrange": "Cam",
+  "@sleepColorOrange": {
+    "description": "Sleep color name"
+  },
+  "sleepColorGreen": "Xanh lá",
+  "@sleepColorGreen": {
+    "description": "Sleep color name"
+  },
+  "sleepColorMagenta": "Hồng sen",
+  "@sleepColorMagenta": {
+    "description": "Sleep color name"
+  },
+  "sleepColorAmber": "Vàng nghệ",
+  "@sleepColorAmber": {
+    "description": "Sleep color name"
+  },
+  "sleepLegend0": "dưới 5g",
+  "@sleepLegend0": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend1": "5–6g",
+  "@sleepLegend1": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend2": "6–7g",
+  "@sleepLegend2": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend3": "7–8g",
+  "@sleepLegend3": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend4": "từ 8g",
+  "@sleepLegend4": {
+    "description": "Sleep moon legend"
+  },
+  "sleepMoonTagline": "Trăng càng tròn, ngủ càng tròn giấc",
+  "@sleepMoonTagline": {
+    "description": "Sleep calendar legend line"
+  },
+  "sleepMoonLeft": "Trăng trái: Bạn",
+  "@sleepMoonLeft": {
+    "description": "Sleep calendar legend (both view)"
+  },
+  "sleepMoonRight": "Trăng phải: {name}",
+  "@sleepMoonRight": {
+    "description": "Sleep calendar legend (both view)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMoonTogether": "Ngủ cùng lúc từ 7 tiếng",
+  "@sleepMoonTogether": {
+    "description": "Sleep calendar legend: the heart"
+  },
+  "sleepPhase0": "Trăng lưỡi liềm",
+  "@sleepPhase0": {
+    "description": "Sleep moon phase, under 5 hours"
+  },
+  "sleepPhase1": "Trăng non",
+  "@sleepPhase1": {
+    "description": "Sleep moon phase, 5–6 hours"
+  },
+  "sleepPhase2": "Trăng bán nguyệt",
+  "@sleepPhase2": {
+    "description": "Sleep moon phase, 6–7 hours"
+  },
+  "sleepPhase3": "Trăng gần tròn",
+  "@sleepPhase3": {
+    "description": "Sleep moon phase, 7–8 hours"
+  },
+  "sleepPhase4": "Trăng tròn",
+  "@sleepPhase4": {
+    "description": "Sleep moon phase, 8 hours or more"
+  },
+  "sleepDaySemantics": "Ngày {day}: {summary}",
+  "@sleepDaySemantics": {
+    "description": "Sleep calendar cell (screen reader)",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepSemanticsSlept": "{name} ngủ {duration}, {phase}",
+  "@sleepSemanticsSlept": {
+    "description": "Sleep calendar cell part (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepSemanticsNoData": "{name} chưa có dữ liệu",
+  "@sleepSemanticsNoData": {
+    "description": "Sleep calendar cell part (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepEditedSemantics": "(đã sửa)",
+  "@sleepEditedSemantics": {
+    "description": "Sleep calendar cell suffix for edited/manual nights (screen reader)"
+  },
+  "sleepNoOverlapNight": "Đêm này hai bạn không ngủ cùng lúc",
+  "@sleepNoOverlapNight": {
+    "description": "Sleep night detail footer"
+  },
+  "sleepManualHint": "Bấm nút sửa để ghi tay",
+  "@sleepManualHint": {
+    "description": "Sleep night detail: my night is empty"
+  },
+  "sleepPartnerNightEmpty": "Chưa có dữ liệu đêm này",
+  "@sleepPartnerNightEmpty": {
+    "description": "Sleep night detail: partner night is empty"
+  },
+  "sleepEditLocked": "Đêm này quá 7 ngày rồi nên không sửa được nữa",
+  "@sleepEditLocked": {
+    "description": "Sleep night detail: edit window closed"
+  },
+  "sleepEditButton": "Sửa giờ ngủ đêm này",
+  "@sleepEditButton": {
+    "description": "Sleep edit button (screen reader)"
+  },
+  "sleepSetupTitle": "Để điện thoại tự ghi giấc ngủ",
+  "@sleepSetupTitle": {
+    "description": "Sleep setup step 1 title"
+  },
+  "sleepSetupBodyAndroid": "Mỗi sáng, app xem đêm qua bạn để điện thoại yên lâu nhất từ mấy giờ đến mấy giờ. App không đọc tin nhắn, ảnh hay bất kỳ nội dung nào.",
+  "@sleepSetupBodyAndroid": {
+    "description": "Sleep setup step 1 body (Android)"
+  },
+  "sleepSetupBodyIos": "App đọc giấc ngủ mà iPhone hoặc Apple Watch đã ghi trong app Sức khoẻ. Chỉ đọc, không ghi gì vào đó.",
+  "@sleepSetupBodyIos": {
+    "description": "Sleep setup step 1 body (iOS)"
+  },
+  "sleepSetupUnsupported": "Máy này chưa tự ghi được giấc ngủ. Bạn vẫn ghi tay được, mỗi lần chỉ mất vài giây.",
+  "@sleepSetupUnsupported": {
+    "description": "Sleep setup step 1 body when no automatic source exists"
+  },
+  "sleepSetupPoint1": "Không cần làm gì mỗi ngày",
+  "@sleepSetupPoint1": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupPoint2": "App đoán sai thì bạn sửa được",
+  "@sleepSetupPoint2": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupPoint3": "Chỉ chia sẻ khi bạn muốn",
+  "@sleepSetupPoint3": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupHintAndroid": "App sẽ mở Cài đặt → Quyền truy cập dữ liệu sử dụng. Bạn bật Dear Embeiu rồi quay lại đây nhé.",
+  "@sleepSetupHintAndroid": {
+    "description": "Sleep setup hint (Android)"
+  },
+  "sleepSetupHintIos": "iPhone sẽ hỏi quyền đọc mục Giấc ngủ trong Sức khoẻ. Chưa có dữ liệu thì bật Lịch ngủ trong app Sức khoẻ.",
+  "@sleepSetupHintIos": {
+    "description": "Sleep setup hint (iOS)"
+  },
+  "sleepPermissionStillOff": "Dear Embeiu chưa được bật trong danh sách. Bạn thử lại nhé.",
+  "@sleepPermissionStillOff": {
+    "description": "Sleep setup: back from Settings without granting access"
+  },
+  "sleepGrantCta": "Cấp quyền",
+  "@sleepGrantCta": {
+    "description": "Sleep setup primary button"
+  },
+  "sleepManualCta": "Mình sẽ tự ghi",
+  "@sleepManualCta": {
+    "description": "Sleep setup secondary button"
+  },
+  "sleepShareAskTitle": "Cho {name} xem giấc ngủ của bạn?",
+  "@sleepShareAskTitle": {
+    "description": "Sleep setup step 2 title",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareAskBody": "Người ấy sẽ thấy bạn ngủ lúc mấy giờ, dậy lúc mấy giờ. Bạn tắt lúc nào cũng được.",
+  "@sleepShareAskBody": {
+    "description": "Sleep setup step 2 body"
+  },
+  "sleepShareAskPreview": "{name} SẼ THẤY",
+  "@sleepShareAskPreview": {
+    "description": "Sleep setup step 2 preview caption (uppercase)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareAskOnly": "Chỉ giờ ngủ và giờ dậy, không có gì khác.",
+  "@sleepShareAskOnly": {
+    "description": "Sleep setup step 2 under the preview"
+  },
+  "sleepShareAskCta": "Chia sẻ với người ấy",
+  "@sleepShareAskCta": {
+    "description": "Sleep setup step 2 primary button"
+  },
+  "sleepLater": "Để sau",
+  "@sleepLater": {
+    "description": "Sleep setup step 2 secondary button"
+  },
+  "sleepBackToStep1": "Quay lại bước 1",
+  "@sleepBackToStep1": {
+    "description": "Sleep setup step 2 link"
+  },
+  "sleepEditBedTitle": "Đi ngủ",
+  "@sleepEditBedTitle": {
+    "description": "Sleep edit tile + time picker title"
+  },
+  "sleepEditWakeTitle": "Thức dậy",
+  "@sleepEditWakeTitle": {
+    "description": "Sleep edit tile + time picker title"
+  },
+  "sleepEditTotal": "Tổng: {duration}",
+  "@sleepEditTotal": {
+    "description": "Sleep edit live total",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepEditInvalid": "Giấc ngủ cần dài từ 1 đến 16 tiếng",
+  "@sleepEditInvalid": {
+    "description": "Sleep edit validation error"
+  },
+  "sleepDeleteNight": "Xoá đêm này",
+  "@sleepDeleteNight": {
+    "description": "Sleep edit delete button"
+  },
+  "sleepEditSubtitle": "Sửa lại nếu app đoán chưa đúng.",
+  "@sleepEditSubtitle": {
+    "description": "Sleep edit sheet subtitle (existing night)"
+  },
+  "sleepManualSubtitle": "Ghi lại lúc bạn đi ngủ và lúc thức dậy.",
+  "@sleepManualSubtitle": {
+    "description": "Sleep edit sheet subtitle (empty night)"
+  },
+  "sleepEditNote": "Lưu xong, đêm này mang nhãn “Đã sửa” (người ấy cũng thấy) và app không tự ghi đè nữa.",
+  "@sleepEditNote": {
+    "description": "Sleep edit sheet note (R4)"
+  },
+  "sleepManualNote": "Lưu xong, đêm này mang nhãn “Ghi tay”, người ấy cũng thấy.",
+  "@sleepManualNote": {
+    "description": "Sleep edit sheet note for a hand-logged night (R4)"
+  },
+  "sleepPickerSubtitle": "Kéo để chọn giờ và phút",
+  "@sleepPickerSubtitle": {
+    "description": "Sleep time picker subtitle"
+  },
+  "sleepSaveFailed": "Chưa lưu được, thử lại nhé",
+  "@sleepSaveFailed": {
+    "description": "Sleep edit save error"
+  },
+  "sleepLoadFailed": "Chưa tải được giấc ngủ của người ấy",
+  "@sleepLoadFailed": {
+    "description": "Sleep: partner nights failed to load"
+  },
+  "sleepHowBody1": "App coi khoảng điện thoại nằm yên lâu nhất trong đêm (từ 18h đến 14h hôm sau, ít nhất 3 tiếng) là giấc ngủ.",
+  "@sleepHowBody1": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody1Ios": "App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h đến 14h hôm sau.",
+  "@sleepHowBody1Ios": {
+    "description": "Sleep explainer paragraph (iOS)"
+  },
+  "sleepHowBody2": "Cầm máy dưới 5 phút giữa đêm chỉ tính là một lần thức giấc, giấc ngủ không bị cắt đôi.",
+  "@sleepHowBody2": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody3": "Đây chỉ là ước tính: nằm xem phim hay để quên máy ở xa đều làm số lệch. Bạn sửa được trong 7 ngày, và người ấy sẽ thấy nhãn “Đã sửa”.",
+  "@sleepHowBody3": {
+    "description": "Sleep explainer paragraph"
+  },
+  "sleepHowBody4": "App không đọc nội dung nào trên máy, chỉ biết lúc màn hình bật hay tắt.",
+  "@sleepHowBody4": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody4Ios": "App chỉ đọc mục Giấc ngủ trong Sức khoẻ, ngoài ra không đọc gì.",
+  "@sleepHowBody4Ios": {
+    "description": "Sleep explainer paragraph (iOS)"
+  },
+  "sleepGotIt": "Đã hiểu",
+  "@sleepGotIt": {
+    "description": "Sleep explainer close button"
+  },
+  "sleepIosHealthHint": "Bật *Lịch ngủ* trong app Sức khoẻ để iPhone tự ghi giấc ngủ.",
+  "@sleepIosHealthHint": {
+    "description": "Sleep screen banner (iOS, no Health data). Text between * is rendered bold."
+  },
+  "sleepHintDismiss": "Ẩn gợi ý",
+  "@sleepHintDismiss": {
+    "description": "Sleep banner close button (screen reader)"
+  },
+  "timePickerDefaultTitle": "Chọn giờ nhắc",
+  "@timePickerDefaultTitle": {
+    "description": "Time picker sheet default title"
+  },
+  "timePickerDefaultSubtitle": "Kéo để chọn giờ và phút",
+  "@timePickerDefaultSubtitle": {
+    "description": "Time picker sheet default subtitle"
+  },
+  "timePickerConfirm": "Xác nhận",
+  "@timePickerConfirm": {
+    "description": "Time picker sheet confirm button"
+  },
+  "sleepHoursShort": "{h}g",
+  "@sleepHoursShort": {
+    "description": "Sleep: compact duration with no leftover minutes",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepHoursLong": "{h} giờ",
+  "@sleepHoursLong": {
+    "description": "Sleep: spelled-out duration with no leftover minutes",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -567,6 +567,95 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      // Sleep (feature sleep, 2026-10-10): one profile doc per member (id ==
+      // uid) holding `share` (may the partner see my nights?) and `color` (the
+      // palette id my nights are drawn in — stored as an id, never a hex). Both
+      // members read it (the partner needs the flag + colour); each writes only
+      // their own. Every field optional (merge writes). Brand-new collection ⇒
+      // fully ADDITIVE.
+      match /sleep/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow create, update: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['share', 'color', 'updatedAt'])
+          && (!('share' in request.resource.data)
+              || request.resource.data.share is bool)
+          && (!('color' in request.resource.data)
+              || request.resource.data.color in ['rose', 'purple', 'blue', 'teal',
+                  'orange', 'green', 'magenta', 'amber'])
+          && (!('updatedAt' in request.resource.data)
+              || request.resource.data.updatedAt is timestamp);
+        allow delete: if false;
+      }
+
+      // Nights live on Firestore ONLY while the owner shares (the client
+      // deletes them all when sharing goes off), and the partner may read them
+      // only while `share` is on — enforced here, not just hidden in the UI.
+      // NB: get() sees the state BEFORE a batch, so the client must write the
+      // profile flag and the nights in separate commits (flag first).
+      function sleepShared(coupleId, uid) {
+        return get(/databases/$(database)/documents/couples/$(coupleId)/sleep/$(uid)).data.get('share', false) == true;
+      }
+
+      // R3: only the 7 most recent nights may be edited/deleted while shared
+      // (+1 day of slack for timezone skew between wake date and server time).
+      function sleepEditable(wakeAt) {
+        return wakeAt is timestamp
+          && wakeAt >= request.time - duration.value(8, 'd');
+      }
+
+      // One night: final times + `source` only, never the originally recorded
+      // times (R2). wakeUps = minutes after bedAt of each wake-up. wakeAt is
+      // capped at now + 1 day so nobody plants far-future nights.
+      function isValidSleepNight(date) {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['date', 'bedAt', 'wakeAt', 'wakeUps', 'source', 'updatedAt'])
+          && d.keys().hasAll(['date', 'bedAt', 'wakeAt', 'source'])
+          && d.date == date
+          && d.date.size() == 10
+          && d.bedAt is timestamp
+          && d.wakeAt is timestamp
+          && d.wakeAt > d.bedAt
+          && d.wakeAt <= d.bedAt + duration.value(16, 'h')
+          && d.wakeAt <= request.time + duration.value(1, 'd')
+          && (!('wakeUps' in d) || (d.wakeUps is list && d.wakeUps.size() <= 60))
+          && d.source in ['auto', 'health', 'manual', 'edited']
+          && (!('updatedAt' in d) || d.updatedAt is timestamp);
+      }
+
+      // The owner must still be in the couple: a member who left keeps their
+      // docs here (they can no longer delete them), and whoever joins next
+      // must not inherit them.
+      function sleepOwnerIsMember(coupleId, uid) {
+        return uid in get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds;
+      }
+
+      // Doc id == wake-up date 'YYYY-MM-DD'.
+      match /sleep/{uid}/nights/{date} {
+        allow read: if isCoupleMember(coupleId)
+          && (uid == request.auth.uid
+              || (sleepShared(coupleId, uid) && sleepOwnerIsMember(coupleId, uid)));
+        // Create is deliberately NOT limited to the last 8 days: turning
+        // sharing back on must re-upload the whole local history (turning it
+        // off deleted every night from Firestore).
+        allow create: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && sleepShared(coupleId, uid)
+          && isValidSleepNight(date);
+        // While shared, nights older than 8 days are frozen — on both the
+        // stored and the new wakeAt, so a recent night can't be moved back.
+        allow update: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && sleepShared(coupleId, uid)
+          && isValidSleepNight(date)
+          && sleepEditable(resource.data.wakeAt)
+          && sleepEditable(request.resource.data.wakeAt);
+        // Once sharing is off the owner may wipe every night, old ones too.
+        allow delete: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && (sleepEditable(resource.data.wakeAt) || !sleepShared(coupleId, uid));
+      }
+
       // Care message (feature care-message): a one-shot "quan tâm" note one
       // member sends to the other. The message text IS the push content (CF
       // notifyCareMessage sends title/body verbatim), so the payload is pinned

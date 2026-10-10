@@ -10,6 +10,8 @@
 		<false/>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Dear Embeiu cần truy cập thư viện ảnh để bạn chọn và chia sẻ ảnh kỷ niệm với người ấy.</string>
+		<key>NSHealthShareUsageDescription</key>
+		<string>Dear Embeiu đọc giấc ngủ mà iPhone hoặc Apple Watch đã ghi trong app Sức khoẻ, để hiện giờ ngủ và giờ dậy của bạn. App chỉ đọc, không ghi gì vào Sức khoẻ.</string>
 		<key>NSCameraUsageDescription</key>
 		<string>Dear Embeiu cần dùng camera để bạn chụp và đăng khoảnh khắc kỷ niệm với người ấy.</string>
 		<key>CFBundleDevelopmentRegion</key>

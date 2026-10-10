@@ -3112,4 +3112,482 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifRpsMoved(String name) {
     return '$name has thrown — your move!';
   }
+
+  @override
+  String get sleepCardTitle => 'Last night';
+
+  @override
+  String get sleepBadge => 'SLEEP';
+
+  @override
+  String get sleepYou => 'You';
+
+  @override
+  String get sleepUnitHour => 'h';
+
+  @override
+  String get sleepUnitMinute => 'm';
+
+  @override
+  String sleepDurationShort(int h, int m) {
+    return '${h}h ${m}m';
+  }
+
+  @override
+  String sleepMinutesShort(int m) {
+    return '${m}m';
+  }
+
+  @override
+  String sleepDurationLong(int h, int m) {
+    return '$h hr $m min';
+  }
+
+  @override
+  String sleepTogether(String duration) {
+    return 'Asleep together $duration';
+  }
+
+  @override
+  String sleepWentFirst(String name, String duration) {
+    return '$name fell asleep $duration earlier';
+  }
+
+  @override
+  String get sleepNoOverlap => 'You didn\'t sleep at the same time last night';
+
+  @override
+  String get sleepSetupPitch =>
+      'Let your phone log your sleep and see each morning how your person slept.';
+
+  @override
+  String get sleepEnableCta => 'Turn on';
+
+  @override
+  String get sleepHide => 'Hide';
+
+  @override
+  String get sleepNotRecorded => 'Not recorded';
+
+  @override
+  String get sleepLogManually => 'Log it';
+
+  @override
+  String get sleepPartnerNotShared => 'Not shared';
+
+  @override
+  String sleepPartnerNotSharedLong(String name) {
+    return '$name isn\'t sharing sleep';
+  }
+
+  @override
+  String get sleepNoData => 'No data yet';
+
+  @override
+  String get sleepNeedsPermission => 'Permission needed';
+
+  @override
+  String get sleepOpenSettings => 'Open settings';
+
+  @override
+  String get sleepPermissionBanner =>
+      'The app can\'t see when your screen turns on or off, so it can\'t log your sleep. Turn it back on in Settings → Usage access.';
+
+  @override
+  String get sleepViewBoth => 'Both';
+
+  @override
+  String get sleepPrevMonth => 'Previous month';
+
+  @override
+  String get sleepNextMonth => 'Next month';
+
+  @override
+  String sleepNightTitle(String d1, String d2) {
+    return 'Night of $d1 → $d2';
+  }
+
+  @override
+  String sleepAwakenings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Woke up $count times',
+      one: 'Woke up once',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sleepNoAwakenings => 'Slept straight through';
+
+  @override
+  String get sleepSourceEdited => 'Edited';
+
+  @override
+  String get sleepSourceManual => 'Manual';
+
+  @override
+  String get sleepSourceHealth => 'Apple Health';
+
+  @override
+  String get sleepSourcePhone => 'Phone (automatic)';
+
+  @override
+  String sleepSourceRow(String source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String get sleepMonthSection => 'This month';
+
+  @override
+  String get sleepPerNight => '/night';
+
+  @override
+  String sleepAvgTimes(String bed, String wake) {
+    return 'Bed ~$bed · Up ~$wake';
+  }
+
+  @override
+  String sleepFullNights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count full nights',
+      one: '1 full night',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sleepOfNights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'of $count nights',
+      one: 'of 1 night',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sleepTogetherNights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nights asleep together 7h+',
+      one: '1 night asleep together 7h+',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sleepTogetherAvg(String duration) {
+    return 'avg. $duration a night';
+  }
+
+  @override
+  String get sleepShareToggle => 'Share with your person';
+
+  @override
+  String get sleepShareToggleSub => 'When off, only you can see it.';
+
+  @override
+  String get sleepHowItWorks => 'How is sleep worked out?';
+
+  @override
+  String get sleepMyColor => 'Your moon color';
+
+  @override
+  String sleepMyColorSub(String name, String color, String blocked) {
+    return '$name uses $color. Colors too close to it ($blocked) are locked.';
+  }
+
+  @override
+  String sleepMyColorSubNoBlock(String name, String color) {
+    return '$name uses $color.';
+  }
+
+  @override
+  String get sleepMyColorSolo => 'This color marks your sleep everywhere.';
+
+  @override
+  String sleepColorTakenSemantics(String name) {
+    return '$name\'s color';
+  }
+
+  @override
+  String sleepColorTooClose(String name) {
+    return 'Too close to $name\'s color';
+  }
+
+  @override
+  String sleepColorAutoChanged(String color) {
+    return 'Your color matched your person\'s, so $color shows for now.';
+  }
+
+  @override
+  String get sleepColorRose => 'Pink';
+
+  @override
+  String get sleepColorPurple => 'Purple';
+
+  @override
+  String get sleepColorBlue => 'Blue';
+
+  @override
+  String get sleepColorTeal => 'Teal';
+
+  @override
+  String get sleepColorOrange => 'Orange';
+
+  @override
+  String get sleepColorGreen => 'Green';
+
+  @override
+  String get sleepColorMagenta => 'Magenta';
+
+  @override
+  String get sleepColorAmber => 'Amber';
+
+  @override
+  String get sleepLegend0 => '<5h';
+
+  @override
+  String get sleepLegend1 => '5–6h';
+
+  @override
+  String get sleepLegend2 => '6–7h';
+
+  @override
+  String get sleepLegend3 => '7–8h';
+
+  @override
+  String get sleepLegend4 => '8h+';
+
+  @override
+  String get sleepMoonTagline => 'The fuller the moon, the fuller the sleep';
+
+  @override
+  String get sleepMoonLeft => 'Left moon: you';
+
+  @override
+  String sleepMoonRight(String name) {
+    return 'Right moon: $name';
+  }
+
+  @override
+  String get sleepMoonTogether => 'Asleep together 7h+';
+
+  @override
+  String get sleepPhase0 => 'Thin crescent';
+
+  @override
+  String get sleepPhase1 => 'Crescent';
+
+  @override
+  String get sleepPhase2 => 'Half moon';
+
+  @override
+  String get sleepPhase3 => 'Gibbous moon';
+
+  @override
+  String get sleepPhase4 => 'Full moon';
+
+  @override
+  String sleepDaySemantics(String day, String summary) {
+    return '$day: $summary';
+  }
+
+  @override
+  String sleepSemanticsSlept(String name, String duration, String phase) {
+    return '$name slept $duration, $phase';
+  }
+
+  @override
+  String sleepSemanticsNoData(String name) {
+    return '$name: no data';
+  }
+
+  @override
+  String get sleepEditedSemantics => '(edited)';
+
+  @override
+  String get sleepNoOverlapNight =>
+      'You didn\'t sleep at the same time this night';
+
+  @override
+  String get sleepManualHint => 'Tap edit to log it yourself';
+
+  @override
+  String get sleepPartnerNightEmpty => 'Nothing logged this night';
+
+  @override
+  String get sleepEditLocked =>
+      'Older than 7 days, so it can no longer be edited';
+
+  @override
+  String get sleepEditButton => 'Edit this night\'s sleep';
+
+  @override
+  String get sleepSetupTitle => 'Let your phone log your sleep';
+
+  @override
+  String get sleepSetupBodyAndroid =>
+      'Each morning the app checks when your phone sat untouched longest overnight. It never reads messages, photos or any other content.';
+
+  @override
+  String get sleepSetupBodyIos =>
+      'The app reads the sleep your iPhone or Apple Watch saved in Health. Read only, nothing gets written.';
+
+  @override
+  String get sleepSetupUnsupported =>
+      'This phone can\'t log sleep on its own. You can still log it by hand in a few seconds.';
+
+  @override
+  String get sleepSetupPoint1 => 'Nothing to do each day';
+
+  @override
+  String get sleepSetupPoint2 => 'Fix it if the app guesses wrong';
+
+  @override
+  String get sleepSetupPoint3 => 'Shared only if you want';
+
+  @override
+  String get sleepSetupHintAndroid =>
+      'The app opens Settings → Usage access. Turn on Dear Embeiu, then come back here.';
+
+  @override
+  String get sleepSetupHintIos =>
+      'Your iPhone will ask to read Sleep in Health. No data yet? Turn on Sleep Schedule in Health.';
+
+  @override
+  String get sleepPermissionStillOff =>
+      'Dear Embeiu isn\'t turned on in the list yet. Try again.';
+
+  @override
+  String get sleepGrantCta => 'Allow access';
+
+  @override
+  String get sleepManualCta => 'I\'ll log it myself';
+
+  @override
+  String sleepShareAskTitle(String name) {
+    return 'Let $name see your sleep?';
+  }
+
+  @override
+  String get sleepShareAskBody =>
+      'They\'ll see when you fall asleep and wake up. You can turn this off anytime.';
+
+  @override
+  String sleepShareAskPreview(String name) {
+    return '$name WILL SEE';
+  }
+
+  @override
+  String get sleepShareAskOnly => 'Only when you sleep and wake, nothing else.';
+
+  @override
+  String get sleepShareAskCta => 'Share with them';
+
+  @override
+  String get sleepLater => 'Later';
+
+  @override
+  String get sleepBackToStep1 => 'Back to step 1';
+
+  @override
+  String get sleepEditBedTitle => 'Bedtime';
+
+  @override
+  String get sleepEditWakeTitle => 'Wake up';
+
+  @override
+  String sleepEditTotal(String duration) {
+    return 'Total: $duration';
+  }
+
+  @override
+  String get sleepEditInvalid => 'Sleep must be 1 to 16 hours';
+
+  @override
+  String get sleepDeleteNight => 'Delete this night';
+
+  @override
+  String get sleepEditSubtitle => 'Fix it if the app got it wrong.';
+
+  @override
+  String get sleepManualSubtitle => 'Log when you fell asleep and woke up.';
+
+  @override
+  String get sleepEditNote =>
+      'Once saved, this night shows an “Edited” label (your person sees it too) and the app won\'t overwrite it.';
+
+  @override
+  String get sleepManualNote =>
+      'Once saved, this night shows a “Manual” label, and your person sees it too.';
+
+  @override
+  String get sleepPickerSubtitle => 'Scroll to pick the hour and minute';
+
+  @override
+  String get sleepSaveFailed => 'Couldn\'t save, please try again';
+
+  @override
+  String get sleepLoadFailed => 'Couldn\'t load your person\'s sleep';
+
+  @override
+  String get sleepHowBody1 =>
+      'The app counts the longest stretch your phone sits untouched overnight (6 pm to 2 pm, at least 3 hours) as sleep.';
+
+  @override
+  String get sleepHowBody1Ios =>
+      'The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm.';
+
+  @override
+  String get sleepHowBody2 =>
+      'Picking up your phone for under 5 minutes counts as waking up, not as the end of your sleep.';
+
+  @override
+  String get sleepHowBody3 =>
+      'It\'s an estimate: watching a movie in bed or leaving your phone elsewhere can skew it. You can fix it within 7 days, and your person will see an “Edited” label.';
+
+  @override
+  String get sleepHowBody4 =>
+      'The app reads no content on your phone, only when the screen turns on or off.';
+
+  @override
+  String get sleepHowBody4Ios =>
+      'The app only reads Sleep in Health, nothing else.';
+
+  @override
+  String get sleepGotIt => 'Got it';
+
+  @override
+  String get sleepIosHealthHint =>
+      'Turn on *Sleep Schedule* in Health so your iPhone logs your sleep.';
+
+  @override
+  String get sleepHintDismiss => 'Dismiss tip';
+
+  @override
+  String get timePickerDefaultTitle => 'Pick a reminder time';
+
+  @override
+  String get timePickerDefaultSubtitle => 'Scroll to pick the hour and minute';
+
+  @override
+  String get timePickerConfirm => 'Confirm';
+
+  @override
+  String sleepHoursShort(int h) {
+    return '${h}h';
+  }
+
+  @override
+  String sleepHoursLong(int h) {
+    return '$h hr';
+  }
 }

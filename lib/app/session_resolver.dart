@@ -17,6 +17,7 @@ import '../providers/answer_reaction_provider.dart';
 import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/rps_game_provider.dart';
+import '../providers/sleep_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/app_update_service.dart';
 import '../services/storage_service.dart';
@@ -55,6 +56,7 @@ class SessionResolver {
     final partnerReminderProvider = context.read<PartnerReminderProvider>();
     final customRemindersProvider = context.read<CustomRemindersProvider>();
     final rpsGameProvider = context.read<RpsGameProvider>();
+    final sleepProvider = context.read<SleepProvider>();
 
     try {
       return await _resolve(
@@ -72,6 +74,7 @@ class SessionResolver {
         partnerReminderProvider: partnerReminderProvider,
         customRemindersProvider: customRemindersProvider,
         rpsGameProvider: rpsGameProvider,
+        sleepProvider: sleepProvider,
       ).timeout(_globalResolveTimeout);
     } catch (_) {
       // Global backstop: never hang on the splash. Pick a safe route from
@@ -118,6 +121,7 @@ class SessionResolver {
     required PartnerReminderProvider partnerReminderProvider,
     required CustomRemindersProvider customRemindersProvider,
     required RpsGameProvider rpsGameProvider,
+    required SleepProvider sleepProvider,
   }) async {
     // Force-update gate (feature force-update): a build older than the server's
     // minimum is sealed off behind the update screen BEFORE any auth/couple
@@ -153,6 +157,7 @@ class SessionResolver {
       partnerReminderProvider.clear();
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
+      sleepProvider.clear();
       // No active couple: drop the daily-question nudge (b2). The on/off
       // preference is kept so it re-arms on the next sync once a couple loads.
       await reminderProvider.cancelDailyQuestionSchedule();
@@ -176,6 +181,7 @@ class SessionResolver {
       partnerReminderProvider.clear();
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
+      sleepProvider.clear();
       await reminderProvider.cancelDailyQuestionSchedule();
       return AppRoutes.verifyEmail;
     }
@@ -260,6 +266,13 @@ class SessionResolver {
         currentUser.id,
         rpsPartnerUid,
       );
+      // Sleep (feature sleep): my nights + (when shared) my partner's. Same
+      // partner uid rule as rps ('' while waiting).
+      unawaited(sleepProvider.watchForCouple(
+        currentUser.coupleId!,
+        currentUser.id,
+        rpsPartnerUid,
+      ));
     } else {
       await photoProvider.clearForSignOut();
       chatProvider.clear();
@@ -272,6 +285,7 @@ class SessionResolver {
       partnerReminderProvider.clear();
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
+      sleepProvider.clear();
       // Authenticated but no couple yet — cancel the daily-question nudge (b2)
       // until a partner joins; the preference persists for re-arming via sync.
       await reminderProvider.cancelDailyQuestionSchedule();

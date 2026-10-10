@@ -25,6 +25,7 @@ import '../providers/answer_reaction_provider.dart';
 import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/rps_game_provider.dart';
+import '../providers/sleep_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/catchup_service.dart';
@@ -46,6 +47,7 @@ import '../widgets/streak_chip.dart';
 import '../providers/mood_provider.dart';
 import '../widgets/mood_card.dart';
 import '../widgets/rps_invite_card.dart';
+import '../widgets/sleep/sleep_card.dart';
 import '../widgets/today_ritual_card.dart';
 import '../widgets/streak_sheet.dart';
 import 'chat_screen.dart';
@@ -601,6 +603,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // over in the background and answers made on the other device). No-ops for
     // every account but the gated one.
     if (state == AppLifecycleState.resumed) {
+      // Sleep: re-check Usage access (maybe just granted in Settings) and
+      // re-scan last nights — the only time sleep is computed.
+      context.read<SleepProvider>().onResume();
       _maybeRunCatchup(force: true);
       // A `bothAnswered` push handled while we were away may have cancelled
       // today's daily-question bands (or the day may have rolled over): drop
@@ -1661,15 +1666,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           context.read<MoodProvider>().watchForCouple(couple.id, myUid);
           // Rock-paper-scissors — re-arm with the live partner so a partner
           // joining mid-session unlocks invites ('' while waiting, RPS-12).
+          final partnerUid = couple.isWaitingForPartner
+              ? ''
+              : couple.memberIds.firstWhere(
+                  (id) => id != myUid,
+                  orElse: () => '',
+                );
           context.read<RpsGameProvider>().watchForCouple(
             couple.id,
             myUid,
-            couple.isWaitingForPartner
-                ? ''
-                : couple.memberIds.firstWhere(
-                    (id) => id != myUid,
-                    orElse: () => '',
-                  ),
+            partnerUid,
+          );
+          // Sleep (feature sleep) — same partner rule; a partner joining
+          // mid-session starts streaming their shared nights.
+          context.read<SleepProvider>().watchForCouple(
+            couple.id,
+            myUid,
+            partnerUid,
           );
           // Chat stream (feature chat) — must run from Home so the unread dot
           // works on every tab. watchForCouple no-ops when unchanged.
@@ -1854,10 +1867,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             if (!couple.isWaitingForPartner) ...[
               const SizedBox(height: 16),
               _gutter(_entrance(4, MoodCard(couple: couple))),
+            ],
+            // Sleep "Đêm qua" (feature sleep) — under the mood card; shown
+            // while still waiting too (my own nights, full width — state A0).
+            Selector<SleepProvider, bool>(
+              selector: (_, sleep) => sleep.cardHidden,
+              builder: (_, hidden, _) => hidden
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: _gutter(_entrance(5, SleepCard(couple: couple))),
+                    ),
+            ),
+            if (!couple.isWaitingForPartner) ...[
               // Rock-paper-scissors entry (feature rps-game, design D1): a
               // small card that also carries the "người ấy đang rủ" badge.
               const SizedBox(height: 16),
-              _gutter(_entrance(5, const RpsInviteCard())),
+              _gutter(_entrance(6, const RpsInviteCard())),
             ],
             // ── Nhóm 2: Kỷ niệm — create + browse.
             const SizedBox(height: 28),

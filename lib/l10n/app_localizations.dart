@@ -5364,6 +5364,762 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} has thrown — your move!'**
   String notifRpsMoved(String name);
+
+  /// Sleep: Home card title
+  ///
+  /// In en, this message translates to:
+  /// **'Last night'**
+  String get sleepCardTitle;
+
+  /// Sleep screen header chip
+  ///
+  /// In en, this message translates to:
+  /// **'SLEEP'**
+  String get sleepBadge;
+
+  /// Sleep: label for my own data
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get sleepYou;
+
+  /// Sleep: hour unit after a big number (7g 15p)
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get sleepUnitHour;
+
+  /// Sleep: minute unit after a big number
+  ///
+  /// In en, this message translates to:
+  /// **'m'**
+  String get sleepUnitMinute;
+
+  /// Sleep: compact duration
+  ///
+  /// In en, this message translates to:
+  /// **'{h}h {m}m'**
+  String sleepDurationShort(int h, int m);
+
+  /// Sleep: compact duration under one hour
+  ///
+  /// In en, this message translates to:
+  /// **'{m}m'**
+  String sleepMinutesShort(int m);
+
+  /// Sleep: spelled-out duration (screen readers, edit total)
+  ///
+  /// In en, this message translates to:
+  /// **'{h} hr {m} min'**
+  String sleepDurationLong(int h, int m);
+
+  /// Sleep: overlap of both sleeps
+  ///
+  /// In en, this message translates to:
+  /// **'Asleep together {duration}'**
+  String sleepTogether(String duration);
+
+  /// Sleep: who fell asleep first, shown when 10+ min apart
+  ///
+  /// In en, this message translates to:
+  /// **'{name} fell asleep {duration} earlier'**
+  String sleepWentFirst(String name, String duration);
+
+  /// Sleep card footer when the two sleeps did not overlap
+  ///
+  /// In en, this message translates to:
+  /// **'You didn\'t sleep at the same time last night'**
+  String get sleepNoOverlap;
+
+  /// Sleep card before tracking is on
+  ///
+  /// In en, this message translates to:
+  /// **'Let your phone log your sleep and see each morning how your person slept.'**
+  String get sleepSetupPitch;
+
+  /// Sleep card CTA opening the setup sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get sleepEnableCta;
+
+  /// Sleep card: hide for 30 days
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get sleepHide;
+
+  /// Sleep: no night found for me
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get sleepNotRecorded;
+
+  /// Sleep: link opening the edit sheet to log a night by hand
+  ///
+  /// In en, this message translates to:
+  /// **'Log it'**
+  String get sleepLogManually;
+
+  /// Sleep card: partner does not share
+  ///
+  /// In en, this message translates to:
+  /// **'Not shared'**
+  String get sleepPartnerNotShared;
+
+  /// Sleep screen: partner does not share
+  ///
+  /// In en, this message translates to:
+  /// **'{name} isn\'t sharing sleep'**
+  String sleepPartnerNotSharedLong(String name);
+
+  /// Sleep: partner shares but has no night
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet'**
+  String get sleepNoData;
+
+  /// Sleep: Android usage access lost
+  ///
+  /// In en, this message translates to:
+  /// **'Permission needed'**
+  String get sleepNeedsPermission;
+
+  /// Sleep: open the permission settings
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get sleepOpenSettings;
+
+  /// Sleep screen banner when Android usage access is off
+  ///
+  /// In en, this message translates to:
+  /// **'The app can\'t see when your screen turns on or off, so it can\'t log your sleep. Turn it back on in Settings → Usage access.'**
+  String get sleepPermissionBanner;
+
+  /// Sleep screen segmented: both people
+  ///
+  /// In en, this message translates to:
+  /// **'Both'**
+  String get sleepViewBoth;
+
+  /// Sleep calendar arrow (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get sleepPrevMonth;
+
+  /// Sleep calendar arrow (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get sleepNextMonth;
+
+  /// Sleep night detail title, d1 = day of the evening, d2 = wake date (10/10)
+  ///
+  /// In en, this message translates to:
+  /// **'Night of {d1} → {d2}'**
+  String sleepNightTitle(String d1, String d2);
+
+  /// Sleep: number of short wake-ups
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Woke up once} other{Woke up {count} times}}'**
+  String sleepAwakenings(int count);
+
+  /// Sleep: no wake-up
+  ///
+  /// In en, this message translates to:
+  /// **'Slept straight through'**
+  String get sleepNoAwakenings;
+
+  /// Sleep label: night edited by its owner (everyone sees it)
+  ///
+  /// In en, this message translates to:
+  /// **'Edited'**
+  String get sleepSourceEdited;
+
+  /// Sleep label: night logged by hand (everyone sees it)
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get sleepSourceManual;
+
+  /// Sleep source name
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Health'**
+  String get sleepSourceHealth;
+
+  /// Sleep source name on Android
+  ///
+  /// In en, this message translates to:
+  /// **'Phone (automatic)'**
+  String get sleepSourcePhone;
+
+  /// Sleep settings row
+  ///
+  /// In en, this message translates to:
+  /// **'Source: {source}'**
+  String sleepSourceRow(String source);
+
+  /// Sleep stats section title for the current month
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get sleepMonthSection;
+
+  /// Sleep stats unit after the average
+  ///
+  /// In en, this message translates to:
+  /// **'/night'**
+  String get sleepPerNight;
+
+  /// Sleep stats: average bed and wake time
+  ///
+  /// In en, this message translates to:
+  /// **'Bed ~{bed} · Up ~{wake}'**
+  String sleepAvgTimes(String bed, String wake);
+
+  /// Sleep stats: nights of 8 hours or more
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 full night} other{{count} full nights}}'**
+  String sleepFullNights(int count);
+
+  /// Sleep stats: nights with data
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{of 1 night} other{of {count} nights}}'**
+  String sleepOfNights(int count);
+
+  /// Sleep stats: nights with 7h+ overlap
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 night asleep together 7h+} other{{count} nights asleep together 7h+}}'**
+  String sleepTogetherNights(int count);
+
+  /// Sleep stats: average overlap
+  ///
+  /// In en, this message translates to:
+  /// **'avg. {duration} a night'**
+  String sleepTogetherAvg(String duration);
+
+  /// Sleep settings switch
+  ///
+  /// In en, this message translates to:
+  /// **'Share with your person'**
+  String get sleepShareToggle;
+
+  /// Sleep settings switch subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'When off, only you can see it.'**
+  String get sleepShareToggleSub;
+
+  /// Sleep settings row + explainer sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'How is sleep worked out?'**
+  String get sleepHowItWorks;
+
+  /// Sleep settings: color picker title
+  ///
+  /// In en, this message translates to:
+  /// **'Your moon color'**
+  String get sleepMyColor;
+
+  /// Sleep color picker subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'{name} uses {color}. Colors too close to it ({blocked}) are locked.'**
+  String sleepMyColorSub(String name, String color, String blocked);
+
+  /// Sleep color picker subtitle when nothing else is locked
+  ///
+  /// In en, this message translates to:
+  /// **'{name} uses {color}.'**
+  String sleepMyColorSubNoBlock(String name, String color);
+
+  /// Sleep color picker subtitle without partner data
+  ///
+  /// In en, this message translates to:
+  /// **'This color marks your sleep everywhere.'**
+  String get sleepMyColorSolo;
+
+  /// Sleep color picker: swatch used by the partner (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s color'**
+  String sleepColorTakenSemantics(String name);
+
+  /// Sleep color picker: locked swatch (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'Too close to {name}\'s color'**
+  String sleepColorTooClose(String name);
+
+  /// Sleep color picker when both picked clashing colors
+  ///
+  /// In en, this message translates to:
+  /// **'Your color matched your person\'s, so {color} shows for now.'**
+  String sleepColorAutoChanged(String color);
+
+  /// Sleep color name
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get sleepColorRose;
+
+  /// Sleep color name
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get sleepColorPurple;
+
+  /// Sleep color name
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get sleepColorBlue;
+
+  /// Sleep color name
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get sleepColorTeal;
+
+  /// Sleep color name
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get sleepColorOrange;
+
+  /// Sleep color name
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get sleepColorGreen;
+
+  /// Sleep color name
+  ///
+  /// In en, this message translates to:
+  /// **'Magenta'**
+  String get sleepColorMagenta;
+
+  /// Sleep color name
+  ///
+  /// In en, this message translates to:
+  /// **'Amber'**
+  String get sleepColorAmber;
+
+  /// Sleep moon legend
+  ///
+  /// In en, this message translates to:
+  /// **'<5h'**
+  String get sleepLegend0;
+
+  /// Sleep moon legend
+  ///
+  /// In en, this message translates to:
+  /// **'5–6h'**
+  String get sleepLegend1;
+
+  /// Sleep moon legend
+  ///
+  /// In en, this message translates to:
+  /// **'6–7h'**
+  String get sleepLegend2;
+
+  /// Sleep moon legend
+  ///
+  /// In en, this message translates to:
+  /// **'7–8h'**
+  String get sleepLegend3;
+
+  /// Sleep moon legend
+  ///
+  /// In en, this message translates to:
+  /// **'8h+'**
+  String get sleepLegend4;
+
+  /// Sleep calendar legend line
+  ///
+  /// In en, this message translates to:
+  /// **'The fuller the moon, the fuller the sleep'**
+  String get sleepMoonTagline;
+
+  /// Sleep calendar legend (both view)
+  ///
+  /// In en, this message translates to:
+  /// **'Left moon: you'**
+  String get sleepMoonLeft;
+
+  /// Sleep calendar legend (both view)
+  ///
+  /// In en, this message translates to:
+  /// **'Right moon: {name}'**
+  String sleepMoonRight(String name);
+
+  /// Sleep calendar legend: the heart
+  ///
+  /// In en, this message translates to:
+  /// **'Asleep together 7h+'**
+  String get sleepMoonTogether;
+
+  /// Sleep moon phase, under 5 hours
+  ///
+  /// In en, this message translates to:
+  /// **'Thin crescent'**
+  String get sleepPhase0;
+
+  /// Sleep moon phase, 5–6 hours
+  ///
+  /// In en, this message translates to:
+  /// **'Crescent'**
+  String get sleepPhase1;
+
+  /// Sleep moon phase, 6–7 hours
+  ///
+  /// In en, this message translates to:
+  /// **'Half moon'**
+  String get sleepPhase2;
+
+  /// Sleep moon phase, 7–8 hours
+  ///
+  /// In en, this message translates to:
+  /// **'Gibbous moon'**
+  String get sleepPhase3;
+
+  /// Sleep moon phase, 8 hours or more
+  ///
+  /// In en, this message translates to:
+  /// **'Full moon'**
+  String get sleepPhase4;
+
+  /// Sleep calendar cell (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'{day}: {summary}'**
+  String sleepDaySemantics(String day, String summary);
+
+  /// Sleep calendar cell part (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} slept {duration}, {phase}'**
+  String sleepSemanticsSlept(String name, String duration, String phase);
+
+  /// Sleep calendar cell part (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: no data'**
+  String sleepSemanticsNoData(String name);
+
+  /// Sleep calendar cell suffix for edited/manual nights (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'(edited)'**
+  String get sleepEditedSemantics;
+
+  /// Sleep night detail footer
+  ///
+  /// In en, this message translates to:
+  /// **'You didn\'t sleep at the same time this night'**
+  String get sleepNoOverlapNight;
+
+  /// Sleep night detail: my night is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Tap edit to log it yourself'**
+  String get sleepManualHint;
+
+  /// Sleep night detail: partner night is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged this night'**
+  String get sleepPartnerNightEmpty;
+
+  /// Sleep night detail: edit window closed
+  ///
+  /// In en, this message translates to:
+  /// **'Older than 7 days, so it can no longer be edited'**
+  String get sleepEditLocked;
+
+  /// Sleep edit button (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit this night\'s sleep'**
+  String get sleepEditButton;
+
+  /// Sleep setup step 1 title
+  ///
+  /// In en, this message translates to:
+  /// **'Let your phone log your sleep'**
+  String get sleepSetupTitle;
+
+  /// Sleep setup step 1 body (Android)
+  ///
+  /// In en, this message translates to:
+  /// **'Each morning the app checks when your phone sat untouched longest overnight. It never reads messages, photos or any other content.'**
+  String get sleepSetupBodyAndroid;
+
+  /// Sleep setup step 1 body (iOS)
+  ///
+  /// In en, this message translates to:
+  /// **'The app reads the sleep your iPhone or Apple Watch saved in Health. Read only, nothing gets written.'**
+  String get sleepSetupBodyIos;
+
+  /// Sleep setup step 1 body when no automatic source exists
+  ///
+  /// In en, this message translates to:
+  /// **'This phone can\'t log sleep on its own. You can still log it by hand in a few seconds.'**
+  String get sleepSetupUnsupported;
+
+  /// Sleep setup check line
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to do each day'**
+  String get sleepSetupPoint1;
+
+  /// Sleep setup check line
+  ///
+  /// In en, this message translates to:
+  /// **'Fix it if the app guesses wrong'**
+  String get sleepSetupPoint2;
+
+  /// Sleep setup check line
+  ///
+  /// In en, this message translates to:
+  /// **'Shared only if you want'**
+  String get sleepSetupPoint3;
+
+  /// Sleep setup hint (Android)
+  ///
+  /// In en, this message translates to:
+  /// **'The app opens Settings → Usage access. Turn on Dear Embeiu, then come back here.'**
+  String get sleepSetupHintAndroid;
+
+  /// Sleep setup hint (iOS)
+  ///
+  /// In en, this message translates to:
+  /// **'Your iPhone will ask to read Sleep in Health. No data yet? Turn on Sleep Schedule in Health.'**
+  String get sleepSetupHintIos;
+
+  /// Sleep setup: back from Settings without granting access
+  ///
+  /// In en, this message translates to:
+  /// **'Dear Embeiu isn\'t turned on in the list yet. Try again.'**
+  String get sleepPermissionStillOff;
+
+  /// Sleep setup primary button
+  ///
+  /// In en, this message translates to:
+  /// **'Allow access'**
+  String get sleepGrantCta;
+
+  /// Sleep setup secondary button
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ll log it myself'**
+  String get sleepManualCta;
+
+  /// Sleep setup step 2 title
+  ///
+  /// In en, this message translates to:
+  /// **'Let {name} see your sleep?'**
+  String sleepShareAskTitle(String name);
+
+  /// Sleep setup step 2 body
+  ///
+  /// In en, this message translates to:
+  /// **'They\'ll see when you fall asleep and wake up. You can turn this off anytime.'**
+  String get sleepShareAskBody;
+
+  /// Sleep setup step 2 preview caption (uppercase)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} WILL SEE'**
+  String sleepShareAskPreview(String name);
+
+  /// Sleep setup step 2 under the preview
+  ///
+  /// In en, this message translates to:
+  /// **'Only when you sleep and wake, nothing else.'**
+  String get sleepShareAskOnly;
+
+  /// Sleep setup step 2 primary button
+  ///
+  /// In en, this message translates to:
+  /// **'Share with them'**
+  String get sleepShareAskCta;
+
+  /// Sleep setup step 2 secondary button
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get sleepLater;
+
+  /// Sleep setup step 2 link
+  ///
+  /// In en, this message translates to:
+  /// **'Back to step 1'**
+  String get sleepBackToStep1;
+
+  /// Sleep edit tile + time picker title
+  ///
+  /// In en, this message translates to:
+  /// **'Bedtime'**
+  String get sleepEditBedTitle;
+
+  /// Sleep edit tile + time picker title
+  ///
+  /// In en, this message translates to:
+  /// **'Wake up'**
+  String get sleepEditWakeTitle;
+
+  /// Sleep edit live total
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {duration}'**
+  String sleepEditTotal(String duration);
+
+  /// Sleep edit validation error
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep must be 1 to 16 hours'**
+  String get sleepEditInvalid;
+
+  /// Sleep edit delete button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this night'**
+  String get sleepDeleteNight;
+
+  /// Sleep edit sheet subtitle (existing night)
+  ///
+  /// In en, this message translates to:
+  /// **'Fix it if the app got it wrong.'**
+  String get sleepEditSubtitle;
+
+  /// Sleep edit sheet subtitle (empty night)
+  ///
+  /// In en, this message translates to:
+  /// **'Log when you fell asleep and woke up.'**
+  String get sleepManualSubtitle;
+
+  /// Sleep edit sheet note (R4)
+  ///
+  /// In en, this message translates to:
+  /// **'Once saved, this night shows an “Edited” label (your person sees it too) and the app won\'t overwrite it.'**
+  String get sleepEditNote;
+
+  /// Sleep edit sheet note for a hand-logged night (R4)
+  ///
+  /// In en, this message translates to:
+  /// **'Once saved, this night shows a “Manual” label, and your person sees it too.'**
+  String get sleepManualNote;
+
+  /// Sleep time picker subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll to pick the hour and minute'**
+  String get sleepPickerSubtitle;
+
+  /// Sleep edit save error
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save, please try again'**
+  String get sleepSaveFailed;
+
+  /// Sleep: partner nights failed to load
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your person\'s sleep'**
+  String get sleepLoadFailed;
+
+  /// Sleep explainer paragraph (Android)
+  ///
+  /// In en, this message translates to:
+  /// **'The app counts the longest stretch your phone sits untouched overnight (6 pm to 2 pm, at least 3 hours) as sleep.'**
+  String get sleepHowBody1;
+
+  /// Sleep explainer paragraph (iOS)
+  ///
+  /// In en, this message translates to:
+  /// **'The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm.'**
+  String get sleepHowBody1Ios;
+
+  /// Sleep explainer paragraph (Android)
+  ///
+  /// In en, this message translates to:
+  /// **'Picking up your phone for under 5 minutes counts as waking up, not as the end of your sleep.'**
+  String get sleepHowBody2;
+
+  /// Sleep explainer paragraph
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s an estimate: watching a movie in bed or leaving your phone elsewhere can skew it. You can fix it within 7 days, and your person will see an “Edited” label.'**
+  String get sleepHowBody3;
+
+  /// Sleep explainer paragraph (Android)
+  ///
+  /// In en, this message translates to:
+  /// **'The app reads no content on your phone, only when the screen turns on or off.'**
+  String get sleepHowBody4;
+
+  /// Sleep explainer paragraph (iOS)
+  ///
+  /// In en, this message translates to:
+  /// **'The app only reads Sleep in Health, nothing else.'**
+  String get sleepHowBody4Ios;
+
+  /// Sleep explainer close button
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get sleepGotIt;
+
+  /// Sleep screen banner (iOS, no Health data). Text between * is rendered bold.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on *Sleep Schedule* in Health so your iPhone logs your sleep.'**
+  String get sleepIosHealthHint;
+
+  /// Sleep banner close button (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss tip'**
+  String get sleepHintDismiss;
+
+  /// Time picker sheet default title
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a reminder time'**
+  String get timePickerDefaultTitle;
+
+  /// Time picker sheet default subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll to pick the hour and minute'**
+  String get timePickerDefaultSubtitle;
+
+  /// Time picker sheet confirm button
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get timePickerConfirm;
+
+  /// Sleep: compact duration with no leftover minutes
+  ///
+  /// In en, this message translates to:
+  /// **'{h}h'**
+  String sleepHoursShort(int h);
+
+  /// Sleep: spelled-out duration with no leftover minutes
+  ///
+  /// In en, this message translates to:
+  /// **'{h} hr'**
+  String sleepHoursLong(int h);
 }
 
 class _AppLocalizationsDelegate

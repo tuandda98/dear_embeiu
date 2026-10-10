@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
+import '../l10n/l10n.dart';
 import '../theme/app_colors.dart';
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -11,18 +12,18 @@ import '../theme/app_colors.dart';
 Future<TimeOfDay?> showAppTimePicker(
   BuildContext context, {
   required TimeOfDay initialTime,
-  String title = 'Chọn giờ nhắc',
-  String subtitle = 'Kéo để chọn giờ và phút',
+  String? title,
+  String? subtitle,
 }) {
   return showModalBottomSheet<TimeOfDay>(
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     enableDrag: true,
-    builder: (_) => _AppTimePickerSheet(
+    builder: (sheetContext) => _AppTimePickerSheet(
       initialTime: initialTime,
-      title: title,
-      subtitle: subtitle,
+      title: title ?? sheetContext.l10n.timePickerDefaultTitle,
+      subtitle: subtitle ?? sheetContext.l10n.timePickerDefaultSubtitle,
     ),
   );
 }
@@ -402,9 +403,9 @@ class _Footer extends StatelessWidget {
                   ),
                 ),
               ),
-              child: const Text(
-                'Huỷ',
-                style: TextStyle(
+              child: Text(
+                context.l10n.cancel,
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -429,20 +430,20 @@ class _Footer extends StatelessWidget {
                   onTap: onConfirm,
                   borderRadius: BorderRadius.circular(999),
                   splashColor: Colors.white.withValues(alpha: 0.15),
-                  child: const SizedBox(
+                  child: SizedBox(
                     height: 52,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           IconsaxPlusBold.tick_circle,
                           size: 18,
                           color: Colors.white,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
-                          'Xác nhận',
-                          style: TextStyle(
+                          context.l10n.timePickerConfirm,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 15,
                             fontWeight: FontWeight.w700,

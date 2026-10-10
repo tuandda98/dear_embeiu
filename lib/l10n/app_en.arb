@@ -2633,5 +2633,682 @@
         "type": "String"
       }
     }
+  },
+  "sleepCardTitle": "Last night",
+  "@sleepCardTitle": {
+    "description": "Sleep: Home card title"
+  },
+  "sleepBadge": "SLEEP",
+  "@sleepBadge": {
+    "description": "Sleep screen header chip"
+  },
+  "sleepYou": "You",
+  "@sleepYou": {
+    "description": "Sleep: label for my own data"
+  },
+  "sleepUnitHour": "h",
+  "@sleepUnitHour": {
+    "description": "Sleep: hour unit after a big number (7g 15p)"
+  },
+  "sleepUnitMinute": "m",
+  "@sleepUnitMinute": {
+    "description": "Sleep: minute unit after a big number"
+  },
+  "sleepDurationShort": "{h}h {m}m",
+  "@sleepDurationShort": {
+    "description": "Sleep: compact duration",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepMinutesShort": "{m}m",
+  "@sleepMinutesShort": {
+    "description": "Sleep: compact duration under one hour",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepDurationLong": "{h} hr {m} min",
+  "@sleepDurationLong": {
+    "description": "Sleep: spelled-out duration (screen readers, edit total)",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogether": "Asleep together {duration}",
+  "@sleepTogether": {
+    "description": "Sleep: overlap of both sleeps",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepWentFirst": "{name} fell asleep {duration} earlier",
+  "@sleepWentFirst": {
+    "description": "Sleep: who fell asleep first, shown when 10+ min apart",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepNoOverlap": "You didn't sleep at the same time last night",
+  "@sleepNoOverlap": {
+    "description": "Sleep card footer when the two sleeps did not overlap"
+  },
+  "sleepSetupPitch": "Let your phone log your sleep and see each morning how your person slept.",
+  "@sleepSetupPitch": {
+    "description": "Sleep card before tracking is on"
+  },
+  "sleepEnableCta": "Turn on",
+  "@sleepEnableCta": {
+    "description": "Sleep card CTA opening the setup sheet"
+  },
+  "sleepHide": "Hide",
+  "@sleepHide": {
+    "description": "Sleep card: hide for 30 days"
+  },
+  "sleepNotRecorded": "Not recorded",
+  "@sleepNotRecorded": {
+    "description": "Sleep: no night found for me"
+  },
+  "sleepLogManually": "Log it",
+  "@sleepLogManually": {
+    "description": "Sleep: link opening the edit sheet to log a night by hand"
+  },
+  "sleepPartnerNotShared": "Not shared",
+  "@sleepPartnerNotShared": {
+    "description": "Sleep card: partner does not share"
+  },
+  "sleepPartnerNotSharedLong": "{name} isn't sharing sleep",
+  "@sleepPartnerNotSharedLong": {
+    "description": "Sleep screen: partner does not share",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepNoData": "No data yet",
+  "@sleepNoData": {
+    "description": "Sleep: partner shares but has no night"
+  },
+  "sleepNeedsPermission": "Permission needed",
+  "@sleepNeedsPermission": {
+    "description": "Sleep: Android usage access lost"
+  },
+  "sleepOpenSettings": "Open settings",
+  "@sleepOpenSettings": {
+    "description": "Sleep: open the permission settings"
+  },
+  "sleepPermissionBanner": "The app can't see when your screen turns on or off, so it can't log your sleep. Turn it back on in Settings → Usage access.",
+  "@sleepPermissionBanner": {
+    "description": "Sleep screen banner when Android usage access is off"
+  },
+  "sleepViewBoth": "Both",
+  "@sleepViewBoth": {
+    "description": "Sleep screen segmented: both people"
+  },
+  "sleepPrevMonth": "Previous month",
+  "@sleepPrevMonth": {
+    "description": "Sleep calendar arrow (screen reader)"
+  },
+  "sleepNextMonth": "Next month",
+  "@sleepNextMonth": {
+    "description": "Sleep calendar arrow (screen reader)"
+  },
+  "sleepNightTitle": "Night of {d1} → {d2}",
+  "@sleepNightTitle": {
+    "description": "Sleep night detail title, d1 = day of the evening, d2 = wake date (10/10)",
+    "placeholders": {
+      "d1": {
+        "type": "String"
+      },
+      "d2": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepAwakenings": "{count, plural, =1{Woke up once} other{Woke up {count} times}}",
+  "@sleepAwakenings": {
+    "description": "Sleep: number of short wake-ups",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepNoAwakenings": "Slept straight through",
+  "@sleepNoAwakenings": {
+    "description": "Sleep: no wake-up"
+  },
+  "sleepSourceEdited": "Edited",
+  "@sleepSourceEdited": {
+    "description": "Sleep label: night edited by its owner (everyone sees it)"
+  },
+  "sleepSourceManual": "Manual",
+  "@sleepSourceManual": {
+    "description": "Sleep label: night logged by hand (everyone sees it)"
+  },
+  "sleepSourceHealth": "Apple Health",
+  "@sleepSourceHealth": {
+    "description": "Sleep source name"
+  },
+  "sleepSourcePhone": "Phone (automatic)",
+  "@sleepSourcePhone": {
+    "description": "Sleep source name on Android"
+  },
+  "sleepSourceRow": "Source: {source}",
+  "@sleepSourceRow": {
+    "description": "Sleep settings row",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMonthSection": "This month",
+  "@sleepMonthSection": {
+    "description": "Sleep stats section title for the current month"
+  },
+  "sleepPerNight": "/night",
+  "@sleepPerNight": {
+    "description": "Sleep stats unit after the average"
+  },
+  "sleepAvgTimes": "Bed ~{bed} · Up ~{wake}",
+  "@sleepAvgTimes": {
+    "description": "Sleep stats: average bed and wake time",
+    "placeholders": {
+      "bed": {
+        "type": "String"
+      },
+      "wake": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepFullNights": "{count, plural, =1{1 full night} other{{count} full nights}}",
+  "@sleepFullNights": {
+    "description": "Sleep stats: nights of 8 hours or more",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepOfNights": "{count, plural, =1{of 1 night} other{of {count} nights}}",
+  "@sleepOfNights": {
+    "description": "Sleep stats: nights with data",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogetherNights": "{count, plural, =1{1 night asleep together 7h+} other{{count} nights asleep together 7h+}}",
+  "@sleepTogetherNights": {
+    "description": "Sleep stats: nights with 7h+ overlap",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogetherAvg": "avg. {duration} a night",
+  "@sleepTogetherAvg": {
+    "description": "Sleep stats: average overlap",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareToggle": "Share with your person",
+  "@sleepShareToggle": {
+    "description": "Sleep settings switch"
+  },
+  "sleepShareToggleSub": "When off, only you can see it.",
+  "@sleepShareToggleSub": {
+    "description": "Sleep settings switch subtitle"
+  },
+  "sleepHowItWorks": "How is sleep worked out?",
+  "@sleepHowItWorks": {
+    "description": "Sleep settings row + explainer sheet title"
+  },
+  "sleepMyColor": "Your moon color",
+  "@sleepMyColor": {
+    "description": "Sleep settings: color picker title"
+  },
+  "sleepMyColorSub": "{name} uses {color}. Colors too close to it ({blocked}) are locked.",
+  "@sleepMyColorSub": {
+    "description": "Sleep color picker subtitle",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "color": {
+        "type": "String"
+      },
+      "blocked": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMyColorSubNoBlock": "{name} uses {color}.",
+  "@sleepMyColorSubNoBlock": {
+    "description": "Sleep color picker subtitle when nothing else is locked",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMyColorSolo": "This color marks your sleep everywhere.",
+  "@sleepMyColorSolo": {
+    "description": "Sleep color picker subtitle without partner data"
+  },
+  "sleepColorTakenSemantics": "{name}'s color",
+  "@sleepColorTakenSemantics": {
+    "description": "Sleep color picker: swatch used by the partner (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorTooClose": "Too close to {name}'s color",
+  "@sleepColorTooClose": {
+    "description": "Sleep color picker: locked swatch (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorAutoChanged": "Your color matched your person's, so {color} shows for now.",
+  "@sleepColorAutoChanged": {
+    "description": "Sleep color picker when both picked clashing colors",
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorRose": "Pink",
+  "@sleepColorRose": {
+    "description": "Sleep color name"
+  },
+  "sleepColorPurple": "Purple",
+  "@sleepColorPurple": {
+    "description": "Sleep color name"
+  },
+  "sleepColorBlue": "Blue",
+  "@sleepColorBlue": {
+    "description": "Sleep color name"
+  },
+  "sleepColorTeal": "Teal",
+  "@sleepColorTeal": {
+    "description": "Sleep color name"
+  },
+  "sleepColorOrange": "Orange",
+  "@sleepColorOrange": {
+    "description": "Sleep color name"
+  },
+  "sleepColorGreen": "Green",
+  "@sleepColorGreen": {
+    "description": "Sleep color name"
+  },
+  "sleepColorMagenta": "Magenta",
+  "@sleepColorMagenta": {
+    "description": "Sleep color name"
+  },
+  "sleepColorAmber": "Amber",
+  "@sleepColorAmber": {
+    "description": "Sleep color name"
+  },
+  "sleepLegend0": "<5h",
+  "@sleepLegend0": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend1": "5–6h",
+  "@sleepLegend1": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend2": "6–7h",
+  "@sleepLegend2": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend3": "7–8h",
+  "@sleepLegend3": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend4": "8h+",
+  "@sleepLegend4": {
+    "description": "Sleep moon legend"
+  },
+  "sleepMoonTagline": "The fuller the moon, the fuller the sleep",
+  "@sleepMoonTagline": {
+    "description": "Sleep calendar legend line"
+  },
+  "sleepMoonLeft": "Left moon: you",
+  "@sleepMoonLeft": {
+    "description": "Sleep calendar legend (both view)"
+  },
+  "sleepMoonRight": "Right moon: {name}",
+  "@sleepMoonRight": {
+    "description": "Sleep calendar legend (both view)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMoonTogether": "Asleep together 7h+",
+  "@sleepMoonTogether": {
+    "description": "Sleep calendar legend: the heart"
+  },
+  "sleepPhase0": "Thin crescent",
+  "@sleepPhase0": {
+    "description": "Sleep moon phase, under 5 hours"
+  },
+  "sleepPhase1": "Crescent",
+  "@sleepPhase1": {
+    "description": "Sleep moon phase, 5–6 hours"
+  },
+  "sleepPhase2": "Half moon",
+  "@sleepPhase2": {
+    "description": "Sleep moon phase, 6–7 hours"
+  },
+  "sleepPhase3": "Gibbous moon",
+  "@sleepPhase3": {
+    "description": "Sleep moon phase, 7–8 hours"
+  },
+  "sleepPhase4": "Full moon",
+  "@sleepPhase4": {
+    "description": "Sleep moon phase, 8 hours or more"
+  },
+  "sleepDaySemantics": "{day}: {summary}",
+  "@sleepDaySemantics": {
+    "description": "Sleep calendar cell (screen reader)",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepSemanticsSlept": "{name} slept {duration}, {phase}",
+  "@sleepSemanticsSlept": {
+    "description": "Sleep calendar cell part (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepSemanticsNoData": "{name}: no data",
+  "@sleepSemanticsNoData": {
+    "description": "Sleep calendar cell part (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepEditedSemantics": "(edited)",
+  "@sleepEditedSemantics": {
+    "description": "Sleep calendar cell suffix for edited/manual nights (screen reader)"
+  },
+  "sleepNoOverlapNight": "You didn't sleep at the same time this night",
+  "@sleepNoOverlapNight": {
+    "description": "Sleep night detail footer"
+  },
+  "sleepManualHint": "Tap edit to log it yourself",
+  "@sleepManualHint": {
+    "description": "Sleep night detail: my night is empty"
+  },
+  "sleepPartnerNightEmpty": "Nothing logged this night",
+  "@sleepPartnerNightEmpty": {
+    "description": "Sleep night detail: partner night is empty"
+  },
+  "sleepEditLocked": "Older than 7 days, so it can no longer be edited",
+  "@sleepEditLocked": {
+    "description": "Sleep night detail: edit window closed"
+  },
+  "sleepEditButton": "Edit this night's sleep",
+  "@sleepEditButton": {
+    "description": "Sleep edit button (screen reader)"
+  },
+  "sleepSetupTitle": "Let your phone log your sleep",
+  "@sleepSetupTitle": {
+    "description": "Sleep setup step 1 title"
+  },
+  "sleepSetupBodyAndroid": "Each morning the app checks when your phone sat untouched longest overnight. It never reads messages, photos or any other content.",
+  "@sleepSetupBodyAndroid": {
+    "description": "Sleep setup step 1 body (Android)"
+  },
+  "sleepSetupBodyIos": "The app reads the sleep your iPhone or Apple Watch saved in Health. Read only, nothing gets written.",
+  "@sleepSetupBodyIos": {
+    "description": "Sleep setup step 1 body (iOS)"
+  },
+  "sleepSetupUnsupported": "This phone can't log sleep on its own. You can still log it by hand in a few seconds.",
+  "@sleepSetupUnsupported": {
+    "description": "Sleep setup step 1 body when no automatic source exists"
+  },
+  "sleepSetupPoint1": "Nothing to do each day",
+  "@sleepSetupPoint1": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupPoint2": "Fix it if the app guesses wrong",
+  "@sleepSetupPoint2": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupPoint3": "Shared only if you want",
+  "@sleepSetupPoint3": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupHintAndroid": "The app opens Settings → Usage access. Turn on Dear Embeiu, then come back here.",
+  "@sleepSetupHintAndroid": {
+    "description": "Sleep setup hint (Android)"
+  },
+  "sleepSetupHintIos": "Your iPhone will ask to read Sleep in Health. No data yet? Turn on Sleep Schedule in Health.",
+  "@sleepSetupHintIos": {
+    "description": "Sleep setup hint (iOS)"
+  },
+  "sleepPermissionStillOff": "Dear Embeiu isn't turned on in the list yet. Try again.",
+  "@sleepPermissionStillOff": {
+    "description": "Sleep setup: back from Settings without granting access"
+  },
+  "sleepGrantCta": "Allow access",
+  "@sleepGrantCta": {
+    "description": "Sleep setup primary button"
+  },
+  "sleepManualCta": "I'll log it myself",
+  "@sleepManualCta": {
+    "description": "Sleep setup secondary button"
+  },
+  "sleepShareAskTitle": "Let {name} see your sleep?",
+  "@sleepShareAskTitle": {
+    "description": "Sleep setup step 2 title",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareAskBody": "They'll see when you fall asleep and wake up. You can turn this off anytime.",
+  "@sleepShareAskBody": {
+    "description": "Sleep setup step 2 body"
+  },
+  "sleepShareAskPreview": "{name} WILL SEE",
+  "@sleepShareAskPreview": {
+    "description": "Sleep setup step 2 preview caption (uppercase)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareAskOnly": "Only when you sleep and wake, nothing else.",
+  "@sleepShareAskOnly": {
+    "description": "Sleep setup step 2 under the preview"
+  },
+  "sleepShareAskCta": "Share with them",
+  "@sleepShareAskCta": {
+    "description": "Sleep setup step 2 primary button"
+  },
+  "sleepLater": "Later",
+  "@sleepLater": {
+    "description": "Sleep setup step 2 secondary button"
+  },
+  "sleepBackToStep1": "Back to step 1",
+  "@sleepBackToStep1": {
+    "description": "Sleep setup step 2 link"
+  },
+  "sleepEditBedTitle": "Bedtime",
+  "@sleepEditBedTitle": {
+    "description": "Sleep edit tile + time picker title"
+  },
+  "sleepEditWakeTitle": "Wake up",
+  "@sleepEditWakeTitle": {
+    "description": "Sleep edit tile + time picker title"
+  },
+  "sleepEditTotal": "Total: {duration}",
+  "@sleepEditTotal": {
+    "description": "Sleep edit live total",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepEditInvalid": "Sleep must be 1 to 16 hours",
+  "@sleepEditInvalid": {
+    "description": "Sleep edit validation error"
+  },
+  "sleepDeleteNight": "Delete this night",
+  "@sleepDeleteNight": {
+    "description": "Sleep edit delete button"
+  },
+  "sleepEditSubtitle": "Fix it if the app got it wrong.",
+  "@sleepEditSubtitle": {
+    "description": "Sleep edit sheet subtitle (existing night)"
+  },
+  "sleepManualSubtitle": "Log when you fell asleep and woke up.",
+  "@sleepManualSubtitle": {
+    "description": "Sleep edit sheet subtitle (empty night)"
+  },
+  "sleepEditNote": "Once saved, this night shows an “Edited” label (your person sees it too) and the app won't overwrite it.",
+  "@sleepEditNote": {
+    "description": "Sleep edit sheet note (R4)"
+  },
+  "sleepManualNote": "Once saved, this night shows a “Manual” label, and your person sees it too.",
+  "@sleepManualNote": {
+    "description": "Sleep edit sheet note for a hand-logged night (R4)"
+  },
+  "sleepPickerSubtitle": "Scroll to pick the hour and minute",
+  "@sleepPickerSubtitle": {
+    "description": "Sleep time picker subtitle"
+  },
+  "sleepSaveFailed": "Couldn't save, please try again",
+  "@sleepSaveFailed": {
+    "description": "Sleep edit save error"
+  },
+  "sleepLoadFailed": "Couldn't load your person's sleep",
+  "@sleepLoadFailed": {
+    "description": "Sleep: partner nights failed to load"
+  },
+  "sleepHowBody1": "The app counts the longest stretch your phone sits untouched overnight (6 pm to 2 pm, at least 3 hours) as sleep.",
+  "@sleepHowBody1": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody1Ios": "The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm.",
+  "@sleepHowBody1Ios": {
+    "description": "Sleep explainer paragraph (iOS)"
+  },
+  "sleepHowBody2": "Picking up your phone for under 5 minutes counts as waking up, not as the end of your sleep.",
+  "@sleepHowBody2": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody3": "It's an estimate: watching a movie in bed or leaving your phone elsewhere can skew it. You can fix it within 7 days, and your person will see an “Edited” label.",
+  "@sleepHowBody3": {
+    "description": "Sleep explainer paragraph"
+  },
+  "sleepHowBody4": "The app reads no content on your phone, only when the screen turns on or off.",
+  "@sleepHowBody4": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody4Ios": "The app only reads Sleep in Health, nothing else.",
+  "@sleepHowBody4Ios": {
+    "description": "Sleep explainer paragraph (iOS)"
+  },
+  "sleepGotIt": "Got it",
+  "@sleepGotIt": {
+    "description": "Sleep explainer close button"
+  },
+  "sleepIosHealthHint": "Turn on *Sleep Schedule* in Health so your iPhone logs your sleep.",
+  "@sleepIosHealthHint": {
+    "description": "Sleep screen banner (iOS, no Health data). Text between * is rendered bold."
+  },
+  "sleepHintDismiss": "Dismiss tip",
+  "@sleepHintDismiss": {
+    "description": "Sleep banner close button (screen reader)"
+  },
+  "timePickerDefaultTitle": "Pick a reminder time",
+  "@timePickerDefaultTitle": {
+    "description": "Time picker sheet default title"
+  },
+  "timePickerDefaultSubtitle": "Scroll to pick the hour and minute",
+  "@timePickerDefaultSubtitle": {
+    "description": "Time picker sheet default subtitle"
+  },
+  "timePickerConfirm": "Confirm",
+  "@timePickerConfirm": {
+    "description": "Time picker sheet confirm button"
+  },
+  "sleepHoursShort": "{h}h",
+  "@sleepHoursShort": {
+    "description": "Sleep: compact duration with no leftover minutes",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepHoursLong": "{h} hr",
+  "@sleepHoursLong": {
+    "description": "Sleep: spelled-out duration with no leftover minutes",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      }
+    }
   }
 }

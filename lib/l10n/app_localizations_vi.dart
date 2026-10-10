@@ -3094,4 +3094,476 @@ class AppLocalizationsVi extends AppLocalizations {
   String notifRpsMoved(String name) {
     return '$name đã ra rồi — tới lượt bạn!';
   }
+
+  @override
+  String get sleepCardTitle => 'Đêm qua';
+
+  @override
+  String get sleepBadge => 'GIẤC NGỦ';
+
+  @override
+  String get sleepYou => 'Bạn';
+
+  @override
+  String get sleepUnitHour => 'g';
+
+  @override
+  String get sleepUnitMinute => 'p';
+
+  @override
+  String sleepDurationShort(int h, int m) {
+    return '${h}g ${m}p';
+  }
+
+  @override
+  String sleepMinutesShort(int m) {
+    return '${m}p';
+  }
+
+  @override
+  String sleepDurationLong(int h, int m) {
+    return '$h giờ $m phút';
+  }
+
+  @override
+  String sleepTogether(String duration) {
+    return 'Ngủ cùng lúc $duration';
+  }
+
+  @override
+  String sleepWentFirst(String name, String duration) {
+    return '$name ngủ trước $duration';
+  }
+
+  @override
+  String get sleepNoOverlap => 'Đêm qua hai bạn không ngủ cùng lúc';
+
+  @override
+  String get sleepSetupPitch =>
+      'Để điện thoại tự ghi giấc ngủ, sáng nào cũng biết đêm qua người ấy ngủ ra sao.';
+
+  @override
+  String get sleepEnableCta => 'Bật theo dõi';
+
+  @override
+  String get sleepHide => 'Ẩn';
+
+  @override
+  String get sleepNotRecorded => 'Chưa ghi nhận';
+
+  @override
+  String get sleepLogManually => 'Ghi tay';
+
+  @override
+  String get sleepPartnerNotShared => 'Chưa chia sẻ';
+
+  @override
+  String sleepPartnerNotSharedLong(String name) {
+    return '$name chưa chia sẻ giấc ngủ';
+  }
+
+  @override
+  String get sleepNoData => 'Chưa có dữ liệu';
+
+  @override
+  String get sleepNeedsPermission => 'Cần cấp lại quyền';
+
+  @override
+  String get sleepOpenSettings => 'Mở cài đặt';
+
+  @override
+  String get sleepPermissionBanner =>
+      'App chưa được xem lúc màn hình bật, tắt nên chưa ghi được giấc ngủ. Bạn bật lại trong Cài đặt → Quyền truy cập dữ liệu sử dụng nhé.';
+
+  @override
+  String get sleepViewBoth => 'Cả hai';
+
+  @override
+  String get sleepPrevMonth => 'Tháng trước';
+
+  @override
+  String get sleepNextMonth => 'Tháng sau';
+
+  @override
+  String sleepNightTitle(String d1, String d2) {
+    return 'Đêm $d1 → sáng $d2';
+  }
+
+  @override
+  String sleepAwakenings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Thức giấc $count lần',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sleepNoAwakenings => 'Ngủ một mạch';
+
+  @override
+  String get sleepSourceEdited => 'Đã sửa';
+
+  @override
+  String get sleepSourceManual => 'Ghi tay';
+
+  @override
+  String get sleepSourceHealth => 'Apple Health';
+
+  @override
+  String get sleepSourcePhone => 'Điện thoại (tự động)';
+
+  @override
+  String sleepSourceRow(String source) {
+    return 'Nguồn: $source';
+  }
+
+  @override
+  String get sleepMonthSection => 'Tháng này';
+
+  @override
+  String get sleepPerNight => '/đêm';
+
+  @override
+  String sleepAvgTimes(String bed, String wake) {
+    return 'Ngủ ~$bed · Dậy ~$wake';
+  }
+
+  @override
+  String sleepFullNights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count đêm tròn giấc',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sleepOfNights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'trên $count đêm',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sleepTogetherNights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count đêm ngủ cùng lúc từ 7 tiếng',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sleepTogetherAvg(String duration) {
+    return 'trung bình $duration mỗi đêm';
+  }
+
+  @override
+  String get sleepShareToggle => 'Chia sẻ với người ấy';
+
+  @override
+  String get sleepShareToggleSub => 'Tắt thì chỉ mình bạn xem được.';
+
+  @override
+  String get sleepHowItWorks => 'App tính giấc ngủ thế nào?';
+
+  @override
+  String get sleepMyColor => 'Màu trăng của bạn';
+
+  @override
+  String sleepMyColorSub(String name, String color, String blocked) {
+    return '$name đang dùng màu $color. Màu quá giống ($blocked) bị khoá.';
+  }
+
+  @override
+  String sleepMyColorSubNoBlock(String name, String color) {
+    return '$name đang dùng màu $color.';
+  }
+
+  @override
+  String get sleepMyColorSolo => 'Màu này đánh dấu giấc ngủ của bạn ở mọi chỗ.';
+
+  @override
+  String sleepColorTakenSemantics(String name) {
+    return 'Màu của $name';
+  }
+
+  @override
+  String sleepColorTooClose(String name) {
+    return 'Quá giống màu của $name';
+  }
+
+  @override
+  String sleepColorAutoChanged(String color) {
+    return 'Màu bạn chọn trùng với người ấy nên tạm hiện màu $color.';
+  }
+
+  @override
+  String get sleepColorRose => 'Hồng';
+
+  @override
+  String get sleepColorPurple => 'Tím';
+
+  @override
+  String get sleepColorBlue => 'Xanh dương';
+
+  @override
+  String get sleepColorTeal => 'Ngọc';
+
+  @override
+  String get sleepColorOrange => 'Cam';
+
+  @override
+  String get sleepColorGreen => 'Xanh lá';
+
+  @override
+  String get sleepColorMagenta => 'Hồng sen';
+
+  @override
+  String get sleepColorAmber => 'Vàng nghệ';
+
+  @override
+  String get sleepLegend0 => 'dưới 5g';
+
+  @override
+  String get sleepLegend1 => '5–6g';
+
+  @override
+  String get sleepLegend2 => '6–7g';
+
+  @override
+  String get sleepLegend3 => '7–8g';
+
+  @override
+  String get sleepLegend4 => 'từ 8g';
+
+  @override
+  String get sleepMoonTagline => 'Trăng càng tròn, ngủ càng tròn giấc';
+
+  @override
+  String get sleepMoonLeft => 'Trăng trái: Bạn';
+
+  @override
+  String sleepMoonRight(String name) {
+    return 'Trăng phải: $name';
+  }
+
+  @override
+  String get sleepMoonTogether => 'Ngủ cùng lúc từ 7 tiếng';
+
+  @override
+  String get sleepPhase0 => 'Trăng lưỡi liềm';
+
+  @override
+  String get sleepPhase1 => 'Trăng non';
+
+  @override
+  String get sleepPhase2 => 'Trăng bán nguyệt';
+
+  @override
+  String get sleepPhase3 => 'Trăng gần tròn';
+
+  @override
+  String get sleepPhase4 => 'Trăng tròn';
+
+  @override
+  String sleepDaySemantics(String day, String summary) {
+    return 'Ngày $day: $summary';
+  }
+
+  @override
+  String sleepSemanticsSlept(String name, String duration, String phase) {
+    return '$name ngủ $duration, $phase';
+  }
+
+  @override
+  String sleepSemanticsNoData(String name) {
+    return '$name chưa có dữ liệu';
+  }
+
+  @override
+  String get sleepEditedSemantics => '(đã sửa)';
+
+  @override
+  String get sleepNoOverlapNight => 'Đêm này hai bạn không ngủ cùng lúc';
+
+  @override
+  String get sleepManualHint => 'Bấm nút sửa để ghi tay';
+
+  @override
+  String get sleepPartnerNightEmpty => 'Chưa có dữ liệu đêm này';
+
+  @override
+  String get sleepEditLocked => 'Đêm này quá 7 ngày rồi nên không sửa được nữa';
+
+  @override
+  String get sleepEditButton => 'Sửa giờ ngủ đêm này';
+
+  @override
+  String get sleepSetupTitle => 'Để điện thoại tự ghi giấc ngủ';
+
+  @override
+  String get sleepSetupBodyAndroid =>
+      'Mỗi sáng, app xem đêm qua bạn để điện thoại yên lâu nhất từ mấy giờ đến mấy giờ. App không đọc tin nhắn, ảnh hay bất kỳ nội dung nào.';
+
+  @override
+  String get sleepSetupBodyIos =>
+      'App đọc giấc ngủ mà iPhone hoặc Apple Watch đã ghi trong app Sức khoẻ. Chỉ đọc, không ghi gì vào đó.';
+
+  @override
+  String get sleepSetupUnsupported =>
+      'Máy này chưa tự ghi được giấc ngủ. Bạn vẫn ghi tay được, mỗi lần chỉ mất vài giây.';
+
+  @override
+  String get sleepSetupPoint1 => 'Không cần làm gì mỗi ngày';
+
+  @override
+  String get sleepSetupPoint2 => 'App đoán sai thì bạn sửa được';
+
+  @override
+  String get sleepSetupPoint3 => 'Chỉ chia sẻ khi bạn muốn';
+
+  @override
+  String get sleepSetupHintAndroid =>
+      'App sẽ mở Cài đặt → Quyền truy cập dữ liệu sử dụng. Bạn bật Dear Embeiu rồi quay lại đây nhé.';
+
+  @override
+  String get sleepSetupHintIos =>
+      'iPhone sẽ hỏi quyền đọc mục Giấc ngủ trong Sức khoẻ. Chưa có dữ liệu thì bật Lịch ngủ trong app Sức khoẻ.';
+
+  @override
+  String get sleepPermissionStillOff =>
+      'Dear Embeiu chưa được bật trong danh sách. Bạn thử lại nhé.';
+
+  @override
+  String get sleepGrantCta => 'Cấp quyền';
+
+  @override
+  String get sleepManualCta => 'Mình sẽ tự ghi';
+
+  @override
+  String sleepShareAskTitle(String name) {
+    return 'Cho $name xem giấc ngủ của bạn?';
+  }
+
+  @override
+  String get sleepShareAskBody =>
+      'Người ấy sẽ thấy bạn ngủ lúc mấy giờ, dậy lúc mấy giờ. Bạn tắt lúc nào cũng được.';
+
+  @override
+  String sleepShareAskPreview(String name) {
+    return '$name SẼ THẤY';
+  }
+
+  @override
+  String get sleepShareAskOnly => 'Chỉ giờ ngủ và giờ dậy, không có gì khác.';
+
+  @override
+  String get sleepShareAskCta => 'Chia sẻ với người ấy';
+
+  @override
+  String get sleepLater => 'Để sau';
+
+  @override
+  String get sleepBackToStep1 => 'Quay lại bước 1';
+
+  @override
+  String get sleepEditBedTitle => 'Đi ngủ';
+
+  @override
+  String get sleepEditWakeTitle => 'Thức dậy';
+
+  @override
+  String sleepEditTotal(String duration) {
+    return 'Tổng: $duration';
+  }
+
+  @override
+  String get sleepEditInvalid => 'Giấc ngủ cần dài từ 1 đến 16 tiếng';
+
+  @override
+  String get sleepDeleteNight => 'Xoá đêm này';
+
+  @override
+  String get sleepEditSubtitle => 'Sửa lại nếu app đoán chưa đúng.';
+
+  @override
+  String get sleepManualSubtitle => 'Ghi lại lúc bạn đi ngủ và lúc thức dậy.';
+
+  @override
+  String get sleepEditNote =>
+      'Lưu xong, đêm này mang nhãn “Đã sửa” (người ấy cũng thấy) và app không tự ghi đè nữa.';
+
+  @override
+  String get sleepManualNote =>
+      'Lưu xong, đêm này mang nhãn “Ghi tay”, người ấy cũng thấy.';
+
+  @override
+  String get sleepPickerSubtitle => 'Kéo để chọn giờ và phút';
+
+  @override
+  String get sleepSaveFailed => 'Chưa lưu được, thử lại nhé';
+
+  @override
+  String get sleepLoadFailed => 'Chưa tải được giấc ngủ của người ấy';
+
+  @override
+  String get sleepHowBody1 =>
+      'App coi khoảng điện thoại nằm yên lâu nhất trong đêm (từ 18h đến 14h hôm sau, ít nhất 3 tiếng) là giấc ngủ.';
+
+  @override
+  String get sleepHowBody1Ios =>
+      'App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h đến 14h hôm sau.';
+
+  @override
+  String get sleepHowBody2 =>
+      'Cầm máy dưới 5 phút giữa đêm chỉ tính là một lần thức giấc, giấc ngủ không bị cắt đôi.';
+
+  @override
+  String get sleepHowBody3 =>
+      'Đây chỉ là ước tính: nằm xem phim hay để quên máy ở xa đều làm số lệch. Bạn sửa được trong 7 ngày, và người ấy sẽ thấy nhãn “Đã sửa”.';
+
+  @override
+  String get sleepHowBody4 =>
+      'App không đọc nội dung nào trên máy, chỉ biết lúc màn hình bật hay tắt.';
+
+  @override
+  String get sleepHowBody4Ios =>
+      'App chỉ đọc mục Giấc ngủ trong Sức khoẻ, ngoài ra không đọc gì.';
+
+  @override
+  String get sleepGotIt => 'Đã hiểu';
+
+  @override
+  String get sleepIosHealthHint =>
+      'Bật *Lịch ngủ* trong app Sức khoẻ để iPhone tự ghi giấc ngủ.';
+
+  @override
+  String get sleepHintDismiss => 'Ẩn gợi ý';
+
+  @override
+  String get timePickerDefaultTitle => 'Chọn giờ nhắc';
+
+  @override
+  String get timePickerDefaultSubtitle => 'Kéo để chọn giờ và phút';
+
+  @override
+  String get timePickerConfirm => 'Xác nhận';
+
+  @override
+  String sleepHoursShort(int h) {
+    return '${h}g';
+  }
+
+  @override
+  String sleepHoursLong(int h) {
+    return '$h giờ';
+  }
 }

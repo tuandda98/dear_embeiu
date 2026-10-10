@@ -117,5 +117,5 @@ Theo `../CLAUDE.md` mục 11 (Product roadmap):
 
 *Khi tạo feature mới: copy `_templates/` (gồm `roadmap.md`) → `features/<ten-feature>/`, thêm dòng vào bảng phù hợp, xoá khỏi Backlog. Mỗi feature tự quản phase chi tiết trong `roadmap.md` của nó.*
 
-| sleep | Giấc ngủ của chúng mình — lịch tháng giấc ngủ 2 người, app tự ước tính (Android: lịch sử tắt màn hình · iOS: Apple Health), chia sẻ phải bật | P2 | 🎨 Design v1 xong — chờ PO overview → Dev ([design](features/sleep/design.md)) | 2026-10-10 |
+| sleep | Giấc ngủ của chúng mình — lịch trăng giấc ngủ 2 người, app tự ước tính (Android: lịch sử tắt màn hình · iOS: Apple Health), chia sẻ phải bật | P2 | 💻 **Dev Phase 1 xong (2026-10-11) → chờ 🧪 Tester** — analyze 0 · test 163/163 · rules 330 · rules DEV deployed · smoke Android DEV; còn smoke iOS/Health + 2 máy thật. PROD rules chờ lệnh ([dev](features/sleep/dev.md) · [design](features/sleep/design.md)) | 2026-10-11 |
 | rps-game | Oẳn tù tì realtime 2 người (rủ qua push · đếm 5s · lịch sử) | P1 | 🚀 Ship 1.7.0 — submit 2 store 2026-09-14, chờ duyệt | 2026-09-14 |
