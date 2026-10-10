@@ -3,7 +3,7 @@
 > Tester sở hữu. Đọc cả `design.md` + `dev.md`. CHỈ test, KHÔNG sửa code. Output: PASS hoặc FAIL (kèm bug report).
 > Agent Tester chỉ đọc được file, nên main session chép nguyên văn kết quả vào đây.
 
-- **Trạng thái test:** FAIL — vòng 2 code-level (2026-10-11): 0 chặn · 2 nên sửa (S2 nhánh rời couple · N1) · 5 nhỏ mới (N2–N6). Vòng 1: 0 chặn · 6 nên sửa · 10 nhỏ, đã vá. Dev đã vá vòng 2 (xem `dev.md` "vòng 2"), chờ Tester vòng 3.
+- **Trạng thái test:** FAIL — vòng 3 code-level (2026-10-11): 0 chặn · 1 nên sửa (N8 riêng tư) · 6 nhỏ (N7, N9–N13). Dev đã vá hết (xem `dev.md` "vòng 3"), chờ Tester vòng 4. Vòng 1, 2: đã vá.
 - **Người/role:** Master Tester
 
 ## Bug report (vòng 1)
@@ -115,3 +115,55 @@
 
 ### Nhật ký
 - [2026-10-11] [Tester] Vòng 2 code-level: analyze 0 · test 167/167 · rules-test 330 · chạy thử 17 ca biên. FAIL: 0 chặn, 2 nên sửa (S2 còn nhánh rời couple, N1 hồi quy), 5 nhỏ mới (N2–N6). S1/S3/S4/S5 đạt.
+
+## Vòng 3 — 2026-10-11 (code-level, HEAD 77c2cd9; code sleep giống 521245b, backend giống f62e907)
+
+- **Trạng thái test:** FAIL vòng 3: 0 chặn · 1 nên sửa (N8, riêng tư) · 6 nhỏ (N7, N9–N13). 9/9 lỗi vòng 2 đã vá ở code, S2 còn chờ test trên DEV.
+
+### Lỗi vòng 2 sau khi vá
+| # | Kết luận | Bằng chứng (file:line) | Ghi chú |
+|---|---|---|---|
+| S2 (A rời, B ở lại) | Đã vá ở code, chờ test DEV | `functions/index.js:411-447` (`notifyPartnerLeft`), `:2915-2922`, `:2997-3006` | Trigger chạy ở mọi lần couple từ 2 người còn 1, kể cả xoá tài khoản và app bản cũ. Luật `firestore.rules:290-303` bắt mọi lần rời phải đi qua chuyển trạng thái này. DEV: source `notifyPartnerLeft` lên lúc 19:02:36Z, `retry:false`. Còn sót: nhánh dự phòng khi callable `leaveCoupleCleanup` lỗi (`couple_service.dart:684-690`, `:752-778`) không xoá `sleep/`, cùng loại với notes/dailyAnswers đã ghi nợ. |
+| N1 | Đã vá | `sleep_provider.dart:414-426`, `:446-482`; `test/sleep_sync_test.dart` ca 2 | Harness H3: đêm đang đẩy dở mà xoá thì lệnh xoá vẫn được gửi. Còn một khe vài mili-giây (N12). |
+| N2 | Đã vá theo quyết định của user | `sleep_calculator.dart:176-194`, `:267-274`, `:279-281`; test `:185-244` | 3 ca của vòng 2 giờ ra đúng. Ca dev tự ghi nhận vẫn sai như cũ. Thêm một ca cùng họ: N11. |
+| N3 | Đã vá, có tác dụng phụ | `sleep_calculator.dart:129-138` | Hết pin 16:00→09:30 và máy bỏ quên 18:00→10:30 đều ra null. Nhưng khoảng > 16 tiếng chỉ cần chạm mép 0–5h là mất luôn đêm thật (N10). |
+| N4 | Đã vá | `sleep_provider.dart:539-555`, `:244-247` | Bấm liên tiếp thì công tắc giữ đúng lần bấm cuối. Bị từ chối: lệch một khoảnh khắc rồi tự đúng (H2). |
+| N5 | Đã vá | `sleep_provider.dart:456-459` | Ngoại lệ: máy còn giữ fingerprint cũ sau khi CF đã xoá đêm trên server (N9b). |
+| N6 | Đã vá | `app_vi.arb:2619`, `:2623`; `app_en.arb:3221`, `:3225` | Khớp thuật toán trên cả 2 nền tảng. |
+| `clear()` không reset `_shareOps` | Đã vá | `sleep_provider.dart:225-227` | H5: lệnh treo của tài khoản cũ không chặn tài khoản sau. |
+| Cache rỗng ghi đè màu | Đã vá, sinh hồi quy N7 | `sleep_service.dart:208-210` | |
+
+### Lỗi mới
+| # | Mức | Chỗ | Kịch bản → hậu quả | Gợi ý sửa |
+|---|---|---|---|---|
+| N8 | Nên sửa (riêng tư) | `sleep_provider.dart:543-555`, `:558-593` | Bấm bật chia sẻ khi offline (online cũng bị nếu đang đẩy vài trăm đêm), đổi ý bấm tắt. Lệnh tắt chỉ nằm trong chuỗi `_shareOps` ở bộ nhớ, xếp sau lệnh bật (harness: `setProfile(share:false)` chưa hề được gọi). Vuốt tắt app → lệnh bật đã vào hàng đợi lưu trên máy của Firestore nên vẫn lên server → mở lại: chia sẻ bật, đẩy toàn bộ đêm, người ấy thấy hết. | Gọi `setProfile` ngay trong `setShare`, Firestore tự giữ thứ tự ghi. Chỉ xếp tuần tự phần đẩy/xoá đêm. |
+| N7 | Nhỏ (hồi quy) | `sleep_service.dart:208-210` | Chưa có hồ sơ: snapshot "không có doc" từ cache bị lọc, server xác nhận chỉ là thay đổi metadata nên SDK không phát lại (đọc mã SDK iOS 12.15.0). `_myProfileLoaded` false cả phiên → `enableTracking` không ghi màu, mất luật "người sau Tím". | `snapshots(includeMetadataChanges: true)` và giữ bộ lọc. |
+| N9 | Nhỏ | `sleep_provider.dart:242-263`, `:567-574` | (a) Tắt chia sẻ rồi app bị tắt trước khi xoá xong: đêm nằm lại server, trái lời hứa "tắt thì xoá". (b) Người ấy rời đi, CF xoá đêm nhưng máy người ở lại giữ fingerprint → bật lại offline, app bị tắt, mở lại: không đêm nào được đẩy (H7). | Trong listener: server `share == false`, không có lệnh đang chờ, fingerprint còn → `deleteAllNights` rồi xoá fingerprint. |
+| N10 | Nhỏ (PO quyết) | `sleep_calculator.dart:132-136` | Hết pin 08:00, sạc 00:30, ngủ 00:45–07:30 → null. Ngủ 23:00–04:30, để máy ở nhà 04:59→21:01 (16g02p) → null. Hai đêm thật đều mất vì khoảng > 16 tiếng chỉ chạm mép 0–5h. | Chỉ bỏ cả đêm khi khoảng > 16 tiếng chứa mốc lõi (vd 02:30). |
+| N11 | Nhỏ (PO quyết) | `sleep_calculator.dart:156-172` | Máy hết pin 15:00, mở lại 23:20, xem 3 phút, ngủ 23:23–07:00 → app ghi 18:00–07:00 = 13 tiếng. | Khoảng tắt màn hình bắt đầu trước 18:00 không gộp vào khối sau qua lần cầm máy ≤ 5 phút. |
+| N12 | Nhỏ (lý thuyết) | `sleep_provider.dart:426-438` | Bấm xoá đúng lúc `_markPushing` đang ghi Hive: lệnh xoá đi trước lệnh đẩy (H4), đêm lên lại server. | Sau `await _markPushing`, bỏ các đêm đã thành dấu xoá. |
+| N13 | Nhỏ (hiếm) | `sleep_provider.dart:194-203` | Cùng tài khoản chuyển couple không qua `clear()`: `_myProfile`/`_pendingShare` của couple cũ còn nguyên, app đẩy đêm sang couple mới (rules từ chối). | Khi `!sameCouple` thì reset các trường này. |
+
+### Ghi chú khác của Tester
+- `planSync`/dấu `pushing` đúng 4 nhánh; khe lý thuyết: app bị tắt giữa lúc ghi `pushing` và lúc `put` vào hàng đợi → đêm cũ đó không bao giờ lên. Đêm gần đây bị đẩy trùng khi listener và `_applyShare` chạy cùng lúc (chỉ tốn lượt ghi).
+- `whenComplete` trên lệnh xoá đúng ý; lệch khi lệnh xoá nằm offline hơn 1 ngày (đêm quá 8 ngày bị rules giữ).
+- CF `notifyPartnerLeft`: thứ tự đúng, idempotent; nếu `set(share:false)` lỗi thì không ai thử lại (hiếm) — có thể tách sang trigger riêng bật retry.
+- Mốc 01:00: khối kết thúc đúng 01:00 coi là buổi tối (lệch 1 thời điểm, gần như không gặp).
+
+### Số liệu
+- `flutter analyze` (HEAD 77c2cd9): No issues found · `flutter test`: 208/208 (giấc ngủ 36) · `scripts/test-firebase-rules.sh`: 330 passing.
+- DEV `functions:list`: `notifyPartnerLeft` 19:02:36Z, `leaveCoupleCleanup` 18:22:23Z (trả lời câu hỏi "exit ?" của vòng 2), `deleteAccount` 19:20:27Z.
+
+### Cần test tay [CẦN TEST runtime]
+1. DEV, 2 máy (S2): A rời → `sleep/A` mất, `sleep/B.share == false`, `nights` rỗng, công tắc B về tắt; lặp lại với xoá tài khoản và người cuối rời.
+2. Người mới C ghép vào, B bật lại → đêm của B lên lại đủ.
+3. N8: máy bay → bật rồi tắt chia sẻ → vuốt tắt app → có mạng, mở lại: `share == false`.
+4. N1/N5: offline xoá đêm vừa quét, bật chia sẻ, vuốt tắt app → mở lại: đêm đã xoá không còn, đêm cũ đủ.
+5. N7: chưa có hồ sơ, bật theo dõi không chia sẻ → `sleep/{uid}` có `color`.
+6. Android thật: hết pin chiều rồi sạc lúc đi ngủ (N11); hết pin qua đêm; quên máy cả ngày (N10); ca đêm.
+7. iPhone thật: popup Sức khoẻ, có/không Watch, banner M; IPA có HealthKit; badge iOS.
+8. Online bấm công tắc 3 lần nhanh: không nhảy ngược.
+9. Màn 320dp, chữ 130%/200%, tiếng Anh.
+
+- [2026-10-11] [Tester] Vòng 3 code-level (HEAD 77c2cd9): analyze 0 · test 208/208 · rules-test 330 · 24 ca calculator + 8 ca harness provider. FAIL: 0 chặn, 1 nên sửa (N8), 6 nhỏ (N7, N9–N13).
+- [2026-10-11] [Dev → Tester] Đã vá N7–N13 (chi tiết `dev.md` "vòng 3"), thêm `test/sleep_provider_test.dart` (5 test, dựng từ harness của Tester) + 3 test calculator. Đã kiểm trên DEV thật: CF `notifyPartnerLeft` dọn đúng trong 3 giây (couple test). Chờ Tester vòng 4.

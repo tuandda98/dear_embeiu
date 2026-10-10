@@ -243,6 +243,41 @@ void main() {
     });
   });
 
+  group('edge cases (Tester round 3)', () {
+    test('a phone flat until 00:30 does not void the night after it', () {
+      final n = screenNight([
+        off(at(9, 8, 1)),
+        on(at(10, 0, 30)),
+        off(at(10, 0, 45)),
+        on(at(10, 7, 30)),
+      ])!;
+      expect(n.bedAt, at(10, 0, 45));
+      expect(n.wakeAt, at(10, 7, 30));
+    });
+
+    test('a phone left home from 05:00 keeps the night before it', () {
+      final n = screenNight([
+        off(at(9, 23)),
+        on(at(10, 4, 30)),
+        off(at(10, 4, 59)),
+        on(at(10, 21, 1)),
+      ], now: at(10, 21, 30))!;
+      expect(n.bedAt, at(9, 23));
+      expect(n.wakeAt, at(10, 4, 30));
+    });
+
+    test('idle since the afternoon + a 3-minute look is not a 13h night', () {
+      final n = screenNight([
+        off(at(9, 15)),
+        on(at(9, 23, 20)),
+        off(at(9, 23, 23)),
+        on(at(10, 7)),
+      ])!;
+      expect(n.bedAt, at(9, 23, 23));
+      expect(n.wakeAt, at(10, 7));
+    });
+  });
+
   group('Apple Health → night', () {
     test('awake gaps up to 30 min are awakenings inside one night', () {
       final r = computeHealthNights(

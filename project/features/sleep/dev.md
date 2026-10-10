@@ -78,3 +78,15 @@
   - Nhỏ: `clear()` reset hàng đợi chia sẻ (lệnh treo của tài khoản cũ không chặn tài khoản sau); `_applyShare` không đẩy đêm của tài khoản khác nếu đăng xuất giữa chừng, nhưng lệnh xoá khi tắt chia sẻ vẫn chạy; kiểm lại tài khoản sau `loadFingerprints`; stream hồ sơ bỏ qua snapshot "không có doc" lấy từ cache (cài lại app offline không còn ghi đè màu đã chọn).
   - Còn nợ: stream đêm của người ấy vẫn lấy 400 ngày; mô tả quyền Health chỉ tiếng Việt (app chưa có `InfoPlist.strings`); cài lại app khi đang chia sẻ thì card về A1.
   - Kiểm: calculator 32 test + sync 4 test pass · rules-test 330 · analyze sạch các file sleep.
+- [2026-10-11] [Dev] **Vá theo Tester vòng 3** (`test.md`):
+  - **N8 (riêng tư):** `setShare` ghi cờ ngay vào hàng đợi của Firestore (giữ thứ tự bấm, sống qua lúc app bị tắt); chỉ phần đẩy/xoá đêm còn xếp tuần tự trong `_shareOps`, chờ cờ của chính nó ghi xong. Trước đó lệnh "tắt" nằm trong bộ nhớ sau lệnh "bật" chưa xong → app bị tắt là lệnh "bật" thắng, người ấy thấy hết đêm.
+  - **N9:** listener hồ sơ: không chia sẻ + không có lệnh đang chờ + máy vẫn còn fingerprint → `deleteAllNights` rồi xoá fingerprint (`_clearShared`, xếp chung hàng đợi). Vá cả "tắt chia sẻ rồi app chết trước khi xoá xong" lẫn "CF tắt chia sẻ khi người ấy rời đi mà máy còn fingerprint cũ".
+  - **N7 (hồi quy vòng 2):** stream hồ sơ dùng `includeMetadataChanges: true` (server xác nhận "không có doc" là thay đổi metadata) + `distinct` để bỏ các sự kiện metadata khác.
+  - **N10:** khoảng > 16 tiếng chỉ làm mất cả đêm khi trùm qua 02:30; chạm mép thì chỉ bỏ khoảng đó (hết pin tới 00:30 rồi ngủ 00:45 vẫn ra đêm).
+  - **N11:** khoảng đã chạy từ trước 18:00 (máy để yên từ chiều, hết pin) không nuốt giấc ngủ qua một lần cầm máy ngắn (không còn "13 tiếng").
+  - **N12:** sau khi lưu dấu `pushing`, bỏ các đêm đã bị xoá/sửa trong lúc đó (`_stillLocal`), cả ở đồng bộ lẫn lúc bật chia sẻ.
+  - **N13:** đổi sang couple khác thì reset hồ sơ/lệnh chia sẻ đang chờ.
+  - Test: `test/sleep_provider_test.dart` (5 test provider đầu tiên, dựng từ harness của Tester: N8, N9, N1, N12, N13 — mỗi test đỏ trên code cũ) + 3 test calculator (tổng 35).
+  - Kiểm trên DEV thật (script `scratchpad/smoke/cf_leave_test.js` trên couple `test_couple_dev`, rồi chạy lại seed): A rời → `sleep/{A}` mất, `sleep/{B}` `share:false` giữ màu, nights 0 — sau 3 giây. Smoke Android DEV: bật/tắt chia sẻ trong 0,4 giây → công tắc không nhảy ngược, Firestore cuối cùng `share:true` + đêm lên lại; sheet "App tính thế nào?" hiện câu mới.
+  - Còn nợ: nhánh dự phòng khi `leaveCoupleCleanup` lỗi không xoá `sleep/` (cùng loại notes/dailyAnswers); CF `set(share:false)` lỗi thì không thử lại; stream 400 ngày; mô tả quyền Health chỉ tiếng Việt.
+  - Kiểm: analyze 0 · test 216/216.

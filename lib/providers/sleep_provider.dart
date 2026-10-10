@@ -56,6 +56,7 @@ class SleepProvider extends ChangeNotifier {
   bool? _pendingShare;
   int _shareSeq = 0;
   SleepProfile? _remoteProfile;
+  bool _clearingShared = false;
 
   /// Fingerprint of a night whose upload is on its way.
   static const String _kPushing = 'pushing';
@@ -194,6 +195,12 @@ class SleepProvider extends ChangeNotifier {
     if (!sameCouple) {
       _hydrated = false;
       _myProfileLoaded = false;
+      // Another couple: none of the old one's sharing state carries over.
+      _myProfile = null;
+      _remoteProfile = null;
+      _pendingShare = null;
+      _shareSeq++;
+      _shareOps = Future<void>.value();
       final fingerprints = await _service.loadFingerprints(myUid, coupleId);
       if (_uid != myUid || _coupleId != coupleId) {
         return;
@@ -248,6 +255,12 @@ class SleepProvider extends ChangeNotifier {
       _myProfileLoaded = true;
       notifyListeners();
       if (!myShare) {
+        // Not shared, yet this phone still has nights marked as up there: a
+        // delete that died with the app, or a partner leaving (the CF turned
+        // sharing off). Finish the job so "off" really means deleted.
+        if (pending == null && _fingerprints.isNotEmpty) {
+          _clearShared(coupleId, uid);
+        }
         return;
       }
       // Cold start: the scan may finish before this lands and skip the upload,
@@ -424,7 +437,7 @@ class SleepProvider extends ChangeNotifier {
       return;
     }
     await _markPushing(uid, coupleId, plan.pushes);
-    for (final night in plan.pushes) {
+    for (final night in plan.pushes.where(_stillLocal)) {
       // The real fingerprint only once the write lands: a failed put of a
       // recent night is retried on the next sync.
       unawaited(
@@ -466,6 +479,30 @@ class SleepProvider extends ChangeNotifier {
       }
     });
     return (pushes: pushes, deletes: deletes);
+  }
+
+  /// Deleted or edited while the markers were being saved: the sync that made
+  /// that change sends its own write, this stale one must not follow it.
+  bool _stillLocal(SleepNight night) =>
+      _local[night.date]?.fingerprint == night.fingerprint;
+
+  /// Server says "not shared" but nights may still sit there: delete them all
+  /// (one run at a time, queued with the share changes).
+  void _clearShared(String coupleId, String uid) {
+    if (_clearingShared) {
+      return;
+    }
+    _clearingShared = true;
+    _shareOps = _shareOps
+        .then((_) async {
+          await _service.deleteAllNights(coupleId, uid);
+          if (_uid == uid && _coupleId == coupleId) {
+            _fingerprints.clear();
+            await _service.saveFingerprints(uid, coupleId, _fingerprints);
+          }
+        })
+        .catchError((_) {})
+        .whenComplete(() => _clearingShared = false);
   }
 
   /// Marks nights as on their way up BEFORE writing them, so a delete issued
@@ -539,11 +576,17 @@ class SleepProvider extends ChangeNotifier {
     _pendingShare = share;
     final seq = ++_shareSeq;
     notifyListeners();
-    // Never awaited by the UI: offline, Firestore only acks once back online.
+    // The flag goes into Firestore's own write queue right away: that queue
+    // keeps the order of the taps and survives the app being killed. Held in
+    // memory behind a slow "on", an "off" would die with the app and the
+    // "on" would win.
+    final flag = _service.setProfile(coupleId, uid, share: share, color: color);
+    unawaited(flag.catchError((_) {})); // awaited (and handled) below
+    // Nights follow one share change at a time, so a quick off→on can't let
+    // the "delete everything" land after the re-upload. Never awaited by the
+    // UI: offline, Firestore only acks once back online.
     _shareOps = _shareOps
-        .then(
-          (_) => _applyShare(coupleId, uid, share, color).catchError((_) {}),
-        )
+        .then((_) => _applyShare(coupleId, uid, share, flag).catchError((_) {}))
         .whenComplete(() {
           if (seq != _shareSeq) {
             return; // a newer tap (or another account) took over
@@ -559,10 +602,10 @@ class SleepProvider extends ChangeNotifier {
     String coupleId,
     String uid,
     bool share,
-    String color,
+    Future<void> flag,
   ) async {
-    // Flag first, in its own commit: the rules read it with get().
-    await _service.setProfile(coupleId, uid, share: share, color: color);
+    // The flag lands first, in its own commit: the rules read it with get().
+    await flag;
     bool current() => _uid == uid && _coupleId == coupleId;
     if (!share) {
       await _service.deleteAllNights(coupleId, uid);
@@ -578,7 +621,7 @@ class SleepProvider extends ChangeNotifier {
     final nights = myNights.values.toList();
     await _markPushing(uid, coupleId, nights);
     await Future.wait([
-      for (final night in nights)
+      for (final night in nights.where(_stillLocal))
         _quiet(
           _service.putNight(coupleId, uid, night).then<void>((_) {
             if (current()) {

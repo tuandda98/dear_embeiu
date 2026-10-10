@@ -2,7 +2,7 @@
 
 > Kế hoạch chi tiết NỘI BỘ feature này (chia phase/version, thứ tự làm). Khác với `../../ROADMAP.md` (toàn cảnh mọi feature). PO sở hữu; cập nhật khi phạm vi feature đổi.
 
-- **Trạng thái feature:** 🧪 **Tester vòng 2 FAIL (0 chặn · 2 nên sửa · 5 nhỏ) → Dev đã vá 2026-10-11 → chờ Tester vòng 3** (analyze 0 · test 167/167 · rules-test 330 · rules + CF `deleteAccount`/`leaveCoupleCleanup` DEV deployed · smoke Android DEV). Còn thiếu: thử tay luồng iOS/Apple Health trên máy thật hoặc simulator. Chi tiết: `dev.md`. Mockup: https://claude.ai/artifact/9Gmj2jJViF5DPeBCNSmsvF · spec: `design.md`.
+- **Trạng thái feature:** 🧪 **Tester vòng 3 FAIL (0 chặn · 1 nên sửa riêng tư · 6 nhỏ) → Dev đã vá 2026-10-11 → chờ Tester vòng 4** (analyze 0 · test 167/167 · rules-test 330 · rules + CF `deleteAccount`/`leaveCoupleCleanup` DEV deployed · smoke Android DEV). Còn thiếu: thử tay luồng iOS/Apple Health trên máy thật hoặc simulator. Chi tiết: `dev.md`. Mockup: https://claude.ai/artifact/9Gmj2jJViF5DPeBCNSmsvF · spec: `design.md`.
 
 ## ▶️ BẮT ĐẦU PHIÊN DEV TỪ ĐÂY (handoff 2026-10-10)
 1. Đọc `design.md` (nguồn sự thật — mockup lệch thì spec thắng). `overview.md` PO chưa viết: phạm vi Phase 1 dưới đây là bản chốt tạm của Lead theo các quyết định user đã đưa trong `design.md` (Đầu vào · R1–R4 · màu riêng · lịch trăng).

@@ -10,8 +10,8 @@ import '../models/sleep_night.dart';
 /// off · iOS: asleep in Apple Health), fold short interruptions into the sleep
 /// (each counted as an awakening) and keep the longest block of 3–16 hours.
 /// A block that ends by 01:00 is an evening and only counts when nothing later
-/// does. A span over 16 hours is a phone left alone; across the deep night it
-/// voids the night. Nothing found → no night (never invented).
+/// does. A span over 16 hours is a phone left alone; across 02:30 it voids
+/// the night. Nothing found → no night (never invented).
 
 /// One screen transition from Android UsageStats (SCREEN_INTERACTIVE = on).
 class ScreenEvent {
@@ -125,13 +125,15 @@ SleepNight? computeNight({
 }) {
   final w = sleepWindow(wakeDate);
   final midnight = DateTime(wakeDate.year, wakeDate.month, wakeDate.day);
+  final deepNight = midnight.add(const Duration(hours: 2, minutes: 30));
   final clipped = <RestSpan>[];
+  DateTime? openEnd; // end of the span already running at 18:00
   for (final s in spans) {
     // Measured before clipping: a phone flat from 16:00 to 09:30 is not a
-    // 15-hour night. Over the deep night it hides the whole night.
+    // 15-hour night. Across 02:30 it hides the whole night; one that only
+    // brushes the night (flat until 00:30) is just dropped.
     if (s.length > rules.maxSleep) {
-      if (s.start.isBefore(midnight.add(const Duration(hours: 5))) &&
-          s.end.isAfter(midnight)) {
+      if (s.start.isBefore(deepNight) && s.end.isAfter(deepNight)) {
         return null;
       }
       continue;
@@ -140,6 +142,9 @@ SleepNight? computeNight({
     final end = s.end.isAfter(w.end) ? w.end : s.end;
     if (end.isAfter(start)) {
       clipped.add(RestSpan(start, end));
+      if (s.start.isBefore(w.start)) {
+        openEnd = end;
+      }
     }
   }
   if (clipped.isEmpty) {
@@ -155,7 +160,9 @@ SleepNight? computeNight({
   var wakeUps = <DateTime>[];
   for (final s in clipped.skip(1)) {
     final gap = s.start.difference(end);
-    if (gap <= rules.mergeGap) {
+    // A phone idle since the afternoon (or flat) never absorbs the night
+    // through a short look before bed.
+    if (gap <= rules.mergeGap && end != openEnd) {
       if (gap >= rules.noise) {
         wakeUps.add(end);
       }
