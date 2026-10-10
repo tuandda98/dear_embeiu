@@ -168,3 +168,51 @@ Sau khi thêm mặt trời+mây, chúng chen vào dải header → vầng nắng
 - **i18n:** +43 key (`loveTree*` v3 + `homeConstellation*`), xoá 11 key không còn dùng (`loveTreeNurture*`, `loveTreeMilestonesTitle`, `loveTreeMilestoneBloomed`, `loveTreeTapHint`, `loveTreeBloomSubtitle`) — gồm 2 câu từng bị đánh dấu nói sai cơ chế ("Mỗi tấm ảnh là một bông hoa mới", "Cùng trò chuyện…").
 - **Lối vào:** `openLoveTree(context)` dùng chung cho StreakChip và nút Home.
 - **Kiểm:** analyze 0 · test 167/167 · chạy thật Android emulator DEV: nút Home "0/6 sao" → Cây: trời đêm + trăng + chòm sao 0/6 + cành hoa + đom đóm; chạm sao Tâm trạng → panel → "Chia sẻ ngay" mở bộ chọn ngay trên Cây → chọn "Bình yên" → sao sáng, "1/6", panel "Bình yên · 0:35", nút Home "1/6 sao"; khối Bông tiếp theo / Việc nhỏ hôm nay / Cột mốc đã nở hiển thị đúng; cuộn qua trời thì thanh trạng thái có dải mờ. Chưa thử: chế độ cả 6 sao (trái tim khép + lấp lánh), iOS, Reduce Motion, tiếng Anh.
+
+## [2026-10-11] [Dev] Vá v3 theo Tester vòng 1 — sẵn sàng test lại
+- [2026-10-11] [Dev] Vá 11/12 lỗi trong bảng Tester vòng 1 (`test.md`). #9 phiên khác đã sửa ARB; #7 cố ý để lại. Thuần client: không đụng ARB, rules, functions, backend, nên không có gì phải deploy.
+
+**Đã sửa (file:dòng sau khi sửa)**
+- **#1 Tràn chữ ở "Việc nhỏ hôm nay"**: `love_tree_screen.dart:1838`. Text trạng thái bọc `Flexible` + `maxLines: 1` + ellipsis. Chú giải "Nửa phải: <tên>" (`today_constellation.dart:687`, `_LegendItem`) cũng tràn 14px ở 320dp chữ 130% với tên 23 ký tự. Lỗi có từ 7768dd4, test mới bắt được, vá cùng cách.
+- **#2 Nhãn 2 sao Tâm trạng**: `today_constellation.dart:369` (`label()`). Nhãn Tâm trạng nằm ngay dưới vùng chạm 44 của sao (`top: dy + 22`), căn giữa theo sao, kẹp trong khung 260. Cách làm: `Positioned` dính mép gần + `minWidth = 2 × khoảng cách tới mép`, nên không cần đo chữ. Nhãn Câu hỏi/Nhắn tin vẫn nằm cạnh sao nhưng rộng theo chữ, không còn ô 64px. Đã bỏ hẳn `softWrap:false` và `overflow: visible`. Đường viền tim vẫn đi sát chữ "g" của "trạng" (bên phải là "Tâ"). Đã render 5× để soát: chữ vẫn đọc rõ, không đè sao. Có thử thêm quầng màu trời quanh chữ nhưng không thấy khác biệt nên bỏ.
+- **#3 Semantics**: thêm `onTap` cho sao (`:339`, hàm `toggle` dùng chung với GestureDetector), nút × (`:666`, `close`) và `ConstellationPill` (`:875`, `open`).
+- **#4 Thanh trạng thái**: `love_tree_screen.dart:324-326`, `AnnotatedRegion` + `_systemBars()` (`:63`, chép style toàn app trong `main.dart`, chỉ đổi màu icon). Icon sáng khi `!_pastSky && ModalRoute.isCurrent`. Bị màn khác che (vd Gửi lời quan tâm) thì về tối, vì nếu không thì style sáng dính sang màn đó (cả app không có `AnnotatedRegion` nào khác). Route đang pop không được rebuild, nên `dispose()` (`:258`) trả style tối. Màn Giấc ngủ (`sleep_screen.dart:411`) không cần: `#2E2A52` là màu thẻ lịch trăng nằm dưới header, trong `SafeArea`. Vùng dưới thanh trạng thái ở đó vẫn là nền dawnBlush sáng.
+- **#5 Qua 0:00**: tách `TodayConstellation.from(...)` (`today_constellation.dart:103`), là hàm thuần nhận `now` + `questionDay`. Sao Câu hỏi chỉ sáng khi `dq.dateKey == DailyQuestionService.dateKey(now)` (`:137`). Thêm `MidnightBuilder` (`:169`): hẹn `Timer` tới nửa đêm rồi tự hẹn lại, rebuild thêm khi app resume (đồng hồ có thể trễ khi máy ngủ), huỷ Timer + observer trong `dispose`. Section, thẻ Việc nhỏ (`love_tree_screen.dart:1824`) và pill dùng chung helper này.
+- **#6 Tiêu đề Home**: pill rút còn trái tim mini + "n/6" (`today_constellation.dart:905`, rộng 72,3px). Cạnh tiêu đề 264px thì ở 360dp cần 344,3px, chỉ có 328; ở 375dp thiếu 1,3px. Vì vậy pill chuyển xuống dưới tiêu đề, căn phải (`home_screen.dart:1863-1870`). Semantics vẫn đọc câu đầy đủ `homeConstellationSemantics`. Đã sửa ghi chú sai "390–411pt".
+- **#8 Vùng chạm**: chip "Cột mốc đã nở" `minHeight` 36→44 (`love_tree_screen.dart:2036`). Nút × 40→44 (`today_constellation.dart:671`).
+- **#10 Hiệu năng**: `RepaintBoundary` quanh CustomPaint trời (`love_tree_screen.dart:3369`) và quanh cành hoa `_TreeHero` (`:546`). Cành có hoa lắc + đom đóm vẽ lại mỗi khung, nên bọc riêng trời thì nội dung vẫn bị vẽ lại 60 lần/giây. Ticker `_ambient` dừng khi `_pastSky` và chạy lại khi cuộn lên (`:344-346`). Bật Reduce Motion thì không chạy lại.
+- **#11 Mood lạ**: `today_constellation.dart:586`. Nhãn rỗng thì chỉ hiện giờ ("8:12"); không có cả giờ thì hiện `loveTreeStarDone`.
+- **#12 Test**: `test/today_constellation_test.dart`, 22 test:
+  - bảng chân trị 64 tổ hợp;
+  - `from()`: ngày câu hỏi lệch, câu trả lời chỉ có khoảng trắng, tin nhắn hôm qua và tin đang gửi;
+  - `MidnightBuilder` rebuild khi tới nửa đêm và khi resume;
+  - nhãn sao (vi/en × 320/360 × 100/130%): trong màn, nhãn Tâm trạng trong khung 260, không đè sao;
+  - thẻ Việc nhỏ với tên 23 ký tự (320/360/390 × 100/130%): không tràn;
+  - Semantics tap trên sao, nút × và pill;
+  - ticker dừng khi cuộn qua trời;
+  - icon thanh trạng thái: sáng, cuộn qua thì tối, bị che thì tối, quay lại thì sáng, đóng màn thì tối.
+  - Test dùng font Quicksand thật (FontLoader). Đã thử bỏ 3 chỗ sửa (dừng ticker, `isCurrent`, trả style ở `dispose`): test tương ứng đều đỏ.
+
+**Số đo (widget test, Quicksand thật)**
+- #1: không tràn ở cả 6 cấu hình. Chữ trạng thái người ấy rộng 84/65 (320dp, chữ 100/130%), 124/105 (360dp), 154/135 (390dp). Tên 23 ký tự bị cắt "…" ở mọi cấu hình.
+- #2 vi:
+  - Nhãn Tâm trạng trái nằm ở 0–62,8 trong khung (chữ 130%: 0–81), phải ở 197,2–260 (130%: 179–260), y 126–142 (130%: 126–147).
+  - Khe nhãn↔sao nhỏ nhất 7px (100%), 2px (130%).
+  - Lề màn nhỏ nhất 30px (320dp) và 18,6px (320dp, 130%).
+- #2 en: "Mood" căn giữa đúng sao (13,3–46,7). Lề màn nhỏ nhất 7,1px ("Question", 320dp, 130%).
+- #6: ở 360/375/390dp chữ 100%, tiêu đề 1 dòng (264px trên 328/343/358). Chữ 130%: tiêu đề tự rớt dòng ở 360/375 vì riêng nó đã rộng 344,5px. 390dp chữ 130% vẫn 1 dòng.
+
+**Không làm**
+- #7 (cửa sổ 50 tin): nợ đã biết. Nếu mở app nguội khi người ấy đã nhắn ≥50 tin kể từ tin cuối hôm nay của mình, sao Nhắn tin của mình tắt dù mình đã nhắn. Cách vá khi cần: tin cũ nhất trong cửa sổ vẫn thuộc hôm nay và còn `hasMore` thì truy vấn riêng 1 tin của mình tính từ đầu ngày.
+- Gốc lỗi #5 ở provider: `DailyQuestionProvider` chỉ sang ngày mới khi Home gọi lại `watchForCouple`. Sau 0:00 sao Câu hỏi đã tắt đúng. Nhưng nếu người ấy trả lời câu của ngày mới mà Home chưa rebuild, sao chưa sáng ngay. Thực tế CF ghi inbox, inbox đổi làm Home rebuild và gọi lại `watchForCouple`. Không đụng provider vì ngoài phạm vi.
+
+**Ghi chú cho PO/Tester**
+- Key `homeConstellationPill` ("{lit}/6 sao") giờ không còn chỗ gọi. Chưa xoá vì brief cấm đụng ARB.
+- `CLAUDE.md` §2 còn ghi "nút n/6 sao cạnh tiêu đề", giờ là pill "n/6" dưới tiêu đề.
+- Tên dài trong thẻ Việc nhỏ bị cắt mất luôn chữ "· chưa"/"✓", chỉ còn chấm rỗng/đặc báo trạng thái. Muốn giữ chữ trạng thái thì cắt riêng phần tên (khoảng 6 dòng).
+
+**Lệnh đã chạy**
+- `flutter analyze` (cả project, cây thật): No issues found.
+- `flutter test` (cây thật): 205/205.
+- Bản export HEAD + 4 file của tôi: analyze sạch, 189/189. Dựng bản này vì giữa chừng có phiên khác sửa dở `auth_service.dart` + ARB chưa gen.
+- Không commit, không push.

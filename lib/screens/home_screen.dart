@@ -1857,15 +1857,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             _gutter(
               _entrance(
                 3,
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: SectionHeader(title: l10n.homeTodaySectionTitle),
-                    ),
-                    // Love Tree v3 entry: today's constellation count.
+                    SectionHeader(title: l10n.homeTodaySectionTitle),
+                    // Love Tree v3 entry: today's constellation count. Under
+                    // the title — beside it the title wraps below ~390dp.
                     if (!couple.isWaitingForPartner) ...[
-                      const SizedBox(width: 8),
-                      ConstellationPill(onTap: () => openLoveTree(context)),
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ConstellationPill(
+                          onTap: () => openLoveTree(context),
+                        ),
+                      ),
                     ],
                   ],
                 ),

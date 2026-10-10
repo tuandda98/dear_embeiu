@@ -59,6 +59,15 @@ Season seasonForMonth(int month) {
 const double _kShareCardWidth = 360.0;
 const double _kShareCardExportWidth = 1080.0;
 
+/// The app-wide system bars (main.dart), status-bar icons light on the sky.
+SystemUiOverlayStyle _systemBars({required bool onSky}) => SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  statusBarIconBrightness: onSky ? Brightness.light : Brightness.dark,
+  statusBarBrightness: onSky ? Brightness.dark : Brightness.light,
+  systemNavigationBarColor: Colors.transparent,
+  systemNavigationBarIconBrightness: Brightness.dark,
+);
+
 /// Resolves the photo behind a `photos` milestone of [value] (the `value`-th
 /// OLDEST photo). [PhotoProvider.sortedPhotos] runs newest→oldest, so the
 /// `value`-th oldest sits at `length - value`. Returns null when the server
@@ -130,7 +139,7 @@ class _TreeData {
   final LoveTreeStage stage;
 }
 
-/// Opens the Love Tree (StreakChip on the counter, the "4/6 sao" pill on Home).
+/// Opens the Love Tree (StreakChip on the counter, the "4/6" pill on Home).
 void openLoveTree(BuildContext context) {
   Navigator.of(context).push(
     MaterialPageRoute<void>(
@@ -204,7 +213,6 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     duration: const Duration(milliseconds: 700),
   );
 
-
   @override
   void initState() {
     super.initState();
@@ -246,6 +254,8 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
 
   @override
   void dispose() {
+    // A popping route isn't rebuilt, so its light icons would outlive it.
+    SystemChrome.setSystemUIOverlayStyle(_systemBars(onSky: false));
     _ambient?.dispose();
     _confetti.dispose();
     super.dispose();
@@ -308,77 +318,91 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
       ),
     );
 
-    return Container(
-      decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            NotificationListener<ScrollUpdateNotification>(
-              onNotification: (n) {
-                final skyHeight = _skyKey.currentContext?.size?.height ?? 900;
-                final past =
-                    n.metrics.pixels >
-                    skyHeight - MediaQuery.paddingOf(context).top - 40;
-                if (past != _pastSky) {
-                  setState(() => _pastSky = past);
-                }
-                return false;
-              },
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.only(
-                  bottom: 32 + MediaQuery.paddingOf(context).bottom,
-                ),
-                child: _buildBody(
-                context,
-                l10n,
-                  header: header,
-                  couple: couple,
-                  photo: photo,
-                  reduceMotion: reduceMotion,
-                  ambient: ambient,
-                  data: data,
+    // Light status-bar icons while the navy sky is under them; dark again once
+    // it scrolls away or a screen is pushed on top (main.dart sets the style
+    // once — nothing else would restore it).
+    final onSky = !_pastSky && (ModalRoute.of(context)?.isCurrent ?? true);
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: _systemBars(onSky: onSky),
+      child: Container(
+        decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
+            children: [
+              NotificationListener<ScrollUpdateNotification>(
+                onNotification: (n) {
+                  final skyHeight = _skyKey.currentContext?.size?.height ?? 900;
+                  final past =
+                      n.metrics.pixels >
+                      skyHeight - MediaQuery.paddingOf(context).top - 40;
+                  if (past != _pastSky) {
+                    setState(() => _pastSky = past);
+                    // Nothing animated is on screen once the sky is gone.
+                    if (past) {
+                      _ambient?.stop();
+                    } else if (!AppMotion.reduceMotion(context)) {
+                      _ambient?.repeat();
+                    }
+                  }
+                  return false;
+                },
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.only(
+                    bottom: 32 + MediaQuery.paddingOf(context).bottom,
+                  ),
+                  child: _buildBody(
+                    context,
+                    l10n,
+                    header: header,
+                    couple: couple,
+                    photo: photo,
+                    reduceMotion: reduceMotion,
+                    ambient: ambient,
+                    data: data,
+                  ),
                 ),
               ),
-            ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: MediaQuery.paddingOf(context).top,
-              child: IgnorePointer(
-                child: AnimatedOpacity(
-                  opacity: _pastSky ? 1 : 0,
-                  duration: reduceMotion ? Duration.zero : AppMotion.fast,
-                  child: ClipRect(
-                    child: BackdropFilter(
-                      filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                      child: ColoredBox(
-                        color: AppColors.white.withValues(alpha: 0.45),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: MediaQuery.paddingOf(context).top,
+                child: IgnorePointer(
+                  child: AnimatedOpacity(
+                    opacity: _pastSky ? 1 : 0,
+                    duration: reduceMotion ? Duration.zero : AppMotion.fast,
+                    child: ClipRect(
+                      child: BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        child: ColoredBox(
+                          color: AppColors.white.withValues(alpha: 0.45),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
 
-            // Off-screen render target for the share card. Positioned far off
-            // the visible area so it lays out at its fixed logical size but is
-            // never seen — captured to a PNG on demand.
-            if (_renderingShareCard && _shareCardData != null)
-              Positioned(
-                left: -3000,
-                top: 0,
-                child: RepaintBoundary(
-                  key: _shareCardKey,
-                  child: _LoveTreeShareCard(
-                    width: _kShareCardWidth,
-                    data: _shareCardData!,
+              // Off-screen render target for the share card. Positioned far off
+              // the visible area so it lays out at its fixed logical size but is
+              // never seen — captured to a PNG on demand.
+              if (_renderingShareCard && _shareCardData != null)
+                Positioned(
+                  left: -3000,
+                  top: 0,
+                  child: RepaintBoundary(
+                    key: _shareCardKey,
+                    child: _LoveTreeShareCard(
+                      width: _kShareCardWidth,
+                      data: _shareCardData!,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -515,23 +539,27 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
                   onNudge: () => openCareMessageScreen(context),
                 ),
               ),
+              // Swaying flowers + fireflies repaint every frame: own layer so
+              // the constellation and cards around them don't.
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _TreeHero(
-                  stage: data.stage,
-                  reached: reached,
-                  newFromIndexInReached: flowerCount - newCount,
-                  reduceMotion: reduceMotion,
-                  confetti: _confetti,
-                  season: _season,
-                  ambient: ambient,
-                  anniversary: data.couple.anniversaryDate,
-                  photoProvider: photo,
-                  // Coach mark: only when eligible (flag not set) AND there
-                  // are flowers to point at; delayed past any bloom.
-                  showCoach: _coachEligible && flowerCount > 0,
-                  hasNewBlooms: hasNewBlooms,
-                  onCoachDismissed: _dismissCoach,
+                child: RepaintBoundary(
+                  child: _TreeHero(
+                    stage: data.stage,
+                    reached: reached,
+                    newFromIndexInReached: flowerCount - newCount,
+                    reduceMotion: reduceMotion,
+                    confetti: _confetti,
+                    season: _season,
+                    ambient: ambient,
+                    anniversary: data.couple.anniversaryDate,
+                    photoProvider: photo,
+                    // Coach mark: only when eligible (flag not set) AND there
+                    // are flowers to point at; delayed past any bloom.
+                    showCoach: _coachEligible && flowerCount > 0,
+                    hasNewBlooms: hasNewBlooms,
+                    onCoachDismissed: _dismissCoach,
+                  ),
                 ),
               ),
             ],
@@ -1793,25 +1821,39 @@ class _TodayTasksCard extends StatelessWidget {
   final void Function(CareTask task) onAct;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => MidnightBuilder(builder: _build);
+
+  Widget _build(BuildContext context) {
     final l10n = context.l10n;
     final sky = TodayConstellation.watch(context);
     final sleep = context.watch<SleepProvider>();
     final myColor = PersonPalette.colorOf(sleep.myColorId);
     final partnerColor = PersonPalette.colorOf(sleep.partnerColorId);
 
+    const statusStyle = TextStyle(
+      color: AppColors.textSecondary,
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+    );
+    // Only a long name gives way; "✓" / "· chưa" always stays readable (both
+    // strings start with the name, so an empty name leaves just the suffix).
     Widget status(String name, bool done, Color color) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         _Dot(color: color, filled: done),
         const SizedBox(width: 5),
-        Text(
-          done ? l10n.loveTreeTaskDone(name) : l10n.loveTreeTaskPending(name),
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+        Flexible(
+          child: Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: statusStyle,
           ),
+        ),
+        Text(
+          done ? l10n.loveTreeTaskDone('') : l10n.loveTreeTaskPending(''),
+          maxLines: 1,
+          style: statusStyle,
         ),
       ],
     );
@@ -1852,11 +1894,7 @@ class _TodayTasksCard extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         status(l10n.reactionYouLabel, mine, myColor),
-                        status(
-                          partnerName,
-                          sky.lit(false, task),
-                          partnerColor,
-                        ),
+                        status(partnerName, sky.lit(false, task), partnerColor),
                       ],
                     ),
                   ],
@@ -2003,7 +2041,7 @@ class _BloomedChipsState extends State<_BloomedChips> {
                     );
                   },
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 36),
+                    constraints: const BoxConstraints(minHeight: 44),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -3332,9 +3370,12 @@ class _NightSky extends StatelessWidget {
               painter: SkyBackdropPainter(topInset: top, t: clock.value),
             ),
           );
+    // Own layer: the twinkle repaints every frame, the page on top shouldn't.
     return Stack(
       children: [
-        Positioned.fill(child: IgnorePointer(child: sky)),
+        Positioned.fill(
+          child: IgnorePointer(child: RepaintBoundary(child: sky)),
+        ),
         child,
       ],
     );

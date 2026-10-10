@@ -57,3 +57,82 @@ R1 animation nở mượt + đúng tập bông mới · R2 confetti emit canopy 
 
 ### CẦN smoke-test thiết bị (runtime)
 1 Trời 4 khung giờ (đổi giờ máy)+đêm sao/đom-đóm · 2 Mùa 4 mùa (đổi tháng) · 3 OS Reduce Motion: 0 động thực tế · 4 Khoe cây (header+banner): share OS thật, PNG 4:5 nét, iPad popover · 5 Deep-link CTA Gallery: pop về Home đúng tab+đúng ảnh, watcher không vỡ · 6 Bloom animation lần đầu + không lặp (lastSeen) · 7 photoCount>ảnh-đã-load: ẩn gọn không crash
+
+## [2026-10-11] [Tester] Nghiệm thu v3 "Chòm sao hôm nay" vòng 1 (code-level, commit 7768dd4) — VERDICT: FAIL
+
+`flutter analyze` (Flutter 3.41.6): No issues found · `flutter test`: 167/167. Repo chưa có test cho `TodayConstellation`. Tester chạy thêm probe nháp ngoài repo (font Quicksand thật, 320–414dp, chữ 100%/130%, vi/en): bảng chân trị `segments` 64/64, `watch()`, Semantics, layout.
+Tổng: 0 Chặn · 5 Nên sửa · 7 Nhỏ.
+
+### Lỗi
+| # | Mức | Chỗ (file:line) | Kịch bản → hậu quả | Gợi ý sửa |
+|---|---|---|---|---|
+| 1 | Nên sửa | `lib/screens/love_tree_screen.dart:1803-1817` (`status()` trong `_TodayTasksCard`) | Dòng "<tên> · chưa" là Text trong Row không co giãn, nên không xuống dòng. Probe (việc của mình chưa làm, còn nút "Làm ngay"): 360dp tràn từ tên 14 ký tự ("Phương Anh Thư" +11px); 375pt từ 16 ký tự; 393pt từ 17 ký tự; 412dp với 23 ký tự +26px; 320dp với "Minh Anh" +8px; 360dp chữ 130% với "Minh Anh" +14px. Bản debug hiện sọc vàng-đen, bản release chữ đè lên nút. Tên người ấy không giới hạn độ dài (rules chỉ đòi khác rỗng). | Bọc Text bằng `Flexible` + `maxLines: 1`, `overflow: TextOverflow.ellipsis`. |
+| 2 | Nên sửa | `lib/widgets/today_constellation.dart:284-308` (`label()`); sao Tâm trạng ở `:149`, `:154` | Nhãn 2 sao Tâm trạng nằm lòi ra ngoài khung 260px tới 58px mỗi bên, kèm `softWrap:false` + `overflow: visible`. Probe: 360dp (cỡ Android phổ biến) cắt khoảng 7px ở cả hai mép (chữ vẽ từ −6,7 tới 367); 320dp cắt 27px; 375pt chỉ cách mép 0,5px. Chữ 130%: 360dp vừa bị cắt vừa đè lên sao trái (chữ kéo tới x=73, sao sáng chiếm 67–93); 390pt cắt 10px. Tiếng Anh không bị. | Đặt nhãn 2 sao Tâm trạng ngay dưới sao, căn giữa, nằm trong khung 260; bỏ `overflow: visible`. |
+| 3 | Nên sửa | `lib/widgets/today_constellation.dart:243-251` (sao), `:559-563` (nút ×), `:757-760` (`ConstellationPill`) | `Semantics(excludeSemantics: true)` không có `onTap`, nên node mất luôn thao tác tap của GestureDetector/InkWell bên trong. Probe: cả 3 node `hasAction(tap) == false`. Gửi `SemanticsAction.tap` vào sao thì panel không mở; chạm tay thì mở. Người dùng TalkBack/VoiceOver khó mở panel và không tới được "Gửi lời quan tâm". Pill Home cũng vậy (còn StreakChip làm lối vào phụ). Repo đã có cách làm đúng ở `home_screen.dart:2050-2057`. | Thêm `onTap:` vào 3 node Semantics, gọi cùng hàm với widget con. |
+| 4 | Nên sửa | `lib/main.dart:61-67`; `lib/screens/love_tree_screen.dart:311-315` | Toàn app đặt icon thanh trạng thái màu tối. Màn Cây không có `AnnotatedRegion`, dù từ v3 đỉnh màn LUÔN là navy `#2E2A52`. Giờ, pin, sóng màu tối trên nền tối cho tương phản khoảng 1,6:1 (tính với icon đen). v2 chỉ bị từ 19h đến 5h, v3 bị cả ngày. [Suy luận từ code + tính tương phản] | Bọc màn bằng `AnnotatedRegion<SystemUiOverlayStyle>`: `light` khi chưa cuộn qua trời, `dark` khi `_pastSky`. Màn Giấc ngủ cũng dùng `#2E2A52` (`sleep_screen.dart:411`), nên soát luôn. |
+| 5 | Nên sửa | `lib/widgets/today_constellation.dart:110-128`; `lib/providers/daily_question_provider.dart:158-183, 197-214`; `lib/screens/home_screen.dart:1646-1661` | Sao Câu hỏi đọc câu trả lời của `_dateKey` chốt lúc `watchForCouple`. Ngày chỉ đổi khi Home rebuild, mà Home chỉ watch Chat + Inbox. Kịch bản: để màn Cây mở qua 0:00, hoặc để app chạy nền qua đêm không ai nhắn rồi mở lại buổi sáng. Lần rebuild đầu (vd `SleepProvider.onResume`) đưa sao Tâm trạng và Nhắn tin về 0. Riêng 2 sao Câu hỏi, cạnh đỉnh tim và dòng "Bạn ✓" ở "Trả lời câu hỏi hôm nay" vẫn theo hôm qua, nên dễ tưởng đã trả lời. Không có hẹn giờ 0:00, nên trước lần rebuild đó cả trái tim đứng yên. Gốc lỗi kế thừa từ provider (thẻ câu hỏi ở Home cũng không so ngày), nhưng v3 hứa "0:00 làm lại" (D-v3-1). | Trong `watch()`, sao Câu hỏi chỉ sáng khi `dq.dateKey == DailyQuestionService.dateKey(now)`. Thêm Timer tới 0:00 cho section và pill. |
+| 6 | Nhỏ | `lib/screens/home_screen.dart:1860-1871`; ghi chú `today_constellation.dart:744-746` | Tiêu đề "Hôm nay của chúng mình" (22px w700) rộng 264px. Đứng cạnh pill 105px, nó chỉ vừa 1 dòng khi màn từ 409dp trở lên. Probe: ở 360/375/390 chữ "mình" rớt xuống dòng 2; tới 411 mới gọn 1 dòng. Kết quả này ngược với ghi chú "vừa ở 390–411pt". iPhone 12–16 (390–402pt) đều bị rớt. | Rút pill còn hình tim + "n/6", hoặc đặt pill xuống dưới tiêu đề. |
+| 7 | Nhỏ | `today_constellation.dart:95-108`; `chat_provider.dart:30, 232-233` | Sao Nhắn tin chỉ thấy cửa sổ 50 tin mới nhất. Nếu mở app nguội sau khi người kia nhắn từ 50 tin trở lên kể từ tin cuối hôm nay của mình, sao của mình tắt dù mình đã nhắn. [Suy luận từ code] | Khi tin cũ nhất trong cửa sổ vẫn thuộc hôm nay và còn `hasMore`, truy vấn riêng 1 tin của mình tính từ đầu ngày. |
+| 8 | Nhỏ | `love_tree_screen.dart:2005-2006`; `today_constellation.dart:566-568` | Chip "Cột mốc đã nở" cao 36px, nút × của panel rộng 40px. Cả hai dưới mức 44. | Đặt minHeight/width 44. |
+| 9 | Nhỏ | `lib/l10n/app_vi.arb:1264`, dùng ở `love_tree_screen.dart:1508` | Khi chưa có hoa, tiêu đề là key cũ "Hai bạn vừa gieo hạt mầm đầu tiên…", nằm ngay trên các câu xưng "chúng mình". | Đổi thành "Chúng mình vừa gieo hạt mầm đầu tiên…". |
+| 10 | Nhỏ | `love_tree_screen.dart:3327-3334`, `:283` | Bầu trời vẽ lại mỗi khung hình mà không có `RepaintBoundary`. Vì vậy cả nội dung cuộn (cành hoa, các thẻ, sao có blur) cũng vẽ lại 60 lần/giây. Đồng hồ vẫn chạy cả khi trời đã cuộn khỏi màn. Cách vẽ này có từ v2, không phải hồi quy. | Thêm `RepaintBoundary` quanh CustomPaint trời; tắt ticker khi `_pastSky`. |
+| 11 | Nhỏ | `today_constellation.dart:485-487`; `mood_card.dart:38-39` | Gặp khoá tâm trạng lạ (bản app mới hơn thêm mood), `moodLabel` trả chuỗi rỗng, nên panel hiện " · 08:12". | Nếu nhãn rỗng thì chỉ hiện giờ, hoặc dùng `loveTreeStarDone`. |
+| 12 | Nhỏ | `today_constellation.dart:61-139`; thư mục `test/` | `segments` và `watch()` là lõi của v3 nhưng repo chưa có test nào. | Đưa bảng chân trị 64 tổ hợp (probe của Tester) vào `test/`. |
+
+### Đã kiểm, đạt
+- **Logic "hôm nay"** [code + probe]:
+  - Câu hỏi: câu trả lời phải có chữ, chỉ khoảng trắng thì không tính.
+  - Tâm trạng: chỉ tính doc có `date` là hôm nay; mood hôm qua thì tắt.
+  - Nhắn tin: tính tin có `createdAt` hôm nay theo giờ máy; tin đang gửi tính là vừa xong.
+  - Tin chuyển từ love note giữ giờ gốc, nên chỉ love note gửi trong hôm nay mới được tính.
+  - Probe cho đúng kỳ vọng: sao Câu hỏi của mình tắt khi chỉ có khoảng trắng, của người ấy sáng. Tâm trạng của mình tắt (của hôm qua), của người ấy sáng. Nhắn tin của mình sáng (tin đang gửi), của người ấy tắt (tin lúc 23:59 hôm qua).
+- **`segments`**: 64/64 tổ hợp khớp mô tả. Đỉnh sáng khi cả hai trả lời, đáy sáng khi cả hai nhắn, cạnh sáng khi 2 sao kề nhau của cùng một người cùng sáng. Không có đoạn nào sáng sớm. Cả 8 đoạn chỉ cùng sáng khi đủ 6/6 sao.
+- **Điều hướng**:
+  - Không có `pushNamed('/home')`. Câu hỏi và Nhắn tin đi qua `NotificationTapRouter` + `maybePop()`; Home consume ngay nên lần sau gán lại cùng giá trị vẫn chạy.
+  - Đi trả lời câu hỏi thì về Home tab 0 và cuộn tới thẻ câu hỏi. Đi Chat rồi bấm back thì về Home (`_previousIndex`).
+  - Tâm trạng mở sheet ngay trên màn Cây; đóng sheet vẫn ở Cây.
+  - "Gửi lời quan tâm" mở CareMessageScreen; back về Cây.
+  - Các provider nằm ở `MultiProvider` gốc (`main.dart:278-311`), nên route con đọc được.
+- **Vòng đời và hiệu năng rebuild**:
+  - `build()` của màn chỉ watch Couple/Streak/Photo. DQ/Mood/Chat/Sleep chỉ được watch trong section, thẻ Việc nhỏ và pill, nên tin nhắn mới không rebuild cả màn.
+  - `context.watch` chỉ nằm trong build. `shouldRepaint` của tim và sao đúng.
+  - `_ambient` và `_confetti` được dispose. Listener cuộn chỉ `setState` khi vượt ngưỡng.
+- **Reduce Motion**: trời tĩnh, đom đóm tĩnh, hoa không lắc, confetti tắt. AnimatedSwitcher và dải mờ thanh trạng thái có thời lượng 0. EntranceReveal bỏ hiệu ứng.
+- **Tương phản và vùng chạm**:
+  - Chữ trắng (α .72–1) trên nền #2E2A52–#4A3D6B đều đọc rõ. Viền sao chưa thắp đạt khoảng 5,6:1.
+  - Mỗi sao là nút 44×44, các vùng chạm không chồng nhau.
+  - Nhãn Semantics có dạng "<ai> · <việc> · <trạng thái>", kèm `selected`.
+- **UI biên đạt**:
+  - Panel "Gửi lời quan tâm" không tràn ở 320dp chữ 130%, kể cả với tên 31 ký tự. Chú thích "Nửa phải: <tên>" cũng không tràn.
+  - Tiếng Anh không cắt nhãn và không tràn thẻ (đo ở 375/390).
+  - Chưa ghép đôi: màn hiện trạng thái chờ, pill Home ẩn.
+  - Chưa có hoa: không coach, không chip, vẫn có "Bông tiếp theo".
+  - Đủ 6 sao: tim được tô, có sparkle ở mũi tim, hiện "Trái tim hôm nay đã sáng trọn" (mới kiểm ở code).
+- **i18n**:
+  - 2 ARB cùng 1035 key. Placeholder của các key `loveTree*`/`homeConstellation*` khớp metadata. File sinh có đủ 1035 getter.
+  - 11 key đã xoá không còn chỗ gọi trong `lib/`, `test/`, `functions/`.
+  - Không có chữ viết cứng. Copy v3 tự nhiên, xưng "chúng mình", không có "hai đứa".
+- **Bảo mật**:
+  - Không đụng rules, functions hay collection nào; chỉ đọc các stream có sẵn.
+  - Sao Câu hỏi của người ấy sáng trước khi mình trả lời cũng không lộ gì mới, vì thẻ câu hỏi vốn đã có teaser. Thứ duy nhất lộ thêm là giờ người ấy trả lời.
+- **Firebase vs local**: nhánh local không có người ấy, couple luôn ở trạng thái chờ. Màn Cây hiện trạng thái chờ, pill ẩn, không lỗi.
+
+### Biết trước, không tính lỗi v3
+- Hai máy khác múi giờ: mỗi sao tính "hôm nay" theo một mốc khác nhau.
+  - Câu hỏi theo `dateKey` của máy người xem.
+  - Tâm trạng theo `date` do máy người ấy ghi.
+  - Nhắn tin theo ngày của máy người xem.
+  - Vì vậy quanh nửa đêm, nửa phải có thể lệch. Lỗi kế thừa từ DQ/Mood.
+
+### [CẦN TEST runtime]
+1. Android 360dp, tiếng Việt: nhãn "Tâm trạng" hai bên có bị cắt không; thử lại với chữ 130%.
+2. Tên người ấy 15–23 ký tự: xem thẻ "Việc nhỏ hôm nay" trên iPhone 390pt và Android 360dp (bản release: chữ có đè nút "Làm ngay" không).
+3. Đỉnh màn Cây trên iOS và Android: giờ/pin có đọc được trên nền navy không, và sau khi cuộn qua trời thì sao.
+4. TalkBack và VoiceOver: nhấn đúp vào một ngôi sao, vào nút ×, vào pill "n/6 sao" ở Home.
+5. Qua nửa đêm: để màn Cây mở từ 23:58 tới 00:02. Rồi để app chạy nền qua đêm (không ai nhắn), mở lại buổi sáng và xem sao Câu hỏi cùng thẻ Việc nhỏ.
+6. Home trên iPhone 390–402pt: tiêu đề "Hôm nay của chúng mình" có rớt chữ "mình" không.
+7. Đủ 6 sao trên máy thật; iOS; bật Reduce Motion trong cài đặt hệ thống.
+8. Android tầm trung: bật performance overlay, đo khi đứng yên trên Cây và khi đã cuộn xuống dưới.
+9. Hai máy thật: B nhắn tin, đổi tâm trạng, trả lời câu hỏi → nửa phải trên máy A sáng tức thì; thử thêm tin đang gửi lúc offline.
+
+- [2026-10-11] [Dev → Tester] Dev đã vá 11/12 lỗi vòng 1 (#7 ghi nợ; #9 sửa ở ARB), thêm `test/today_constellation_test.dart` (22 test, font Quicksand thật). Chờ Tester vòng 2. Chi tiết: `dev.md` 2026-10-11.

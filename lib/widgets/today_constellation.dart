@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,11 +8,15 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
+import '../models/chat_message.dart';
+import '../models/daily_answer.dart';
+import '../models/mood.dart';
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/daily_question_provider.dart';
 import '../providers/mood_provider.dart';
 import '../providers/sleep_provider.dart';
+import '../services/daily_question_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/person_palette.dart';
@@ -77,12 +83,33 @@ class TodayConstellation {
 
   /// Reads today's state from the live providers (rebuilds with them).
   static TodayConstellation watch(BuildContext context) {
-    final uid = context.read<AuthProvider>().currentUser?.id;
     final dq = context.watch<DailyQuestionProvider>();
     final mood = context.watch<MoodProvider>();
-    final chat = context.watch<ChatProvider>();
+    return from(
+      myUid: context.read<AuthProvider>().currentUser?.id,
+      now: DateTime.now(),
+      questionDay: dq.dateKey,
+      myAnswer: dq.myAnswer,
+      partnerAnswer: dq.partnerAnswer,
+      myMood: mood.myMood,
+      partnerMood: mood.partnerMood,
+      messages: context.watch<ChatProvider>().messages,
+    );
+  }
 
-    final now = DateTime.now();
+  /// Pure core of [watch]. [questionDay] is the day the answers belong to:
+  /// the provider only moves to a new day when Home re-arms it, so past 0:00
+  /// it can still hold yesterday's answers — those must not light today.
+  static TodayConstellation from({
+    required String? myUid,
+    required DateTime now,
+    required String questionDay,
+    DailyAnswer? myAnswer,
+    DailyAnswer? partnerAnswer,
+    Mood? myMood,
+    Mood? partnerMood,
+    List<ChatMessage> messages = const [],
+  }) {
     bool isToday(DateTime t) {
       final l = t.toLocal();
       return l.year == now.year && l.month == now.month && l.day == now.day;
@@ -92,12 +119,12 @@ class TodayConstellation {
     // message has no server time yet but was obviously sent just now).
     CareStar? myMsg;
     CareStar? theirMsg;
-    for (final msg in chat.messages) {
+    for (final msg in messages) {
       final at = msg.createdAt ?? (msg.isPending ? now : null);
       if (at == null || !isToday(at)) {
         continue;
       }
-      if (msg.authorUserId == uid) {
+      if (msg.authorUserId == myUid) {
         myMsg ??= CareStar(lit: true, at: at);
       } else {
         theirMsg ??= CareStar(lit: true, at: at);
@@ -107,14 +134,11 @@ class TodayConstellation {
       }
     }
 
-    final myAnswer = dq.myAnswer;
-    final theirAnswer = dq.partnerAnswer;
-    final myMood = mood.myMood;
-    final theirMood = mood.partnerMood;
+    final questionToday = questionDay == DailyQuestionService.dateKey(now);
     const off = CareStar(lit: false);
     return TodayConstellation(
       mine: {
-        CareTask.question: myAnswer?.hasText == true
+        CareTask.question: questionToday && myAnswer?.hasText == true
             ? CareStar(lit: true, at: myAnswer!.answeredAt)
             : off,
         CareTask.mood: myMood == null
@@ -123,20 +147,76 @@ class TodayConstellation {
         CareTask.message: myMsg ?? off,
       },
       partner: {
-        CareTask.question: theirAnswer == null
-            ? off
-            : CareStar(lit: true, at: theirAnswer.answeredAt),
-        CareTask.mood: theirMood == null
+        CareTask.question: questionToday && partnerAnswer != null
+            ? CareStar(lit: true, at: partnerAnswer.answeredAt)
+            : off,
+        CareTask.mood: partnerMood == null
             ? off
             : CareStar(
                 lit: true,
-                at: theirMood.updatedAt,
-                moodKey: theirMood.mood,
+                at: partnerMood.updatedAt,
+                moodKey: partnerMood.mood,
               ),
         CareTask.message: theirMsg ?? off,
       },
     );
   }
+}
+
+/// Rebuilds [builder] at every local midnight — "today" rolls over even when
+/// no provider changes — and on app resume, since a timer can run late while
+/// the device sleeps.
+class MidnightBuilder extends StatefulWidget {
+  const MidnightBuilder({super.key, required this.builder});
+
+  final WidgetBuilder builder;
+
+  @override
+  State<MidnightBuilder> createState() => _MidnightBuilderState();
+}
+
+class _MidnightBuilderState extends State<MidnightBuilder>
+    with WidgetsBindingObserver {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _arm();
+  }
+
+  void _arm() {
+    _timer?.cancel();
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    _timer = Timer(midnight.difference(now), _roll);
+  }
+
+  void _roll() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
+    _arm();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _roll();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(context);
 }
 
 // Geometry of the 260×216 heart (design v3 §3), shared by the big view and the
@@ -222,7 +302,9 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
   ({bool mine, CareTask task})? _selected;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => MidnightBuilder(builder: _build);
+
+  Widget _build(BuildContext context) {
     final l10n = context.l10n;
     final sky = TodayConstellation.watch(context);
     final sleep = context.watch<SleepProvider>();
@@ -237,6 +319,11 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
       final isLit = sky.lit(mine, task);
       final selected = _selected?.mine == mine && _selected?.task == task;
       final who = mine ? l10n.reactionYouLabel : widget.partnerName;
+      void toggle() {
+        HapticFeedback.selectionClick();
+        setState(() => _selected = selected ? null : (mine: mine, task: task));
+      }
+
       return Positioned(
         left: pos.dx - 22,
         top: pos.dy - 22,
@@ -249,14 +336,10 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
             isLit ? l10n.loveTreeStarLit : l10n.loveTreeStarUnlit,
           ),
           excludeSemantics: true,
+          onTap: toggle,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              setState(
-                () => _selected = selected ? null : (mine: mine, task: task),
-              );
-            },
+            onTap: toggle,
             child: Container(
               width: 44,
               height: 44,
@@ -281,29 +364,45 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
       );
     }
 
+    // Beside the star, except the mood stars: they sit near the box edges, so
+    // theirs goes under the star — centred on it, kept inside the box.
     Widget label(bool mine, CareTask task) {
       final pos = (mine ? _kMine : _kPartner)[task]!;
-      const width = 64.0;
-      return Positioned(
-        left: mine ? pos.dx - 24 - width : pos.dx + 24,
-        top: pos.dy - 8,
-        width: width,
-        child: ExcludeSemantics(
-          child: Text(
-            _starLabel(l10n, task),
-            textAlign: mine ? TextAlign.right : TextAlign.left,
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.visible,
-            style: TextStyle(
-              color: sky.lit(mine, task)
-                  ? AppColors.white
-                  : AppColors.white.withValues(alpha: 0.72),
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              height: 16 / 12,
-            ),
+      final text = ExcludeSemantics(
+        child: Text(
+          _starLabel(l10n, task),
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: sky.lit(mine, task)
+                ? AppColors.white
+                : AppColors.white.withValues(alpha: 0.72),
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            height: 16 / 12,
           ),
+        ),
+      );
+      if (task != CareTask.mood) {
+        return Positioned(
+          left: mine ? null : pos.dx + 24,
+          right: mine ? _kBox.width - pos.dx + 24 : null,
+          top: pos.dy - 8,
+          child: text,
+        );
+      }
+      final edge = mine ? pos.dx : _kBox.width - pos.dx;
+      return Positioned(
+        left: mine ? 0 : null,
+        right: mine ? null : 0,
+        top: pos.dy + 22,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minWidth: edge * 2,
+            maxWidth: _kBox.width,
+          ),
+          child: text,
         ),
       );
     }
@@ -482,9 +581,12 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
         CareTask.mood => l10n.loveTreeStarNoMood,
         CareTask.message => l10n.loveTreeStarNoMessage,
       };
-    } else if (sel.task == CareTask.mood && star.moodKey != null) {
-      final mood = moodLabel(l10n, star.moodKey!);
-      sub = time.isEmpty ? mood : l10n.loveTreeStarMoodAt(mood, time);
+    } else if (sel.task == CareTask.mood) {
+      // An unknown key (a newer app's mood) has no label: show just the time.
+      final mood = star.moodKey == null ? '' : moodLabel(l10n, star.moodKey!);
+      sub = mood.isEmpty
+          ? (time.isEmpty ? l10n.loveTreeStarDone : time)
+          : (time.isEmpty ? mood : l10n.loveTreeStarMoodAt(mood, time));
     } else if (time.isEmpty) {
       sub = l10n.loveTreeStarDone;
     } else {
@@ -512,6 +614,7 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
       );
     }
 
+    void close() => setState(() => _selected = null);
     return Container(
       key: ValueKey('${sel.mine}-${sel.task}'),
       padding: const EdgeInsets.fromLTRB(12, 10, 0, 10),
@@ -560,11 +663,12 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
             button: true,
             label: l10n.loveTreeClosePanel,
             excludeSemantics: true,
+            onTap: close,
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: () => setState(() => _selected = null),
+              onTap: close,
               child: SizedBox(
-                width: 40,
+                width: 44,
                 height: 44,
                 child: Icon(
                   IconsaxPlusLinear.close_circle,
@@ -596,12 +700,16 @@ class _LegendItem extends StatelessWidget {
         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
       const SizedBox(width: 6),
-      Text(
-        text,
-        style: TextStyle(
-          color: AppColors.white.withValues(alpha: 0.84),
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+      Flexible(
+        child: Text(
+          text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: AppColors.white.withValues(alpha: 0.84),
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     ],
@@ -741,23 +849,30 @@ class _HeartPainter extends CustomPainter {
       old.full != full || !listEquals(old.segments, segments);
 }
 
-/// Home entry next to "Hôm nay của chúng mình": a mini heart of dots + "4/6
-/// sao" — opens the Love Tree. No chevron (like the StreakChip) so the 22px
-/// section title still fits on one line at 390–411pt.
+/// Home entry under "Hôm nay của chúng mình": a mini heart of dots + "4/6" —
+/// opens the Love Tree. The full sentence is the semantics label.
 class ConstellationPill extends StatelessWidget {
   const ConstellationPill({super.key, required this.onTap});
 
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => MidnightBuilder(builder: _build);
+
+  Widget _build(BuildContext context) {
     final l10n = context.l10n;
     final sky = TodayConstellation.watch(context);
     final sleep = context.watch<SleepProvider>();
+    void open() {
+      HapticFeedback.selectionClick();
+      onTap();
+    }
+
     return Semantics(
       button: true,
       label: l10n.homeConstellationSemantics(sky.litCount),
       excludeSemantics: true,
+      onTap: open,
       child: Material(
         color: AppColors.white.withValues(alpha: 0.72),
         shape: StadiumBorder(
@@ -767,13 +882,10 @@ class ConstellationPill extends StatelessWidget {
         elevation: 2,
         child: InkWell(
           customBorder: const StadiumBorder(),
-          onTap: () {
-            HapticFeedback.selectionClick();
-            onTap();
-          },
+          onTap: open,
           child: Container(
             height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -788,9 +900,9 @@ class ConstellationPill extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Text(
-                  l10n.homeConstellationPill(sky.litCount),
+                  '${sky.litCount}/6',
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 13,
