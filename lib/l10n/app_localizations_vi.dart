@@ -1623,6 +1623,31 @@ class AppLocalizationsVi extends AppLocalizations {
       'Có lỗi khi xác thực tài khoản. Bạn thử lại nhé.';
 
   @override
+  String get continueWithApple => 'Tiếp tục với Apple';
+
+  @override
+  String get appleConsentPrefix => 'Khi tiếp tục với Apple, bạn đồng ý với';
+
+  @override
+  String get authOrDivider => 'hoặc';
+
+  @override
+  String get appleSignInFailed =>
+      'Chưa đăng nhập được với Apple. Bạn thử lại nhé.';
+
+  @override
+  String get appleEmailHasPasswordAccount =>
+      'Email này đã có tài khoản. Đăng nhập bằng mật khẩu nhé.';
+
+  @override
+  String get deleteAccountAppleNote =>
+      'Sau đó Apple sẽ hiện hộp đăng nhập để xác nhận đó là bạn.';
+
+  @override
+  String get deleteAccountReauthBodyApple =>
+      'Vì lý do bảo mật, bạn xác nhận lại với Apple để xoá tài khoản vĩnh viễn.';
+
+  @override
   String get authFirebaseUserCreateFailed =>
       'Chưa tạo được tài khoản, bạn thử lại nhé.';
 
@@ -2024,7 +2049,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guestCtaBody => 'Đăng nhập để ghép đôi & lưu ảnh chung.';
 
   @override
-  String get guestCtaSignIn => 'Đăng nhập';
+  String get guestCtaSignIn => 'Đăng nhập bằng email';
 
   @override
   String get guestCtaRegister => 'Đăng ký';

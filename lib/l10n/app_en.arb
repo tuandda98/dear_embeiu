@@ -963,6 +963,34 @@
   "@authFirebaseAuthGeneric": {
     "description": "authFirebaseAuthGeneric"
   },
+  "continueWithApple": "Continue with Apple",
+  "@continueWithApple": {
+    "description": "Sign in with Apple button label (iOS only, pairing-funnel PF2)"
+  },
+  "appleConsentPrefix": "By continuing with Apple, you agree to our",
+  "@appleConsentPrefix": {
+    "description": "Implied-consent line under the Apple button, followed by a space, the privacyPolicyLabel link and a period"
+  },
+  "authOrDivider": "or",
+  "@authOrDivider": {
+    "description": "Label in the divider between the email form and the Apple button"
+  },
+  "appleSignInFailed": "Couldn't sign in with Apple. Please try again.",
+  "@appleSignInFailed": {
+    "description": "Generic Sign in with Apple error"
+  },
+  "appleEmailHasPasswordAccount": "This email already has an account. Sign in with your password instead.",
+  "@appleEmailHasPasswordAccount": {
+    "description": "Apple returned an email that already belongs to a password account (PF6)"
+  },
+  "deleteAccountAppleNote": "Apple will then show a sign-in sheet to confirm it's you.",
+  "@deleteAccountAppleNote": {
+    "description": "Extra line in the delete-account dialog for Apple accounts, warning that the Apple sheet comes next"
+  },
+  "deleteAccountReauthBodyApple": "For your security, confirm with Apple again to permanently delete your account.",
+  "@deleteAccountReauthBodyApple": {
+    "description": "Body of the re-auth dialog for Apple accounts (no password field)"
+  },
   "authFirebaseUserCreateFailed": "Couldn't create your account. Please try again.",
   "@authFirebaseUserCreateFailed": {
     "description": "authFirebaseUserCreateFailed"
@@ -1417,7 +1445,7 @@
   "@guestCtaBody": {
     "description": "Body of the conversion CTA card on the guest screen"
   },
-  "guestCtaSignIn": "Sign in",
+  "guestCtaSignIn": "Sign in with email",
   "@guestCtaSignIn": {
     "description": "CTA button returning to the login screen"
   },

@@ -25,6 +25,15 @@ class AuthException implements Exception {
   String toString() => message;
 }
 
+/// Sign in with Apple hit an email that already belongs to a password account
+/// (pairing-funnel PF6 — no account linking). [email] lets the Sign in form
+/// prefill it; null when Firebase didn't say which email.
+class AppleEmailHasPasswordException extends AuthException {
+  const AppleEmailHasPasswordException(super.message, {this.email});
+
+  final String? email;
+}
+
 /// Cutoff for mandatory email verification (feature auth, Đợt 1 — D-auth2).
 ///
 /// Only accounts created on/after this instant are hard-gated behind email
@@ -304,6 +313,69 @@ class AuthService {
     return signedInUser;
   }
 
+  /// Sign in with Apple (pairing-funnel PF1 — iOS only, Firebase only; the
+  /// button is hidden everywhere else). Firebase drives the native Apple sheet.
+  /// First sign-in creates `users/{uid}` like [getCurrentUser] does, later
+  /// ones refresh it like [signIn]; Apple accounts skip email verification
+  /// (PF3). `isNewUser` = a profile was just created (analytics sign_up vs
+  /// login). Throws [AuthException]: the `'apple-canceled'` sentinel when the
+  /// user closes the sheet, [AppleEmailHasPasswordException] for PF6,
+  /// otherwise localized copy.
+  Future<({AppUser user, bool isNewUser})> signInWithApple() async {
+    if (!isUsingFirebase) {
+      throw AuthException(AppL10n.strings.appleSignInFailed);
+    }
+
+    try {
+      // Without both scopes Apple shares neither the email nor the name.
+      final credential = await _auth.signInWithProvider(
+        AppleAuthProvider()
+          ..addScope('email')
+          ..addScope('name'),
+      );
+
+      final firebaseUser = credential.user;
+      if (firebaseUser == null) {
+        throw AuthException(AppL10n.strings.appleSignInFailed);
+      }
+      // Rules require a non-empty, immutable `email`. Apple always shares one
+      // (real or private relay), so an empty one means the profile write is
+      // doomed — don't leave a half-signed-in user behind.
+      final email = firebaseUser.email?.trim().toLowerCase() ?? '';
+      if (email.isEmpty) {
+        await _auth.signOut();
+        throw AuthException(AppL10n.strings.appleSignInFailed);
+      }
+
+      await _ensureFirebaseSessionReady(firebaseUser);
+
+      final existingProfile = await _userService.fetchUserProfile(firebaseUser.uid);
+      if (existingProfile != null) {
+        final user = await _ensureInviteCode(_buildSignInProfile(
+          firebaseUser: firebaseUser,
+          fallbackEmail: email,
+          existingProfile: existingProfile,
+        ));
+        await _userService.updateUserProfile(user);
+        return (user: user, isNewUser: false);
+      }
+
+      final user = await _ensureInviteCode(_buildFirebaseProfile(firebaseUser));
+      await _userService.saveUserProfile(user);
+      return (user: user, isNewUser: true);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'account-exists-with-different-credential') {
+        throw AppleEmailHasPasswordException(
+          AppL10n.strings.appleEmailHasPasswordAccount,
+          email: e.email,
+        );
+      }
+      throw AuthException(_mapAppleAuthError(e));
+    } on FirebaseException catch (e) {
+      throw AuthException(_mapFirestoreError(e));
+    }
+  }
+
   Future<void> signOut() async {
     if (isUsingFirebase) {
       await _auth.signOut();
@@ -363,10 +435,11 @@ class AuthService {
 
   /// True only when the current Firebase user is a post-cutoff account that has
   /// NOT yet verified its email (D-auth2). Local-fallback always returns false
-  /// (no email infra, D-auth3); Google/Apple users are verified on creation so
-  /// they return false too. Grandfathered accounts (created before the cutoff)
-  /// also return false. Uses `!creationTime.isBefore(cutoff)` so the cutoff
-  /// instant itself counts as in-scope.
+  /// (no email infra, D-auth3). Only password accounts are gated (PF3): Apple
+  /// users never see the gate, whatever `emailVerified` says. Grandfathered
+  /// accounts (created before the cutoff) also return false. Uses
+  /// `!creationTime.isBefore(cutoff)` so the cutoff instant itself counts as
+  /// in-scope.
   bool get requiresEmailVerification {
     if (!isUsingFirebase) {
       return false;
@@ -375,11 +448,29 @@ class AuthService {
     if (user == null || user.emailVerified) {
       return false;
     }
+    if (!user.providerData.any((info) => info.providerId == 'password')) {
+      return false;
+    }
     final creationTime = user.metadata.creationTime;
     if (creationTime == null) {
       return false;
     }
     return !creationTime.isBefore(kEmailVerificationCutoff);
+  }
+
+  /// True when the signed-in user can only sign in with Apple (PF5): account
+  /// deletion confirms through the Apple sheet instead of a password.
+  bool get isAppleOnlyAccount {
+    if (!isUsingFirebase) {
+      return false;
+    }
+    final user = _auth.currentUser;
+    return user != null && _isAppleOnly(user);
+  }
+
+  static bool _isAppleOnly(User user) {
+    final providers = user.providerData.map((info) => info.providerId);
+    return providers.contains('apple.com') && !providers.contains('password');
   }
 
   /// Sends a password-reset email (feature auth, Đợt 1). D-auth4: to avoid
@@ -528,6 +619,10 @@ class AuthService {
     // client is permitted to delete directly under the security rules. Running
     // it as admin also avoids the `requires-recent-login` challenge that a
     // client-side FirebaseUser.delete() would hit.
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser != null && _isAppleOnly(firebaseUser)) {
+      await _confirmAppleDeletion(firebaseUser);
+    }
     try {
       // Robustness (app-robustness C): bound the callable so the delete flow
       // can't hang forever behind a stuck network. 60s is generous on purpose —
@@ -551,6 +646,31 @@ class AuthService {
     }
 
     await purgePersistedSession();
+  }
+
+  /// PF5 — an Apple account confirms deletion in the Apple sheet. That mints a
+  /// fresh credential (so the callable won't hit a stale session) and a
+  /// one-time `authorizationCode` (~5 min) used to revoke the app's Apple token
+  /// before the account goes. Closing the sheet throws `'apple-canceled'` and
+  /// nothing is deleted.
+  Future<void> _confirmAppleDeletion(User firebaseUser) async {
+    try {
+      final credential =
+          await firebaseUser.reauthenticateWithProvider(AppleAuthProvider());
+      final code = credential.additionalUserInfo?.authorizationCode;
+      if (code != null && code.isNotEmpty) {
+        try {
+          await _auth.revokeTokenWithAuthorizationCode(code);
+        } catch (e) {
+          // Fails until the Sign in with Apple key is set up in Firebase — the
+          // account must still be deletable (PF5).
+          debugPrint('AuthService Apple token revoke failed: $e');
+        }
+      }
+      await firebaseUser.getIdToken(true);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(_mapAppleAuthError(e));
+    }
   }
 
   Future<void> updateCurrentUser(AppUser user) async {
@@ -657,15 +777,56 @@ class AuthService {
     return AppUser(
       id: firebaseUser.uid,
       email: firebaseUser.email?.trim().toLowerCase() ?? '',
-      displayName: firebaseUser.displayName?.trim().isNotEmpty == true
-          ? firebaseUser.displayName!.trim()
-          : (firebaseUser.email?.split('@').first ?? AppL10n.strings.defaultDisplayName),
+      displayName: profileDisplayName(
+        firebaseName: firebaseUser.displayName,
+        email: firebaseUser.email,
+      ),
       inviteCode: '',
       status: 'single',
       createdAt: now,
       updatedAt: now,
       lastSeenAt: now,
     );
+  }
+
+  /// Display name for a profile built from the Firebase user (PF4). Rules
+  /// reject an empty one, so this never returns ''. Order: the name Firebase
+  /// has (Apple fills it on the first sign-in), else the part of the email
+  /// before @ — skipped for Apple's hidden relay address, whose random local
+  /// part means nothing to a partner — else [defaultDisplayName].
+  @visibleForTesting
+  static String profileDisplayName({String? firebaseName, String? email}) {
+    final name = firebaseName?.trim() ?? '';
+    if (name.isNotEmpty) {
+      return name;
+    }
+    final address = email?.trim() ?? '';
+    final localPart = address.split('@').first;
+    if (localPart.isNotEmpty &&
+        !address.toLowerCase().endsWith('@privaterelay.appleid.com')) {
+      return localPart;
+    }
+    return AppL10n.strings.defaultDisplayName;
+  }
+
+  /// Sign in with Apple failures → l10n copy (pairing-funnel design §2). Closing
+  /// the Apple sheet maps to the `'apple-canceled'` sentinel so the UI stays
+  /// silent. PF6 (`account-exists-with-different-credential`) is handled by the
+  /// caller, which needs the email.
+  String _mapAppleAuthError(FirebaseAuthException exception) {
+    switch (exception.code) {
+      case 'canceled':
+      case 'web-context-canceled':
+        return 'apple-canceled';
+      case 'network-request-failed':
+        return AppL10n.strings.authNetworkError;
+      default:
+        // Plugin/Firebase text is English and technical — log it, never show it.
+        debugPrint(
+          'AuthService Apple auth error ${exception.code}: ${exception.message}',
+        );
+        return AppL10n.strings.appleSignInFailed;
+    }
   }
 
   String _mapFirebaseAuthError(FirebaseAuthException exception) {

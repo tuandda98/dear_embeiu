@@ -1640,6 +1640,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t verify your account. Please try again.';
 
   @override
+  String get continueWithApple => 'Continue with Apple';
+
+  @override
+  String get appleConsentPrefix => 'By continuing with Apple, you agree to our';
+
+  @override
+  String get authOrDivider => 'or';
+
+  @override
+  String get appleSignInFailed =>
+      'Couldn\'t sign in with Apple. Please try again.';
+
+  @override
+  String get appleEmailHasPasswordAccount =>
+      'This email already has an account. Sign in with your password instead.';
+
+  @override
+  String get deleteAccountAppleNote =>
+      'Apple will then show a sign-in sheet to confirm it\'s you.';
+
+  @override
+  String get deleteAccountReauthBodyApple =>
+      'For your security, confirm with Apple again to permanently delete your account.';
+
+  @override
   String get authFirebaseUserCreateFailed =>
       'Couldn\'t create your account. Please try again.';
 
@@ -2043,7 +2068,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestCtaBody => 'Sign in to pair up & share photos together.';
 
   @override
-  String get guestCtaSignIn => 'Sign in';
+  String get guestCtaSignIn => 'Sign in with email';
 
   @override
   String get guestCtaRegister => 'Sign up';

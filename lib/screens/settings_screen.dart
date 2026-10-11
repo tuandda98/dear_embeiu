@@ -1010,6 +1010,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showDeleteAccountDialog(BuildContext context) {
     final l10n = context.l10n;
+    final isAppleAccount = context.read<AuthProvider>().isAppleOnlyAccount;
 
     showDialog(
       context: context,
@@ -1018,7 +1019,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
           l10n.deleteAccountDialogTitle,
           style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w800),
         ),
-        content: Text(l10n.deleteAccountDialogContent),
+        content: isAppleAccount
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.deleteAccountDialogContent),
+                  const SizedBox(height: 12),
+                  // PF5: the Apple sheet looks like a sign-in prompt — say it
+                  // is coming so nobody cancels it thinking it's a mistake.
+                  Text(
+                    l10n.deleteAccountAppleNote,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              )
+            : Text(l10n.deleteAccountDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -1037,10 +1057,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.of(
                   context,
                 ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+              } else if (errorCode == 'apple-canceled') {
+                // Closed the Apple sheet — nothing deleted, nothing to say.
               } else if (errorCode == 'requires-recent-login') {
                 // Stale-session challenge — don't dead-end. Collect the password
-                // and re-auth + retry the delete in place (#2).
-                _showReauthToDeleteDialog(context);
+                // (or, for Apple, ask again) and re-auth + retry in place (#2).
+                _showReauthToDeleteDialog(context, apple: isAppleAccount);
               } else {
                 ScaffoldMessenger.of(context)
                   ..clearSnackBars()
@@ -1067,7 +1089,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// session is fully gone (`session-gone`) we send them through the auth gate
   /// to sign in again. Uses [StatefulBuilder] for the dialog's local
   /// busy/error state.
-  void _showReauthToDeleteDialog(BuildContext context) {
+  ///
+  /// [apple]: Apple-only accounts have no password (PF5). The dialog drops the
+  /// field and confirming retries the delete once — that shows the Apple sheet
+  /// again, which re-authenticates.
+  void _showReauthToDeleteDialog(BuildContext context, {bool apple = false}) {
     final l10n = context.l10n;
     final passwordController = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -1082,7 +1108,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (ctx, setLocalState) {
             Future<void> submit() async {
               if (busy) return;
-              if (!(formKey.currentState?.validate() ?? false)) return;
+              if (!apple && !(formKey.currentState?.validate() ?? false)) {
+                return;
+              }
               FocusScope.of(ctx).unfocus();
               setLocalState(() {
                 busy = true;
@@ -1090,9 +1118,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
 
               final authProvider = ctx.read<AuthProvider>();
-              final result = await authProvider.reauthenticateAndDeleteAccount(
-                passwordController.text,
-              );
+              final result = apple
+                  ? await authProvider.deleteAccount()
+                  : await authProvider.reauthenticateAndDeleteAccount(
+                      passwordController.text,
+                    );
               if (!ctx.mounted) return;
 
               if (result == null) {
@@ -1101,6 +1131,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.of(
                   context,
                 ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+                return;
+              }
+
+              if (result == 'apple-canceled') {
+                // Closed the Apple sheet — back to Settings, nothing deleted.
+                Navigator.of(ctx).pop();
                 return;
               }
 
@@ -1123,6 +1159,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 return;
               }
 
+              if (apple) {
+                // No field to show it under — same SnackBar as the first try.
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(SnackBar(content: Text(result)));
+                return;
+              }
+
               // Wrong password / other recoverable error — keep the dialog open
               // and show the message inline under the field.
               HapticFeedback.heavyImpact();
@@ -1140,33 +1185,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.deleteAccountReauthBody),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: passwordController,
-                      obscureText: true,
-                      autofocus: true,
-                      enabled: !busy,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => submit(),
-                      decoration: InputDecoration(
-                        labelText: l10n.passwordLabel,
-                        errorText: inlineError,
+              content: apple
+                  ? Text(l10n.deleteAccountReauthBodyApple)
+                  : Form(
+                      key: formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(l10n.deleteAccountReauthBody),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: passwordController,
+                            obscureText: true,
+                            autofocus: true,
+                            enabled: !busy,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => submit(),
+                            decoration: InputDecoration(
+                              labelText: l10n.passwordLabel,
+                              errorText: inlineError,
+                            ),
+                            validator: (value) =>
+                                (value == null || value.trim().isEmpty)
+                                ? l10n.passwordRequired
+                                : null,
+                          ),
+                        ],
                       ),
-                      validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                          ? l10n.passwordRequired
-                          : null,
                     ),
-                  ],
-                ),
-              ),
               actions: [
                 TextButton(
                   onPressed: busy ? null : () => Navigator.of(ctx).pop(),

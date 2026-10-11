@@ -2918,6 +2918,48 @@ abstract class AppLocalizations {
   /// **'Couldn\'t verify your account. Please try again.'**
   String get authFirebaseAuthGeneric;
 
+  /// Sign in with Apple button label (iOS only, pairing-funnel PF2)
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple'**
+  String get continueWithApple;
+
+  /// Implied-consent line under the Apple button, followed by a space, the privacyPolicyLabel link and a period
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing with Apple, you agree to our'**
+  String get appleConsentPrefix;
+
+  /// Label in the divider between the email form and the Apple button
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get authOrDivider;
+
+  /// Generic Sign in with Apple error
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign in with Apple. Please try again.'**
+  String get appleSignInFailed;
+
+  /// Apple returned an email that already belongs to a password account (PF6)
+  ///
+  /// In en, this message translates to:
+  /// **'This email already has an account. Sign in with your password instead.'**
+  String get appleEmailHasPasswordAccount;
+
+  /// Extra line in the delete-account dialog for Apple accounts, warning that the Apple sheet comes next
+  ///
+  /// In en, this message translates to:
+  /// **'Apple will then show a sign-in sheet to confirm it\'s you.'**
+  String get deleteAccountAppleNote;
+
+  /// Body of the re-auth dialog for Apple accounts (no password field)
+  ///
+  /// In en, this message translates to:
+  /// **'For your security, confirm with Apple again to permanently delete your account.'**
+  String get deleteAccountReauthBodyApple;
+
   /// authFirebaseUserCreateFailed
   ///
   /// In en, this message translates to:
@@ -3563,7 +3605,7 @@ abstract class AppLocalizations {
   /// CTA button returning to the login screen
   ///
   /// In en, this message translates to:
-  /// **'Sign in'**
+  /// **'Sign in with email'**
   String get guestCtaSignIn;
 
   /// CTA button opening the register screen

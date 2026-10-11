@@ -1,6 +1,5 @@
 abstract final class AppUrls {
-  static const privacyPolicy =
-      'https://tuandda98.github.io/dear_embeiu/privacy-policy.html';
+  static const privacyPolicy = 'https://dearembeiu.com/privacy-policy.html';
 
   /// Store links for the force-update screen. The live URL is read from the
   /// `config/app` Firestore doc (`iosStoreUrl` / `androidStoreUrl`); these are

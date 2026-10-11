@@ -20,6 +20,11 @@ class AuthProvider extends ChangeNotifier {
   bool _isInitialized = false;
   String? _errorMessage;
 
+  /// Apple sign-in has its own busy flag (pairing-funnel design §1): driving
+  /// [isLoading] would spin the email button on the same screen too.
+  bool _isAppleSigningIn = false;
+  AppleEmailHasPasswordException? _appleEmailConflict;
+
   /// Session-liveness listener (feature auth — #3). Subscribes once to the
   /// service's session-presence stream; drives [sessionRevoked].
   StreamSubscription<bool>? _sessionSub;
@@ -48,8 +53,16 @@ class AuthProvider extends ChangeNotifier {
   AuthStatus get status => _status;
   AppUser? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
+  bool get isAppleSigningIn => _isAppleSigningIn;
   bool get isInitialized => _isInitialized;
   String? get errorMessage => _errorMessage;
+
+  /// PF6 — set when the last Apple sign-in hit an email that already has a
+  /// password account; carries the email so the Sign in form can prefill it.
+  AppleEmailHasPasswordException? get appleEmailConflict => _appleEmailConflict;
+
+  /// Apple-only account (PF5): deleting it confirms through the Apple sheet.
+  bool get isAppleOnlyAccount => _authService.isAppleOnlyAccount;
   bool get isUsingFirebase => _authService.isUsingFirebase;
   String get authSourceLabel => _authService.authSourceLabel;
   String? get bootstrapMessage => _authService.bootstrapMessage;
@@ -230,6 +243,54 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Sign in with Apple (pairing-funnel PF1), same success path as [signIn].
+  /// Returns false on failure; [errorMessage] stays null when the user just
+  /// closed the Apple sheet, so the UI can stay silent.
+  Future<bool> signInWithApple() async {
+    _isAppleSigningIn = true;
+    _appleEmailConflict = null;
+    _clearError();
+    // A fresh session is beginning — re-arm external-revocation detection.
+    _intentionalAuthClear = false;
+
+    try {
+      final result = await _authService.signInWithApple();
+      _currentUser = result.user;
+      _status = AuthStatus.authenticated;
+      _isInitialized = true;
+      await PushNotificationService.instance.syncForUser(_currentUser);
+      // Single-session: mint a new token — kicks any other active session.
+      if (_currentUser != null) {
+        await _mintAndWatchSessionToken(_currentUser!.id);
+      }
+      unawaited(AnalyticsService.instance.setUserId(_currentUser?.id));
+      AnalyticsService.instance.setIsGuest(false);
+      if (result.isNewUser) {
+        AnalyticsService.instance.logSignUp(method: 'apple');
+      } else {
+        AnalyticsService.instance.logLogin(method: 'apple');
+      }
+      return true;
+    } on AppleEmailHasPasswordException catch (e) {
+      _status = AuthStatus.unauthenticated;
+      _appleEmailConflict = e;
+      _errorMessage = e.message;
+      return false;
+    } on AuthException catch (e) {
+      _status = AuthStatus.unauthenticated;
+      _errorMessage = e.message == 'apple-canceled' ? null : e.message;
+      return false;
+    } catch (e) {
+      _status = AuthStatus.unauthenticated;
+      debugPrint('AuthProvider.signInWithApple failed: $e');
+      _errorMessage = AppL10n.strings.appleSignInFailed;
+      return false;
+    } finally {
+      _isAppleSigningIn = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> signUp({
     required String email,
     required String password,
@@ -359,8 +420,11 @@ class AuthProvider extends ChangeNotifier {
       // Deletion did NOT happen — the session is still alive, so re-arm
       // external-revocation detection (#3).
       _intentionalAuthClear = false;
-      if (e.message == 'requires-recent-login') {
-        return 'requires-recent-login';
+      // Sentinels the UI branches on, never shown as text. `apple-canceled` =
+      // the user closed the Apple confirmation sheet (PF5) — nothing deleted.
+      if (e.message == 'requires-recent-login' ||
+          e.message == 'apple-canceled') {
+        return e.message;
       }
       _errorMessage = e.message;
       return e.message;
