@@ -4,7 +4,7 @@
 
 - **Feature:** pairing-funnel
 - **Ưu tiên:** P0 (North Star cần cả hai người trong couple)
-- **Trạng thái:** 💻 Dev (2026-10-11) — Design xong
+- **Trạng thái:** 🧪 Test (2026-10-11) — code xong, Tester vòng 1 PASS có điều kiện, đã vá 5 bug; chờ chạy máy thật + điều kiện release
 - **Nhánh:** `feature/pairing-funnel` (tách từ `release/1.8.0`@086f1e0)
 - **Liên quan:** [auth](../auth/overview.md) (Đợt 2) · [invite-sharing](../invite-sharing/overview.md) (Phase 2 QR) · [onboarding](../onboarding/overview.md) (nhắc lại mời)
 
@@ -83,8 +83,9 @@
 - ⏳ App ID `com.tony.dearembeiu` + `.dev`: capability Sign in with Apple (Xcode tự bật khi archive có `-allowProvisioningUpdates` và entitlement mới, giống HealthKit ở 1.8.0).
 - ⏳ Khoá Sign in with Apple (.p8) trên Apple Developer → nhập Team ID + Key ID + private key vào Firebase (Apple provider → OAuth code flow) cho DEV + PROD. Thiếu bước này thì thu hồi token lỗi (vẫn xoá được tài khoản).
 - ⏳ PROD: bật provider Apple cho `com.tony.dearembeiu` — đi cùng lệnh deploy prod của release.
-- ⏳ Đẩy `docs/get.html` lên nhánh `phase3` (GitHub Pages).
+- ⏳ Đẩy `docs/get.html` lên nhánh `phase3` (GitHub Pages) — **CHỈ SAU KHI bản app mới (có tách mã từ link) đã live cả 2 store.** Lý do: trang mới chép cả link `https://dearembeiu.com/get?code=…` vào bộ nhớ tạm khi bấm tải. Ai cài từ store trong lúc store còn phát bản 1.8.0 sẽ nhận bản cũ; bản cũ không tách mã từ link, nên dán vào ô mã sẽ báo sai mã. Đẩy sớm là làm hỏng đúng luồng đang muốn sửa.
 
 ## 6. Changelog
 - [2026-10-11] [PO] Tạo feature từ phân tích phễu ghép đôi. Chốt PF1–PF10. Google + đề xuất 4 để sau. Bật provider Apple trên DEV.
 - [2026-10-11] [PO] Gate Design PASS (đối chiếu key/hàm trên đĩa). Chốt PF11–PF13 cho 3 câu Designer hỏi. Chuyển sang Dev: 2 agent song song trên 2 worktree (Apple · QR + bộ nhớ tạm + lời nhắc).
+- [2026-10-11] [PO] Gộp Phần A (Apple) + Phần B (QR, bộ nhớ tạm, nhắc mời) — analyze 0, 241/241. Build iOS thiết bị `--no-codesign` OK (simulator lỗi môi trường Xcode 27). Tester vòng 1: PASS có điều kiện, 3 P2 + 3 P3. Dev-fix `7b900d1` vá BUG-1 (plugin `firebase_auth` kẹt cờ reauth ⇒ xác nhận xoá dùng `signInWithProvider` + so uid), BUG-2 (huỷ nhắc mời khi đăng xuất/rời/xoá), BUG-4/5/6; BUG-3 là thứ tự deploy `get.html` (ghi vào checklist release). PO verify: analyze 0, 247/247.
