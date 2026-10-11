@@ -13,6 +13,8 @@ const ACCOUNTS = [
   ['pf.joiner@dearembeiu.test', 'Vào Thử'],
   ['pf.creator2@dearembeiu.test', 'Tạo Hai'],
   ['pf.joiner2@dearembeiu.test', 'Vào Hai'],
+  ['pf.creator3@dearembeiu.test', 'Tạo Ba'],
+  ['pf.joiner3@dearembeiu.test', 'Vào Ba'],
 ];
 const src = fs.readFileSync(path.join(__dirname, 'prod-daily-answer.js'), 'utf8');
 const FT_CLIENT_ID = src.match(/FT_CLIENT_ID\s*=\s*'([^']+)'/)[1];
