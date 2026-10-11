@@ -426,8 +426,10 @@ class AuthProvider extends ChangeNotifier {
       _intentionalAuthClear = false;
       // Sentinels the UI branches on, never shown as text. `apple-canceled` =
       // the user closed the Apple confirmation sheet (PF5) — nothing deleted.
+      // `session-gone` = the sheet signed in another Apple ID; signed out.
       if (e.message == 'requires-recent-login' ||
-          e.message == 'apple-canceled') {
+          e.message == 'apple-canceled' ||
+          e.message == 'session-gone') {
         return e.message;
       }
       _errorMessage = e.message;

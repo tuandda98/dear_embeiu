@@ -43,6 +43,24 @@ void main() {
     expect(parse(''), isNull);
   });
 
+  test('invite link nested inside another URL is ignored (BUG-5)', () {
+    expect(
+      parse('https://evil.com/?u=https://dearembeiu.com/get?code=ABC234'),
+      isNull,
+    );
+    expect(parse('https://evil.com/dearembeiu.com/get?code=ABC234'), isNull);
+  });
+
+  test('brackets, quotes and whitespace before the link are fine', () {
+    expect(parse('(https://dearembeiu.com/get?code=ABC234)'), 'ABC234');
+    expect(parse('"https://dearembeiu.com/get?code=ABC234"'), 'ABC234');
+    expect(parse('“https://dearembeiu.com/get?code=ABC234”'), 'ABC234');
+    expect(
+      parse('Tải app & nhập mã tại: https://dearembeiu.com/get?code=abc234'),
+      'ABC234',
+    );
+  });
+
   test('finds the link inside the whole invite message', () {
     const message =
         'Mình muốn lưu giữ kỷ niệm cùng bạn trên Dear Embeiu 💞\n'

@@ -650,8 +650,9 @@ class AuthService {
   /// sheet (`'apple-canceled'`) leaves push and the session watch untouched.
   /// The sheet mints a fresh credential (the callable won't hit a stale
   /// session) and a one-time `authorizationCode` (~5 min) used to revoke the
-  /// app's Apple token while the user still exists. No-op for other accounts
-  /// and in local mode.
+  /// app's Apple token while the user still exists. Throws `'session-gone'`
+  /// (after signing out) when the sheet signed in a different Apple ID —
+  /// nothing is deleted then. No-op for other accounts and in local mode.
   Future<void> confirmAppleDeletionIfNeeded() async {
     if (!isUsingFirebase) {
       return;
@@ -660,9 +661,22 @@ class AuthService {
     if (firebaseUser == null || !_isAppleOnly(firebaseUser)) {
       return;
     }
+    final uid = firebaseUser.uid;
     try {
-      final credential =
-          await firebaseUser.reauthenticateWithProvider(AppleAuthProvider());
+      // Not reauthenticateWithProvider: on iOS (firebase_auth 6.5.3) it sets
+      // `isReauthenticatingWithApple`, which a cancelled sheet never clears, so
+      // the next successful Apple sign-in (after a sign-out) takes the reauth
+      // branch on a nil currentUser and never completes. Signing in again with
+      // the same Apple ID returns the same uid with a fresh credential and
+      // `authorizationCode`.
+      final credential = await _auth.signInWithProvider(AppleAuthProvider());
+      final user = credential.user;
+      if (user == null || user.uid != uid) {
+        // The device's Apple ID changed: this is not the account being
+        // deleted, so never delete (or revoke) anything — sign in again.
+        await _auth.signOut();
+        throw const AuthException('session-gone');
+      }
       final code = credential.additionalUserInfo?.authorizationCode;
       if (code != null && code.isNotEmpty) {
         try {
@@ -673,9 +687,11 @@ class AuthService {
           debugPrint('AuthService Apple token revoke failed: $e');
         }
       }
-      await firebaseUser.getIdToken(true);
+      await user.getIdToken(true);
     } on FirebaseAuthException catch (e) {
-      throw AuthException(_mapAppleAuthError(e));
+      throw AuthException(
+        _mapAppleAuthError(e, fallback: AppL10n.strings.deleteAccountFailed),
+      );
     }
   }
 
@@ -818,8 +834,12 @@ class AuthService {
   /// Sign in with Apple failures → l10n copy (pairing-funnel design §2). Closing
   /// the Apple sheet maps to the `'apple-canceled'` sentinel so the UI stays
   /// silent. PF6 (`account-exists-with-different-credential`) is handled by the
-  /// caller, which needs the email.
-  String _mapAppleAuthError(FirebaseAuthException exception) {
+  /// caller, which needs the email. [fallback] replaces the sign-in copy for
+  /// any other error (the delete flow passes `deleteAccountFailed`).
+  String _mapAppleAuthError(
+    FirebaseAuthException exception, {
+    String? fallback,
+  }) {
     switch (exception.code) {
       case 'canceled':
       case 'web-context-canceled':
@@ -831,7 +851,7 @@ class AuthService {
         debugPrint(
           'AuthService Apple auth error ${exception.code}: ${exception.message}',
         );
-        return AppL10n.strings.appleSignInFailed;
+        return fallback ?? AppL10n.strings.appleSignInFailed;
     }
   }
 

@@ -83,9 +83,10 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   }
 
   /// Also the PF6 SnackBar action of the Apple button, which can fire after
-  /// this screen is gone.
+  /// this screen is gone — or while Login already sits on top of it (the
+  /// landing stays mounted underneath), which would stack a second Login.
   void _openSignIn() {
-    if (!mounted) {
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) {
       return;
     }
     Navigator.of(context).pushNamed(AppRoutes.login);

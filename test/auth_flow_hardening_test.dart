@@ -148,6 +148,21 @@ void main() {
       await _settle();
       expect(provider.sessionRevoked, isTrue);
     });
+
+    test('another Apple ID in the sheet: session-gone, nothing deleted',
+        () async {
+      final fake = _FakeAuthService()
+        ..userToReturn = buildUser()
+        ..appleConfirmError = const AuthException('session-gone');
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
+
+      final result = await provider.deleteAccount();
+
+      expect(result, 'session-gone');
+      expect(fake.deleteCalled, isFalse);
+      expect(provider.errorMessage, isNull, reason: 'sentinel, never text');
+    });
   });
 
   group('real AuthService local-fallback contract', () {

@@ -154,8 +154,9 @@ class ReminderService {
   // the code hasn't been sent), +20h, +72h, nothing after 7 days — fixed ids in
   // [InviteFollowUp]. Outside [_autoIds] and every other band (personal
   // 1100–1159, daily-question 1020–1052, lunar 1060–1099) so they never collide;
-  // owned solely by ReminderProvider.refreshInviteFollowUps, which cancels the
-  // whole band the moment the partner joins.
+  // owned by ReminderProvider: refreshInviteFollowUps cancels the whole band
+  // the moment the partner joins, cancelDailyQuestionSchedule on sign-out / no
+  // couple.
   static const int _idInviteFollowUpBase = 1180;
   static const int _maxInviteFollowUps = 10;
 

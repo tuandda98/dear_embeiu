@@ -1516,6 +1516,13 @@ class ReminderProvider extends ChangeNotifier {
     _personalCatchupSignature = null;
     _suppressSharedDqReminders = false;
     await _service.cancelPersonalReminders();
+    // Invite follow-ups 1180–1189 too: only Home's refreshInviteFollowUps
+    // cleared them, so after sign-out / leaving / account deletion the "send
+    // the invite" nudges still fired for up to 72h. Null signature = the next
+    // Home with a waiting couple re-arms them.
+    _inviteFollowUpSignature = null;
+    _inviteFollowUpCleared = true;
+    await _service.cancelInviteFollowUps();
   }
 
   /// Forgets the "already armed" debounce for today's daily-question bands so

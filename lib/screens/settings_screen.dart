@@ -1059,6 +1059,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
               } else if (errorCode == 'apple-canceled') {
                 // Closed the Apple sheet — nothing deleted, nothing to say.
+              } else if (errorCode == 'session-gone') {
+                // The Apple sheet signed in another Apple ID: nothing deleted,
+                // already signed out — same exit as the re-auth dialog.
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.deleteAccountSessionExpiredMsg),
+                    ),
+                  );
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
               } else if (errorCode == 'requires-recent-login') {
                 // Stale-session challenge — don't dead-end. Collect the password
                 // (or, for Apple, ask again) and re-auth + retry in place (#2).

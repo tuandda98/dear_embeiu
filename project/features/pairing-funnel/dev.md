@@ -137,5 +137,32 @@ Model/Firestore/Function/rules: **không đổi**. Không deploy gì. Native: ch
 
 ---
 
+## Dev-fix vòng 1 (theo test.md)
+
+- *Trạng thái:* vá xong BUG-1/2/4/5/6 (2026-10-11), chờ Tester vòng 2. BUG-3 là điều kiện phát hành (thứ tự đẩy `get.html`), không có code để sửa.
+- `flutter analyze` → **No issues found!** · `flutter test` → **247/247** (241 cũ + 6 mới). Không đổi ARB, rules, Functions, native. Không deploy.
+
+| Bug | Sửa gì | File:dòng | Test bảo vệ |
+|---|---|---|---|
+| BUG-1 (P2) | `confirmAppleDeletionIfNeeded()` bỏ `reauthenticateWithProvider`, gọi `_auth.signInWithProvider(AppleAuthProvider())`. Plugin iOS 6.5.3 bật `isReauthenticatingWithApple`, sheet bị huỷ không tắt lại, nên lần đăng nhập Apple sau rơi vào nhánh reauth với currentUser nil và treo. Nhánh sign-in không có cờ đó; cùng Apple ID trả về cùng uid kèm credential + `authorizationCode` mới. Ghi uid trước khi gọi; sheet trả user khác uid (máy đã đổi Apple ID) hoặc null → `signOut()` rồi ném `'session-gone'`, không thu hồi token, không xoá gì. Thu hồi token (lỗi bỏ qua) + `getIdToken(true)` giữ nguyên, nay gọi trên user mới. Provider coi `'session-gone'` là sentinel (không gán vào `errorMessage`). Dialog xoá đầu tiên ở Settings thêm nhánh `'session-gone'` → SnackBar `deleteAccountSessionExpiredMsg` + authGate, y như dialog re-auth. | `lib/services/auth_service.dart:648-696` (gọi sign-in :672, chặn uid :674-679) · `lib/providers/auth_provider.dart:427-433` · `lib/screens/settings_screen.dart:1062-1074` | `test/apple_delete_confirm_test.dart` (mới): cùng Apple ID → thu hồi bằng code mới + làm mới token; Apple ID khác → `signOut` + `session-gone` + không thu hồi. Fake user ném lỗi nếu có ai gọi lại `reauthenticateWithProvider`. `test/auth_flow_hardening_test.dart:152`: provider trả `session-gone`, không gọi xoá, `errorMessage` null |
+| BUG-6 (P3) | `_mapAppleAuthError` thêm tham số `fallback`, luồng xoá truyền `deleteAccountFailed`. Huỷ (`canceled`/`web-context-canceled`) vẫn `'apple-canceled'`, mất mạng → `authNetworkError`, còn lại → `deleteAccountFailed`. Chữ tiếng Anh của Firebase chỉ vào `debugPrint`. Đăng nhập Apple vẫn ra `appleSignInFailed` như cũ. | `lib/services/auth_service.dart:692-694` (call site), `:834-856` (mapper) | `test/apple_delete_confirm_test.dart` "errors: …" (5 mã lỗi) |
+| BUG-2 (P2) | `cancelDailyQuestionSchedule()` huỷ luôn band 1180–1189 (`cancelInviteFollowUps()`), đặt `_inviteFollowUpSignature = null` + `_inviteFollowUpCleared = true`. Cả 3 nhánh "không còn couple" của `session_resolver` (chưa đăng nhập · chờ xác thực email · đăng nhập mà không có couple) đều đi qua hàm này. Signature null nên lần sau Home có couple đang chờ sẽ lập lịch lại. Sửa comment chủ sở hữu band ở `reminder_service.dart` cho khớp. | `lib/providers/reminder_provider.dart:1519-1525` · `lib/services/reminder_service.dart:157-159` | Chưa có test tự động: provider dùng thẳng `ReminderService.instance` (plugin thông báo), không tiêm fake được. Tester soi R12 trên máy: tạo couple → Đăng xuất / Rời / Xoá → pending không còn 1180–1182 |
+| BUG-4 (P3) | `_openSignIn` chỉ điều hướng khi `mounted` VÀ `ModalRoute.of(context)?.isCurrent == true`. Landing là route có tên (`AppRoutes.guest`) nên luôn có `ModalRoute`; nút "Đăng nhập bằng email" bấm ngay trên landing vẫn chạy. | `lib/screens/guest_counter_screen.dart:85-93` | Chưa có test tự động (phải dựng landing + Login + SnackBar). Repro ở test.md BUG-4 |
+| BUG-5 (P3) | Lookbehind của regex đổi từ `[a-z0-9.-]` sang `[a-z0-9._~:/?#@!$&*+,;=%-]` (không phân biệt hoa thường): scheme/host không được đứng sau ký tự URL, nên link mời lồng trong path/query của URL khác không ra mã. Đầu chuỗi, khoảng trắng, `( [ " '` và `“ ”` vẫn khớp. | `lib/services/invite_clipboard.dart:26-35` (lookbehind :31) | `test/invite_clipboard_test.dart:46` (2 URL lồng → null) + `:54` (ngoặc, nháy, câu mời có `abc234` → `ABC234`); 7 test cũ vẫn qua |
+
+Đã thử phá: trả lại `reauthenticateWithProvider`, bỏ chặn uid, bỏ `fallback`, trả regex cũ → 4 test mới đỏ đúng chỗ. Khôi phục → xanh.
+
+### Cần Tester / PO biết
+- **Nơi gọi `cancelDailyQuestionSchedule()` khi couple có thể vẫn đang chờ:** nhánh cuối `session_resolver.dart:291` (đã đăng nhập, `hasCoupleData == false`). Ngoài trường hợp thật sự không có couple, nhánh này còn chạy khi user vẫn có `coupleId` nhưng `loadCoupleForUser` lỗi mà không phải timeout (vd mở app lúc offline, Firestore báo `unavailable`, không có cache). Trước giờ user đã rơi vào Setup ở ca này; nay nhắc mời cũng bị huỷ cùng nhắc câu hỏi. Lần sau Home tải được couple đang chờ thì lịch lập lại theo mốc tạo couple. Không đổi hành vi nơi này. Nhánh chờ xác thực email (`:185`) trên thực tế không có couple, vì tài khoản chưa xác thực bị chặn trước Setup.
+- **Đổi Apple ID giữa chừng:** `signInWithCredential` có thể tạo một user Auth mới cho Apple ID kia (chưa có hồ sơ Firestore) trước khi app đăng xuất. Không xoá user đó, đúng yêu cầu. Người đó đăng nhập Apple sau này thì luồng thường tự tạo hồ sơ.
+- **Điều hướng 2 lần ở nhánh `session-gone`:** `signOut()` làm listener phiên của `AuthProvider` bật cờ "bị thu hồi" → shell đẩy authGate, dialog Settings cũng đẩy authGate. Cả hai dùng `pushNamedAndRemoveUntil(..., false)` nên cuối cùng còn đúng 1 authGate. Giống nhánh `session-gone` có sẵn của dialog re-auth.
+- Cờ kẹt vẫn nằm trong plugin. `lib/` không còn chỗ nào gọi `reauthenticateWithProvider` (grep). Sau này cần reauth Apple ở chỗ khác thì dùng cùng cách.
+- Cần máy thật: R8 (tái hiện BUG-1, giờ phải đăng nhập được), R9 (xoá Apple: sheet → thu hồi → xoá; huỷ → không xoá), R12 (thêm bước đăng xuất / rời / xoá).
+
+### Nhật ký
+- [2026-10-11] [Dev] Vá BUG-1/2/4/5/6 theo Tester vòng 1. analyze 0, test 247/247. Không deploy, không push.
+
+---
+
 ## Nhật ký chung (Lead ghi khi merge)
 - [2026-10-11] [Lead] Chia 2 phần A/B, chạy song song trên worktree riêng.
