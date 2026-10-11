@@ -51,6 +51,18 @@ void main() {
     expect(parse('https://evil.com/dearembeiu.com/get?code=ABC234'), isNull);
   });
 
+  test('punctuation glued before a link with scheme is fine (BUG-7)', () {
+    expect(parse('tại:https://dearembeiu.com/get?code=ABC234'), 'ABC234');
+    expect(parse('em ơi,https://dearembeiu.com/get?code=ABC234'), 'ABC234');
+    expect(parse('nhé.https://dearembeiu.com/get?code=ABC234'), 'ABC234');
+    expect(parse('*https://dearembeiu.com/get?code=ABC234*'), 'ABC234');
+    // Still nested in a path: `/` right before the scheme rules it out.
+    expect(
+      parse('https://evil.com/https://dearembeiu.com/get?code=ABC234'),
+      isNull,
+    );
+  });
+
   test('brackets, quotes and whitespace before the link are fine', () {
     expect(parse('(https://dearembeiu.com/get?code=ABC234)'), 'ABC234');
     expect(parse('"https://dearembeiu.com/get?code=ABC234"'), 'ABC234');

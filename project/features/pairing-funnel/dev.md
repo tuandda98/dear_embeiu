@@ -137,7 +137,7 @@ Model/Firestore/Function/rules: **không đổi**. Không deploy gì. Native: ch
 
 ---
 
-## Dev-fix vòng 1 (theo test.md)
+## Dev-fix vòng 1–2 (theo test.md)
 
 - *Trạng thái:* vá xong BUG-1/2/4/5/6 (2026-10-11), chờ Tester vòng 2. BUG-3 là điều kiện phát hành (thứ tự đẩy `get.html`), không có code để sửa.
 - `flutter analyze` → **No issues found!** · `flutter test` → **247/247** (241 cũ + 6 mới). Không đổi ARB, rules, Functions, native. Không deploy.
@@ -161,6 +161,7 @@ Model/Firestore/Function/rules: **không đổi**. Không deploy gì. Native: ch
 
 ### Nhật ký
 - [2026-10-11] [Dev] Vá BUG-1/2/4/5/6 theo Tester vòng 1. analyze 0, test 247/247. Không deploy, không push.
+- [2026-10-11] [Dev] BUG-7 (P3, hồi quy do bản vá BUG-5): link mời dính liền ký tự đứng trước (`tại:https://…`, `em ơi,https://…`, `nhé.https://…`, `*https://…*`) không ra mã. Phần trước host tách 2 nhánh: có scheme chỉ chặn khi ký tự đứng trước là `[a-z0-9/=?&#%]` (vẫn loại `?u=https://…`, `…/https://…`); không scheme giữ class chặt `[a-z0-9._~:/?#@!$&*+,;=%-]`, nên `tại:dearembeiu.com/get?code=…` (không scheme, dính dấu câu) vẫn bị bỏ như vòng 1. `lib/services/invite_clipboard.dart:26-38` (regex :33-34) · test `test/invite_clipboard_test.dart:54` (4 ca trên → `ABC234`, thêm `https://evil.com/https://dearembeiu.com/get?code=ABC234` → null). Thử phá: trả nhánh có scheme về class chặt, hoặc bỏ `/` khỏi class → test này đỏ. analyze 0, test 248/248. Không deploy, không push.
 
 ---
 

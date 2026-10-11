@@ -23,12 +23,15 @@ abstract final class InviteClipboard {
 
   static final Uri _base = Uri.parse(AppUrls.inviteBase);
 
-  // Host (+ optional scheme / www.) must not follow a URL character, so it is
-  // neither glued to another domain nor nested inside another URL (path or
-  // query); start, whitespace, brackets and quotes are fine. `code` may sit
+  // The link must not be glued to a word or nested inside another URL (path or
+  // query). With a scheme, only a letter, digit or `/ = ? & # %` right before
+  // it rules it out, so `tại:https://…`, `nhé.https://…` and `*https://…*`
+  // still count. Without a scheme, no URL character may come before the host.
+  // Start, whitespace, brackets and quotes are fine either way. `code` may sit
   // anywhere in the query; exactly 6 alphanumerics.
   static final RegExp _inviteLink = RegExp(
-    r'(?<![a-z0-9._~:/?#@!$&*+,;=%-])(?:https?://)?(?:www\.)?'
+    r'(?:(?<![a-z0-9/=?&#%])https?://(?:www\.)?'
+    r'|(?<![a-z0-9._~:/?#@!$&*+,;=%-])(?:www\.)?)'
     '${RegExp.escape(_base.host + _base.path)}'
     r'\?(?:[^\s#&]*&)*code=([a-z0-9]{6})(?![a-z0-9])',
     caseSensitive: false,
