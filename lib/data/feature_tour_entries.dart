@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import '../screens/care_message_screen.dart';
+import '../screens/love_tree_screen.dart';
 import '../screens/rps_game_screen.dart';
+import '../screens/sleep_screen.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../l10n/app_localizations.dart';
@@ -73,5 +75,20 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
     title: (l10n) => l10n.featureTourRpsTitle,
     body: (l10n) => l10n.featureTourRpsBody,
     onOpen: (context) => openRpsGame(context),
+  ),
+  // ---- Build 25 (1.8.0) ----------------------------------------------------
+  FeatureTourEntry(
+    sinceBuild: 25,
+    icon: IconsaxPlusLinear.moon,
+    title: (l10n) => l10n.featureTourSleepTitle,
+    body: (l10n) => l10n.featureTourSleepBody,
+    onOpen: openSleepScreen,
+  ),
+  FeatureTourEntry(
+    sinceBuild: 25,
+    icon: IconsaxPlusLinear.star,
+    title: (l10n) => l10n.featureTourSkyTitle,
+    body: (l10n) => l10n.featureTourSkyBody,
+    onOpen: openLoveTree,
   ),
 ];

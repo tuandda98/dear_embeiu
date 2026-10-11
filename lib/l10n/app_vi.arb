@@ -1922,6 +1922,22 @@
   "@featureTourRpsBody": {
     "description": "Feature tour entry body (build 23)."
   },
+  "featureTourSleepTitle": "Giấc ngủ của chúng mình",
+  "@featureTourSleepTitle": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSleepBody": "Lịch trăng ghi lại từng đêm, trăng càng tròn là ngủ càng đủ giấc. Cùng bật chia sẻ thì sáng ra mở app là biết đêm qua người ấy ngủ mấy tiếng.",
+  "@featureTourSleepBody": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSkyTitle": "Chòm sao hôm nay",
+  "@featureTourSkyTitle": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSkyBody": "Cây Tình Yêu giờ có bầu trời đêm. Mỗi người 3 ngôi sao: trả lời câu hỏi, chọn tâm trạng, nhắn một tin. Đủ 6 sao là trái tim sáng trọn.",
+  "@featureTourSkyBody": {
+    "description": "Feature tour entry (build 25)."
+  },
   "rpsOpenPrompt": "Ra tay đi! Không có bỏ lượt đâu 😄",
   "@rpsOpenPrompt": {
     "description": "Play screen caption once the 5s beat is over and nobody has thrown (no time limit)."

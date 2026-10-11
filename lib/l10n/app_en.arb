@@ -2524,6 +2524,22 @@
   "@featureTourRpsBody": {
     "description": "Feature tour entry body (build 23)."
   },
+  "featureTourSleepTitle": "Our sleep",
+  "@featureTourSleepTitle": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSleepBody": "A moon calendar for every night: the fuller the moon, the better you slept. Share with each other and every morning you'll see how long your partner slept.",
+  "@featureTourSleepBody": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSkyTitle": "Today's constellation",
+  "@featureTourSkyTitle": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSkyBody": "The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.",
+  "@featureTourSkyBody": {
+    "description": "Feature tour entry (build 25)."
+  },
   "rpsOpenPrompt": "Go on, throw! No skipping here 😄",
   "@rpsOpenPrompt": {
     "description": "Play screen caption once the 5s beat is over and nobody has thrown (no time limit)."

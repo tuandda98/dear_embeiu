@@ -3006,6 +3006,20 @@ class AppLocalizationsVi extends AppLocalizations {
       'Rủ một ván, cùng đếm oẳn tù tì rồi ra tay. Không có chuyện bỏ lượt, ai chưa ra thì app nhắc. Cả hai chọn xong mới lộ kết quả. Lịch sử và tỉ số nằm ở Hồ sơ.';
 
   @override
+  String get featureTourSleepTitle => 'Giấc ngủ của chúng mình';
+
+  @override
+  String get featureTourSleepBody =>
+      'Lịch trăng ghi lại từng đêm, trăng càng tròn là ngủ càng đủ giấc. Cùng bật chia sẻ thì sáng ra mở app là biết đêm qua người ấy ngủ mấy tiếng.';
+
+  @override
+  String get featureTourSkyTitle => 'Chòm sao hôm nay';
+
+  @override
+  String get featureTourSkyBody =>
+      'Cây Tình Yêu giờ có bầu trời đêm. Mỗi người 3 ngôi sao: trả lời câu hỏi, chọn tâm trạng, nhắn một tin. Đủ 6 sao là trái tim sáng trọn.';
+
+  @override
   String get rpsOpenPrompt => 'Ra tay đi! Không có bỏ lượt đâu 😄';
 
   @override

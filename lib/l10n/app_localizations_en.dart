@@ -3057,6 +3057,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Send a challenge, count it down together and throw. No skipping — whoever hasn\'t thrown gets a nudge, and the reveal waits for both of you. History and score live on your Profile.';
 
   @override
+  String get featureTourSleepTitle => 'Our sleep';
+
+  @override
+  String get featureTourSleepBody =>
+      'A moon calendar for every night: the fuller the moon, the better you slept. Share with each other and every morning you\'ll see how long your partner slept.';
+
+  @override
+  String get featureTourSkyTitle => 'Today\'s constellation';
+
+  @override
+  String get featureTourSkyBody =>
+      'The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.';
+
+  @override
   String get rpsOpenPrompt => 'Go on, throw! No skipping here 😄';
 
   @override

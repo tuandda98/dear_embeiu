@@ -5209,6 +5209,30 @@ abstract class AppLocalizations {
   /// **'Send a challenge, count it down together and throw. No skipping — whoever hasn\'t thrown gets a nudge, and the reveal waits for both of you. History and score live on your Profile.'**
   String get featureTourRpsBody;
 
+  /// Feature tour entry (build 25).
+  ///
+  /// In en, this message translates to:
+  /// **'Our sleep'**
+  String get featureTourSleepTitle;
+
+  /// Feature tour entry (build 25).
+  ///
+  /// In en, this message translates to:
+  /// **'A moon calendar for every night: the fuller the moon, the better you slept. Share with each other and every morning you\'ll see how long your partner slept.'**
+  String get featureTourSleepBody;
+
+  /// Feature tour entry (build 25).
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s constellation'**
+  String get featureTourSkyTitle;
+
+  /// Feature tour entry (build 25).
+  ///
+  /// In en, this message translates to:
+  /// **'The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.'**
+  String get featureTourSkyBody;
+
   /// Play screen caption once the 5s beat is over and nobody has thrown (no time limit).
   ///
   /// In en, this message translates to:
