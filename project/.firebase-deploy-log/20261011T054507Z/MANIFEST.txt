@@ -1,0 +1,7 @@
+command : NODE_OPTIONS="--dns-result-order=ipv4first" npx firebase-tools deploy --project prod --only "firestore:rules,$(sed 's/^/functions:/' /private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/d2317d6c-2943-4d8c-b33a-c60a6e4c6875/scratchpad/code_fns.txt | paste -sd, -)" --force 2>&1 | grep -vE "DeprecationWarning|trace-deprecation|punycode" | grep -E "✔|✖|Error|error|rules|Successful|updat|creat|delet|Deploy complete|Functions deploy had errors|Failed" | tail -45
+time_utc: 20261011T054507Z
+git_head: f52de1d (release/1.8.0)
+dirty   : 3 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout f52de1d)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout f52de1d -- functions` rồi redeploy

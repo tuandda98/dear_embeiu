@@ -64,3 +64,4 @@ await FirebaseAppCheck.instance.activate(
 
 - [2026-09-26] [Dev] ⚠️ **Sự cố phối hợp:** giữa chừng có phiên Claude song song làm hotfix crash 1.7.1 → `git stash` phần App Check này để hotfix đi sạch (đúng, không phải lỗi). Sau khi 1.7.1+24 submit xong đã `stash pop`, merge lại giữ `version: 1.7.1+24`, chạy lại `pub get` + `pod install` + verify. **Bài học:** `flutter pub get` chạy trước khi cây thư mục bị revert thì `.flutter-plugins-dependencies` vẫn ghi theo bản cũ ⇒ `pod install` im lặng bỏ qua plugin (Podfile.lock không đổi 1 dòng nào) và APK build ra KHÔNG có plugin mà vẫn exit 0. Luôn verify bằng `.flutter-plugins-dependencies` + grep dex, đừng tin exit code.
 - [2026-09-26] [Dev] Commit `a57c76f` trên `feature/app-check` (tách khỏi `release/1.7.1` sau khi bản đó đã submit). Chưa merge vào release nào.
+- [2026-10-11] [Dev] Đã vào bản **1.8.0+25** qua `feature/sleep` (nhánh này tách từ `feature/app-check`). Vẫn KHÔNG enforce API nào.

@@ -13,6 +13,12 @@
    ```
 2. CocoaPods (Ruby 4.0.2) báo `Ignoring ffi … extensions not built` + lỗi gRPC-Core modulemap → fix: `brew reinstall cocoapods` rồi `cd ios && pod install` (warning ffi là benign, vẫn cài xong).
 3. `flutter clean` xoá ephemeral → ép `pod install` chạy lại (lộ lỗi cocoapods); `Pods/` KHÔNG bị clean xoá.
+4. **Thêm capability mới (vd HealthKit, 1.8.0 ngày 2026-10-11):** `flutter build ipa` lỗi `Provisioning profile "iOS Team Provisioning Profile: com.tony.dearembeiu" doesn't include the com.apple.developer.healthkit… entitlements`. Lý do: project đã đặt `DEVELOPMENT_TEAM` nên Flutter KHÔNG truyền `-allowProvisioningUpdates` ở bước archive (chỉ truyền ở bước export) ⇒ Xcode không được tự bật capability cho App ID. Cách làm: chạy `flutter build ipa --release` một lần cho Flutter sinh `ios/Flutter/Generated.xcconfig` đúng version, rồi archive tay:
+   ```
+   cd ios && xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release -sdk iphoneos \
+     -destination 'generic/platform=iOS' -archivePath ../build/ios/archive/Runner.xcarchive -allowProvisioningUpdates archive
+   ```
+   rồi export bằng `xcodebuild -exportArchive … -allowProvisioningUpdates` (hoặc chạy lại `flutter build ipa`, lúc này profile mới đã có). Điều kiện: Xcode → Settings → Accounts phải có Apple ID (`No Accounts` = bị đăng xuất, user tự đăng nhập lại).
 
 ## iOS Simulator — native_assets bug (Flutter 3.22+, vẫn còn 3.41.6, 2026-06-07)
 
