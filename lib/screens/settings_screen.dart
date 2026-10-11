@@ -1010,7 +1010,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showDeleteAccountDialog(BuildContext context) {
     final l10n = context.l10n;
-    final isAppleAccount = context.read<AuthProvider>().isAppleOnlyAccount;
+    final auth = context.read<AuthProvider>();
+    final isAppleAccount = auth.isAppleOnlyAccount;
+    final isGoogleAccount = auth.isGoogleOnlyAccount;
 
     showDialog(
       context: context,
@@ -1057,16 +1059,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.of(
                   context,
                 ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
-              } else if (errorCode == 'apple-canceled') {
+              } else if (errorCode == 'social-canceled') {
                 // Closed the Apple sheet — nothing deleted, nothing to say.
-              } else if (errorCode == 'session-gone') {
-                // The Apple sheet signed in another Apple ID: nothing deleted,
-                // already signed out — same exit as the re-auth dialog.
+              } else if (errorCode == 'session-gone' ||
+                  errorCode == 'apple-id-mismatch') {
+                // The Apple sheet signed in another Apple ID (PF18): nothing of
+                // this account deleted, already signed out — same exit as the
+                // re-auth dialog.
                 ScaffoldMessenger.of(context)
                   ..clearSnackBars()
                   ..showSnackBar(
                     SnackBar(
-                      content: Text(l10n.deleteAccountSessionExpiredMsg),
+                      content: Text(
+                        errorCode == 'apple-id-mismatch'
+                            ? l10n.deleteAccountAppleIdMismatch
+                            : l10n.deleteAccountSessionExpiredMsg,
+                      ),
                     ),
                   );
                 Navigator.of(
@@ -1074,8 +1082,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
               } else if (errorCode == 'requires-recent-login') {
                 // Stale-session challenge — don't dead-end. Collect the password
-                // (or, for Apple, ask again) and re-auth + retry in place (#2).
-                _showReauthToDeleteDialog(context, apple: isAppleAccount);
+                // (Apple/Google: no password, just retry) and re-auth + retry in
+                // place (#2).
+                _showReauthToDeleteDialog(
+                  context,
+                  noPasswordBody: isAppleAccount
+                      ? l10n.deleteAccountReauthBodyApple
+                      : isGoogleAccount
+                      ? l10n.deleteAccountReauthBodyGoogle
+                      : null,
+                );
               } else {
                 ScaffoldMessenger.of(context)
                   ..clearSnackBars()
@@ -1103,11 +1119,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// to sign in again. Uses [StatefulBuilder] for the dialog's local
   /// busy/error state.
   ///
-  /// [apple]: Apple-only accounts have no password (PF5). The dialog drops the
-  /// field and confirming retries the delete once — that shows the Apple sheet
-  /// again, which re-authenticates.
-  void _showReauthToDeleteDialog(BuildContext context, {bool apple = false}) {
+  /// [noPasswordBody]: Apple/Google-only accounts have no password (PF5,
+  /// PF16). The dialog shows this text instead of the field, and confirming
+  /// retries the delete once — for Apple that shows the sheet again, which
+  /// re-authenticates; for Google it refreshes the token.
+  void _showReauthToDeleteDialog(
+    BuildContext context, {
+    String? noPasswordBody,
+  }) {
     final l10n = context.l10n;
+    final noPassword = noPasswordBody != null;
     final passwordController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     var busy = false;
@@ -1121,7 +1142,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (ctx, setLocalState) {
             Future<void> submit() async {
               if (busy) return;
-              if (!apple && !(formKey.currentState?.validate() ?? false)) {
+              if (!noPassword && !(formKey.currentState?.validate() ?? false)) {
                 return;
               }
               FocusScope.of(ctx).unfocus();
@@ -1131,7 +1152,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
 
               final authProvider = ctx.read<AuthProvider>();
-              final result = apple
+              final result = noPassword
                   ? await authProvider.deleteAccount()
                   : await authProvider.reauthenticateAndDeleteAccount(
                       passwordController.text,
@@ -1147,7 +1168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 return;
               }
 
-              if (result == 'apple-canceled') {
+              if (result == 'social-canceled') {
                 // Closed the Apple sheet — back to Settings, nothing deleted.
                 Navigator.of(ctx).pop();
                 return;
@@ -1156,14 +1177,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // A second `requires-recent-login` means the server still
               // rejects the session: never show that sentinel as text.
               if (result == 'session-gone' ||
-                  result == 'requires-recent-login') {
+                  result == 'requires-recent-login' ||
+                  result == 'apple-id-mismatch') {
                 // No local session left to re-auth — send them to sign in again.
                 Navigator.of(ctx).pop();
                 ScaffoldMessenger.of(context)
                   ..clearSnackBars()
                   ..showSnackBar(
                     SnackBar(
-                      content: Text(l10n.deleteAccountSessionExpiredMsg),
+                      content: Text(
+                        result == 'apple-id-mismatch'
+                            ? l10n.deleteAccountAppleIdMismatch
+                            : l10n.deleteAccountSessionExpiredMsg,
+                      ),
                     ),
                   );
                 Navigator.of(
@@ -1172,7 +1198,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 return;
               }
 
-              if (apple) {
+              if (noPassword) {
                 // No field to show it under — same SnackBar as the first try.
                 Navigator.of(ctx).pop();
                 ScaffoldMessenger.of(context)
@@ -1198,8 +1224,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              content: apple
-                  ? Text(l10n.deleteAccountReauthBodyApple)
+              content: noPasswordBody != null
+                  ? Text(noPasswordBody)
                   : Form(
                       key: formKey,
                       child: Column(

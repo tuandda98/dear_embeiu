@@ -130,14 +130,14 @@ void main() {
     test('closing the Apple sheet leaves the session fully intact', () async {
       final fake = _FakeAuthService()
         ..userToReturn = buildUser()
-        ..appleConfirmError = const AuthException('apple-canceled');
+        ..appleConfirmError = const AuthException('social-canceled');
       final provider = AuthProvider(authService: fake);
       await provider.initialize();
       await _settle(); // session token minted + watched
 
       final result = await provider.deleteAccount();
 
-      expect(result, 'apple-canceled');
+      expect(result, 'social-canceled');
       expect(fake.deleteCalled, isFalse);
       expect(provider.isAuthenticated, isTrue);
       expect(provider.errorMessage, isNull);
@@ -149,17 +149,17 @@ void main() {
       expect(provider.sessionRevoked, isTrue);
     });
 
-    test('another Apple ID in the sheet: session-gone, nothing deleted',
+    test('another Apple ID in the sheet: apple-id-mismatch, nothing deleted',
         () async {
       final fake = _FakeAuthService()
         ..userToReturn = buildUser()
-        ..appleConfirmError = const AuthException('session-gone');
+        ..appleConfirmError = const AuthException('apple-id-mismatch');
       final provider = AuthProvider(authService: fake);
       await provider.initialize();
 
       final result = await provider.deleteAccount();
 
-      expect(result, 'session-gone');
+      expect(result, 'apple-id-mismatch');
       expect(fake.deleteCalled, isFalse);
       expect(provider.errorMessage, isNull, reason: 'sentinel, never text');
     });

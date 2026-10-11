@@ -167,10 +167,68 @@ Model/Firestore/Function/rules: **không đổi**. Không deploy gì. Native: ch
 
 ## Đợt 2 — Phần D: Đăng nhập Google + PF18 (đổi Apple ID lúc xoá)
 
-- *Trạng thái:* chưa bắt đầu
+- *Trạng thái:* xong code (2026-10-11), chờ Tester. `flutter analyze` 0 · `flutter test` 259/259 · `flutter build ios --debug --no-codesign` OK (Xcode 281,7s → `Runner.app`) · thêm `flutter build apk --debug` OK (`default_web_client_id` DEV có trong resource sinh ra). Chưa chạy trên máy ảo/máy thật.
 - *File:* auth_service, auth_provider, widget nút mạng xã hội, 3 màn auth, settings, `ios/Runner/Info.plist`, `pubspec.yaml`/`.lock`, ARB + l10n sinh lại, test mới.
 
 <!-- Dev D ghi giữa 2 dòng đánh dấu này -->
+### File và hàm đã đụng
+
+| File | Thay đổi |
+|---|---|
+| `pubspec.yaml` / `.lock` | `google_sign_in: ^7.2.0` (lock: `google_sign_in` 7.2.0, `_android` 7.2.11, `_ios` 6.3.6). Sàn Flutter trong lock lên `>=3.41.0` (do `google_sign_in_ios` 6.3.6), khớp toolchain 3.41.6. |
+| `ios/Podfile.lock` | Thêm GoogleSignIn 9.2.0, AppAuth 2.1.0, GTMAppAuth 5.0.0. **GTMSessionFetcher 5.3.0 → 3.5.0**: GoogleSignIn 9.x đòi `~> 3.3`, Firebase 12.15 nhận `>= 3.4, < 6.0`, nên 3.5.0 là bản duy nhất hợp cả hai. Giải bằng `pod update GTMSessionFetcher` (không `pod repo update`). |
+| `ios/Runner/Info.plist` | `CFBundleURLTypes` thêm 1 mục `google-sign-in` với 2 scheme REVERSED_CLIENT_ID (DEV `…529060310047-u3iu…`, PROD `…478033104351-83r1…`); giữ nguyên `dearembeiu`. `plutil -lint` OK. |
+| `lib/services/auth_service.dart` | `AppleEmailHasPasswordException` → **`EmailHasPasswordAccountException`**. `signInWithApple()` thu gọn, phần hồ sơ tách ra helper chung **`_signInWithSocial(signIn, failed:)`**. Mới: **`signInWithGoogle()`**, `googleIdToken()` (`@visibleForTesting`, bước chọn tài khoản), `_ensureGoogleSignIn()` (gọi `initialize` đúng 1 lần cho cả app, lỗi thì cho thử lại), `_googleSignOut({disconnect})`, `isGoogleOnlyAccount`, `_passwordlessProvider(user)` (thay `_isAppleOnly`), `deleteMessagingToken()` (`@visibleForTesting`). `_mapAppleAuthError` → `_mapSocialAuthError(e, fallback:)`. `signOut` + `purgePersistedSession` đăng xuất Google khi user có provider `google.com`. `deleteAccount`: tài khoản Google-only thì `getIdToken(true)` (giới hạn 5s, lỗi chỉ log) trước callable, xoá xong `disconnect()`. `confirmAppleDeletionIfNeeded`: nhánh PF18. |
+| `lib/providers/auth_provider.dart` | `enum SocialSignIn { apple, google }`. `isAppleSigningIn` → **`socialSignIn`** (nhà cung cấp đang chạy) + `isSocialSigningIn`. `appleEmailConflict` → `emailConflict`. `signInWithApple()` → **`signInWithSocial(SocialSignIn)`** (analytics `method: provider.name` = `apple`/`google`). `isGoogleOnlyAccount`. `deleteAccount` trả nguyên sentinel `social-canceled` / `apple-id-mismatch`. Thêm `onError` cho stream `sessionToken` (xem mục khác spec). |
+| `lib/widgets/social_sign_in_buttons.dart` (mới, thay `apple_sign_in_button.dart` đã xoá) | `SocialSignInButtons({onSignInInstead, onExistingEmail})` + `static isAvailable(auth)`. iOS: Apple → 12 → Google; Android: chỉ Google; 10 → một dòng đồng ý chung. `_SocialButton` dùng chung cho 2 nút (pill 52, spinner khi chạy, Opacity .5 khi khoá, Semantics = nhãn). `_GoogleLogoPainter` vẽ 4 path của `google-g-logo-paths.txt`, scale 48 → 22. `AuthOrDivider` chuyển sang đây. |
+| `lib/theme/app_colors.dart` | `googleBorder` #747775, `googleText` #1F1F1F (chỉ cho nút Google). |
+| `lib/screens/guest_counter_screen.dart`, `login_screen.dart`, `register_screen.dart` | Đổi sang `SocialSignInButtons`, cờ khoá `isSocialSigningIn`. Vị trí giữ như design: landing trên hàng nút cũ, Đăng ký TRÊN form, Đăng nhập DƯỚI form. `guestCtaSignIn` giữ "Đăng nhập bằng email". |
+| `lib/screens/settings_screen.dart` | So `social-canceled`. Nhánh `apple-id-mismatch` (ở dialog đầu và dialog xác minh lại) → SnackBar `deleteAccountAppleIdMismatch` + authGate. `_showReauthToDeleteDialog(context, noPasswordBody:)` thay `apple:`: Apple dùng `deleteAccountReauthBodyApple`, Google dùng `deleteAccountReauthBodyGoogle`, tài khoản mật khẩu giữ ô mật khẩu. |
+| ARB en + vi | 5 key mới ngay sau `deleteAccountReauthBodyApple`: `continueWithGoogle`, `googleSignInFailed`, `socialConsentPrefix`, `deleteAccountReauthBodyGoogle`, `deleteAccountAppleIdMismatch`. Xoá `appleConsentPrefix`. `@authOrDivider` sửa description. Đã `flutter gen-l10n`. |
+| `test/social_sign_in_test.dart` (mới) | 9 test: huỷ picker Google / huỷ sheet Apple → `social-canceled`, provider im lặng với cả hai; lỗi SDK/PlatformException/không có ID token → `googleSignInFailed`; ID token đi đúng vào `GoogleAuthProvider`; PF6 cho Google; lỗi Firebase mạng → `authNetworkError`; chỉ nhà cung cấp đang chạy bận, `isLoading` không bật. |
+| `test/apple_delete_confirm_test.dart` | PF18: user mới bị xoá + xoá FCM token + đăng xuất + `apple-id-mismatch`; tài khoản có sẵn KHÔNG bị xoá; xoá user mồ côi / xoá token lỗi vẫn đăng xuất. Sentinel huỷ → `social-canceled`. |
+| `test/auth_flow_hardening_test.dart` | `apple-canceled` → `social-canceled`; ca đổi Apple ID → `apple-id-mismatch`. |
+
+Không đụng rules, Cloud Functions, native Swift/Kotlin, Android Gradle. Không deploy.
+
+### API `google_sign_in` 7.x (đã đọc source trong pub cache)
+- Android (`google_sign_in_android` 7.2.11): `init()` gặp `serverClientId == null` thì tự đọc resource `default_web_client_id` (google-services plugin sinh từ `oauth_client` type 3) qua `getGoogleServicesJsonServerClientId()`. Không có resource đó thì `authenticate()` ném `clientConfigurationError`. `clientId` bị bỏ qua trên Android. `authenticate()` dùng luồng nút (`GetSignInWithGoogleOption`, Credential Manager), luôn hiện bảng chọn tài khoản. Huỷ → `GoogleSignInExceptionCode.canceled`.
+- iOS (`google_sign_in_ios` 6.3.6, GoogleSignIn SDK 9.2): truyền `clientId: Firebase.app().options.iosClientId` (plugin cũng tự đọc `CLIENT_ID` trong GoogleService-Info.plist nếu không truyền). SDK kiểm tra scheme REVERSED_CLIENT_ID trong Info.plist; thiếu thì ném NSException → `PlatformException` → `googleSignInFailed`. Plugin đăng ký cả `addSceneDelegate`, hợp với vòng đời UIScene của app.
+- `initialize()` phải gọi đúng 1 lần trước mọi lệnh khác → memo tĩnh `_googleInit`. Chỉ gọi khi bấm nút Google hoặc khi tài khoản có provider `google.com` (đăng xuất/xoá), nên người dùng email/Apple không bao giờ khởi tạo SDK Google.
+
+### Luồng và edge case
+- **Huỷ (cả 2 nhà cung cấp)** → một sentinel `social-canceled`: đăng nhập im lặng (không SnackBar, không haptic), xoá tài khoản Apple không xoá gì.
+- **Lỗi khác của Google**: lỗi SDK (`interrupted`, `uiUnavailable`, `clientConfigurationError`…), `PlatformException`, ID token rỗng → `googleSignInFailed`. Lỗi Firebase `network-request-failed` → `authNetworkError`, còn lại → `googleSignInFailed`. Chữ tiếng Anh chỉ vào `debugPrint`.
+- **PF6** dùng chung `EmailHasPasswordAccountException` (key ARB `appleEmailHasPasswordAccount` giữ tên).
+- **Bận**: `socialSignIn` chỉ cho nút đang chạy hiện spinner; nút còn lại Opacity .5 + khoá; nút email + link khoá như trước (`isSocialSigningIn`). `isLoading` không bật.
+- **PF3**: `requiresEmailVerification` đã trả false cho user không có provider `password` → Google không qua cổng xác thực (chỉ sửa comment).
+- **Đăng xuất**: `GoogleSignIn.signOut()` chạy nền (`unawaited`, try/catch), chỉ khi user có `google.com`. Áp cho cả đăng xuất thường, bị máy khác đá ra (single-session) và `purgePersistedSession`.
+- **Xoá tài khoản Google-only** (có `google.com`, không `password`, không `apple.com`): không sheet; `getIdToken(true)` trước callable; xoá xong `disconnect()` chạy nền. `requires-recent-login` → dialog không ô mật khẩu, body Google, bấm là thử lại 1 lần; lần hai vẫn lỗi → `deleteAccountSessionExpiredMsg` + authGate (y nhánh Apple/mật khẩu).
+- **PF18** (sheet Apple trả uid khác): (a) `additionalUserInfo.isNewUser == true` → `user.delete()` (lỗi chỉ log); tài khoản có sẵn thì không bao giờ xoá; (b) `FirebaseMessaging.deleteToken()` (lỗi chỉ log); (c) `signOut`; (d) ném `apple-id-mismatch` → Settings hiện câu riêng + authGate. CF không có trigger Auth nào (đã grep `functions/index.js`), nên xoá user mồ côi không để lại dữ liệu.
+
+### Chỗ làm khác brief (PO/Tester xem)
+1. **Sheet Apple trả `user == null`** (gần như không xảy ra) vẫn ném `session-gone` như cũ, nhưng giờ cũng xoá FCM token: cùng lý do, đều là đăng xuất mà không gỡ push.
+2. **`getIdToken(true)` của Google lỗi thì vẫn gọi callable**: làm mới token chỉ để bớt ca phiên cũ, callable mới là bên quyết định (thành công, hoặc `unauthenticated` → dialog thử lại). Giới hạn 5 giây để overlay không treo.
+3. **Android `disconnect()` chỉ thu hồi được khi người dùng đăng nhập Google trong cùng phiên chạy app**: plugin chỉ nhớ tài khoản đã `authenticate()` trong process hiện tại. Mở lại app rồi xoá thì chỉ xoá trạng thái Credential Manager, quyền của app vẫn nằm trong trang "Ứng dụng bên thứ ba" của Google. iOS thu hồi đầy đủ. Không ảnh hưởng việc xoá tài khoản.
+4. **Thêm `onError` cho stream `sessionToken`** (1 dòng, ngoài brief): ở nhánh PF18, `signInWithProvider` đổi user giữa chừng nên listener `users/{uidCũ}` bị rules từ chối. Không có `onError` thì lỗi rơi vào `PlatformDispatcher.onError` và Crashlytics ghi thành **fatal** (app không crash). Lỗi này có từ trước ở nhánh `session-gone` và khi phiên bị thu hồi từ ngoài.
+5. **Ripple nút Google** = overlay mặc định của `FilledButton` theo màu chữ #1F1F1F (10% khi nhấn), không cần cấu hình thêm. Nút Google dựng chung `_SocialButton` với nút Apple (`FilledButton` nền trắng + `side` 1px).
+6. **Đổi tên API provider** `signInWithApple()` → `signInWithSocial(SocialSignIn)`; service vẫn giữ `signInWithApple()` + thêm `signInWithGoogle()`.
+7. **`ios/Podfile.lock` hạ GTMSessionFetcher 5.3.0 → 3.5.0** (xem bảng). Lần `flutter build ios` đầu dừng ở `pod install` ("specs repository is too out-of-date") chính vì xung đột này, không phải vì index cũ. `project.pbxproj` không đổi.
+
+### Cần Tester / Lead chạy trên máy ảo
+- **Android emulator**: image phải có Google Play và đã đăng nhập tài khoản Google (không có thì bảng chọn mời thêm tài khoản). Bản debug = app `com.tony.dearembeiu.dev` → Firebase DEV (SHA-1 debug `FB:F7:1E:29…` đã đăng ký). Chỉ thấy nút Google, không có nút Apple; dòng đồng ý "Khi tiếp tục, bạn đồng ý với Chính sách bảo mật."
+- **iOS simulator**: thấy Apple (trên) + Google (dưới). Google mở trang đăng nhập qua `ASWebAuthenticationSession` (hộp "Dear Embeiu muốn dùng google.com để đăng nhập"); bấm Huỷ ở hộp đó hoặc đóng trang → im lặng.
+- Người mới bấm Google → tạo `users/{uid}` có mã mời → Setup, không qua màn xác thực email. Người cũ → Home. Analytics `sign_up`/`login` `method=google`.
+- Đăng xuất rồi bấm Google lại → phải hiện chọn tài khoản (không tự vào tài khoản cũ).
+- **PF6 với Google, cần soát** (theo tài liệu Firebase, chưa thử thật): Firebase coi Google là nhà cung cấp tin cậy cho địa chỉ `@gmail.com`. Đăng nhập Google bằng gmail đã có tài khoản mật khẩu nhiều khả năng **không** báo PF6 mà vào thẳng tài khoản cũ (Firebase tự nối). Nếu tài khoản mật khẩu đó chưa xác thực email, Firebase gỡ luôn provider `password`, mật khẩu cũ hết dùng được. Khi đó câu PF6 chỉ hiện với email không phải gmail. Nếu email trùng một tài khoản **Apple** (không có mật khẩu) mà Firebase báo PF6, câu "Đăng nhập bằng mật khẩu nhé" sẽ sai: PO cân nhắc copy.
+- Xoá tài khoản Google-only: không sheet, xoá xong về landing; Firebase Console DEV → Authentication không còn user.
+- **PF18** (iOS, cần 2 Apple ID): đăng nhập Apple ID A, đổi Apple ID của máy sang B, vào Cài đặt → Xoá tài khoản → sheet hiện B → SnackBar "Apple ID trên máy này khác tài khoản bạn đang xoá…" + về landing; tài khoản A còn nguyên. B chưa từng dùng app → Console không còn user mồ côi của B; B đã có tài khoản → user B còn nguyên. Sau đó nhờ người ấy của A gửi tin → máy này không còn nhận push của A.
+- **Việc trước khi release (ngoài code)**: bật provider Google trên Firebase **PROD** (Console); thêm SHA-1 của khoá upload + khoá ký Play vào app Android PROD rồi tải lại `google-services.json` (thiếu thì Android PROD bấm Google ra `googleSignInFailed`). iOS PROD đã có `CLIENT_ID` + scheme.
+- `CLAUDE.md` mục 2 (dòng "Phễu ghép đôi") còn nhắc `widgets/apple_sign_in_button.dart` (đã xoá). Lead cập nhật khi merge.
+
+### Nhật ký
+- [2026-10-11] [Dev D] Worktree tạo từ `main`@1c982ea → reset về `799c5bb` (`feature/pairing-funnel`), cây sạch.
+- [2026-10-11] [Dev D] Implement PF14–PF18 theo bảng trên. Thử phá 5 chỗ (xoá cả user có sẵn, bỏ xoá token, huỷ Google ra lỗi, trả sentinel cũ, bỏ sentinel `apple-id-mismatch`) → đều có test đỏ; khôi phục → xanh. Probe widget tạm (không commit): 2 nút ở bề rộng 240/253/295/400 × cỡ chữ 1.0–3.0 × vi/en đều cao 52, không tràn; semantics, spinner/khoá đúng; vẽ thử logo "G" ra PNG để soát mắt. analyze 0, test 259/259. Build iOS thiết bị lần 1 dừng ở `pod install` (xung đột GTMSessionFetcher) → `pod update GTMSessionFetcher` → build iOS OK, build APK debug OK. Không deploy, không push.
 <!-- /Phần D -->
 
 ---

@@ -9,7 +9,7 @@ import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
-import '../widgets/apple_sign_in_button.dart';
+import '../widgets/social_sign_in_buttons.dart';
 import '../widgets/content_card.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/eyebrow_chip.dart';
@@ -22,8 +22,8 @@ import '../widgets/language_toggle_button.dart';
 /// The counter is pure local: reads/writes the anniversary date from a Hive box
 /// (`guest_settings`, key `anniversary` storing millisecondsSinceEpoch) and
 /// never touches Firestore. The only backend contact is the CTA card's
-/// "Continue with Apple" button (pairing-funnel PF2), which reads
-/// [AuthProvider] to show itself and to sign in.
+/// Apple / Google buttons (pairing-funnel PF2, PF14), which read
+/// [AuthProvider] to show themselves and to sign in.
 class GuestCounterScreen extends StatefulWidget {
   const GuestCounterScreen({super.key});
 
@@ -82,7 +82,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
     setState(() => _anniversaryDate = picked);
   }
 
-  /// Also the PF6 SnackBar action of the Apple button, which can fire after
+  /// Also the PF6 SnackBar action of the social buttons, which can fire after
   /// this screen is gone — or while Login already sits on top of it (the
   /// landing stays mounted underneath), which would stack a second Login.
   void _openSignIn() {
@@ -443,7 +443,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
 
   Widget _buildCtaCard(AppLocalizations l10n) {
     final authProvider = context.watch<AuthProvider>();
-    final appleBusy = authProvider.isAppleSigningIn;
+    final socialBusy = authProvider.isSocialSigningIn;
 
     return GlassCard(
       borderRadius: AppTheme.cardRadius,
@@ -483,8 +483,8 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
           ),
           const SizedBox(height: 16),
           // No "or" divider here: the consent line already splits the groups.
-          if (AppleSignInButton.isAvailable(authProvider)) ...[
-            AppleSignInButton(onSignInInstead: _openSignIn),
+          if (SocialSignInButtons.isAvailable(authProvider)) ...[
+            SocialSignInButtons(onSignInInstead: _openSignIn),
             const SizedBox(height: 14),
           ],
           Row(
@@ -493,7 +493,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
                 child: SizedBox(
                   height: 52,
                   child: FilledButton(
-                    onPressed: appleBusy ? null : _openSignIn,
+                    onPressed: socialBusy ? null : _openSignIn,
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.accentRose,
                       foregroundColor: AppColors.white,
@@ -507,7 +507,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
               ),
               const SizedBox(width: 12),
               TextButton(
-                onPressed: appleBusy
+                onPressed: socialBusy
                     ? null
                     : () => Navigator.of(context).pushNamed(AppRoutes.register),
                 style: TextButton.styleFrom(

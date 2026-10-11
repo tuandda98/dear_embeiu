@@ -1668,9 +1668,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get continueWithApple => 'Tiếp tục với Apple';
 
   @override
-  String get appleConsentPrefix => 'Khi tiếp tục với Apple, bạn đồng ý với';
-
-  @override
   String get authOrDivider => 'hoặc';
 
   @override
@@ -1688,6 +1685,24 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get deleteAccountReauthBodyApple =>
       'Vì lý do bảo mật, bạn xác nhận lại với Apple để xoá tài khoản vĩnh viễn.';
+
+  @override
+  String get continueWithGoogle => 'Tiếp tục với Google';
+
+  @override
+  String get googleSignInFailed =>
+      'Chưa đăng nhập được với Google. Bạn thử lại nhé.';
+
+  @override
+  String get socialConsentPrefix => 'Khi tiếp tục, bạn đồng ý với';
+
+  @override
+  String get deleteAccountReauthBodyGoogle =>
+      'Bấm Xoá vĩnh viễn để thử lại. Nếu vẫn lỗi, bạn đăng nhập lại bằng Google rồi xoá nhé.';
+
+  @override
+  String get deleteAccountAppleIdMismatch =>
+      'Apple ID trên máy này khác tài khoản bạn đang xoá. Đăng nhập lại bằng Apple ID của tài khoản đó rồi xoá nhé.';
 
   @override
   String get authFirebaseUserCreateFailed =>

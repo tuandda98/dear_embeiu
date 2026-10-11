@@ -2996,13 +2996,7 @@ abstract class AppLocalizations {
   /// **'Continue with Apple'**
   String get continueWithApple;
 
-  /// Implied-consent line under the Apple button, followed by a space, the privacyPolicyLabel link and a period
-  ///
-  /// In en, this message translates to:
-  /// **'By continuing with Apple, you agree to our'**
-  String get appleConsentPrefix;
-
-  /// Label in the divider between the email form and the Apple button
+  /// Label in the divider between the email form and the Apple/Google buttons
   ///
   /// In en, this message translates to:
   /// **'or'**
@@ -3031,6 +3025,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For your security, confirm with Apple again to permanently delete your account.'**
   String get deleteAccountReauthBodyApple;
+
+  /// Sign in with Google button label (pairing-funnel PF15)
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// Generic Google sign-in error
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign in with Google. Please try again.'**
+  String get googleSignInFailed;
+
+  /// Implied-consent line under the Apple/Google buttons, followed by a space, the privacyPolicyLabel link and a period
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing, you agree to our'**
+  String get socialConsentPrefix;
+
+  /// Body of the re-auth dialog for Google accounts (no password field); 'Delete permanently' is deleteAccountConfirmBtn
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Delete permanently to try again. If it still fails, sign in with Google again, then delete.'**
+  String get deleteAccountReauthBodyGoogle;
+
+  /// Deleting an Apple account, but the Apple sheet signed in with a different Apple ID (PF18); the user has been signed out
+  ///
+  /// In en, this message translates to:
+  /// **'The Apple ID on this device isn\'t the one for this account. Sign in with that account\'s Apple ID, then delete.'**
+  String get deleteAccountAppleIdMismatch;
 
   /// authFirebaseUserCreateFailed
   ///

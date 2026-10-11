@@ -112,6 +112,10 @@ dependencies:
   # Mã QR mời ghép đôi (feature pairing-funnel, PF7) — thuần Dart, vẽ bằng CustomPaint.
   qr_flutter: ^4.1.0
 
+  # Đăng nhập với Google (feature pairing-funnel, PF14): Android dùng Credential
+  # Manager, iOS dùng GoogleSignIn SDK; ID token → Firebase signInWithCredential.
+  google_sign_in: ^7.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -6,29 +6,65 @@ import 'package:dear_embeiu/services/auth_service.dart';
 
 /// Pairing-funnel Tester round 1. BUG-1: the Apple delete confirmation signs
 /// in again (never `reauthenticateWithProvider` — the fake user throws if it
-/// is called) and refuses another Apple ID without deleting anything. BUG-6:
-/// its errors talk about deleting, not signing in.
+/// is called) and refuses another Apple ID without deleting anything of the
+/// account. BUG-6: its errors talk about deleting, not signing in. PF18: on
+/// another Apple ID it removes the user the sheet just created (never an
+/// existing one), drops the FCM token, signs out, says `apple-id-mismatch`.
 void main() {
   test('same Apple ID: revoke with the fresh code, refresh the token', () async {
     final auth = _FakeAuth(signInUser: _FakeUser('u1'));
+    final service = _FirebaseAuthService(auth);
 
-    await _FirebaseAuthService(auth).confirmAppleDeletionIfNeeded();
+    await service.confirmAppleDeletionIfNeeded();
 
     expect(auth.revokedCode, 'fresh-code');
     expect(auth.signInUser!.tokenRefreshed, isTrue);
     expect(auth.signedOut, isFalse);
+    expect(service.messagingTokenDeleted, isFalse);
   });
 
-  test('another Apple ID: sign out, session-gone, nothing revoked', () async {
-    final auth = _FakeAuth(signInUser: _FakeUser('u2'));
+  Future<String> mismatch(_FakeAuth auth, _FirebaseAuthService service) async {
+    try {
+      await service.confirmAppleDeletionIfNeeded();
+    } on AuthException catch (e) {
+      return e.message;
+    }
+    fail('expected an AuthException');
+  }
 
-    await expectLater(
-      _FirebaseAuthService(auth).confirmAppleDeletionIfNeeded(),
-      throwsA(isA<AuthException>()
-          .having((e) => e.message, 'message', 'session-gone')),
-    );
+  test('another Apple ID that the sheet just created: delete it, drop the '
+      'FCM token, sign out, apple-id-mismatch', () async {
+    final auth = _FakeAuth(signInUser: _FakeUser('u2'), isNewUser: true);
+    final service = _FirebaseAuthService(auth);
+
+    expect(await mismatch(auth, service), 'apple-id-mismatch');
+    expect(auth.signInUser!.deleted, isTrue);
+    expect(service.messagingTokenDeleted, isTrue);
     expect(auth.signedOut, isTrue);
     expect(auth.revokedCode, isNull);
+    expect(auth.signInUser!.tokenRefreshed, isFalse);
+  });
+
+  test('another Apple ID that already had an account: never deleted', () async {
+    final auth = _FakeAuth(signInUser: _FakeUser('u2'), isNewUser: false);
+    final service = _FirebaseAuthService(auth);
+
+    expect(await mismatch(auth, service), 'apple-id-mismatch');
+    expect(auth.signInUser!.deleted, isFalse);
+    expect(service.messagingTokenDeleted, isTrue);
+    expect(auth.signedOut, isTrue);
+    expect(auth.revokedCode, isNull);
+  });
+
+  test('a failed orphan delete or token drop still signs out', () async {
+    final auth = _FakeAuth(
+      signInUser: _FakeUser('u2', deleteFails: true),
+      isNewUser: true,
+    );
+    final service = _FirebaseAuthService(auth, tokenDeleteFails: true);
+
+    expect(await mismatch(auth, service), 'apple-id-mismatch');
+    expect(auth.signedOut, isTrue);
   });
 
   test('errors: cancel stays silent, the rest speak about deleting', () async {
@@ -43,8 +79,8 @@ void main() {
     }
 
     final l10n = AppL10n.strings;
-    expect(await messageFor('canceled'), 'apple-canceled');
-    expect(await messageFor('web-context-canceled'), 'apple-canceled');
+    expect(await messageFor('canceled'), 'social-canceled');
+    expect(await messageFor('web-context-canceled'), 'social-canceled');
     expect(await messageFor('network-request-failed'), l10n.authNetworkError);
     expect(await messageFor('failed'), l10n.deleteAccountFailed);
     expect(await messageFor('invalid-credential'), l10n.deleteAccountFailed);
@@ -52,19 +88,32 @@ void main() {
 }
 
 class _FirebaseAuthService extends AuthService {
-  _FirebaseAuthService(FirebaseAuth auth) : super(firebaseAuth: auth);
+  _FirebaseAuthService(FirebaseAuth auth, {this.tokenDeleteFails = false})
+    : super(firebaseAuth: auth);
+
+  final bool tokenDeleteFails;
+  bool messagingTokenDeleted = false;
 
   @override
   bool get isUsingFirebase => true;
+
+  @override
+  Future<void> deleteMessagingToken() async {
+    messagingTokenDeleted = true;
+    if (tokenDeleteFails) {
+      throw Exception('no FCM');
+    }
+  }
 }
 
-/// Signed in as Apple-only `u1`; the Apple sheet returns [signInUser] or
-/// throws [error].
+/// Signed in as Apple-only `u1`; the Apple sheet returns [signInUser] (a
+/// brand-new Firebase user when [isNewUser]) or throws [error].
 class _FakeAuth extends Fake implements FirebaseAuth {
-  _FakeAuth({this.signInUser, this.error});
+  _FakeAuth({this.signInUser, this.error, this.isNewUser = false});
 
   final _FakeUser? signInUser;
   final FirebaseAuthException? error;
+  final bool isNewUser;
   final _FakeUser _current = _FakeUser('u1');
   String? revokedCode;
   bool signedOut = false;
@@ -78,7 +127,7 @@ class _FakeAuth extends Fake implements FirebaseAuth {
     if (e != null) {
       throw e;
     }
-    return _FakeCredential(signInUser);
+    return _FakeCredential(signInUser, isNewUser: isNewUser);
   }
 
   @override
@@ -93,12 +142,14 @@ class _FakeAuth extends Fake implements FirebaseAuth {
 }
 
 class _FakeUser extends Fake implements User {
-  _FakeUser(this.uid);
+  _FakeUser(this.uid, {this.deleteFails = false});
 
   @override
   final String uid;
 
+  final bool deleteFails;
   bool tokenRefreshed = false;
+  bool deleted = false;
 
   @override
   List<UserInfo> get providerData => [_AppleInfo()];
@@ -108,6 +159,14 @@ class _FakeUser extends Fake implements User {
     tokenRefreshed = forceRefresh;
     return 'token';
   }
+
+  @override
+  Future<void> delete() async {
+    if (deleteFails) {
+      throw FirebaseAuthException(code: 'requires-recent-login');
+    }
+    deleted = true;
+  }
 }
 
 class _AppleInfo extends Fake implements UserInfo {
@@ -116,16 +175,23 @@ class _AppleInfo extends Fake implements UserInfo {
 }
 
 class _FakeCredential extends Fake implements UserCredential {
-  _FakeCredential(this.user);
+  _FakeCredential(this.user, {required this.isNewUser});
 
   @override
   final User? user;
 
+  final bool isNewUser;
+
   @override
-  AdditionalUserInfo? get additionalUserInfo => _FreshCode();
+  AdditionalUserInfo? get additionalUserInfo => _Info(isNewUser);
 }
 
-class _FreshCode extends Fake implements AdditionalUserInfo {
+class _Info extends Fake implements AdditionalUserInfo {
+  _Info(this.isNewUser);
+
+  @override
+  final bool isNewUser;
+
   @override
   String? get authorizationCode => 'fresh-code';
 }
