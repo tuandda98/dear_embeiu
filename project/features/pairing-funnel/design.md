@@ -123,7 +123,7 @@ Android: không có khối Apple + dòng đồng ý. Chỉ đổi nhãn nút h�
 ┌──────────────────────────────────────────────────────────────┐ ▲
 │                    ‹6›Tiếp tục với Apple                   │ 52
 └──────────────────────────────────────────────────────────────┘ ▼
-  nền #000000 · r999 · Icons.apple 24 trắng · cách 6 · SF Display 22 w600 trắng
+  nền #000000 · r999 · Icons.apple 24 trắng · cách 10 · SF Display 22 w500 trắng (chung kiểu chữ với nút Google)
   cụm logo + chữ căn giữa
 
 Đang chạy:  [                    ◌  spinner trắng 20                    ]
@@ -261,8 +261,8 @@ Quay lại Safari sau khi bấm tải:
 | Hình | pill r999 (HIG cho chỉnh bo góc cho khớp nút khác trong app) |
 | Nền | `#000000` → token mới `AppColors.appleBlack` |
 | Logo | `Icons.apple` (Material) size 24, trắng. So với nút Apple hệ thống trên simulator; logo trông thấp thì dịch lên 1pt |
-| Khoảng logo → chữ | 6 |
-| Chữ | `continueWithApple`, trắng, **22 w600**, font hệ thống iOS `fontFamily: 'CupertinoSystemDisplay'` (SF Pro Display). 22/52 ≈ 42%, khớp tỉ lệ ~43% của HIG. 22 có sẵn trong type scale |
+| Khoảng logo → chữ | 10 (chung với nút Google, 2026-10-12) |
+| Chữ | `continueWithApple`, trắng, **22 w500** (w600 → w500 ngày 2026-10-12 để khớp nút Google), font hệ thống iOS `fontFamily: 'CupertinoSystemDisplay'` (SF Pro Display). 22/52 ≈ 42%, khớp tỉ lệ ~43% của HIG ("Regardless of the font you choose, the title and button height … need to use the same proportions"). 22 có sẵn trong type scale |
 | Căn | Row logo + chữ căn giữa, bọc `FittedBox(fit: BoxFit.scaleDown)` để chữ phóng to (Dynamic Type) không tràn |
 | Ripple | InkWell splash trắng .12, highlight trong suốt (luật ripple nền đậm) |
 | Viền / bóng | không |
@@ -542,7 +542,8 @@ Tương phản đo ở điểm tối nhất của nền form: kính trắng .16 
 | color-contrast · nhãn "hoặc" chữ 12 | navy .55 = 3,2:1 | Đổi navy .80 |
 | touch-target-size · link trong dòng đồng ý | 1–2 dòng chữ 12 ≈ 25–43pt | Vùng chạm cao tối thiểu 44 |
 | loading-buttons · accessible busy status | spinner trong nút, nút khác khoá | Đạt; thêm `enabled: false` + spinner ẩn khỏi cây trợ năng; khung 52 giữ nguyên nên bố cục không nhảy |
-| correct brand logos | `Icons.apple` (Material, vector, đúng hình) | Giữ theo yêu cầu lead; App Review góp ý thì thay file logo chính thức của Apple, khung nút không đổi |
+| correct brand logos | `Icons.apple` (Material, vector, đúng hình) | Giữ theo yêu cầu lead; App Review góp ý thì thay file logo chính thức của Apple, khung nút không đổi. ⚠️ 2026-10-12: HIG ghi rõ "Use only the logo artwork downloaded from Apple Design Resources; never create a custom Apple logo" → thay trước release (checklist CLAUDE.md §13) |
+| **Cặp nút Apple + Google** (soát 2026-10-12, Lead) · `font-scale` + `text-styles-system` | Apple 22 w600 · Google 17 w500 (17 nằm ngoài type scale), 2 nút đứng sát nhau nhìn lệch rõ | Một kiểu chữ chung trong `_SocialButton`: iOS SF Pro Display **22 w500**, logo Apple 24 / G 22, cách 10. Không hạ Apple xuống: HIG đòi chữ = 43% chiều cao và nút Apple không nhỏ hơn nút đăng nhập khác (nút email cao 52). Google cho "scale the button as needed". Android chỉ có Google: Roboto **18** w500 (tỉ lệ 14/40 của Google, có trong type scale) |
 | **Pill "Mã QR" + cụm mời + 2 pill thẻ chờ Home** · touch-target-size | pill cao ≈ 30–35pt (padding 8–9 + icon 14), bản iconOnly ≈ 30 | `TextButton.icon` / `IconButton` với `tapTargetSize: padded`: hình cao 36, vùng chạm 48×48, ripple bó trong hình; bớt khoảng cách quanh cụm 6pt để cụm không phình (mục 4a, 4b) |
 | touch-spacing ≥ 8 | ngang 8 | Đạt; khi Wrap xuống dòng, `runSpacing` 8 giữa hai hàng vùng chạm |
 | color-contrast · chữ pill 12–13 | chữ rose trên nền rose .12 = 2,8:1 (lỗi có từ Copy/Share) | Chữ navy `textPrimary` (≈ 14,8:1), nền và icon giữ hồng. Áp luật sẵn có của design system "chữ nhỏ dùng textPrimary" |
@@ -571,3 +572,4 @@ Tương phản đo ở điểm tối nhất của nền form: kính trắng .16 
 ## Nhật ký design
 - [2026-10-11] [Designer] Thiết kế pairing-funnel theo PF1–PF10. (1) Nút "Tiếp tục với Apple" dùng chung: nền #000000 theo HIG (navy không phải kiểu Đen), pill h52, logo `Icons.apple` 24, chữ SF Display 22 w600 (~43% chiều cao), dòng đồng ý navy .62 chỉ link Chính sách bảo mật. Vị trí: landing trên hàng nút cũ (đổi nhãn "Đăng nhập bằng email"), Đăng ký trên form, Đăng nhập DƯỚI form để người dùng email cũ không tạo nhầm tài khoản Apple trống. (2) Bảng kết quả/lỗi: huỷ im lặng, PF6 SnackBar kèm action Đăng nhập. (3) Xoá tài khoản Apple: thêm câu báo trước sheet Apple, biến thể dialog xác minh không ô mật khẩu. (4) Pill "Mã QR" (Iconsax `scan_barcode`) trong `InviteActionButtons` (Row → Wrap vì tile Profile tràn ở máy 375) và cạnh "Sao chép mã" ở thẻ chờ Home; sheet QR khung chuẩn, QR 220 navy trên trắng, ECC M, mã chữ 30 w900. (5) Sheet gợi ý mã ở Setup, nút phụ "Bỏ qua", đồng ý → tab Tham gia + điền mã + 300ms → ghép; chặn hộp "Cho phép dán" lặp lại bằng `changeCount`. (6) Chữ mới cho trang get (sửa nhãn "Tham gia bằng mã", câu chép sẵn đổi trạng thái thay cho toast). (7) Lời nhắc mốc 2 giờ có title + body riêng, mốc 20 giờ giữ `inviteFollowUpBody24h`. Nêu 3 câu hỏi cho PO và 4 đề xuất bổ sung design system.
 - [2026-10-11] [Designer] Soát UX 4 thành phần mới (nút Apple, pill "Mã QR", sheet QR, sheet gợi ý mã) bằng checklist UI UX Pro Max, chỉ phần UX. Sửa spec: dòng đồng ý + nhãn "hoặc" navy .62/.55 → .80 (đo 3,8:1 → 6,0:1 trên kính dawn3); link đồng ý vùng chạm 44; pill dựng bằng `TextButton.icon`/`IconButton` `tapTargetSize: padded` (hình 36, chạm 48) và chữ pill rose → navy (2,8:1 → 14,8:1); sheet QR cuộn được khi chữ to; nút chính sheet gợi ý rose → navy (3,2:1 → 17:1); vuốt mất sheet vẫn điền sẵn mã. Thêm mục "Soát UX" và 2 đề xuất design system (pill nhỏ, nợ chữ trắng trên nút rose).
+- [2026-10-12] [Lead] User hỏi vì sao chữ "Continue with Apple" to hơn "Continue with Google". Nguyên nhân: nút Google thêm ở đợt 2 không qua Designer, không tra UI UX Pro Max, đặt 17 w500 (ngoài type scale) cạnh nút Apple 22 w600. Tra lại skill (`font-scale`, `text-styles-system`) + HIG + Google branding → một kiểu chữ chung: iOS SF Display 22 w500, logo Apple 24 / G 22, cách 10; Android Roboto 18 w500. Chụp so sánh trước/sau trên simulator. User chốt luật: mọi việc UI luôn tra UI UX Pro Max (luật 8 CLAUDE.md).

@@ -342,3 +342,4 @@ Bỏ chốt ngay trong hàm này thì mọi nơi gọi đều được lợi, kh
 
 ## Nhật ký chung (Lead ghi khi merge)
 - [2026-10-11] [Lead] Chia 2 phần A/B, chạy song song trên worktree riêng.
+- [2026-10-12] [Lead] `social_sign_in_buttons.dart`: bỏ tham số `textStyle`/`gap` của `_SocialButton`, mọi nút dùng chung một kiểu chữ (iOS `CupertinoSystemDisplay` 22 w500, Android Roboto 18 w500, màu = `foreground`, cách logo 10); logo Apple 24, G 22. analyze 0 · test 266/266 · kiểm bằng ảnh simulator.

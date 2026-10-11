@@ -122,15 +122,6 @@ class SocialSignInButtons extends StatelessWidget {
             background: AppColors.appleBlack,
             foreground: AppColors.white,
             logo: const Icon(Icons.apple, size: 24, color: AppColors.white),
-            gap: 6,
-            textStyle: const TextStyle(
-              // SF Pro Display, like Apple's own button — the rest of the app
-              // stays Quicksand.
-              fontFamily: 'CupertinoSystemDisplay',
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-              color: AppColors.white,
-            ),
             busy: running == SocialSignIn.apple,
             locked: lockedFor(SocialSignIn.apple),
             onPressed: onPressedFor(SocialSignIn.apple),
@@ -148,14 +139,6 @@ class SocialSignInButtons extends StatelessWidget {
               size: Size.square(22),
               painter: _GoogleLogoPainter(),
             ),
-            gap: 10,
-            textStyle: TextStyle(
-              // Google's button font: Roboto on Android, the system font on iOS.
-              fontFamily: Platform.isIOS ? 'CupertinoSystemText' : 'Roboto',
-              fontSize: 17,
-              fontWeight: FontWeight.w500,
-              color: AppColors.googleText,
-            ),
             busy: running == SocialSignIn.google,
             locked: lockedFor(SocialSignIn.google),
             onPressed: onPressedFor(SocialSignIn.google),
@@ -170,14 +153,14 @@ class SocialSignInButtons extends StatelessWidget {
 /// Pill h52, logo + label centered. While its sign-in runs the content becomes
 /// a spinner; while something else runs the whole button dims. The pressed
 /// overlay follows [foreground] (white on Apple, light grey on Google).
+/// Every provider gets the same label style so none looks louder — HIG only
+/// asks that Apple's button is no smaller than the others.
 class _SocialButton extends StatelessWidget {
   const _SocialButton({
     required this.label,
     required this.background,
     required this.foreground,
     required this.logo,
-    required this.gap,
-    required this.textStyle,
     required this.busy,
     required this.locked,
     required this.onPressed,
@@ -189,8 +172,6 @@ class _SocialButton extends StatelessWidget {
   final Color foreground;
   final BorderSide? border;
   final Widget logo;
-  final double gap;
-  final TextStyle textStyle;
   final bool busy;
   final bool locked;
   final VoidCallback? onPressed;
@@ -231,8 +212,23 @@ class _SocialButton extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         logo,
-                        SizedBox(width: gap),
-                        Text(label, style: textStyle),
+                        const SizedBox(width: 10),
+                        Text(
+                          label,
+                          // iOS: Apple's HIG puts a custom button's title at
+                          // 43% of its height (52 → 22) and Google matches it.
+                          // Android has only Google, at its own 14/40 ratio
+                          // (52 → 18). The brands use the system font; the
+                          // rest of the app stays Quicksand.
+                          style: TextStyle(
+                            fontFamily: Platform.isIOS
+                                ? 'CupertinoSystemDisplay'
+                                : 'Roboto',
+                            fontSize: Platform.isIOS ? 22 : 18,
+                            fontWeight: FontWeight.w500,
+                            color: foreground,
+                          ),
+                        ),
                       ],
                     ),
                   ),
