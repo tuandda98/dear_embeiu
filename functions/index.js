@@ -304,6 +304,12 @@ exports.notifyPartnerJoined = onDocumentUpdated(
         coupleId,
         joinerUserId: joinerUid,
       },
+      // Wake the creator's app (iOS content-available + Android data-only
+      // companion) so it drops its local invite follow-ups (band 1180–1189)
+      // even while closed/backgrounded — otherwise "người ấy chưa vào" still
+      // fires after the pair is complete (pairing-funnel PF19). Once per couple,
+      // so the iOS background-wake budget is no concern.
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
