@@ -3,7 +3,7 @@
 > Tester sở hữu. CHỈ test, không sửa code. Nguồn: `overview.md` (PF1–PF13), `design.md`, `dev.md` (Phần A + B), diff `086f1e0..509e46f`.
 > Agent Tester chỉ có quyền đọc nên Lead dán nguyên văn kết quả vào file này (2026-10-11).
 
-- **Trạng thái test:** PASS có điều kiện (code-level, 2026-10-11) — 0 P0/P1 · 3 P2 · 3 P3 · 17 case ⏳ máy thật
+- **Trạng thái test:** PASS có điều kiện (code-level, vòng 2 2026-10-11) — vòng 1: 0 P0/P1 · 3 P2 · 3 P3; vòng 2: BUG-1/2/4/6 đã vá, BUG-5 sinh BUG-7 (P3, đang vá), BUG-3 là điều kiện phát hành · 17 case ⏳ máy thật
 - **Người/role:** Master Tester
 - **Nhánh/commit:** `feature/pairing-funnel` @ `509e46f`
 
@@ -140,5 +140,36 @@
 16. R16 — Sheet QR cỡ chữ lớn nhất trên máy cao 667pt cuộn tới "Xong"; camera đọc ở 20–40 cm.
 17. R17 — (nghi) `changeCount` sau khi khởi động lại máy trùng số cũ → bỏ sót 1 link mời; chỉ cần nhập tay.
 
+## Vòng 2 — soát bản vá `7b900d1` (2026-10-11)
+
+- **Trạng thái:** PASS có điều kiện (code-level) — BUG-1/2/4/6 đã vá · BUG-5 vá nhưng sinh hồi quy P3 (BUG-7) · 0 P0/P1/P2 mới · BUG-3 vẫn là điều kiện phát hành.
+- **Đã chạy:** `flutter test` 5 file liên quan 35/35 · `flutter analyze` 10 file của commit: 0 issue · probe 63 chuỗi gọi thẳng `InviteClipboard.parseInviteCode`, so với regex vòng 1.
+
+| Bug | Kết quả | Bằng chứng |
+|---|---|---|
+| BUG-1 | ĐÃ VÁ · ⏳ R8/R9 | `auth_service.dart:672` dùng `signInWithProvider`. Plugin 6.5.3: chỉ `reauthenticateWithProviderApp` bật `isReauthenticatingWithApple` (`FLTFirebaseAuthPlugin.m:2064`); huỷ sheet ở nhánh sign-in reset `appleCompletion` + `appleSignInRequestInFlight` (`:495-500`); `signInWithAppleAuth` còn sót nhưng bị ghi đè mỗi lần gọi (`:1707`) → vô hại. Cùng Apple ID: SDK trả user cũ (`Auth.swift:2101`); listener auth-state chỉ bắn khi đổi uid (`Auth.swift:1353-1363`) → `_startSessionListener` không tưởng bị thu hồi. Khác uid: `signOut` + `session-gone` trước bước thu hồi (`auth_service.dart:674-679`). Settings xử lý `session-gone` ở dialog đầu (`settings_screen.dart:1062-1074`) và dialog xác minh lại (`:1158-1173`). `lib/` không còn gọi `reauthenticateWithProvider`. |
+| BUG-6 | ĐÃ VÁ | `auth_service.dart:692-694` truyền `fallback: deleteAccountFailed`; đăng nhập Apple vẫn `appleSignInFailed` (`:373`). |
+| BUG-2 | ĐÃ VÁ · ⏳ R12 | `reminder_provider.dart:1519-1525`. 3 nơi gọi đều ở `session_resolver.dart` (`:163`, `:185`, `:291`). Đăng xuất/rời/xoá/bị đá phiên đều qua authGate. Couple đang chờ bình thường đi nhánh `hasCoupleData` → không bị huỷ; signature null ⇒ Home sau lập lại. |
+| BUG-4 | ĐÃ VÁ | `guest_counter_screen.dart:89` thêm `ModalRoute.of(context)?.isCurrent != true`. |
+| BUG-5 | VÁ NHƯNG CÓ VẤN ĐỀ → BUG-7 | Ca lồng (query, path) nay ra null; ngoặc, nháy, xuống dòng, emoji, "tại: " vẫn ra mã. Link dính liền ký tự đứng trước bị loại (BUG-7). |
+
+### BUG-7 — Regex mới bỏ cả link dính liền ký tự đứng trước (hồi quy do vá BUG-5)
+- **Mức:** P3
+- **Nơi:** `lib/services/invite_clipboard.dart:31` (lookbehind chặn cả `: , ; ! * _ ~ + @ - .`).
+- **Expected:** `tại:https://dearembeiu.com/get?code=ABC234`, `em ơi,https://…`, `nhé.https://…`, `*https://…*` ra `ABC234` như regex vòng 1.
+- **Actual:** 13/63 probe ra null. Tin mời app sinh ra (": " có khoảng trắng), link trang get chép và QR KHÔNG bị ảnh hưởng.
+- **Gợi ý (đã probe 35/35):** tách nhánh — có scheme chỉ chặn `[a-z0-9/=?&#%]`, không scheme giữ class chặt.
+
+### Ghi chú vòng 2 (không tính bug)
+- Nhánh `session-gone` (máy đã đổi Apple ID, rất hiếm): thoát theo đường "phiên bị thu hồi", máy không được gỡ khỏi `users/{uid cũ}/devices` nên vẫn nhận push của tài khoản cũ; Firebase để lại 1 user Auth mồ côi cho Apple ID mới. Tuỳ chọn sau: `FirebaseMessaging.instance.deleteToken()` ở nhánh này + câu riêng.
+- BUG-2, ca hẹp có từ trước: resolver chạy nền sau mốc 8 giây rơi vào `:291` khi Home đã hiện → band mời (và band câu hỏi, như cũ) bị huỷ; Home không gọi lại vì khoá `_lastReminderKey` tới khi đổi ngày/ảnh/ngôn ngữ.
+
+### Cần máy thật (bổ sung)
+- R8: tái hiện BUG-1 — giờ phải vào được Setup/Home.
+- R9: xoá tài khoản Apple → sheet → cùng uid → log thu hồi → xoá xong; huỷ sheet → không xoá, vẫn nhận push.
+- R12: thêm bước Đăng xuất / Rời không gian / Xoá tài khoản khi couple đang chờ → pending không còn 1180–1182.
+
 ## Nhật ký test
 - [2026-10-11] [Tester] Nghiệm thu code-level `feature/pairing-funnel`@509e46f (diff 086f1e0..509e46f): luồng Apple (service/provider/widget/3 màn/Settings), plugin `firebase_auth` 6.5.3 + 6.7.0 iOS, rules `users/{uid}`, join bằng mã trong `couple_service`, bộ nhớ tạm ở Setup + kênh Swift, lịch nhắc mời, `get.html`, ARB. Chạy lại 4 file test liên quan 29/29; probe regex 25 chuỗi + lịch nhắc 11 mốc (gồm DST). Kết quả: PASS có điều kiện — 0 P0/P1, 3 P2 (BUG-1 treo Apple sau khi huỷ xoá, BUG-2 nhắc mời còn nổ sau đăng xuất/rời/xoá, BUG-3 thứ tự đẩy get.html), 3 P3; 17 case cần máy thật.
+- [2026-10-11] [Tester] Vòng 2 soát `7b900d1`: BUG-1/2/4/6 đã vá (đọc plugin firebase_auth 6.5.3, FirebaseAuth 12.15 trong Pods), BUG-5 vá nhưng sinh BUG-7 (P3, regex bỏ link dính liền ký tự đứng trước). Test 5 file 35/35, analyze 10 file 0 issue, probe 63 chuỗi với hàm thật. PASS có điều kiện, chờ R8/R9/R12. (Lead dán hộ — agent Tester chỉ đọc.)
+- [2026-10-11] [Lead] BUG-7 vá ở `49c8bba` (regex tách nhánh có/không scheme như Tester đề xuất, +1 test 5 ca); PO verify analyze 0 · 248/248. Không chạy Tester vòng 3 vì bản vá đúng nguyên văn regex Tester đã probe 35/35.

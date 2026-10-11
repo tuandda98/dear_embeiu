@@ -4,7 +4,7 @@
 
 - **Feature:** pairing-funnel
 - **Ưu tiên:** P0 (North Star cần cả hai người trong couple)
-- **Trạng thái:** 🧪 Test (2026-10-11) — code xong, Tester vòng 1 PASS có điều kiện, đã vá 5 bug; chờ chạy máy thật + điều kiện release
+- **Trạng thái:** 🧪 Test (2026-10-11) — code xong, Tester 2 vòng PASS có điều kiện, đã vá 6 bug (BUG-1/2/4/5/6/7); chờ chạy máy thật + điều kiện release (§5)
 - **Nhánh:** `feature/pairing-funnel` (tách từ `release/1.8.0`@086f1e0)
 - **Liên quan:** [auth](../auth/overview.md) (Đợt 2) · [invite-sharing](../invite-sharing/overview.md) (Phase 2 QR) · [onboarding](../onboarding/overview.md) (nhắc lại mời)
 
@@ -89,3 +89,4 @@
 - [2026-10-11] [PO] Tạo feature từ phân tích phễu ghép đôi. Chốt PF1–PF10. Google + đề xuất 4 để sau. Bật provider Apple trên DEV.
 - [2026-10-11] [PO] Gate Design PASS (đối chiếu key/hàm trên đĩa). Chốt PF11–PF13 cho 3 câu Designer hỏi. Chuyển sang Dev: 2 agent song song trên 2 worktree (Apple · QR + bộ nhớ tạm + lời nhắc).
 - [2026-10-11] [PO] Gộp Phần A (Apple) + Phần B (QR, bộ nhớ tạm, nhắc mời) — analyze 0, 241/241. Build iOS thiết bị `--no-codesign` OK (simulator lỗi môi trường Xcode 27). Tester vòng 1: PASS có điều kiện, 3 P2 + 3 P3. Dev-fix `7b900d1` vá BUG-1 (plugin `firebase_auth` kẹt cờ reauth ⇒ xác nhận xoá dùng `signInWithProvider` + so uid), BUG-2 (huỷ nhắc mời khi đăng xuất/rời/xoá), BUG-4/5/6; BUG-3 là thứ tự deploy `get.html` (ghi vào checklist release). PO verify: analyze 0, 247/247.
+- [2026-10-11] [PO] Tester vòng 2: BUG-1/2/4/6 đã vá; BUG-5 sinh BUG-7 (regex bỏ link dính liền ký tự đứng trước) → vá `49c8bba` theo regex Tester đã thử. PO verify: analyze 0, 248/248. CHƯA Done: còn 17 case máy thật (đăng nhập Apple, quét QR, hộp "Cho phép dán", lịch nhắc) + điều kiện release. Nợ: máy đổi Apple ID giữa lúc xoá vẫn nhận push tài khoản cũ (rất hiếm); huỷ nhắc mời khi `partner_joined` lúc app tắt; Google sign-in; đề xuất 4.
