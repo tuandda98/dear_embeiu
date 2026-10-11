@@ -23,11 +23,13 @@ import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/content_card.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/header_icon_button.dart';
 import '../widgets/invite_action_buttons.dart';
 import '../widgets/invite_qr_sheet.dart';
 import '../widgets/love_lottie.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/sub_screen_header.dart';
+import 'settings_screen.dart';
 
 enum _SetupMode { create, join }
 
@@ -624,53 +626,81 @@ class _SetupScreenState extends State<SetupScreen>
             subtitle: subtitle,
           )
         else ...[
-          Row(
+          // OverflowBar, not Row: with large text the gear + sign-out pair
+          // drops below the chip instead of running off screen — a Row
+          // overflowed at 375pt from 1.75x (EN).
+          OverflowBar(
+            alignment: MainAxisAlignment.spaceBetween,
+            overflowAlignment: OverflowBarAlignment.start,
+            overflowSpacing: 10,
             children: [
               EyebrowChip(
                 label: l10n.coupleOnboardingBadge,
                 icon: IconsaxPlusBold.heart,
               ),
-              const Spacer(),
-              Tooltip(
-                message: l10n.signOutBtn,
-                child: InkWell(
-                  onTap: () async {
-                    await authProvider.signOut();
-                    if (mounted) {
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        AppRoutes.authGate,
-                        (route) => false,
-                      );
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(999),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    // Header ink vòng 4 (2026-06-11): navy ink on a near-solid
-                    // white pill (same .72 fill as the light row tiles) — the
-                    // frosted-glass + white-text version failed contrast.
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.72),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColors.white.withValues(alpha: 0.65)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(IconsaxPlusLinear.logout, size: 13, color: AppColors.textPrimary.withValues(alpha: 0.85)),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.signOutBtn,
-                          style: TextStyle(
-                            color: AppColors.textPrimary.withValues(alpha: 0.85),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Settings before pairing (P1 2026-10-11): the only way
+                  // to "Delete account" for a signed-in user with no couple
+                  // yet (App Review 5.1.1(v)); Settings shows its no-couple
+                  // variant.
+                  HeaderIconButton(
+                    icon: IconsaxPlusLinear.setting_2,
+                    semanticsLabel: l10n.settingsTitle,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          settings: const RouteSettings(name: 'Settings'),
+                          builder: (_) => const SettingsScreen(),
                         ),
-                      ],
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  Tooltip(
+                    message: l10n.signOutBtn,
+                    child: InkWell(
+                      onTap: () async {
+                        await authProvider.signOut();
+                        if (mounted) {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            AppRoutes.authGate,
+                            (route) => false,
+                          );
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(999),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        // Header ink vòng 4 (2026-06-11): navy ink on a near-solid
+                        // white pill (same .72 fill as the light row tiles) — the
+                        // frosted-glass + white-text version failed contrast.
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.72),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: AppColors.white.withValues(alpha: 0.65)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(IconsaxPlusLinear.logout, size: 13, color: AppColors.textPrimary.withValues(alpha: 0.85)),
+                            const SizedBox(width: 6),
+                            Text(
+                              l10n.signOutBtn,
+                              style: TextStyle(
+                                color: AppColors.textPrimary.withValues(alpha: 0.85),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
