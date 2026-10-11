@@ -14,7 +14,7 @@ snap() { "$B/winlist" Transporter | awk -F'\t' '$3=="[]" && $2+0>=0 {print}' | s
 
 echo "→ mở Transporter"; open -a Transporter; sleep 4
 # Chờ đăng nhập xong (cửa sổ chính rộng ≥1000px xuất hiện)
-for i in $(seq 1 30); do MAIN=$("$B/winlist" Transporter | awk -F'\t' '{split($2,a," "); if (a[3]+0 >= 1000) print $1}' | head -1); [ -n "$MAIN" ] && break; sleep 2; done
+for i in $(seq 1 30); do MAIN=$("$B/winlist" Transporter | awk -F'\t' '{split($2,a," "); if (a[3]+0 >= 700 && a[4]+0 >= 400) print $1}' | head -1); [ -n "$MAIN" ] && break; sleep 2; done
 [ -n "$MAIN" ] || { echo "✗ Transporter chưa đăng nhập / không thấy cửa sổ chính — mở tay rồi chạy lại"; exit 1; }
 echo "→ cửa sổ chính id=$MAIN"
 
@@ -24,7 +24,7 @@ osascript -e 'tell application "Transporter" to activate' -e 'delay 1' \
   -e 'tell application "System Events" to tell process "Transporter" to click menu item "Thêm gói" of menu 1 of menu bar item "Tệp" of menu bar 1' -e 'delay 3'
 "$B/winlist" Transporter | grep -q "\[Mở\]\|\[Open\]" || { echo "✗ hộp thoại Mở không hiện"; exit 1; }
 osascript -e 'tell application "System Events" to tell process "Transporter"' \
-  -e 'keystroke "g" using {command down, shift down}' -e 'delay 1.5' -e 'keystroke "a" using {command down}' -e 'keystroke "v" using {command down}' -e 'delay 1.5' -e 'keystroke return' -e 'delay 3' -e 'end tell'
+  -e 'keystroke "g" using {command down, shift down}' -e 'delay 2.5' -e 'keystroke "a" using {command down}' -e 'keystroke "v" using {command down}' -e 'delay 2' -e 'keystroke return' -e 'delay 2.5' -e 'keystroke return' -e 'delay 3' -e 'end tell'
 # Nút "Mở" của panel: panel là process riêng (không có AX) → click theo bounds góc dưới phải.
 PANEL=$("$B/winlist" Transporter | grep "\[Mở\]\|\[Open\]" | cut -f1 | head -1)
 if [ -n "$PANEL" ]; then read PX PY PW PH <<< "$("$B/winbounds" "$PANEL")"; "$B/click" "$(calc "$PX+0.936*$PW")" "$(calc "$PY+0.933*$PH")"; fi
@@ -34,6 +34,6 @@ sleep 12
 read X Y W H <<< "$("$B/winbounds" "$MAIN")"
 osascript -e 'tell application "Transporter" to activate' -e 'delay 1'
 # Tỉ lệ đo lại 2026-09-14 trên màn hình thật (nút ở 0.899·W, 0.219·H); 0.183 cũ trúng mép trên → trượt.
-"$B/click" "$(calc "$X + 0.899*$W")" "$(calc "$Y + 0.219*$H")"
+"$B/click" "$(calc "$X + $W - 162")" "$(calc "$Y + 186")"  # 2026-10-11: nút canh phải, đo lại trên cửa sổ 800×830
 sleep 5; screencapture -x -l "$MAIN" /tmp/transporter-after-deliver.png
 echo "✓ đã bấm CHUYỂN GIAO — xem /tmp/transporter-after-deliver.png (phải thấy 'ĐANG TẢI LÊN ỨNG DỤNG')"

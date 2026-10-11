@@ -32,12 +32,12 @@ Our sleep 🌙
 Thanks for keeping your memories together with us 🌷
 ```
 
-### Bản dán cho App Store (không emoji, gạch "-")
+### Bản dán cho App Store (không emoji, gạch "-"; bỏ dòng Android vì đây là store iOS)
 ```
 Giấc ngủ của chúng mình
 
 - Lịch trăng ghi lại từng đêm: trăng càng tròn, ngủ càng đủ giấc.
-- iPhone lấy dữ liệu từ ứng dụng Sức khoẻ, Android ước lượng qua lúc màn hình tắt và sáng.
+- Giấc ngủ lấy từ ứng dụng Sức khoẻ (Apple Health) khi bạn cho phép.
 - Bật chia sẻ thì người ấy thấy bạn ngủ, dậy lúc mấy giờ. Tắt thì chỉ mình bạn xem được.
 - Đêm nào sửa hay ghi tay đều có nhãn.
 - Cây Tình Yêu có bầu trời đêm: mỗi người 3 ngôi sao cho câu hỏi, tâm trạng và tin nhắn hôm nay.
