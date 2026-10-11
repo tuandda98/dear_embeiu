@@ -26,7 +26,7 @@
 3. **Dồn lời nhắc mời vào 24 giờ đầu:** 2 giờ sau khi tạo (chỉ khi chưa gửi mã), lần nữa trước mốc 24 giờ, giữ mốc 72 giờ, sau 7 ngày thôi nhắc.
 
 **Ngoài (để sau):**
-- **Đăng nhập với Google.** Android chỉ 5% người dùng, mà Google cần bật provider trên DEV, đăng ký SHA-1 cho 3 khoá ký, tải lại `google-services.json` + `GoogleService-Info.plist` cho cả DEV/PROD. Làm khi Apple cho kết quả hoặc khi Android tăng. (PROD đã bật sẵn provider google.com, DEV chưa.)
+- ~~Đăng nhập với Google~~ → đưa vào đợt 2 (PF14–PF17) theo yêu cầu user 2026-10-11.
 - **Apple trên Android** (cần Services ID + web flow).
 - Đề xuất 4 "trả lời trước câu hỏi trong lúc chờ": để sau khi 1–3 có số liệu.
 - Tự ghép đôi bằng universal link (`invite-sharing` Phase 3).
@@ -49,6 +49,14 @@
 - **PF12 — Người đã cài app sẵn:** nút "Mở Dear Embeiu" trên trang get cũng chép link mời. Trên iOS, Setup kiểm tra lại bộ nhớ tạm mỗi lần app quay lại foreground (đã có `changeCount` chặn hỏi lặp). Android chỉ kiểm khi mở Setup, vì Android không có `changeCount` và mỗi lần đọc đều hiện toast.
 - **PF13 — Chấp nhận** hộp "Cho phép dán" hiện khi bộ nhớ tạm có link bất kỳ (chỉ ở Setup, mỗi nội dung một lần). Thêm một sheet hỏi trước sẽ làm người được mời tốn thêm 1 chạm.
 - Nhận các lựa chọn của Designer: Apple nằm **dưới** form ở màn Đăng nhập (người cũ đều dùng email), nút hồng ở landing đổi nhãn "Đăng nhập bằng email", pill mời dựng lại cho vùng chạm 48 và chữ navy.
+
+**Đợt 2 (user yêu cầu 2026-10-11 tối: "làm luôn login bằng gg, dùng máy ảo để test, sửa 2 lỗi"):**
+- **PF14 — Đăng nhập với Google, cả 2 nền tảng.** iOS: Apple (trên) + Google (dưới); Android: chỉ Google. Package chính thức `google_sign_in` (Android dùng Credential Manager, iOS dùng GoogleSignIn SDK) → `GoogleAuthProvider.credential(idToken)` → `signInWithCredential`. Cùng cụm nút với Apple, một dòng đồng ý chung "Khi tiếp tục, bạn đồng ý với Chính sách bảo mật."
+- **PF15 — Nút Google theo branding của Google:** nền trắng, viền 1px #747775, logo "G" 4 màu chính thức (vẽ bằng `CustomPainter` từ path SVG chính thức, không thêm package/ảnh), chữ "Tiếp tục với Google" / "Continue with Google" màu #1F1F1F, cao 52 bo pill như nút Apple; đang chạy thì spinner, các nút khác khoá.
+- **PF16 — Luồng tài khoản như Apple:** tạo hồ sơ khi chưa có, bỏ cổng xác thực email (đã có luật PF3), analytics `method: google`, trùng email tài khoản mật khẩu → câu PF6. Đăng xuất gọi luôn `GoogleSignIn.signOut()` để lần sau còn chọn tài khoản khác. Xoá tài khoản Google-only: không cần sheet, `getIdToken(true)` trước callable; `requires-recent-login` → dialog không ô mật khẩu (thử lại 1 lần); xoá xong gọi `disconnect()` (lỗi bỏ qua).
+- **PF17 — Chỉ hiện nút Google khi đủ cấu hình:** iOS cần `CLIENT_ID` trong GoogleService-Info.plist (`Firebase.app().options.iosClientId`); Android cần OAuth client trong google-services.json. DEV đã đủ (bật Google + SHA-1 debug 2026-10-11). PROD: iOS đã có client; Android còn thiếu SHA-1 khoá upload + khoá ký của Play → bước release.
+- **PF18 — Sửa lỗi đổi Apple ID lúc xoá tài khoản:** nhánh uid khác → xoá FCM token của máy (`FirebaseMessaging.deleteToken()`) để push của tài khoản cũ thôi tới máy này; nếu Apple ID kia vừa tạo user Firebase mới (`isNewUser`) thì xoá user mồ côi đó trước khi đăng xuất (KHÔNG xoá nếu là tài khoản có sẵn); hiện câu riêng "Apple ID trên máy này khác tài khoản đang xoá…".
+- **PF19 — Sửa lỗi người ấy vào lúc app tắt:** CF `notifyPartnerJoined` gửi kèm `wakeClients` (iOS content-available + Android data-only); handler nền của app nhận `type: partner_joined` thì huỷ dải nhắc mời 1180–1189. Deploy CF lên DEV; PROD đi cùng release.
 
 ## 4. Acceptance criteria
 
@@ -90,3 +98,4 @@
 - [2026-10-11] [PO] Gate Design PASS (đối chiếu key/hàm trên đĩa). Chốt PF11–PF13 cho 3 câu Designer hỏi. Chuyển sang Dev: 2 agent song song trên 2 worktree (Apple · QR + bộ nhớ tạm + lời nhắc).
 - [2026-10-11] [PO] Gộp Phần A (Apple) + Phần B (QR, bộ nhớ tạm, nhắc mời) — analyze 0, 241/241. Build iOS thiết bị `--no-codesign` OK (simulator lỗi môi trường Xcode 27). Tester vòng 1: PASS có điều kiện, 3 P2 + 3 P3. Dev-fix `7b900d1` vá BUG-1 (plugin `firebase_auth` kẹt cờ reauth ⇒ xác nhận xoá dùng `signInWithProvider` + so uid), BUG-2 (huỷ nhắc mời khi đăng xuất/rời/xoá), BUG-4/5/6; BUG-3 là thứ tự deploy `get.html` (ghi vào checklist release). PO verify: analyze 0, 247/247.
 - [2026-10-11] [PO] Tester vòng 2: BUG-1/2/4/6 đã vá; BUG-5 sinh BUG-7 (regex bỏ link dính liền ký tự đứng trước) → vá `49c8bba` theo regex Tester đã thử. PO verify: analyze 0, 248/248. CHƯA Done: còn 17 case máy thật (đăng nhập Apple, quét QR, hộp "Cho phép dán", lịch nhắc) + điều kiện release. Nợ: máy đổi Apple ID giữa lúc xoá vẫn nhận push tài khoản cũ (rất hiếm); huỷ nhắc mời khi `partner_joined` lúc app tắt; Google sign-in; đề xuất 4.
+- [2026-10-11] [PO] Đợt 2 theo yêu cầu user: Google sign-in (PF14–PF17) + sửa 2 lỗi hiếm (PF18–PF19) + chạy thử trên máy ảo. Đã bật Google trên Firebase DEV (Console), thêm SHA-1 khoá debug cho 2 app Android DEV (API), tải lại 5 file cấu hình (DEV đủ client iOS/Android; PROD thêm client iOS, Android PROD chờ SHA-1 lúc release).

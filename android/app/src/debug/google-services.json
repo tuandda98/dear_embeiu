@@ -12,7 +12,20 @@
           "package_name": "com.tony.dearembeiu"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "529060310047-ltpr4div3denilvn9r2dgha1uqacthjh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tony.dearembeiu",
+            "certificate_hash": "fbf71e29b7eb7cdef4262bb8b5e0a6837eabdcca"
+          }
+        },
+        {
+          "client_id": "529060310047-ubphtl03h0tg0ot71dgmfnrh152lk978.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBCOZ0l-SBh4c0cpL5zQu_klkBGejjZ-d8"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "529060310047-ubphtl03h0tg0ot71dgmfnrh152lk978.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "529060310047-hun7fdos5tpoiitan2jvkkjp7v9hjhga.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tony.dearembeiu"
+              }
+            }
+          ]
         }
       }
     },
@@ -31,7 +56,20 @@
           "package_name": "com.tony.dearembeiu.dev"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "529060310047-h5rftjjfb11bl2dle73mqemni0i119oe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tony.dearembeiu.dev",
+            "certificate_hash": "fbf71e29b7eb7cdef4262bb8b5e0a6837eabdcca"
+          }
+        },
+        {
+          "client_id": "529060310047-ubphtl03h0tg0ot71dgmfnrh152lk978.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBCOZ0l-SBh4c0cpL5zQu_klkBGejjZ-d8"
@@ -39,7 +77,55 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "529060310047-ubphtl03h0tg0ot71dgmfnrh152lk978.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "529060310047-hun7fdos5tpoiitan2jvkkjp7v9hjhga.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tony.dearembeiu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:529060310047:android:fa719f1b7885a5a142b92a",
+        "android_client_info": {
+          "package_name": "com.tony.ninhvoiu.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "529060310047-ubphtl03h0tg0ot71dgmfnrh152lk978.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCOZ0l-SBh4c0cpL5zQu_klkBGejjZ-d8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "529060310047-ubphtl03h0tg0ot71dgmfnrh152lk978.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "529060310047-hun7fdos5tpoiitan2jvkkjp7v9hjhga.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tony.dearembeiu"
+              }
+            }
+          ]
         }
       }
     }

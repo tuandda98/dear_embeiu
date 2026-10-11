@@ -12,7 +12,12 @@
           "package_name": "com.tony.dearembeiu"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "478033104351-ete97efnhcnjvagvd39n46mo988ipiph.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCF3jn3VurM7ODhdbnv2mBeI3DgM-oCu4o"
@@ -20,11 +25,58 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "478033104351-ete97efnhcnjvagvd39n46mo988ipiph.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "478033104351-83r17l3e1o4cvegogi330telu8b9oar8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tony.dearembeiu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:478033104351:android:b80348d7423e55bae6086a",
+        "android_client_info": {
+          "package_name": "com.tony.ninhvoiu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "478033104351-ete97efnhcnjvagvd39n46mo988ipiph.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCF3jn3VurM7ODhdbnv2mBeI3DgM-oCu4o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "478033104351-ete97efnhcnjvagvd39n46mo988ipiph.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "478033104351-83r17l3e1o4cvegogi330telu8b9oar8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tony.dearembeiu"
+              }
+            }
+          ]
         }
       }
     }
   ],
   "configuration_version": "1"
 }
-
