@@ -165,5 +165,25 @@ Model/Firestore/Function/rules: **không đổi**. Không deploy gì. Native: ch
 
 ---
 
+## Đợt 2 — Phần D: Đăng nhập Google + PF18 (đổi Apple ID lúc xoá)
+
+- *Trạng thái:* chưa bắt đầu
+- *File:* auth_service, auth_provider, widget nút mạng xã hội, 3 màn auth, settings, `ios/Runner/Info.plist`, `pubspec.yaml`/`.lock`, ARB + l10n sinh lại, test mới.
+
+<!-- Dev D ghi giữa 2 dòng đánh dấu này -->
+<!-- /Phần D -->
+
+---
+
+## Đợt 2 — Phần E: PF19 (người ấy vào lúc app tắt)
+
+- *Trạng thái:* chưa bắt đầu
+- *File:* `functions/index.js` (chỉ `notifyPartnerJoined`), `lib/services/push_notification_service.dart`, `lib/services/reminder_service.dart` (nếu cần cho isolate nền), test mới.
+
+<!-- Dev E ghi giữa 2 dòng đánh dấu này -->
+<!-- /Phần E -->
+
+---
+
 ## Nhật ký chung (Lead ghi khi merge)
 - [2026-10-11] [Lead] Chia 2 phần A/B, chạy song song trên worktree riêng.
