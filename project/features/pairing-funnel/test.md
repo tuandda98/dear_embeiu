@@ -227,8 +227,8 @@ Môi trường: iPhone 17 simulator iOS 26.3 trong Device Hub (Xcode 27) + Andro
 | L1–L2 | 5 key mới đủ vi+en, xoá `appleConsentPrefix` sạch, văn phong | PASS |
 | B1–B2 | Không log idToken/email/bộ nhớ tạm; không lộ credential | PASS |
 
-**BUG-8 (P3)** — PF18 nhánh Apple ID mới tinh: `user.delete()` phát `null` → shell đẩy authGate trước khi Settings hiện SnackBar `deleteAccountAppleIdMismatch`. Gợi ý: lấy `ScaffoldMessenger` trước `await`. → đang vá.
-**BUG-9 (P3, nghi)** — PF18 xoá user mồ côi nhưng không thu hồi quyền Apple của Apple ID lạ ⇒ lần cấp quyền đầu không xin email, Apple ID đó có thể đăng nhập Apple lỗi về sau. Gợi ý: revoke bằng `authorizationCode` của B trước `user.delete()`. → đang vá.
+**BUG-8 (P3)** — PF18 nhánh Apple ID mới tinh: `user.delete()` phát `null` → shell đẩy authGate trước khi Settings hiện SnackBar `deleteAccountAppleIdMismatch`. → ✅ đã vá `604e8c4` (messenger lấy trước `await`, 2 test widget).
+**BUG-9 (P3, nghi)** — PF18 xoá user mồ côi nhưng không thu hồi quyền Apple của Apple ID lạ. → ✅ đã vá `604e8c4` (revoke trước `user.delete()`, có test thứ tự).
 **BUG-10 (P3)** — câu PF6 giả định có mật khẩu → ✅ đã vá `439ab91` ("Đăng nhập bằng cách bạn đã dùng lần trước nhé").
 
 **Ghi chú vòng 3:** máy Android không có Google Play Services vẫn thấy nút Google (bấm báo lỗi); tài khoản có cả Apple + Google xoá trên Android sẽ gọi nhầm sheet Apple (→ đang vá: ưu tiên Google trên Android); `getIdToken(true)` nhánh Apple thiếu timeout (→ đang vá); máy còn device doc cũ của tài khoản khác có thể huỷ nhầm band nhắc mời (rất hiếm, để sau); thiếu test tự động cho đường xoá Google-only + Google signOut.
@@ -241,3 +241,4 @@ Môi trường: iPhone 17 simulator iOS 26.3 trong Device Hub (Xcode 27) + Andro
 - [2026-10-11] [Lead] BUG-7 vá ở `49c8bba` (regex tách nhánh có/không scheme như Tester đề xuất, +1 test 5 ca); PO verify analyze 0 · 248/248. Không chạy Tester vòng 3 vì bản vá đúng nguyên văn regex Tester đã probe 35/35.
 - [2026-10-11] [Lead] Chạy thật trên iPhone simulator + Android emulator: 21 kịch bản (M1–M21) — Google sign-in Android tới cùng, luồng get → bộ nhớ tạm → gợi ý mã → ghép đôi, lịch nhắc + huỷ mốc 2h, PF19 với app bị kill. Phát hiện P1 có từ trước: chưa ghép đôi thì không xoá được tài khoản.
 - [2026-10-11] [Tester] Vòng 3 soát đợt 2 (`69f856b..83da599`): Google sign-in, PF18, PF19, Podfile.lock, plist, l10n. Test 261/261, analyze 0. PASS có điều kiện: 0 P0/P1/P2, 3 P3 (BUG-8/9/10). (Lead dán hộ — agent Tester chỉ đọc.)
+- [2026-10-11] [Lead] Verify vá vòng 3 `604e8c4`: analyze 0 · 266/266; máy ảo Android: phông 2 tab Setup đã là Quicksand, bản cuối chạy ổn. Còn ⏳ máy thật: RG1–RG8 + R-list vòng 1/2.

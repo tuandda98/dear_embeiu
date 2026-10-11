@@ -4,7 +4,7 @@
 
 - **Feature:** pairing-funnel
 - **Ưu tiên:** P0 (North Star cần cả hai người trong couple)
-- **Trạng thái:** 🧪 Test (2026-10-11) — code xong, Tester 2 vòng PASS có điều kiện, đã vá 6 bug (BUG-1/2/4/5/6/7); chờ chạy máy thật + điều kiện release (§5)
+- **Trạng thái:** 🧪 Test (2026-10-11) — code đợt 1 + đợt 2 xong, 3 vòng Tester (PASS có điều kiện, đã vá hết P1–P3 tìm được), chạy máy ảo 24 kịch bản; PROD: Apple bật, SHA-1 Android + `google-services.json` PROD, `notifyPartnerJoined` đã deploy. Còn: khoá .p8 (cần user đăng nhập Apple Developer), thử máy thật, release
 - **Nhánh:** `feature/pairing-funnel` (tách từ `release/1.8.0`@086f1e0)
 - **Liên quan:** [auth](../auth/overview.md) (Đợt 2) · [invite-sharing](../invite-sharing/overview.md) (Phase 2 QR) · [onboarding](../onboarding/overview.md) (nhắc lại mời)
 
@@ -89,8 +89,8 @@
 
 - ✅ DEV: đã bật provider Apple cho `com.tony.dearembeiu.dev` qua Identity Toolkit API (2026-10-11).
 - ⏳ App ID `com.tony.dearembeiu` + `.dev`: capability Sign in with Apple (Xcode tự bật khi archive có `-allowProvisioningUpdates` và entitlement mới, giống HealthKit ở 1.8.0).
-- ⏳ Khoá Sign in with Apple (.p8) trên Apple Developer → nhập Team ID + Key ID + private key vào Firebase (Apple provider → OAuth code flow) cho DEV + PROD. Thiếu bước này thì thu hồi token lỗi (vẫn xoá được tài khoản).
-- ⏳ PROD: bật provider Apple cho `com.tony.dearembeiu` — đi cùng lệnh deploy prod của release.
+- ⏳ Khoá Sign in with Apple (.p8) trên Apple Developer → nhập Team ID + Key ID + private key vào Firebase (Apple provider → OAuth code flow) cho DEV + PROD. Thiếu bước này thì thu hồi token lỗi (vẫn xoá được tài khoản). **2026-10-11: dừng ở bước đăng nhập Apple Developer — user cần tự đăng nhập trong Chrome (Claude không nhập mật khẩu); xong báo để Claude tạo khoá + nhập Firebase.**
+- ✅ PROD: bật provider Apple cho `com.tony.dearembeiu` (2026-10-11, user cho phép làm trước release).
 - ⏳ Đẩy `docs/get.html` lên nhánh `phase3` (GitHub Pages) — **CHỈ SAU KHI bản app mới (có tách mã từ link) đã live cả 2 store.** Lý do: trang mới chép cả link `https://dearembeiu.com/get?code=…` vào bộ nhớ tạm khi bấm tải. Ai cài từ store trong lúc store còn phát bản 1.8.0 sẽ nhận bản cũ; bản cũ không tách mã từ link, nên dán vào ô mã sẽ báo sai mã. Đẩy sớm là làm hỏng đúng luồng đang muốn sửa.
 
 ## 6. Changelog
@@ -100,3 +100,4 @@
 - [2026-10-11] [PO] Tester vòng 2: BUG-1/2/4/6 đã vá; BUG-5 sinh BUG-7 (regex bỏ link dính liền ký tự đứng trước) → vá `49c8bba` theo regex Tester đã thử. PO verify: analyze 0, 248/248. CHƯA Done: còn 17 case máy thật (đăng nhập Apple, quét QR, hộp "Cho phép dán", lịch nhắc) + điều kiện release. Nợ: máy đổi Apple ID giữa lúc xoá vẫn nhận push tài khoản cũ (rất hiếm); huỷ nhắc mời khi `partner_joined` lúc app tắt; Google sign-in; đề xuất 4.
 - [2026-10-11] [PO] Đợt 2 theo yêu cầu user: Google sign-in (PF14–PF17) + sửa 2 lỗi hiếm (PF18–PF19) + chạy thử trên máy ảo. Đã bật Google trên Firebase DEV (Console), thêm SHA-1 khoá debug cho 2 app Android DEV (API), tải lại 5 file cấu hình (DEV đủ client iOS/Android; PROD thêm client iOS, Android PROD chờ SHA-1 lúc release).
 - [2026-10-11] [PO] Chạy thật trên máy ảo (24 kịch bản, `test.md` M1–M24): Google sign-in Android tới cùng, get → bộ nhớ tạm → gợi ý mã → ghép đôi, lịch nhắc + huỷ mốc 2h, PF19 với app bị kill, xoá tài khoản Google. Phát hiện + vá P1 có từ trước: chưa ghép đôi thì không xoá được tài khoản (Setup thêm bánh răng → Cài đặt rút gọn, `2356e7b`) — rủi ro App Review 5.1.1(v) vì đăng ký Apple/Google chỉ 2 chạm. Vá thêm `CFBundleName` (hộp Google hiện đúng tên app) + câu PF6 trung tính + script upload IPA lấy file mới nhất.
+- [2026-10-11] [PO] Tester vòng 3 (đợt 2): PASS có điều kiện, 3 P3 → vá hết (`439ab91` câu PF6; `604e8c4` BUG-8 SnackBar đổi Apple ID, BUG-9 thu hồi quyền Apple ID lạ, Android ưu tiên Google khi tài khoản có cả 2, timeout làm mới token, phông tab Setup). PO verify analyze 0 · 266/266. Theo lệnh user: PROD bật Apple, thêm SHA-1 khoá upload + khoá ký Play cho Android (Google sign-in) và tải lại `google-services.json`, deploy `notifyPartnerJoined` — vết ở `.firebase-deploy-log/HISTORY.md`. Đánh đổi đã biết: tài khoản nối cả Apple + Google xoá trên Android thì không thu hồi được quyền Apple (Firebase vẫn xoá đủ).
