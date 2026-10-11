@@ -156,7 +156,8 @@ class ReminderService {
   // 1100–1159, daily-question 1020–1052, lunar 1060–1099) so they never collide;
   // owned by ReminderProvider: refreshInviteFollowUps cancels the whole band
   // the moment the partner joins, cancelDailyQuestionSchedule on sign-out / no
-  // couple.
+  // couple. The `partner_joined` push also cancels it while the app is closed
+  // (PushNotificationService, PF19).
   static const int _idInviteFollowUpBase = 1180;
   static const int _maxInviteFollowUps = 10;
 
@@ -848,10 +849,13 @@ class ReminderService {
 
   /// Cancel the invite follow-up band (1180–1189) — called as soon as the
   /// partner joins (or the member leaves the waiting state).
+  ///
+  /// Works WITHOUT [initialize], like [cancelDailyQuestionBands]: `cancel` is a
+  /// plain platform call, and the `partner_joined` push runs this from the FCM
+  /// background isolate where this service is brand new (pairing-funnel PF19).
+  /// Also keeps Home's cold-start cancel from silently no-op'ing while the
+  /// deferred [initialize] is still running.
   Future<void> cancelInviteFollowUps() async {
-    if (!_initialized) {
-      return;
-    }
     for (var i = 0; i < _maxInviteFollowUps; i++) {
       try {
         await _plugin.cancel(_idInviteFollowUpBase + i);

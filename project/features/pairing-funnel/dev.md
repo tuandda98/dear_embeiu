@@ -177,10 +177,61 @@ Model/Firestore/Function/rules: **không đổi**. Không deploy gì. Native: ch
 
 ## Đợt 2 — Phần E: PF19 (người ấy vào lúc app tắt)
 
-- *Trạng thái:* chưa bắt đầu
+- *Trạng thái:* xong code (2026-10-11), sẵn sàng test. CF CHƯA deploy: Lead deploy DEV sau khi gộp (`functions:notifyPartnerJoined`), PROD đi cùng release.
 - *File:* `functions/index.js` (chỉ `notifyPartnerJoined`), `lib/services/push_notification_service.dart`, `lib/services/reminder_service.dart` (nếu cần cho isolate nền), test mới.
 
 <!-- Dev E ghi giữa 2 dòng đánh dấu này -->
+### File và hàm đã đụng
+
+| File | Thay đổi |
+|---|---|
+| `functions/index.js` | `notifyPartnerJoined` truyền tham số thứ 4 `{wakeClients: true}` cho `sendToRecipientDevices`. iOS: push alert có thêm `content-available`. Android: mỗi máy nhận thêm 1 tin data-only (`type`, `coupleId`, `joinerUserId`, không title/body). Helper giữ nguyên. |
+| `lib/services/push_notification_service.dart` | Hàm thuần `isPartnerJoinedPush(data)` (`@visibleForTesting`) và `_cancelInviteFollowUpsIfPartnerJoined(message)`. Gọi ở `firebaseMessagingBackgroundHandler` (isolate nền) và `_handleForegroundMessage` (app đang mở), ngay sau `_cancelStaleDailyQuestionNudges`. |
+| `lib/services/reminder_service.dart` | `cancelInviteFollowUps()` bỏ chốt `if (!_initialized) return;`. Sửa comment chủ sở hữu band 1180–1189. |
+| `test/partner_joined_push_test.dart` (mới) | 2 test: push alert và tin companion Android đều kích hoạt huỷ; type khác, type rỗng, thiếu type thì không. |
+
+Không đổi rules, model, ARB, native, provider, pubspec.
+
+### Vì sao bỏ chốt init ở `cancelInviteFollowUps()` thay vì viết hàm mới
+Ở isolate nền Android, `ReminderService.instance` là bản mới tinh, `_initialized == false`, nên hàm cũ return ngay và không huỷ gì. Lệnh `cancel` của plugin là lệnh native thuần: đã đọc source `flutter_local_notifications` 19.5.0 cả 3 tầng (Dart, Android `cancelNotification`, iOS `cancel:`), không tầng nào cần `initialize()`. `cancelDailyQuestionBands()` dựa đúng vào điều này từ 1.4.2.
+
+Bỏ chốt ngay trong hàm này thì mọi nơi gọi đều được lợi, không riêng handler push:
+- **Isolate nền Android** (handler FCM): nay huỷ được.
+- **iOS bị push đánh thức khi app đã tắt** (không phải force-quit): `main()` chạy, nhưng `ReminderService.initialize()` nằm trong post-frame callback nên có thể chưa chạy lúc handler chạy.
+- **Mở app lạnh:** Home gọi `refreshInviteFollowUps(waiting: false)` không chờ `sync`, có thể trước khi `initialize()` hoãn chạy xong. Khi đó hàm cũ im lặng bỏ qua, trong khi provider đã đặt `_inviteFollowUpCleared = true` nên cả phiên không thử lại. Lỗi ngầm này có thể đã xảy ra từ trước, nay hết.
+
+`cancelInviteFollowUp(kind)` (huỷ riêng mốc 2 giờ khi bấm Gửi) vẫn giữ chốt: chỉ chạy trên isolate chính, sau khi app đã khởi động.
+
+### Luồng sau khi sửa
+
+| App của người tạo lúc người ấy vào | Cái gì huỷ band 1180–1189 |
+|---|---|
+| Đang mở | `_handleForegroundMessage`. Android nhận 2 tin (alert + companion) nên huỷ 2 lần, vô hại; banner chỉ hiện 1 lần vì companion không có title/body. Home cũng tự huỷ khi thấy couple active. |
+| Nền hoặc đã tắt, Android | Tin companion data-only → `firebaseMessagingBackgroundHandler` trên isolate nền. |
+| Nền hoặc đã tắt (không force-quit), iOS | Push alert có `content-available` → plugin gọi handler nền trên isolate chính. Khi app đang mở, plugin không gửi `onMessage` lần 2 cho push có alert (đã đọc `FLTFirebaseMessagingPlugin.m` 16.4.0). |
+| iOS bị force-quit | Không có wake. Band được huỷ ở lần mở app sau, khi Home thấy couple active. Nhắc nào rơi vào khoảng giữa vẫn nổ. Đây là giới hạn của iOS, giống nhắc câu hỏi hằng ngày. |
+
+`cancel` trên cả 2 nền tảng cũng gỡ nhắc đã hiện trong khay thông báo (iOS `removeDeliveredNotifications…`, Android `NotificationManager.cancel`). Một câu "người ấy chưa vào" đã nổ trước đó sẽ biến khỏi khay khi người ấy vào.
+
+### Cần Tester soi
+- **Môi trường:** push iOS trên DEV đang hỏng vì project DEV chưa có APNs key (CLAUDE.md §5). Nhánh iOS chỉ thử được sau khi thêm key, hoặc trên PROD. Android cần máy thật hoặc emulator có Google Play đã đăng nhập tài khoản Google (emulator Google APIs không đăng ký được FCM).
+- **Kịch bản chính:** A tạo couple (band 1180–1182 đã lập) → vuốt app A khỏi danh sách đa nhiệm (Android) hoặc chỉ đưa về nền (iOS) → B nhập mã → máy A không còn lịch 1180–1182. Android xem bằng `adb shell dumpsys alarm | grep -B2 -A6 com.tony.dearembeiu.dev` trước và sau khi B vào. Cách chậm hơn: tạo couple lúc 21:00, A không bấm Gửi/Sao chép/QR (B gõ mã nhìn từ màn hình A), rồi xem mốc 08:30 sáng hôm sau (mốc +2 giờ bị dời) có nổ không.
+- Đừng dùng *Buộc dừng* trong Cài đặt Android để "tắt app": Android chặn mọi push tới app bị buộc dừng, kịch bản sẽ fail oan.
+- **App đang mở:** banner "người ấy đã vào" chỉ hiện 1 lần trên Android (không có banner rỗng từ tin companion).
+- **Log CF sau khi deploy DEV:** `Processed partner-joined notification` sẽ có `successCount` lớn hơn `attemptedTokens` với máy Android. Đây không phải lỗi: `deviceCount` đếm máy, còn `successCount` đếm cả tin companion. `notifyDailyAnswer` cũng log như vậy từ 1.4.2.
+
+### Giới hạn đã biết (ngoài ranh giới file Phần E)
+- **App còn sống ở nền rồi người ấy rời ngay:** handler huỷ band qua service, nhưng chữ ký debounce `_inviteFollowUpSignature` của `ReminderProvider` (isolate chính) vẫn ghi "đã lập". Nếu người ấy vào rồi RỜI trong 72 giờ đầu mà người tạo chưa mở app lần nào, Home thấy couple chờ lại với cùng mốc tạo, chữ ký trùng nên không lập lại các mốc còn lại. Rất hiếm, hậu quả chỉ là thiếu nhắc. Muốn vá: `invalidateDailyQuestionSchedule()` (đã gọi lúc resume) đặt thêm `_inviteFollowUpSignature = null`. Một dòng trong `reminder_provider.dart`, file không thuộc Phần E.
+
+### Kiểm tra đã chạy
+- `node --check functions/index.js` → OK.
+- `scripts/test-firebase-rules.sh` → **330 passing**, exit 0 (gồm bước kiểm cú pháp `functions/index.js`).
+- `flutter analyze` → **No issues found!**
+- `flutter test` → **250/250** (248 cũ + 2 mới).
+
+### Nhật ký
+- [2026-10-11] [Dev E] Worktree bị tạo từ `main`@1c982ea; cây sạch nên reset về `799c5bb` (`feature/pairing-funnel`) trước khi làm.
+- [2026-10-11] [Dev E] PF19: CF `notifyPartnerJoined` gửi kèm `wakeClients`; handler nền và handler foreground huỷ band 1180–1189 khi `type == partner_joined`; `cancelInviteFollowUps()` chạy được khi service chưa init. Rules-test 330, analyze 0, test 250/250. Không deploy, không push.
 <!-- /Phần E -->
 
 ---
