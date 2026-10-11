@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "478033104351-50n0ufhoukivd2tqg2i1a8kuleit9sb6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tony.dearembeiu",
+            "certificate_hash": "bda72d1a2765983703b27cff9893fd801b2ea87d"
+          }
+        },
+        {
+          "client_id": "478033104351-luv1gbonmvf023ttojmopd7afjc6v1ms.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tony.dearembeiu",
+            "certificate_hash": "ffef1e27c05fc9a6367e1c2c0be2b6ff77e1026a"
+          }
+        },
+        {
           "client_id": "478033104351-ete97efnhcnjvagvd39n46mo988ipiph.apps.googleusercontent.com",
           "client_type": 3
         }

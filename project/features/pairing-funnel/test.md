@@ -3,7 +3,7 @@
 > Tester sở hữu. CHỈ test, không sửa code. Nguồn: `overview.md` (PF1–PF13), `design.md`, `dev.md` (Phần A + B), diff `086f1e0..509e46f`.
 > Agent Tester chỉ có quyền đọc nên Lead dán nguyên văn kết quả vào file này (2026-10-11).
 
-- **Trạng thái test:** PASS có điều kiện (code-level, vòng 2 2026-10-11) — vòng 1: 0 P0/P1 · 3 P2 · 3 P3; vòng 2: BUG-1/2/4/6 đã vá, BUG-5 sinh BUG-7 (P3, đang vá), BUG-3 là điều kiện phát hành · 17 case ⏳ máy thật
+- **Trạng thái test:** PASS có điều kiện (code-level vòng 3 + chạy máy ảo M1–M24, 2026-10-11) — đợt 1: vá xong BUG-1..7; đợt 2: 0 P0/P1/P2 · 3 P3 (BUG-10 đã vá `439ab91`, BUG-8/9 đang vá) · P1 xoá tài khoản khi chưa ghép đôi đã vá `2356e7b` · chặn phát hành: Apple PROD, Google PROD + SHA-1 Android PROD, khoá .p8, CF `notifyPartnerJoined` PROD, get.html sau khi live
 - **Người/role:** Master Tester
 - **Nhánh/commit:** `feature/pairing-funnel` @ `509e46f`
 
@@ -206,8 +206,38 @@ Môi trường: iPhone 17 simulator iOS 26.3 trong Device Hub (Xcode 27) + Andro
 
 **Không thử được trên máy ảo (cần máy thật):** đăng nhập Apple tới cùng (simulator không có Apple ID), hộp "Cho phép dán" + gợi ý mã trên iOS (Xcode 27 `simctl pbcopy` và Safari đều không ghi được bộ nhớ tạm của simulator), push trên iOS (DEV chưa có APNs key), quét QR bằng camera, trang get trong trình duyệt nhúng Zalo/Messenger.
 
+## Vòng 3 — đợt 2 (Google, PF18, PF19)
+
+- **Trạng thái:** PASS có điều kiện (code-level, 2026-10-11) — 0 P0/P1/P2 · 3 P3 mới (BUG-8/9/10) · chặn phát hành: Google PROD + SHA-1 Android PROD + CF `notifyPartnerJoined` PROD.
+- **Phạm vi:** diff `69f856b..83da599`: Google sign-in PF14–PF17, PF18, PF19, Podfile.lock, plist, l10n.
+- **Đã chạy:** `flutter test` 261/261 · `flutter analyze` 14 file đợt 2: 0 issue · `node --check functions/index.js` OK · `plutil -lint` Info.plist + 2 GoogleService-Info OK. Đọc source: `google_sign_in` 7.2.0, `_android` 7.2.11, `_ios` 6.3.6, `firebase_auth` 6.5.3 + 6.7.0, FirebaseAuth 12.15 (Pods), AAR `credentials-play-services-auth` 1.6.0.
+
+| ID | Mô tả | Kết quả |
+|---|---|---|
+| G1–G5 | `initialize` 1 lần; `authenticate` chỉ Android/iOS; idToken null → lỗi; huỷ → `social-canceled` im lặng; lỗi SDK/thiếu URL scheme → `googleSignInFailed`, chữ tiếng Anh chỉ vào log | PASS |
+| G6 | Credential chỉ idToken an toàn ở 6.5.3 / 6.7.0 | PASS (code) · iOS cần 1 lượt Google thành công trên máy thật |
+| G7–G8 | iOS `clientId` từ `iosClientId`; Android `default_web_client_id`: DEV đủ type 1 + 3; PROD chỉ type 3 | PASS (DEV) · chặn phát hành (PROD) |
+| G9 | PF17: iOS ẩn khi thiếu CLIENT_ID; Android luôn hiện (không kiểm được lúc chạy) | PASS có điều kiện |
+| G10–G16 | Cờ bận theo nhà cung cấp; hồ sơ dùng chung Apple; PF3; Google signOut nền khi đăng xuất; xoá Google-only (token 5s + disconnect); dialog không mật khẩu; logo/màu Google | PASS |
+| G17 | R8 bản release giữ class Credential Manager (consumer rule trong AAR) | PASS (đọc AAR) · cần build AAB release |
+| S1–S2 | Không còn `apple-canceled` hay tên cũ | PASS |
+| P18-1..6 | Chỉ xoá user mồ côi khi `isNewUser`; best-effort; `apple-id-mismatch`/`session-gone`; Settings hiện câu riêng; `onError` stream sessionToken; token mới không ghi lại được cho A | PASS · P18-4 FAIL nhánh Apple ID mới (BUG-8) |
+| P19-1..6 | CF `wakeClients`; handler nền + foreground huỷ band; bỏ chốt init an toàn với cả 4 nơi gọi; `isPartnerJoinedPush`; Android app bị kill vẫn huỷ (Lead chạy thật) | PASS |
+| C1–C2 | URL scheme khớp; Podfile.lock GTMSessionFetcher 3.5.0 thoả mọi pod | PASS · smoke Storage/callable iOS |
+| L1–L2 | 5 key mới đủ vi+en, xoá `appleConsentPrefix` sạch, văn phong | PASS |
+| B1–B2 | Không log idToken/email/bộ nhớ tạm; không lộ credential | PASS |
+
+**BUG-8 (P3)** — PF18 nhánh Apple ID mới tinh: `user.delete()` phát `null` → shell đẩy authGate trước khi Settings hiện SnackBar `deleteAccountAppleIdMismatch`. Gợi ý: lấy `ScaffoldMessenger` trước `await`. → đang vá.
+**BUG-9 (P3, nghi)** — PF18 xoá user mồ côi nhưng không thu hồi quyền Apple của Apple ID lạ ⇒ lần cấp quyền đầu không xin email, Apple ID đó có thể đăng nhập Apple lỗi về sau. Gợi ý: revoke bằng `authorizationCode` của B trước `user.delete()`. → đang vá.
+**BUG-10 (P3)** — câu PF6 giả định có mật khẩu → ✅ đã vá `439ab91` ("Đăng nhập bằng cách bạn đã dùng lần trước nhé").
+
+**Ghi chú vòng 3:** máy Android không có Google Play Services vẫn thấy nút Google (bấm báo lỗi); tài khoản có cả Apple + Google xoá trên Android sẽ gọi nhầm sheet Apple (→ đang vá: ưu tiên Google trên Android); `getIdToken(true)` nhánh Apple thiếu timeout (→ đang vá); máy còn device doc cũ của tài khoản khác có thể huỷ nhầm band nhắc mời (rất hiếm, để sau); thiếu test tự động cho đường xoá Google-only + Google signOut.
+
+**Cần máy thật (bổ sung):** RG1 Google iOS người mới/cũ · RG3 đăng xuất rồi chọn lại tài khoản (iOS) · RG4 xoá Google-only + trang "Ứng dụng bên thứ ba" · RG5 PF6 với gmail có/không mật khẩu · RG6 PF18 cần 2 Apple ID · RG7 PF19 iOS (cần APNs key DEV hoặc TestFlight) · RG8 smoke iOS sau khi hạ GTMSessionFetcher (đăng ảnh, callable, đăng nhập email).
+
 ## Nhật ký test
 - [2026-10-11] [Tester] Nghiệm thu code-level `feature/pairing-funnel`@509e46f (diff 086f1e0..509e46f): luồng Apple (service/provider/widget/3 màn/Settings), plugin `firebase_auth` 6.5.3 + 6.7.0 iOS, rules `users/{uid}`, join bằng mã trong `couple_service`, bộ nhớ tạm ở Setup + kênh Swift, lịch nhắc mời, `get.html`, ARB. Chạy lại 4 file test liên quan 29/29; probe regex 25 chuỗi + lịch nhắc 11 mốc (gồm DST). Kết quả: PASS có điều kiện — 0 P0/P1, 3 P2 (BUG-1 treo Apple sau khi huỷ xoá, BUG-2 nhắc mời còn nổ sau đăng xuất/rời/xoá, BUG-3 thứ tự đẩy get.html), 3 P3; 17 case cần máy thật.
 - [2026-10-11] [Tester] Vòng 2 soát `7b900d1`: BUG-1/2/4/6 đã vá (đọc plugin firebase_auth 6.5.3, FirebaseAuth 12.15 trong Pods), BUG-5 vá nhưng sinh BUG-7 (P3, regex bỏ link dính liền ký tự đứng trước). Test 5 file 35/35, analyze 10 file 0 issue, probe 63 chuỗi với hàm thật. PASS có điều kiện, chờ R8/R9/R12. (Lead dán hộ — agent Tester chỉ đọc.)
 - [2026-10-11] [Lead] BUG-7 vá ở `49c8bba` (regex tách nhánh có/không scheme như Tester đề xuất, +1 test 5 ca); PO verify analyze 0 · 248/248. Không chạy Tester vòng 3 vì bản vá đúng nguyên văn regex Tester đã probe 35/35.
 - [2026-10-11] [Lead] Chạy thật trên iPhone simulator + Android emulator: 21 kịch bản (M1–M21) — Google sign-in Android tới cùng, luồng get → bộ nhớ tạm → gợi ý mã → ghép đôi, lịch nhắc + huỷ mốc 2h, PF19 với app bị kill. Phát hiện P1 có từ trước: chưa ghép đôi thì không xoá được tài khoản.
+- [2026-10-11] [Tester] Vòng 3 soát đợt 2 (`69f856b..83da599`): Google sign-in, PF18, PF19, Podfile.lock, plist, l10n. Test 261/261, analyze 0. PASS có điều kiện: 0 P0/P1/P2, 3 P3 (BUG-8/9/10). (Lead dán hộ — agent Tester chỉ đọc.)
