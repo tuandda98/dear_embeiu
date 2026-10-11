@@ -136,7 +136,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWaitingStep1Desc =>
-      'Send this invite code to your partner in a message.';
+      'Send the code in a message, or let them scan the QR code if you\'re together.';
 
   @override
   String get homeWaitingStep1Cta => 'Send it to them 💌';
@@ -184,6 +184,48 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get inviteFollowUpBody72h =>
       'Our memories are waiting for them. Remind them to download the app';
+
+  @override
+  String get inviteQrBtn => 'QR code';
+
+  @override
+  String get inviteQrTitle => 'Let them scan this code';
+
+  @override
+  String get inviteQrBody =>
+      'They open their Camera and point it here to get Dear Embeiu, with your invite code ready.';
+
+  @override
+  String get inviteQrFallback =>
+      'Can\'t scan? Read this code out for them to type in.';
+
+  @override
+  String get inviteQrDone => 'Done';
+
+  @override
+  String inviteQrSemantics(String code) {
+    return 'Invite QR code, code $code';
+  }
+
+  @override
+  String get clipboardInviteTitle => 'Use the code from your invite?';
+
+  @override
+  String get clipboardInviteBody =>
+      'The invite link you opened has this code. Pair up to join your partner\'s space.';
+
+  @override
+  String get clipboardInviteJoin => 'Pair up now';
+
+  @override
+  String get clipboardInviteSkip => 'Skip';
+
+  @override
+  String get inviteFollowUpTitle2h => 'Send your partner the invite 💌';
+
+  @override
+  String get inviteFollowUpBody2h =>
+      'Together right now? Let them scan the QR code. Apart? Send it in a message. It takes about 10 seconds.';
 
   @override
   String get back => 'Back';

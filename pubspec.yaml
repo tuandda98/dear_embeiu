@@ -109,6 +109,9 @@ dependencies:
   # Chỉ thu thập token + metrics; các API vẫn Unenforced nên không chặn ai.
   firebase_app_check: ^0.4.0
 
+  # Mã QR mời ghép đôi (feature pairing-funnel, PF7) — thuần Dart, vẽ bằng CustomPaint.
+  qr_flutter: ^4.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

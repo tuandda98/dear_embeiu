@@ -329,7 +329,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeWaitingStep1Desc.
   ///
   /// In en, this message translates to:
-  /// **'Send this invite code to your partner in a message.'**
+  /// **'Send the code in a message, or let them scan the QR code if you\'re together.'**
   String get homeWaitingStep1Desc;
 
   /// No description provided for @homeWaitingStep1Cta.
@@ -404,7 +404,7 @@ abstract class AppLocalizations {
   /// **'Your partner hasn\'t joined yet 💌'**
   String get inviteFollowUpTitle;
 
-  /// No description provided for @inviteFollowUpBody24h.
+  /// Invite follow-up body. Since pairing-funnel PF10 it fires at the +20 hour mark; the key keeps its old 24h name.
   ///
   /// In en, this message translates to:
   /// **'Send the invite again — it only takes 10 seconds'**
@@ -415,6 +415,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Our memories are waiting for them. Remind them to download the app'**
   String get inviteFollowUpBody72h;
+
+  /// Pill next to Copy / Share (and on the Home waiting card) that opens the invite QR sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get inviteQrBtn;
+
+  /// No description provided for @inviteQrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let them scan this code'**
+  String get inviteQrTitle;
+
+  /// No description provided for @inviteQrBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They open their Camera and point it here to get Dear Embeiu, with your invite code ready.'**
+  String get inviteQrBody;
+
+  /// No description provided for @inviteQrFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t scan? Read this code out for them to type in.'**
+  String get inviteQrFallback;
+
+  /// No description provided for @inviteQrDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get inviteQrDone;
+
+  /// Screen reader label of the invite QR image.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite QR code, code {code}'**
+  String inviteQrSemantics(String code);
+
+  /// Setup sheet shown when the clipboard holds an invite link from the get page.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the code from your invite?'**
+  String get clipboardInviteTitle;
+
+  /// No description provided for @clipboardInviteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The invite link you opened has this code. Pair up to join your partner\'s space.'**
+  String get clipboardInviteBody;
+
+  /// No description provided for @clipboardInviteJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair up now'**
+  String get clipboardInviteJoin;
+
+  /// No description provided for @clipboardInviteSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get clipboardInviteSkip;
+
+  /// Local nudge 2 hours after creating the couple, only while the invite hasn't been sent yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Send your partner the invite 💌'**
+  String get inviteFollowUpTitle2h;
+
+  /// No description provided for @inviteFollowUpBody2h.
+  ///
+  /// In en, this message translates to:
+  /// **'Together right now? Let them scan the QR code. Apart? Send it in a message. It takes about 10 seconds.'**
+  String get inviteFollowUpBody2h;
 
   /// No description provided for @back.
   ///

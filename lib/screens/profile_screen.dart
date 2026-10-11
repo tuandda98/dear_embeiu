@@ -550,7 +550,9 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 if (belowValue != null) ...[
-                  const SizedBox(height: 10),
+                  // 4, not 10: the invite pills (the only belowValue) carry
+                  // 6pt of invisible tap padding above them.
+                  const SizedBox(height: 4),
                   belowValue,
                 ],
               ],

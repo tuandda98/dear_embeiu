@@ -70,7 +70,7 @@
   "featureTourInviteBody": "Chia sẻ link tải app kèm mã mời, có hướng dẫn từng bước.",
   "homeWaitingBadge": "CHỜ NGƯỜI ẤY",
   "homeWaitingStep1Title": "Gửi lời mời",
-  "homeWaitingStep1Desc": "Gửi mã mời này cho người ấy qua tin nhắn.",
+  "homeWaitingStep1Desc": "Gửi mã qua tin nhắn, hoặc cho người ấy quét mã QR nếu đang ở cạnh nhau.",
   "homeWaitingStep1Cta": "Gửi cho người ấy 💌",
   "homeWaitingStep1Copy": "Sao chép mã",
   "homeWaitingStep2Title": "Người ấy tải app và đăng ký",
@@ -85,6 +85,25 @@
   "inviteFollowUpTitle": "Người ấy chưa vào nè 💌",
   "inviteFollowUpBody24h": "Gửi lại lời mời cho người ấy nha, chỉ mất 10 giây",
   "inviteFollowUpBody72h": "Kỷ niệm của chúng mình đang đợi người ấy. Nhắc người ấy tải app nhé",
+  "inviteQrBtn": "Mã QR",
+  "inviteQrTitle": "Cho người ấy quét mã này",
+  "inviteQrBody": "Người ấy mở Camera, hướng vào mã là tới trang tải Dear Embeiu, có sẵn mã mời của bạn.",
+  "inviteQrFallback": "Không quét được? Đọc mã này cho người ấy nhập.",
+  "inviteQrDone": "Xong",
+  "inviteQrSemantics": "Mã QR mời ghép đôi, mã {code}",
+  "@inviteQrSemantics": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "clipboardInviteTitle": "Nhập mã từ lời mời?",
+  "clipboardInviteBody": "Link mời bạn mở có mã này. Ghép đôi là vào chung không gian với người ấy.",
+  "clipboardInviteJoin": "Ghép đôi ngay",
+  "clipboardInviteSkip": "Bỏ qua",
+  "inviteFollowUpTitle2h": "Gửi lời mời cho người ấy nhé 💌",
+  "inviteFollowUpBody2h": "Đang ở cạnh nhau thì cho người ấy quét mã QR, ở xa thì gửi qua tin nhắn. Mất chừng 10 giây thôi.",
   "back": "Quay lại",
   "cancel": "Huỷ",
   "save": "Lưu",
