@@ -1685,9 +1685,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueWithApple => 'Continue with Apple';
 
   @override
-  String get appleConsentPrefix => 'By continuing with Apple, you agree to our';
-
-  @override
   String get authOrDivider => 'or';
 
   @override
@@ -1705,6 +1702,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deleteAccountReauthBodyApple =>
       'For your security, confirm with Apple again to permanently delete your account.';
+
+  @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get googleSignInFailed =>
+      'Couldn\'t sign in with Google. Please try again.';
+
+  @override
+  String get socialConsentPrefix => 'By continuing, you agree to our';
+
+  @override
+  String get deleteAccountReauthBodyGoogle =>
+      'Tap Delete permanently to try again. If it still fails, sign in with Google again, then delete.';
+
+  @override
+  String get deleteAccountAppleIdMismatch =>
+      'The Apple ID on this device isn\'t the one for this account. Sign in with that account\'s Apple ID, then delete.';
 
   @override
   String get authFirebaseUserCreateFailed =>

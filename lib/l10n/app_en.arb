@@ -999,13 +999,9 @@
   "@continueWithApple": {
     "description": "Sign in with Apple button label (iOS only, pairing-funnel PF2)"
   },
-  "appleConsentPrefix": "By continuing with Apple, you agree to our",
-  "@appleConsentPrefix": {
-    "description": "Implied-consent line under the Apple button, followed by a space, the privacyPolicyLabel link and a period"
-  },
   "authOrDivider": "or",
   "@authOrDivider": {
-    "description": "Label in the divider between the email form and the Apple button"
+    "description": "Label in the divider between the email form and the Apple/Google buttons"
   },
   "appleSignInFailed": "Couldn't sign in with Apple. Please try again.",
   "@appleSignInFailed": {
@@ -1022,6 +1018,26 @@
   "deleteAccountReauthBodyApple": "For your security, confirm with Apple again to permanently delete your account.",
   "@deleteAccountReauthBodyApple": {
     "description": "Body of the re-auth dialog for Apple accounts (no password field)"
+  },
+  "continueWithGoogle": "Continue with Google",
+  "@continueWithGoogle": {
+    "description": "Sign in with Google button label (pairing-funnel PF15)"
+  },
+  "googleSignInFailed": "Couldn't sign in with Google. Please try again.",
+  "@googleSignInFailed": {
+    "description": "Generic Google sign-in error"
+  },
+  "socialConsentPrefix": "By continuing, you agree to our",
+  "@socialConsentPrefix": {
+    "description": "Implied-consent line under the Apple/Google buttons, followed by a space, the privacyPolicyLabel link and a period"
+  },
+  "deleteAccountReauthBodyGoogle": "Tap Delete permanently to try again. If it still fails, sign in with Google again, then delete.",
+  "@deleteAccountReauthBodyGoogle": {
+    "description": "Body of the re-auth dialog for Google accounts (no password field); 'Delete permanently' is deleteAccountConfirmBtn"
+  },
+  "deleteAccountAppleIdMismatch": "The Apple ID on this device isn't the one for this account. Sign in with that account's Apple ID, then delete.",
+  "@deleteAccountAppleIdMismatch": {
+    "description": "Deleting an Apple account, but the Apple sheet signed in with a different Apple ID (PF18); the user has been signed out"
   },
   "authFirebaseUserCreateFailed": "Couldn't create your account. Please try again.",
   "@authFirebaseUserCreateFailed": {

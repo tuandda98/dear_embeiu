@@ -7,7 +7,7 @@ import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
-import '../widgets/apple_sign_in_button.dart';
+import '../widgets/social_sign_in_buttons.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/header_icon_button.dart';
@@ -42,8 +42,8 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  /// PF6: Apple's email already has a password account — hand the form over
-  /// with the email filled in, ready for the password.
+  /// PF6: the Apple/Google email already has a password account — hand the
+  /// form over with the email filled in, ready for the password.
   void _prefillExistingEmail(String email) {
     _emailController.text = email;
     _passwordFocusNode.requestFocus();
@@ -304,7 +304,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: authProvider.isAppleSigningIn
+                onPressed: authProvider.isSocialSigningIn
                     ? null
                     : () {
                         Navigator.of(context).pushNamed(
@@ -334,7 +334,7 @@ class _LoginScreenState extends State<LoginScreen> {
               width: double.infinity,
               height: 52,
               child: FilledButton(
-                onPressed: authProvider.isLoading || authProvider.isAppleSigningIn
+                onPressed: authProvider.isLoading || authProvider.isSocialSigningIn
                     ? null
                     : _submit,
                 style: FilledButton.styleFrom(
@@ -362,14 +362,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
               ),
             ),
-            // Apple sits BELOW the form here (design §1b): everyone opening
-            // Sign in so far has an email account, and a different Apple ID /
-            // "Hide my email" would mint an empty new account instead.
-            if (AppleSignInButton.isAvailable(authProvider)) ...[
+            // Apple/Google sit BELOW the form here (design §1b): everyone
+            // opening Sign in so far has an email account, and a different
+            // Apple ID / "Hide my email" would mint an empty new account.
+            if (SocialSignInButtons.isAvailable(authProvider)) ...[
               const SizedBox(height: 18),
               const AuthOrDivider(),
               const SizedBox(height: 18),
-              AppleSignInButton(onExistingEmail: _prefillExistingEmail),
+              SocialSignInButtons(onExistingEmail: _prefillExistingEmail),
             ],
             const SizedBox(height: 14),
             Align(
@@ -382,7 +382,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   TextButton(
-                    onPressed: authProvider.isAppleSigningIn
+                    onPressed: authProvider.isSocialSigningIn
                         ? null
                         : () {
                             // Swap login↔register in place (both sit directly

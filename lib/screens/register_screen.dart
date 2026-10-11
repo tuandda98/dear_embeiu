@@ -10,7 +10,7 @@ import '../app/app_urls.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
-import '../widgets/apple_sign_in_button.dart';
+import '../widgets/social_sign_in_buttons.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/header_icon_button.dart';
@@ -264,10 +264,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Apple leads Sign up (design §1c). It doesn't depend on the
-            // checkbox below — consent is the line under the button (PF2).
-            if (AppleSignInButton.isAvailable(authProvider)) ...[
-              AppleSignInButton(onSignInInstead: _openSignIn),
+            // Apple/Google lead Sign up (design §1c). They don't depend on the
+            // checkbox below — consent is the line under the buttons (PF2).
+            if (SocialSignInButtons.isAvailable(authProvider)) ...[
+              SocialSignInButtons(onSignInInstead: _openSignIn),
               const SizedBox(height: 18),
               const AuthOrDivider(),
               const SizedBox(height: 18),
@@ -505,7 +505,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               width: double.infinity,
               height: 52,
               child: FilledButton(
-                onPressed: authProvider.isLoading || authProvider.isAppleSigningIn
+                onPressed: authProvider.isLoading || authProvider.isSocialSigningIn
                     ? null
                     : _submit,
                 style: FilledButton.styleFrom(
@@ -544,7 +544,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   TextButton(
-                    onPressed: authProvider.isAppleSigningIn
+                    onPressed: authProvider.isSocialSigningIn
                         ? null
                         : _openSignIn,
                     child: Text(l10n.backToSignIn),
