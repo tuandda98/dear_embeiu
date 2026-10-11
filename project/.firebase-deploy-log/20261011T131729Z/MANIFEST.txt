@@ -1,0 +1,7 @@
+command : tail -4 /private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/5bf0b3e0-9f91-4737-adcd-d49655a3c2e8/tasks/bxf2kmmr9.output; cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:notifyPartnerJoined --project tonyembeiu-dev 2>&1 | tail -8
+time_utc: 20261011T131729Z
+git_head: 67b8c3b (feature/pairing-funnel)
+dirty   : 3 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 67b8c3b)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 67b8c3b -- functions` rồi redeploy
