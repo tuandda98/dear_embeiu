@@ -577,17 +577,20 @@ class AuthService {
   }
 
   /// `'apple.com'` / `'google.com'` for an account without a password, else
-  /// null. Apple wins when both are linked: its sheet is what re-authenticates
-  /// a deletion.
+  /// null. When both are linked (Firebase can link them by email), a deletion
+  /// re-authenticates with what this platform runs: the Apple sheet on iOS,
+  /// Google on Android (no native Sign in with Apple there).
   static String? _passwordlessProvider(User user) {
     final providers = user.providerData.map((info) => info.providerId).toSet();
     if (providers.contains('password')) {
       return null;
     }
-    if (providers.contains('apple.com')) {
+    final google = providers.contains('google.com');
+    if (providers.contains('apple.com') &&
+        (!google || defaultTargetPlatform == TargetPlatform.iOS)) {
       return 'apple.com';
     }
-    return providers.contains('google.com') ? 'google.com' : null;
+    return google ? 'google.com' : null;
   }
 
   /// Sends a password-reset email (feature auth, Đợt 1). D-auth4: to avoid
@@ -746,13 +749,8 @@ class AuthService {
     final googleOnly = firebaseUser != null &&
         _passwordlessProvider(firebaseUser) == 'google.com';
     if (googleOnly) {
-      // PF16: Google has no sheet to re-authenticate with — a fresh ID token
-      // spares the callable a stale session. The callable has the last word.
-      try {
-        await firebaseUser.getIdToken(true).timeout(const Duration(seconds: 5));
-      } catch (e) {
-        debugPrint('AuthService token refresh before delete failed: $e');
-      }
+      // PF16: Google has no sheet to re-authenticate with.
+      await _refreshIdTokenBeforeDelete(firebaseUser);
     }
     try {
       // Robustness (app-robustness C): bound the callable so the delete flow
@@ -813,10 +811,15 @@ class AuthService {
       final user = credential.user;
       if (user == null || user.uid != uid) {
         // The device's Apple ID changed: this is not the account being
-        // deleted, so never delete (or revoke) anything of it — sign in again.
+        // deleted — sign in again. An account that already existed for that
+        // Apple ID is never deleted or revoked.
         if (user != null && credential.additionalUserInfo?.isNewUser == true) {
           // The sheet just created a Firebase user for that other Apple ID:
-          // don't leave it orphaned. Never for an account that already existed.
+          // don't leave it orphaned. Revoke its grant first, while it is still
+          // signed in: that first grant came from a sheet asking for no email,
+          // and Apple may not share one later — kept, that Apple ID's Apple
+          // sign-in would keep failing here (BUG-9).
+          await _revokeAppleToken(credential);
           try {
             await user.delete();
           } catch (e) {
@@ -833,21 +836,38 @@ class AuthService {
         await _auth.signOut();
         throw AuthException(user == null ? 'session-gone' : 'apple-id-mismatch');
       }
-      final code = credential.additionalUserInfo?.authorizationCode;
-      if (code != null && code.isNotEmpty) {
-        try {
-          await _auth.revokeTokenWithAuthorizationCode(code);
-        } catch (e) {
-          // Fails until the Sign in with Apple key is set up in Firebase — the
-          // account must still be deletable (PF5).
-          debugPrint('AuthService Apple token revoke failed: $e');
-        }
-      }
-      await user.getIdToken(true);
+      await _revokeAppleToken(credential);
+      await _refreshIdTokenBeforeDelete(user);
     } on FirebaseAuthException catch (e) {
       throw AuthException(
         _mapSocialAuthError(e, fallback: AppL10n.strings.deleteAccountFailed),
       );
+    }
+  }
+
+  /// Revokes the app's Apple grant with the sheet's one-time
+  /// `authorizationCode`; needs that user still signed in. Best-effort: it
+  /// fails until the Sign in with Apple key is set up in Firebase, and the
+  /// account must still be deletable (PF5).
+  Future<void> _revokeAppleToken(UserCredential credential) async {
+    final code = credential.additionalUserInfo?.authorizationCode;
+    if (code == null || code.isEmpty) {
+      return;
+    }
+    try {
+      await _auth.revokeTokenWithAuthorizationCode(code);
+    } catch (e) {
+      debugPrint('AuthService Apple token revoke failed: $e');
+    }
+  }
+
+  /// A fresh ID token spares the delete callable a stale session. Bounded so
+  /// the overlay can't hang, failures only logged: the callable decides.
+  static Future<void> _refreshIdTokenBeforeDelete(User user) async {
+    try {
+      await user.getIdToken(true).timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('AuthService token refresh before delete failed: $e');
     }
   }
 

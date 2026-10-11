@@ -842,6 +842,9 @@ class _SetupScreenState extends State<SetupScreen>
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOutCubic,
                 style: TextStyle(
+                  // This style replaces the inherited one: without a family
+                  // the label falls back to the system font, not Quicksand.
+                  fontFamily: AppTheme.fontFamily,
                   color: selected
                       ? AppColors.textPrimary
                       : AppColors.textPrimary.withValues(alpha: 0.60),

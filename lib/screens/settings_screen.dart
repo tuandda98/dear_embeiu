@@ -1065,9 +1065,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(ctx);
 
               final authProvider = context.read<AuthProvider>();
+              final messenger = ScaffoldMessenger.of(context);
               final errorCode = await authProvider.deleteAccount();
 
-              if (!context.mounted) return;
+              if (!context.mounted) {
+                // BUG-8: a brand-new Apple ID in the PF18 sheet is deleted, the
+                // session listener reads that as a revocation and the shell
+                // resets to authGate before we get here. Still say why.
+                if (errorCode == 'session-gone' ||
+                    errorCode == 'apple-id-mismatch') {
+                  _showSignedOutSnack(messenger, l10n, errorCode);
+                }
+                return;
+              }
 
               if (errorCode == null) {
                 Navigator.of(
@@ -1080,17 +1090,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // The Apple sheet signed in another Apple ID (PF18): nothing of
                 // this account deleted, already signed out — same exit as the
                 // re-auth dialog.
-                ScaffoldMessenger.of(context)
-                  ..clearSnackBars()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        errorCode == 'apple-id-mismatch'
-                            ? l10n.deleteAccountAppleIdMismatch
-                            : l10n.deleteAccountSessionExpiredMsg,
-                      ),
-                    ),
-                  );
+                _showSignedOutSnack(messenger, l10n, errorCode);
                 Navigator.of(
                   context,
                 ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
@@ -1123,6 +1123,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  /// Why a delete attempt ended signed out (`apple-id-mismatch`, else the
+  /// session-expired copy). Takes the root messenger grabbed before the await,
+  /// not a context: Settings may already be gone (BUG-8).
+  static void _showSignedOutSnack(
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+    String? code,
+  ) {
+    messenger
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            code == 'apple-id-mismatch'
+                ? l10n.deleteAccountAppleIdMismatch
+                : l10n.deleteAccountSessionExpiredMsg,
+          ),
+        ),
+      );
   }
 
   /// Re-auth recovery for the delete-account dead-end (#2). When deletion hits a
@@ -1166,12 +1187,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
 
               final authProvider = ctx.read<AuthProvider>();
+              final messenger = ScaffoldMessenger.of(context);
               final result = noPassword
                   ? await authProvider.deleteAccount()
                   : await authProvider.reauthenticateAndDeleteAccount(
                       passwordController.text,
                     );
-              if (!ctx.mounted) return;
+              if (!ctx.mounted) {
+                // BUG-8: the shell's authGate reset took this dialog with it.
+                if (result == 'session-gone' || result == 'apple-id-mismatch') {
+                  _showSignedOutSnack(messenger, l10n, result);
+                }
+                return;
+              }
 
               if (result == null) {
                 // Deleted — close the dialog and reset to the auth gate.
@@ -1195,17 +1223,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   result == 'apple-id-mismatch') {
                 // No local session left to re-auth — send them to sign in again.
                 Navigator.of(ctx).pop();
-                ScaffoldMessenger.of(context)
-                  ..clearSnackBars()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        result == 'apple-id-mismatch'
-                            ? l10n.deleteAccountAppleIdMismatch
-                            : l10n.deleteAccountSessionExpiredMsg,
-                      ),
-                    ),
-                  );
+                _showSignedOutSnack(messenger, l10n, result);
                 Navigator.of(
                   context,
                 ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
