@@ -343,3 +343,4 @@ Bỏ chốt ngay trong hàm này thì mọi nơi gọi đều được lợi, kh
 ## Nhật ký chung (Lead ghi khi merge)
 - [2026-10-11] [Lead] Chia 2 phần A/B, chạy song song trên worktree riêng.
 - [2026-10-12] [Lead] `social_sign_in_buttons.dart`: bỏ tham số `textStyle`/`gap` của `_SocialButton`, mọi nút dùng chung một kiểu chữ (iOS `CupertinoSystemDisplay` 22 w500, Android Roboto 18 w500, màu = `foreground`, cách logo 10); logo Apple 24, G 22. analyze 0 · test 266/266 · kiểm bằng ảnh simulator.
+- [2026-10-12] [Lead] Thiết kế lại thẻ đăng nhập landing: `_SocialButton` → public `AuthPillButton` (chữ theme Quicksand 15 w600 ls .3, logo Apple 20 / G 18), `SocialSignInButtons.below` chèn lựa chọn thêm trên dòng đồng ý; `guest_counter_screen._buildCtaCard` bỏ hàng [nút hồng | Đăng ký] → nút viền Email (`AuthPillButton` nền trong suốt, viền navy .18, icon `sms`) + link "Đăng ký". Không đổi ARB. analyze 0 · test 266/266 · simulator iOS + emulator Android.

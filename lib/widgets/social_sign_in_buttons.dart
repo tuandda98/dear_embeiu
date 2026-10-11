@@ -12,6 +12,7 @@ import '../app/app_urls.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
 
 /// "Continue with Apple" + "Continue with Google" (feature pairing-funnel,
 /// PF1/PF2, PF14/PF15) and one implied-consent line under them. iOS shows
@@ -23,6 +24,7 @@ class SocialSignInButtons extends StatelessWidget {
     super.key,
     this.onSignInInstead,
     this.onExistingEmail,
+    this.below,
   });
 
   /// PF6 SnackBar action → the Sign in screen (landing, Sign up). Leave null on
@@ -32,6 +34,10 @@ class SocialSignInButtons extends StatelessWidget {
   /// PF6 on the Sign in screen: the email the provider returned, to prefill
   /// the form.
   final ValueChanged<String>? onExistingEmail;
+
+  /// More options under the provider buttons, above the consent line (the
+  /// landing card's email button + Sign up link).
+  final Widget? below;
 
   /// Apple sign-in only runs natively on iOS (PF1).
   static bool get _apple => !kIsWeb && Platform.isIOS;
@@ -115,13 +121,13 @@ class SocialSignInButtons extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (_apple) ...[
-          _SocialButton(
+          AuthPillButton(
             label: l10n.continueWithApple,
             // Pure black, not navy: HIG only allows black / white / outlined
             // Apple buttons.
             background: AppColors.appleBlack,
             foreground: AppColors.white,
-            logo: const Icon(Icons.apple, size: 24, color: AppColors.white),
+            logo: const Icon(Icons.apple, size: 20, color: AppColors.white),
             busy: running == SocialSignIn.apple,
             locked: lockedFor(SocialSignIn.apple),
             onPressed: onPressedFor(SocialSignIn.apple),
@@ -129,20 +135,21 @@ class SocialSignInButtons extends StatelessWidget {
           if (google) const SizedBox(height: 12),
         ],
         if (google)
-          _SocialButton(
+          AuthPillButton(
             label: l10n.continueWithGoogle,
             // Google branding: white, 1px #747775 outline, #1F1F1F text.
             background: AppColors.white,
             foreground: AppColors.googleText,
             border: const BorderSide(color: AppColors.googleBorder),
             logo: const CustomPaint(
-              size: Size.square(22),
+              size: Size.square(18),
               painter: _GoogleLogoPainter(),
             ),
             busy: running == SocialSignIn.google,
             locked: lockedFor(SocialSignIn.google),
             onPressed: onPressedFor(SocialSignIn.google),
           ),
+        if (below case final below?) ...[const SizedBox(height: 12), below],
         const SizedBox(height: 10),
         const _ConsentLine(),
       ],
@@ -150,13 +157,14 @@ class SocialSignInButtons extends StatelessWidget {
   }
 }
 
-/// Pill h52, logo + label centered. While its sign-in runs the content becomes
-/// a spinner; while something else runs the whole button dims. The pressed
-/// overlay follows [foreground] (white on Apple, light grey on Google).
-/// Every provider gets the same label style so none looks louder — HIG only
-/// asks that Apple's button is no smaller than the others.
-class _SocialButton extends StatelessWidget {
-  const _SocialButton({
+/// Pill h52, logo + label centered, for the provider buttons and the landing's
+/// email option. Every option gets the same size and type so none looks
+/// louder (HIG: Apple's button no smaller than the others). While its sign-in
+/// runs the content becomes a spinner; while something else runs the whole
+/// button dims. The pressed overlay follows [foreground].
+class AuthPillButton extends StatelessWidget {
+  const AuthPillButton({
+    super.key,
     required this.label,
     required this.background,
     required this.foreground,
@@ -215,17 +223,13 @@ class _SocialButton extends StatelessWidget {
                         const SizedBox(width: 10),
                         Text(
                           label,
-                          // iOS: Apple's HIG puts a custom button's title at
-                          // 43% of its height (52 → 22) and Google matches it.
-                          // Android has only Google, at its own 14/40 ratio
-                          // (52 → 18). The brands use the system font; the
-                          // rest of the app stays Quicksand.
+                          // The theme's pill type, so the brand buttons sit
+                          // in the card instead of shouting over it.
                           style: TextStyle(
-                            fontFamily: Platform.isIOS
-                                ? 'CupertinoSystemDisplay'
-                                : 'Roboto',
-                            fontSize: Platform.isIOS ? 22 : 18,
-                            fontWeight: FontWeight.w500,
+                            fontFamily: AppTheme.fontFamily,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.3,
                             color: foreground,
                           ),
                         ),

@@ -444,6 +444,45 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   Widget _buildCtaCard(AppLocalizations l10n) {
     final authProvider = context.watch<AuthProvider>();
     final socialBusy = authProvider.isSocialSigningIn;
+    // Email is the quiet third option: an outline pill the same size as the
+    // provider buttons, so "Pick anniversary date" stays the screen's only
+    // filled brand-colour CTA.
+    final email = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AuthPillButton(
+          label: l10n.guestCtaSignIn,
+          background: Colors.transparent,
+          foreground: AppColors.textPrimary,
+          border: BorderSide(
+            color: AppColors.textPrimary.withValues(alpha: 0.18),
+          ),
+          logo: const Icon(
+            IconsaxPlusLinear.sms,
+            size: 20,
+            color: AppColors.textPrimary,
+          ),
+          busy: false,
+          locked: socialBusy,
+          onPressed: socialBusy ? null : _openSignIn,
+        ),
+        const SizedBox(height: 4),
+        Center(
+          child: TextButton(
+            onPressed: socialBusy
+                ? null
+                : () => Navigator.of(context).pushNamed(AppRoutes.register),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.textPrimary,
+            ),
+            child: Text(
+              l10n.guestCtaRegister,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      ],
+    );
 
     return GlassCard(
       borderRadius: AppTheme.cardRadius,
@@ -482,48 +521,10 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          // No "or" divider here: the consent line already splits the groups.
-          if (SocialSignInButtons.isAvailable(authProvider)) ...[
-            SocialSignInButtons(onSignInInstead: _openSignIn),
-            const SizedBox(height: 14),
-          ],
-          Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 52,
-                  child: FilledButton(
-                    onPressed: socialBusy ? null : _openSignIn,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.accentRose,
-                      foregroundColor: AppColors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
-                    child: Text(l10n.guestCtaSignIn),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              TextButton(
-                onPressed: socialBusy
-                    ? null
-                    : () => Navigator.of(context).pushNamed(AppRoutes.register),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.textPrimary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 14,
-                  ),
-                ),
-                child: Text(
-                  l10n.guestCtaRegister,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
-          ),
+          if (SocialSignInButtons.isAvailable(authProvider))
+            SocialSignInButtons(onSignInInstead: _openSignIn, below: email)
+          else
+            email,
         ],
       ),
     );
