@@ -33,7 +33,7 @@
 - Kiểm chính sách Google Play cho `PACKAGE_USAGE_STATS` + cập nhật khai báo An toàn dữ liệu & privacy policy; App Store: App Privacy (Health). Bắt buộc TRƯỚC khi phát hành, không cần trước khi code.
 
 ## Mốc đã đạt
-- [2026-10-11] 🚀 Vào bản **1.8.0+25** (`release/1.8.0`): PROD rules + 22 CF đã deploy; Play đã gửi duyệt (kèm khai báo Ứng dụng sức khoẻ + An toàn dữ liệu); App Store chờ IPA (HealthKit cần archive có `-allowProvisioningUpdates`)
+- [2026-10-11] 🚀 Vào bản **1.8.0+25** (`release/1.8.0`): PROD rules + 22 CF đã deploy; **đã gửi duyệt cả Play lẫn App Store** (khai báo sức khoẻ cả 2 store, chính sách quyền riêng tư có mục giấc ngủ)
 - [2026-10-11] ✅ Tester vòng 6 PASS code-level (vòng 3–5: vá N7–N19; riêng tư N8 quan trọng nhất)
 - [2026-10-11] 🧪 Tester vòng 2 FAIL → 💻 Dev vá; user chốt thuật toán (dài nhất, bỏ khoảng xong trước 1h) + người ở lại tự tắt chia sẻ khi người ấy rời đi
 - [2026-10-11] 🧪 Tester vòng 1 FAIL → 💻 Dev vá S1–S6 + phần lớn lỗi nhỏ — chờ Tester vòng 2

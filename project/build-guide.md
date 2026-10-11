@@ -19,6 +19,7 @@
      -destination 'generic/platform=iOS' -archivePath ../build/ios/archive/Runner.xcarchive -allowProvisioningUpdates archive
    ```
    rồi export bằng `xcodebuild -exportArchive … -allowProvisioningUpdates` (hoặc chạy lại `flutter build ipa`, lúc này profile mới đã có). Điều kiện: Xcode → Settings → Accounts phải có Apple ID (`No Accounts` = bị đăng xuất, user tự đăng nhập lại).
+   Hai chốt chặn khác gặp cùng ngày: (a) `PLA Update available` = Apple vừa đổi Program License Agreement, chủ tài khoản phải tự bấm đồng ý ở developer.apple.com/account; (b) Transporter báo lỗi **90683** nếu thiếu `NSHealthUpdateUsageDescription`: có entitlement HealthKit là phải có CẢ khoá đọc lẫn khoá ghi trong Info.plist, kể cả app chỉ đọc. Build lỗi validation thì App Store chưa nhận số build, nên upload lại vẫn dùng được build cũ.
 
 ## iOS Simulator — native_assets bug (Flutter 3.22+, vẫn còn 3.41.6, 2026-06-07)
 
