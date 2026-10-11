@@ -618,11 +618,8 @@ class AuthService {
     // couple data + Storage objects and the Auth user — none of which the
     // client is permitted to delete directly under the security rules. Running
     // it as admin also avoids the `requires-recent-login` challenge that a
-    // client-side FirebaseUser.delete() would hit.
-    final firebaseUser = _auth.currentUser;
-    if (firebaseUser != null && _isAppleOnly(firebaseUser)) {
-      await _confirmAppleDeletion(firebaseUser);
-    }
+    // client-side FirebaseUser.delete() would hit. Apple accounts have already
+    // confirmed through [confirmAppleDeletionIfNeeded] by the time we get here.
     try {
       // Robustness (app-robustness C): bound the callable so the delete flow
       // can't hang forever behind a stuck network. 60s is generous on purpose —
@@ -648,12 +645,21 @@ class AuthService {
     await purgePersistedSession();
   }
 
-  /// PF5 — an Apple account confirms deletion in the Apple sheet. That mints a
-  /// fresh credential (so the callable won't hit a stale session) and a
-  /// one-time `authorizationCode` (~5 min) used to revoke the app's Apple token
-  /// before the account goes. Closing the sheet throws `'apple-canceled'` and
-  /// nothing is deleted.
-  Future<void> _confirmAppleDeletion(User firebaseUser) async {
+  /// PF5 — an Apple-only account confirms deletion in the Apple sheet. The
+  /// provider's `deleteAccount` calls this BEFORE any teardown, so closing the
+  /// sheet (`'apple-canceled'`) leaves push and the session watch untouched.
+  /// The sheet mints a fresh credential (the callable won't hit a stale
+  /// session) and a one-time `authorizationCode` (~5 min) used to revoke the
+  /// app's Apple token while the user still exists. No-op for other accounts
+  /// and in local mode.
+  Future<void> confirmAppleDeletionIfNeeded() async {
+    if (!isUsingFirebase) {
+      return;
+    }
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser == null || !_isAppleOnly(firebaseUser)) {
+      return;
+    }
     try {
       final credential =
           await firebaseUser.reauthenticateWithProvider(AppleAuthProvider());

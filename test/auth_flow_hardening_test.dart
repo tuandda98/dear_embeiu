@@ -8,7 +8,9 @@ import 'package:dear_embeiu/services/auth_service.dart';
 
 /// Tests for the 2026-06-05 auth flow-hardening:
 ///   #2 re-auth-then-delete recovery, and
-///   #3 the continuous session-liveness listener + intentional-clear guard.
+///   #3 the continuous session-liveness listener + intentional-clear guard,
+/// plus the pairing-funnel PF5 rule that the Apple delete confirmation runs
+/// before any teardown.
 ///
 /// The interesting logic only runs when `isUsingFirebase == true` and the
 /// session stream emits, so we inject a fake AuthService that lets the test
@@ -124,8 +126,37 @@ void main() {
     });
   });
 
+  group('PF5 Apple delete confirmation', () {
+    test('closing the Apple sheet leaves the session fully intact', () async {
+      final fake = _FakeAuthService()
+        ..userToReturn = buildUser()
+        ..appleConfirmError = const AuthException('apple-canceled');
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
+      await _settle(); // session token minted + watched
+
+      final result = await provider.deleteAccount();
+
+      expect(result, 'apple-canceled');
+      expect(fake.deleteCalled, isFalse);
+      expect(provider.isAuthenticated, isTrue);
+      expect(provider.errorMessage, isNull);
+
+      // The single-session watch must still be alive: another device taking
+      // over is still caught. Tearing down before the sheet used to cancel it.
+      fake.emitRemoteToken('another-device');
+      await _settle();
+      expect(provider.sessionRevoked, isTrue);
+    });
+  });
+
   group('real AuthService local-fallback contract', () {
     final real = AuthService();
+
+    test('confirmAppleDeletionIfNeeded is a no-op without Firebase', () async {
+      // Must complete without throwing (never touches FirebaseAuth).
+      await real.confirmAppleDeletionIfNeeded();
+    });
 
     test('requiresEmailVerification is false without Firebase', () {
       expect(real.requiresEmailVerification, isFalse);
@@ -151,14 +182,34 @@ class _FakeAuthService extends AuthService {
 
   final StreamController<bool> _sessionController =
       StreamController<bool>.broadcast();
+  final StreamController<String?> _tokenController =
+      StreamController<String?>.broadcast();
 
   AppUser? userToReturn;
   AuthException? reauthError;
+  AuthException? appleConfirmError;
   bool signOutCalled = false;
   bool reauthCalled = false;
   bool deleteCalled = false;
 
   void emitSession({required bool active}) => _sessionController.add(active);
+
+  /// Simulates another device minting its own session token.
+  void emitRemoteToken(String token) => _tokenController.add(token);
+
+  @override
+  Future<String> mintSessionToken(String uid) async => 'local-token';
+
+  @override
+  Stream<String?> watchSessionToken(String uid) => _tokenController.stream;
+
+  @override
+  Future<void> confirmAppleDeletionIfNeeded() async {
+    final err = appleConfirmError;
+    if (err != null) {
+      throw err;
+    }
+  }
 
   @override
   bool get isUsingFirebase => true;

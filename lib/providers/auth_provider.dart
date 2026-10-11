@@ -393,6 +393,10 @@ class AuthProvider extends ChangeNotifier {
     _clearError(notify: false);
 
     try {
+      // PF5: Apple accounts confirm in the Apple sheet FIRST. Closing it must
+      // leave everything as it was (push registration, single-session watch),
+      // so nothing below may run before this.
+      await _authService.confirmAppleDeletionIfNeeded();
       // Robustness (app-robustness B/C): unregistering this device is cleanup
       // (the server-side deleteAccount also removes all device docs), so bound
       // it to 5s and never let it block the deletion itself.

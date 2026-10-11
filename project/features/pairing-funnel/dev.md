@@ -13,15 +13,15 @@
 
 ## Phần A — Đăng nhập với Apple (PF1–PF6, PF11)
 
-- *Trạng thái:* xong code (2026-10-11), chờ Tester. `flutter analyze` 0 issue · `flutter test` 225/225. Chưa build iOS (worktree), chưa chạy trên máy.
+- *Trạng thái:* xong code (2026-10-11), PO gate PASS sau khi sửa thứ tự xoá tài khoản, chờ Tester. `flutter analyze` 0 issue · `flutter test` 227/227. Chưa build iOS (worktree), chưa chạy trên máy.
 
 <!-- Dev A ghi kế hoạch, edge case, checklist, nhật ký vào giữa 2 dòng đánh dấu này -->
 ### File và hàm đã đụng
 
 | File | Thay đổi |
 |---|---|
-| `lib/services/auth_service.dart` | Lớp mới `AppleEmailHasPasswordException` (PF6, mang `email`). `signInWithApple()` trả record `({AppUser user, bool isNewUser})`. PF3 trong `requiresEmailVerification`: không có provider `password` thì `false`. Getter `isAppleOnlyAccount` + `_isAppleOnly(User)`. `deleteAccount`: tài khoản Apple-only gọi `_confirmAppleDeletion` trước callable. Helper tĩnh `profileDisplayName` (PF4, `@visibleForTesting`), dùng trong `_buildFirebaseProfile`. `_mapAppleAuthError` |
-| `lib/providers/auth_provider.dart` | Cờ riêng `isAppleSigningIn` (không bật `isLoading`), `appleEmailConflict`, `isAppleOnlyAccount`, `signInWithApple()` (sync push → mint session token → analytics `sign_up`/`login` method `apple`). `deleteAccount` trả nguyên sentinel `'apple-canceled'` |
+| `lib/services/auth_service.dart` | Lớp mới `AppleEmailHasPasswordException` (PF6, mang `email`). `signInWithApple()` trả record `({AppUser user, bool isNewUser})`. PF3 trong `requiresEmailVerification`: không có provider `password` thì `false`. Getter `isAppleOnlyAccount` + `_isAppleOnly(User)`. `confirmAppleDeletionIfNeeded()` (public, tự lấy `currentUser`, không phải Apple-only thì return; `deleteAccount` của service không gọi nữa). Helper tĩnh `profileDisplayName` (PF4, `@visibleForTesting`), dùng trong `_buildFirebaseProfile`. `_mapAppleAuthError` |
+| `lib/providers/auth_provider.dart` | Cờ riêng `isAppleSigningIn` (không bật `isLoading`), `appleEmailConflict`, `isAppleOnlyAccount`, `signInWithApple()` (sync push → mint session token → analytics `sign_up`/`login` method `apple`). `deleteAccount` gọi `confirmAppleDeletionIfNeeded()` NGAY ĐẦU, trước gỡ push và mọi teardown; trả nguyên sentinel `'apple-canceled'` |
 | `lib/widgets/apple_sign_in_button.dart` (mới) | `AppleSignInButton({onSignInInstead, onExistingEmail})` + `static isAvailable(auth)` (`!kIsWeb && Platform.isIOS && isUsingFirebase`), dòng đồng ý `_ConsentLine`, divider `AuthOrDivider` |
 | `lib/screens/guest_counter_screen.dart` | Khối Apple trong thẻ CTA, `_openSignIn` (cũng là action PF6), 2 nút cũ khoá khi Apple đang chạy, sửa comment đầu file |
 | `lib/screens/login_screen.dart` | Apple DƯỚI form (18 · hoặc · 18 · nút). PF6: điền sẵn email + focus ô mật khẩu (`_passwordFocusNode`). Khoá nút Đăng nhập / Quên mật khẩu / Tạo tài khoản khi Apple chạy |
@@ -32,6 +32,7 @@
 | `ios/Runner/Runner.entitlements` | `com.apple.developer.applesignin = [Default]` (`plutil -lint` OK; cả 3 cấu hình build đều trỏ file này) |
 | ARB en + vi | 7 key mới chèn ngay sau `authFirebaseAuthGeneric`; `guestCtaSignIn` → "Đăng nhập bằng email" / "Sign in with email". Đã `flutter gen-l10n` |
 | `test/apple_display_name_test.dart` (mới) | 4 test cho PF4 |
+| `test/auth_flow_hardening_test.dart` | Fake override `confirmAppleDeletionIfNeeded` / `mintSessionToken` / `watchSessionToken`. +1 test hồi quy PF5 (huỷ sheet → không xoá, single-session vẫn bắt được máy khác), +1 test bản local không chạm FirebaseAuth |
 
 Không đụng Firestore rules, Cloud Functions, `pubspec`. Không deploy gì.
 
@@ -41,7 +42,7 @@ Không đụng Firestore rules, Cloud Functions, `pubspec`. Không deploy gì.
 - **Mất mạng** → `authNetworkError`. **Mọi lỗi khác** (`invalid-response`, `failed`, `invalid-credential`, `user-mismatch`…) → `appleSignInFailed`. Câu tiếng Anh của Firebase chỉ vào `debugPrint`.
 - **Email rỗng** sau khi đăng nhập Apple (không lẽ xảy ra) → `signOut` rồi báo `appleSignInFailed`, vì rules sẽ từ chối hồ sơ không có email.
 - **Tên hiển thị (PF4):** tên Firebase → phần trước @ (bỏ qua `@privaterelay.appleid.com`, không phân biệt hoa thường) → `defaultDisplayName`. Không bao giờ ra chuỗi rỗng.
-- **Xoá tài khoản Apple (PF5):** `reauthenticateWithProvider(AppleAuthProvider())` → `revokeTokenWithAuthorizationCode(code)` (lỗi thì `debugPrint` và vẫn xoá) → `getIdToken(true)` → callable. Thu hồi phải chạy TRƯỚC callable vì cần user còn đăng nhập.
+- **Xoá tài khoản Apple (PF5):** `reauthenticateWithProvider(AppleAuthProvider())` → `revokeTokenWithAuthorizationCode(code)` (lỗi thì `debugPrint` và vẫn xoá) → `getIdToken(true)` → callable. Cả bước này chạy TRƯỚC khi provider gỡ push, tắt theo dõi single-session hay đặt cờ `_intentionalAuthClear`, nên huỷ sheet là mọi thứ y nguyên. Thu hồi phải chạy trước callable vì cần user còn đăng nhập.
 - **`requires-recent-login` lần 2** (bản Apple) → `deleteAccountSessionExpiredMsg` + authGate, y nhánh mật khẩu. Lỗi khác ở lần 2 → đóng dialog + SnackBar (dialog Apple không có ô để hiện lỗi inline). Huỷ sheet ở lần 2 → đóng dialog, im lặng.
 - **PF6 action bấm sau khi đã rời màn** → `_openSignIn` kiểm `mounted` trước khi điều hướng.
 
@@ -53,7 +54,7 @@ Không đụng Firestore rules, Cloud Functions, `pubspec`. Không deploy gì.
 
 ### Rủi ro / cần Tester soi trên máy thật
 - **Chưa build iOS.** Cần archive/run có `-allowProvisioningUpdates` để Xcode bật capability Sign in with Apple cho App ID `.dev` (và `com.tony.dearembeiu` khi release). Simulator phải đăng nhập Apple ID.
-- **Push sau khi huỷ xoá tài khoản:** `deleteAccount` của provider gỡ thiết bị khỏi push TRƯỚC khi sheet Apple hiện (thứ tự cũ, giữ nguyên). Huỷ sheet thì app `resumed` và `refreshPushRegistration` đăng ký lại. Cần thử: huỷ xoá rồi nhờ người ấy gửi tin, xem còn nhận push không.
+- **Push sau khi huỷ xoá tài khoản:** đã sửa sau PO gate, huỷ sheet không còn gỡ push hay tắt single-session. Vẫn nên thử trên máy: huỷ xoá rồi nhờ người ấy gửi tin, phải nhận push ngay. Còn một hở có từ trước, áp cho mọi tài khoản: callable xoá lỗi (mạng) thì thiết bị đã bị gỡ push (tự đăng ký lại khi app `resumed`) và mất theo dõi single-session tới lần mở app sau.
 - **Thu hồi token** sẽ lỗi tới khi nhập khoá .p8 vào Firebase (overview §5). Mong đợi: log `AuthService Apple token revoke failed`, tài khoản vẫn bị xoá.
 - **Logo Apple** (`Icons.apple` 24): chưa so với nút hệ thống trên simulator. Design cho phép dịch lên 1pt nếu trông thấp.
 - **Tên lần đầu:** đăng nhập Apple có chia sẻ tên → hồ sơ mang tên Apple. Chọn "Ẩn email" + không có tên → "Người dùng mới".
@@ -68,11 +69,12 @@ Không đụng Firestore rules, Cloud Functions, `pubspec`. Không deploy gì.
 - [x] Email trùng tài khoản mật khẩu → câu PF6 (probe)
 - [x] Xoá tài khoản Apple → dialog có câu báo trước → sheet → thu hồi → xoá; huỷ → không xoá (code; chờ chạy thật)
 - [x] Đường email/mật khẩu không đổi hành vi
-- [x] `flutter analyze` 0 · `flutter test` 225/225 · 7 key mới đủ vi + en
+- [x] `flutter analyze` 0 · `flutter test` 227/227 · 7 key mới đủ vi + en
 
 ### Nhật ký
 - [2026-10-11] [Dev A] Worktree tạo ra đang ở `main` (1c982ea); đã đưa về `00ce671` (`feature/pairing-funnel`) trước khi làm, tree sạch.
 - [2026-10-11] [Dev A] Implement Phần A (PF1–PF6, PF11) theo bảng file ở trên. analyze 0, test 225/225 (221 cũ + 4 PF4). Probe widget test 17/17 rồi gỡ khỏi repo. Không deploy, không push.
+- [2026-10-11] [Dev A] Sửa lỗi PO gate: xoá tài khoản Apple từng gỡ push + tắt single-session TRƯỚC khi sheet Apple hiện, huỷ sheet là thiết bị mất cả hai tới lần mở app sau. Nay `AuthProvider.deleteAccount` gọi `confirmAppleDeletionIfNeeded()` ngay đầu, trước mọi teardown. Thêm test hồi quy (đã thử đặt lại thứ tự sai thì test hỏng đúng chỗ). analyze 0, test 227/227.
 <!-- /Phần A -->
 
 ---
