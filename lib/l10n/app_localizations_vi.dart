@@ -1676,7 +1676,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get appleEmailHasPasswordAccount =>
-      'Email này đã có tài khoản. Đăng nhập bằng mật khẩu nhé.';
+      'Email này đã có tài khoản. Đăng nhập bằng cách bạn đã dùng lần trước nhé.';
 
   @override
   String get deleteAccountAppleNote =>

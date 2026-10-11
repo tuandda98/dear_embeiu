@@ -1532,6 +1532,8 @@ class ReminderProvider extends ChangeNotifier {
   void invalidateDailyQuestionSchedule() {
     _eodSignature = null;
     _dqScheduleSignature = null;
+    // Invite band too: a background `partner_joined` push may have cleared it.
+    _inviteFollowUpSignature = null;
   }
 
   @override

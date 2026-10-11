@@ -3008,10 +3008,10 @@ abstract class AppLocalizations {
   /// **'Couldn\'t sign in with Apple. Please try again.'**
   String get appleSignInFailed;
 
-  /// Apple returned an email that already belongs to a password account (PF6)
+  /// Apple or Google sign-in returned an email that already belongs to another account (password, Apple or Google); provider-neutral (PF6)
   ///
   /// In en, this message translates to:
-  /// **'This email already has an account. Sign in with your password instead.'**
+  /// **'This email already has an account. Sign in the way you did before.'**
   String get appleEmailHasPasswordAccount;
 
   /// Extra line in the delete-account dialog for Apple accounts, warning that the Apple sheet comes next
