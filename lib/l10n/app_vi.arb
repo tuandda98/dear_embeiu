@@ -845,7 +845,7 @@
   "continueWithApple": "Tiếp tục với Apple",
   "authOrDivider": "hoặc",
   "appleSignInFailed": "Chưa đăng nhập được với Apple. Bạn thử lại nhé.",
-  "appleEmailHasPasswordAccount": "Email này đã có tài khoản. Đăng nhập bằng mật khẩu nhé.",
+  "appleEmailHasPasswordAccount": "Email này đã có tài khoản. Đăng nhập bằng cách bạn đã dùng lần trước nhé.",
   "deleteAccountAppleNote": "Sau đó Apple sẽ hiện hộp đăng nhập để xác nhận đó là bạn.",
   "deleteAccountReauthBodyApple": "Vì lý do bảo mật, bạn xác nhận lại với Apple để xoá tài khoản vĩnh viễn.",
   "continueWithGoogle": "Tiếp tục với Google",

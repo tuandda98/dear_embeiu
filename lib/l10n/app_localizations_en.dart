@@ -1693,7 +1693,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appleEmailHasPasswordAccount =>
-      'This email already has an account. Sign in with your password instead.';
+      'This email already has an account. Sign in the way you did before.';
 
   @override
   String get deleteAccountAppleNote =>

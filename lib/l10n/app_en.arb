@@ -1007,9 +1007,9 @@
   "@appleSignInFailed": {
     "description": "Generic Sign in with Apple error"
   },
-  "appleEmailHasPasswordAccount": "This email already has an account. Sign in with your password instead.",
+  "appleEmailHasPasswordAccount": "This email already has an account. Sign in the way you did before.",
   "@appleEmailHasPasswordAccount": {
-    "description": "Apple returned an email that already belongs to a password account (PF6)"
+    "description": "Apple or Google sign-in returned an email that already belongs to another account (password, Apple or Google); provider-neutral (PF6)"
   },
   "deleteAccountAppleNote": "Apple will then show a sign-in sheet to confirm it's you.",
   "@deleteAccountAppleNote": {
