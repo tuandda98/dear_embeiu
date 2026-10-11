@@ -10,4 +10,12 @@ abstract final class AppUrls {
   static const androidStore =
       'https://play.google.com/store/apps/details?id=com.tony.dearembeiu';
   static const iosStore = 'https://apps.apple.com/app/id6775165592';
+
+  /// Invite landing page (`docs/get.html`, feature pairing-funnel). The invite
+  /// QR (PF7) and the clipboard parser (PF9) both build on it; the ARB share
+  /// message `inviteShareMessage` hard-codes the same URL — keep them equal.
+  static const inviteBase = 'https://dearembeiu.com/get';
+
+  static String inviteLink(String code) =>
+      '$inviteBase?code=${code.toUpperCase()}';
 }

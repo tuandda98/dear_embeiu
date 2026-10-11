@@ -38,6 +38,7 @@ import '../widgets/animated_couple_name.dart';
 import '../widgets/catchup_gate.dart';
 import '../widgets/feature_tour_sheet.dart';
 import '../widgets/content_card.dart';
+import '../widgets/invite_qr_sheet.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/memory_cinema_card.dart';
@@ -1041,9 +1042,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         l10n: l10n,
         coupleActive: coupleActive,
       );
-      // Invite follow-ups (feature onboarding): while the partner still hasn't
-      // joined, nudge this member 24h/72h after the couple was created; the
-      // provider cancels the band as soon as the couple goes active.
+      // Invite follow-ups (feature onboarding, pairing-funnel PF10): while the
+      // partner still hasn't joined, nudge this member +2h (code not sent
+      // yet) / +20h / +72h after the couple was created; the provider cancels
+      // the band as soon as the couple goes active.
       reminderProvider.refreshInviteFollowUps(
         waiting: !coupleActive,
         coupleCreatedAt: coupleCreatedAt,
@@ -2207,42 +2209,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Material(
-                          color: AppColors.accentRose.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(999),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(999),
+                      // 2, not 8: each pill already carries 6pt of invisible
+                      // tap padding above it (36 shape in a 48 target).
+                      const SizedBox(height: 2),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _buildWaitingPill(
+                            icon: IconsaxPlusLinear.copy,
+                            label: l10n.homeWaitingStep1Copy,
                             onTap: () => _copyInviteCode(code),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 9,
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    IconsaxPlusLinear.copy,
-                                    size: 14,
-                                    color: AppColors.accentRose,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    l10n.homeWaitingStep1Copy,
-                                    style: const TextStyle(
-                                      color: AppColors.accentRose,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ),
-                        ),
+                          _buildWaitingPill(
+                            icon: IconsaxPlusLinear.scan_barcode,
+                            label: l10n.inviteQrBtn,
+                            onTap: () => InviteQrSheet.show(context, code: code),
+                          ),
+                        ],
                       ),
                     ],
                   )
@@ -2401,6 +2385,39 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  /// Tonal pill of the waiting card (Copy code / QR code): a 36-high stadium in
+  /// a 48×48 tap target, navy label (rose on rose .12 was only 2.8:1).
+  Widget _buildWaitingPill({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return TextButton.icon(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        backgroundColor: AppColors.accentRose.withValues(alpha: 0.12),
+        foregroundColor: AppColors.textPrimary,
+        minimumSize: const Size(0, 36),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        shape: const StadiumBorder(),
+        tapTargetSize: MaterialTapTargetSize.padded,
+      ).copyWith(
+        overlayColor: WidgetStatePropertyAll<Color>(
+          AppColors.accentRose.withValues(alpha: 0.08),
+        ),
+      ),
+      icon: Icon(icon, size: 14, color: AppColors.accentRose),
+      label: Text(
+        label,
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
   /// Share sheet for the invite code — same message + analytics event as
   /// [InviteActionButtons] (kept in sync deliberately; the checklist needs a
   /// full-width primary CTA that the compact pill cluster can't provide).
@@ -2412,6 +2429,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ? (box.localToGlobal(Offset.zero) & box.size)
         : null;
     AnalyticsService.instance.logInviteShared('share_sheet');
+    // Counts as "invite sent": drops the +2h follow-up (PF10).
+    context.read<ReminderProvider>().markInviteShared();
     try {
       await SharePlus.instance.share(
         ShareParams(text: message, sharePositionOrigin: origin),
@@ -2424,6 +2443,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _copyInviteCode(String code) {
     Clipboard.setData(ClipboardData(text: code));
     AnalyticsService.instance.logInviteShared('copy');
+    context.read<ReminderProvider>().markInviteShared();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.inviteCodeCopiedMsg),

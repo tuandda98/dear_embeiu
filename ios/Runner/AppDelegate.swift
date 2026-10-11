@@ -22,6 +22,7 @@ import UserNotifications
     if let registrar = self.registrar(forPlugin: "AppChannels") {
       registerBadgeChannel(messenger: registrar.messenger(), application: application)
       SleepHealthChannel.register(messenger: registrar.messenger())
+      InviteClipboardChannel.register(messenger: registrar.messenger())
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -49,6 +50,32 @@ import UserNotifications
         application.applicationIconBadgeNumber = safeCount
       }
       result(nil)
+    }
+  }
+}
+
+/// Feature pairing-funnel (PF9): tells Dart whether the clipboard holds a web
+/// link WITHOUT reading it. Reading is what shows iOS's "Allow Paste" alert, so
+/// Setup reads only when there is a link, once per `changeCount`.
+final class InviteClipboardChannel {
+  static func register(messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "dear_embeiu/clipboard", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      guard call.method == "probe" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      let board = UIPasteboard.general
+      let changeCount = board.changeCount
+      board.detectPatterns(for: [\.probableWebURL]) { detection in
+        var hasUrl = false
+        if case .success(let found) = detection {
+          hasUrl = found.contains(\UIPasteboard.DetectedValues.probableWebURL)
+        }
+        DispatchQueue.main.async {
+          result(["hasUrl": hasUrl, "changeCount": changeCount])
+        }
+      }
     }
   }
 }

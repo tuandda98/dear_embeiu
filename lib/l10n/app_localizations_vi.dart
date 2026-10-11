@@ -135,7 +135,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get homeWaitingStep1Desc =>
-      'Gửi mã mời này cho người ấy qua tin nhắn.';
+      'Gửi mã qua tin nhắn, hoặc cho người ấy quét mã QR nếu đang ở cạnh nhau.';
 
   @override
   String get homeWaitingStep1Cta => 'Gửi cho người ấy 💌';
@@ -182,6 +182,48 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get inviteFollowUpBody72h =>
       'Kỷ niệm của chúng mình đang đợi người ấy. Nhắc người ấy tải app nhé';
+
+  @override
+  String get inviteQrBtn => 'Mã QR';
+
+  @override
+  String get inviteQrTitle => 'Cho người ấy quét mã này';
+
+  @override
+  String get inviteQrBody =>
+      'Người ấy mở Camera, hướng vào mã là tới trang tải Dear Embeiu, có sẵn mã mời của bạn.';
+
+  @override
+  String get inviteQrFallback =>
+      'Không quét được? Đọc mã này cho người ấy nhập.';
+
+  @override
+  String get inviteQrDone => 'Xong';
+
+  @override
+  String inviteQrSemantics(String code) {
+    return 'Mã QR mời ghép đôi, mã $code';
+  }
+
+  @override
+  String get clipboardInviteTitle => 'Nhập mã từ lời mời?';
+
+  @override
+  String get clipboardInviteBody =>
+      'Link mời bạn mở có mã này. Ghép đôi là vào chung không gian với người ấy.';
+
+  @override
+  String get clipboardInviteJoin => 'Ghép đôi ngay';
+
+  @override
+  String get clipboardInviteSkip => 'Bỏ qua';
+
+  @override
+  String get inviteFollowUpTitle2h => 'Gửi lời mời cho người ấy nhé 💌';
+
+  @override
+  String get inviteFollowUpBody2h =>
+      'Đang ở cạnh nhau thì cho người ấy quét mã QR, ở xa thì gửi qua tin nhắn. Mất chừng 10 giây thôi.';
 
   @override
   String get back => 'Quay lại';

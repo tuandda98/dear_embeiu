@@ -1329,10 +1329,16 @@ class ReminderProvider extends ChangeNotifier {
 
   // ---------------------------------------------------------------------------
   // Invite follow-ups (feature onboarding, 2026-09-05) — band 1180–1189. While
-  // the couple is still `waiting_partner`, nudge the lone member 24h + 72h after
-  // the couple was created so a partner who never joined doesn't silently kill
-  // the account. LOCAL only (the partner has no device in this couple yet).
+  // the couple is still `waiting_partner`, nudge the lone member so a partner
+  // who never joined doesn't silently kill the account. Pairing-funnel (PF10)
+  // moved them into the first day: +2h (only until the code is sent), +20h,
+  // +72h, then silence. LOCAL only (the partner has no device here yet).
   // ---------------------------------------------------------------------------
+
+  // Hive `app_settings` (Box<String>, opened in main()): epoch-millis of the
+  // last time the member sent the invite (share sheet / copy / QR).
+  static const String _appSettingsBox = 'app_settings';
+  static const String _inviteSharedAtKey = 'invite_shared_at';
 
   String? _inviteFollowUpSignature;
 
@@ -1340,11 +1346,46 @@ class ReminderProvider extends ChangeNotifier {
   /// (reset whenever the band is armed again).
   bool _inviteFollowUpCleared = false;
 
+  /// The member just sent the invite (share sheet, copy, or QR — Setup, Home or
+  /// Profile). Stamps the time and drops the +2h nudge at once: it only exists
+  /// for someone who hasn't sent anything yet (PF10).
+  Future<void> markInviteShared() async {
+    try {
+      if (Hive.isBoxOpen(_appSettingsBox)) {
+        await Hive.box<String>(_appSettingsBox).put(
+          _inviteSharedAtKey,
+          '${DateTime.now().millisecondsSinceEpoch}',
+        );
+      }
+    } catch (_) {
+      // Best effort — the next refresh simply keeps the +2h slot.
+    }
+    await _service.cancelInviteFollowUp(InviteFollowUp.after2h);
+  }
+
+  /// Whether the invite was sent for the couple created at [anchor]. The hour
+  /// of slack counts a member who copied their personal code on Setup right
+  /// before creating the couple.
+  bool _inviteSharedFor(DateTime anchor) {
+    try {
+      if (!Hive.isBoxOpen(_appSettingsBox)) {
+        return false;
+      }
+      final at = int.tryParse(
+        Hive.box<String>(_appSettingsBox).get(_inviteSharedAtKey) ?? '',
+      );
+      final since = anchor.subtract(const Duration(hours: 1));
+      return at != null && at >= since.millisecondsSinceEpoch;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// (Re)arm or clear the invite follow-ups. Wired from HomeScreen alongside the
   /// reminder sync. [waiting] false cancels the band (partner joined). [anchor]
   /// is the couple's creation time, falling back to now for legacy couples with
-  /// no usable timestamp. Debounced on (waiting | anchor) so the frequent
-  /// rebuilds don't thrash the OS schedule.
+  /// no usable timestamp. Debounced on (waiting | anchor | shared) so the
+  /// frequent rebuilds don't thrash the OS schedule.
   Future<void> refreshInviteFollowUps({
     required bool waiting,
     DateTime? coupleCreatedAt,
@@ -1365,8 +1406,9 @@ class ReminderProvider extends ChangeNotifier {
     }
 
     final anchor = coupleCreatedAt ?? DateTime.now();
+    final shared = _inviteSharedFor(anchor);
     final signature =
-        'waiting|${anchor.millisecondsSinceEpoch}|${l10n.localeName}';
+        'waiting|${anchor.millisecondsSinceEpoch}|$shared|${l10n.localeName}';
     if (signature == _inviteFollowUpSignature) {
       return;
     }
@@ -1375,8 +1417,21 @@ class ReminderProvider extends ChangeNotifier {
 
     await _service.scheduleInviteFollowUps(
       anchor: anchor,
-      title: l10n.inviteFollowUpTitle,
-      bodies: <String>[l10n.inviteFollowUpBody24h, l10n.inviteFollowUpBody72h],
+      shared: shared,
+      copy: {
+        InviteFollowUp.after2h: (
+          title: l10n.inviteFollowUpTitle2h,
+          body: l10n.inviteFollowUpBody2h,
+        ),
+        InviteFollowUp.after20h: (
+          title: l10n.inviteFollowUpTitle,
+          body: l10n.inviteFollowUpBody24h,
+        ),
+        InviteFollowUp.after72h: (
+          title: l10n.inviteFollowUpTitle,
+          body: l10n.inviteFollowUpBody72h,
+        ),
+      },
     );
   }
 
