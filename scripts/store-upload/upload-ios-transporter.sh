@@ -26,7 +26,7 @@ osascript -e 'tell application "Transporter" to activate' -e 'delay 1' \
 osascript -e 'tell application "System Events" to tell process "Transporter"' \
   -e 'keystroke "g" using {command down, shift down}' -e 'delay 2.5' -e 'keystroke "a" using {command down}' -e 'keystroke "v" using {command down}' -e 'delay 2' -e 'keystroke return' -e 'delay 2.5' -e 'keystroke return' -e 'delay 3' -e 'end tell'
 # Nút "Mở" của panel: panel là process riêng (không có AX) → click theo bounds góc dưới phải.
-PANEL=$("$B/winlist" Transporter | grep "\[Mở\]\|\[Open\]" | cut -f1 | head -1)
+PANEL=$("$B/winlist" Transporter | grep "\[Mở\]\|\[Open\]" | cut -f1 | head -1 || true)  # panel thường đã tự đóng sau Enter lần 2 — grep rỗng không được làm set -e thoát
 if [ -n "$PANEL" ]; then read PX PY PW PH <<< "$("$B/winbounds" "$PANEL")"; "$B/click" "$(calc "$PX+0.936*$PW")" "$(calc "$PY+0.933*$PH")"; fi
 sleep 12
 "$B/winlist" Transporter | grep -q "\[Mở\]\|\[Open\]" && { echo "✗ panel Mở vẫn còn — kiểm tra tay"; exit 1; }
