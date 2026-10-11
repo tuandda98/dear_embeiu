@@ -169,7 +169,45 @@
 - R9: xoá tài khoản Apple → sheet → cùng uid → log thu hồi → xoá xong; huỷ sheet → không xoá, vẫn nhận push.
 - R12: thêm bước Đăng xuất / Rời không gian / Xoá tài khoản khi couple đang chờ → pending không còn 1180–1182.
 
+## Chạy thật trên máy ảo (Lead, 2026-10-11 tối)
+
+Môi trường: iPhone 17 simulator iOS 26.3 trong Device Hub (Xcode 27) + Android `Pixel_10` (Android 37, Google Play, 2 tài khoản Google). App bản debug → Firebase DEV. Tài khoản thử: `node scripts/dev-seed-pairing-funnel.js`. Thao tác iOS bằng `cliclick` + ảnh `simctl io screenshot`; Android bằng `adb` + `uiautomator dump`.
+
+| ID | Kịch bản | Kết quả | Ghi chú |
+|---|---|---|---|
+| M1 | iOS landing: nút Apple đen + nút Google trắng (logo G 4 màu) + 1 dòng đồng ý chung | ✅ | Đúng design, chữ không tràn |
+| M2 | iOS bấm Apple khi simulator chưa đăng nhập Apple ID → iOS hỏi mở Cài đặt → Đóng | ✅ bận đúng · ⚠️ hiện câu "Chưa đăng nhập được với Apple" | Mã `unknown` (1000), chấp nhận: cùng mã với lỗi thật, máy thật gần như luôn có iCloud |
+| M3 | iOS bấm Google → hộp hệ thống "muốn sử dụng google.com" → Huỷ | ✅ im lặng | Hộp hiện tên "dear_embeiu" → đã sửa `CFBundleName` (`439ab91`), cần build lại để thấy "Dear Embeiu Dev" |
+| M4 | iOS màn Đăng nhập: Apple + Google DƯỚI form, có "hoặc" | ✅ | |
+| M5 | iOS đăng nhập email → Setup: cụm Sao chép / Chia sẻ / Mã QR một hàng | ✅ | |
+| M6 | Sheet QR (iOS + Android): giải mã ảnh chụp bằng CIDetector | ✅ `https://dearembeiu.com/get?code=RBZU3P` | |
+| M7 | Tạo couple (iOS) → Home thẻ chờ có mô tả nhắc QR + pill "Mã QR" | ✅ | |
+| M8 | Android Chrome mở `get.html?code=5AJXAZ` (server nội bộ, `adb reverse`) → chỉ hiện nút Google Play + câu chép sẵn | ✅ | |
+| M9 | Bấm "Get it on Google Play" → Play Store mở + hệ thống báo đã chép `https://dearembeiu.com/get?code=5AJXAZ` | ✅ | |
+| M10 | Android app mới cài → đăng nhập → Setup tự hiện "Use the code from your invite? 5AJXAZ" (+ toast "pasted from your clipboard") | ✅ | |
+| M11 | "Pair up now" → ghép đôi; iPhone người tạo tự chuyển sang couple active | ✅ | |
+| M12 | Lịch nhắc mời (Android `dumpsys alarm`): tạo 20:38 → 08:30 hôm sau (dời giờ đêm) · 16:38 (+20h) · 20:38 ngày 14 (+72h) | ✅ | |
+| M13 | Mở "QR code" ở thẻ chờ → mốc 08:30 bị huỷ, còn 2 mốc | ✅ | |
+| M14 | PF19 app còn sống ở nền: người ấy vào (iPhone) → FCM tới Android (2 broadcast: alert + data-only) → band 1180–1189 hết | ✅ | |
+| M15 | **PF19 app bị kill (không force-stop):** người ấy vào → Android tự mở process, `FLTFireBGExecutor` tạo background engine, `FlutterFirebaseMessagingBackgroundService started` → 3 mốc nhắc mời bị huỷ, không mở UI | ✅ | Join giả lập bằng Admin SDK (đúng chuyển đổi memberIds 1→2 + `active` mà CF lắng nghe) |
+| M16 | iOS Setup khi bộ nhớ tạm trống → KHÔNG hiện hộp "Cho phép dán" | ✅ | PF13 nhánh âm |
+| M17 | Android landing: chỉ "Continue with Google" (không Apple) + dòng đồng ý | ✅ | |
+| M18 | Android Google → bảng "Choose an account … Dear Embeiu Dev" → Cancel | ✅ im lặng | |
+| M19 | Android Google → chọn `tuanexness01` → consent → vào thẳng Setup (không màn xác thực email) | ✅ | User DEV: provider `google.com`, emailVerified, hồ sơ có mã mời `ASQD2L` (user cho phép cấp quyền qua remote control) |
+| M20 | Đăng xuất → bấm Google lại → bảng chọn tài khoản hiện lại; chọn lại → vào đúng hồ sơ cũ (mã `ASQD2L`) | ✅ | |
+| M21 | Màn Cài đặt cuộn tới Đăng xuất (Android) | ✅ | Trên iOS thao tác kéo giả lập chập chờn, đã xác nhận trang vẫn cuộn tới đáy — không phải lỗi app |
+| M22 | Setup (chưa ghép đôi) → bánh răng → Cài đặt rút gọn (Tài khoản · Xoá tài khoản · Đăng xuất · phiên bản) | ✅ | Sau vá P1 `2356e7b` |
+| M23 | Xoá tài khoản Google-only từ Cài đặt rút gọn → dialog (không câu Apple) → "Delete permanently" → về landing; Firebase DEV không còn user | ✅ | Dọn luôn user thử `tuanexness01` |
+| M24 | iOS hộp "… muốn sử dụng google.com để đăng nhập" hiện **"Dear Embeiu Dev"** (trước là "dear_embeiu") | ✅ | Bản cài có `CFBundleName` = "Dear Embeiu Dev" + 2 URL scheme Google |
+
+**Phát hiện khi chạy máy ảo:**
+- **P1 (có từ trước) — ✅ ĐÃ VÁ `2356e7b`, kiểm M22–M23:** người đã đăng nhập nhưng chưa ghép đôi không có lối xoá tài khoản trong app (Cài đặt trống khi chưa có couple, Setup chỉ có Đăng xuất) — rủi ro App Review 5.1.1(v) và Google Play, tăng mạnh vì đăng ký Apple/Google chỉ 2 chạm.
+- P3: tên "dear_embeiu" trong hộp đăng nhập Google của iOS → đã vá (`CFBundleName = $(APP_DISPLAY_NAME)`), kéo theo đổi tên file IPA → đã sửa script upload lấy `.ipa` mới nhất.
+
+**Không thử được trên máy ảo (cần máy thật):** đăng nhập Apple tới cùng (simulator không có Apple ID), hộp "Cho phép dán" + gợi ý mã trên iOS (Xcode 27 `simctl pbcopy` và Safari đều không ghi được bộ nhớ tạm của simulator), push trên iOS (DEV chưa có APNs key), quét QR bằng camera, trang get trong trình duyệt nhúng Zalo/Messenger.
+
 ## Nhật ký test
 - [2026-10-11] [Tester] Nghiệm thu code-level `feature/pairing-funnel`@509e46f (diff 086f1e0..509e46f): luồng Apple (service/provider/widget/3 màn/Settings), plugin `firebase_auth` 6.5.3 + 6.7.0 iOS, rules `users/{uid}`, join bằng mã trong `couple_service`, bộ nhớ tạm ở Setup + kênh Swift, lịch nhắc mời, `get.html`, ARB. Chạy lại 4 file test liên quan 29/29; probe regex 25 chuỗi + lịch nhắc 11 mốc (gồm DST). Kết quả: PASS có điều kiện — 0 P0/P1, 3 P2 (BUG-1 treo Apple sau khi huỷ xoá, BUG-2 nhắc mời còn nổ sau đăng xuất/rời/xoá, BUG-3 thứ tự đẩy get.html), 3 P3; 17 case cần máy thật.
 - [2026-10-11] [Tester] Vòng 2 soát `7b900d1`: BUG-1/2/4/6 đã vá (đọc plugin firebase_auth 6.5.3, FirebaseAuth 12.15 trong Pods), BUG-5 vá nhưng sinh BUG-7 (P3, regex bỏ link dính liền ký tự đứng trước). Test 5 file 35/35, analyze 10 file 0 issue, probe 63 chuỗi với hàm thật. PASS có điều kiện, chờ R8/R9/R12. (Lead dán hộ — agent Tester chỉ đọc.)
 - [2026-10-11] [Lead] BUG-7 vá ở `49c8bba` (regex tách nhánh có/không scheme như Tester đề xuất, +1 test 5 ca); PO verify analyze 0 · 248/248. Không chạy Tester vòng 3 vì bản vá đúng nguyên văn regex Tester đã probe 35/35.
+- [2026-10-11] [Lead] Chạy thật trên iPhone simulator + Android emulator: 21 kịch bản (M1–M21) — Google sign-in Android tới cùng, luồng get → bộ nhớ tạm → gợi ý mã → ghép đôi, lịch nhắc + huỷ mốc 2h, PF19 với app bị kill. Phát hiện P1 có từ trước: chưa ghép đôi thì không xoá được tài khoản.
