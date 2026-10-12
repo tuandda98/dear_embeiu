@@ -33,7 +33,7 @@
 | Nút nhanh | Đăng ảnh · Gửi quan tâm · Nhắn tin | không có dữ liệu | Dễ nhưng cần đọc deep link (hiện tắt, D8 audit) |
 | Không làm | xem trước chat (riêng tư), rủ Oẳn tù tì (widget phải gọi mạng) | | |
 
-- Ràng buộc nền tảng (fallback — DB UI UX Pro Max không có mục widget): iOS WidgetKit nhỏ ≈158×158pt, vừa ≈338×158pt, bo góc hệ thống ~22pt, lề 14–16pt, iOS 18 có chế độ "tô màu" (tinted) ép mọi thứ về một màu; Android ô 2×2 ≈152dp, 4×2 ≈328dp, bo `system_app_widget_background_radius` (≤28dp), lề 16dp, RemoteViews không nhận ConstraintLayout/font tải động (font qua `res/font` thì được).
+- Ràng buộc nền tảng (fallback — DB UI UX Pro Max không có mục widget): iOS WidgetKit nhỏ ≈158×158pt, vừa ≈338×158pt, bo góc hệ thống ~22pt, lề 14–16pt, iOS 18 có chế độ "tô màu" (tinted) ép mọi thứ về một màu; Android ô 2×2 ≈152dp, 4×2 ≈328dp, bo `system_app_widget_background_radius` (≤28dp), lề 16dp, RemoteViews không nhận ConstraintLayout/`Space`/`View`, và **không nạp font tuỳ biến** — kể cả `@font/` trong `res/font`, vì inflate trong context restricted (giả định ban đầu "res/font thì được" sai, phát hiện khi smoke Task 7 → D11).
 - Luật thiết kế đã soát với UI UX Pro Max: chữ nhỏ 10–12px trắng trên hồng chỉ ~3,5:1 → chip tên dùng mực navy trên nền trắng; số ≥24px là chữ lớn (ngưỡng 3:1) → trắng trên gradient qua; icon tim vector, không emoji; toàn widget là 1 vùng chạm.
 
 ## 3. Phạm vi (scope)
@@ -52,6 +52,7 @@
 - **D8 — Chạm widget chỉ mở app**, không parse URL (giữ quyết định tắt deep linking của audit 2026-10-12). Nguồn chạm ghi bằng cờ native (iOS: URL `dearembeiu://widget` vào UserDefaults; Android: intent extra) → Flutter đọc 1 lần để log `widget_tap`.
 - **D9 — Phát hành trong bản MINOR 1.10.0, sau 1.9.1** (hàng chờ audit + streak-self-heal). Không đụng backend.
 - **D10 — Widget nhóm hàng nghìn theo ngôn ngữ** ("1.247" vi / "1,247" en, như mockup user duyệt). *Phát hiện khi review Task 3 (2026-10-12):* Home đang in số thô (`counter_card.dart` "1247", nhãn cột mốc "1500 ngày") ⇒ hai mặt số khác định dạng. Giữ widget theo design; **nợ PO:** cân nhắc cho Home nhóm theo (1 `NumberFormat`) để nhất quán — ngoài phạm vi feature này.
+- **D11 — Widget Android dùng font hệ thống (Roboto), iOS dùng Quicksand.** *Lý do:* RemoteViews không nạp được `@font/` (context restricted — `TextView` bỏ qua font resource), smoke Task 7 thấy Roboto dù layout khai Quicksand. Giữ phân cấp đậm/nhạt bằng `textStyle=bold` / `sans-serif-medium`. Cách duy nhất có Quicksand là vẽ chữ ra bitmap trong `ImageView` — tốn công, mất autosize/accessibility, chỉ làm nếu user không ưng Roboto sau khi xem thật. Ngoài ra: widget 3 ô trên máy ô lớn (Pixel ≈90dp/ô → 276dp ≥ ngưỡng 250) dùng bố cục vừa với cột ≈108dp → 2 dòng dài autosize 10–12sp thay vì đổi ngưỡng (ngưỡng theo dp không phân biệt được 3 ô máy lớn với 4 ô máy nhỏ).
 
 ## 5. Acceptance criteria (xong khi…)
 - [ ] iOS: gallery widget có "Đếm ngày yêu" cỡ nhỏ + vừa; số ngày, tên, cột mốc (vừa) **bằng đúng** CounterCard trên Home trong cùng ngày, cả vi lẫn en.

@@ -40,7 +40,7 @@ NHỎ 158×158 (iOS) · 2×2 ≈152dp (Android)        VỪA 338×158 · 4×2 �
 - Lý do mực navy trên trắng: chữ 10px trắng trên hồng chỉ ~3,5:1 (fail 4,5:1); chip trắng đạt ~11:1. Đúng ngôn ngữ `EyebrowChip` của app.
 
 **Số ngày**
-- Quicksand **Bold 40** (≤5 ký tự kể cả dấu chấm) · 32 (6 ký tự) · 28 (≥7); iOS dùng 40 + `minimumScaleFactor 0.6`, Android `autoSizeTextType="uniform"` 28–40sp. Trắng, `letterSpacing −1`, line-height 1, bóng tối `black .30 blur 8 y1` (luật chữ-trắng-trên-nền-sáng: bóng TỐI, không halo). Định dạng theo ngôn ngữ app: vi `1.247`, en `1,247`.
+- Quicksand **Bold 40** (≤5 ký tự kể cả dấu chấm) · 32 (6 ký tự) · 28 (≥7); iOS dùng 40 + `minimumScaleFactor 0.6`, Android `autoSizeTextType="uniform"` 24–40sp. **Android dùng font hệ thống (Roboto), không phải Quicksand:** RemoteViews inflate trong context restricted nên `TextView` không nạp `@font/` (phát hiện khi smoke Task 7, 2026-10-12; `overview.md` D11). Độ đậm giữ bằng `textStyle="bold"` (số, chip, cột mốc) và `sans-serif-medium` (chú thích, "còn…", "Bắt đầu từ…"). Muốn Quicksand trên Android phải vẽ chữ ra bitmap — để sau nếu user không ưng Roboto. Trắng, `letterSpacing −1`, line-height 1, bóng tối `black .30 blur 8 y1` (luật chữ-trắng-trên-nền-sáng: bóng TỐI, không halo). Định dạng theo ngôn ngữ app: vi `1.247`, en `1,247`.
 - Contrast: trắng trên nền hiệu dụng vùng giữa ≈ `#E55381` → 3,6:1, qua ngưỡng chữ lớn 3:1 (≥24px).
 
 **Chú thích** "ngày bên nhau" / "days together": 12 w600 trắng .92, bóng `black .28 blur 6`, cách số 6. Vùng đáy nền hiệu dụng ≈ `#A6293E` → 6,3:1.
@@ -49,7 +49,7 @@ NHỎ 158×158 (iOS) · 2×2 ≈152dp (Android)        VỪA 338×158 · 4×2 �
 - "Cột mốc 1.500 ngày" (`milestoneNextLabel`) 12 w700 trắng.
 - Thanh tiến độ cao 6, r999, nền trắng .26, phần đầy trắng .96; giá trị = `days / next`.
 - "còn 253 ngày" (`milestoneDaysLeft`; ngày tới mốc = `milestoneTodayLabel`) 12 w600 trắng .92.
-- Dưới cùng: "Bắt đầu từ 14/05/2023" (`guestCounterStartFrom`, ngày theo locale — quyết định i18n D3) 11 w500 trắng .84.
+- Dưới cùng: "Bắt đầu từ 14 thg 5, 2023" (`guestCounterStartFrom` + `fullDateFormat` theo locale — vi `d 'thg' M, y`, en `MMM d, y` → "Since May 14, 2023"; quyết định i18n D3) 11 w500 trắng .84, **tối đa 2 dòng** (ngày 28 thg 12 dài 133pt > cột 110–127pt; review Task 4). Dòng "Cột mốc …" 12 w700 co tới ~10 (`minimumScaleFactor .85`) để "Milestone: 10,000 days" không cắt.
 - Khoảng cách dọc 8. Mọi chữ có bóng tối như trên.
 
 **Kích cỡ chữ** chỉ dùng type scale của app: 10 / 11 / 12 / 28 / 32 / 40.
@@ -60,7 +60,7 @@ NHỎ 158×158 (iOS) · 2×2 ≈152dp (Android)        VỪA 338×158 · 4×2 �
 - **Ngày yêu tương lai:** 0 ngày, "Cột mốc 1 tháng", "còn 30 ngày".
 - **Số dài** (≥10.000): co 32/28 — không bao giờ xuống dòng.
 - **Chữ hệ thống to (AX):** số co theo `minimumScaleFactor`, chú thích tối đa 2 dòng, chip giữ 1 dòng cắt.
-- **Chế độ tối:** không đổi (widget tự mang màu). **iOS 18 tinted:** nền hệ thống, chip = tint .22 + chữ tint, số tint 100%, chú thích tint .72 (mô phỏng ở artboard "Tinted").
+- **Chế độ tối:** không đổi (widget tự mang màu). **iOS 18 tinted:** nền hệ thống bỏ gradient; số, chú thích, chữ chip, cột mốc = nhóm accent (`widgetAccentable`, nhận màu tint); **nền chip (pill trắng .84) KHÔNG accentable** — nằm nhóm mặc định nên vẫn tách khỏi chữ (nếu bọc cả chip, nền và chữ cùng một màu tint → mất tên; phát hiện khi review Task 4). Artboard "Tinted" mô phỏng ý đồ (chip tint .22 + chữ tint) — kết quả thật tương đương: chữ tint trên pill sáng.
 - Không có loading/error: dữ liệu luôn có sẵn trong kho native hoặc rơi về trạng thái trống.
 
 ## Interaction & animation
@@ -84,7 +84,7 @@ Giọng "chúng mình" theo luật copy; tên app giữ "Dear Embeiu".
 ## Handoff / Dev notes
 - Flutter gửi ảnh chụp: `state` (counter|empty), `anniversary` `YYYY-MM-DD`, `name1`, `name2`, `lang`, và các chuỗi trên đã dịch (số ít/số nhiều gửi cả hai dạng). Native: tính `days` (so ngày lịch, như `LoveTreeService.daysTogether`), `next` + nhãn (như `_getNextMilestone` + `_milestoneLabel` của Home), format số theo `lang`.
 - iOS vẽ bằng SwiftUI: `ZStack { LinearGradient; LinearGradient(scrim); Circle().blur(18) ×2; VStack nội dung }`; font `Font.custom("Quicksand-Bold", size: 40)` (file TTF thêm vào target widget + `UIAppFonts`); `.widgetURL(URL(string: "dearembeiu://widget"))`.
-- Android: layout XML LinearLayout; TextView `android:fontFamily="@font/quicksand_bold"`, `android:shadowColor/Dx/Dy/Radius` cho bóng; ProgressBar `style="?android:attr/progressBarStyleHorizontal"` với drawable track/fill r999; nền `layer-list` (gradient + alpha gradient + 2 radial).
+- Android: layout XML LinearLayout; TextView `android:fontFamily="sans-serif"` + `android:textStyle="bold"` (Roboto — `@font/` không nạp trong RemoteViews), `android:shadowColor/Dx/Dy/Radius` cho bóng; 2 dòng dài cột phải autosize 10–12sp (widget 3 ô trên máy ô lớn ≈108dp/cột); ProgressBar `style="?android:attr/progressBarStyleHorizontal"` với drawable track/fill r999; nền `layer-list` (gradient + alpha gradient + 2 radial).
 - Quicksand có đủ glyph dấu tiếng Việt (đã verify fontTools khi chọn font 2026-06-10).
 - Không dùng emoji làm icon; tim là path SVG/Shape. `🎉` chỉ nằm trong chuỗi `milestoneTodayLabel` sẵn có.
 

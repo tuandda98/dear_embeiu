@@ -51,7 +51,7 @@
 | `ios/Runner/{AppDelegate.swift, SceneDelegate.swift, Runner.entitlements, Info.plist}` | Channel `HomeWidgetChannel`, ghi cờ mở-từ-widget, App Group |
 | `android/app/src/main/kotlin/com/tony/dearembeiu/widget/{DayMath.kt, WidgetStore.kt, DayCounterWidget.kt}` | Mirror Dart · kho SharedPreferences · provider |
 | `android/app/src/main/kotlin/com/tony/dearembeiu/MainActivity.kt` | Channel + ghi cờ từ intent extra |
-| `android/app/src/main/res/{layout/widget_day_small.xml, layout/widget_day_medium.xml, layout/widget_day_empty.xml, drawable/*.xml, drawable-v31/widget_bg.xml, font/quicksand_*.ttf, xml/widget_day_info.xml, values/strings.xml, values-vi/strings.xml}` | Giao diện RemoteViews |
+| `android/app/src/main/res/{layout/widget_day_small.xml, layout/widget_day_medium.xml, layout/widget_day_empty.xml, drawable/*.xml, drawable-v31/widget_bg.xml, xml/widget_day_info.xml, values/strings.xml, values-vi/strings.xml}` | Giao diện RemoteViews |
 | `android/app/src/main/AndroidManifest.xml` | `<receiver>` widget |
 | `android/app/build.gradle.kts` + `android/app/src/test/kotlin/com/tony/dearembeiu/widget/DayMathTest.kt` | JUnit cho DayMath |
 
@@ -932,7 +932,7 @@ EOF
 **Files:**
 - Create: `ios/DearEmbeiuWidget/WidgetSnapshot.swift`, `ios/DearEmbeiuWidget/DayCounterWidget.swift`, `ios/DearEmbeiuWidget/DayCounterView.swift`, `ios/DearEmbeiuWidget/Info.plist`, `ios/DearEmbeiuWidget/DearEmbeiuWidget.entitlements`, `ios/DearEmbeiuWidget/PrivacyInfo.xcprivacy`, `ios/DearEmbeiuWidget/en.lproj/Localizable.strings`, `ios/DearEmbeiuWidget/vi.lproj/Localizable.strings`
 - Create: `scripts/ios-add-widget-target.rb`, `scripts/ios-add-widget-target.sh`
-- Modify: `ios/Runner/Runner.entitlements`, `ios/Runner/Info.plist:81-82`, `ios/Runner/AppDelegate.swift:1-6,23-28` + cuối file, `ios/Runner/SceneDelegate.swift` (thay toàn bộ)
+- Modify: `ios/Runner/Runner.entitlements`, `ios/Runner/Info.plist:81-82`, `ios/Runner/PrivacyInfo.xcprivacy:64-71` (+`1C8F.1`), `ios/Runner/AppDelegate.swift:1-6,23-28` + cuối file, `ios/Runner/SceneDelegate.swift` (thay toàn bộ)
 - Generated: `ios/Runner.xcodeproj/project.pbxproj` (do script sửa — commit)
 
 **Interfaces:**
@@ -1128,7 +1128,7 @@ struct DayCounterView: View {
 
   var body: some View {
     content
-      .widgetBackground(WidgetBackground())
+      .widgetBackground(WidgetBackground(medium: family == .systemMedium))
       .widgetURL(URL(string: "dearembeiu://widget?family=\(familyName)"))
   }
 
@@ -1148,7 +1148,9 @@ struct DayCounterView: View {
 }
 
 /// Gradient 150° + dark scrim + two aurora glows, like the Home CounterCard.
+/// The medium widget gets the larger glows from design.md (Ø110 / Ø160).
 struct WidgetBackground: View {
+  let medium: Bool
   var body: some View {
     ZStack {
       LinearGradient(stops: [
@@ -1159,13 +1161,13 @@ struct WidgetBackground: View {
       LinearGradient(colors: [.black.opacity(0.10), .black.opacity(0.28)],
                      startPoint: .top, endPoint: .bottom)
       Circle().fill(Color.white.opacity(0.26))
-        .frame(width: 96, height: 96).blur(radius: 18)
+        .frame(width: medium ? 110 : 96, height: medium ? 110 : 96).blur(radius: 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .offset(x: -28, y: -30)
       Circle().fill(lavender.opacity(0.40))
-        .frame(width: 120, height: 120).blur(radius: 18)
+        .frame(width: medium ? 160 : 120, height: medium ? 160 : 120).blur(radius: medium ? 20 : 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-        .offset(x: 40, y: 46)
+        .offset(x: 40, y: medium ? 56 : 46)
     }
   }
 }
@@ -1190,8 +1192,11 @@ struct NamesChip: View {
     .font(.quicksand("Bold", 10))
     .textCase(.uppercase)
     .lineLimit(1)
-    .minimumScaleFactor(0.8)
     .foregroundColor(navy)
+    // iOS 18 tinted mode: the names take the accent tint, the pill below stays
+    // in the default (white) group — marking the whole chip would paint both
+    // the same colour and erase the names.
+    .accentable()
     .padding(.horizontal, 8)
     .frame(height: 20)
     .background(Capsule().fill(Color.white.opacity(0.84)))
@@ -1208,6 +1213,7 @@ struct DayNumber: View {
       .lineLimit(1)
       .minimumScaleFactor(0.6)
       .inkShadow()
+      .accentable()
   }
 }
 
@@ -1219,9 +1225,12 @@ struct Caption: View {
       .foregroundColor(.white.opacity(0.92))
       .lineLimit(2)
       .inkShadow(0.28)
+      .accentable()
   }
 }
 
+/// Accentable per element (number, caption, chip text) — never on a container
+/// that also holds the chip pill (see NamesChip).
 struct SmallCounter: View {
   let model: DayModel
   var body: some View {
@@ -1232,7 +1241,6 @@ struct SmallCounter: View {
       Caption(text: model.daysLabel).padding(.top, 6)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    .accentable()
   }
 }
 
@@ -1257,13 +1265,17 @@ struct MediumCounter: View {
       Rectangle().fill(Color.white.opacity(0.28)).frame(width: 1)
         .padding(.horizontal, 14).padding(.vertical, 2)
       VStack(alignment: .leading, spacing: 8) {
+        // "Milestone: 10,000 days" is ~131pt at 12; the column is 110–127pt
+        // across iPhones, so the line may shrink to ~10 instead of clipping.
         Text(model.milestoneText)
-          .font(.quicksand("Bold", 12)).foregroundColor(.white).lineLimit(1).inkShadow(0.28)
+          .font(.quicksand("Bold", 12)).foregroundColor(.white).lineLimit(1)
+          .minimumScaleFactor(0.85).inkShadow(0.28)
         ProgressBar(value: model.progress)
         Caption(text: model.daysLeftText)
         Spacer(minLength: 0)
+        // "Bắt đầu từ 28 thg 12, 2023" is 133pt — two lines rather than losing the year.
         Text(model.sinceText)
-          .font(.quicksand("Medium", 11)).foregroundColor(.white.opacity(0.84)).lineLimit(1).inkShadow(0.28)
+          .font(.quicksand("Medium", 11)).foregroundColor(.white.opacity(0.84)).lineLimit(2).inkShadow(0.28)
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
       .accentable()
@@ -1282,14 +1294,15 @@ struct EmptyState: View {
         Text(chip).kerning(1)
       }
       .font(.quicksand("Bold", 10)).lineLimit(1).foregroundColor(navy)
+      .accentable() // same split as NamesChip: text tinted, pill in the default group
       .padding(.horizontal, 8).frame(height: 20)
       .background(Capsule().fill(Color.white.opacity(0.84)))
       Spacer(minLength: 4)
       Text(text)
         .font(.quicksand("Bold", 14)).foregroundColor(.white).lineLimit(3).inkShadow()
+        .accentable()
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    .accentable()
   }
 }
 ```
@@ -1368,13 +1381,14 @@ Create `ios/DearEmbeiuWidget/PrivacyInfo.xcprivacy`:
 	<array/>
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>
-		<!-- App Group UserDefaults shared with the app (same reason as Runner). -->
+		<!-- Reads the App Group UserDefaults the app writes: reason 1C8F.1
+		     (shared within the same App Group), not CA92.1 (app-private only). -->
 		<dict>
 			<key>NSPrivacyAccessedAPIType</key>
 			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
-				<string>CA92.1</string>
+				<string>1C8F.1</string>
 			</array>
 		</dict>
 	</array>
@@ -1414,8 +1428,27 @@ Create `ios/DearEmbeiuWidget/en.lproj/Localizable.strings`:
 "preview_since" = "Since May 14, 2023";
 ```
 
-- [ ] **Step 5: Runner — App Group + `AppGroupId` + channel + ghi cờ URL**
+- [ ] **Step 5: Runner — App Group + `AppGroupId` + channel + ghi cờ URL + lý do UserDefaults**
 
+Edit `ios/Runner/PrivacyInfo.xcprivacy` (Runner nay ghi UserDefaults dùng chung App Group → thêm lý do `1C8F.1` cạnh `CA92.1`) — old:
+```xml
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+```
+new:
+```xml
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+				<string>1C8F.1</string>
+			</array>
+```
 Edit `ios/Runner/Runner.entitlements` — old:
 ```xml
 	<key>com.apple.developer.healthkit.access</key>
@@ -1674,10 +1707,19 @@ EOF
 Run: `scripts/ios-sim.sh 2EE33EBF-2E01-4A63-8C77-DDF62D1AF9CA`
 Expected: app lên (config DEV). Đăng nhập `test1@gmail.com` / `12345678` (seed DEV; nếu chưa có: `node scripts/dev-seed-test-couple.js`). Home hiện CounterCard với số ngày N và "Cột mốc …".
 
-- [ ] **Step 2: Thêm widget, đối chiếu số**
+- [ ] **Step 1b: Entitlement App Group có thật trong binary (không chỉ trong file .entitlements)**
 
-Simulator: `Cmd+Shift+H` về màn hình chính → nhấn giữ nền → `+` → tìm "Dear Embeiu Dev" → thêm widget nhỏ, rồi thêm widget vừa.
-Expected: cả hai hiện cùng N với Home, chip = 2 tên của couple seed (UPPERCASE, tim giữa), bản vừa có "Cột mốc …" + "còn … ngày" + "Bắt đầu từ 1 thg 1, 2025" đúng như Home. Nền gradient, chữ trắng đọc rõ.
+```bash
+APP=$(find build/ios -type d -name Runner.app -path '*iphonesimulator*' | head -1)
+codesign -d --entitlements :- "$APP" 2>/dev/null | grep -A3 application-groups
+codesign -d --entitlements :- "$APP/PlugIns/DearEmbeiuWidget.appex" 2>/dev/null | grep -A3 application-groups
+```
+Expected: cả hai in `group.com.tony.dearembeiu.dev`. Nếu Runner thiếu → `UserDefaults(suiteName:)` ghi vào kho riêng của app, widget trống mãi mà không báo lỗi.
+
+- [ ] **Step 2: Thêm widget, đối chiếu số (2 cỡ máy)**
+
+Simulator iPhone 16 Pro: `Cmd+Shift+H` về màn hình chính → nhấn giữ nền → `+` → tìm "Dear Embeiu Dev" → thêm widget nhỏ, rồi thêm widget vừa. Lặp trên **iPhone 16e** (390pt — cột phải hẹp hơn): `scripts/ios-sim.sh 48AE583D-6416-4A4F-AC1B-51BCD606240D`.
+Expected: cả hai hiện cùng N với Home, chip = 2 tên của couple seed (UPPERCASE, tim giữa), bản vừa có "Cột mốc …" + "còn … ngày" + "Bắt đầu từ 1 thg 1, 2025" đúng như Home; dòng "Bắt đầu từ" đủ năm (được xuống 2 dòng), dòng cột mốc không "…". Nền gradient, chữ trắng đọc rõ. Chụp `xcrun simctl io booted screenshot` 2 cỡ, so bằng mắt với artboard A (lưu ý quan sát: tâm aurora và góc gradient bản vừa có thể lệch mock — chỉ ghi nhận, không sửa).
 
 - [ ] **Step 3: Đổi ngôn ngữ trong app**
 
@@ -1689,14 +1731,13 @@ Expected: widget đổi sang "days together" / "Milestone: …" / "Since Jan 1, 
 Cài đặt → Đăng xuất → màn hình chính.
 Expected: widget trạng thái trống: chip "DEAR EMBEIU", "Chạm để bắt đầu đếm ngày yêu". Đăng nhập lại → số quay lại.
 
-- [ ] **Step 5: Chạm widget → log**
+- [ ] **Step 5: Chạm widget → đúng 1 log mỗi lần chạm**
 
-Chạm widget vừa khi app đang tắt.
-Expected: app mở về Home; trong `flutter run` console thấy `HomeWidgetBridge: opened from the medium widget`. Lặp với widget nhỏ → `small`.
+(a) App đang tắt hẳn: chạm widget vừa → app mở về Home; console `flutter run` (hoặc `xcrun simctl spawn booted log stream --predicate 'eventMessage CONTAINS "HomeWidgetBridge"'`) thấy ĐÚNG 1 dòng `HomeWidgetBridge: opened from the medium widget`. (b) App đang chạy nền: chạm widget nhỏ → đúng 1 dòng `small` ngay lần resume đó (không dồn sang lần sau). (c) Mở app bằng icon (không qua widget) → KHÔNG có dòng nào.
 
-- [ ] **Step 6: Tinted + Dynamic Type**
+- [ ] **Step 6: Tinted + Dynamic Type + iOS 16**
 
-Màn hình chính → nhấn giữ nền → Chỉnh sửa → chọn "Tô màu" (iOS 18): widget về một màu, số/chip/chú thích vẫn đọc được. Settings simulator → Accessibility → Display & Text Size → Larger Text kéo tối đa → widget: số co, chú thích tối đa 2 dòng, không tràn.
+Màn hình chính → nhấn giữ nền → Chỉnh sửa → chọn "Tô màu" (iOS 18): widget về một màu, **tên trong chip vẫn đọc được** (chữ tint trên pill sáng), số/chú thích đọc được. Settings simulator → Accessibility → Display & Text Size → Larger Text kéo tối đa → widget: số co, chú thích tối đa 2 dòng, chip không tràn. Đường iOS 15/16 (`ZStack + padding 14`): nếu máy có runtime iOS 16 thì chạy thử, không có → ghi "chưa kiểm" cho Tester.
 
 - [ ] **Step 7: Ghi nhật ký**
 
@@ -1887,7 +1928,7 @@ EOF
 
 **Files:**
 - Create: `android/app/src/main/kotlin/com/tony/dearembeiu/widget/WidgetStore.kt`, `android/app/src/main/kotlin/com/tony/dearembeiu/widget/DayCounterWidget.kt`
-- Create: `android/app/src/main/res/layout/widget_day_small.xml`, `widget_day_medium.xml`, `widget_day_empty.xml`; `res/drawable/widget_bg.xml`, `res/drawable-v31/widget_bg.xml`, `res/drawable/widget_glow_white.xml`, `widget_glow_lavender.xml`, `widget_chip_bg.xml`, `widget_progress.xml`, `widget_heart.xml`; `res/font/quicksand_bold.ttf`, `quicksand_semibold.ttf`, `quicksand_medium.ttf` (copy); `res/xml/widget_day_info.xml`; `res/values/strings.xml`, `res/values-vi/strings.xml`
+- Create: `android/app/src/main/res/layout/widget_day_small.xml`, `widget_day_medium.xml`, `widget_day_empty.xml`; `res/drawable/widget_bg.xml`, `res/drawable-v31/widget_bg.xml`, `res/drawable/widget_glow_white.xml`, `widget_glow_lavender.xml`, `widget_chip_bg.xml`, `widget_progress.xml`, `widget_heart.xml`; `res/xml/widget_day_info.xml`; `res/values/strings.xml`, `res/values-vi/strings.xml`
 - Modify: `android/app/src/main/AndroidManifest.xml` (trước `<receiver … ScheduledNotificationReceiver />`, dòng 72), `android/app/src/main/kotlin/com/tony/dearembeiu/MainActivity.kt` (import, sau `super.configureFlutterEngine`, trước `private fun hasUsageAccess()`)
 
 **Interfaces:**
@@ -1897,10 +1938,7 @@ EOF
 - [ ] **Step 1: Font + strings**
 
 ```bash
-mkdir -p android/app/src/main/res/font android/app/src/main/res/values-vi android/app/src/main/res/drawable-v31
-cp assets/fonts/Quicksand-Bold.ttf android/app/src/main/res/font/quicksand_bold.ttf
-cp assets/fonts/Quicksand-SemiBold.ttf android/app/src/main/res/font/quicksand_semibold.ttf
-cp assets/fonts/Quicksand-Medium.ttf android/app/src/main/res/font/quicksand_medium.ttf
+mkdir -p android/app/src/main/res/values-vi android/app/src/main/res/drawable-v31
 ```
 Create `android/app/src/main/res/values/strings.xml`:
 ```xml
@@ -2046,7 +2084,7 @@ Create `android/app/src/main/res/drawable/widget_heart.xml`:
 </vector>
 ```
 
-- [ ] **Step 3: Layouts (RemoteViews chỉ nhận FrameLayout/LinearLayout/TextView/ImageView/ProgressBar — KHÔNG `Space`, KHÔNG `View`: khoảng trống và vạch chia dùng `FrameLayout`)**
+- [ ] **Step 3: Layouts (RemoteViews chỉ nhận FrameLayout/LinearLayout/TextView/ImageView/ProgressBar — KHÔNG `Space`, KHÔNG `View`: khoảng trống và vạch chia dùng `FrameLayout`. Chữ dùng FONT HỆ THỐNG: RemoteViews inflate trong context restricted nên `TextView` không nạp `@font/…` (kể cả `res/font`) — độ đậm giữ bằng `android:fontFamily="sans-serif"` + `android:textStyle="bold"` cho Bold, `sans-serif-medium` cho SemiBold/Medium. Quicksand chỉ có trên iOS. 2 dòng dài cột phải (`widget_milestone`, `widget_since`) autosize 10–12sp để widget 3 ô trên máy ô lớn không cắt chữ.)**
 
 Create `android/app/src/main/res/layout/widget_day_small.xml`:
 ```xml
@@ -2097,7 +2135,8 @@ Create `android/app/src/main/res/layout/widget_day_small.xml`:
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:fontFamily="@font/quicksand_bold"
+                android:fontFamily="sans-serif"
+                android:textStyle="bold"
                 android:letterSpacing="0.1"
                 android:maxWidth="48dp"
                 android:maxLines="1"
@@ -2119,7 +2158,8 @@ Create `android/app/src/main/res/layout/widget_day_small.xml`:
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:fontFamily="@font/quicksand_bold"
+                android:fontFamily="sans-serif"
+                android:textStyle="bold"
                 android:letterSpacing="0.1"
                 android:maxWidth="48dp"
                 android:maxLines="1"
@@ -2140,7 +2180,8 @@ Create `android/app/src/main/res/layout/widget_day_small.xml`:
             android:autoSizeMaxTextSize="40sp"
             android:autoSizeMinTextSize="24sp"
             android:autoSizeTextType="uniform"
-            android:fontFamily="@font/quicksand_bold"
+            android:fontFamily="sans-serif"
+            android:textStyle="bold"
             android:gravity="bottom|start"
             android:letterSpacing="-0.025"
             android:maxLines="1"
@@ -2155,7 +2196,7 @@ Create `android/app/src/main/res/layout/widget_day_small.xml`:
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:fontFamily="@font/quicksand_semibold"
+            android:fontFamily="sans-serif-medium"
             android:maxLines="2"
             android:shadowColor="#47000000"
             android:shadowDy="1"
@@ -2220,7 +2261,8 @@ Create `android/app/src/main/res/layout/widget_day_medium.xml`:
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
-                    android:fontFamily="@font/quicksand_bold"
+                    android:fontFamily="sans-serif"
+                    android:textStyle="bold"
                     android:letterSpacing="0.1"
                     android:maxWidth="64dp"
                     android:maxLines="1"
@@ -2242,7 +2284,8 @@ Create `android/app/src/main/res/layout/widget_day_medium.xml`:
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
-                    android:fontFamily="@font/quicksand_bold"
+                    android:fontFamily="sans-serif"
+                    android:textStyle="bold"
                     android:letterSpacing="0.1"
                     android:maxWidth="64dp"
                     android:maxLines="1"
@@ -2263,7 +2306,8 @@ Create `android/app/src/main/res/layout/widget_day_medium.xml`:
                 android:autoSizeMaxTextSize="40sp"
                 android:autoSizeMinTextSize="24sp"
                 android:autoSizeTextType="uniform"
-                android:fontFamily="@font/quicksand_bold"
+                android:fontFamily="sans-serif"
+                android:textStyle="bold"
                 android:gravity="bottom|start"
                 android:letterSpacing="-0.025"
                 android:maxLines="1"
@@ -2278,7 +2322,7 @@ Create `android/app/src/main/res/layout/widget_day_medium.xml`:
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:fontFamily="@font/quicksand_semibold"
+                android:fontFamily="sans-serif-medium"
                 android:maxLines="2"
                 android:shadowColor="#47000000"
                 android:shadowDy="1"
@@ -2305,9 +2349,14 @@ Create `android/app/src/main/res/layout/widget_day_medium.xml`:
             <TextView
                 android:id="@+id/widget_milestone"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="16dp"
+                android:autoSizeMaxTextSize="12sp"
+                android:autoSizeMinTextSize="10sp"
+                android:autoSizeTextType="uniform"
                 android:ellipsize="end"
-                android:fontFamily="@font/quicksand_bold"
+                android:fontFamily="sans-serif"
+                android:textStyle="bold"
+                android:gravity="center_vertical"
                 android:maxLines="1"
                 android:shadowColor="#47000000"
                 android:shadowDy="1"
@@ -2329,7 +2378,7 @@ Create `android/app/src/main/res/layout/widget_day_medium.xml`:
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:fontFamily="@font/quicksand_semibold"
+                android:fontFamily="sans-serif-medium"
                 android:maxLines="1"
                 android:shadowColor="#47000000"
                 android:shadowDy="1"
@@ -2345,9 +2394,13 @@ Create `android/app/src/main/res/layout/widget_day_medium.xml`:
             <TextView
                 android:id="@+id/widget_since"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="14dp"
+                android:autoSizeMaxTextSize="11sp"
+                android:autoSizeMinTextSize="10sp"
+                android:autoSizeTextType="uniform"
                 android:ellipsize="end"
-                android:fontFamily="@font/quicksand_medium"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center_vertical"
                 android:maxLines="1"
                 android:shadowColor="#47000000"
                 android:shadowDy="1"
@@ -2413,7 +2466,8 @@ Create `android/app/src/main/res/layout/widget_day_empty.xml`:
                 android:id="@+id/widget_name1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/quicksand_bold"
+                android:fontFamily="sans-serif"
+                android:textStyle="bold"
                 android:letterSpacing="0.1"
                 android:maxLines="1"
                 android:textColor="#1A1A2E"
@@ -2429,7 +2483,8 @@ Create `android/app/src/main/res/layout/widget_day_empty.xml`:
             android:id="@+id/widget_empty_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/quicksand_bold"
+            android:fontFamily="sans-serif"
+            android:textStyle="bold"
             android:maxLines="3"
             android:shadowColor="#4D000000"
             android:shadowDy="1"
@@ -2717,7 +2772,7 @@ Expected: `✓ Built build/app/outputs/flutter-apk/app-debug.apk`. Lỗi `Unreso
 
 Run: `flutter emulators --launch Pixel_10` rồi `flutter run -d emulator-5554` (id xem `flutter devices`).
 Checklist (ghi PASS/FAIL vào Nhật ký):
-1. Đăng nhập `test1@gmail.com` → Home hiện N ngày. Về màn hình chính, nhấn giữ → Widgets → "Dear Embeiu Dev" → kéo "Đếm ngày yêu" ra: 2×2 hiện N, chip "TEST1 ♥ TEST2", "ngày bên nhau", font Quicksand, nền gradient.
+1. Đăng nhập `test1@gmail.com` → Home hiện N ngày. Về màn hình chính, nhấn giữ → Widgets → "Dear Embeiu Dev" → kéo "Đếm ngày yêu" ra: 2×2 hiện N, chip "TEST1 ♥ TEST2", "ngày bên nhau", chữ Roboto (font hệ thống — RemoteViews không nạp res/font), nền gradient.
 2. Nhấn giữ widget → kéo rộng sang 4 ô → bố cục vừa: "Cột mốc …", thanh tiến độ, "còn … ngày", "Bắt đầu từ 1 thg 1, 2025" — cùng số với Home.
 3. Trong app đổi English → về màn hình chính: chữ EN. Đổi lại.
 4. Đăng xuất → widget trống "DEAR EMBEIU / Chạm để bắt đầu đếm ngày yêu". Đăng nhập lại → số quay lại.
@@ -2734,7 +2789,7 @@ git commit -m "$(cat <<'EOF'
 feat(home-widget): Android AppWidgetProvider 2×2/4×2 + channel + cờ mở app
 
 DayCounterWidget đọc snapshot từ SharedPreferences, tính ngày/cột mốc bằng
-DayMath, 3 layout RemoteViews (nhỏ/vừa/trống) font Quicksand res/font, nền
+DayMath, 3 layout RemoteViews (nhỏ/vừa/trống) font hệ thống (RemoteViews không nạp res/font), nền
 gradient + scrim + aurora, bo góc hệ thống API 31. updatePeriodMillis 30'
 (D7). MainActivity: channel dear_embeiu/widget + extra widget_family →
 WidgetStore cho widget_tap.
@@ -2763,17 +2818,9 @@ git status --short
 ```
 Expected: `No issues found!` · `All tests passed!` · `OK DayMath — 30 checks` · gradle im lặng · chỉ còn file docs chưa commit.
 
-- [ ] **Step 2: design.md — 2 chỗ lệch so với code thật**
+- [ ] **Step 2: design.md — chỗ lệch còn lại so với code thật** (dòng "Bắt đầu từ…" + tinted + font Android đã được controller sửa trong lúc chạy)
 
 Edit `project/features/home-widget/design.md` — old:
-```
-- Dưới cùng: "Bắt đầu từ 14/05/2023" (`guestCounterStartFrom`, ngày theo locale — quyết định i18n D3) 11 w500 trắng .84.
-```
-new:
-```
-- Dưới cùng: "Bắt đầu từ 14 thg 5, 2023" (`guestCounterStartFrom` + `fullDateFormat` theo locale — vi `d 'thg' M, y`, en `MMM d, y` → "Since May 14, 2023"; quyết định i18n D3) 11 w500 trắng .84.
-```
-old:
 ```
 - **Có couple (active hoặc chờ người ấy):** như wireframe. Chờ người ấy → chip 1 tên; không thêm lời mời.
 ```
@@ -2792,7 +2839,7 @@ new:
 
 `CLAUDE.md`:
 - §2 đoạn "Services:" thêm ` · **home_widget_bridge + home_widget_snapshot (feature home-widget, 2026-10: Flutter đẩy ảnh chụp dữ liệu dịch sẵn sang widget native qua channel `dear_embeiu/widget`; lắng nghe CoupleProvider + LocaleProvider ở `_MyAppState`)**`.
-- §4 Android thêm gạch đầu dòng: `- **Widget màn hình chính (feature home-widget):** receiver `.widget.DayCounterWidget` + `res/xml/widget_day_info.xml` (2×2 kéo tới 4×2, `updatePeriodMillis` 30'), layout RemoteViews `res/layout/widget_day_*.xml`, font Quicksand copy vào `res/font/`. JUnit `DayMathTest` (`./gradlew :app:testDebugUnitTest`).`
+- §4 Android thêm gạch đầu dòng: `- **Widget màn hình chính (feature home-widget):** receiver `.widget.DayCounterWidget` + `res/xml/widget_day_info.xml` (2×2 kéo tới 4×2, `updatePeriodMillis` 30'), layout RemoteViews `res/layout/widget_day_*.xml`; chữ dùng font hệ thống Roboto (RemoteViews chạy context restricted, KHÔNG nạp `@font/` — Quicksand chỉ có trên iOS). JUnit `DayMathTest` (`./gradlew :app:testDebugUnitTest`).`
 - §4 iOS thêm gạch đầu dòng: `- **Widget màn hình chính (feature home-widget):** target `DearEmbeiuWidget` (WidgetKit, iOS 15) thêm bằng `scripts/ios-add-widget-target.sh` (gem xcodeproj của CocoaPods Homebrew: `GEM_HOME=$(brew --prefix cocoapods)/libexec`, KHÔNG set `GEM_PATH`). Bundle `com.tony.dearembeiu[.dev].widget`; App Group `group.com.tony.dearembeiu[.dev]` qua build setting `APP_GROUP_ID` → Info.plist `AppGroupId` (cả Runner lẫn widget). Version/build lấy từ `Generated.xcconfig`. ⚠️ Lần archive đầu Xcode phải đăng nhập Apple ID để tạo App Group cho App ID `com.tony.dearembeiu` + `.widget` (như Sign in with Apple/HealthKit). `DayMath.swift` kiểm bằng `scripts/check-widget-daymath.sh` (swiftc, không cần simulator).`
 - §13 thêm: `- **`scripts/check-widget-daymath.sh`** — kiểm công thức widget iOS (27 check). · **`scripts/ios-add-widget-target.sh`** — thêm target widget (idempotent).`
 
