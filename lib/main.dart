@@ -45,6 +45,7 @@ import 'screens/verify_email_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_bootstrap_service.dart';
+import 'services/home_widget_bridge.dart';
 import 'services/install_state_service.dart';
 import 'services/push_notification_service.dart';
 import 'services/reminder_service.dart';
@@ -226,6 +227,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final AuthProvider _authProvider =
       AuthProvider(authService: widget.authService);
 
+  // Home-screen widget (feature home-widget): the bridge listens to these two,
+  // so they are owned here instead of being created inside MultiProvider.
+  final CoupleProvider _coupleProvider = CoupleProvider();
+  late final LocaleProvider _localeProvider =
+      LocaleProvider(initialLocale: widget.initialLocale);
+
   // App-level navigator key (#3): lets the session-revocation listener route
   // from outside the widget tree without threading a context around.
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
@@ -235,6 +242,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _authProvider.addListener(_handleAuthProviderChanged);
+    HomeWidgetBridge.bind(_coupleProvider, _localeProvider);
+    HomeWidgetBridge.consumeLaunch();
   }
 
   @override
@@ -242,6 +251,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _authProvider.removeListener(_handleAuthProviderChanged);
     _authProvider.dispose();
+    _coupleProvider.dispose();
+    _localeProvider.dispose();
     super.dispose();
   }
 
@@ -270,6 +281,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // therefore the partner's notifications) silently unregistered.
     if (state == AppLifecycleState.resumed) {
       _authProvider.refreshPushRegistration();
+      HomeWidgetBridge.consumeLaunch();
     }
   }
 
@@ -278,7 +290,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
-        ChangeNotifierProvider(create: (_) => CoupleProvider()),
+        ChangeNotifierProvider<CoupleProvider>.value(value: _coupleProvider),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
         ChangeNotifierProvider(create: (_) => ReactionProvider()),
         ChangeNotifierProvider(create: (_) => AnswerReactionProvider()),
@@ -295,9 +307,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => MoodProvider()),
         ChangeNotifierProvider(create: (_) => StreakProvider()),
         ChangeNotifierProvider(create: (_) => NotificationInboxProvider()),
-        ChangeNotifierProvider(
-          create: (_) => LocaleProvider(initialLocale: widget.initialLocale),
-        ),
+        ChangeNotifierProvider<LocaleProvider>.value(value: _localeProvider),
         ChangeNotifierProvider(create: (_) => ReminderProvider()..load()),
         ChangeNotifierProvider<CustomRemindersProvider>.value(
           value: widget.customRemindersProvider,
