@@ -4,10 +4,12 @@
 //
 //   node scripts/dev-seed-widget-accounts.js        # xoá sạch dữ liệu cũ của 4 tài khoản rồi seed lại
 //
-//   widget.android@gmail.com / 12345678  — Android, chưa ghép đôi (chờ người ấy)
-//   widget.ios@gmail.com     / 12345678  — iOS, chưa ghép đôi (chờ người ấy)
-//   widget.pair.a@gmail.com  / 12345678  — Android, ĐÃ ghép đôi với …pair.b
-//   widget.pair.b@gmail.com  / 12345678  — iOS, ĐÃ ghép đôi với …pair.a
+//   test1@gmail.com / 12345678  — Android, chưa ghép đôi (chờ người ấy)
+//   test2@gmail.com / 12345678  — iOS, chưa ghép đôi (chờ người ấy)
+//   test3@gmail.com / 12345678  — Android, ĐÃ ghép đôi với test4
+//   test4@gmail.com / 12345678  — iOS, ĐÃ ghép đôi với test3
+// (user đổi tên 2026-10-13; test1/test2 từng là cặp của dev-seed-test-couple.js —
+//  script này dọn luôn couple cũ `test_couple_dev` + 4 tài khoản widget.* cũ.)
 //
 // Cặp ghép đôi: ngày yêu 14/05/2023 (1.247 ngày tính tới 12/10/2026), ảnh
 // couple + 6 ảnh gallery từ Unsplash (giấy phép Unsplash, chỉ dùng DEV), 30
@@ -45,13 +47,13 @@ const PASSWORD = '12345678';
 
 // Tài khoản lẻ: mỗi người đã tạo couple ở Setup (nhập cả 2 tên) và đang chờ mã.
 const SOLO = [
-  { email: 'widget.android@gmail.com', displayName: 'Minh', partnerName: 'Ngọc', inviteCode: 'WGAND1', coupleId: 'widget_solo_android', coupleCode: 'WGAN01', anniversary: new Date(2025, 1, 14, 12) },
-  { email: 'widget.ios@gmail.com', displayName: 'Linh', partnerName: 'Khoa', inviteCode: 'WGIOS1', coupleId: 'widget_solo_ios', coupleCode: 'WGIO01', anniversary: new Date(2024, 10, 20, 12) },
+  { email: 'test1@gmail.com', displayName: 'Minh', partnerName: 'Ngọc', inviteCode: 'WGAND1', coupleId: 'widget_solo_android', coupleCode: 'WGAN01', anniversary: new Date(2025, 1, 14, 12) },
+  { email: 'test2@gmail.com', displayName: 'Linh', partnerName: 'Khoa', inviteCode: 'WGIOS1', coupleId: 'widget_solo_ios', coupleCode: 'WGIO01', anniversary: new Date(2024, 10, 20, 12) },
 ];
 // Cặp đã ghép đôi.
 const PAIR = [
-  { email: 'widget.pair.a@gmail.com', displayName: 'Tuấn', inviteCode: 'WGPRA1' },
-  { email: 'widget.pair.b@gmail.com', displayName: 'Thảo', inviteCode: 'WGPRB1' },
+  { email: 'test3@gmail.com', displayName: 'Tuấn', inviteCode: 'WGPRA1' },
+  { email: 'test4@gmail.com', displayName: 'Thảo', inviteCode: 'WGPRB1' },
 ];
 const PAIR_COUPLE_ID = 'widget_couple_dev';
 const PAIR_CODE = 'WGPR01';
@@ -94,6 +96,20 @@ async function upsertAuth(auth, acc) {
   }
 }
 
+// Dọn di sản: cặp test1/test2 cũ + 4 tài khoản widget.* (đổi tên 2026-10-13).
+const LEGACY_COUPLES = ['test_couple_dev'];
+const LEGACY_CODES = ['TEST22'];
+const LEGACY_EMAILS = ['widget.android@gmail.com', 'widget.ios@gmail.com', 'widget.pair.a@gmail.com', 'widget.pair.b@gmail.com'];
+const LEGACY_INVITES = ['TESTA2', 'TESTB3', 'WGAND1', 'WGIOS1', 'WGPRA1', 'WGPRB1'];
+
+async function deleteLegacyUsers(auth, db) {
+  for (const email of LEGACY_EMAILS) {
+    try { const u = await auth.getUserByEmail(email); await db.recursiveDelete(db.collection('users').doc(u.uid)); await auth.deleteUser(u.uid); console.log(`[legacy] xoá ${email}`); }
+    catch (e) { if (e.code !== 'auth/user-not-found') throw e; }
+  }
+  for (const code of LEGACY_INVITES) await db.collection('invite_codes').doc(code).delete();
+}
+
 /** Xoá sạch dữ liệu cũ: couple (đệ quy), mã, ảnh Storage, inbox/devices của user. */
 async function clean(db, bucket, uids, coupleIds, codes) {
   for (const id of coupleIds) {
@@ -125,8 +141,9 @@ async function uploadUnsplash(bucket, id, dest) {
   const [uidA, uidB] = pairUids;
   [...SOLO, ...PAIR].forEach((a, i) => console.log(`[auth] ${a.email} → ${[...soloUids, ...pairUids][i]}`));
 
-  await clean(db, bucket, [...soloUids, ...pairUids], [...SOLO.map((s) => s.coupleId), PAIR_COUPLE_ID], [...SOLO.map((s) => s.coupleCode), PAIR_CODE]);
-  console.log('[clean] đã xoá dữ liệu cũ của 4 tài khoản');
+  await deleteLegacyUsers(auth, db);
+  await clean(db, bucket, [...soloUids, ...pairUids], [...SOLO.map((s) => s.coupleId), PAIR_COUPLE_ID, ...LEGACY_COUPLES], [...SOLO.map((s) => s.coupleCode), PAIR_CODE, ...LEGACY_CODES]);
+  console.log('[clean] đã xoá dữ liệu cũ của 4 tài khoản (+ di sản test_couple_dev, widget.*)');
 
   // --- 2 tài khoản lẻ: couple đang chờ người ấy
   let batch = db.batch();

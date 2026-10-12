@@ -980,3 +980,8 @@
 - [23:13] [Image #1] và [Image #2] implemted giúp tôi cho cả android và ios , tạo 4 account , 1 cho android , 1 cho ios, 1 cho android và ios đã ghép đôi, clean data và lâý hình từ unsplash về, tôi muốn làm sát với thưcj tế nhất
 - [23:20] <task-notification> <task-id>bvqg2ft26</task-id> <tool-use-id>toolu_01AEMCHbrFHsiZSEux1aW7JD</tool-use-id> <output-file>/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/21ea87d6-d91f-4d66-9438-2e761c58e15a/tasks/bvqg2ft26.output</output-file> <status>completed</status> <summary>Background command "Build iOS debug (nền) kiểm biên dịch Swift M2" completed (exit code 0)</summary> </task-notification>
 - [23:33] [Image #3] design promax, để today, tother alin với 1/6 giúp tôi hoặc design lại hoặc không để
+- [23:48] tôi muốn test, cung cấp cho tôi account và pw
+- [23:48] có cài bản mới trên ios chưa?
+- [23:49] <pasted_content id="fb06"> Tài khoản DEV (project tonyembeiu-dev, chạy bản debug/profile), mật khẩu chung 12345678:  ┌─────────┬──────────────────────────┬─────────────────────────────────────────────┐ │   Máy   │          Email           │                 Trạng thái                  │ ├─────────┼──────────────────────────┼─────────────────────────────────────────────┤ │ Android │ widget.android@gmail.com │ Minh ♥ Ngọc, chờ người ấy → widget trời đêm │ ├─────────┼──────────────────────────┼─────────────────────────────────────────────┤ │ iOS     │ widget.ios@gmail.com     │ Linh ♥ Khoa, chờ ng ...[cat]
+- [23:56] login cho tôi
+- [00:01] đổi username là test1@gmail.com test2@gmail.com test3@gmail.com test4@gmail.com pass mặc định là 12345678

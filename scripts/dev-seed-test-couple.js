@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// ⚠️ 2026-10-13: test1/test2 nay thuộc dev-seed-widget-accounts.js (4 tài khoản test1–4). Chạy script này sẽ ghi đè lại thành cặp cũ.
 // Seed 2 tài khoản test ĐÃ GHÉP ĐÔI + dữ liệu mẫu trên Firebase DEV (tonyembeiu-dev)
 // để test 2 máy: test1@gmail.com / test2@gmail.com, mật khẩu 12345678.
 //
