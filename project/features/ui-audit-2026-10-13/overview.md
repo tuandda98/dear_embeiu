@@ -6,3 +6,5 @@
 
 ## Nhật ký
 - [2026-10-13] [Designer] Audit code toàn app, ghi 36 finding vào design.md.
+
+- [2026-10-13] [Lead] Dev A + Dev B vá 36 finding (commit `aef4b3f`), Lead vá thêm scrim landing/Setup; smoke Android + iOS một phần — xem [test.md](test.md).

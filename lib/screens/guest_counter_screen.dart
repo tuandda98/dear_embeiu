@@ -11,6 +11,7 @@ import '../services/love_tree_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/social_sign_in_buttons.dart';
+import '../widgets/status_bar_scrim.dart';
 import '../widgets/content_card.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/eyebrow_chip.dart';
@@ -181,35 +182,41 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            20 + MediaQuery.paddingOf(context).top,
-            20,
-            20 + MediaQuery.paddingOf(context).bottom,
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHeader(l10n),
-                  const SizedBox(height: 20),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 260),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeOutCubic,
-                    child: _anniversaryDate == null
-                        ? _buildEmptyCard(l10n)
-                        : _buildDateContent(l10n, _anniversaryDate!),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20 + MediaQuery.paddingOf(context).top,
+                20,
+                20 + MediaQuery.paddingOf(context).bottom,
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 460),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHeader(l10n),
+                      const SizedBox(height: 20),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 260),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeOutCubic,
+                        child: _anniversaryDate == null
+                            ? _buildEmptyCard(l10n)
+                            : _buildDateContent(l10n, _anniversaryDate!),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildCtaCard(l10n),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  _buildCtaCard(l10n),
-                ],
+                ),
               ),
             ),
-          ),
+            // Edge-to-edge: content scrolls under the clock; keep it readable.
+            const StatusBarScrim(),
+          ],
         ),
       ),
     );

@@ -24,6 +24,7 @@ import '../theme/app_theme.dart';
 import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/content_card.dart';
 import '../widgets/eyebrow_chip.dart';
+import '../widgets/status_bar_scrim.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/header_icon_button.dart';
 import '../widgets/invite_action_buttons.dart';
@@ -584,47 +585,53 @@ class _SetupScreenState extends State<SetupScreen>
             gradient: AppColors.secondaryGradient,
           ),
           child: Center(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                20 + MediaQuery.paddingOf(context).top,
-                20,
-                20 + MediaQuery.paddingOf(context).bottom,
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(authProvider, coupleProvider, isEditing),
-                    const SizedBox(height: 24),
-                    if (hasInviteCode) ...[
-                      _buildInviteCard(
-                        inviteCode: currentUser!.inviteCode,
-                        coupleCode: existingCouple?.coupleCode,
-                        hasCreatedCoupleSpace: currentUser.hasCouple,
-                        isWaitingForPartner:
-                            editingCouple?.isWaitingForPartner ?? false,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    if (!isEditing) _buildModeSelector(),
-                    if (!isEditing) const SizedBox(height: 16),
-                    if (isEditing || _mode == _SetupMode.create)
-                      _buildCreateCard(
-                        existingCouple: editingCouple,
-                        isEditing: isEditing,
-                        isLoading: coupleProvider.isLoading,
-                        canSave: canSaveEdit,
-                      )
-                    else
-                      _buildJoinCard(
-                        authProvider: authProvider,
-                        isLoading: coupleProvider.isLoading,
-                      ),
-                  ],
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    20 + MediaQuery.paddingOf(context).top,
+                    20,
+                    20 + MediaQuery.paddingOf(context).bottom,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(authProvider, coupleProvider, isEditing),
+                        const SizedBox(height: 24),
+                        if (hasInviteCode) ...[
+                          _buildInviteCard(
+                            inviteCode: currentUser!.inviteCode,
+                            coupleCode: existingCouple?.coupleCode,
+                            hasCreatedCoupleSpace: currentUser.hasCouple,
+                            isWaitingForPartner:
+                                editingCouple?.isWaitingForPartner ?? false,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (!isEditing) _buildModeSelector(),
+                        if (!isEditing) const SizedBox(height: 16),
+                        if (isEditing || _mode == _SetupMode.create)
+                          _buildCreateCard(
+                            existingCouple: editingCouple,
+                            isEditing: isEditing,
+                            isLoading: coupleProvider.isLoading,
+                            canSave: canSaveEdit,
+                          )
+                        else
+                          _buildJoinCard(
+                            authProvider: authProvider,
+                            isLoading: coupleProvider.isLoading,
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                // Edge-to-edge: content scrolls under the clock; keep it readable.
+                const StatusBarScrim(),
+              ],
             ),
           ),
         ),
