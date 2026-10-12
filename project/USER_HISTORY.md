@@ -654,6 +654,11 @@
 
 
 ---
+## Phien moi - 2026-09-30 09:05:29 (source: startup)
+- [09:05] Hi
+
+
+---
 ## Phien moi - 2026-10-01 21:42:10 (source: startup)
 - [21:42] pull code mơí nhất
 
@@ -819,3 +824,4 @@
 - [08:31] giờ bạn cần tôi làm gì ?
 - [08:32] <pasted_content id="a771">  Bạn chỉ còn đúng một việc: chạy lệnh nhập khoá Apple. Mình vừa kiểm, Firebase PROD vẫn chưa có khoá. Gõ dòng này vào ô chat, có dấu ! ở đầu:  ! scripts/set-apple-signin-key.sh AuthKey_472U9CVQD8.p8 472U9CVQD8 </pasted_content id="a771">   hướng dẫn tôi
 - [08:34] push code hết chưa ?
+- [08:35] push hết, giúp tôi quản lý git sạch sẽ từ nay về sau
