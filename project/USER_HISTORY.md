@@ -816,3 +816,5 @@
 - [08:11] mở termial này đến 24h hôm nay tôi sẽ dùng qua điện thoại có gì ko hiểu có thể nhắn qua điện thoại
 - [08:19] <pasted_content id="a771"> 1. Vào developer.apple.com → Certificates, IDs & Profiles → Keys → bấm "+". 2. Đặt tên, tick "Sign in with Apple" → Configure → chọn com.tony.dearembeiu → Save → Continue → Register. 3. Tải file .p8 về (chỉ tải được một lần) và ghi lại Key ID. 4. Mở Firebase Console → project tonyembeiu → Authentication → Sign-in method → Apple → mục "OAuth code flow configuration". Điền Team ID 4UBR69C227, Key ID, dán nội dung file .p8 rồi bấm Save. </pasted_content id="a771">   chomre remote làm giúp toi
 - [08:30] Sau khi chạy - Cất file .p8 move nó vào dear embe iu và git ignore
+- [08:31] giờ bạn cần tôi làm gì ?
+- [08:32] <pasted_content id="a771">  Bạn chỉ còn đúng một việc: chạy lệnh nhập khoá Apple. Mình vừa kiểm, Firebase PROD vẫn chưa có khoá. Gõ dòng này vào ô chat, có dấu ! ở đầu:  ! scripts/set-apple-signin-key.sh AuthKey_472U9CVQD8.p8 472U9CVQD8 </pasted_content id="a771">   hướng dẫn tôi

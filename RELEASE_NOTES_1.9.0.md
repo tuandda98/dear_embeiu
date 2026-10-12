@@ -48,7 +48,7 @@ Cảm ơn hai bạn đã cùng nhau lưu giữ kỷ niệm.
 ## Ghi chú nội bộ — 1.9.0 (build 26)
 - Nội dung: `feature/pairing-funnel` (tách từ `release/1.8.0`): đăng nhập Apple (iOS, `signInWithProvider`) + Google (`google_sign_in` 7.x), xoá tài khoản thu hồi token Apple / ngắt Google, mã QR (`qr_flutter`), gợi ý mã từ bộ nhớ tạm ở Setup, lịch nhắc mời +2h/+20h/+72h (dừng sau 7 ngày, né 22:00–07:59), Cài đặt rút gọn cho người chưa ghép đôi, thẻ đăng nhập landing thiết kế lại, logo Apple chính thức (Apple Design Resources, đồng ý license 2026-10-12).
 - Backend PROD: không deploy đợt này. Provider `apple.com` + `google.com` đã bật, SHA-1 Android PROD đã thêm, `notifyPartnerJoined` (wakeClients) đã deploy — đều 2026-10-11.
-- ⏳ Khoá Sign in with Apple (.p8) chưa nhập vào Firebase DEV + PROD ⇒ thu hồi token khi xoá tài khoản Apple lỗi im lặng (tài khoản vẫn xoá). Không chặn duyệt, nhưng cần làm sớm.
+- ✅ Khoá Sign in with Apple PROD nhập 2026-10-12 (Key ID `472U9CVQD8`, clientId = bundle ID) bằng `scripts/set-apple-signin-key.sh`. DEV không cấu hình (App ID `.dev` không thuộc nhóm khoá).
 - Feature tour: 1 entry `sinceBuild: 26` ("Rủ người ấy dễ hơn", icon `scan_barcode`).
 - Khai báo store: App Privacy / An toàn dữ liệu không đổi (email + tên vốn đã khai cho đăng ký email). Chính sách quyền riêng tư thêm mục đăng nhập Apple/Google (Pages `0a194ac`).
 - ⚠️ `docs/get.html` bản mới (chép link vào bộ nhớ tạm) CHỈ đẩy lên `phase3` sau khi 1.9.0 live cả 2 store: bản ≤1.8.0 không tách mã từ link.
