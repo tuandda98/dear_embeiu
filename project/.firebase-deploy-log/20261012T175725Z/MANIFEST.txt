@@ -1,0 +1,15 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu
+python3 - <<'EOF'
+import re
+s=open('RELEASE_NOTES_1.9.1.md').read()
+blocks=re.findall(r'```\n(.*?)```', s, re.S)
+for i,b in enumerate(blocks): print(i, len(b.strip()), 'chars')
+EOF
+export NODE_OPTIONS=--dns-result-order=ipv4first
+npx firebase-tools deploy --project prod --only firestore:rules,functions:deleteAccount,functions:leaveCoupleCleanup,functions:migrateLoveNotesToChat,functions:nudgeRpsPlayer,functions:generateDailyQuestion,functions:notifyPartnerMood,functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail --force 2>&1 | grep -E "✔|✓|Error|error|Deploy complete|functions\[|rules" | tail -25
+time_utc: 20261012T175725Z
+git_head: 6c8044f (release/1.9.1)
+dirty   : 2 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 6c8044f)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 6c8044f -- functions` rồi redeploy

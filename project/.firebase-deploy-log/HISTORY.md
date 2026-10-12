@@ -118,3 +118,12 @@ node -c functions/index.js && npx firebase-tools deploy --only functions:notifyC
 - [20261012T085200Z] head=fe37652 dirty=97 exit=? · `NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only firestore:rules,functions:deleteAccount,functions:leaveCoupleCleanup,functions:migrateLoveNotesToChat,functions:nudgeRpsPlayer,functions:generateDailyQuestion --project default 2>&1 | grep -vE "DeprecationWarning|trace-deprecation|punycode" | grep -E "✔|✖|Error|error|rules|Successful|updat|Deploy complete|Failed" | tail -30` · snapshot `20261012T085200Z/`
 - [20261012T143607Z] head=bd1aa8f dirty=2 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-wt-login && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail --project tonyembeiu-dev 2>&1 | tail -6` · snapshot `20261012T143607Z/`
 - [20261012T144923Z] head=4cef979 dirty=1 exit=? · `git fetch -q origin && git worktree add -q --detach ../dear_embeiu-wt-restore origin/fix/audit-2026-10-12 && cd ../dear_embeiu-wt-restore/functions && npm install --silent >/dev/null 2>&1; cd .. && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail --project tonyembeiu-dev 2>&1 | tail -3` · snapshot `20261012T144923Z/`
+- [20261012T175725Z] head=6c8044f dirty=2 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu
+python3 - <<'EOF'
+import re
+s=open('RELEASE_NOTES_1.9.1.md').read()
+blocks=re.findall(r'```\n(.*?)```', s, re.S)
+for i,b in enumerate(blocks): print(i, len(b.strip()), 'chars')
+EOF
+export NODE_OPTIONS=--dns-result-order=ipv4first
+npx firebase-tools deploy --project prod --only firestore:rules,functions:deleteAccount,functions:leaveCoupleCleanup,functions:migrateLoveNotesToChat,functions:nudgeRpsPlayer,functions:generateDailyQuestion,functions:notifyPartnerMood,functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail --force 2>&1 | grep -E "✔|✓|Error|error|Deploy complete|functions\[|rules" | tail -25` · snapshot `20261012T175725Z/`
