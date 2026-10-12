@@ -2829,6 +2829,10 @@ new:
 - **Có couple (active hoặc chờ người ấy):** như wireframe. Setup nhập cả 2 tên lúc tạo nên chip thường có đủ 2 tên ngay khi còn chờ; tên nào trống thì ẩn tên đó và ẩn tim. Không thêm lời mời.
 ```
 
+- [ ] **Step 2b: Đồng bộ plan với code thật**
+
+Khối Ruby ở Task 4 Step 6 của file này khác `scripts/ios-add-widget-target.rb` đã commit ở 2 chỗ (thêm `'PRODUCT_NAME' => '$(TARGET_NAME)'`; dời phase "Embed Foundation Extensions" lên trước "Thin Binary" để tránh `Cycle inside Runner`). Chép nội dung file đã commit vào khối đó (giữ phần giải thích). Tương tự kiểm khối `WidgetSnapshot.swift`/`DayCounterView.swift`/layout Android nếu Task 5/7 đã lệch gì, ghi chú ngắn thay vì chép lại cả khối.
+
 - [ ] **Step 3: Trạng thái feature**
 
 - `overview.md`: dòng `- **Trạng thái:**` → `💻 Dev xong, 🧪 chờ Tester (YYYY-MM-DD)` + thêm changelog `- [YYYY-MM-DD] [Dev] Implement xong 7 task (bridge · iOS target · Android provider), smoke 2 nền tảng.`
