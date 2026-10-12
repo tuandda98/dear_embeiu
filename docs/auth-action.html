@@ -208,11 +208,11 @@
       <form id="resetForm" class="hidden" autocomplete="on">
         <div class="field">
           <label for="pw1" id="pw1Label"></label>
-          <input id="pw1" type="password" autocomplete="new-password" minlength="8" />
+          <input id="pw1" type="password" autocomplete="new-password" minlength="6" />
         </div>
         <div class="field">
           <label for="pw2" id="pw2Label"></label>
-          <input id="pw2" type="password" autocomplete="new-password" minlength="8" />
+          <input id="pw2" type="password" autocomplete="new-password" minlength="6" />
         </div>
         <div class="formError" id="formError"></div>
         <button class="btn" type="submit" id="resetSubmit"></button>
@@ -260,7 +260,7 @@
         pw2: 'Nhập lại mật khẩu',
         resetBtn: 'Đổi mật khẩu',
         resetWorking: 'Đang đổi…',
-        errTooShort: 'Mật khẩu cần ít nhất 8 ký tự.',
+        errTooShort: 'Mật khẩu cần ít nhất 6 ký tự.',
         errMismatch: 'Hai mật khẩu chưa khớp nhau.',
         resetOkTitle: 'Đã đổi mật khẩu 💞',
         resetOkMsg: 'Mật khẩu mới đã được lưu. Quay lại Dear Embeiu và đăng nhập nhé.',
@@ -285,7 +285,7 @@
         pw2: 'Confirm password',
         resetBtn: 'Change password',
         resetWorking: 'Changing…',
-        errTooShort: 'Password must be at least 8 characters.',
+        errTooShort: 'Password must be at least 6 characters.',
         errMismatch: 'The two passwords don’t match.',
         resetOkTitle: 'Password changed 💞',
         resetOkMsg: 'Your new password is saved. Head back to Dear Embeiu and sign in.',
@@ -360,8 +360,6 @@
     // Map Firebase identitytoolkit error messages to a coarse kind.
     function errorKind(serverMessage) {
       var m = (serverMessage || '').toUpperCase();
-      // Firebase Auth password policy (min 8, 2026-10-12).
-      if (m.indexOf('PASSWORD_DOES_NOT_MEET_REQUIREMENTS') !== -1 || m.indexOf('WEAK_PASSWORD') !== -1) return 'weak';
       if (m.indexOf('EXPIRED_OOB_CODE') !== -1) return 'expired';
       if (m.indexOf('INVALID_OOB_CODE') !== -1 || m.indexOf('OOB') !== -1) return 'invalid';
       if (m.indexOf('USER_DISABLED') !== -1 || m.indexOf('USER_NOT_FOUND') !== -1) return 'invalid';
@@ -437,7 +435,7 @@
       var pw1 = $('pw1').value;
       var pw2 = $('pw2').value;
       var err = $('formError');
-      if (pw1.length < 8) { err.textContent = t.errTooShort; return; }
+      if (pw1.length < 6) { err.textContent = t.errTooShort; return; }
       if (pw1 !== pw2) { err.textContent = t.errMismatch; return; }
       err.textContent = '';
 
@@ -453,8 +451,7 @@
             btn.disabled = false;
             btn.textContent = t.resetBtn;
             var kind = errorKind(r.data && r.data.error && r.data.error.message);
-            err.textContent = kind === 'weak' ? t.errTooShort
-              : kind === 'expired' ? t.errExpired
+            err.textContent = kind === 'expired' ? t.errExpired
               : kind === 'invalid' ? t.errInvalid : t.errGeneric;
           }
         })
