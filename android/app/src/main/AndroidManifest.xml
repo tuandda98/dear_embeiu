@@ -69,6 +69,18 @@
         </activity>
         <!-- flutter_local_notifications: deliver and re-register scheduled
              "love reminders" (incl. after a device reboot). -->
+        <!-- Feature home-widget: day counter on the home screen. -->
+        <receiver
+            android:name=".widget.DayCounterWidget"
+            android:exported="true"
+            android:label="@string/widget_display_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_day_info" />
+        </receiver>
         <receiver
             android:exported="false"
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />

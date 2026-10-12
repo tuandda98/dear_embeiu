@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Feature home-widget: only what the system shows before Flutter has pushed
+     a snapshot (widget picker + first empty state). Everything else is
+     pre-translated by Flutter (D4). -->
+<resources>
+    <string name="widget_display_name">Day counter</string>
+    <string name="widget_description">Your days together, updated every day.</string>
+    <string name="widget_empty_tap">Tap to start counting your days together</string>
+</resources>
