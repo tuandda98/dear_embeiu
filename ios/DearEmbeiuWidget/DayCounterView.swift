@@ -51,7 +51,7 @@ struct DayCounterView: View {
 
   var body: some View {
     content
-      .widgetBackground(WidgetBackground())
+      .widgetBackground(WidgetBackground(medium: family == .systemMedium))
       .widgetURL(URL(string: "dearembeiu://widget?family=\(familyName)"))
   }
 
@@ -71,7 +71,9 @@ struct DayCounterView: View {
 }
 
 /// Gradient 150° + dark scrim + two aurora glows, like the Home CounterCard.
+/// The medium widget gets the larger glows from design.md (Ø110 / Ø160).
 struct WidgetBackground: View {
+  let medium: Bool
   var body: some View {
     ZStack {
       LinearGradient(stops: [
@@ -82,13 +84,13 @@ struct WidgetBackground: View {
       LinearGradient(colors: [.black.opacity(0.10), .black.opacity(0.28)],
                      startPoint: .top, endPoint: .bottom)
       Circle().fill(Color.white.opacity(0.26))
-        .frame(width: 96, height: 96).blur(radius: 18)
+        .frame(width: medium ? 110 : 96, height: medium ? 110 : 96).blur(radius: 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .offset(x: -28, y: -30)
       Circle().fill(lavender.opacity(0.40))
-        .frame(width: 120, height: 120).blur(radius: 18)
+        .frame(width: medium ? 160 : 120, height: medium ? 160 : 120).blur(radius: medium ? 20 : 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-        .offset(x: 40, y: 46)
+        .offset(x: 40, y: medium ? 56 : 46)
     }
   }
 }
@@ -113,8 +115,11 @@ struct NamesChip: View {
     .font(.quicksand("Bold", 10))
     .textCase(.uppercase)
     .lineLimit(1)
-    .minimumScaleFactor(0.8)
     .foregroundColor(navy)
+    // iOS 18 tinted mode: the names take the accent tint, the pill below stays
+    // in the default (white) group — marking the whole chip would paint both
+    // the same colour and erase the names.
+    .accentable()
     .padding(.horizontal, 8)
     .frame(height: 20)
     .background(Capsule().fill(Color.white.opacity(0.84)))
@@ -131,6 +136,7 @@ struct DayNumber: View {
       .lineLimit(1)
       .minimumScaleFactor(0.6)
       .inkShadow()
+      .accentable()
   }
 }
 
@@ -142,9 +148,12 @@ struct Caption: View {
       .foregroundColor(.white.opacity(0.92))
       .lineLimit(2)
       .inkShadow(0.28)
+      .accentable()
   }
 }
 
+/// Accentable per element (number, caption, chip text) — never on a container
+/// that also holds the chip pill (see NamesChip).
 struct SmallCounter: View {
   let model: DayModel
   var body: some View {
@@ -155,7 +164,6 @@ struct SmallCounter: View {
       Caption(text: model.daysLabel).padding(.top, 6)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    .accentable()
   }
 }
 
@@ -180,13 +188,17 @@ struct MediumCounter: View {
       Rectangle().fill(Color.white.opacity(0.28)).frame(width: 1)
         .padding(.horizontal, 14).padding(.vertical, 2)
       VStack(alignment: .leading, spacing: 8) {
+        // "Milestone: 10,000 days" is ~131pt at 12; the column is 110–127pt
+        // across iPhones, so the line may shrink to ~10 instead of clipping.
         Text(model.milestoneText)
-          .font(.quicksand("Bold", 12)).foregroundColor(.white).lineLimit(1).inkShadow(0.28)
+          .font(.quicksand("Bold", 12)).foregroundColor(.white).lineLimit(1)
+          .minimumScaleFactor(0.85).inkShadow(0.28)
         ProgressBar(value: model.progress)
         Caption(text: model.daysLeftText)
         Spacer(minLength: 0)
+        // "Bắt đầu từ 28 thg 12, 2023" is 133pt — two lines rather than losing the year.
         Text(model.sinceText)
-          .font(.quicksand("Medium", 11)).foregroundColor(.white.opacity(0.84)).lineLimit(1).inkShadow(0.28)
+          .font(.quicksand("Medium", 11)).foregroundColor(.white.opacity(0.84)).lineLimit(2).inkShadow(0.28)
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
       .accentable()
@@ -205,13 +217,14 @@ struct EmptyState: View {
         Text(chip).kerning(1)
       }
       .font(.quicksand("Bold", 10)).lineLimit(1).foregroundColor(navy)
+      .accentable() // same split as NamesChip: text tinted, pill in the default group
       .padding(.horizontal, 8).frame(height: 20)
       .background(Capsule().fill(Color.white.opacity(0.84)))
       Spacer(minLength: 4)
       Text(text)
         .font(.quicksand("Bold", 14)).foregroundColor(.white).lineLimit(3).inkShadow()
+        .accentable()
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    .accentable()
   }
 }

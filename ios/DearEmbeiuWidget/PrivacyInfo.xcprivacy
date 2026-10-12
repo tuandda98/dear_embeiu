@@ -10,13 +10,14 @@
 	<array/>
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>
-		<!-- App Group UserDefaults shared with the app (same reason as Runner). -->
+		<!-- Reads the App Group UserDefaults the app writes: reason 1C8F.1
+		     (shared within the same App Group), not CA92.1 (app-private only). -->
 		<dict>
 			<key>NSPrivacyAccessedAPIType</key>
 			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
-				<string>CA92.1</string>
+				<string>1C8F.1</string>
 			</array>
 		</dict>
 	</array>
