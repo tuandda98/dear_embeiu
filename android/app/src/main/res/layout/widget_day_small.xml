@@ -24,6 +24,7 @@
 
             <TextView
                 android:id="@+id/widget_name1"
+                android:text="@string/widget_preview_name1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
@@ -47,6 +48,7 @@
 
             <TextView
                 android:id="@+id/widget_name2"
+                android:text="@string/widget_preview_name2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
@@ -67,6 +69,7 @@
 
         <TextView
             android:id="@+id/widget_days"
+            android:text="@string/widget_preview_days"
             android:layout_width="match_parent"
             android:layout_height="46dp"
             android:autoSizeMaxTextSize="40sp"
@@ -86,6 +89,7 @@
 
         <TextView
             android:id="@+id/widget_caption"
+            android:text="@string/widget_preview_caption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"

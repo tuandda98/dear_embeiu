@@ -44,14 +44,14 @@ class DayMathTest {
 
     @Test
     fun milestoneLabel_monthsYearsDays() {
-        val s = DayMath.LabelStrings(monthsOne = "1 tháng", monthsFmt = "{count} tháng",
-            yearsOne = "1 năm", yearsFmt = "{count} năm", daysFmt = "{count} ngày")
-        val label = { n: Int -> DayMath.milestoneLabel(n, s) { DayMath.format(it, "vi") } }
-        assertEquals("1 tháng", label(30))
-        assertEquals("6 tháng", label(180))
-        assertEquals("1 năm", label(365))
-        assertEquals("2 năm", label(730))
-        assertEquals("1.500 ngày", label(1500))
-        assertEquals("50 ngày", label(50))
+        val s = DayMath.LabelStrings(monthsOne = "1 month", monthsFmt = "{count} months",
+            yearsOne = "1 year", yearsFmt = "{count} years", daysFmt = "{count} days")
+        val label = { n: Int -> DayMath.milestoneLabel(n, s) { DayMath.format(it, "en") } }
+        assertEquals("1 month", label(30))
+        assertEquals("6 months", label(180))
+        assertEquals("1 year", label(365))
+        assertEquals("2 years", label(730))
+        assertEquals("1,500 days", label(1500))
+        assertEquals("50 days", label(50))
     }
 }

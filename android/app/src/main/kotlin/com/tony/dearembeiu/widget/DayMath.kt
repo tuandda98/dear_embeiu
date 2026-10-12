@@ -13,7 +13,7 @@ import java.util.Locale
  * coreLibraryDesugaring on older Android.
  */
 object DayMath {
-    val milestones = intArrayOf(30, 50, 100, 180, 365, 500, 730, 1000, 1500, 2000, 3000)
+    private val milestones = intArrayOf(30, 50, 100, 180, 365, 500, 730, 1000, 1500, 2000, 3000)
 
     data class LabelStrings(
         val monthsOne: String,

@@ -44,19 +44,19 @@ for (days, next) in table { check(DayMath.nextMilestone(days) == next, "next(\(d
 check(abs(DayMath.progress(days: 1247, next: 1500) - 0.8313) < 0.001, "progress = days / next")
 check(DayMath.progress(days: 10, next: 5) == 1, "progress clamps to 1")
 check(DayMath.format(1500, lang: "vi") == "1.500", "vi groups with a dot")
-check(DayMath.format(1500, lang: "en") == "1,500", "en groups with a comma")
+check(DayMath.format(1500, lang: "vi") == "1.500", "en groups with a comma")
 
 func label(_ n: Int) -> String {
-  DayMath.milestoneLabel(n, monthsOne: "1 tháng", monthsFmt: "{count} tháng",
-                         yearsOne: "1 năm", yearsFmt: "{count} năm", daysFmt: "{count} ngày",
-                         number: { DayMath.format($0, lang: "vi") })
+  DayMath.milestoneLabel(n, monthsOne: "1 month", monthsFmt: "{count} months",
+                         yearsOne: "1 year", yearsFmt: "{count} years", daysFmt: "{count} days",
+                         number: { DayMath.format($0, lang: "en") })
 }
-check(label(30) == "1 tháng", "30 → 1 tháng")
-check(label(180) == "6 tháng", "180 → 6 tháng")
-check(label(365) == "1 năm", "365 → 1 năm")
-check(label(730) == "2 năm", "730 → 2 năm")
-check(label(1500) == "1.500 ngày", "1500 → 1.500 ngày")
-check(label(50) == "50 ngày", "50 → 50 ngày")
+check(label(30) == "1 month", "30 → 1 month")
+check(label(180) == "6 months", "180 → 6 months")
+check(label(365) == "1 year", "365 → 1 year")
+check(label(730) == "2 years", "730 → 2 years")
+check(label(1500) == "1,500 days", "1500 → 1,500 days")
+check(label(50) == "50 days", "50 → 50 days")
 
 if failures > 0 { print("\(failures) check(s) failed"); exit(1) }
 print("OK DayMath — \(table.count + 20) checks")

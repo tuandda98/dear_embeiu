@@ -78,6 +78,8 @@ abstract final class HomeWidgetBridge {
     try {
       final family = await _channel.invokeMethod<String>('consumeLaunch');
       if (family == null || family.isEmpty) return;
+      // URL/intent extra can come from another app — accept only the 2 real families.
+      if (family != 'small' && family != 'medium') return;
       debugPrint('HomeWidgetBridge: opened from the $family widget');
       AnalyticsService.instance.logWidgetTap(family);
     } on MissingPluginException {
