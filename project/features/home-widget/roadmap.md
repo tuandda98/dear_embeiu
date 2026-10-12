@@ -30,4 +30,4 @@
 
 ## Ghi chú phụ thuộc
 - Không đụng backend. Lần archive iOS đầu cần Xcode đăng nhập Apple ID để tạo App Group cho App ID `com.tony.dearembeiu` (+ `.dev`) và profile cho `.widget`.
-- Phát hành sau 1.9.1 (audit + streak-self-heal) → bản MINOR 1.10.0.
+- Phát hành CHUNG bản kế tiếp với audit + streak-self-heal → 1.10.0+27 (user chốt 2026-10-12 "chung 1.9.1"; MINOR vì có feature).
