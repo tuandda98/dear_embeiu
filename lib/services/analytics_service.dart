@@ -44,8 +44,10 @@ class AnalyticsEvents {
 
   // --- Rock-paper-scissors (feature rps-game, 2026-09-13) ---
   static const String rpsInviteSent = 'rps_invite_sent';
-  static const String widgetTap = 'widget_tap'; // home-screen widget opened the app
   static const String rpsGameFinished = 'rps_game_finished';
+
+  // Home-screen widget (feature home-widget)
+  static const String widgetTap = 'widget_tap'; // home-screen widget opened the app
 
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared

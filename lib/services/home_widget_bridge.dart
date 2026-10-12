@@ -23,14 +23,28 @@ abstract final class HomeWidgetBridge {
   static bool _bound = false;
 
   /// Wire once from the app root. Re-sends whenever the couple or the language
-  /// changes; the first push runs after the first frame.
+  /// changes. No push at bind time: `couple` is null until SessionResolver's
+  /// loadCoupleForUser answers, and that first notification is what tells us
+  /// whether this session really has no couple.
   static void bind(CoupleProvider couples, LocaleProvider locales) {
     if (_bound || kIsWeb) return;
     _bound = true;
-    void onChange() => _afterFrame(() => push(couples.couple));
+    void onChange() {
+      // Still fetching: the couple is unknown, not absent.
+      if (couples.isLoading) return;
+      // Fetch failed (offline, sync error): keep what the widget shows now.
+      if (couples.couple == null && couples.errorMessage != null) return;
+      _afterFrame(() => push(couples.couple));
+    }
     couples.addListener(onChange);
     locales.addListener(onChange);
-    onChange();
+  }
+
+  /// Tests only: lets a test bind its own fake providers.
+  @visibleForTesting
+  static void resetForTest() {
+    _bound = false;
+    _lastSent = null;
   }
 
   /// MaterialApp re-resolves the locale (AppL10n.setLocale) in the frame that
@@ -42,17 +56,18 @@ abstract final class HomeWidgetBridge {
   }
 
   static Future<void> push(Couple? couple) async {
+    Map<String, String>? snapshot;
     try {
       // build() formats dates with intl — main.dart ran initializeDateFormatting()
       // before runApp, and a widget refresh must never take the app down anyway.
-      final snapshot =
-          HomeWidgetSnapshot.build(couple: couple, l10n: AppL10n.strings);
+      snapshot = HomeWidgetSnapshot.build(couple: couple, l10n: AppL10n.strings);
       if (mapEquals(snapshot, _lastSent)) return;
-      _lastSent = snapshot;
       await _channel.invokeMethod<void>('update', snapshot);
+      _lastSent = snapshot; // only a delivered snapshot counts as sent
     } on MissingPluginException {
-      // No native side (tests) — nothing to update.
+      _lastSent = snapshot; // no native side (web, tests): nothing to retry
     } catch (e) {
+      // Left unsent on purpose: the next change retries the same snapshot.
       debugPrint('HomeWidgetBridge.update failed: $e');
     }
   }
