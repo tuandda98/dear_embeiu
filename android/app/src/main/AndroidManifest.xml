@@ -81,6 +81,18 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_day_info" />
         </receiver>
+        <!-- Second picker entry: the 4×2 size (same logic, see widget_day_info_medium). -->
+        <receiver
+            android:name=".widget.DayCounterWidgetMedium"
+            android:exported="true"
+            android:label="@string/widget_display_name_medium">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_day_info_medium" />
+        </receiver>
         <receiver
             android:exported="false"
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />

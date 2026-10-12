@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Feature home-widget. 2×2 by default, stretches to 4×2 (medium layout at
-     ≥250dp). updatePeriodMillis 30' = the day count may lag up to 30 minutes
+<!-- Feature home-widget, 2×2 entry of the picker (4×2 = widget_day_info_medium).
+     Still stretches to 4×2 (medium layout at ≥250dp). updatePeriodMillis 30' = the day count may lag up to 30 minutes
      after midnight (D7). ponytail: upgrade to an exact midnight alarm if that
      ever bothers anyone. targetCell*/previewLayout/description are API 31. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"

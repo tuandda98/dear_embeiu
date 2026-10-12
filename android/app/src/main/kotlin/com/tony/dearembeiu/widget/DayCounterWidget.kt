@@ -3,9 +3,11 @@ package com.tony.dearembeiu.widget
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
@@ -18,7 +20,7 @@ import java.time.LocalDate
  * stored through [WidgetStore], recomputes days + milestone ([DayMath]) and
  * picks the small or medium layout from the current cell width.
  */
-class DayCounterWidget : AppWidgetProvider() {
+open class DayCounterWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
         ids.forEach { render(context, manager, it) }
     }
@@ -31,11 +33,48 @@ class DayCounterWidget : AppWidgetProvider() {
         const val EXTRA_FAMILY = "widget_family"
         private const val MEDIUM_MIN_WIDTH_DP = 250
 
-        /** Called by the Flutter channel after every snapshot update. */
+        private val PROVIDERS = listOf(DayCounterWidget::class.java, DayCounterWidgetMedium::class.java)
+
+        /** Called by the Flutter channel after every snapshot / photo update. */
         fun updateAll(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
-            manager.getAppWidgetIds(ComponentName(context, DayCounterWidget::class.java))
-                .forEach { render(context, manager, it) }
+            for (cls in PROVIDERS) {
+                manager.getAppWidgetIds(ComponentName(context, cls)).forEach { render(context, manager, it) }
+            }
+            updatePickerPreviews(context, manager)
+        }
+
+        /**
+         * The widget picker (2026-10-13, user: "preview khác widget ngoài màn
+         * hình"): below API 35 the launcher only inflates `previewLayout` — static
+         * XML, no snapshot, no photo — so the picker shows the night-sky sample.
+         * API 35+ accepts a generated preview: hand it the SAME RemoteViews the
+         * real widget gets (names, count, photo). Rate-limited by the system, so
+         * only from updateAll (data changed), never from onUpdate.
+         */
+        private fun updatePickerPreviews(context: Context, manager: AppWidgetManager) {
+            if (Build.VERSION.SDK_INT < 35) return
+            val snapshot = WidgetStore.load(context)
+            if (snapshot["state"] != "counter") return // XML sample is fine for the empty state
+            for ((cls, medium) in listOf(DayCounterWidget::class.java to false, DayCounterWidgetMedium::class.java to true)) {
+                val options = Bundle().apply {
+                    putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, if (medium) 328 else 152)
+                    putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 152)
+                }
+                val views = counterViews(context, snapshot, medium)
+                val photo = WidgetStore.photoBitmap(context, options)
+                if (photo != null) {
+                    views.setImageViewBitmap(R.id.widget_photo, photo)
+                    views.setViewVisibility(R.id.widget_photo, View.VISIBLE)
+                    views.setViewVisibility(R.id.widget_scrim, View.VISIBLE)
+                }
+                applyStyle(views, dark = photo == null, counter = true, medium = medium)
+                try {
+                    manager.setWidgetPreview(ComponentName(context, cls), AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN, views)
+                } catch (_: Exception) {
+                    // Rate limit / host without the API: the XML sample stays.
+                }
+            }
         }
 
         fun render(context: Context, manager: AppWidgetManager, id: Int) {
@@ -150,3 +189,6 @@ class DayCounterWidget : AppWidgetProvider() {
         }
     }
 }
+
+/** The 4×2 picker entry (xml/widget_day_info_medium). Same rendering. */
+class DayCounterWidgetMedium : DayCounterWidget()
