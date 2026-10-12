@@ -75,6 +75,8 @@
 		</array>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<key>AppGroupId</key>
+		<string>$(APP_GROUP_ID)</string>
 		<!-- The app never reads a dearembeiu:// URL — opening one only has to
 		     bring the app forward. Flutter's own deep linking would push a
 		     second "/" route (audit D8). Plugins still see openURL first. -->
