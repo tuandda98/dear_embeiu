@@ -55,7 +55,7 @@ NHỎ 158×158 (iOS) · 2×2 ≈152dp (Android)        VỪA 338×158 · 4×2 �
 **Kích cỡ chữ** chỉ dùng type scale của app: 10 / 11 / 12 / 28 / 32 / 40.
 
 ## States
-- **Có couple (active hoặc chờ người ấy):** như wireframe. Chờ người ấy → chip 1 tên; không thêm lời mời.
+- **Có couple (active hoặc chờ người ấy):** như wireframe. Setup nhập cả 2 tên lúc tạo nên chip thường có đủ 2 tên ngay khi còn chờ; tên nào trống thì ẩn tên đó và ẩn tim. Không thêm lời mời.
 - **Trống** (guest / chưa couple / vừa đăng xuất / vừa cập nhật app chưa mở): cùng nền A; chip "DEAR EMBEIU" với tim; dòng 14 w700 trắng tối đa 3 dòng "Chạm để bắt đầu đếm ngày yêu". Bản vừa: cùng nội dung trải theo bề ngang, không chia cột (chốt theo code 2 nền tảng 2026-10-12).
 - **Ngày yêu tương lai:** 0 ngày, "Cột mốc 1 tháng", "còn 30 ngày".
 - **Số dài** (≥10.000): co 32/28 — không bao giờ xuống dòng.

@@ -4,7 +4,7 @@
 
 - **Feature:** home-widget
 - **Ưu tiên:** P1
-- **Trạng thái:** 📋 Spec (user duyệt thiết kế 2026-10-12)
+- **Trạng thái:** 💻 Dev xong 2026-10-12, 🧪 chờ Tester nghiệm thu (smoke 2 nền tảng PASS, tinted iOS = giới hạn nền tảng)
 - **Tạo ngày:** 2026-10-12
 - **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · bối cảnh dự án [`../../../CLAUDE.md`](../../../CLAUDE.md) · mockup bấm thử: canvas Artifact `https://claude.ai/artifact/Rb2dk1uaXdjuUGEBwNiKD9` (riêng tư, tài khoản user)
 
@@ -55,22 +55,25 @@
 - **D11 — Widget Android dùng font hệ thống (Roboto), iOS dùng Quicksand.** *Lý do:* RemoteViews không nạp được `@font/` (context restricted — `TextView` bỏ qua font resource), smoke Task 7 thấy Roboto dù layout khai Quicksand. Giữ phân cấp đậm/nhạt bằng `textStyle=bold` / `sans-serif-medium`. Cách duy nhất có Quicksand là vẽ chữ ra bitmap trong `ImageView` — tốn công, mất autosize/accessibility, chỉ làm nếu user không ưng Roboto sau khi xem thật. Ngoài ra: widget 3 ô trên máy ô lớn (Pixel ≈90dp/ô → 276dp ≥ ngưỡng 250) dùng bố cục vừa với cột ≈108dp → 2 dòng dài autosize 10–12sp thay vì đổi ngưỡng (ngưỡng theo dp không phân biệt được 3 ô máy lớn với 4 ô máy nhỏ).
 
 ## 5. Acceptance criteria (xong khi…)
-- [ ] iOS: gallery widget có "Đếm ngày yêu" cỡ nhỏ + vừa; số ngày, tên, cột mốc (vừa) **bằng đúng** CounterCard trên Home trong cùng ngày, cả vi lẫn en.
-- [ ] Android: thêm được ô 2×2, kéo giãn sang 4×2 thì đổi sang bố cục vừa; số liệu như trên.
-- [ ] Không mở app, chỉnh giờ máy qua 0:00: iOS số nhảy đúng 0:00 (timeline); Android nhảy trong ≤30 phút.
-- [ ] Đổi ngôn ngữ trong Cài đặt → quay ra màn hình chính, widget đã đổi chữ (≤2 giây).
-- [ ] Đổi ngày yêu / tên trong Hồ sơ → widget đổi ngay.
-- [ ] Đăng xuất, rời couple, xoá tài khoản → widget về trạng thái trống ("Chạm để bắt đầu đếm ngày yêu"); đăng nhập lại → hiện lại số.
-- [ ] Chạm widget → app lên foreground, về Home (có couple) / Setup (chưa couple) / landing (guest); Analytics ghi `widget_tap{family}` đúng 1 lần/lần chạm.
-- [ ] App dev + prod cài chung máy: mỗi widget hiện dữ liệu của app mình.
-- [ ] Chữ hệ thống cỡ lớn nhất (AX) không tràn khung; số 10.000+ không tràn; tên 12 chữ không đẩy lệch bố cục; iOS 18 tinted vẫn đọc được.
-- [ ] `flutter analyze` 0; test Dart (`buildSnapshot`) + Swift (`DayMath`) + Kotlin (`DayMath`) cùng bộ vector PASS; `flutter build ipa` có `PlugIns/DearEmbeiuWidget.appex`, `flutter build appbundle` OK.
-- [ ] Không file nào trong `firestore.rules` / `functions/` thay đổi.
+> Dev tự soát 2026-10-12 (`[x]` = đã có bằng chứng chạy thật hoặc kiểm bằng lệnh; ghi chú nghiêng = bằng chứng và phần chưa kiểm của mục đó). Tester vẫn chạy lại cả 11 mục — danh sách việc chưa kiểm ở [test.md](test.md).
+- [x] iOS: gallery widget có "Đếm ngày yêu" cỡ nhỏ + vừa; số ngày, tên, cột mốc (vừa) **bằng đúng** CounterCard trên Home trong cùng ngày, cả vi lẫn en. *(Smoke iPhone 17 iOS 26.3 + iPhone 16e iOS 18.6: 649 ngày = Home, "Cột mốc 2 năm" / "còn 81 ngày", vi + en. Chưa kiểm trên simulator: dòng dài nhất "28 thg 12" và "10,000 days".)*
+- [x] Android: thêm được ô 2×2, kéo giãn sang 4×2 thì đổi sang bố cục vừa; số liệu như trên. *(Smoke emulator Pixel_10 API 37: 649 = Home; ART nhóm hàng nghìn đúng "1.199" vi / "1,199" en. Chưa kiểm API thấp, launcher khác.)*
+- [ ] Không mở app, chỉnh giờ máy qua 0:00: iOS số nhảy đúng 0:00 (timeline); Android nhảy trong ≤30 phút. *(Chưa kiểm thật. Tạm thay bằng harness Swift 30 check + 5 JUnit cho công thức đếm ngày; iOS timeline 7 nửa đêm, Android `updatePeriodMillis` 30' theo code.)*
+- [x] Đổi ngôn ngữ trong Cài đặt → quay ra màn hình chính, widget đã đổi chữ (≤2 giây). *(iOS: iPhone 17 đổi chữ sau 2,24 s kể từ lúc bấm Home, 16e chạy lại timeline sau 1,9 s — hệ thống hoãn reload khi app còn foreground; Android PASS 2 chiều. Riêng chọn "Theo hệ thống" thì widget đổi chữ trễ tới lần mở app kế — minor, ghi ở test.md.)*
+- [ ] Đổi ngày yêu / tên trong Hồ sơ → widget đổi ngay. *(Chưa thử tay. Bridge có test đơn vị: couple đổi → đúng 1 `update`; đường bridge → native đã chạy thật qua đăng nhập, đăng xuất, đổi ngôn ngữ.)*
+- [x] Đăng xuất, rời couple, xoá tài khoản → widget về trạng thái trống ("Chạm để bắt đầu đếm ngày yêu"); đăng nhập lại → hiện lại số. *(Đăng xuất ≤3 s → trống, đăng nhập lại ≈7 s — PASS cả 2 nền tảng; cài mới chưa mở app cũng trống; phiên bị máy khác đá → trống. Rời couple và xoá tài khoản đi cùng đường `couple = null` / đăng xuất nhưng chưa thử tay.)*
+- [x] Chạm widget → app lên foreground, về Home (có couple) / Setup (chưa couple) / landing (guest); Analytics ghi `widget_tap{family}` đúng 1 lần/lần chạm. *(iOS: 2 chạm → 2 log, 4 chạm → 4 log, mở bằng icon → 0 log. Android: app tắt → `medium`, app nền → `small`, mở từ Recents không đếm lại. Mới xác nhận qua log `HomeWidgetBridge`, chưa xem event trên GA4 DebugView.)*
+- [ ] App dev + prod cài chung máy: mỗi widget hiện dữ liệu của app mình. *(Chưa kiểm. Đã đối chiếu cấu hình: Release → `com.tony.dearembeiu.widget` + `group.com.tony.dearembeiu`, Debug/Profile → `….dev…`; Android khác applicationId nên prefs tự tách.)*
+- [ ] Chữ hệ thống cỡ lớn nhất (AX) không tràn khung; số 10.000+ không tràn; tên 12 chữ không đẩy lệch bố cục; iOS 18 tinted vẫn đọc được. *(iOS AX5 PASS: không tràn, chip 1 dòng "…", chú thích 1–2 dòng. Chưa kiểm: Android cỡ chữ lớn, số 10.000+, tên 12 chữ. Tinted: tint mặc định iOS 18 đạt 5,47:1; tint đậm, iOS 26 Tinted và Clear chỉ 1,6–4,0:1 — giới hạn nền tảng (hệ thống chọn màu chữ), chấp nhận ở bản đầu, số đo ở [design.md](design.md).)*
+- [x] `flutter analyze` 0; test Dart (`buildSnapshot`) + Swift (`DayMath`) + Kotlin (`DayMath`) cùng bộ vector PASS. *(analyze 0 · `flutter test` 548 pass, 3 skip · `scripts/check-widget-daymath.sh` OK 30 check · `DayMathTest` 5/5. Swift có thêm vector DST Havana + lịch Phật vì dùng `Calendar`; Kotlin dùng `LocalDate` nên không dính.)*
+- [ ] `flutter build ipa` có `PlugIns/DearEmbeiuWidget.appex`, `flutter build appbundle` OK. *(Chưa chạy bản release. Bản debug đã OK: `flutter build ios --debug --no-codesign` có `.appex` trong `PlugIns/`, `flutter build apk --debug` xong. Release + R8 + ký thật → Tester / lúc phát hành.)*
+- [x] Không file nào trong `firestore.rules` / `functions/` thay đổi. *(`git diff --stat 8f6da29..HEAD -- firestore.rules storage.rules functions firestore.indexes.json` rỗng.)*
 
 ## 6. Giao việc 3 vai (tóm tắt — chi tiết ở file mỗi role)
 - 🎨 **Designer:** ✅ xong 2026-10-12 — canvas 5 artboard (A/B/C · Android · tinted/số dài/EN) + [design.md](design.md) token chính xác.
-- 💻 **Dev:** dựng theo kế hoạch ở [dev.md](dev.md) (bridge Flutter → iOS extension → Android provider), test 3 ngôn ngữ, smoke simulator + emulator → *expect:* nhánh `feature/home-widget` analyze 0, test PASS, build 2 nền tảng OK.
+- 💻 **Dev:** ✅ xong 2026-10-12 — dựng theo kế hoạch ở [dev.md](dev.md) (bridge Flutter → iOS extension → Android provider), test 3 ngôn ngữ, smoke simulator + emulator → nhánh `feature/home-widget` analyze 0, test PASS, build debug 2 nền tảng OK. Nhật ký từng task + commit trong dev.md.
 - 🧪 **Tester:** chạy 11 tiêu chí mục 5 trên simulator iOS 18 + emulator Android 14/16, ghi PASS/FAIL vào [test.md](test.md) → *expect:* bảng kết quả + bug P0/P1 nếu có.
 
 ## 7. Changelog feature
 - [2026-10-12] [PO] Tạo feature. User chốt nội dung (D1) và hướng A (D2); duyệt thiết kế kỹ thuật (D3–D9). Kiểm kê 12 ứng viên widget cho các phase sau.
+- [2026-10-12] [Dev] Implement xong 8 task (bridge Flutter · target WidgetKit · AppWidgetProvider). Smoke iOS (iPhone 17 + 16e) và Android (Pixel_10) PASS, không đụng backend. Phát sinh hai quyết định: **D10** (widget nhóm hàng nghìn, Home đang in số thô → nợ PO) và **D11** (Android dùng font hệ thống vì RemoteViews không nạp `@font/`). Vòng review bắt thêm các lỗi của plan. `DayMath`: máy đặt lịch Phật, `ordinality` lệch theo UTC, DST bỏ đúng nửa đêm ngày yêu (Havana). Bridge: cold start đẩy `empty` đè snapshot tốt, gửi hỏng không retry, đăng xuất không quên couple. iOS tinted: hệ thống tô cả pill nên mất tên (vá xong, tint mặc định đạt 5,47:1). Android: `widget_tap` đếm lại khi mở từ Recents, số không đạt 40sp, glow tràn góc bo ở API dưới 31. Còn nợ: tinted/Clear chưa đạt AA ở mọi tint (giới hạn nền tảng); chưa kiểm 0:00, dev + prod chung máy, iOS 15/16, API Android thấp, bản release/R8 — danh sách ở [test.md](test.md).

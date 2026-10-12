@@ -4,9 +4,10 @@
 >
 > Dev sở hữu. Đọc `overview.md` + `design.md` trước. Role Dev là role DUY NHẤT sửa `lib/`, `ios/`, `android/`. Không đụng `firestore.rules` / `functions/`.
 
-- **Trạng thái dev:** chưa bắt đầu (kế hoạch viết 2026-10-12, user duyệt thiết kế cùng ngày)
+- **Trạng thái dev:** xong — chờ test (implement 2026-10-12, 8 task)
 - **Người/role:** Dev
 - **Nhánh:** `feature/home-widget` (đã có trên GitHub, tách từ `fix/audit-2026-10-12`)
+- **Đọc file này thế nào:** phần dưới là kế hoạch đã chạy, các ô Step không tick từng ô. Trạng thái thật nằm ở "Checklist implement" và "Nhật ký implement" cuối file. Các khối code trong kế hoạch đã được đồng bộ lại với file thật ngày 2026-10-12.
 
 **Goal:** Widget màn hình chính "Đếm ngày yêu" trên iOS (nhỏ 2×2 + vừa 4×2) và Android (2×2 + 4×2) hiện số ngày bên nhau, tên hai người, cột mốc tiếp theo; tự nhảy số mỗi 0:00 không cần mở app; chạm mở app.
 
@@ -313,11 +314,13 @@ EOF
 
 Edit `lib/services/analytics_service.dart` — old:
 ```dart
-  static const String rpsInviteSent = 'rps_invite_sent';
+  static const String rpsGameFinished = 'rps_game_finished';
 ```
 new:
 ```dart
-  static const String rpsInviteSent = 'rps_invite_sent';
+  static const String rpsGameFinished = 'rps_game_finished';
+
+  // Home-screen widget (feature home-widget)
   static const String widgetTap = 'widget_tap'; // home-screen widget opened the app
 ```
 old:
@@ -1491,16 +1494,17 @@ new:
 ```
 Edit `ios/Runner/Info.plist` — old:
 ```xml
-		<key>FlutterDeepLinkingEnabled</key>
-		<false/>
+		<key>CFBundleVersion</key>
+		<string>$(FLUTTER_BUILD_NUMBER)</string>
 ```
 new:
 ```xml
+		<key>CFBundleVersion</key>
+		<string>$(FLUTTER_BUILD_NUMBER)</string>
 		<key>AppGroupId</key>
 		<string>$(APP_GROUP_ID)</string>
-		<key>FlutterDeepLinkingEnabled</key>
-		<false/>
 ```
+(Khoá mới đặt NGAY SAU `CFBundleVersion`, trên comment D8 — chèn giữa comment và `FlutterDeepLinkingEnabled` thì comment đứng nhầm trên khoá mới.)
 Edit `ios/Runner/AppDelegate.swift` — old:
 ```swift
 import UIKit
@@ -1645,6 +1649,7 @@ widget.build_configurations.each do |c|
     'CODE_SIGN_ENTITLEMENTS' => "#{NAME}/#{NAME}.entitlements",
     'CODE_SIGN_STYLE' => 'Automatic',
     'DEVELOPMENT_TEAM' => TEAM,
+    'PRODUCT_NAME' => '$(TARGET_NAME)', # xcodeproj leaves it empty -> product ".appex" (Multiple commands produce)
     'PRODUCT_BUNDLE_IDENTIFIER' => dev?(c) ? 'com.tony.dearembeiu.dev.widget' : 'com.tony.dearembeiu.widget',
     'APP_GROUP_ID' => dev?(c) ? 'group.com.tony.dearembeiu.dev' : 'group.com.tony.dearembeiu',
     'MARKETING_VERSION' => '$(FLUTTER_BUILD_NAME)',
@@ -1665,6 +1670,10 @@ runner.add_dependency(widget)
 embed = runner.new_copy_files_build_phase('Embed Foundation Extensions')
 embed.symbol_dst_subfolder_spec = :plug_ins
 embed.add_file_reference(widget.product_reference).settings = { 'ATTRIBUTES' => ['RemoveHeadersOnCopy'] }
+# It must run BEFORE the "Thin Binary" / Pods script phases: placed after them
+# Xcode refuses to build ("Cycle inside Runner").
+thin = runner.build_phases.index { |p| p.display_name == 'Thin Binary' } or abort 'Thin Binary phase not found'
+runner.build_phases.move(embed, thin)
 
 project.save
 puts "Added #{NAME}: #{sources.size} sources, #{fonts.size} fonts, strings en/vi, embedded in Runner"
@@ -2880,9 +2889,19 @@ Expected: push OK, `git status` sạch.
 - Chạm widget khi app chạy nền: iOS `openURLContexts`, Android `onNewIntent` (CLEAR_TOP|SINGLE_TOP, intent explicit).
 
 ## Checklist implement
-- [ ] Task 1 · [ ] Task 2 · [ ] Task 3 · [ ] Task 4 · [ ] Task 5 · [ ] Task 6 · [ ] Task 7 · [ ] Task 8
-- [ ] `flutter analyze` sạch · `flutter test` pass · `scripts/check-widget-daymath.sh` OK · gradle `DayMathTest` pass
-- [ ] Không hardcode chuỗi hiển thị ngoài 2 ngoại lệ D4 (gallery + empty_tap native)
+- [x] Task 1 · [x] Task 2 · [x] Task 3 · [x] Task 4 · [x] Task 5 (iOS 15/16, 0:00, entitlement ký thật chưa kiểm; tinted theo ruling) · [x] Task 6 · [x] Task 7 · [x] Task 8
+- [x] `flutter analyze` sạch · `flutter test` pass · `scripts/check-widget-daymath.sh` OK · gradle `DayMathTest` pass (chạy lại 2026-10-12 ở Task 8)
+- [x] Không hardcode chuỗi hiển thị ngoài 2 ngoại lệ D4 (gallery + empty_tap native). Đã grep native: chỉ còn tên thương hiệu "DEAR EMBEIU" làm chuỗi dự phòng của chip trống (cùng giá trị `HomeWidgetSnapshot.emptyChip`).
 
 ## Nhật ký implement
 - [2026-10-12] [Dev] Viết kế hoạch 8 task (writing-plans) sau khi user duyệt thiết kế. Chưa code.
+- [2026-10-12] [Dev] **Task 1** `6b86767` — `HomeWidgetSnapshot.build` (chuỗi dịch sẵn, số để native tính) + key `widgetEmptyTap` vi/en. Test 5/5, analyze 0.
+- [2026-10-12] [Dev] **Task 2** `2b39384` → `aa66100` → `bb73ac1` — bridge `dear_embeiu/widget`, event `widget_tap`, `_MyAppState` giữ CoupleProvider + LocaleProvider. Hai vòng vá: không đẩy `empty` khi đang nạp / nạp lỗi (cold start), `_lastSent` chỉ ghi sau khi gửi xong (hỏng thì retry), `SessionResolver` gọi `loadCoupleForUser(null)` ở nhánh guest + chưa xác thực email để đăng xuất thì widget về trống. Test bridge 2/2, `flutter test` 548, analyze 0.
+- [2026-10-12] [Dev] **Task 3** `8df2ea8` → `c75cda3` → `9cfa5b4` → `276df3d` — `DayMath.swift` + `scripts/check-widget-daymath.sh` (swiftc, chạy dưới `-AppleLocale th_TH`). Ba vòng vá công thức: mặc định lịch Gregorian (máy lịch Phật đọc "2023" thành năm khác), bỏ `ordinality` (lệch theo UTC), đếm theo y/m/d rồi lấy hiệu ngày trong lịch UTC như Dart (DST bỏ đúng nửa đêm ngày yêu — Havana). 30 check; quét 350.640 điểm, 0 sai.
+- [2026-10-12] [Dev] **Task 4** `a5901c0` → `dcf227b` — target `DearEmbeiuWidget` (WidgetKit, iOS 15) + `HomeWidgetChannel` + App Group qua `APP_GROUP_ID` + `scripts/ios-add-widget-target.{sh,rb}`. Script lệch plan 2 chỗ, đã đồng bộ: thêm `PRODUCT_NAME`, xếp phase Embed trước Thin Binary (nếu không Xcode báo `Cycle inside Runner`). `flutter build ios --debug --no-codesign` OK, `.appex` nằm trong `PlugIns/`. Vòng vá: tinted bọc cả chip, cột phải bản vừa cắt chữ, PrivacyInfo `1C8F.1` (cả Runner).
+- [2026-10-12] [Dev] **Task 5** smoke iOS — iPhone 17 (iOS 26.3) + iPhone 16e (iOS 18.6): số 649 = Home, đổi ngôn ngữ, đăng xuất / đăng nhập lại, chạm widget (đúng 1 log mỗi lần chạm), Dynamic Type AX5 đều PASS. Tinted / Clear FAIL P1 (hệ thống tô cả pill, tên còn 1,05:1) → vá `4cef979` (`AccentedReader`, pill .22 khi accented): tint mặc định 5,47:1, tint đậm / iOS 26 Tinted / Clear 1,6–4,0:1 = giới hạn nền tảng, chấp nhận ở bản đầu. Chưa kiểm iOS 15/16, 0:00, dòng dài nhất, entitlement khi ký thật.
+- [2026-10-12] [Dev] **Task 6** `b26c621` — `DayMath.kt` + 5 test JUnit 4 (cùng vector với Swift). `DayMathTest` 5/5.
+- [2026-10-12] [Dev] **Task 7** `3e75661` → `daf8216` → `fb7f1bd` — `DayCounterWidget` (2×2 kéo tới 4×2) + `WidgetStore` + channel trong `MainActivity` + cờ `widget_tap`. Smoke emulator Pixel_10 (API 37): 2×2, 4×2, nhóm hàng nghìn trên ART ("1.199" / "1,199"), đổi ngôn ngữ 2 chiều, đăng xuất / đăng nhập, chạm (app tắt → `medium`, app nền → `small`). Hai vòng vá: font hệ thống Roboto (D11) + 2 dòng dài cột phải co chữ; `widget_tap` không đếm lại khi mở từ Recents, số đủ 40sp (`includeFontPadding=false`), "Bắt đầu từ" 2 dòng, glow chuyển vào `widget_bg` để API dưới 31 không tràn góc bo.
+- [2026-10-12] [Dev] **Merge** `f75e00d` (nhánh iOS) + `bd1aa8f` (nhánh Android) vào `feature/home-widget`, `--no-ff`, không conflict.
+- [2026-10-12] [Dev] **Task 8** — kiểm tổng: `flutter analyze` 0 · `flutter test` 548 pass (3 skip) · `scripts/check-widget-daymath.sh` OK 30 check · `DayMathTest` 5/5 · diff backend rỗng. Đồng bộ kế hoạch với code: script Ruby, event Analytics, vị trí `AppGroupId` trong Info.plist (mọi khối `Create` còn lại đã khớp từng byte). Cập nhật overview / design / test, ROADMAP, CLAUDE.md, build-guide.
+- [2026-10-12] [Dev] **Nợ / minor chuyển Tester:** việc chưa kiểm và minor chưa vá nằm ở [test.md](test.md) (mục "Checklist cho Tester" và "Nợ đã biết"). Không có lỗi chặn. Ưu tiên vá nếu có đợt gom: chọn "Theo hệ thống" mà `AppL10n` giữ ngôn ngữ cũ nên widget đổi chữ trễ tới lần mở app kế (gốc ở `LocaleProvider.setLocale(null)`).
