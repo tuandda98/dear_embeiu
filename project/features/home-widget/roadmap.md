@@ -2,16 +2,16 @@
 
 > Kế hoạch chi tiết NỘI BỘ feature này. Khác với `../../ROADMAP.md` (toàn cảnh). PO sở hữu.
 
-- **Trạng thái feature:** 📋 Spec → 💻 Dev (từ 2026-10-12)
+- **Trạng thái feature:** 💻 Dev xong 2026-10-12 → 🧪 Test (checklist Tester ở `test.md`)
 
 ## Phân phase (Now / Next / Later)
 
 ### 🟢 Phase 1 — Đếm ngày yêu (P1) — đang làm
-- [ ] Bridge Flutter → native (`dear_embeiu/widget`, ảnh chụp dữ liệu + chuỗi dịch sẵn)
-- [ ] iOS: target `DearEmbeiuWidget` nhỏ + vừa, App Group dev/prod, timeline 0:00, tinted
-- [ ] Android: `DayCounterWidget` 2×2 + 4×2, font Quicksand `res/font`, cập nhật 30 phút
-- [ ] Trạng thái trống + chạm mở app + event `widget_tap`
-- [ ] Test Dart/Swift/Kotlin cùng bộ vector; smoke 2 nền tảng
+- [x] Bridge Flutter → native (`dear_embeiu/widget`, ảnh chụp dữ liệu + chuỗi dịch sẵn) — không đẩy `empty` khi đang nạp/nạp lỗi; đăng xuất dọn couple ở SessionResolver
+- [x] iOS: target `DearEmbeiuWidget` nhỏ + vừa, App Group dev/prod, timeline 0:00, tinted (pill .22 khi accented — tint đậm/Clear sáng vẫn dưới AA, giới hạn nền tảng)
+- [x] Android: `DayCounterWidget` 2×2 + 4×2, **font hệ thống Roboto** (D11 — RemoteViews không nạp `res/font`), glow trong `widget_bg`, cập nhật 30 phút
+- [x] Trạng thái trống + chạm mở app + event `widget_tap` (không đếm lại khi mở từ Recents)
+- [x] Test Dart (5+2) / Swift (30 check, th_TH + Havana) / Kotlin (JUnit 5) cùng bộ vector; smoke simulator iOS 18.6 + 26.3 và emulator Pixel_10 PASS
 - *Xong khi:* 11 tiêu chí ở `overview.md` §5 PASS; ship trong 1.10.0.
 
 ### 🟡 Phase 2 — Màn khoá iPhone — chưa bắt đầu
@@ -25,6 +25,7 @@
 - [ ] Đêm qua (giấc ngủ), chuỗi ngày — cân nhắc theo số liệu `widget_tap` của Phase 1
 
 ## Mốc đã đạt
+- [2026-10-12] Dev xong 8 task trên `feature/home-widget` (subagent-driven, review từng task bắt ~15 lỗi plan); analyze 0 · 548 test · 30 check Swift · JUnit 5/5; chờ Tester + review toàn nhánh.
 - [2026-10-12] User chốt nội dung + hướng A, duyệt thiết kế kỹ thuật; canvas mockup 5 artboard.
 
 ## Ghi chú phụ thuộc
