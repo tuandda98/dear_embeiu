@@ -50,6 +50,16 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
+// A document id as the app creates it (Firestore auto-id; uuid v4 in old local
+// mode). Every id a client hands us — callable arguments, or fields it writes
+// itself such as users/{uid}.coupleId — must pass this before it reaches
+// `.doc()`: the Admin SDK reads "M/noteHistory/C" as a PATH, i.e. a doc the
+// caller planted under their own couple whose `.id` is the victim's "C"
+// (audit 2026-10-12, N1).
+function isDocId(value) {
+  return typeof value === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value);
+}
+
 // Daily sweep: validate every registered device token with a dry-run send
 // (nothing is delivered) and delete the ones FCM reports as dead. Keeps the
 // users/{uid}/devices subcollections free of stale tokens without waiting for
@@ -1003,7 +1013,7 @@ exports.migrateLoveNotesToChat = onCall(
       throw new HttpsError("unauthenticated", "Sign in required.");
     }
     const coupleId = `${(request.data && request.data.coupleId) || ""}`.trim();
-    if (!coupleId) {
+    if (!isDocId(coupleId)) {
       throw new HttpsError("invalid-argument", "coupleId is required.");
     }
 
@@ -2268,7 +2278,7 @@ exports.nudgeRpsPlayer = onCall(
     const data = request.data || {};
     const coupleId = `${data.coupleId || ""}`.trim();
     const gameId = `${data.gameId || ""}`.trim();
-    if (!coupleId || !gameId) {
+    if (!isDocId(coupleId) || !isDocId(gameId)) {
       throw new HttpsError("invalid-argument", "coupleId and gameId are required.");
     }
 
@@ -2659,8 +2669,11 @@ const CALLABLE_ERROR_COPY = {
 
 function callableErrorCopy(request) {
   const data = request.data || {};
-  const code = `${data.lang || data.languageCode || ""}`.trim().toLowerCase();
-  return CALLABLE_ERROR_COPY[code] || CALLABLE_ERROR_COPY.vi;
+  // 'en-US' / 'en_US' → 'en'. Own keys only: 'constructor' / '__proto__' would
+  // otherwise hit Object.prototype and every message would be undefined.
+  const code = `${data.lang || data.languageCode || ""}`.trim().toLowerCase().split(/[-_]/)[0];
+  return Object.prototype.hasOwnProperty.call(CALLABLE_ERROR_COPY, code) ?
+    CALLABLE_ERROR_COPY[code] : CALLABLE_ERROR_COPY.vi;
 }
 
 // Callable that fully erases the signed-in user's account. It runs with admin
@@ -2716,7 +2729,7 @@ exports.deleteAccount = onCall(
 
     // 3) The invite_code pointer — only if it still points at this user, so we
     //    never clobber a code that has since been reassigned.
-    if (inviteCode) {
+    if (isDocId(inviteCode)) {
       const inviteRef = db.collection("invite_codes").doc(inviteCode);
       const inviteSnap = await inviteRef.get();
       if (inviteSnap.exists && `${inviteSnap.get("userId") || ""}`.trim() === uid) {
@@ -2763,7 +2776,7 @@ exports.leaveCoupleCleanup = onCall(
     }
 
     const coupleId = `${(request.data && request.data.coupleId) || ""}`.trim();
-    if (!coupleId) {
+    if (!isDocId(coupleId)) {
       throw new HttpsError("invalid-argument", "Thiếu coupleId.");
     }
 
@@ -2903,6 +2916,12 @@ exports.sendCustomVerificationEmail = onCall(
 // destroyed; otherwise the partner is kept and the couple is demoted back to
 // the "waiting_partner" state.
 async function handleCoupleOnAccountDeletion(coupleId, uid) {
+  // deleteAccount reads coupleId from users/{uid}, which the client writes.
+  // Not an id → leave every couple alone; the account itself still goes.
+  if (!isDocId(coupleId)) {
+    logger.warn("Couple teardown skipped: coupleId is not a document id.", {coupleId, uid});
+    return;
+  }
   const coupleRef = db.collection("couples").doc(coupleId);
   const coupleSnap = await coupleRef.get();
   if (!coupleSnap.exists) {
@@ -2911,13 +2930,13 @@ async function handleCoupleOnAccountDeletion(coupleId, uid) {
 
   const data = coupleSnap.data() || {};
   const memberIds = Array.isArray(data.memberIds) ? data.memberIds : [];
-  const remaining = memberIds.filter(
-    (id) => typeof id === "string" && id.trim() && id !== uid,
-  );
 
   // Sleep (feature sleep): the leaver's profile + shared nights (data that can
   // come from Apple Health). Rules already hide them from whoever is in the
-  // couple next, but the leaver can no longer delete them — do it here.
+  // couple next, but the leaver can no longer delete them — do it here. Ahead
+  // of the member check on purpose: only the caller ever writes sleep/{uid},
+  // and a former member whose users/{uid}.coupleId still points here gets
+  // theirs cleaned up too.
   await db.recursiveDelete(coupleRef.collection("sleep").doc(uid)).catch((err) => {
     logger.warn("Failed to delete the leaving member's sleep data.", {
       coupleId,
@@ -2926,6 +2945,19 @@ async function handleCoupleOnAccountDeletion(coupleId, uid) {
     });
     return null;
   });
+
+  // SECURITY (audit 2026-10-12): deleteAccount takes coupleId from
+  // users/{uid}, which the client writes itself, and couple/invite codes are
+  // readable by anyone signed in — so a stranger could aim it at someone
+  // else's couple and demote it to "waiting_partner" for good. Only a real
+  // member may demote / tear down the couple.
+  if (!memberIds.includes(uid)) {
+    logger.warn("Couple teardown skipped: the caller is not a member.", {coupleId, uid});
+    return;
+  }
+  const remaining = memberIds.filter(
+    (id) => typeof id === "string" && id.trim() && id !== uid,
+  );
 
   if (remaining.length === 0) {
     await deleteCoupleCompletely(coupleRef, data);
@@ -2943,15 +2975,17 @@ async function handleCoupleOnAccountDeletion(coupleId, uid) {
   );
 }
 
+// Every Storage path, couple doc field and photo field below is written by the
+// client, and the Admin SDK obeys no rules — so nothing read from them may
+// name what to delete (audit 2026-10-12, N2). Storage goes through ONE prefix
+// sweep of this couple's own folder: storage.rules only ever let clients
+// write couple_photos/{coupleId}/{file} (cover + photos), so the sweep already
+// covers every object a photo doc or couplePhotoStoragePath can point at.
 async function deleteCoupleCompletely(coupleRef, coupleData) {
   const photosSnap = await coupleRef.collection("photos").get();
   const tasks = [];
 
   for (const photoDoc of photosSnap.docs) {
-    const storagePath = `${photoDoc.get("storagePath") || ""}`.trim();
-    if (storagePath) {
-      tasks.push(deleteStorageObject(storagePath));
-    }
     // Reactions (feature: reactions ❤️) live in a subcollection under each
     // photo, so deleting the photo doc alone leaves them orphaned. recursiveDelete
     // the reactions first, then delete the photo doc itself.
@@ -3014,38 +3048,25 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
   // Couple entry code (feature couple-code): the couple_codes/{code} pointer is
   // a TOP-LEVEL doc, not a subcollection, so recursiveDelete on the couple won't
   // touch it. Remove it explicitly or the 6-char code stays mapped to a dead
-  // couple (and can't be reused).
+  // couple (and can't be reused). Only while the pointer is still THIS
+  // couple's: a member may set `coupleCode` to anyone's code, and deleting
+  // that pointer would let them re-create it aimed at their own couple.
   const coupleCode = `${(coupleData && coupleData.coupleCode) || ""}`.trim().toUpperCase();
-  if (coupleCode) {
+  if (isDocId(coupleCode)) {
+    const codeRef = db.collection("couple_codes").doc(coupleCode);
     tasks.push(
-      db.collection("couple_codes").doc(coupleCode).delete().catch(() => null),
+      codeRef.get()
+        .then((snap) => (snap.get("coupleId") === coupleRef.id ? codeRef.delete() : null))
+        .catch(() => null),
     );
-  }
-
-  const coverPath = `${(coupleData && coupleData.couplePhotoStoragePath) || ""}`.trim();
-  if (coverPath) {
-    tasks.push(deleteStorageObject(coverPath));
   }
 
   await Promise.all(tasks);
 
-  // Sweep the whole prefix too, in case any object was orphaned from its doc.
+  // Storage: this couple's own folder, nothing else (see the note above).
   await deleteStoragePrefix(`couple_photos/${coupleRef.id}/`);
 
   await coupleRef.delete().catch(() => null);
-}
-
-async function deleteStorageObject(path) {
-  try {
-    await admin.storage().bucket().file(path).delete();
-  } catch (err) {
-    if (!err || err.code !== 404) {
-      logger.warn("Failed to delete Storage object during account deletion.", {
-        path,
-        code: err && err.code,
-      });
-    }
-  }
 }
 
 async function deleteStoragePrefix(prefix) {
@@ -3179,9 +3200,15 @@ const PARTNER_MOOD_COPY = {
   },
   en: {
     title: "Today's mood 💗",
-    body: (name, moodLabel) => moodLabel ?
-      `${name} is feeling ${moodLabel}` :
-      `${name} just shared how they feel today — take a peek`,
+    // "Tuan is feeling missing you" doesn't read — that mood gets its own line.
+    body: (name, moodLabel, moodKey) => {
+      if (moodKey === "missing") {
+        return `${name} is missing you`;
+      }
+      return moodLabel ?
+        `${name} is feeling ${moodLabel}` :
+        `${name} just shared how they feel today — take a peek`;
+    },
   },
 };
 
@@ -3192,9 +3219,10 @@ const MOOD_LABELS = {
     happy: "vui", loved: "hạnh phúc", missing: "nhớ bạn", calm: "bình yên",
     meh: "bình thường", tired: "mệt", sad: "buồn", stressed: "căng thẳng",
   },
+  // Lower-case: they sit mid-sentence ("Tuan is feeling happy").
   en: {
-    happy: "Happy", loved: "Loved", missing: "Missing you", calm: "Calm",
-    meh: "Meh", tired: "Tired", sad: "Sad", stressed: "Stressed",
+    happy: "happy", loved: "loved", missing: "missing you", calm: "calm",
+    meh: "meh", tired: "tired", sad: "sad", stressed: "stressed",
   },
 };
 
@@ -3202,10 +3230,12 @@ function buildPartnerMoodText(languageCode, authorName, moodKey) {
   const code = `${languageCode || ""}`.trim().toLowerCase();
   const copy = PARTNER_MOOD_COPY[code] || PARTNER_MOOD_COPY.vi;
   const labels = MOOD_LABELS[code] || MOOD_LABELS.vi;
-  const moodLabel = labels[`${moodKey || ""}`.trim()] || "";
+  const key = `${moodKey || ""}`.trim();
+  // The key is whatever the partner wrote: own keys only, never a prototype member.
+  const moodLabel = Object.prototype.hasOwnProperty.call(labels, key) ? labels[key] : "";
   return {
     title: copy.title,
-    body: copy.body(authorName, moodLabel),
+    body: copy.body(authorName, moodLabel, key),
   };
 }
 
@@ -3563,7 +3593,7 @@ exports.generateDailyQuestion = onCall(
     const coupleId = `${data.coupleId || ""}`.trim();
     const date = `${data.date || ""}`.trim();
     const lang = `${data.lang || "vi"}`.trim() === "en" ? "en" : "vi";
-    if (!coupleId) {
+    if (!isDocId(coupleId)) {
       throw new HttpsError("invalid-argument", "coupleId is required.");
     }
     if (!AI_DATE_PATTERN.test(date)) {
