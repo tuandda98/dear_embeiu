@@ -1,4 +1,11 @@
 {
+  "model": "opus",
+  "effortLevel": "medium",
+  "env": {
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS": "8",
+    "CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS": "8"
+  },
   "hooks": {
     "Stop": [
       {
