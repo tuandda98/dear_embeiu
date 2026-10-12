@@ -60,7 +60,7 @@ NHỎ 158×158 (iOS) · 2×2 ≈152dp (Android)        VỪA 338×158 · 4×2 �
 - **Ngày yêu tương lai:** 0 ngày, "Cột mốc 1 tháng", "còn 30 ngày".
 - **Số dài** (≥10.000): co 32/28 — không bao giờ xuống dòng.
 - **Chữ hệ thống to (AX):** số co theo `minimumScaleFactor`, chú thích tối đa 2 dòng, chip giữ 1 dòng cắt.
-- **Chế độ tối:** không đổi (widget tự mang màu). **iOS 18 tinted:** nền hệ thống bỏ gradient; số, chú thích, chữ chip, cột mốc = nhóm accent (`widgetAccentable`, nhận màu tint); **nền chip (pill trắng .84) KHÔNG accentable** — nằm nhóm mặc định nên vẫn tách khỏi chữ (nếu bọc cả chip, nền và chữ cùng một màu tint → mất tên; phát hiện khi review Task 4). Artboard "Tinted" mô phỏng ý đồ (chip tint .22 + chữ tint) — kết quả thật tương đương: chữ tint trên pill sáng.
+- **Chế độ tối:** không đổi (widget tự mang màu). **iOS 18 tinted:** nền hệ thống bỏ gradient; số, chú thích, chữ chip, cột mốc = nhóm accent (`widgetAccentable`, nhận màu tint); **nền chip:** hệ thống tô MỌI fill bằng màu tint (kể cả nhóm mặc định — smoke Task 5 đo pill .84 dưới chữ tint còn 1,05:1), nên khi `widgetRenderingMode == .accented` pill hạ xuống **.22** (đúng artboard "Tinted"), chữ tint 100%; chế độ màu đầy đủ giữ pill trắng .84 + mực navy. iOS 26 "Clear" đi cùng đường `.accented`.
 - Không có loading/error: dữ liệu luôn có sẵn trong kho native hoặc rơi về trạng thái trống.
 
 ## Interaction & animation
