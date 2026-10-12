@@ -43,6 +43,28 @@ private extension View {
   }
 }
 
+/// Tells its content whether the system is painting the widget in a single
+/// tint (iOS 18 "Tinted", iOS 26 "Clear"): every fill becomes the tint, so a
+/// solid pill under tinted text has no contrast (smoke Task 5 measured 1.05:1).
+/// iOS 15 has no such mode → always false.
+struct AccentedReader<Content: View>: View {
+  @ViewBuilder let content: (Bool) -> Content
+  var body: some View {
+    if #available(iOS 16.0, *) {
+      RenderingModeReader(content: content)
+    } else {
+      content(false)
+    }
+  }
+}
+
+@available(iOS 16.0, *)
+private struct RenderingModeReader<Content: View>: View {
+  @Environment(\.widgetRenderingMode) private var mode
+  let content: (Bool) -> Content
+  var body: some View { content(mode == .accented) }
+}
+
 struct DayCounterView: View {
   @Environment(\.widgetFamily) private var family
   let entry: DayEntry
@@ -96,33 +118,33 @@ struct WidgetBackground: View {
 }
 
 /// "TUẤN ♥ THẢO" — white pill, navy ink (small white text on pink fails 4.5:1).
+/// Tinted/Clear: the pill drops to .22 and the names stay full-tint on top.
 struct NamesChip: View {
   let name1: String
   let name2: String
 
   var body: some View {
-    // .kerning on a container is iOS 16+; on Text it is iOS 13+, so per Text.
-    HStack(spacing: 5) {
-      if !name1.isEmpty { Text(name1).kerning(1) }
-      if !name1.isEmpty && !name2.isEmpty {
-        Image(systemName: "heart.fill")
-          .font(.system(size: 9, weight: .bold))
-          .foregroundColor(loveDeep)
-          .accessibilityHidden(true)
+    AccentedReader { accented in
+      // .kerning on a container is iOS 16+; on Text it is iOS 13+, so per Text.
+      HStack(spacing: 5) {
+        if !name1.isEmpty { Text(name1).kerning(1) }
+        if !name1.isEmpty && !name2.isEmpty {
+          Image(systemName: "heart.fill")
+            .font(.system(size: 9, weight: .bold))
+            .foregroundColor(loveDeep)
+            .accessibilityHidden(true)
+        }
+        if !name2.isEmpty { Text(name2).kerning(1) }
       }
-      if !name2.isEmpty { Text(name2).kerning(1) }
+      .font(.quicksand("Bold", 10))
+      .textCase(.uppercase)
+      .lineLimit(1)
+      .foregroundColor(navy)
+      .accentable()
+      .padding(.horizontal, 8)
+      .frame(height: 20)
+      .background(Capsule().fill(Color.white.opacity(accented ? 0.22 : 0.84)))
     }
-    .font(.quicksand("Bold", 10))
-    .textCase(.uppercase)
-    .lineLimit(1)
-    .foregroundColor(navy)
-    // iOS 18 tinted mode: the names take the accent tint, the pill below stays
-    // in the default (white) group — marking the whole chip would paint both
-    // the same colour and erase the names.
-    .accentable()
-    .padding(.horizontal, 8)
-    .frame(height: 20)
-    .background(Capsule().fill(Color.white.opacity(0.84)))
   }
 }
 
@@ -211,15 +233,17 @@ struct EmptyState: View {
   let text: String
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
-      HStack(spacing: 5) {
-        Image(systemName: "heart.fill")
-          .font(.system(size: 9, weight: .bold)).foregroundColor(loveDeep).accessibilityHidden(true)
-        Text(chip).kerning(1)
+      AccentedReader { accented in
+        HStack(spacing: 5) {
+          Image(systemName: "heart.fill")
+            .font(.system(size: 9, weight: .bold)).foregroundColor(loveDeep).accessibilityHidden(true)
+          Text(chip).kerning(1)
+        }
+        .font(.quicksand("Bold", 10)).lineLimit(1).foregroundColor(navy)
+        .accentable() // same as NamesChip: faint pill under full-tint text when tinted
+        .padding(.horizontal, 8).frame(height: 20)
+        .background(Capsule().fill(Color.white.opacity(accented ? 0.22 : 0.84)))
       }
-      .font(.quicksand("Bold", 10)).lineLimit(1).foregroundColor(navy)
-      .accentable() // same split as NamesChip: text tinted, pill in the default group
-      .padding(.horizontal, 8).frame(height: 20)
-      .background(Capsule().fill(Color.white.opacity(0.84)))
       Spacer(minLength: 4)
       Text(text)
         .font(.quicksand("Bold", 14)).foregroundColor(.white).lineLimit(3).inkShadow()
