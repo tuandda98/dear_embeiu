@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget background (design.md hướng A): 150° gradient + dark scrim. Angle 315
+     = top-left → bottom-right in Android's counter-clockwise convention. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:angle="315"
+                android:centerColor="#FF4D6D"
+                android:endColor="#E63956"
+                android:startColor="#FF5C8F"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:angle="270"
+                android:endColor="#47000000"
+                android:startColor="#1A000000"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>
