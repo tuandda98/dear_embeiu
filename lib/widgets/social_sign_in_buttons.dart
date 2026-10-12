@@ -127,7 +127,13 @@ class SocialSignInButtons extends StatelessWidget {
             // Apple buttons.
             background: AppColors.appleBlack,
             foreground: AppColors.white,
-            logo: const Icon(Icons.apple, size: 20, color: AppColors.white),
+            // HIG: the logo file is as tall as the button, padding and all.
+            logo: const CustomPaint(
+              size: Size(24 * 52 / 44, 52),
+              painter: _AppleLogoPainter(),
+            ),
+            // The file's own ~7pt margin + 3 = the Google button's 10.
+            gap: 3,
             busy: running == SocialSignIn.apple,
             locked: lockedFor(SocialSignIn.apple),
             onPressed: onPressedFor(SocialSignIn.apple),
@@ -173,6 +179,7 @@ class AuthPillButton extends StatelessWidget {
     required this.locked,
     required this.onPressed,
     this.border,
+    this.gap = 10,
   });
 
   final String label;
@@ -180,6 +187,9 @@ class AuthPillButton extends StatelessWidget {
   final Color foreground;
   final BorderSide? border;
   final Widget logo;
+
+  /// Space between [logo] and the label.
+  final double gap;
   final bool busy;
   final bool locked;
   final VoidCallback? onPressed;
@@ -220,7 +230,7 @@ class AuthPillButton extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         logo,
-                        const SizedBox(width: 10),
+                        SizedBox(width: gap),
                         Text(
                           label,
                           // The theme's pill type, so the brand buttons sit
@@ -311,6 +321,182 @@ class _GoogleLogoPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GoogleLogoPainter oldDelegate) => false;
+}
+
+/// Apple's "Left-aligned – Small" logo, path copied unchanged from the 24×44
+/// SVG in Apple Design Resources (artwork licence accepted 2026-10-12). HIG:
+/// never draw a custom Apple logo, never crop the file. Small matches the 18pt
+/// Google "G". The file's black backdrop is the button itself, so only the
+/// glyph is painted.
+class _AppleLogoPainter extends CustomPainter {
+  const _AppleLogoPainter();
+
+  static final Path _glyph = Path()
+    ..moveTo(12.2337427, 16.9879688)
+    ..cubicTo(
+      12.8896607,
+      16.9879688,
+      13.7118677,
+      16.5445313,
+      14.2014966,
+      15.9532812,
+    )
+    ..cubicTo(
+      14.6449341,
+      15.4174609,
+      14.968274,
+      14.6691602,
+      14.968274,
+      13.9208594,
+    )
+    ..cubicTo(
+      14.968274,
+      13.8192383,
+      14.9590357,
+      13.7176172,
+      14.9405591,
+      13.6344727,
+    )
+    ..cubicTo(
+      14.2107349,
+      13.6621875,
+      13.3330982,
+      14.1241016,
+      12.8065162,
+      14.7430664,
+    )
+    ..cubicTo(
+      12.3907935,
+      15.2142188,
+      12.012024,
+      15.9532812,
+      12.012024,
+      16.7108203,
+    )
+    ..cubicTo(
+      12.012024,
+      16.8216797,
+      12.0305005,
+      16.9325391,
+      12.0397388,
+      16.9694922,
+    )
+    ..cubicTo(
+      12.0859302,
+      16.9787305,
+      12.1598365,
+      16.9879688,
+      12.2337427,
+      16.9879688,
+    )
+    ..close()
+    ..moveTo(9.92417241, 28.1662891)
+    ..cubicTo(
+      10.8202857,
+      28.1662891,
+      11.2175318,
+      27.5658008,
+      12.3353638,
+      27.5658008,
+    )
+    ..cubicTo(
+      13.4716724,
+      27.5658008,
+      13.721106,
+      28.1478125,
+      14.7188404,
+      28.1478125,
+    )
+    ..cubicTo(
+      15.6980982,
+      28.1478125,
+      16.3540162,
+      27.2424609,
+      16.972981,
+      26.3555859,
+    )
+    ..cubicTo(
+      17.6658521,
+      25.339375,
+      17.9522388,
+      24.3416406,
+      17.9707154,
+      24.2954492,
+    )
+    ..cubicTo(
+      17.9060474,
+      24.2769727,
+      16.0306763,
+      23.5101953,
+      16.0306763,
+      21.3576758,
+    )
+    ..cubicTo(
+      16.0306763,
+      19.491543,
+      17.5088013,
+      18.6508594,
+      17.5919459,
+      18.5861914,
+    )
+    ..cubicTo(
+      16.612688,
+      17.1819727,
+      15.1253248,
+      17.1450195,
+      14.7188404,
+      17.1450195,
+    )
+    ..cubicTo(
+      13.6194849,
+      17.1450195,
+      12.7233716,
+      17.8101758,
+      12.1598365,
+      17.8101758,
+    )
+    ..cubicTo(
+      11.5501099,
+      17.8101758,
+      10.7463794,
+      17.1819727,
+      9.79483648,
+      17.1819727,
+    )
+    ..cubicTo(
+      7.98413335,
+      17.1819727,
+      6.14571538,
+      18.6785742,
+      6.14571538,
+      21.5054883,
+    )
+    ..cubicTo(
+      6.14571538,
+      23.2607617,
+      6.8293482,
+      25.1176563,
+      7.67003179,
+      26.3186328,
+    )
+    ..cubicTo(
+      8.39061773,
+      27.3348438,
+      9.01882085,
+      28.1662891,
+      9.92417241,
+      28.1662891,
+    )
+    ..close();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.scale(size.width / 24, size.height / 44);
+    canvas.drawPath(_glyph, Paint()..color = AppColors.white);
+  }
+
+  @override
+  bool shouldRepaint(_AppleLogoPainter oldDelegate) => false;
 }
 
 /// "By continuing, you agree to our Privacy Policy." The whole line is one
