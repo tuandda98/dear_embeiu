@@ -75,13 +75,17 @@ class CustomRemindersScreen extends StatelessWidget {
                   )
                 : null,
             body: SafeArea(
+              bottom: false,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: _ScreenHeader(
-                      trailing: _CountBadge(count: count, atCapacity: atCapacity),
+                      trailing: _CountBadge(
+                        count: count,
+                        atCapacity: atCapacity,
+                      ),
                     ),
                   ),
                   Expanded(
@@ -108,7 +112,12 @@ class CustomRemindersScreen extends StatelessWidget {
     if (!customProvider.isLoaded) {
       // Content-shaped shimmer mirroring the reminder list rows.
       return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          0,
+          16,
+          20 + MediaQuery.paddingOf(context).bottom,
+        ),
         itemCount: 5,
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) =>
@@ -117,9 +126,7 @@ class CustomRemindersScreen extends StatelessWidget {
     }
 
     if (reminders.isEmpty) {
-      return _EmptyState(
-        onCreate: () => onAddPressed(context, customProvider),
-      );
+      return _EmptyState(onCreate: () => onAddPressed(context, customProvider));
     }
 
     return _ReminderList(reminders: reminders);
@@ -233,9 +240,7 @@ class _InlineEmptyState extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.accentRose.withValues(alpha: 0.10),
-        ),
+        border: Border.all(color: AppColors.accentRose.withValues(alpha: 0.10)),
       ),
       child: Column(
         children: [
@@ -315,8 +320,9 @@ class _AddReminderButton extends StatelessWidget {
       child: OutlinedButton.icon(
         onPressed: onTap,
         style: OutlinedButton.styleFrom(
-          foregroundColor:
-              atCapacity ? AppColors.warning : AppColors.accentLove,
+          foregroundColor: atCapacity
+              ? AppColors.warning
+              : AppColors.accentLove,
           side: BorderSide(
             color: (atCapacity ? AppColors.warning : AppColors.accentLove)
                 .withValues(alpha: 0.40),
@@ -477,7 +483,12 @@ class _ReminderList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        96 + MediaQuery.paddingOf(context).bottom,
+      ),
       itemCount: reminders.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
@@ -560,8 +571,10 @@ class _ReminderCard extends StatelessWidget {
     final l10n = context.l10n;
     final provider = context.read<CustomRemindersProvider>();
 
-    final timeLabel =
-        TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context);
+    final timeLabel = TimeOfDay(
+      hour: reminder.hour,
+      minute: reminder.minute,
+    ).format(context);
 
     return Material(
       color: AppColors.white.withValues(alpha: 0.72),
@@ -580,59 +593,59 @@ class _ReminderCard extends StatelessWidget {
             ),
           ),
           child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.accentRose.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(16),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.accentRose.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  _iconFor(reminder.recurrence),
+                  color: AppColors.accentRose,
+                  size: 20,
+                ),
               ),
-              child: Icon(
-                _iconFor(reminder.recurrence),
-                color: AppColors.accentRose,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    reminder.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      reminder.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _metaLine(context, l10n, timeLabel),
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                      height: 1.4,
+                    const SizedBox(height: 4),
+                    Text(
+                      _metaLine(context, l10n, timeLabel),
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  _nextFireLine(context, l10n, provider),
-                ],
+                    const SizedBox(height: 2),
+                    _nextFireLine(context, l10n, provider),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 4),
-            Switch.adaptive(
-              value: reminder.enabled,
-              activeThumbColor: AppColors.accentRose,
-              onChanged: interactive
-                  ? (value) => provider.toggle(reminder.id, value)
-                  : null,
-            ),
-          ],
+              const SizedBox(width: 4),
+              Switch.adaptive(
+                value: reminder.enabled,
+                activeThumbColor: AppColors.accentRose,
+                onChanged: interactive
+                    ? (value) => provider.toggle(reminder.id, value)
+                    : null,
+              ),
+            ],
           ),
         ),
       ),
@@ -647,10 +660,7 @@ class _ReminderCard extends StatelessWidget {
     if (!reminder.enabled) {
       return Text(
         l10n.customRemindersDisabledLabel,
-        style: const TextStyle(
-          color: AppColors.textTertiary,
-          fontSize: 12,
-        ),
+        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
       );
     }
     final next = provider.nextFireDateTime(reminder);
@@ -658,10 +668,7 @@ class _ReminderCard extends StatelessWidget {
       // Past one-off — nothing scheduled.
       return Text(
         l10n.customRemindersDisabledLabel,
-        style: const TextStyle(
-          color: AppColors.textTertiary,
-          fontSize: 12,
-        ),
+        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
       );
     }
     final locale = Localizations.localeOf(context).toString();
@@ -727,5 +734,4 @@ class _ReminderCard extends StatelessWidget {
       ),
     );
   }
-
 }

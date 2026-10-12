@@ -334,8 +334,14 @@ class ProfileScreen extends StatelessWidget {
                   Text(
                     l10n.ourStoryBadge,
                     style: TextStyle(
-                      color: AppColors.white.withValues(alpha: 0.72),
+                      color: AppColors.white.withValues(alpha: 0.92),
                       fontSize: 10,
+                      shadows: [
+                        Shadow(
+                          color: AppColors.black.withValues(alpha: 0.32),
+                          blurRadius: 8,
+                        ),
+                      ],
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.3,
                     ),
@@ -958,7 +964,7 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
                   label,
                   style: const TextStyle(
                     color: AppColors.textSecondary,
-                    fontSize: 13.5,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

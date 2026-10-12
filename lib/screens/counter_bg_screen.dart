@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
@@ -59,7 +60,9 @@ class _CounterBgScreenState extends State<CounterBgScreen> {
       return <String>{};
     }
     try {
-      final raw = Hive.box<String>('app_settings').get('counter_bg_ids_$_coupleId');
+      final raw = Hive.box<String>(
+        'app_settings',
+      ).get('counter_bg_ids_$_coupleId');
       if (raw == null || raw.isEmpty) {
         return <String>{};
       }
@@ -85,8 +88,9 @@ class _CounterBgScreenState extends State<CounterBgScreen> {
     HapticFeedback.mediumImpact();
     final ids = _selected.toList(growable: false);
     try {
-      Hive.box<String>('app_settings')
-          .put('counter_bg_ids_$_coupleId', ids.join('\n'));
+      Hive.box<String>(
+        'app_settings',
+      ).put('counter_bg_ids_$_coupleId', ids.join('\n'));
     } catch (_) {
       // Cache best-effort.
     }
@@ -175,40 +179,41 @@ class _CounterBgScreenState extends State<CounterBgScreen> {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           bottomNavigationBar: _buildSaveBar(l10n),
-          body: SafeArea(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                    child: SubScreenHeader(
-                      badge: l10n.counterBgBadge,
-                      badgeIcon: IconsaxPlusLinear.gallery,
-                      title: l10n.counterBgTitle,
-                      subtitle: _selected.isEmpty
-                          ? l10n.counterBgSubtitleAll
-                          : l10n.counterBgSubtitleCount(_selected.length),
+          body: Stack(
+            children: [
+              CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        16 + MediaQuery.paddingOf(context).top,
+                        16,
+                        4,
+                      ),
+                      child: SubScreenHeader(
+                        badge: l10n.counterBgBadge,
+                        badgeIcon: IconsaxPlusLinear.gallery,
+                      ),
                     ),
                   ),
-                ),
-                if (items.isEmpty)
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _Empty(l10n: l10n),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-                    sliver: SliverGrid(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
+                  if (items.isEmpty)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _Empty(l10n: l10n),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                            ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
                           final item = items[index];
                           return _BgTile(
                             item: item,
@@ -216,13 +221,13 @@ class _CounterBgScreenState extends State<CounterBgScreen> {
                             coverLabel: l10n.counterBgCoverLabel,
                             onTap: () => _toggle(item.key),
                           );
-                        },
-                        childCount: items.length,
+                        }, childCount: items.length),
                       ),
                     ),
-                  ),
-              ],
-            ),
+                ],
+              ),
+              const StatusBarScrim(),
+            ],
           ),
         ),
       ),
@@ -244,8 +249,9 @@ class _CounterBgScreenState extends State<CounterBgScreen> {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.accentLove,
               foregroundColor: AppColors.white,
-              disabledBackgroundColor:
-                  AppColors.accentLove.withValues(alpha: 0.40),
+              disabledBackgroundColor: AppColors.accentLove.withValues(
+                alpha: 0.40,
+              ),
               disabledForegroundColor: AppColors.white.withValues(alpha: 0.9),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(999),
@@ -323,8 +329,11 @@ class _BgTile extends StatelessWidget {
                     color: AppColors.accentLove,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.check_rounded,
-                      size: 16, color: AppColors.white),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    size: 16,
+                    color: AppColors.white,
+                  ),
                 ),
               ),
             if (item.isCover)
@@ -332,8 +341,10 @@ class _BgTile extends StatelessWidget {
                 left: 6,
                 bottom: 6,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.45),
                     borderRadius: BorderRadius.circular(999),
@@ -363,14 +374,20 @@ class _Thumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final placeholder = Container(color: AppColors.accentRose.withValues(alpha: 0.10));
+    final placeholder = Container(
+      color: AppColors.accentRose.withValues(alpha: 0.10),
+    );
     // Local cache first (instant, offline); fall back to the network URL.
     if (local != null && local!.trim().isNotEmpty) {
       final file = File(local!);
       if (file.existsSync()) {
-        return Image.file(file, fit: BoxFit.cover, errorBuilder: (_, _, _) {
-          return _network(remote, placeholder);
-        });
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) {
+            return _network(remote, placeholder);
+          },
+        );
       }
     }
     return _network(remote, placeholder);
@@ -409,8 +426,11 @@ class _Empty extends StatelessWidget {
                 color: AppColors.white.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(IconsaxPlusLinear.gallery,
-                  size: 38, color: AppColors.accentLove),
+              child: const Icon(
+                IconsaxPlusLinear.gallery,
+                size: 38,
+                color: AppColors.accentLove,
+              ),
             ),
             const SizedBox(height: 20),
             Text(

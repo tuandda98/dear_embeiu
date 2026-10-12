@@ -127,8 +127,11 @@ class RecordsSheet extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: AppColors.accentLove.withValues(alpha: 0.12),
                   ),
-                  child: const Icon(IconsaxPlusBold.cup,
-                      size: 32, color: AppColors.accentLove),
+                  child: const Icon(
+                    IconsaxPlusBold.cup,
+                    size: 32,
+                    color: AppColors.accentLove,
+                  ),
                 ),
               ),
               const SizedBox(height: 14),
@@ -190,7 +193,7 @@ class RecordsSheet extends StatelessWidget {
             row.value,
             style: const TextStyle(
               color: AppColors.textPrimary,
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: FontWeight.w800,
             ),
           ),

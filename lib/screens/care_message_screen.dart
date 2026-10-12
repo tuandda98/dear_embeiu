@@ -145,11 +145,12 @@ class _CareMessageScreenState extends State<CareMessageScreen> {
         backgroundColor: Colors.transparent,
         resizeToAvoidBottomInset: true,
         body: SafeArea(
+          bottom: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: SubScreenHeader(
                   badge: l10n.careMessageBadge,
                   badgeIcon: IconsaxPlusBold.heart,
@@ -159,10 +160,10 @@ class _CareMessageScreenState extends State<CareMessageScreen> {
                 child: ListView(
                   physics: const BouncingScrollPhysics(),
                   padding: EdgeInsets.fromLTRB(
+                    16,
                     20,
-                    20,
-                    20,
-                    24 + MediaQuery.of(context).viewInsets.bottom,
+                    16,
+                    24 + MediaQuery.paddingOf(context).bottom,
                   ),
                   children: [
                     if (!isPaired) ...[
@@ -243,9 +244,7 @@ class _CareMessageScreenState extends State<CareMessageScreen> {
             maxLines: 5,
             textCapitalization: TextCapitalization.sentences,
             onChanged: (_) => setState(() {}),
-            decoration: InputDecoration(
-              hintText: l10n.careMessageBodyHint,
-            ),
+            decoration: InputDecoration(hintText: l10n.careMessageBodyHint),
           ),
         ],
       ),
@@ -286,7 +285,10 @@ class _CareMessageScreenState extends State<CareMessageScreen> {
               )
             : Text(
                 l10n.careMessageSendCta,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
       ),
     );
@@ -352,7 +354,7 @@ class _QuickPicks extends StatelessWidget {
                 child: Text(
                   pick.$1,
                   style: const TextStyle(
-                    fontSize: 13.5,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
@@ -467,8 +469,8 @@ class _CareMessageTile extends StatelessWidget {
               Text(
                 _relativeTime(message.createdAt, l10n),
                 style: const TextStyle(
-                  fontSize: 11.5,
-                  color: AppColors.textTertiary,
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ],
@@ -479,7 +481,7 @@ class _CareMessageTile extends StatelessWidget {
             // No maxLines + ellipsis would clip to ONE line (Flutter gotcha).
             overflow: TextOverflow.visible,
             style: const TextStyle(
-              fontSize: 13.5,
+              fontSize: 14,
               height: 1.4,
               color: AppColors.textSecondary,
             ),
@@ -488,7 +490,7 @@ class _CareMessageTile extends StatelessWidget {
           Text(
             mine ? l10n.careMessageFromMe : l10n.careMessageFromPartner,
             style: TextStyle(
-              fontSize: 11.5,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
               color: mine
                   ? AppColors.accentLoveDeep

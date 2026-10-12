@@ -181,29 +181,32 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 460),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeader(l10n),
-                    const SizedBox(height: 20),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 260),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeOutCubic,
-                      child: _anniversaryDate == null
-                          ? _buildEmptyCard(l10n)
-                          : _buildDateContent(l10n, _anniversaryDate!),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildCtaCard(l10n),
-                  ],
-                ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20 + MediaQuery.paddingOf(context).top,
+            20,
+            20 + MediaQuery.paddingOf(context).bottom,
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildHeader(l10n),
+                  const SizedBox(height: 20),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 260),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeOutCubic,
+                    child: _anniversaryDate == null
+                        ? _buildEmptyCard(l10n)
+                        : _buildDateContent(l10n, _anniversaryDate!),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildCtaCard(l10n),
+                ],
               ),
             ),
           ),
@@ -218,14 +221,14 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
       children: [
         // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
         // recolor of the original (user request 2026-06-11).
-        EyebrowChip(label: l10n.guestModeBadge, icon: IconsaxPlusLinear.magic_star),
+        EyebrowChip(
+          label: l10n.guestModeBadge,
+          icon: IconsaxPlusLinear.magic_star,
+        ),
         const SizedBox(height: 14),
         Text(l10n.guestCounterTitle, style: AppTheme.pageTitleStyle()),
         const SizedBox(height: 10),
-        Text(
-          l10n.guestCounterSubtitle,
-          style: AppTheme.pageSubtitleStyle(),
-        ),
+        Text(l10n.guestCounterSubtitle, style: AppTheme.pageSubtitleStyle()),
       ],
     );
   }
@@ -462,9 +465,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
             onPressed: socialBusy
                 ? null
                 : () => Navigator.of(context).pushNamed(AppRoutes.register),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.textPrimary,
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.textPrimary),
             child: Text(
               l10n.guestCtaRegister,
               style: const TextStyle(fontWeight: FontWeight.w700),

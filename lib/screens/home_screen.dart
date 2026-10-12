@@ -2193,7 +2193,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           code,
                           style: const TextStyle(
                             color: AppColors.accentLoveDeep,
-                            fontSize: 24,
+                            fontSize: 26,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 4,
                           ),
@@ -2238,7 +2238,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           _buildWaitingPill(
                             icon: IconsaxPlusLinear.scan_barcode,
                             label: l10n.inviteQrBtn,
-                            onTap: () => InviteQrSheet.show(context, code: code),
+                            onTap: () =>
+                                InviteQrSheet.show(context, code: code),
                           ),
                         ],
                       ),
@@ -2312,7 +2313,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           Text(
             l10n.homeWaitingMeanwhileFooter,
             style: const TextStyle(
-              color: AppColors.textTertiary,
+              color: AppColors.textSecondary,
               fontSize: 12,
               fontStyle: FontStyle.italic,
               height: 1.4,
@@ -2386,7 +2387,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   description,
                   style: const TextStyle(
                     color: AppColors.textSecondary,
-                    fontSize: 12.5,
+                    fontSize: 12,
                     height: 1.45,
                   ),
                 ),
@@ -2408,18 +2409,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }) {
     return TextButton.icon(
       onPressed: onTap,
-      style: TextButton.styleFrom(
-        backgroundColor: AppColors.accentRose.withValues(alpha: 0.12),
-        foregroundColor: AppColors.textPrimary,
-        minimumSize: const Size(0, 36),
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        shape: const StadiumBorder(),
-        tapTargetSize: MaterialTapTargetSize.padded,
-      ).copyWith(
-        overlayColor: WidgetStatePropertyAll<Color>(
-          AppColors.accentRose.withValues(alpha: 0.08),
-        ),
-      ),
+      style:
+          TextButton.styleFrom(
+            backgroundColor: AppColors.accentRose.withValues(alpha: 0.12),
+            foregroundColor: AppColors.textPrimary,
+            minimumSize: const Size(0, 36),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            shape: const StadiumBorder(),
+            tapTargetSize: MaterialTapTargetSize.padded,
+          ).copyWith(
+            overlayColor: WidgetStatePropertyAll<Color>(
+              AppColors.accentRose.withValues(alpha: 0.08),
+            ),
+          ),
       icon: Icon(icon, size: 14, color: AppColors.accentRose),
       label: Text(
         label,

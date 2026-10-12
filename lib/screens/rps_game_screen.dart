@@ -728,13 +728,14 @@ class _RpsGameScreenState extends State<RpsGameScreen>
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
+          bottom: false,
           child: Stack(
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: SubScreenHeader(
                       badge: l10n.rpsGameBadge,
                       badgeIcon: IconsaxPlusBold.game,
@@ -1149,7 +1150,12 @@ class _WaitingView extends StatelessWidget {
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 36, 20, 24),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        36,
+        16,
+        24 + MediaQuery.paddingOf(context).bottom,
+      ),
       child: Column(
         children: [
           Row(
@@ -1598,7 +1604,12 @@ class _PlayView extends StatelessWidget {
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        24,
+        16,
+        24 + MediaQuery.paddingOf(context).bottom,
+      ),
       child: Column(
         children: [
           AnimatedBuilder(
@@ -1690,7 +1701,10 @@ class _PlayView extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12, color: AppColors.textTertiary),
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
           ),
           AnimatedSwitcher(
             duration: reduceMotion ? AppMotion.fast : AppMotion.base,
@@ -1739,7 +1753,7 @@ class _PlayView extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 12,
                             height: 1.35,
-                            color: AppColors.textTertiary,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -2318,7 +2332,12 @@ class _ResultView extends StatelessWidget {
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        24,
+        16,
+        24 + MediaQuery.paddingOf(context).bottom,
+      ),
       child: Column(
         children: [
           Semantics(
@@ -2691,7 +2710,12 @@ class _ClosedView extends StatelessWidget {
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
+              padding: EdgeInsets.fromLTRB(
+                32,
+                24,
+                32,
+                32 + MediaQuery.paddingOf(context).bottom,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
@@ -39,22 +40,28 @@ class MilestoneRemindersScreen extends StatelessWidget {
         // Header redesign 2026-06-14: no app bar — the SubScreenHeader (back →
         // chip → title → subtitle, all left-aligned at the gutter) leads the
         // list so the chip lines up vertically with the title.
-        body: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: SubScreenHeader(
-                  badge: l10n.milestoneBadge,
-                  badgeIcon: IconsaxPlusLinear.flag,
-                  title: l10n.remindersV2MilestoneScreenTitle,
-                  subtitle: l10n.milestoneHeaderSubtitle,
-                ),
+        body: Stack(
+          children: [
+            ListView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16 + MediaQuery.paddingOf(context).top,
+                16,
+                24 + MediaQuery.paddingOf(context).bottom,
               ),
-              const MilestoneRemindersBody(),
-            ],
-          ),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: SubScreenHeader(
+                    badge: l10n.milestoneBadge,
+                    badgeIcon: IconsaxPlusLinear.flag,
+                  ),
+                ),
+                const MilestoneRemindersBody(),
+              ],
+            ),
+            const StatusBarScrim(),
+          ],
         ),
       ),
     );
@@ -117,9 +124,7 @@ class _MilestoneTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: AppColors.accentRose.withValues(alpha: 0.10),
-        ),
+        border: Border.all(color: AppColors.accentRose.withValues(alpha: 0.10)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,11 +136,7 @@ class _MilestoneTile extends StatelessWidget {
               color: AppColors.accentRose.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(
-              _iconFor(type),
-              color: AppColors.accentRose,
-              size: 20,
-            ),
+            child: Icon(_iconFor(type), color: AppColors.accentRose, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -215,20 +216,14 @@ class _MilestoneTile extends StatelessWidget {
     if (next.passed) {
       return Text(
         l10n.remindersV2MilestonePast,
-        style: const TextStyle(
-          color: AppColors.textTertiary,
-          fontSize: 12,
-        ),
+        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
       );
     }
 
     if (next.pending) {
       return Text(
         l10n.remindersV2MilestonePending,
-        style: const TextStyle(
-          color: AppColors.textTertiary,
-          fontSize: 12,
-        ),
+        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
       );
     }
 
@@ -354,8 +349,11 @@ class _TimeChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(IconsaxPlusLinear.clock,
-                  size: 13, color: AppColors.accentRose),
+              const Icon(
+                IconsaxPlusLinear.clock,
+                size: 13,
+                color: AppColors.accentRose,
+              ),
               const SizedBox(width: 6),
               // Large text on a narrow phone (320dp × 2.0, "8:00 PM"): the time
               // wraps at full size ("8:00" over "PM") instead of overflowing

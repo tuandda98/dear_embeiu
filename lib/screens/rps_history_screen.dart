@@ -88,11 +88,12 @@ class _RpsHistoryScreenState extends State<RpsHistoryScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
+          bottom: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: SubScreenHeader(
                   badge: l10n.rpsHistoryBadge,
                   badgeIcon: IconsaxPlusLinear.clock,
@@ -142,7 +143,12 @@ class _RpsHistoryScreenState extends State<RpsHistoryScreen> {
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        32 + MediaQuery.paddingOf(context).bottom,
+      ),
       // +1 for the scoreboard on top.
       itemCount: 1 + rows.length + tail,
       itemBuilder: (context, index) {
@@ -439,7 +445,7 @@ class _HistoryRow extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textTertiary,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -528,7 +534,7 @@ class _SkippedChip extends StatelessWidget {
         style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: AppColors.textTertiary,
+          color: AppColors.textSecondary,
           height: 1,
         ),
       ),
@@ -571,7 +577,12 @@ class _HistoryLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        32 + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         const ShimmerSkeleton(height: 96, borderRadius: 24),
         const SizedBox(height: 22),

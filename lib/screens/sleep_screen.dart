@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
@@ -100,73 +101,81 @@ class _SleepScreenState extends State<SleepScreen> {
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SubScreenHeader(
-                  badge: l10n.sleepBadge,
-                  badgeIcon: IconsaxPlusLinear.moon,
-                ),
-                const SizedBox(height: 20),
-                if (sleep.needsPermission) ...[
-                  _PermissionBanner(onOpen: sleep.openPermissionSettings),
-                  const SizedBox(height: 12),
-                ],
-                if (sleep.healthHasNoData && !sleep.healthHintDismissed) ...[
-                  _HealthHint(
-                    onOpen: sleep.openPermissionSettings,
-                    onDismiss: sleep.dismissHealthHint,
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16 + MediaQuery.paddingOf(context).top,
+                16,
+                24 + MediaQuery.paddingOf(context).bottom,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SubScreenHeader(
+                    badge: l10n.sleepBadge,
+                    badgeIcon: IconsaxPlusLinear.moon,
                   ),
-                  const SizedBox(height: 12),
-                ],
-                if (sleep.partnerShares) ...[
-                  _Segmented(
-                    view: view,
-                    partnerName: partnerName,
-                    myColor: PersonPalette.colorOf(sleep.myColorId),
-                    partnerColor: PersonPalette.colorOf(sleep.partnerColorId),
-                    onChanged: (v) {
-                      HapticFeedback.selectionClick();
-                      setState(() => _view = v);
-                    },
-                  ),
+                  const SizedBox(height: 20),
+                  if (sleep.needsPermission) ...[
+                    _PermissionBanner(onOpen: sleep.openPermissionSettings),
+                    const SizedBox(height: 12),
+                  ],
+                  if (sleep.healthHasNoData && !sleep.healthHintDismissed) ...[
+                    _HealthHint(
+                      onOpen: sleep.openPermissionSettings,
+                      onDismiss: sleep.dismissHealthHint,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (sleep.partnerShares) ...[
+                    _Segmented(
+                      view: view,
+                      partnerName: partnerName,
+                      myColor: PersonPalette.colorOf(sleep.myColorId),
+                      partnerColor: PersonPalette.colorOf(sleep.partnerColorId),
+                      onChanged: (v) {
+                        HapticFeedback.selectionClick();
+                        setState(() => _view = v);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (!sleep.isLoaded)
+                    const ShimmerSkeleton(height: 420, borderRadius: 24)
+                  else
+                    _MoonCalendar(
+                      month: _month,
+                      direction: _monthDirection,
+                      view: view,
+                      selected: _selected,
+                      partnerName: partnerName,
+                      onPrev: () => _shiftMonth(-1),
+                      onNext: () => _shiftMonth(1),
+                      onSelect: (key) {
+                        HapticFeedback.selectionClick();
+                        setState(() => _selected = key);
+                      },
+                    ),
                   const SizedBox(height: 16),
-                ],
-                if (!sleep.isLoaded)
-                  const ShimmerSkeleton(height: 420, borderRadius: 24)
-                else
-                  _MoonCalendar(
-                    month: _month,
-                    direction: _monthDirection,
+                  _NightDetail(
+                    dateKey: _selected,
                     view: view,
-                    selected: _selected,
                     partnerName: partnerName,
-                    onPrev: () => _shiftMonth(-1),
-                    onNext: () => _shiftMonth(1),
-                    onSelect: (key) {
-                      HapticFeedback.selectionClick();
-                      setState(() => _selected = key);
-                    },
                   ),
-                const SizedBox(height: 16),
-                _NightDetail(
-                  dateKey: _selected,
-                  view: view,
-                  partnerName: partnerName,
-                ),
-                const SizedBox(height: 24),
-                SectionHeader(title: _monthTitle(context)),
-                const SizedBox(height: 12),
-                _MonthStats(month: _month, partnerName: partnerName),
-                const SizedBox(height: 24),
-                _SettingsCard(partnerName: partnerName),
-              ],
+                  const SizedBox(height: 24),
+                  SectionHeader(title: _monthTitle(context)),
+                  const SizedBox(height: 12),
+                  _MonthStats(month: _month, partnerName: partnerName),
+                  const SizedBox(height: 24),
+                  _SettingsCard(partnerName: partnerName),
+                ],
+              ),
             ),
-          ),
+            const StatusBarScrim(),
+          ],
         ),
       ),
     );
@@ -1473,7 +1482,10 @@ class _PersonRow extends StatelessWidget {
                   ? emptyText
                   : '${SleepFormat.time(context, n.bedClock)} → ${SleepFormat.time(context, n.wakeClock)}',
               style: n == null
-                  ? strong.copyWith(color: AppColors.textSecondary, fontSize: 13)
+                  ? strong.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    )
                   : strong,
             ),
           ),

@@ -1956,7 +1956,7 @@ class _DailyQuestionReminderTile extends StatelessWidget {
                 l10n.dailyQuestionReminderEndOfDayHint,
                 style: const TextStyle(
                   color: AppColors.textSecondary,
-                  fontSize: 11.5,
+                  fontSize: 12,
                   height: 1.45,
                 ),
               ),
