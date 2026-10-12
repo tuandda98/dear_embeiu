@@ -818,3 +818,4 @@
 - [08:30] Sau khi chạy - Cất file .p8 move nó vào dear embe iu và git ignore
 - [08:31] giờ bạn cần tôi làm gì ?
 - [08:32] <pasted_content id="a771">  Bạn chỉ còn đúng một việc: chạy lệnh nhập khoá Apple. Mình vừa kiểm, Firebase PROD vẫn chưa có khoá. Gõ dòng này vào ô chat, có dấu ! ở đầu:  ! scripts/set-apple-signin-key.sh AuthKey_472U9CVQD8.p8 472U9CVQD8 </pasted_content id="a771">   hướng dẫn tôi
+- [08:34] push code hết chưa ?
