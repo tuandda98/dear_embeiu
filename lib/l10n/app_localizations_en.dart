@@ -2243,6 +2243,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestChangeDate => 'Change anniversary date';
 
   @override
+  String get widgetEmptyTap => 'Tap to start counting your days together';
+
+  @override
   String guestCounterStartFrom(String date) {
     return 'Since $date';
   }

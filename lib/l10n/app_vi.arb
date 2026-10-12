@@ -1040,6 +1040,10 @@
   "guestEmptyBody": "Chọn ngày kỷ niệm để xem hai bạn đã bên nhau bao lâu rồi.",
   "guestPickDate": "Chọn ngày kỷ niệm",
   "guestChangeDate": "Đổi ngày kỷ niệm",
+  "widgetEmptyTap": "Chạm để bắt đầu đếm ngày yêu",
+  "@widgetEmptyTap": {
+    "description": "Home-screen widget, empty state (guest / no couple / signed out). One line under the app-name chip; widget is 158pt wide, max 3 lines."
+  },
   "guestCounterStartFrom": "Bắt đầu từ {date}",
   "guestCtaTitle": "Muốn lưu kỷ niệm cùng người ấy?",
   "guestCtaBody": "Đăng nhập để ghép đôi & lưu ảnh chung.",

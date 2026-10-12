@@ -3782,6 +3782,12 @@ abstract class AppLocalizations {
   /// **'Change anniversary date'**
   String get guestChangeDate;
 
+  /// Home-screen widget, empty state (guest / no couple / signed out). One line under the app-name chip; widget is 158pt wide, max 3 lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to start counting your days together'**
+  String get widgetEmptyTap;
+
   /// Counter card subtitle showing the guest start date
   ///
   /// In en, this message translates to:

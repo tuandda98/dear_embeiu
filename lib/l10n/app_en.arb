@@ -1559,6 +1559,10 @@
   "@guestChangeDate": {
     "description": "Button to reopen the date picker once a date is set"
   },
+  "widgetEmptyTap": "Tap to start counting your days together",
+  "@widgetEmptyTap": {
+    "description": "Home-screen widget, empty state (guest / no couple / signed out). One line under the app-name chip; widget is 158pt wide, max 3 lines."
+  },
   "guestCounterStartFrom": "Since {date}",
   "@guestCounterStartFrom": {
     "description": "Counter card subtitle showing the guest start date",

@@ -2156,6 +2156,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guestChangeDate => 'Đổi ngày kỷ niệm';
 
   @override
+  String get widgetEmptyTap => 'Chạm để bắt đầu đếm ngày yêu';
+
+  @override
   String guestCounterStartFrom(String date) {
     return 'Bắt đầu từ $date';
   }
