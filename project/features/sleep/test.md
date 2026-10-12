@@ -284,3 +284,81 @@
 - N20 (lỗi đã biết): máy bay → bật → vuốt tắt app → mở lại (vẫn máy bay) → tắt → có mạng → dự kiến người ấy thấy lịch nháy vài giây.
 
 - [2026-10-11] [Tester] Vòng 6 code-level (HEAD 4656cf4): analyze 0 · test 221/221 · harness 27/27 + 10 kịch bản mới · **PASS**: 0 chặn, 0 nên sửa; N14, N19 đã vá; N20, N21 ghi nợ.
+
+## Vòng 7 — audit 1.8.0 (LIVE) + 1.9.0 · 2026-10-12 · 4 Tester song song (Lead dán, đã đọc lại code xác nhận)
+
+- **Trạng thái:** FAIL không chặn: 2 P2 · nhiều P3. 1.9.0 không đụng file giấc ngủ nào ⇒ mọi mục áp cho 1.8.0 đang live. Kế hoạch vá + ID nhóm (SL/SU/BE/AU/PA): [`../../AUDIT-2026-10-12.md`](../../AUDIT-2026-10-12.md).
+- **Số liệu:** analyze 0 · test 266/266 · rules-test 330 · harness Tester ở scratchpad phiên (tz_travel, health, partial, dst, bounds, hydrate_leak_test, 7 probe UI + PNG).
+
+### Logic (Tester giấc ngủ)
+| # | Mức | Chỗ | Kịch bản → hậu quả | Vá (ID) |
+|---|---|---|---|---|
+| S7-1 | P2 riêng tư | `sleep_provider.dart:592-617` | [Firebase] A cài lại/đổi máy, đang chia sẻ, `_hydrateFromRemote` chờ mạng chậm → A đăng xuất, B đăng nhập → kết quả của A ghi vào `_local`/`_fingerprints` của B, `saveFingerprints(A…)` ghi map của B. B bật chia sẻ là đẩy đêm của A lên couple của B (harness: `put cB/B 2026-09-02`). | SL1 |
+| S7-2 | P2 sai dữ liệu | `sleep_provider.dart:393-418`, `_merge` :430-446 | Lưu 14 đêm ở VN rồi bay sang Mỹ → 14 cửa sổ tính lại theo múi giờ mới; harness LA: 13 đêm bị thay, lệch 1 ngày, 8g40 → 5g40, một giấc nằm ở 2 ngày; 8 đêm gần nhất bị đẩy lại cho người ấy. | SL2 |
+| S7-3 | P3 | `sleep_calculator.dart:76-80`, `:276-283` | [iOS + Watch] ngủ 23:30–03:00, thức 45', ngủ 03:45–07:00, có inBed 23:00–07:15 → app ra 3g30 "dậy 03:00" (Health ~6g45). | SL3 (D5) |
+| S7-4 | P3 | `sleep_calculator.dart:233-244`; `sleep_provider.dart:416-419` | [Android, đang chia sẻ] 2h sáng mở app từ thông báo → khoá hôm nay = 23:00–02:00 (3g) được lưu và đẩy; người ấy thấy "3g" tới khi mình mở lại. | SL4 |
+| S7-5 | P3 | `auth_service.dart:703-782`; `storage_service.dart:114-117` | Xoá tài khoản không xoá `settings/nights/fp` của uid trong box `sleep_local` (dữ liệu từ Apple Health nằm lại), trái câu "Toàn bộ dữ liệu của bạn… sẽ bị xoá vĩnh viễn". | AU8 + `SleepService.wipeLocalData` |
+| S7-6 | P3 (nước có DST) | `sleep_night.dart:64-73`; `sleep_sheets.dart:605-625` | (a) sau ngày đổi giờ mùa xuân, đêm 7 ngày trước vẫn sửa được (167h → `inDays` 6); (b) sửa đêm vắt qua lúc đổi giờ lưu lệch 1 tiếng. | SL6 + SU11 |
+| S7-7 | P3 | `sleep_screen.dart:1074-1076`, `:1184-1188`, `:1221`; `sleep_card.dart:177`, `:195` | [Yêu xa] đêm người ấy gắn theo ngày dậy của họ nhưng hiện theo giờ máy mình; người ấy ở Mỹ 23:00–07:00 = 13:00–21:00 VN → làn trống, thẻ "Đêm qua" báo chưa có tới ~21:00. Trục dừng 12:00 trong khi cửa sổ tới 14:00. | SL8 + SU8 (D2) |
+| Hỏi PO | — | `_applyShare` :671-682 | Bật lại chia sẻ đẩy TOÀN BỘ lịch sử trên máy (kể cả thời quen người cũ). Đúng `dev.md:77` + comment CF, nhưng lệch câu "người mới ghép vào không thấy lịch sử ngủ cũ". Lead: giữ hành vi (người dùng tự bật lại), đóng kẽ hở tự động bằng BE2. | BE2 |
+
+### Native + backend (Tester backend)
+- Đạt: Android < 9, `queryEvents` chạy thread riêng, `result` gọi đúng 1 lần, kiểm quyền Usage access 2 lớp, intent mở cài đặt có dự phòng; iOS 3 kênh qua `registrar(forPlugin:)` bằng `if let`, HealthKit có chốt `isHealthDataAvailable`, callback về main queue; entitlement `applesignin` + `healthkit` cho cả 3 cấu hình; rules giấc ngủ chặn người ấy ghi, người ngoài/người đã rời đọc; `hasOnly` khớp đúng field client ghi; `notifyPartnerLeft` dọn đúng và idempotent; Node 22 (`firebase-functions` 6.6.0, `firebase-admin` 13.8.0).
+- **#2 P3** `Info.plist:13-16`: chuỗi xin quyền Sức khoẻ không nói giờ ngủ được gửi cho người ấy khi bật chia sẻ (Guideline 5.1.1(ii)) → PA10.
+- Đề xuất thêm rules-test (→ BE7): người đã rời không đụng được đêm/hồ sơ của mình; sửa đêm khi `share:false` bị chặn; người ấy đọc khi chủ chưa có hồ sơ bị chặn; sai kiểu field bị chặn.
+
+### Soát chéo (Tester chéo)
+| # | Mức | Chỗ | Kịch bản → hậu quả | Vá (ID) |
+|---|---|---|---|---|
+| X1 | P3 riêng tư | `firestore.rules:578-587`; `sleep_provider.dart:621-653` | Bật chia sẻ lúc mất mạng → người ấy rời, CF đặt `share:false` → có mạng lại, lệnh `share:true` cũ lên sau và thắng → `_applyShare` đẩy cả lịch sử lên couple đang chờ; người ghép vào sau đọc được hết. | BE2 |
+| X2 | — | = S7-1 | | SL1 |
+| X3 | P3 riêng tư | `sleep_platform.dart:24-30`; `sleep_provider.dart:400-412` | Cùng máy: A đã cấp quyền Sức khoẻ/Usage access → B đăng nhập, bật tự động → iOS không hỏi lại, app lấy 14 đêm của A làm đêm của B. | SL7 (D7) |
+| X4 | P3 tuân thủ | `main.dart:69`; AndroidManifest (không có luật sao lưu) | = S7-5, cộng: box Hive ở Documents vào iCloud Backup / Google Auto Backup, trái chính sách "không lưu vào iCloud", "chỉ nằm trên máy". | SL5 + PA11 (D6) |
+| X5 | — | = S7-7 | | SL8 + SU8 |
+| X6 | P3 lạm dụng | `firestore.rules:614-615`; `sleep_service.dart:227-242` | Thành viên ác ý tạo hàng loạt doc đêm id 10 ký tự rác; stream của người ấy không có `limit` → tải hết mỗi lần mở app. | BE3 + SL9 |
+
+### UI (Tester UI)
+| # | Mức | Chỗ | Kịch bản → hậu quả | Vá (ID) |
+|---|---|---|---|---|
+| U1 | P2 trợ năng | `sleep_screen.dart:596-617`, `:709-718`, `:1900-1908` | TalkBack: `Semantics(excludeSemantics:true)` không có `onTap` → không đổi được tháng, không chọn được đêm, không đổi được màu (probe: `tap=false`). | SU1 |
+| U2 | P3 | `sleep_screen.dart:1119-1131` | `_rowHeight=16` cắt tên ở chữ 130% ("Nguyễn"→"Nguuễ…"). | SU2 |
+| U3 | P3 | `sleep_screen.dart:654-660`, `:685`, `:737`, `:1087-1105` | Ô lịch tràn 2–19px ở 320–390dp chữ 130–200%; nhãn giờ chồng nhau. | SU3 |
+| U4 | P3 | `sleep_screen.dart:869-876` | Chú giải "Trăng phải: {tên}" tràn ra ngoài card với tên dài. | SU4 |
+| U6 | P3 | `sleep_sheets.dart:42-51`, `:715-731` | Sheet thiếu `useSafeArea` → tay nắm + tiêu đề nằm dưới status bar/notch; dòng tổng giờ tràn 38px ở 320@200%. | SU6 |
+| U7 | P3 | `Info.plist:111-116`; AndroidManifest | Điện thoại xoay ngang được (trái tài liệu "Phone portrait") → bộ chọn giờ tràn, nút "Xác nhận" ra ngoài màn ở Sửa/Ghi tay đêm. | PA9 (D3) |
+| U8 | P3 | `person_palette.dart:83-101` | Cả hai chưa chọn màu → mỗi máy tô ngược nhau (trái C1). | SL10 |
+| U12 | P3 | `sleep_screen.dart:698-701` | Đêm ghi tay được đọc là "(đã sửa)". | SU7 |
+- Đạt: `45ad589` căn giữa ô lịch không hồi quy; couple đang chờ / người ấy tắt chia sẻ / 0–400 đêm / tên rỗng / C1 trùng màu / TickerMode ở tab ẩn / semantics sao + pill + Sửa.
+
+- [2026-10-12] [Tester] Audit vòng 7 (4 Tester: logic, native+backend, UI, chéo): 2 P2 (S7-1, S7-2) + U1 P2 trợ năng + P3 như bảng. Lead đọc lại code xác nhận; vá ở `fix/audit-2026-10-12`.
+
+## Vòng 8 — nghiệm thu bản vá SL + SU + R2 · 2026-10-12 (2 Tester, Lead xác nhận) — FAIL không chặn
+
+- **Logic (SL1–SL10, R2-a/b):** SL1, SL4, SL5, SL6, SL8, SL9, SL10, R2-a, R2-b PASS. SL5 (chuyển box) đạt cả 6 kịch bản: nâng cấp máy 2 uid, app chết giữa lúc chép, 6 lệnh mở cùng lúc, box cũ hiện lại, wipe giữ dữ liệu người khác; Android `domain="root"` + `app_flutter` đúng, aapt2 compile qua. Test 96+1 skip (+07), 97/97 Berlin/LA.
+  - **L1 (P3):** bay VN→Mỹ, máy tắt màn hình ≥3 tiếng trên máy bay → đêm VN của ngày bay (đã đẩy cho người ấy) bị thay bằng khối trên máy bay 13g. → vá vòng 4 (giữ đêm thuộc đồng hồ khác khi không chồng nhau — gợi ý Tester đã thử).
+  - **L2 (P3):** (a) inBed > 16g → gộp thành khối > 16g → mất cả đêm; (b) gộp lần thức không giới hạn → mất ngủ 2,5g ra 8g "trăng tròn". → vá vòng 4: chỉ gộp lần thức ≤ 90 phút (Lead chốt, thay PO); khối gộp > 16g thì tính lại như khi không có inBed.
+  - **L3 (P3):** cho mượn máy 5 phút → `scanFrom:A` dời tới lúc A quay lại → mất đêm hôm trước của A. → vá vòng 4 (chỉ chặn khoảng người kia dùng máy).
+  - Ghi chú: SL2(a) chốt cả đêm cùng đồng hồ → mở app lúc còn nằm rồi 2 ngày không mở lại thì đêm bị chốt bản đo dở (34–44/2.400 ngày) → vòng 4 chỉ chốt đêm thuộc đồng hồ khác hoặc `tz` null. SL5 nên `flush` trước khi xoá box cũ và dọn box mới chép dở khi lỗi.
+  - Rủi ro thứ tự phát hành: 1.9.1 ra trước rules PROD → đêm mới có `tz` bị từ chối; đêm ≤ 7 ngày tự lên lại khi rules lên, đêm > 7 ngày kẹt dấu `pushing` vĩnh viễn. → vòng 4: gửi lại không kèm `tz` khi bị từ chối.
+- **UI (SU1–SU11, R2-c..f):** 14/15 PASS (TalkBack bấm được 12/12 ô ngày đã qua; 80 cấu hình tràn → 0; SU9 7 kịch bản; SU10 emoji/ZWJ/dán/Telex).
+  - **N1 (P3, hồi quy SU8):** `sleep_screen.dart:1145-1151` so `at(a,start) == at(b,start)` với hai phần đều cắt giây → dải "ngủ cùng lúc" mất ở ~50% đêm tự ghi; đêm đổi giờ dải ngắn 1 tiếng. Lead đọc code xác nhận.
+  - **N2 (P3):** pill "Giờ bên ấy" trên thẻ "Đêm qua" bị cắt "Giờ b…" từ 320dp@100%.
+  - **N3 (P3, hồi quy SU10, mood):** ghi chú đủ 100 ký tự, chèn/dán ở đầu hay giữa → mất chữ cuối của ghi chú cũ, con trỏ nhảy về cuối.
+  - **N4 (P3, có từ 1.8.0):** hàng giờ "23:45 → 6:55" của mình ở chi tiết đêm bị cắt "23:…" ở 320dp@100%.
+  - R2-e: days = 0 ra "0 ngày bên nhau" → vòng 4 dùng câu riêng.
+
+- [2026-10-12] [Tester] Vòng 8: logic FAIL không chặn (L1–L3), UI FAIL nhẹ (N1–N4). Vá ở vòng 4.
+
+## Vòng 9 — nghiệm thu vòng 4 UI (giấc ngủ + tâm trạng + Cây) · 2026-10-12 · Tester, Lead xác nhận — FAIL nhẹ, không chặn
+- **PASS:** N1 dải ngủ cùng lúc (60 kịch bản ở +07/Berlin/Sydney, gồm giờ có giây, đêm chưa có `tz`, người ấy lệch ±1/±10 tiếng, đêm đổi giờ xuân/thu; `onOtherClock` khớp `_onOwnClock` ở 40.936 đêm × 3 múi); R2-e Cây ngày 0; hồi quy (quét 80 cấu hình màn Giấc ngủ 0 lỗi; thẻ 16/16; sheet 36/36). analyze 0 · test 536 + 2 skip.
+- **N2b (P3):** vi 320dp chữ 200% pill "Giờ bên ấy" thu còn ×0,78 (spec ghi ×0,8), chữ vẫn đọc đủ → Lead chỉnh spec `design.md` thành tối thiểu ×0,75 (khớp test).
+- **N3b (P3, hồi quy so với bản live):** Android + Gboard, ghi chú đủ 100 ký tự, chạm giữa một từ (vùng đang soạn) rồi gõ → mất chữ cuối của từ cũ ("hello"+"x" → "hellx"). → Dev vòng 5 (cách vá Tester đã thử 15/15).
+- **N4b (P3 trợ năng):** TalkBack đọc nút ✎ chen giữa thông tin một người ở chi tiết đêm. → Dev vòng 5.
+- Ghi chú có từ trước: `love_tree_service.dart:65` `daysTogether` đếm thiếu 1 ngày suốt mùa hè ở nước có DST → Dev vòng 5. Chữ ×3,1 (ngoài ma trận) còn tràn ô lịch/thanh chọn/chú giải/thống kê → nợ.
+- [2026-10-12] [Tester] Vòng 9: N1, R2-e, hồi quy PASS; N2b/N3b/N4b P3.
+
+## Vòng 9 — nghiệm thu vá vòng 4 logic giấc ngủ · 2026-10-12 · Tester, Lead xác nhận — PASS 5/5 + 1 P3 mới
+- L1 bay (VN↔LA, VN↔Tokyo, VN↔Singapore, Apia↔Pago Pago, Kiritimati→Honolulu, 45 chuyến ngẫu nhiên / 113 chặng / 11 múi): 0 đêm trùng ở 2 khoá, 0 đêm đồng hồ khác cũ hơn hôm qua bị đổi (cùng kịch bản với `_merge` 1.8.0: 12–30 vi phạm mỗi chặng). SL2a fuzz 7 múi: 0 chặn nhầm; Watch đồng bộ muộn 2/12 ngày vẫn đo lại. L2 Health: thức ≤ 90' gộp, 91' tách; ốm 25g ra đúng. L3 trên Hive thật: A→B→A, A→B→A→B, xoá tài khoản khi đang/không cầm máy. SL5 chép lỗi 2 lần liền rồi thành công: đủ dữ liệu, khoá đã xoá không sống lại. Thứ tự phát hành: gửi lại đúng 1 lần không `tz`, không lặp.
+- **N-L1 (P3, có từ 1.8.0):** đêm thuộc đồng hồ khác bị lần đo ở nơi đến cắt ngắn 23–154 phút (6/45 chuyến) và đẩy bản cắt cho người ấy → vá 1 dòng ở vòng 5 (Tester đã chạy thử: 0 lần cắt).
+- Giới hạn ghi nợ: K1 bay xa mà không mở app từ lúc dậy tới lúc bay thì mất đêm cuối ở nhà; K2 qua đường đổi ngày lùi 24g mất đêm đầu ở nơi đến; K3 inBed tách 2 mảnh quanh lúc thức thì không gộp [CẦN TEST runtime]; K4 máy dùng chung từ trước 1.9.1 thì tài khoản mở 1.9.1 đầu tiên nhận 14 đêm cũ; K5 1.9.1 ra trước rules + app tắt lúc offline → lệnh ghi kèm `tz` trong hàng đợi bị từ chối không ai bắt (hết hẳn nếu deploy rules trước).
+- [2026-10-12] [Tester] Vòng 9 logic: PASS 5/5, N-L1 P3 (vá vòng 5), K1–K5 ghi nợ.

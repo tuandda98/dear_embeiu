@@ -242,3 +242,83 @@ Môi trường: iPhone 17 simulator iOS 26.3 trong Device Hub (Xcode 27) + Andro
 - [2026-10-11] [Lead] Chạy thật trên iPhone simulator + Android emulator: 21 kịch bản (M1–M21) — Google sign-in Android tới cùng, luồng get → bộ nhớ tạm → gợi ý mã → ghép đôi, lịch nhắc + huỷ mốc 2h, PF19 với app bị kill. Phát hiện P1 có từ trước: chưa ghép đôi thì không xoá được tài khoản.
 - [2026-10-11] [Tester] Vòng 3 soát đợt 2 (`69f856b..83da599`): Google sign-in, PF18, PF19, Podfile.lock, plist, l10n. Test 261/261, analyze 0. PASS có điều kiện: 0 P0/P1/P2, 3 P3 (BUG-8/9/10). (Lead dán hộ — agent Tester chỉ đọc.)
 - [2026-10-11] [Lead] Verify vá vòng 3 `604e8c4`: analyze 0 · 266/266; máy ảo Android: phông 2 tab Setup đã là Quicksand, bản cuối chạy ổn. Còn ⏳ máy thật: RG1–RG8 + R-list vòng 1/2.
+
+## Vòng 4 — audit 1.9.0 (2026-10-12, `release/1.9.0`@fe37652) · 3 Tester song song, Lead xác nhận
+
+- **Trạng thái:** FAIL không chặn bản đang duyệt: 2 P2 (BUG-11, BUG-18) · còn lại P3. Các commit sau vòng 3 (`439ab91`, `2356e7b`, `604e8c4`, `ef56cd4`, `8cbd9fd`, `a25fd05`) đạt. Kế hoạch vá + ID nhóm: [`../../AUDIT-2026-10-12.md`](../../AUDIT-2026-10-12.md).
+- **Đã chạy:** `flutter test` social_sign_in + apple_delete_confirm 16/16; 4 file ghép đôi 22/22; analyze 8 file 0; 3 widget test thử deep link; thử `inviteFollowUpSlots` 9 mốc + `parseInviteCode` 10 chuỗi; đọc nguồn plugin `google_sign_in` 7.2.0, `firebase_auth` 6.5.3, engine Flutter 3.41.6.
+- **Cấu hình PROD đã đủ trên đĩa:** `google-services.json` có OAuth Android cho khoá upload `ffef1e27…` + `bda72d1a…` (khoá ký Play theo `HISTORY.md:114`) + web client; iOS PROD `CLIENT_ID`/`REVERSED_CLIENT_ID` khớp scheme. [CẦN TEST runtime] `BD:A7:2D:1A…` trùng SHA-1 ở Play Console → App integrity.
+
+### Đăng nhập + xoá tài khoản (Tester đăng nhập)
+| # | Mức | Chỗ | Kịch bản → hậu quả | Vá (ID) |
+|---|---|---|---|---|
+| BUG-11 | P2 sản phẩm | `social_sign_in_buttons.dart:43`; `lib/` không có chỗ đặt mật khẩu | Đăng ký Apple trên iPhone rồi đổi sang Android: không nút Apple, không mật khẩu. Email ẩn khác Gmail → bấm Google tạo tài khoản mới trống, tưởng mất hết kỷ niệm. "Quên mật khẩu" tới email ẩn chỉ chạy nếu đã đăng ký tên miền với Apple Private Email Relay. | AU1 (D1) |
+| BUG-12 | P3 | `settings_screen.dart:134-140`, `:1071-1080` | Đang xoá tài khoản bấm Back/vuốt cạnh → Cài đặt đóng → xoá xong không ai đẩy authGate → đứng ở Home với tài khoản đã xoá. | AU2 |
+| BUG-13 | P3 | `auth_service.dart:583-594`, `:749-801` | Tài khoản Apple có thêm `password` → xoá trên iPhone không mở sheet, không thu hồi token Apple (5.1.1(v)); Apple + Google xoá xong không `disconnect` Google. | AU3 |
+| BUG-14 | P3 | `social_sign_in_buttons.dart:67-75`; `login_screen.dart:67`, `:133-137` | Sheet đóng xong còn 1–3s chờ Firebase; bấm ← lúc đó → đăng nhập thành công nhưng không qua authGate (đã mint token phiên, vẫn ở landing). | AU4 |
+| BUG-15 | P3 | `auth_provider.dart:265-270` | Hai ngón chạm Apple + Google cùng frame → 2 luồng song song, mở khoá nút sai lúc. | AU5 |
+| BUG-16 | P3 | `auth_service.dart:841-845` | iPhone chưa đăng nhập Apple ID → xoá tài khoản Apple luôn báo "Chưa xoá được", dù callable không cần sheet. | AU6 |
+| BUG-17 | P3 | `auth_service.dart:1001-1013` | Apple ẩn tên + ẩn email → `displayName` = "Người dùng mới" mãi, không đổi được; push người ấy nhận đều dùng tên này. | PA8 |
+- Ghi chú tài liệu: `CLAUDE.md` còn ghi "⏳ PROD chưa bật [Apple]" và "⏳ Android PROD thiếu SHA-1" — lỗi thời (Lead sửa).
+- Đạt: `GoogleSignIn.initialize` 1 lần; huỷ Apple/Google im lặng; PF6 dựa mã `account-exists-with-different-credential` nên chống liệt kê email không làm mất PF6; cờ bận theo nhà cung cấp khoá chéo; nút ẩn khi local fallback / thiếu `CLIENT_ID`; đăng nhập xong luôn qua authGate; landing 320dp/200% không tràn; PF3 cổng xác thực chỉ chặn tài khoản có `password`; đăng xuất / bị đá / purge đều đăng xuất Google; xoá: xác nhận Apple trước mọi bước dọn, thu hồi trước callable, PF18 chỉ xoá user mới tạo.
+
+### Ghép đôi + nhắc mời + push (Tester ghép đôi — đổi số từ BUG-11..16 của Tester sang BUG-18..23 để khỏi trùng)
+| # | Mức | Chỗ | Kịch bản → hậu quả | Vá (ID) |
+|---|---|---|---|---|
+| BUG-18 | P2 | `main.dart:225,350`; `session_route_screen.dart:77`; `docs/get.html:216` | App chạy nền, bấm "Mở Dear Embeiu" trên trang get (`dearembeiu://invite`) → deep linking mặc định của Flutter `pushNamed('/')` → SessionRouteScreen thứ 2 → stack [Setup cũ, Setup mới] / 2 HomeScreen cùng sống; iOS lúc app tắt: splash kẹt dưới đáy, vuốt back là vòng quay mãi. Probe: `handlePushRoute('dearembeiu://invite')` → 2 Setup, canPop=true. | PA1 (D8) |
+| BUG-19 | P3 | `reminder_provider.dart:1409,1418`; `reminder_service.dart:818-842` | Bấm Gửi/Sao chép/QR đúng lúc đang lập lịch → 1180 bị lập lại → 2 giờ sau vẫn "Gửi lời mời cho người ấy nhé". | PA2 |
+| BUG-20 | P3 | `couple_service.dart:420-454,547-550`; `firestore.rules:386-393` | Mã của couple đã đủ 2 người → `permission-denied` → báo "nhờ người ấy tạo lại mã…"; nhánh `coupleFull` không bao giờ chạy trên Firebase. | PA3 |
+| BUG-21 | P3 | `setup_screen.dart:1278-1285,360-367`; `couple_service.dart:348` | "ABC 234", ký tự full-width, Telex ("AA"→"Â") báo sai mã. | PA4 |
+| BUG-22 | P3 | `setup_screen.dart:74-82,96` | iOS: Setup → Cài đặt → Safari chép link → quay lại → back về Setup: không kiểm bộ nhớ tạm. | PA5 |
+| BUG-23 | P3 | `reminder_provider.dart:1341,1369-1382` | `invite_shared_at` chung cả máy → couple mới trong vòng 1 giờ mất nhắc +2h. | PA6 |
+- Ghi chú: Android lập lịch `inexactAllowWhileIdle` (không cần SCHEDULE_EXACT_ALARM, có try/catch) nhưng có thể trễ tới ~1 giờ; Android đọc bộ nhớ tạm mỗi lần tạo Setup (toast "đã dán", PF12 đã chấp nhận).
+- Đạt: id 1180–1182 cố định, huỷ cả dải trước khi lập; `createdAt` luôn có; né giờ đêm; đổi ngôn ngữ lập lại chữ; từ chối quyền thông báo không ném lỗi; trần 64 lịch iOS không tệ hơn; đăng xuất/rời/xoá huỷ dải mời; PF19 wake iOS + Android; iOS chỉ đọc bộ nhớ tạm khi `detectPatterns` thấy URL; mã của chính mình bị loại; QR 38 byte phiên bản 3; get.html chỉ dùng `textContent`, nhận iPadOS qua `maxTouchPoints`; Cài đặt rút gọn đúng 4 mục; CF xoá được tài khoản chưa có couple.
+
+### Soát chéo (Tester chéo)
+| # | Mức | Chỗ | Kịch bản → hậu quả | Vá (ID) |
+|---|---|---|---|---|
+| X7 | — | = BUG-17 | Push dùng "Người dùng mới" dù ở Setup đã gõ tên thật. | PA8 |
+| X8 | P3 | `home_screen.dart:1034-1052`; `reminder_service.dart:778-806` | Người ấy rời khi couple mới tạo <72h → người ở lại nhận "Người ấy chưa vào nè 💌" lúc +20h/+72h. | PA7 |
+| X9 | — | = BUG-23 | | PA6 |
+
+### Cần máy thật
+1. TestFlight PROD (gấp): đăng nhập Apple người mới → xoá tài khoản → log không còn `Apple token revoke failed`, Dear Embeiu biến mất khỏi "Sign in with Apple" (khoá .p8 PROD nhập sau khi đã nộp IPA).
+2. Android PROD: Google trên bản ký khoá upload và bản cài từ Play.
+3. BUG-11: tài khoản Apple (email thật / ẩn) chuyển sang Android, sau khi có "Đặt mật khẩu".
+4. BUG-18: app chạy nền / đã tắt → quét QR → "Mở Dear Embeiu" → back có ra màn thứ hai không (sau khi tắt deep linking).
+5. Telex AA/AS/DD trên bàn phím tiếng Việt iOS + Gboard; mốc nhắc 21:xx trên Android 12+ thực tế nổ lúc mấy giờ.
+
+- [2026-10-12] [Tester] Vòng 4 (audit 1.9.0): 2 P2 (BUG-11 Apple→Android, BUG-18 deep link chồng màn), P3 BUG-12..17, BUG-19..23, X8. Lead đọc lại code xác nhận; vá ở `fix/audit-2026-10-12`.
+
+## Vòng 5 — nghiệm thu bản vá (2026-10-12, `fix/audit-2026-10-12` chưa commit) · 2 Tester, Lead xác nhận
+
+### Nhóm PA — PASS có điều kiện (11/11 ID vá đúng gốc · 0 P0/P1/P2 · 3 P3 mới)
+- Đã chạy: 7 file test PA 33/33 · analyze toàn dự án 0 · plutil + xmllint · 12 đột biến (9 đỏ, 3 xanh ở chỗ chưa có test) · probe rules emulator · đọc engine 3.41.6 (PA1 chặn ở native `FlutterSceneLifeCycle.mm:463`, `FlutterAppDelegate.mm:164`, Android meta-data của activity; plugin nhận URL trước cổng chặn → Google iOS không ảnh hưởng).
+- **PA-N1 (P3, do PA3):** couple đã xoá cũng ra `permission-denied` → báo nhầm "đã đủ 2 người" → vá rules (Dev BE vòng 3).
+- **PA-N2 (P3):** chuỗi xin quyền Sức khoẻ nói "hai mốc giờ" nhưng chia sẻ còn gửi `wakeUps` → vá câu (Dev PA vòng 3).
+- **PA-N3 (P3 thấp):** khoá cũ `invite_shared_at` của 1.9.0 bị bỏ qua sau nâng cấp → một lần nhắc +2h thừa → vá (Dev PA vòng 3).
+- Ghi chú: PA4 ghi ngược chuỗi chuẩn hoá vào ô kể cả khi không phải mã (chỉ hiển thị) → vá luôn; PA7 còn hở khi người ấy vào rồi rời lúc app người tạo chưa mở (chấp nhận).
+
+### Nhóm AU — FAIL → vá vòng 3
+- AU1, AU2, AU3, AU4, AU5, AU7, AU8 PASS (9 file test 69/69 · 17 mutation đều đỏ · 320dp chữ 200% không tràn).
+- **BUG-24 (major, do AU6):** `auth_service.dart` ~927-940 bắt mọi `FirebaseAuthException` rồi xoá tiếp; nhánh lệch Apple ID gọi `_auth.signOut()` không bọc (~986). FirebaseAuth iOS `signOut()` ném `keychain-error` mà giữ người dùng → phiên là Apple ID khác (B) → callable `deleteAccount` chạy bằng token của B → **xoá nhầm tài khoản B**. Probe: bản vá báo xoá xong dưới uid B; `release/1.9.0` dừng đúng. Lead đọc lại code xác nhận. → Dev AU vòng 3 (chốt uid trước callable).
+- **BUG-25 (minor, do AU1×AU3):** tài khoản Apple + mật khẩu đăng nhập email trên iPhone mang Apple ID khác → sheet ra Apple ID khác → bị đăng xuất, không xoá được (5.1.1(v)). → Dev AU vòng 3 (`getCredentialState` trước khi mở sheet).
+- Ghi chú: N1 cổng xác thực bỏ qua tài khoản có Apple/Google không mở lỗ thực; N2 "Quên mật khẩu" tới email ẩn Apple không tới nơi khi chưa đăng ký `dearembeiu.com` với Apple Private Email Relay mà app vẫn báo đã gửi → việc của user trước 1.9.1.
+
+- [2026-10-12] [Tester] Vòng 5: PA PASS có điều kiện (3 P3); AU FAIL (BUG-24 major, BUG-25 minor). (Lead dán hộ — agent Tester chỉ đọc.)
+
+## Vòng 6 — nghiệm thu AU vòng 3 (2026-10-12) · Tester, Lead xác nhận — PASS có điều kiện
+
+- BUG-24 đóng: `_signOutQuietly` nuốt lỗi signOut và luôn ném sentinel; AU6 chỉ xoá tiếp đúng uid; callable `deleteAccount` chỉ có 1 chỗ gọi, ngay sau chốt `_requireSession`; `linkWithCredential` 2 chỗ đều có chốt. Probe keychain-error 4 ca: `callable ran as: []`.
+- BUG-25 đóng: kênh `AppleIdStateChannel` qua registrar bằng `if let`, về main thread, đủ 4 trạng thái + `@unknown default`; Dart trần 2 giây, mọi kết quả khác `authorized` đi nhánh mật khẩu; Android và tài khoản chỉ Apple không gọi kênh. `providerData[apple.com].uid` = `federatedId` = Apple `sub` theo mã nguồn FlutterFire + FirebaseAuth + auth emulator [CẦN TEST runtime].
+- 7 file test AU 78/78 · 20 đột biến, 17 đỏ (3 sống: chốt trước lần link thứ 2, trần 2 giây, uid Apple rỗng — code đúng, thiếu test).
+- **BUG-26 (P3):** iOS bị hỏi `credentialState` 2 lần (dialog + lúc xoá) → ghi chú "Apple sẽ hỏi" có thể lệch thực tế; chờ tới 2 giây không phản hồi; bấm Xoá 2 lần → 2 dialog → 2 lần `deleteAccount()` song song. → Dev AU vòng 4.
+- **BUG-27 (P3):** tài khoản chỉ Apple trên iPhone đã đổi Apple ID → Đặt mật khẩu → `requires-recent-login` → sheet ra Apple ID khác → bị đăng xuất mà chưa có mật khẩu (mất phiên duy nhất). → Dev AU vòng 4.
+- [2026-10-12] [Tester] Vòng 6: AU vòng 3 PASS có điều kiện (BUG-26, BUG-27 P3). (Lead dán hộ.)
+
+## Vòng 6b — nghiệm thu PA-N2/N3, PA4 ghi ngược, SubScreenHeader, InfoPlist.strings (2026-10-12) · Tester — PASS
+- PA-N3, PA4 ghi ngược (`^[A-HJ-NP-Z2-9]{6}$` khớp cả 3 hàm sinh mã + Nịnh Vợ Iu; bảng chữ không đổi từ `2a33c38`), PA-N2 (Info.plist + `vi.lproj` + `en.lproj` + ARB nói đủ giờ ngủ, giờ dậy, lần thức giấc) PASS; 3 đột biến đều đỏ.
+- **T6-1 (P3):** câu tiếng Việt xin quyền nằm 2 nơi (`vi.lproj` là nguồn thật, Info.plist dự phòng) mà test chỉ đọc Info.plist → sửa một nơi, test vẫn xanh. → lượt vá cuối: test so từng khoá.
+- **T6-2 (P3):** `sleepShareAskOnly` "Không có gì khác" nhưng người ấy còn thấy nhãn "Ghi tay"/"Đã sửa" (`source`). → lượt vá cuối.
+- Ghi chú: pbxproj có hunk đảo thứ tự build phase do hook Podfile `build_phases.unshift(gs_phase)` khi `pod install` — vô hại.
+- [2026-10-12] [Tester] Vòng 6b PASS (T6-1, T6-2 P3). (Lead dán hộ.)

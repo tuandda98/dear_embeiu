@@ -32,3 +32,7 @@
 
 ## Nhật ký
 - [2026-06-11] [tester] Nghiệm thu code-level toàn feature: PASS-có-điều-kiện (AC1–4 PASS; AC5 doc chưa cập nhật lúc nghiệm thu; 7 findings — 1 major doc, 4 minor, 2 info). Analyze 0 issue, test suite 18/18 pass. Finding #5 + AC5 được Lead đóng ngay sau đó.
+
+## [2026-10-12] [Tester] Nghiệm thu `SubScreenHeader` → `NavigationToolbar` + `EyebrowChip` ellipsis (audit) — PASS
+- 18 chỗ gọi; 7 màn thật × 320/375/412dp × chữ 1.0/2.0 × vi/en × 2 phông = 168 lượt, so với header `release/1.9.0`: toạ độ header, nút back (6–50 khi lề 16), nút phải và kết quả chạm **giống hệt**; chip ở giữa đúng toạ độ cũ ở chữ 1.0 + Quicksand (42/42). Chữ 2.0: bản cũ tràn trong chip 10/54 lượt và chip đè back/nút phải; bản mới 0 tràn, chip cách back ≥ 6px, nhãn dài có "…", nhấn giữ hiện đủ.
+- Ghi chú: phía nút ⋯ khi chip bị cắt chỉ cách vùng chạm 1px (không chồng). Nợ có từ 1.9.0: vùng chạm thật nút back 34×44; Lời nhắc ở 320dp × 2.0 EN `_TimeChip` tràn 2,8px (`milestone_reminders_screen.dart:354`); semantics "Quay lại" gộp chung với chip ở màn Lời nhắc.

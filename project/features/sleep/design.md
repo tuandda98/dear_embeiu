@@ -357,7 +357,7 @@ Home ─ SleepCard
 | sleepSetupHintAndroid | Bạn sẽ được đưa tới Cài đặt → Quyền truy cập dữ liệu sử dụng → bật Dear Embeiu, rồi quay lại app. | You'll go to Settings → Usage access → turn on Dear Embeiu, then come back. |
 | sleepSetupHintIos | iPhone sẽ hỏi quyền đọc mục Giấc ngủ trong Sức khoẻ. Chưa có dữ liệu thì bật Lịch ngủ trong app Sức khoẻ. | Your iPhone will ask to read Sleep in Health. No data yet? Turn on Sleep Schedule in Health. |
 | sleepShareAskPreview | {name} SẼ THẤY | {name} WILL SEE |
-| sleepShareAskOnly | Không có gì khác ngoài giờ ngủ và giờ dậy. | Nothing else besides when you sleep and wake. |
+| sleepShareAskOnly | Chỉ giờ ngủ, giờ dậy và những lần thức giấc trong đêm, theo giờ nơi bạn ngủ. Đêm nào bạn sửa hoặc ghi tay sẽ có thêm nhãn. *(đổi 2026-10-12, audit: câu cũ "Không có gì khác ngoài giờ ngủ và giờ dậy" sai vì app gửi cả lần thức giấc, múi giờ, nhãn)* | Only when you fell asleep, woke up and any times you woke in the night, in the time zone you slept in. Nights you edit or log by hand get a label. |
 | sleepBackToStep1 | Quay lại bước 1 | Back to step 1 |
 | sleepEditSubtitle | Sửa lại nếu app đoán chưa đúng. | Fix it if the app got it wrong. |
 | sleepEditNote | Sau khi lưu, đêm này hiện nhãn “Đã sửa” — người ấy cũng thấy — và app không tự ghi đè nữa. | Once saved, this night shows an “Edited” label — your person sees it too — and the app won't overwrite it. |
@@ -435,3 +435,9 @@ ICU: chuỗi có `*…*` là chữ in đậm do code render, không phải place
 - [2026-10-10] [Designer] User chốt "cho sửa nhưng minh bạch": thêm mục Quyết định R1–R4 (nhãn Đã sửa/Ghi tay công khai cho cả người ấy · không lộ giờ gốc · chỉ sửa 7 đêm gần nhất · báo trước trong sheet sửa), bỏ nhãn cho đêm tự ghi, thêm state R + K, 2 key copy, dev note rules 8 ngày. Mockup cập nhật theo.
 - [2026-10-10] [Designer] Dựng mockup tương tác 5 artboard (link ở đầu file) + vá độ tương phản theo mockup: thanh/làn người ấy đổi sang `accentLavenderDeep`; tên người = chữ `textSecondary` + chấm màu; segmented chọn = navy; mọi nút chính = navy (tim hồng trong nút); chữ thông tin bỏ `textTertiary`. Thêm 11 key copy (hộp gợi ý cấp quyền, xem trước khi chia sẻ, ghi chú sửa…).
 - [2026-10-10] [Designer] Spec v1: card Home "Đêm qua" + màn lịch tháng 2 cột/ô (bạn rose · người ấy lavender, cao = thời lượng, shame-free) + chi tiết đêm dạng dòng thời gian 2 lane có dải "ngủ cùng lúc" + thống kê tháng + công tắc chia sẻ (mặc định tắt) + sheet cấp quyền/ghi tay/giải thích. Research khả thi: Android tự tính từ sự kiện màn hình (UsageStats, API 28+); iOS không có lịch sử khoá máy → đọc Apple Health. Toàn bộ token tái dùng, không thêm màu mới.
+
+## [2026-10-12] [Lead] Điều chỉnh sau audit (thay Designer, chờ Designer soát lại)
+- §B chi tiết đêm: giờ "23:45 → 6:55" xuống dòng riêng dưới tên (lùi 28), tên chiếm phần còn lại thay vì rộng cố định 64 — bố cục một hàng cũ cắt chữ từ 320dp@100%.
+- Thẻ "Đêm qua": pill "Đã sửa"/"Giờ bên ấy" ra hàng riêng dưới trăng, rộng hết cột, tự thu nhỏ (tối thiểu ×0,75 — vi 320dp chữ 200% đo được ×0,78, chữ vẫn đọc đủ; Tester vòng 9 N2b) khi cột quá hẹp.
+- Trục làn 18:00 → 14:00 (trước dừng 12:00 trong khi cửa sổ tính đêm tới 14:00).
+- Đêm hiện theo đồng hồ nơi nó diễn ra; đêm người ấy ở múi khác có pill "Giờ bên ấy" (D2).
