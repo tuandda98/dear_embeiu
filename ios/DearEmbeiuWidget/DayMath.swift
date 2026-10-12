@@ -24,14 +24,16 @@ enum DayMath {
     return calendar
   }
 
-  /// Calendar days from the anniversary to `today` — day numbers, not hours, so
-  /// a DST change never costs a day. Never below 0 (future date = day 0).
+  /// Calendar days from the anniversary to `today` — midnight to midnight in
+  /// `calendar`, so a DST change never costs a day. Never below 0 (future date
+  /// = day 0). Not `ordinality(of: .day, in: .era)`: that counts UTC day
+  /// boundaries and is off by one for most of the local day.
   static func daysTogether(anniversary: String, today: Date, calendar: Calendar = DayMath.gregorian) -> Int {
     guard let components = parseDate(anniversary),
-          let start = calendar.date(from: components),
-          let a = calendar.ordinality(of: .day, in: .era, for: start),
-          let t = calendar.ordinality(of: .day, in: .era, for: today) else { return 0 }
-    return max(0, t - a)
+          let start = calendar.date(from: components) else { return 0 }
+    let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: start),
+                                       to: calendar.startOfDay(for: today)).day ?? 0
+    return max(0, days)
   }
 
   static func nextMilestone(_ days: Int) -> Int {

@@ -26,6 +26,10 @@ berlin.timeZone = TimeZone(identifier: "Europe/Berlin")!
 let afterDst = berlin.date(from: DateComponents(year: 2026, month: 3, day: 30, hour: 0, minute: 30))!
 check(DayMath.daysTogether(anniversary: "2026-03-29", today: afterDst, calendar: berlin) == 1, "DST change costs no day")
 check(DayMath.gregorian.identifier == .gregorian, "default calendar is Gregorian whatever the device setting (Dart parity)")
+// check-widget-daymath.sh runs this binary with `-AppleLocale th_TH` (Buddhist
+// calendar), so the default-calendar path must still count in Gregorian.
+let noon = DayMath.gregorian.date(from: DateComponents(year: 2026, month: 10, day: 12, hour: 12))!
+check(DayMath.daysTogether(anniversary: "2023-05-14", today: noon) == 1247, "default path counts Gregorian even under th_TH (Buddhist) locale")
 
 let table: [(Int, Int)] = [(0, 30), (29, 30), (30, 50), (364, 365), (365, 500), (1247, 1500),
                            (2999, 3000), (3000, 3500), (3499, 3500), (3500, 4000)]
@@ -49,4 +53,4 @@ check(label(1500) == "1.500 ngày", "1500 → 1.500 ngày")
 check(label(50) == "50 ngày", "50 → 50 ngày")
 
 if failures > 0 { print("\(failures) check(s) failed"); exit(1) }
-print("OK DayMath — \(table.count + 18) checks")
+print("OK DayMath — \(table.count + 19) checks")

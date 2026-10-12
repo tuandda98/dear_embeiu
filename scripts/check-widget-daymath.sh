@@ -6,4 +6,6 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 OUT="$(mktemp -d)/daymath"
 xcrun swiftc -O ios/DearEmbeiuWidget/DayMath.swift scripts/widget-daymath-check/main.swift -o "$OUT"
-"$OUT"
+# -AppleLocale th_TH makes Calendar.current Buddhist for this process: the
+# default-calendar check only means something under a non-Gregorian locale.
+"$OUT" -AppleLocale th_TH
