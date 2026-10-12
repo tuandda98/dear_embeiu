@@ -36,6 +36,11 @@ class MainActivity : FlutterActivity() {
                         DayCounterWidget.updateAll(this)
                         result.success(null)
                     }
+                    "setPhoto" -> {
+                        WidgetStore.savePhoto(this, call.arguments as? ByteArray)
+                        DayCounterWidget.updateAll(this)
+                        result.success(null)
+                    }
                     "consumeLaunch" -> result.success(WidgetStore.consumeLaunch(this))
                     else -> result.notImplemented()
                 }

@@ -30,6 +30,7 @@ import '../providers/streak_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/catchup_service.dart';
 import '../services/home_prefs_service.dart';
+import '../services/home_widget_bridge.dart';
 import '../services/love_tree_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
@@ -1633,6 +1634,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       bgIndex = 0;
     }
     final counterBg = bgCandidates.isEmpty ? null : bgCandidates[bgIndex];
+    // Home-screen widget shows the same photo as the card. Deduped by key in
+    // the bridge, so this is a cheap compare on every build and real work only
+    // after a swipe / partner swipe / whitelist change / photo load.
+    HomeWidgetBridge.pushPhoto(
+      key: counterBg?.key,
+      local: counterBg?.local,
+      remote: counterBg?.remote,
+    );
     if (_showBgHint && bgCandidates.length >= 2 && _bgHintTimer == null) {
       _bgHintTimer = Timer(const Duration(milliseconds: 4500), _dismissBgHint);
     }

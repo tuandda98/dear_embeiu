@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 /// The map Flutter pushes over `dear_embeiu/widget` (key list:
 /// lib/services/home_widget_snapshot.dart). The app stores it in the shared
@@ -15,6 +16,14 @@ struct WidgetSnapshot {
   /// and prod apps never read each other's store.
   static var groupId: String? {
     Bundle.main.object(forInfoDictionaryKey: "AppGroupId") as? String
+  }
+
+  /// The CounterCard photo the app wrote via `setPhoto` (HomeWidgetChannel).
+  static func loadPhoto() -> UIImage? {
+    guard let group = groupId,
+          let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group)?
+            .appendingPathComponent("widget_photo.png") else { return nil }
+    return UIImage(contentsOfFile: url.path)
   }
 
   static func load() -> WidgetSnapshot? {

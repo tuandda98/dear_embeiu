@@ -72,8 +72,10 @@ struct DayCounterView: View {
   private var familyName: String { family == .systemMedium ? "medium" : "small" }
 
   var body: some View {
+    // Photo only with a couple: the empty state never shows a stale file.
+    let photo = (entry.snapshot?.isCounter ?? false) ? WidgetSnapshot.loadPhoto() : nil
     content
-      .widgetBackground(WidgetBackground(medium: family == .systemMedium))
+      .widgetBackground(WidgetBackground(medium: family == .systemMedium, photo: photo))
       .widgetURL(URL(string: "dearembeiu://widget?family=\(familyName)"))
   }
 
@@ -92,18 +94,37 @@ struct DayCounterView: View {
   }
 }
 
-/// Gradient 150° + dark scrim + two aurora glows, like the Home CounterCard.
+/// The couple photo the CounterCard shows (center-crop + the card's
+/// mid-strength bottom scrim), or — no photo yet — the CounterCard's own
+/// sunsetRomance gradient + two aurora glows. 2026-10-12: the old
+/// #FF5C8F→#E63956 + .28 scrim was darker than anything in the app.
 /// The medium widget gets the larger glows from design.md (Ø110 / Ø160).
 struct WidgetBackground: View {
   let medium: Bool
+  var photo: UIImage? = nil
   var body: some View {
+    if let photo {
+      ZStack {
+        GeometryReader { g in
+          Image(uiImage: photo).resizable().scaledToFill()
+            .frame(width: g.size.width, height: g.size.height).clipped()
+        }
+        LinearGradient(colors: [.black.opacity(0.18), .black.opacity(0.60)],
+                       startPoint: .top, endPoint: .bottom)
+      }
+    } else {
+      gradient
+    }
+  }
+
+  private var gradient: some View {
     ZStack {
       LinearGradient(stops: [
-        .init(color: Color(hex: 0xFF5C8F), location: 0),
-        .init(color: Color(hex: 0xFF4D6D), location: 0.55),
-        .init(color: Color(hex: 0xE63956), location: 1),
+        .init(color: Color(hex: 0xFF6B9D), location: 0),
+        .init(color: Color(hex: 0xFF8FA3), location: 0.55),
+        .init(color: Color(hex: 0xFFB6C1), location: 1),
       ], startPoint: .topLeading, endPoint: .bottomTrailing)
-      LinearGradient(colors: [.black.opacity(0.10), .black.opacity(0.28)],
+      LinearGradient(colors: [.black.opacity(0.08), .black.opacity(0.36)],
                      startPoint: .top, endPoint: .bottom)
       Circle().fill(Color.white.opacity(0.26))
         .frame(width: medium ? 110 : 96, height: medium ? 110 : 96).blur(radius: 18)

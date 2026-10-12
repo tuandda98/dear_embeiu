@@ -42,10 +42,15 @@ class DayCounterWidget : AppWidgetProvider() {
             val snapshot = WidgetStore.load(context)
             val minWidth = manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
             val medium = minWidth >= MEDIUM_MIN_WIDTH_DP
-            val views = if (snapshot["state"] == "counter") {
-                counterViews(context, snapshot, medium)
-            } else {
-                emptyViews(context, snapshot)
+            val counter = snapshot["state"] == "counter"
+            val views = if (counter) counterViews(context, snapshot, medium) else emptyViews(context, snapshot)
+            // Couple photo behind the numbers (the one the CounterCard shows);
+            // the empty state never shows a photo even if a stale file exists.
+            val photo = if (counter) WidgetStore.photoBitmap(context, manager.getAppWidgetOptions(id)) else null
+            if (photo != null) {
+                views.setImageViewBitmap(R.id.widget_photo, photo)
+                views.setViewVisibility(R.id.widget_photo, View.VISIBLE)
+                views.setViewVisibility(R.id.widget_scrim, View.VISIBLE)
             }
             views.setOnClickPendingIntent(R.id.widget_root, openApp(context, if (medium) "medium" else "small"))
             manager.updateAppWidget(id, views)

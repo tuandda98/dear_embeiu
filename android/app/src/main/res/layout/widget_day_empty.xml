@@ -7,6 +7,24 @@
     android:background="@drawable/widget_bg"
     android:clipToOutline="true">
 
+    <!-- Couple photo (feature home-widget, 2026-10-12): native sets the bitmap
+         with rounded corners baked in; GONE = brand gradient from widget_bg. -->
+    <ImageView
+        android:id="@+id/widget_photo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:visibility="gone" />
+
+    <!-- FrameLayout, not View: RemoteViews refuses to inflate android.view.View. -->
+    <FrameLayout
+        android:id="@+id/widget_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/widget_scrim"
+        android:visibility="gone" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

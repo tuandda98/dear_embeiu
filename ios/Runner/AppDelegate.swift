@@ -226,6 +226,13 @@ final class HomeWidgetChannel {
     return UserDefaults(suiteName: group)
   }
 
+  /// Same file the extension reads (WidgetSnapshot.photoURL).
+  private static var photoURL: URL? {
+    guard let group = Bundle.main.object(forInfoDictionaryKey: "AppGroupId") as? String else { return nil }
+    return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group)?
+      .appendingPathComponent("widget_photo.png")
+  }
+
   static func register(messenger: FlutterBinaryMessenger) {
     let channel = FlutterMethodChannel(name: "dear_embeiu/widget", binaryMessenger: messenger)
     channel.setMethodCallHandler { call, result in
@@ -236,6 +243,16 @@ final class HomeWidgetChannel {
           return
         }
         groupDefaults?.set(snapshot, forKey: snapshotKey)
+        if #available(iOS 14.0, *) { WidgetCenter.shared.reloadAllTimelines() }
+        result(nil)
+      case "setPhoto":
+        if let url = photoURL {
+          if let png = (call.arguments as? FlutterStandardTypedData)?.data {
+            try? png.write(to: url, options: .atomic)
+          } else {
+            try? FileManager.default.removeItem(at: url)
+          }
+        }
         if #available(iOS 14.0, *) { WidgetCenter.shared.reloadAllTimelines() }
         result(nil)
       case "consumeLaunch":

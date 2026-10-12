@@ -5,9 +5,9 @@
             <corners android:radius="@android:dimen/system_app_widget_background_radius" />
             <gradient
                 android:angle="315"
-                android:centerColor="#FF4D6D"
-                android:endColor="#E63956"
-                android:startColor="#FF5C8F"
+                android:centerColor="#FF8FA3"
+                android:endColor="#FFB6C1"
+                android:startColor="#FF6B9D"
                 android:type="linear" />
         </shape>
     </item>
@@ -16,8 +16,8 @@
             <corners android:radius="@android:dimen/system_app_widget_background_radius" />
             <gradient
                 android:angle="270"
-                android:endColor="#47000000"
-                android:startColor="#1A000000"
+                android:endColor="#5C000000"
+                android:startColor="#14000000"
                 android:type="linear" />
         </shape>
     </item>
