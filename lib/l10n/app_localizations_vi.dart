@@ -3102,6 +3102,13 @@ class AppLocalizationsVi extends AppLocalizations {
       'Cây Tình Yêu giờ có bầu trời đêm. Mỗi người 3 ngôi sao: trả lời câu hỏi, chọn tâm trạng, nhắn một tin. Đủ 6 sao là trái tim sáng trọn.';
 
   @override
+  String get featureTourPairingTitle => 'Rủ người ấy dễ hơn';
+
+  @override
+  String get featureTourPairingBody =>
+      'Người ấy giờ đăng ký bằng Google, hoặc Apple nếu dùng iPhone, khỏi tạo mật khẩu. Ngồi cạnh nhau thì mở Mã QR cho người ấy quét là có sẵn mã mời.';
+
+  @override
   String get rpsOpenPrompt => 'Ra tay đi! Không có bỏ lượt đâu 😄';
 
   @override

@@ -123,7 +123,7 @@ Android: không có khối Apple + dòng đồng ý. Chỉ đổi nhãn nút h�
 ┌──────────────────────────────────────────────────────────────┐ ▲
 │                    ‹6›Tiếp tục với Apple                   │ 52
 └──────────────────────────────────────────────────────────────┘ ▼
-  nền #000000 · r999 · Icons.apple 20 trắng · cách 10 · Quicksand 15 w600 ls .3 trắng (kiểu chữ nút theme, chung với Google + Email — 2026-10-12)
+  nền #000000 · r999 · logo chính thức Apple (Left-aligned – Small, khung 28,4×52 = cao bằng nút) · cách 3 (+ lề ~7 có sẵn trong file = 10 như Google) · Quicksand 15 w600 ls .3 trắng (kiểu chữ nút theme, chung với Google + Email — 2026-10-12)
   cụm logo + chữ căn giữa
 
 Đang chạy:  [                    ◌  spinner trắng 20                    ]
@@ -260,7 +260,7 @@ Quay lại Safari sau khi bấm tải:
 | Kích thước | cao 52, rộng full theo cột cha (HIG tối thiểu 140×30 — đạt) |
 | Hình | pill r999 (HIG cho chỉnh bo góc cho khớp nút khác trong app) |
 | Nền | `#000000` → token mới `AppColors.appleBlack` |
-| Logo | `Icons.apple` (Material) size 20 (24 trước 2026-10-12), trắng. So với nút Apple hệ thống trên simulator; logo trông thấp thì dịch lên 1pt |
+| Logo | Path SVG "Logo - SIWA - Left-aligned - White - Small" (Apple Design Resources, user đồng ý license 2026-10-12), vẽ bằng `_AppleLogoPainter`, khung cao 52 = chiều cao nút (HIG: khớp chiều cao, không cắt, không thêm lề dọc). Chọn bản Small vì glyph ~17pt khớp chữ G 18pt. Trước 2026-10-12 dùng `Icons.apple` |
 | Khoảng logo → chữ | 10 (chung với nút Google, 2026-10-12) |
 | Chữ | `continueWithApple`, trắng, **Quicksand 15 w600 ls .3** = kiểu chữ nút theme (thiết kế lại 2026-10-12, user "chữ to quá, nhìn hiện đại hơn"; trước đó SF Display 22). HIG cho đổi phông/cỡ/độ đậm nhưng khuyến nghị chữ = 43% chiều cao; 15/52 ≈ 29% thấp hơn khuyến nghị → **chấp nhận rủi ro thấp** (App Review thường soát màu, logo, chữ, độ nổi bật); Apple góp ý thì chỉ nâng chữ nút Apple |
 | Căn | Row logo + chữ căn giữa, bọc `FittedBox(fit: BoxFit.scaleDown)` để chữ phóng to (Dynamic Type) không tràn |
@@ -414,7 +414,7 @@ Giữ nguyên toàn bộ CSS. Chỉ đổi chữ và thêm hành vi:
 Designer không sửa `project/design-system.md` trong phiên này. PO ghi bổ sung khi merge:
 
 1. **Token `AppColors.appleBlack = Color(0xFF000000)`**, chỉ dùng cho nút Apple. Ghi rõ `AppColors.black` là navy #1A1A2E để khỏi nhầm.
-2. **Ngoại lệ icon:** `Icons.apple` (Material) cho logo Apple, vì Iconsax không có logo thương hiệu. Thêm vào danh sách ngoại lệ ở CLAUDE.md §3, cạnh `Icons.favorite` và `Icons.check_rounded`.
+2. **Logo Apple:** không lấy từ icon set nào, dùng path chính thức của Apple Design Resources (2026-10-12, thay `Icons.apple`).
 3. **Ngoại lệ phông:** chữ trong nút Apple dùng font hệ thống iOS (`CupertinoSystemDisplay`) cho giống nút Apple chuẩn. Toàn app vẫn Quicksand.
 4. **Khung sheet chuẩn** (đang có ngầm ở 6 sheet): nền `cardSurface` bo trên r28, padding 20/12/20/20 + SafeArea, handle 40×4 `textTertiary` α .4, title `displaySerif` 20 w700. Sheet nền đặc thì bỏ BackdropFilter.
 5. **Pill hành động nhỏ** (cụm mời, thẻ chờ Home): hình cao 36, vùng chạm 48 nhờ `tapTargetSize: padded` của nút Material, chữ `textPrimary`, nền + icon giữ tông hồng. Áp cho pill mới về sau.
@@ -526,7 +526,7 @@ Các key còn lại của `COPY` giữ nguyên.
 
 - **Người dùng email cũ bấm Apple** bằng Apple ID khác email, hoặc chọn "Ẩn email", sẽ có tài khoản mới trống. Đã giảm bằng: Apple nằm dưới form ở màn Đăng nhập, landing đổi nhãn "Đăng nhập bằng email", PF6 bắt ca trùng email. Phần còn lại cần theo dõi bằng analytics sau khi phát hành.
 - **Android 12+** hiện toast "đã dán từ bộ nhớ tạm" mỗi lần vào Setup khi bộ nhớ tạm có chữ (Android không có `changeCount`). Android chỉ 5% người dùng và ít người vào Setup nhiều lần — chấp nhận.
-- **Logo Apple** dùng `Icons.apple` thay vì file logo của Apple Design Resources. Nếu App Review góp ý thì thay bằng asset chính thức, khung nút giữ nguyên.
+- ~~**Logo Apple** dùng `Icons.apple`~~ → đã thay bằng logo chính thức của Apple ngày 2026-10-12.
 - **Email ẩn `…@privaterelay.appleid.com`** sẽ hiện nguyên ở Cài đặt → Tài khoản. Để sau.
 
 ## Soát UX (UI UX Pro Max)
@@ -543,7 +543,7 @@ Tương phản đo ở điểm tối nhất của nền form: kính trắng .16 
 | color-contrast · nhãn "hoặc" chữ 12 | navy .55 = 3,2:1 | Đổi navy .80 |
 | touch-target-size · link trong dòng đồng ý | 1–2 dòng chữ 12 ≈ 25–43pt | Vùng chạm cao tối thiểu 44 |
 | loading-buttons · accessible busy status | spinner trong nút, nút khác khoá | Đạt; thêm `enabled: false` + spinner ẩn khỏi cây trợ năng; khung 52 giữ nguyên nên bố cục không nhảy |
-| correct brand logos | `Icons.apple` (Material, vector, đúng hình) | Giữ theo yêu cầu lead; App Review góp ý thì thay file logo chính thức của Apple, khung nút không đổi. ⚠️ 2026-10-12: HIG ghi rõ "Use only the logo artwork downloaded from Apple Design Resources; never create a custom Apple logo" → thay trước release (checklist CLAUDE.md §13) |
+| correct brand logos | ✅ 2026-10-12: path SVG chính thức của Apple (Left-aligned – Small), khung cao bằng nút | Đã thay `Icons.apple` trước release 1.9.0 (user đồng ý tải file + license). Khoảng logo–chữ: `gap: 3` + lề ~7pt có sẵn trong file = 10 như nút Google (`pro-rules`: Correct Brand Logos, Icon Alignment) |
 | **Cặp nút Apple + Google** (soát 2026-10-12, Lead) · `font-scale` + `text-styles-system` | Apple 22 w600 · Google 17 w500 (17 nằm ngoài type scale), 2 nút đứng sát nhau nhìn lệch rõ | Vòng 1 (sáng 2026-10-12): chung SF Display 22 w500 → user "chữ to quá". **Vòng 2 (chốt):** chung kiểu chữ nút theme Quicksand 15 w600 trong `AuthPillButton` (cả iOS + Android), logo Apple 20 / G 18 |
 | **Cả thẻ đăng nhập landing** · `primary-action` ("Each screen should have only one primary CTA; secondary actions visually subordinate") + `visual-hierarchy` | 4 nút tô đậm: hồng "Chọn ngày yêu", đen Apple, trắng Google, hồng "Đăng nhập bằng email" | Nút hồng thứ 2 → nút viền Email cùng khuôn; "Đăng ký" → link chữ; dòng đồng ý xuống cuối. Còn 1 nút màu thương hiệu trên màn |
 | **Pill "Mã QR" + cụm mời + 2 pill thẻ chờ Home** · touch-target-size | pill cao ≈ 30–35pt (padding 8–9 + icon 14), bản iconOnly ≈ 30 | `TextButton.icon` / `IconButton` với `tapTargetSize: padded`: hình cao 36, vùng chạm 48×48, ripple bó trong hình; bớt khoảng cách quanh cụm 6pt để cụm không phình (mục 4a, 4b) |
@@ -576,3 +576,4 @@ Tương phản đo ở điểm tối nhất của nền form: kính trắng .16 
 - [2026-10-12] [Lead] Thiết kế lại thẻ đăng nhập landing theo yêu cầu "chữ to quá, nhìn hiện đại hơn" + "nhìn tổng quan rồi ra quyết định": tra UI UX Pro Max (`primary-action`, `visual-hierarchy`, `font-scale`), 3 nút Apple/Google/Email cùng khuôn pill h52 chữ theme Quicksand 15 w600, Email thành nút viền, "Đăng ký" thành link, đồng ý ở cuối. Kiểm trên simulator iOS + emulator Android.
 - [2026-10-11] [Designer] Soát UX 4 thành phần mới (nút Apple, pill "Mã QR", sheet QR, sheet gợi ý mã) bằng checklist UI UX Pro Max, chỉ phần UX. Sửa spec: dòng đồng ý + nhãn "hoặc" navy .62/.55 → .80 (đo 3,8:1 → 6,0:1 trên kính dawn3); link đồng ý vùng chạm 44; pill dựng bằng `TextButton.icon`/`IconButton` `tapTargetSize: padded` (hình 36, chạm 48) và chữ pill rose → navy (2,8:1 → 14,8:1); sheet QR cuộn được khi chữ to; nút chính sheet gợi ý rose → navy (3,2:1 → 17:1); vuốt mất sheet vẫn điền sẵn mã. Thêm mục "Soát UX" và 2 đề xuất design system (pill nhỏ, nợ chữ trắng trên nút rose).
 - [2026-10-12] [Lead] User hỏi vì sao chữ "Continue with Apple" to hơn "Continue with Google". Nguyên nhân: nút Google thêm ở đợt 2 không qua Designer, không tra UI UX Pro Max, đặt 17 w500 (ngoài type scale) cạnh nút Apple 22 w600. Tra lại skill (`font-scale`, `text-styles-system`) + HIG + Google branding → một kiểu chữ chung: iOS SF Display 22 w500, logo Apple 24 / G 22, cách 10; Android Roboto 18 w500. Chụp so sánh trước/sau trên simulator. User chốt luật: mọi việc UI luôn tra UI UX Pro Max (luật 8 CLAUDE.md).
+- [2026-10-12] [Lead] Thay logo Apple bằng artwork chính thức (gói `Logo-Sign-in-with-Apple.dmg` của Apple Design Resources, user đồng ý tải + license). Bản "Left-aligned – Small" White: theo HIG khung logo cao bằng nút 52 và giữ nguyên lề có sẵn; glyph ~17pt khớp chữ G 18pt. UI UX Pro Max `pro-rules`: Correct Brand Logos + Icon Alignment. Đã xem trên simulator iPhone.

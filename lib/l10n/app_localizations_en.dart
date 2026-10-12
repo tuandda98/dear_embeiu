@@ -3153,6 +3153,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.';
 
   @override
+  String get featureTourPairingTitle => 'Easier to bring your partner in';
+
+  @override
+  String get featureTourPairingBody =>
+      'Your partner can now sign up with Google, or Apple on iPhone, without creating a password. Sitting together? Open the QR code and they scan it to get your invite code.';
+
+  @override
   String get rpsOpenPrompt => 'Go on, throw! No skipping here 😄';
 
   @override

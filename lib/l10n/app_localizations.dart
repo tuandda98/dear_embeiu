@@ -5371,6 +5371,18 @@ abstract class AppLocalizations {
   /// **'The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.'**
   String get featureTourSkyBody;
 
+  /// Feature tour entry (build 26).
+  ///
+  /// In en, this message translates to:
+  /// **'Easier to bring your partner in'**
+  String get featureTourPairingTitle;
+
+  /// Feature tour entry (build 26).
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner can now sign up with Google, or Apple on iPhone, without creating a password. Sitting together? Open the QR code and they scan it to get your invite code.'**
+  String get featureTourPairingBody;
+
   /// Play screen caption once the 5s beat is over and nobody has thrown (no time limit).
   ///
   /// In en, this message translates to:

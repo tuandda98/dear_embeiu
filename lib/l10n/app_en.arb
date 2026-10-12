@@ -2616,6 +2616,14 @@
   "@featureTourSkyBody": {
     "description": "Feature tour entry (build 25)."
   },
+  "featureTourPairingTitle": "Easier to bring your partner in",
+  "@featureTourPairingTitle": {
+    "description": "Feature tour entry (build 26)."
+  },
+  "featureTourPairingBody": "Your partner can now sign up with Google, or Apple on iPhone, without creating a password. Sitting together? Open the QR code and they scan it to get your invite code.",
+  "@featureTourPairingBody": {
+    "description": "Feature tour entry (build 26)."
+  },
   "rpsOpenPrompt": "Go on, throw! No skipping here 😄",
   "@rpsOpenPrompt": {
     "description": "Play screen caption once the 5s beat is over and nobody has thrown (no time limit)."
