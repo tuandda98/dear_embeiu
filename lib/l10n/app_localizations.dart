@@ -4022,12 +4022,6 @@ abstract class AppLocalizations {
   /// **'RECOVER ACCESS'**
   String get forgotPasswordBadge;
 
-  /// forgotPasswordEmailHeading
-  ///
-  /// In en, this message translates to:
-  /// **'Email'**
-  String get forgotPasswordEmailHeading;
-
   /// forgotPasswordSendBtn
   ///
   /// In en, this message translates to:

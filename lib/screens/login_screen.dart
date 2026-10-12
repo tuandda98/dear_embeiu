@@ -238,15 +238,8 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.emailLabel,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 18),
+            // No card heading: "WELCOME BACK" chip names the screen and the
+            // first field already says "Email" (duplicate, user 2026-10-13).
             _buildFieldBlock(
               label: l10n.emailLabel,
               child: TextFormField(

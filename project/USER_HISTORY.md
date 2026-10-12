@@ -987,3 +987,4 @@
 - [00:01] đổi username là test1@gmail.com test2@gmail.com test3@gmail.com test4@gmail.com pass mặc định là 12345678
 - [00:16] [Image #5] [Image #6] gỉai thích cho tôi, tại sao android chỉ có 2x2 trong khi ios có 2x4 và tại sao android [Image #7] backgournd lại khác với ở ngoài, nó chưa sync, tôi cần bạn tìm rootcause và fix
 - [00:20] [Image #8] có 2 chứ email rồi email, design promax thiết kế lại , [Image #9] phần cài đặt, bottom và top chưa egde sát, tôi muốn sát top và bottom , skill design ui promax xin hãy check lại toàn app và sửa những lỗi sai mà bạn tìm thấy về UI hoặc design lại sao cho hợp lý
+- [00:24] test cho ios luôn, đảm bảo mọi chức năng , lẫn ui đều hoạt động đúng và tốt

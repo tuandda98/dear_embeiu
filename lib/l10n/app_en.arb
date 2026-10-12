@@ -1699,10 +1699,6 @@
   "@forgotPasswordBadge": {
     "description": "forgotPasswordBadge"
   },
-  "forgotPasswordEmailHeading": "Email",
-  "@forgotPasswordEmailHeading": {
-    "description": "forgotPasswordEmailHeading"
-  },
   "forgotPasswordSendBtn": "Send reset email",
   "@forgotPasswordSendBtn": {
     "description": "forgotPasswordSendBtn"

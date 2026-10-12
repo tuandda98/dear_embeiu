@@ -2402,9 +2402,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgotPasswordBadge => 'RECOVER ACCESS';
 
   @override
-  String get forgotPasswordEmailHeading => 'Email';
-
-  @override
   String get forgotPasswordSendBtn => 'Send reset email';
 
   @override

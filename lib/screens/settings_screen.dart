@@ -28,6 +28,7 @@ import '../widgets/icon_badge.dart';
 import '../widgets/language_toggle_button.dart';
 import '../widgets/app_time_picker.dart';
 import '../widgets/section_header.dart';
+import '../widgets/status_bar_scrim.dart';
 import '../widgets/sub_screen_header.dart';
 import 'chat_bg_screen.dart';
 import 'counter_bg_screen.dart';
@@ -150,89 +151,107 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: settingsBody!,
             );
           },
+          // Edge-to-edge (user 2026-10-13): the list scrolls under the status
+          // bar and home indicator; the insets become scroll padding so the
+          // first/last card still start clear of the bars.
           child: SafeArea(
-            child: Consumer<CoupleProvider>(
-              builder: (context, coupleProvider, _) {
-                // No couple yet (opened from Setup, P1 2026-10-11): keep the
-                // account card, delete account and sign-out so an unpaired
-                // user can still delete the account (App Review 5.1.1(v)).
-                // Every couple-shared group hides.
-                final hasCouple = coupleProvider.couple != null;
-                final authProvider = context.watch<AuthProvider>();
-                // Hide the data-management card for specific accounts.
-                final email =
-                    (authProvider.currentUser?.email ??
-                            authProvider.currentEmail ??
-                            '')
-                        .trim()
-                        .toLowerCase();
-                final hideDataManagement = _hideDataManagementEmails.contains(
-                  email,
-                );
-                final showLunar = _lunarCalendarEmails.contains(email);
+            top: false,
+            bottom: false,
+            child: Stack(
+              children: [
+                Consumer<CoupleProvider>(
+                  builder: (context, coupleProvider, _) {
+                    // No couple yet (opened from Setup, P1 2026-10-11): keep the
+                    // account card, delete account and sign-out so an unpaired
+                    // user can still delete the account (App Review 5.1.1(v)).
+                    // Every couple-shared group hides.
+                    final hasCouple = coupleProvider.couple != null;
+                    final authProvider = context.watch<AuthProvider>();
+                    // Hide the data-management card for specific accounts.
+                    final email =
+                        (authProvider.currentUser?.email ??
+                                authProvider.currentEmail ??
+                                '')
+                            .trim()
+                            .toLowerCase();
+                    final hideDataManagement = _hideDataManagementEmails
+                        .contains(email);
+                    final showLunar = _lunarCalendarEmails.contains(email);
 
-                return SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SubScreenHeader(
-                        badge: l10n.settingsBadge,
-                        badgeIcon: IconsaxPlusLinear.setting_2,
-                        title: l10n.settingsTitle,
-                        subtitle: l10n.settingsHeaderSubtitle,
+                    final insets = MediaQuery.paddingOf(context);
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        16 + insets.top,
+                        16,
+                        24 + insets.bottom,
                       ),
-                      const SizedBox(height: 20),
-                      // Account first: "who am I signed in as" orients every
-                      // control below (standard OS-settings order).
-                      EntranceReveal(
-                        order: 0,
-                        child: _buildAccountSection(context),
-                      ),
-                      if (hasCouple) ...[
-                        const SizedBox(height: 24),
-                        EntranceReveal(
-                          order: 1,
-                          child: _buildNotificationsSection(context),
-                        ),
-                        if (showLunar) ...[
-                          const SizedBox(height: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SubScreenHeader(
+                            badge: l10n.settingsBadge,
+                            badgeIcon: IconsaxPlusLinear.setting_2,
+                            title: l10n.settingsTitle,
+                            subtitle: l10n.settingsHeaderSubtitle,
+                          ),
+                          const SizedBox(height: 20),
+                          // Account first: "who am I signed in as" orients every
+                          // control below (standard OS-settings order).
                           EntranceReveal(
-                            order: 2,
-                            child: _buildLunarSection(context),
+                            order: 0,
+                            child: _buildAccountSection(context),
+                          ),
+                          if (hasCouple) ...[
+                            const SizedBox(height: 24),
+                            EntranceReveal(
+                              order: 1,
+                              child: _buildNotificationsSection(context),
+                            ),
+                            if (showLunar) ...[
+                              const SizedBox(height: 24),
+                              EntranceReveal(
+                                order: 2,
+                                child: _buildLunarSection(context),
+                              ),
+                            ],
+                            const SizedBox(height: 24),
+                            EntranceReveal(
+                              order: 2,
+                              child: _buildGeneralSection(context),
+                            ),
+                          ],
+                          if (!hideDataManagement) ...[
+                            const SizedBox(height: 24),
+                            EntranceReveal(
+                              order: 3,
+                              child: _buildDangerZone(
+                                context,
+                                isUsingFirebase: authProvider.isUsingFirebase,
+                                hasCouple: hasCouple,
+                              ),
+                            ),
+                          ],
+                          // Sign-out closes the page — the universal settings
+                          // convention: scan order runs frequent → rare → leave.
+                          const SizedBox(height: 18),
+                          EntranceReveal(
+                            order: 4,
+                            child: _buildSignOutButton(context),
+                          ),
+                          const SizedBox(height: 14),
+                          EntranceReveal(
+                            order: 4,
+                            child: _buildVersionFooter(),
                           ),
                         ],
-                        const SizedBox(height: 24),
-                        EntranceReveal(
-                          order: 2,
-                          child: _buildGeneralSection(context),
-                        ),
-                      ],
-                      if (!hideDataManagement) ...[
-                        const SizedBox(height: 24),
-                        EntranceReveal(
-                          order: 3,
-                          child: _buildDangerZone(
-                            context,
-                            isUsingFirebase: authProvider.isUsingFirebase,
-                            hasCouple: hasCouple,
-                          ),
-                        ),
-                      ],
-                      // Sign-out closes the page — the universal settings
-                      // convention: scan order runs frequent → rare → leave.
-                      const SizedBox(height: 18),
-                      EntranceReveal(
-                        order: 4,
-                        child: _buildSignOutButton(context),
                       ),
-                      const SizedBox(height: 14),
-                      EntranceReveal(order: 4, child: _buildVersionFooter()),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+                const StatusBarScrim(),
+              ],
             ),
           ),
         ),

@@ -2303,9 +2303,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get forgotPasswordBadge => 'LẤY LẠI MẬT KHẨU';
 
   @override
-  String get forgotPasswordEmailHeading => 'Email';
-
-  @override
   String get forgotPasswordSendBtn => 'Gửi email đặt lại';
 
   @override
