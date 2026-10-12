@@ -93,4 +93,31 @@ void main() {
     expect(sent.length, 2);
     expect(sent.last['state'], 'empty', reason: 'signed out / no couple → empty');
   });
+
+  testWidgets('a failed update is retried on the next change', (tester) async {
+    final couples = _FakeCouples();
+    HomeWidgetBridge.resetForTest();
+    HomeWidgetBridge.bind(couples, LocaleProvider());
+    var failNext = true;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      if (failNext) {
+        failNext = false;
+        throw PlatformException(code: 'boom');
+      }
+      if (call.method == 'update') {
+        sent.add(Map<String, String>.from(call.arguments as Map));
+      }
+      return null;
+    });
+    sent.clear();
+
+    couples.emit(couple: couple);
+    await tester.pump();
+    expect(sent, isEmpty, reason: 'the first attempt failed');
+
+    couples.emit(couple: couple);
+    await tester.pump();
+    expect(sent.length, 1, reason: 'the same snapshot is re-sent after a failure');
+  });
 }
