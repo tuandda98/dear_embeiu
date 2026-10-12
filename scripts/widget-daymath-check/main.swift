@@ -44,7 +44,7 @@ for (days, next) in table { check(DayMath.nextMilestone(days) == next, "next(\(d
 check(abs(DayMath.progress(days: 1247, next: 1500) - 0.8313) < 0.001, "progress = days / next")
 check(DayMath.progress(days: 10, next: 5) == 1, "progress clamps to 1")
 check(DayMath.format(1500, lang: "vi") == "1.500", "vi groups with a dot")
-check(DayMath.format(1500, lang: "vi") == "1.500", "en groups with a comma")
+check(DayMath.format(1500, lang: "en") == "1,500", "en groups with a comma")
 
 func label(_ n: Int) -> String {
   DayMath.milestoneLabel(n, monthsOne: "1 month", monthsFmt: "{count} months",
