@@ -300,9 +300,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         // when the couple opted in (prefs/home.aiQuestionsEnabled). Both stay at
         // priority 0 on purpose — a boosted source would run EVERY day.
         ChangeNotifierProvider(
-          create: (_) => DailyQuestionProvider()
-            ..engine.registerSource(RevisitQuestionSource())
-            ..engine.registerSource(AiQuestionSource()),
+          create: (_) {
+            final provider = DailyQuestionProvider()
+              ..engine.registerSource(RevisitQuestionSource());
+            if (kAiQuestionsFeatureEnabled) {
+              provider.engine.registerSource(AiQuestionSource());
+            }
+            return provider;
+          },
         ),
         ChangeNotifierProvider(create: (_) => MoodProvider()),
         ChangeNotifierProvider(create: (_) => StreakProvider()),

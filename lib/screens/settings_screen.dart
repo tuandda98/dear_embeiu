@@ -16,6 +16,7 @@ import '../providers/locale_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../services/analytics_service.dart';
+import '../services/ai_question_source.dart';
 import '../services/home_prefs_service.dart';
 import '../theme/app_colors.dart';
 import '../utils/lunar_calendar.dart';
@@ -490,7 +491,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _rowDivider(),
                   // AI-personalised daily questions (endless-questions,
                   // 2026-09-05): couple-shared opt-in, hidden until paired.
-                  const _AiQuestionsTile(),
+                  if (kAiQuestionsFeatureEnabled) const _AiQuestionsTile(),
                   // Single entry to the merged Reminders screen (milestones +
                   // custom). Badge shows how many milestones are on.
                   _navRow(
