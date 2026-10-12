@@ -24,6 +24,8 @@ import '../providers/photo_provider.dart';
 import '../providers/answer_reaction_provider.dart';
 import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
+import '../providers/rps_game_provider.dart';
+import '../providers/sleep_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/catchup_service.dart';
@@ -44,13 +46,19 @@ import '../widgets/shimmer_skeleton.dart';
 import '../widgets/streak_chip.dart';
 import '../providers/mood_provider.dart';
 import '../widgets/mood_card.dart';
+import '../widgets/rps_invite_card.dart';
+import '../widgets/sleep/sleep_card.dart';
+import '../widgets/today_constellation.dart';
 import '../widgets/today_ritual_card.dart';
 import '../widgets/streak_sheet.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'gallery_screen.dart';
+import 'love_tree_screen.dart' show openLoveTree;
 import 'care_message_screen.dart';
 import 'notification_center_screen.dart';
+import 'rps_game_screen.dart' show RpsGameScreen, openRpsGame;
+import 'rps_history_screen.dart' show openRpsHistory;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -220,8 +228,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       setState(() => _chatBgKey = key);
       try {
-        Hive.box<String>('app_settings')
-            .put('chat_bg_photo_$coupleId', key ?? '');
+        Hive.box<String>(
+          'app_settings',
+        ).put('chat_bg_photo_$coupleId', key ?? '');
       } catch (_) {
         // Cache only — the in-memory value is already set.
       }
@@ -396,9 +405,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // streak update we re-arm the 21/22/23h local nudges from live habit state, so
   // they fire only while today's question isn't both-answered yet.
   DailyQuestionProvider? _dqProvider;
+  MoodProvider? _moodProvider;
 
   /// Guards [FeatureTour.maybeShow] to one attempt per Home lifetime.
   bool _featureTourChecked = false;
+
+  // Rock-paper-scissors (Tester RPS-7): the tour sheet / catch-up gate must
+  // not land on top of a round (cold start from an `rps_invite` push → the
+  // sheet covered the countdown and the player lost). Held while a game
+  // screen is open or about to open, retried once it closes.
+  bool _featureTourDeferred = false;
+  bool _catchupDeferred = false;
+  DateTime? _rpsRouteRequestedAt;
 
   /// Captured in initState so the chat presence heartbeat can be cleared safely
   /// from dispose without touching a deactivated BuildContext (presence-suppress
@@ -484,17 +502,77 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _chatProvider = context.read<ChatProvider>();
     _dqProvider!.addListener(_refreshDqSafetyNet);
     _streakProvider!.addListener(_refreshDqSafetyNet);
+    _moodProvider = context.read<MoodProvider>();
+    _moodProvider!.addListener(_refreshDqSafetyNet);
     WidgetsBinding.instance.addPostFrameCallback((_) => _refreshDqSafetyNet());
     // "Có gì mới" tour (feature onboarding, 2026-09-05): once per build, after
     // the first frame settles and never on top of the catch-up gate.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future<void>.delayed(const Duration(milliseconds: 900), () {
-        if (!mounted || _featureTourChecked || CatchupGate.isShowing) {
-          return;
-        }
-        _featureTourChecked = true;
-        FeatureTour.maybeShow(context, onOpenTab: _selectTab);
-      });
+      Future<void>.delayed(const Duration(milliseconds: 900), _tryFeatureTour);
+    });
+    RpsGameScreen.mountedCount.addListener(_onRpsScreensChanged);
+  }
+
+  /// One "Có gì mới" attempt — held (not recorded as seen) while a
+  /// rock-paper-scissors round is on screen or about to be (RPS-7).
+  Future<void> _tryFeatureTour() async {
+    if (!mounted || _featureTourChecked || CatchupGate.isShowing) {
+      return;
+    }
+    if (_rpsGameActive) {
+      _featureTourDeferred = true;
+      return;
+    }
+    _featureTourChecked = true;
+    final handled = await FeatureTour.maybeShow(
+      context,
+      onOpenTab: _selectTab,
+      deferIf: () => _rpsGameActive,
+    );
+    if (!handled) {
+      _featureTourChecked = false;
+      _featureTourDeferred = true;
+    }
+  }
+
+  /// A game screen is open, or a tapped `rps_invite` is on its way to open
+  /// one (focus/game id published but not consumed yet, or consumed < 3s ago
+  /// and the route not mounted yet).
+  bool get _rpsGameActive {
+    if (RpsGameScreen.isOpen ||
+        NotificationTapRouter.pendingRpsGameId.value != null ||
+        NotificationTapRouter.pendingHomeFocus.value ==
+            NotificationTapRouter.focusRpsGame) {
+      return true;
+    }
+    final requested = _rpsRouteRequestedAt;
+    return requested != null &&
+        DateTime.now().difference(requested) < const Duration(seconds: 3);
+  }
+
+  /// [RpsGameScreen.mountedCount] changed (may fire mid-build / dispose —
+  /// everything here is deferred). Last game screen closed → run whatever
+  /// was held for it.
+  void _onRpsScreensChanged() {
+    if (RpsGameScreen.isOpen) {
+      _rpsRouteRequestedAt = null; // the requested route has mounted
+      return;
+    }
+    if (!_featureTourDeferred && !_catchupDeferred) {
+      return;
+    }
+    Future<void>.delayed(const Duration(milliseconds: 700), () {
+      if (!mounted || _rpsGameActive) {
+        return;
+      }
+      if (_featureTourDeferred) {
+        _featureTourDeferred = false;
+        _tryFeatureTour();
+      }
+      if (_catchupDeferred) {
+        _catchupDeferred = false;
+        _maybeRunCatchup(force: true);
+      }
     });
   }
 
@@ -506,9 +584,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     NotificationTapRouter.pendingHomeFocus.removeListener(
       _onNotificationFocusRequest,
     );
+    RpsGameScreen.mountedCount.removeListener(_onRpsScreensChanged);
     _streakProvider?.removeListener(_onStreakChanged);
     _streakProvider?.removeListener(_refreshDqSafetyNet);
     _dqProvider?.removeListener(_refreshDqSafetyNet);
+    _moodProvider?.removeListener(_refreshDqSafetyNet);
     _bgHintTimer?.cancel();
     _stopChatPresence();
     WidgetsBinding.instance.removeObserver(this);
@@ -525,7 +605,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // over in the background and answers made on the other device). No-ops for
     // every account but the gated one.
     if (state == AppLifecycleState.resumed) {
+      // Sleep: re-check Usage access (maybe just granted in Settings) and
+      // re-scan last nights — the only time sleep is computed.
+      context.read<SleepProvider>().onResume();
       _maybeRunCatchup(force: true);
+      // A `bothAnswered` push handled while we were away may have cancelled
+      // today's daily-question bands (or the day may have rolled over): drop
+      // the "already armed" debounce and re-evaluate from live state.
+      context.read<ReminderProvider>().invalidateDailyQuestionSchedule();
+      _refreshDqSafetyNet();
     }
     // Chat presence (presence-suppress 2026-06-19): only meaningful while the
     // chat tab is the active screen. Backgrounding clears presence so the
@@ -580,6 +668,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (dq == null || streak == null) {
       return;
     }
+    // Day rollover while the app stayed open: the streak stream is silent until
+    // a marker changes, so re-derive from the cached snapshot (no-op same day).
+    streak.recomputeIfDayChanged();
+    // Re-feed the engine — it holds its first resolve until streak/mood have
+    // loaded (see _syncQuestionContext), and this listener is what fires when
+    // they do.
+    final coupleForSync = context.read<CoupleProvider>().couple;
+    final uidForSync = context.read<AuthProvider>().currentUser?.id;
+    if (coupleForSync != null &&
+        coupleForSync.id.isNotEmpty &&
+        uidForSync != null) {
+      _syncQuestionContext(coupleForSync, uidForSync);
+    }
     final reminders = context.read<ReminderProvider>();
     // Private "anh By → embe" nudges, gated to one account (2026-06-20). Evaluated
     // FIRST so the gated-account flag is set before the shared schedulers below:
@@ -631,15 +732,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final photoProvider = context.read<PhotoProvider>();
     final photos = photoProvider.photos;
     final now = DateTime.now();
-    final weekStart = DateTime(now.year, now.month, now.day - (now.weekday - 1));
-    final photosThisWeek =
-        photos.where((p) => !p.uploadDate.isBefore(weekStart)).length;
+    final weekStart = DateTime(
+      now.year,
+      now.month,
+      now.day - (now.weekday - 1),
+    );
+    final photosThisWeek = photos
+        .where((p) => !p.uploadDate.isBefore(weekStart))
+        .length;
     final partnerUid = couple.memberIds.firstWhere(
       (m) => m != myUid,
       orElse: () => '',
     );
+    final streak = context.read<StreakProvider>();
     context.read<DailyQuestionProvider>().updateContext(
-      currentStreak: context.read<StreakProvider>().currentStreak,
+      currentStreak: streak.isLoading ? null : streak.currentStreak,
       myMood: moods.myMood?.mood,
       partnerMood: moods.partnerMood?.mood,
       // Still loading → unknown (-1), never 0. A couple with no photos at all
@@ -648,6 +755,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       partnerUid: partnerUid,
       languageCode: Localizations.localeOf(context).languageCode,
       anniversaryDate: couple.anniversaryDate,
+      // Hold the once-a-day resolve until streak + moods have their first
+      // snapshot: a cold start otherwise freezes `streak 0 / mood null` into the
+      // marker for BOTH phones and the streak/mood templates never fire.
+      // `_refreshDqSafetyNet` (listening to streak/mood/dq) re-syncs when they
+      // land.
+      signalsReady: !streak.isLoading && !moods.isLoading,
     );
   }
 
@@ -658,6 +771,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final auth = context.read<AuthProvider>();
     final email = auth.currentUser?.email ?? auth.currentEmail ?? '';
     if (!CatchupService.isGatedEmail(email)) {
+      return;
+    }
+    // Never block a rock-paper-scissors round (RPS-7) — retried when the
+    // game screen closes.
+    if (_rpsGameActive) {
+      _catchupDeferred = true;
       return;
     }
     final myUid = auth.currentUser?.id;
@@ -714,6 +833,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (missed.isEmpty || !mounted) {
         return;
       }
+      if (_rpsGameActive) {
+        // A round opened while the backlog was being scanned — hold the gate.
+        _catchupDeferred = true;
+        _catchupLastCheck = null;
+        return;
+      }
       await CatchupGate.show(
         context,
         coupleId: couple.id,
@@ -731,9 +856,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Xong rồi, cảm ơn embe 💕')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Xong rồi, cảm ơn embe 💕')));
     } finally {
       _catchupBusy = false;
     }
@@ -780,12 +905,68 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _applyPendingFocus(focus);
   }
 
-  /// Routes a Home-focus request to the matching card. Currently only the
-  /// daily-question card; add more `case`s as other Home cards get deep-links.
+  /// Routes a Home-focus request to the matching card / screen: the
+  /// daily-question card, or (feature rps-game) the rock-paper-scissors game
+  /// / history. Add more `case`s as other Home cards get deep-links.
   void _applyPendingFocus(String? focus) {
-    if (focus == 'daily_question') {
-      _scrollToCard(_dailyQuestionKey);
+    switch (focus) {
+      case 'daily_question':
+        _scrollToCard(_dailyQuestionKey);
+      case NotificationTapRouter.focusRpsGame:
+        // gameId was published BEFORE the focus (push + notification center),
+        // so it's readable here even on a cold start (initState).
+        final gameId = NotificationTapRouter.pendingRpsGameId.value;
+        NotificationTapRouter.consumeRpsGameRequest();
+        _openRpsGameRoute(gameId);
+      case NotificationTapRouter.focusRpsHistory:
+        _openRpsHistoryRoute();
+      default:
+        break;
     }
+  }
+
+  /// Opens the rock-paper-scissors game screen for [gameId] (null = the
+  /// couple's open game / a fresh invite). Called from a tapped `rps_invite`
+  /// push or inbox item — possibly from initState on a cold start, so the
+  /// navigation is deferred to a post-frame callback (the route is pushed on
+  /// top of Home, which is already the resolver's destination).
+  void _openRpsGameRoute(String? gameId) {
+    // Holds the tour / catch-up gate until the route has mounted (RPS-7).
+    _rpsRouteRequestedAt = DateTime.now();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      // A game screen already in the stack (even under the history screen)
+      // is popped back to and switched to [gameId] instead of stacking a
+      // second one — handled inside [openRpsGame] (Tester RPS-13).
+      openRpsGame(context, gameId: gameId);
+    });
+  }
+
+  /// Opens the rock-paper-scissors history (score + past games). Called from a
+  /// tapped `rps_result` push. Same cold-start caveat as [_openRpsGameRoute].
+  void _openRpsHistoryRoute() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      if (_isRouteOnTop('RpsHistory')) {
+        return;
+      }
+      openRpsHistory(context);
+    });
+  }
+
+  /// True when the topmost route of this navigator carries [name] (set via
+  /// `RouteSettings(name:)` by the `open…Screen` helpers).
+  bool _isRouteOnTop(String name) {
+    String? top;
+    Navigator.of(context).popUntil((route) {
+      top = route.settings.name;
+      return true; // never actually pops — just peeks at the top route
+    });
+    return top == name;
   }
 
   /// Smoothly scrolls the Home tab so the [key]'d card is in view. Deferred so
@@ -1045,67 +1226,65 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 SafeArea(
                   bottom: false,
                   child: IndexedStack(
-                      index: _selectedIndex,
-                      // TickerMode: IndexedStack keeps every tab alive, but the
-                      // hidden tabs must not keep animating (aurora, Ken Burns,
-                      // pulses) or ticking their timers — battery + jank.
-                      children: [
-                        TickerMode(
-                          enabled: _selectedIndex == 0,
-                          child: _buildHomeTab(
-                            couple,
-                            counterData,
-                            photoProvider.sortedPhotos,
-                            photoProvider.isLoading,
-                            bottomInset,
+                    index: _selectedIndex,
+                    // TickerMode: IndexedStack keeps every tab alive, but the
+                    // hidden tabs must not keep animating (aurora, Ken Burns,
+                    // pulses) or ticking their timers — battery + jank.
+                    children: [
+                      TickerMode(
+                        enabled: _selectedIndex == 0,
+                        child: _buildHomeTab(
+                          couple,
+                          counterData,
+                          photoProvider.sortedPhotos,
+                          photoProvider.isLoading,
+                          bottomInset,
+                        ),
+                      ),
+                      TickerMode(
+                        enabled: _selectedIndex == 1,
+                        child: ChatScreen(
+                          // HomeScreen's context sits ABOVE the Scaffold, so
+                          // it still sees the raw keyboard inset the Scaffold
+                          // strips from its body's MediaQuery.
+                          keyboardVisible: mediaQuery.viewInsets.bottom > 0,
+                          // Photo backdrop active → the back arrow needs its
+                          // frosted disc to stay legible over dark regions.
+                          hasBackground: chatBg != null,
+                          onRequestTab: (index) {
+                            if (index >= 0 && index < _navigationItems.length) {
+                              _selectTab(index);
+                            }
+                          },
+                          // Back leaves the chat drill-in for the tab the user
+                          // came from (Home if none). Guard against returning to
+                          // chat itself.
+                          onBack: () => _selectTab(
+                            _previousIndex == _chatTabIndex
+                                ? 0
+                                : _previousIndex,
                           ),
                         ),
-                        TickerMode(
-                          enabled: _selectedIndex == 1,
-                          child: ChatScreen(
-                            // HomeScreen's context sits ABOVE the Scaffold, so
-                            // it still sees the raw keyboard inset the Scaffold
-                            // strips from its body's MediaQuery.
-                            keyboardVisible: mediaQuery.viewInsets.bottom > 0,
-                            // Photo backdrop active → the back arrow needs its
-                            // frosted disc to stay legible over dark regions.
-                            hasBackground: chatBg != null,
-                            onRequestTab: (index) {
-                              if (index >= 0 &&
-                                  index < _navigationItems.length) {
-                                _selectTab(index);
-                              }
-                            },
-                            // Back leaves the chat drill-in for the tab the user
-                            // came from (Home if none). Guard against returning to
-                            // chat itself.
-                            onBack: () => _selectTab(
-                              _previousIndex == _chatTabIndex
-                                  ? 0
-                                  : _previousIndex,
-                            ),
-                          ),
+                      ),
+                      TickerMode(
+                        enabled: _selectedIndex == 2,
+                        child: GalleryScreen(bottomInset: bottomInset),
+                      ),
+                      TickerMode(
+                        enabled: _selectedIndex == 3,
+                        child: ProfileScreen(
+                          bottomInset: bottomInset,
+                          // A Profile badge (e.g. "Kỷ niệm") can jump to a tab.
+                          onRequestTab: (index) {
+                            if (index >= 0 && index < _navigationItems.length) {
+                              _selectTab(index);
+                            }
+                          },
                         ),
-                        TickerMode(
-                          enabled: _selectedIndex == 2,
-                          child: GalleryScreen(bottomInset: bottomInset),
-                        ),
-                        TickerMode(
-                          enabled: _selectedIndex == 3,
-                          child: ProfileScreen(
-                            bottomInset: bottomInset,
-                            // A Profile badge (e.g. "Kỷ niệm") can jump to a tab.
-                            onRequestTab: (index) {
-                              if (index >= 0 &&
-                                  index < _navigationItems.length) {
-                                _selectTab(index);
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                ),
                 Positioned(
                   left: _floatingNavMargin,
                   right: _floatingNavMargin,
@@ -1481,11 +1660,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             myUid,
           );
           context.read<ReactionProvider>().watchForCouple(couple.id, myUid);
-          context
-              .read<AnswerReactionProvider>()
-              .watchForCouple(couple.id, myUid);
+          context.read<AnswerReactionProvider>().watchForCouple(
+            couple.id,
+            myUid,
+          );
           // Mood (feature mood) — re-arm so the card is live + resets at midnight.
           context.read<MoodProvider>().watchForCouple(couple.id, myUid);
+          // Rock-paper-scissors — re-arm with the live partner so a partner
+          // joining mid-session unlocks invites ('' while waiting, RPS-12).
+          final partnerUid = couple.isWaitingForPartner
+              ? ''
+              : couple.memberIds.firstWhere(
+                  (id) => id != myUid,
+                  orElse: () => '',
+                );
+          context.read<RpsGameProvider>().watchForCouple(
+            couple.id,
+            myUid,
+            partnerUid,
+          );
+          // Sleep (feature sleep) — same partner rule; a partner joining
+          // mid-session starts streaming their shared nights.
+          context.read<SleepProvider>().watchForCouple(
+            couple.id,
+            myUid,
+            partnerUid,
+          );
           // Chat stream (feature chat) — must run from Home so the unread dot
           // works on every tab. watchForCouple no-ops when unchanged.
           context.read<ChatProvider>().watchForCouple(couple.id, myUid);
@@ -1565,7 +1765,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           runSpacing: 4,
                           heartSize: 18,
                           heartColor: AppColors.white,
-                          pulseHeart: true, // hero counter — the one heart that breathes
+                          pulseHeart:
+                              true, // hero counter — the one heart that breathes
                           textStyle: const TextStyle(
                             color: AppColors.white,
                             fontSize: 20,
@@ -1654,7 +1855,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // ── Nhóm 1: Hôm nay của chúng mình — daily actions first (habit loop).
             const SizedBox(height: 28),
             _gutter(
-              _entrance(3, SectionHeader(title: l10n.homeTodaySectionTitle)),
+              _entrance(
+                3,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SectionHeader(title: l10n.homeTodaySectionTitle),
+                    // Love Tree v3 entry: today's constellation count. Under
+                    // the title — beside it the title wraps below ~390dp.
+                    if (!couple.isWaitingForPartner) ...[
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ConstellationPill(
+                          onTap: () => openLoveTree(context),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 12),
             KeyedSubtree(
@@ -1669,11 +1889,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               const SizedBox(height: 16),
               _gutter(_entrance(4, MoodCard(couple: couple))),
             ],
+            // Sleep "Đêm qua" (feature sleep) — under the mood card; shown
+            // while still waiting too (my own nights, full width — state A0).
+            Selector<SleepProvider, bool>(
+              selector: (_, sleep) => sleep.cardHidden,
+              builder: (_, hidden, _) => hidden
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: _gutter(_entrance(5, SleepCard(couple: couple))),
+                    ),
+            ),
+            if (!couple.isWaitingForPartner) ...[
+              // Rock-paper-scissors entry (feature rps-game, design D1): a
+              // small card that also carries the "người ấy đang rủ" badge.
+              const SizedBox(height: 16),
+              _gutter(_entrance(6, const RpsInviteCard())),
+            ],
             // ── Nhóm 2: Kỷ niệm — create + browse.
             const SizedBox(height: 28),
             _gutter(
               _entrance(
-                5,
+                6,
                 SectionHeader(
                   title: l10n.recentMemoriesTitle,
                   subtitle: photos.isEmpty ? l10n.addPhotosPrompt : null,
@@ -1689,7 +1926,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // Memory cinema sits in the standard gutter like every other card
             // (user 2026-06-11) — the section pads itself inside.
             _entrance(
-              6,
+              7,
               _buildRecentPhotosSection(
                 recentPhotos,
                 isUploadingPhoto,

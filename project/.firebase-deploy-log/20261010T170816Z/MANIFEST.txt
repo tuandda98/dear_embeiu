@@ -1,0 +1,7 @@
+command : NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions --project dev > /private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/d2317d6c-2943-4d8c-b33a-c60a6e4c6875/scratchpad/deploy_fn_dev.log 2>&1; echo "exit=$?" >> /private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/d2317d6c-2943-4d8c-b33a-c60a6e4c6875/scratchpad/deploy_fn_dev.log
+time_utc: 20261010T170816Z
+git_head: cadd8ac (feature/sleep)
+dirty   : 35 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout cadd8ac)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout cadd8ac -- functions` rồi redeploy

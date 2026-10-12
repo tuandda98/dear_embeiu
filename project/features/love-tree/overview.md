@@ -2,7 +2,15 @@
 
 > Feature mới 2026-06-14 (user chốt autonomous, đi ngủ — "PO tự quyết tự chốt tự làm"). Mode 1: Designer → Dev → Tester.
 
-## v3 — ĐỔI METAPHOR: "Bầu trời sao kỷ niệm" (2026-06-18, đang prototype)
+## v3 "Bầu trời = hôm nay · Cành hoa = cả hành trình" — ĐÃ CHỐT (user 2026-10-11)
+> Đề xuất của Designer ở `design.md` §"Design Spec v3" (2026-10-10). User trả lời 4 câu hỏi mở ngày 2026-10-11:
+- **D-v3-1 — Thêm lớp "việc quan tâm mỗi ngày":** bầu trời thành chòm sao trái tim 6 sao (nửa trái = bạn, nửa phải = người ấy, mỗi người 3 sao, 0:00 làm lại). Cành hoa giữ logic cột mốc cũ + chú thích + "Bông tiếp theo". *Lý do:* user "chưa hiểu ý nghĩa, không hay dùng" — cây cần lý do mở mỗi ngày.
+- **D-v3-2 — 3 việc = Câu hỏi · Tâm trạng · Nhắn tin.** Nhắn tin là việc dễ làm nhất mỗi ngày.
+- **D-v3-3 — BỎ dải "Tuần này"** (7 trái tim): app chỉ giữ tâm trạng hôm nay, không lưu lịch sử. Không đụng backend.
+- **D-v3-4 — Luôn là trời đêm:** bỏ hẳn bầu trời 4 buổi (sáng/trưa/chiều/đêm).
+- Trạng thái: 💻 Dev xong 2026-10-11 (xem `dev.md`), chờ Tester.
+
+## (cũ) v3 prototype "Bầu trời sao kỷ niệm" (2026-06-18) — đã bỏ, code xoá 2026-10-11
 
 **Vấn đề user nêu:** cây = diện tích hữu hạn → yêu lâu / nhiều sự kiện thì "nở hoa nhiều thật nhiều", rối, mất ý nghĩa phần thưởng. Hỏi "ý tưởng gì mà nó **vô cực**?". (Lưu ý: data hiện chỉ ~18 mốc curated, nên 'vô cực' là **future-proof** cho việc sau này mỗi ảnh/tuần/kỷ niệm đều có thể thành 1 event.)
 

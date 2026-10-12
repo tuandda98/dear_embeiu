@@ -315,7 +315,7 @@ class _StreakSheetBodyState extends State<_StreakSheetBody>
       case StreakState.noStreak:
         if (provider.everHadStreak) {
           return (
-            l10n.streakSheetNoStreakTitle,
+            l10n.streakSheetRestartTitle,
             l10n.streakSheetRestartBody,
           );
         }

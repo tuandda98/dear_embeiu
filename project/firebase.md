@@ -19,6 +19,22 @@
 - ⚠️ Lần ĐẦU deploy 2nd-gen functions lên project mới: trigger-Firestore (Eventarc) có thể FAIL *"Permission denied while using the Eventarc Service Agent"* — **retry sau ~2-3 phút là OK** (chờ service-agent propagate).
 - Chi tiết đầy đủ: [`DEV_PROD_SETUP.md`](../DEV_PROD_SETUP.md).
 
+## Billing (⚠️ SỰ CỐ 2026-09-09 → 09-11: PROD mất billing 2,5 ngày)
+
+**Triệu chứng:** không đăng ảnh được (Storage từ chối ghi) + KHÔNG push nào tới (cả iOS lẫn Android — 2 user thật đều iOS nên "push iOS hỏng"). CF log prod toàn `The request failed because billing is disabled for this project.` / `instance could not start successfully` từ **2026-09-09 01:32 UTC**.
+
+**Root cause:** billing account gắn với PROD `tonyembeiu` là `018C08-2436A0-4F5E9A` "Paiement de Firebase" bị **ĐÓNG (`open:false`)** (Cloud Billing API vẫn báo `billingEnabled:true` ở tầng project — phải đọc `billingAccounts` để thấy account đóng). Cloud Run (CF v2) + Storage đều đòi Blaze ⇒ chết đồng loạt. Firestore/Auth vẫn chạy (Spark quota) nên chat/câu hỏi vẫn ghi được, chuỗi không mất — chỉ mất push + ảnh.
+
+**Fix 2026-09-11 (Claude, ~15:07 UTC):** `PUT cloudbilling/v1/projects/tonyembeiu/billingInfo {billingAccountName: billingAccounts/01CB1D-2C87B4-46F5FD}` — gắn PROD sang account **`01CB1D…` "Firebase Payment" (đang mở, CÙNG account DEV dùng)**. Verify: ghi/xoá object thử vào bucket prod OK · callable trả `UNAUTHENTICATED` từ code hàm (container sống) · gửi silent push (content-available) tới 3 token iOS thật OK ⇒ APNs prod bình thường. Lan truyền tới Cloud Run mất **vài phút** (vẫn còn "billing is disabled" 2 phút sau relink). Tiện thể xoá 1 doc `devices` trùng token của `thaohathao14` (doc cũ 08-23) — tránh push đúp.
+
+**Bản đồ billing account (2026-09-11):** `01CB1D…` Firebase Payment (mở) = PROD + DEV · `01450E…` Firebase Payment (mở) = project `dear-embeiu` (khác) · `018C08…` Paiement de Firebase (ĐÓNG — cũ của PROD) · `012900…` My Billing Account (đóng). **Vì sao `018C08` đóng: KHÔNG tra được qua API — user tự xem Console Billing (nghi thẻ hết hạn/thanh toán thất bại).**
+
+**Hậu quả thứ 2 — MẤT IMAGE CONTAINER (phát hiện 15:26 UTC):** repo Artifact Registry `gcf-artifacts` có cleanup policy `firebase-functions-cleanup` (Firebase CLI tự đặt): **DELETE mọi image cũ hơn 30 ngày**. Function không redeploy trong 30 ngày → image bị xoá, Cloud Run chỉ còn chạy nhờ bản container đã import theo revision. Đợt tắt billing làm bản import của nhiều revision mất luôn ⇒ sau khi bật lại billing, **16/21 service không khởi động được** (`429 no available instance` / `500` hạ tầng; revision mới tạo bằng PATCH fail `Image ... not found`). Chỉ 5 function deploy trong 30 ngày gần nhất còn image (care/generateDailyQuestion/dailyAnswerReaction/birthday×2). **Fix:** `firebase deploy --only functions:<15 hàm> --project prod` (code HEAD, KHÔNG sửa dòng nào — chỉ dựng lại image; `notifyDailyAnswer` + 4 hàm còn image không đụng). Verify 15:34 UTC: 21/21 service có image, 5 callable trả `401` từ code hàm, `notifyDailyAnswerReaction` xử lý dần hàng đợi Pub/Sub retry (sự kiện dồn 2,5 ngày → rải rác `429` lúc scale-from-zero, Pub/Sub tự retry). ⚠️ **Bài học:** đừng để function nào >30 ngày không redeploy nếu billing có nguy cơ gián đoạn; hoặc nới policy (`npx firebase-tools functions:artifacts:setpolicy --days 365 --project prod`, tốn vài trăm MB storage) — CHƯA làm, chờ user chốt.
+
+**Billing account `01CB1D…` (xem Console 15:33 UTC):** postpay, số dư ₫0, ngưỡng ₫2.000.000, có 1 thẻ Mastercard primary (hạn 08/2030). User tự thêm thẻ dự phòng ở *Manage payment methods*.
+
+**Kiểm tra nhanh:** `scripts/prod-health-check.sh` (billing account open? · ghi thử Storage · probe callable) — dùng token của `firebase-tools login`, không cần gcloud. Nếu lại thấy "billing is disabled" → chạy script, relink sang account đang `open:true`.
+
 ## Backward-compat
 
 ⚠️ Backend prod DÙNG CHUNG cho mọi version app đang cài (1.0 cũ + 1.1 mới). Field optional thêm sau (`coupleCode`/`languageCode`/`sessionToken`) PHẢI đọc bằng `data.get('field', null)` trong rules — KHÔNG `data.field` trực tiếp (key vắng mặt do app cũ không gửi → engine báo "undefined" → DENY → app 1.0 vỡ `permission-denied`). Đã vá 3 field này + có test `firestore.backward-compat.test.js` khoá. Sửa rules = **chỉ ADDITIVE**, không siết cái app cũ đang dùng.

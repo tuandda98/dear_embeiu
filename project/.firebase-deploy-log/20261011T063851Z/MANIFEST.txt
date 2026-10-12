@@ -1,0 +1,7 @@
+command : NODE_OPTIONS="--dns-result-order=ipv4first" npx firebase-tools deploy --project prod --only hosting 2>&1 | grep -vE "DeprecationWarning|trace-deprecation|punycode" | tail -12
+time_utc: 20261011T063851Z
+git_head: a001a01 (release/1.8.0)
+dirty   : 3 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout a001a01)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout a001a01 -- functions` rồi redeploy

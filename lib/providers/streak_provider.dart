@@ -49,6 +49,11 @@ class StreakProvider extends ChangeNotifier {
   int _longestStreak = 0;
   bool _everHadStreak = false;
   bool _isLoading = false;
+
+  /// Last snapshot + the local day it was computed for, so
+  /// [recomputeIfDayChanged] can re-derive without another Firestore round trip.
+  List<String> _lastDates = const <String>[];
+  DateTime? _computedForDay;
   bool _hasError = false;
 
   /// A milestone the latest update just reached for the first time (one-shot;
@@ -157,10 +162,31 @@ class StreakProvider extends ChangeNotifier {
     );
   }
 
+  /// Re-derives the streak from the last snapshot when the local calendar day
+  /// has rolled over since it was computed. The Firestore stream only emits on
+  /// marker changes, so an app left open across midnight otherwise keeps
+  /// showing "done today" / `needsActionToday == false` for the NEW day and
+  /// feeds a stale count into the end-of-day copy (code-review 2026-09-12).
+  /// Cheap no-op on the same day; safe to call from resume + provider ticks.
+  void recomputeIfDayChanged() {
+    final computedFor = _computedForDay;
+    if (_subscription == null || computedFor == null) {
+      return;
+    }
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (today == computedFor) {
+      return;
+    }
+    _recompute(_lastDates);
+  }
+
   /// Stops watching and resets (sign-out / leaving a couple).
   void clear() {
     _subscription?.cancel();
     _subscription = null;
+    _lastDates = const <String>[];
+    _computedForDay = null;
     _coupleId = null;
     _coupleActive = false;
     _state = StreakState.hidden;
@@ -186,6 +212,7 @@ class StreakProvider extends ChangeNotifier {
   /// calendar day, matching the daily question's day bucket.
   void _recompute(List<String> dates) {
     final previousStreak = _currentStreak;
+    _lastDates = dates;
 
     // Build a set of revealed local dates (date-only DateTimes).
     final revealed = <DateTime>{};
@@ -198,6 +225,7 @@ class StreakProvider extends ChangeNotifier {
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    _computedForDay = today;
     final yesterday = today.subtract(const Duration(days: 1));
     final dayBefore = today.subtract(const Duration(days: 2));
 

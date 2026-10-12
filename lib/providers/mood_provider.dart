@@ -24,6 +24,11 @@ class MoodProvider extends ChangeNotifier {
   Map<String, Mood> _moods = const <String, Mood>{};
 
   bool get isReady => _coupleId != null && _myUid != null;
+
+  /// True from [watchForCouple] until the first snapshot (or error) lands —
+  /// lets Home hold the question engine until moods are actually known.
+  bool get isLoading => _isLoading;
+  bool _isLoading = false;
   bool get isUsingFirebase => _service.isUsingFirebase;
 
   /// Local-date key 'YYYY-MM-DD' for today (matches what we write).
@@ -81,16 +86,19 @@ class MoodProvider extends ChangeNotifier {
     _coupleId = coupleId;
     _myUid = myUid;
     _moods = const <String, Mood>{};
+    _isLoading = true;
     notifyListeners();
 
     _subscription?.cancel();
     _subscription = _service.watchMoods(coupleId).listen(
       (moods) {
         _moods = moods;
+        _isLoading = false;
         notifyListeners();
       },
       onError: (_) {
         // Keep last good data; nothing global to surface.
+        _isLoading = false;
         notifyListeners();
       },
     );
@@ -134,6 +142,7 @@ class MoodProvider extends ChangeNotifier {
   void clear() {
     _subscription?.cancel();
     _subscription = null;
+    _isLoading = false;
     _coupleId = null;
     _myUid = null;
     _moods = const <String, Mood>{};

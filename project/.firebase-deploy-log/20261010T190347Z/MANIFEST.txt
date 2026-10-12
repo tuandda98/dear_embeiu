@@ -1,0 +1,7 @@
+command : SP=/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/d2317d6c-2943-4d8c-b33a-c60a6e4c6875/scratchpad && (scripts/test-firebase-rules.sh > $SP/rules_test_4.log 2>&1; echo "exit=$?" >> $SP/rules_test_4.log); grep -E "passing|failing|exit=" $SP/rules_test_4.log && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:notifyPartnerLeft --project dev 2>&1 | grep -v "^\s*$" | tail -6
+time_utc: 20261010T190347Z
+git_head: 7768dd4 (feature/sleep)
+dirty   : 14 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 7768dd4)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 7768dd4 -- functions` rồi redeploy

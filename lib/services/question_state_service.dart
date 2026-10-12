@@ -89,19 +89,27 @@ class QuestionStateService {
     int? bankId,
     String? templateKey,
     String? revisitDate,
+
+    /// The bank was fully cycled: rewrite `askedBankIds` as `[bankId]` so the
+    /// next cycle starts no-repeat from this pick.
+    bool resetAskedBankIds = false,
   }) async {
     if (coupleId.trim().isEmpty || !isUsingFirebase) {
       return;
     }
     final payload = <String, Object?>{};
 
-    _appendInt(
-      payload: payload,
-      field: 'askedBankIds',
-      existing: current.askedBankIds,
-      value: bankId,
-      cap: QuestionState.maxAskedBankIds,
-    );
+    if (resetAskedBankIds && bankId != null) {
+      payload['askedBankIds'] = <int>[bankId];
+    } else {
+      _appendInt(
+        payload: payload,
+        field: 'askedBankIds',
+        existing: current.askedBankIds,
+        value: bankId,
+        cap: QuestionState.maxAskedBankIds,
+      );
+    }
     _appendString(
       payload: payload,
       field: 'recentTemplateKeys',

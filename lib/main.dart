@@ -14,6 +14,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
 import 'app/app_routes.dart';
+import 'app/route_observers.dart';
 import 'providers/auth_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/couple_provider.dart';
@@ -29,6 +30,8 @@ import 'providers/photo_provider.dart';
 import 'providers/answer_reaction_provider.dart';
 import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
+import 'providers/rps_game_provider.dart';
+import 'providers/sleep_provider.dart';
 import 'providers/streak_provider.dart';
 import 'screens/force_update_screen.dart';
 import 'screens/forgot_password_screen.dart';
@@ -300,6 +303,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           value: widget.customRemindersProvider,
         ),
         ChangeNotifierProvider(create: (_) => PartnerReminderProvider()),
+        // Rock-paper-scissors (feature rps-game, 2026-09-13) — watch wired in
+        // SessionResolver like mood/chat.
+        ChangeNotifierProvider(create: (_) => RpsGameProvider()),
+        // Sleep (feature sleep, 2026-10-10) — watch wired in SessionResolver.
+        ChangeNotifierProvider(create: (_) => SleepProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
@@ -345,6 +353,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             navigatorObservers: [
               if (AnalyticsService.instance.observer != null)
                 AnalyticsService.instance.observer!,
+              // Page cover/uncover events for RouteAware screens (rps-game
+              // pauses its presence heartbeat while covered).
+              appPageRouteObserver,
             ],
             debugShowCheckedModeBanner: false,
             routes: {

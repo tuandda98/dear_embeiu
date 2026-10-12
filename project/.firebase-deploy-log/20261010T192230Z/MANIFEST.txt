@@ -1,0 +1,7 @@
+command : NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:deleteAccount,functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail --project dev 2>&1 | grep -v "^\s*$" | tail -15
+time_utc: 20261010T192230Z
+git_head: 7768dd4 (feature/sleep)
+dirty   : 35 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 7768dd4)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 7768dd4 -- functions` rồi redeploy

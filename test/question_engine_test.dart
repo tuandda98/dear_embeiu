@@ -200,6 +200,40 @@ void main() {
       expect(asked.toSet().length, asked.length);
     });
 
+    test('an exhausted bank starts a fresh cycle instead of going blank', () {
+      final all = List<int>.generate(BankQuestionSource.bankLength, (i) => i);
+      expect(BankQuestionSource.isExhausted(all), isTrue);
+      final pick = BankQuestionSource.pick(
+        coupleId: 'couple-abc',
+        dateKey: '2026-09-12',
+        askedBankIds: all,
+      );
+      expect(pick, isNotNull);
+      expect(pick!.questionId,
+          inInclusiveRange(0, BankQuestionSource.bankLength - 1));
+      // One short of exhausted → still no-repeat on the last remaining id.
+      final nearly = all.sublist(1);
+      expect(BankQuestionSource.isExhausted(nearly), isFalse);
+      final last = BankQuestionSource.pick(
+        coupleId: 'couple-abc',
+        dateKey: '2026-09-12',
+        askedBankIds: nearly,
+      );
+      expect(last!.questionId, 0);
+    });
+
+    test('out-of-range asked ids never count towards exhaustion', () {
+      final junk = List<int>.generate(
+          BankQuestionSource.bankLength, (i) => i + 100000);
+      expect(BankQuestionSource.isExhausted(junk), isFalse);
+      final pick = BankQuestionSource.pick(
+        coupleId: 'couple-abc',
+        dateKey: '2026-09-12',
+        askedBankIds: [...junk, -1],
+      );
+      expect(pick, isNotNull);
+    });
+
     test('appending to the bank does not shift existing indices', () {
       expect(BankQuestionSource.bankLength,
           dailyQuestions.length + dailyQuestionsExtra.length);
@@ -300,6 +334,34 @@ void main() {
         kTplGroupMoodPartner,
       );
       expect(unknown, isNull);
+    });
+
+    test('mood question reads right for BOTH partners (shared marker)',
+        () async {
+      // The phone that resolves first sees its partner's mood, but the text is
+      // stored once and read by both — the mood's owner included. So nothing
+      // may point at "the partner" or at the reader as the one feeling it.
+      for (final t in templatesForGroup(kTplGroupMoodPartner)) {
+        expect(t.vi.contains('người ấy'), isFalse, reason: t.key);
+        expect(t.en.toLowerCase().contains('your partner'), isFalse,
+            reason: t.key);
+      }
+      for (final word in kMoodWordVi.values) {
+        expect(word.contains('bạn'), isFalse, reason: word);
+      }
+      for (final mood in kMoodWordVi.keys) {
+        for (int day = 1; day <= 8; day++) {
+          final q = await source.proposeGroup(
+            ctxFor(DateTime(2026, 9, day), partnerMood: mood),
+            kTplGroupMoodPartner,
+          );
+          expect(q, isNotNull, reason: mood);
+          expect(q!.questionVi.contains(kMoodWordVi[mood]!), isTrue,
+              reason: q.questionVi);
+          expect(q.questionEn.contains(kMoodWordEn[mood]!), isTrue,
+              reason: q.questionEn);
+        }
+      }
     });
 
     test('milestone copy only counts down BEFORE the milestone', () async {

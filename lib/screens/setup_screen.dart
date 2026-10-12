@@ -236,7 +236,8 @@ class _SetupScreenState extends State<SetupScreen> {
       _showSnack(e.message);
     } catch (e) {
       if (!mounted) return;
-      _showSnack(context.l10n.setupErrorSaveCouple('$e'));
+      debugPrint('SetupScreen save couple failed: $e');
+      _showSnack(context.l10n.setupErrorSaveCouple);
     }
   }
 
@@ -308,7 +309,8 @@ class _SetupScreenState extends State<SetupScreen> {
       _showSnack(e.message);
     } catch (e) {
       if (!mounted) return;
-      _showSnack(context.l10n.setupErrorJoinCouple('$e'));
+      debugPrint('SetupScreen join couple failed: $e');
+      _showSnack(context.l10n.setupErrorJoinCouple);
     }
   }
 

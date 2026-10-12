@@ -76,11 +76,7 @@ class StreakChip extends StatelessWidget {
         splashColor: AppColors.white.withValues(alpha: 0.15),
         onTap: () {
           HapticFeedback.selectionClick();
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => const LoveTreeScreen(),
-            ),
-          );
+          openLoveTree(context);
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

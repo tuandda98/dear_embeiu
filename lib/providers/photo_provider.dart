@@ -193,7 +193,8 @@ class PhotoProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (error) {
-        _errorMessage = '$error';
+        debugPrint('PhotoProvider photo stream error: $error');
+        _errorMessage = AppL10n.strings.photoSyncGeneric;
         _setLoading(false, notify: false);
         notifyListeners();
       },

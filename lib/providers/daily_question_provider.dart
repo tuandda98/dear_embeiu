@@ -57,6 +57,10 @@ class DailyQuestionProvider extends ChangeNotifier {
   /// with an empty context (no partner/streak/anniversary/mood) would freeze a
   /// context-blind question into the marker for both phones.
   bool _contextReady = false;
+
+  /// Set after a resolve that could not publish to the marker (see
+  /// [ResolvedQuestion.published]); `_maybeResolveToday` waits it out.
+  DateTime? _retryNotBefore;
   String? _myMood;
   String? _partnerMood;
 
@@ -113,8 +117,14 @@ class DailyQuestionProvider extends ChangeNotifier {
     String? partnerUid,
     String? languageCode,
     DateTime? anniversaryDate,
+
+    /// False while the streak/mood providers are still loading their first
+    /// snapshot. The engine resolves ONCE per day and publishes the result for
+    /// BOTH phones, so it must not run on a cold-start `streak = 0, mood = null`
+    /// that is about to change 500 ms later (code-review 2026-09-12).
+    bool signalsReady = true,
   }) {
-    _contextReady = true;
+    _contextReady = signalsReady;
     if (currentStreak != null) {
       _currentStreak = currentStreak;
     }
@@ -230,6 +240,11 @@ class DailyQuestionProvider extends ChangeNotifier {
     if (_resolvedKey == key) {
       return;
     }
+    final retryNotBefore = _retryNotBefore;
+    if (retryNotBefore != null && DateTime.now().isBefore(retryNotBefore)) {
+      return; // An unpublished local pick is on screen; don't hammer Firestore.
+    }
+    _retryNotBefore = null;
     _resolvedKey = key;
     _isResolving = true;
     notifyListeners();
@@ -264,6 +279,13 @@ class DailyQuestionProvider extends ChangeNotifier {
     _isResolving = false;
     if (resolved != null) {
       _resolved = resolved;
+      if (!resolved.published) {
+        // Chosen locally but never written to the marker (offline / denied):
+        // show it, but let a later context tick re-resolve (throttled) so we
+        // converge on whatever the other phone published meanwhile.
+        _resolvedKey = null;
+        _retryNotBefore = DateTime.now().add(const Duration(seconds: 60));
+      }
     } else {
       // Allow a later retry (e.g. once the network is back).
       _resolvedKey = null;
@@ -313,17 +335,25 @@ class DailyQuestionProvider extends ChangeNotifier {
     // while the card already renders TODAY's question — answering then would file
     // the answer (and the question snapshot) under the wrong day and skip today's
     // streak. Re-align first; the resubscribe below picks up the new day's stream.
+    //
+    // Snapshot the question the card ACTUALLY rendered *before* the guard may
+    // clear it (code-review 2026-09-12): the user answered THAT prompt, so the
+    // marker must carry it — re-deriving from the bank here would pair a bank
+    // question with an answer written for a template/revisit/AI one, forever.
+    final resolved = _resolved;
     final today = DailyQuestionService.dateKey(DateTime.now());
-    if (_dateKey != today) {
+    final rolledOver = _dateKey != today;
+    if (rolledOver) {
       _dateKey = today;
       _answers = const <DailyAnswer>[];
       _resolved = null;
       _resolvedKey = null;
       _resubscribe();
-      _maybeResolveToday();
+      // The engine is kicked only AFTER the answer (and its question snapshot)
+      // has landed below — started now it would race submitAnswer for the
+      // marker and could publish a different question first.
     }
 
-    final resolved = _resolved;
     await _service.submitAnswer(
       coupleId: coupleId,
       dateKey: _dateKey,
@@ -335,6 +365,12 @@ class DailyQuestionProvider extends ChangeNotifier {
       questionEn: resolved?.questionEn,
       source: resolved?.source,
     );
+
+    if (rolledOver) {
+      // Adopts the marker just written (the engine never re-derives once the
+      // marker carries a question).
+      _maybeResolveToday();
+    }
 
     // Analytics — answered today (🔒 never the answer text).
     AnalyticsService.instance.logDailyQuestionAnswered();
@@ -363,6 +399,7 @@ class DailyQuestionProvider extends ChangeNotifier {
     // for Home to feed its own (otherwise a sign-out → sign-in without a
     // restart would resolve with the previous couple's streak/anniversary).
     _contextReady = false;
+    _retryNotBefore = null;
     _currentStreak = 0;
     _photosThisWeek = -1;
     _myMood = null;

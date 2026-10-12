@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -40,6 +42,10 @@ class AnalyticsEvents {
   static const String loveNoteEnvelopeOpened = 'love_note_envelope_opened';
   static const String accountDeleted = 'account_deleted';
 
+  // --- Rock-paper-scissors (feature rps-game, 2026-09-13) ---
+  static const String rpsInviteSent = 'rps_invite_sent';
+  static const String rpsGameFinished = 'rps_game_finished';
+
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
   static const String pResult = 'result'; // couple_join_attempt
@@ -49,6 +55,7 @@ class AnalyticsEvents {
   static const String pRepeat = 'repeat'; // reminder_created
   static const String pType = 'type'; // notification_opened
   static const String pLocale = 'locale'; // language_changed
+  static const String pRematch = 'rematch'; // rps_invite_sent (bool)
 
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
@@ -231,16 +238,28 @@ class AnalyticsService {
       clean = <String, Object>{};
       params.forEach((key, value) {
         if (value == null) return;
-        if (value is String || value is num || value is bool) {
+        if (value is String || value is num) {
           clean![key] = value;
+        } else if (value is bool) {
+          // The plugin only accepts String/num (debug assertion — it threw
+          // straight into the caller, e.g. RpsGameProvider.invite after the
+          // game was already created, found 2026-09-14). GA4 convention: 1/0.
+          clean![key] = value ? 1 : 0;
         }
       });
       if (clean.isEmpty) {
         clean = null;
       }
     }
-    // Fire-and-forget; analytics latency must never block the caller.
-    analytics.logEvent(name: name, parameters: clean);
+    // Fire-and-forget; analytics latency must never block the caller — nor
+    // may an analytics error escape into it.
+    try {
+      unawaited(
+        analytics.logEvent(name: name, parameters: clean).catchError((_) {}),
+      );
+    } catch (e) {
+      debugPrint('AnalyticsService.logEvent($name) failed: $e');
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -331,6 +350,20 @@ class AnalyticsService {
       );
 
   void logAccountDeleted() => logEvent(AnalyticsEvents.accountDeleted);
+
+  /// Rock-paper-scissors invite created (feature rps-game). [rematch] = it
+  /// was a "Chơi lại" from a result screen. No ids, no content.
+  void logRpsInviteSent({bool rematch = false}) => logEvent(
+        AnalyticsEvents.rpsInviteSent,
+        params: {AnalyticsEvents.pRematch: rematch},
+      );
+
+  /// A rock-paper-scissors game reached `finished`. [result] is the outcome
+  /// from THIS user's side: `win` / `lose` / `draw` (enum name, never content).
+  void logRpsGameFinished(String result) => logEvent(
+        AnalyticsEvents.rpsGameFinished,
+        params: {AnalyticsEvents.pResult: result},
+      );
 
   // ---------------------------------------------------------------------------
   // User id + properties. D2 — user_id = Firebase uid while authed (an id, not
