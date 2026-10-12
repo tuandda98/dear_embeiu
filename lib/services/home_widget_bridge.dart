@@ -100,6 +100,7 @@ abstract final class HomeWidgetBridge {
   }) async {
     if (kIsWeb || key == _photoKey) return;
     _photoKey = key;
+    debugPrint('HomeWidgetBridge: photo → ${key ?? 'none'}');
     try {
       Uint8List? png;
       if (key != null) {

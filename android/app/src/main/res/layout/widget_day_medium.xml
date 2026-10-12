@@ -25,6 +25,25 @@
         android:background="@drawable/widget_scrim"
         android:visibility="gone" />
 
+    <!-- Night-sky default (design M2): stars + heart constellation; hidden when a photo shows. -->
+    <ImageView
+        android:id="@+id/widget_stars"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="center"
+        android:src="@drawable/widget_stars" />
+
+    <ImageView
+        android:id="@+id/widget_sky"
+        android:layout_width="52dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="14dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/widget_constellation" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -39,8 +58,9 @@
 
             <LinearLayout
                 android:layout_width="wrap_content"
+                android:id="@+id/widget_chip"
                 android:layout_height="20dp"
-                android:background="@drawable/widget_chip_bg"
+                android:background="@drawable/widget_chip_bg_dark"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingStart="8dp"
@@ -57,7 +77,7 @@
                     android:maxWidth="64dp"
                     android:maxLines="1"
                     android:textAllCaps="true"
-                    android:textColor="#1A1A2E"
+                    android:textColor="#FFFFFF"
                     android:textSize="10sp" />
 
                 <ImageView
@@ -67,7 +87,7 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp"
                     android:importantForAccessibility="no"
-                    android:src="@drawable/widget_heart" />
+                    android:src="@drawable/widget_heart_light" />
 
                 <TextView
                     android:id="@+id/widget_name2"
@@ -80,7 +100,7 @@
                     android:maxWidth="64dp"
                     android:maxLines="1"
                     android:textAllCaps="true"
-                    android:textColor="#1A1A2E"
+                    android:textColor="#FFFFFF"
                     android:textSize="10sp" />
             </LinearLayout>
 
@@ -137,24 +157,24 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <!-- 2 lines + paddingEnd 48dp: the constellation sits top-right (design M2). -->
             <TextView
                 android:id="@+id/widget_milestone"
                 android:layout_width="match_parent"
-                android:layout_height="16dp"
-                android:autoSizeMaxTextSize="12sp"
-                android:autoSizeMinTextSize="10sp"
-                android:autoSizeTextType="uniform"
+                android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:fontFamily="sans-serif"
                 android:textStyle="bold"
-                android:gravity="center_vertical"
-                android:maxLines="1"
+                android:lineSpacingExtra="-1sp"
+                android:maxLines="2"
+                android:paddingEnd="48dp"
                 android:shadowColor="#47000000"
                 android:shadowDy="1"
                 android:shadowRadius="6"
                 android:textColor="#FFFFFF"
                 android:textSize="12sp" />
 
+            <!-- RemoteViews cannot swap a progressDrawable: one bar per state. -->
             <ProgressBar
                 android:id="@+id/widget_progress"
                 style="?android:attr/progressBarStyleHorizontal"
@@ -162,7 +182,17 @@
                 android:layout_height="6dp"
                 android:layout_marginTop="8dp"
                 android:max="100"
-                android:progressDrawable="@drawable/widget_progress" />
+                android:progressDrawable="@drawable/widget_progress_dark" />
+
+            <ProgressBar
+                android:id="@+id/widget_progress_light"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="8dp"
+                android:max="100"
+                android:progressDrawable="@drawable/widget_progress"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/widget_days_left"

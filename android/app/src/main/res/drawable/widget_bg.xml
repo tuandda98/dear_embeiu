@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget background = CounterCard sunsetRomance (#FF6B9D→#FF8FA3→#FFB6C1) +
-     scrim .08→.36 (2026-10-12: the old #FF5C8F→#E63956 was darker than anything
-     in the app). Shown when the couple has no photo yet, or the file is missing. Angle 315
-     = top-left → bottom-right in Android's counter-clockwise convention. -->
+<!-- Default widget background = "Trời đêm Cây Tình Yêu" (design M2, user chốt
+     2026-10-12): navy → chàm 160° + 2 vệt sáng (lavender góc trên phải, hồng
+     góc dưới trái). Shown when the couple has no photo yet; a photo replaces
+     it (widget_photo + widget_scrim). Glows live INSIDE the layer-list so every
+     API level clips them to the rounded corners (clipToOutline is API 31+). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="28dp" />
             <gradient
                 android:angle="315"
-                android:centerColor="#FF8FA3"
-                android:endColor="#FFB6C1"
-                android:startColor="#FF6B9D"
+                android:centerColor="#241F45"
+                android:endColor="#352A5E"
+                android:startColor="#1A1A2E"
                 android:type="linear" />
         </shape>
     </item>
@@ -19,23 +20,11 @@
         <shape android:shape="rectangle">
             <corners android:radius="28dp" />
             <gradient
-                android:angle="270"
-                android:endColor="#5C000000"
-                android:startColor="#14000000"
-                android:type="linear" />
-        </shape>
-    </item>
-    <!-- Aurora glows live INSIDE the background so every API level clips them
-         to the rounded corners (clipToOutline is API 31+). -->
-    <item>
-        <shape android:shape="rectangle">
-            <corners android:radius="28dp" />
-            <gradient
-                android:centerX="0.0"
-                android:centerY="0.0"
-                android:endColor="#00FFFFFF"
-                android:gradientRadius="56dp"
-                android:startColor="#42FFFFFF"
+                android:centerX="0.85"
+                android:centerY="0.1"
+                android:endColor="#00A78BFA"
+                android:gradientRadius="110dp"
+                android:startColor="#59A78BFA"
                 android:type="radial" />
         </shape>
     </item>
@@ -43,11 +32,11 @@
         <shape android:shape="rectangle">
             <corners android:radius="28dp" />
             <gradient
-                android:centerX="1.0"
+                android:centerX="0.05"
                 android:centerY="1.0"
-                android:endColor="#00A78BFA"
-                android:gradientRadius="72dp"
-                android:startColor="#66A78BFA"
+                android:endColor="#00FF6B9D"
+                android:gradientRadius="120dp"
+                android:startColor="#47FF6B9D"
                 android:type="radial" />
         </shape>
     </item>

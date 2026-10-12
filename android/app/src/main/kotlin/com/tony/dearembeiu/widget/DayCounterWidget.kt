@@ -52,6 +52,7 @@ class DayCounterWidget : AppWidgetProvider() {
                 views.setViewVisibility(R.id.widget_photo, View.VISIBLE)
                 views.setViewVisibility(R.id.widget_scrim, View.VISIBLE)
             }
+            applyStyle(views, dark = photo == null, counter = counter, medium = medium)
             views.setOnClickPendingIntent(R.id.widget_root, openApp(context, if (medium) "medium" else "small"))
             manager.updateAppWidget(id, views)
         }
@@ -79,11 +80,48 @@ class DayCounterWidget : AppWidgetProvider() {
                     left == 1 -> s["daysLeftOne"] ?: ""
                     else -> (s["daysLeftFmt"] ?: "{count}").replace("{count}", number(left))
                 })
-                views.setProgressBar(R.id.widget_progress, 100, (DayMath.progress(days, next) * 100).toInt(), false)
+                val pct = (DayMath.progress(days, next) * 100).toInt()
+                views.setProgressBar(R.id.widget_progress, 100, pct, false)
+                views.setProgressBar(R.id.widget_progress_light, 100, pct, false)
                 views.setTextViewText(R.id.widget_since, s["sinceText"] ?: "")
             }
             return views
         }
+
+        /**
+         * Night sky (design M2: translucent chip, white ink, lavender bar,
+         * stars) without a photo; photo style (P3: white chip, navy ink, white
+         * bar, no stars) with one. EVERY stateful property is set in BOTH
+         * branches: when the layout id is unchanged the host REAPPLIES the new
+         * RemoteViews onto the existing view tree instead of inflating it, so
+         * XML defaults do not come back on their own (smoke 2026-10-12: the
+         * previous couple's photo stayed under the new names). Only ids the
+         * inflated layout has are touched — an action on a missing id fails
+         * the whole widget.
+         */
+        private fun applyStyle(views: RemoteViews, dark: Boolean, counter: Boolean, medium: Boolean) {
+            val ink = if (dark) 0xFFFFFFFF.toInt() else 0xFF1A1A2E.toInt()
+            views.setInt(R.id.widget_chip, "setBackgroundResource", if (dark) R.drawable.widget_chip_bg_dark else R.drawable.widget_chip_bg)
+            views.setTextColor(R.id.widget_name1, ink)
+            views.setImageViewResource(R.id.widget_heart, if (dark) R.drawable.widget_heart_light else R.drawable.widget_heart)
+            views.setViewVisibility(R.id.widget_stars, if (dark) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.widget_sky, if (dark) View.VISIBLE else View.GONE)
+            if (dark) {
+                views.setImageViewBitmap(R.id.widget_photo, null)
+                views.setViewVisibility(R.id.widget_photo, View.GONE)
+                views.setViewVisibility(R.id.widget_scrim, View.GONE)
+            }
+            if (counter) views.setTextColor(R.id.widget_name2, ink)
+            if (counter && medium) {
+                views.setViewVisibility(R.id.widget_progress, if (dark) View.VISIBLE else View.GONE)
+                views.setViewVisibility(R.id.widget_progress_light, if (dark) View.GONE else View.VISIBLE)
+                // Night sky: keep 48dp clear for the constellation top-right.
+                views.setViewPadding(R.id.widget_milestone, 0, 0, if (dark) dp(views, 48) else 0, 0)
+            }
+        }
+
+        private fun dp(views: RemoteViews, v: Int): Int =
+            (v * android.content.res.Resources.getSystem().displayMetrics.density).toInt()
 
         private fun emptyViews(context: Context, s: Map<String, String>): RemoteViews {
             val views = RemoteViews(context.packageName, R.layout.widget_day_empty)

@@ -25,6 +25,25 @@
         android:background="@drawable/widget_scrim"
         android:visibility="gone" />
 
+    <!-- Night-sky default (design M2): stars + heart constellation; hidden when a photo shows. -->
+    <ImageView
+        android:id="@+id/widget_stars"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="center"
+        android:src="@drawable/widget_stars" />
+
+    <ImageView
+        android:id="@+id/widget_sky"
+        android:layout_width="52dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="14dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/widget_constellation" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -33,8 +52,9 @@
 
         <LinearLayout
             android:layout_width="wrap_content"
+            android:id="@+id/widget_chip"
             android:layout_height="20dp"
-            android:background="@drawable/widget_chip_bg"
+            android:background="@drawable/widget_chip_bg_dark"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="8dp"
@@ -52,7 +72,7 @@
                 android:maxWidth="48dp"
                 android:maxLines="1"
                 android:textAllCaps="true"
-                android:textColor="#1A1A2E"
+                android:textColor="#FFFFFF"
                 android:textSize="10sp" />
 
             <ImageView
@@ -62,7 +82,7 @@
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:importantForAccessibility="no"
-                android:src="@drawable/widget_heart" />
+                android:src="@drawable/widget_heart_light" />
 
             <TextView
                 android:id="@+id/widget_name2"
@@ -76,7 +96,7 @@
                 android:maxWidth="48dp"
                 android:maxLines="1"
                 android:textAllCaps="true"
-                android:textColor="#1A1A2E"
+                android:textColor="#FFFFFF"
                 android:textSize="10sp" />
         </LinearLayout>
 
