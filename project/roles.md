@@ -81,3 +81,20 @@ User vận hành dự án như team nhỏ với 4 lăng kính. Mỗi role tôn t
 Điểm MẠNH (đừng báo nhầm là bug): `users` self-only + delete:false + email/inviteCode immutable; photos chỉ member + author/uploadDate immutable; Storage chỉ member + <10MB; couple join transaction an toàn; `deleteAccount` check `request.auth.uid`.
 
 Lưu ý chung: phân biệt [VERIFIED] (đã đọc code) vs [CẦN TEST] (giả thuyết runtime); test cả 2 nhánh Firebase vs local (`isUsingFirebase`); rules cần emulator (chưa cấu hình).
+
+## Phân bổ model / effort cho subagent (user chốt 2026-10-12, sau feature `home-widget`)
+
+Số đo phiên 2026-10-12 (~3 giờ, ~5,5 triệu token): Opus review 285–295k token/20 phút so Sonnet 160–215k/6–10 phút mà cùng chất lượng finding; smoke iOS simulator tự lái bằng cliclick tốn 438k token/67 phút (≈1/3 token toàn phiên); 3 giả định nền tảng sai trong plan tốn ~60 phút rework.
+
+| Vai | Model · effort | Ghi chú |
+|---|---|---|
+| Implementer chép code có sẵn trong brief (1–3 file) | **Haiku · low** | đủ đúng, rẻ; vẫn báo concern tốt |
+| Implementer tích hợp/build (target Xcode, provider Android, nhiều file) | **Sonnet · medium** | |
+| Review từng task | **Sonnet · medium** | Opus chỉ khi diff >50KB hoặc đụng bảo mật/rules/functions |
+| Re-review scoped (xác minh finding đã sửa) | **Haiku · low** | lên Sonnet nếu fix đụng >3 file |
+| Review toàn nhánh | **Fable/Opus · high** | đúng 1 lần |
+| Smoke iOS simulator | **KHÔNG giao agent tự lái** | user bấm tay 5 phút theo checklist; agent chỉ build + cài + chụp trạng thái tĩnh (Haiku) |
+| Smoke Android emulator (adb, run-as, screencap) | **Sonnet · medium**, ≤15 phút | |
+| Spike kiểm giả định nền tảng TRƯỚC khi viết plan (API level, RemoteViews, tinted…) | **Haiku · low**, 3–5 phút | tránh rework |
+
+Thời gian: review task N chạy song song implement N+1 khi file rời nhau (worktree); task thuần chép code bỏ review riêng → Haiku spec-check; minor gom vào 1 đợt vá cuối. Luôn truyền `model` + `effort` tường minh ở mỗi lần dispatch.
