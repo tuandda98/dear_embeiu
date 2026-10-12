@@ -1928,7 +1928,7 @@ EOF
 
 **Files:**
 - Create: `android/app/src/main/kotlin/com/tony/dearembeiu/widget/WidgetStore.kt`, `android/app/src/main/kotlin/com/tony/dearembeiu/widget/DayCounterWidget.kt`
-- Create: `android/app/src/main/res/layout/widget_day_small.xml`, `widget_day_medium.xml`, `widget_day_empty.xml`; `res/drawable/widget_bg.xml`, `res/drawable-v31/widget_bg.xml`, `res/drawable/widget_glow_white.xml`, `widget_glow_lavender.xml`, `widget_chip_bg.xml`, `widget_progress.xml`, `widget_heart.xml`; `res/xml/widget_day_info.xml`; `res/values/strings.xml`, `res/values-vi/strings.xml`
+- Create: `android/app/src/main/res/layout/widget_day_small.xml`, `widget_day_medium.xml`, `widget_day_empty.xml`; `res/drawable/widget_bg.xml` (gradient + scrim + 2 glow radial), `res/drawable-v31/widget_bg.xml`, `widget_chip_bg.xml`, `widget_progress.xml`, `widget_heart.xml`; `res/xml/widget_day_info.xml`; `res/values/strings.xml`, `res/values-vi/strings.xml`
 - Modify: `android/app/src/main/AndroidManifest.xml` (trước `<receiver … ScheduledNotificationReceiver />`, dòng 72), `android/app/src/main/kotlin/com/tony/dearembeiu/MainActivity.kt` (import, sau `super.configureFlutterEngine`, trước `private fun hasUsageAccess()`)
 
 **Interfaces:**
@@ -1991,6 +1991,32 @@ Create `android/app/src/main/res/drawable/widget_bg.xml`:
                 android:type="linear" />
         </shape>
     </item>
+    <!-- Aurora glows live INSIDE the background so every API level clips them
+         to the rounded corners (clipToOutline is API 31+). -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:centerX="0.0"
+                android:centerY="0.0"
+                android:endColor="#00FFFFFF"
+                android:gradientRadius="56dp"
+                android:startColor="#42FFFFFF"
+                android:type="radial" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:centerX="1.0"
+                android:centerY="1.0"
+                android:endColor="#00A78BFA"
+                android:gradientRadius="72dp"
+                android:startColor="#66A78BFA"
+                android:type="radial" />
+        </shape>
+    </item>
 </layer-list>
 ```
 Create `android/app/src/main/res/drawable-v31/widget_bg.xml` (giống trên, bo theo hệ thống):
@@ -2018,29 +2044,33 @@ Create `android/app/src/main/res/drawable-v31/widget_bg.xml` (giống trên, bo 
                 android:type="linear" />
         </shape>
     </item>
+    <!-- Aurora glows live INSIDE the background so every API level clips them
+         to the rounded corners (clipToOutline is API 31+). -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@android:dimen/system_app_widget_background_radius" />
+            <gradient
+                android:centerX="0.0"
+                android:centerY="0.0"
+                android:endColor="#00FFFFFF"
+                android:gradientRadius="56dp"
+                android:startColor="#42FFFFFF"
+                android:type="radial" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@android:dimen/system_app_widget_background_radius" />
+            <gradient
+                android:centerX="1.0"
+                android:centerY="1.0"
+                android:endColor="#00A78BFA"
+                android:gradientRadius="72dp"
+                android:startColor="#66A78BFA"
+                android:type="radial" />
+        </shape>
+    </item>
 </layer-list>
-```
-Create `android/app/src/main/res/drawable/widget_glow_white.xml`:
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-    <gradient
-        android:endColor="#00FFFFFF"
-        android:gradientRadius="48dp"
-        android:startColor="#42FFFFFF"
-        android:type="radial" />
-</shape>
-```
-Create `android/app/src/main/res/drawable/widget_glow_lavender.xml`:
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-    <gradient
-        android:endColor="#00A78BFA"
-        android:gradientRadius="60dp"
-        android:startColor="#66A78BFA"
-        android:type="radial" />
-</shape>
 ```
 Create `android/app/src/main/res/drawable/widget_chip_bg.xml`:
 ```xml
@@ -2096,24 +2126,6 @@ Create `android/app/src/main/res/layout/widget_day_small.xml`:
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:clipToOutline="true">
-
-    <ImageView
-        android:layout_width="96dp"
-        android:layout_height="96dp"
-        android:layout_gravity="top|start"
-        android:layout_marginStart="-28dp"
-        android:layout_marginTop="-30dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/widget_glow_white" />
-
-    <ImageView
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="-40dp"
-        android:layout_marginBottom="-46dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/widget_glow_lavender" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -2183,6 +2195,7 @@ Create `android/app/src/main/res/layout/widget_day_small.xml`:
             android:fontFamily="sans-serif"
             android:textStyle="bold"
             android:gravity="bottom|start"
+            android:includeFontPadding="false"
             android:letterSpacing="-0.025"
             android:maxLines="1"
             android:shadowColor="#4D000000"
@@ -2216,24 +2229,6 @@ Create `android/app/src/main/res/layout/widget_day_medium.xml`:
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:clipToOutline="true">
-
-    <ImageView
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        android:layout_gravity="top|start"
-        android:layout_marginStart="-28dp"
-        android:layout_marginTop="-30dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/widget_glow_white" />
-
-    <ImageView
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="-40dp"
-        android:layout_marginBottom="-56dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/widget_glow_lavender" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -2309,6 +2304,7 @@ Create `android/app/src/main/res/layout/widget_day_medium.xml`:
                 android:fontFamily="sans-serif"
                 android:textStyle="bold"
                 android:gravity="bottom|start"
+                android:includeFontPadding="false"
                 android:letterSpacing="-0.025"
                 android:maxLines="1"
                 android:shadowColor="#4D000000"
@@ -2394,14 +2390,10 @@ Create `android/app/src/main/res/layout/widget_day_medium.xml`:
             <TextView
                 android:id="@+id/widget_since"
                 android:layout_width="match_parent"
-                android:layout_height="14dp"
-                android:autoSizeMaxTextSize="11sp"
-                android:autoSizeMinTextSize="10sp"
-                android:autoSizeTextType="uniform"
+                android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
-                android:gravity="center_vertical"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:shadowColor="#47000000"
                 android:shadowDy="1"
                 android:shadowRadius="6"
@@ -2421,24 +2413,6 @@ Create `android/app/src/main/res/layout/widget_day_empty.xml`:
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:clipToOutline="true">
-
-    <ImageView
-        android:layout_width="96dp"
-        android:layout_height="96dp"
-        android:layout_gravity="top|start"
-        android:layout_marginStart="-28dp"
-        android:layout_marginTop="-30dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/widget_glow_white" />
-
-    <ImageView
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="-40dp"
-        android:layout_marginBottom="-46dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/widget_glow_lavender" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -2745,7 +2719,13 @@ new:
 ```kotlin
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        recordWidgetLaunch(intent)
+        // Only a fresh launch counts as a tap: a recreated activity (process
+        // death, config change) or a relaunch from Recents still carries the
+        // original widget intent — system_server keeps it with the extra.
+        if (savedInstanceState == null &&
+            (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) == 0) {
+            recordWidgetLaunch(intent)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

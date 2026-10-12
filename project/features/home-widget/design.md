@@ -32,11 +32,11 @@ NHỎ 158×158 (iOS) · 2×2 ≈152dp (Android)        VỪA 338×158 · 4×2 �
 **Khung**
 - iOS: nhỏ 158×158pt, vừa 338×158pt (iPhone 393pt); bo góc do hệ thống cắt (~22pt), **không tự vẽ bo**. Lề trong 14pt.
 - Android: `targetCellWidth/Height` 2×2, kéo ngang tới 4×2 (`resizeMode="horizontal"`); nền bo `@android:dimen/system_app_widget_background_radius` (API 31+), fallback 28dp. Lề trong 16dp.
-- Nền (3 lớp, từ dưới lên): `linear-gradient(150°, #FF5C8F 0%, #FF4D6D 55%, #E63956 100%)` → scrim `linear-gradient(180°, black .10, black .28)` → aurora: tròn trắng .26 Ø96 tâm (−28, −30) blur 18 · tròn lavender `#A78BFA` .40 Ø120 tâm góc dưới phải (+40, +46) blur 18 (bản vừa: Ø110 / Ø160). Android không có blur trong drawable → dùng radial gradient tới trong suốt, chấp nhận mép mềm ít hơn.
+- Nền (3 lớp, từ dưới lên): `linear-gradient(150°, #FF5C8F 0%, #FF4D6D 55%, #E63956 100%)` → scrim `linear-gradient(180°, black .10, black .28)` → aurora: tròn trắng .26 Ø96 tâm (−28, −30) blur 18 · tròn lavender `#A78BFA` .40 Ø120 tâm góc dưới phải (+40, +46) blur 18 (bản vừa: Ø110 / Ø160). Android không có blur trong drawable → dùng radial gradient tới trong suốt, chấp nhận mép mềm ít hơn; glow nằm **trong layer-list của `widget_bg`** (một cỡ dùng chung 2×2/4×2) vì `clipToOutline` chỉ có từ API 31 — glow bằng ImageView riêng sẽ tràn góc bo trên API 24–30 (review Task 7).
 - iOS ≥17: nền qua `containerBackground(for: .widget)`; iOS 18 tinted: hệ thống bỏ nền, mọi thành phần `widgetAccentable()`.
 
 **Chip tên** (góc trên trái)
-- Pill cao 20, padding ngang 8, r999, nền trắng .84, chữ `#1A1A2E` **10 w700, ls 1.0, UPPERCASE**, 1 dòng, cắt "…"; giữa 2 tên là tim vector 10 `#E63956` (`aria-hidden`/decorative). Max width = full. Chỉ 1 tên (chờ người ấy) → "TUẤN" + tim.
+- Pill cao 20, padding ngang 8, r999, nền trắng .84, chữ `#1A1A2E` **10 w700, ls 1.0, UPPERCASE**, 1 dòng, cắt "…"; giữa 2 tên là tim vector 10 `#E63956` (`aria-hidden`/decorative). Max width = full trên iOS; Android (RemoteViews không có flex) khoá `maxWidth` 48dp (2×2) / 64dp (4×2) mỗi tên → tên ≥8 ký tự cắt "…". Chỉ 1 tên → hiện tên đó, **ẩn tim** (tim chỉ nối hai tên; chốt theo code 2 nền tảng 2026-10-12).
 - Lý do mực navy trên trắng: chữ 10px trắng trên hồng chỉ ~3,5:1 (fail 4,5:1); chip trắng đạt ~11:1. Đúng ngôn ngữ `EyebrowChip` của app.
 
 **Số ngày**
@@ -56,7 +56,7 @@ NHỎ 158×158 (iOS) · 2×2 ≈152dp (Android)        VỪA 338×158 · 4×2 �
 
 ## States
 - **Có couple (active hoặc chờ người ấy):** như wireframe. Chờ người ấy → chip 1 tên; không thêm lời mời.
-- **Trống** (guest / chưa couple / vừa đăng xuất / vừa cập nhật app chưa mở): cùng nền A; chip "DEAR EMBEIU" với tim; dòng 14 w700 trắng tối đa 3 dòng "Chạm để bắt đầu đếm ngày yêu". Bản vừa: cùng nội dung, cột phải để trống.
+- **Trống** (guest / chưa couple / vừa đăng xuất / vừa cập nhật app chưa mở): cùng nền A; chip "DEAR EMBEIU" với tim; dòng 14 w700 trắng tối đa 3 dòng "Chạm để bắt đầu đếm ngày yêu". Bản vừa: cùng nội dung trải theo bề ngang, không chia cột (chốt theo code 2 nền tảng 2026-10-12).
 - **Ngày yêu tương lai:** 0 ngày, "Cột mốc 1 tháng", "còn 30 ngày".
 - **Số dài** (≥10.000): co 32/28 — không bao giờ xuống dòng.
 - **Chữ hệ thống to (AX):** số co theo `minimumScaleFactor`, chú thích tối đa 2 dòng, chip giữ 1 dòng cắt.
