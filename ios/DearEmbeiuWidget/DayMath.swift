@@ -15,9 +15,18 @@ enum DayMath {
     return DateComponents(year: parts[0], month: parts[1], day: parts[2])
   }
 
+  /// Dart counts in the Gregorian calendar (DateTime). `Calendar.current` follows
+  /// the device setting and can be Buddhist/Japanese, which would read "2023"
+  /// as another year — so default to Gregorian in the device's time zone.
+  static var gregorian: Calendar {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = .current
+    return calendar
+  }
+
   /// Calendar days from the anniversary to `today` — day numbers, not hours, so
   /// a DST change never costs a day. Never below 0 (future date = day 0).
-  static func daysTogether(anniversary: String, today: Date, calendar: Calendar = .current) -> Int {
+  static func daysTogether(anniversary: String, today: Date, calendar: Calendar = DayMath.gregorian) -> Int {
     guard let components = parseDate(anniversary),
           let start = calendar.date(from: components),
           let a = calendar.ordinality(of: .day, in: .era, for: start),
