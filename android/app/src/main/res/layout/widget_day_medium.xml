@@ -7,24 +7,6 @@
     android:background="@drawable/widget_bg"
     android:clipToOutline="true">
 
-    <ImageView
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        android:layout_gravity="top|start"
-        android:layout_marginStart="-28dp"
-        android:layout_marginTop="-30dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/widget_glow_white" />
-
-    <ImageView
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="-40dp"
-        android:layout_marginBottom="-56dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/widget_glow_lavender" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -99,6 +81,7 @@
                 android:fontFamily="sans-serif"
                 android:textStyle="bold"
                 android:gravity="bottom|start"
+                android:includeFontPadding="false"
                 android:letterSpacing="-0.025"
                 android:maxLines="1"
                 android:shadowColor="#4D000000"
@@ -184,14 +167,10 @@
             <TextView
                 android:id="@+id/widget_since"
                 android:layout_width="match_parent"
-                android:layout_height="14dp"
-                android:autoSizeMaxTextSize="11sp"
-                android:autoSizeMinTextSize="10sp"
-                android:autoSizeTextType="uniform"
+                android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
-                android:gravity="center_vertical"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:shadowColor="#47000000"
                 android:shadowDy="1"
                 android:shadowRadius="6"

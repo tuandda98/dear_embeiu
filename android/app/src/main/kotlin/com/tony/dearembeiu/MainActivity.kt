@@ -73,7 +73,13 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        recordWidgetLaunch(intent)
+        // Only a fresh launch counts as a tap: a recreated activity (process
+        // death, config change) or a relaunch from Recents still carries the
+        // original widget intent — system_server keeps it with the extra.
+        if (savedInstanceState == null &&
+            (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) == 0) {
+            recordWidgetLaunch(intent)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

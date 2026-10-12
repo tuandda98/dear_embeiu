@@ -23,4 +23,30 @@
                 android:type="linear" />
         </shape>
     </item>
+    <!-- Aurora glows live INSIDE the background so every API level clips them
+         to the rounded corners (clipToOutline is API 31+). -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:centerX="0.0"
+                android:centerY="0.0"
+                android:endColor="#00FFFFFF"
+                android:gradientRadius="56dp"
+                android:startColor="#42FFFFFF"
+                android:type="radial" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:centerX="1.0"
+                android:centerY="1.0"
+                android:endColor="#00A78BFA"
+                android:gradientRadius="72dp"
+                android:startColor="#66A78BFA"
+                android:type="radial" />
+        </shape>
+    </item>
 </layer-list>
