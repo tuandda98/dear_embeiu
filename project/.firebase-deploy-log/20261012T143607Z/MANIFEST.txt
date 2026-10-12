@@ -1,0 +1,7 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-wt-login && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail --project tonyembeiu-dev 2>&1 | tail -6
+time_utc: 20261012T143607Z
+git_head: bd1aa8f (feature/home-widget)
+dirty   : 2 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout bd1aa8f)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout bd1aa8f -- functions` rồi redeploy
