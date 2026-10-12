@@ -1,0 +1,13 @@
+/* Widget gallery (shown before any data exists) + empty state when the app has not been opened since this build. Everything else comes from Flutter (D4). */
+"widget_display_name" = "Day counter";
+"widget_description" = "Your days together, updated every day.";
+"empty_tap" = "Tap to start counting your days together";
+"preview_lang" = "en";
+"preview_name1" = "Me";
+"preview_name2" = "You";
+"preview_days_label" = "days together";
+"preview_milestone_fmt" = "Milestone: {label}";
+"preview_days_left_one" = "1 day left";
+"preview_days_left_fmt" = "{count} days left";
+"preview_days_fmt" = "{count} days";
+"preview_since" = "Since May 14, 2023";

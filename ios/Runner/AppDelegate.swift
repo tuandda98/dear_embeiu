@@ -4,6 +4,7 @@ import Flutter
 import HealthKit
 import UIKit
 import UserNotifications
+import WidgetKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -25,6 +26,7 @@ import UserNotifications
       SleepHealthChannel.register(messenger: registrar.messenger())
       InviteClipboardChannel.register(messenger: registrar.messenger())
       AppleIdStateChannel.register(messenger: registrar.messenger())
+      HomeWidgetChannel.register(messenger: registrar.messenger())
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -208,5 +210,49 @@ final class SleepHealthChannel {
       DispatchQueue.main.async { result(FlutterStandardTypedData(int64: data)) }
     }
     store.execute(query)
+  }
+}
+
+/// Feature home-widget (D3/D8): Dart pushes the pre-translated snapshot, we
+/// store it in the App Group and ask WidgetKit to redraw. A widget tap opens
+/// `dearembeiu://widget?family=…`; the family is parked in UserDefaults until
+/// Dart asks (`consumeLaunch`) so Analytics gets one `widget_tap` per tap.
+final class HomeWidgetChannel {
+  static let snapshotKey = "widget_snapshot"
+  static let launchKey = "widget_launch_family"
+
+  private static var groupDefaults: UserDefaults? {
+    guard let group = Bundle.main.object(forInfoDictionaryKey: "AppGroupId") as? String else { return nil }
+    return UserDefaults(suiteName: group)
+  }
+
+  static func register(messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "dear_embeiu/widget", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "update":
+        guard let snapshot = call.arguments as? [String: String] else {
+          result(FlutterError(code: "bad_args", message: "expected Map<String,String>", details: nil))
+          return
+        }
+        groupDefaults?.set(snapshot, forKey: snapshotKey)
+        if #available(iOS 14.0, *) { WidgetCenter.shared.reloadAllTimelines() }
+        result(nil)
+      case "consumeLaunch":
+        let family = UserDefaults.standard.string(forKey: launchKey)
+        UserDefaults.standard.removeObject(forKey: launchKey)
+        result(family)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+  }
+
+  /// Called from SceneDelegate for every URL the app is opened with.
+  static func recordLaunch(url: URL) {
+    guard url.scheme == "dearembeiu", url.host == "widget" else { return }
+    let family = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+      .queryItems?.first(where: { $0.name == "family" })?.value ?? "unknown"
+    UserDefaults.standard.set(family, forKey: launchKey)
   }
 }
