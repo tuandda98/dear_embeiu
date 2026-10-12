@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../services/daily_question_service.dart';
 import '../services/streak_service.dart';
 
 /// The streak's UI state (feature streak). Drives the chip/sheet copy + visuals.
@@ -30,10 +31,18 @@ enum StreakState {
 /// fail-soft: any read error leaves the state [StreakState.hidden] so the UI can
 /// simply hide the chip. Never throws, never toasts.
 class StreakProvider extends ChangeNotifier {
-  StreakProvider({StreakService? service})
-      : _service = service ?? StreakService();
+  StreakProvider({StreakService? service, DailyQuestionService? repairService})
+      : _service = service ?? StreakService(),
+        _repairService = repairService ?? DailyQuestionService();
 
   final StreakService _service;
+
+  /// Owns the marker writes — used here only to re-flag days both partners
+  /// answered whose `bothAnswered` went missing (see [watchForCouple]).
+  final DailyQuestionService _repairService;
+
+  /// Couples already healed this app session (a cold-start job, not per watch).
+  final Set<String> _healedCouples = <String>{};
 
   /// Milestones celebrated (design §6). Ordered for `nextMilestone` lookup.
   static const List<int> milestones = [3, 7, 30, 100, 365];
@@ -148,6 +157,13 @@ class StreakProvider extends ChangeNotifier {
 
     _isLoading = true;
     notifyListeners();
+
+    // Self-heal once per couple per session: re-flags days that lost their
+    // `bothAnswered`. Fire-and-forget — the writes land in the collection
+    // streamed below, so a mended day simply shows up and the streak recounts.
+    if (_healedCouples.add(coupleId)) {
+      unawaited(_repairService.healRevealMarkers(coupleId));
+    }
 
     _subscription?.cancel();
     _subscription = _service.watchRevealedDates(coupleId).listen(
