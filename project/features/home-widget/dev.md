@@ -26,7 +26,7 @@
 - Copy: chuỗi hiển thị do Flutter dịch sẵn (D4). Ngoại lệ native: tên/mô tả trong gallery widget + câu trạng thái trống khi chưa có ảnh chụp. Giọng "chúng mình". Không emoji làm icon.
 - iOS deployment target widget = 15.0 (bằng app). Số: `minimumScaleFactor 0.6` iOS, `autoSizeTextType` Android.
 - Mỗi task kết thúc bằng `flutter analyze` sạch (khi đụng Dart) + commit. Commit message tiếng Việt kiểu `feat(home-widget): …`, cuối message 2 dòng:
-  `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>` và `Claude-Session: https://claude.ai/code/session_01Fe9gCYrrfgYjeuLy2WrVgg`.
+  `Co-Authored-By: Claude <model thật đang code> <noreply@anthropic.com>` và `Claude-Session: https://claude.ai/code/session_01Fe9gCYrrfgYjeuLy2WrVgg` (subagent ghi đúng model của mình, vd `Claude Haiku 5.5`; các khối lệnh commit trong task viết sẵn `Fable 5.1` — thay cho đúng).
 - Chạy lệnh từ gốc repo `/Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu`.
 
 ---
@@ -302,7 +302,8 @@ EOF
 
 **Files:**
 - Create: `lib/services/home_widget_bridge.dart`
-- Modify: `lib/services/analytics_service.dart:46,58,337`, `lib/main.dart` (import quanh dòng 47; `_MyAppState` dòng 225–275; MultiProvider dòng 281 và 298–300)
+- Modify: `lib/services/analytics_service.dart:46,58,337`, `lib/main.dart` (import quanh dòng 47; `_MyAppState` dòng 225–275; MultiProvider dòng 281 và 298–300), `lib/app/session_resolver.dart` (nhánh guest ~dòng 148–163 + nhánh verifyEmail ~168–182)
+- Test: `test/home_widget_bridge_test.dart` (Step 3b — guard đang-nạp / nạp-lỗi / gửi-một-lần / retry)
 
 **Interfaces:**
 - Consumes: `HomeWidgetSnapshot.build` (Task 1), `CoupleProvider.couple` + `addListener`, `LocaleProvider.addListener`, `AppL10n.strings`, `AnalyticsService.instance.logEvent(name, {params})`.
@@ -373,14 +374,28 @@ abstract final class HomeWidgetBridge {
   static bool _bound = false;
 
   /// Wire once from the app root. Re-sends whenever the couple or the language
-  /// changes; the first push runs after the first frame.
+  /// changes. No push at bind time: `couple` is null until SessionResolver's
+  /// loadCoupleForUser answers, and that first notification is what tells us
+  /// whether this session really has no couple.
   static void bind(CoupleProvider couples, LocaleProvider locales) {
     if (_bound || kIsWeb) return;
     _bound = true;
-    void onChange() => _afterFrame(() => push(couples.couple));
+    void onChange() {
+      // Still fetching: the couple is unknown, not absent.
+      if (couples.isLoading) return;
+      // Fetch failed (offline, sync error): keep what the widget shows now.
+      if (couples.couple == null && couples.errorMessage != null) return;
+      _afterFrame(() => push(couples.couple));
+    }
     couples.addListener(onChange);
     locales.addListener(onChange);
-    onChange();
+  }
+
+  /// Tests only: lets a test bind its own fake providers.
+  @visibleForTesting
+  static void resetForTest() {
+    _bound = false;
+    _lastSent = null;
   }
 
   /// MaterialApp re-resolves the locale (AppL10n.setLocale) in the frame that
@@ -392,15 +407,18 @@ abstract final class HomeWidgetBridge {
   }
 
   static Future<void> push(Couple? couple) async {
-    final snapshot =
-        HomeWidgetSnapshot.build(couple: couple, l10n: AppL10n.strings);
-    if (mapEquals(snapshot, _lastSent)) return;
-    _lastSent = snapshot;
+    Map<String, String>? snapshot;
     try {
+      // build() formats dates with intl — main.dart ran initializeDateFormatting()
+      // before runApp, and a widget refresh must never take the app down anyway.
+      snapshot = HomeWidgetSnapshot.build(couple: couple, l10n: AppL10n.strings);
+      if (mapEquals(snapshot, _lastSent)) return;
       await _channel.invokeMethod<void>('update', snapshot);
+      _lastSent = snapshot; // only a delivered snapshot counts as sent
     } on MissingPluginException {
-      // No native side (tests) — nothing to update.
+      _lastSent = snapshot; // no native side (web, tests): nothing to retry
     } catch (e) {
+      // Left unsent on purpose: the next change retries the same snapshot.
       debugPrint('HomeWidgetBridge.update failed: $e');
     }
   }
@@ -511,6 +529,178 @@ new:
         ChangeNotifierProvider<LocaleProvider>.value(value: _localeProvider),
 ```
 
+- [ ] **Step 3b: Test bridge — không đẩy `empty` khi đang nạp / nạp lỗi, gửi mỗi snapshot một lần**
+
+Create `test/home_widget_bridge_test.dart`:
+```dart
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
+import 'package:dear_embeiu/models/couple.dart';
+import 'package:dear_embeiu/providers/couple_provider.dart';
+import 'package:dear_embeiu/providers/locale_provider.dart';
+import 'package:dear_embeiu/services/home_widget_bridge.dart';
+
+/// Feature home-widget: on a cold start the couple is null until it loads, so
+/// the bridge must not overwrite a good widget with `empty` while loading or
+/// after a failed load — and must send each snapshot once.
+class _FakeCouples extends CoupleProvider {
+  Couple? _c;
+  bool _loading = false;
+  String? _error;
+
+  @override
+  Couple? get couple => _c;
+  @override
+  bool get isLoading => _loading;
+  @override
+  String? get errorMessage => _error;
+
+  void emit({Couple? couple, bool loading = false, String? error}) {
+    _c = couple;
+    _loading = loading;
+    _error = error;
+    notifyListeners();
+  }
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  const channel = MethodChannel('dear_embeiu/widget');
+  final sent = <Map<String, String>>[];
+
+  setUpAll(() async {
+    await initializeDateFormatting();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      if (call.method == 'update') {
+        sent.add(Map<String, String>.from(call.arguments as Map));
+      }
+      return null;
+    });
+  });
+
+  final epoch = DateTime(2023, 5, 14);
+  final couple = Couple(
+    id: 'c1',
+    person1Name: 'Tuấn',
+    person2Name: 'Thảo',
+    anniversaryDate: epoch,
+    inviteCode: 'ABC123',
+    memberIds: const ['me', 'other'],
+    memberCount: 2,
+    createdByUserId: 'me',
+    status: 'active',
+    createdAt: epoch,
+    updatedAt: epoch,
+  );
+
+  testWidgets('pushes once per change, never while loading or after a failed load',
+      (tester) async {
+    final couples = _FakeCouples();
+    final locales = LocaleProvider();
+    HomeWidgetBridge.resetForTest();
+    HomeWidgetBridge.bind(couples, locales);
+    await tester.pump();
+    expect(sent, isEmpty, reason: 'no push at bind: the couple is unknown, not absent');
+
+    couples.emit(loading: true);
+    await tester.pump();
+    expect(sent, isEmpty, reason: 'loading: keep the widget as it is');
+
+    couples.emit(couple: couple);
+    await tester.pump();
+    expect(sent.length, 1);
+    expect(sent.single['state'], 'counter');
+    expect(sent.single['anniversary'], '2023-05-14');
+
+    couples.emit(couple: couple);
+    await tester.pump();
+    expect(sent.length, 1, reason: 'an identical snapshot is not re-sent');
+
+    couples.emit(couple: null, error: 'sync failed');
+    await tester.pump();
+    expect(sent.length, 1, reason: 'a failed load keeps the last good snapshot');
+
+    couples.emit(couple: null);
+    await tester.pump();
+    expect(sent.length, 2);
+    expect(sent.last['state'], 'empty', reason: 'signed out / no couple → empty');
+  });
+
+  testWidgets('a failed update is retried on the next change', (tester) async {
+    final couples = _FakeCouples();
+    HomeWidgetBridge.resetForTest();
+    HomeWidgetBridge.bind(couples, LocaleProvider());
+    var failNext = true;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      if (failNext) {
+        failNext = false;
+        throw PlatformException(code: 'boom');
+      }
+      if (call.method == 'update') {
+        sent.add(Map<String, String>.from(call.arguments as Map));
+      }
+      return null;
+    });
+    sent.clear();
+
+    couples.emit(couple: couple);
+    await tester.pump();
+    expect(sent, isEmpty, reason: 'the first attempt failed');
+
+    couples.emit(couple: couple);
+    await tester.pump();
+    expect(sent.length, 1, reason: 'the same snapshot is re-sent after a failure');
+  });
+}
+```
+Run: `flutter test test/home_widget_bridge_test.dart`
+Expected: `All tests passed!` (2 test). Nếu một assertion fail chỉ vì microtask của channel chưa chạy, thêm một `await tester.pump();` nữa ngay sau lần pump đó (không đổi assertion).
+
+- [ ] **Step 3c: SessionResolver quên couple khi đăng xuất / chưa xác thực email**
+
+Đăng xuất và xoá tài khoản đi qua nhánh guest của `SessionResolver`; nhánh đó dọn mọi provider TRỪ `CoupleProvider` → `couple` cũ còn nguyên, bridge không có gì để đẩy `empty` (acceptance "đăng xuất → widget trống" hỏng). `loadCoupleForUser(null)` huỷ stream, null couple, xoá lỗi và notify — đúng nghĩa "không user → không couple".
+
+Edit `lib/app/session_resolver.dart` — old:
+```dart
+      rpsGameProvider.clear();
+      sleepProvider.clear();
+      // No active couple: drop the daily-question nudge (b2). The on/off
+      // preference is kept so it re-arms on the next sync once a couple loads.
+      await reminderProvider.cancelDailyQuestionSchedule();
+      return AppRoutes.guest;
+```
+new:
+```dart
+      rpsGameProvider.clear();
+      sleepProvider.clear();
+      // Signed out / account deleted: forget the couple too — the home-screen
+      // widget bridge listens to CoupleProvider and pushes its empty state.
+      await coupleProvider.loadCoupleForUser(null);
+      // No active couple: drop the daily-question nudge (b2). The on/off
+      // preference is kept so it re-arms on the next sync once a couple loads.
+      await reminderProvider.cancelDailyQuestionSchedule();
+      return AppRoutes.guest;
+```
+old:
+```dart
+      rpsGameProvider.clear();
+      sleepProvider.clear();
+      await reminderProvider.cancelDailyQuestionSchedule();
+      return AppRoutes.verifyEmail;
+```
+new:
+```dart
+      rpsGameProvider.clear();
+      sleepProvider.clear();
+      await coupleProvider.loadCoupleForUser(null); // same reason as the guest branch
+      await reminderProvider.cancelDailyQuestionSchedule();
+      return AppRoutes.verifyEmail;
+```
+
 - [ ] **Step 4: Analyze + toàn bộ test**
 
 Run: `flutter analyze && flutter test`
@@ -519,7 +709,7 @@ Expected: `No issues found!` và `All tests passed!` (các test cũ dùng `Coupl
 - [ ] **Step 5: Commit**
 
 ```bash
-git add lib/services/home_widget_bridge.dart lib/services/analytics_service.dart lib/main.dart
+git add lib/services/home_widget_bridge.dart lib/services/analytics_service.dart lib/main.dart lib/app/session_resolver.dart test/home_widget_bridge_test.dart
 git commit -m "$(cat <<'EOF'
 feat(home-widget): bridge gửi ảnh chụp sang native + event widget_tap
 
@@ -543,7 +733,7 @@ EOF
 - Create: `scripts/widget-daymath-check/main.swift`, `scripts/check-widget-daymath.sh`
 
 **Interfaces:**
-- Produces (Task 4 dùng): `enum DayMath` với `static func parseDate(_ s: String) -> DateComponents?`, `static func daysTogether(anniversary: String, today: Date, calendar: Calendar = .current) -> Int`, `static func nextMilestone(_ days: Int) -> Int`, `static func progress(days: Int, next: Int) -> Double`, `static func milestoneLabel(_ next: Int, monthsOne: String, monthsFmt: String, yearsOne: String, yearsFmt: String, daysFmt: String, number: (Int) -> String) -> String`, `static func format(_ n: Int, lang: String) -> String`.
+- Produces (Task 4 dùng): `enum DayMath` với `static var gregorian: Calendar` (Gregorian + timeZone máy — mặc định, KHÔNG `.current`), `static func parseDate(_ s: String) -> DateComponents?`, `static func daysTogether(anniversary: String, today: Date, calendar: Calendar = DayMath.gregorian) -> Int`, `static func nextMilestone(_ days: Int) -> Int`, `static func progress(days: Int, next: Int) -> Double`, `static func milestoneLabel(_ next: Int, monthsOne: String, monthsFmt: String, yearsOne: String, yearsFmt: String, daysFmt: String, number: (Int) -> String) -> String`, `static func format(_ n: Int, lang: String) -> String`.
 
 - [ ] **Step 1: Viết harness kiểm (fail trước)**
 
@@ -576,6 +766,17 @@ var berlin = Calendar(identifier: .gregorian)
 berlin.timeZone = TimeZone(identifier: "Europe/Berlin")!
 let afterDst = berlin.date(from: DateComponents(year: 2026, month: 3, day: 30, hour: 0, minute: 30))!
 check(DayMath.daysTogether(anniversary: "2026-03-29", today: afterDst, calendar: berlin) == 1, "DST change costs no day")
+// Havana 2018-03-11: clocks jump at 00:00, so the anniversary's own midnight
+// never exists — midnight-to-midnight counting would return 0 here.
+var havana = Calendar(identifier: .gregorian)
+havana.timeZone = TimeZone(identifier: "America/Havana")!
+let havanaNoon = havana.date(from: DateComponents(year: 2018, month: 3, day: 12, hour: 12))!
+check(DayMath.daysTogether(anniversary: "2018-03-11", today: havanaNoon, calendar: havana) == 1, "DST skipping the anniversary's own midnight still counts the day")
+check(DayMath.gregorian.identifier == .gregorian, "default calendar is Gregorian whatever the device setting (Dart parity)")
+// check-widget-daymath.sh runs this binary with `-AppleLocale th_TH` (Buddhist
+// calendar), so the default-calendar path must still count in Gregorian.
+let noon = DayMath.gregorian.date(from: DateComponents(year: 2026, month: 10, day: 12, hour: 12))!
+check(DayMath.daysTogether(anniversary: "2023-05-14", today: noon) == 1247, "default path counts Gregorian even under th_TH (Buddhist) locale")
 
 let table: [(Int, Int)] = [(0, 30), (29, 30), (30, 50), (364, 365), (365, 500), (1247, 1500),
                            (2999, 3000), (3000, 3500), (3499, 3500), (3500, 4000)]
@@ -599,7 +800,7 @@ check(label(1500) == "1.500 ngày", "1500 → 1.500 ngày")
 check(label(50) == "50 ngày", "50 → 50 ngày")
 
 if failures > 0 { print("\(failures) check(s) failed"); exit(1) }
-print("OK DayMath — \(table.count + 17) checks")
+print("OK DayMath — \(table.count + 20) checks")
 ```
 
 Create `scripts/check-widget-daymath.sh`:
@@ -612,7 +813,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 OUT="$(mktemp -d)/daymath"
 xcrun swiftc -O ios/DearEmbeiuWidget/DayMath.swift scripts/widget-daymath-check/main.swift -o "$OUT"
-"$OUT"
+# -AppleLocale th_TH makes Calendar.current Buddhist for this process: the
+# default-calendar check only means something under a non-Gregorian locale.
+"$OUT" -AppleLocale th_TH
 ```
 Run: `chmod +x scripts/check-widget-daymath.sh && scripts/check-widget-daymath.sh`
 Expected: FAIL — `error: no such file or directory: 'ios/DearEmbeiuWidget/DayMath.swift'`.
@@ -638,14 +841,28 @@ enum DayMath {
     return DateComponents(year: parts[0], month: parts[1], day: parts[2])
   }
 
-  /// Calendar days from the anniversary to `today` — day numbers, not hours, so
-  /// a DST change never costs a day. Never below 0 (future date = day 0).
-  static func daysTogether(anniversary: String, today: Date, calendar: Calendar = .current) -> Int {
-    guard let components = parseDate(anniversary),
-          let start = calendar.date(from: components),
-          let a = calendar.ordinality(of: .day, in: .era, for: start),
-          let t = calendar.ordinality(of: .day, in: .era, for: today) else { return 0 }
-    return max(0, t - a)
+  /// Dart counts in the Gregorian calendar (DateTime). `Calendar.current` follows
+  /// the device setting and can be Buddhist/Japanese, which would read "2023"
+  /// as another year — so default to Gregorian in the device's time zone.
+  static var gregorian: Calendar {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = .current
+    return calendar
+  }
+
+  /// Calendar days from the anniversary to `today`, exactly like Dart
+  /// (`LoveTreeService.daysTogether`): take today's local y/m/d in `calendar`,
+  /// then subtract the two dates in a UTC calendar, so no DST hour can move a
+  /// day. (Midnight-to-midnight in the local calendar misses one when DST skips
+  /// the anniversary's own 00:00 — Havana 2018-03-11; `ordinality(.day, in:
+  /// .era)` counts UTC day boundaries.) Never below 0 (future date = day 0).
+  static func daysTogether(anniversary: String, today: Date, calendar: Calendar = DayMath.gregorian) -> Int {
+    guard let start = parseDate(anniversary) else { return 0 }
+    let end = calendar.dateComponents([.year, .month, .day], from: today)
+    var utc = Calendar(identifier: .gregorian)
+    utc.timeZone = TimeZone(secondsFromGMT: 0)!
+    guard let s = utc.date(from: start), let e = utc.date(from: end) else { return 0 }
+    return max(0, utc.dateComponents([.day], from: s, to: e).day ?? 0)
   }
 
   static func nextMilestone(_ days: Int) -> Int {
@@ -673,7 +890,9 @@ enum DayMath {
     return daysFmt.replacingOccurrences(of: "{count}", with: number(next))
   }
 
-  /// Grouped integer in the app's language (vi → 1.500, en → 1,500).
+  /// Grouped integer in the app's language (vi → 1.500, en → 1,500) — the
+  /// approved widget design; Home still prints the raw number (noted in
+  /// overview.md as a follow-up).
   static func format(_ n: Int, lang: String) -> String {
     let formatter = NumberFormatter()
     formatter.numberStyle = .decimal
@@ -686,7 +905,7 @@ enum DayMath {
 - [ ] **Step 3: Chạy kiểm, phải PASS**
 
 Run: `scripts/check-widget-daymath.sh`
-Expected: `OK DayMath — 27 checks`.
+Expected: `OK DayMath — 30 checks`.
 
 - [ ] **Step 4: Commit**
 
@@ -695,9 +914,10 @@ git add ios/DearEmbeiuWidget/DayMath.swift scripts/widget-daymath-check/main.swi
 git commit -m "$(cat <<'EOF'
 feat(home-widget): DayMath.swift mirror công thức Home + kiểm bằng swiftc
 
-Đếm ngày lịch (ordinality .day in .era — qua DST không mất ngày), bảng cột
-mốc [30…3000] bước 500, tiến độ days/next, nhãn tháng/năm/ngày, format số
-theo vi/en. scripts/check-widget-daymath.sh: 27 check, không cần Xcode project.
+Đếm ngày như Dart (y/m/d → hiệu ngày trong lịch UTC; DST/lịch Phật không
+lệch), bảng cột mốc [30…3000] bước 500, tiến độ days/next, nhãn
+tháng/năm/ngày, format số theo vi/en. scripts/check-widget-daymath.sh: 30
+check dưới -AppleLocale th_TH, không cần Xcode project.
 
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01Fe9gCYrrfgYjeuLy2WrVgg
@@ -753,7 +973,7 @@ struct WidgetSnapshot {
   /// extension's Localizable.strings (the one place native holds copy, D4).
   static var preview: WidgetSnapshot {
     func s(_ key: String) -> String { NSLocalizedString(key, comment: "") }
-    let calendar = Calendar.current
+    let calendar = DayMath.gregorian // the snapshot date is Gregorian (Dart parity)
     let start = calendar.date(byAdding: .day, value: -1247, to: Date()) ?? Date()
     let c = calendar.dateComponents([.year, .month, .day], from: start)
     let anniversary = String(format: "%04d-%02d-%02d", c.year ?? 2023, c.month ?? 5, c.day ?? 14)
@@ -1646,14 +1866,14 @@ object DayMath {
 - [ ] **Step 4: Chạy test, phải PASS**
 
 Run: `cd android && ./gradlew :app:testDebugUnitTest --tests "com.tony.dearembeiu.widget.DayMathTest" -q; cd ..`
-Expected: không lỗi (im lặng = pass). Xem báo cáo: `android/app/build/test-results/testDebugUnitTest/TEST-com.tony.dearembeiu.widget.DayMathTest.xml` có `tests="5" failures="0"`.
+Expected: không lỗi (im lặng = pass). Xem báo cáo: `build/app/test-results/testDebugUnitTest/TEST-com.tony.dearembeiu.widget.DayMathTest.xml` (Flutter đặt build của module app ở `build/app/`, không phải `android/app/build/`) có `tests="5" failures="0"`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add android/app/build.gradle.kts android/app/src/test/kotlin/com/tony/dearembeiu/widget/DayMathTest.kt android/app/src/main/kotlin/com/tony/dearembeiu/widget/DayMath.kt
 git commit -m "$(cat <<'EOF'
-feat(home-widget): DayMath.kt mirror công thức Home + JUnit 5 test
+feat(home-widget): DayMath.kt mirror công thức Home + 5 test JUnit 4
 
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01Fe9gCYrrfgYjeuLy2WrVgg
@@ -2541,7 +2761,7 @@ scripts/check-widget-daymath.sh
 (cd android && ./gradlew :app:testDebugUnitTest --tests "com.tony.dearembeiu.widget.DayMathTest" -q)
 git status --short
 ```
-Expected: `No issues found!` · `All tests passed!` · `OK DayMath — 27 checks` · gradle im lặng · chỉ còn file docs chưa commit.
+Expected: `No issues found!` · `All tests passed!` · `OK DayMath — 30 checks` · gradle im lặng · chỉ còn file docs chưa commit.
 
 - [ ] **Step 2: design.md — 2 chỗ lệch so với code thật**
 

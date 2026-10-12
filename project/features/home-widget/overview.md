@@ -51,6 +51,7 @@
 - **D7 — Android cập nhật theo `updatePeriodMillis` 30 phút**, chấp nhận lệch tối đa 30 phút sau 0:00. *Lý do:* 0 dòng logic; nâng lên báo thức đúng 0:00 khi có người phàn nàn (ghi `ponytail:` trong code).
 - **D8 — Chạm widget chỉ mở app**, không parse URL (giữ quyết định tắt deep linking của audit 2026-10-12). Nguồn chạm ghi bằng cờ native (iOS: URL `dearembeiu://widget` vào UserDefaults; Android: intent extra) → Flutter đọc 1 lần để log `widget_tap`.
 - **D9 — Phát hành trong bản MINOR 1.10.0, sau 1.9.1** (hàng chờ audit + streak-self-heal). Không đụng backend.
+- **D10 — Widget nhóm hàng nghìn theo ngôn ngữ** ("1.247" vi / "1,247" en, như mockup user duyệt). *Phát hiện khi review Task 3 (2026-10-12):* Home đang in số thô (`counter_card.dart` "1247", nhãn cột mốc "1500 ngày") ⇒ hai mặt số khác định dạng. Giữ widget theo design; **nợ PO:** cân nhắc cho Home nhóm theo (1 `NumberFormat`) để nhất quán — ngoài phạm vi feature này.
 
 ## 5. Acceptance criteria (xong khi…)
 - [ ] iOS: gallery widget có "Đếm ngày yêu" cỡ nhỏ + vừa; số ngày, tên, cột mốc (vừa) **bằng đúng** CounterCard trên Home trong cùng ngày, cả vi lẫn en.
