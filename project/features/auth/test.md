@@ -57,3 +57,4 @@
 ## Nhật ký test
 - [2026-05-30] [PO] Tạo bộ case từ catalog logic/security; chờ Tester chạy.
 - [2026-06-05] [Tester] Nghiệm thu code-level Đợt 1: 7/7 acceptance PASS. analyze sạch, gen-l10n idempotent, ARB parity OK. F1 (creationTime null fail-open) → Dev siết bằng register-direct-nav; F2 wire toast. Verdict PASS-with-notes — chờ 6 smoke-test runtime trước ship.
+- [2026-10-12] [Tester] Audit 3 luồng tạo tài khoản (email/Apple/Google) · đăng nhập · đăng xuất, read-only, nhánh `feature/home-widget`@bb73ac1: **FAIL** — 0 P1 · 3 P2 (AU-T1 máy bị đá vẫn nhận push ≤60 ngày · AU-T2 spinner treo khi rớt mạng sau Auth · AU-T3 `sendCustomPasswordResetEmail` không throttle) · 12 P3. Test auth 103/103. Chi tiết + điểm mạnh: [`project/AUDIT-2026-10-12-account-flows.md`](../../AUDIT-2026-10-12-account-flows.md). Chưa vá (user: chỉ audit).
