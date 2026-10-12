@@ -293,8 +293,8 @@ const List<QuestionTemplate> questionTemplates = <QuestionTemplate>[
     group: kTplGroupFeeling,
     topic: 'gratitude_partner',
     variant: 1,
-    vi: 'Có điều gì ở người ấy làm bạn thấy biết ơn hôm nay?',
-    en: 'What are you grateful for in your partner today?',
+    vi: 'Gần đây có chuyện gì người ấy nói đúng mà bạn chưa kịp công nhận không?',
+    en: 'Was your partner right about something lately that you haven\'t given them credit for yet?',
   ),
   QuestionTemplate(
     group: kTplGroupFeeling,

@@ -59,19 +59,22 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     final authProvider = context.read<AuthProvider>();
+    // AU4: taken before the await. Going back while Firebase finishes leaves
+    // a live session behind — it must still go through authGate.
+    final navigator = Navigator.of(context);
     final didSignIn = await authProvider.signIn(
       email: _emailController.text,
       password: _passwordController.text,
     );
 
-    if (!mounted) {
+    if (didSignIn) {
+      if (navigator.mounted) {
+        navigator.pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+      }
       return;
     }
 
-    if (didSignIn) {
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+    if (!mounted) {
       return;
     }
 

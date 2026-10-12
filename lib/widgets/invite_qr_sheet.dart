@@ -23,7 +23,7 @@ class InviteQrSheet extends StatelessWidget {
   /// method `qr` (never the code) and drops the +2h follow-up (PF10).
   static Future<void> show(BuildContext context, {required String code}) {
     AnalyticsService.instance.logInviteShared('qr');
-    context.read<ReminderProvider>().markInviteShared();
+    context.read<ReminderProvider>().markInviteShared(code);
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,

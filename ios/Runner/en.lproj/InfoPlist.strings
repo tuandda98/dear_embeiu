@@ -1,0 +1,13 @@
+/* iOS shows these instead of the same keys in Info.plist.
+   Every UsageDescription key in Info.plist needs its line here: add or
+   reword a prompt in Info.plist and update this file too (and the other
+   way round). Change the wording in both en.lproj and vi.lproj.
+   test/pairing_native_config_test.dart checks the keys. */
+
+"NSPhotoLibraryUsageDescription" = "Dear Embeiu needs access to your photo library so you can pick photos and share your memories with your partner.";
+
+"NSCameraUsageDescription" = "Dear Embeiu needs the camera so you can capture and post the moments you share with your partner.";
+
+"NSHealthShareUsageDescription" = "Dear Embeiu reads the sleep data your iPhone or Apple Watch records in the Health app to show when you fell asleep, when you got up and any times you woke during the night. Turn on sharing and your partner can see it too. The app only reads this data and never writes anything to Health.";
+
+"NSHealthUpdateUsageDescription" = "Dear Embeiu doesn't write anything to the Health app. It only reads your sleep data to show when you fell asleep and when you got up.";

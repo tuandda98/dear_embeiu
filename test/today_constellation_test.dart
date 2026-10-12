@@ -233,7 +233,8 @@ void main() {
   group('star labels stay on screen and off the stars', () {
     for (final lang in ['vi', 'en']) {
       for (final width in [320.0, 360.0]) {
-        for (final scale in [1.0, 1.3]) {
+        // Past 130% the heart's text is held at 130% (audit SU5).
+        for (final scale in [1.0, 1.3, 1.5, 2.0]) {
           testWidgets('$lang @${width}dp ×$scale', (tester) async {
             _phone(tester, width, scale: scale);
             await tester.pumpWidget(_app(_section(), lang: lang));
@@ -279,6 +280,36 @@ void main() {
             }
           });
         }
+      }
+    }
+  });
+
+  group('star panel at big text: the button goes under the text (SU5)', () {
+    for (final lang in ['vi', 'en']) {
+      for (final scale in [1.0, 1.5, 2.0]) {
+        testWidgets('$lang @320dp ×$scale', (tester) async {
+          _phone(tester, 320, scale: scale);
+          await tester.pumpWidget(_app(_section(), lang: lang));
+          await tester.pump();
+
+          // Their unlit star → "Gửi lời quan tâm"; then mine → "Trả lời
+          // ngay". An overflow would fail the test.
+          for (final who in ['Minh Anh', lang == 'vi' ? 'Bạn' : 'You']) {
+            await tester.tap(
+              find.bySemanticsLabel(RegExp('^$who · ')).first,
+              warnIfMissed: false,
+            );
+            await tester.pump();
+            final button = find.byWidgetPredicate(
+              (w) => w is Material && w.shape is StadiumBorder,
+            );
+            final title = find.textContaining('$who · ');
+            final below =
+                tester.getRect(button.last).top >=
+                tester.getRect(title.last).bottom;
+            expect(below, scale >= 1.5, reason: '$who ×$scale');
+          }
+        });
       }
     }
   });

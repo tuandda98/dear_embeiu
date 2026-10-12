@@ -116,7 +116,29 @@ void main() {
 
       expect(await messageFor('network-request-failed'), l10n.authNetworkError);
       expect(await messageFor('invalid-credential'), l10n.googleSignInFailed);
+      // AU7: the email flow's copy, not a generic failure.
+      expect(await messageFor('user-disabled'), l10n.authUserDisabled);
+      expect(await messageFor('too-many-requests'), l10n.authTooManyRequests);
     });
+  });
+
+  test('AU5: a second provider tapped in the same frame never runs', () async {
+    final gate = Completer<void>();
+    final service = _ProviderFake(
+      const AuthException('social-canceled'),
+      gate: gate.future,
+    );
+    final auth = app.AuthProvider(authService: service);
+
+    final first = auth.signInWithSocial(app.SocialSignIn.google);
+    expect(await auth.signInWithSocial(app.SocialSignIn.apple), isFalse);
+    expect(service.calls, ['google'], reason: 'Apple never started');
+    expect(auth.socialSignIn, app.SocialSignIn.google);
+    expect(auth.errorMessage, isNull, reason: 'the second tap stays silent');
+
+    gate.complete();
+    await first;
+    expect(auth.socialSignIn, isNull);
   });
 
   test('only the running provider is busy; cleared when it ends', () async {
@@ -211,14 +233,19 @@ class _ProviderFake extends AuthService {
   final Object error;
   final Future<void>? gate;
 
-  Future<({AppUser user, bool isNewUser})> _fail() async {
+  /// Which sign-ins started, in order.
+  final calls = <String>[];
+
+  Future<({AppUser user, bool isNewUser})> _fail(String provider) async {
+    calls.add(provider);
     await gate;
     throw error;
   }
 
   @override
-  Future<({AppUser user, bool isNewUser})> signInWithApple() => _fail();
+  Future<({AppUser user, bool isNewUser})> signInWithApple() => _fail('apple');
 
   @override
-  Future<({AppUser user, bool isNewUser})> signInWithGoogle() => _fail();
+  Future<({AppUser user, bool isNewUser})> signInWithGoogle() =>
+      _fail('google');
 }

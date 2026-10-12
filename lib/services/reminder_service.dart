@@ -835,11 +835,10 @@ class ReminderService {
     }
   }
 
-  /// Drop a single invite follow-up — the +2h one once the code is sent.
+  /// Drop a single invite follow-up — the +2h one once the code is sent. No
+  /// [initialize] needed, like [cancelInviteFollowUps]: a send while the
+  /// deferred [initialize] is still running must not be a silent no-op (PA2).
   Future<void> cancelInviteFollowUp(InviteFollowUp kind) async {
-    if (!_initialized) {
-      return;
-    }
     try {
       await _plugin.cancel(kind.id);
     } catch (_) {

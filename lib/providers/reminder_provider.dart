@@ -76,6 +76,10 @@ class MilestoneNextFire {
 /// v2 removed the generic daily nudge (Dv1) and made each milestone individually
 /// toggleable (Dv3/Dv4), scheduling only on the exact milestone day (Dv5).
 class ReminderProvider extends ChangeNotifier {
+  /// [service] is for tests; the app uses [ReminderService.instance].
+  ReminderProvider({ReminderService? service})
+      : _service = service ?? ReminderService.instance;
+
   static const String _boxName = 'reminder_settings';
   static const String _enabledKey = 'enabled';
   static const String _hourKey = 'hour';
@@ -219,7 +223,7 @@ class ReminderProvider extends ChangeNotifier {
   final Map<MilestoneType, TimeOfDay> _milestoneTimes =
       <MilestoneType, TimeOfDay>{};
 
-  final ReminderService _service = ReminderService.instance;
+  final ReminderService _service;
 
   // Inputs cached from the last sync/reschedule so [toggleMilestone] can
   // reschedule a single milestone without the caller re-supplying couple data.
@@ -1335,10 +1339,19 @@ class ReminderProvider extends ChangeNotifier {
   // +72h, then silence. LOCAL only (the partner has no device here yet).
   // ---------------------------------------------------------------------------
 
-  // Hive `app_settings` (Box<String>, opened in main()): epoch-millis of the
-  // last time the member sent the invite (share sheet / copy / QR).
+  // Hive `app_settings` (Box<String>, opened in main()).
   static const String _appSettingsBox = 'app_settings';
-  static const String _inviteSharedAtKey = 'invite_shared_at';
+  // `invite_shared_at_<CODE>`: epoch-millis of the last time that invite code
+  // went out (share sheet / copy / QR). Per code, not one stamp per device
+  // (PA6): another account, or this member's next couple, has codes of its
+  // own, so their +2h nudge survives a send made for someone else.
+  static const String _inviteSharedAtPrefix = 'invite_shared_at_';
+  // 1.9.0's single stamp per device. Read, never written, under the same
+  // anchor rule: a member who sent the code on 1.9.0 and updated before +2h
+  // isn't asked to send it again (PA-N3).
+  static const String _legacyInviteSharedAtKey = 'invite_shared_at';
+  // `invite_paired_<coupleId>`: set once Home saw that couple active (PA7).
+  static const String _invitePairedPrefix = 'invite_paired_';
 
   String? _inviteFollowUpSignature;
 
@@ -1346,14 +1359,15 @@ class ReminderProvider extends ChangeNotifier {
   /// (reset whenever the band is armed again).
   bool _inviteFollowUpCleared = false;
 
-  /// The member just sent the invite (share sheet, copy, or QR — Setup, Home or
-  /// Profile). Stamps the time and drops the +2h nudge at once: it only exists
-  /// for someone who hasn't sent anything yet (PF10).
-  Future<void> markInviteShared() async {
+  /// The member just sent invite [code] (share sheet, copy, or QR — Setup, Home
+  /// or Profile). Stamps the time and drops the +2h nudge at once: it only
+  /// exists for someone who hasn't sent anything yet (PF10).
+  Future<void> markInviteShared(String code) async {
+    final key = _inviteSharedKey(code);
     try {
-      if (Hive.isBoxOpen(_appSettingsBox)) {
+      if (key != null && Hive.isBoxOpen(_appSettingsBox)) {
         await Hive.box<String>(_appSettingsBox).put(
-          _inviteSharedAtKey,
+          key,
           '${DateTime.now().millisecondsSinceEpoch}',
         );
       }
@@ -1363,35 +1377,75 @@ class ReminderProvider extends ChangeNotifier {
     await _service.cancelInviteFollowUp(InviteFollowUp.after2h);
   }
 
-  /// Whether the invite was sent for the couple created at [anchor]. The hour
+  static String? _inviteSharedKey(String code) {
+    final normalized = code.trim().toUpperCase();
+    return normalized.isEmpty ? null : '$_inviteSharedAtPrefix$normalized';
+  }
+
+  /// Whether one of [codes] — the codes that lead into the couple created at
+  /// [anchor] — was sent, or 1.9.0's per-device stamp is that recent. The hour
   /// of slack counts a member who copied their personal code on Setup right
   /// before creating the couple.
-  bool _inviteSharedFor(DateTime anchor) {
+  bool _inviteSharedFor(Iterable<String?> codes, DateTime anchor) {
     try {
       if (!Hive.isBoxOpen(_appSettingsBox)) {
         return false;
       }
-      final at = int.tryParse(
-        Hive.box<String>(_appSettingsBox).get(_inviteSharedAtKey) ?? '',
-      );
-      final since = anchor.subtract(const Duration(hours: 1));
-      return at != null && at >= since.millisecondsSinceEpoch;
+      final box = Hive.box<String>(_appSettingsBox);
+      final since =
+          anchor.subtract(const Duration(hours: 1)).millisecondsSinceEpoch;
+      bool sentSince(String? key) {
+        final at = key == null ? null : int.tryParse(box.get(key) ?? '');
+        return at != null && at >= since;
+      }
+
+      return sentSince(_legacyInviteSharedAtKey) ||
+          codes.any(
+            (code) => sentSince(code == null ? null : _inviteSharedKey(code)),
+          );
     } catch (_) {
       return false;
     }
   }
 
+  /// Whether [coupleId] ever had both members on this device; [active] records
+  /// it (PA7).
+  Future<bool> _pairedBefore(String coupleId, {required bool active}) async {
+    if (coupleId.isEmpty || !Hive.isBoxOpen(_appSettingsBox)) {
+      return active;
+    }
+    final box = Hive.box<String>(_appSettingsBox);
+    final key = '$_invitePairedPrefix$coupleId';
+    if (box.get(key) != null) {
+      return true;
+    }
+    if (active) {
+      try {
+        await box.put(key, '1');
+      } catch (_) {
+        // Best effort — only matters if the partner later leaves.
+      }
+    }
+    return active;
+  }
+
   /// (Re)arm or clear the invite follow-ups. Wired from HomeScreen alongside the
-  /// reminder sync. [waiting] false cancels the band (partner joined). [anchor]
-  /// is the couple's creation time, falling back to now for legacy couples with
-  /// no usable timestamp. Debounced on (waiting | anchor | shared) so the
-  /// frequent rebuilds don't thrash the OS schedule.
+  /// reminder sync. [waiting] false cancels the band (partner joined).
+  /// [coupleCreatedAt] is the anchor, falling back to now for legacy couples
+  /// with no usable timestamp. [inviteCodes] are the codes that lead into the
+  /// couple (its couple code + the creator's personal code). Debounced on
+  /// (waiting | anchor | shared) so the frequent rebuilds don't thrash the OS
+  /// schedule.
   Future<void> refreshInviteFollowUps({
+    required String coupleId,
     required bool waiting,
     DateTime? coupleCreatedAt,
+    Iterable<String?> inviteCodes = const [],
     required AppLocalizations l10n,
   }) async {
-    if (!waiting) {
+    // PA7: a couple waiting again because the partner LEFT is not "not here
+    // yet" — and its +20h/+72h would still count from the old createdAt.
+    if (await _pairedBefore(coupleId, active: !waiting)) {
       // The signature is per-process, but the one-shots persist in the OS: a
       // partner who joined while this app was killed must still get the band
       // cleared on the next launch. Cancel once per process (cheap), and
@@ -1406,7 +1460,7 @@ class ReminderProvider extends ChangeNotifier {
     }
 
     final anchor = coupleCreatedAt ?? DateTime.now();
-    final shared = _inviteSharedFor(anchor);
+    final shared = _inviteSharedFor(inviteCodes, anchor);
     final signature =
         'waiting|${anchor.millisecondsSinceEpoch}|$shared|${l10n.localeName}';
     if (signature == _inviteFollowUpSignature) {
@@ -1433,6 +1487,11 @@ class ReminderProvider extends ChangeNotifier {
         ),
       },
     );
+    // PA2: the invite went out while the band was being written — the send's
+    // own cancel may have landed before +2h was armed again.
+    if (!shared && _inviteSharedFor(inviteCodes, anchor)) {
+      await _service.cancelInviteFollowUp(InviteFollowUp.after2h);
+    }
   }
 
   /// Clamp each minute-of-day to 0–1439, de-dupe, sort, cap at the max.

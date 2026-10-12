@@ -135,7 +135,7 @@ void main() {
       await provider.initialize();
       await _settle(); // session token minted + watched
 
-      final result = await provider.deleteAccount();
+      final result = await provider.deleteAccount(appleSheet: true);
 
       expect(result, 'social-canceled');
       expect(fake.deleteCalled, isFalse);
@@ -157,11 +157,103 @@ void main() {
       final provider = AuthProvider(authService: fake);
       await provider.initialize();
 
-      final result = await provider.deleteAccount();
+      final result = await provider.deleteAccount(appleSheet: true);
 
       expect(result, 'apple-id-mismatch');
       expect(fake.deleteCalled, isFalse);
       expect(provider.errorMessage, isNull, reason: 'sentinel, never text');
+    });
+  });
+
+  group('BUG-26 one deletion, on the dialog\'s answer', () {
+    test('a second call while one runs returns at once and leaves it alone',
+        () async {
+      final fake = _FakeAuthService()
+        ..userToReturn = buildUser()
+        ..deleteGate = Completer<void>();
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
+
+      final first = provider.deleteAccount(appleSheet: true);
+      await _settle();
+      expect(provider.isLoading, isTrue);
+
+      expect(
+        await provider
+            .deleteAccount(appleSheet: true)
+            .timeout(const Duration(seconds: 1)),
+        'delete-in-progress',
+      );
+      expect(fake.events, ['confirm', 'delete'], reason: 'one deletion');
+      expect(provider.isLoading, isTrue, reason: 'the first still runs');
+
+      fake.deleteGate!.complete();
+      expect(await first, isNull);
+      expect(fake.events, ['confirm', 'delete', 'wipe:u1']);
+      expect(provider.isLoading, isFalse);
+    });
+
+    test('the sheet closed: Delete again runs again', () async {
+      final fake = _FakeAuthService()
+        ..userToReturn = buildUser()
+        ..appleConfirmError = const AuthException('social-canceled');
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
+
+      expect(await provider.deleteAccount(appleSheet: true), 'social-canceled');
+      expect(await provider.deleteAccount(appleSheet: true), 'social-canceled');
+      expect(fake.events, ['confirm', 'confirm']);
+    });
+
+    test('the answer reaches the Apple confirmation; a password re-auth '
+        'never shows the sheet', () async {
+      final fake = _FakeAuthService()..userToReturn = buildUser();
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
+      await provider.deleteAccount(appleSheet: false);
+
+      final again = _FakeAuthService()..userToReturn = buildUser();
+      final reauth = AuthProvider(authService: again);
+      await reauth.initialize();
+      await reauth.reauthenticateAndDeleteAccount('pw');
+
+      expect(fake.sheets, [false]);
+      expect(again.sheets, [false]);
+    });
+  });
+
+  group('AU8 sleep data kept only on this phone', () {
+    test('wiped after the server delete, never before the Apple sheet',
+        () async {
+      final fake = _FakeAuthService()..userToReturn = buildUser();
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
+
+      expect(await provider.deleteAccount(appleSheet: true), isNull);
+      expect(fake.events, ['confirm', 'delete', 'wipe:u1']);
+    });
+
+    test('kept when nothing was deleted (sheet closed)', () async {
+      final fake = _FakeAuthService()
+        ..userToReturn = buildUser()
+        ..appleConfirmError = const AuthException('social-canceled');
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
+
+      expect(await provider.deleteAccount(appleSheet: true), 'social-canceled');
+      expect(fake.events, ['confirm']);
+    });
+
+    test('a failed wipe never fails the deletion', () async {
+      final fake = _FakeAuthService()
+        ..userToReturn = buildUser()
+        ..wipeError = StateError('box');
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
+
+      expect(await provider.deleteAccount(appleSheet: true), isNull);
+      expect(provider.isAuthenticated, isFalse);
+      expect(fake.events.last, 'wipe:u1');
     });
   });
 
@@ -170,7 +262,7 @@ void main() {
 
     test('confirmAppleDeletionIfNeeded is a no-op without Firebase', () async {
       // Must complete without throwing (never touches FirebaseAuth).
-      await real.confirmAppleDeletionIfNeeded();
+      await real.confirmAppleDeletionIfNeeded(appleSheet: true);
     });
 
     test('requiresEmailVerification is false without Firebase', () {
@@ -203,9 +295,19 @@ class _FakeAuthService extends AuthService {
   AppUser? userToReturn;
   AuthException? reauthError;
   AuthException? appleConfirmError;
+  Object? wipeError;
   bool signOutCalled = false;
   bool reauthCalled = false;
   bool deleteCalled = false;
+
+  /// Apple confirmation, server delete and local wipe, in call order.
+  final events = <String>[];
+
+  /// The `appleSheet` each Apple confirmation got.
+  final sheets = <bool>[];
+
+  /// Holds the server delete until completed (BUG-26).
+  Completer<void>? deleteGate;
 
   void emitSession({required bool active}) => _sessionController.add(active);
 
@@ -219,7 +321,9 @@ class _FakeAuthService extends AuthService {
   Stream<String?> watchSessionToken(String uid) => _tokenController.stream;
 
   @override
-  Future<void> confirmAppleDeletionIfNeeded() async {
+  Future<void> confirmAppleDeletionIfNeeded({required bool appleSheet}) async {
+    events.add('confirm');
+    sheets.add(appleSheet);
     final err = appleConfirmError;
     if (err != null) {
       throw err;
@@ -258,5 +362,16 @@ class _FakeAuthService extends AuthService {
   @override
   Future<void> deleteAccount({required AppUser currentUser}) async {
     deleteCalled = true;
+    events.add('delete');
+    await deleteGate?.future;
+  }
+
+  @override
+  Future<void> wipeLocalUserData(String uid) async {
+    events.add('wipe:$uid');
+    final err = wipeError;
+    if (err != null) {
+      throw err;
+    }
   }
 }

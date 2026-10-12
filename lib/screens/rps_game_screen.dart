@@ -1628,7 +1628,7 @@ class _PlayView extends StatelessWidget {
                 reduceMotion: reduceMotion,
                 unit: l10n.rpsCountdownUnit,
                 semantics: counting
-                    ? l10n.rpsCountdownSemantics(secs.toString())
+                    ? l10n.rpsCountdownSemantics(secs)
                     : l10n.rpsOpenRingSemantics,
               );
             },

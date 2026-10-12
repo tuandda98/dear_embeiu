@@ -262,11 +262,10 @@ class _Scoreboard extends StatelessWidget {
     final nf = NumberFormat.decimalPattern(
       Localizations.localeOf(context).toString(),
     );
-    final total = nf.format(s.total);
     final footer = winStreak > 0
-        ? '${l10n.rpsHistoryTotal(total)} · '
+        ? '${l10n.rpsHistoryTotal(s.total)} · '
               '${l10n.rpsHistoryWinStreak(nf.format(winStreak))}'
-        : l10n.rpsHistoryTotal(total);
+        : l10n.rpsHistoryTotal(s.total);
 
     return Semantics(
       label: l10n.rpsScoreSemantics(

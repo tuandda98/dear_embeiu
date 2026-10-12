@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
+import '../services/love_tree_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/social_sign_in_buttons.dart';
@@ -94,17 +95,6 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
 
   String _formatDate(DateTime date) {
     return DateFormat(context.l10n.fullDateFormat).format(date);
-  }
-
-  int _getTotalDays(DateTime anniversaryDate) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final start = DateTime(
-      anniversaryDate.year,
-      anniversaryDate.month,
-      anniversaryDate.day,
-    );
-    return today.difference(start).inDays;
   }
 
   DateTime _getNextAnniversary(DateTime anniversaryDate) {
@@ -308,7 +298,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   }
 
   Widget _buildDateContent(AppLocalizations l10n, DateTime date) {
-    final totalDays = _getTotalDays(date);
+    final totalDays = LoveTreeService.daysTogether(date);
     final nextAnniversary = _getNextAnniversary(date);
     final daysUntilAnniversary = _daysUntil(nextAnniversary);
     final nextMilestone = _getNextMilestone(totalDays);

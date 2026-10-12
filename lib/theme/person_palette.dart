@@ -81,6 +81,18 @@ class PersonPalette {
     required String partnerUid,
     required String? partnerChoice,
   }) {
+    // Neither has picked yet: the defaults go by uid order too — "the other
+    // one is first" on both phones would give each person the second colour.
+    if (!isValid(myChoice) && !isValid(partnerChoice)) {
+      final first = colors.first.id;
+      final second = firstFreeAgainst(first);
+      final iAmFirst = myUid.compareTo(partnerUid) < 0;
+      return (
+        mine: iAmFirst ? first : second,
+        partner: iAmFirst ? second : first,
+        mineAdjusted: false,
+      );
+    }
     final partner = isValid(partnerChoice)
         ? partnerChoice!
         : firstFreeAgainst(myChoice);

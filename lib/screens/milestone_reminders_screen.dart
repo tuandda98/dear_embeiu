@@ -357,12 +357,19 @@ class _TimeChip extends StatelessWidget {
               const Icon(IconsaxPlusLinear.clock,
                   size: 13, color: AppColors.accentRose),
               const SizedBox(width: 6),
-              Text(
-                time.format(context),
-                style: const TextStyle(
-                  color: AppColors.accentRose,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
+              // Large text on a narrow phone (320dp × 2.0, "8:00 PM"): the time
+              // wraps at full size ("8:00" over "PM") instead of overflowing
+              // the pill. Never ellipsized or shrunk — the time is the point.
+              Flexible(
+                child: Text(
+                  time.format(context),
+                  textAlign: TextAlign.center,
+                  textWidthBasis: TextWidthBasis.longestLine,
+                  style: const TextStyle(
+                    color: AppColors.accentRose,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],

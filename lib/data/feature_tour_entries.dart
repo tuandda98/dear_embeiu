@@ -91,11 +91,6 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
     body: (l10n) => l10n.featureTourSkyBody,
     onOpen: openLoveTree,
   ),
-  // ---- Build 26 (1.9.0) ----------------------------------------------------
-  FeatureTourEntry(
-    sinceBuild: 26,
-    icon: IconsaxPlusLinear.scan_barcode,
-    title: (l10n) => l10n.featureTourPairingTitle,
-    body: (l10n) => l10n.featureTourPairingBody,
-  ),
+  // Build 26 (1.9.0): no entry. The pairing tip also showed to couples already
+  // paired; people still waiting see the QR button on the waiting card.
 ];

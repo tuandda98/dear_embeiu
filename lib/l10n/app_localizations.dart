@@ -98,6 +98,108 @@ abstract class AppLocalizations {
     Locale('vi'),
   ];
 
+  /// Stats line of the love-tree share card when the couple's anniversary is today (replaces '0 days together')
+  ///
+  /// In en, this message translates to:
+  /// **'Our first day together'**
+  String get loveTreeShareFirstDay;
+
+  /// Share-sheet text for the love tree while no flower has bloomed yet (replaces 'has bloomed 0 flowers')
+  ///
+  /// In en, this message translates to:
+  /// **'Our love tree just sprouted 🌱💞 — grow yours together on Dear Embeiu.'**
+  String get loveTreeShareMessageSeed;
+
+  /// Pill beside the partner's sleep times when their night was recorded in another time zone than this phone's
+  ///
+  /// In en, this message translates to:
+  /// **'Their time'**
+  String get sleepTheirClock;
+
+  /// Sleep calendar cell suffix for a night logged by hand (screen reader)
+  ///
+  /// In en, this message translates to:
+  /// **'(logged by hand)'**
+  String get sleepManualSemantics;
+
+  /// SnackBar when saving today's mood failed (the pick is rolled back)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your mood, please try again'**
+  String get moodSaveFailed;
+
+  /// Settings → Account row and dialog title: an Apple/Google account adds a password so it can sign in with email elsewhere (audit AU1)
+  ///
+  /// In en, this message translates to:
+  /// **'Set a password'**
+  String get setPasswordTitle;
+
+  /// Subtitle of the Settings 'Set a password' row
+  ///
+  /// In en, this message translates to:
+  /// **'To sign in with your email on another phone'**
+  String get setPasswordSubtitle;
+
+  /// Set-password dialog body. email = the account's email, may be Apple's hidden relay address
+  ///
+  /// In en, this message translates to:
+  /// **'Once set, you can sign in with {email} and this password, on iPhone or Android.'**
+  String setPasswordBody(String email);
+
+  /// Set-password dialog: Apple/Google may show their sheet first when the session is old. provider = 'Apple' or 'Google'
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} may ask you to confirm it\'s you.'**
+  String setPasswordConfirmNote(String provider);
+
+  /// SnackBar after the password was added; has a Copy action for the email
+  ///
+  /// In en, this message translates to:
+  /// **'Password set. On another phone, sign in with {email}.'**
+  String setPasswordDone(String email);
+
+  /// Set password: the account got a password meanwhile (provider-already-linked)
+  ///
+  /// In en, this message translates to:
+  /// **'This account already has a password.'**
+  String get setPasswordAlreadySet;
+
+  /// Set password: another account already signs in with this email
+  ///
+  /// In en, this message translates to:
+  /// **'This email belongs to another account, so the password wasn\'t set.'**
+  String get setPasswordEmailTaken;
+
+  /// Set password: the Google confirmation picked another Google account (user-mismatch)
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s a different Google account. Pick the one you use for Dear Embeiu, then try again.'**
+  String get setPasswordWrongGoogleAccount;
+
+  /// Set password: any other error
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t set the password. Please try again.'**
+  String get setPasswordFailed;
+
+  /// Set password: this device's Apple ID isn't the account's. Usually iOS said so before the Apple sheet, the user stays signed in (BUG-27); rarely the sheet itself signed another Apple ID in and the app signed out
+  ///
+  /// In en, this message translates to:
+  /// **'This device is using a different Apple ID. To set a password, open the app on a device that uses this account\'s Apple ID.'**
+  String get setPasswordAppleIdMismatch;
+
+  /// Tooltip of the eye button that reveals a password field
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get showPassword;
+
+  /// Tooltip of the eye button that hides a password field again
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get hidePassword;
+
   /// Profile badge label under the care-notes count
   ///
   /// In en, this message translates to:
@@ -1169,7 +1271,7 @@ abstract class AppLocalizations {
   /// No description provided for @milestoneDaysLeft.
   ///
   /// In en, this message translates to:
-  /// **'{count} days left'**
+  /// **'{count, plural, =1{1 day left} other{{count} days left}}'**
   String milestoneDaysLeft(int count);
 
   /// No description provided for @milestoneTodayLabel.
@@ -1223,7 +1325,7 @@ abstract class AppLocalizations {
   /// No description provided for @daysUntilNextAnniversary.
   ///
   /// In en, this message translates to:
-  /// **'{count} days until your next anniversary'**
+  /// **'{count, plural, =1{1 day until your next anniversary} other{{count} days until your next anniversary}}'**
   String daysUntilNextAnniversary(int count);
 
   /// No description provided for @addMemoryCta.
@@ -1595,7 +1697,7 @@ abstract class AppLocalizations {
   /// No description provided for @onlyDaysUntilMilestone.
   ///
   /// In en, this message translates to:
-  /// **'Only {count} days until your next milestone.'**
+  /// **'{count, plural, =1{Only 1 day until your next milestone.} other{Only {count} days until your next milestone.}}'**
   String onlyDaysUntilMilestone(int count);
 
   /// No description provided for @nextMilestonePrefix.
@@ -1607,7 +1709,7 @@ abstract class AppLocalizations {
   /// No description provided for @daysCountLabel.
   ///
   /// In en, this message translates to:
-  /// **'{count} days'**
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
   String daysCountLabel(int count);
 
   /// No description provided for @percentThere.
@@ -1709,7 +1811,7 @@ abstract class AppLocalizations {
   /// No description provided for @momentsCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} moments'**
+  /// **'{count, plural, =1{1 moment} other{{count} moments}}'**
   String momentsCount(int count);
 
   /// No description provided for @privateFeedLabel.
@@ -1835,7 +1937,7 @@ abstract class AppLocalizations {
   /// No description provided for @compactCaption.
   ///
   /// In en, this message translates to:
-  /// **'{count} moments · Swipe to expand post frame'**
+  /// **'{count, plural, =1{1 moment · Swipe to expand post frame} other{{count} moments · Swipe to expand post frame}}'**
   String compactCaption(int count);
 
   /// No description provided for @editCaptionAction.
@@ -1937,7 +2039,7 @@ abstract class AppLocalizations {
   /// No description provided for @multiplePhotosAdded.
   ///
   /// In en, this message translates to:
-  /// **'Added {count} photos!'**
+  /// **'{count, plural, =1{Added 1 photo!} other{Added {count} photos!}}'**
   String multiplePhotosAdded(int count);
 
   /// No description provided for @captionUpdatedSuccess.
@@ -3053,7 +3155,7 @@ abstract class AppLocalizations {
   /// Deleting an Apple account, but the Apple sheet signed in with a different Apple ID (PF18); the user has been signed out
   ///
   /// In en, this message translates to:
-  /// **'The Apple ID on this device isn\'t the one for this account. Sign in with that account\'s Apple ID, then delete.'**
+  /// **'This device is using a different Apple ID. To delete the account, open the app on a device that uses this account\'s Apple ID.'**
   String get deleteAccountAppleIdMismatch;
 
   /// authFirebaseUserCreateFailed
@@ -3605,7 +3707,7 @@ abstract class AppLocalizations {
   /// Love duration breakdown
   ///
   /// In en, this message translates to:
-  /// **'{years} years, {months} months, {days} days'**
+  /// **'{years, plural, =1{1 year} other{{years} years}}, {months, plural, =1{1 month} other{{months} months}}, {days, plural, =1{1 day} other{{days} days}}'**
   String counterDuration(int years, int months, int days);
 
   /// Error loading couple info
@@ -3635,7 +3737,7 @@ abstract class AppLocalizations {
   /// Count of moments posted today
   ///
   /// In en, this message translates to:
-  /// **'{count} moments today'**
+  /// **'{count, plural, =1{1 moment today} other{{count} moments today}}'**
   String galleryTodayMomentsCount(int count);
 
   /// Eyebrow badge on the guest counter screen
@@ -3809,13 +3911,13 @@ abstract class AppLocalizations {
   /// No description provided for @streakSheetRecord.
   ///
   /// In en, this message translates to:
-  /// **'Your record: {m} days 🌟'**
+  /// **'{m, plural, =1{Your record: 1 day 🌟} other{Your record: {m} days 🌟}}'**
   String streakSheetRecord(int m);
 
   /// No description provided for @streakNextMilestone.
   ///
   /// In en, this message translates to:
-  /// **'{n} days to your {m}-day milestone 🎉'**
+  /// **'{n, plural, =1{1 day to your {m}-day milestone 🎉} other{{n} days to your {m}-day milestone 🎉}}'**
   String streakNextMilestone(int n, int m);
 
   /// No description provided for @streakCtaAnswerNow.
@@ -4205,7 +4307,7 @@ abstract class AppLocalizations {
   /// No description provided for @counterBgSubtitleCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} photos picked for the counter background.'**
+  /// **'{count, plural, =1{1 photo picked for the counter background.} other{{count} photos picked for the counter background.}}'**
   String counterBgSubtitleCount(int count);
 
   /// No description provided for @counterBgCoverLabel.
@@ -4343,7 +4445,7 @@ abstract class AppLocalizations {
   /// No description provided for @milestoneTrailNext.
   ///
   /// In en, this message translates to:
-  /// **'{days} days to {label}'**
+  /// **'{days, plural, =1{1 day to {label}} other{{days} days to {label}}}'**
   String milestoneTrailNext(int days, String label);
 
   /// No description provided for @milestoneTrailAllDone.
@@ -4433,8 +4535,8 @@ abstract class AppLocalizations {
   /// Total memories subtitle in the memories sheet
   ///
   /// In en, this message translates to:
-  /// **'{count} memories'**
-  String profileMemoriesCountLabel(String count);
+  /// **'{count, plural, =1{1 memory} other{{count} memories}}'**
+  String profileMemoriesCountLabel(int count);
 
   /// Motivation toward the next photo-count milestone
   ///
@@ -4457,7 +4559,7 @@ abstract class AppLocalizations {
   /// No description provided for @loveTreeFlowerCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} flowers bloomed'**
+  /// **'{count, plural, =1{1 flower bloomed} other{{count} flowers bloomed}}'**
   String loveTreeFlowerCount(int count);
 
   /// No description provided for @loveTreeSeedSubtitle.
@@ -4601,19 +4703,19 @@ abstract class AppLocalizations {
   /// No description provided for @loveTreeLockedDays.
   ///
   /// In en, this message translates to:
-  /// **'{count} days to go before this blooms 🌱'**
+  /// **'{count, plural, =1{1 day to go before this blooms 🌱} other{{count} days to go before this blooms 🌱}}'**
   String loveTreeLockedDays(int count);
 
   /// No description provided for @loveTreeLockedPhotos.
   ///
   /// In en, this message translates to:
-  /// **'{count} memories to go before this blooms 🌱'**
+  /// **'{count, plural, =1{1 memory to go before this blooms 🌱} other{{count} memories to go before this blooms 🌱}}'**
   String loveTreeLockedPhotos(int count);
 
   /// No description provided for @loveTreeLockedStreak.
   ///
   /// In en, this message translates to:
-  /// **'{count} streak days to go before this blooms 🌱'**
+  /// **'{count, plural, =1{1 streak day to go before this blooms 🌱} other{{count} streak days to go before this blooms 🌱}}'**
   String loveTreeLockedStreak(int count);
 
   /// No description provided for @loveTreeLockedPhotosCta.
@@ -4637,8 +4739,8 @@ abstract class AppLocalizations {
   /// No description provided for @loveTreeShareStats.
   ///
   /// In en, this message translates to:
-  /// **'{days} days together · {flowers} flowers in bloom'**
-  String loveTreeShareStats(String days, String flowers);
+  /// **'{days, plural, =1{1 day together} other{{days} days together}} · {flowers, plural, =1{1 flower in bloom} other{{flowers} flowers in bloom}}'**
+  String loveTreeShareStats(int days, int flowers);
 
   /// No description provided for @loveTreeShareTagline.
   ///
@@ -4655,8 +4757,8 @@ abstract class AppLocalizations {
   /// No description provided for @loveTreeShareMessage.
   ///
   /// In en, this message translates to:
-  /// **'Our love tree has bloomed {flowers} flowers after {days} days 🌳💞 — grow yours together on Dear Embeiu.'**
-  String loveTreeShareMessage(String flowers, String days);
+  /// **'Our love tree has bloomed {flowers, plural, =1{1 flower} other{{flowers} flowers}} after {days, plural, =1{1 day} other{{days} days}} 🌳💞 — grow yours together on Dear Embeiu.'**
+  String loveTreeShareMessage(int flowers, int days);
 
   /// No description provided for @partnerReminderNotifBody.
   ///
@@ -5141,8 +5243,8 @@ abstract class AppLocalizations {
   /// Accessibility live label for the countdown.
   ///
   /// In en, this message translates to:
-  /// **'{seconds} seconds left'**
-  String rpsCountdownSemantics(String seconds);
+  /// **'{seconds, plural, =1{1 second left} other{{seconds} seconds left}}'**
+  String rpsCountdownSemantics(int seconds);
 
   /// Caption while the server settles the round.
   ///
@@ -5273,8 +5375,8 @@ abstract class AppLocalizations {
   /// Scoreboard footer: total rounds.
   ///
   /// In en, this message translates to:
-  /// **'{count} rounds played'**
-  String rpsHistoryTotal(String count);
+  /// **'{count, plural, =1{1 round played} other{{count} rounds played}}'**
+  String rpsHistoryTotal(int count);
 
   /// Scoreboard footer: my current win streak (hidden at 0).
   ///
@@ -5370,18 +5472,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.'**
   String get featureTourSkyBody;
-
-  /// Feature tour entry (build 26).
-  ///
-  /// In en, this message translates to:
-  /// **'Easier to bring your partner in'**
-  String get featureTourPairingTitle;
-
-  /// Feature tour entry (build 26).
-  ///
-  /// In en, this message translates to:
-  /// **'Your partner can now sign up with Google, or Apple on iPhone, without creating a password. Sitting together? Open the QR code and they scan it to get your invite code.'**
-  String get featureTourPairingBody;
 
   /// Play screen caption once the 5s beat is over and nobody has thrown (no time limit).
   ///
@@ -6052,7 +6142,7 @@ abstract class AppLocalizations {
   /// Sleep setup step 2 body
   ///
   /// In en, this message translates to:
-  /// **'They\'ll see when you fall asleep and wake up. You can turn this off anytime.'**
+  /// **'They\'ll see when you fall asleep and wake up, and each time you wake in the night. You can turn this off anytime.'**
   String get sleepShareAskBody;
 
   /// Sleep setup step 2 preview caption (uppercase)
@@ -6064,7 +6154,7 @@ abstract class AppLocalizations {
   /// Sleep setup step 2 under the preview
   ///
   /// In en, this message translates to:
-  /// **'Only when you sleep and wake, nothing else.'**
+  /// **'Only bedtime, wake-up time and night wake-ups, in the time zone you slept in. Nights you edit or log by hand get a label.'**
   String get sleepShareAskOnly;
 
   /// Sleep setup step 2 primary button
@@ -6448,7 +6538,7 @@ abstract class AppLocalizations {
   /// Love tree v3: next milestone progress
   ///
   /// In en, this message translates to:
-  /// **'{current}/{target} photos'**
+  /// **'{target, plural, =1{{current}/{target} photo} other{{current}/{target} photos}}'**
   String loveTreeNextProgressPhotos(int current, int target);
 
   /// Love tree v3: section title

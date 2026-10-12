@@ -38,10 +38,34 @@ abstract final class InviteClipboard {
   );
 
   /// The invite code inside [text] (upper-cased), or null when [text] holds no
-  /// `dearembeiu.com/get?…code=XXXXXX` link. Also used on the Setup code field
-  /// when someone pastes the whole link.
+  /// `dearembeiu.com/get?…code=XXXXXX` link. The Setup code field goes through
+  /// [normalizeInviteCode], which uses this when someone pastes the whole link.
   static String? parseInviteCode(String text) =>
       _inviteLink.firstMatch(text)?.group(1)?.toUpperCase();
+
+  // Spaces anywhere (incl. NBSP and the ideographic space) plus the zero-width
+  // characters chat apps slip into copied text.
+  static final RegExp _codeNoise = RegExp(r'[\s\u200B-\u200D\u2060]');
+
+  /// The code to look up for whatever sits in the Setup code field (PA4): the
+  /// code of an invite link, else the text with full-width characters folded
+  /// to ASCII (U+FF01–FF5E, CJK/Japanese keyboards) and every space dropped,
+  /// upper-cased — "abc 234" and "ＡＢＣ２３４" both give "ABC234".
+  static String normalizeInviteCode(String text) {
+    final ascii = String.fromCharCodes(
+      text.runes.map((r) => r >= 0xFF01 && r <= 0xFF5E ? r - 0xFEE0 : r),
+    );
+    return parseInviteCode(ascii) ??
+        ascii.replaceAll(_codeNoise, '').toUpperCase();
+  }
+
+  // The alphabet every generator uses (couple, user and auth services): 6
+  // characters, no I, O, 0 or 1.
+  static final RegExp _inviteCodeShape = RegExp(r'^[A-HJ-NP-Z2-9]{6}$');
+
+  /// Whether [code] — from [normalizeInviteCode] — has the shape of a code the
+  /// app hands out.
+  static bool isInviteCode(String code) => _inviteCodeShape.hasMatch(code);
 
   /// The invite code waiting in the clipboard, or null (nothing there, not an
   /// invite link, already offered, or any error).

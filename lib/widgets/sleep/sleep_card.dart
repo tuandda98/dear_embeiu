@@ -192,11 +192,14 @@ class _LastNight extends StatelessWidget {
     }
 
     final partnerName = SleepFormat.partnerName(context, couple, myUid);
-    final theirs = sleep.partnerNights[key];
+    // Their "last night" is the one that ended this morning on THEIR clock
+    // (audit D2): abroad, it may sit on another date than mine.
+    final theirs = sleep.partnerNights[sleep.partnerLastNightKey()];
     final partnerColumn = _Column(
       name: partnerName,
       color: PersonPalette.colorOf(sleep.partnerColorId),
       night: theirs,
+      theirClock: theirs != null && SleepFormat.onOtherClock(theirs),
       empty: sleep.partnerShares
           ? _MutedLine(text: l10n.sleepNoData)
           : _MutedLine(
@@ -251,12 +254,14 @@ class _Column extends StatelessWidget {
     required this.color,
     required this.night,
     required this.empty,
+    this.theirClock = false,
   });
 
   final String name;
   final Color color;
   final SleepNight? night;
   final Widget empty;
+  final bool theirClock;
 
   @override
   Widget build(BuildContext context) {
@@ -268,7 +273,7 @@ class _Column extends StatelessWidget {
         const SizedBox(height: 8),
         if (n == null)
           empty
-        else
+        else ...[
           Row(
             children: [
               MoonGlyph(size: 30, color: color, phase: n.phase),
@@ -279,27 +284,33 @@ class _Column extends StatelessWidget {
                   children: [
                     DurationText(minutes: n.minutes),
                     const SizedBox(height: 2),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          SleepFormat.range(context, n),
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        if (n.isLabeled) SourcePill(source: n.source),
-                      ],
+                    Text(
+                      SleepFormat.range(context, n),
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
           ),
+          // The labels take the column's whole width: beside the times they
+          // were cut to "Giờ b…" on small phones and big text (audit N2).
+          if (n.isLabeled || theirClock) ...[
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                if (n.isLabeled) SourcePill(source: n.source),
+                if (theirClock) const TheirClockPill(),
+              ],
+            ),
+          ],
+        ],
       ],
     );
   }
@@ -365,23 +376,29 @@ class DurationText extends StatelessWidget {
     return Semantics(
       label: SleepFormat.long(l10n, minutes),
       excludeSemantics: true,
-      child: Text.rich(
-        TextSpan(
-          children: [
-            if (h > 0) ...[
-              TextSpan(text: '$h', style: number),
-              TextSpan(
-                text: m > 0 ? '${l10n.sleepUnitHour} ' : l10n.sleepUnitHour,
-                style: unit,
-              ),
+      // Big text on a half-width column: shrink to fit rather than drop the
+      // minutes ("14g" for 14g 10p at 200%).
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: AlignmentDirectional.centerStart,
+        child: Text.rich(
+          TextSpan(
+            children: [
+              if (h > 0) ...[
+                TextSpan(text: '$h', style: number),
+                TextSpan(
+                  text: m > 0 ? '${l10n.sleepUnitHour} ' : l10n.sleepUnitHour,
+                  style: unit,
+                ),
+              ],
+              if (m > 0 || h == 0) ...[
+                TextSpan(text: '$m', style: number),
+                TextSpan(text: l10n.sleepUnitMinute, style: unit),
+              ],
             ],
-            if (m > 0 || h == 0) ...[
-              TextSpan(text: '$m', style: number),
-              TextSpan(text: l10n.sleepUnitMinute, style: unit),
-            ],
-          ],
+          ),
+          maxLines: 1,
         ),
-        maxLines: 1,
       ),
     );
   }
@@ -394,34 +411,62 @@ class SourcePill extends StatelessWidget {
   final SleepSource source;
 
   @override
+  Widget build(BuildContext context) => _NotePill(
+    icon: IconsaxPlusLinear.edit_2,
+    text: source == SleepSource.manual
+        ? context.l10n.sleepSourceManual
+        : context.l10n.sleepSourceEdited,
+  );
+}
+
+/// "🌐 Giờ bên ấy" beside the partner's times when they were recorded on
+/// another clock than this phone's (audit D2).
+class TheirClockPill extends StatelessWidget {
+  const TheirClockPill({super.key});
+
+  @override
+  Widget build(BuildContext context) => _NotePill(
+    icon: IconsaxPlusLinear.global,
+    text: context.l10n.sleepTheirClock,
+  );
+}
+
+class _NotePill extends StatelessWidget {
+  const _NotePill({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.textSecondary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            IconsaxPlusLinear.edit_2,
-            size: 10,
-            color: AppColors.textSecondary,
-          ),
-          const SizedBox(width: 3),
-          Text(
-            source == SleepSource.manual
-                ? l10n.sleepSourceManual
-                : l10n.sleepSourceEdited,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+    // A label stays whole on one line: when even a whole column is too narrow
+    // (320–360 dp phones at 150–200% text) it shrinks a little, like
+    // [DurationText], rather than end in "…".
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerStart,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.textSecondary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 10, color: AppColors.textSecondary),
+            const SizedBox(width: 3),
+            Text(
+              text,
+              maxLines: 1,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

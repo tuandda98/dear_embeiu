@@ -11,7 +11,7 @@
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Dear Embeiu cần truy cập thư viện ảnh để bạn chọn và chia sẻ ảnh kỷ niệm với người ấy.</string>
 		<key>NSHealthShareUsageDescription</key>
-		<string>Dear Embeiu đọc giấc ngủ mà iPhone hoặc Apple Watch đã ghi trong app Sức khoẻ, để hiện giờ ngủ và giờ dậy của bạn. App chỉ đọc, không ghi gì vào Sức khoẻ.</string>
+		<string>Dear Embeiu đọc giấc ngủ mà iPhone hoặc Apple Watch đã ghi trong app Sức khoẻ, để hiện giờ ngủ, giờ dậy và những lần bạn thức giấc trong đêm. Bật chia sẻ thì người ấy cũng xem được. App chỉ đọc, không ghi gì vào Sức khoẻ.</string>
 		<key>NSHealthUpdateUsageDescription</key>
 		<string>Dear Embeiu không ghi gì vào app Sức khoẻ. App chỉ đọc giấc ngủ để hiện giờ ngủ và giờ dậy của bạn.</string>
 		<key>NSCameraUsageDescription</key>
@@ -75,6 +75,11 @@
 		</array>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<!-- The app never reads a dearembeiu:// URL — opening one only has to
+		     bring the app forward. Flutter's own deep linking would push a
+		     second "/" route (audit D8). Plugins still see openURL first. -->
+		<key>FlutterDeepLinkingEnabled</key>
+		<false/>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>UIBackgroundModes</key>
@@ -108,11 +113,11 @@
 		<string>LaunchScreen</string>
 		<key>UIMainStoryboardFile</key>
 		<string>Main</string>
+		<!-- Phones stay portrait (audit D3: the time pickers break in
+		     landscape); iPad keeps every orientation below. -->
 		<key>UISupportedInterfaceOrientations</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>
-			<string>UIInterfaceOrientationLandscapeLeft</string>
-			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
 		<key>UISupportedInterfaceOrientations~ipad</key>
 		<array>

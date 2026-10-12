@@ -9,6 +9,69 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get loveTreeShareFirstDay => 'Our first day together';
+
+  @override
+  String get loveTreeShareMessageSeed =>
+      'Our love tree just sprouted 🌱💞 — grow yours together on Dear Embeiu.';
+
+  @override
+  String get sleepTheirClock => 'Their time';
+
+  @override
+  String get sleepManualSemantics => '(logged by hand)';
+
+  @override
+  String get moodSaveFailed => 'Couldn\'t save your mood, please try again';
+
+  @override
+  String get setPasswordTitle => 'Set a password';
+
+  @override
+  String get setPasswordSubtitle =>
+      'To sign in with your email on another phone';
+
+  @override
+  String setPasswordBody(String email) {
+    return 'Once set, you can sign in with $email and this password, on iPhone or Android.';
+  }
+
+  @override
+  String setPasswordConfirmNote(String provider) {
+    return '$provider may ask you to confirm it\'s you.';
+  }
+
+  @override
+  String setPasswordDone(String email) {
+    return 'Password set. On another phone, sign in with $email.';
+  }
+
+  @override
+  String get setPasswordAlreadySet => 'This account already has a password.';
+
+  @override
+  String get setPasswordEmailTaken =>
+      'This email belongs to another account, so the password wasn\'t set.';
+
+  @override
+  String get setPasswordWrongGoogleAccount =>
+      'That\'s a different Google account. Pick the one you use for Dear Embeiu, then try again.';
+
+  @override
+  String get setPasswordFailed =>
+      'Couldn\'t set the password. Please try again.';
+
+  @override
+  String get setPasswordAppleIdMismatch =>
+      'This device is using a different Apple ID. To set a password, open the app on a device that uses this account\'s Apple ID.';
+
+  @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
+
+  @override
   String get badgeCareLabel => 'care notes';
 
   @override
@@ -589,7 +652,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String milestoneDaysLeft(int count) {
-    return '$count days left';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days left',
+      one: '1 day left',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -631,7 +700,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String daysUntilNextAnniversary(int count) {
-    return '$count days until your next anniversary';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days until your next anniversary',
+      one: '1 day until your next anniversary',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -859,7 +934,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String onlyDaysUntilMilestone(int count) {
-    return 'Only $count days until your next milestone.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Only $count days until your next milestone.',
+      one: 'Only 1 day until your next milestone.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -869,7 +950,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String daysCountLabel(int count) {
-    return '$count days';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -937,7 +1024,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String momentsCount(int count) {
-    return '$count moments';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moments',
+      one: '1 moment',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1015,7 +1108,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String compactCaption(int count) {
-    return '$count moments · Swipe to expand post frame';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moments · Swipe to expand post frame',
+      one: '1 moment · Swipe to expand post frame',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1069,7 +1168,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String multiplePhotosAdded(int count) {
-    return 'Added $count photos!';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Added $count photos!',
+      one: 'Added 1 photo!',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1719,7 +1824,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountAppleIdMismatch =>
-      'The Apple ID on this device isn\'t the one for this account. Sign in with that account\'s Apple ID, then delete.';
+      'This device is using a different Apple ID. To delete the account, open the app on a device that uses this account\'s Apple ID.';
 
   @override
   String get authFirebaseUserCreateFailed =>
@@ -2050,7 +2155,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String counterDuration(int years, int months, int days) {
-    return '$years years, $months months, $days days';
+    String _temp0 = intl.Intl.pluralLogic(
+      years,
+      locale: localeName,
+      other: '$years years',
+      one: '1 year',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months months',
+      one: '1 month',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return '$_temp0, $_temp1, $_temp2';
   }
 
   @override
@@ -2087,7 +2210,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String galleryTodayMomentsCount(int count) {
-    return '$count moments today';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moments today',
+      one: '1 moment today',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2193,12 +2322,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String streakSheetRecord(int m) {
-    return 'Your record: $m days 🌟';
+    String _temp0 = intl.Intl.pluralLogic(
+      m,
+      locale: localeName,
+      other: 'Your record: $m days 🌟',
+      one: 'Your record: 1 day 🌟',
+    );
+    return '$_temp0';
   }
 
   @override
   String streakNextMilestone(int n, int m) {
-    return '$n days to your $m-day milestone 🎉';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n days to your $m-day milestone 🎉',
+      one: '1 day to your $m-day milestone 🎉',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2437,7 +2578,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String counterBgSubtitleCount(int count) {
-    return '$count photos picked for the counter background.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos picked for the counter background.',
+      one: '1 photo picked for the counter background.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2513,7 +2660,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String milestoneTrailNext(int days, String label) {
-    return '$days days to $label';
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days to $label',
+      one: '1 day to $label',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2561,8 +2714,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMemoriesTitle => 'Our memories';
 
   @override
-  String profileMemoriesCountLabel(String count) {
-    return '$count memories';
+  String profileMemoriesCountLabel(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString memories',
+      one: '1 memory',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2578,7 +2741,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String loveTreeFlowerCount(int count) {
-    return '$count flowers bloomed';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flowers bloomed',
+      one: '1 flower bloomed',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2712,17 +2881,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String loveTreeLockedDays(int count) {
-    return '$count days to go before this blooms 🌱';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days to go before this blooms 🌱',
+      one: '1 day to go before this blooms 🌱',
+    );
+    return '$_temp0';
   }
 
   @override
   String loveTreeLockedPhotos(int count) {
-    return '$count memories to go before this blooms 🌱';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count memories to go before this blooms 🌱',
+      one: '1 memory to go before this blooms 🌱',
+    );
+    return '$_temp0';
   }
 
   @override
   String loveTreeLockedStreak(int count) {
-    return '$count streak days to go before this blooms 🌱';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count streak days to go before this blooms 🌱',
+      one: '1 streak day to go before this blooms 🌱',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2735,8 +2922,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loveTreeShareButton => 'Share our tree';
 
   @override
-  String loveTreeShareStats(String days, String flowers) {
-    return '$days days together · $flowers flowers in bloom';
+  String loveTreeShareStats(int days, int flowers) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+    final intl.NumberFormat flowersNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String flowersString = flowersNumberFormat.format(flowers);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$daysString days together',
+      one: '1 day together',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      flowers,
+      locale: localeName,
+      other: '$flowersString flowers in bloom',
+      one: '1 flower in bloom',
+    );
+    return '$_temp0 · $_temp1';
   }
 
   @override
@@ -2746,8 +2953,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loveTreeShareTaglineSeed => 'Our tree just sprouted 🌱';
 
   @override
-  String loveTreeShareMessage(String flowers, String days) {
-    return 'Our love tree has bloomed $flowers flowers after $days days 🌳💞 — grow yours together on Dear Embeiu.';
+  String loveTreeShareMessage(int flowers, int days) {
+    final intl.NumberFormat flowersNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String flowersString = flowersNumberFormat.format(flowers);
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      flowers,
+      locale: localeName,
+      other: '$flowersString flowers',
+      one: '1 flower',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$daysString days',
+      one: '1 day',
+    );
+    return 'Our love tree has bloomed $_temp0 after $_temp1 🌳💞 — grow yours together on Dear Embeiu.';
   }
 
   @override
@@ -3015,8 +3242,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rpsCountdownUnit => 'SEC';
 
   @override
-  String rpsCountdownSemantics(String seconds) {
-    return '$seconds seconds left';
+  String rpsCountdownSemantics(int seconds) {
+    String _temp0 = intl.Intl.pluralLogic(
+      seconds,
+      locale: localeName,
+      other: '$seconds seconds left',
+      one: '1 second left',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3090,8 +3323,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rpsScorePartner => 'THEM';
 
   @override
-  String rpsHistoryTotal(String count) {
-    return '$count rounds played';
+  String rpsHistoryTotal(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString rounds played',
+      one: '1 round played',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3151,13 +3394,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get featureTourSkyBody =>
       'The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.';
-
-  @override
-  String get featureTourPairingTitle => 'Easier to bring your partner in';
-
-  @override
-  String get featureTourPairingBody =>
-      'Your partner can now sign up with Google, or Apple on iPhone, without creating a password. Sitting together? Open the QR code and they scan it to get your invite code.';
 
   @override
   String get rpsOpenPrompt => 'Go on, throw! No skipping here 😄';
@@ -3583,7 +3819,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sleepShareAskBody =>
-      'They\'ll see when you fall asleep and wake up. You can turn this off anytime.';
+      'They\'ll see when you fall asleep and wake up, and each time you wake in the night. You can turn this off anytime.';
 
   @override
   String sleepShareAskPreview(String name) {
@@ -3591,7 +3827,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sleepShareAskOnly => 'Only when you sleep and wake, nothing else.';
+  String get sleepShareAskOnly =>
+      'Only bedtime, wake-up time and night wake-ups, in the time zone you slept in. Nights you edit or log by hand get a label.';
 
   @override
   String get sleepShareAskCta => 'Share with them';
@@ -3815,7 +4052,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String loveTreeNextProgressPhotos(int current, int target) {
-    return '$current/$target photos';
+    String _temp0 = intl.Intl.pluralLogic(
+      target,
+      locale: localeName,
+      other: '$current/$target photos',
+      one: '$current/$target photo',
+    );
+    return '$_temp0';
   }
 
   @override

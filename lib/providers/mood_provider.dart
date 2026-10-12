@@ -105,37 +105,57 @@ class MoodProvider extends ChangeNotifier {
   }
 
   /// Sets my mood for today (create or change). [note] is optional.
-  Future<void> setMood(String moodKey, {String note = ''}) async {
+  ///
+  /// My card shows the pick at once; the write itself may wait for the
+  /// network (offline, Firestore queues it), so the picker doesn't await this.
+  /// Returns false when nothing was saved — the pick is then rolled back.
+  Future<bool> setMood(String moodKey, {String note = ''}) async {
     final coupleId = _coupleId;
     final uid = _myUid;
     if (coupleId == null || uid == null || moodOptionFor(moodKey) == null) {
-      return;
+      return false;
     }
 
     // Optimistic: reflect my pick immediately so the card responds instantly.
+    final previous = _moods[uid];
     final optimistic = Mood(
       authorUserId: uid,
       mood: moodKey,
-      note: note.trim(),
+      note: MoodService.fitNote(note.trim()).trim(),
       date: todayKey(),
       updatedAt: DateTime.now(),
     );
     _moods = {..._moods, uid: optimistic};
     notifyListeners();
 
-    await _service.setMood(
-      coupleId: coupleId,
-      uid: uid,
-      mood: moodKey,
-      note: note,
-      dateKey: todayKey(),
-    );
+    try {
+      await _service.setMood(
+        coupleId: coupleId,
+        uid: uid,
+        mood: moodKey,
+        note: note,
+        dateKey: todayKey(),
+      );
+    } catch (_) {
+      // e.g. the rules said no. Undo unless the stream already brought the
+      // server's copy back (Firestore reverts a rejected write itself).
+      if (_myUid == uid && identical(_moods[uid], optimistic)) {
+        _moods = {
+          for (final e in _moods.entries)
+            if (e.key != uid) e.key: e.value,
+          uid: ?previous,
+        };
+        notifyListeners();
+      }
+      return false;
+    }
 
     // Local fallback has no stream — re-read to confirm (Firebase pushes itself).
-    if (!_service.isUsingFirebase) {
+    if (!_service.isUsingFirebase && _coupleId == coupleId) {
       _moods = await _service.watchMoods(coupleId).first;
       notifyListeners();
     }
+    return true;
   }
 
   /// Stops watching and resets state (sign-out / leaving a couple).

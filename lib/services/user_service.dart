@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import '../l10n/app_l10n.dart';
+import '../l10n/app_localizations.dart';
 import '../models/account_invite.dart';
 import '../models/app_user.dart';
 
@@ -165,15 +166,46 @@ class UserService {
     });
   }
 
-  Future<void> updateCoupleMembership(AppUser user) async {
+  Future<void> updateCoupleMembership(
+    AppUser user, {
+    bool withDisplayName = false,
+  }) async {
     if (!isEnabled) {
       return;
     }
 
-    await _usersCollection
-        .doc(user.id)
-        .set(user.toCoupleMembershipPayload(), SetOptions(merge: true));
+    await _usersCollection.doc(user.id).set({
+      ...user.toCoupleMembershipPayload(),
+      // Only when the couple just replaced a placeholder name (PA8).
+      if (withDisplayName) 'displayName': user.displayName,
+    }, SetOptions(merge: true));
     await _syncInviteCode(user);
+  }
+
+  /// Whether [name] is empty or the placeholder an account without a name gets
+  /// (AuthService.profileDisplayName: "Người dùng mới" / "New user", in
+  /// whichever app language created the profile). Setup doesn't prefill it,
+  /// and creating or joining a couple replaces it (PA8).
+  static bool isPlaceholderDisplayName(String name) {
+    final trimmed = name.trim();
+    return trimmed.isEmpty || _placeholderNames.contains(trimmed);
+  }
+
+  static final Set<String> _placeholderNames = {
+    for (final locale in AppLocalizations.supportedLocales)
+      lookupAppLocalizations(locale).defaultDisplayName,
+  };
+
+  /// [candidate] (trimmed) when the account still carries a placeholder name
+  /// and [candidate] is a real one; null = keep the current name (PA8).
+  static String? adoptedDisplayName({
+    required String current,
+    required String candidate,
+  }) {
+    final name = candidate.trim();
+    return isPlaceholderDisplayName(current) && !isPlaceholderDisplayName(name)
+        ? name
+        : null;
   }
 
   Future<void> saveDeviceRegistration({

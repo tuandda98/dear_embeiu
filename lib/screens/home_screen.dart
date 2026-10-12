@@ -30,6 +30,7 @@ import '../providers/streak_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/catchup_service.dart';
 import '../services/home_prefs_service.dart';
+import '../services/love_tree_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
@@ -1032,6 +1033,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final reminderProvider = context.read<ReminderProvider>();
     final anniversaryDate = couple.anniversaryDate;
     final coupleCreatedAt = couple.createdAt;
+    final coupleId = couple.id;
+    // Codes that lead into this couple: a send of either counts (PA6).
+    final inviteCodes = [couple.coupleCode, couple.inviteCode];
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -1045,10 +1049,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // Invite follow-ups (feature onboarding, pairing-funnel PF10): while the
       // partner still hasn't joined, nudge this member +2h (code not sent
       // yet) / +20h / +72h after the couple was created; the provider cancels
-      // the band as soon as the couple goes active.
+      // the band as soon as the couple goes active, and for good once it was
+      // (PA7 — a partner who leaves doesn't restart them).
       reminderProvider.refreshInviteFollowUps(
+        coupleId: coupleId,
         waiting: !coupleActive,
         coupleCreatedAt: coupleCreatedAt,
+        inviteCodes: inviteCodes,
         l10n: l10n,
       );
     });
@@ -1629,7 +1636,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_showBgHint && bgCandidates.length >= 2 && _bgHintTimer == null) {
       _bgHintTimer = Timer(const Duration(milliseconds: 4500), _dismissBgHint);
     }
-    final totalDays = _getTotalDays(couple.anniversaryDate);
+    final totalDays = LoveTreeService.daysTogether(couple.anniversaryDate);
     final nextMilestone = _getNextMilestone(totalDays);
     final progressToMilestone = totalDays / nextMilestone;
     final recentPhotos = photos.take(5).toList();
@@ -2430,7 +2437,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         : null;
     AnalyticsService.instance.logInviteShared('share_sheet');
     // Counts as "invite sent": drops the +2h follow-up (PF10).
-    context.read<ReminderProvider>().markInviteShared();
+    context.read<ReminderProvider>().markInviteShared(code);
     try {
       await SharePlus.instance.share(
         ShareParams(text: message, sharePositionOrigin: origin),
@@ -2443,7 +2450,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _copyInviteCode(String code) {
     Clipboard.setData(ClipboardData(text: code));
     AnalyticsService.instance.logInviteShared('copy');
-    context.read<ReminderProvider>().markInviteShared();
+    context.read<ReminderProvider>().markInviteShared(code);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.inviteCodeCopiedMsg),
@@ -2789,17 +2796,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
     }
     return best;
-  }
-
-  int _getTotalDays(DateTime anniversaryDate) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final start = DateTime(
-      anniversaryDate.year,
-      anniversaryDate.month,
-      anniversaryDate.day,
-    );
-    return today.difference(start).inDays;
   }
 
   int _getNextMilestone(int totalDays) {

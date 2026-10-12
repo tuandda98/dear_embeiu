@@ -15,6 +15,7 @@ import '../providers/rps_game_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/care_message_service.dart';
 import '../services/daily_question_service.dart';
+import '../services/love_tree_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/animated_couple_name.dart';
 import '../widgets/content_card.dart';
@@ -74,7 +75,7 @@ class ProfileScreen extends StatelessWidget {
         }
 
         final couple = coupleProvider.couple!;
-        final totalDays = _daysTogether(couple.anniversaryDate);
+        final totalDays = LoveTreeService.daysTogether(couple.anniversaryDate);
         final inviteCode = currentUser?.inviteCode;
 
         return BlockingLoadingOverlay(
@@ -571,17 +572,6 @@ class ProfileScreen extends StatelessWidget {
         ? couple.person2Name.trim().characters.first.toUpperCase()
         : 'B';
     return '$first$second';
-  }
-
-  int _daysTogether(DateTime anniversaryDate) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final start = DateTime(
-      anniversaryDate.year,
-      anniversaryDate.month,
-      anniversaryDate.day,
-    );
-    return today.difference(start).inDays;
   }
 
   String _formatDate(BuildContext context, DateTime date) {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart' show FirebaseException;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dear_embeiu/models/sleep_night.dart';
@@ -36,6 +37,10 @@ class FakeSleepService extends SleepService {
       Map.of(nights);
   @override
   Future<void> saveNights(String uid, Map<String, SleepNight?> nights) async {}
+  @override
+  Future<List<({DateTime from, DateTime until})>> claimDevice(
+    String uid,
+  ) async => const [];
   @override
   Future<Map<String, String>> loadFingerprints(
     String uid,
@@ -100,6 +105,60 @@ class RemoteFakeSleepService extends FakeSleepService {
     String coupleId,
     String uid,
   ) async => Map.of(remote);
+}
+
+/// My own history comes back from the server only when [hold] completes.
+class SlowRemoteSleepService extends FakeSleepService {
+  final hold = Completer<void>();
+  Map<String, SleepNight> remote = {};
+  final savedFingerprintsOf = <String>[];
+
+  @override
+  Future<Map<String, SleepNight>> fetchNights(
+    String coupleId,
+    String uid,
+  ) async {
+    await hold.future;
+    return Map.of(remote);
+  }
+
+  @override
+  Future<void> saveFingerprints(
+    String uid,
+    String coupleId,
+    Map<String, String> fingerprints,
+  ) {
+    savedFingerprintsOf.add('$uid:$coupleId');
+    return super.saveFingerprints(uid, coupleId, fingerprints);
+  }
+}
+
+/// PROD rules from before 1.9.1: a night carrying `tz` is refused.
+class OldRulesSleepService extends FakeSleepService {
+  bool rulesDeployed = false;
+
+  @override
+  Future<void> putNight(String coupleId, String uid, SleepNight night) async {
+    if (night.tz != null && !rulesDeployed) {
+      calls.add('denied ${night.date}');
+      throw FirebaseException(
+        plugin: 'cloud_firestore',
+        code: 'permission-denied',
+      );
+    }
+    calls.add('put ${night.date}${night.tz == null ? '' : ' tz'}');
+  }
+}
+
+/// The partner shares [partner].
+class PartnerFakeSleepService extends FakeSleepService {
+  Map<String, SleepNight> partner = {};
+  @override
+  Stream<Map<String, SleepNight>> watchNights(
+    String coupleId,
+    String uid, {
+    required String sinceKey,
+  }) => Stream.value(Map.of(partner));
 }
 
 SleepNight night(int daysAgo) {
@@ -280,5 +339,125 @@ void main() {
     await provider.watchForCouple('other', 'me', 'someone');
     expect(provider.myShare, isFalse);
     expect(service.calls.where((c) => c.startsWith('put')), isEmpty);
+  });
+
+  test(
+    "SL1: A's history pulled on a slow network never lands in B's data",
+    () async {
+      final aOld = night(40);
+      final service = SlowRemoteSleepService()..remote = {aOld.date: aOld};
+      final provider = SleepProvider(service: service);
+      // A on a new phone, sharing: the pull of A's history starts…
+      await provider.watchForCouple('cA', 'A', 'pA');
+      service.profile('cA', 'A').add(const SleepProfile(share: true));
+      await pumpEventQueue();
+      // …A signs out and B signs in before it comes back.
+      provider.clear();
+      await provider.watchForCouple('cB', 'B', 'pB');
+      service.hold.complete();
+      await pumpEventQueue();
+      expect(provider.myNights.keys, isNot(contains(aOld.date)));
+      expect(service.savedFingerprintsOf, isNot(contains('A:cA')));
+    },
+  );
+
+  test("SL8: a logged night keeps this phone's clock", () async {
+    final (provider, _) = await start();
+    final today = DateTime.now();
+    final wakeAt = DateTime(today.year, today.month, today.day, 7);
+    final bedAt = wakeAt.subtract(const Duration(hours: 8));
+    await provider.saveNight(sleepDateKey(wakeAt), bedAt, wakeAt);
+    final saved = provider.myNights[sleepDateKey(wakeAt)]!;
+    expect(saved.source, SleepSource.manual);
+    expect(saved.tz, bedAt.timeZoneOffset.inMinutes);
+  });
+
+  test('R2-a: an edited night from a trip keeps its own clock', () async {
+    // My night in New York (UTC−4), 23:00 → 07:00 there, edited back home.
+    final d = DateTime.now();
+    final trip = SleepNight(
+      date: sleepDateKey(d),
+      bedAt: DateTime.utc(d.year, d.month, d.day, 3),
+      wakeAt: DateTime.utc(d.year, d.month, d.day, 11),
+      source: SleepSource.auto,
+      tz: -240,
+    );
+    final (provider, _) = await start(nights: {trip.date: trip});
+    await provider.saveNight(
+      trip.date,
+      trip.bedAt,
+      trip.wakeAt.add(const Duration(minutes: 30)),
+      tz: trip.tz,
+    );
+    final saved = provider.myNights[trip.date]!;
+    expect(saved.source, SleepSource.edited);
+    expect(saved.tz, -240);
+    expect(saved.bedAt.isAtSameMomentAs(trip.bedAt), isTrue);
+    expect([saved.wakeClock.hour, saved.wakeClock.minute], [7, 30]);
+  });
+
+  test('SL8: "last night" of a partner abroad is on their clock', () async {
+    // Partner in New York (UTC−4), this phone in Vietnam (UTC+7).
+    final away = SleepNight(
+      date: '2026-10-11',
+      bedAt: DateTime.utc(2026, 10, 11, 3), // 23:00 there
+      wakeAt: DateTime.utc(2026, 10, 11, 11), // 07:00 there
+      source: SleepSource.auto,
+      tz: -240,
+    );
+    final service = PartnerFakeSleepService()..partner = {away.date: away};
+    final provider = SleepProvider(service: service);
+    await provider.watchForCouple('c', 'me', 'partner');
+    service.profile('c', 'partner').add(const SleepProfile(share: true));
+    await pumpEventQueue();
+    expect(provider.partnerNights.keys, [away.date]);
+    // 08:00 on the 12th here = 21:00 on the 11th there.
+    final eightHere = DateTime.utc(2026, 10, 12, 1);
+    expect(
+      SleepProvider.lastNightKey(eightHere.add(const Duration(hours: 7))),
+      '2026-10-12',
+    );
+    expect(provider.partnerLastNightKey(eightHere), '2026-10-11');
+    // 03:30 there: their night isn't over yet; 04:30: it is.
+    expect(
+      provider.partnerLastNightKey(DateTime.utc(2026, 10, 12, 7, 30)),
+      '2026-10-11',
+    );
+    expect(
+      provider.partnerLastNightKey(DateTime.utc(2026, 10, 12, 8, 30)),
+      '2026-10-12',
+    );
+  });
+
+  test('1.9.1 before the PROD rules: a night refused for its tz goes up '
+      'without it', () async {
+    // Recorded with a clock; one recent, one 9 days old that never went up.
+    final recent = night(1).copyWith(tz: 420);
+    final old = night(9).copyWith(tz: 420);
+    final service = OldRulesSleepService()
+      ..nights = {recent.date: recent, old.date: old};
+    final provider = SleepProvider(service: service);
+    await provider.watchForCouple('c', 'me', 'partner');
+    service.profile('c', 'me').add(const SleepProfile(share: true));
+    await pumpEventQueue();
+    expect(
+      service.calls,
+      containsAll(['put ${recent.date}', 'put ${old.date}']),
+    );
+    // Marked as up — the old one would otherwise stay "pushing" for good.
+    expect(service.fingerprints[recent.date], recent.fingerprint);
+    expect(service.fingerprints[old.date], old.fingerprint);
+
+    // The new rules take the night as it is, in one write.
+    service
+      ..rulesDeployed = true
+      ..calls.clear();
+    await provider.saveNight(
+      recent.date,
+      recent.bedAt,
+      recent.wakeAt.add(const Duration(minutes: 20)),
+    );
+    await pumpEventQueue();
+    expect(service.calls, ['put ${recent.date} tz']);
   });
 }

@@ -29,6 +29,9 @@ class AuthProvider extends ChangeNotifier {
   SocialSignIn? _socialSignIn;
   EmailHasPasswordAccountException? _emailConflict;
 
+  /// A [deleteAccount] is running (BUG-26).
+  bool _deleting = false;
+
   /// Session-liveness listener (feature auth — #3). Subscribes once to the
   /// service's session-presence stream; drives [sessionRevoked].
   StreamSubscription<bool>? _sessionSub;
@@ -69,11 +72,22 @@ class AuthProvider extends ChangeNotifier {
   /// has a password account; carries the email so Sign in can prefill it.
   EmailHasPasswordAccountException? get emailConflict => _emailConflict;
 
-  /// Apple-only account (PF5): deleting it confirms through the Apple sheet.
-  bool get isAppleOnlyAccount => _authService.isAppleOnlyAccount;
+  /// This account confirms through the Apple sheet (PF5, AU3) — for a
+  /// deletion, ask [deletesWithAppleSheet].
+  bool get reauthWithApple => _authService.reauthWithApple;
 
-  /// Google-only account (PF16): deleting it needs no password.
-  bool get isGoogleOnlyAccount => _authService.isGoogleOnlyAccount;
+  /// Deleting this account confirms through the Apple sheet — with a
+  /// password too only when this iPhone's Apple ID is the account's, which
+  /// iOS is asked here (BUG-25). Ask once, right before the delete dialog,
+  /// and hand the answer to [deleteAccount] (BUG-26).
+  Future<bool> deletesWithAppleSheet() async =>
+      reauthWithApple && !await _authService.passwordInsteadOfAppleSheet();
+
+  /// Deleting this account confirms with Google, no password (PF16).
+  bool get reauthWithGoogle => _authService.reauthWithGoogle;
+
+  /// AU1: an Apple/Google account without a password can add one in Settings.
+  bool get canSetPassword => _authService.canSetPassword;
   bool get isUsingFirebase => _authService.isUsingFirebase;
   String get authSourceLabel => _authService.authSourceLabel;
   String? get bootstrapMessage => _authService.bootstrapMessage;
@@ -263,6 +277,11 @@ class AuthProvider extends ChangeNotifier {
   /// [signIn]. Returns false on failure; [errorMessage] stays null when the
   /// user just closed the sheet or picker, so the UI can stay silent.
   Future<bool> signInWithSocial(SocialSignIn provider) async {
+    // AU5: Apple and Google tapped in the same frame both get here before the
+    // buttons lock — only the first runs, the second stays silent.
+    if (_socialSignIn != null) {
+      return false;
+    }
     _socialSignIn = provider;
     _emailConflict = null;
     _clearError();
@@ -405,9 +424,16 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<String?> deleteAccount() async {
+  /// [appleSheet]: the delete dialog's [deletesWithAppleSheet] answer — the
+  /// Apple sheet confirms first, else nothing more does (a password, Google,
+  /// a re-auth already done). iOS isn't asked again: the deletion does what
+  /// the dialog said (BUG-26). While one runs, another call returns
+  /// `'delete-in-progress'` at once and leaves it alone.
+  Future<String?> deleteAccount({required bool appleSheet}) async {
     final user = _currentUser;
     if (user == null) return null;
+    if (_deleting) return 'delete-in-progress';
+    _deleting = true;
 
     _setLoading(true);
     _clearError(notify: false);
@@ -416,7 +442,7 @@ class AuthProvider extends ChangeNotifier {
       // PF5: Apple accounts confirm in the Apple sheet FIRST. Closing it must
       // leave everything as it was (push registration, single-session watch),
       // so nothing below may run before this.
-      await _authService.confirmAppleDeletionIfNeeded();
+      await _authService.confirmAppleDeletionIfNeeded(appleSheet: appleSheet);
       // Robustness (app-robustness B/C): unregistering this device is cleanup
       // (the server-side deleteAccount also removes all device docs), so bound
       // it to 5s and never let it block the deletion itself.
@@ -434,6 +460,15 @@ class AuthProvider extends ChangeNotifier {
       _tokenSub = null;
       _localToken = null;
       await _authService.deleteAccount(currentUser: user);
+      // The dialog promised every piece of data goes (AU8): sleep nights live
+      // only on this phone. Best-effort — the account is gone either way.
+      try {
+        await _authService
+            .wipeLocalUserData(user.id)
+            .timeout(const Duration(seconds: 5));
+      } catch (e) {
+        debugPrint('AuthProvider local data wipe failed: $e');
+      }
       _currentUser = null;
       _status = AuthStatus.unauthenticated;
       // Analytics — success path only; log then clear the user id (D2).
@@ -448,6 +483,7 @@ class AuthProvider extends ChangeNotifier {
       // the user closed the Apple confirmation sheet (PF5) — nothing deleted.
       // `apple-id-mismatch` = the sheet signed in another Apple ID (PF18);
       // `session-gone` = no session left. Both: signed out.
+      _forgetSignedOutUser(e.message);
       if (e.message == 'requires-recent-login' ||
           e.message == 'social-canceled' ||
           e.message == 'apple-id-mismatch' ||
@@ -462,6 +498,7 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = AppL10n.strings.deleteAccountFailed;
       return _errorMessage;
     } finally {
+      _deleting = false;
       _setLoading(false);
     }
   }
@@ -486,8 +523,45 @@ class AuthProvider extends ChangeNotifier {
       return AppL10n.strings.authFirebaseAuthGeneric;
     }
     _setLoading(false);
-    // Token is fresh now — retry the authoritative server-side delete.
-    return deleteAccount();
+    // Token is fresh now — retry the authoritative server-side delete. The
+    // password confirmed it: no Apple sheet.
+    return deleteAccount(appleSheet: false);
+  }
+
+  /// Adds a password to the signed-in Apple/Google account (AU1). Null on
+  /// success — the Settings row then goes away. Otherwise a sentinel the UI
+  /// branches on (`social-canceled`; `apple-id-mismatch` / `session-gone`:
+  /// already signed out) or the copy to show.
+  Future<String?> setPassword(String password) async {
+    try {
+      // BUG-24: onto the account on screen, never onto a session the Apple
+      // sheet left behind.
+      final uid = _currentUser?.id;
+      if (uid == null) {
+        return 'session-gone';
+      }
+      await _authService.setPassword(password, uid: uid);
+      return null;
+    } on AuthException catch (e) {
+      _forgetSignedOutUser(e.message);
+      return e.message;
+    } catch (e) {
+      debugPrint('AuthProvider.setPassword failed: $e');
+      return AppL10n.strings.setPasswordFailed;
+    } finally {
+      // [canSetPassword] reads the Firebase user, which may have changed.
+      notifyListeners();
+    }
+  }
+
+  /// `apple-id-mismatch` / `session-gone` mean this account's session is
+  /// over — even when signing the other Apple ID out failed and no
+  /// sign-out event comes (BUG-24). authGate must not route back into it.
+  void _forgetSignedOutUser(String code) {
+    if (code == 'apple-id-mismatch' || code == 'session-gone') {
+      _currentUser = null;
+      _status = AuthStatus.unauthenticated;
+    }
   }
 
   /// Sends a password-reset email (feature auth, Đợt 1). Returns true on

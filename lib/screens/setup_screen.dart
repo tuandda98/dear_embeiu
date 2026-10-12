@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../app/app_routes.dart';
+import '../app/route_observers.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
@@ -17,6 +18,7 @@ import '../providers/photo_provider.dart';
 import '../models/couple.dart';
 import '../services/couple_service.dart';
 import '../services/invite_clipboard.dart';
+import '../services/user_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/blocking_loading_overlay.dart';
@@ -41,7 +43,7 @@ class SetupScreen extends StatefulWidget {
 }
 
 class _SetupScreenState extends State<SetupScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
   late final TextEditingController _person1Controller;
   late final TextEditingController _person2Controller;
   late final TextEditingController _inviteCodeController;
@@ -54,6 +56,9 @@ class _SetupScreenState extends State<SetupScreen>
   // Clipboard invite check (feature pairing-funnel, PF9) in flight — keeps the
   // first-frame check and an iOS resume from stacking two sheets.
   bool _clipboardCheckBusy = false;
+
+  // The page route [appPageRouteObserver] reports for (PA5).
+  PageRoute<dynamic>? _subscribedRoute;
 
   @override
   void initState() {
@@ -78,6 +83,19 @@ class _SetupScreenState extends State<SetupScreen>
     if (state == AppLifecycleState.resumed &&
         defaultTargetPlatform == TargetPlatform.iOS) {
       _checkClipboardInvite();
+    }
+  }
+
+  // PA5: a resume while Settings sat on top skipped the check (Setup wasn't
+  // the top route), so look again once Setup is uncovered. iOS only, like the
+  // resume check; the delay lets the pop transition finish first.
+  @override
+  void didPopNext() {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      Future<void>.delayed(
+        const Duration(milliseconds: 500),
+        _checkClipboardInvite,
+      );
     }
   }
 
@@ -140,6 +158,14 @@ class _SetupScreenState extends State<SetupScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute<dynamic> && !identical(route, _subscribedRoute)) {
+      if (_subscribedRoute != null) {
+        appPageRouteObserver.unsubscribe(this);
+      }
+      _subscribedRoute = route;
+      appPageRouteObserver.subscribe(this, route);
+    }
     if (_didPrefill) {
       return;
     }
@@ -155,7 +181,10 @@ class _SetupScreenState extends State<SetupScreen>
       _selectedDate = existingCouple.anniversaryDate;
       _couplePhotoPath = existingCouple.couplePhotoPath;
     } else {
-      if (currentUser != null && currentUser.displayName.trim().isNotEmpty) {
+      // Not the "New user" placeholder (PA8): the field would look filled in,
+      // and that name would end up in every push the partner gets.
+      if (currentUser != null &&
+          !UserService.isPlaceholderDisplayName(currentUser.displayName)) {
         _person1Controller.text = currentUser.displayName.trim();
       }
       // Carry the love date the user already set in guest mode into the very
@@ -180,6 +209,7 @@ class _SetupScreenState extends State<SetupScreen>
 
   @override
   void dispose() {
+    appPageRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _person1Controller.dispose();
     _person2Controller.dispose();
@@ -357,14 +387,16 @@ class _SetupScreenState extends State<SetupScreen>
       return;
     }
 
-    final rawCode = _inviteCodeController.text.trim();
-    // The get page copies the whole invite link, so people may paste that:
-    // keep just the code, and show it in the field.
-    final linkCode = InviteClipboard.parseInviteCode(rawCode);
-    if (linkCode != null) {
-      _inviteCodeController.text = linkCode;
+    // The get page copies the whole invite link, so people may paste that; a
+    // code may also come with spaces or full-width characters (PA4). Look up
+    // the bare code, and show it in the field only when it is a code: other
+    // text stays as typed ("Mã: abc234" doesn't come back as "MÃ:ABC234").
+    final inviteCode =
+        InviteClipboard.normalizeInviteCode(_inviteCodeController.text);
+    if (InviteClipboard.isInviteCode(inviteCode) &&
+        inviteCode != _inviteCodeController.text) {
+      _inviteCodeController.text = inviteCode;
     }
-    final inviteCode = linkCode ?? rawCode;
     if (inviteCode.isEmpty) {
       HapticFeedback.heavyImpact();
       _showSnack(l10n.setupErrorNoInviteCode);
@@ -1278,6 +1310,12 @@ class _SetupScreenState extends State<SetupScreen>
             child: TextField(
               controller: _inviteCodeController,
               textCapitalization: TextCapitalization.characters,
+              // A code, not words (PA4): no autocorrect or suggestions, and the
+              // visible-password (ASCII) keyboard, so the keyboard stops
+              // composing Vietnamese — Telex turns "AA" into "Â".
+              keyboardType: TextInputType.visiblePassword,
+              autocorrect: false,
+              enableSuggestions: false,
               decoration: _inputDecoration(
                 hint: l10n.theirInviteCodeHint,
                 icon: IconsaxPlusLinear.lock,

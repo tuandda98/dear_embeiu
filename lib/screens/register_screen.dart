@@ -68,15 +68,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     final authProvider = context.read<AuthProvider>();
+    // AU4: taken before the await. Going back while Firebase finishes leaves
+    // a live session behind — it must still leave this flow.
+    final navigator = Navigator.of(context);
     final didSignUp = await authProvider.signUp(
       email: _emailController.text,
       password: _passwordController.text,
       displayName: _displayNameController.text,
     );
-
-    if (!mounted) {
-      return;
-    }
 
     if (didSignUp) {
       // A just-created Firebase account is, by definition, a brand-new
@@ -87,9 +86,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final nextRoute = authProvider.isUsingFirebase
           ? AppRoutes.verifyEmail
           : AppRoutes.authGate;
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(nextRoute, (route) => false);
+      if (navigator.mounted) {
+        navigator.pushNamedAndRemoveUntil(nextRoute, (route) => false);
+      }
+      return;
+    }
+
+    if (!mounted) {
       return;
     }
 

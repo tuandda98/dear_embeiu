@@ -1,3 +1,4 @@
+import AuthenticationServices
 import FirebaseCore
 import Flutter
 import HealthKit
@@ -23,6 +24,7 @@ import UserNotifications
       registerBadgeChannel(messenger: registrar.messenger(), application: application)
       SleepHealthChannel.register(messenger: registrar.messenger())
       InviteClipboardChannel.register(messenger: registrar.messenger())
+      AppleIdStateChannel.register(messenger: registrar.messenger())
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -80,6 +82,45 @@ final class InviteClipboardChannel {
   }
 }
 
+/// Audit 2026-10-12 BUG-25: is the account's Apple user id authorized for
+/// the Apple ID signed in on this iPhone? Deleting an account that also has
+/// a password opens the Apple sheet only then: on another Apple ID the sheet
+/// would sign that one in. Shows no UI.
+final class AppleIdStateChannel {
+  static func register(messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "dear_embeiu/apple_id", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      guard call.method == "credentialState" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard let userId = (call.arguments as? [String: Any])?["userId"] as? String,
+            !userId.isEmpty else {
+        result(FlutterError(code: "bad-args", message: "userId missing", details: nil))
+        return
+      }
+      ASAuthorizationAppleIDProvider().getCredentialState(forUserID: userId) { state, error in
+        let answer: String
+        switch state {
+        case .authorized: answer = "authorized"
+        case .revoked: answer = "revoked"
+        case .notFound: answer = "notFound"
+        case .transferred: answer = "transferred"
+        @unknown default: answer = "unknown"
+        }
+        DispatchQueue.main.async {
+          if let error = error {
+            result(FlutterError(
+              code: "credential-state", message: error.localizedDescription, details: nil))
+          } else {
+            result(answer)
+          }
+        }
+      }
+    }
+  }
+}
+
 /// Feature sleep (2026-10-10): reads — never writes — the sleep that iPhone /
 /// Apple Watch saved in Health (`sleepAnalysis`). iOS gives apps no screen
 /// lock history, so Health is the only automatic source. Same channel name as
@@ -115,6 +156,23 @@ final class SleepHealthChannel {
         let from = (args?["from"] as? NSNumber)?.doubleValue ?? 0
         let to = (args?["to"] as? NSNumber)?.doubleValue ?? Date().timeIntervalSince1970 * 1000
         readSamples(from: from, to: to, result: result)
+      case "excludeFromBackup":
+        // Sleep data stays on this phone (privacy policy): its folder is
+        // left out of iCloud / computer backups. Set on the folder, so every
+        // file Hive writes inside (compaction swaps files) is covered too.
+        guard let path = (call.arguments as? [String: Any])?["path"] as? String else {
+          result(false)
+          return
+        }
+        var url = URL(fileURLWithPath: path, isDirectory: true)
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        do {
+          try url.setResourceValues(values)
+          result(true)
+        } catch {
+          result(false)
+        }
       default:
         result(FlutterMethodNotImplemented)
       }

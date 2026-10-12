@@ -44,6 +44,9 @@ Future<void> _show(BuildContext context, Widget sheet) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    // Taller than the screen (small phone, big text): stop under the status
+    // bar / notch instead of hiding the handle and title behind it.
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
     builder: (_) =>
         ChangeNotifierProvider<SleepProvider>.value(value: sleep, child: sheet),
@@ -580,19 +583,24 @@ class _EditSheetState extends State<_EditSheet> {
   bool _busy = false;
   SleepNight? _existing;
 
+  /// The other clock a night from a trip was recorded on; null = this phone's.
+  late final int? _tz;
+
   @override
   void initState() {
     super.initState();
     _existing = context.read<SleepProvider>().myNights[widget.dateKey];
     final n = _existing;
+    // The times the screen shows: the night's own clock (audit D2).
     _bed = n == null
         ? const TimeOfDay(hour: 23, minute: 0)
-        : TimeOfDay.fromDateTime(n.bedAt);
+        : TimeOfDay.fromDateTime(n.bedClock);
     _wake = n == null
         ? const TimeOfDay(hour: 7, minute: 0)
-        : TimeOfDay.fromDateTime(n.wakeAt);
+        : TimeOfDay.fromDateTime(n.wakeClock);
     _initialBed = _bed;
     _initialWake = _wake;
+    _tz = n != null && SleepFormat.onOtherClock(n) ? n.tz : null;
   }
 
   /// Saving an untouched night would still stamp "Đã sửa" for the partner —
@@ -600,28 +608,39 @@ class _EditSheetState extends State<_EditSheet> {
   bool get _changed =>
       _existing == null || _bed != _initialBed || _wake != _initialWake;
 
-  /// Wake is anchored on the night's date; a wake time earlier than the bed
-  /// time simply means the night crossed midnight.
+  /// Real minutes asleep: across a DST change an hour more or less than the
+  /// two clock readings suggest.
   int get _total {
-    final diff =
-        (_wake.hour * 60 + _wake.minute) - (_bed.hour * 60 + _bed.minute);
-    return diff <= 0 ? diff + 1440 : diff;
+    final t = _times;
+    return t.wakeAt.difference(t.bedAt).inMinutes;
   }
 
   bool get _valid => _total >= 60 && _total <= 16 * 60;
 
+  /// Both ends are built from the picked hour:minute — not wake minus a
+  /// duration, which shifted a night across a DST change by an hour.
   ({DateTime bedAt, DateTime wakeAt}) get _times {
     final day = sleepDateFromKey(widget.dateKey) ?? DateTime.now();
+    int minutes(TimeOfDay t) => t.hour * 60 + t.minute;
     // The night's window runs 18:00 the evening before → 14:00: a wake time
     // from 18:00 on belongs to the evening before, not to the next night.
-    final wakeAt = DateTime(
-      day.year,
-      day.month,
-      _wake.hour >= 18 ? day.day - 1 : day.day,
-      _wake.hour,
-      _wake.minute,
-    );
-    return (bedAt: wakeAt.subtract(Duration(minutes: _total)), wakeAt: wakeAt);
+    final wakeDay = _wake.hour >= 18 ? day.day - 1 : day.day;
+    // A bed time later on the clock than the wake time (or equal) means the
+    // night crossed midnight.
+    final bedDay = minutes(_bed) < minutes(_wake) ? wakeDay : wakeDay - 1;
+    // A night from a trip is picked on its own clock, so it is read back on
+    // it: on this phone's it would move by the time difference.
+    final tz = _tz;
+    DateTime at(int d, TimeOfDay t) => tz == null
+        ? DateTime(day.year, day.month, d, t.hour, t.minute)
+        : DateTime.utc(
+            day.year,
+            day.month,
+            d,
+            t.hour,
+            t.minute,
+          ).subtract(Duration(minutes: tz)).toLocal();
+    return (bedAt: at(bedDay, _bed), wakeAt: at(wakeDay, _wake));
   }
 
   Future<void> _pick({required bool bed}) async {
@@ -648,6 +667,7 @@ class _EditSheetState extends State<_EditSheet> {
         widget.dateKey,
         t.bedAt,
         t.wakeAt,
+        tz: _tz,
       );
       HapticFeedback.lightImpact();
       navigator.maybePop();
@@ -720,12 +740,14 @@ class _EditSheetState extends State<_EditSheet> {
                 color: AppColors.accentLavenderDeep,
               ),
               const SizedBox(width: 8),
-              Text(
-                l10n.sleepEditTotal(SleepFormat.long(l10n, _total)),
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
+              Flexible(
+                child: Text(
+                  l10n.sleepEditTotal(SleepFormat.long(l10n, _total)),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],

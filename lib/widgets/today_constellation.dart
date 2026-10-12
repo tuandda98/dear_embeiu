@@ -424,29 +424,35 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
 
     return Column(
       children: [
-        SizedBox(
-          width: _kBox.width,
-          height: _kBox.height,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _HeartPainter(
-                    segments: sky.segments,
-                    full: sky.isFull,
+        // The heart is a fixed 260×216 drawing: past 130% the side labels
+        // ran off a 320dp screen. Each star's full sentence is still its
+        // semantics label and the panel below (which scales freely).
+        MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.3,
+          child: SizedBox(
+            width: _kBox.width,
+            height: _kBox.height,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _HeartPainter(
+                      segments: sky.segments,
+                      full: sky.isFull,
+                    ),
                   ),
                 ),
-              ),
-              for (final t in CareTask.values) ...[
-                label(true, t),
-                label(false, t),
+                for (final t in CareTask.values) ...[
+                  label(true, t),
+                  label(false, t),
+                ],
+                for (final t in CareTask.values) ...[
+                  starButton(true, t),
+                  starButton(false, t),
+                ],
               ],
-              for (final t in CareTask.values) ...[
-                starButton(true, t),
-                starButton(false, t),
-              ],
-            ],
+            ),
           ),
         ),
         const SizedBox(height: 10),
@@ -630,6 +636,67 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
     }
 
     void close() => setState(() => _selected = null);
+    // Big text (≥150%, like "Việc nhỏ hôm nay"): the button goes under the
+    // text — beside it, it pushed the row 29–33px off a 320dp screen.
+    final stacked =
+        action != null && MediaQuery.textScalerOf(context).scale(10) >= 15;
+    final row = Row(
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: sel.mine ? myGlow : partnerGlow,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$who · ${_taskTitle(l10n, sel.task)}',
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                sub,
+                style: TextStyle(
+                  color: AppColors.white.withValues(alpha: 0.84),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (action != null && !stacked) ...[const SizedBox(width: 8), action],
+        Semantics(
+          button: true,
+          label: l10n.loveTreeClosePanel,
+          excludeSemantics: true,
+          onTap: close,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: close,
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Icon(
+                IconsaxPlusLinear.close_circle,
+                size: 18,
+                color: AppColors.white.withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
     return Container(
       key: ValueKey('${sel.mine}-${sel.task}'),
       padding: const EdgeInsets.fromLTRB(12, 10, 0, 10),
@@ -638,63 +705,18 @@ class _TodayConstellationSectionState extends State<TodayConstellationSection> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.white.withValues(alpha: 0.22)),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: sel.mine ? myGlow : partnerGlow,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: stacked
+          ? Column(
               children: [
-                Text(
-                  '$who · ${_taskTitle(l10n, sel.task)}',
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  sub,
-                  style: TextStyle(
-                    color: AppColors.white.withValues(alpha: 0.84),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
+                row,
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Align(alignment: Alignment.centerRight, child: action),
                 ),
               ],
-            ),
-          ),
-          if (action != null) ...[const SizedBox(width: 8), action],
-          Semantics(
-            button: true,
-            label: l10n.loveTreeClosePanel,
-            excludeSemantics: true,
-            onTap: close,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: close,
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: Icon(
-                  IconsaxPlusLinear.close_circle,
-                  size: 18,
-                  color: AppColors.white.withValues(alpha: 0.8),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+            )
+          : row,
     );
   }
 }

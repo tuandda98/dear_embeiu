@@ -412,6 +412,187 @@ void main() {
     });
   });
 
+  group('audit 2026-10-12', () {
+    test('SL3: asleep stretches inside one "in bed" block are one night', () {
+      // Watch: asleep 23:30–03:00, awake 45 min, asleep 03:45–07:00; iPhone
+      // "in bed" 23:00–07:15. Was 23:30 → 03:00, i.e. "woke up at 03:00".
+      final r = computeHealthNights(
+        [
+          HealthSleepSample(at(9, 23, 30), at(10, 3), 3),
+          HealthSleepSample(at(10, 3), at(10, 3, 45), 2),
+          HealthSleepSample(at(10, 3, 45), at(10, 7), 4),
+          HealthSleepSample(at(9, 23), at(10, 7, 15), 0),
+        ],
+        wakeDates: [wake],
+        now: at(10, 12),
+      )['2026-10-10']!;
+      expect(r.bedAt, at(9, 23, 30));
+      expect(r.wakeAt, at(10, 7));
+      expect(r.wakeUps, [210]);
+    });
+
+    test('SL3: without "in bed" a long awake gap still splits the night', () {
+      final r = computeHealthNights(
+        [
+          HealthSleepSample(at(9, 23), at(10, 2), 3),
+          HealthSleepSample(at(10, 2, 35), at(10, 5, 25), 3),
+        ],
+        wakeDates: [wake],
+        now: at(10, 12),
+      )['2026-10-10']!;
+      expect(r.bedAt, at(9, 23));
+      expect(r.wakeAt, at(10, 2));
+    });
+
+    test('L2: 2.5 h awake in bed splits the night, it is no full moon', () {
+      // Insomnia 02:00 → 04:30 inside "in bed" 22:45 → 07:15: was folded
+      // into 23:00 → 07:00, an 8-hour full moon.
+      final r = computeHealthNights(
+        [
+          HealthSleepSample(at(9, 22, 45), at(10, 7, 15), 0),
+          HealthSleepSample(at(9, 23), at(10, 2), 3),
+          HealthSleepSample(at(10, 4, 30), at(10, 7), 3),
+        ],
+        wakeDates: [wake],
+        now: at(10, 12),
+      )['2026-10-10']!;
+      expect(r.bedAt, at(9, 23));
+      expect(r.wakeAt, at(10, 2));
+      expect(r.isFull, isFalse);
+      // 90 minutes awake is still one night.
+      final ninety = computeHealthNights(
+        [
+          HealthSleepSample(at(9, 22, 45), at(10, 7, 15), 0),
+          HealthSleepSample(at(9, 23), at(10, 2), 3),
+          HealthSleepSample(at(10, 3, 30), at(10, 7), 3),
+        ],
+        wakeDates: [wake],
+        now: at(10, 12),
+      )['2026-10-10']!;
+      expect([ninety.bedAt, ninety.wakeAt], [at(9, 23), at(10, 7)]);
+      expect(ninety.wakeUps, [180]);
+    });
+
+    test('L2: a day in bed (over 16 h) still finds the night', () {
+      // Sick: "in bed" for 2 days, dozes never more than 80 min apart, so
+      // they chain into one 17.5-hour block — the whole night was lost.
+      final r = computeHealthNights(
+        [
+          HealthSleepSample(at(9, 12), at(11, 12), 0),
+          HealthSleepSample(at(9, 18, 30), at(9, 21), 3),
+          HealthSleepSample(at(9, 22), at(10, 6), 4),
+          HealthSleepSample(at(10, 7, 20), at(10, 9), 3),
+          HealthSleepSample(at(10, 10), at(10, 12), 3),
+        ],
+        wakeDates: [wake],
+        now: at(10, 13),
+      )['2026-10-10'];
+      expect(r, isNotNull);
+      expect([r!.bedAt, r.wakeAt], [at(9, 22), at(10, 6)]);
+    });
+
+    test('SL4: before 04:00 tonight is neither scanned nor published', () {
+      expect(recentWakeDates(at(11, 3, 59), 2).map(sleepDateKey), [
+        '2026-10-09',
+        '2026-10-10',
+      ]);
+      expect(recentWakeDates(at(11, 4), 2).map(sleepDateKey), [
+        '2026-10-10',
+        '2026-10-11',
+      ]);
+      // Asleep from 23:00, a push opened at 02:00: no "3-hour night" today.
+      final now = at(11, 2, 1);
+      final r = computeScreenNights(
+        [on(at(9, 8)), off(at(10, 23)), on(at(11, 2))],
+        wakeDates: recentWakeDates(now, 2),
+        now: now,
+      );
+      expect(r.containsKey('2026-10-11'), isFalse);
+      expect(sleepDateKey(lastWakeDate(now)), '2026-10-10');
+    });
+
+    test('SL6: the edit window counts calendar days across DST', () {
+      // US clocks spring forward on 8 Mar 2026, EU ones on 29 Mar: there,
+      // 7 calendar days are 167 hours. (Bites when run in such a zone.)
+      for (final (now, lastDay, tooOld) in [
+        (DateTime(2026, 3, 14, 10), '2026-03-08', '2026-03-07'),
+        (DateTime(2026, 4, 4, 10), '2026-03-29', '2026-03-28'),
+      ]) {
+        expect(sleepNightEditable(lastDay, now: now), isTrue);
+        expect(sleepNightEditable(tooOld, now: now), isFalse);
+      }
+    });
+
+    test('SL8: a computed night keeps the clock it happened on', () {
+      final n = screenNight([off(at(9, 23)), on(at(10, 7))])!;
+      expect(n.tz, at(9, 23).timeZoneOffset.inMinutes);
+      expect(n.bedClock.hour, 23);
+      expect(n.wakeClock.hour, 7);
+    });
+
+    test('SL8: own clock across a DST change, fixed offset abroad', () {
+      final bed = DateTime(2026, 3, 7, 23);
+      final night = SleepNight(
+        date: '2026-03-08',
+        bedAt: bed,
+        wakeAt: DateTime(2026, 3, 8, 7),
+        source: SleepSource.manual,
+        tz: bed.timeZoneOffset.inMinutes,
+      );
+      // One offset can't hold 23:00 PST and 07:00 PDT: read in local time.
+      expect(night.bedClock.hour, 23);
+      expect(night.wakeClock.hour, 7);
+      // A partner in New York (UTC−4), 23:00 → 07:00 on their clock.
+      final away = SleepNight(
+        date: '2026-10-11',
+        bedAt: DateTime.utc(2026, 10, 11, 3),
+        wakeAt: DateTime.utc(2026, 10, 11, 11),
+        source: SleepSource.auto,
+        tz: -240,
+      );
+      expect(away.bedClock.hour, 23);
+      expect(away.wakeClock.hour, 7);
+      expect(away.wakeClock.day, 11);
+    });
+
+    test("R2-b: month stats read bed/wake times on each night's clock", () {
+      // A partner in New York (UTC−4), 22:30 → 06:30 there. A phone in
+      // Vietnam said "Ngủ ~9:30 · Dậy ~17:30". (Bites outside UTC−4.)
+      final s = sleepMonthStats([
+        for (final day in [10, 11])
+          SleepNight(
+            date: '2026-10-$day',
+            // Local DateTimes, as Hive and Firestore hand them back.
+            bedAt: DateTime.utc(2026, 10, day, 2, 30).toLocal(),
+            wakeAt: DateTime.utc(2026, 10, day, 10, 30).toLocal(),
+            source: SleepSource.auto,
+            tz: -240,
+          ),
+      ])!;
+      expect(s.avgBedMinute, 22 * 60 + 30);
+      expect(s.avgWakeMinute, 6 * 60 + 30);
+      expect(s.avgMinutes, 8 * 60); // real time asleep
+    });
+
+    test('SL10: nobody picked yet → both phones draw the same colours', () {
+      final forA = PersonPalette.resolve(
+        myUid: 'a',
+        myChoice: null,
+        partnerUid: 'b',
+        partnerChoice: null,
+      );
+      final forB = PersonPalette.resolve(
+        myUid: 'b',
+        myChoice: null,
+        partnerUid: 'a',
+        partnerChoice: null,
+      );
+      expect(forA.mine, forB.partner);
+      expect(forA.partner, forB.mine);
+      expect(PersonPalette.clashes(forA.mine, forA.partner), isFalse);
+    });
+  });
+
   group('person palette', () {
     test('defaults: first = rose, second = purple', () {
       final r = PersonPalette.resolve(

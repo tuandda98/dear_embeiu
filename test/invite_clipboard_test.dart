@@ -73,6 +73,35 @@ void main() {
     );
   });
 
+  test('code field: spaces, full-width, zero-width, case, link (PA4)', () {
+    String norm(String text) => InviteClipboard.normalizeInviteCode(text);
+    expect(norm('ABC234'), 'ABC234');
+    expect(norm(' abc 234 '), 'ABC234');
+    expect(norm('ABC\u00A0234\n'), 'ABC234'); // NBSP, trailing newline
+    expect(norm('ＡＢＣ２３４'), 'ABC234'); // full-width keyboard
+    expect(norm('ＡＢＣ\u3000２３４'), 'ABC234'); // ideographic space
+    expect(norm('AB\u200BC234'), 'ABC234'); // zero-width space from a chat app
+    expect(norm('https://dearembeiu.com/get?code=abc234'), 'ABC234');
+    expect(
+      norm('Tải app & nhập mã tại: https://dearembeiu.com/get?code=abc234'),
+      'ABC234',
+    );
+    expect(norm('   '), '');
+  });
+
+  test('a code is 6 characters of the generators\' alphabet (PA4)', () {
+    expect(InviteClipboard.isInviteCode('ABC234'), isTrue);
+    expect(InviteClipboard.isInviteCode('ZZ9922'), isTrue);
+    for (final text in [
+      'MÃ:ABC234', // what "Mã: abc234" normalizes to
+      'ABC23', 'ABC2345', '',
+      'ABCI34', 'ABCO34', 'ABC104', // no I, O, 1 or 0
+      'abc234', // normalized codes are upper-case
+    ]) {
+      expect(InviteClipboard.isInviteCode(text), isFalse, reason: text);
+    }
+  });
+
   test('finds the link inside the whole invite message', () {
     const message =
         'Mình muốn lưu giữ kỷ niệm cùng bạn trên Dear Embeiu 💞\n'

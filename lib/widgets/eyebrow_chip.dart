@@ -51,11 +51,23 @@ class EyebrowChip extends StatelessWidget {
               Icon(icon, size: 13, color: AppColors.accentLoveDeep),
               const SizedBox(width: 7),
             ],
-            Text(label!, style: AppTheme.pageEyebrowStyle(alpha: 0.70)),
+            // Large text (×1.5–2.0) on a narrow phone: keep the user's size on
+            // one line and ellipsize instead of overflowing (audit R2-c). The
+            // label only shrinks when the parent bounds the chip; in an
+            // unbounded Row it stays at its natural width as before.
+            Flexible(
+              child: Text(
+                label!,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+                style: AppTheme.pageEyebrowStyle(alpha: 0.70),
+              ),
+            ),
           ],
         );
 
-    return Container(
+    final chip = Container(
       padding: EdgeInsets.symmetric(
         horizontal: 12,
         vertical: minHeight != null ? 0 : 7,
@@ -83,5 +95,12 @@ class EyebrowChip extends StatelessWidget {
             )
           : content,
     );
+
+    // The chip is the screen's only title now, so a cut-off label gets a
+    // long-press disclosure of the full text. Screen readers already read the
+    // whole label from the Text, hence excludeFromSemantics.
+    return child != null
+        ? chip
+        : Tooltip(message: label!, excludeFromSemantics: true, child: chip);
   }
 }
