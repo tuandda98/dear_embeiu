@@ -1,0 +1,74 @@
+# Widget màn hình chính — Đếm ngày yêu
+
+> File PO sở hữu. Nguồn sự thật chung cho cả feature. Designer/Dev/Tester đọc file này trước.
+
+- **Feature:** home-widget
+- **Ưu tiên:** P1
+- **Trạng thái:** 📋 Spec (user duyệt thiết kế 2026-10-12)
+- **Tạo ngày:** 2026-10-12
+- **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · bối cảnh dự án [`../../../CLAUDE.md`](../../../CLAUDE.md) · mockup bấm thử: canvas Artifact `https://claude.ai/artifact/Rb2dk1uaXdjuUGEBwNiKD9` (riêng tư, tài khoản user)
+
+## 1. Vấn đề & giá trị
+- *Vấn đề người dùng:* muốn biết "yêu nhau được bao nhiêu ngày" thì phải mở app, chờ Home tải. Con số này đổi mỗi ngày nhưng app lại không có mặt ở nơi người dùng nhìn nhiều nhất: màn hình chính điện thoại.
+- *Giả thuyết giá trị:* một ô nhỏ trên màn hình chính hiện "1.247 ngày bên nhau" + tên hai người sẽ (a) nhắc tới app mỗi lần mở khoá máy mà không cần push, (b) là lối vào một chạm về Home, (c) là thứ "khoe" được khi đưa máy cho bạn xem.
+- *Đối tượng:* mọi cặp đã đặt ngày yêu (cả khi còn chờ người ấy ghép đôi). Người chưa đăng nhập thấy trạng thái trống mời vào app.
+- *Đo bằng gì (metric):* số lần mở app từ widget/tuần (event `widget_tap`, kèm `family` small/medium). Mục tiêu sau 30 ngày: ≥30% cặp active có ít nhất 1 lần `widget_tap`/tuần. Không đo được số lượt *thêm* widget trên iOS (WidgetKit không báo), nên lấy tap làm thước.
+
+## 2. Bối cảnh / nghiên cứu
+- Table stakes còn thiếu so với app đối thủ (Been Together, Been Love Memory): widget đếm ngày là thứ gần như app nào trong niche cũng có. Nằm ở NEXT của `ROADMAP.md` từ 2026-05-30.
+- **Kiểm kê tính năng trong app có thể làm widget** (2026-10-12, PO):
+
+| Widget | Hiện gì | Dữ liệu đổi khi | Độ khó |
+|---|---|---|---|
+| **Đếm ngày yêu** (phase này) | số ngày · tên 2 người · cột mốc tiếp (bản vừa) | 0:00 mỗi ngày, native tự tính từ ngày yêu | Dễ |
+| Màn khoá iPhone | "1.247 ngày" cạnh giờ | cùng dữ liệu | Dễ, cộng thêm sau |
+| Câu hỏi hôm nay | câu hỏi + trạng thái chưa trả lời / chờ người ấy / cả hai xong | app mở · push `notifyDailyAnswer` (đã có `wakeClients`) | Vừa — giá trị thói quen cao nhất |
+| Ảnh kỷ niệm | ảnh mới nhất / ngày này năm xưa | người ấy đăng ảnh → push đánh thức app tải ảnh về App Group | Vừa–khó |
+| Tâm trạng người ấy | mood + ghi chú | CF `notifyPartnerMood` cần thêm wake | Vừa |
+| Chuỗi ngày | n ngày liên tiếp | mỗi ngày + khi cả hai trả lời | Vừa |
+| Đêm qua (giấc ngủ) | giờ ngủ 2 người | sáng app tính xong · người ấy chia sẻ | Vừa |
+| Hôm nay của chúng mình | chòm sao 6 sao | mọi hành động 2 người | Khó, dễ hiện số cũ |
+| Lời quan tâm mới nhất | lời của người ấy | push `notifyCareMessage` + wake | Vừa; riêng tư trên màn hình chính |
+| Cây tình yêu | hình cây theo số hoa | hiếm | Vừa |
+| Nút nhanh | Đăng ảnh · Gửi quan tâm · Nhắn tin | không có dữ liệu | Dễ nhưng cần đọc deep link (hiện tắt, D8 audit) |
+| Không làm | xem trước chat (riêng tư), rủ Oẳn tù tì (widget phải gọi mạng) | | |
+
+- Ràng buộc nền tảng (fallback — DB UI UX Pro Max không có mục widget): iOS WidgetKit nhỏ ≈158×158pt, vừa ≈338×158pt, bo góc hệ thống ~22pt, lề 14–16pt, iOS 18 có chế độ "tô màu" (tinted) ép mọi thứ về một màu; Android ô 2×2 ≈152dp, 4×2 ≈328dp, bo `system_app_widget_background_radius` (≤28dp), lề 16dp, RemoteViews không nhận ConstraintLayout/font tải động (font qua `res/font` thì được).
+- Luật thiết kế đã soát với UI UX Pro Max: chữ nhỏ 10–12px trắng trên hồng chỉ ~3,5:1 → chip tên dùng mực navy trên nền trắng; số ≥24px là chữ lớn (ngưỡng 3:1) → trắng trên gradient qua; icon tim vector, không emoji; toàn widget là 1 vùng chạm.
+
+## 3. Phạm vi (scope)
+- **Trong phạm vi (Phase 1):** widget đếm ngày cỡ nhỏ + vừa trên iOS (iPhone) và 2×2 + 4×2 trên Android; cột mốc tiếp theo trên bản vừa (cùng công thức Home); theo ngôn ngữ app (vi/en); trạng thái trống; chạm mở app; cập nhật khi đổi ngày yêu/tên/ngôn ngữ/đăng xuất; tự nhảy số mỗi ngày không cần mở app; event `widget_tap`.
+- **Ngoài phạm vi:** widget màn khoá (Phase 2), widget câu hỏi/ảnh/mood (Phase 3), widget lớn 4×4, Material You dynamic color, chọn ảnh nền cho widget, iPad/Apple Watch, Live Activity.
+
+## 4. Quyết định đã chốt (decision log)
+> Đừng lật lại trừ khi user/PO đổi ý.
+- **D1 — Nội dung = chỉ số ngày yêu** (user chọn 2026-10-12 trong 4 hướng: số ngày · số ngày + ảnh · "hôm nay" · nhiều widget). *Lý do:* dữ liệu tĩnh, widget tự đếm, không cần mạng/push; ra bản đầu nhanh, nền native dùng lại cho các widget sau.
+- **D2 — Hướng hình ảnh A "Thẻ đếm thu nhỏ"** (user chọn giữa A/B/C). *Lý do:* nối thẳng từ CounterCard đã duyệt nhiều vòng; nhận ra app giữa đám widget xám. Đánh đổi chấp nhận: không đổi theo chế độ tối, iOS 18 tinted về một màu.
+- **D3 — Native vẽ, Flutter chỉ đẩy ảnh chụp dữ liệu qua MethodChannel `dear_embeiu/widget` tự viết, KHÔNG dùng package `home_widget`.** *Lý do:* pattern channel đã có (`dear_embeiu/sleep|clipboard`), ~40 dòng native; package kéo thêm phần deep link mình không dùng.
+- **D4 — Chuỗi hiển thị do Flutter dịch sẵn rồi gửi sang** (`ngày bên nhau`, `Cột mốc {label}`, `còn {count} ngày`…), native chỉ tính số và lắp vào mẫu. *Lý do:* widget đổi theo ngôn ngữ chọn trong app (không theo máy), native không giữ bảng dịch riêng. Ngoại lệ bắt buộc: tên + mô tả widget trong gallery hệ thống (hiện trước khi có dữ liệu) dùng `.strings`/`strings.xml` theo ngôn ngữ máy.
+- **D5 — Số ngày + cột mốc tính ở native, copy y hệt `LoveTreeService.daysTogether` (so ngày lịch) và `_getNextMilestone` của Home** `[30, 50, 100, 180, 365, 500, 730, 1000, 1500, 2000, 3000]` rồi bước 500; tiến độ = `days / next`; nhãn "N tháng" (chia hết 30, <365) / "N năm" (chia hết 365) / "N ngày". *Lý do:* widget và CounterCard phải cùng số trong cùng ngày; bảng MilestoneTrail là bảng khác, không dùng.
+- **D6 — App Group riêng theo cấu hình:** `group.com.tony.dearembeiu` (Release/prod) · `group.com.tony.dearembeiu.dev` (Debug/Profile). *Lý do:* app dev và prod cài chung máy không ghi đè dữ liệu widget của nhau.
+- **D7 — Android cập nhật theo `updatePeriodMillis` 30 phút**, chấp nhận lệch tối đa 30 phút sau 0:00. *Lý do:* 0 dòng logic; nâng lên báo thức đúng 0:00 khi có người phàn nàn (ghi `ponytail:` trong code).
+- **D8 — Chạm widget chỉ mở app**, không parse URL (giữ quyết định tắt deep linking của audit 2026-10-12). Nguồn chạm ghi bằng cờ native (iOS: URL `dearembeiu://widget` vào UserDefaults; Android: intent extra) → Flutter đọc 1 lần để log `widget_tap`.
+- **D9 — Phát hành trong bản MINOR 1.10.0, sau 1.9.1** (hàng chờ audit + streak-self-heal). Không đụng backend.
+
+## 5. Acceptance criteria (xong khi…)
+- [ ] iOS: gallery widget có "Đếm ngày yêu" cỡ nhỏ + vừa; số ngày, tên, cột mốc (vừa) **bằng đúng** CounterCard trên Home trong cùng ngày, cả vi lẫn en.
+- [ ] Android: thêm được ô 2×2, kéo giãn sang 4×2 thì đổi sang bố cục vừa; số liệu như trên.
+- [ ] Không mở app, chỉnh giờ máy qua 0:00: iOS số nhảy đúng 0:00 (timeline); Android nhảy trong ≤30 phút.
+- [ ] Đổi ngôn ngữ trong Cài đặt → quay ra màn hình chính, widget đã đổi chữ (≤2 giây).
+- [ ] Đổi ngày yêu / tên trong Hồ sơ → widget đổi ngay.
+- [ ] Đăng xuất, rời couple, xoá tài khoản → widget về trạng thái trống ("Chạm để bắt đầu đếm ngày yêu"); đăng nhập lại → hiện lại số.
+- [ ] Chạm widget → app lên foreground, về Home (có couple) / Setup (chưa couple) / landing (guest); Analytics ghi `widget_tap{family}` đúng 1 lần/lần chạm.
+- [ ] App dev + prod cài chung máy: mỗi widget hiện dữ liệu của app mình.
+- [ ] Chữ hệ thống cỡ lớn nhất (AX) không tràn khung; số 10.000+ không tràn; tên 12 chữ không đẩy lệch bố cục; iOS 18 tinted vẫn đọc được.
+- [ ] `flutter analyze` 0; test Dart (`buildSnapshot`) + Swift (`DayMath`) + Kotlin (`DayMath`) cùng bộ vector PASS; `flutter build ipa` có `PlugIns/DearEmbeiuWidget.appex`, `flutter build appbundle` OK.
+- [ ] Không file nào trong `firestore.rules` / `functions/` thay đổi.
+
+## 6. Giao việc 3 vai (tóm tắt — chi tiết ở file mỗi role)
+- 🎨 **Designer:** ✅ xong 2026-10-12 — canvas 5 artboard (A/B/C · Android · tinted/số dài/EN) + [design.md](design.md) token chính xác.
+- 💻 **Dev:** dựng theo kế hoạch ở [dev.md](dev.md) (bridge Flutter → iOS extension → Android provider), test 3 ngôn ngữ, smoke simulator + emulator → *expect:* nhánh `feature/home-widget` analyze 0, test PASS, build 2 nền tảng OK.
+- 🧪 **Tester:** chạy 11 tiêu chí mục 5 trên simulator iOS 18 + emulator Android 14/16, ghi PASS/FAIL vào [test.md](test.md) → *expect:* bảng kết quả + bug P0/P1 nếu có.
+
+## 7. Changelog feature
+- [2026-10-12] [PO] Tạo feature. User chốt nội dung (D1) và hướng A (D2); duyệt thiết kế kỹ thuật (D3–D9). Kiểm kê 12 ứng viên widget cho các phase sau.
