@@ -329,7 +329,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeWaitingStep1Desc.
   ///
   /// In en, this message translates to:
-  /// **'Send this invite code to your partner in a message.'**
+  /// **'Send the code in a message, or let them scan the QR code if you\'re together.'**
   String get homeWaitingStep1Desc;
 
   /// No description provided for @homeWaitingStep1Cta.
@@ -404,7 +404,7 @@ abstract class AppLocalizations {
   /// **'Your partner hasn\'t joined yet 💌'**
   String get inviteFollowUpTitle;
 
-  /// No description provided for @inviteFollowUpBody24h.
+  /// Invite follow-up body. Since pairing-funnel PF10 it fires at the +20 hour mark; the key keeps its old 24h name.
   ///
   /// In en, this message translates to:
   /// **'Send the invite again — it only takes 10 seconds'**
@@ -415,6 +415,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Our memories are waiting for them. Remind them to download the app'**
   String get inviteFollowUpBody72h;
+
+  /// Pill next to Copy / Share (and on the Home waiting card) that opens the invite QR sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get inviteQrBtn;
+
+  /// No description provided for @inviteQrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let them scan this code'**
+  String get inviteQrTitle;
+
+  /// No description provided for @inviteQrBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They open their Camera and point it here to get Dear Embeiu, with your invite code ready.'**
+  String get inviteQrBody;
+
+  /// No description provided for @inviteQrFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t scan? Read this code out for them to type in.'**
+  String get inviteQrFallback;
+
+  /// No description provided for @inviteQrDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get inviteQrDone;
+
+  /// Screen reader label of the invite QR image.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite QR code, code {code}'**
+  String inviteQrSemantics(String code);
+
+  /// Setup sheet shown when the clipboard holds an invite link from the get page.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the code from your invite?'**
+  String get clipboardInviteTitle;
+
+  /// No description provided for @clipboardInviteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The invite link you opened has this code. Pair up to join your partner\'s space.'**
+  String get clipboardInviteBody;
+
+  /// No description provided for @clipboardInviteJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair up now'**
+  String get clipboardInviteJoin;
+
+  /// No description provided for @clipboardInviteSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get clipboardInviteSkip;
+
+  /// Local nudge 2 hours after creating the couple, only while the invite hasn't been sent yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Send your partner the invite 💌'**
+  String get inviteFollowUpTitle2h;
+
+  /// No description provided for @inviteFollowUpBody2h.
+  ///
+  /// In en, this message translates to:
+  /// **'Together right now? Let them scan the QR code. Apart? Send it in a message. It takes about 10 seconds.'**
+  String get inviteFollowUpBody2h;
 
   /// No description provided for @back.
   ///
@@ -2918,6 +2990,72 @@ abstract class AppLocalizations {
   /// **'Couldn\'t verify your account. Please try again.'**
   String get authFirebaseAuthGeneric;
 
+  /// Sign in with Apple button label (iOS only, pairing-funnel PF2)
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple'**
+  String get continueWithApple;
+
+  /// Label in the divider between the email form and the Apple/Google buttons
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get authOrDivider;
+
+  /// Generic Sign in with Apple error
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign in with Apple. Please try again.'**
+  String get appleSignInFailed;
+
+  /// Apple or Google sign-in returned an email that already belongs to another account (password, Apple or Google); provider-neutral (PF6)
+  ///
+  /// In en, this message translates to:
+  /// **'This email already has an account. Sign in the way you did before.'**
+  String get appleEmailHasPasswordAccount;
+
+  /// Extra line in the delete-account dialog for Apple accounts, warning that the Apple sheet comes next
+  ///
+  /// In en, this message translates to:
+  /// **'Apple will then show a sign-in sheet to confirm it\'s you.'**
+  String get deleteAccountAppleNote;
+
+  /// Body of the re-auth dialog for Apple accounts (no password field)
+  ///
+  /// In en, this message translates to:
+  /// **'For your security, confirm with Apple again to permanently delete your account.'**
+  String get deleteAccountReauthBodyApple;
+
+  /// Sign in with Google button label (pairing-funnel PF15)
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// Generic Google sign-in error
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign in with Google. Please try again.'**
+  String get googleSignInFailed;
+
+  /// Implied-consent line under the Apple/Google buttons, followed by a space, the privacyPolicyLabel link and a period
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing, you agree to our'**
+  String get socialConsentPrefix;
+
+  /// Body of the re-auth dialog for Google accounts (no password field); 'Delete permanently' is deleteAccountConfirmBtn
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Delete permanently to try again. If it still fails, sign in with Google again, then delete.'**
+  String get deleteAccountReauthBodyGoogle;
+
+  /// Deleting an Apple account, but the Apple sheet signed in with a different Apple ID (PF18); the user has been signed out
+  ///
+  /// In en, this message translates to:
+  /// **'The Apple ID on this device isn\'t the one for this account. Sign in with that account\'s Apple ID, then delete.'**
+  String get deleteAccountAppleIdMismatch;
+
   /// authFirebaseUserCreateFailed
   ///
   /// In en, this message translates to:
@@ -3563,7 +3701,7 @@ abstract class AppLocalizations {
   /// CTA button returning to the login screen
   ///
   /// In en, this message translates to:
-  /// **'Sign in'**
+  /// **'Sign in with email'**
   String get guestCtaSignIn;
 
   /// CTA button opening the register screen
@@ -5232,6 +5370,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.'**
   String get featureTourSkyBody;
+
+  /// Feature tour entry (build 26).
+  ///
+  /// In en, this message translates to:
+  /// **'Easier to bring your partner in'**
+  String get featureTourPairingTitle;
+
+  /// Feature tour entry (build 26).
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner can now sign up with Google, or Apple on iPhone, without creating a password. Sitting together? Open the QR code and they scan it to get your invite code.'**
+  String get featureTourPairingBody;
 
   /// Play screen caption once the 5s beat is over and nobody has thrown (no time limit).
   ///

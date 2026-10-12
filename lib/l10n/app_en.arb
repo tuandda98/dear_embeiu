@@ -70,7 +70,7 @@
   "featureTourInviteBody": "Share a download link together with your invite code, with step-by-step guidance.",
   "homeWaitingBadge": "WAITING FOR THEM",
   "homeWaitingStep1Title": "Send the invite",
-  "homeWaitingStep1Desc": "Send this invite code to your partner in a message.",
+  "homeWaitingStep1Desc": "Send the code in a message, or let them scan the QR code if you're together.",
   "homeWaitingStep1Cta": "Send it to them 💌",
   "homeWaitingStep1Copy": "Copy code",
   "homeWaitingStep2Title": "They install the app and sign up",
@@ -84,7 +84,39 @@
   "homeWaitingMeanwhileFooter": "They will see all of it when they join.",
   "inviteFollowUpTitle": "Your partner hasn't joined yet 💌",
   "inviteFollowUpBody24h": "Send the invite again — it only takes 10 seconds",
+  "@inviteFollowUpBody24h": {
+    "description": "Invite follow-up body. Since pairing-funnel PF10 it fires at the +20 hour mark; the key keeps its old 24h name."
+  },
   "inviteFollowUpBody72h": "Our memories are waiting for them. Remind them to download the app",
+  "inviteQrBtn": "QR code",
+  "@inviteQrBtn": {
+    "description": "Pill next to Copy / Share (and on the Home waiting card) that opens the invite QR sheet."
+  },
+  "inviteQrTitle": "Let them scan this code",
+  "inviteQrBody": "They open their Camera and point it here to get Dear Embeiu, with your invite code ready.",
+  "inviteQrFallback": "Can't scan? Read this code out for them to type in.",
+  "inviteQrDone": "Done",
+  "inviteQrSemantics": "Invite QR code, code {code}",
+  "@inviteQrSemantics": {
+    "description": "Screen reader label of the invite QR image.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "clipboardInviteTitle": "Use the code from your invite?",
+  "@clipboardInviteTitle": {
+    "description": "Setup sheet shown when the clipboard holds an invite link from the get page."
+  },
+  "clipboardInviteBody": "The invite link you opened has this code. Pair up to join your partner's space.",
+  "clipboardInviteJoin": "Pair up now",
+  "clipboardInviteSkip": "Skip",
+  "inviteFollowUpTitle2h": "Send your partner the invite 💌",
+  "@inviteFollowUpTitle2h": {
+    "description": "Local nudge 2 hours after creating the couple, only while the invite hasn't been sent yet."
+  },
+  "inviteFollowUpBody2h": "Together right now? Let them scan the QR code. Apart? Send it in a message. It takes about 10 seconds.",
   "back": "Back",
   "cancel": "Cancel",
   "save": "Save",
@@ -963,6 +995,50 @@
   "@authFirebaseAuthGeneric": {
     "description": "authFirebaseAuthGeneric"
   },
+  "continueWithApple": "Continue with Apple",
+  "@continueWithApple": {
+    "description": "Sign in with Apple button label (iOS only, pairing-funnel PF2)"
+  },
+  "authOrDivider": "or",
+  "@authOrDivider": {
+    "description": "Label in the divider between the email form and the Apple/Google buttons"
+  },
+  "appleSignInFailed": "Couldn't sign in with Apple. Please try again.",
+  "@appleSignInFailed": {
+    "description": "Generic Sign in with Apple error"
+  },
+  "appleEmailHasPasswordAccount": "This email already has an account. Sign in the way you did before.",
+  "@appleEmailHasPasswordAccount": {
+    "description": "Apple or Google sign-in returned an email that already belongs to another account (password, Apple or Google); provider-neutral (PF6)"
+  },
+  "deleteAccountAppleNote": "Apple will then show a sign-in sheet to confirm it's you.",
+  "@deleteAccountAppleNote": {
+    "description": "Extra line in the delete-account dialog for Apple accounts, warning that the Apple sheet comes next"
+  },
+  "deleteAccountReauthBodyApple": "For your security, confirm with Apple again to permanently delete your account.",
+  "@deleteAccountReauthBodyApple": {
+    "description": "Body of the re-auth dialog for Apple accounts (no password field)"
+  },
+  "continueWithGoogle": "Continue with Google",
+  "@continueWithGoogle": {
+    "description": "Sign in with Google button label (pairing-funnel PF15)"
+  },
+  "googleSignInFailed": "Couldn't sign in with Google. Please try again.",
+  "@googleSignInFailed": {
+    "description": "Generic Google sign-in error"
+  },
+  "socialConsentPrefix": "By continuing, you agree to our",
+  "@socialConsentPrefix": {
+    "description": "Implied-consent line under the Apple/Google buttons, followed by a space, the privacyPolicyLabel link and a period"
+  },
+  "deleteAccountReauthBodyGoogle": "Tap Delete permanently to try again. If it still fails, sign in with Google again, then delete.",
+  "@deleteAccountReauthBodyGoogle": {
+    "description": "Body of the re-auth dialog for Google accounts (no password field); 'Delete permanently' is deleteAccountConfirmBtn"
+  },
+  "deleteAccountAppleIdMismatch": "The Apple ID on this device isn't the one for this account. Sign in with that account's Apple ID, then delete.",
+  "@deleteAccountAppleIdMismatch": {
+    "description": "Deleting an Apple account, but the Apple sheet signed in with a different Apple ID (PF18); the user has been signed out"
+  },
   "authFirebaseUserCreateFailed": "Couldn't create your account. Please try again.",
   "@authFirebaseUserCreateFailed": {
     "description": "authFirebaseUserCreateFailed"
@@ -1417,7 +1493,7 @@
   "@guestCtaBody": {
     "description": "Body of the conversion CTA card on the guest screen"
   },
-  "guestCtaSignIn": "Sign in",
+  "guestCtaSignIn": "Sign in with email",
   "@guestCtaSignIn": {
     "description": "CTA button returning to the login screen"
   },
@@ -2539,6 +2615,14 @@
   "featureTourSkyBody": "The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.",
   "@featureTourSkyBody": {
     "description": "Feature tour entry (build 25)."
+  },
+  "featureTourPairingTitle": "Easier to bring your partner in",
+  "@featureTourPairingTitle": {
+    "description": "Feature tour entry (build 26)."
+  },
+  "featureTourPairingBody": "Your partner can now sign up with Google, or Apple on iPhone, without creating a password. Sitting together? Open the QR code and they scan it to get your invite code.",
+  "@featureTourPairingBody": {
+    "description": "Feature tour entry (build 26)."
   },
   "rpsOpenPrompt": "Go on, throw! No skipping here 😄",
   "@rpsOpenPrompt": {

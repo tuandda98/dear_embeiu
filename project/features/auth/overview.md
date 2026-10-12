@@ -4,7 +4,7 @@
 
 - **Feature:** auth
 - **Ưu tiên:** P0 (nền tảng)
-- **Trạng thái:** ✅ Shipped (v1.0.0) · 🧪 **Đợt 1 (quên-mật-khẩu + verify-email): code DONE, PASS code-level — chờ smoke-test runtime** · ⏳ Đợt 2 (Google/Apple) chờ user setup Console
+- **Trạng thái:** ✅ Shipped (v1.0.0) · 🧪 **Đợt 1 (quên-mật-khẩu + verify-email): code DONE, PASS code-level — chờ smoke-test runtime** · 💻 **Đợt 2 — Apple: code xong 2026-10-11 trong feature [`pairing-funnel`](../pairing-funnel/overview.md)** (chưa release; Google để sau)
 - **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · bối cảnh [`../../../CLAUDE.md`](../../../CLAUDE.md) mục 2,12,13
 
 ## 1. Mô tả
@@ -53,3 +53,4 @@ Mỗi người dùng có tài khoản riêng (email/password). Đăng ký → đ
 - [2026-05-30] [PO] Tài liệu hoá feature đã ship; ghi nhận nợ kỹ thuật từ catalog security/logic (CLAUDE.md mục 12,13).
 - [2026-06-05] [PO] Spec Đợt 1: Quên mật khẩu + Xác thực email bắt buộc (link, grandfather). Chốt 4 decision D-auth1..4. Đợt 2 (Google/Apple) chờ user setup Console. Bật pipeline Designer→Dev→Tester.
 - [2026-06-05] [Dev] **Custom verification email (Cách B)** — đổi từ mail Firebase mặc định sang **email HTML branded gửi qua Resend** (chống spam + nút "Xác thực" đẹp). Callable `sendCustomVerificationEmail` (Admin SDK `generateEmailVerificationLink` + Resend API, secret `RESEND_API_KEY`); template `functions/emails/verification_email.js` (vi/en, bulletproof button, sunset brand); client `signUp`/`resend` gọi callable. Gửi từ `noreply@dearembeiu.com` (domain riêng, SPF/DKIM). analyze sạch, node -c OK. **CHƯA deploy** — chờ user verify domain Resend + set secret. Build-config: dev=`.dev` bundle id (cài cạnh App Store), DEV đã Blaze.
+- [2026-10-11] [PO] Đợt 2 làm phần **Apple** (iOS) trong feature `pairing-funnel` vì dữ liệu: 36% người đăng ký kẹt ở xác thực email, 95% người dùng ở iPhone. Không dùng `sign_in_with_apple` (dùng `signInWithProvider` của `firebase_auth`). Tài khoản không có provider `password` bỏ qua cổng xác thực email. Xoá tài khoản Apple thu hồi token. **Google để sau** (Android 5%, cần SHA-1 + file cấu hình mới 2 môi trường). Chi tiết + PF1–PF13: [`../pairing-funnel/overview.md`](../pairing-funnel/overview.md).

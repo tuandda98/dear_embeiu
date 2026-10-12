@@ -25,6 +25,20 @@ class DailyQuestionEodSlot {
   final String body;
 }
 
+/// The invite follow-up nudges (feature pairing-funnel, PF10), each with a
+/// fixed id inside band 1180–1189 so the +2h one can be dropped on its own the
+/// moment the member sends the code.
+enum InviteFollowUp {
+  after2h(1180, Duration(hours: 2)),
+  after20h(1181, Duration(hours: 20)),
+  after72h(1182, Duration(hours: 72));
+
+  const InviteFollowUp(this.id, this.delay);
+
+  final int id;
+  final Duration delay;
+}
+
 /// Local, on-device infrastructure for the retention "love reminders" feature.
 ///
 /// This owns the [FlutterLocalNotificationsPlugin] instance, the timezone
@@ -135,12 +149,15 @@ class ReminderService {
   static const int _maxPersonalCatchup = 20;
 
   // Invite follow-ups (feature onboarding, 2026-09-05), ids 1180–1189. ONE-SHOT
-  // nudges for the member who is still alone in a `waiting_partner` couple:
-  // 24h + 72h after the couple was created, "your partner hasn't joined yet —
-  // send the invite again". Outside [_autoIds] and every other band (personal
+  // nudges for the member who is still alone in a `waiting_partner` couple.
+  // Since pairing-funnel (PF10) they bunch into the first day: +2h (only while
+  // the code hasn't been sent), +20h, +72h, nothing after 7 days — fixed ids in
+  // [InviteFollowUp]. Outside [_autoIds] and every other band (personal
   // 1100–1159, daily-question 1020–1052, lunar 1060–1099) so they never collide;
-  // owned solely by ReminderProvider.refreshInviteFollowUps, which cancels the
-  // whole band the moment the partner joins.
+  // owned by ReminderProvider: refreshInviteFollowUps cancels the whole band
+  // the moment the partner joins, cancelDailyQuestionSchedule on sign-out / no
+  // couple. The `partner_joined` push also cancels it while the app is closed
+  // (PushNotificationService, PF19).
   static const int _idInviteFollowUpBase = 1180;
   static const int _maxInviteFollowUps = 10;
 
@@ -749,56 +766,96 @@ class ReminderService {
   // Invite follow-ups (feature onboarding) — band 1180–1189.
   // ---------------------------------------------------------------------------
 
-  /// (Re)arm the invite follow-up nudges: ONE-SHOTs at [anchor] + 24h and
-  /// [anchor] + 72h (the couple was created at [anchor]). Slots already in the
-  /// past are skipped; when BOTH are past — the couple has been waiting for days
-  /// and the app just got opened — a single nudge is armed at now + 24h so a
-  /// long-waiting member still gets reminded. [bodies] rotates over the armed
-  /// slots. Clears the band first, so this is safe to call repeatedly.
+  /// When each invite follow-up should fire for a couple created at [anchor]
+  /// (PF10). Pure, local wall-clock:
+  /// - +2h only while the code hasn't been sent ([shared] false), then +20h
+  ///   and +72h;
+  /// - a slot landing in 22:00–07:59 moves to 08:30 (late evening → the next
+  ///   morning, after midnight → that same morning);
+  /// - slots not after [now], past [anchor] + 7 days, or on an instant already
+  ///   taken are dropped. No catch-up ping: an old couple gets nothing.
+  @visibleForTesting
+  static List<({InviteFollowUp kind, DateTime when})> inviteFollowUpSlots({
+    required DateTime anchor,
+    required DateTime now,
+    required bool shared,
+  }) {
+    final base = anchor.toLocal();
+    final cutoff = base.add(const Duration(days: 7));
+    final slots = <({InviteFollowUp kind, DateTime when})>[];
+    for (final kind in InviteFollowUp.values) {
+      if (shared && kind == InviteFollowUp.after2h) {
+        continue;
+      }
+      var when = base.add(kind.delay);
+      if (when.hour >= 22) {
+        when = DateTime(when.year, when.month, when.day + 1, 8, 30);
+      } else if (when.hour < 8) {
+        when = DateTime(when.year, when.month, when.day, 8, 30);
+      }
+      if (!when.isAfter(now) ||
+          when.isAfter(cutoff) ||
+          slots.any((s) => s.when == when)) {
+        continue;
+      }
+      slots.add((kind: kind, when: when));
+    }
+    return slots;
+  }
+
+  /// (Re)arm the invite follow-ups for a couple created at [anchor], timed by
+  /// [inviteFollowUpSlots]; [copy] gives each kind its title/body. Clears the
+  /// band first, so this is safe to call repeatedly.
   Future<void> scheduleInviteFollowUps({
     required DateTime anchor,
-    required String title,
-    required List<String> bodies,
+    required bool shared,
+    required Map<InviteFollowUp, ({String title, String body})> copy,
   }) async {
     await initialize();
     if (!_initialized) {
       return;
     }
     await cancelInviteFollowUps();
-    if (bodies.isEmpty) {
-      return;
-    }
-    final now = tz.TZDateTime.now(tz.local);
-    final base = tz.TZDateTime.from(anchor, tz.local);
-    final candidates = <tz.TZDateTime>[
-      base.add(const Duration(hours: 24)),
-      base.add(const Duration(hours: 72)),
-    ].where((when) => when.isAfter(now)).toList();
-    if (candidates.isEmpty) {
-      // Everything already elapsed → one catch-up ping a day from now.
-      candidates.add(now.add(const Duration(hours: 24)));
-    }
-    var id = _idInviteFollowUpBase;
-    for (var i = 0; i < candidates.length; i++) {
-      if (id >= _idInviteFollowUpBase + _maxInviteFollowUps) {
-        return;
+    final slots = inviteFollowUpSlots(
+      anchor: anchor,
+      now: DateTime.now(),
+      shared: shared,
+    );
+    for (final slot in slots) {
+      final text = copy[slot.kind];
+      if (text == null) {
+        continue;
       }
       await _scheduleAt(
-        id: id,
-        when: candidates[i],
-        title: title,
-        body: bodies[i % bodies.length],
+        id: slot.kind.id,
+        when: tz.TZDateTime.from(slot.when, tz.local),
+        title: text.title,
+        body: text.body,
       );
-      id++;
+    }
+  }
+
+  /// Drop a single invite follow-up — the +2h one once the code is sent.
+  Future<void> cancelInviteFollowUp(InviteFollowUp kind) async {
+    if (!_initialized) {
+      return;
+    }
+    try {
+      await _plugin.cancel(kind.id);
+    } catch (_) {
+      // Already in the desired state.
     }
   }
 
   /// Cancel the invite follow-up band (1180–1189) — called as soon as the
   /// partner joins (or the member leaves the waiting state).
+  ///
+  /// Works WITHOUT [initialize], like [cancelDailyQuestionBands]: `cancel` is a
+  /// plain platform call, and the `partner_joined` push runs this from the FCM
+  /// background isolate where this service is brand new (pairing-funnel PF19).
+  /// Also keeps Home's cold-start cancel from silently no-op'ing while the
+  /// deferred [initialize] is still running.
   Future<void> cancelInviteFollowUps() async {
-    if (!_initialized) {
-      return;
-    }
     for (var i = 0; i < _maxInviteFollowUps; i++) {
       try {
         await _plugin.cancel(_idInviteFollowUpBase + i);

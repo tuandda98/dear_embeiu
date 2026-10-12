@@ -7,6 +7,7 @@ import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/social_sign_in_buttons.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/header_icon_button.dart';
@@ -23,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
+  final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
 
   @override
@@ -36,7 +38,15 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
+  }
+
+  /// PF6: the Apple/Google email already has a password account — hand the
+  /// form over with the email filled in, ready for the password.
+  void _prefillExistingEmail(String email) {
+    _emailController.text = email;
+    _passwordFocusNode.requestFocus();
   }
 
   Future<void> _submit() async {
@@ -261,6 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
               label: l10n.passwordLabel,
               child: TextFormField(
                 controller: _passwordController,
+                focusNode: _passwordFocusNode,
                 obscureText: _obscurePassword,
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => _submit(),
@@ -293,12 +304,14 @@ class _LoginScreenState extends State<LoginScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    AppRoutes.forgotPassword,
-                    arguments: _emailController.text.trim(),
-                  );
-                },
+                onPressed: authProvider.isSocialSigningIn
+                    ? null
+                    : () {
+                        Navigator.of(context).pushNamed(
+                          AppRoutes.forgotPassword,
+                          arguments: _emailController.text.trim(),
+                        );
+                      },
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
@@ -321,7 +334,9 @@ class _LoginScreenState extends State<LoginScreen> {
               width: double.infinity,
               height: 52,
               child: FilledButton(
-                onPressed: authProvider.isLoading ? null : _submit,
+                onPressed: authProvider.isLoading || authProvider.isSocialSigningIn
+                    ? null
+                    : _submit,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accentRose,
                   foregroundColor: AppColors.white,
@@ -347,6 +362,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
               ),
             ),
+            // Apple/Google sit BELOW the form here (design §1b): everyone
+            // opening Sign in so far has an email account, and a different
+            // Apple ID / "Hide my email" would mint an empty new account.
+            if (SocialSignInButtons.isAvailable(authProvider)) ...[
+              const SizedBox(height: 18),
+              const AuthOrDivider(),
+              const SizedBox(height: 18),
+              SocialSignInButtons(onExistingEmail: _prefillExistingEmail),
+            ],
             const SizedBox(height: 14),
             Align(
               child: Wrap(
@@ -358,15 +382,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   TextButton(
-                    onPressed: () {
-                      // Swap login↔register in place (both sit directly on top
-                      // of /guest): keeps the stack at guest→[login|register],
-                      // so "back" always returns to guest and tapping the
-                      // cross-links repeatedly never piles up screens.
-                      Navigator.of(
-                        context,
-                      ).pushReplacementNamed(AppRoutes.register);
-                    },
+                    onPressed: authProvider.isSocialSigningIn
+                        ? null
+                        : () {
+                            // Swap login↔register in place (both sit directly
+                            // on top of /guest): keeps the stack at
+                            // guest→[login|register], so "back" always returns
+                            // to guest and tapping the cross-links repeatedly
+                            // never piles up screens.
+                            Navigator.of(
+                              context,
+                            ).pushReplacementNamed(AppRoutes.register);
+                          },
                     child: Text(l10n.createAccountLink),
                   ),
                 ],

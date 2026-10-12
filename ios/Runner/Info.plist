@@ -34,7 +34,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>dear_embeiu</string>
+		<string>$(APP_DISPLAY_NAME)</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -56,6 +56,20 @@
 				<key>CFBundleURLSchemes</key>
 				<array>
 					<string>dearembeiu</string>
+				</array>
+			</dict>
+			<!-- Google sign-in (pairing-funnel PF14) returns to the app through
+			     the REVERSED_CLIENT_ID of GoogleService-Info.plist. The build
+			     copies the DEV or PROD plist, so both schemes are listed. -->
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>google-sign-in</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.529060310047-u3iur17juokp95cgtnov063s5dj03llk</string>
+					<string>com.googleusercontent.apps.478033104351-83r17l3e1o4cvegogi330telu8b9oar8</string>
 				</array>
 			</dict>
 		</array>

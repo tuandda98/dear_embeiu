@@ -135,7 +135,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get homeWaitingStep1Desc =>
-      'Gửi mã mời này cho người ấy qua tin nhắn.';
+      'Gửi mã qua tin nhắn, hoặc cho người ấy quét mã QR nếu đang ở cạnh nhau.';
 
   @override
   String get homeWaitingStep1Cta => 'Gửi cho người ấy 💌';
@@ -182,6 +182,48 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get inviteFollowUpBody72h =>
       'Kỷ niệm của chúng mình đang đợi người ấy. Nhắc người ấy tải app nhé';
+
+  @override
+  String get inviteQrBtn => 'Mã QR';
+
+  @override
+  String get inviteQrTitle => 'Cho người ấy quét mã này';
+
+  @override
+  String get inviteQrBody =>
+      'Người ấy mở Camera, hướng vào mã là tới trang tải Dear Embeiu, có sẵn mã mời của bạn.';
+
+  @override
+  String get inviteQrFallback =>
+      'Không quét được? Đọc mã này cho người ấy nhập.';
+
+  @override
+  String get inviteQrDone => 'Xong';
+
+  @override
+  String inviteQrSemantics(String code) {
+    return 'Mã QR mời ghép đôi, mã $code';
+  }
+
+  @override
+  String get clipboardInviteTitle => 'Nhập mã từ lời mời?';
+
+  @override
+  String get clipboardInviteBody =>
+      'Link mời bạn mở có mã này. Ghép đôi là vào chung không gian với người ấy.';
+
+  @override
+  String get clipboardInviteJoin => 'Ghép đôi ngay';
+
+  @override
+  String get clipboardInviteSkip => 'Bỏ qua';
+
+  @override
+  String get inviteFollowUpTitle2h => 'Gửi lời mời cho người ấy nhé 💌';
+
+  @override
+  String get inviteFollowUpBody2h =>
+      'Đang ở cạnh nhau thì cho người ấy quét mã QR, ở xa thì gửi qua tin nhắn. Mất chừng 10 giây thôi.';
 
   @override
   String get back => 'Quay lại';
@@ -1623,6 +1665,46 @@ class AppLocalizationsVi extends AppLocalizations {
       'Có lỗi khi xác thực tài khoản. Bạn thử lại nhé.';
 
   @override
+  String get continueWithApple => 'Tiếp tục với Apple';
+
+  @override
+  String get authOrDivider => 'hoặc';
+
+  @override
+  String get appleSignInFailed =>
+      'Chưa đăng nhập được với Apple. Bạn thử lại nhé.';
+
+  @override
+  String get appleEmailHasPasswordAccount =>
+      'Email này đã có tài khoản. Đăng nhập bằng cách bạn đã dùng lần trước nhé.';
+
+  @override
+  String get deleteAccountAppleNote =>
+      'Sau đó Apple sẽ hiện hộp đăng nhập để xác nhận đó là bạn.';
+
+  @override
+  String get deleteAccountReauthBodyApple =>
+      'Vì lý do bảo mật, bạn xác nhận lại với Apple để xoá tài khoản vĩnh viễn.';
+
+  @override
+  String get continueWithGoogle => 'Tiếp tục với Google';
+
+  @override
+  String get googleSignInFailed =>
+      'Chưa đăng nhập được với Google. Bạn thử lại nhé.';
+
+  @override
+  String get socialConsentPrefix => 'Khi tiếp tục, bạn đồng ý với';
+
+  @override
+  String get deleteAccountReauthBodyGoogle =>
+      'Bấm Xoá vĩnh viễn để thử lại. Nếu vẫn lỗi, bạn đăng nhập lại bằng Google rồi xoá nhé.';
+
+  @override
+  String get deleteAccountAppleIdMismatch =>
+      'Apple ID trên máy này khác tài khoản bạn đang xoá. Đăng nhập lại bằng Apple ID của tài khoản đó rồi xoá nhé.';
+
+  @override
   String get authFirebaseUserCreateFailed =>
       'Chưa tạo được tài khoản, bạn thử lại nhé.';
 
@@ -2024,7 +2106,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guestCtaBody => 'Đăng nhập để ghép đôi & lưu ảnh chung.';
 
   @override
-  String get guestCtaSignIn => 'Đăng nhập';
+  String get guestCtaSignIn => 'Đăng nhập bằng email';
 
   @override
   String get guestCtaRegister => 'Đăng ký';
@@ -3018,6 +3100,13 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get featureTourSkyBody =>
       'Cây Tình Yêu giờ có bầu trời đêm. Mỗi người 3 ngôi sao: trả lời câu hỏi, chọn tâm trạng, nhắn một tin. Đủ 6 sao là trái tim sáng trọn.';
+
+  @override
+  String get featureTourPairingTitle => 'Rủ người ấy dễ hơn';
+
+  @override
+  String get featureTourPairingBody =>
+      'Người ấy giờ đăng ký bằng Google, hoặc Apple nếu dùng iPhone, khỏi tạo mật khẩu. Ngồi cạnh nhau thì mở Mã QR cho người ấy quét là có sẵn mã mời.';
 
   @override
   String get rpsOpenPrompt => 'Ra tay đi! Không có bỏ lượt đâu 😄';

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -15,16 +16,20 @@ import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../models/couple.dart';
 import '../services/couple_service.dart';
+import '../services/invite_clipboard.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/content_card.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/header_icon_button.dart';
 import '../widgets/invite_action_buttons.dart';
+import '../widgets/invite_qr_sheet.dart';
 import '../widgets/love_lottie.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/sub_screen_header.dart';
+import 'settings_screen.dart';
 
 enum _SetupMode { create, join }
 
@@ -35,7 +40,8 @@ class SetupScreen extends StatefulWidget {
   State<SetupScreen> createState() => _SetupScreenState();
 }
 
-class _SetupScreenState extends State<SetupScreen> {
+class _SetupScreenState extends State<SetupScreen>
+    with WidgetsBindingObserver {
   late final TextEditingController _person1Controller;
   late final TextEditingController _person2Controller;
   late final TextEditingController _inviteCodeController;
@@ -45,12 +51,90 @@ class _SetupScreenState extends State<SetupScreen> {
   bool _didPrefill = false;
   _SetupMode _mode = _SetupMode.create;
 
+  // Clipboard invite check (feature pairing-funnel, PF9) in flight — keeps the
+  // first-frame check and an iOS resume from stacking two sheets.
+  bool _clipboardCheckBusy = false;
+
   @override
   void initState() {
     super.initState();
     _person1Controller = TextEditingController();
     _person2Controller = TextEditingController();
     _inviteCodeController = TextEditingController();
+    WidgetsBinding.instance.addObserver(this);
+    // Let the screen settle first: iOS may put its "Allow Paste" alert on top.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future<void>.delayed(
+        const Duration(milliseconds: 500),
+        _checkClipboardInvite,
+      );
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // PF12: iOS looks again on every return to the app (changeCount stops a
+    // repeat prompt); Android only on open — no changeCount, every read toasts.
+    if (state == AppLifecycleState.resumed &&
+        defaultTargetPlatform == TargetPlatform.iOS) {
+      _checkClipboardInvite();
+    }
+  }
+
+  /// Offers the code of an invite link sitting in the clipboard (PF9): only on
+  /// the pairing landing (signed in, no couple, not editing), only when Setup
+  /// is the top route, never for the member's own code.
+  Future<void> _checkClipboardInvite() async {
+    if (!mounted || _clipboardCheckBusy) {
+      return;
+    }
+    final user = context.read<AuthProvider>().currentUser;
+    final coupleProvider = context.read<CoupleProvider>();
+    if (user == null ||
+        user.hasCouple ||
+        coupleProvider.isLoading ||
+        ModalRoute.of(context)?.isCurrent == false) {
+      return;
+    }
+    _clipboardCheckBusy = true;
+    try {
+      final code = await InviteClipboard.peekInviteCode();
+      if (code == null || !mounted) {
+        return;
+      }
+      final ownCodes = {user.inviteCode, coupleProvider.couple?.coupleCode}
+          .map((c) => (c ?? '').trim().toUpperCase());
+      if (ownCodes.contains(code)) {
+        return;
+      }
+      await InviteClipboard.markAsked(code);
+      if (!mounted) {
+        return;
+      }
+      final join = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => _ClipboardInviteSheet(code: code),
+      );
+      if (!mounted) {
+        return;
+      }
+      // Skipped or swiped away: the code still waits in the join field, so a
+      // slip of the thumb costs one tab tap, not retyping.
+      _inviteCodeController.text = code;
+      if (join != true) {
+        return;
+      }
+      setState(() => _mode = _SetupMode.join);
+      // Let the tab slide over and the code show in the field, then pair.
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      if (mounted) {
+        await _submitJoin();
+      }
+    } finally {
+      _clipboardCheckBusy = false;
+    }
   }
 
   @override
@@ -96,6 +180,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _person1Controller.dispose();
     _person2Controller.dispose();
     _inviteCodeController.dispose();
@@ -272,7 +357,14 @@ class _SetupScreenState extends State<SetupScreen> {
       return;
     }
 
-    final inviteCode = _inviteCodeController.text.trim();
+    final rawCode = _inviteCodeController.text.trim();
+    // The get page copies the whole invite link, so people may paste that:
+    // keep just the code, and show it in the field.
+    final linkCode = InviteClipboard.parseInviteCode(rawCode);
+    if (linkCode != null) {
+      _inviteCodeController.text = linkCode;
+    }
+    final inviteCode = linkCode ?? rawCode;
     if (inviteCode.isEmpty) {
       HapticFeedback.heavyImpact();
       _showSnack(l10n.setupErrorNoInviteCode);
@@ -534,53 +626,81 @@ class _SetupScreenState extends State<SetupScreen> {
             subtitle: subtitle,
           )
         else ...[
-          Row(
+          // OverflowBar, not Row: with large text the gear + sign-out pair
+          // drops below the chip instead of running off screen — a Row
+          // overflowed at 375pt from 1.75x (EN).
+          OverflowBar(
+            alignment: MainAxisAlignment.spaceBetween,
+            overflowAlignment: OverflowBarAlignment.start,
+            overflowSpacing: 10,
             children: [
               EyebrowChip(
                 label: l10n.coupleOnboardingBadge,
                 icon: IconsaxPlusBold.heart,
               ),
-              const Spacer(),
-              Tooltip(
-                message: l10n.signOutBtn,
-                child: InkWell(
-                  onTap: () async {
-                    await authProvider.signOut();
-                    if (mounted) {
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        AppRoutes.authGate,
-                        (route) => false,
-                      );
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(999),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    // Header ink vòng 4 (2026-06-11): navy ink on a near-solid
-                    // white pill (same .72 fill as the light row tiles) — the
-                    // frosted-glass + white-text version failed contrast.
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.72),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColors.white.withValues(alpha: 0.65)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(IconsaxPlusLinear.logout, size: 13, color: AppColors.textPrimary.withValues(alpha: 0.85)),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.signOutBtn,
-                          style: TextStyle(
-                            color: AppColors.textPrimary.withValues(alpha: 0.85),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Settings before pairing (P1 2026-10-11): the only way
+                  // to "Delete account" for a signed-in user with no couple
+                  // yet (App Review 5.1.1(v)); Settings shows its no-couple
+                  // variant.
+                  HeaderIconButton(
+                    icon: IconsaxPlusLinear.setting_2,
+                    semanticsLabel: l10n.settingsTitle,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          settings: const RouteSettings(name: 'Settings'),
+                          builder: (_) => const SettingsScreen(),
                         ),
-                      ],
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  Tooltip(
+                    message: l10n.signOutBtn,
+                    child: InkWell(
+                      onTap: () async {
+                        await authProvider.signOut();
+                        if (mounted) {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            AppRoutes.authGate,
+                            (route) => false,
+                          );
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(999),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        // Header ink vòng 4 (2026-06-11): navy ink on a near-solid
+                        // white pill (same .72 fill as the light row tiles) — the
+                        // frosted-glass + white-text version failed contrast.
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.72),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: AppColors.white.withValues(alpha: 0.65)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(IconsaxPlusLinear.logout, size: 13, color: AppColors.textPrimary.withValues(alpha: 0.85)),
+                            const SizedBox(width: 6),
+                            Text(
+                              l10n.signOutBtn,
+                              style: TextStyle(
+                                color: AppColors.textPrimary.withValues(alpha: 0.85),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -722,6 +842,9 @@ class _SetupScreenState extends State<SetupScreen> {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOutCubic,
                 style: TextStyle(
+                  // This style replaces the inherited one: without a family
+                  // the label falls back to the system font, not Quicksand.
+                  fontFamily: AppTheme.fontFamily,
                   color: selected
                       ? AppColors.textPrimary
                       : AppColors.textPrimary.withValues(alpha: 0.60),
@@ -819,12 +942,14 @@ class _SetupScreenState extends State<SetupScreen> {
               letterSpacing: 4,
             ),
           ),
+          // Pills carry 6pt of invisible tap padding above and below (36 shape
+          // in a 48 target), so the gaps around them shrink 10→4 and 8→2.
           if (showInviteActions) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 4),
             InviteActionButtons(code: displayCode, onDark: false),
           ],
           if (description != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: showInviteActions ? 2 : 8),
             Text(
               description,
               style: const TextStyle(
@@ -1325,6 +1450,91 @@ class _SetupScreenState extends State<SetupScreen> {
           width: 1.2,
         ),
       ),
+    );
+  }
+}
+
+/// "Use the code from your invite?" (feature pairing-funnel, design W9). Pops
+/// `true` on "Pair up now"; "Skip", a swipe down or a tap outside pop null.
+/// Navy primary button: white on rose is only 3.2:1.
+class _ClipboardInviteSheet extends StatelessWidget {
+  const _ClipboardInviteSheet({required this.code});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return InviteSheetFrame(
+      children: [
+        const SizedBox(height: 20),
+        Center(
+          child: Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.accentLove.withValues(alpha: 0.14),
+            ),
+            child: const Icon(
+              IconsaxPlusBold.heart,
+              size: 30,
+              color: AppColors.accentLove,
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          l10n.clipboardInviteTitle,
+          textAlign: TextAlign.center,
+          style: AppTheme.displaySerif(
+            size: 20,
+            weight: FontWeight.w700,
+            letterSpacing: -0.2,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.clipboardInviteBody,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            height: 1.45,
+          ),
+        ),
+        const SizedBox(height: 18),
+        Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.accentLove.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              code,
+              style: const TextStyle(
+                color: AppColors.accentLoveDeep,
+                fontSize: 30,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 4,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(l10n.clipboardInviteJoin),
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+          child: Text(l10n.clipboardInviteSkip),
+        ),
+      ],
     );
   }
 }

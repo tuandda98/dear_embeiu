@@ -10,6 +10,7 @@ import '../app/app_urls.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/social_sign_in_buttons.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/header_icon_button.dart';
@@ -98,6 +99,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Always land on /login (not a bare pop): when register is opened straight
+  /// from /guest a pop would return to guest, contradicting the "back to sign
+  /// in" label. Swapping in place keeps the stack at guest→[login|register].
+  /// Also the PF6 SnackBar action, which can fire after this screen is gone.
+  void _openSignIn() {
+    if (!mounted) {
+      return;
+    }
+    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 
   @override
@@ -252,6 +264,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Apple/Google lead Sign up (design §1c). They don't depend on the
+            // checkbox below — consent is the line under the buttons (PF2).
+            if (SocialSignInButtons.isAvailable(authProvider)) ...[
+              SocialSignInButtons(onSignInInstead: _openSignIn),
+              const SizedBox(height: 18),
+              const AuthOrDivider(),
+              const SizedBox(height: 18),
+            ],
             Text(
               l10n.displayNameLabel,
               style: const TextStyle(
@@ -485,7 +505,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               width: double.infinity,
               height: 52,
               child: FilledButton(
-                onPressed: authProvider.isLoading ? null : _submit,
+                onPressed: authProvider.isLoading || authProvider.isSocialSigningIn
+                    ? null
+                    : _submit,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accentRose,
                   foregroundColor: AppColors.white,
@@ -522,15 +544,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   TextButton(
-                    onPressed: () {
-                      // Always land on /login (not a bare pop): when register is
-                      // opened straight from /guest a pop would return to guest,
-                      // contradicting the "back to sign in" label. Swapping in
-                      // place keeps the stack at guest→[login|register].
-                      Navigator.of(
-                        context,
-                      ).pushReplacementNamed(AppRoutes.login);
-                    },
+                    onPressed: authProvider.isSocialSigningIn
+                        ? null
+                        : _openSignIn,
                     child: Text(l10n.backToSignIn),
                   ),
                 ],

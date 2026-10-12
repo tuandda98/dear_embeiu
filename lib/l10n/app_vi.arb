@@ -70,7 +70,7 @@
   "featureTourInviteBody": "Chia sẻ link tải app kèm mã mời, có hướng dẫn từng bước.",
   "homeWaitingBadge": "CHỜ NGƯỜI ẤY",
   "homeWaitingStep1Title": "Gửi lời mời",
-  "homeWaitingStep1Desc": "Gửi mã mời này cho người ấy qua tin nhắn.",
+  "homeWaitingStep1Desc": "Gửi mã qua tin nhắn, hoặc cho người ấy quét mã QR nếu đang ở cạnh nhau.",
   "homeWaitingStep1Cta": "Gửi cho người ấy 💌",
   "homeWaitingStep1Copy": "Sao chép mã",
   "homeWaitingStep2Title": "Người ấy tải app và đăng ký",
@@ -85,6 +85,25 @@
   "inviteFollowUpTitle": "Người ấy chưa vào nè 💌",
   "inviteFollowUpBody24h": "Gửi lại lời mời cho người ấy nha, chỉ mất 10 giây",
   "inviteFollowUpBody72h": "Kỷ niệm của chúng mình đang đợi người ấy. Nhắc người ấy tải app nhé",
+  "inviteQrBtn": "Mã QR",
+  "inviteQrTitle": "Cho người ấy quét mã này",
+  "inviteQrBody": "Người ấy mở Camera, hướng vào mã là tới trang tải Dear Embeiu, có sẵn mã mời của bạn.",
+  "inviteQrFallback": "Không quét được? Đọc mã này cho người ấy nhập.",
+  "inviteQrDone": "Xong",
+  "inviteQrSemantics": "Mã QR mời ghép đôi, mã {code}",
+  "@inviteQrSemantics": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "clipboardInviteTitle": "Nhập mã từ lời mời?",
+  "clipboardInviteBody": "Link mời bạn mở có mã này. Ghép đôi là vào chung không gian với người ấy.",
+  "clipboardInviteJoin": "Ghép đôi ngay",
+  "clipboardInviteSkip": "Bỏ qua",
+  "inviteFollowUpTitle2h": "Gửi lời mời cho người ấy nhé 💌",
+  "inviteFollowUpBody2h": "Đang ở cạnh nhau thì cho người ấy quét mã QR, ở xa thì gửi qua tin nhắn. Mất chừng 10 giây thôi.",
   "back": "Quay lại",
   "cancel": "Huỷ",
   "save": "Lưu",
@@ -823,6 +842,17 @@
   "authEmailAlreadyUsed": "Email này đã có tài khoản rồi.",
   "authEmailPasswordNotEnabled": "Hiện chưa đăng nhập bằng email được. Bạn thử lại sau nhé.",
   "authFirebaseAuthGeneric": "Có lỗi khi xác thực tài khoản. Bạn thử lại nhé.",
+  "continueWithApple": "Tiếp tục với Apple",
+  "authOrDivider": "hoặc",
+  "appleSignInFailed": "Chưa đăng nhập được với Apple. Bạn thử lại nhé.",
+  "appleEmailHasPasswordAccount": "Email này đã có tài khoản. Đăng nhập bằng cách bạn đã dùng lần trước nhé.",
+  "deleteAccountAppleNote": "Sau đó Apple sẽ hiện hộp đăng nhập để xác nhận đó là bạn.",
+  "deleteAccountReauthBodyApple": "Vì lý do bảo mật, bạn xác nhận lại với Apple để xoá tài khoản vĩnh viễn.",
+  "continueWithGoogle": "Tiếp tục với Google",
+  "googleSignInFailed": "Chưa đăng nhập được với Google. Bạn thử lại nhé.",
+  "socialConsentPrefix": "Khi tiếp tục, bạn đồng ý với",
+  "deleteAccountReauthBodyGoogle": "Bấm Xoá vĩnh viễn để thử lại. Nếu vẫn lỗi, bạn đăng nhập lại bằng Google rồi xoá nhé.",
+  "deleteAccountAppleIdMismatch": "Apple ID trên máy này khác tài khoản bạn đang xoá. Đăng nhập lại bằng Apple ID của tài khoản đó rồi xoá nhé.",
   "authFirebaseUserCreateFailed": "Chưa tạo được tài khoản, bạn thử lại nhé.",
   "authFirestoreGeneric": "Chưa đồng bộ được dữ liệu tài khoản. Bạn thử lại nhé.",
   "authFirestorePermissionDenied": "Chưa lưu được thông tin tài khoản vì máy chủ từ chối. Bạn thử lại sau ít phút nhé.",
@@ -930,7 +960,7 @@
   "guestCounterStartFrom": "Bắt đầu từ {date}",
   "guestCtaTitle": "Muốn lưu kỷ niệm cùng người ấy?",
   "guestCtaBody": "Đăng nhập để ghép đôi & lưu ảnh chung.",
-  "guestCtaSignIn": "Đăng nhập",
+  "guestCtaSignIn": "Đăng nhập bằng email",
   "guestCtaRegister": "Đăng ký",
   "streakChipNoStreak": "Bắt đầu chuỗi cùng nhau",
   "@streakChipNoStreak": {
@@ -1937,6 +1967,14 @@
   "featureTourSkyBody": "Cây Tình Yêu giờ có bầu trời đêm. Mỗi người 3 ngôi sao: trả lời câu hỏi, chọn tâm trạng, nhắn một tin. Đủ 6 sao là trái tim sáng trọn.",
   "@featureTourSkyBody": {
     "description": "Feature tour entry (build 25)."
+  },
+  "featureTourPairingTitle": "Rủ người ấy dễ hơn",
+  "@featureTourPairingTitle": {
+    "description": "Feature tour entry (build 26)."
+  },
+  "featureTourPairingBody": "Người ấy giờ đăng ký bằng Google, hoặc Apple nếu dùng iPhone, khỏi tạo mật khẩu. Ngồi cạnh nhau thì mở Mã QR cho người ấy quét là có sẵn mã mời.",
+  "@featureTourPairingBody": {
+    "description": "Feature tour entry (build 26)."
   },
   "rpsOpenPrompt": "Ra tay đi! Không có bỏ lượt đâu 😄",
   "@rpsOpenPrompt": {

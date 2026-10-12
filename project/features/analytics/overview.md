@@ -32,10 +32,10 @@
 **Phễu kích hoạt:**
 | Event | Khi nào | Param (KHÔNG PII) |
 |---|---|---|
-| `sign_up` | đăng ký thành công | `method`: email |
-| `login` | đăng nhập thành công | `method`: email |
+| `sign_up` | đăng ký thành công (Apple/Google: lần đầu tạo hồ sơ) | `method`: email \| apple \| google |
+| `login` | đăng nhập thành công | `method`: email \| apple \| google |
 | `couple_created` | A tạo couple (có mã mời) | — |
-| `invite_shared` | A copy/share mã (feature invite-sharing) | `method`: copy \| share_sheet |
+| `invite_shared` | A copy/share mã (feature invite-sharing) | `method`: copy \| share_sheet \| qr (mở sheet Mã QR, feature pairing-funnel 2026-10-11) |
 | `couple_join_attempt` | B submit mã | `result`: success \| invalid_code \| already_in_couple \| error |
 | `couple_joined` | B join thành công (⭐ kích hoạt) | — |
 | `photo_posted` | đăng ảnh thành công (⭐⭐ North Star) | `is_first`: bool |
@@ -85,3 +85,4 @@
 ## 10. Changelog
 - [2026-06-03] [PO] Tạo feature, spec event taxonomy + posture riêng tư (D1–D4, user duyệt). Chuyển Dev.
 - [2026-06-03] [Dev] Implement xong (chi tiết `dev.md`): firebase_analytics + AnalyticsService/AnalyticsEvents no-context (no-op khi Firebase chưa sẵn / opt-out), 17 call site provider/service/widget, user props, screen_view observer, toggle opt-out Settings (l10n en+vi, default ON), Info.plist ad-perso=false, xcprivacy 3 data type (linked, tracking=false), privacy-policy mục Analytics + data transfer + opt-out. `fvm flutter analyze` sạch. Không deploy (không đụng rules/functions). Chờ Tester soi 0-PII + opt-out no-op.
+- [2026-10-11] [PO] `invite_shared.method` thêm `qr` (mở sheet Mã QR — feature pairing-funnel). Đăng nhập Apple/Google log `sign_up`/`login` với `method: apple|google` (`sign_up` = lần đầu tạo hồ sơ Firestore, không dựa `isNewUser` của Firebase).

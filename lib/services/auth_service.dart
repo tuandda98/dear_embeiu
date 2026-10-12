@@ -5,8 +5,11 @@ import 'dart:math';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart'
+    show GoogleSignIn, GoogleSignInException, GoogleSignInExceptionCode;
 import 'package:uuid/uuid.dart';
 
 import '../l10n/app_l10n.dart';
@@ -23,6 +26,15 @@ class AuthException implements Exception {
 
   @override
   String toString() => message;
+}
+
+/// Apple or Google sign-in hit an email that already belongs to a password
+/// account (pairing-funnel PF6/PF16 — no account linking). [email] lets the
+/// Sign in form prefill it; null when Firebase didn't say which email.
+class EmailHasPasswordAccountException extends AuthException {
+  const EmailHasPasswordAccountException(super.message, {this.email});
+
+  final String? email;
 }
 
 /// Cutoff for mandatory email verification (feature auth, Đợt 1 — D-auth2).
@@ -304,9 +316,171 @@ class AuthService {
     return signedInUser;
   }
 
+  /// Sign in with Apple (pairing-funnel PF1 — iOS only, Firebase only; the
+  /// button is hidden everywhere else). Firebase drives the native Apple sheet.
+  /// Profile, errors and the `'social-canceled'` sentinel: [_signInWithSocial].
+  Future<({AppUser user, bool isNewUser})> signInWithApple() async {
+    final failed = AppL10n.strings.appleSignInFailed;
+    if (!isUsingFirebase) {
+      throw AuthException(failed);
+    }
+    // Without both scopes Apple shares neither the email nor the name.
+    return _signInWithSocial(
+      () => _auth.signInWithProvider(
+        AppleAuthProvider()
+          ..addScope('email')
+          ..addScope('name'),
+      ),
+      failed: failed,
+    );
+  }
+
+  /// Sign in with Google (PF14 — iOS + Android, Firebase only). The Google SDK
+  /// picks the account and returns an ID token that Firebase turns into a
+  /// session. Closing the picker throws the `'social-canceled'` sentinel; the
+  /// rest is shared with Apple ([_signInWithSocial]).
+  Future<({AppUser user, bool isNewUser})> signInWithGoogle() async {
+    final failed = AppL10n.strings.googleSignInFailed;
+    if (!isUsingFirebase) {
+      throw AuthException(failed);
+    }
+    final String? idToken;
+    try {
+      idToken = await googleIdToken();
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw const AuthException('social-canceled');
+      }
+      // SDK text is English and technical — log it, never show it.
+      debugPrint('AuthService Google sign-in error ${e.code}: ${e.description}');
+      throw AuthException(failed);
+    } catch (e) {
+      // e.g. iOS without the REVERSED_CLIENT_ID URL scheme (PlatformException).
+      debugPrint('AuthService Google sign-in error: $e');
+      throw AuthException(failed);
+    }
+    if (idToken == null || idToken.isEmpty) {
+      debugPrint('AuthService Google sign-in returned no ID token');
+      throw AuthException(failed);
+    }
+    return _signInWithSocial(
+      () => _auth.signInWithCredential(
+        GoogleAuthProvider.credential(idToken: idToken),
+      ),
+      failed: failed,
+    );
+  }
+
+  /// The account-picker step of [signInWithGoogle]: the Google ID token, or a
+  /// [GoogleSignInException]. Overridden in tests.
+  @visibleForTesting
+  Future<String?> googleIdToken() async {
+    await _ensureGoogleSignIn();
+    final account = await GoogleSignIn.instance.authenticate();
+    return account.authentication.idToken;
+  }
+
+  /// [GoogleSignIn.initialize] must run exactly once, app-wide, before any
+  /// other Google call. A failed attempt is forgotten so the next one retries.
+  static Future<void>? _googleInit;
+
+  Future<void> _ensureGoogleSignIn() async {
+    // iOS: the OAuth client from GoogleService-Info.plist (PF17). Android
+    // ignores clientId and reads `default_web_client_id`, generated from
+    // google-services.json, as its server client id.
+    final pending = _googleInit ??= GoogleSignIn.instance.initialize(
+      clientId: Firebase.app().options.iosClientId,
+    );
+    try {
+      await pending;
+    } catch (_) {
+      _googleInit = null;
+      rethrow;
+    }
+  }
+
+  /// Best-effort Google sign-out (PF16) so the next Google sign-in can pick
+  /// another account; [disconnect] also revokes the app's Google grant. Never
+  /// throws — callers fire and forget.
+  Future<void> _googleSignOut({bool disconnect = false}) async {
+    try {
+      await _ensureGoogleSignIn();
+      final google = GoogleSignIn.instance;
+      await (disconnect ? google.disconnect() : google.signOut());
+    } catch (e) {
+      debugPrint('AuthService Google sign-out failed: $e');
+    }
+  }
+
+  static bool _hasGoogle(User? user) =>
+      user?.providerData.any((info) => info.providerId == 'google.com') ??
+      false;
+
+  /// Shared tail of Apple/Google sign-in: [signIn] gets the Firebase
+  /// credential. The first sign-in creates `users/{uid}` like [getCurrentUser]
+  /// does, later ones refresh it like [signIn]; these accounts skip email
+  /// verification (PF3). `isNewUser` = a profile was just created (analytics
+  /// sign_up vs login). Throws [AuthException]: the `'social-canceled'`
+  /// sentinel when the user closes the Apple sheet,
+  /// [EmailHasPasswordAccountException] for PF6, otherwise localized copy
+  /// ([failed] when nothing more specific fits).
+  Future<({AppUser user, bool isNewUser})> _signInWithSocial(
+    Future<UserCredential> Function() signIn, {
+    required String failed,
+  }) async {
+    try {
+      final credential = await signIn();
+
+      final firebaseUser = credential.user;
+      if (firebaseUser == null) {
+        throw AuthException(failed);
+      }
+      // Rules require a non-empty, immutable `email`. Apple (real or private
+      // relay) and Google always share one, so an empty one means the profile
+      // write is doomed — don't leave a half-signed-in user behind.
+      final email = firebaseUser.email?.trim().toLowerCase() ?? '';
+      if (email.isEmpty) {
+        await _auth.signOut();
+        throw AuthException(failed);
+      }
+
+      await _ensureFirebaseSessionReady(firebaseUser);
+
+      final existingProfile = await _userService.fetchUserProfile(firebaseUser.uid);
+      if (existingProfile != null) {
+        final user = await _ensureInviteCode(_buildSignInProfile(
+          firebaseUser: firebaseUser,
+          fallbackEmail: email,
+          existingProfile: existingProfile,
+        ));
+        await _userService.updateUserProfile(user);
+        return (user: user, isNewUser: false);
+      }
+
+      final user = await _ensureInviteCode(_buildFirebaseProfile(firebaseUser));
+      await _userService.saveUserProfile(user);
+      return (user: user, isNewUser: true);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'account-exists-with-different-credential') {
+        // The copy is provider-neutral despite its `apple` key.
+        throw EmailHasPasswordAccountException(
+          AppL10n.strings.appleEmailHasPasswordAccount,
+          email: e.email,
+        );
+      }
+      throw AuthException(_mapSocialAuthError(e, fallback: failed));
+    } on FirebaseException catch (e) {
+      throw AuthException(_mapFirestoreError(e));
+    }
+  }
+
   Future<void> signOut() async {
     if (isUsingFirebase) {
+      final hadGoogle = _hasGoogle(_auth.currentUser);
       await _auth.signOut();
+      if (hadGoogle) {
+        unawaited(_googleSignOut());
+      }
       return;
     }
 
@@ -363,10 +537,11 @@ class AuthService {
 
   /// True only when the current Firebase user is a post-cutoff account that has
   /// NOT yet verified its email (D-auth2). Local-fallback always returns false
-  /// (no email infra, D-auth3); Google/Apple users are verified on creation so
-  /// they return false too. Grandfathered accounts (created before the cutoff)
-  /// also return false. Uses `!creationTime.isBefore(cutoff)` so the cutoff
-  /// instant itself counts as in-scope.
+  /// (no email infra, D-auth3). Only password accounts are gated (PF3): Apple
+  /// and Google users never see the gate, whatever `emailVerified` says.
+  /// Grandfathered accounts (created before the cutoff) also return false.
+  /// Uses `!creationTime.isBefore(cutoff)` so the cutoff instant itself counts
+  /// as in-scope.
   bool get requiresEmailVerification {
     if (!isUsingFirebase) {
       return false;
@@ -375,11 +550,47 @@ class AuthService {
     if (user == null || user.emailVerified) {
       return false;
     }
+    if (!user.providerData.any((info) => info.providerId == 'password')) {
+      return false;
+    }
     final creationTime = user.metadata.creationTime;
     if (creationTime == null) {
       return false;
     }
     return !creationTime.isBefore(kEmailVerificationCutoff);
+  }
+
+  /// True when the signed-in user can only sign in with Apple (PF5): account
+  /// deletion confirms through the Apple sheet instead of a password.
+  bool get isAppleOnlyAccount => _currentPasswordless == 'apple.com';
+
+  /// True when the signed-in user can only sign in with Google (PF16): account
+  /// deletion needs no password and its re-auth dialog has no field.
+  bool get isGoogleOnlyAccount => _currentPasswordless == 'google.com';
+
+  String? get _currentPasswordless {
+    if (!isUsingFirebase) {
+      return null;
+    }
+    final user = _auth.currentUser;
+    return user == null ? null : _passwordlessProvider(user);
+  }
+
+  /// `'apple.com'` / `'google.com'` for an account without a password, else
+  /// null. When both are linked (Firebase can link them by email), a deletion
+  /// re-authenticates with what this platform runs: the Apple sheet on iOS,
+  /// Google on Android (no native Sign in with Apple there).
+  static String? _passwordlessProvider(User user) {
+    final providers = user.providerData.map((info) => info.providerId).toSet();
+    if (providers.contains('password')) {
+      return null;
+    }
+    final google = providers.contains('google.com');
+    if (providers.contains('apple.com') &&
+        (!google || defaultTargetPlatform == TargetPlatform.iOS)) {
+      return 'apple.com';
+    }
+    return google ? 'google.com' : null;
   }
 
   /// Sends a password-reset email (feature auth, Đợt 1). D-auth4: to avoid
@@ -492,7 +703,12 @@ class AuthService {
   Future<void> purgePersistedSession({bool clearDeviceCache = true}) async {
     if (_firebaseAuth != null || Firebase.apps.isNotEmpty) {
       try {
-        await (_firebaseAuth ?? FirebaseAuth.instance).signOut();
+        final auth = _firebaseAuth ?? FirebaseAuth.instance;
+        final hadGoogle = _hasGoogle(auth.currentUser);
+        await auth.signOut();
+        if (hadGoogle) {
+          unawaited(_googleSignOut());
+        }
       } catch (_) {
         // Ignore Firebase sign-out failures during reinstall cleanup.
       }
@@ -527,7 +743,15 @@ class AuthService {
     // couple data + Storage objects and the Auth user — none of which the
     // client is permitted to delete directly under the security rules. Running
     // it as admin also avoids the `requires-recent-login` challenge that a
-    // client-side FirebaseUser.delete() would hit.
+    // client-side FirebaseUser.delete() would hit. Apple accounts have already
+    // confirmed through [confirmAppleDeletionIfNeeded] by the time we get here.
+    final firebaseUser = _auth.currentUser;
+    final googleOnly = firebaseUser != null &&
+        _passwordlessProvider(firebaseUser) == 'google.com';
+    if (googleOnly) {
+      // PF16: Google has no sheet to re-authenticate with.
+      await _refreshIdTokenBeforeDelete(firebaseUser);
+    }
     try {
       // Robustness (app-robustness C): bound the callable so the delete flow
       // can't hang forever behind a stuck network. 60s is generous on purpose —
@@ -550,8 +774,107 @@ class AuthService {
       );
     }
 
+    if (googleOnly) {
+      // Also revoke the app's Google grant (PF16).
+      unawaited(_googleSignOut(disconnect: true));
+    }
     await purgePersistedSession();
   }
+
+  /// PF5 — an Apple-only account confirms deletion in the Apple sheet. The
+  /// provider's `deleteAccount` calls this BEFORE any teardown, so closing the
+  /// sheet (`'social-canceled'`) leaves push and the session watch untouched.
+  /// The sheet mints a fresh credential (the callable won't hit a stale
+  /// session) and a one-time `authorizationCode` (~5 min) used to revoke the
+  /// app's Apple token while the user still exists. Throws
+  /// `'apple-id-mismatch'` (after signing out) when the sheet signed in a
+  /// different Apple ID — nothing of this account is deleted then (PF18).
+  /// No-op for other accounts and in local mode.
+  Future<void> confirmAppleDeletionIfNeeded() async {
+    if (!isUsingFirebase) {
+      return;
+    }
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser == null ||
+        _passwordlessProvider(firebaseUser) != 'apple.com') {
+      return;
+    }
+    final uid = firebaseUser.uid;
+    try {
+      // Not reauthenticateWithProvider: on iOS (firebase_auth 6.5.3) it sets
+      // `isReauthenticatingWithApple`, which a cancelled sheet never clears, so
+      // the next successful Apple sign-in (after a sign-out) takes the reauth
+      // branch on a nil currentUser and never completes. Signing in again with
+      // the same Apple ID returns the same uid with a fresh credential and
+      // `authorizationCode`.
+      final credential = await _auth.signInWithProvider(AppleAuthProvider());
+      final user = credential.user;
+      if (user == null || user.uid != uid) {
+        // The device's Apple ID changed: this is not the account being
+        // deleted — sign in again. An account that already existed for that
+        // Apple ID is never deleted or revoked.
+        if (user != null && credential.additionalUserInfo?.isNewUser == true) {
+          // The sheet just created a Firebase user for that other Apple ID:
+          // don't leave it orphaned. Revoke its grant first, while it is still
+          // signed in: that first grant came from a sheet asking for no email,
+          // and Apple may not share one later — kept, that Apple ID's Apple
+          // sign-in would keep failing here (BUG-9).
+          await _revokeAppleToken(credential);
+          try {
+            await user.delete();
+          } catch (e) {
+            debugPrint('AuthService orphan Apple user delete failed: $e');
+          }
+        }
+        // Signing out without unregistering this device: drop its FCM token so
+        // the old account's pushes stop here (Functions prune dead tokens).
+        try {
+          await deleteMessagingToken();
+        } catch (e) {
+          debugPrint('AuthService FCM token delete failed: $e');
+        }
+        await _auth.signOut();
+        throw AuthException(user == null ? 'session-gone' : 'apple-id-mismatch');
+      }
+      await _revokeAppleToken(credential);
+      await _refreshIdTokenBeforeDelete(user);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(
+        _mapSocialAuthError(e, fallback: AppL10n.strings.deleteAccountFailed),
+      );
+    }
+  }
+
+  /// Revokes the app's Apple grant with the sheet's one-time
+  /// `authorizationCode`; needs that user still signed in. Best-effort: it
+  /// fails until the Sign in with Apple key is set up in Firebase, and the
+  /// account must still be deletable (PF5).
+  Future<void> _revokeAppleToken(UserCredential credential) async {
+    final code = credential.additionalUserInfo?.authorizationCode;
+    if (code == null || code.isEmpty) {
+      return;
+    }
+    try {
+      await _auth.revokeTokenWithAuthorizationCode(code);
+    } catch (e) {
+      debugPrint('AuthService Apple token revoke failed: $e');
+    }
+  }
+
+  /// A fresh ID token spares the delete callable a stale session. Bounded so
+  /// the overlay can't hang, failures only logged: the callable decides.
+  static Future<void> _refreshIdTokenBeforeDelete(User user) async {
+    try {
+      await user.getIdToken(true).timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('AuthService token refresh before delete failed: $e');
+    }
+  }
+
+  /// Invalidates this device's FCM token (PF18). A method so tests can see it.
+  @visibleForTesting
+  Future<void> deleteMessagingToken() =>
+      FirebaseMessaging.instance.deleteToken();
 
   Future<void> updateCurrentUser(AppUser user) async {
     if (isUsingFirebase) {
@@ -657,15 +980,60 @@ class AuthService {
     return AppUser(
       id: firebaseUser.uid,
       email: firebaseUser.email?.trim().toLowerCase() ?? '',
-      displayName: firebaseUser.displayName?.trim().isNotEmpty == true
-          ? firebaseUser.displayName!.trim()
-          : (firebaseUser.email?.split('@').first ?? AppL10n.strings.defaultDisplayName),
+      displayName: profileDisplayName(
+        firebaseName: firebaseUser.displayName,
+        email: firebaseUser.email,
+      ),
       inviteCode: '',
       status: 'single',
       createdAt: now,
       updatedAt: now,
       lastSeenAt: now,
     );
+  }
+
+  /// Display name for a profile built from the Firebase user (PF4). Rules
+  /// reject an empty one, so this never returns ''. Order: the name Firebase
+  /// has (Apple fills it on the first sign-in), else the part of the email
+  /// before @ — skipped for Apple's hidden relay address, whose random local
+  /// part means nothing to a partner — else [defaultDisplayName].
+  @visibleForTesting
+  static String profileDisplayName({String? firebaseName, String? email}) {
+    final name = firebaseName?.trim() ?? '';
+    if (name.isNotEmpty) {
+      return name;
+    }
+    final address = email?.trim() ?? '';
+    final localPart = address.split('@').first;
+    if (localPart.isNotEmpty &&
+        !address.toLowerCase().endsWith('@privaterelay.appleid.com')) {
+      return localPart;
+    }
+    return AppL10n.strings.defaultDisplayName;
+  }
+
+  /// Apple/Google Firebase-auth failures → l10n copy (pairing-funnel design
+  /// §2). Closing the Apple sheet maps to the `'social-canceled'` sentinel so
+  /// the UI stays silent. PF6 (`account-exists-with-different-credential`) is
+  /// handled by the caller, which needs the email. [fallback] is the copy for
+  /// any other error (sign-in failed / deleteAccountFailed).
+  String _mapSocialAuthError(
+    FirebaseAuthException exception, {
+    required String fallback,
+  }) {
+    switch (exception.code) {
+      case 'canceled':
+      case 'web-context-canceled':
+        return 'social-canceled';
+      case 'network-request-failed':
+        return AppL10n.strings.authNetworkError;
+      default:
+        // Plugin/Firebase text is English and technical — log it, never show it.
+        debugPrint(
+          'AuthService social auth error ${exception.code}: ${exception.message}',
+        );
+        return fallback;
+    }
   }
 
   String _mapFirebaseAuthError(FirebaseAuthException exception) {

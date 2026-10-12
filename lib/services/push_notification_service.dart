@@ -23,8 +23,8 @@ import 'user_service.dart';
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // A fresh background isolate starts with no plugin registrations, so the
-  // local-notifications channel [_cancelStaleDailyQuestionNudges] needs would
-  // throw MissingPluginException. Idempotent.
+  // local-notifications channel the cancels below need would throw
+  // MissingPluginException. Idempotent.
   DartPluginRegistrant.ensureInitialized();
   if (Firebase.apps.isEmpty) {
     try {
@@ -34,6 +34,31 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     }
   }
   await _cancelStaleDailyQuestionNudges(message);
+  await _cancelInviteFollowUpsIfPartnerJoined(message);
+}
+
+/// Whether a push says the partner just joined (`type == 'partner_joined'`,
+/// from the `notifyPartnerJoined` CF). Both the alert push and its Android
+/// data-only wake companion carry it.
+@visibleForTesting
+bool isPartnerJoinedPush(Map<String, dynamic> data) =>
+    data['type'] == 'partner_joined';
+
+/// Drops the invite follow-ups (band 1180–1189, "người ấy chưa vào nè") once the
+/// partner has joined (pairing-funnel PF19).
+///
+/// Same gap as [_cancelStaleDailyQuestionNudges]: only HomeScreen's
+/// `refreshInviteFollowUps` cleared the band, so a partner joining while the
+/// creator's app was closed left the one-shots armed and they fired anyway. The
+/// CF sends this push with `wakeClients`, so it runs with no UI alive.
+///
+/// ⚠️ An iOS app the user force-quit gets no wake; the band is then cleared on
+/// the next launch, when Home sees the couple active.
+Future<void> _cancelInviteFollowUpsIfPartnerJoined(RemoteMessage message) async {
+  if (!isPartnerJoinedPush(message.data)) {
+    return;
+  }
+  await ReminderService.instance.cancelInviteFollowUps();
 }
 
 /// Drops today's local daily-question nudges when a push reports the pair is now
@@ -608,6 +633,7 @@ class PushNotificationService {
     // window where the app is foregrounded but HomeScreen isn't mounted yet
     // (it's the listener that would otherwise re-evaluate the schedule).
     await _cancelStaleDailyQuestionNudges(message);
+    await _cancelInviteFollowUpsIfPartnerJoined(message);
 
     final notification = message.notification;
     final title = notification?.title ?? message.data['title'] as String?;

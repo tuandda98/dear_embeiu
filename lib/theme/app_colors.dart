@@ -56,6 +56,13 @@ class AppColors {
   // Neutral / utility
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF1A1A2E);
+  // True black for the "Continue with Apple" button only — HIG allows black,
+  // white or outlined, and the navy [black] above could read as a recolor.
+  static const Color appleBlack = Color(0xFF000000);
+  // "Continue with Google" button only, from Google's sign-in branding (light
+  // theme): 1px outline and label colour. Don't reuse elsewhere.
+  static const Color googleBorder = Color(0xFF747775);
+  static const Color googleText = Color(0xFF1F1F1F);
 
   // ---------------------------------------------------------------------------
   // Status

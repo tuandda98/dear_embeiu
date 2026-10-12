@@ -2,10 +2,11 @@
 # Upload IPA lên App Store Connect bằng app Transporter (GUI) — tự động hoá bằng AppleScript + CGEvent.
 # Vì sao không dùng altool: máy không có ASC API key/app-specific password; Transporter đã đăng nhập sẵn Apple ID.
 # Điều kiện: Terminal chạy Claude có quyền Accessibility (System Events keystroke) — đã có trên máy nhà.
-# Dùng: scripts/store-upload/upload-ios-transporter.sh [path.ipa]   (mặc định build/ios/ipa/dear_embeiu.ipa)
+# Dùng: scripts/store-upload/upload-ios-transporter.sh [path.ipa]   (mặc định: file .ipa MỚI NHẤT trong build/ios/ipa —
+#       tên file theo CFBundleName, từ 2026-10-11 là "Dear Embeiu.ipa" thay vì dear_embeiu.ipa)
 # Sau khi chạy: Transporter hiện "ĐANG TẢI LÊN…" → chờ tới "ĐÃ CHUYỂN GIAO"; build lên TestFlight sau ~5–15'.
 set -euo pipefail
-IPA="${1:-build/ios/ipa/dear_embeiu.ipa}"; IPA="$(cd "$(dirname "$IPA")" && pwd)/$(basename "$IPA")"
+IPA="${1:-$(ls -t build/ios/ipa/*.ipa 2>/dev/null | head -1 || true)}"; [ -n "$IPA" ] || { echo "✗ không có .ipa trong build/ios/ipa"; exit 1; }; IPA="$(cd "$(dirname "$IPA")" && pwd)/$(basename "$IPA")"
 [ -f "$IPA" ] || { echo "✗ không thấy $IPA"; exit 1; }
 D="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; B="$D/.bin"; mkdir -p "$B"
 for t in click winbounds winlist; do [ -x "$B/$t" ] || swiftc -O -o "$B/$t" "$D/$t.swift" 2>/dev/null; done

@@ -45,6 +45,9 @@ import 'reminders_screen.dart';
 /// The journal entry and edit-story tile moved to the Profile tab (memory
 /// chest / hero tap-to-edit — Profile v2); every remaining control keeps its
 /// original logic (permission flows, force-open gate, danger dialogs).
+///
+/// Also opened from Setup (no couple yet): then only Account → delete account
+/// → sign-out → version render (App Review 5.1.1(v), 2026-10-11).
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -138,11 +141,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: SafeArea(
             child: Consumer<CoupleProvider>(
               builder: (context, coupleProvider, _) {
-                final couple = coupleProvider.couple;
-                if (couple == null) {
-                  // No couple loaded — nothing to configure yet.
-                  return const SizedBox.shrink();
-                }
+                // No couple yet (opened from Setup, P1 2026-10-11): keep the
+                // account card, delete account and sign-out so an unpaired
+                // user can still delete the account (App Review 5.1.1(v)).
+                // Every couple-shared group hides.
+                final hasCouple = coupleProvider.couple != null;
                 final authProvider = context.watch<AuthProvider>();
                 // Hide the data-management card for specific accounts.
                 final email =
@@ -175,23 +178,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         order: 0,
                         child: _buildAccountSection(context),
                       ),
-                      const SizedBox(height: 24),
-                      EntranceReveal(
-                        order: 1,
-                        child: _buildNotificationsSection(context),
-                      ),
-                      if (showLunar) ...[
+                      if (hasCouple) ...[
+                        const SizedBox(height: 24),
+                        EntranceReveal(
+                          order: 1,
+                          child: _buildNotificationsSection(context),
+                        ),
+                        if (showLunar) ...[
+                          const SizedBox(height: 24),
+                          EntranceReveal(
+                            order: 2,
+                            child: _buildLunarSection(context),
+                          ),
+                        ],
                         const SizedBox(height: 24),
                         EntranceReveal(
                           order: 2,
-                          child: _buildLunarSection(context),
+                          child: _buildGeneralSection(context),
                         ),
                       ],
-                      const SizedBox(height: 24),
-                      EntranceReveal(
-                        order: 2,
-                        child: _buildGeneralSection(context),
-                      ),
                       if (!hideDataManagement) ...[
                         const SizedBox(height: 24),
                         EntranceReveal(
@@ -199,6 +204,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: _buildDangerZone(
                             context,
                             isUsingFirebase: authProvider.isUsingFirebase,
+                            hasCouple: hasCouple,
                           ),
                         ),
                       ],
@@ -764,10 +770,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // ---------------------------------------------------------------------------
   // Danger zone (unchanged — compliance-sensitive block, three severity tiers).
+  // [hasCouple] false (no couple yet): only the delete-account tier — the
+  // description, clear-cache and leave-couple are all about a couple.
   // ---------------------------------------------------------------------------
   Widget _buildDangerZone(
     BuildContext context, {
     required bool isUsingFirebase,
+    required bool hasCouple,
   }) {
     final l10n = context.l10n;
 
@@ -805,15 +814,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.dataManagementDesc,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                        height: 1.45,
+                    if (hasCouple) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.dataManagementDesc,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                          height: 1.45,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -821,69 +832,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 14),
 
-          // Firebase-specific: clear local cache (low severity)
-          if (isUsingFirebase) ...[
+          // Couple-only tiers: clear cache (low) + leave couple (medium).
+          if (hasCouple) ...[
+            // Firebase-specific: clear local cache (low severity)
+            if (isUsingFirebase) ...[
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _showClearLocalDialog(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: BorderSide(
+                      color: AppColors.textSecondary.withValues(alpha: 0.22),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(IconsaxPlusLinear.eraser, size: 18),
+                  label: Text(l10n.clearLocalDataBtn),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ] else ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(13),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.warning.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: Text(
+                  l10n.localFallbackWarning,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    height: 1.45,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+
+            // Leave Couple (medium severity — outlined)
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => _showClearLocalDialog(context),
+                onPressed: () => _showLeaveCoupleDialog(context),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textPrimary,
+                  foregroundColor: AppColors.error,
                   side: BorderSide(
-                    color: AppColors.textSecondary.withValues(alpha: 0.22),
+                    color: AppColors.error.withValues(alpha: 0.30),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                icon: const Icon(IconsaxPlusLinear.eraser, size: 18),
-                label: Text(l10n.clearLocalDataBtn),
+                icon: const Icon(IconsaxPlusLinear.logout, size: 18),
+                label: Text(l10n.leaveCoupleBtn),
               ),
             ),
-            const SizedBox(height: 10),
-          ] else ...[
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(13),
-              decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.warning.withValues(alpha: 0.18),
-                ),
-              ),
-              child: Text(
-                l10n.localFallbackWarning,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  height: 1.45,
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
           ],
-
-          // Leave Couple (medium severity — outlined)
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _showLeaveCoupleDialog(context),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: BorderSide(
-                  color: AppColors.error.withValues(alpha: 0.30),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              icon: const Icon(IconsaxPlusLinear.logout, size: 18),
-              label: Text(l10n.leaveCoupleBtn),
-            ),
-          ),
 
           // Divider separating medium vs high severity
           Padding(
@@ -1010,6 +1024,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showDeleteAccountDialog(BuildContext context) {
     final l10n = context.l10n;
+    final auth = context.read<AuthProvider>();
+    final isAppleAccount = auth.isAppleOnlyAccount;
+    final isGoogleAccount = auth.isGoogleOnlyAccount;
 
     showDialog(
       context: context,
@@ -1018,7 +1035,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
           l10n.deleteAccountDialogTitle,
           style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w800),
         ),
-        content: Text(l10n.deleteAccountDialogContent),
+        content: isAppleAccount
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.deleteAccountDialogContent),
+                  const SizedBox(height: 12),
+                  // PF5: the Apple sheet looks like a sign-in prompt — say it
+                  // is coming so nobody cancels it thinking it's a mistake.
+                  Text(
+                    l10n.deleteAccountAppleNote,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              )
+            : Text(l10n.deleteAccountDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -1029,18 +1065,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(ctx);
 
               final authProvider = context.read<AuthProvider>();
+              final messenger = ScaffoldMessenger.of(context);
               final errorCode = await authProvider.deleteAccount();
 
-              if (!context.mounted) return;
+              if (!context.mounted) {
+                // BUG-8: a brand-new Apple ID in the PF18 sheet is deleted, the
+                // session listener reads that as a revocation and the shell
+                // resets to authGate before we get here. Still say why.
+                if (errorCode == 'session-gone' ||
+                    errorCode == 'apple-id-mismatch') {
+                  _showSignedOutSnack(messenger, l10n, errorCode);
+                }
+                return;
+              }
 
               if (errorCode == null) {
                 Navigator.of(
                   context,
                 ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+              } else if (errorCode == 'social-canceled') {
+                // Closed the Apple sheet — nothing deleted, nothing to say.
+              } else if (errorCode == 'session-gone' ||
+                  errorCode == 'apple-id-mismatch') {
+                // The Apple sheet signed in another Apple ID (PF18): nothing of
+                // this account deleted, already signed out — same exit as the
+                // re-auth dialog.
+                _showSignedOutSnack(messenger, l10n, errorCode);
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
               } else if (errorCode == 'requires-recent-login') {
                 // Stale-session challenge — don't dead-end. Collect the password
-                // and re-auth + retry the delete in place (#2).
-                _showReauthToDeleteDialog(context);
+                // (Apple/Google: no password, just retry) and re-auth + retry in
+                // place (#2).
+                _showReauthToDeleteDialog(
+                  context,
+                  noPasswordBody: isAppleAccount
+                      ? l10n.deleteAccountReauthBodyApple
+                      : isGoogleAccount
+                      ? l10n.deleteAccountReauthBodyGoogle
+                      : null,
+                );
               } else {
                 ScaffoldMessenger.of(context)
                   ..clearSnackBars()
@@ -1060,6 +1125,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Why a delete attempt ended signed out (`apple-id-mismatch`, else the
+  /// session-expired copy). Takes the root messenger grabbed before the await,
+  /// not a context: Settings may already be gone (BUG-8).
+  static void _showSignedOutSnack(
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+    String? code,
+  ) {
+    messenger
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            code == 'apple-id-mismatch'
+                ? l10n.deleteAccountAppleIdMismatch
+                : l10n.deleteAccountSessionExpiredMsg,
+          ),
+        ),
+      );
+  }
+
   /// Re-auth recovery for the delete-account dead-end (#2). When deletion hits a
   /// stale-session `requires-recent-login`, we collect the password here,
   /// re-authenticate to mint a fresh token, and retry the delete — keeping the
@@ -1067,8 +1153,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// session is fully gone (`session-gone`) we send them through the auth gate
   /// to sign in again. Uses [StatefulBuilder] for the dialog's local
   /// busy/error state.
-  void _showReauthToDeleteDialog(BuildContext context) {
+  ///
+  /// [noPasswordBody]: Apple/Google-only accounts have no password (PF5,
+  /// PF16). The dialog shows this text instead of the field, and confirming
+  /// retries the delete once — for Apple that shows the sheet again, which
+  /// re-authenticates; for Google it refreshes the token.
+  void _showReauthToDeleteDialog(
+    BuildContext context, {
+    String? noPasswordBody,
+  }) {
     final l10n = context.l10n;
+    final noPassword = noPasswordBody != null;
     final passwordController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     var busy = false;
@@ -1082,7 +1177,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (ctx, setLocalState) {
             Future<void> submit() async {
               if (busy) return;
-              if (!(formKey.currentState?.validate() ?? false)) return;
+              if (!noPassword && !(formKey.currentState?.validate() ?? false)) {
+                return;
+              }
               FocusScope.of(ctx).unfocus();
               setLocalState(() {
                 busy = true;
@@ -1090,10 +1187,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
 
               final authProvider = ctx.read<AuthProvider>();
-              final result = await authProvider.reauthenticateAndDeleteAccount(
-                passwordController.text,
-              );
-              if (!ctx.mounted) return;
+              final messenger = ScaffoldMessenger.of(context);
+              final result = noPassword
+                  ? await authProvider.deleteAccount()
+                  : await authProvider.reauthenticateAndDeleteAccount(
+                      passwordController.text,
+                    );
+              if (!ctx.mounted) {
+                // BUG-8: the shell's authGate reset took this dialog with it.
+                if (result == 'session-gone' || result == 'apple-id-mismatch') {
+                  _showSignedOutSnack(messenger, l10n, result);
+                }
+                return;
+              }
 
               if (result == null) {
                 // Deleted — close the dialog and reset to the auth gate.
@@ -1104,22 +1210,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 return;
               }
 
+              if (result == 'social-canceled') {
+                // Closed the Apple sheet — back to Settings, nothing deleted.
+                Navigator.of(ctx).pop();
+                return;
+              }
+
               // A second `requires-recent-login` means the server still
               // rejects the session: never show that sentinel as text.
               if (result == 'session-gone' ||
-                  result == 'requires-recent-login') {
+                  result == 'requires-recent-login' ||
+                  result == 'apple-id-mismatch') {
                 // No local session left to re-auth — send them to sign in again.
                 Navigator.of(ctx).pop();
-                ScaffoldMessenger.of(context)
-                  ..clearSnackBars()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.deleteAccountSessionExpiredMsg),
-                    ),
-                  );
+                _showSignedOutSnack(messenger, l10n, result);
                 Navigator.of(
                   context,
                 ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+                return;
+              }
+
+              if (noPassword) {
+                // No field to show it under — same SnackBar as the first try.
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(SnackBar(content: Text(result)));
                 return;
               }
 
@@ -1140,33 +1256,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.deleteAccountReauthBody),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: passwordController,
-                      obscureText: true,
-                      autofocus: true,
-                      enabled: !busy,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => submit(),
-                      decoration: InputDecoration(
-                        labelText: l10n.passwordLabel,
-                        errorText: inlineError,
+              content: noPasswordBody != null
+                  ? Text(noPasswordBody)
+                  : Form(
+                      key: formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(l10n.deleteAccountReauthBody),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: passwordController,
+                            obscureText: true,
+                            autofocus: true,
+                            enabled: !busy,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => submit(),
+                            decoration: InputDecoration(
+                              labelText: l10n.passwordLabel,
+                              errorText: inlineError,
+                            ),
+                            validator: (value) =>
+                                (value == null || value.trim().isEmpty)
+                                ? l10n.passwordRequired
+                                : null,
+                          ),
+                        ],
                       ),
-                      validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                          ? l10n.passwordRequired
-                          : null,
                     ),
-                  ],
-                ),
-              ),
               actions: [
                 TextButton(
                   onPressed: busy ? null : () => Navigator.of(ctx).pop(),

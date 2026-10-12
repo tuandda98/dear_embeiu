@@ -1,22 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../l10n/l10n.dart';
+import '../providers/reminder_provider.dart';
 import '../services/analytics_service.dart';
 import '../theme/app_colors.dart';
+import 'invite_qr_sheet.dart';
 
-/// Reusable "Copy | Share" action cluster shown next to the invite code in all
-/// three places it appears (Setup card / Home waiting-partner banner / Profile
-/// detail tile). Feature: invite-sharing (Phase 1).
+/// Reusable "Copy | Share | QR code" action cluster shown next to the invite
+/// code on the Setup card and the Profile invite tile (the Home waiting card
+/// has its own full-width share CTA + tonal pills). Feature: invite-sharing
+/// (Phase 1), QR pill added by pairing-funnel (PF7).
+///
+/// A [Wrap], so the three pills drop to a second line on narrow columns (the
+/// Profile tile on a 375pt phone) instead of overflowing.
 ///
 /// Two background variants (token-identical, only alpha/colour differs):
-/// - [onDark] `true` (default): glass/dark surfaces (Setup, Home) -> white pills.
-/// - [onDark] `false`: light surface (Profile) -> rose-tinted pills.
+/// - [onDark] `true` (default, unused today): glass/dark surfaces -> white pills.
+/// - [onDark] `false` (Setup, Profile): light surface -> rose pills, navy label.
 ///
-/// [iconOnly] renders compact icon-only pills with a tooltip label (used in the
-/// narrow Home banner).
+/// [iconOnly] renders compact icon-only pills whose tooltip is also the screen
+/// reader label.
+///
+/// Every action counts as "invite sent" for the follow-up nudges (PF10).
 class InviteActionButtons extends StatelessWidget {
   const InviteActionButtons({
     super.key,
@@ -34,17 +43,11 @@ class InviteActionButtons extends StatelessWidget {
   /// Render compact icon-only pills (with tooltip) instead of icon + label.
   final bool iconOnly;
 
-  Color get _fgColor =>
-      onDark ? AppColors.white.withValues(alpha: 0.90) : AppColors.accentRose;
-
-  Color get _pillColor => onDark
-      ? AppColors.white.withValues(alpha: 0.18)
-      : AppColors.accentRose.withValues(alpha: 0.12);
-
   void _handleCopy(BuildContext context) {
     Clipboard.setData(ClipboardData(text: code));
     // Analytics — `invite_shared` (the code value itself is NEVER logged).
     AnalyticsService.instance.logInviteShared('copy');
+    context.read<ReminderProvider>().markInviteShared();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.inviteCodeCopiedMsg),
@@ -62,6 +65,7 @@ class InviteActionButtons extends StatelessWidget {
         : null;
     // Analytics — `invite_shared` via the OS share sheet (no code logged).
     AnalyticsService.instance.logInviteShared('share_sheet');
+    context.read<ReminderProvider>().markInviteShared();
     try {
       await SharePlus.instance.share(
         ShareParams(text: message, sharePositionOrigin: origin),
@@ -75,40 +79,62 @@ class InviteActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    final iconColor =
+        onDark ? AppColors.white.withValues(alpha: 0.90) : AppColors.accentRose;
+    // Navy label on the light variant: rose on rose .12 was only 2.8:1.
+    final labelColor =
+        onDark ? AppColors.white.withValues(alpha: 0.90) : AppColors.textPrimary;
+    final pillColor = onDark
+        ? AppColors.white.withValues(alpha: 0.18)
+        : AppColors.accentRose.withValues(alpha: 0.12);
+    final rippleColor = onDark
+        ? AppColors.white.withValues(alpha: 0.12)
+        : AppColors.accentRose.withValues(alpha: 0.08);
+
+    Widget pill(IconData icon, String label, VoidCallback onTap) => _Pill(
+          icon: icon,
+          label: label,
+          iconOnly: iconOnly,
+          iconColor: iconColor,
+          labelColor: labelColor,
+          pillColor: pillColor,
+          rippleColor: rippleColor,
+          fontWeight: onDark ? FontWeight.w600 : FontWeight.w700,
+          onTap: onTap,
+        );
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        _Pill(
-          icon: IconsaxPlusLinear.copy,
-          label: l10n.copyBtn,
-          iconOnly: iconOnly,
-          fgColor: _fgColor,
-          pillColor: _pillColor,
-          fontWeight: onDark ? FontWeight.w600 : FontWeight.w700,
-          onTap: () => _handleCopy(context),
+        pill(IconsaxPlusLinear.copy, l10n.copyBtn, () => _handleCopy(context)),
+        pill(
+          IconsaxPlusLinear.share,
+          l10n.shareBtn,
+          () => _handleShare(context),
         ),
-        const SizedBox(width: 8),
-        _Pill(
-          icon: IconsaxPlusLinear.share,
-          label: l10n.shareBtn,
-          iconOnly: iconOnly,
-          fgColor: _fgColor,
-          pillColor: _pillColor,
-          fontWeight: onDark ? FontWeight.w600 : FontWeight.w700,
-          onTap: () => _handleShare(context),
+        pill(
+          IconsaxPlusLinear.scan_barcode,
+          l10n.inviteQrBtn,
+          () => InviteQrSheet.show(context, code: code),
         ),
       ],
     );
   }
 }
 
+/// One pill: a 36-high rounded shape inside a 48×48 tap target
+/// (`MaterialTapTargetSize.padded`), with the button role screen readers need.
 class _Pill extends StatelessWidget {
   const _Pill({
     required this.icon,
     required this.label,
     required this.iconOnly,
-    required this.fgColor,
+    required this.iconColor,
+    required this.labelColor,
     required this.pillColor,
+    required this.rippleColor,
     required this.fontWeight,
     required this.onTap,
   });
@@ -116,44 +142,56 @@ class _Pill extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool iconOnly;
-  final Color fgColor;
+  final Color iconColor;
+  final Color labelColor;
   final Color pillColor;
+  final Color rippleColor;
   final FontWeight fontWeight;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final pill = Material(
-      color: pillColor,
+    final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: iconOnly
-              ? const EdgeInsets.all(8)
-              : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 14, color: fgColor),
-              if (!iconOnly) ...[
-                const SizedBox(width: 4),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: fgColor,
-                    fontSize: 12,
-                    fontWeight: fontWeight,
-                  ),
-                ),
-              ],
-            ],
-          ),
+    );
+    final ripple = WidgetStatePropertyAll<Color>(rippleColor);
+    final glyph = Icon(icon, size: 14, color: iconColor);
+
+    if (iconOnly) {
+      return IconButton(
+        tooltip: label,
+        onPressed: onTap,
+        icon: glyph,
+        style: IconButton.styleFrom(
+          backgroundColor: pillColor,
+          fixedSize: const Size(36, 36),
+          minimumSize: Size.zero,
+          padding: EdgeInsets.zero,
+          shape: shape,
+          tapTargetSize: MaterialTapTargetSize.padded,
+        ).copyWith(overlayColor: ripple),
+      );
+    }
+
+    return TextButton.icon(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        backgroundColor: pillColor,
+        foregroundColor: labelColor,
+        minimumSize: const Size(0, 36),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        shape: shape,
+        tapTargetSize: MaterialTapTargetSize.padded,
+      ).copyWith(overlayColor: ripple),
+      icon: glyph,
+      label: Text(
+        label,
+        style: TextStyle(
+          color: labelColor,
+          fontSize: 12,
+          fontWeight: fontWeight,
         ),
       ),
     );
-
-    return iconOnly ? Tooltip(message: label, child: pill) : pill;
   }
 }

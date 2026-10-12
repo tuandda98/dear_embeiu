@@ -9,6 +9,10 @@ import '../services/analytics_service.dart';
 import '../services/auth_service.dart';
 import '../services/push_notification_service.dart';
 
+/// Social sign-in providers (pairing-funnel PF1 Apple, PF14 Google). `name` is
+/// also the analytics `method`.
+enum SocialSignIn { apple, google }
+
 class AuthProvider extends ChangeNotifier {
   AuthProvider({required AuthService authService}) : _authService = authService;
 
@@ -19,6 +23,11 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isInitialized = false;
   String? _errorMessage;
+
+  /// The social sign-in in flight has its own state (pairing-funnel design §1):
+  /// driving [isLoading] would spin the email button on the same screen too.
+  SocialSignIn? _socialSignIn;
+  EmailHasPasswordAccountException? _emailConflict;
 
   /// Session-liveness listener (feature auth — #3). Subscribes once to the
   /// service's session-presence stream; drives [sessionRevoked].
@@ -48,8 +57,23 @@ class AuthProvider extends ChangeNotifier {
   AuthStatus get status => _status;
   AppUser? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
+
+  /// Which social sign-in is running: only its button spins, the other
+  /// buttons and links on the screen lock.
+  SocialSignIn? get socialSignIn => _socialSignIn;
+  bool get isSocialSigningIn => _socialSignIn != null;
   bool get isInitialized => _isInitialized;
   String? get errorMessage => _errorMessage;
+
+  /// PF6 — set when the last Apple/Google sign-in hit an email that already
+  /// has a password account; carries the email so Sign in can prefill it.
+  EmailHasPasswordAccountException? get emailConflict => _emailConflict;
+
+  /// Apple-only account (PF5): deleting it confirms through the Apple sheet.
+  bool get isAppleOnlyAccount => _authService.isAppleOnlyAccount;
+
+  /// Google-only account (PF16): deleting it needs no password.
+  bool get isGoogleOnlyAccount => _authService.isGoogleOnlyAccount;
   bool get isUsingFirebase => _authService.isUsingFirebase;
   String get authSourceLabel => _authService.authSourceLabel;
   String? get bootstrapMessage => _authService.bootstrapMessage;
@@ -133,6 +157,11 @@ class AuthProvider extends ChangeNotifier {
       _localToken = null;
       unawaited(_authService.signOut());
       notifyListeners();
+    }, onError: (Object e) {
+      // The listener outlives a session that ended under it (another Apple ID
+      // in the delete sheet, external revocation): rules then deny the read.
+      // Not a crash — keep it out of Crashlytics' fatal handler.
+      debugPrint('AuthProvider session token watch ended: $e');
     });
   }
 
@@ -227,6 +256,58 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Sign in with Apple (PF1) or Google (PF14), same success path as
+  /// [signIn]. Returns false on failure; [errorMessage] stays null when the
+  /// user just closed the sheet or picker, so the UI can stay silent.
+  Future<bool> signInWithSocial(SocialSignIn provider) async {
+    _socialSignIn = provider;
+    _emailConflict = null;
+    _clearError();
+    // A fresh session is beginning — re-arm external-revocation detection.
+    _intentionalAuthClear = false;
+
+    try {
+      final result = provider == SocialSignIn.apple
+          ? await _authService.signInWithApple()
+          : await _authService.signInWithGoogle();
+      _currentUser = result.user;
+      _status = AuthStatus.authenticated;
+      _isInitialized = true;
+      await PushNotificationService.instance.syncForUser(_currentUser);
+      // Single-session: mint a new token — kicks any other active session.
+      if (_currentUser != null) {
+        await _mintAndWatchSessionToken(_currentUser!.id);
+      }
+      unawaited(AnalyticsService.instance.setUserId(_currentUser?.id));
+      AnalyticsService.instance.setIsGuest(false);
+      if (result.isNewUser) {
+        AnalyticsService.instance.logSignUp(method: provider.name);
+      } else {
+        AnalyticsService.instance.logLogin(method: provider.name);
+      }
+      return true;
+    } on EmailHasPasswordAccountException catch (e) {
+      _status = AuthStatus.unauthenticated;
+      _emailConflict = e;
+      _errorMessage = e.message;
+      return false;
+    } on AuthException catch (e) {
+      _status = AuthStatus.unauthenticated;
+      _errorMessage = e.message == 'social-canceled' ? null : e.message;
+      return false;
+    } catch (e) {
+      _status = AuthStatus.unauthenticated;
+      debugPrint('AuthProvider.signInWithSocial(${provider.name}) failed: $e');
+      _errorMessage = provider == SocialSignIn.apple
+          ? AppL10n.strings.appleSignInFailed
+          : AppL10n.strings.googleSignInFailed;
+      return false;
+    } finally {
+      _socialSignIn = null;
+      notifyListeners();
     }
   }
 
@@ -332,6 +413,10 @@ class AuthProvider extends ChangeNotifier {
     _clearError(notify: false);
 
     try {
+      // PF5: Apple accounts confirm in the Apple sheet FIRST. Closing it must
+      // leave everything as it was (push registration, single-session watch),
+      // so nothing below may run before this.
+      await _authService.confirmAppleDeletionIfNeeded();
       // Robustness (app-robustness B/C): unregistering this device is cleanup
       // (the server-side deleteAccount also removes all device docs), so bound
       // it to 5s and never let it block the deletion itself.
@@ -359,8 +444,15 @@ class AuthProvider extends ChangeNotifier {
       // Deletion did NOT happen — the session is still alive, so re-arm
       // external-revocation detection (#3).
       _intentionalAuthClear = false;
-      if (e.message == 'requires-recent-login') {
-        return 'requires-recent-login';
+      // Sentinels the UI branches on, never shown as text. `social-canceled` =
+      // the user closed the Apple confirmation sheet (PF5) — nothing deleted.
+      // `apple-id-mismatch` = the sheet signed in another Apple ID (PF18);
+      // `session-gone` = no session left. Both: signed out.
+      if (e.message == 'requires-recent-login' ||
+          e.message == 'social-canceled' ||
+          e.message == 'apple-id-mismatch' ||
+          e.message == 'session-gone') {
+        return e.message;
       }
       _errorMessage = e.message;
       return e.message;

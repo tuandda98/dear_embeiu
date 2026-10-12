@@ -136,7 +136,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWaitingStep1Desc =>
-      'Send this invite code to your partner in a message.';
+      'Send the code in a message, or let them scan the QR code if you\'re together.';
 
   @override
   String get homeWaitingStep1Cta => 'Send it to them 💌';
@@ -184,6 +184,48 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get inviteFollowUpBody72h =>
       'Our memories are waiting for them. Remind them to download the app';
+
+  @override
+  String get inviteQrBtn => 'QR code';
+
+  @override
+  String get inviteQrTitle => 'Let them scan this code';
+
+  @override
+  String get inviteQrBody =>
+      'They open their Camera and point it here to get Dear Embeiu, with your invite code ready.';
+
+  @override
+  String get inviteQrFallback =>
+      'Can\'t scan? Read this code out for them to type in.';
+
+  @override
+  String get inviteQrDone => 'Done';
+
+  @override
+  String inviteQrSemantics(String code) {
+    return 'Invite QR code, code $code';
+  }
+
+  @override
+  String get clipboardInviteTitle => 'Use the code from your invite?';
+
+  @override
+  String get clipboardInviteBody =>
+      'The invite link you opened has this code. Pair up to join your partner\'s space.';
+
+  @override
+  String get clipboardInviteJoin => 'Pair up now';
+
+  @override
+  String get clipboardInviteSkip => 'Skip';
+
+  @override
+  String get inviteFollowUpTitle2h => 'Send your partner the invite 💌';
+
+  @override
+  String get inviteFollowUpBody2h =>
+      'Together right now? Let them scan the QR code. Apart? Send it in a message. It takes about 10 seconds.';
 
   @override
   String get back => 'Back';
@@ -1640,6 +1682,46 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t verify your account. Please try again.';
 
   @override
+  String get continueWithApple => 'Continue with Apple';
+
+  @override
+  String get authOrDivider => 'or';
+
+  @override
+  String get appleSignInFailed =>
+      'Couldn\'t sign in with Apple. Please try again.';
+
+  @override
+  String get appleEmailHasPasswordAccount =>
+      'This email already has an account. Sign in the way you did before.';
+
+  @override
+  String get deleteAccountAppleNote =>
+      'Apple will then show a sign-in sheet to confirm it\'s you.';
+
+  @override
+  String get deleteAccountReauthBodyApple =>
+      'For your security, confirm with Apple again to permanently delete your account.';
+
+  @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get googleSignInFailed =>
+      'Couldn\'t sign in with Google. Please try again.';
+
+  @override
+  String get socialConsentPrefix => 'By continuing, you agree to our';
+
+  @override
+  String get deleteAccountReauthBodyGoogle =>
+      'Tap Delete permanently to try again. If it still fails, sign in with Google again, then delete.';
+
+  @override
+  String get deleteAccountAppleIdMismatch =>
+      'The Apple ID on this device isn\'t the one for this account. Sign in with that account\'s Apple ID, then delete.';
+
+  @override
   String get authFirebaseUserCreateFailed =>
       'Couldn\'t create your account. Please try again.';
 
@@ -2043,7 +2125,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestCtaBody => 'Sign in to pair up & share photos together.';
 
   @override
-  String get guestCtaSignIn => 'Sign in';
+  String get guestCtaSignIn => 'Sign in with email';
 
   @override
   String get guestCtaRegister => 'Sign up';
@@ -3069,6 +3151,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get featureTourSkyBody =>
       'The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.';
+
+  @override
+  String get featureTourPairingTitle => 'Easier to bring your partner in';
+
+  @override
+  String get featureTourPairingBody =>
+      'Your partner can now sign up with Google, or Apple on iPhone, without creating a password. Sitting together? Open the QR code and they scan it to get your invite code.';
 
   @override
   String get rpsOpenPrompt => 'Go on, throw! No skipping here 😄';

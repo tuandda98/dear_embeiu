@@ -91,4 +91,11 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
     body: (l10n) => l10n.featureTourSkyBody,
     onOpen: openLoveTree,
   ),
+  // ---- Build 26 (1.9.0) ----------------------------------------------------
+  FeatureTourEntry(
+    sinceBuild: 26,
+    icon: IconsaxPlusLinear.scan_barcode,
+    title: (l10n) => l10n.featureTourPairingTitle,
+    body: (l10n) => l10n.featureTourPairingBody,
+  ),
 ];
