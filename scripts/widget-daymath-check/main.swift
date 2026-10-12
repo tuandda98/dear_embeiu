@@ -25,6 +25,12 @@ var berlin = Calendar(identifier: .gregorian)
 berlin.timeZone = TimeZone(identifier: "Europe/Berlin")!
 let afterDst = berlin.date(from: DateComponents(year: 2026, month: 3, day: 30, hour: 0, minute: 30))!
 check(DayMath.daysTogether(anniversary: "2026-03-29", today: afterDst, calendar: berlin) == 1, "DST change costs no day")
+// Havana 2018-03-11: clocks jump at 00:00, so the anniversary's own midnight
+// never exists — midnight-to-midnight counting would return 0 here.
+var havana = Calendar(identifier: .gregorian)
+havana.timeZone = TimeZone(identifier: "America/Havana")!
+let havanaNoon = havana.date(from: DateComponents(year: 2018, month: 3, day: 12, hour: 12))!
+check(DayMath.daysTogether(anniversary: "2018-03-11", today: havanaNoon, calendar: havana) == 1, "DST skipping the anniversary's own midnight still counts the day")
 check(DayMath.gregorian.identifier == .gregorian, "default calendar is Gregorian whatever the device setting (Dart parity)")
 // check-widget-daymath.sh runs this binary with `-AppleLocale th_TH` (Buddhist
 // calendar), so the default-calendar path must still count in Gregorian.
@@ -53,4 +59,4 @@ check(label(1500) == "1.500 ngày", "1500 → 1.500 ngày")
 check(label(50) == "50 ngày", "50 → 50 ngày")
 
 if failures > 0 { print("\(failures) check(s) failed"); exit(1) }
-print("OK DayMath — \(table.count + 19) checks")
+print("OK DayMath — \(table.count + 20) checks")

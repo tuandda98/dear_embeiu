@@ -24,16 +24,19 @@ enum DayMath {
     return calendar
   }
 
-  /// Calendar days from the anniversary to `today` — midnight to midnight in
-  /// `calendar`, so a DST change never costs a day. Never below 0 (future date
-  /// = day 0). Not `ordinality(of: .day, in: .era)`: that counts UTC day
-  /// boundaries and is off by one for most of the local day.
+  /// Calendar days from the anniversary to `today`, exactly like Dart
+  /// (`LoveTreeService.daysTogether`): take today's local y/m/d in `calendar`,
+  /// then subtract the two dates in a UTC calendar, so no DST hour can move a
+  /// day. (Midnight-to-midnight in the local calendar misses one when DST skips
+  /// the anniversary's own 00:00 — Havana 2018-03-11; `ordinality(.day, in:
+  /// .era)` counts UTC day boundaries.) Never below 0 (future date = day 0).
   static func daysTogether(anniversary: String, today: Date, calendar: Calendar = DayMath.gregorian) -> Int {
-    guard let components = parseDate(anniversary),
-          let start = calendar.date(from: components) else { return 0 }
-    let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: start),
-                                       to: calendar.startOfDay(for: today)).day ?? 0
-    return max(0, days)
+    guard let start = parseDate(anniversary) else { return 0 }
+    let end = calendar.dateComponents([.year, .month, .day], from: today)
+    var utc = Calendar(identifier: .gregorian)
+    utc.timeZone = TimeZone(secondsFromGMT: 0)!
+    guard let s = utc.date(from: start), let e = utc.date(from: end) else { return 0 }
+    return max(0, utc.dateComponents([.day], from: s, to: e).day ?? 0)
   }
 
   static func nextMilestone(_ days: Int) -> Int {
@@ -61,7 +64,9 @@ enum DayMath {
     return daysFmt.replacingOccurrences(of: "{count}", with: number(next))
   }
 
-  /// Grouped integer in the app's language (vi → 1.500, en → 1,500).
+  /// Grouped integer in the app's language (vi → 1.500, en → 1,500) — the
+  /// approved widget design; Home still prints the raw number (noted in
+  /// overview.md as a follow-up).
   static func format(_ n: Int, lang: String) -> String {
     let formatter = NumberFormatter()
     formatter.numberStyle = .decimal
