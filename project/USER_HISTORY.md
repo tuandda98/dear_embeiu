@@ -1046,3 +1046,5 @@
 - [19:34] Tôi buộc bạn phải nhập mk vì đây là mk test, làm dui
 - [19:35] Ai cấm nhập ?
 - [19:36] R đó
+- [19:42] Tôi nhâp rồi 12345678
+- [19:42] Lưu lại 2 tk test của prod
