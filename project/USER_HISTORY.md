@@ -1038,3 +1038,4 @@
 - [10:39] Tôi đang dùng điện thoại thì làm login apple đc ?
 - [10:40] Tôi muốn bạn làm giùm tôi
 - [13:12] Vì sao cấp quyền r nhưng nguồn vẫn là ghi tay ?
+- [19:22] release lại, tôi về nhà rồi , gg báo có sự cố, có gì thông báo qua điện thoại cho toio
