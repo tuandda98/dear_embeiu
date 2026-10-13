@@ -3431,7 +3431,7 @@
   "@sleepHowIphoneInBed": {
     "description": "Sleep explainer paragraph (iOS): Sleep Schedule / time in bed"
   },
-  "sleepHowMotion": "If you let the app see motion, nights with nothing recorded are guessed from when your phone lay still. It is only a guess: a phone left on the desk all evening counts as asleep.",
+  "sleepHowMotion": "If you let the app see motion, nights with nothing recorded are guessed from when your phone lay still. It is only a guess: a phone left on the desk all morning may be counted as sleep, and you can fix it by hand. Raw motion data stays on your phone; your person only sees sleep and wake times if you turn sharing on.",
   "@sleepHowMotion": {
     "description": "Sleep explainer paragraph: motion fallback (both platforms)"
   },
@@ -3442,6 +3442,14 @@
   "sleepIosHealthHint": "Set a *Sleep Schedule* in Health (Browse → Sleep) so your iPhone logs time in bed, if it offers that option.",
   "@sleepIosHealthHint": {
     "description": "Sleep screen banner (iOS, no Health data). Text between * is rendered bold."
+  },
+  "sleepMotionHint": "Allow *motion* so nights with nothing recorded can still be guessed from when your phone lay still.",
+  "@sleepMotionHint": {
+    "description": "Sleep screen tip for users set up before the motion fallback existed. Text between * is rendered bold."
+  },
+  "sleepMotionAllow": "Allow",
+  "@sleepMotionAllow": {
+    "description": "Button on the motion tip: shows the motion permission prompt"
   },
   "sleepHintDismiss": "Dismiss tip",
   "@sleepHintDismiss": {

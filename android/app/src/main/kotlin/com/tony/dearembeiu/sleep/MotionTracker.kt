@@ -16,10 +16,29 @@ object MotionTracker {
         Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
             c.checkSelfPermission(Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
 
+    private fun pendingIntent(c: Context): PendingIntent {
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
+        return PendingIntent.getBroadcast(c, 0, Intent(c, MotionTransitionReceiver::class.java), flags)
+    }
+
+    /** Dart-driven: sets enabled, registers, reports the real Task outcome. */
+    fun start(c: Context, done: (Boolean) -> Unit) {
+        if (!hasPermission(c)) return done(false)
+        MotionStore.setEnabled(c)
+        register(c, MotionSpans.STALE_OPEN_MS, done)
+    }
+
+    /** Boot / app update: only when Dart enabled tracking and the permission is still there. */
+    fun resume(c: Context) {
+        if (MotionStore.enabled(c) && hasPermission(c)) register(c, 0) {}
+    }
+
     /** Idempotent: re-registering the same PendingIntent replaces the old request. */
-    fun start(c: Context): Boolean {
-        if (!hasPermission(c)) return false
-        return try {
+    private fun register(c: Context, closeMinAgeMs: Long, done: (Boolean) -> Unit) {
+        try {
+            val now = System.currentTimeMillis()
+            MotionStore.closeOpen(c, now, closeMinAgeMs)
             val transitions = listOf(
                 ActivityTransition.ACTIVITY_TRANSITION_ENTER,
                 ActivityTransition.ACTIVITY_TRANSITION_EXIT,
@@ -29,16 +48,25 @@ object MotionTracker {
                     .setActivityTransition(it)
                     .build()
             }
-            val flags = PendingIntent.FLAG_UPDATE_CURRENT or
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
-            val pi = PendingIntent.getBroadcast(
-                c, 0, Intent(c, MotionTransitionReceiver::class.java), flags,
-            )
             ActivityRecognition.getClient(c)
-                .requestActivityTransitionUpdates(ActivityTransitionRequest(transitions), pi)
-            true
+                .requestActivityTransitionUpdates(ActivityTransitionRequest(transitions), pendingIntent(c))
+                .addOnSuccessListener { MotionStore.markCoverage(c, now); done(true) }
+                .addOnFailureListener { done(false) }
         } catch (_: Exception) {
-            false
+            done(false)
+        }
+    }
+
+    fun stop(c: Context, done: (Boolean) -> Unit) {
+        // Clear first: even if removal fails, nothing is recorded (receiver checks enabled).
+        MotionStore.clear(c)
+        try {
+            ActivityRecognition.getClient(c)
+                .removeActivityTransitionUpdates(pendingIntent(c))
+                .addOnSuccessListener { done(true) }
+                .addOnFailureListener { done(false) }
+        } catch (_: Exception) {
+            done(false)
         }
     }
 }

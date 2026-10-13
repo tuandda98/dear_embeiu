@@ -3698,7 +3698,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sleepHowMotion =>
-      'Nếu bạn cho app xem chuyển động, đêm nào không có số liệu thì app đoán từ quãng điện thoại nằm yên. Đây chỉ là phỏng đoán: máy để trên bàn cả tối cũng bị tính là đang ngủ.';
+      'Nếu bạn cho app xem chuyển động, đêm nào không có số liệu thì app đoán từ quãng điện thoại nằm yên. Đây chỉ là phỏng đoán: điện thoại nằm trên bàn cả buổi sáng có thể bị tính nhầm là đang ngủ, bạn sửa tay được. Dữ liệu chuyển động thô chỉ nằm trên máy; người ấy chỉ thấy giờ ngủ và giờ thức khi bạn bật chia sẻ.';
 
   @override
   String get sleepGotIt => 'Đã hiểu';
@@ -3706,6 +3706,13 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get sleepIosHealthHint =>
       'Đặt *Lịch ngủ* trong Sức khoẻ (Duyệt → Giấc ngủ) để iPhone tự ghi giờ lên giường, nếu máy có tuỳ chọn này.';
+
+  @override
+  String get sleepMotionHint =>
+      'Cho app xem *chuyển động* để đêm nào thiếu số liệu vẫn được đoán từ lúc điện thoại nằm yên.';
+
+  @override
+  String get sleepMotionAllow => 'Cho phép';
 
   @override
   String get sleepHintDismiss => 'Ẩn gợi ý';

@@ -12,4 +12,4 @@
 
 "NSHealthUpdateUsageDescription" = "Dear Embeiu doesn't write anything to the Health app. It only reads your sleep data to show when you fell asleep and when you got up.";
 
-"NSMotionUsageDescription" = "Dear Embeiu checks when your phone lies still at night to estimate when you fall asleep and wake up. Motion data stays on your phone.";
+"NSMotionUsageDescription" = "Dear Embeiu checks when your phone lies still at night to estimate when you fall asleep and wake up. Raw motion data stays on your phone; only your sleep and wake times are shared, and only if you turn sharing on.";

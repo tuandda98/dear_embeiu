@@ -165,8 +165,12 @@ final class SleepHealthChannel {
         result(motionPermission())
       case "requestMotionPermission":
         requestMotion(result: result)
-      case "startMotionTracking":
+      case "startMotionTracking", "stopMotionTracking":
+        // Core Motion records on its own; nothing to register or clear.
         result(true)
+      case "motionCoverageStart":
+        // iOS keeps 7 days of motion history.
+        result(Int64((Date().timeIntervalSince1970 - 7 * 86400) * 1000))
       case "motionStillSpans":
         let args = call.arguments as? [String: Any]
         let from = (args?["from"] as? NSNumber)?.doubleValue ?? 0
@@ -271,8 +275,15 @@ final class SleepHealthChannel {
         open = nil
       }
       for a in activities ?? [] {
-        let still = a.stationary && a.confidence != .low
-        if still { if open == nil { open = max(a.startDate, start) } } else { close(a.startDate) }
+        let moving = a.walking || a.running || a.cycling || a.automotive
+        if moving {
+          close(a.startDate)
+        } else if a.stationary && a.confidence != .low && !a.unknown {
+          if open == nil { open = max(a.startDate, start) }
+        } else if !(a.stationary || a.unknown) {
+          close(a.startDate)
+        }
+        // Low-confidence stationary / unknown: neutral, the span stays as is.
       }
       close(end)
       let data = flat.withUnsafeBufferPointer { Data(buffer: $0) }

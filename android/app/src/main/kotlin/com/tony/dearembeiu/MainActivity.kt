@@ -83,7 +83,9 @@ class MainActivity : FlutterActivity() {
                     )
                     "motionPermission" -> result.success(motionPermission())
                     "requestMotionPermission" -> requestMotionPermission(result)
-                    "startMotionTracking" -> result.success(MotionTracker.start(this))
+                    "startMotionTracking" -> MotionTracker.start(this) { result.success(it) }
+                    "stopMotionTracking" -> MotionTracker.stop(this) { result.success(it) }
+                    "motionCoverageStart" -> result.success(MotionStore.coverageStart(this))
                     "motionStillSpans" -> {
                         val from = call.argument<Number>("from")?.toLong() ?: 0L
                         val to = call.argument<Number>("to")?.toLong() ?: System.currentTimeMillis()
@@ -119,7 +121,6 @@ class MainActivity : FlutterActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode != MOTION_REQ) return
         val ok = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
-        if (ok) MotionTracker.start(this)
         pendingMotionResult?.success(ok)
         pendingMotionResult = null
     }

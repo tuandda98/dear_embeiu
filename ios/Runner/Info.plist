@@ -15,7 +15,7 @@
 		<key>NSHealthUpdateUsageDescription</key>
 		<string>Dear Embeiu không ghi gì vào app Sức khoẻ. App chỉ đọc giấc ngủ để hiện giờ ngủ và giờ dậy của bạn.</string>
 		<key>NSMotionUsageDescription</key>
-		<string>Dear Embeiu xem điện thoại nằm yên lúc nào vào ban đêm để đoán giờ bạn ngủ và thức. Dữ liệu chuyển động chỉ nằm trên máy.</string>
+		<string>Dear Embeiu xem điện thoại nằm yên lúc nào vào ban đêm để đoán giờ bạn ngủ và thức. Dữ liệu chuyển động thô chỉ nằm trên máy; giờ ngủ và giờ thức chỉ được gửi cho người ấy khi bạn bật chia sẻ.</string>
 		<key>NSCameraUsageDescription</key>
 		<string>Dear Embeiu cần dùng camera để bạn chụp và đăng khoảnh khắc kỷ niệm với người ấy.</string>
 		<key>CFBundleDevelopmentRegion</key>

@@ -32,4 +32,25 @@ class MotionSpansTest {
         assertEquals("${big - 20}:0,${big - 10}:1", MotionSpans.append("$old:1,${big - 10}:1", big - 20, false, big))
         assertEquals("${big - 10}:1", MotionSpans.append(null, big - 10, true, big))
     }
+
+    @Test
+    fun closeOpen_addsSyntheticExitOnlyWhenLastIsEnter() {
+        assertEquals("100:1,500:0", MotionSpans.closeOpen("100:1", 500))
+        assertEquals("100:1,200:0", MotionSpans.closeOpen("100:1,200:0", 500))
+        assertEquals("", MotionSpans.closeOpen(null, 500))
+        assertArrayEquals(longArrayOf(100, 500), MotionSpans.stillSpans(MotionSpans.closeOpen("100:1", 500), 0, 5_000, 5_000))
+    }
+
+    @Test
+    fun closeOpen_appStart_onlyClosesStaleEnter() {
+        val h = 3600_000L
+        val stale = MotionSpans.STALE_OPEN_MS
+        val now = 100 * h
+        // fresh ENTER (3h old): left open
+        assertEquals("${now - 3 * h}:1", MotionSpans.closeOpen("${now - 3 * h}:1", now, stale))
+        // stuck ENTER (>=16h old): closed at now
+        assertEquals("${now - 17 * h}:1,$now:0", MotionSpans.closeOpen("${now - 17 * h}:1", now, stale))
+        // boot (minAge 0): closed regardless of age
+        assertEquals("${now - 3 * h}:1,$now:0", MotionSpans.closeOpen("${now - 3 * h}:1", now))
+    }
 }

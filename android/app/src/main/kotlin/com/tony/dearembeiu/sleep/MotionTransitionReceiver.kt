@@ -10,6 +10,7 @@ import com.google.android.gms.location.DetectedActivity
 
 class MotionTransitionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        if (!MotionStore.enabled(context)) return
         if (!ActivityTransitionResult.hasResult(intent)) return
         val result = ActivityTransitionResult.extractResult(intent) ?: return
         val bootWall = System.currentTimeMillis() - SystemClock.elapsedRealtime()

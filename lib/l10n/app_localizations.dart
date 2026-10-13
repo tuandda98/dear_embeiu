@@ -6298,7 +6298,7 @@ abstract class AppLocalizations {
   /// Sleep explainer paragraph: motion fallback (both platforms)
   ///
   /// In en, this message translates to:
-  /// **'If you let the app see motion, nights with nothing recorded are guessed from when your phone lay still. It is only a guess: a phone left on the desk all evening counts as asleep.'**
+  /// **'If you let the app see motion, nights with nothing recorded are guessed from when your phone lay still. It is only a guess: a phone left on the desk all morning may be counted as sleep, and you can fix it by hand. Raw motion data stays on your phone; your person only sees sleep and wake times if you turn sharing on.'**
   String get sleepHowMotion;
 
   /// Sleep explainer close button
@@ -6312,6 +6312,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set a *Sleep Schedule* in Health (Browse → Sleep) so your iPhone logs time in bed, if it offers that option.'**
   String get sleepIosHealthHint;
+
+  /// Sleep screen tip for users set up before the motion fallback existed. Text between * is rendered bold.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow *motion* so nights with nothing recorded can still be guessed from when your phone lay still.'**
+  String get sleepMotionHint;
+
+  /// Button on the motion tip: shows the motion permission prompt
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get sleepMotionAllow;
 
   /// Sleep banner close button (screen reader)
   ///

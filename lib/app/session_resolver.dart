@@ -157,7 +157,7 @@ class SessionResolver {
       partnerReminderProvider.clear();
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
-      sleepProvider.clear();
+      sleepProvider.clear(signedOut: true);
       // Signed out / account deleted: forget the couple too — the home-screen
       // widget bridge listens to CoupleProvider and pushes its empty state.
       await coupleProvider.loadCoupleForUser(null);
@@ -184,8 +184,10 @@ class SessionResolver {
       partnerReminderProvider.clear();
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
-      sleepProvider.clear();
-      await coupleProvider.loadCoupleForUser(null); // same reason as the guest branch
+      sleepProvider.clear(signedOut: true);
+      await coupleProvider.loadCoupleForUser(
+        null,
+      ); // same reason as the guest branch
       await reminderProvider.cancelDailyQuestionSchedule();
       return AppRoutes.verifyEmail;
     }
@@ -272,11 +274,13 @@ class SessionResolver {
       );
       // Sleep (feature sleep): my nights + (when shared) my partner's. Same
       // partner uid rule as rps ('' while waiting).
-      unawaited(sleepProvider.watchForCouple(
-        currentUser.coupleId!,
-        currentUser.id,
-        rpsPartnerUid,
-      ));
+      unawaited(
+        sleepProvider.watchForCouple(
+          currentUser.coupleId!,
+          currentUser.id,
+          rpsPartnerUid,
+        ),
+      );
     } else {
       await photoProvider.clearForSignOut();
       chatProvider.clear();

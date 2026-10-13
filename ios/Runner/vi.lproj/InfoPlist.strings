@@ -12,4 +12,4 @@
 
 "NSHealthUpdateUsageDescription" = "Dear Embeiu không ghi gì vào app Sức khoẻ. App chỉ đọc giấc ngủ để hiện giờ ngủ và giờ dậy của bạn.";
 
-"NSMotionUsageDescription" = "Dear Embeiu xem điện thoại nằm yên lúc nào vào ban đêm để đoán giờ bạn ngủ và thức. Dữ liệu chuyển động chỉ nằm trên máy.";
+"NSMotionUsageDescription" = "Dear Embeiu xem điện thoại nằm yên lúc nào vào ban đêm để đoán giờ bạn ngủ và thức. Dữ liệu chuyển động thô chỉ nằm trên máy; giờ ngủ và giờ thức chỉ được gửi cho người ấy khi bạn bật chia sẻ.";

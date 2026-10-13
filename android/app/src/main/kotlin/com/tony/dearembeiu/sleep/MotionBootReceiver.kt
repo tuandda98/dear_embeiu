@@ -7,6 +7,6 @@ import android.content.Intent
 /** Re-register transition updates after reboot / app update (registration is lost). */
 class MotionBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        MotionTracker.start(context)
+        MotionTracker.resume(context)
     }
 }

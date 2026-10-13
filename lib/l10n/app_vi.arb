@@ -2786,7 +2786,7 @@
   "@sleepHowIphoneInBed": {
     "description": "Sleep explainer paragraph (iOS): Sleep Schedule / time in bed"
   },
-  "sleepHowMotion": "Nếu bạn cho app xem chuyển động, đêm nào không có số liệu thì app đoán từ quãng điện thoại nằm yên. Đây chỉ là phỏng đoán: máy để trên bàn cả tối cũng bị tính là đang ngủ.",
+  "sleepHowMotion": "Nếu bạn cho app xem chuyển động, đêm nào không có số liệu thì app đoán từ quãng điện thoại nằm yên. Đây chỉ là phỏng đoán: điện thoại nằm trên bàn cả buổi sáng có thể bị tính nhầm là đang ngủ, bạn sửa tay được. Dữ liệu chuyển động thô chỉ nằm trên máy; người ấy chỉ thấy giờ ngủ và giờ thức khi bạn bật chia sẻ.",
   "@sleepHowMotion": {
     "description": "Sleep explainer paragraph: motion fallback (both platforms)"
   },
@@ -2797,6 +2797,14 @@
   "sleepIosHealthHint": "Đặt *Lịch ngủ* trong Sức khoẻ (Duyệt → Giấc ngủ) để iPhone tự ghi giờ lên giường, nếu máy có tuỳ chọn này.",
   "@sleepIosHealthHint": {
     "description": "Sleep screen banner (iOS, no Health data). Text between * is rendered bold."
+  },
+  "sleepMotionHint": "Cho app xem *chuyển động* để đêm nào thiếu số liệu vẫn được đoán từ lúc điện thoại nằm yên.",
+  "@sleepMotionHint": {
+    "description": "Sleep screen tip for users set up before the motion fallback existed. Text between * is rendered bold."
+  },
+  "sleepMotionAllow": "Cho phép",
+  "@sleepMotionAllow": {
+    "description": "Button on the motion tip: shows the motion permission prompt"
   },
   "sleepHintDismiss": "Ẩn gợi ý",
   "@sleepHintDismiss": {

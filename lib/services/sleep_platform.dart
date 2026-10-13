@@ -108,6 +108,25 @@ class SleepPlatform {
   /// every refresh. iOS: no-op (Core Motion keeps 7 days by itself).
   static Future<bool> startMotionTracking() => _bool('startMotionTracking');
 
+  /// Android: unregisters and wipes the recorded transitions. iOS: no-op.
+  /// Called when sleep goes manual, on sign-out / account switch and on
+  /// account deletion (vòng vá 1, F1).
+  static Future<bool> stopMotionTracking() => _bool('stopMotionTracking');
+
+  /// Oldest moment motion data covers (Android: first registration, iOS:
+  /// now − 7 days); null = nothing recorded yet.
+  static Future<DateTime?> motionCoverageStart() async {
+    if (!isAndroid && !isIOS) {
+      return null;
+    }
+    try {
+      final ms = await _channel.invokeMethod<int>('motionCoverageStart') ?? 0;
+      return ms > 0 ? DateTime.fromMillisecondsSinceEpoch(ms) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Spans the phone lay still within [from]..[to], oldest first.
   static Future<List<RestSpan>> motionStillSpans(
     DateTime from,
