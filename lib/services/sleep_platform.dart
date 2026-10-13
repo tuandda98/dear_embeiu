@@ -16,8 +16,13 @@ class SleepPlatform {
 
   static const MethodChannel _channel = MethodChannel('dear_embeiu/sleep');
 
-  static bool get isAndroid => !kIsWeb && Platform.isAndroid;
-  static bool get isIOS => !kIsWeb && Platform.isIOS;
+  /// Tests only: pretend to run on Android (true) / iOS (false).
+  @visibleForTesting
+  static bool? debugAndroid;
+
+  static bool get isAndroid => debugAndroid ?? (!kIsWeb && Platform.isAndroid);
+  static bool get isIOS =>
+      debugAndroid != null ? !debugAndroid! : (!kIsWeb && Platform.isIOS);
 
   /// Android 9+ (screen events exist) / iOS with Health available.
   static Future<bool> isSupported() => _bool('isSupported');

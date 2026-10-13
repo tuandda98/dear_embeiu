@@ -265,27 +265,12 @@ final class SleepHealthChannel {
     let end = min(Date(timeIntervalSince1970: to / 1000), now)
     guard start < end else { result(empty); return }
     motion.queryActivityStarting(from: start, to: end, to: motionQueue) { activities, _ in
-      var flat: [Int64] = []
-      var open: Date?
-      func close(_ at: Date) {
-        if let s = open, at > s {
-          flat.append(Int64(s.timeIntervalSince1970 * 1000))
-          flat.append(Int64(at.timeIntervalSince1970 * 1000))
-        }
-        open = nil
+      let mapped = (activities ?? []).map {
+        MotionActivity(
+          start: $0.startDate, stationary: $0.stationary, lowConfidence: $0.confidence == .low,
+          unknown: $0.unknown, moving: $0.walking || $0.running || $0.cycling || $0.automotive)
       }
-      for a in activities ?? [] {
-        let moving = a.walking || a.running || a.cycling || a.automotive
-        if moving {
-          close(a.startDate)
-        } else if a.stationary && a.confidence != .low && !a.unknown {
-          if open == nil { open = max(a.startDate, start) }
-        } else if !(a.stationary || a.unknown) {
-          close(a.startDate)
-        }
-        // Low-confidence stationary / unknown: neutral, the span stays as is.
-      }
-      close(end)
+      let flat = MotionSpanBuilder.spans(activities: mapped, from: start, to: end, now: now)
       let data = flat.withUnsafeBufferPointer { Data(buffer: $0) }
       DispatchQueue.main.async { result(FlutterStandardTypedData(int64: data)) }
     }
