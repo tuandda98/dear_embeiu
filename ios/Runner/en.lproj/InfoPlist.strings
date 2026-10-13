@@ -11,3 +11,5 @@
 "NSHealthShareUsageDescription" = "Dear Embeiu reads the sleep data your iPhone or Apple Watch records in the Health app to show when you fell asleep, when you got up and any times you woke during the night. Turn on sharing and your partner can see it too. The app only reads this data and never writes anything to Health.";
 
 "NSHealthUpdateUsageDescription" = "Dear Embeiu doesn't write anything to the Health app. It only reads your sleep data to show when you fell asleep and when you got up.";
+
+"NSMotionUsageDescription" = "Dear Embeiu checks when your phone lies still at night to estimate when you fall asleep and wake up. Motion data stays on your phone.";

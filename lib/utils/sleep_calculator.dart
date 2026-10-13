@@ -78,6 +78,16 @@ class SleepRules {
     minSleep: Duration(hours: 3),
     noise: Duration(minutes: 2),
   );
+
+  /// Phone lying still (Core Motion / Activity Recognition): a pickup in the
+  /// night shows up as a short "moving" gap.
+  // ponytail: 10 min merge / 2 min noise are guesses — motion sensors lag a
+  // few minutes behind; tune after the 2-device smoke test.
+  static const SleepRules motion = SleepRules(
+    mergeGap: Duration(minutes: 10),
+    minSleep: Duration(hours: 3),
+    noise: Duration(minutes: 2),
+  );
 }
 
 /// Search window for the night that ends on [wakeDate].
@@ -273,6 +283,29 @@ Map<String, SleepNight?> computeScreenNights(
       wakeDate: d,
       spans: spans,
       rules: SleepRules.screen,
+      source: SleepSource.auto,
+    );
+  }
+  return out;
+}
+
+/// Nights from the motion fallback (phone lying still). Saved as
+/// [SleepSource.auto] — no new source value, so rules and older apps read it.
+Map<String, SleepNight?> computeMotionNights(
+  List<RestSpan> still, {
+  required List<DateTime> wakeDates,
+  required DateTime now,
+}) {
+  final spans = unionSpans(still);
+  final out = <String, SleepNight?>{};
+  for (final d in wakeDates) {
+    if (sleepWindow(d).start.isAfter(now)) {
+      continue;
+    }
+    out[sleepDateKey(d)] = computeNight(
+      wakeDate: d,
+      spans: spans,
+      rules: SleepRules.motion,
       source: SleepSource.auto,
     );
   }

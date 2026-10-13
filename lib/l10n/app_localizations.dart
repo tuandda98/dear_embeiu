@@ -5767,6 +5767,12 @@ abstract class AppLocalizations {
   /// **'Phone (automatic)'**
   String get sleepSourcePhone;
 
+  /// Sleep source name: motion fallback (phone lying still)
+  ///
+  /// In en, this message translates to:
+  /// **'Phone motion'**
+  String get sleepSourceMotion;
+
   /// Sleep settings row
   ///
   /// In en, this message translates to:
@@ -6283,6 +6289,18 @@ abstract class AppLocalizations {
   /// **'The app only reads Sleep in Health, nothing else.'**
   String get sleepHowBody4Ios;
 
+  /// Sleep explainer paragraph (iOS): Sleep Schedule / time in bed
+  ///
+  /// In en, this message translates to:
+  /// **'Your iPhone can log time in bed by itself: open Health → Browse → Sleep → Sleep Schedule, set a bedtime and turn on tracking time in bed with iPhone. Some iPhones on iOS 18 or later no longer offer this.'**
+  String get sleepHowIphoneInBed;
+
+  /// Sleep explainer paragraph: motion fallback (both platforms)
+  ///
+  /// In en, this message translates to:
+  /// **'If you let the app see motion, nights with nothing recorded are guessed from when your phone lay still. It is only a guess: a phone left on the desk all evening counts as asleep.'**
+  String get sleepHowMotion;
+
   /// Sleep explainer close button
   ///
   /// In en, this message translates to:
@@ -6292,7 +6310,7 @@ abstract class AppLocalizations {
   /// Sleep screen banner (iOS, no Health data). Text between * is rendered bold.
   ///
   /// In en, this message translates to:
-  /// **'Turn on *Sleep Schedule* in Health so your iPhone logs your sleep.'**
+  /// **'Set a *Sleep Schedule* in Health (Browse → Sleep) so your iPhone logs time in bed, if it offers that option.'**
   String get sleepIosHealthHint;
 
   /// Sleep banner close button (screen reader)

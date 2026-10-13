@@ -1,4 +1,5 @@
 import AuthenticationServices
+import CoreMotion
 import FirebaseCore
 import Flutter
 import HealthKit
@@ -158,6 +159,19 @@ final class SleepHealthChannel {
         let from = (args?["from"] as? NSNumber)?.doubleValue ?? 0
         let to = (args?["to"] as? NSNumber)?.doubleValue ?? Date().timeIntervalSince1970 * 1000
         readSamples(from: from, to: to, result: result)
+      case "motionSupported":
+        result(CMMotionActivityManager.isActivityAvailable())
+      case "motionPermission":
+        result(motionPermission())
+      case "requestMotionPermission":
+        requestMotion(result: result)
+      case "startMotionTracking":
+        result(true)
+      case "motionStillSpans":
+        let args = call.arguments as? [String: Any]
+        let from = (args?["from"] as? NSNumber)?.doubleValue ?? 0
+        let to = (args?["to"] as? NSNumber)?.doubleValue ?? Date().timeIntervalSince1970 * 1000
+        motionStillSpans(from: from, to: to, result: result)
       case "excludeFromBackup":
         // Sleep data stays on this phone (privacy policy): its folder is
         // left out of iCloud / computer backups. Set on the folder, so every
@@ -210,6 +224,60 @@ final class SleepHealthChannel {
       DispatchQueue.main.async { result(FlutterStandardTypedData(int64: data)) }
     }
     store.execute(query)
+  }
+
+  // MARK: Motion fallback (feature sleep-motion): phone-lying-still spans.
+  private static let motion = CMMotionActivityManager()
+  private static let motionQueue = OperationQueue()
+
+  private static func motionPermission() -> String {
+    switch CMMotionActivityManager.authorizationStatus() {
+    case .authorized: return "granted"
+    case .notDetermined: return "notDetermined"
+    default: return "denied"
+    }
+  }
+
+  /// Triggers the permission prompt with one short query, then re-reads status.
+  private static func requestMotion(result: @escaping FlutterResult) {
+    guard CMMotionActivityManager.isActivityAvailable() else { result(false); return }
+    if motionPermission() == "granted" { result(true); return }
+    let now = Date()
+    motion.queryActivityStarting(from: now.addingTimeInterval(-60), to: now, to: motionQueue) { _, _ in
+      DispatchQueue.main.async { result(motionPermission() == "granted") }
+    }
+  }
+
+  /// Flat Int64 [startMs, endMs, …] of stationary spans inside [from, to].
+  private static func motionStillSpans(from: Double, to: Double, result: @escaping FlutterResult) {
+    let empty = FlutterStandardTypedData(int64: Data())
+    guard CMMotionActivityManager.isActivityAvailable(), motionPermission() == "granted" else {
+      result(empty)
+      return
+    }
+    let now = Date()
+    // iOS keeps only 7 days of history.
+    let start = max(Date(timeIntervalSince1970: from / 1000), now.addingTimeInterval(-7 * 86400))
+    let end = min(Date(timeIntervalSince1970: to / 1000), now)
+    guard start < end else { result(empty); return }
+    motion.queryActivityStarting(from: start, to: end, to: motionQueue) { activities, _ in
+      var flat: [Int64] = []
+      var open: Date?
+      func close(_ at: Date) {
+        if let s = open, at > s {
+          flat.append(Int64(s.timeIntervalSince1970 * 1000))
+          flat.append(Int64(at.timeIntervalSince1970 * 1000))
+        }
+        open = nil
+      }
+      for a in activities ?? [] {
+        let still = a.stationary && a.confidence != .low
+        if still { if open == nil { open = max(a.startDate, start) } } else { close(a.startDate) }
+      }
+      close(end)
+      let data = flat.withUnsafeBufferPointer { Data(buffer: $0) }
+      DispatchQueue.main.async { result(FlutterStandardTypedData(int64: data)) }
+    }
   }
 }
 

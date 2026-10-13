@@ -1776,10 +1776,16 @@ class _SettingsCard extends StatelessWidget {
     if (!sleep.enabled || sleep.mode == SleepMode.manual) {
       source = l10n.sleepSourceManual;
       sourceIcon = IconsaxPlusLinear.edit;
+    } else if (sleep.mode == SleepMode.health && !sleep.healthHasNoData) {
+      source = l10n.sleepSourceHealth;
+      sourceIcon = IconsaxPlusLinear.health;
+    } else if (sleep.mode == SleepMode.health
+        ? sleep.hasRecentAutoNight
+        : sleep.onMotionOnly && sleep.motionGranted) {
+      source = l10n.sleepSourceMotion;
+      sourceIcon = IconsaxPlusLinear.mobile;
     } else if (sleep.mode == SleepMode.health) {
-      source = sleep.healthHasNoData
-          ? l10n.sleepSourceManual
-          : l10n.sleepSourceHealth;
+      source = l10n.sleepSourceManual;
       sourceIcon = IconsaxPlusLinear.health;
     } else {
       source = l10n.sleepSourcePhone;

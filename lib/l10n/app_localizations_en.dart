@@ -3574,6 +3574,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleepSourcePhone => 'Phone (automatic)';
 
   @override
+  String get sleepSourceMotion => 'Phone motion';
+
+  @override
   String sleepSourceRow(String source) {
     return 'Source: $source';
   }
@@ -3904,11 +3907,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'The app only reads Sleep in Health, nothing else.';
 
   @override
+  String get sleepHowIphoneInBed =>
+      'Your iPhone can log time in bed by itself: open Health → Browse → Sleep → Sleep Schedule, set a bedtime and turn on tracking time in bed with iPhone. Some iPhones on iOS 18 or later no longer offer this.';
+
+  @override
+  String get sleepHowMotion =>
+      'If you let the app see motion, nights with nothing recorded are guessed from when your phone lay still. It is only a guess: a phone left on the desk all evening counts as asleep.';
+
+  @override
   String get sleepGotIt => 'Got it';
 
   @override
   String get sleepIosHealthHint =>
-      'Turn on *Sleep Schedule* in Health so your iPhone logs your sleep.';
+      'Set a *Sleep Schedule* in Health (Browse → Sleep) so your iPhone logs time in bed, if it offers that option.';
 
   @override
   String get sleepHintDismiss => 'Dismiss tip';

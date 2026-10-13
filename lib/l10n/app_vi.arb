@@ -2323,6 +2323,10 @@
   "@sleepSourcePhone": {
     "description": "Sleep source name on Android"
   },
+  "sleepSourceMotion": "Chuyển động của điện thoại",
+  "@sleepSourceMotion": {
+    "description": "Sleep source name: motion fallback (phone lying still)"
+  },
   "sleepSourceRow": "Nguồn: {source}",
   "@sleepSourceRow": {
     "description": "Sleep settings row",
@@ -2778,11 +2782,19 @@
   "@sleepHowBody4Ios": {
     "description": "Sleep explainer paragraph (iOS)"
   },
+  "sleepHowIphoneInBed": "iPhone có thể tự ghi giờ lên giường: mở Sức khoẻ → Duyệt → Giấc ngủ → Lịch ngủ, đặt giờ ngủ rồi bật theo dõi thời gian trên giường bằng iPhone. Một số máy từ iOS 18 không còn tuỳ chọn này.",
+  "@sleepHowIphoneInBed": {
+    "description": "Sleep explainer paragraph (iOS): Sleep Schedule / time in bed"
+  },
+  "sleepHowMotion": "Nếu bạn cho app xem chuyển động, đêm nào không có số liệu thì app đoán từ quãng điện thoại nằm yên. Đây chỉ là phỏng đoán: máy để trên bàn cả tối cũng bị tính là đang ngủ.",
+  "@sleepHowMotion": {
+    "description": "Sleep explainer paragraph: motion fallback (both platforms)"
+  },
   "sleepGotIt": "Đã hiểu",
   "@sleepGotIt": {
     "description": "Sleep explainer close button"
   },
-  "sleepIosHealthHint": "Bật *Lịch ngủ* trong app Sức khoẻ để iPhone tự ghi giấc ngủ.",
+  "sleepIosHealthHint": "Đặt *Lịch ngủ* trong Sức khoẻ (Duyệt → Giấc ngủ) để iPhone tự ghi giờ lên giường, nếu máy có tuỳ chọn này.",
   "@sleepIosHealthHint": {
     "description": "Sleep screen banner (iOS, no Health data). Text between * is rendered bold."
   },

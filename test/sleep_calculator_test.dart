@@ -635,4 +635,27 @@ void main() {
       }
     });
   });
+
+  group('motion fallback → night', () {
+    Map<String, SleepNight?> motion(List<RestSpan> still) =>
+        computeMotionNights(still, wakeDates: [wake], now: at(10, 12));
+
+    test('a 5-min pickup in the night is one wake-up, source auto', () {
+      final n = motion([
+        RestSpan(at(9, 23, 30), at(10, 2, 10)),
+        RestSpan(at(10, 2, 15), at(10, 6, 40)),
+      ])['2026-10-10']!;
+      expect(n.bedAt, at(9, 23, 30));
+      expect(n.wakeAt, at(10, 6, 40));
+      expect(n.wakeUps, [160]);
+      expect(n.source, SleepSource.auto);
+    });
+
+    test('a phone still on the desk all afternoon is not a night', () {
+      expect(
+        motion([RestSpan(at(9, 13), at(9, 17, 30))])['2026-10-10'],
+        isNull,
+      );
+    });
+  });
 }

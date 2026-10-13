@@ -7,7 +7,8 @@ import '../utils/sleep_calculator.dart';
 
 /// Thin bridge to the native sleep sources (feature sleep). One channel, two
 /// implementations — `MainActivity.kt` (Android UsageStats screen events, API
-/// 28+) and `AppDelegate.swift` (iOS HealthKit `sleepAnalysis`, read only).
+/// 28+) and `AppDelegate.swift` (iOS HealthKit `sleepAnalysis`, read only),
+/// plus the motion fallback on both (`project/features/sleep/motion-contract.md`).
 /// Every call is best-effort: a missing/failed channel reads as "unsupported"
 /// or "no data", never an exception.
 class SleepPlatform {
@@ -79,6 +80,45 @@ class SleepPlatform {
           DateTime.fromMillisecondsSinceEpoch(flat[i]),
           DateTime.fromMillisecondsSinceEpoch(flat[i + 1]),
           flat[i + 2],
+        ),
+    ];
+  }
+
+  /// Fallback source (motion contract 2026-10-13): iOS Core Motion,
+  /// Android Activity Recognition.
+  static Future<bool> motionSupported() => _bool('motionSupported');
+
+  /// 'granted' · 'denied' · 'notDetermined'.
+  static Future<String> motionPermission() async {
+    if (!isAndroid && !isIOS) {
+      return 'denied';
+    }
+    try {
+      return await _channel.invokeMethod<String>('motionPermission') ??
+          'denied';
+    } catch (_) {
+      return 'denied';
+    }
+  }
+
+  static Future<bool> requestMotionPermission() =>
+      _bool('requestMotionPermission');
+
+  /// Android: (re)registers the STILL transitions — idempotent, called on
+  /// every refresh. iOS: no-op (Core Motion keeps 7 days by itself).
+  static Future<bool> startMotionTracking() => _bool('startMotionTracking');
+
+  /// Spans the phone lay still within [from]..[to], oldest first.
+  static Future<List<RestSpan>> motionStillSpans(
+    DateTime from,
+    DateTime to,
+  ) async {
+    final flat = await _longs('motionStillSpans', from, to);
+    return [
+      for (var i = 0; i + 1 < flat.length; i += 2)
+        RestSpan(
+          DateTime.fromMillisecondsSinceEpoch(flat[i]),
+          DateTime.fromMillisecondsSinceEpoch(flat[i + 1]),
         ),
     ];
   }

@@ -460,4 +460,50 @@ void main() {
     await pumpEventQueue();
     expect(service.calls, ['put ${recent.date} tz']);
   });
+
+  group('withMotionFallback', () {
+    final now = DateTime(2026, 10, 13, 9);
+    SleepNight night(String date, SleepSource source, int bedHour) {
+      final d = DateTime.parse(date);
+      return SleepNight(
+        date: date,
+        bedAt: DateTime(d.year, d.month, d.day - 1, bedHour),
+        wakeAt: DateTime(d.year, d.month, d.day, 7),
+        source: source,
+      );
+    }
+
+    test('fills null / missing dates, keeps the main source', () {
+      final health = night('2026-10-12', SleepSource.health, 23);
+      final out = SleepProvider.withMotionFallback(
+        {'2026-10-12': health, '2026-10-13': null},
+        {
+          '2026-10-11': night('2026-10-11', SleepSource.auto, 22),
+          '2026-10-12': night('2026-10-12', SleepSource.auto, 22),
+          '2026-10-13': night('2026-10-13', SleepSource.auto, 22),
+        },
+        {},
+        now: now,
+      );
+      expect(out['2026-10-12'], same(health));
+      expect(out['2026-10-13']?.source, SleepSource.auto);
+      expect(out['2026-10-11']?.source, SleepSource.auto);
+    });
+
+    test('never over a stored Health night or an old stored night', () {
+      final out = SleepProvider.withMotionFallback(
+        {},
+        {
+          '2026-10-13': night('2026-10-13', SleepSource.auto, 22),
+          '2026-10-10': night('2026-10-10', SleepSource.auto, 22),
+        },
+        {
+          '2026-10-13': night('2026-10-13', SleepSource.health, 23),
+          '2026-10-10': night('2026-10-10', SleepSource.auto, 23),
+        },
+        now: now,
+      );
+      expect(out, isEmpty);
+    });
+  });
 }

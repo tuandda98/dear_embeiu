@@ -2968,6 +2968,10 @@
   "@sleepSourcePhone": {
     "description": "Sleep source name on Android"
   },
+  "sleepSourceMotion": "Phone motion",
+  "@sleepSourceMotion": {
+    "description": "Sleep source name: motion fallback (phone lying still)"
+  },
   "sleepSourceRow": "Source: {source}",
   "@sleepSourceRow": {
     "description": "Sleep settings row",
@@ -3423,11 +3427,19 @@
   "@sleepHowBody4Ios": {
     "description": "Sleep explainer paragraph (iOS)"
   },
+  "sleepHowIphoneInBed": "Your iPhone can log time in bed by itself: open Health → Browse → Sleep → Sleep Schedule, set a bedtime and turn on tracking time in bed with iPhone. Some iPhones on iOS 18 or later no longer offer this.",
+  "@sleepHowIphoneInBed": {
+    "description": "Sleep explainer paragraph (iOS): Sleep Schedule / time in bed"
+  },
+  "sleepHowMotion": "If you let the app see motion, nights with nothing recorded are guessed from when your phone lay still. It is only a guess: a phone left on the desk all evening counts as asleep.",
+  "@sleepHowMotion": {
+    "description": "Sleep explainer paragraph: motion fallback (both platforms)"
+  },
   "sleepGotIt": "Got it",
   "@sleepGotIt": {
     "description": "Sleep explainer close button"
   },
-  "sleepIosHealthHint": "Turn on *Sleep Schedule* in Health so your iPhone logs your sleep.",
+  "sleepIosHealthHint": "Set a *Sleep Schedule* in Health (Browse → Sleep) so your iPhone logs time in bed, if it offers that option.",
   "@sleepIosHealthHint": {
     "description": "Sleep screen banner (iOS, no Health data). Text between * is rendered bold."
   },

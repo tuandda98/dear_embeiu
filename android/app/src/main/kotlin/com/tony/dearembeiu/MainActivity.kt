@@ -17,8 +17,15 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import android.os.Bundle
+import androidx.core.app.ActivityCompat
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.tony.dearembeiu.sleep.MotionStore
+import com.tony.dearembeiu.sleep.MotionTracker
 import com.tony.dearembeiu.widget.DayCounterWidget
 import com.tony.dearembeiu.widget.WidgetStore
+
+private const val MOTION_REQ = 4711
 
 class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -71,9 +78,50 @@ class MainActivity : FlutterActivity() {
                             Handler(Looper.getMainLooper()).post { result.success(events) }
                         }.start()
                     }
+                    "motionSupported" -> result.success(
+                        GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS
+                    )
+                    "motionPermission" -> result.success(motionPermission())
+                    "requestMotionPermission" -> requestMotionPermission(result)
+                    "startMotionTracking" -> result.success(MotionTracker.start(this))
+                    "motionStillSpans" -> {
+                        val from = call.argument<Number>("from")?.toLong() ?: 0L
+                        val to = call.argument<Number>("to")?.toLong() ?: System.currentTimeMillis()
+                        result.success(
+                            try { MotionStore.stillSpans(this, from, to) } catch (_: Exception) { LongArray(0) }
+                        )
+                    }
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    private var pendingMotionResult: MethodChannel.Result? = null
+
+    private fun motionPermission(): String = when {
+        MotionTracker.hasPermission(this) -> "granted"
+        MotionStore.asked(this) -> "denied"
+        else -> "notDetermined"
+    }
+
+    private fun requestMotionPermission(result: MethodChannel.Result) {
+        if (MotionTracker.hasPermission(this)) {
+            result.success(true)
+            return
+        }
+        pendingMotionResult?.success(false)
+        pendingMotionResult = result
+        MotionStore.markAsked(this)
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), MOTION_REQ)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != MOTION_REQ) return
+        val ok = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+        if (ok) MotionTracker.start(this)
+        pendingMotionResult?.success(ok)
+        pendingMotionResult = null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

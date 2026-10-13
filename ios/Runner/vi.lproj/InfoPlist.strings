@@ -11,3 +11,5 @@
 "NSHealthShareUsageDescription" = "Dear Embeiu đọc giấc ngủ mà iPhone hoặc Apple Watch đã ghi trong app Sức khoẻ, để hiện giờ ngủ, giờ dậy và những lần bạn thức giấc trong đêm. Bật chia sẻ thì người ấy cũng xem được. App chỉ đọc, không ghi gì vào Sức khoẻ.";
 
 "NSHealthUpdateUsageDescription" = "Dear Embeiu không ghi gì vào app Sức khoẻ. App chỉ đọc giấc ngủ để hiện giờ ngủ và giờ dậy của bạn.";
+
+"NSMotionUsageDescription" = "Dear Embeiu xem điện thoại nằm yên lúc nào vào ban đêm để đoán giờ bạn ngủ và thức. Dữ liệu chuyển động chỉ nằm trên máy.";

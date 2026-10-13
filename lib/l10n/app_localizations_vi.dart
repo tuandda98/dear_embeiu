@@ -3365,6 +3365,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sleepSourcePhone => 'Điện thoại (tự động)';
 
   @override
+  String get sleepSourceMotion => 'Chuyển động của điện thoại';
+
+  @override
   String sleepSourceRow(String source) {
     return 'Nguồn: $source';
   }
@@ -3690,11 +3693,19 @@ class AppLocalizationsVi extends AppLocalizations {
       'App chỉ đọc mục Giấc ngủ trong Sức khoẻ, ngoài ra không đọc gì.';
 
   @override
+  String get sleepHowIphoneInBed =>
+      'iPhone có thể tự ghi giờ lên giường: mở Sức khoẻ → Duyệt → Giấc ngủ → Lịch ngủ, đặt giờ ngủ rồi bật theo dõi thời gian trên giường bằng iPhone. Một số máy từ iOS 18 không còn tuỳ chọn này.';
+
+  @override
+  String get sleepHowMotion =>
+      'Nếu bạn cho app xem chuyển động, đêm nào không có số liệu thì app đoán từ quãng điện thoại nằm yên. Đây chỉ là phỏng đoán: máy để trên bàn cả tối cũng bị tính là đang ngủ.';
+
+  @override
   String get sleepGotIt => 'Đã hiểu';
 
   @override
   String get sleepIosHealthHint =>
-      'Bật *Lịch ngủ* trong app Sức khoẻ để iPhone tự ghi giấc ngủ.';
+      'Đặt *Lịch ngủ* trong Sức khoẻ (Duyệt → Giấc ngủ) để iPhone tự ghi giờ lên giường, nếu máy có tuỳ chọn này.';
 
   @override
   String get sleepHintDismiss => 'Ẩn gợi ý';

@@ -235,7 +235,8 @@ class _SetupSheetState extends State<_SetupSheet> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  /// Android: back from Settings → check Usage access, move on when granted.
+  /// Android: back from Settings → check Usage access, move on when granted —
+  /// or when motion was allowed (it works without Usage access).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed || !_awaitingSettings) {
@@ -245,7 +246,7 @@ class _SetupSheetState extends State<_SetupSheet> with WidgetsBindingObserver {
       if (!mounted) {
         return;
       }
-      if (granted) {
+      if (granted || context.read<SleepProvider>().motionGranted) {
         _awaitingSettings = false;
         _finishStep1(SleepMode.auto);
       } else {
@@ -258,6 +259,8 @@ class _SetupSheetState extends State<_SetupSheet> with WidgetsBindingObserver {
     HapticFeedback.selectionClick();
     final sleep = context.read<SleepProvider>();
     if (SleepPlatform.isAndroid) {
+      // Motion first (an in-app prompt), then Usage access in Settings.
+      await sleep.requestMotionPermission();
       if (await sleep.checkPermission()) {
         await _finishStep1(SleepMode.auto);
         return;
@@ -268,6 +271,7 @@ class _SetupSheetState extends State<_SetupSheet> with WidgetsBindingObserver {
     }
     setState(() => _busy = true);
     await sleep.requestPermission();
+    await sleep.requestMotionPermission();
     await _finishStep1(SleepMode.health);
   }
 
@@ -882,10 +886,17 @@ class _HowItWorksSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final paragraphs = SleepPlatform.isIOS
-        ? [l10n.sleepHowBody1Ios, l10n.sleepHowBody3, l10n.sleepHowBody4Ios]
+        ? [
+            l10n.sleepHowBody1Ios,
+            l10n.sleepHowIphoneInBed,
+            l10n.sleepHowMotion,
+            l10n.sleepHowBody3,
+            l10n.sleepHowBody4Ios,
+          ]
         : [
             l10n.sleepHowBody1,
             l10n.sleepHowBody2,
+            l10n.sleepHowMotion,
             l10n.sleepHowBody3,
             l10n.sleepHowBody4,
           ];
