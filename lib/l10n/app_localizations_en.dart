@@ -3581,6 +3581,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleepSourcePhone => 'Phone (automatic)';
 
   @override
+  String get sleepSourceHealthEmpty => 'Apple Health (no data yet)';
+
+  @override
   String get sleepSourceMotion => 'Phone motion';
 
   @override

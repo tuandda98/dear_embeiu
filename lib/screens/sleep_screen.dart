@@ -1828,7 +1828,9 @@ class _SettingsCard extends StatelessWidget {
       source = l10n.sleepSourceMotion;
       sourceIcon = IconsaxPlusLinear.mobile;
     } else if (sleep.mode == SleepMode.health) {
-      source = l10n.sleepSourceManual;
+      // Health on, nothing in it yet: say so rather than "Ghi tay", which
+      // read as "the permission didn't stick" (user report 2026-10-13).
+      source = l10n.sleepSourceHealthEmpty;
       sourceIcon = IconsaxPlusLinear.health;
     } else {
       source = l10n.sleepSourcePhone;

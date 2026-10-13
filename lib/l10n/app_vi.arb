@@ -2331,6 +2331,10 @@
   "@sleepSourcePhone": {
     "description": "Sleep source name on Android"
   },
+  "sleepSourceHealthEmpty": "Apple Health (chưa có dữ liệu)",
+  "@sleepSourceHealthEmpty": {
+    "description": "Sleep source row: iOS Health mode with no Health night in the last 14 days."
+  },
   "sleepSourceMotion": "Chuyển động của điện thoại",
   "@sleepSourceMotion": {
     "description": "Sleep source name: motion fallback (phone lying still)"

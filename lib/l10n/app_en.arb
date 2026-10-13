@@ -2976,6 +2976,10 @@
   "@sleepSourcePhone": {
     "description": "Sleep source name on Android"
   },
+  "sleepSourceHealthEmpty": "Apple Health (no data yet)",
+  "@sleepSourceHealthEmpty": {
+    "description": "Sleep source row: iOS Health mode with no Health night in the last 14 days."
+  },
   "sleepSourceMotion": "Phone motion",
   "@sleepSourceMotion": {
     "description": "Sleep source name: motion fallback (phone lying still)"

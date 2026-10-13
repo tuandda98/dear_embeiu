@@ -3373,6 +3373,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sleepSourcePhone => 'Điện thoại (tự động)';
 
   @override
+  String get sleepSourceHealthEmpty => 'Apple Health (chưa có dữ liệu)';
+
+  @override
   String get sleepSourceMotion => 'Chuyển động của điện thoại';
 
   @override

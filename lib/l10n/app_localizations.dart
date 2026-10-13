@@ -5779,6 +5779,12 @@ abstract class AppLocalizations {
   /// **'Phone (automatic)'**
   String get sleepSourcePhone;
 
+  /// Sleep source row: iOS Health mode with no Health night in the last 14 days.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Health (no data yet)'**
+  String get sleepSourceHealthEmpty;
+
   /// Sleep source name: motion fallback (phone lying still)
   ///
   /// In en, this message translates to:

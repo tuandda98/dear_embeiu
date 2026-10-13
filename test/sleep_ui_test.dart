@@ -983,6 +983,17 @@ void main() {
       },
     );
 
+    testWidgets('iOS Health on but empty says so, not "Ghi tay"', (
+      tester,
+    ) async {
+      await open(tester, _MotionSleep(modeValue: SleepMode.health));
+      expect(
+        find.textContaining('Apple Health (chưa có dữ liệu)'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Nguồn: Ghi tay'), findsNothing);
+    });
+
     testWidgets('manual mode never says "Chuyển động"', (tester) async {
       await open(tester, _MotionSleep(motionOnly: true, granted: true));
       expect(find.textContaining('Chuyển động của điện thoại'), findsNothing);
