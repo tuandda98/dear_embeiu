@@ -278,7 +278,7 @@ class SleepProvider extends ChangeNotifier {
   /// yet": that can be a failed couple load, and Android would lose its
   /// motion history.
   void clear({bool signedOut = false}) {
-    if (signedOut && _uid != null) {
+    if (signedOut) {
       unawaited(SleepPlatform.stopMotionTracking());
     }
     _cancelSubs();

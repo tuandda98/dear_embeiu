@@ -322,11 +322,18 @@ Map<String, SleepNight?> computeMotionNights(
   if (coverageStart == null) {
     return const <String, SleepNight?>{};
   }
-  final spans = unionSpans(still);
+  // A span starting at the data edge has no known start (the phone may have
+  // lain still for hours before): drop it rather than the whole window, so a
+  // set-up at 21:00 still gets that night (Tester R2-C).
+  final edge = coverageStart.add(const Duration(minutes: 1));
+  final spans = unionSpans([
+    for (final s in still)
+      if (s.start.isAfter(edge)) s,
+  ]);
   final out = <String, SleepNight?>{};
   for (final d in wakeDates) {
     final w = sleepWindow(d);
-    if (w.start.isBefore(coverageStart) || w.start.isAfter(now)) {
+    if (w.end.isBefore(coverageStart) || w.start.isAfter(now)) {
       continue;
     }
     out[sleepDateKey(d)] = computeNight(

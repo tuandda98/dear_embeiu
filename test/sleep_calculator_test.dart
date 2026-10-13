@@ -683,11 +683,27 @@ void main() {
     });
 
     test('F2: morning 09:35–13:50 right after turning it on → no night', () {
-      final out = motion(
-        [RestSpan(at(10, 9, 35), at(10, 13, 50))],
-        coverage: at(10, 9, 30),
+      final out = motion([
+        RestSpan(at(10, 9, 35), at(10, 13, 50)),
+      ], coverage: at(10, 9, 30));
+      expect(out['2026-10-10'], isNull);
+    });
+
+    test('R2-C: set up at 21:00, slept 23:00–06:40 → that night counts', () {
+      final n = motion([
+        RestSpan(at(9, 23), at(10, 6, 40)),
+      ], coverage: at(9, 21))['2026-10-10']!;
+      expect(n.bedAt, at(9, 23));
+      expect(n.wakeAt, at(10, 6, 40));
+    });
+
+    test('R2-C: a span starting at the data edge is dropped', () {
+      expect(
+        motion([
+          RestSpan(at(9, 21), at(10, 6, 40)),
+        ], coverage: at(9, 21))['2026-10-10'],
+        isNull,
       );
-      expect(out.containsKey('2026-10-10'), isFalse);
     });
 
     test('F2: no coverage (0 from the channel) → no nights at all', () {

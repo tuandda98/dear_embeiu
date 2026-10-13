@@ -29,9 +29,15 @@ object MotionTracker {
         register(c, MotionSpans.STALE_OPEN_MS, done)
     }
 
-    /** Boot / app update: only when Dart enabled tracking and the permission is still there. */
-    fun resume(c: Context) {
-        if (MotionStore.enabled(c) && hasPermission(c)) register(c, 0) {}
+    /**
+     * Boot / app update: only when Dart enabled tracking and the permission is still there.
+     * [rebooted]: the phone was off, so an open ENTER is closed now. An app update (often at
+     * night, phone still on the charger) only closes a stale one, like [start].
+     */
+    fun resume(c: Context, rebooted: Boolean) {
+        if (MotionStore.enabled(c) && hasPermission(c)) {
+            register(c, if (rebooted) 0 else MotionSpans.STALE_OPEN_MS) {}
+        }
     }
 
     /** Idempotent: re-registering the same PendingIntent replaces the old request. */
