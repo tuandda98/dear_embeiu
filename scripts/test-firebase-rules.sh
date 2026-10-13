@@ -2,7 +2,8 @@
 # Chạy TOÀN BỘ unit test cho Firestore + Storage security rules trên Firebase
 # emulator. Tự bật/tắt emulator (firebase emulators:exec) nên không cần quản lý
 # tiến trình thủ công. Portable giữa các máy: tự dò JDK 21+ (firebase-tools 15
-# yêu cầu Java >= 21).
+# yêu cầu Java >= 21). Trước đó chạy luôn unit test Cloud Functions
+# (`npm test` trong functions/).
 #
 # Exit codes:
 #   0  = tất cả test pass
@@ -15,6 +16,21 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TEST_DIR="$ROOT/firebase_rules_test"
+
+# --- 0. Cloud Functions: check cú pháp + unit test (functions/test/, node:test) --
+# Chạy trước bước dò JDK: không cần Java, nên máy thiếu JDK vẫn chạy được phần này.
+if [ -f "$ROOT/functions/index.js" ]; then
+  if ! node -c "$ROOT/functions/index.js"; then
+    echo "✗ functions/index.js có lỗi cú pháp" >&2
+    exit 1
+  fi
+  echo "✓ functions/index.js cú pháp OK"
+  if ! (cd "$ROOT/functions" && npm test); then
+    echo "✗ unit test Cloud Functions FAIL (functions/test/)" >&2
+    exit 1
+  fi
+  echo "✓ unit test Cloud Functions pass"
+fi
 
 # --- 1. Dò JDK 21+ ----------------------------------------------------------
 # In ra JAVA_HOME cần set (rỗng = java hiện tại đã >= 21). return 1 = không thấy.
@@ -76,23 +92,16 @@ if [ ! -d "$TEST_DIR/node_modules" ]; then
   ( cd "$TEST_DIR" && npm install ) || { echo "✗ npm install thất bại" >&2; exit 1; }
 fi
 
-# --- 3. Check cú pháp Cloud Functions (functions chưa có unit test riêng) ----
-if [ -f "$ROOT/functions/index.js" ]; then
-  if ! node -c "$ROOT/functions/index.js"; then
-    echo "✗ functions/index.js có lỗi cú pháp" >&2
-    exit 1
-  fi
-  echo "✓ functions/index.js cú pháp OK"
-fi
-
-# --- 4. Chọn binary firebase-tools ------------------------------------------
+# --- 3. Chọn binary firebase-tools ------------------------------------------
 if command -v firebase >/dev/null 2>&1; then
   FIREBASE=(firebase)
 else
   FIREBASE=(npx --yes firebase-tools)
 fi
 
-# --- 5. Chạy rules test trong emulator --------------------------------------
+# --- 4. Chạy rules test trong emulator --------------------------------------
+# Mocha thoát bằng SỐ test hỏng (3 test hỏng = mã 3, trùng mã "thiếu JDK" mà
+# hook bỏ qua) → mọi lỗi ở bước này đều trả về 1.
 cd "$ROOT"
 "${FIREBASE[@]}" emulators:exec --only firestore,storage --project demo-dear-embeiu \
-  "cd firebase_rules_test && npx mocha"
+  "cd firebase_rules_test && npx mocha" || exit 1

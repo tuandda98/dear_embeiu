@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.9.0+26
+version: 1.9.1+27
 
 environment:
   sdk: ^3.11.4
@@ -228,20 +228,22 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   background_color_ios: "#FF6B9D"
 
-# Native launch splash — brand pink (#FF6B9D = sunset1) + white heart logo,
+# Native launch splash — dawn2 (#E8B4D8, tâm dawnBlush) + white heart logo,
 # a seamless lead-in to the in-app SplashScreen (same heart + sunset gradient).
 flutter_native_splash:
-  color: "#FF6B9D"
+  # dawn2 (#E8B4D8) = tâm gradient dawnBlush của landing/Home/loader → splash
+  # tan vào màn đầu, không đậm hơn app như #FF6B9D cũ (user 2026-10-12).
+  color: "#E8B4D8"
   image: assets/branding/splash_logo.png
-  color_dark: "#FF6B9D"
+  color_dark: "#E8B4D8"
   image_dark: assets/branding/splash_logo.png
   android: true
   ios: true
   web: false
   # Android 12+ uses the system splash API (solid bg + masked icon).
   android_12:
-    color: "#FF6B9D"
+    color: "#E8B4D8"
     image: assets/branding/splash_logo.png
-    color_dark: "#FF6B9D"
+    color_dark: "#E8B4D8"
     image_dark: assets/branding/splash_logo.png
 

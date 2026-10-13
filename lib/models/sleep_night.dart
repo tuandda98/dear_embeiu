@@ -68,8 +68,13 @@ bool sleepNightEditable(String dateKey, {DateTime? now}) {
     return false;
   }
   final n = now ?? DateTime.now();
-  final today = DateTime(n.year, n.month, n.day);
-  final age = today.difference(date).inDays;
+  // Calendar days, counted in UTC: local midnights a DST change apart are 167
+  // or 169 hours apart, and `inDays` would call a 7-day-old night 6 days old.
+  final age = DateTime.utc(
+    n.year,
+    n.month,
+    n.day,
+  ).difference(DateTime.utc(date.year, date.month, date.day)).inDays;
   return age >= 0 && age < kSleepEditableDays;
 }
 
@@ -80,6 +85,7 @@ class SleepNight {
     required this.wakeAt,
     this.wakeUps = const <int>[],
     required this.source,
+    this.tz,
   });
 
   /// Wake-up date key 'YYYY-MM-DD'.
@@ -90,6 +96,25 @@ class SleepNight {
   /// Each awakening as minutes after [bedAt] (drawn as a gap on the lane).
   final List<int> wakeUps;
   final SleepSource source;
+
+  /// Minutes east of UTC on the owner's clock when the night was recorded
+  /// (null for nights saved before 1.9.1). A night is shown on the clock where
+  /// it happened (audit D2), so a trip or a partner abroad doesn't shift it.
+  final int? tz;
+
+  /// [bedAt] / [wakeAt] on the night's own clock. Read the fields only (hour,
+  /// minute, day…): with a [tz] the value may be UTC-flagged on purpose, so
+  /// never compare it with a plain local DateTime.
+  DateTime get bedClock => _onOwnClock(bedAt);
+  DateTime get wakeClock => _onOwnClock(wakeAt);
+
+  /// A phone still on the night's clock (same offset at [bedAt]) reads it in
+  /// local time: one [tz] can't hold both ends of a night across a DST change
+  /// (23:00 PST → 07:00 PDT would show 06:00). Elsewhere the fixed offset.
+  DateTime _onOwnClock(DateTime t) =>
+      tz == null || bedAt.toLocal().timeZoneOffset.inMinutes == tz
+      ? t.toLocal()
+      : t.toUtc().add(Duration(minutes: tz!));
 
   int get minutes => wakeAt.difference(bedAt).inMinutes;
   int get phase => sleepPhaseFor(minutes);
@@ -112,24 +137,27 @@ class SleepNight {
       bedAt == other.bedAt &&
       wakeAt == other.wakeAt &&
       source == other.source &&
+      tz == other.tz &&
       _sameList(wakeUps, other.wakeUps);
 
   /// Stable string used to skip re-uploading an unchanged night.
   String get fingerprint =>
       '${bedAt.millisecondsSinceEpoch}|${wakeAt.millisecondsSinceEpoch}|'
-      '${source.name}|${wakeUps.join(',')}';
+      '${source.name}|${wakeUps.join(',')}${tz == null ? '' : '|$tz'}';
 
   SleepNight copyWith({
     DateTime? bedAt,
     DateTime? wakeAt,
     List<int>? wakeUps,
     SleepSource? source,
+    int? tz,
   }) => SleepNight(
     date: date,
     bedAt: bedAt ?? this.bedAt,
     wakeAt: wakeAt ?? this.wakeAt,
     wakeUps: wakeUps ?? this.wakeUps,
     source: source ?? this.source,
+    tz: tz ?? this.tz,
   );
 
   /// Hive form (epoch millis).
@@ -139,6 +167,7 @@ class SleepNight {
     'wakeAt': wakeAt.millisecondsSinceEpoch,
     'wakeUps': wakeUps,
     'source': source.name,
+    if (tz != null) 'tz': tz,
   };
 
   /// Parses the Hive form or a Firestore doc (Timestamps). Returns null for a
@@ -162,6 +191,7 @@ class SleepNight {
             ]
           : const <int>[],
       source: sleepSourceFromName(map['source'] as String?),
+      tz: map['tz'] is num ? (map['tz'] as num).toInt() : null,
     );
   }
 

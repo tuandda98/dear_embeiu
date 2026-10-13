@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
@@ -41,10 +42,8 @@ class JournalScreen extends StatelessWidget {
     final myUid = context.read<AuthProvider>().currentUser?.id ?? '';
 
     return ChangeNotifierProvider<JournalProvider>(
-      create: (_) => JournalProvider(
-        coupleId: couple?.id ?? '',
-        myUid: myUid,
-      )..load(),
+      create: (_) =>
+          JournalProvider(coupleId: couple?.id ?? '', myUid: myUid)..load(),
       child: _JournalView(couple: couple, focusDate: focusDate),
     );
   }
@@ -65,10 +64,13 @@ class _JournalView extends StatelessWidget {
         // Header redesign 2026-06-14: no app bar — the SubScreenHeader (back →
         // chip → title → subtitle, all left-aligned at the gutter) leads the
         // body so the chip lines up vertically with the title.
-        body: SafeArea(
-          child: Consumer<JournalProvider>(
-            builder: (context, provider, _) => _buildBody(context, provider),
-          ),
+        body: Stack(
+          children: [
+            Consumer<JournalProvider>(
+              builder: (context, provider, _) => _buildBody(context, provider),
+            ),
+            const StatusBarScrim(),
+          ],
         ),
       ),
     );
@@ -80,10 +82,10 @@ class _JournalView extends StatelessWidget {
       case JournalStatus.loading:
         return const _JournalLoading();
       case JournalStatus.error:
-        return _withFixedHeader(_JournalError(onRetry: provider.load));
+        return _withFixedHeader(context, _JournalError(onRetry: provider.load));
       case JournalStatus.ready:
         if (provider.isEmpty) {
-          return _withFixedHeader(_JournalEmpty(couple: couple));
+          return _withFixedHeader(context, _JournalEmpty(couple: couple));
         }
         return _JournalList(
           couple: couple,
@@ -95,15 +97,21 @@ class _JournalView extends StatelessWidget {
 
   /// Centered states (error / empty) keep the large header pinned at the top —
   /// nothing scrolls there, so fixed vs scrolling makes no visual difference.
-  Widget _withFixedHeader(Widget child) {
+  Widget _withFixedHeader(BuildContext context, Widget child) {
+    final insets = MediaQuery.paddingOf(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
-          child: _JournalHeader(),
+        Padding(
+          padding: EdgeInsets.fromLTRB(16, 16 + insets.top, 16, 0),
+          child: const _JournalHeader(),
         ),
-        Expanded(child: child),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: insets.bottom),
+            child: child,
+          ),
+        ),
       ],
     );
   }
@@ -213,7 +221,12 @@ class _JournalListState extends State<_JournalList> {
 
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16 + MediaQuery.paddingOf(context).top,
+        16,
+        32 + MediaQuery.paddingOf(context).bottom,
+      ),
       itemCount: itemCount,
       separatorBuilder: (_, index) {
         // The header carries its own bottom spacing (vòng 5c).
@@ -239,7 +252,8 @@ class _JournalListState extends State<_JournalList> {
 
         final dayIndex = index - 1;
         final day = days[dayIndex];
-        final isFocus = widget.focusDate != null && day.date == widget.focusDate;
+        final isFocus =
+            widget.focusDate != null && day.date == widget.focusDate;
         Widget card = _JournalDayCard(day: day, couple: widget.couple);
         if (isFocus) {
           // Wrap with the scroll anchor + a fading rose outline (r24 to match
@@ -250,8 +264,9 @@ class _JournalListState extends State<_JournalList> {
             foregroundDecoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: AppColors.accentLove
-                    .withValues(alpha: _highlight ? 0.65 : 0.0),
+                color: AppColors.accentLove.withValues(
+                  alpha: _highlight ? 0.65 : 0.0,
+                ),
                 width: 1.8,
               ),
             ),
@@ -467,8 +482,9 @@ class _LoadMoreButton extends StatelessWidget {
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColors.accentLove),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.accentLove,
+                        ),
                       ),
                     )
                   else
@@ -505,7 +521,12 @@ class _JournalLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16 + MediaQuery.paddingOf(context).top,
+        16,
+        32 + MediaQuery.paddingOf(context).bottom,
+      ),
       // +1 leading slot for the page header (vòng 5c).
       itemCount: 4,
       separatorBuilder: (_, index) =>
@@ -513,24 +534,24 @@ class _JournalLoading extends StatelessWidget {
       itemBuilder: (_, index) => index == 0
           ? const _JournalHeader()
           : Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: AppColors.cardSurface,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            ShimmerSkeleton(width: 120, height: 12, borderRadius: 6),
-            SizedBox(height: 14),
-            ShimmerSkeleton(height: 18, borderRadius: 8),
-            SizedBox(height: 16),
-            ShimmerSkeleton(height: 48, borderRadius: 16),
-            SizedBox(height: 10),
-            ShimmerSkeleton(height: 48, borderRadius: 16),
-          ],
-        ),
-      ),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  ShimmerSkeleton(width: 120, height: 12, borderRadius: 6),
+                  SizedBox(height: 14),
+                  ShimmerSkeleton(height: 18, borderRadius: 8),
+                  SizedBox(height: 16),
+                  ShimmerSkeleton(height: 48, borderRadius: 16),
+                  SizedBox(height: 10),
+                  ShimmerSkeleton(height: 48, borderRadius: 16),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -580,7 +601,9 @@ class _JournalEmpty extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              noPartner ? l10n.journalEmptyNoPartnerBody : l10n.journalEmptyBody,
+              noPartner
+                  ? l10n.journalEmptyNoPartnerBody
+                  : l10n.journalEmptyBody,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: AppColors.textSecondary,

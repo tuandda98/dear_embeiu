@@ -256,15 +256,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         key: const ValueKey('forgot-form'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.forgotPasswordEmailHeading,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 18),
+          // No "Email" heading over the "Email" field (duplicate, 2026-10-13).
           _buildFieldBlock(
             label: l10n.emailLabel,
             child: TextFormField(

@@ -161,7 +161,8 @@ class _CareTimelineScreenState extends State<CareTimelineScreen> {
   }
 
   Future<void> _refresh() async {
-    _focusHandled = true; // A manual refresh cancels any pending deep-link hunt.
+    _focusHandled =
+        true; // A manual refresh cancels any pending deep-link hunt.
     await _loadFirstPage();
   }
 
@@ -220,11 +221,12 @@ class _CareTimelineScreenState extends State<CareTimelineScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
+          bottom: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: SubScreenHeader(
                   badge: l10n.careTimelineBadge,
                   badgeIcon: IconsaxPlusLinear.clock,
@@ -280,7 +282,12 @@ class _CareTimelineScreenState extends State<CareTimelineScreen> {
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        32 + MediaQuery.paddingOf(context).bottom,
+      ),
       itemCount: rows.length + (_lastPage.hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index >= rows.length) {
@@ -292,8 +299,9 @@ class _CareTimelineScreenState extends State<CareTimelineScreen> {
                 height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.2,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(AppColors.accentLove),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.accentLove,
+                  ),
                 ),
               ),
             ),
@@ -317,7 +325,8 @@ class _CareTimelineScreenState extends State<CareTimelineScreen> {
 
         final message = row.message!;
         final isFocus =
-            widget.focusMessageId != null && message.id == widget.focusMessageId;
+            widget.focusMessageId != null &&
+            message.id == widget.focusMessageId;
         Widget card = _CareTimelineCard(
           message: message,
           myUid: myUid,
@@ -331,18 +340,16 @@ class _CareTimelineScreenState extends State<CareTimelineScreen> {
             foregroundDecoration: BoxDecoration(
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
-                color: AppColors.accentLove
-                    .withValues(alpha: _highlightFocus ? 0.65 : 0.0),
+                color: AppColors.accentLove.withValues(
+                  alpha: _highlightFocus ? 0.65 : 0.0,
+                ),
                 width: 1.8,
               ),
             ),
             child: card,
           );
         }
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: card,
-        );
+        return Padding(padding: const EdgeInsets.only(bottom: 10), child: card);
       },
     );
   }
@@ -389,9 +396,7 @@ class _CareTimelineScreenState extends State<CareTimelineScreen> {
 
 /// Either a day header or a note — the flattened list the ListView walks.
 class _TimelineRow {
-  const _TimelineRow.day(String label)
-      : dayLabel = label,
-        message = null;
+  const _TimelineRow.day(String label) : dayLabel = label, message = null;
   const _TimelineRow.message(CareMessage this.message) : dayLabel = null;
 
   final String? dayLabel;
@@ -429,8 +434,9 @@ class _CareTimelineCard extends StatelessWidget {
     final l10n = context.l10n;
     final mine = message.isMine(myUid);
     final name = mine ? l10n.careMessageFromMe : _partnerName(l10n);
-    final accent =
-        mine ? AppColors.accentLoveDeep : AppColors.accentLavenderDeep;
+    final accent = mine
+        ? AppColors.accentLoveDeep
+        : AppColors.accentLavenderDeep;
     final when = message.createdAt;
 
     return ContentCard(
@@ -449,7 +455,7 @@ class _CareTimelineCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12.5,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: accent,
                   ),
@@ -459,8 +465,8 @@ class _CareTimelineCard extends StatelessWidget {
               Text(
                 when == null ? '' : DateFormat.Hm(locale).format(when),
                 style: const TextStyle(
-                  fontSize: 11.5,
-                  color: AppColors.textTertiary,
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ],
@@ -477,7 +483,7 @@ class _CareTimelineCard extends StatelessWidget {
             // as ONE line and clips it — a care note must show whole.
             overflow: TextOverflow.visible,
             style: const TextStyle(
-              fontSize: 13.5,
+              fontSize: 14,
               height: 1.4,
               color: AppColors.textSecondary,
             ),
@@ -497,7 +503,9 @@ class _AuthorAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trimmed = name.trim();
-    final letter = trimmed.isEmpty ? '?' : trimmed.characters.first.toUpperCase();
+    final letter = trimmed.isEmpty
+        ? '?'
+        : trimmed.characters.first.toUpperCase();
     return Container(
       width: 28,
       height: 28,
@@ -527,7 +535,12 @@ class _TimelineLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        32 + MediaQuery.paddingOf(context).bottom,
+      ),
       itemCount: 5,
       separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (_, _) =>
@@ -577,11 +590,7 @@ class _TimelineMessage extends StatelessWidget {
                         color: AppColors.white.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        icon,
-                        size: 38,
-                        color: AppColors.accentLove,
-                      ),
+                      child: Icon(icon, size: 38, color: AppColors.accentLove),
                     ),
                     const SizedBox(height: 20),
                     Text(
@@ -619,8 +628,7 @@ class _TimelineMessage extends StatelessWidget {
                           backgroundColor: AppColors.textPrimary,
                           foregroundColor: AppColors.white,
                           elevation: 0,
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 24),
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(999),
                           ),

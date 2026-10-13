@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_display_name">Đếm ngày yêu</string>
+    <string name="widget_display_name_medium">Đếm ngày yêu (rộng)</string>
+    <string name="widget_description">Số ngày chúng mình bên nhau, cập nhật mỗi ngày.</string>
+    <string name="widget_empty_tap">Chạm để bắt đầu đếm ngày yêu</string>
+    <string name="widget_preview_name1">ANH</string>
+    <string name="widget_preview_name2">EM</string>
+    <string name="widget_preview_days">1.247</string>
+    <string name="widget_preview_caption">ngày bên nhau</string>
+</resources>

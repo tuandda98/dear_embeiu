@@ -15,6 +15,7 @@ import '../models/account_invite.dart';
 import '../models/app_user.dart';
 import '../models/couple.dart';
 import 'firebase_bootstrap_service.dart';
+import 'invite_clipboard.dart';
 import 'storage_service.dart';
 import 'user_service.dart';
 
@@ -215,8 +216,15 @@ class CoupleService {
       updatedAt: now,
     );
 
+    // PA8: an account that came without a name (Apple, name and email hidden)
+    // takes the one typed on Setup — the partner's pushes show it.
+    final adoptedName = UserService.adoptedDisplayName(
+      current: currentUser.displayName,
+      candidate: person1Name,
+    );
     final updatedUser = currentUser.copyWith(
       id: memberId,
+      displayName: adoptedName,
       coupleId: baseCouple.id,
       status: 'waiting_partner',
       updatedAt: now,
@@ -227,7 +235,10 @@ class CoupleService {
       try {
         await _ensureFirebaseSessionReady();
         await _couplesCollection.doc(baseCouple.id).set(baseCouple.toFirestore());
-        await _userService.updateCoupleMembership(updatedUser);
+        await _userService.updateCoupleMembership(
+          updatedUser,
+          withDisplayName: adoptedName != null,
+        );
         // Write couple_codes entry so partner (or creator rejoining) can look
         // up the couple by the shared code instead of the personal inviteCode.
         // Best-effort: a couple_codes write failure must not roll back the couple.
@@ -345,7 +356,8 @@ class CoupleService {
       );
     }
 
-    final normalizedCode = inviteCode.trim().toUpperCase();
+    // Spaces, full-width characters, a pasted invite link → the bare code (PA4).
+    final normalizedCode = InviteClipboard.normalizeInviteCode(inviteCode);
     if (normalizedCode.isEmpty) {
       throw CoupleException(AppL10n.strings.coupleEnterCodeFirst);
     }
@@ -361,6 +373,9 @@ class CoupleService {
     }
 
     if (isUsingFirebase) {
+      // Null until the join transaction runs; false while its read of the
+      // couple hasn't gone through (see [joinFirebaseError]).
+      bool? coupleRead;
       try {
         await _ensureFirebaseSessionReady();
 
@@ -418,7 +433,9 @@ class CoupleService {
         // guard caps it at a single retry (no loop / recursion).
         var joinRecovered = false;
         Future<void> runJoinTransaction() => _db.runTransaction((transaction) async {
+          coupleRead = false;
           final coupleSnapshot = await transaction.get(docRef);
+          coupleRead = true;
           final coupleData = coupleSnapshot.data();
           if (coupleData == null) {
             throw CoupleException(AppL10n.strings.coupleNotFoundForCode);
@@ -450,7 +467,10 @@ class CoupleService {
           }
 
           if (currentCouple.memberCount >= 2) {
-            throw CoupleException(AppL10n.strings.coupleFull);
+            throw CoupleException(
+              AppL10n.strings.coupleFull,
+              code: CoupleErrorCode.full,
+            );
           }
 
           // Guard against stale/incomplete couple docs that the security rules
@@ -482,8 +502,16 @@ class CoupleService {
                 ? effectiveUser.displayName
                 : currentCouple.person2Name,
           );
+          // PA8: the joiner types no name — an account without one takes the
+          // name the creator gave their partner. Written in this transaction
+          // so notifyPartnerJoined already reads it.
+          final adoptedName = UserService.adoptedDisplayName(
+            current: effectiveUser.displayName,
+            candidate: currentCouple.person2Name,
+          );
           updatedUser = effectiveUser.copyWith(
             id: authUid,
+            displayName: adoptedName,
             coupleId: currentCouple.id,
             status: 'in_couple',
             updatedAt: now,
@@ -499,11 +527,15 @@ class CoupleService {
             SetOptions(merge: true),
           );
           // The user write is a membership change: send ONLY coupleId/status/
-          // updatedAt/lastSeenAt so the immutable email/inviteCode equality
-          // checks in canUpdateOwnUser pass via merge. Write to users/{authUid}.
+          // updatedAt/lastSeenAt (+ an adopted name) so the immutable
+          // email/inviteCode equality checks in canUpdateOwnUser pass via
+          // merge. Write to users/{authUid}.
           transaction.set(
             _db.collection('users').doc(authUid),
-            updatedUser.toCoupleMembershipPayload(),
+            {
+              ...updatedUser.toCoupleMembershipPayload(),
+              'displayName': ?adoptedName,
+            },
             SetOptions(merge: true),
           );
         });
@@ -545,17 +577,7 @@ class CoupleService {
           message: AppL10n.strings.setupSuccessConnected,
         );
       } on FirebaseException catch (e) {
-        switch (e.code) {
-          case 'permission-denied':
-            throw CoupleException(AppL10n.strings.coupleJoinPermissionDenied);
-          case 'unauthenticated':
-            throw CoupleException(AppL10n.strings.coupleSessionExpiredJoin);
-          case 'unavailable':
-            throw CoupleException(AppL10n.strings.coupleFirebaseUnavailable);
-          default:
-            debugPrint('CoupleService join error ${e.code}: ${e.message}');
-            throw CoupleException(AppL10n.strings.coupleJoinGeneric);
-        }
+        throw joinFirebaseError(e, coupleRead: coupleRead);
       }
     }
 
@@ -944,6 +966,32 @@ class CoupleService {
       }
     } catch (_) {
       // Re-fetch/reconcile failed; the retry uses whatever local state exists.
+    }
+  }
+
+  /// A Firestore error from the Firebase join → user copy. [coupleRead] is
+  /// null until the join transaction runs, false while its read of the couple
+  /// hasn't gone through. The rules hide a couple from outsiders once it has
+  /// two people, so a code that resolved to a couple we then may not read is
+  /// a full couple, not a broken code (PA3).
+  @visibleForTesting
+  static CoupleException joinFirebaseError(
+    FirebaseException e, {
+    bool? coupleRead,
+  }) {
+    final l10n = AppL10n.strings;
+    switch (e.code) {
+      case 'permission-denied':
+        return coupleRead == false
+            ? CoupleException(l10n.coupleFull, code: CoupleErrorCode.full)
+            : CoupleException(l10n.coupleJoinPermissionDenied);
+      case 'unauthenticated':
+        return CoupleException(l10n.coupleSessionExpiredJoin);
+      case 'unavailable':
+        return CoupleException(l10n.coupleFirebaseUnavailable);
+      default:
+        debugPrint('CoupleService join error ${e.code}: ${e.message}');
+        return CoupleException(l10n.coupleJoinGeneric);
     }
   }
 

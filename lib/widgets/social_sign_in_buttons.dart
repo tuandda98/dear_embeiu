@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +38,8 @@ class SocialSignInButtons extends StatelessWidget {
   final Widget? below;
 
   /// Apple sign-in only runs natively on iOS (PF1).
-  static bool get _apple => !kIsWeb && Platform.isIOS;
+  static bool get _apple =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   /// Google needs its OAuth client (PF17): on iOS the CLIENT_ID of
   /// GoogleService-Info.plist; Android's comes from google-services.json.
@@ -48,8 +47,8 @@ class SocialSignInButtons extends StatelessWidget {
     if (kIsWeb) {
       return false;
     }
-    return Platform.isAndroid ||
-        (Platform.isIOS &&
+    return defaultTargetPlatform == TargetPlatform.android ||
+        (_apple &&
             Firebase.apps.isNotEmpty &&
             Firebase.app().options.iosClientId != null);
   }
@@ -63,15 +62,18 @@ class SocialSignInButtons extends StatelessWidget {
     HapticFeedback.lightImpact();
     final auth = context.read<AuthProvider>();
     final l10n = context.l10n;
+    // AU4: taken before the await. Going back while Firebase finishes leaves
+    // a live session behind — it must still go through authGate.
+    final navigator = Navigator.of(context);
 
     final didSignIn = await auth.signInWithSocial(provider);
-    if (!context.mounted) {
+    if (didSignIn) {
+      if (navigator.mounted) {
+        navigator.pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+      }
       return;
     }
-    if (didSignIn) {
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+    if (!context.mounted) {
       return;
     }
 

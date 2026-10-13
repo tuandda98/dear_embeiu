@@ -1,5 +1,88 @@
 {
   "@@locale": "en",
+  "loveTreeShareFirstDay": "Our first day together",
+  "@loveTreeShareFirstDay": {
+    "description": "Stats line of the love-tree share card when the couple's anniversary is today (replaces '0 days together')"
+  },
+  "loveTreeShareMessageSeed": "Our love tree just sprouted 🌱💞 — grow yours together on Dear Embeiu.",
+  "@loveTreeShareMessageSeed": {
+    "description": "Share-sheet text for the love tree while no flower has bloomed yet (replaces 'has bloomed 0 flowers')"
+  },
+  "sleepTheirClock": "Their time",
+  "@sleepTheirClock": {
+    "description": "Pill beside the partner's sleep times when their night was recorded in another time zone than this phone's"
+  },
+  "sleepManualSemantics": "(logged by hand)",
+  "@sleepManualSemantics": {
+    "description": "Sleep calendar cell suffix for a night logged by hand (screen reader)"
+  },
+  "moodSaveFailed": "Couldn't save your mood, please try again",
+  "@moodSaveFailed": {
+    "description": "SnackBar when saving today's mood failed (the pick is rolled back)"
+  },
+  "setPasswordTitle": "Set a password",
+  "@setPasswordTitle": {
+    "description": "Settings → Account row and dialog title: an Apple/Google account adds a password so it can sign in with email elsewhere (audit AU1)"
+  },
+  "setPasswordSubtitle": "To sign in with your email on another phone",
+  "@setPasswordSubtitle": {
+    "description": "Subtitle of the Settings 'Set a password' row"
+  },
+  "setPasswordBody": "Once set, you can sign in with {email} and this password, on iPhone or Android.",
+  "@setPasswordBody": {
+    "description": "Set-password dialog body. email = the account's email, may be Apple's hidden relay address",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordConfirmNote": "{provider} may ask you to confirm it's you.",
+  "@setPasswordConfirmNote": {
+    "description": "Set-password dialog: Apple/Google may show their sheet first when the session is old. provider = 'Apple' or 'Google'",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordDone": "Password set. On another phone, sign in with {email}.",
+  "@setPasswordDone": {
+    "description": "SnackBar after the password was added; has a Copy action for the email",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordAlreadySet": "This account already has a password.",
+  "@setPasswordAlreadySet": {
+    "description": "Set password: the account got a password meanwhile (provider-already-linked)"
+  },
+  "setPasswordEmailTaken": "This email belongs to another account, so the password wasn't set.",
+  "@setPasswordEmailTaken": {
+    "description": "Set password: another account already signs in with this email"
+  },
+  "setPasswordWrongGoogleAccount": "That's a different Google account. Pick the one you use for Dear Embeiu, then try again.",
+  "@setPasswordWrongGoogleAccount": {
+    "description": "Set password: the Google confirmation picked another Google account (user-mismatch)"
+  },
+  "setPasswordFailed": "Couldn't set the password. Please try again.",
+  "@setPasswordFailed": {
+    "description": "Set password: any other error"
+  },
+  "setPasswordAppleIdMismatch": "This device is using a different Apple ID. To set a password, open the app on a device that uses this account's Apple ID.",
+  "@setPasswordAppleIdMismatch": {
+    "description": "Set password: this device's Apple ID isn't the account's. Usually iOS said so before the Apple sheet, the user stays signed in (BUG-27); rarely the sheet itself signed another Apple ID in and the app signed out"
+  },
+  "showPassword": "Show password",
+  "@showPassword": {
+    "description": "Tooltip of the eye button that reveals a password field"
+  },
+  "hidePassword": "Hide password",
+  "@hidePassword": {
+    "description": "Tooltip of the eye button that hides a password field again"
+  },
   "badgeCareLabel": "care notes",
   "@badgeCareLabel": {
     "description": "Profile badge label under the care-notes count"
@@ -278,7 +361,7 @@
       }
     }
   },
-  "milestoneDaysLeft": "{count} days left",
+  "milestoneDaysLeft": "{count, plural, =1{1 day left} other{{count} days left}}",
   "@milestoneDaysLeft": {
     "placeholders": {
       "count": {
@@ -315,7 +398,7 @@
     }
   },
   "todayIsAnniversary": "Today is your anniversary ✨",
-  "daysUntilNextAnniversary": "{count} days until your next anniversary",
+  "daysUntilNextAnniversary": "{count, plural, =1{1 day until your next anniversary} other{{count} days until your next anniversary}}",
   "@daysUntilNextAnniversary": {
     "placeholders": {
       "count": {
@@ -466,7 +549,7 @@
   "journalErrorTitle": "Couldn't load the journal",
   "journalRetry": "Try again",
   "milestoneReached": "You just reached a beautiful milestone ✨",
-  "onlyDaysUntilMilestone": "Only {count} days until your next milestone.",
+  "onlyDaysUntilMilestone": "{count, plural, =1{Only 1 day until your next milestone.} other{Only {count} days until your next milestone.}}",
   "@onlyDaysUntilMilestone": {
     "placeholders": {
       "count": {
@@ -482,7 +565,7 @@
       }
     }
   },
-  "daysCountLabel": "{count} days",
+  "daysCountLabel": "{count, plural, =1{1 day} other{{count} days}}",
   "@daysCountLabel": {
     "placeholders": {
       "count": {
@@ -555,7 +638,7 @@
       }
     }
   },
-  "momentsCount": "{count} moments",
+  "momentsCount": "{count, plural, =1{1 moment} other{{count} moments}}",
   "@momentsCount": {
     "placeholders": {
       "count": {
@@ -600,7 +683,7 @@
   "addNewMemoryTitle": "Add a new memory today",
   "whatNewToday": "what's new today?",
   "composerSubtitle": "Turn the library into a private and memorable love newsfeed.",
-  "compactCaption": "{count} moments · Swipe to expand post frame",
+  "compactCaption": "{count, plural, =1{1 moment · Swipe to expand post frame} other{{count} moments · Swipe to expand post frame}}",
   "@compactCaption": {
     "placeholders": {
       "count": {
@@ -624,7 +707,7 @@
   "postFirstPhotoBtn": "Post first photo",
   "photoAddedSuccess": "Photo added successfully!",
   "photoAddError": "Could not post photo right now.",
-  "multiplePhotosAdded": "Added {count} photos!",
+  "multiplePhotosAdded": "{count, plural, =1{Added 1 photo!} other{Added {count} photos!}}",
   "@multiplePhotosAdded": {
     "placeholders": {
       "count": {
@@ -1035,7 +1118,7 @@
   "@deleteAccountReauthBodyGoogle": {
     "description": "Body of the re-auth dialog for Google accounts (no password field); 'Delete permanently' is deleteAccountConfirmBtn"
   },
-  "deleteAccountAppleIdMismatch": "The Apple ID on this device isn't the one for this account. Sign in with that account's Apple ID, then delete.",
+  "deleteAccountAppleIdMismatch": "This device is using a different Apple ID. To delete the account, open the app on a device that uses this account's Apple ID.",
   "@deleteAccountAppleIdMismatch": {
     "description": "Deleting an Apple account, but the Apple sheet signed in with a different Apple ID (PF18); the user has been signed out"
   },
@@ -1403,7 +1486,7 @@
   "@welcomeBackBadge": {
     "description": "welcomeBackBadge"
   },
-  "counterDuration": "{years} years, {months} months, {days} days",
+  "counterDuration": "{years, plural, =1{1 year} other{{years} years}}, {months, plural, =1{1 month} other{{months} months}}, {days, plural, =1{1 day} other{{days} days}}",
   "@counterDuration": {
     "description": "Love duration breakdown",
     "placeholders": {
@@ -1439,7 +1522,7 @@
     }
   },
   "galleryEndOfFeed": "That's every memory 💕 — go make some new ones together",
-  "galleryTodayMomentsCount": "{count} moments today",
+  "galleryTodayMomentsCount": "{count, plural, =1{1 moment today} other{{count} moments today}}",
   "@galleryTodayMomentsCount": {
     "description": "Count of moments posted today",
     "placeholders": {
@@ -1475,6 +1558,10 @@
   "guestChangeDate": "Change anniversary date",
   "@guestChangeDate": {
     "description": "Button to reopen the date picker once a date is set"
+  },
+  "widgetEmptyTap": "Tap to start counting your days together",
+  "@widgetEmptyTap": {
+    "description": "Home-screen widget, empty state (guest / no couple / signed out). One line under the app-name chip; widget is 158pt wide, max 3 lines."
   },
   "guestCounterStartFrom": "Since {date}",
   "@guestCounterStartFrom": {
@@ -1561,7 +1648,7 @@
     }
   },
   "streakSheetRestartBody": "The old streak wrapped up, but every new day's a fresh start. Let's light it again 🌱",
-  "streakSheetRecord": "Your record: {m} days 🌟",
+  "streakSheetRecord": "{m, plural, =1{Your record: 1 day 🌟} other{Your record: {m} days 🌟}}",
   "@streakSheetRecord": {
     "placeholders": {
       "m": {
@@ -1569,7 +1656,7 @@
       }
     }
   },
-  "streakNextMilestone": "{n} days to your {m}-day milestone 🎉",
+  "streakNextMilestone": "{n, plural, =1{1 day to your {m}-day milestone 🎉} other{{n} days to your {m}-day milestone 🎉}}",
   "@streakNextMilestone": {
     "placeholders": {
       "n": {
@@ -1611,10 +1698,6 @@
   "forgotPasswordBadge": "RECOVER ACCESS",
   "@forgotPasswordBadge": {
     "description": "forgotPasswordBadge"
-  },
-  "forgotPasswordEmailHeading": "Email",
-  "@forgotPasswordEmailHeading": {
-    "description": "forgotPasswordEmailHeading"
   },
   "forgotPasswordSendBtn": "Send reset email",
   "@forgotPasswordSendBtn": {
@@ -1784,7 +1867,7 @@
   "counterBgBadge": "BACKGROUND",
   "counterBgTitle": "Counter background",
   "counterBgSubtitleAll": "Pick which photos can back the day-counter card. Leave empty to cycle through them all.",
-  "counterBgSubtitleCount": "{count} photos picked for the counter background.",
+  "counterBgSubtitleCount": "{count, plural, =1{1 photo picked for the counter background.} other{{count} photos picked for the counter background.}}",
   "@counterBgSubtitleCount": {
     "placeholders": {
       "count": {
@@ -1814,7 +1897,7 @@
   "chatBgNoneValidBody": "Add a tall, sharp photo to your gallery — landscape or low-resolution photos can't be used as a chat background.",
   "chatBgSavedMsg": "Chat background saved 💕",
   "journeyTrailTitle": "Our journey",
-  "milestoneTrailNext": "{days} days to {label}",
+  "milestoneTrailNext": "{days, plural, =1{1 day to {label}} other{{days} days to {label}}}",
   "@milestoneTrailNext": {
     "placeholders": {
       "days": {
@@ -1847,12 +1930,13 @@
     }
   },
   "profileMemoriesTitle": "Our memories",
-  "profileMemoriesCountLabel": "{count} memories",
+  "profileMemoriesCountLabel": "{count, plural, =1{1 memory} other{{count} memories}}",
   "@profileMemoriesCountLabel": {
     "description": "Total memories subtitle in the memories sheet",
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1870,7 +1954,7 @@
   },
   "loveTreeBadge": "LOVE TREE",
   "loveTreeStage0": "Tiny seed",
-  "loveTreeFlowerCount": "{count} flowers bloomed",
+  "loveTreeFlowerCount": "{count, plural, =1{1 flower bloomed} other{{count} flowers bloomed}}",
   "@loveTreeFlowerCount": {
     "placeholders": {
       "count": {
@@ -1985,7 +2069,7 @@
   "loveTreeMomentPhotosCopy": "A moment the two of you chose to keep 💞",
   "loveTreeMomentStreakCopy": "The record you two once kept together. Start a new streak to beat it 🔥",
   "loveTreeMomentViewInGallery": "View in Gallery",
-  "loveTreeLockedDays": "{count} days to go before this blooms 🌱",
+  "loveTreeLockedDays": "{count, plural, =1{1 day to go before this blooms 🌱} other{{count} days to go before this blooms 🌱}}",
   "@loveTreeLockedDays": {
     "placeholders": {
       "count": {
@@ -1993,7 +2077,7 @@
       }
     }
   },
-  "loveTreeLockedPhotos": "{count} memories to go before this blooms 🌱",
+  "loveTreeLockedPhotos": "{count, plural, =1{1 memory to go before this blooms 🌱} other{{count} memories to go before this blooms 🌱}}",
   "@loveTreeLockedPhotos": {
     "placeholders": {
       "count": {
@@ -2001,7 +2085,7 @@
       }
     }
   },
-  "loveTreeLockedStreak": "{count} streak days to go before this blooms 🌱",
+  "loveTreeLockedStreak": "{count, plural, =1{1 streak day to go before this blooms 🌱} other{{count} streak days to go before this blooms 🌱}}",
   "@loveTreeLockedStreak": {
     "placeholders": {
       "count": {
@@ -2012,27 +2096,31 @@
   "loveTreeLockedPhotosCta": "Add a memory",
   "loveTreeLockedStreakCta": "Answer today",
   "loveTreeShareButton": "Share our tree",
-  "loveTreeShareStats": "{days} days together · {flowers} flowers in bloom",
+  "loveTreeShareStats": "{days, plural, =1{1 day together} other{{days} days together}} · {flowers, plural, =1{1 flower in bloom} other{{flowers} flowers in bloom}}",
   "@loveTreeShareStats": {
     "placeholders": {
       "days": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "flowers": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
   "loveTreeShareTagline": "The tree we grew together 🌳",
   "loveTreeShareTaglineSeed": "Our tree just sprouted 🌱",
-  "loveTreeShareMessage": "Our love tree has bloomed {flowers} flowers after {days} days 🌳💞 — grow yours together on Dear Embeiu.",
+  "loveTreeShareMessage": "Our love tree has bloomed {flowers, plural, =1{1 flower} other{{flowers} flowers}} after {days, plural, =1{1 day} other{{days} days}} 🌳💞 — grow yours together on Dear Embeiu.",
   "@loveTreeShareMessage": {
     "placeholders": {
       "flowers": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "days": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -2419,12 +2507,12 @@
   "@rpsCountdownUnit": {
     "description": "Micro-caps unit under the countdown number."
   },
-  "rpsCountdownSemantics": "{seconds} seconds left",
+  "rpsCountdownSemantics": "{seconds, plural, =1{1 second left} other{{seconds} seconds left}}",
   "@rpsCountdownSemantics": {
     "description": "Accessibility live label for the countdown.",
     "placeholders": {
       "seconds": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -2528,12 +2616,13 @@
   "@rpsScorePartner": {
     "description": "Scoreboard column header (partner)."
   },
-  "rpsHistoryTotal": "{count} rounds played",
+  "rpsHistoryTotal": "{count, plural, =1{1 round played} other{{count} rounds played}}",
   "@rpsHistoryTotal": {
     "description": "Scoreboard footer: total rounds.",
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -2615,14 +2704,6 @@
   "featureTourSkyBody": "The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.",
   "@featureTourSkyBody": {
     "description": "Feature tour entry (build 25)."
-  },
-  "featureTourPairingTitle": "Easier to bring your partner in",
-  "@featureTourPairingTitle": {
-    "description": "Feature tour entry (build 26)."
-  },
-  "featureTourPairingBody": "Your partner can now sign up with Google, or Apple on iPhone, without creating a password. Sitting together? Open the QR code and they scan it to get your invite code.",
-  "@featureTourPairingBody": {
-    "description": "Feature tour entry (build 26)."
   },
   "rpsOpenPrompt": "Go on, throw! No skipping here 😄",
   "@rpsOpenPrompt": {
@@ -3236,7 +3317,7 @@
       }
     }
   },
-  "sleepShareAskBody": "They'll see when you fall asleep and wake up. You can turn this off anytime.",
+  "sleepShareAskBody": "They'll see when you fall asleep and wake up, and each time you wake in the night. You can turn this off anytime.",
   "@sleepShareAskBody": {
     "description": "Sleep setup step 2 body"
   },
@@ -3249,7 +3330,7 @@
       }
     }
   },
-  "sleepShareAskOnly": "Only when you sleep and wake, nothing else.",
+  "sleepShareAskOnly": "Only bedtime, wake-up time and night wake-ups, in the time zone you slept in. Nights you edit or log by hand get a label.",
   "@sleepShareAskOnly": {
     "description": "Sleep setup step 2 under the preview"
   },
@@ -3576,7 +3657,7 @@
       }
     }
   },
-  "loveTreeNextProgressPhotos": "{current}/{target} photos",
+  "loveTreeNextProgressPhotos": "{target, plural, =1{{current}/{target} photo} other{{current}/{target} photos}}",
   "@loveTreeNextProgressPhotos": {
     "description": "Love tree v3: next milestone progress",
     "placeholders": {

@@ -86,11 +86,21 @@ class SleepRules {
   end: DateTime(wakeDate.year, wakeDate.month, wakeDate.day, 14),
 );
 
-/// The last [count] wake dates ending today (oldest first).
-List<DateTime> recentWakeDates(DateTime now, int count) => [
-  for (var i = count - 1; i >= 0; i--)
-    DateTime(now.year, now.month, now.day - i),
-];
+/// The latest wake date whose night is over: today — or, before 04:00,
+/// yesterday (tonight's sleep is still going). "Đêm qua" uses the same rule.
+DateTime lastWakeDate(DateTime now) =>
+    DateTime(now.year, now.month, now.hour < 4 ? now.day - 1 : now.day);
+
+/// The last [count] wake dates up to [lastWakeDate] (oldest first). Before
+/// 04:00 tonight's window is left out: a scan at 02:00 would publish
+/// 23:00 → 02:00 as a 3-hour night.
+List<DateTime> recentWakeDates(DateTime now, int count) {
+  final last = lastWakeDate(now);
+  return [
+    for (var i = count - 1; i >= 0; i--)
+      DateTime(last.year, last.month, last.day - i),
+  ];
+}
 
 /// Screen events → screen-off spans. A trailing "off" stays open until [now].
 List<RestSpan> restSpansFromScreenEvents(
@@ -116,12 +126,20 @@ List<RestSpan> restSpansFromScreenEvents(
   return spans;
 }
 
-/// Finds the night ending on [wakeDate] among [spans].
+/// Longest awake gap that one Health "in bed" block still folds into the
+/// night (Lead, audit L2): 45 min at 03:00 is a wake-up, 2.5 h of insomnia
+/// splits the night instead of making it an 8-hour full moon.
+const Duration kInBedMergeGap = Duration(minutes: 90);
+
+/// Finds the night ending on [wakeDate] among [spans]. A gap up to
+/// [kInBedMergeGap] inside one of [inBed] (Health "in bed") is folded in:
+/// still in bed means still the same night, the gap is a wake-up (audit D5).
 SleepNight? computeNight({
   required DateTime wakeDate,
   required List<RestSpan> spans,
   required SleepRules rules,
   required SleepSource source,
+  List<RestSpan> inBed = const <RestSpan>[],
 }) {
   final w = sleepWindow(wakeDate);
   final midnight = DateTime(wakeDate.year, wakeDate.month, wakeDate.day);
@@ -160,10 +178,13 @@ SleepNight? computeNight({
   var wakeUps = <DateTime>[];
   for (final s in clipped.skip(1)) {
     final gap = s.start.difference(end);
+    final stayedInBed = inBed.any(
+      (b) => !b.start.isAfter(end) && !b.end.isBefore(s.start),
+    );
     // A phone idle since the afternoon (or flat) never absorbs the night
     // through a short look before bed. After 01:00 it's a look in the night:
     // merged, so the wake-up time stays right.
-    if (gap <= rules.mergeGap &&
+    if ((gap <= rules.mergeGap || (stayedInBed && gap <= kInBedMergeGap)) &&
         (end != openEnd || end.isAfter(_nightStart(wakeDate)))) {
       if (gap >= rules.noise) {
         wakeUps.add(end);
@@ -182,6 +203,16 @@ SleepNight? computeNight({
 
   Duration len(({DateTime start, DateTime end, List<DateTime> wakeUps}) b) =>
       b.end.difference(b.start);
+  // A day in bed (sick) chains dozes into one block over 16 h, which would
+  // lose the whole night: count it as if there were no "in bed" data.
+  if (inBed.isNotEmpty && blocks.any((b) => len(b) > rules.maxSleep)) {
+    return computeNight(
+      wakeDate: wakeDate,
+      spans: spans,
+      rules: rules,
+      source: source,
+    );
+  }
   final candidates = blocks
       .where((b) => len(b) >= rules.minSleep && len(b) <= rules.maxSleep)
       .toList();
@@ -207,6 +238,9 @@ SleepNight? computeNight({
     wakeAt: best.end,
     wakeUps: [for (final t in best.wakeUps) t.difference(best.start).inMinutes],
     source: source,
+    // The clock this phone is on (audit D2): shown that way everywhere, even
+    // after a flight or on a partner's phone abroad.
+    tz: best.start.toLocal().timeZoneOffset.inMinutes,
   );
 }
 
@@ -250,6 +284,9 @@ const int _kHealthInBed = 0;
 
 /// Nights from Apple Health. Per window: asleep samples when there are any,
 /// otherwise "in bed" (an iPhone without a Watch only records time in bed).
+/// Asleep stretches inside one "in bed" block are one night, an awake time up
+/// to [kInBedMergeGap] between them a wake-up (D5 — 45 min awake at 03:00 is
+/// not "woke at 03:00").
 Map<String, SleepNight?> computeHealthNights(
   List<HealthSleepSample> samples, {
   required List<DateTime> wakeDates,
@@ -264,14 +301,17 @@ Map<String, SleepNight?> computeHealthNights(
     final inWindow = samples
         .where((s) => s.end.isAfter(w.start) && s.start.isBefore(w.end))
         .toList();
+    List<RestSpan> spans(bool Function(int value) keep) => unionSpans([
+      for (final s in inWindow)
+        if (keep(s.value)) RestSpan(s.start, s.end),
+    ]);
+    final inBedSpans = spans((v) => v == _kHealthInBed);
     SleepNight? from(bool Function(int value) keep) => computeNight(
       wakeDate: d,
-      spans: unionSpans([
-        for (final s in inWindow)
-          if (keep(s.value)) RestSpan(s.start, s.end),
-      ]),
+      spans: spans(keep),
       rules: SleepRules.health,
       source: SleepSource.health,
+      inBed: inBedSpans,
     );
     // Asleep samples first. An iPhone without a Watch only records "in bed",
     // and an evening doze must not beat a whole night in bed.
@@ -351,6 +391,9 @@ class SleepMonthStats {
 }
 
 /// Stats over [nights] (already filtered to one month); null when empty.
+/// Bed / wake times are read on each night's own clock, like the night detail
+/// (a partner abroad goes to bed at 22:30 there, not at 02:00 here); the
+/// durations are real time.
 SleepMonthStats? sleepMonthStats(Iterable<SleepNight> nights) {
   final list = nights.toList();
   if (list.isEmpty) {
@@ -361,10 +404,10 @@ SleepMonthStats? sleepMonthStats(Iterable<SleepNight> nights) {
     nights: list.length,
     avgMinutes: (total / list.length).round(),
     avgBedMinute: circularMeanMinute([
-      for (final n in list) minuteOfDay(n.bedAt),
+      for (final n in list) minuteOfDay(n.bedClock),
     ]),
     avgWakeMinute: circularMeanMinute([
-      for (final n in list) minuteOfDay(n.wakeAt),
+      for (final n in list) minuteOfDay(n.wakeClock),
     ]),
     fullNights: list.where((n) => n.isFull).length,
   );

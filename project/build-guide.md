@@ -52,3 +52,12 @@ Build-phase "Strip Invalid Architectures" (thêm vào target Runner qua `ios/Pod
 - `ios/Runner/GoogleService-Info.plist` — dynamic (gitignored, copy by build-phase `Select GoogleService-Info (env)`)
 - `.firebaserc` — alias `default`=`tonyembeiu-dev`, `prod`, `dev`
 - `android/key.properties` + keystore — KHÔNG commit; signing fallback debug nếu thiếu
+
+## Widget extension (home-widget)
+
+Target `DearEmbeiuWidget` (WidgetKit) không tạo bằng Xcode mà bằng `scripts/ios-add-widget-target.sh` — idempotent, chạy lại chỉ in `already in the project`. Cần `flutter build ios --config-only` trước (để có `Generated.xcconfig`) và gem `xcodeproj` của CocoaPods Homebrew: `GEM_HOME=$(brew --prefix cocoapods)/libexec`, KHÔNG set `GEM_PATH` (set rồi thì không thấy gem).
+- **Kiểm extension nằm trong app:** `flutter build ios --debug --no-codesign` rồi `ls build/ios/iphoneos/Runner.app/PlugIns/` phải có `DearEmbeiuWidget.appex`; `plutil -p …/Info.plist` đối chiếu `CFBundleIdentifier` (`com.tony.dearembeiu[.dev].widget`), version/build = pubspec, `AppGroupId`.
+- **Strip Invalid Architectures không đụng `.appex`:** script chỉ quét `${FRAMEWORKS_FOLDER_PATH}`; widget nằm ở `PlugIns/` và không nhúng framework nào.
+- **App Group + chữ ký:** lần archive đầu Xcode phải đăng nhập Apple ID (`-allowProvisioningUpdates`) để tạo App Group `group.com.tony.dearembeiu` cho App ID `com.tony.dearembeiu` + `.widget` (Debug thì `.dev`) — như Sign in with Apple/HealthKit. Simulator ký ad-hoc nên `codesign -d --entitlements :-` ra rỗng; đọc Mach-O: section `__TEXT,__entitlements`.
+- **`flutter build ios` luôn chạy `pod install`, và pod install đảo thứ tự 2 phase của Runner trong `project.pbxproj`** (có từ trước widget) → `git checkout ios/Runner.xcodeproj/project.pbxproj` trước khi commit nếu diff chỉ là đổi thứ tự phase. Phase "Embed Foundation Extensions" phải đứng TRƯỚC "Thin Binary" (script đã xếp sẵn), đứng sau thì Xcode báo `Cycle inside Runner`.
+- **Android:** `./gradlew :app:testDebugUnitTest --tests "com.tony.dearembeiu.widget.DayMathTest"`; `android/.gitignore` loại `gradlew` + wrapper jar nên worktree/clone sạch phải chép từ checkout chính.

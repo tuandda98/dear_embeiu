@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/services.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
@@ -10,6 +11,7 @@ import '../providers/streak_provider.dart';
 import '../screens/love_tree_screen.dart';
 import '../services/love_tree_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 import 'shimmer_skeleton.dart';
 
 /// Maps a [StreakState] + day count to its flame intensity (design §4): icon
@@ -88,23 +90,7 @@ class StreakChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(hasUnseenBlooms ? '🌸' : '✨',
-                      style: const TextStyle(fontSize: 13, height: 1))
-                  .animate(
-                    onPlay: (controller) => controller.repeat(reverse: true),
-                  )
-                  .fade(
-                    begin: 0.35,
-                    end: 1.0,
-                    duration: const Duration(milliseconds: 900),
-                    curve: Curves.easeInOut,
-                  )
-                  .scale(
-                    begin: const Offset(0.78, 0.78),
-                    end: const Offset(1.15, 1.15),
-                    duration: const Duration(milliseconds: 900),
-                    curve: Curves.easeInOut,
-                  ),
+              _chipIcon(context, hasUnseenBlooms),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
@@ -119,7 +105,6 @@ class StreakChip extends StatelessWidget {
                   ),
                 ),
               ),
-
             ],
           ),
         ),
@@ -178,6 +163,29 @@ class StreakChip extends StatelessWidget {
     return flowers > lastSeen;
   }
 
+  Widget _chipIcon(BuildContext context, bool hasUnseenBlooms) {
+    final icon = Icon(
+      hasUnseenBlooms ? IconsaxPlusBold.heart : IconsaxPlusBold.star_1,
+      size: 14,
+      color: AppColors.accentLove,
+    );
+    if (AppMotion.reduceMotion(context)) return icon;
+    return icon
+        .animate(onPlay: (controller) => controller.repeat(reverse: true))
+        .fade(
+          begin: 0.35,
+          end: 1.0,
+          duration: const Duration(milliseconds: 900),
+          curve: Curves.easeInOut,
+        )
+        .scale(
+          begin: const Offset(0.78, 0.78),
+          end: const Offset(1.15, 1.15),
+          duration: const Duration(milliseconds: 900),
+          curve: Curves.easeInOut,
+        );
+  }
+
   String _chipText(StreakProvider provider, AppLocalizations l10n) {
     switch (provider.state) {
       case StreakState.activeToday:
@@ -194,5 +202,4 @@ class StreakChip extends StatelessWidget {
         return '';
     }
   }
-
 }

@@ -1,4 +1,4 @@
-const { doc, setDoc, getDoc, updateDoc, deleteDoc } = require('firebase/firestore');
+const { doc, setDoc, getDoc, getDocs, collection, query, where, updateDoc, deleteDoc } = require('firebase/firestore');
 const {
   assertSucceeds,
   assertFails,
@@ -80,6 +80,12 @@ describe('firestore: /couple_codes/{code} (entry code -> coupleId map)', () => {
 
     it('lets any signed-in user read a code (join lookup)', async () => {
       await assertSucceeds(getDoc(doc(authedDb('dave'), 'couple_codes/XYZ789')));
+    });
+
+    // H1: listing gave away every couple's id.
+    it('forbids listing or querying the codes', async () => {
+      await assertFails(getDocs(collection(authedDb('dave'), 'couple_codes')));
+      await assertFails(getDocs(query(collection(authedDb('dave'), 'couple_codes'), where('coupleId', '==', 'c1'))));
     });
 
     it('forbids an unauthenticated read', async () => {

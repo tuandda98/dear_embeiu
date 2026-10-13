@@ -64,8 +64,8 @@ class CoupleInfoCard extends StatelessWidget {
                     remoteUrl: couplePhotoUrl,
                     fit: BoxFit.cover,
                     // 64px avatar → decode ≈ 64 * DPR.
-                    decodeWidth:
-                        (64 * MediaQuery.of(context).devicePixelRatio).round(),
+                    decodeWidth: (64 * MediaQuery.of(context).devicePixelRatio)
+                        .round(),
                     placeholder: Container(
                       color: AppColors.surfaceLight,
                       child: const Icon(
@@ -85,7 +85,7 @@ class CoupleInfoCard extends StatelessWidget {
                     Text(
                       'Our story',
                       style: TextStyle(
-                        color: AppColors.textTertiary,
+                        color: AppColors.textSecondary,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1.4,
@@ -101,7 +101,7 @@ class CoupleInfoCard extends StatelessWidget {
                       heartColor: AppColors.accentLove,
                       textStyle: const TextStyle(
                         color: AppColors.textPrimary,
-                        fontSize: 17,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

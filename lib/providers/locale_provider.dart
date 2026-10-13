@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 
+import '../l10n/app_l10n.dart';
+import '../l10n/app_localizations.dart';
 import '../services/analytics_service.dart';
 
 class LocaleProvider extends ChangeNotifier {
@@ -17,6 +20,18 @@ class LocaleProvider extends ChangeNotifier {
 
   Future<void> setLocale(Locale? locale) async {
     _locale = locale;
+    if (locale == null) {
+      // "Theo hệ thống": MaterialApp does not re-run localeResolutionCallback
+      // when its locale goes back to null, so resolve here like main.dart does
+      // — otherwise AppL10n (widget bridge, reminders) keeps the old language.
+      final device = WidgetsBinding.instance.platformDispatcher.locale;
+      final resolved = AppLocalizations.supportedLocales.firstWhere(
+        (l) => l.languageCode == device.languageCode,
+        orElse: () => AppLocalizations.supportedLocales.first,
+      );
+      AppL10n.setLocale(resolved);
+      Intl.defaultLocale = resolved.languageCode;
+    }
     final box = await Hive.openBox<String>(_boxName);
     if (locale == null) {
       await box.delete(_localeKey);

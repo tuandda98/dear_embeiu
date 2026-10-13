@@ -47,7 +47,7 @@ class InviteActionButtons extends StatelessWidget {
     Clipboard.setData(ClipboardData(text: code));
     // Analytics — `invite_shared` (the code value itself is NEVER logged).
     AnalyticsService.instance.logInviteShared('copy');
-    context.read<ReminderProvider>().markInviteShared();
+    context.read<ReminderProvider>().markInviteShared(code);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.inviteCodeCopiedMsg),
@@ -65,7 +65,7 @@ class InviteActionButtons extends StatelessWidget {
         : null;
     // Analytics — `invite_shared` via the OS share sheet (no code logged).
     AnalyticsService.instance.logInviteShared('share_sheet');
-    context.read<ReminderProvider>().markInviteShared();
+    context.read<ReminderProvider>().markInviteShared(code);
     try {
       await SharePlus.instance.share(
         ShareParams(text: message, sharePositionOrigin: origin),

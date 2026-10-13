@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
-import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -646,9 +645,11 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
     _sharing = true;
     HapticFeedback.selectionClick();
 
-    final l10n = context.l10n;
-    final locale = Localizations.localeOf(context).toString();
-    final nf = NumberFormat.decimalPattern(locale);
+    final copy = loveTreeShareCopy(
+      context.l10n,
+      days: data.days,
+      flowers: data.flowerCount,
+    );
 
     // Anchor the iPad popover to the whole screen (the tap originates from a
     // small header icon; the screen rect is a safe, always-valid anchor).
@@ -663,13 +664,8 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
       person1Name: data.couple.person1Name,
       person2Name: data.couple.person2Name,
       creatorUserId: data.couple.createdByUserId,
-      statsLine: l10n.loveTreeShareStats(
-        nf.format(data.days),
-        nf.format(data.flowerCount),
-      ),
-      tagline: data.flowerCount == 0
-          ? l10n.loveTreeShareTaglineSeed
-          : l10n.loveTreeShareTagline,
+      statsLine: copy.stats,
+      tagline: copy.tagline,
     );
 
     setState(() {
@@ -694,14 +690,10 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
       );
       await file.writeAsBytes(bytes);
 
-      final message = l10n.loveTreeShareMessage(
-        nf.format(data.flowerCount),
-        nf.format(data.days),
-      );
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
-          text: message,
+          text: copy.message,
           sharePositionOrigin: origin,
         ),
       );
@@ -3613,6 +3605,31 @@ class _FirefliesPainter extends CustomPainter {
 // ───────────────────────────────────────────────────────────────────────────
 // Share card (v2 #3) — a self-contained 4:5 branded card rendered off-screen
 // ───────────────────────────────────────────────────────────────────────────
+
+/// Text for "Khoe cây": the card's stats line + tagline and the share-sheet
+/// message. A tree with no flower yet (a couple's first weeks) gets its own
+/// just-sprouted copy instead of "đã nở 0 bông hoa" (audit R2-e), and so does
+/// the very first day, whose stats line reads "Ngày đầu tiên bên nhau" rather
+/// than "0 ngày bên nhau" (a first photo that day must not bring back "sau 0
+/// ngày"). From the first flower and the first day on, the original lines.
+@visibleForTesting
+({String stats, String tagline, String message}) loveTreeShareCopy(
+  AppLocalizations l10n, {
+  required int days,
+  required int flowers,
+}) => flowers == 0 || days == 0
+    ? (
+        stats: days == 0
+            ? l10n.loveTreeShareFirstDay
+            : l10n.loveTreeMilestoneDays(days),
+        tagline: l10n.loveTreeShareTaglineSeed,
+        message: l10n.loveTreeShareMessageSeed,
+      )
+    : (
+        stats: l10n.loveTreeShareStats(days, flowers),
+        tagline: l10n.loveTreeShareTagline,
+        message: l10n.loveTreeShareMessage(flowers, days),
+      );
 
 /// Immutable data the off-screen [LoveTreeShareCard] needs (so the share flow
 /// can capture it without touching providers mid-render).

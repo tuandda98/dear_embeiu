@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
@@ -75,8 +76,9 @@ class _ChatBgScreenState extends State<ChatBgScreen> {
       return null;
     }
     try {
-      final raw =
-          Hive.box<String>('app_settings').get('chat_bg_photo_$_coupleId');
+      final raw = Hive.box<String>(
+        'app_settings',
+      ).get('chat_bg_photo_$_coupleId');
       return (raw == null || raw.isEmpty) ? null : raw;
     } catch (_) {
       return null;
@@ -153,8 +155,7 @@ class _ChatBgScreenState extends State<ChatBgScreen> {
     HapticFeedback.mediumImpact();
     final value = _selected ?? '';
     try {
-      Hive.box<String>('app_settings')
-          .put('chat_bg_photo_$_coupleId', value);
+      Hive.box<String>('app_settings').put('chat_bg_photo_$_coupleId', value);
     } catch (_) {
       // Cache best-effort.
     }
@@ -233,8 +234,9 @@ class _ChatBgScreenState extends State<ChatBgScreen> {
       }
     }
 
-    final valid =
-        candidates.where((c) => _isValid(c.key)).toList(growable: false);
+    final valid = candidates
+        .where((c) => _isValid(c.key))
+        .toList(growable: false);
     final stillMeasuring = candidates.any((c) => !_isMeasured(c.key));
 
     return PopScope(
@@ -249,39 +251,43 @@ class _ChatBgScreenState extends State<ChatBgScreen> {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           bottomNavigationBar: _buildSaveBar(l10n),
-          body: SafeArea(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                    child: SubScreenHeader(
-                      badge: l10n.chatBgBadge,
-                      badgeIcon: IconsaxPlusLinear.gallery,
-                      title: l10n.chatBgTitle,
-                      subtitle: l10n.chatBgSubtitle,
+          body: Stack(
+            children: [
+              CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        16 + MediaQuery.paddingOf(context).top,
+                        16,
+                        4,
+                      ),
+                      child: SubScreenHeader(
+                        badge: l10n.chatBgBadge,
+                        badgeIcon: IconsaxPlusLinear.gallery,
+                      ),
                     ),
                   ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-                    child: _FilterHint(text: l10n.chatBgFilterHint),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                  sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio: 0.62, // portrait tiles, like the bg
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                      child: _FilterHint(text: l10n.chatBgFilterHint),
                     ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 10,
+                            childAspectRatio:
+                                0.62, // portrait tiles, like the bg
+                          ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
                         // Index 0 is always the "default gradient" tile.
                         if (index == 0) {
                           return _NoneTile(
@@ -297,22 +303,20 @@ class _ChatBgScreenState extends State<ChatBgScreen> {
                           coverLabel: l10n.counterBgCoverLabel,
                           onTap: () => _pick(item.key),
                         );
-                      },
-                      childCount: valid.length + 1,
+                      }, childCount: valid.length + 1),
                     ),
                   ),
-                ),
-                if (stillMeasuring)
-                  SliverToBoxAdapter(
-                    child: _MeasuringRow(text: l10n.chatBgMeasuring),
-                  )
-                else if (valid.isEmpty)
-                  SliverToBoxAdapter(
-                    child: _NoValidHint(l10n: l10n),
-                  ),
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
-              ],
-            ),
+                  if (stillMeasuring)
+                    SliverToBoxAdapter(
+                      child: _MeasuringRow(text: l10n.chatBgMeasuring),
+                    )
+                  else if (valid.isEmpty)
+                    SliverToBoxAdapter(child: _NoValidHint(l10n: l10n)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                ],
+              ),
+              const StatusBarScrim(),
+            ],
           ),
         ),
       ),
@@ -332,8 +336,9 @@ class _ChatBgScreenState extends State<ChatBgScreen> {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.accentLove,
               foregroundColor: AppColors.white,
-              disabledBackgroundColor:
-                  AppColors.accentLove.withValues(alpha: 0.40),
+              disabledBackgroundColor: AppColors.accentLove.withValues(
+                alpha: 0.40,
+              ),
               disabledForegroundColor: AppColors.white.withValues(alpha: 0.9),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(999),
@@ -454,8 +459,10 @@ class _BgTile extends StatelessWidget {
                 left: 6,
                 bottom: 6,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.45),
                     borderRadius: BorderRadius.circular(999),
@@ -502,8 +509,11 @@ class _SelectedOverlay extends StatelessWidget {
               color: AppColors.accentLove,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check_rounded,
-                size: 16, color: AppColors.white),
+            child: const Icon(
+              Icons.check_rounded,
+              size: 16,
+              color: AppColors.white,
+            ),
           ),
         ),
       ],
@@ -519,14 +529,19 @@ class _Thumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final placeholder =
-        Container(color: AppColors.accentRose.withValues(alpha: 0.10));
+    final placeholder = Container(
+      color: AppColors.accentRose.withValues(alpha: 0.10),
+    );
     if (local != null && local!.trim().isNotEmpty) {
       final file = File(local!);
       if (file.existsSync()) {
-        return Image.file(file, fit: BoxFit.cover, errorBuilder: (_, _, _) {
-          return _network(remote, placeholder);
-        });
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) {
+            return _network(remote, placeholder);
+          },
+        );
       }
     }
     return _network(remote, placeholder);
@@ -561,15 +576,18 @@ class _FilterHint extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(IconsaxPlusLinear.info_circle,
-              size: 16, color: AppColors.accentLove),
+          const Icon(
+            IconsaxPlusLinear.info_circle,
+            size: 16,
+            color: AppColors.accentLove,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
               style: const TextStyle(
                 color: AppColors.textSecondary,
-                fontSize: 12.5,
+                fontSize: 12,
                 height: 1.4,
               ),
             ),
@@ -632,8 +650,11 @@ class _NoValidHint extends StatelessWidget {
               color: AppColors.white.withValues(alpha: 0.5),
               shape: BoxShape.circle,
             ),
-            child: const Icon(IconsaxPlusLinear.gallery,
-                size: 34, color: AppColors.accentLove),
+            child: const Icon(
+              IconsaxPlusLinear.gallery,
+              size: 34,
+              color: AppColors.accentLove,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -641,7 +662,7 @@ class _NoValidHint extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: AppColors.textPrimary,
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -651,7 +672,7 @@ class _NoValidHint extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: AppColors.textSecondary,
-              fontSize: 13.5,
+              fontSize: 14,
               height: 1.5,
             ),
           ),

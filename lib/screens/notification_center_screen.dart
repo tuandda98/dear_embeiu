@@ -96,7 +96,9 @@ class _Header extends StatelessWidget {
         badgeIcon: IconsaxPlusLinear.notification,
         title: l10n.notifCenterTitle,
         subtitle: subtitle,
-        trailing: hasItems ? _OverflowMenu(provider: provider, l10n: l10n) : null,
+        trailing: hasItems
+            ? _OverflowMenu(provider: provider, l10n: l10n)
+            : null,
       ),
     );
   }
@@ -159,7 +161,7 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(22, 14, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
       child: Text(
         label.toUpperCase(),
         // Header ink vòng 4: navy at .55 on the blush gradient — same recipe
@@ -619,7 +621,11 @@ class _OverflowMenu extends StatelessWidget {
           value: 'clear',
           child: Row(
             children: [
-              const Icon(IconsaxPlusLinear.trash, size: 20, color: AppColors.error),
+              const Icon(
+                IconsaxPlusLinear.trash,
+                size: 20,
+                color: AppColors.error,
+              ),
               const SizedBox(width: 12),
               Text(l10n.notifClearAll),
             ],

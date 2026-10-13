@@ -16,10 +16,35 @@ import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.os.Bundle
+import com.tony.dearembeiu.widget.DayCounterWidget
+import com.tony.dearembeiu.widget.WidgetStore
 
 class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        // Feature home-widget (D3/D8): Dart pushes the pre-translated snapshot,
+        // we store it and redraw every widget; consumeLaunch hands back which
+        // widget opened the app (recorded from the intent extra below).
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "dear_embeiu/widget")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "update" -> {
+                        val args = call.arguments as? Map<*, *>
+                        val snapshot = args?.entries?.associate { it.key.toString() to it.value.toString() } ?: emptyMap()
+                        WidgetStore.save(this, snapshot)
+                        DayCounterWidget.updateAll(this)
+                        result.success(null)
+                    }
+                    "setPhoto" -> {
+                        WidgetStore.savePhoto(this, call.arguments as? ByteArray)
+                        DayCounterWidget.updateAll(this)
+                        result.success(null)
+                    }
+                    "consumeLaunch" -> result.success(WidgetStore.consumeLaunch(this))
+                    else -> result.notImplemented()
+                }
+            }
         // Feature sleep (2026-10-10): rebuild last nights from screen on/off
         // events (UsageStatsManager, API 28+). Needs the special "Usage access"
         // the user grants in system Settings. Reads timestamps only — no app
@@ -49,6 +74,29 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Only a fresh launch counts as a tap: a recreated activity (process
+        // death, config change) or a relaunch from Recents still carries the
+        // original widget intent — system_server keeps it with the extra.
+        if (savedInstanceState == null &&
+            (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) == 0) {
+            recordWidgetLaunch(intent)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        recordWidgetLaunch(intent)
+    }
+
+    /** A tap on the home-screen widget carries its family; park it for Dart (feature home-widget). */
+    private fun recordWidgetLaunch(intent: Intent?) {
+        val family = intent?.getStringExtra(DayCounterWidget.EXTRA_FAMILY) ?: return
+        WidgetStore.recordLaunch(this, family)
+        intent.removeExtra(DayCounterWidget.EXTRA_FAMILY)
     }
 
     private fun hasUsageAccess(): Boolean {

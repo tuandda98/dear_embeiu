@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
@@ -21,7 +24,7 @@ import '../widgets/section_header.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/sleep/moon_glyph.dart';
 import '../widgets/sleep/sleep_card.dart'
-    show DurationText, PersonLabel, SourcePill;
+    show DurationText, PersonLabel, SourcePill, TheirClockPill;
 import '../widgets/sleep/sleep_format.dart';
 import '../widgets/sleep/sleep_sheets.dart';
 import '../widgets/sub_screen_header.dart';
@@ -98,73 +101,81 @@ class _SleepScreenState extends State<SleepScreen> {
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SubScreenHeader(
-                  badge: l10n.sleepBadge,
-                  badgeIcon: IconsaxPlusLinear.moon,
-                ),
-                const SizedBox(height: 20),
-                if (sleep.needsPermission) ...[
-                  _PermissionBanner(onOpen: sleep.openPermissionSettings),
-                  const SizedBox(height: 12),
-                ],
-                if (sleep.healthHasNoData && !sleep.healthHintDismissed) ...[
-                  _HealthHint(
-                    onOpen: sleep.openPermissionSettings,
-                    onDismiss: sleep.dismissHealthHint,
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16 + MediaQuery.paddingOf(context).top,
+                16,
+                24 + MediaQuery.paddingOf(context).bottom,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SubScreenHeader(
+                    badge: l10n.sleepBadge,
+                    badgeIcon: IconsaxPlusLinear.moon,
                   ),
-                  const SizedBox(height: 12),
-                ],
-                if (sleep.partnerShares) ...[
-                  _Segmented(
-                    view: view,
-                    partnerName: partnerName,
-                    myColor: PersonPalette.colorOf(sleep.myColorId),
-                    partnerColor: PersonPalette.colorOf(sleep.partnerColorId),
-                    onChanged: (v) {
-                      HapticFeedback.selectionClick();
-                      setState(() => _view = v);
-                    },
-                  ),
+                  const SizedBox(height: 20),
+                  if (sleep.needsPermission) ...[
+                    _PermissionBanner(onOpen: sleep.openPermissionSettings),
+                    const SizedBox(height: 12),
+                  ],
+                  if (sleep.healthHasNoData && !sleep.healthHintDismissed) ...[
+                    _HealthHint(
+                      onOpen: sleep.openPermissionSettings,
+                      onDismiss: sleep.dismissHealthHint,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (sleep.partnerShares) ...[
+                    _Segmented(
+                      view: view,
+                      partnerName: partnerName,
+                      myColor: PersonPalette.colorOf(sleep.myColorId),
+                      partnerColor: PersonPalette.colorOf(sleep.partnerColorId),
+                      onChanged: (v) {
+                        HapticFeedback.selectionClick();
+                        setState(() => _view = v);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (!sleep.isLoaded)
+                    const ShimmerSkeleton(height: 420, borderRadius: 24)
+                  else
+                    _MoonCalendar(
+                      month: _month,
+                      direction: _monthDirection,
+                      view: view,
+                      selected: _selected,
+                      partnerName: partnerName,
+                      onPrev: () => _shiftMonth(-1),
+                      onNext: () => _shiftMonth(1),
+                      onSelect: (key) {
+                        HapticFeedback.selectionClick();
+                        setState(() => _selected = key);
+                      },
+                    ),
                   const SizedBox(height: 16),
-                ],
-                if (!sleep.isLoaded)
-                  const ShimmerSkeleton(height: 420, borderRadius: 24)
-                else
-                  _MoonCalendar(
-                    month: _month,
-                    direction: _monthDirection,
+                  _NightDetail(
+                    dateKey: _selected,
                     view: view,
-                    selected: _selected,
                     partnerName: partnerName,
-                    onPrev: () => _shiftMonth(-1),
-                    onNext: () => _shiftMonth(1),
-                    onSelect: (key) {
-                      HapticFeedback.selectionClick();
-                      setState(() => _selected = key);
-                    },
                   ),
-                const SizedBox(height: 16),
-                _NightDetail(
-                  dateKey: _selected,
-                  view: view,
-                  partnerName: partnerName,
-                ),
-                const SizedBox(height: 24),
-                SectionHeader(title: _monthTitle(context)),
-                const SizedBox(height: 12),
-                _MonthStats(month: _month, partnerName: partnerName),
-                const SizedBox(height: 24),
-                _SettingsCard(partnerName: partnerName),
-              ],
+                  const SizedBox(height: 24),
+                  SectionHeader(title: _monthTitle(context)),
+                  const SizedBox(height: 12),
+                  _MonthStats(month: _month, partnerName: partnerName),
+                  const SizedBox(height: 24),
+                  _SettingsCard(partnerName: partnerName),
+                ],
+              ),
             ),
-          ),
+            const StatusBarScrim(),
+          ],
         ),
       ),
     );
@@ -593,11 +604,14 @@ class _SkyArrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // excludeSemantics drops the InkWell's tap action: TalkBack / VoiceOver
+    // need it on this node.
     return Semantics(
       button: true,
       enabled: onTap != null,
       label: label,
       excludeSemantics: true,
+      onTap: onTap,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -651,12 +665,18 @@ class _MonthGrid extends StatelessWidget {
       for (var d = 1; d <= daysInMonth; d++)
         _dayCell(context, DateTime(month.year, month.month, d), today),
     ];
-    return GridView.count(
-      crossAxisCount: 7,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 0.70,
-      children: cells,
+    // The 0.70 shape, but never shorter than what a cell holds at the reader's
+    // text size: day number + today bar 8 + moon 22 + margin 4 + ring 3
+    // (+1 to spare).
+    final minHeight = _lineHeight(context, 12) + 38;
+    return LayoutBuilder(
+      builder: (context, c) => GridView.count(
+        crossAxisCount: 7,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisExtent: math.max(c.maxWidth / 7 / 0.70, minHeight),
+        children: cells,
+      ),
     );
   }
 
@@ -682,23 +702,37 @@ class _MonthGrid extends StatelessWidget {
     if (future) {
       moons = const SizedBox(height: 22);
     } else if (both) {
-      moons = Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          moon(mine, myColor, 14),
-          const SizedBox(width: 4),
-          moon(theirs, partnerColor, 14),
-        ],
+      // Two moons need 32dp; a 320dp phone's cell has ~31.
+      moons = FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            moon(mine, myColor, 14),
+            const SizedBox(width: 4),
+            moon(theirs, partnerColor, 14),
+          ],
+        ),
       );
     } else {
       final n = view == _View.partner ? theirs : mine;
       moons = moon(n, view == _View.partner ? partnerColor : myColor, 22);
     }
 
-    String part(String name, SleepNight? n) => n == null
-        ? l10n.sleepSemanticsNoData(name)
-        : '${l10n.sleepSemanticsSlept(name, SleepFormat.long(l10n, n.minutes), SleepFormat.phase(l10n, n.phase))}'
-              '${n.isLabeled ? ' ${l10n.sleepEditedSemantics}' : ''}';
+    String part(String name, SleepNight? n) {
+      if (n == null) {
+        return l10n.sleepSemanticsNoData(name);
+      }
+      // Read as the pill shows it: "Ghi tay" is not "Đã sửa".
+      final label = switch (n.source) {
+        SleepSource.manual => ' ${l10n.sleepManualSemantics}',
+        SleepSource.edited => ' ${l10n.sleepEditedSemantics}',
+        _ => '',
+      };
+      return '${l10n.sleepSemanticsSlept(name, SleepFormat.long(l10n, n.minutes), SleepFormat.phase(l10n, n.phase))}'
+          '$label';
+    }
+
     final summary = [
       if (view != _View.partner) part(l10n.sleepYou, mine),
       if (view != _View.me) part(partnerName, theirs),
@@ -706,6 +740,7 @@ class _MonthGrid extends StatelessWidget {
     ].join('; ');
 
     final reduce = AppMotion.reduceMotion(context);
+    final VoidCallback? tap = future ? null : () => onSelect(key);
     return Semantics(
       label: future
           ? '${date.day}'
@@ -713,9 +748,10 @@ class _MonthGrid extends StatelessWidget {
       selected: isSelected,
       button: !future,
       excludeSemantics: true,
+      onTap: tap,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: future ? null : () => onSelect(key),
+        onTap: tap,
         child: AnimatedContainer(
           duration: reduce ? Duration.zero : const Duration(milliseconds: 160),
           margin: const EdgeInsets.all(2),
@@ -871,7 +907,15 @@ class _Legend extends StatelessWidget {
                 children: [
                   dot(PersonPalette.onSky(partnerColor)),
                   const SizedBox(width: 5),
-                  Text(l10n.sleepMoonRight(partnerName), style: keyStyle),
+                  // A long name ends in "…" instead of running off the card.
+                  Flexible(
+                    child: Text(
+                      l10n.sleepMoonRight(partnerName),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: keyStyle,
+                    ),
+                  ),
                 ],
               ),
               Row(
@@ -879,7 +923,10 @@ class _Legend extends StatelessWidget {
                 children: [
                   const Icon(IconsaxPlusBold.heart, size: 10, color: _skyHeart),
                   const SizedBox(width: 5),
-                  Text(l10n.sleepMoonTogether, style: keyStyle),
+                  // 320dp at 200%: wraps instead of running 19px off the card.
+                  Flexible(
+                    child: Text(l10n.sleepMoonTogether, style: keyStyle),
+                  ),
                 ],
               ),
             ],
@@ -962,16 +1009,21 @@ class _NightDetail extends StatelessWidget {
         ? (mine, theirs)
         : null;
 
-    final duration = AppMotion.reduceMotion(context)
-        ? Duration.zero
-        : const Duration(milliseconds: 220);
+    // Reduce Motion: no AnimatedSize at all — with a zero duration it
+    // re-lays itself out mid-layout (debug assert when another night of a
+    // different height is picked).
+    Widget sized(Widget child) => AppMotion.reduceMotion(context)
+        ? child
+        : AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: AppMotion.curve,
+            alignment: Alignment.topCenter,
+            child: child,
+          );
     return ContentCard(
       padding: const EdgeInsets.all(16),
-      child: AnimatedSize(
-        duration: duration,
-        curve: AppMotion.curve,
-        alignment: Alignment.topCenter,
-        child: Column(
+      child: sized(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -1014,6 +1066,7 @@ class _NightDetail extends StatelessWidget {
                 color: partnerColor,
                 night: theirs,
                 emptyText: l10n.sleepPartnerNightEmpty,
+                theirClock: theirs != null && SleepFormat.onOtherClock(theirs),
               ),
             if (lockedPartner && view != _View.partner)
               Padding(
@@ -1063,8 +1116,11 @@ class _Timeline extends StatelessWidget {
   final (SleepNight, SleepNight)? overlap;
 
   static const double _labelWidth = 64;
-  static const double _rowHeight = 16;
   static const double _rowGap = 6;
+
+  /// The axis runs 18:00 the evening before → 14:00, the same window nights
+  /// are worked out in (a 12:30 wake-up used to be drawn at 12:00).
+  static const int span = 20 * 60;
 
   @override
   Widget build(BuildContext context) {
@@ -1072,37 +1128,45 @@ class _Timeline extends StatelessWidget {
       return const SizedBox.shrink();
     }
     final wake = sleepDateFromKey(dateKey) ?? DateTime.now();
-    final start = DateTime(wake.year, wake.month, wake.day - 1, 18);
-    final end = DateTime(wake.year, wake.month, wake.day, 12);
     final reduce = AppMotion.reduceMotion(context);
-    const hourStyle = TextStyle(
-      color: AppColors.textSecondary,
-      fontSize: 11,
-      fontWeight: FontWeight.w600,
-    );
-    final height = lanes.length * _rowHeight + (lanes.length - 1) * _rowGap;
+    // A lane is as tall as its name at the reader's text size: a fixed 16
+    // cut the "y" of "Nguyễn" (the name's line is 18 even at 100%).
+    final rowHeight = math.max(16.0, _lineHeight(context, 12).ceilToDouble());
+    final height = lanes.length * rowHeight + (lanes.length - 1) * _rowGap;
+
+    // Each bar on its own night's clock (audit D2): the partner abroad sleeps
+    // 23:00–07:00 on their clock, not 13:00–21:00 on mine.
+    ({int from, int to, List<int> wakeUps})? bar(SleepNight? n) => n == null
+        ? null
+        : (
+            from: _sinceEvening(n.bedClock, wake),
+            to: _sinceEvening(n.wakeClock, wake),
+            wakeUps: n.wakeUps,
+          );
+
+    // "Asleep together" = where the two drawn bars meet, when both nights are
+    // read on one clock: this phone's, or the same one abroad (the test of
+    // `SleepFormat.onOtherClock`). Otherwise the band is skipped (the footer
+    // below still counts the minutes). Comparing minutes instead lost the band
+    // to the seconds both bars drop, and a DST night drew it an hour off.
+    ({int from, int to})? together;
+    final o = overlap;
+    if (o != null) {
+      final (a, b) = o;
+      int? clock(SleepNight n) => SleepFormat.onOtherClock(n) ? n.tz : null;
+      final (ba, bb) = (bar(a)!, bar(b)!);
+      final from = math.max(ba.from, bb.from);
+      final to = math.min(ba.to, bb.to);
+      if (clock(a) == clock(b) && a.overlapWith(b) > 0 && to > from) {
+        together = (from: from, to: to);
+      }
+    }
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: _labelWidth + 8),
-          child: LayoutBuilder(
-            builder: (context, c) => SizedBox(
-              height: 14,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  for (var i = 0; i <= 6; i++)
-                    Positioned(
-                      left:
-                          (c.maxWidth * i / 6) -
-                          (i == 6 ? 22 : (i == 0 ? 0 : 10)),
-                      child: Text('${(18 + i * 3) % 24}h', style: hourStyle),
-                    ),
-                ],
-              ),
-            ),
-          ),
+        const Padding(
+          padding: EdgeInsets.only(left: _labelWidth + 8),
+          child: _HourAxis(),
         ),
         const SizedBox(height: 6),
         Row(
@@ -1117,7 +1181,7 @@ class _Timeline extends StatelessWidget {
                     Padding(
                       padding: EdgeInsets.only(top: i == 0 ? 0 : _rowGap),
                       child: SizedBox(
-                        height: _rowHeight,
+                        height: rowHeight,
                         child: Text(
                           lanes[i].name,
                           maxLines: 1,
@@ -1142,14 +1206,13 @@ class _Timeline extends StatelessWidget {
                 builder: (context, progress, _) => CustomPaint(
                   size: Size(double.infinity, height),
                   painter: _LanePainter(
-                    start: start,
-                    end: end,
                     lanes: [
-                      for (final l in lanes) (color: l.color, night: l.night),
+                      for (final l in lanes)
+                        (color: l.color, bar: bar(l.night)),
                     ],
-                    overlap: overlap,
+                    together: together,
                     progress: progress,
-                    rowHeight: _rowHeight,
+                    rowHeight: rowHeight,
                     rowGap: _rowGap,
                   ),
                 ),
@@ -1162,47 +1225,115 @@ class _Timeline extends StatelessWidget {
   }
 }
 
+/// One line of inherited [fontSize] text at the reader's text size (the
+/// theme's body style sets the line height, 1.5).
+double _lineHeight(BuildContext context, double fontSize) =>
+    MediaQuery.textScalerOf(context).scale(fontSize) *
+    (DefaultTextStyle.of(context).style.height ?? 1.5);
+
+/// Minutes from 18:00 the evening before [wakeDay] to [clock] — a reading of
+/// a night's own clock (`SleepNight.bedClock` / `wakeClock`), so only its
+/// fields count, never its time zone.
+int _sinceEvening(DateTime clock, DateTime wakeDay) =>
+    DateTime.utc(clock.year, clock.month, clock.day, clock.hour, clock.minute)
+        .difference(
+          DateTime.utc(wakeDay.year, wakeDay.month, wakeDay.day - 1, 18),
+        )
+        .inMinutes;
+
+/// "18h · 22h · 2h · 6h · 10h · 14h" over the lanes. When big text would make
+/// neighbours overlap, every other tick is labelled instead — the labels keep
+/// the size the reader asked for.
+class _HourAxis extends StatelessWidget {
+  const _HourAxis();
+
+  static const TextStyle _style = TextStyle(
+    color: AppColors.textSecondary,
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    // Measured with the inherited style too (font, line height), like the Text.
+    final widest = TextPainter(
+      text: TextSpan(
+        text: '22h',
+        style: DefaultTextStyle.of(context).style.merge(_style),
+      ),
+      textScaler: MediaQuery.textScalerOf(context),
+      textDirection: Directionality.of(context),
+    )..layout();
+    final labelWidth = widest.width;
+    final height = widest.height;
+    widest.dispose();
+    Widget label(int i) =>
+        Text('${(18 + i * 4) % 24}h', maxLines: 1, style: _style);
+    return LayoutBuilder(
+      builder: (context, c) {
+        final step = c.maxWidth / 5; // 4 h
+        // An edge label plus half of its neighbour must fit in the gap.
+        final need = labelWidth * 1.5 + 4;
+        final every = need <= step ? 1 : (need <= step * 2 ? 2 : 5);
+        return SizedBox(
+          height: height,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              for (var i = 0; i <= 5; i += every)
+                if (i == 0)
+                  Positioned(left: 0, child: label(i))
+                else if (i == 5)
+                  Positioned(right: 0, child: label(i))
+                else
+                  Positioned(
+                    left: step * i,
+                    child: FractionalTranslation(
+                      translation: const Offset(-0.5, 0),
+                      child: label(i),
+                    ),
+                  ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _LanePainter extends CustomPainter {
   _LanePainter({
-    required this.start,
-    required this.end,
     required this.lanes,
-    required this.overlap,
+    required this.together,
     required this.progress,
     required this.rowHeight,
     required this.rowGap,
   });
 
-  final DateTime start;
-  final DateTime end;
-  final List<({Color color, SleepNight? night})> lanes;
-  final (SleepNight, SleepNight)? overlap;
+  /// Per lane: minutes on the axis (see [_sinceEvening]); wake-ups are
+  /// minutes after `from`.
+  final List<({Color color, ({int from, int to, List<int> wakeUps})? bar})>
+  lanes;
+  final ({int from, int to})? together;
   final double progress;
   final double rowHeight;
   final double rowGap;
 
-  double _x(DateTime t, double width) {
-    final span = end.difference(start).inMinutes;
-    final m = t.difference(start).inMinutes.clamp(0, span);
-    return width * m / span;
-  }
+  double _x(int minute, double width) =>
+      width * minute.clamp(0, _Timeline.span) / _Timeline.span;
 
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
-    final o = overlap;
-    if (o != null) {
-      final a = o.$1.bedAt.isAfter(o.$2.bedAt) ? o.$1.bedAt : o.$2.bedAt;
-      final b = o.$1.wakeAt.isBefore(o.$2.wakeAt) ? o.$1.wakeAt : o.$2.wakeAt;
-      if (b.isAfter(a)) {
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(
-            Rect.fromLTRB(_x(a, w), -4, _x(b, w) * 1.0, size.height + 4),
-            const Radius.circular(8),
-          ),
-          Paint()..color = AppColors.textPrimary.withValues(alpha: 0.07),
-        );
-      }
+    final t = together;
+    if (t != null) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTRB(_x(t.from, w), -4, _x(t.to, w), size.height + 4),
+          const Radius.circular(8),
+        ),
+        Paint()..color = AppColors.textPrimary.withValues(alpha: 0.07),
+      );
     }
     final reveal = w * progress;
     for (var i = 0; i < lanes.length; i++) {
@@ -1212,12 +1343,12 @@ class _LanePainter extends CustomPainter {
         const Radius.circular(999),
       );
       canvas.drawRRect(track, Paint()..color = AppColors.surfaceLight);
-      final n = lanes[i].night;
+      final n = lanes[i].bar;
       if (n == null) {
         continue;
       }
-      final x1 = _x(n.bedAt, w);
-      final x2 = _x(n.wakeAt, w).clamp(x1, reveal < x1 ? x1 : reveal);
+      final x1 = _x(n.from, w);
+      final x2 = _x(n.to, w).clamp(x1, reveal < x1 ? x1 : reveal);
       if (x2 <= x1) {
         continue;
       }
@@ -1231,7 +1362,7 @@ class _LanePainter extends CustomPainter {
         Paint()..color = lanes[i].color,
       );
       for (final m in n.wakeUps) {
-        final x = _x(n.bedAt.add(Duration(minutes: m)), w);
+        final x = _x(n.from + m, w);
         if (x > x1 && x < x2) {
           canvas.drawRect(
             Rect.fromLTWH(x - 1, top, 2, 10),
@@ -1257,6 +1388,7 @@ class _PersonRow extends StatelessWidget {
     this.onEdit,
     this.locked = false,
     this.isMe = false,
+    this.theirClock = false,
   });
 
   final String name;
@@ -1267,6 +1399,9 @@ class _PersonRow extends StatelessWidget {
   final VoidCallback? onEdit;
   final bool locked;
   final bool isMe;
+
+  /// The partner's times are on their clock, not this phone's (audit D2).
+  final bool theirClock;
 
   @override
   Widget build(BuildContext context) {
@@ -1282,7 +1417,7 @@ class _PersonRow extends StatelessWidget {
       fontSize: 12,
       fontWeight: FontWeight.w500,
     );
-    return Padding(
+    final row = Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1299,8 +1434,7 @@ class _PersonRow extends StatelessWidget {
                   emptyColor: AppColors.textTertiary,
                 ),
                 const SizedBox(width: 10),
-                SizedBox(
-                  width: 64,
+                Expanded(
                   child: Text(
                     name,
                     maxLines: 1,
@@ -1312,23 +1446,8 @@ class _PersonRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    n == null
-                        ? emptyText
-                        : '${SleepFormat.time(context, n.bedAt)} → ${SleepFormat.time(context, n.wakeAt)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: n == null
-                        ? strong.copyWith(
-                            color: AppColors.textSecondary,
-                            fontSize: 13,
-                          )
-                        : strong,
-                  ),
-                ),
-                if (n != null)
+                if (n != null) ...[
+                  const SizedBox(width: 6),
                   Text(
                     SleepFormat.short(l10n, n.minutes),
                     style: const TextStyle(
@@ -1337,21 +1456,42 @@ class _PersonRow extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
+                ],
                 if (isMe)
                   onEdit != null
-                      ? HeaderIconButton(
-                          icon: IconsaxPlusLinear.edit_2,
-                          iconSize: 18,
-                          semanticsLabel: l10n.sleepEditButton,
-                          onTap: onEdit!,
+                      // Its own stop, after the night it edits.
+                      ? Semantics(
+                          container: true,
+                          child: HeaderIconButton(
+                            icon: IconsaxPlusLinear.edit_2,
+                            iconSize: 18,
+                            semanticsLabel: l10n.sleepEditButton,
+                            onTap: onEdit!,
+                          ),
                         )
                       : const SizedBox(width: 44),
               ],
             ),
           ),
+          // The times on a line of their own: beside the name they were cut
+          // to "23:…" on small phones and big text (audit N4).
+          Padding(
+            padding: const EdgeInsets.only(left: 28),
+            child: Text(
+              n == null
+                  ? emptyText
+                  : '${SleepFormat.time(context, n.bedClock)} → ${SleepFormat.time(context, n.wakeClock)}',
+              style: n == null
+                  ? strong.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    )
+                  : strong,
+            ),
+          ),
           if (n != null)
             Padding(
-              padding: const EdgeInsets.only(left: 28),
+              padding: const EdgeInsets.only(left: 28, top: 2),
               child: Wrap(
                 spacing: 6,
                 runSpacing: 4,
@@ -1362,6 +1502,7 @@ class _PersonRow extends StatelessWidget {
                     style: sub,
                   ),
                   if (n.isLabeled) SourcePill(source: n.source),
+                  if (theirClock) const TheirClockPill(),
                 ],
               ),
             ),
@@ -1385,6 +1526,10 @@ class _PersonRow extends StatelessWidget {
         ],
       ),
     );
+    // TalkBack / VoiceOver: one stop per person — name, duration, times and
+    // details read together — then the edit button, which used to cut in
+    // between the duration and the times (audit N4b).
+    return Semantics(container: true, child: row);
   }
 }
 
@@ -1897,15 +2042,17 @@ class _Swatch extends StatelessWidget {
     final duration = AppMotion.reduceMotion(context)
         ? Duration.zero
         : AppMotion.fast;
+    final tap = disabled || selected ? null : onTap;
     return Semantics(
       button: true,
       enabled: !disabled,
       selected: selected,
       label: semantics,
       excludeSemantics: true,
+      onTap: tap,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: disabled || selected ? null : onTap,
+        onTap: tap,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

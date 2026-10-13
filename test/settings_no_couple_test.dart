@@ -41,10 +41,10 @@ class _SessionEndsMidDeleteAuth extends _UnpairedAuth {
   var _calls = 0;
 
   @override
-  bool get isAppleOnlyAccount => true;
+  bool get reauthWithApple => true;
 
   @override
-  Future<String?> deleteAccount() async {
+  Future<String?> deleteAccount({required bool appleSheet}) async {
     if (firstAsksReauth && _calls++ == 0) {
       return 'requires-recent-login';
     }

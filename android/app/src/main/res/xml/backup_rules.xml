@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 and older (android:fullBackupContent). Same exclusions as
+  data_extraction_rules.xml: sleep data never leaves the phone (audit D6).
+-->
+<full-backup-content>
+    <exclude domain="root" path="app_flutter/sleep_nobackup/" />
+    <exclude domain="root" path="app_flutter/sleep_local.hive" />
+</full-backup-content>

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
@@ -59,19 +60,22 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     final authProvider = context.read<AuthProvider>();
+    // AU4: taken before the await. Going back while Firebase finishes leaves
+    // a live session behind — it must still go through authGate.
+    final navigator = Navigator.of(context);
     final didSignIn = await authProvider.signIn(
       email: _emailController.text,
       password: _passwordController.text,
     );
 
-    if (!mounted) {
+    if (didSignIn) {
+      if (navigator.mounted) {
+        navigator.pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+      }
       return;
     }
 
-    if (didSignIn) {
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+    if (!mounted) {
       return;
     }
 
@@ -90,75 +94,79 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 460),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Clear the top-bar (back button + centered chip +
-                        // language toggle) so a tall form never pushes the
-                        // content under them.
-                        const SizedBox(height: 52),
-                        if (authProvider.bootstrapMessage != null) ...[
-                          _buildStatusBanner(
-                            label: authProvider.authSourceLabel,
-                            message: authProvider.bootstrapMessage!,
-                            icon: authProvider.isUsingFirebase
-                                ? IconsaxPlusLinear.cloud
-                                : IconsaxPlusLinear.cloud_cross,
-                            color: authProvider.isUsingFirebase
-                                ? AppColors.success
-                                : AppColors.warning,
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-                        _buildFormCard(authProvider),
+        child: Stack(
+          children: [
+            Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  20 + MediaQuery.paddingOf(context).top,
+                  20,
+                  20 + MediaQuery.paddingOf(context).bottom,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 460),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Clear the top-bar (back button + centered chip +
+                      // language toggle) so a tall form never pushes the
+                      // content under them.
+                      const SizedBox(height: 52),
+                      if (authProvider.bootstrapMessage != null) ...[
+                        _buildStatusBanner(
+                          label: authProvider.authSourceLabel,
+                          message: authProvider.bootstrapMessage!,
+                          icon: authProvider.isUsingFirebase
+                              ? IconsaxPlusLinear.cloud
+                              : IconsaxPlusLinear.cloud_cross,
+                          color: authProvider.isUsingFirebase
+                              ? AppColors.success
+                              : AppColors.warning,
+                        ),
+                        const SizedBox(height: 24),
                       ],
+                      _buildFormCard(authProvider),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const StatusBarScrim(),
+            // Header redesign (2026-06-14): the eyebrow chip is centered on
+            // the top-bar, level with the back squircle (left) and language
+            // toggle (right) — the page title + subtitle were removed.
+            Positioned(
+              top: 8 + MediaQuery.paddingOf(context).top,
+              left: 16,
+              child: HeaderIconButton(
+                icon: IconsaxPlusLinear.arrow_left,
+                onTap: () => Navigator.of(context).maybePop(),
+                semanticsLabel: context.l10n.back,
+              ),
+            ),
+            Positioned(
+              top: 8 + MediaQuery.paddingOf(context).top,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: SizedBox(
+                  height: 44,
+                  child: Center(
+                    child: EyebrowChip(
+                      label: context.l10n.welcomeBackBadge,
+                      icon: IconsaxPlusLinear.lock,
                     ),
                   ),
                 ),
               ),
-              // Header redesign (2026-06-14): the eyebrow chip is centered on
-              // the top-bar, level with the back squircle (left) and language
-              // toggle (right) — the page title + subtitle were removed.
-              Positioned(
-                top: 8,
-                left: 16,
-                child: HeaderIconButton(
-                  icon: IconsaxPlusLinear.arrow_left,
-                  onTap: () => Navigator.of(context).maybePop(),
-                  semanticsLabel: context.l10n.back,
-                ),
-              ),
-              Positioned(
-                top: 8,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: SizedBox(
-                    height: 44,
-                    child: Center(
-                      child: EyebrowChip(
-                        label: context.l10n.welcomeBackBadge,
-                        icon: IconsaxPlusLinear.lock,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const Positioned(
-                top: 12,
-                right: 16,
-                child: LanguageToggleButton(),
-              ),
-            ],
-          ),
+            ),
+            Positioned(
+              top: 12 + MediaQuery.paddingOf(context).top,
+              right: 16,
+              child: LanguageToggleButton(),
+            ),
+          ],
         ),
       ),
     );
@@ -235,15 +243,8 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.emailLabel,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 18),
+            // No card heading: "WELCOME BACK" chip names the screen and the
+            // first field already says "Email" (duplicate, user 2026-10-13).
             _buildFieldBlock(
               label: l10n.emailLabel,
               child: TextFormField(
@@ -283,7 +284,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       setState(() => _obscurePassword = !_obscurePassword);
                     },
                     icon: Icon(
-                      _obscurePassword ? IconsaxPlusLinear.eye : IconsaxPlusLinear.eye_slash,
+                      _obscurePassword
+                          ? IconsaxPlusLinear.eye
+                          : IconsaxPlusLinear.eye_slash,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -314,9 +317,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
+                  minimumSize: const Size(44, 44),
+                  tapTargetSize: MaterialTapTargetSize.padded,
                   foregroundColor: AppColors.accentRose,
                 ),
                 child: Text(
@@ -334,7 +336,8 @@ class _LoginScreenState extends State<LoginScreen> {
               width: double.infinity,
               height: 52,
               child: FilledButton(
-                onPressed: authProvider.isLoading || authProvider.isSocialSigningIn
+                onPressed:
+                    authProvider.isLoading || authProvider.isSocialSigningIn
                     ? null
                     : _submit,
                 style: FilledButton.styleFrom(

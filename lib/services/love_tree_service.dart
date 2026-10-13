@@ -60,14 +60,18 @@ class LoveTreeService {
   /// hint has been shown). Per-couple, like [seenKey].
   static String coachKey(String coupleId) => 'love_tree_coach_$coupleId';
 
-  /// Days the couple has been together (date-only, clamped ≥0). Mirrors the
-  /// counter's `inDays` semantics.
-  static int daysTogether(DateTime anniversary) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final start =
-        DateTime(anniversary.year, anniversary.month, anniversary.day);
-    final diff = today.difference(start).inDays;
+  /// Days the couple has been together (calendar days, clamped ≥0) — the one
+  /// count behind the Home and guest counters, Profile and the tree. Counted
+  /// on dates, not hours: across a DST change two local midnights are 23 h
+  /// apart, and `inDays` lost a day all summer (together since 29/3 in
+  /// Berlin, still "first day" on 30/3).
+  static int daysTogether(DateTime anniversary, {DateTime? now}) {
+    final today = now ?? DateTime.now();
+    final diff = DateTime.utc(today.year, today.month, today.day)
+        .difference(
+          DateTime.utc(anniversary.year, anniversary.month, anniversary.day),
+        )
+        .inDays;
     return diff < 0 ? 0 : diff;
   }
 

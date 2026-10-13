@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart' show FirebaseException;
 import 'package:flutter/foundation.dart';
 
 import '../models/sleep_night.dart';
@@ -30,6 +31,10 @@ class SleepProvider extends ChangeNotifier {
   String? _uid;
   String? _coupleId;
   String _partnerUid = '';
+
+  /// While the phone was another account's (D7, L3): screen / Health data
+  /// from then is theirs. Empty while the phone was always mine.
+  List<({DateTime from, DateTime until})> _notMine = const [];
 
   SleepSettings _settings = const SleepSettings();
   bool _loaded = false;
@@ -141,11 +146,24 @@ class SleepProvider extends ChangeNotifier {
   String? get partnerColorChoice => hasPartner ? _partnerProfile?.color : null;
 
   /// "Đêm qua": the night that ended this morning — or, before 4 am, the one
-  /// that ended yesterday (tonight's isn't over yet).
-  static String lastNightKey([DateTime? now]) {
+  /// that ended yesterday (tonight's isn't over yet). Scans stop at the same
+  /// night ([recentWakeDates]).
+  static String lastNightKey([DateTime? now]) =>
+      sleepDateKey(lastWakeDate(now ?? DateTime.now()));
+
+  /// "Đêm qua" on the partner's clock (audit D2): a partner abroad wakes up on
+  /// their own date. Uses the tz of their latest night; [lastNightKey] when
+  /// that night has none (saved before 1.9.1).
+  String partnerLastNightKey([DateTime? now]) {
     final n = now ?? DateTime.now();
-    final day = n.hour < 4 ? DateTime(n.year, n.month, n.day - 1) : n;
-    return sleepDateKey(day);
+    String? latest;
+    for (final key in partnerNights.keys) {
+      if (latest == null || key.compareTo(latest) > 0) {
+        latest = key;
+      }
+    }
+    final tz = latest == null ? null : partnerNights[latest]?.tz;
+    return lastNightKey(tz == null ? n : n.toUtc().add(Duration(minutes: tz)));
   }
 
   /// One-shot flag for the "couldn't load your person's sleep" SnackBar.
@@ -184,6 +202,7 @@ class SleepProvider extends ChangeNotifier {
       notifyListeners();
       final settings = await _service.loadSettings(myUid);
       final nights = await _service.loadNights(myUid);
+      final notMine = await _service.claimDevice(myUid);
       final supported = await SleepPlatform.isSupported();
       // Known before the first frame, so Android doesn't flash "permission
       // needed" (A2) until the first scan finishes.
@@ -193,6 +212,7 @@ class SleepProvider extends ChangeNotifier {
       }
       _settings = settings;
       _local = nights;
+      _notMine = notMine;
       _supported = supported;
       _permission = permission;
       _loaded = true;
@@ -227,6 +247,7 @@ class SleepProvider extends ChangeNotifier {
     _uid = null;
     _coupleId = null;
     _partnerUid = '';
+    _notMine = const [];
     _settings = const SleepSettings();
     _loaded = false;
     _local = <String, SleepNight?>{};
@@ -413,7 +434,7 @@ class SleepProvider extends ChangeNotifier {
       if (_uid != uid) {
         return;
       }
-      if (_merge(computed)) {
+      if (mergeComputed(_local, computed, now: now, notMine: _notMine)) {
         await _service.saveNights(uid, _local);
       }
       await _syncRecent();
@@ -425,21 +446,73 @@ class SleepProvider extends ChangeNotifier {
     }
   }
 
-  /// Folds freshly computed nights into the store. Never touches a night the
-  /// user edited, logged or deleted; never replaces data with "no data".
-  bool _merge(Map<String, SleepNight?> computed) {
+  /// Folds freshly computed nights into [local]; true when it changed. Never
+  /// touches a night the user edited, logged or deleted; never replaces data
+  /// with "no data". After a flight the same screen events land in other
+  /// windows, so a night recorded on another clock stays as it is — only a
+  /// later scan of that same sleep (today or yesterday), no shorter at either
+  /// end, updates it, keeping its clock — and a new night that overlaps one
+  /// stored under another date is that same sleep: dropped. Nights on this
+  /// phone's clock are measured again like in 1.8.0; ones saved before 1.9.1
+  /// (clock unknown) are settled once older than yesterday. Nights that ended
+  /// while the phone was another account's ([notMine], D7) are theirs.
+  @visibleForTesting
+  static bool mergeComputed(
+    Map<String, SleepNight?> local,
+    Map<String, SleepNight?> computed, {
+    required DateTime now,
+    List<({DateTime from, DateTime until})> notMine = const [],
+  }) {
+    final yesterday = sleepDateKey(DateTime(now.year, now.month, now.day - 1));
     var changed = false;
     computed.forEach((date, night) {
-      if (night == null) {
+      if (night == null ||
+          notMine.any(
+            (s) =>
+                !night.wakeAt.isBefore(s.from) &&
+                night.wakeAt.isBefore(s.until),
+          )) {
         return;
       }
-      if (_local.containsKey(date)) {
-        final existing = _local[date];
-        if (existing == null || existing.isLabeled || existing.sameAs(night)) {
+      var fresh = night;
+      if (local.containsKey(date)) {
+        final existing = local[date];
+        if (existing == null || existing.isLabeled) {
+          return;
+        }
+        final tz = existing.tz;
+        final overlaps = existing.overlapWith(night) > 0;
+        final otherClock =
+            tz != null &&
+            existing.bedAt.toLocal().timeZoneOffset.inMinutes != tz;
+        if (((otherClock || tz == null) && date.compareTo(yesterday) < 0) ||
+            (otherClock && !overlaps)) {
+          return;
+        }
+        // Scanned here, a night from another clock comes back cut at this
+        // clock's window edge (Vietnam 22:00 = 17:00 in Berlin, before the
+        // 18:00 start → "23:00"): only a scan as long at both ends updates it
+        // (audit N-L1).
+        if (otherClock &&
+            (night.bedAt.isAfter(existing.bedAt) ||
+                night.wakeAt.isBefore(existing.wakeAt))) {
+          return;
+        }
+        if (tz != null && overlaps) {
+          fresh = night.copyWith(tz: tz);
+        }
+        if (existing.sameAs(fresh)) {
           return;
         }
       }
-      _local[date] = night;
+      final seenElsewhere = local.entries.any(
+        (e) =>
+            e.key != date && e.value != null && e.value!.overlapWith(fresh) > 0,
+      );
+      if (seenElsewhere) {
+        return;
+      }
+      local[date] = fresh;
       changed = true;
     });
     return changed;
@@ -482,8 +555,7 @@ class SleepProvider extends ChangeNotifier {
       // The real fingerprint only once the write lands: a failed put of a
       // recent night is retried on the next sync.
       unawaited(
-        _service
-            .putNight(coupleId, uid, night)
+        _put(coupleId, uid, night)
             .then(
               (_) => _markSynced(uid, coupleId, night.date, night.fingerprint),
             )
@@ -521,6 +593,29 @@ class SleepProvider extends ChangeNotifier {
     });
     return (pushes: pushes, deletes: deletes);
   }
+
+  /// Rules from before 1.9.1 (PROD until they're deployed) refuse `tz`: the
+  /// night goes once more without it, else a refused night older than 7 days
+  /// would stay marked "pushing" for good. The new rules take the first try.
+  Future<void> _put(String coupleId, String uid, SleepNight night) => _service
+      .putNight(coupleId, uid, night)
+      .catchError(
+        (Object _) => _service.putNight(
+          coupleId,
+          uid,
+          SleepNight(
+            date: night.date,
+            bedAt: night.bedAt,
+            wakeAt: night.wakeAt,
+            wakeUps: night.wakeUps,
+            source: night.source,
+          ),
+        ),
+        test: (e) =>
+            night.tz != null &&
+            e is FirebaseException &&
+            e.code == 'permission-denied',
+      );
 
   /// Deleted or edited while the markers were being saved: the sync that made
   /// that change sends its own write, this stale one must not follow it.
@@ -597,6 +692,9 @@ class SleepProvider extends ChangeNotifier {
     }
     try {
       final remote = await _service.fetchNights(coupleId, uid);
+      if (_uid != uid || _coupleId != coupleId) {
+        return; // signed out meanwhile: these nights aren't the new account's
+      }
       var changed = false;
       remote.forEach((date, night) {
         _fingerprints[date] = night.fingerprint;
@@ -673,7 +771,7 @@ class SleepProvider extends ChangeNotifier {
     await Future.wait([
       for (final night in nights.where(_stillLocal))
         _quiet(
-          _service.putNight(coupleId, uid, night).then<void>((_) {
+          _put(coupleId, uid, night).then<void>((_) {
             if (current()) {
               _fingerprints[night.date] = night.fingerprint;
             }
@@ -774,12 +872,20 @@ class SleepProvider extends ChangeNotifier {
   // ── Editing (R1–R4) ───────────────────────────────────────────────────────
 
   /// Saves my night for [date]: an existing night becomes "edited", an empty
-  /// one "manual". Throws when the night is outside the 7-day window.
-  Future<void> saveNight(String date, DateTime bedAt, DateTime wakeAt) async {
+  /// one "manual". Throws when the night is outside the 7-day window. The
+  /// night keeps the clock the times were picked on (D2): [tz] for a night
+  /// from a trip, else this phone's.
+  Future<void> saveNight(
+    String date,
+    DateTime bedAt,
+    DateTime wakeAt, {
+    int? tz,
+  }) async {
     final uid = _uid;
     if (uid == null || !sleepNightEditable(date) || !wakeAt.isAfter(bedAt)) {
       throw StateError('not editable');
     }
+    tz ??= bedAt.toLocal().timeZoneOffset.inMinutes;
     final existing = _local[date];
     final SleepNight night;
     if (existing == null) {
@@ -788,6 +894,7 @@ class SleepProvider extends ChangeNotifier {
         bedAt: bedAt,
         wakeAt: wakeAt,
         source: SleepSource.manual,
+        tz: tz,
       );
     } else {
       // Keep the wake-ups that still fall inside the new times.
@@ -806,6 +913,7 @@ class SleepProvider extends ChangeNotifier {
         source: existing.source == SleepSource.manual
             ? SleepSource.manual
             : SleepSource.edited,
+        tz: tz,
       );
     }
     _local[date] = night;

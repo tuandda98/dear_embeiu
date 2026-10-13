@@ -38,6 +38,20 @@ class SleepPlatform {
     }
   }
 
+  /// iOS: keeps the folder at [path] (and everything in it) out of iCloud /
+  /// computer backups — sleep data stays on this phone (audit D6). Android
+  /// does the same with the backup rules in `res/xml`.
+  static Future<void> excludeFromBackup(String path) async {
+    if (!isIOS) {
+      return;
+    }
+    try {
+      await _channel.invokeMethod<bool>('excludeFromBackup', {'path': path});
+    } catch (_) {
+      // Best effort: the next launch sets it again.
+    }
+  }
+
   /// Android screen on/off transitions between [from] and [to].
   static Future<List<ScreenEvent>> screenEvents(
     DateTime from,

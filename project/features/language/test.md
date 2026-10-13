@@ -213,3 +213,25 @@ Tổng hợp 4 lỗi `dart analyze`; tất cả phải sửa trước khi test r
 
 - [2026-10-11] [Tester] Vòng 2 (commit `77c2cd9`): FAIL — 0 chặn · 0 lớn · 1 nhỏ (L1). 3 lỗi vòng 1 đạt, test bắt được hồi quy, bảng câu chữ 9/9.
 - [2026-10-11] [Dev] Đã sửa L1 và N1: `sleepHowBody1Ios` (VI+EN) nói rõ "dưới 3 tiếng hoặc quá 16 tiếng không được tính"; cả bản Android lẫn iOS đổi "không có khoảng nào muộn hơn" → "không có khoảng nào kéo dài sau 1 giờ" (đúng điều kiện code: khối kết thúc sau 01:00). N2/R5 ghi vào kế hoạch enforce của `features/app-check`.
+
+## Audit 1.8.0+25 + 1.9.0+26 (văn phong, mapper lỗi, HttpsError, App Check) · 2026-10-12 · Master Tester (Lead xác nhận)
+
+**Kết luận: FAIL nhẹ — 0 chặn · 0 lớn · 6 nhỏ (P3) + 1 rủi ro P2 cần đo.** Đã chạy `question_engine_test` + `revisit_question_source_test` 59/59. Kế hoạch vá: [`../../AUDIT-2026-10-12.md`](../../AUDIT-2026-10-12.md).
+
+| # | Mức | Chỗ | Kịch bản → hậu quả | Vá (ID) |
+|---|---|---|---|---|
+| L1 | P2 rủi ro | `lib/services/firebase_bootstrap_service.dart:31,51-70` | Firestore chờ token App Check trước khi mở kết nối (Android `Tasks.whenAll(auth, appCheck)`, iOS `stream.cc:158-163`). Token sống 1 giờ → ai mở app 1 lần/ngày thì lần nào cũng xin token mới trước lần đọc đầu; mạng chậm dễ quá timeout 5s của `fetchUserProfile` → máy chưa lưu couple rơi về Setup. Token lỗi thì vẫn gửi token giả nên chỉ chậm, không hỏng. [CẦN TEST runtime] | Đo trên máy thật; nếu chậm nâng TTL token ở Console (việc của user) |
+| L2 | P3 | `app_en.arb` (10 key) | "1 days to your 7-day milestone", "1 days to go before this blooms", "1 flowers bloomed", "1 photos picked…", "1 days until your next anniversary", "1 days left". | CP1 |
+| L3 | P3 | `functions/index.js:3180-3199` | Push tâm trạng tới máy EN: "Tuan is feeling Missing you", "…is feeling Happy". | BE5 |
+| L4 | P3 | `auth_service.dart:1020-1037` | Apple/Google bị khoá (`user-disabled`) hay thử quá nhiều (`too-many-requests`) chỉ thấy "Chưa đăng nhập được… thử lại nhé". | AU7 |
+| L5 | P3 | `question_templates.dart:294-297` ↔ `daily_questions.dart:20-23` | Mẫu `feeling:gratitude_partner:1` trùng ý câu bank #1; chống lặp không so chéo mẫu với bank. | CP2 |
+| L6 | P3 tiềm ẩn | `functions/index.js:2660-2664` | `lang` 'en-US'/'en_US' rơi về tiếng Việt; `lang:'constructor'` làm câu lỗi thành `undefined` (Lead chạy node xác nhận). | BE6 |
+| L7 | P3 | `feature_tour_entries.dart:95-100` | Mục "Có gì mới" build 26 hiện cho mọi người, kể cả cặp đã ghép đôi. | CP3 (D4) |
+
+- **Đạt:** `askedBankIds` lưu vị trí, 229 + 150 câu giữ thứ tự, không câu EN nào đổi; 88 key mẫu như cũ; marker là nguồn sự thật nên 2 máy khác phiên bản cùng câu; Nhật ký đọc chữ trên marker; ARB 1.065/1.065 key, placeholder khớp, 26 plural/select có `other`; 236 key đã xoá không còn chỗ gọi, type inbox lạ ra `notifGeneric`; mapper lỗi không còn `$e`/`toString()` lên màn; CF 11 key vi/en khớp; App Check activate ngay sau `initializeApp`, `kReleaseMode`, lỗi token vẫn gửi request; app clone "Nịnh Vợ Iu" chưa có App Check (phải thêm trước khi enforce).
+- **Cần test tay:** L1 đo thời gian mở app lần đầu trong ngày (3G, sau 1 giờ đóng app) so với 1.7.1; máy Android không có Play Store; L4 khoá user Google trên DEV; máy EN: chuỗi 6/7, bông còn 1 ngày, chọn 1 ảnh nền; 1 máy 1.7.1 + 1 máy 1.9.0 cùng câu thứ Ba và thứ Sáu.
+- [2026-10-12] [Tester] Audit văn phong + App Check: L1 (P2 cần đo), L2–L7 (P3).
+
+## [2026-10-12] [Tester] Nghiệm thu bản địa hoá chữ xin quyền iOS (`{en,vi}.lproj/InfoPlist.strings`) — PASS
+- `plutil -lint` OK; đủ 4 khoá `*UsageDescription`; bản VI trùng từng byte (NFC) với Info.plist; EN đúng nghĩa; variant group chỉ ở Resources của target Runner; `knownRegions` có `vi`; 4 id mới không trùng; `xcodebuild -list` đọc được; `Runner.app` có đủ 2 file.
+- Cần máy thật: iPhone tiếng Anh / tiếng Việt / tiếng Pháp → hộp xin quyền Ảnh, Camera, Sức khoẻ đúng ngôn ngữ (Pháp → Anh).

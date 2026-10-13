@@ -43,9 +43,15 @@ class SleepFormat {
   static String minuteOfDay(BuildContext context, int minute) =>
       time(context, DateTime(2000, 1, 1, minute ~/ 60, minute % 60));
 
-  /// "23:40 – 06:55".
+  /// "23:40 – 06:55", on the clock where the night happened (audit D2).
   static String range(BuildContext context, SleepNight n) =>
-      '${time(context, n.bedAt)} – ${time(context, n.wakeAt)}';
+      '${time(context, n.bedClock)} – ${time(context, n.wakeClock)}';
+
+  /// The night's times are read on another clock than this phone's (the
+  /// partner is abroad) — the same test `SleepNight.bedClock` uses, so a
+  /// summer night seen in winter at home doesn't count. Gets "Giờ bên ấy".
+  static bool onOtherClock(SleepNight n) =>
+      n.tz != null && n.tz != n.bedAt.toLocal().timeZoneOffset.inMinutes;
 
   static String phase(AppLocalizations l10n, int phase) => switch (phase) {
     0 => l10n.sleepPhase0,

@@ -30,6 +30,8 @@ import '../providers/streak_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/catchup_service.dart';
 import '../services/home_prefs_service.dart';
+import '../services/home_widget_bridge.dart';
+import '../services/love_tree_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
@@ -1032,6 +1034,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final reminderProvider = context.read<ReminderProvider>();
     final anniversaryDate = couple.anniversaryDate;
     final coupleCreatedAt = couple.createdAt;
+    final coupleId = couple.id;
+    // Codes that lead into this couple: a send of either counts (PA6).
+    final inviteCodes = [couple.coupleCode, couple.inviteCode];
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -1045,10 +1050,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // Invite follow-ups (feature onboarding, pairing-funnel PF10): while the
       // partner still hasn't joined, nudge this member +2h (code not sent
       // yet) / +20h / +72h after the couple was created; the provider cancels
-      // the band as soon as the couple goes active.
+      // the band as soon as the couple goes active, and for good once it was
+      // (PA7 — a partner who leaves doesn't restart them).
       reminderProvider.refreshInviteFollowUps(
+        coupleId: coupleId,
         waiting: !coupleActive,
         coupleCreatedAt: coupleCreatedAt,
+        inviteCodes: inviteCodes,
         l10n: l10n,
       );
     });
@@ -1626,10 +1634,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       bgIndex = 0;
     }
     final counterBg = bgCandidates.isEmpty ? null : bgCandidates[bgIndex];
+    // Home-screen widget shows the same photo as the card. Deduped by key in
+    // the bridge, so this is a cheap compare on every build and real work only
+    // after a swipe / partner swipe / whitelist change / photo load.
+    HomeWidgetBridge.pushPhoto(
+      key: counterBg?.key,
+      local: counterBg?.local,
+      remote: counterBg?.remote,
+    );
     if (_showBgHint && bgCandidates.length >= 2 && _bgHintTimer == null) {
       _bgHintTimer = Timer(const Duration(milliseconds: 4500), _dismissBgHint);
     }
-    final totalDays = _getTotalDays(couple.anniversaryDate);
+    final totalDays = LoveTreeService.daysTogether(couple.anniversaryDate);
     final nextMilestone = _getNextMilestone(totalDays);
     final progressToMilestone = totalDays / nextMilestone;
     final recentPhotos = photos.take(5).toList();
@@ -1862,18 +1878,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SectionHeader(title: l10n.homeTodaySectionTitle),
-                    // Love Tree v3 entry: today's constellation count. Under
-                    // the title — beside it the title wraps below ~390dp.
-                    if (!couple.isWaitingForPartner) ...[
-                      const SizedBox(height: 4),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: ConstellationPill(
-                          onTap: () => openLoveTree(context),
-                        ),
-                      ),
-                    ],
+                    // Love Tree v3 entry (today's constellation count) on the
+                    // title row; SectionHeader keeps the title to one line.
+                    SectionHeader(
+                      title: l10n.homeTodaySectionTitle,
+                      trailing: couple.isWaitingForPartner
+                          ? null
+                          : ConstellationPill(
+                              onTap: () => openLoveTree(context),
+                            ),
+                    ),
                   ],
                 ),
               ),
@@ -2179,7 +2193,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           code,
                           style: const TextStyle(
                             color: AppColors.accentLoveDeep,
-                            fontSize: 24,
+                            fontSize: 26,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 4,
                           ),
@@ -2224,7 +2238,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           _buildWaitingPill(
                             icon: IconsaxPlusLinear.scan_barcode,
                             label: l10n.inviteQrBtn,
-                            onTap: () => InviteQrSheet.show(context, code: code),
+                            onTap: () =>
+                                InviteQrSheet.show(context, code: code),
                           ),
                         ],
                       ),
@@ -2298,7 +2313,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           Text(
             l10n.homeWaitingMeanwhileFooter,
             style: const TextStyle(
-              color: AppColors.textTertiary,
+              color: AppColors.textSecondary,
               fontSize: 12,
               fontStyle: FontStyle.italic,
               height: 1.4,
@@ -2372,7 +2387,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   description,
                   style: const TextStyle(
                     color: AppColors.textSecondary,
-                    fontSize: 12.5,
+                    fontSize: 12,
                     height: 1.45,
                   ),
                 ),
@@ -2394,18 +2409,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }) {
     return TextButton.icon(
       onPressed: onTap,
-      style: TextButton.styleFrom(
-        backgroundColor: AppColors.accentRose.withValues(alpha: 0.12),
-        foregroundColor: AppColors.textPrimary,
-        minimumSize: const Size(0, 36),
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        shape: const StadiumBorder(),
-        tapTargetSize: MaterialTapTargetSize.padded,
-      ).copyWith(
-        overlayColor: WidgetStatePropertyAll<Color>(
-          AppColors.accentRose.withValues(alpha: 0.08),
-        ),
-      ),
+      style:
+          TextButton.styleFrom(
+            backgroundColor: AppColors.accentRose.withValues(alpha: 0.12),
+            foregroundColor: AppColors.textPrimary,
+            minimumSize: const Size(0, 36),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            shape: const StadiumBorder(),
+            tapTargetSize: MaterialTapTargetSize.padded,
+          ).copyWith(
+            overlayColor: WidgetStatePropertyAll<Color>(
+              AppColors.accentRose.withValues(alpha: 0.08),
+            ),
+          ),
       icon: Icon(icon, size: 14, color: AppColors.accentRose),
       label: Text(
         label,
@@ -2430,7 +2446,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         : null;
     AnalyticsService.instance.logInviteShared('share_sheet');
     // Counts as "invite sent": drops the +2h follow-up (PF10).
-    context.read<ReminderProvider>().markInviteShared();
+    context.read<ReminderProvider>().markInviteShared(code);
     try {
       await SharePlus.instance.share(
         ShareParams(text: message, sharePositionOrigin: origin),
@@ -2443,7 +2459,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _copyInviteCode(String code) {
     Clipboard.setData(ClipboardData(text: code));
     AnalyticsService.instance.logInviteShared('copy');
-    context.read<ReminderProvider>().markInviteShared();
+    context.read<ReminderProvider>().markInviteShared(code);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.inviteCodeCopiedMsg),
@@ -2789,17 +2805,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
     }
     return best;
-  }
-
-  int _getTotalDays(DateTime anniversaryDate) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final start = DateTime(
-      anniversaryDate.year,
-      anniversaryDate.month,
-      anniversaryDate.day,
-    );
-    return today.difference(start).inDays;
   }
 
   int _getNextMilestone(int totalDays) {

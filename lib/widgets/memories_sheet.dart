@@ -108,7 +108,7 @@ class MemoriesSheet extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                l10n.profileMemoriesCountLabel(nf.format(photoCount)),
+                l10n.profileMemoriesCountLabel(photoCount),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: AppColors.textSecondary,

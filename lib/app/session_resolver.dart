@@ -158,6 +158,9 @@ class SessionResolver {
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
       sleepProvider.clear();
+      // Signed out / account deleted: forget the couple too — the home-screen
+      // widget bridge listens to CoupleProvider and pushes its empty state.
+      await coupleProvider.loadCoupleForUser(null);
       // No active couple: drop the daily-question nudge (b2). The on/off
       // preference is kept so it re-arms on the next sync once a couple loads.
       await reminderProvider.cancelDailyQuestionSchedule();
@@ -182,6 +185,7 @@ class SessionResolver {
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
       sleepProvider.clear();
+      await coupleProvider.loadCoupleForUser(null); // same reason as the guest branch
       await reminderProvider.cancelDailyQuestionSchedule();
       return AppRoutes.verifyEmail;
     }

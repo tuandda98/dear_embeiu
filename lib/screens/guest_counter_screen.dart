@@ -7,9 +7,11 @@ import 'package:provider/provider.dart';
 import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
+import '../services/love_tree_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/social_sign_in_buttons.dart';
+import '../widgets/status_bar_scrim.dart';
 import '../widgets/content_card.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/eyebrow_chip.dart';
@@ -96,17 +98,6 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
     return DateFormat(context.l10n.fullDateFormat).format(date);
   }
 
-  int _getTotalDays(DateTime anniversaryDate) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final start = DateTime(
-      anniversaryDate.year,
-      anniversaryDate.month,
-      anniversaryDate.day,
-    );
-    return today.difference(start).inDays;
-  }
-
   DateTime _getNextAnniversary(DateTime anniversaryDate) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -191,32 +182,41 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 460),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeader(l10n),
-                    const SizedBox(height: 20),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 260),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeOutCubic,
-                      child: _anniversaryDate == null
-                          ? _buildEmptyCard(l10n)
-                          : _buildDateContent(l10n, _anniversaryDate!),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildCtaCard(l10n),
-                  ],
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20 + MediaQuery.paddingOf(context).top,
+                20,
+                20 + MediaQuery.paddingOf(context).bottom,
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 460),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHeader(l10n),
+                      const SizedBox(height: 20),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 260),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeOutCubic,
+                        child: _anniversaryDate == null
+                            ? _buildEmptyCard(l10n)
+                            : _buildDateContent(l10n, _anniversaryDate!),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildCtaCard(l10n),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+            // Edge-to-edge: content scrolls under the clock; keep it readable.
+            const StatusBarScrim(),
+          ],
         ),
       ),
     );
@@ -228,14 +228,14 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
       children: [
         // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
         // recolor of the original (user request 2026-06-11).
-        EyebrowChip(label: l10n.guestModeBadge, icon: IconsaxPlusLinear.magic_star),
+        EyebrowChip(
+          label: l10n.guestModeBadge,
+          icon: IconsaxPlusLinear.magic_star,
+        ),
         const SizedBox(height: 14),
         Text(l10n.guestCounterTitle, style: AppTheme.pageTitleStyle()),
         const SizedBox(height: 10),
-        Text(
-          l10n.guestCounterSubtitle,
-          style: AppTheme.pageSubtitleStyle(),
-        ),
+        Text(l10n.guestCounterSubtitle, style: AppTheme.pageSubtitleStyle()),
       ],
     );
   }
@@ -308,7 +308,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   }
 
   Widget _buildDateContent(AppLocalizations l10n, DateTime date) {
-    final totalDays = _getTotalDays(date);
+    final totalDays = LoveTreeService.daysTogether(date);
     final nextAnniversary = _getNextAnniversary(date);
     final daysUntilAnniversary = _daysUntil(nextAnniversary);
     final nextMilestone = _getNextMilestone(totalDays);
@@ -472,9 +472,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
             onPressed: socialBusy
                 ? null
                 : () => Navigator.of(context).pushNamed(AppRoutes.register),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.textPrimary,
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.textPrimary),
             child: Text(
               l10n.guestCtaRegister,
               style: const TextStyle(fontWeight: FontWeight.w700),

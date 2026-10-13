@@ -15,10 +15,14 @@
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
 
+    <!-- Backup rules (audit D6): sleep data stays on this phone — out of
+         Google Auto Backup and device-to-device transfer. -->
     <application
         android:label="${appName}"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules">
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="partner_photo_updates" />
@@ -27,6 +31,7 @@
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
+            android:screenOrientation="portrait"
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
@@ -39,6 +44,12 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- The app never reads a dearembeiu:// URL — opening one only has
+                 to bring the app forward. Flutter's own deep linking would
+                 push a second "/" route (audit D8). -->
+            <meta-data
+              android:name="flutter_deeplinking_enabled"
+              android:value="false" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -58,6 +69,30 @@
         </activity>
         <!-- flutter_local_notifications: deliver and re-register scheduled
              "love reminders" (incl. after a device reboot). -->
+        <!-- Feature home-widget: day counter on the home screen. -->
+        <receiver
+            android:name=".widget.DayCounterWidget"
+            android:exported="true"
+            android:label="@string/widget_display_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_day_info" />
+        </receiver>
+        <!-- Second picker entry: the 4×2 size (same logic, see widget_day_info_medium). -->
+        <receiver
+            android:name=".widget.DayCounterWidgetMedium"
+            android:exported="true"
+            android:label="@string/widget_display_name_medium">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_day_info_medium" />
+        </receiver>
         <receiver
             android:exported="false"
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />

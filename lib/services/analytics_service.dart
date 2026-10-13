@@ -46,6 +46,9 @@ class AnalyticsEvents {
   static const String rpsInviteSent = 'rps_invite_sent';
   static const String rpsGameFinished = 'rps_game_finished';
 
+  // Home-screen widget (feature home-widget)
+  static const String widgetTap = 'widget_tap'; // home-screen widget opened the app
+
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
   static const String pResult = 'result'; // couple_join_attempt
@@ -56,6 +59,7 @@ class AnalyticsEvents {
   static const String pType = 'type'; // notification_opened
   static const String pLocale = 'locale'; // language_changed
   static const String pRematch = 'rematch'; // rps_invite_sent (bool)
+  static const String pFamily = 'family'; // widget_tap: small / medium
 
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
@@ -335,6 +339,13 @@ class AnalyticsService {
   /// [locale] is `en`, `vi` or `system`.
   /// Swiped the home counter-card background photo (feature home).
   void logCounterBgSwiped() => logEvent(AnalyticsEvents.counterBgSwiped);
+
+  /// The app was opened by tapping the home-screen widget (feature home-widget).
+  /// [family] is `small` or `medium`.
+  void logWidgetTap(String family) => logEvent(
+        AnalyticsEvents.widgetTap,
+        params: {AnalyticsEvents.pFamily: family},
+      );
 
   /// Opened the Memory Cinema viewer on Home (feature home).
   void logMemoryCinemaOpened() =>

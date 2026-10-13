@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
@@ -173,9 +174,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.cardSurface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: Text(
           l10n.customRemindersDeleteDialogTitle,
           style: const TextStyle(
@@ -186,10 +185,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
         ),
         content: Text(
           l10n.customRemindersDeleteDialogBody(widget.existing!.name),
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
         ),
         actions: [
           TextButton(
@@ -231,9 +227,9 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final dateLabel =
-        DateFormat.yMMMd(Localizations.localeOf(context).toString())
-            .format(_date);
+    final dateLabel = DateFormat.yMMMd(
+      Localizations.localeOf(context).toString(),
+    ).format(_date);
     final timeLabel = _time.format(context);
 
     return Container(
@@ -243,57 +239,67 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
         // Header redesign 2026-06-14: no app bar — the SubScreenHeader (back →
         // chip → dynamic title, all left-aligned at the gutter, + the Save
         // action) leads the form. No subtitle, to save room for the keyboard.
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SubScreenHeader(
-                  badge: l10n.customReminderFormBadge,
-                  badgeIcon: IconsaxPlusLinear.notification_bing,
-                  title: widget.isEditing
-                      ? l10n.customRemindersEditTitle
-                      : l10n.customRemindersAddTitle,
-                  trailing: Opacity(
-                    opacity: _canSave ? 1 : 0.4,
-                    child: TextButton(
-                      onPressed: _canSave ? _save : null,
-                      child: Text(
-                        l10n.customRemindersSave,
-                        // Header ink vòng 4 (2026-06-11): navy textPrimary, no
-                        // shadow — white-on-blush failed contrast on real shots.
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16 + MediaQuery.paddingOf(context).top,
+                16,
+                32 + MediaQuery.paddingOf(context).bottom,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SubScreenHeader(
+                    badge: l10n.customReminderFormBadge,
+                    badgeIcon: IconsaxPlusLinear.notification_bing,
+                    trailing: Opacity(
+                      opacity: _canSave ? 1 : 0.4,
+                      child: TextButton(
+                        onPressed: _canSave ? _save : null,
+                        child: Text(
+                          l10n.customRemindersSave,
+                          // Header ink vòng 4 (2026-06-11): navy textPrimary, no
+                          // shadow — white-on-blush failed contrast on real shots.
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                _buildFormCard(l10n, dateLabel, timeLabel),
-                // "Cũng nhắc người ấy" — only meaningful when in a couple
-                // (feature partner-nudge, 2026-06-30).
-                if (context.watch<CustomRemindersProvider>().canNotifyPartner) ...[
-                  const SizedBox(height: 16),
-                  _buildNotifyPartnerCard(l10n),
+                  const SizedBox(height: 20),
+                  _buildFormCard(l10n, dateLabel, timeLabel),
+                  // "Cũng nhắc người ấy" — only meaningful when in a couple
+                  // (feature partner-nudge, 2026-06-30).
+                  if (context
+                      .watch<CustomRemindersProvider>()
+                      .canNotifyPartner) ...[
+                    const SizedBox(height: 16),
+                    _buildNotifyPartnerCard(l10n),
+                  ],
+                  if (widget.isEditing) ...[
+                    const SizedBox(height: 24),
+                    _buildDeleteSection(l10n),
+                  ],
                 ],
-                if (widget.isEditing) ...[
-                  const SizedBox(height: 24),
-                  _buildDeleteSection(l10n),
-                ],
-              ],
+              ),
             ),
-          ),
+            const StatusBarScrim(),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFormCard(AppLocalizations l10n, String dateLabel,
-      String timeLabel) {
+  Widget _buildFormCard(
+    AppLocalizations l10n,
+    String dateLabel,
+    String timeLabel,
+  ) {
     return ContentCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,8 +319,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
                 IconsaxPlusBold.heart,
                 color: AppColors.accentRose,
               ),
-              errorText:
-                  _showNameError ? l10n.customRemindersNameError : null,
+              errorText: _showNameError ? l10n.customRemindersNameError : null,
             ),
           ),
           const SizedBox(height: 16),
@@ -468,7 +473,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
               child: Text(
                 l10n.customRemindersDeleteSectionHint,
                 style: const TextStyle(
-                  color: AppColors.textTertiary,
+                  color: AppColors.textSecondary,
                   fontSize: 11,
                 ),
               ),
@@ -484,10 +489,7 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
         const SizedBox(height: 8),
         TextButton.icon(
           onPressed: _confirmDelete,
-          icon: const Icon(
-            IconsaxPlusLinear.trash,
-            color: AppColors.error,
-          ),
+          icon: const Icon(IconsaxPlusLinear.trash, color: AppColors.error),
           label: Text(
             l10n.customRemindersDeleteButton,
             style: const TextStyle(
@@ -534,22 +536,22 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
             ),
           ),
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: AppColors.accentRose, size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: AppColors.accentRose, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
+                ],
+              ),
+              const SizedBox(height: 8),
               Text(
                 value,
                 style: const TextStyle(
@@ -605,7 +607,10 @@ class _CustomReminderFormScreenState extends State<CustomReminderFormScreen> {
     );
   }
 
-  String _recurrenceLabel(ReminderRecurrence recurrence, AppLocalizations l10n) {
+  String _recurrenceLabel(
+    ReminderRecurrence recurrence,
+    AppLocalizations l10n,
+  ) {
     switch (recurrence) {
       case ReminderRecurrence.once:
         return l10n.customRemindersRepeatOnce;

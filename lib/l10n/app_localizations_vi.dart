@@ -9,6 +9,67 @@ class AppLocalizationsVi extends AppLocalizations {
   AppLocalizationsVi([String locale = 'vi']) : super(locale);
 
   @override
+  String get loveTreeShareFirstDay => 'Ngày đầu tiên bên nhau';
+
+  @override
+  String get loveTreeShareMessageSeed =>
+      'Cây tình yêu của chúng mình vừa nảy mầm 🌱💞 — vun cây cùng người ấy trên Dear Embeiu.';
+
+  @override
+  String get sleepTheirClock => 'Giờ bên ấy';
+
+  @override
+  String get sleepManualSemantics => '(ghi tay)';
+
+  @override
+  String get moodSaveFailed => 'Chưa lưu được tâm trạng, thử lại nhé';
+
+  @override
+  String get setPasswordTitle => 'Đặt mật khẩu';
+
+  @override
+  String get setPasswordSubtitle => 'Để đăng nhập bằng email trên máy khác';
+
+  @override
+  String setPasswordBody(String email) {
+    return 'Đặt xong, bạn đăng nhập bằng $email và mật khẩu này trên iPhone hay Android đều được.';
+  }
+
+  @override
+  String setPasswordConfirmNote(String provider) {
+    return '$provider có thể hỏi lại để xác nhận đó là bạn.';
+  }
+
+  @override
+  String setPasswordDone(String email) {
+    return 'Đã đặt mật khẩu. Trên máy khác, bạn đăng nhập bằng $email nhé.';
+  }
+
+  @override
+  String get setPasswordAlreadySet => 'Tài khoản này đã có mật khẩu rồi.';
+
+  @override
+  String get setPasswordEmailTaken =>
+      'Email này đang thuộc một tài khoản khác nên chưa đặt được mật khẩu.';
+
+  @override
+  String get setPasswordWrongGoogleAccount =>
+      'Đó là một tài khoản Google khác. Bạn chọn đúng tài khoản đang dùng cho Dear Embeiu rồi thử lại nhé.';
+
+  @override
+  String get setPasswordFailed => 'Chưa đặt được mật khẩu. Bạn thử lại nhé.';
+
+  @override
+  String get setPasswordAppleIdMismatch =>
+      'Máy này đang dùng một Apple ID khác. Bạn mở app trên máy dùng Apple ID của tài khoản này để đặt mật khẩu nhé.';
+
+  @override
+  String get showPassword => 'Hiện mật khẩu';
+
+  @override
+  String get hidePassword => 'Ẩn mật khẩu';
+
+  @override
   String get badgeCareLabel => 'lời quan tâm';
 
   @override
@@ -1702,7 +1763,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get deleteAccountAppleIdMismatch =>
-      'Apple ID trên máy này khác tài khoản bạn đang xoá. Đăng nhập lại bằng Apple ID của tài khoản đó rồi xoá nhé.';
+      'Máy này đang dùng một Apple ID khác. Bạn mở app trên máy dùng Apple ID của tài khoản này để xoá tài khoản nhé.';
 
   @override
   String get authFirebaseUserCreateFailed =>
@@ -2095,6 +2156,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guestChangeDate => 'Đổi ngày kỷ niệm';
 
   @override
+  String get widgetEmptyTap => 'Chạm để bắt đầu đếm ngày yêu';
+
+  @override
   String guestCounterStartFrom(String date) {
     return 'Bắt đầu từ $date';
   }
@@ -2237,9 +2301,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get forgotPasswordBadge => 'LẤY LẠI MẬT KHẨU';
-
-  @override
-  String get forgotPasswordEmailHeading => 'Email';
 
   @override
   String get forgotPasswordSendBtn => 'Gửi email đặt lại';
@@ -2542,8 +2603,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get profileMemoriesTitle => 'Kỷ niệm của chúng mình';
 
   @override
-  String profileMemoriesCountLabel(String count) {
-    return '$count kỷ niệm';
+  String profileMemoriesCountLabel(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString kỷ niệm';
   }
 
   @override
@@ -2685,8 +2750,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loveTreeShareButton => 'Khoe cây';
 
   @override
-  String loveTreeShareStats(String days, String flowers) {
-    return '$days ngày bên nhau · $flowers bông hoa';
+  String loveTreeShareStats(int days, int flowers) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+    final intl.NumberFormat flowersNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String flowersString = flowersNumberFormat.format(flowers);
+
+    return '$daysString ngày bên nhau · $flowersString bông hoa';
   }
 
   @override
@@ -2696,8 +2769,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String get loveTreeShareTaglineSeed => 'Cây vừa nảy mầm 🌱';
 
   @override
-  String loveTreeShareMessage(String flowers, String days) {
-    return 'Cây tình yêu của chúng mình đã nở $flowers bông hoa sau $days ngày 🌳💞 — vun cây cùng người ấy trên Dear Embeiu.';
+  String loveTreeShareMessage(int flowers, int days) {
+    final intl.NumberFormat flowersNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String flowersString = flowersNumberFormat.format(flowers);
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+
+    return 'Cây tình yêu của chúng mình đã nở $flowersString bông hoa sau $daysString ngày 🌳💞 — vun cây cùng người ấy trên Dear Embeiu.';
   }
 
   @override
@@ -2964,7 +3045,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsCountdownUnit => 'GIÂY';
 
   @override
-  String rpsCountdownSemantics(String seconds) {
+  String rpsCountdownSemantics(int seconds) {
     return 'Còn $seconds giây';
   }
 
@@ -3039,8 +3120,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rpsScorePartner => 'NGƯỜI ẤY';
 
   @override
-  String rpsHistoryTotal(String count) {
-    return 'Đã chơi $count ván';
+  String rpsHistoryTotal(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return 'Đã chơi $countString ván';
   }
 
   @override
@@ -3100,13 +3185,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get featureTourSkyBody =>
       'Cây Tình Yêu giờ có bầu trời đêm. Mỗi người 3 ngôi sao: trả lời câu hỏi, chọn tâm trạng, nhắn một tin. Đủ 6 sao là trái tim sáng trọn.';
-
-  @override
-  String get featureTourPairingTitle => 'Rủ người ấy dễ hơn';
-
-  @override
-  String get featureTourPairingBody =>
-      'Người ấy giờ đăng ký bằng Google, hoặc Apple nếu dùng iPhone, khỏi tạo mật khẩu. Ngồi cạnh nhau thì mở Mã QR cho người ấy quét là có sẵn mã mời.';
 
   @override
   String get rpsOpenPrompt => 'Ra tay đi! Không có bỏ lượt đâu 😄';
@@ -3527,7 +3605,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sleepShareAskBody =>
-      'Người ấy sẽ thấy bạn ngủ lúc mấy giờ, dậy lúc mấy giờ. Bạn tắt lúc nào cũng được.';
+      'Người ấy sẽ thấy giờ ngủ, giờ dậy và những lần bạn thức giấc trong đêm. Bạn tắt lúc nào cũng được.';
 
   @override
   String sleepShareAskPreview(String name) {
@@ -3535,7 +3613,8 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get sleepShareAskOnly => 'Chỉ giờ ngủ và giờ dậy, không có gì khác.';
+  String get sleepShareAskOnly =>
+      'Chỉ giờ ngủ, giờ dậy và những lần thức giấc trong đêm, theo giờ nơi bạn ngủ. Đêm nào bạn sửa hoặc ghi tay sẽ có thêm nhãn.';
 
   @override
   String get sleepShareAskCta => 'Chia sẻ với người ấy';

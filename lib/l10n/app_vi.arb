@@ -1,5 +1,88 @@
 {
   "@@locale": "vi",
+  "loveTreeShareFirstDay": "Ngày đầu tiên bên nhau",
+  "@loveTreeShareFirstDay": {
+    "description": "Stats line of the love-tree share card when the couple's anniversary is today (replaces '0 ngày bên nhau')"
+  },
+  "loveTreeShareMessageSeed": "Cây tình yêu của chúng mình vừa nảy mầm 🌱💞 — vun cây cùng người ấy trên Dear Embeiu.",
+  "@loveTreeShareMessageSeed": {
+    "description": "Share-sheet text for the love tree while no flower has bloomed yet (replaces 'đã nở 0 bông hoa')"
+  },
+  "sleepTheirClock": "Giờ bên ấy",
+  "@sleepTheirClock": {
+    "description": "Pill beside the partner's sleep times when their night was recorded in another time zone than this phone's"
+  },
+  "sleepManualSemantics": "(ghi tay)",
+  "@sleepManualSemantics": {
+    "description": "Sleep calendar cell suffix for a night logged by hand (screen reader)"
+  },
+  "moodSaveFailed": "Chưa lưu được tâm trạng, thử lại nhé",
+  "@moodSaveFailed": {
+    "description": "SnackBar when saving today's mood failed (the pick is rolled back)"
+  },
+  "setPasswordTitle": "Đặt mật khẩu",
+  "@setPasswordTitle": {
+    "description": "Settings → Account row and dialog title: an Apple/Google account adds a password so it can sign in with email elsewhere (audit AU1)"
+  },
+  "setPasswordSubtitle": "Để đăng nhập bằng email trên máy khác",
+  "@setPasswordSubtitle": {
+    "description": "Subtitle of the Settings 'Set a password' row"
+  },
+  "setPasswordBody": "Đặt xong, bạn đăng nhập bằng {email} và mật khẩu này trên iPhone hay Android đều được.",
+  "@setPasswordBody": {
+    "description": "Set-password dialog body. email = the account's email, may be Apple's hidden relay address",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordConfirmNote": "{provider} có thể hỏi lại để xác nhận đó là bạn.",
+  "@setPasswordConfirmNote": {
+    "description": "Set-password dialog: Apple/Google may show their sheet first when the session is old. provider = 'Apple' or 'Google'",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordDone": "Đã đặt mật khẩu. Trên máy khác, bạn đăng nhập bằng {email} nhé.",
+  "@setPasswordDone": {
+    "description": "SnackBar after the password was added; has a Copy action for the email",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordAlreadySet": "Tài khoản này đã có mật khẩu rồi.",
+  "@setPasswordAlreadySet": {
+    "description": "Set password: the account got a password meanwhile (provider-already-linked)"
+  },
+  "setPasswordEmailTaken": "Email này đang thuộc một tài khoản khác nên chưa đặt được mật khẩu.",
+  "@setPasswordEmailTaken": {
+    "description": "Set password: another account already signs in with this email"
+  },
+  "setPasswordWrongGoogleAccount": "Đó là một tài khoản Google khác. Bạn chọn đúng tài khoản đang dùng cho Dear Embeiu rồi thử lại nhé.",
+  "@setPasswordWrongGoogleAccount": {
+    "description": "Set password: the Google confirmation picked another Google account (user-mismatch)"
+  },
+  "setPasswordFailed": "Chưa đặt được mật khẩu. Bạn thử lại nhé.",
+  "@setPasswordFailed": {
+    "description": "Set password: any other error"
+  },
+  "setPasswordAppleIdMismatch": "Máy này đang dùng một Apple ID khác. Bạn mở app trên máy dùng Apple ID của tài khoản này để đặt mật khẩu nhé.",
+  "@setPasswordAppleIdMismatch": {
+    "description": "Set password: this device's Apple ID isn't the account's. Usually iOS said so before the Apple sheet, the user stays signed in (BUG-27); rarely the sheet itself signed another Apple ID in and the app signed out"
+  },
+  "showPassword": "Hiện mật khẩu",
+  "@showPassword": {
+    "description": "Tooltip of the eye button that reveals a password field"
+  },
+  "hidePassword": "Ẩn mật khẩu",
+  "@hidePassword": {
+    "description": "Tooltip of the eye button that hides a password field again"
+  },
   "badgeCareLabel": "lời quan tâm",
   "@badgeCareLabel": {
     "description": "Profile badge label under the care-notes count"
@@ -852,7 +935,7 @@
   "googleSignInFailed": "Chưa đăng nhập được với Google. Bạn thử lại nhé.",
   "socialConsentPrefix": "Khi tiếp tục, bạn đồng ý với",
   "deleteAccountReauthBodyGoogle": "Bấm Xoá vĩnh viễn để thử lại. Nếu vẫn lỗi, bạn đăng nhập lại bằng Google rồi xoá nhé.",
-  "deleteAccountAppleIdMismatch": "Apple ID trên máy này khác tài khoản bạn đang xoá. Đăng nhập lại bằng Apple ID của tài khoản đó rồi xoá nhé.",
+  "deleteAccountAppleIdMismatch": "Máy này đang dùng một Apple ID khác. Bạn mở app trên máy dùng Apple ID của tài khoản này để xoá tài khoản nhé.",
   "authFirebaseUserCreateFailed": "Chưa tạo được tài khoản, bạn thử lại nhé.",
   "authFirestoreGeneric": "Chưa đồng bộ được dữ liệu tài khoản. Bạn thử lại nhé.",
   "authFirestorePermissionDenied": "Chưa lưu được thông tin tài khoản vì máy chủ từ chối. Bạn thử lại sau ít phút nhé.",
@@ -957,6 +1040,10 @@
   "guestEmptyBody": "Chọn ngày kỷ niệm để xem hai bạn đã bên nhau bao lâu rồi.",
   "guestPickDate": "Chọn ngày kỷ niệm",
   "guestChangeDate": "Đổi ngày kỷ niệm",
+  "widgetEmptyTap": "Chạm để bắt đầu đếm ngày yêu",
+  "@widgetEmptyTap": {
+    "description": "Home-screen widget, empty state (guest / no couple / signed out). One line under the app-name chip; widget is 158pt wide, max 3 lines."
+  },
   "guestCounterStartFrom": "Bắt đầu từ {date}",
   "guestCtaTitle": "Muốn lưu kỷ niệm cùng người ấy?",
   "guestCtaBody": "Đăng nhập để ghép đôi & lưu ảnh chung.",
@@ -1064,7 +1151,6 @@
   "streakJournalSummaryNone": "Cùng trả lời mỗi ngày để bắt đầu chuỗi nhé 🌸",
   "forgotPasswordLink": "Quên mật khẩu?",
   "forgotPasswordBadge": "LẤY LẠI MẬT KHẨU",
-  "forgotPasswordEmailHeading": "Email",
   "forgotPasswordSendBtn": "Gửi email đặt lại",
   "forgotPasswordBackToLogin": "Quay lại đăng nhập",
   "forgotPasswordSentTitle": "Kiểm tra hộp thư",
@@ -1260,7 +1346,8 @@
     "description": "Total memories subtitle in the memories sheet",
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1368,10 +1455,12 @@
   "@loveTreeShareStats": {
     "placeholders": {
       "days": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "flowers": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1381,10 +1470,12 @@
   "@loveTreeShareMessage": {
     "placeholders": {
       "flowers": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "days": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1776,7 +1867,7 @@
     "description": "Accessibility live label for the countdown.",
     "placeholders": {
       "seconds": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -1885,7 +1976,8 @@
     "description": "Scoreboard footer: total rounds.",
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1967,14 +2059,6 @@
   "featureTourSkyBody": "Cây Tình Yêu giờ có bầu trời đêm. Mỗi người 3 ngôi sao: trả lời câu hỏi, chọn tâm trạng, nhắn một tin. Đủ 6 sao là trái tim sáng trọn.",
   "@featureTourSkyBody": {
     "description": "Feature tour entry (build 25)."
-  },
-  "featureTourPairingTitle": "Rủ người ấy dễ hơn",
-  "@featureTourPairingTitle": {
-    "description": "Feature tour entry (build 26)."
-  },
-  "featureTourPairingBody": "Người ấy giờ đăng ký bằng Google, hoặc Apple nếu dùng iPhone, khỏi tạo mật khẩu. Ngồi cạnh nhau thì mở Mã QR cho người ấy quét là có sẵn mã mời.",
-  "@featureTourPairingBody": {
-    "description": "Feature tour entry (build 26)."
   },
   "rpsOpenPrompt": "Ra tay đi! Không có bỏ lượt đâu 😄",
   "@rpsOpenPrompt": {
@@ -2588,7 +2672,7 @@
       }
     }
   },
-  "sleepShareAskBody": "Người ấy sẽ thấy bạn ngủ lúc mấy giờ, dậy lúc mấy giờ. Bạn tắt lúc nào cũng được.",
+  "sleepShareAskBody": "Người ấy sẽ thấy giờ ngủ, giờ dậy và những lần bạn thức giấc trong đêm. Bạn tắt lúc nào cũng được.",
   "@sleepShareAskBody": {
     "description": "Sleep setup step 2 body"
   },
@@ -2601,7 +2685,7 @@
       }
     }
   },
-  "sleepShareAskOnly": "Chỉ giờ ngủ và giờ dậy, không có gì khác.",
+  "sleepShareAskOnly": "Chỉ giờ ngủ, giờ dậy và những lần thức giấc trong đêm, theo giờ nơi bạn ngủ. Đêm nào bạn sửa hoặc ghi tay sẽ có thêm nhãn.",
   "@sleepShareAskOnly": {
     "description": "Sleep setup step 2 under the preview"
   },

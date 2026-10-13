@@ -24,6 +24,7 @@ const {
   authedDb,
   seedDoc,
   seedActiveCouple,
+  validCouple,
   TS,
 } = require('./helpers');
 
@@ -112,6 +113,45 @@ describe('firestore: sleep', () => {
     });
   });
 
+  // ---- profile: switching sharing on (audit 2026-10-12) ----------------------
+  // An "on" queued offline must not land after the partner left and upload the
+  // history to a couple waiting for someone new.
+  describe('profile: switching sharing on', () => {
+    const alone = () => seedDoc('couples/c1', validCouple({ memberIds: ['alice'] }));
+    const write = (data) =>
+      setDoc(doc(authedDb('alice'), PROFILE('alice')), data, { merge: true });
+
+    it('forbids switching sharing on in a couple of one', async () => {
+      await alone();
+      await assertFails(write({ share: true, color: 'rose', updatedAt: TS }));
+    });
+
+    it('forbids an "on" landing after the partner left (flag already off)', async () => {
+      await sharing('alice', false);
+      await alone();
+      await assertFails(write({ share: true }));
+    });
+
+    it('lets a member switch sharing on when both are in the couple', async () => {
+      await sharing('alice', false);
+      await assertSucceeds(write({ share: true }));
+    });
+
+    it('still lets a member already sharing change colour in a couple of one', async () => {
+      await sharing('alice', true);
+      await alone();
+      await assertSucceeds(write({ color: 'teal', updatedAt: TS }));
+    });
+
+    // Released apps save the colour (no share) when sleep is set up while
+    // still waiting for a partner.
+    it('lets a member waiting for a partner save a colour or switch sharing off', async () => {
+      await alone();
+      await assertSucceeds(write({ color: 'rose', updatedAt: TS }));
+      await assertSucceeds(write({ share: false }));
+    });
+  });
+
   // ---- nights: create --------------------------------------------------------
   describe('nights: create', () => {
     it('lets the owner upload a night while sharing', async () => {
@@ -156,6 +196,17 @@ describe('firestore: sleep', () => {
       'an extra field (no original times — R2)': (n) => ({ ...n, originalBedAt: n.bedAt }),
       '61 wake-ups': (n) => ({ ...n, wakeUps: Array(61).fill(5) }),
       'a wakeAt 2 days in the future': () => night(-2),
+      'a numeric bedAt': (n) => ({ ...n, bedAt: n.bedAt.toMillis() }),
+      'a numeric wakeAt': (n) => ({ ...n, wakeAt: n.wakeAt.toMillis() }),
+      'wakeUps as a string': (n) => ({ ...n, wakeUps: '42,180' }),
+      'wakeUps as a map': (n) => ({ ...n, wakeUps: { first: 42 } }),
+      'a string updatedAt': (n) => ({ ...n, updatedAt: '2026-01-01' }),
+      // Doc id == date, so these are junk ids of the old "10 chars" shape.
+      'a date id that is not YYYY-MM-DD': (n) => ({ ...n, date: '2026-1-011' }),
+      'a 10-letter date id': (n) => ({ ...n, date: 'abcdefghij' }),
+      'tz 900 (beyond ±14h)': (n) => ({ ...n, tz: 900 }),
+      'tz as a string': (n) => ({ ...n, tz: '420' }),
+      'a fractional tz': (n) => ({ ...n, tz: 420.5 }),
     };
     for (const [name, mutate] of Object.entries(invalid)) {
       it(`rejects a night with ${name}`, async () => {
@@ -169,6 +220,15 @@ describe('firestore: sleep', () => {
       await sharing('alice', true);
       const n = night(1, { wakeUps: Array(60).fill(5) });
       await assertSucceeds(setDoc(doc(authedDb('alice'), nightPath('alice', n)), n));
+    });
+
+    // 1.9.1+ (audit D2): minutes east of UTC when the night was recorded.
+    it('accepts the optional tz (whole minutes within ±14h)', async () => {
+      await sharing('alice', true);
+      for (const [daysAgo, tz] of [[1, 420], [2, -300]]) {
+        const n = night(daysAgo, { tz });
+        await assertSucceeds(setDoc(doc(authedDb('alice'), nightPath('alice', n)), n));
+      }
     });
 
     it('rejects a date that does not match the doc id', async () => {
@@ -219,6 +279,13 @@ describe('firestore: sleep', () => {
       await assertFails(getDoc(doc(db, nightPath('alice', n))));
       await assertFails(getDocs(collection(db, NIGHTS('alice'))));
     });
+
+    it('hides the nights from the partner while the owner has no profile', async () => {
+      const n = await seedNight();
+      const db = authedDb('bob');
+      await assertFails(getDoc(doc(db, nightPath('alice', n))));
+      await assertFails(getDocs(collection(db, NIGHTS('alice'))));
+    });
   });
 
   // ---- nights: update (R3) ---------------------------------------------------
@@ -232,6 +299,15 @@ describe('firestore: sleep', () => {
           bedAt: Timestamp.fromMillis(n.wakeAt.toMillis() - 6 * HOUR),
           source: 'edited',
         }),
+      );
+    });
+
+    it('forbids editing even a recent night once sharing is off', async () => {
+      await sharing('alice', false);
+      const n = night(3);
+      await seedDoc(nightPath('alice', n), n);
+      await assertFails(
+        updateDoc(doc(authedDb('alice'), nightPath('alice', n)), { source: 'edited' }),
       );
     });
 
@@ -307,6 +383,23 @@ describe('firestore: sleep', () => {
       }));
       await assertFails(getDoc(doc(authedDb('carol'), nightPath('alice', n))));
       await assertFails(getDocs(collection(authedDb('bob'), NIGHTS('alice'))));
+    });
+
+    // Cleaning up after a member who left is the Cloud Functions' job.
+    it('locks a former member out of their own nights and profile', async () => {
+      await sharing('alice', true);
+      const n = night(1);
+      await seedDoc(nightPath('alice', n), n);
+      await seedDoc('couples/c1', validCouple({ memberIds: ['bob'] }));
+      const db = authedDb('alice');
+      await assertFails(getDoc(doc(db, PROFILE('alice'))));
+      await assertFails(setDoc(doc(db, PROFILE('alice')), { share: false }, { merge: true }));
+      await assertFails(getDoc(doc(db, nightPath('alice', n))));
+      await assertFails(getDocs(collection(db, NIGHTS('alice'))));
+      await assertFails(setDoc(doc(db, nightPath('alice', n)), { ...n, source: 'edited' }));
+      const fresh = night(2);
+      await assertFails(setDoc(doc(db, nightPath('alice', fresh)), fresh));
+      await assertFails(deleteDoc(doc(db, nightPath('alice', n))));
     });
   });
 });

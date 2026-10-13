@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../models/sleep_night.dart';
 import 'firebase_bootstrap_service.dart';
+import 'sleep_platform.dart';
 
 /// Where MY nights come from.
 enum SleepMode {
@@ -96,14 +100,150 @@ class SleepService {
 
   final FirebaseFirestore? _firestore;
 
-  static const String _boxName = 'sleep_local';
+  /// Sleep data stays on this phone (privacy policy, audit D6): the box lives
+  /// in its own folder under app documents that iCloud / Google backups skip
+  /// (iOS: flag set on the folder; Android: `res/xml` backup rules).
+  static const String _boxName = 'sleep_nobackup';
+  static const String _folder = 'sleep_nobackup';
+
+  /// 1.8.0–1.9.0 kept everything here, in Hive's default (backed-up) folder.
+  static const String _legacyBoxName = 'sleep_local';
+  static const String _kMovedFromLegacy = 'movedFromLegacy';
+
+  static Box<dynamic>? _opened;
+  static Future<Box<dynamic>>? _opening;
 
   bool get isUsingFirebase =>
       FirebaseBootstrapService.isFirebaseReady && Firebase.apps.isNotEmpty;
 
   FirebaseFirestore get _db => _firestore ?? FirebaseFirestore.instance;
 
-  Future<Box<dynamic>> _box() => Hive.openBox<dynamic>(_boxName);
+  Future<Box<dynamic>> _box() => _openBox();
+
+  /// The one place that opens the local sleep box (instance and static
+  /// callers share it). Concurrent first calls wait for the same open, so
+  /// nobody reads the box before the old data has moved in.
+  static Future<Box<dynamic>> _openBox() {
+    final box = _opened;
+    if (box != null && box.isOpen) {
+      return Future<Box<dynamic>>.value(box);
+    }
+    return _opening ??= _openNoBackup()
+        .then((b) => _opened = b)
+        .whenComplete(() => _opening = null);
+  }
+
+  static Future<Box<dynamic>> _openNoBackup() async {
+    final Directory docs;
+    try {
+      docs = await getApplicationDocumentsDirectory();
+    } catch (_) {
+      // No path_provider (unit tests): stay where Hive was set up.
+      return Hive.openBox<dynamic>(_legacyBoxName);
+    }
+    final dir = await Directory(
+      '${docs.path}/$_folder',
+    ).create(recursive: true);
+    // Every launch: iOS can drop the flag when a backup is restored.
+    await SleepPlatform.excludeFromBackup(dir.path);
+    return openBoxIn(dir.path);
+  }
+
+  /// Opens the box in [dir], first moving in what an older version kept in
+  /// Hive's default folder. Copy (+ marker, one write) → delete the old box:
+  /// a crash at any step loses nothing, and a rerun after the copy never
+  /// puts old values back over newer ones.
+  @visibleForTesting
+  static Future<Box<dynamic>> openBoxIn(String dir) async {
+    final box = await Hive.openBox<dynamic>(_boxName, path: dir);
+    if (!await Hive.boxExists(_legacyBoxName)) {
+      return box;
+    }
+    final legacy = await Hive.openBox<dynamic>(_legacyBoxName);
+    if (box.get(_kMovedFromLegacy) != true) {
+      try {
+        await box.putAll({...legacy.toMap(), _kMovedFromLegacy: true});
+      } catch (_) {
+        // Not moved: this launch keeps writing to the old box, the next one
+        // copies again into an empty box — a half copy left here would bring
+        // back keys the old box deletes meanwhile.
+        await box.deleteFromDisk().catchError((_) {});
+        return legacy;
+      }
+    }
+    await box.flush(); // the copy is on disk before the old box goes
+    await legacy.deleteFromDisk().catchError((_) {}); // else next launch
+    return box;
+  }
+
+  /// Account deletion: drops this user's sleep data from the phone — settings,
+  /// nights, the upload fingerprints of every couple and the device-handover
+  /// marks. Signing out keeps it.
+  static Future<void> wipeLocalData(String uid) async {
+    final box = await _openBox();
+    final keys = box.keys
+        .where(
+          (k) =>
+              k == 'settings:$uid' ||
+              k == 'nights:$uid' ||
+              k == 'left:$uid' ||
+              k == 'notMine:$uid' ||
+              (k is String && k.startsWith('fp:$uid:')),
+        )
+        .toList();
+    await box.deleteAll(keys);
+    if (box.get('device:uid') == uid) {
+      // Still "someone else held it" for the next account, without the uid.
+      await box.put('device:uid', '');
+    }
+  }
+
+  /// Audit D7 + L3: screen events / Health samples on this phone belong to
+  /// whoever held it at the time. When [uid] takes the phone over from
+  /// another account, the time since [uid] last put it down — everything
+  /// before, the first time [uid] is here — is someone else's. Returns those
+  /// spans (empty while the phone has only known [uid], the first account
+  /// here included). A night that ends inside one is not [uid]'s.
+  Future<List<({DateTime from, DateTime until})>> claimDevice(
+    String uid,
+  ) async {
+    try {
+      final box = await _box();
+      final last = box.get('device:uid');
+      final now = DateTime.now().millisecondsSinceEpoch;
+      // Older than any scan reaches (14 nights).
+      final keepAfter = now - const Duration(days: 30).inMilliseconds;
+      if (last != uid) {
+        if (last is String) {
+          final left = box.get('left:$uid');
+          await box.putAll({
+            if (last.isNotEmpty) 'left:$last': now,
+            'notMine:$uid': [
+              ..._spans(box.get('notMine:$uid')).where((s) => s[1] > keepAfter),
+              [left is int ? left : 0, now],
+            ],
+          });
+        }
+        await box.put('device:uid', uid);
+      }
+      return [
+        for (final s in _spans(box.get('notMine:$uid')))
+          (
+            from: DateTime.fromMillisecondsSinceEpoch(s[0]),
+            until: DateTime.fromMillisecondsSinceEpoch(s[1]),
+          ),
+      ];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  static List<List<int>> _spans(Object? raw) => [
+    if (raw is List)
+      for (final s in raw)
+        if (s is List && s.length == 2 && s[0] is int && s[1] is int)
+          [s[0] as int, s[1] as int],
+  ];
 
   // ── Local (Hive) ────────────────────────────────────────────────────────
 
@@ -222,15 +362,26 @@ class SleepService {
         });
   }
 
-  /// A member's shared nights since [sinceKey] ('YYYY-MM-DD'). Only readable
-  /// while that member shares (rules) — subscribe after seeing `share == true`.
+  /// A member's shared nights since [sinceKey] ('YYYY-MM-DD'), the newest 400
+  /// at most. Only readable while that member shares (rules) — subscribe
+  /// after seeing `share == true`.
   Stream<Map<String, SleepNight>> watchNights(
     String coupleId,
     String uid, {
     required String sinceKey,
   }) {
+    // A real wake date is at most a day ahead (rules cap wakeAt at now + 1
+    // day); the margin outlives an app left open for weeks, since the bound
+    // is fixed at subscribe time.
+    final untilKey = sleepDateKey(DateTime.now().add(const Duration(days: 31)));
     return _nights(coupleId, uid)
-        .where('date', isGreaterThanOrEqualTo: sinceKey)
+        .where(
+          'date',
+          isGreaterThanOrEqualTo: sinceKey,
+          isLessThanOrEqualTo: untilKey,
+        )
+        .orderBy('date', descending: true)
+        .limit(400)
         .snapshots()
         .map(_toNights)
         // The owner just turned sharing off: rules now deny the read. That's
@@ -276,6 +427,7 @@ class SleepService {
         'wakeAt': Timestamp.fromDate(n.wakeAt),
         'wakeUps': n.wakeUps.take(60).toList(),
         'source': n.source.name,
+        'tz': ?n.tz,
         'updatedAt': FieldValue.serverTimestamp(),
       });
 

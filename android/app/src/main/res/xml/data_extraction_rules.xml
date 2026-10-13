@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ (android:dataExtractionRules). Sleep data stays on this phone
+  (privacy policy, audit D6): SleepService keeps its Hive box in
+  getApplicationDocumentsDirectory()/sleep_nobackup = <data dir>/app_flutter/
+  sleep_nobackup. sleep_local.hive is the box 1.8.0–1.9.0 used, moved out on
+  the first launch of 1.9.1 — excluded meanwhile. Older Android:
+  backup_rules.xml.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="app_flutter/sleep_nobackup/" />
+        <exclude domain="root" path="app_flutter/sleep_local.hive" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="app_flutter/sleep_nobackup/" />
+        <exclude domain="root" path="app_flutter/sleep_local.hive" />
+    </device-transfer>
+</data-extraction-rules>

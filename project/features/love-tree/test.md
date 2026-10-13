@@ -225,3 +225,15 @@ Trong 6 lỗi Dev đã vá, 4 lỗi đạt hẳn (#13, #16, #18, #19), 2 lỗi v
 7. Giữ từ vòng 2: qua 0:00; performance overlay; hai máy thật; đủ 6 sao trên iOS.
 
 - [2026-10-11] [Dev] Đã vá cả 3 lỗi mới + 2 lỗi vá dở + 2 mục ngoài phạm vi: #20 (`useSafeArea` cho 2 sheet), #21 ("còn N…" xuống dưới tên ở dòng chính), #22 (`_fade` tạo trong `initState`), #14 (viền chữ sắc 8 hướng màu trời thay quầng mờ), #15 (chữ ≥150%: nút "Làm ngay" xuống dưới phần chữ), bộ chọn tâm trạng cuộn được khi không đủ chỗ, tiếng Anh chia số ít cho 5 key (`1 day to go`, `1 memory`…). Probe vòng 3 của Tester chạy lại: a22 không lỗi + icon tối; a13d bộ chọn dừng ở mép thanh trạng thái, 0 lỗi mọi cấu hình; a15 chữ 200% hết vỡ giữa từ, hàng cao 130–202dp; a21 không tràn. analyze 0 · test 219/219.
+
+## [2026-10-12] [Tester] Audit UI 1.8.0 + 1.9.0 (code-level + probe, Lead xác nhận) — FAIL nhẹ
+
+`187a1fd` (vá vòng 3 + bộ chọn tâm trạng + số ít) và `45ad589` chưa ai soát: đạt, còn sót vài chuỗi số ít (U9). `test/today_constellation_test.dart` 22/22.
+
+| # | Mức | Chỗ | Kịch bản → hậu quả | Vá (ID) |
+|---|---|---|---|---|
+| U5 | P3 | `today_constellation.dart:402-408`, `:641` | 320dp@200% (EN từ 150%; "Question" cả ở 360/375@200%): nhãn sao Câu hỏi/Nhắn tin ra ngoài màn 1–29px; panel chi tiết có nút "Gửi lời quan tâm" tràn 29–33px. | SU5 |
+| U9 | P3 | `love_tree_screen.dart:1552,666,697`; `moment_sheet.dart:255-261` | "1 flowers bloomed", "1 days to go before this blooms", thẻ chia sẻ "1 flowers". | CP1 |
+
+- Đạt: `_fade` tạo trong initState, timer/controller dispose đủ; "còn N…" nằm dưới tên; plural 5 key sinh đúng; sao Câu hỏi chỉ sáng khi `dateKey` là hôm nay; `MidnightBuilder` hẹn 0:00 + rebuild khi resume; Cây ở 844×390 và iPad × 100/200% không lỗi layout.
+- Kế hoạch vá: [`../../AUDIT-2026-10-12.md`](../../AUDIT-2026-10-12.md).
