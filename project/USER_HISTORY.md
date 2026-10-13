@@ -996,3 +996,17 @@
 - [00:53] Gộp hết tất cả lại rồi release bản mới cho tôi
 - [01:01] <task-notification> <task-id>bc6zq744p</task-id> <tool-use-id>toolu_01AasRLNZSu7DxghrJMbsTBo</tool-use-id> <output-file>/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/21ea87d6-d91f-4d66-9438-2e761c58e15a/tasks/bc6zq744p.output</output-file> <status>completed</status> <summary>Background command "Commit bump, push release/1.9.1; clean + build AAB + IPA (nền)" completed (exit code 0)</summary> </task-notification>
 - [01:03] <task-notification> <task-id>bfjuejk7w</task-id> <tool-use-id>toolu_01CszZNj9MSrLK9HrzsogJ63</tool-use-id> <output-file>/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/21ea87d6-d91f-4d66-9438-2e761c58e15a/tasks/bfjuejk7w.output</output-file> <status>completed</status> <summary>Background command "Upload IPA qua Transporter (script AppleScript/CGEvent, chạy nền)" completed (exit code 0)</summary> </task-notification>
+
+
+---
+## Phien moi - 2026-10-13 08:09:42 (source: clear)
+
+
+---
+## Phien moi - 2026-10-13 08:26:56 (source: startup)
+- [08:27] brain nào là brain chính mà có code mới nháat ?
+- [08:28] nhánh nào là nhánh để release ? để lên store ?
+- [08:28] hiện tại main và release là như nhau ?
+- [08:29] tôí hôm qua tôi release là release cái gì ?
+- [08:29] những gì tôi chưa release ? mà lệch 58 commit ?
+- [08:30] đã lên store rồi, auto merge release vào main sau khi public apple hoặc google
