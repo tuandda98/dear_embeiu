@@ -2697,6 +2697,14 @@
   "@featureTourSleepBody": {
     "description": "Feature tour entry (build 25)."
   },
+  "featureTourSleepMotionTitle": "Sleep without a watch",
+  "@featureTourSleepMotionTitle": {
+    "description": "Feature tour entry (build 28): motion fallback for sleep."
+  },
+  "featureTourSleepMotionBody": "Just leave your phone by the bed: the app guesses when you fell asleep and woke up from when it lay still. If a night looks off, tap it to fix.",
+  "@featureTourSleepMotionBody": {
+    "description": "Feature tour entry (build 28)."
+  },
   "featureTourSkyTitle": "Today's constellation",
   "@featureTourSkyTitle": {
     "description": "Feature tour entry (build 25)."

@@ -3389,6 +3389,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A moon calendar for every night: the fuller the moon, the better you slept. Share with each other and every morning you\'ll see how long your partner slept.';
 
   @override
+  String get featureTourSleepMotionTitle => 'Sleep without a watch';
+
+  @override
+  String get featureTourSleepMotionBody =>
+      'Just leave your phone by the bed: the app guesses when you fell asleep and woke up from when it lay still. If a night looks off, tap it to fix.';
+
+  @override
   String get featureTourSkyTitle => 'Today\'s constellation';
 
   @override

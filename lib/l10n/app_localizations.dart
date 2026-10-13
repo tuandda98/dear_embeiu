@@ -5461,6 +5461,18 @@ abstract class AppLocalizations {
   /// **'A moon calendar for every night: the fuller the moon, the better you slept. Share with each other and every morning you\'ll see how long your partner slept.'**
   String get featureTourSleepBody;
 
+  /// Feature tour entry (build 28): motion fallback for sleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep without a watch'**
+  String get featureTourSleepMotionTitle;
+
+  /// Feature tour entry (build 28).
+  ///
+  /// In en, this message translates to:
+  /// **'Just leave your phone by the bed: the app guesses when you fell asleep and woke up from when it lay still. If a night looks off, tap it to fix.'**
+  String get featureTourSleepMotionBody;
+
   /// Feature tour entry (build 25).
   ///
   /// In en, this message translates to:

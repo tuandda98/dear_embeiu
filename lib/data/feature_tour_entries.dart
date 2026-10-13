@@ -93,4 +93,14 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
   ),
   // Build 26 (1.9.0): no entry. The pairing tip also showed to couples already
   // paired; people still waiting see the QR button on the waiting card.
+  // ---- Build 28 ------------------------------------------------------------
+  // Sleep users from 1.8.0 never see the build-25 entry again: tell them the
+  // phone alone now guesses the nights Health / screen events miss.
+  FeatureTourEntry(
+    sinceBuild: 28,
+    icon: IconsaxPlusLinear.mobile,
+    title: (l10n) => l10n.featureTourSleepMotionTitle,
+    body: (l10n) => l10n.featureTourSleepMotionBody,
+    onOpen: openSleepScreen,
+  ),
 ];

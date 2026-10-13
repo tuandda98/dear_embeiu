@@ -2052,6 +2052,14 @@
   "@featureTourSleepBody": {
     "description": "Feature tour entry (build 25)."
   },
+  "featureTourSleepMotionTitle": "Không cần đồng hồ vẫn biết giấc ngủ",
+  "@featureTourSleepMotionTitle": {
+    "description": "Feature tour entry (build 28): motion fallback for sleep."
+  },
+  "featureTourSleepMotionBody": "Để điện thoại cạnh giường là đủ: app đoán giờ ngủ, giờ dậy từ lúc máy nằm yên. Đêm nào lệch thì chạm vào sửa lại.",
+  "@featureTourSleepMotionBody": {
+    "description": "Feature tour entry (build 28)."
+  },
   "featureTourSkyTitle": "Chòm sao hôm nay",
   "@featureTourSkyTitle": {
     "description": "Feature tour entry (build 25)."

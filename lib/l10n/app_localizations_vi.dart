@@ -3180,6 +3180,14 @@ class AppLocalizationsVi extends AppLocalizations {
       'Lịch trăng ghi lại từng đêm, trăng càng tròn là ngủ càng đủ giấc. Cùng bật chia sẻ thì sáng ra mở app là biết đêm qua người ấy ngủ mấy tiếng.';
 
   @override
+  String get featureTourSleepMotionTitle =>
+      'Không cần đồng hồ vẫn biết giấc ngủ';
+
+  @override
+  String get featureTourSleepMotionBody =>
+      'Để điện thoại cạnh giường là đủ: app đoán giờ ngủ, giờ dậy từ lúc máy nằm yên. Đêm nào lệch thì chạm vào sửa lại.';
+
+  @override
   String get featureTourSkyTitle => 'Chòm sao hôm nay';
 
   @override
