@@ -1095,3 +1095,6 @@
 - [23:55] thêm Even Tracking cho những feature mới
 - [23:57] thêm even tracking cho login, register , forgot
 - [23:58] login bằng gg, apple , hay email
+- [23:59] Admin → Custom definitions → tạo dimension  chomre remote giúp tôi
+- [00:00] thêm cho việc ghép đôi bị thất bại nữa
+- [00:00] forgot password bị thất bại

@@ -66,7 +66,12 @@
 | `feature_tour_shown` | hiện "Có gì mới" | `manual`: bool (mở từ Cài đặt) |
 | `login_failed` | đăng nhập lỗi (email/Apple/Google) | `method` · `reason`: mã lỗi Firebase (`wrong-password`, `invalid-credential`, `canceled`, `unknown`…) |
 | `sign_up_failed` | đăng ký email lỗi | `method` · `reason` (vd `email-already-in-use`, `weak-password`) |
-| `password_reset_requested` | bấm gửi mail quên mật khẩu | `result`: `success` hoặc mã lỗi |
+| `password_reset_requested` | gửi mail quên mật khẩu thành công | — |
+| `password_reset_failed` | gửi mail quên mật khẩu lỗi | `reason`: mã lỗi (`unavailable`, `local-mode`, `unknown`…) |
+| `couple_join_failed` | nhập mã ghép đôi thất bại | `reason`: tên `CoupleErrorCode` (`inviteNotFound`, `ownInvite`, `emptyInvite`, `full`, `alreadyHasCouple`, `unavailable`, `joinGeneric`, `unknown`…) |
+| `couple_create_failed` | tạo không gian cặp đôi thất bại | `reason`: tên `CoupleErrorCode` hoặc `other`/`unknown` |
+
+GA4 custom dimension (Event scope, tạo 2026-10-15): `reason` ("Auth fail reason") · `result` ("Result").
 
 **User properties:** `couple_status` (single\|waiting_partner\|in_couple) · `has_posted_photo` (bool) · `app_locale` (en\|vi\|system) · `is_guest` (bool).
 **Screen view:** auto qua `FirebaseAnalyticsObserver` cho home/gallery/profile/setup/guest/settings.

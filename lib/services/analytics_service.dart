@@ -66,6 +66,10 @@ class AnalyticsEvents {
   static const String loginFailed = 'login_failed';
   static const String signUpFailed = 'sign_up_failed';
   static const String passwordResetRequested = 'password_reset_requested';
+  static const String passwordResetFailed = 'password_reset_failed';
+  // Pairing failures (2026-10-15). `reason` = CoupleErrorCode name.
+  static const String coupleJoinFailed = 'couple_join_failed';
+  static const String coupleCreateFailed = 'couple_create_failed';
 
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
@@ -85,7 +89,7 @@ class AnalyticsEvents {
   static const String pSource = 'source'; // sleep_night_saved: manual / edited
   static const String pSkipped = 'skipped'; // intro_finished (bool)
   static const String pManual = 'manual'; // feature_tour_shown (bool)
-  static const String pReason = 'reason'; // login_failed / sign_up_failed
+  static const String pReason = 'reason'; // *_failed events
 
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
@@ -464,10 +468,26 @@ class AnalyticsService {
         },
       );
 
-  /// [result] is `success` or the error code.
-  void logPasswordResetRequested(String result) => logEvent(
-        AnalyticsEvents.passwordResetRequested,
-        params: {AnalyticsEvents.pResult: result},
+  /// Reset mail sent (incl. unknown email — anti-enumeration).
+  void logPasswordResetRequested() =>
+      logEvent(AnalyticsEvents.passwordResetRequested);
+
+  void logPasswordResetFailed(String reason) => logEvent(
+        AnalyticsEvents.passwordResetFailed,
+        params: {AnalyticsEvents.pReason: reason},
+      );
+
+  /// Every failed join, with the precise [reason] (CoupleErrorCode name,
+  /// `unknown` for an unexpected throw). `couple_join_attempt` keeps its
+  /// coarse 4-bucket `result` for the old funnel.
+  void logCoupleJoinFailed(String reason) => logEvent(
+        AnalyticsEvents.coupleJoinFailed,
+        params: {AnalyticsEvents.pReason: reason},
+      );
+
+  void logCoupleCreateFailed(String reason) => logEvent(
+        AnalyticsEvents.coupleCreateFailed,
+        params: {AnalyticsEvents.pReason: reason},
       );
 
   // ---------------------------------------------------------------------------

@@ -161,6 +161,12 @@ class CoupleProvider extends ChangeNotifier {
     } on CoupleException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
+      AnalyticsService.instance.logCoupleCreateFailed(
+        e.code?.name ?? 'other',
+      );
+      rethrow;
+    } catch (_) {
+      AnalyticsService.instance.logCoupleCreateFailed('unknown');
       rethrow;
     } finally {
       _setLoading(false);
@@ -192,7 +198,14 @@ class CoupleProvider extends ChangeNotifier {
       _errorMessage = e.message;
       notifyListeners();
       // Analytics — failed attempt, bucketed by stable code (never PII).
-      AnalyticsService.instance.logCoupleJoinAttempt(_joinResultFor(e.code));
+      AnalyticsService.instance
+        ..logCoupleJoinAttempt(_joinResultFor(e.code))
+        ..logCoupleJoinFailed(e.code?.name ?? 'other');
+      rethrow;
+    } catch (_) {
+      AnalyticsService.instance
+        ..logCoupleJoinAttempt(AnalyticsJoinResult.error)
+        ..logCoupleJoinFailed('unknown');
       rethrow;
     } finally {
       _setLoading(false);

@@ -596,15 +596,15 @@ class AuthProvider extends ChangeNotifier {
     _clearError(notify: false);
     try {
       await _authService.sendPasswordResetEmail(email);
-      AnalyticsService.instance.logPasswordResetRequested('success');
+      AnalyticsService.instance.logPasswordResetRequested();
       return true;
     } on AuthException catch (e) {
       _errorMessage = e.message;
-      AnalyticsService.instance.logPasswordResetRequested(_failReason(e));
+      AnalyticsService.instance.logPasswordResetFailed(_failReason(e));
       return false;
     } catch (e) {
       debugPrint('AuthProvider.requestPasswordReset failed: $e');
-      AnalyticsService.instance.logPasswordResetRequested('unknown');
+      AnalyticsService.instance.logPasswordResetFailed('unknown');
       _errorMessage = AppL10n.strings.forgotPasswordNetworkError;
       return false;
     }
