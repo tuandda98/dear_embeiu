@@ -61,6 +61,12 @@ class AnalyticsEvents {
   static const String introFinished = 'intro_finished';
   static const String featureTourShown = 'feature_tour_shown';
 
+  // Auth failures + forgot password (2026-10-14). `reason` = Firebase error
+  // code (e.g. wrong-password), never the message or the email.
+  static const String loginFailed = 'login_failed';
+  static const String signUpFailed = 'sign_up_failed';
+  static const String passwordResetRequested = 'password_reset_requested';
+
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
   static const String pResult = 'result'; // couple_join_attempt
@@ -79,6 +85,7 @@ class AnalyticsEvents {
   static const String pSource = 'source'; // sleep_night_saved: manual / edited
   static const String pSkipped = 'skipped'; // intro_finished (bool)
   static const String pManual = 'manual'; // feature_tour_shown (bool)
+  static const String pReason = 'reason'; // login_failed / sign_up_failed
 
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
@@ -436,6 +443,31 @@ class AnalyticsService {
   void logFeatureTourShown({required bool manual}) => logEvent(
         AnalyticsEvents.featureTourShown,
         params: {AnalyticsEvents.pManual: manual},
+      );
+
+  /// [reason] is an error code (`wrong-password`, `canceled`, `unknown`…).
+  void logLoginFailed({String method = 'email', required String reason}) =>
+      logEvent(
+        AnalyticsEvents.loginFailed,
+        params: {
+          AnalyticsEvents.pMethod: method,
+          AnalyticsEvents.pReason: reason,
+        },
+      );
+
+  void logSignUpFailed({String method = 'email', required String reason}) =>
+      logEvent(
+        AnalyticsEvents.signUpFailed,
+        params: {
+          AnalyticsEvents.pMethod: method,
+          AnalyticsEvents.pReason: reason,
+        },
+      );
+
+  /// [result] is `success` or the error code.
+  void logPasswordResetRequested(String result) => logEvent(
+        AnalyticsEvents.passwordResetRequested,
+        params: {AnalyticsEvents.pResult: result},
       );
 
   // ---------------------------------------------------------------------------

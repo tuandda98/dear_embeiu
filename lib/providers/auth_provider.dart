@@ -262,10 +262,12 @@ class AuthProvider extends ChangeNotifier {
     } on AuthException catch (e) {
       _status = AuthStatus.unauthenticated;
       _errorMessage = e.message;
+      AnalyticsService.instance.logLoginFailed(reason: _failReason(e));
       return false;
     } catch (e) {
       _status = AuthStatus.unauthenticated;
       debugPrint('AuthProvider.signIn failed: $e');
+      AnalyticsService.instance.logLoginFailed(reason: 'unknown');
       _errorMessage = AppL10n.strings.authSessionUnavailable;
       return false;
     } finally {
@@ -312,14 +314,26 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.unauthenticated;
       _emailConflict = e;
       _errorMessage = e.message;
+      AnalyticsService.instance.logLoginFailed(
+        method: provider.name,
+        reason: 'email-has-password-account',
+      );
       return false;
     } on AuthException catch (e) {
       _status = AuthStatus.unauthenticated;
       _errorMessage = e.message == 'social-canceled' ? null : e.message;
+      AnalyticsService.instance.logLoginFailed(
+        method: provider.name,
+        reason: _failReason(e),
+      );
       return false;
     } catch (e) {
       _status = AuthStatus.unauthenticated;
       debugPrint('AuthProvider.signInWithSocial(${provider.name}) failed: $e');
+      AnalyticsService.instance.logLoginFailed(
+        method: provider.name,
+        reason: 'unknown',
+      );
       _errorMessage = provider == SocialSignIn.apple
           ? AppL10n.strings.appleSignInFailed
           : AppL10n.strings.googleSignInFailed;
@@ -363,10 +377,12 @@ class AuthProvider extends ChangeNotifier {
     } on AuthException catch (e) {
       _status = AuthStatus.unauthenticated;
       _errorMessage = e.message;
+      AnalyticsService.instance.logSignUpFailed(reason: _failReason(e));
       return false;
     } catch (e) {
       _status = AuthStatus.unauthenticated;
       debugPrint('AuthProvider.signUp failed: $e');
+      AnalyticsService.instance.logSignUpFailed(reason: 'unknown');
       _errorMessage = AppL10n.strings.authFirebaseUserCreateFailed;
       return false;
     } finally {
@@ -557,6 +573,15 @@ class AuthProvider extends ChangeNotifier {
   /// `apple-id-mismatch` / `session-gone` mean this account's session is
   /// over — even when signing the other Apple ID out failed and no
   /// sign-out event comes (BUG-24). authGate must not route back into it.
+  /// Analytics reason for a failed auth call: the error code, `canceled` for
+  /// a dismissed Apple/Google sheet, else `other`. Never the message text.
+  static String _failReason(AuthException e) {
+    if (e.message == 'social-canceled') {
+      return 'canceled';
+    }
+    return e.code ?? 'other';
+  }
+
   void _forgetSignedOutUser(String code) {
     if (code == 'apple-id-mismatch' || code == 'session-gone') {
       _currentUser = null;
@@ -571,12 +596,15 @@ class AuthProvider extends ChangeNotifier {
     _clearError(notify: false);
     try {
       await _authService.sendPasswordResetEmail(email);
+      AnalyticsService.instance.logPasswordResetRequested('success');
       return true;
     } on AuthException catch (e) {
       _errorMessage = e.message;
+      AnalyticsService.instance.logPasswordResetRequested(_failReason(e));
       return false;
     } catch (e) {
       debugPrint('AuthProvider.requestPasswordReset failed: $e');
+      AnalyticsService.instance.logPasswordResetRequested('unknown');
       _errorMessage = AppL10n.strings.forgotPasswordNetworkError;
       return false;
     }

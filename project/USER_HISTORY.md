@@ -1093,3 +1093,5 @@
 - [23:52] làm event tracking chưa ?
 - [23:53] mở tôi xem eventracking gg chomre remote tôi cưhua biết
 - [23:55] thêm Even Tracking cho những feature mới
+- [23:57] thêm even tracking cho login, register , forgot
+- [23:58] login bằng gg, apple , hay email
