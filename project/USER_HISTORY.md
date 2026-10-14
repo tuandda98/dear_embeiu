@@ -1077,3 +1077,19 @@
 - [21:50] xong
 - [21:53] viết lại scripts/store-upload/ để upload và gửi duyệt qua API.
 - [21:53] viết lại scripts/store-upload/ để upload và gửi duyệt qua API. và script cũ dùng Chrome và Transporter mình giữ làm dự phòng
+- [21:56] test thuử xem chạy đc ko cho cả android và ios
+
+
+---
+## Phien moi - 2026-10-14 23:52:24 (source: startup)
+- [23:52] làm event tracking chưa ?
+- [23:53] mở tôi xem eventracking gg chomre remote tôi cưhua biết
+- [23:55] thêm Even Tracking cho những feature mới
+- [21:56] test thuử xem chạy đc ko cho cả android và ios
+
+
+---
+## Phien moi - 2026-10-14 23:52:24 (source: startup)
+- [23:52] làm event tracking chưa ?
+- [23:53] mở tôi xem eventracking gg chomre remote tôi cưhua biết
+- [23:55] thêm Even Tracking cho những feature mới

@@ -49,6 +49,18 @@ class AnalyticsEvents {
   // Home-screen widget (feature home-widget)
   static const String widgetTap = 'widget_tap'; // home-screen widget opened the app
 
+  // Features 2026-06 → 2026-10 (chat, mood, care-message, sleep, love-tree,
+  // onboarding). Same privacy rules: no text, no times, no mood value.
+  static const String chatMessageSent = 'chat_message_sent';
+  static const String moodSet = 'mood_set';
+  static const String careMessageSent = 'care_message_sent';
+  static const String sleepEnabled = 'sleep_enabled';
+  static const String sleepShareChanged = 'sleep_share_changed';
+  static const String sleepNightSaved = 'sleep_night_saved';
+  static const String loveTreeOpened = 'love_tree_opened';
+  static const String introFinished = 'intro_finished';
+  static const String featureTourShown = 'feature_tour_shown';
+
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
   static const String pResult = 'result'; // couple_join_attempt
@@ -60,6 +72,13 @@ class AnalyticsEvents {
   static const String pLocale = 'locale'; // language_changed
   static const String pRematch = 'rematch'; // rps_invite_sent (bool)
   static const String pFamily = 'family'; // widget_tap: small / medium
+  static const String pHasNote = 'has_note'; // mood_set (bool)
+  static const String pQueued = 'queued'; // care_message_sent (bool, offline)
+  static const String pMode = 'mode'; // sleep_enabled: auto / health / manual
+  static const String pEnabled = 'enabled'; // sleep_share_changed (bool)
+  static const String pSource = 'source'; // sleep_night_saved: manual / edited
+  static const String pSkipped = 'skipped'; // intro_finished (bool)
+  static const String pManual = 'manual'; // feature_tour_shown (bool)
 
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
@@ -374,6 +393,49 @@ class AnalyticsService {
   void logRpsGameFinished(String result) => logEvent(
         AnalyticsEvents.rpsGameFinished,
         params: {AnalyticsEvents.pResult: result},
+      );
+
+  void logChatMessageSent() => logEvent(AnalyticsEvents.chatMessageSent);
+
+  /// Never the mood itself — only whether a note was added.
+  void logMoodSet({required bool hasNote}) => logEvent(
+        AnalyticsEvents.moodSet,
+        params: {AnalyticsEvents.pHasNote: hasNote},
+      );
+
+  void logCareMessageSent({required bool queued}) => logEvent(
+        AnalyticsEvents.careMessageSent,
+        params: {AnalyticsEvents.pQueued: queued},
+      );
+
+  /// [mode] is the [SleepMode] name.
+  void logSleepEnabled(String mode) => logEvent(
+        AnalyticsEvents.sleepEnabled,
+        params: {AnalyticsEvents.pMode: mode},
+      );
+
+  void logSleepShareChanged(bool enabled) => logEvent(
+        AnalyticsEvents.sleepShareChanged,
+        params: {AnalyticsEvents.pEnabled: enabled},
+      );
+
+  /// [source] is `manual` (new night) or `edited`. Never the times.
+  void logSleepNightSaved(String source) => logEvent(
+        AnalyticsEvents.sleepNightSaved,
+        params: {AnalyticsEvents.pSource: source},
+      );
+
+  void logLoveTreeOpened() => logEvent(AnalyticsEvents.loveTreeOpened);
+
+  void logIntroFinished({required bool skipped}) => logEvent(
+        AnalyticsEvents.introFinished,
+        params: {AnalyticsEvents.pSkipped: skipped},
+      );
+
+  /// [manual] = opened from Settings → "Có gì mới".
+  void logFeatureTourShown({required bool manual}) => logEvent(
+        AnalyticsEvents.featureTourShown,
+        params: {AnalyticsEvents.pManual: manual},
       );
 
   // ---------------------------------------------------------------------------

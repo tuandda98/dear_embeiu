@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../models/mood.dart';
+import '../services/analytics_service.dart';
 import '../services/mood_service.dart';
 
 /// State for the "Tâm trạng hôm nay" Home card (feature mood): streams both
@@ -155,6 +156,7 @@ class MoodProvider extends ChangeNotifier {
       _moods = await _service.watchMoods(coupleId).first;
       notifyListeners();
     }
+    AnalyticsService.instance.logMoodSet(hasNote: optimistic.note.isNotEmpty);
     return true;
   }
 

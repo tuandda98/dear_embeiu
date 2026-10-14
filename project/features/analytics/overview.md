@@ -52,6 +52,19 @@
 | `language_changed` | `locale`: en\|vi\|system (đóng Gap G) |
 | `account_deleted` | — |
 
+**Feature mới (thêm 2026-10-14):**
+| Event | Khi nào | Param (KHÔNG PII) |
+|---|---|---|
+| `chat_message_sent` | gửi tin chat | — (KHÔNG nội dung) |
+| `mood_set` | chọn tâm trạng hôm nay | `has_note`: bool (KHÔNG giá trị tâm trạng) |
+| `care_message_sent` | gửi "Quan tâm" | `queued`: bool (offline, chờ gửi) |
+| `sleep_enabled` | xong sheet bật Giấc ngủ | `mode`: auto \| health \| manual |
+| `sleep_share_changed` | bật/tắt chia sẻ giấc ngủ | `enabled`: bool |
+| `sleep_night_saved` | ghi tay / sửa 1 đêm | `source`: manual \| edited (KHÔNG giờ ngủ) |
+| `love_tree_opened` | mở Cây Tình Yêu | — |
+| `intro_finished` | xong intro 3 slide | `skipped`: bool |
+| `feature_tour_shown` | hiện "Có gì mới" | `manual`: bool (mở từ Cài đặt) |
+
 **User properties:** `couple_status` (single\|waiting_partner\|in_couple) · `has_posted_photo` (bool) · `app_locale` (en\|vi\|system) · `is_guest` (bool).
 **Screen view:** auto qua `FirebaseAnalyticsObserver` cho home/gallery/profile/setup/guest/settings.
 
