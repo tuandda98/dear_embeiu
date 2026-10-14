@@ -6,4 +6,5 @@
 <full-backup-content>
     <exclude domain="root" path="app_flutter/sleep_nobackup/" />
     <exclude domain="root" path="app_flutter/sleep_local.hive" />
+    <exclude domain="sharedpref" path="dear_embeiu_motion.xml" />
 </full-backup-content>

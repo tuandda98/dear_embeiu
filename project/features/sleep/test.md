@@ -362,3 +362,10 @@
 - **N-L1 (P3, có từ 1.8.0):** đêm thuộc đồng hồ khác bị lần đo ở nơi đến cắt ngắn 23–154 phút (6/45 chuyến) và đẩy bản cắt cho người ấy → vá 1 dòng ở vòng 5 (Tester đã chạy thử: 0 lần cắt).
 - Giới hạn ghi nợ: K1 bay xa mà không mở app từ lúc dậy tới lúc bay thì mất đêm cuối ở nhà; K2 qua đường đổi ngày lùi 24g mất đêm đầu ở nơi đến; K3 inBed tách 2 mảnh quanh lúc thức thì không gộp [CẦN TEST runtime]; K4 máy dùng chung từ trước 1.9.1 thì tài khoản mở 1.9.1 đầu tiên nhận 14 đêm cũ; K5 1.9.1 ra trước rules + app tắt lúc offline → lệnh ghi kèm `tz` trong hàng đợi bị từ chối không ai bắt (hết hẳn nếu deploy rules trước).
 - [2026-10-12] [Tester] Vòng 9 logic: PASS 5/5, N-L1 P3 (vá vòng 5), K1–K5 ghi nợ.
+
+## Nguồn dự phòng "chuyển động" · 2026-10-13 · Tester 2 vòng — PASS có điều kiện → vá hết P2
+- Vòng 1 FAIL: F1 Android ghi chuyển động khi chưa bật / đã tắt (API 24–28 tự bật sau reboot) · F2 đêm giả ở mép dữ liệu · F3 máy nằm trên bàn buổi sáng thắng đêm thật · 9 P2. Vá ở `1f8608a`.
+- Vòng 2 PASS có điều kiện: còn R2-A đăng xuất không stop khi `_uid` đã null · R2-B cập nhật app ban đêm (`MY_PACKAGE_REPLACED`) cắt đêm · R2-C thiết lập sau 18:00 mất đêm đầu. Lead vá cả 3 (stop vô điều kiện khi đăng xuất; app update chỉ đóng ENTER ≥16h, reboot mới đóng ngay; bỏ quãng bắt đầu ở mép dữ liệu thay vì bỏ cả khung + 2 test).
+- Còn nợ (CẦN TEST runtime, máy thật): iOS hộp xin quyền Motion sau Health + 1 đêm thật xem `confidence`; Android API 29+ và 28, sau reboot / force-stop / cập nhật app; thông số `SleepRules.motion` (10'/2'/3h/60' trong 00–06h) chỉnh sau smoke-test; P3 ROM Xiaomi/Huawei tự force-stop app.
+- Hướng 1 (iPhone tự ghi "Trên giường"): logic đọc inBed có test (`sleep_calculator_test.dart` "falls back to in bed"); việc iPhone iOS 18+ còn ghi hay không phải kiểm bằng máy thật qua 1 đêm.
+- [2026-10-13] [Tester] Nguồn chuyển động: vòng 1 FAIL (3 P1) → vòng 2 PASS có điều kiện; Lead vá 3 P2 còn lại.

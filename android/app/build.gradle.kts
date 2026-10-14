@@ -99,6 +99,8 @@ android {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    // Feature sleep motion fallback: Activity Recognition Transition API.
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     // Feature home-widget: JVM test for widget/DayMath.kt (same vectors as Dart/Swift).
     testImplementation("junit:junit:4.13.2")
 }

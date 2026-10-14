@@ -3389,6 +3389,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A moon calendar for every night: the fuller the moon, the better you slept. Share with each other and every morning you\'ll see how long your partner slept.';
 
   @override
+  String get featureTourSleepMotionTitle => 'Sleep without a watch';
+
+  @override
+  String get featureTourSleepMotionBody =>
+      'Just leave your phone by the bed: the app guesses when you fell asleep and woke up from when it lay still. If a night looks off, tap it to fix.';
+
+  @override
   String get featureTourSkyTitle => 'Today\'s constellation';
 
   @override
@@ -3572,6 +3579,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sleepSourcePhone => 'Phone (automatic)';
+
+  @override
+  String get sleepSourceHealthEmpty => 'Apple Health (no data yet)';
+
+  @override
+  String get sleepSourceMotion => 'Phone motion';
 
   @override
   String sleepSourceRow(String source) {
@@ -3904,11 +3917,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'The app only reads Sleep in Health, nothing else.';
 
   @override
+  String get sleepHowIphoneInBed =>
+      'Your iPhone can log time in bed by itself: open Health → Browse → Sleep → Sleep Schedule, set a bedtime and turn on tracking time in bed with iPhone. Some iPhones on iOS 18 or later no longer offer this.';
+
+  @override
+  String get sleepHowMotion =>
+      'If you let the app see motion, nights with nothing recorded are guessed from when your phone lay still. It is only a guess: a phone left on the desk all morning may be counted as sleep, and you can fix it by hand. Raw motion data stays on your phone; your person only sees sleep and wake times if you turn sharing on.';
+
+  @override
   String get sleepGotIt => 'Got it';
 
   @override
   String get sleepIosHealthHint =>
-      'Turn on *Sleep Schedule* in Health so your iPhone logs your sleep.';
+      'Set a *Sleep Schedule* in Health (Browse → Sleep) so your iPhone logs time in bed, if it offers that option.';
+
+  @override
+  String get sleepMotionHint =>
+      'Allow *motion* so nights with nothing recorded can still be guessed from when your phone lay still.';
+
+  @override
+  String get sleepMotionAllow => 'Allow';
 
   @override
   String get sleepHintDismiss => 'Dismiss tip';

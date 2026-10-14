@@ -30,6 +30,7 @@ class SleepSettings {
     this.mode = SleepMode.manual,
     this.hiddenUntil,
     this.healthHintDismissed = false,
+    this.motionHintDismissed = false,
     this.localColor,
   });
 
@@ -41,6 +42,9 @@ class SleepSettings {
   final DateTime? hiddenUntil;
   final bool healthHintDismissed;
 
+  /// The one-time motion tip (vòng vá 1, P2-6) was closed.
+  final bool motionHintDismissed;
+
   /// Colour choice when there is no Firestore profile (guest / offline build).
   final String? localColor;
 
@@ -50,12 +54,14 @@ class SleepSettings {
     DateTime? hiddenUntil,
     bool clearHidden = false,
     bool? healthHintDismissed,
+    bool? motionHintDismissed,
     String? localColor,
   }) => SleepSettings(
     enabled: enabled ?? this.enabled,
     mode: mode ?? this.mode,
     hiddenUntil: clearHidden ? null : (hiddenUntil ?? this.hiddenUntil),
     healthHintDismissed: healthHintDismissed ?? this.healthHintDismissed,
+    motionHintDismissed: motionHintDismissed ?? this.motionHintDismissed,
     localColor: localColor ?? this.localColor,
   );
 
@@ -64,6 +70,7 @@ class SleepSettings {
     'mode': mode.name,
     'hiddenUntil': hiddenUntil?.millisecondsSinceEpoch,
     'healthHintDismissed': healthHintDismissed,
+    'motionHintDismissed': motionHintDismissed,
     'localColor': localColor,
   };
 
@@ -79,6 +86,7 @@ class SleepSettings {
           ? DateTime.fromMillisecondsSinceEpoch(hidden)
           : null,
       healthHintDismissed: json['healthHintDismissed'] == true,
+      motionHintDismissed: json['motionHintDismissed'] == true,
       localColor: json['localColor'] as String?,
     );
   }
@@ -180,6 +188,8 @@ class SleepService {
   /// nights, the upload fingerprints of every couple and the device-handover
   /// marks. Signing out keeps it.
   static Future<void> wipeLocalData(String uid) async {
+    // Android's recorded still/moving transitions go too (F1).
+    await SleepPlatform.stopMotionTracking();
     final box = await _openBox();
     final keys = box.keys
         .where(

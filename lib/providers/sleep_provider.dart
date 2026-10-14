@@ -40,6 +40,8 @@ class SleepProvider extends ChangeNotifier {
   bool _loaded = false;
   bool _supported = false;
   bool _permission = false;
+  bool _motion = false;
+  bool _motionUndecided = false; // supported, never asked (hint P2-6)
   bool _scanning = false;
 
   Map<String, SleepNight?> _local = <String, SleepNight?>{};
@@ -91,22 +93,43 @@ class SleepProvider extends ChangeNotifier {
     return !enabled && until != null && DateTime.now().isBefore(until);
   }
 
+  /// Motion fallback allowed (motion contract 2026-10-13).
+  bool get motionGranted => _motion;
+
+  /// Set up before the motion fallback shipped: offer it once on the sleep
+  /// screen (vòng vá 1, P2-6).
+  bool get showMotionHint =>
+      enabled &&
+      mode != SleepMode.manual &&
+      _motionUndecided &&
+      !_settings.motionHintDismissed;
+
   /// Android lost (or never got) Usage access while in automatic mode — A2.
-  bool get needsPermission => enabled && mode == SleepMode.auto && !_permission;
+  /// With motion granted the nights still come in: no alarm, the source row
+  /// still offers Usage access.
+  bool get needsPermission =>
+      enabled && mode == SleepMode.auto && !_permission && !_motion;
+
+  /// Android automatic mode living on motion alone (no Usage access).
+  bool get onMotionOnly => enabled && mode == SleepMode.auto && !_permission;
 
   /// iOS automatic mode but Health gave nothing for two weeks — state M.
   bool get healthHasNoData {
     if (!enabled || mode != SleepMode.health) {
       return false;
     }
+    return !_hasRecent(SleepSource.health);
+  }
+
+  /// A motion night ([SleepSource.auto]) in the last two weeks.
+  bool get hasRecentAutoNight => _hasRecent(SleepSource.auto);
+
+  bool _hasRecent(SleepSource source) {
     final cutoff = sleepDateKey(
       DateTime.now().subtract(const Duration(days: scanNights)),
     );
-    return !_local.values.any(
-      (n) =>
-          n != null &&
-          n.source == SleepSource.health &&
-          n.date.compareTo(cutoff) >= 0,
+    return _local.values.any(
+      (n) => n != null && n.source == source && n.date.compareTo(cutoff) >= 0,
     );
   }
 
@@ -190,6 +213,11 @@ class SleepProvider extends ChangeNotifier {
       return;
     }
     final sameUser = _uid == myUid;
+    if (!sameUser && _uid != null) {
+      // Account switch without a sign-out in between: the previous
+      // account's motion record must not feed this one (F1).
+      unawaited(SleepPlatform.stopMotionTracking());
+    }
     final sameCouple = sameUser && _coupleId == coupleId;
     _coupleId = coupleId;
     _uid = myUid;
@@ -207,6 +235,7 @@ class SleepProvider extends ChangeNotifier {
       // Known before the first frame, so Android doesn't flash "permission
       // needed" (A2) until the first scan finishes.
       final permission = await SleepPlatform.hasPermission();
+      final motion = await _motionStatus();
       if (_uid != myUid) {
         return; // account switched while loading — never mix two users' data
       }
@@ -215,6 +244,8 @@ class SleepProvider extends ChangeNotifier {
       _notMine = notMine;
       _supported = supported;
       _permission = permission;
+      _motion = motion.granted;
+      _motionUndecided = motion.undecided;
       _loaded = true;
     }
     if (!sameCouple) {
@@ -242,7 +273,14 @@ class SleepProvider extends ChangeNotifier {
     await refresh();
   }
 
-  void clear() {
+  /// Drops the session. [signedOut] (sign-out / email gate) also stops the
+  /// motion record so the next account starts clean (F1). Not on "no couple
+  /// yet": that can be a failed couple load, and Android would lose its
+  /// motion history.
+  void clear({bool signedOut = false}) {
+    if (signedOut) {
+      unawaited(SleepPlatform.stopMotionTracking());
+    }
     _cancelSubs();
     _uid = null;
     _coupleId = null;
@@ -408,6 +446,9 @@ class SleepProvider extends ChangeNotifier {
     _scanning = true;
     try {
       _permission = await SleepPlatform.hasPermission();
+      final motion = await _motionStatus();
+      _motion = motion.granted;
+      _motionUndecided = motion.undecided;
       if (!enabled) {
         return;
       }
@@ -431,6 +472,22 @@ class SleepProvider extends ChangeNotifier {
           now: now,
         );
       }
+      // Motion fills the nights the main source has nothing for (and is the
+      // only source on Android without Usage access).
+      if (_motion && mode != SleepMode.manual) {
+        await SleepPlatform.startMotionTracking();
+        computed = withMotionFallback(
+          computed,
+          computeMotionNights(
+            await SleepPlatform.motionStillSpans(from, now),
+            wakeDates: dates,
+            now: now,
+            coverageStart: await SleepPlatform.motionCoverageStart(),
+          ),
+          _local,
+          now: now,
+        );
+      }
       if (_uid != uid) {
         return;
       }
@@ -444,6 +501,32 @@ class SleepProvider extends ChangeNotifier {
       _scanning = false;
       notifyListeners();
     }
+  }
+
+  /// [primary] with the gaps (null or missing dates) filled from [motion].
+  /// Never over a Health night, nor over a stored night older than yesterday
+  /// (Android drops old screen events: that night was the screen's, not a
+  /// worse motion guess's).
+  @visibleForTesting
+  static Map<String, SleepNight?> withMotionFallback(
+    Map<String, SleepNight?> primary,
+    Map<String, SleepNight?> motion,
+    Map<String, SleepNight?> local, {
+    required DateTime now,
+  }) {
+    final yesterday = sleepDateKey(DateTime(now.year, now.month, now.day - 1));
+    final out = {...primary};
+    motion.forEach((date, night) {
+      final stored = local[date];
+      if (night == null ||
+          out[date] != null ||
+          stored?.source == SleepSource.health ||
+          (stored != null && date.compareTo(yesterday) < 0)) {
+        return;
+      }
+      out[date] = night;
+    });
+    return out;
   }
 
   /// Folds freshly computed nights into [local]; true when it changed. Never
@@ -820,6 +903,9 @@ class SleepProvider extends ChangeNotifier {
     );
     notifyListeners();
     await _service.saveSettings(uid, _settings);
+    if (mode == SleepMode.manual) {
+      unawaited(SleepPlatform.stopMotionTracking()); // F1
+    }
     // Colour only, and only once the stream proved there's no profile yet — a
     // merge must never switch an existing share off or overwrite a colour
     // that simply hasn't loaded. Not awaited (offline would block the sheet).
@@ -843,6 +929,43 @@ class SleepProvider extends ChangeNotifier {
     _permission = await SleepPlatform.hasPermission();
     notifyListeners();
     return _permission;
+  }
+
+  /// Motion fallback prompt (iOS Core Motion / Android Activity Recognition).
+  /// Skipped on a phone without motion activity (P2-5). Granted while
+  /// tracking → scans right away (starts the Android record).
+  Future<bool> requestMotionPermission() async {
+    if (!await SleepPlatform.motionSupported()) {
+      return false;
+    }
+    await SleepPlatform.requestMotionPermission();
+    final motion = await _motionStatus();
+    _motion = motion.granted;
+    _motionUndecided = motion.undecided;
+    notifyListeners();
+    if (_motion && enabled && mode != SleepMode.manual) {
+      await refresh();
+    }
+    return _motion;
+  }
+
+  Future<({bool granted, bool undecided})> _motionStatus() async {
+    final status = await SleepPlatform.motionPermission();
+    return (
+      granted: status == 'granted',
+      undecided:
+          status == 'notDetermined' && await SleepPlatform.motionSupported(),
+    );
+  }
+
+  Future<void> dismissMotionHint() async {
+    final uid = _uid;
+    if (uid == null) {
+      return;
+    }
+    _settings = _settings.copyWith(motionHintDismissed: true);
+    notifyListeners();
+    await _service.saveSettings(uid, _settings);
   }
 
   Future<void> openPermissionSettings() => SleepPlatform.openSettings();

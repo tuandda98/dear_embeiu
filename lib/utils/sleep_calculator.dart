@@ -48,6 +48,7 @@ class SleepRules {
     required this.minSleep,
     required this.noise,
     this.maxSleep = const Duration(hours: 16),
+    this.coreOverlap = Duration.zero,
   });
 
   /// Interruptions up to this long stay inside the sleep (= awakenings).
@@ -63,6 +64,9 @@ class SleepRules {
   /// Interruptions shorter than this are folded in silently (not counted).
   final Duration noise;
 
+  /// A block must cover at least this much of 00:00–06:00 on the wake day.
+  final Duration coreOverlap;
+
   /// Screen on/off (spec: picking the phone up ≤ 5 min = waking up).
   // ponytail: 20 s noise floor filters screens lit by notifications; tune
   // after the 2-device smoke test.
@@ -77,6 +81,20 @@ class SleepRules {
     mergeGap: Duration(minutes: 30),
     minSleep: Duration(hours: 3),
     noise: Duration(minutes: 2),
+  );
+
+  /// Phone lying still (Core Motion / Activity Recognition): a pickup in the
+  /// night shows up as a short "moving" gap.
+  // ponytail: 10 min merge / 2 min noise are guesses — motion sensors lag a
+  // few minutes behind; tune after the 2-device smoke test.
+  static const SleepRules motion = SleepRules(
+    mergeGap: Duration(minutes: 10),
+    minSleep: Duration(hours: 3),
+    noise: Duration(minutes: 2),
+    // A phone on the desk 08:30–14:00 lies as still as one on the nightstand:
+    // only a block reaching into the small hours is a night.
+    // ponytail: 60 min of 00:00–06:00 is a guess; tune after the smoke test.
+    coreOverlap: Duration(minutes: 60),
   );
 }
 
@@ -213,8 +231,20 @@ SleepNight? computeNight({
       source: source,
     );
   }
+  final coreEnd = midnight.add(const Duration(hours: 6));
+  Duration core(({DateTime start, DateTime end, List<DateTime> wakeUps}) b) {
+    final s = b.start.isAfter(midnight) ? b.start : midnight;
+    final e = b.end.isBefore(coreEnd) ? b.end : coreEnd;
+    return e.isAfter(s) ? e.difference(s) : Duration.zero;
+  }
+
   final candidates = blocks
-      .where((b) => len(b) >= rules.minSleep && len(b) <= rules.maxSleep)
+      .where(
+        (b) =>
+            len(b) >= rules.minSleep &&
+            len(b) <= rules.maxSleep &&
+            core(b) >= rules.coreOverlap,
+      )
       .toList();
   if (candidates.isEmpty) {
     return null;
@@ -273,6 +303,43 @@ Map<String, SleepNight?> computeScreenNights(
       wakeDate: d,
       spans: spans,
       rules: SleepRules.screen,
+      source: SleepSource.auto,
+    );
+  }
+  return out;
+}
+
+/// Nights from the motion fallback (phone lying still). Saved as
+/// [SleepSource.auto] — no new source value, so rules and older apps read it.
+/// Like [computeScreenNights], a window starting before [coverageStart] is
+/// left out (nothing was recorded then); null coverage = no nights at all.
+Map<String, SleepNight?> computeMotionNights(
+  List<RestSpan> still, {
+  required List<DateTime> wakeDates,
+  required DateTime now,
+  required DateTime? coverageStart,
+}) {
+  if (coverageStart == null) {
+    return const <String, SleepNight?>{};
+  }
+  // A span starting at the data edge has no known start (the phone may have
+  // lain still for hours before): drop it rather than the whole window, so a
+  // set-up at 21:00 still gets that night (Tester R2-C).
+  final edge = coverageStart.add(const Duration(minutes: 1));
+  final spans = unionSpans([
+    for (final s in still)
+      if (s.start.isAfter(edge)) s,
+  ]);
+  final out = <String, SleepNight?>{};
+  for (final d in wakeDates) {
+    final w = sleepWindow(d);
+    if (w.end.isBefore(coverageStart) || w.start.isAfter(now)) {
+      continue;
+    }
+    out[sleepDateKey(d)] = computeNight(
+      wakeDate: d,
+      spans: spans,
+      rules: SleepRules.motion,
       source: SleepSource.auto,
     );
   }

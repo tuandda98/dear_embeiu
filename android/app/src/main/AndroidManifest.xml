@@ -15,6 +15,11 @@
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
 
+    <!-- Feature sleep motion fallback: Activity Recognition transitions (STILL). -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION"
+        android:maxSdkVersion="28" />
+
     <!-- Backup rules (audit D6): sleep data stays on this phone — out of
          Google Auto Backup and device-to-device transfer. -->
     <application
@@ -92,6 +97,18 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_day_info_medium" />
+        </receiver>
+        <!-- Feature sleep motion fallback: STILL transitions -> SharedPreferences. -->
+        <receiver
+            android:name=".sleep.MotionTransitionReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".sleep.MotionBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
         </receiver>
         <receiver
             android:exported="false"

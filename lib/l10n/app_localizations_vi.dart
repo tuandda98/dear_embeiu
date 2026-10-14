@@ -3180,6 +3180,14 @@ class AppLocalizationsVi extends AppLocalizations {
       'Lịch trăng ghi lại từng đêm, trăng càng tròn là ngủ càng đủ giấc. Cùng bật chia sẻ thì sáng ra mở app là biết đêm qua người ấy ngủ mấy tiếng.';
 
   @override
+  String get featureTourSleepMotionTitle =>
+      'Không cần đồng hồ vẫn biết giấc ngủ';
+
+  @override
+  String get featureTourSleepMotionBody =>
+      'Để điện thoại cạnh giường là đủ: app đoán giờ ngủ, giờ dậy từ lúc máy nằm yên. Đêm nào lệch thì chạm vào sửa lại.';
+
+  @override
   String get featureTourSkyTitle => 'Chòm sao hôm nay';
 
   @override
@@ -3363,6 +3371,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sleepSourcePhone => 'Điện thoại (tự động)';
+
+  @override
+  String get sleepSourceHealthEmpty => 'Apple Health (chưa có dữ liệu)';
+
+  @override
+  String get sleepSourceMotion => 'Chuyển động của điện thoại';
 
   @override
   String sleepSourceRow(String source) {
@@ -3690,11 +3704,26 @@ class AppLocalizationsVi extends AppLocalizations {
       'App chỉ đọc mục Giấc ngủ trong Sức khoẻ, ngoài ra không đọc gì.';
 
   @override
+  String get sleepHowIphoneInBed =>
+      'iPhone có thể tự ghi giờ lên giường: mở Sức khoẻ → Duyệt → Giấc ngủ → Lịch ngủ, đặt giờ ngủ rồi bật theo dõi thời gian trên giường bằng iPhone. Một số máy từ iOS 18 không còn tuỳ chọn này.';
+
+  @override
+  String get sleepHowMotion =>
+      'Nếu bạn cho app xem chuyển động, đêm nào không có số liệu thì app đoán từ quãng điện thoại nằm yên. Đây chỉ là phỏng đoán: điện thoại nằm trên bàn cả buổi sáng có thể bị tính nhầm là đang ngủ, bạn sửa tay được. Dữ liệu chuyển động thô chỉ nằm trên máy; người ấy chỉ thấy giờ ngủ và giờ thức khi bạn bật chia sẻ.';
+
+  @override
   String get sleepGotIt => 'Đã hiểu';
 
   @override
   String get sleepIosHealthHint =>
-      'Bật *Lịch ngủ* trong app Sức khoẻ để iPhone tự ghi giấc ngủ.';
+      'Đặt *Lịch ngủ* trong Sức khoẻ (Duyệt → Giấc ngủ) để iPhone tự ghi giờ lên giường, nếu máy có tuỳ chọn này.';
+
+  @override
+  String get sleepMotionHint =>
+      'Cho app xem *chuyển động* để đêm nào thiếu số liệu vẫn được đoán từ lúc điện thoại nằm yên.';
+
+  @override
+  String get sleepMotionAllow => 'Cho phép';
 
   @override
   String get sleepHintDismiss => 'Ẩn gợi ý';

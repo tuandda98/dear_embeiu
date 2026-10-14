@@ -124,9 +124,21 @@ class _SleepScreenState extends State<SleepScreen> {
                     const SizedBox(height: 12),
                   ],
                   if (sleep.healthHasNoData && !sleep.healthHintDismissed) ...[
-                    _HealthHint(
+                    _TipCard(
+                      icon: IconsaxPlusLinear.health,
+                      text: l10n.sleepIosHealthHint,
                       onOpen: sleep.openPermissionSettings,
                       onDismiss: sleep.dismissHealthHint,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (sleep.showMotionHint) ...[
+                    _TipCard(
+                      icon: IconsaxPlusLinear.mobile,
+                      text: l10n.sleepMotionHint,
+                      action: l10n.sleepMotionAllow,
+                      onOpen: sleep.requestMotionPermission,
+                      onDismiss: sleep.dismissMotionHint,
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -256,18 +268,29 @@ class _PermissionBanner extends StatelessWidget {
   }
 }
 
-/// State M (iOS): no Health data — nudge towards Sleep Schedule.
-class _HealthHint extends StatelessWidget {
-  const _HealthHint({required this.onOpen, required this.onDismiss});
+/// Dismissible tip: state M (iOS, no Health data → Sleep Schedule) and the
+/// one-time motion offer (vòng vá 1, P2-6 — with an [action] button).
+class _TipCard extends StatelessWidget {
+  const _TipCard({
+    required this.icon,
+    required this.text,
+    required this.onOpen,
+    required this.onDismiss,
+    this.action,
+  });
 
+  final IconData icon;
+  final String text;
   final VoidCallback onOpen;
   final VoidCallback onDismiss;
+  final String? action;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final action = this.action;
     // `*…*` in the copy marks the bold part.
-    final parts = l10n.sleepIosHealthHint.split('*');
+    final parts = text.split('*');
     return Material(
       color: AppColors.white.withValues(alpha: 0.72),
       borderRadius: BorderRadius.circular(22),
@@ -276,42 +299,62 @@ class _HealthHint extends StatelessWidget {
         onTap: onOpen,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 6, 4, 6),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Icon(
-                IconsaxPlusLinear.health,
-                size: 20,
-                color: AppColors.accentLove,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text.rich(
-                  TextSpan(
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      height: 1.4,
-                    ),
-                    children: [
-                      for (var i = 0; i < parts.length; i++)
-                        TextSpan(
-                          text: parts[i],
-                          style: i.isOdd
-                              ? const TextStyle(fontWeight: FontWeight.w800)
-                              : null,
+              Row(
+                children: [
+                  Icon(icon, size: 20, color: AppColors.accentLove),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          height: 1.4,
                         ),
-                    ],
+                        children: [
+                          for (var i = 0; i < parts.length; i++)
+                            TextSpan(
+                              text: parts[i],
+                              style: i.isOdd
+                                  ? const TextStyle(fontWeight: FontWeight.w800)
+                                  : null,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  HeaderIconButton(
+                    icon: IconsaxPlusLinear.close_circle,
+                    iconSize: 20,
+                    iconColor: AppColors.textSecondary,
+                    semanticsLabel: l10n.sleepHintDismiss,
+                    onTap: onDismiss,
+                  ),
+                ],
+              ),
+              if (action != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: TextButton(
+                    onPressed: onOpen,
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(44, 44),
+                      foregroundColor: AppColors.textPrimary,
+                    ),
+                    child: Text(
+                      action,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              HeaderIconButton(
-                icon: IconsaxPlusLinear.close_circle,
-                iconSize: 20,
-                iconColor: AppColors.textSecondary,
-                semanticsLabel: l10n.sleepHintDismiss,
-                onTap: onDismiss,
-              ),
             ],
           ),
         ),
@@ -1776,10 +1819,18 @@ class _SettingsCard extends StatelessWidget {
     if (!sleep.enabled || sleep.mode == SleepMode.manual) {
       source = l10n.sleepSourceManual;
       sourceIcon = IconsaxPlusLinear.edit;
+    } else if (sleep.mode == SleepMode.health && !sleep.healthHasNoData) {
+      source = l10n.sleepSourceHealth;
+      sourceIcon = IconsaxPlusLinear.health;
+    } else if (sleep.mode == SleepMode.health
+        ? sleep.hasRecentAutoNight
+        : sleep.onMotionOnly && sleep.motionGranted) {
+      source = l10n.sleepSourceMotion;
+      sourceIcon = IconsaxPlusLinear.mobile;
     } else if (sleep.mode == SleepMode.health) {
-      source = sleep.healthHasNoData
-          ? l10n.sleepSourceManual
-          : l10n.sleepSourceHealth;
+      // Health on, nothing in it yet: say so rather than "Ghi tay", which
+      // read as "the permission didn't stick" (user report 2026-10-13).
+      source = l10n.sleepSourceHealthEmpty;
       sourceIcon = IconsaxPlusLinear.health;
     } else {
       source = l10n.sleepSourcePhone;

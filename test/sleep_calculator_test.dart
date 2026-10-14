@@ -635,4 +635,92 @@ void main() {
       }
     });
   });
+
+  group('motion fallback → night', () {
+    Map<String, SleepNight?> motion(
+      List<RestSpan> still, {
+      DateTime? coverage,
+      DateTime? now,
+    }) => computeMotionNights(
+      still,
+      wakeDates: [wake],
+      now: now ?? at(10, 14, 30),
+      coverageStart: coverage ?? at(3, 0),
+    );
+
+    test('a 5-min pickup in the night is one wake-up, source auto', () {
+      final n = motion([
+        RestSpan(at(9, 23, 30), at(10, 2, 10)),
+        RestSpan(at(10, 2, 15), at(10, 6, 40)),
+      ])['2026-10-10']!;
+      expect(n.bedAt, at(9, 23, 30));
+      expect(n.wakeAt, at(10, 6, 40));
+      expect(n.wakeUps, [160]);
+      expect(n.source, SleepSource.auto);
+    });
+
+    test('F3: night 01:00–06:00 wins over the desk 08:30–14:00', () {
+      final n = motion([
+        RestSpan(at(10, 1), at(10, 6)),
+        RestSpan(at(10, 8, 30), at(10, 14)),
+      ])['2026-10-10']!;
+      expect(n.bedAt, at(10, 1));
+      expect(n.wakeAt, at(10, 6));
+    });
+
+    test('F3: only the desk 08:30–14:00 is no night', () {
+      expect(
+        motion([RestSpan(at(10, 8, 30), at(10, 14))])['2026-10-10'],
+        isNull,
+      );
+    });
+
+    test('F3: a block reaching < 60 min into 00:00–06:00 is no night', () {
+      expect(
+        motion([RestSpan(at(9, 20), at(10, 0, 50))])['2026-10-10'],
+        isNull,
+      );
+    });
+
+    test('F2: morning 09:35–13:50 right after turning it on → no night', () {
+      final out = motion([
+        RestSpan(at(10, 9, 35), at(10, 13, 50)),
+      ], coverage: at(10, 9, 30));
+      expect(out['2026-10-10'], isNull);
+    });
+
+    test('R2-C: set up at 21:00, slept 23:00–06:40 → that night counts', () {
+      final n = motion([
+        RestSpan(at(9, 23), at(10, 6, 40)),
+      ], coverage: at(9, 21))['2026-10-10']!;
+      expect(n.bedAt, at(9, 23));
+      expect(n.wakeAt, at(10, 6, 40));
+    });
+
+    test('R2-C: a span starting at the data edge is dropped', () {
+      expect(
+        motion([
+          RestSpan(at(9, 21), at(10, 6, 40)),
+        ], coverage: at(9, 21))['2026-10-10'],
+        isNull,
+      );
+    });
+
+    test('F2: no coverage (0 from the channel) → no nights at all', () {
+      final out = computeMotionNights(
+        [RestSpan(at(9, 23), at(10, 7))],
+        wakeDates: [wake],
+        now: at(10, 12),
+        coverageStart: null,
+      );
+      expect(out, isEmpty);
+    });
+
+    test('a phone still on the desk all afternoon is not a night', () {
+      expect(
+        motion([RestSpan(at(9, 13), at(9, 17, 30))])['2026-10-10'],
+        isNull,
+      );
+    });
+  });
 }

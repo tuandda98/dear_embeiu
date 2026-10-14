@@ -235,7 +235,8 @@ class _SetupSheetState extends State<_SetupSheet> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  /// Android: back from Settings → check Usage access, move on when granted.
+  /// Android: back from Settings → check Usage access, move on when granted —
+  /// or when motion was allowed (it works without Usage access).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed || !_awaitingSettings) {
@@ -245,7 +246,7 @@ class _SetupSheetState extends State<_SetupSheet> with WidgetsBindingObserver {
       if (!mounted) {
         return;
       }
-      if (granted) {
+      if (granted || context.read<SleepProvider>().motionGranted) {
         _awaitingSettings = false;
         _finishStep1(SleepMode.auto);
       } else {
@@ -257,17 +258,32 @@ class _SetupSheetState extends State<_SetupSheet> with WidgetsBindingObserver {
   Future<void> _grant() async {
     HapticFeedback.selectionClick();
     final sleep = context.read<SleepProvider>();
+    // Busy from the first prompt: a second tap mid-dialog would ask twice.
+    setState(() => _busy = true);
     if (SleepPlatform.isAndroid) {
+      // Motion first (an in-app prompt), then Usage access in Settings — still
+      // offered when motion was allowed; coming back without it then finishes
+      // on motion alone (didChangeAppLifecycleState).
+      await sleep.requestMotionPermission();
+      if (!mounted) {
+        return;
+      }
       if (await sleep.checkPermission()) {
         await _finishStep1(SleepMode.auto);
         return;
       }
+      if (!mounted) {
+        return;
+      }
+      // Free again: back from Settings with nothing allowed, the user must be
+      // able to retry or pick manual.
+      setState(() => _busy = false);
       _awaitingSettings = true;
       await sleep.requestPermission();
       return;
     }
-    setState(() => _busy = true);
     await sleep.requestPermission();
+    await sleep.requestMotionPermission();
     await _finishStep1(SleepMode.health);
   }
 
@@ -882,10 +898,17 @@ class _HowItWorksSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final paragraphs = SleepPlatform.isIOS
-        ? [l10n.sleepHowBody1Ios, l10n.sleepHowBody3, l10n.sleepHowBody4Ios]
+        ? [
+            l10n.sleepHowBody1Ios,
+            l10n.sleepHowIphoneInBed,
+            l10n.sleepHowMotion,
+            l10n.sleepHowBody3,
+            l10n.sleepHowBody4Ios,
+          ]
         : [
             l10n.sleepHowBody1,
             l10n.sleepHowBody2,
+            l10n.sleepHowMotion,
             l10n.sleepHowBody3,
             l10n.sleepHowBody4,
           ];

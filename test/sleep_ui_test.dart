@@ -119,6 +119,35 @@ class _Sleep extends SleepProvider {
   }) async => saved.add((date: date, bedAt: bedAt, wakeAt: wakeAt, tz: tz));
 }
 
+/// The motion-fallback bits of the screen, driven by plain flags.
+class _MotionSleep extends _Sleep {
+  _MotionSleep({
+    this.hint = false,
+    this.modeValue = SleepMode.manual,
+    this.motionOnly = false,
+    this.granted = false,
+    this.recentAuto = false,
+  });
+  final bool hint;
+  final SleepMode modeValue;
+  final bool motionOnly;
+  final bool granted;
+  final bool recentAuto;
+
+  @override
+  bool get showMotionHint => hint;
+  @override
+  SleepMode get mode => modeValue;
+  @override
+  bool get onMotionOnly => motionOnly;
+  @override
+  bool get motionGranted => granted;
+  @override
+  bool get hasRecentAutoNight => recentAuto;
+  @override
+  bool get healthHasNoData => modeValue == SleepMode.health;
+}
+
 /// 25 nights up to last night, 23:xx → 06/07:xx local, mixed sources.
 Map<String, SleepNight> _nights({required int offsetMin}) {
   final out = <String, SleepNight>{};
@@ -727,9 +756,7 @@ void main() {
       }
     });
 
-    testWidgets('no band when their night is on another clock', (
-      tester,
-    ) async {
+    testWidgets('no band when their night is on another clock', (tester) async {
       // An hour behind: the bars still meet on the axis, but not in time.
       final tz = at(-1, 23, 0).timeZoneOffset.inMinutes - 60;
       final theirs = SleepNight(
@@ -754,8 +781,8 @@ void main() {
       for (var i = 0; i <= 400 && d == null; i++) {
         final w = DateTime(day.year, day.month, day.day - i);
         final evening = DateTime(w.year, w.month, w.day - 1, 23);
-        if (evening.timeZoneOffset != DateTime(w.year, w.month, w.day, 7)
-            .timeZoneOffset) {
+        if (evening.timeZoneOffset !=
+            DateTime(w.year, w.month, w.day, 7).timeZoneOffset) {
           d = w;
         }
       }
@@ -895,5 +922,81 @@ void main() {
       Navigator.of(tester.element(find.byType(BackdropFilter).last)).pop();
       await tester.pumpAndSettle();
     }
+  });
+
+  group('motion fallback on the sleep screen', () {
+    Future<void> open(WidgetTester tester, SleepProvider sleep) async {
+      _phone(tester, 390, height: 2400);
+      await tester.pumpWidget(_app(const SleepScreen(), sleep));
+      await tester.pump(const Duration(seconds: 1));
+    }
+
+    testWidgets('hint card shows "Cho phép" when showMotionHint', (
+      tester,
+    ) async {
+      await open(tester, _MotionSleep(hint: true, modeValue: SleepMode.auto));
+      expect(find.text('Cho phép'), findsOneWidget);
+    });
+
+    testWidgets('no hint card when showMotionHint is false', (tester) async {
+      await open(tester, _MotionSleep(modeValue: SleepMode.auto));
+      expect(find.text('Cho phép'), findsNothing);
+    });
+
+    testWidgets('source says "Chuyển động" on Android with motion only', (
+      tester,
+    ) async {
+      await open(
+        tester,
+        _MotionSleep(
+          modeValue: SleepMode.auto,
+          motionOnly: true,
+          granted: true,
+        ),
+      );
+      expect(find.textContaining('Chuyển động của điện thoại'), findsOneWidget);
+      expect(find.textContaining('Điện thoại (tự động)'), findsNothing);
+    });
+
+    testWidgets('source stays "Điện thoại" when Usage access is there', (
+      tester,
+    ) async {
+      await open(
+        tester,
+        _MotionSleep(modeValue: SleepMode.auto, granted: true),
+      );
+      expect(find.textContaining('Điện thoại (tự động)'), findsOneWidget);
+      expect(find.textContaining('Chuyển động của điện thoại'), findsNothing);
+    });
+
+    testWidgets(
+      'iOS Health mode with motion-filled nights says "Chuyển động"',
+      (tester) async {
+        await open(
+          tester,
+          _MotionSleep(modeValue: SleepMode.health, recentAuto: true),
+        );
+        expect(
+          find.textContaining('Chuyển động của điện thoại'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('iOS Health on but empty says so, not "Ghi tay"', (
+      tester,
+    ) async {
+      await open(tester, _MotionSleep(modeValue: SleepMode.health));
+      expect(
+        find.textContaining('Apple Health (chưa có dữ liệu)'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Nguồn: Ghi tay'), findsNothing);
+    });
+
+    testWidgets('manual mode never says "Chuyển động"', (tester) async {
+      await open(tester, _MotionSleep(motionOnly: true, granted: true));
+      expect(find.textContaining('Chuyển động của điện thoại'), findsNothing);
+    });
   });
 }
