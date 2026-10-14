@@ -1098,3 +1098,4 @@
 - [23:59] Admin → Custom definitions → tạo dimension  chomre remote giúp tôi
 - [00:00] thêm cho việc ghép đôi bị thất bại nữa
 - [00:00] forgot password bị thất bại
+- [00:04] release
