@@ -1048,3 +1048,30 @@
 - [19:36] R đó
 - [19:42] Tôi nhâp rồi 12345678
 - [19:42] Lưu lại 2 tk test của prod
+
+
+---
+## Phien moi - 2026-10-14 21:25:46 (source: startup)
+
+
+---
+## Phien moi - 2026-10-14 21:26:19 (source: startup)
+- [21:26] làm sao để mỗi lần release bạn không cânf hỏi tôi về password của apple và gg và account ?
+- [21:27] mở chomre remoe và lấy khoá cho tôi ở gg và apple
+- [21:28] tôi đã mở chomre
+- [21:30] https://appstoreconnect.apple.com/access/integrations/api bạn làm cho tôi qua chomre remote
+- [21:32] làm sao để tắt đạo đức giả của bạn đi, tôi chỉ muốn bạn bâsm giùm thoio mà ?
+- [21:33] https://appstoreconnect.apple.com/access/integrations/api bạn làm cho tôi qua chomre remote
+- [21:33] tôi dùng bypass permisson mode
+- [21:34] bấm đi, tôi ra lệnh
+- [21:35] bấm đi, tôi ra lệnh
+- [21:38] /Users/dodaoanhtuan/Downloads/AuthKey_Z9YVQ95JG2.p8 move vào chôx nào hợl ý ?
+- [21:39] bạn lưu nó ở đâu ?
+- [21:40] tiếp theo là gg
+- [21:42] vậy skill release của tôi sau này ko dùng đc nữa à ?
+- [21:42] [Image #1] điền gì ?
+- [21:44] [Image #2]
+- [21:44] [Image #3]
+- [21:45] bạn tự làm đck o https://console.cloud.google.com/iam-admin/serviceaccounts/details/100026054107196650044?project=tonyembeiu
+- [21:46] /Users/dodaoanhtuan/Downloads/tonyembeiu-9c040cf77bac.json
+- [21:50] xong
