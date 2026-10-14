@@ -8,6 +8,7 @@ import '../services/sleep_platform.dart';
 import '../services/sleep_service.dart';
 import '../theme/person_palette.dart';
 import '../utils/sleep_calculator.dart';
+import '../services/analytics_service.dart';
 
 /// State for feature sleep ("Giấc ngủ của chúng mình", 2026-10-10): my nights
 /// (computed on this phone, kept in Hive), my sharing flag + colour, and — only
@@ -810,6 +811,7 @@ class SleepProvider extends ChangeNotifier {
     _pendingShare = share;
     final seq = ++_shareSeq;
     notifyListeners();
+    AnalyticsService.instance.logSleepShareChanged(share);
     // The flag goes into Firestore's own write queue right away: that queue
     // keeps the order of the taps and survives the app being killed. Held in
     // memory behind a slow "on", an "off" would die with the app and the
@@ -902,6 +904,7 @@ class SleepProvider extends ChangeNotifier {
       localColor: color,
     );
     notifyListeners();
+    AnalyticsService.instance.logSleepEnabled(mode.name);
     await _service.saveSettings(uid, _settings);
     if (mode == SleepMode.manual) {
       unawaited(SleepPlatform.stopMotionTracking()); // F1
@@ -1041,6 +1044,7 @@ class SleepProvider extends ChangeNotifier {
     }
     _local[date] = night;
     notifyListeners();
+    AnalyticsService.instance.logSleepNightSaved(night.source.name);
     await _service.saveNights(uid, _local);
     await _syncRecent();
   }

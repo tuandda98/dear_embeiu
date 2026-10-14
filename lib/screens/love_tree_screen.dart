@@ -39,6 +39,7 @@ import '../widgets/sleep/sleep_format.dart';
 import '../widgets/sub_screen_header.dart';
 import '../widgets/today_constellation.dart';
 import 'care_message_screen.dart' show openCareMessageScreen;
+import '../services/analytics_service.dart';
 
 // ── Living-tree environment (v2 #2) ──────────────────────────────────────────
 
@@ -140,6 +141,7 @@ class _TreeData {
 
 /// Opens the Love Tree (StreakChip on the counter, the "4/6" pill on Home).
 void openLoveTree(BuildContext context) {
+  AnalyticsService.instance.logLoveTreeOpened();
   Navigator.of(context).push(
     MaterialPageRoute<void>(
       settings: const RouteSettings(name: 'LoveTree'),

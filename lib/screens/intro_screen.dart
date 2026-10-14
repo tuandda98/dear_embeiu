@@ -8,6 +8,7 @@ import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
 import '../widgets/entrance_reveal.dart';
 import '../widgets/eyebrow_chip.dart';
+import '../services/analytics_service.dart';
 
 /// O4 — First-launch intro (feature onboarding, 2026-09-05).
 ///
@@ -79,6 +80,7 @@ class _IntroScreenState extends State<IntroScreen> {
 
   void _next() {
     if (_index >= _slideCount - 1) {
+      AnalyticsService.instance.logIntroFinished(skipped: false);
       widget.onDone();
       return;
     }
@@ -113,7 +115,12 @@ class _IntroScreenState extends State<IntroScreen> {
                     child: IgnorePointer(
                       ignoring: isLast,
                       child: TextButton(
-                        onPressed: widget.onDone,
+                        onPressed: () {
+                          AnalyticsService.instance.logIntroFinished(
+                            skipped: true,
+                          );
+                          widget.onDone();
+                        },
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.textPrimary.withValues(
                             alpha: 0.70,

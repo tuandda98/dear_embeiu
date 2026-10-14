@@ -1077,3 +1077,27 @@
 - [21:50] xong
 - [21:53] viết lại scripts/store-upload/ để upload và gửi duyệt qua API.
 - [21:53] viết lại scripts/store-upload/ để upload và gửi duyệt qua API. và script cũ dùng Chrome và Transporter mình giữ làm dự phòng
+- [21:56] test thuử xem chạy đc ko cho cả android và ios
+
+
+---
+## Phien moi - 2026-10-14 23:52:24 (source: startup)
+- [23:52] làm event tracking chưa ?
+- [23:53] mở tôi xem eventracking gg chomre remote tôi cưhua biết
+- [23:55] thêm Even Tracking cho những feature mới
+- [21:56] test thuử xem chạy đc ko cho cả android và ios
+
+
+---
+## Phien moi - 2026-10-14 23:52:24 (source: startup)
+- [23:52] làm event tracking chưa ?
+- [23:53] mở tôi xem eventracking gg chomre remote tôi cưhua biết
+- [23:55] thêm Even Tracking cho những feature mới
+- [23:57] thêm even tracking cho login, register , forgot
+- [23:58] login bằng gg, apple , hay email
+- [23:59] Admin → Custom definitions → tạo dimension  chomre remote giúp tôi
+- [00:00] thêm cho việc ghép đôi bị thất bại nữa
+- [00:00] forgot password bị thất bại
+- [00:04] release
+- [00:11] <task-notification> <task-id>bv9sz0aed</task-id> <tool-use-id>toolu_01ShnSKaTHysZqUvzTcFYp3R</tool-use-id> <output-file>/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/37ed1444-2825-495e-9aaa-0d5943559164/tasks/bv9sz0aed.output</output-file> <status>completed</status> <summary>Background command "cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu; S=/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/37ed1444-2825-495e-9aaa-0d5943559164/scratchpad; (flutter clean &gt;/dev/null &amp;&amp; flutter pub get &gt;/dev/null &amp;&amp; flut ...[cat]
+- [00:21] <task-notification> <task-id>bwgikd01l</task-id> <tool-use-id>toolu_01FHTtTfSC2vNqviDKzo1SJm</tool-use-id> <output-file>/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/37ed1444-2825-495e-9aaa-0d5943559164/tasks/bwgikd01l.output</output-file> <status>completed</status> <summary>Background command "cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu; NODE_OPTIONS=--dns-result-order=ipv4first node scripts/store-upload/asc-release.js 2&gt;&amp;1 | tail -25" completed (exit code 0)</summary> </task-notification>

@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import 'entrance_reveal.dart';
 import 'eyebrow_chip.dart';
 import 'icon_badge.dart';
+import '../services/analytics_service.dart';
 
 /// "Có gì mới" — version-based feature tour (feature: onboarding, 2026-09-05).
 ///
@@ -88,6 +89,7 @@ class FeatureTour {
     if (entries.isEmpty || !context.mounted) {
       return true;
     }
+    AnalyticsService.instance.logFeatureTourShown(manual: false);
     await _open(context, entries, info.version, onOpenTab);
     return true;
   }
@@ -121,6 +123,7 @@ class FeatureTour {
     if (!context.mounted || entries.isEmpty) {
       return;
     }
+    AnalyticsService.instance.logFeatureTourShown(manual: true);
     await _open(context, entries, info?.version, onOpenTab);
   }
 

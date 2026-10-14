@@ -15,6 +15,7 @@ import '../widgets/content_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/sub_screen_header.dart';
 import 'care_timeline_screen.dart';
+import '../services/analytics_service.dart';
 
 /// Opens the "send a care note" composer (feature care-message).
 ///
@@ -108,6 +109,7 @@ class _CareMessageScreenState extends State<CareMessageScreen> {
         );
         return;
       }
+      AnalyticsService.instance.logCareMessageSent(queued: queued);
       messenger.showSnackBar(
         SnackBar(
           content: Text(

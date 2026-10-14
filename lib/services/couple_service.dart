@@ -359,11 +359,17 @@ class CoupleService {
     // Spaces, full-width characters, a pasted invite link → the bare code (PA4).
     final normalizedCode = InviteClipboard.normalizeInviteCode(inviteCode);
     if (normalizedCode.isEmpty) {
-      throw CoupleException(AppL10n.strings.coupleEnterCodeFirst);
+      throw CoupleException(
+        AppL10n.strings.coupleEnterCodeFirst,
+        code: CoupleErrorCode.emptyInvite,
+      );
     }
 
     if (normalizedCode == currentUser.inviteCode.trim().toUpperCase()) {
-      throw CoupleException(AppL10n.strings.coupleCannotUseOwnCode);
+      throw CoupleException(
+        AppL10n.strings.coupleCannotUseOwnCode,
+        code: CoupleErrorCode.ownInvite,
+      );
     }
 
     // If user already created a solo couple (waiting_partner), leave it first
@@ -385,7 +391,10 @@ class CoupleService {
         // doc so a stale local id can't trip those checks.
         final authUid = FirebaseAuth.instance.currentUser?.uid;
         if (authUid == null || authUid.isEmpty) {
-          throw CoupleException(AppL10n.strings.coupleSessionNotReadyRelogin);
+          throw CoupleException(
+            AppL10n.strings.coupleSessionNotReadyRelogin,
+            code: CoupleErrorCode.sessionNotReady,
+          );
         }
 
         // Double-lookup: try couple_codes first (new flow — no personal
@@ -413,11 +422,17 @@ class CoupleService {
             );
           }
           if (accountInvite.userId == authUid) {
-            throw CoupleException(AppL10n.strings.coupleCannotUseOwnCode);
+            throw CoupleException(
+              AppL10n.strings.coupleCannotUseOwnCode,
+              code: CoupleErrorCode.ownInvite,
+            );
           }
           final rawCoupleId = accountInvite.coupleId?.trim() ?? '';
           if (rawCoupleId.isEmpty) {
-            throw CoupleException(AppL10n.strings.couplePartnerHasNoSpace);
+            throw CoupleException(
+              AppL10n.strings.couplePartnerHasNoSpace,
+              code: CoupleErrorCode.inviteNoSpace,
+            );
           }
           targetCoupleId = rawCoupleId;
         }
@@ -438,7 +453,10 @@ class CoupleService {
           coupleRead = true;
           final coupleData = coupleSnapshot.data();
           if (coupleData == null) {
-            throw CoupleException(AppL10n.strings.coupleNotFoundForCode);
+            throw CoupleException(
+              AppL10n.strings.coupleNotFoundForCode,
+              code: CoupleErrorCode.targetNotFound,
+            );
           }
 
           final currentCouple = Couple.fromJson({
@@ -488,7 +506,10 @@ class CoupleService {
               currentCouple.createdByUserId.trim().isNotEmpty &&
               currentCouple.inviteCode.trim().isNotEmpty;
           if (!targetIsJoinable) {
-            throw CoupleException(AppL10n.strings.coupleSpaceInvalidRegenerate);
+            throw CoupleException(
+              AppL10n.strings.coupleSpaceInvalidRegenerate,
+              code: CoupleErrorCode.invalidInviteLink,
+            );
           }
 
           final now = DateTime.now();
@@ -590,7 +611,10 @@ class CoupleService {
     }
 
     if (localCouple.memberCount >= 2) {
-      throw CoupleException(AppL10n.strings.coupleFullLocal);
+      throw CoupleException(
+        AppL10n.strings.coupleFullLocal,
+        code: CoupleErrorCode.localFull,
+      );
     }
 
     final now = DateTime.now();
@@ -984,14 +1008,26 @@ class CoupleService {
       case 'permission-denied':
         return coupleRead == false
             ? CoupleException(l10n.coupleFull, code: CoupleErrorCode.full)
-            : CoupleException(l10n.coupleJoinPermissionDenied);
+            : CoupleException(
+                l10n.coupleJoinPermissionDenied,
+                code: CoupleErrorCode.firestorePermissionWrite,
+              );
       case 'unauthenticated':
-        return CoupleException(l10n.coupleSessionExpiredJoin);
+        return CoupleException(
+          l10n.coupleSessionExpiredJoin,
+          code: CoupleErrorCode.unauthenticated,
+        );
       case 'unavailable':
-        return CoupleException(l10n.coupleFirebaseUnavailable);
+        return CoupleException(
+          l10n.coupleFirebaseUnavailable,
+          code: CoupleErrorCode.unavailable,
+        );
       default:
         debugPrint('CoupleService join error ${e.code}: ${e.message}');
-        return CoupleException(l10n.coupleJoinGeneric);
+        return CoupleException(
+          l10n.coupleJoinGeneric,
+          code: CoupleErrorCode.joinGeneric,
+        );
     }
   }
 

@@ -24,7 +24,11 @@ import 'user_service.dart';
 class AuthException implements Exception {
   final String message;
 
-  const AuthException(this.message);
+  /// Stable error code (Firebase code like `wrong-password`) for analytics —
+  /// never shown to the user, never PII. Null when there's no code.
+  final String? code;
+
+  const AuthException(this.message, {this.code});
 
   @override
   String toString() => message;
@@ -205,9 +209,9 @@ class AuthService {
 
         return user;
       } on FirebaseAuthException catch (e) {
-        throw AuthException(_mapFirebaseAuthError(e));
+        throw AuthException(_mapFirebaseAuthError(e), code: e.code);
       } on FirebaseException catch (e) {
-        throw AuthException(_mapFirestoreError(e));
+        throw AuthException(_mapFirestoreError(e), code: e.code);
       }
     }
 
@@ -221,7 +225,10 @@ class AuthService {
     );
 
     if (emailAlreadyUsed) {
-      throw AuthException(AppL10n.strings.authEmailAlreadyUsed);
+      throw AuthException(
+        AppL10n.strings.authEmailAlreadyUsed,
+        code: 'email-already-in-use',
+      );
     }
 
     final now = DateTime.now();
@@ -279,9 +286,9 @@ class AuthService {
         }
         return user;
       } on FirebaseAuthException catch (e) {
-        throw AuthException(_mapFirebaseAuthError(e));
+        throw AuthException(_mapFirebaseAuthError(e), code: e.code);
       } on FirebaseException catch (e) {
-        throw AuthException(_mapFirestoreError(e));
+        throw AuthException(_mapFirestoreError(e), code: e.code);
       }
     }
 
@@ -294,12 +301,18 @@ class AuthService {
     );
 
     if (index == -1) {
-      throw AuthException(AppL10n.strings.authAccountNotFound);
+      throw AuthException(
+        AppL10n.strings.authAccountNotFound,
+        code: 'user-not-found',
+      );
     }
 
     final record = users[index];
     if ((record['password'] as String?) != normalizedPassword) {
-      throw AuthException(AppL10n.strings.authWrongPassword);
+      throw AuthException(
+        AppL10n.strings.authWrongPassword,
+        code: 'wrong-password',
+      );
     }
 
     final signedInUser = await _ensureInviteCode(AppUser.fromJson(record).copyWith(
@@ -478,7 +491,10 @@ class AuthService {
           email: e.email,
         );
       }
-      throw AuthException(_mapSocialAuthError(e, fallback: failed));
+      throw AuthException(
+        _mapSocialAuthError(e, fallback: failed),
+        code: e.code,
+      );
     } on FirebaseException catch (e) {
       throw AuthException(_mapFirestoreError(e));
     }
@@ -721,7 +737,10 @@ class AuthService {
   /// blocks it first, but we still map defensively); network/other errors throw.
   Future<void> sendPasswordResetEmail(String email) async {
     if (!isUsingFirebase) {
-      throw AuthException(AppL10n.strings.forgotPasswordLocalFallback);
+      throw AuthException(
+        AppL10n.strings.forgotPasswordLocalFallback,
+        code: 'local-mode',
+      );
     }
 
     try {
@@ -738,6 +757,7 @@ class AuthService {
       // surface real errors (network failure, Resend down, etc.).
       throw AuthException(
         mapCallableError(e, AppL10n.strings.forgotPasswordNetworkError),
+        code: e.code,
       );
     }
   }
