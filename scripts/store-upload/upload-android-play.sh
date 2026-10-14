@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# ⚠️ DỰ PHÒNG từ 2026-10-14 — cách chính là play-release.js (Play Developer API). Chỉ dùng khi API hỏng.
 # Đưa AAB vào ô "Tải lên" của trang Chuẩn bị bản phát hành (Play Console) đang mở trong Chrome.
 # Cầu nối Chrome MCP giới hạn 10MB nên KHÔNG dùng file_upload; thay vào đó:
 #   1) Claude (Chrome MCP) bấm nút "Tải lên" trong dropzone → macOS mở hộp thoại chọn file
