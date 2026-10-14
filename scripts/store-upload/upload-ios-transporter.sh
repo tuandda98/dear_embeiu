@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# ⚠️ DỰ PHÒNG từ 2026-10-14 — cách chính là asc-release.js (altool + ASC API). Chỉ dùng khi API hỏng.
 # Upload IPA lên App Store Connect bằng app Transporter (GUI) — tự động hoá bằng AppleScript + CGEvent.
 # Vì sao không dùng altool: máy không có ASC API key/app-specific password; Transporter đã đăng nhập sẵn Apple ID.
 # Điều kiện: Terminal chạy Claude có quyền Accessibility (System Events keystroke) — đã có trên máy nhà.

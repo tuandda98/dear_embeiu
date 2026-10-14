@@ -1075,3 +1075,5 @@
 - [21:45] bạn tự làm đck o https://console.cloud.google.com/iam-admin/serviceaccounts/details/100026054107196650044?project=tonyembeiu
 - [21:46] /Users/dodaoanhtuan/Downloads/tonyembeiu-9c040cf77bac.json
 - [21:50] xong
+- [21:53] viết lại scripts/store-upload/ để upload và gửi duyệt qua API.
+- [21:53] viết lại scripts/store-upload/ để upload và gửi duyệt qua API. và script cũ dùng Chrome và Transporter mình giữ làm dự phòng
