@@ -78,3 +78,11 @@ Thư mục `videos/dear-embeiu-launch-50s/` (có `.gitignore` riêng: `node_modu
    giờ; swell Act 2 về chủ âm đúng `unlock`. SFX thêm swoop/leave/lift/sendIn/unlock/collapse/shrink/playhead/eventOut/
    photoPop/photoFly/photoLand/dotsIn. `scripts/srt.ts` viết lại theo cue mới; `audio/build.ts` đặt file đo tạm theo pid.
    Tiêu đề act 30 px.
+10. **Bản dọc 9:16 (2026-10-15 khuya):** composition `Vertical` (1080×1920, 60 fps, 1200 f), spec `VERTICAL.md` trong thư
+   mục phim. Code `src/vertical/` (`timeline.ts` VERT/VS/VSILENCE/SAFE, `Vertical.tsx` gắn `v12/` cho f < 600 và `v34/`
+   từ 600), chuỗi ở `T.vertical`. Âm thanh `audio/vertical/{score,sfx,build}.ts` → `out/audio/vertical-master.wav`
+   (nhạc + SFX theo `V12_EVENTS`/`V34_EVENTS`, −14 LUFS / −1,2 dBTP, im lặng 600–615 và 1190–1200). Render
+   `bash scripts/render-vertical.sh` → `out/deliver/dear-embeiu-vertical-20s{.mp4,_threads.mp4,_poster.png}`;
+   `scripts/check-vertical.ts` kiểm. Bản `_threads.mp4` ≤ 9,5 MB vì cầu nối Chrome chỉ nhận file < 10 MB.
+   Bẫy Threads: link `apps.apple.com` / `play.google.com` bị cắt ở ".apple" / ".google" (đuôi tên miền thật) → dùng
+   `https://dearembeiu.com/get`; đính kèm video TRƯỚC khi gõ chữ, nếu không preview link chiếm chỗ đính kèm.

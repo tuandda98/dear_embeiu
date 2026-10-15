@@ -6,6 +6,8 @@ When this file and the brief disagree, this file records a decision that was mad
 ## 1. Engine
 
 - Remotion 4.0.532, composition `Film` 1920×1080, 60 fps, 3000 frames (`src/Root.tsx`).
+- Two more compositions share the components and strings: `Demo` (45 s, 16:9, the screen-recording demo, `src/demo/`)
+  and `Vertical` (20 s, 1080×1920, the 9:16 social cut, `src/vertical/`, spec `VERTICAL.md`).
 - `src/Film.tsx` mounts exactly ONE act per frame: the act whose `[from, to)` (`ACTS` in `src/timeline/grid.ts`) contains
   it. Acts read the GLOBAL frame with `useCurrentFrame()` (no `<Sequence>` offsets anywhere).
 - Every pixel is a pure function of the frame. No `Math.random()`, no `Date`, no state carried between frames (Remotion

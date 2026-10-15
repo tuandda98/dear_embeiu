@@ -68,3 +68,12 @@ nhất bạn có thể". Giữ khung 7 act, cú cắt 32 s, giao hàng như cũ;
 - Act 6 chỉ còn 8 thẻ tính năng to, lợi ích 2 dòng, đứng đủ lâu; bỏ chat, chip, dòng chạy.
 - Nhạc Act 4 ấm (marimba, piano, kick nhẹ) thay nhịp bốn phách + hi-hat + lớp tiếng xì; Act 5 không còn chìm.
 - Chưa làm: bản 9:16 riêng cho Threads/TikTok (xem dọc, chữ 16:9 vẫn nhỏ).
+
+### Bản dọc 9:16, 20 giây cho Threads / TikTok / Reels (2026-10-15 khuya)
+
+User hỏi feed dọc là cho nền tảng nào, nhận khuyến nghị rồi chốt "okay làm đi" + "làm xong tự đăng thread luôn".
+Bản ngang 16:9 hiện trong feed dọc chỉ là một dải hẹp, chữ nhỏ ~5 lần. Bản dọc 1080×1920 dựng lại bố cục, không cắt
+khung: câu mở (0–2 s) · câu hỏi mỗi ngày, mở khoá hai câu trả lời ở giây 6 · cắt cứng sang navy: "Không bảng tin. /
+Không người lạ. / Chỉ hai người. / Miễn phí. / Không quảng cáo." · thẻ kết có `dearembeiu.com/get` (một link: iPhone mở
+App Store, Android mở Google Play). Chữ kể chuyện ≥ 80 px, mọi chữ cần đọc nằm trong vùng x 80–940, y 200–1500 (tránh
+nút của TikTok/Reels). Bản ngang 50 s giữ cho trang chủ và YouTube.

@@ -166,6 +166,18 @@ const vi = {
     { from: 2325, to: 2580, text: "Và còn nữa", dark: false }, // film (v3: the cards are the whole act)
   ] as const,
 
+  /** the 9:16 cut (VERTICAL.md): each builder edits only its own sub-block; reuse the film's strings above by reference */
+  vertical: {
+    v12: {
+      /** 9:16 line breaks: the word index each new line starts at (the texts themselves are T.a1 / T.a2, by reference;
+       *  an English cut sets its own). Kept on phrases: "người ấy" and "túi áo" never split. */
+      breaks: { hook: [5], question: [4, 9], other: [7, 11], you: [5] },
+    },
+    v34: {
+      url: "dearembeiu.com/get", // the one download link: iPhone → App Store, Android → Google Play (docs/get.html)
+    },
+  },
+
   a7: {
     wordmark: "Dear Embeiu",
     l1: "Đếm ngày yêu.", // guestCounterTitle, as a sentence
