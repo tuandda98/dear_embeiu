@@ -10,7 +10,7 @@ export const A1 = {
   tick: (f: number) => Math.floor(f / 60) * 60,
   /** caption "Mỗi app đếm ngày yêu đều có con số này." — 10 words, one per 8th from 45 to 180 (each unit's last letter
    *  lands on its 8th: a 9-unit "số này." could not fit after 165 and was shifted to 189); typing starts at 39 */
-  caption: schedule(["Mỗi", "app", "đếm", "ngày", "yêu", "đều", "có", "con", "số", "này."], [45, 60, 75, 90, 105, 120, 135, 150, 165, 180], { seed: 11 }),
+  caption: schedule(["Mọi", "app", "đếm", "ngày", "yêu", "chỉ", "biết", "đếm."], [45, 60, 75, 90, 105, 120, 135, 150], { seed: 11 }),
   push: [0, 240], // camera 100 → 104 %
   wait: 210, // the clock waits one beat (no caption motion 180–240)
   dropStart: 222, // the lavender dot falls from the top edge…
@@ -45,13 +45,13 @@ export const A3 = {
   cell0: 720, // the compressed answers land as the first cell
   cells: [720, 810], // 31 cells, one every 3 f (720 + 3k), each sliding out from under the last; the count rolls 1 → 31
   flame: [765, 810], // the navy flame glyph draws above the last cell's slot: outer stroke, then inner (45 f)
-  sky: [772, 810], // the love tree's night sky rises from the bottom edge to y 600, a sheet (motion-blurred)
-  chip: 810, // the flame tucks in beside the strip and the pill draws around it: "31 ngày kết nối · hôm nay xong rồi"
+  sky: [772, 810], // the love tree's night sky rises from below into place: a card x 96–1824, y 600–1000 (settle)
+  chip: 810, // the strip steps back, the flame tucks in, the pill draws around it: "31 ngày kết nối · hôm nay xong rồi"
   nodes: [810, 840, 870, 900, 930, 960], // the stem rises one ruled step per beat (8 f each)
   checks: [870, 930, 990], // ✓ 1000 ngày bên nhau · ✓ Chuỗi 30 ngày · ✓ 10 ảnh kỷ niệm (each check draws itself)
   riser: [960, 1020],
   flowers: [1020, 1035, 1050], // three flowers open on the top three nodes, beside their checks (17.0 s)
-  night: [1050, 1095], // the sky grows to the whole frame; the chip goes under it (its edge passes the strip ~1062)
+  night: [1050, 1095], // the card grows to the whole frame (the constellation's sky); the chip goes under it
   dotsRise: [1050, 1100], // the two dots rise out of the strip to (820, 150) and (1100, 150)
   constellation: [1080, 1140], // six stars light and join by dashed lines, the two halves meeting at the tip
   stars: [1080, 1088, 1095, 1103, 1110, 1118], // one per 16th: you, other × Câu hỏi, Tâm trạng, Nhắn tin
@@ -77,11 +77,12 @@ export const A4 = {
   /** the day's events, in hours; the frame each one crosses the playhead comes from hourToFrame() below */
   events: [6.0, 7.133, 8.2, 12.5, 15.083, 15.5, 19.667, 21.0, 22.683, 22.75, 23.167],
   stop: 1680, // the playhead stops with a 4 f overshoot; the counters lock
-  caption: 1690, // "Con số vẫn có. Chỉ là không còn trơ trọi."
+  caption: 1690, // "Con số vẫn thế. Chỉ là có thêm người ấy."
   lift: [1800, 1850], // the counter card lifts off the phone…
   widgetMedium: 1860, // …and lands on the home screen as the medium widget (31.0 s)
   widgetSmall: 1875, // the small widget snaps in
   widgetAndroid: 1890, // the Android 2×2 widget beside it
+  cover: [1896, 1920], // a navy (C.ink) sheet rises from the bottom edge over the resting widgets; its top is at y ≈ 20 on 1919
   cut: 1920, // HARD CUT. Nothing rings across it.
 } as const;
 
@@ -122,7 +123,7 @@ export const A5 = {
   silence: [1920, 1950], // pure #1A1A2E, digital zero
   facts: [1950, 1965, 1980, 1995, 2010, 2025], // six facts typeset in place, one per 8th
   footer: 2040, // "dearembeiu.com"
-  dim: 2100, // the grid dims to 25 %
+  dim: 2085, // the grid slides down into a compact fine-print strip (y 830–940), clearing the headlines' navy an 8th before h1
   h1: 2100, // "Không bạn bè. Không mạng xã hội."
   h2: 2130, // "Chỉ hai người."
   h3: 2190, // "Miễn phí. Không quảng cáo." — "Không quảng cáo" in rose
@@ -135,10 +136,10 @@ export const A6 = {
   typed: even(T.a6.typed, 2296, 2336), // "Tối nay xem phim nha" — the last letter on 2336, before the send
   send: 2340, // sends on beat 3 of bar 20: the bubble lands navy on the right
   typing: [2370, 2400], // "đang soạn…" answers on the left, three dots
-  chips: [2340, 2348, 2356, 2364, 2372, 2380], // the six quick picks fan in (a row above the thread)
-  chipsOut: [2388, 2404], // the quick picks lift out of the top edge before the first glyph cell lands under them
-  chatOut: [2400, 2430], // the thread and the composer sink out under the frame as the grid lands
-  glyphs: [2400, 2415, 2430, 2445, 2460, 2475, 2490, 2505], // the 4×2 grid, one per 8th; each glyph animates 60 f
+  chips: [2340, 2348, 2356, 2364, 2372, 2380], // the six quick picks fan in (one centred row above the chat panel)
+  chatOut: [2392, 2416], // the chat panel and the chip row slide up out of the frame, clear before the 2nd card lands under them
+  chipsOut: [2392, 2416], // the quick picks leave with the panel (= chatOut; audio/sfx reads this one)
+  glyphs: [2400, 2415, 2430, 2445, 2460, 2475, 2490, 2505], // the 4×2 feature cards, one per 8th; each glyph animates 60 f
   dots: [2506, 2526], // the two dots slide in from the frame edges to the ticker's two ends (rose left, lavender right)
   ticker: [2520, 2610], // the masked one-line ticker: flicks in from behind the lavender dot, then drifts
   caption: 2535, // "Miễn phí trên App Store & Google Play"

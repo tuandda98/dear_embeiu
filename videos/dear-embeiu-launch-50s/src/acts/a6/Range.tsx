@@ -1,6 +1,6 @@
-// Act 6 · the range: the ruled 4 × 2 glyph grid, the masked ticker between the two dots, the caption — and the recede,
-// where everything scales into the centre while the dots travel to their touch (H2640). Layers read the frame
-// themselves (they may sit inside <Blur>).
+// Act 6 · the range: the 4 × 2 feature cards (a rose or lavender circle with a white line glyph, the title, one line
+// of benefit), the masked ticker between the two dots, the caption — and the recede, where everything scales into the
+// centre while the dots travel to their touch (H2640). Layers read the frame themselves (they may sit inside <Blur>).
 import { AbsoluteFill, Easing, useCurrentFrame } from "remotion";
 import { Dot } from "../../components/Dot.tsx";
 import { Caption } from "../../components/Text.tsx";
@@ -9,15 +9,15 @@ import { ease, lerp, settle } from "../../lib/ease.ts";
 import { C } from "../../lib/tokens.ts";
 import { A6 } from "../../timeline/cues.ts";
 import { GLYPHS } from "./Glyphs.tsx";
-import { CAPTION, CELLS, DOTS, TICKER, TOUCH } from "./layout.ts";
+import { CAPTION, CARDS, DOTS, TICKER, TOUCH } from "./layout.ts";
 
-const HAIR = "rgba(160, 160, 176, 0.5)"; // DESIGN §4: C.ink3 at 50 % on light
+const FILL = { rose: "#FFF1F4", lavender: "#F3EFFD" } as const; // rose 8 % / lavender 10 % on white
 const speed = (fn: (x: number) => number, f: number) => Math.abs(fn(f + 0.25) - fn(f - 0.25)) * 2;
 
 /** the recede: 1 → 0 into the frame centre, accelerating, gone by A6.recede[0] + 34 */
 export const recedeAt = (f: number) => 1 - ease(f, A6.recede[0], A6.recede[0] + 34, Easing.in(Easing.cubic));
 const recedeStyle = (s: number): React.CSSProperties | undefined => (s < 1 ? { transformOrigin: "960px 540px", transform: `scale(${s})` } : undefined);
-const recedeFast = (f: number) => speed(recedeAt, f) * 900 > 20; // the grid's far corners sit ~900 px from the centre
+const recedeFast = (f: number) => speed(recedeAt, f) * 900 > 20; // the far card corners sit ~900 px from the centre
 
 /** the ticker's travel: a quick flick in from behind the lavender dot, easing into a slow readable drift */
 const tickerTravel = (f: number) => {
@@ -41,20 +41,43 @@ function dotsAt(f: number) {
 }
 export const dotsFast = (f: number) => Math.max(speed((x) => dotsAt(x).you.x, f), speed((x) => dotsAt(x).you.y, f)) > 20;
 
-const Cell: React.FC<{ k: number; f: number }> = ({ k, f }) => {
+/** card k lands on its cue (settle + a top-down reveal); 6 f later its circle pops and the glyph plays, the title
+ * wipes in, the benefit 6 f after that. Fills alternate like a checkerboard. */
+const Card: React.FC<{ k: number; f: number }> = ({ k, f }) => {
   const g = A6.glyphs[k];
   if (f < g) return null;
-  const x = CELLS.cols[k % 4];
-  const y = CELLS.rows[Math.floor(k / 4)];
+  const col = k % 4;
+  const row = Math.floor(k / 4);
+  const rose = (col + row) % 2 === 0;
+  const ground = rose ? C.rose : C.lavender;
+  const p = settle(f, g, { stiffness: 190, zeta: 0.8 });
+  const reveal = ease(f, g, g + 8);
+  const ring = settle(f, g + 6, { stiffness: 240, zeta: 0.75 });
   const Glyph = GLYPHS[k];
   return (
-    <>
-      <div style={{ position: "absolute", left: x, top: y + CELLS.glyphTop, width: 96 * CELLS.k, height: 64 * CELLS.k }}>
-        <Glyph t={f - g} />
-      </div>
-      <Caption text={T.a6.glyphs[k]} x={x} y={y + CELLS.labelTop} size={28} weight={600} color={C.ink} wipe={ease(f, g + 6, g + 20)} />
-      <div style={{ position: "absolute", left: x, top: y + CELLS.h, width: CELLS.rule, height: 1, background: HAIR, transformOrigin: "0 0", transform: `scaleX(${ease(f, g, g + 14)})` }} />
-    </>
+    <div
+      style={{
+        position: "absolute",
+        left: CARDS.cols[col],
+        top: CARDS.rows[row],
+        width: CARDS.w,
+        height: CARDS.h,
+        borderRadius: CARDS.r,
+        background: rose ? FILL.rose : FILL.lavender,
+        transform: Math.abs(1 - p) < 1e-4 ? undefined : `translateY(${(1 - p) * 24}px) scale(${0.92 + 0.08 * p})`,
+        clipPath: reveal < 1 ? `inset(0 0 ${(1 - reveal) * 100}% 0 round ${CARDS.r}px)` : undefined,
+      }}
+    >
+      {f >= g + 6 && (
+        <div style={{ position: "absolute", left: CARDS.padX, top: CARDS.padY, width: CARDS.circle, height: CARDS.circle, borderRadius: CARDS.circle / 2, background: ground, transform: Math.abs(1 - ring) < 1e-4 ? undefined : `scale(${ring})` }}>
+          <div style={{ position: "absolute", left: (CARDS.circle - CARDS.icon) / 2, top: (CARDS.circle - CARDS.icon) / 2, width: CARDS.icon, height: CARDS.icon }}>
+            <Glyph t={f - g - 6} ground={ground} />
+          </div>
+        </div>
+      )}
+      <Caption text={T.a6.glyphs[k]} x={CARDS.padX} y={CARDS.titleTop} size={28} weight={700} color={C.ink} wipe={ease(f, g + 6, g + 20)} />
+      <Caption text={T.a6.benefits[k]} x={CARDS.padX} y={CARDS.benefitTop} size={20} weight={500} color={C.ink2} wipe={ease(f, g + 12, g + 26)} />
+    </div>
   );
 };
 
@@ -65,7 +88,7 @@ export const GridLayer: React.FC = () => {
   return (
     <AbsoluteFill style={recedeStyle(s)}>
       {GLYPHS.map((_, k) => (
-        <Cell key={k} k={k} f={f} />
+        <Card key={k} k={k} f={f} />
       ))}
       {f >= A6.caption && <Caption text={T.a6.caption} x={CAPTION.x} y={CAPTION.y} wipe={ease(f, A6.caption, A6.caption + 16)} />}
     </AbsoluteFill>

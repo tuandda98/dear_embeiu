@@ -6,7 +6,7 @@ export type VoLine = { id: string; at: number; text: string };
 
 /** the 50 s film (option 1): lines placed on the cue sheet */
 export const FILM_VO: VoLine[] = [
-  { id: "a1-number", at: 30, text: "Mỗi app đếm ngày yêu đều có con số này." },
+  { id: "a1-number", at: 30, text: "Mọi app đếm ngày yêu chỉ biết đếm." },
   { id: "a2-arrive", at: 250, text: "Rồi người ấy xuất hiện." },
   { id: "a2-mood", at: 530, text: "Bạn chọn cùng một tâm trạng." },
   { id: "a2-answer2", at: 624, text: "Trả lời xong là cùng mở." },
@@ -14,7 +14,7 @@ export const FILM_VO: VoLine[] = [
   { id: "a3-tree2", at: 1000, text: "Mỗi cột mốc nở một bông hoa trên cây tình yêu." },
   { id: "a4-day", at: 1230, text: "Một ngày của chúng mình trong Dear Embeiu." },
   { id: "a4-events2", at: 1400, text: "Người ấy dậy, đăng ảnh, gửi lời quan tâm, nhắn tin, chia sẻ tâm trạng." },
-  { id: "a4-caption", at: 1706, text: "Con số vẫn có. Chỉ là không còn trơ trọi." },
+  { id: "a4-caption", at: 1706, text: "Con số vẫn thế. Chỉ là có thêm người ấy." },
   { id: "a5-facts2", at: 1960, text: "Miễn phí, không quảng cáo. Chỉ hai người, ghép bằng mã mời." },
   { id: "a6-range2", at: 2300, text: "Trò chuyện riêng, lời quan tâm, lời nhắc, oẳn tù tì." },
   { id: "a6-free", at: 2525, text: "Miễn phí trên App Store và Google Play." },

@@ -70,7 +70,7 @@ export const Strip: React.FC = () => {
   const right = TEXT_X + textW + 30;
   const width = right - PILL.left;
   const { top, h, r, left } = PILL;
-  const w = ease(f, A3.chip + 8, A3.chip + 36);
+  const w = ease(f, A3.chip + 4, A3.chip + 24);
   const arc = (Math.PI * r) / 2;
   const run = w * (width - 2 * r + 2 * arc);
   const front =

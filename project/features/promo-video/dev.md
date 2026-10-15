@@ -58,3 +58,13 @@ Thư mục `videos/dear-embeiu-launch-50s/` (có `.gitignore` riêng: `node_modu
    simulator vẽ thành ô "[?]" trong bản quay — builder đã che bằng chữ đúng của `app_vi.arb`; muốn sạch thì quay trên máy
    thật.
 
+8. **Vòng sửa bản 1 theo góp ý user (2026-10-15 tối, 7 điểm):** (a) câu Act 1 → "Mọi app đếm ngày yêu chỉ biết đếm."
+   (app truyền thống chỉ có mỗi việc đếm); (b) Act 3: bầu trời đêm thành thẻ trọn vẹn trong khung (x 96–1824,
+   y 600–1000, bo 28) có cành cây chéo, trăng, 3 check — hết cảm giác "mất phần dưới"; tiêu đề act kết thúc ở 1050 để
+   không chìm khi bầu trời phủ kín; (c) câu Act 4 → "Con số vẫn thế. Chỉ là có thêm người ấy." (bỏ "trơ trọi");
+   (d) tấm navy trồi từ dưới phủ widget trong 1896–1920 (`A4.cover`) nối vào cú cắt 32 s, nhạc vẫn cắt đứt;
+   (e) Act 5: lưới fact trượt xuống thành dải chữ nhỏ ở đáy tại `A5.dim` 2085 trước khi headline hiện — hết chữ đè chữ;
+   (f) Act 6: chat thành panel trắng giữa khung (x 560–1360, y 280–960, header "THẢO ♥ TUẤN", 4 bubble lịch sử,
+   chips 1 hàng trên panel); (g) lưới tính năng thành 8 thẻ 400×220 tint hồng/tím, vòng tròn 64 px glyph trắng, tên
+   28 + lợi ích 20 (`T.a6.benefits`). SFX thêm `cover`, `scroll`, `sheet` (không còn event câm). Render lại không VO,
+   gửi Telegram bản `_preview.mp4`.

@@ -1,7 +1,8 @@
 // Act 4's sound events, frame-exact, from the same cues the picture animates from (DESIGN §7). Plain .ts for Node.
 // Also the day's state the picture reads (which event has landed by frame f), so picture and sound share one table.
 // New id (not in DESIGN §7): count (a counter under the ruler finishes rolling one step: the new digit lands in its
-// box, BRIEF §5 "very quiet mechanical micro-ticks"; data n = 0 Ảnh · 1 Sao hôm nay · 2 Chuỗi).
+// box, BRIEF §5 "very quiet mechanical micro-ticks"; data n = 0 Ảnh · 1 Sao hôm nay · 2 Chuỗi) · cover (the navy sheet
+// starts rising over the widgets, A4.cover; it bridges the hard cut into Act 5's navy silence).
 import { A4, hourToFrame } from "../../timeline/cues.ts";
 import { T } from "../../copy/strings.ts";
 
@@ -35,5 +36,6 @@ export const A4_EVENTS: Ev[] = [
   { f: A4.widgetMedium, id: "widget", data: { n: 0 } }, // the counter card lands as the iOS medium widget
   { f: A4.widgetSmall, id: "widget", data: { n: 1 } },
   { f: A4.widgetAndroid, id: "widget", data: { n: 2 } },
+  { f: A4.cover[0], id: "cover", data: { to: A4.cover[1] } },
   { f: A4.cut, id: "cut" },
 ].sort((a, b) => a.f - b.f);

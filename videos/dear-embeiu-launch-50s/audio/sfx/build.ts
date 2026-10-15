@@ -203,6 +203,8 @@ const DESIGN: Record<string, (e: Ev, r: Rand) => void> = {
   land: (e, r) => at(tame(thock(r), 2.2), e.f, -17, 0.03),
 
   // A2 · the other
+  scroll: (e, r) => at(tame(paperSlide(r), 2), e.f, -34, 0.05), // the Home is flicked inside the phone (A2.scroll)
+  sheet: (e, r) => at(uiSlide(r, S(num(e, "n") === 1 ? 8 : 16)), e.f, -34, 0.05), // a sheet rises inside the phone: mood 16 f, answer 8 f
   unfold: (e, r) => at(easeSlide(r, S(till(e, A2.card[1])) - S(e.f), 700, 1500), e.f, -31, [0.05, 0.2]),
   leader: (e, r) => at(scrape(r, ms(150), { f0: 2300 + 100 * num(e, "n"), f1: 3200 }), e.f, -32, [-0.05, 0.12]),
   row: (e, r) => at(tame(paperSlide(r), 2), e.f - (95 / 1000) * 60, -30, [0.12 + 0.05 * num(e, "n"), 0.25 + 0.05 * num(e, "n")]), // its settle tap lands on the row
@@ -283,6 +285,7 @@ const DESIGN: Record<string, (e: Ev, r: Rand) => void> = {
     at(tame(thunk(r, 120 - 8 * n), 2), e.f, -28, [-0.35, -0.2, -0.05][n % 3]);
     at(ping(r, [D6, D6 * 0.8409, D6 * 0.7492][n % 3]), e.f, -27 - n, [-0.35, -0.2, -0.05][n % 3]); // D6 → B5 → A5
   },
+  cover: (e, r) => at(uiSlide(r, S(till(e, A4.cover[1])) - S(e.f)), e.f, -36, 0), // the navy sheet rises; the wall at 1920 cuts its stop dead
   cut: () => {}, // NOTHING: the walls in at() and the room tone's dead cut do the work
 
   // A5 · said up front

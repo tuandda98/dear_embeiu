@@ -159,6 +159,16 @@ const Android: React.FC<{ f: number }> = ({ f }) => {
   return <AndroidWidget scale={ANDROID.size / 158} style={{ left: ANDROID.x, top: ANDROID.y - 44 * (1 - p), opacity: ease(f, A4.widgetAndroid, A4.widgetAndroid + 4) }} />;
 };
 
+// ── the cover: a navy sheet rises from the bottom edge over the resting widgets, top at y ≈ 20 on 1919, so the hard
+// cut lands on Act 5's navy (critically damped, no bounce; blurred while it is fast) ─────────────────────────────────
+const coverTop = (f: number) => 1080 * (1 - settle(f, A4.cover[0], { stiffness: 238, zeta: 1 }));
+const coverSpeed = (f: number) => Math.abs(coverTop(f + 0.5) - coverTop(f - 0.5));
+const Cover: React.FC = () => {
+  const f = useCurrentFrame();
+  if (f < A4.cover[0]) return null;
+  return <div style={{ position: "absolute", left: 0, top: coverTop(f), width: 1920, height: 1120, borderRadius: "28px 28px 0 0", background: C.ink }} />;
+};
+
 export const Act4: React.FC = () => {
   const f = useCurrentFrame();
   const label = typed(A4.label, f);
@@ -186,6 +196,9 @@ export const Act4: React.FC = () => {
         </>
       )}
       <Android f={f} />
+      <Blur on={coverSpeed(f) > 20}>
+        <Cover />
+      </Blur>
     </AbsoluteFill>
   );
 };

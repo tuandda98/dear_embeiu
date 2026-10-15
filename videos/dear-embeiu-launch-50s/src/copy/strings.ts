@@ -15,7 +15,7 @@ const vi = {
     unit: "NGÀY", // daysUnit (uppercase as the card draws it)
     /** the live clock at 09:41:07 of day 1250 (hours since the anniversary · minutes · seconds, as the card draws it) */
     clock: { hours: 30009, minutes: 41, seconds: 7, labels: ["GIỜ", "PHÚT", "GIÂY"] as const },
-    caption: "Mỗi app đếm ngày yêu đều có con số này.", // film
+    caption: "Mọi app đếm ngày yêu chỉ biết đếm.", // film — the old apps do one thing: count
   },
 
   a2: {
@@ -79,7 +79,7 @@ const vi = {
       { label: "Sao hôm nay", from: 2, to: 6 }, // the constellation pill 2/6 → 6/6
       { label: "Chuỗi", from: 30, to: 31 },
     ] as const,
-    caption: ["Con số vẫn có.", "Chỉ là không còn trơ trọi."], // film (approved 15/10/2026)
+    caption: ["Con số vẫn thế.", "Chỉ là có thêm người ấy."], // film (revised 15/10/2026 evening: "trơ trọi" dropped)
     /** the rebuilt Home (ref/ios/home-top.png) */
     home: {
       greeting: "CHÀO BUỔI SÁNG, THẢO", // homeGreetingMorning + name, uppercased by the chip
@@ -141,6 +141,19 @@ const vi = {
     typing: "đang soạn…", // the typing indicator
     chips: ["Nhớ quá 💕", "Uống nước nha 💧", "Ăn cơm chưa? 🍚", "Ngủ sớm nha 🌙", "Yêu nhiều lắm ❤️", "Cố lên nha 💪"], // careQuick1…6Title
     glyphs: ["Đếm ngày yêu", "Ảnh chung", "Câu hỏi mỗi ngày", "Tâm trạng", "Giấc ngủ", "Trò chuyện", "Lời nhắc", "Oẳn tù tì"], // the eight things (intro/guestCounterTitle, gallery, dailyQuestion, mood, sleep, navChat, reminders, rpsGameTitle)
+    /** film: one line per card, each a BRIEF §1 fact (live clock on the couple photo · both post, only the two see ·
+     * your answer unlocks theirs · "Chúng mình cùng một tâm trạng" · their bed time · private chat · "Cũng nhắc người
+     * ấy", in their time zone · both hands revealed together); ≤ 352 px at 20 px so each stays on one line */
+    benefits: [
+      "tới từng giây, trên ảnh chúng mình",
+      "cả hai cùng đăng, chỉ hai người thấy",
+      "trả lời xong mới mở câu của người ấy",
+      "cùng tâm trạng là app báo ngay",
+      "đêm qua người ấy ngủ lúc mấy giờ",
+      "góc riêng của hai người",
+      "nhắc cả người ấy, đúng giờ bên ấy",
+      "một ván với người ấy, mở cùng lúc",
+    ],
     ticker: ["Widget màn hình chính", "Cây tình yêu", "Lịch âm", "Nhật ký câu hỏi", "Gửi quan tâm", "Mã QR mời"], // home-widget · loveTree · lunarSectionTitle · journalBadge · careMessageEntryTitle · inviteQrBtn
     caption: "Miễn phí trên App Store & Google Play", // dearembeiu.com
   },
@@ -148,7 +161,7 @@ const vi = {
   /** Spaceti-style act titles (2–3 words), drawn by src/story/Titles.tsx over the acts; none on Act 1 (its caption is the title) and Act 7 */
   titles: [
     { from: 300, to: 700, text: "Hôm nay của chúng mình", dark: false }, // homeTodaySectionTitle
-    { from: 740, to: 1140, text: "Chuỗi & cây tình yêu", dark: false }, // streak + loveTreeBadge
+    { from: 740, to: 1050, text: "Chuỗi & cây tình yêu", dark: false }, // streak + loveTreeBadge; out before A3.night covers the corner
     { from: 1300, to: 1780, text: "Một ngày của chúng mình", dark: false }, // film
     { from: 1965, to: 2090, text: "Riêng tư", dark: true }, // film
     { from: 2420, to: 2600, text: "Và còn nữa", dark: false }, // film

@@ -55,7 +55,7 @@ Through-line: the clock tick. It opens the film (seconds ticking at f0), becomes
 
 ### ACT 1 · "Một con số" (0.0–4.0 s · bars 1–2 · f 0–239)
 - f0: no fade from black. On the #FAFAFC ground, the counter is already alive at the left third: "1250" (Quicksand 700, 320px, navy) with "NGÀY" under it and the live clock "30.009 : 41 : 07" (GIỜ · PHÚT · GIÂY); the seconds tick on beats 1 and 3 of every bar. Above it the eyebrow "HAI BẠN ĐÃ BÊN NHAU". Nothing else. The clock is this film's caret.
-- 0.5–3.0 s: a caption types in under the clock, letter by letter at uneven human intervals (2–4 f), each word finishing on an 8th note: **"Mỗi app đếm ngày yêu đều có con số này."**
+- 0.5–3.0 s: a caption types in under the clock, letter by letter at uneven human intervals (2–4 f), each word finishing on an 8th note: **"Mọi app đếm ngày yêu chỉ biết đếm."**
 - Camera: almost invisible push-in, 100% → 104%.
 - 3.5 s: the clock waits one beat. 4.0 s: a lavender dot drops in from the top edge and lands beside the number — the partner arrives (the "Enter").
 - Sound:
@@ -103,7 +103,7 @@ Through-line: the clock tick. It opens the film (seconds ticking at f0), becomes
   - On the phone the matching card lights with each event (the constellation pill counts up).
   - Counters roll in digit boxes under the ruler: Ảnh 11 → 12 · Sao hôm nay 2 → 6 · Chuỗi 30 → 31. Never a chart, never money.
 - 28.0–30.0: the playhead stops with a 4 f overshoot and the counters lock.
-  - Caption (Quicksand 700, 56px): **"Con số vẫn có. Chỉ là không còn trơ trọi."**
+  - Caption (Quicksand 700, 56px): **"Con số vẫn thế. Chỉ là có thêm người ấy."**
 - 30.0–32.0: delivery.
   - The counter card lifts off the phone and lands on a rebuilt iOS home screen as the medium widget (couple photo, "1250 ngày", the lavender progress bar) — the real home-screen widget. At 31.0 the small widget snaps in beside it, and the Android 2×2 widget beside that.
   - 32.0: HARD CUT.
@@ -125,7 +125,7 @@ Through-line: the clock tick. It opens the film (seconds ticking at f0), becomes
   Xoá tài khoản ngay trong app
   Tiếng Việt · English · iOS 14+ · Android 6+
   - Label: white, 28px. Detail: #A0A0B0. Footer: "dearembeiu.com".
-- 35.0–36.5: the grid dims to 25%. Headline: **"Không bạn bè. Không mạng xã hội."**, then on the next beat **"Chỉ hai người."**
+- 35.0–36.5: the grid slides down into a fine-print strip at the bottom (22px white at 70%, two rows), so the headlines land on clean navy — never text over text. Headline: **"Không bạn bè. Không mạng xã hội."**, then on the next beat **"Chỉ hai người."**
 - 36.5–38.0: **"Miễn phí. Không quảng cáo."**, with "Không quảng cáo" in rose.
 - Sound:
   - One sustained low felt-piano D2 over faint room tone.
@@ -133,10 +133,10 @@ Through-line: the clock tick. It opens the film (seconds ticking at f0), becomes
   - A soft pad swell in D major on "Chỉ hai người.": the first full major colour since the bloom, signalling trust.
 
 ### ACT 6 · "Mở rộng" (38.0–44.0 s · bars 20–22 · f 2280–2639)
-- 38.0–40.0: the product's chat composer slides up (white field, radius 20, placeholder "Nhắn gì đó cho người ấy…").
+- 38.0–40.0: the product's chat rises as one white panel (x 560–1360, y 280–960, radius 28: header chip "THẢO ♥ TUẤN", the seeded thread, the composer at its bottom — white field, placeholder "Nhắn gì đó cho người ấy…").
   - It types "Tối nay xem phim nha" and sends on beat 3; the bubble lands navy on the right; a lavender "đang soạn…" indicator answers on the left.
   - Above it, the care sheet's quick picks fan in as chips: "Nhớ quá 💕" "Uống nước nha 💧" "Ăn cơm chưa? 🍚" "Ngủ sớm nha 🌙" "Yêu nhiều lắm ❤️" "Cố lên nha 💪".
-- 40.0–42.0: the 8 things the two of you do here, one per 8th note, in a ruled 4×2 grid. Each has its own 1-second hairline glyph:
+- 40.0–42.0: the 8 things the two of you do here, one per 8th note, as a 4×2 grid of tinted cards (400×220, rose #FFF1F4 / lavender #F3EFFD alternating): a filled 64px rose/lavender circle carrying the glyph in white, the name (28px) and a one-line benefit (20px, e.g. Đếm ngày yêu → "tới từng giây, trên ảnh chúng mình", Câu hỏi mỗi ngày → "trả lời xong mới mở câu của người ấy"). Each has its own 1-second glyph:
   - Đếm ngày yêu: digits ticking in a box
   - Ảnh chung: two frames overlapping
   - Câu hỏi mỗi ngày: two bubbles with a lock that opens

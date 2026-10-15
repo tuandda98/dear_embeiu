@@ -121,12 +121,15 @@ glyphs (never an icon font image). Match the captures' proportions by eye; they 
 - H1200 (A3 → A4): the heart tile centred at (960, 460), size 300, fully drawn and filled, tile 100 %; the label
   "CÂY TÌNH YÊU · 12 bông hoa đã nở" (chip style, 18 px) centred at y 660, fully typed; the night-sky panel has receded
   (gone); the two dots at (820, 150) rose and (1100, 150) lavender; the counter at (120, 160) × 0.55 at 60 %.
-- A4 → A5: HARD CUT at 1920. A4's last frame (1919) is its home-screen widgets at rest; A5's first frame is pure
-  `C.ink`. Nothing crosses.
+- A4 → A5: HARD CUT at 1920. Over A4's last 24 f (`A4.cover`, 1896–1920) a navy `C.ink` sheet rises from the bottom
+  edge over the resting widgets (rounded top corners 28, motion-blurred while fast); on 1919 its top is at y ≈ 20, so
+  A5's first frame of pure `C.ink` carries straight on. The music still cuts dead; nothing else crosses.
 - H2280 (A5 → A6): the ground is `C.ink` with A5's three headlines at rest (h1 at y 300, h2 at y 420, h3 at y 540 —
-  all at `colX(0)`, 96 / 96 / 96 px) and the dimmed grid under them. A6's first 30 f: the light `C.bg` panel rises
-  from the bottom edge (a sheet, radius 28 on its top corners) carrying the chat composer at its bottom; by 2310 it
-  covers the frame and the composer sits at y 940. The navy never fades; it is covered.
+  all at `colX(0)`, 96 / 96 / 96 px) on clean navy, and the facts as a fine-print strip below them: six labels, 22 px
+  white at 70 %, two rows at y 844 / 912 on the same three columns, 1 px rules at 830 / 898, `dearembeiu.com` at
+  y 984. A6's first 30 f: the light `C.bg` sheet rises from the bottom edge (radius 28 on its top corners) carrying the
+  chat panel (a white card x 560–1360, y 280–960: header chip "THẢO ♥ TUẤN", the seeded thread, the composer at its
+  bottom); by 2310 it covers the frame. The navy never fades; it is covered.
 - H2640 (A6 → A7): only the two dots on `C.bg`, touching: rose centre (946, 540), lavender centre (974, 540), r 14.
   A7 draws the heart around that point: tile centre (960, 430) size 280, so the dots end inside the heart.
 
@@ -142,9 +145,12 @@ glyphs (never an icon font image). Match the captures' proportions by eye; they 
   "Gửi" is a `<Pill>` pressed with `press(f, A2.press)`. The compress (690–720) scales the sheet into the cell at
   (120, 540): translate + scale, not a fade.
 - A3: the strip at y 540 from x 120, cells 28 px with 8 px gaps (31 cells end at x 1236); the count rolls in `Digits`
-  (48 px) right of the strip; the flame glyph (a 2-stroke navy flame, 40 px) draws above the last cell. The sky panel
-  is `<Sky>` rising from y 1080 to y 600 (`A3.nodes[0]`); the stem is a 3 px rose-brown polyline rising in steps;
-  the three checks at `colX(7)`, y 660 / 720 / 780 (28 px, white on the sky). Bloom: three 5-petal flowers
+  (48 px) right of the strip; the flame glyph (a 2-stroke navy flame, 40 px) draws above the last cell. The sky is a
+  complete card inside the frame (x 96–1824, y 600–1000, radius 28, the app's shadow) that rises into place at
+  `A3.sky`, the strip and its chip clear above it (y 498–582); inside it the branch (tapered 14 → 6 px, rose-brown)
+  sweeps from (200, 1000) to (1290, 650) in ruled steps, the 80 px moon sits top-right, the three checks stack at
+  x 1380, rows y 724 / 794 / 864 (white on the sky). At `A3.night` the card grows to the whole frame (the chip goes
+  under it); the act title ends at 1050 so it never sits navy-on-navy. Bloom: three 5-petal flowers
   (`C.sunset[2]` petals, rose centre). The constellation: 6 four-point stars (3 rose left, 3 lavender right) joined by
   1 px dashed white lines, resolving into `<Heart draw>` at (960, 460) 300. The sky recedes downward (not a fade) as
   the tile fills.
@@ -160,13 +166,19 @@ glyphs (never an icon font image). Match the captures' proportions by eye; they 
   the Android 2×2 widget (night-sky default with the heart constellation, "1250 ngày") beside that.
 - A5: `C.ink` ground. Facts typeset in a 3×2 grid: columns at `colX(0)`, `colX(4)`, `colX(8)`, rows at y 300 and
   y 560; label 28 px white, detail 18 px `C.ink3`; each lands with a 2-frame letterpress "thump" (scale 1.02 → 1).
-  Headlines at `colX(0)` as in H2280. "Không quảng cáo" in `C.rose`.
-- A6: the composer (white, radius 20, 56 px tall, width `colW(8)`) at `colX(2)`, y 940; typing with `A6.typed`; the
-  sent bubble (navy, radius 20) at the right; the typing indicator (grey bubble, 3 dots rising one after another) at
-  the left. Chips fan in above (y 820), 6 across. The 4×2 glyph grid: cells 280×140 at `colX(0)` … spaced by
-  `colW(3)+gutter`, rows at y 300 / 480, each with a 1 px glyph (60 f animation) and its label (24 px). Ticker at
-  y 720, masked to the grid width, one line 28 px `C.ink2`. Caption at `colX(0)`, y 820. Recede: everything scales
-  toward the two dots (not a fade); dots travel to H2640.
+  At `A5.dim` (2085, an 8th before h1) the grid slides down and shrinks into the fine-print strip of H2280 (the
+  detail lines tuck away as it moves), so every headline lands on clean navy. Headlines at `colX(0)` as in H2280.
+  "Không quảng cáo" in `C.rose`.
+- A6: the chat panel of H2280 (`a6/layout.ts` PANEL): header chip 18 px, the thread in 24 px bubbles (partner grey
+  #E9E9EB left, navy right, radius 20, 56 px rows 12 apart), the composer 48 px with its send disc. Typing with
+  `A6.typed`; the sent bubble, then the typing bubble (3 dots rising one after another + "đang soạn…"), rise from
+  behind the composer while the thread moves up one message — under 20 px/frame, so no `<Blur>`. The six quick picks
+  fan in as one centred row above the panel (CHIPS y 208, 48 px). Panel and chips slide up out of the frame at
+  `A6.chatOut` (2392–2416), clear before the second card lands. The 4×2 feature cards (CARDS): 400×220, radius 24,
+  at `colX(0/3/6/9)`, rows y 240 / 480, rose #FFF1F4 / lavender #F3EFFD alternating; a 64 px rose/lavender circle
+  with the 40 px glyph in white (60 f animation), the title 28 px 700 at +114, the benefit 20 px 500 at +155
+  (`T.a6.benefits`, one line each). Ticker at y 780, masked x 160–1760, one line 28 px `C.ink2`, the two dots at its
+  ends. Caption at `colX(0)`, y 880. Recede: everything scales toward the two dots (not a fade); dots travel to H2640.
 - A7: the end card is centred: tile (960, 430) 280 → wordmark 72 px 700 at y 560 → l1 44 px at y 660 → l2 44 px rose
   at y 716 → offer 26 px `C.ink2` at y 820 → url `<Pill>` at y 870 → legal 18 px `C.ink2` at y 1000. The wordmark
   slides out from behind the tile under a mask (clip-path), the lines wipe in, the pill rises with `settle`.
