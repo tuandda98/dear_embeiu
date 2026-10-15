@@ -14,6 +14,7 @@ import 'package:intl/intl.dart';
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import 'analytics_service.dart';
+import 'daily_question_service.dart';
 import 'firebase_bootstrap_service.dart';
 import 'notification_settings_service.dart';
 import 'reminder_service.dart';
@@ -22,8 +23,8 @@ import 'user_service.dart';
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // A fresh background isolate starts with no plugin registrations, so the
-  // local-notifications channel [_cancelStaleDailyQuestionNudges] needs would
-  // throw MissingPluginException. Idempotent.
+  // local-notifications channel the cancels below need would throw
+  // MissingPluginException. Idempotent.
   DartPluginRegistrant.ensureInitialized();
   if (Firebase.apps.isEmpty) {
     try {
@@ -33,6 +34,31 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     }
   }
   await _cancelStaleDailyQuestionNudges(message);
+  await _cancelInviteFollowUpsIfPartnerJoined(message);
+}
+
+/// Whether a push says the partner just joined (`type == 'partner_joined'`,
+/// from the `notifyPartnerJoined` CF). Both the alert push and its Android
+/// data-only wake companion carry it.
+@visibleForTesting
+bool isPartnerJoinedPush(Map<String, dynamic> data) =>
+    data['type'] == 'partner_joined';
+
+/// Drops the invite follow-ups (band 1180–1189, "người ấy chưa vào nè") once the
+/// partner has joined (pairing-funnel PF19).
+///
+/// Same gap as [_cancelStaleDailyQuestionNudges]: only HomeScreen's
+/// `refreshInviteFollowUps` cleared the band, so a partner joining while the
+/// creator's app was closed left the one-shots armed and they fired anyway. The
+/// CF sends this push with `wakeClients`, so it runs with no UI alive.
+///
+/// ⚠️ An iOS app the user force-quit gets no wake; the band is then cleared on
+/// the next launch, when Home sees the couple active.
+Future<void> _cancelInviteFollowUpsIfPartnerJoined(RemoteMessage message) async {
+  if (!isPartnerJoinedPush(message.data)) {
+    return;
+  }
+  await ReminderService.instance.cancelInviteFollowUps();
 }
 
 /// Drops today's local daily-question nudges when a push reports the pair is now
@@ -53,6 +79,17 @@ Future<void> _cancelStaleDailyQuestionNudges(RemoteMessage message) async {
   final data = message.data;
   if (data['type'] != 'daily_question' ||
       '${data['bothAnswered']}'.trim().toLowerCase() != 'true') {
+    return;
+  }
+  // Only TODAY's completion may cancel today's bands (code-review 2026-09-12).
+  // A push about yesterday that was queued while the phone was off arrives the
+  // moment the app wakes — right after Home armed today's nudges — and would
+  // silently wipe them for the whole day (the backstop band only starts
+  // tomorrow). Pushes from a CF that predates the `date` key keep the old,
+  // unconditional behaviour.
+  final pushDate = '${data['date'] ?? ''}'.trim();
+  if (pushDate.isNotEmpty &&
+      pushDate != DailyQuestionService.dateKey(DateTime.now())) {
     return;
   }
   await ReminderService.instance.cancelDailyQuestionBands();
@@ -110,6 +147,29 @@ class NotificationTapRouter {
   static void consumeHomeFocusRequest() {
     if (pendingHomeFocus.value != null) {
       pendingHomeFocus.value = null;
+    }
+  }
+
+  /// [pendingHomeFocus] value for a tapped `rps_invite` / `rps_moved` push /
+  /// inbox item:
+  /// HomeScreen opens the rock-paper-scissors game whose id is in
+  /// [pendingRpsGameId] (feature rps-game, 2026-09-13).
+  static const String focusRpsGame = 'rps_game';
+
+  /// [pendingHomeFocus] value for a tapped `rps_result` push: HomeScreen opens
+  /// the rock-paper-scissors history.
+  static const String focusRpsHistory = 'rps_history';
+
+  /// Game id that accompanies a [focusRpsGame] focus request. Set BEFORE the
+  /// focus value (cold-start: both are set in `initialize()` before HomeScreen
+  /// mounts, so its initState can read them together). null = none.
+  static final ValueNotifier<String?> pendingRpsGameId =
+      ValueNotifier<String?>(null);
+
+  /// Marks the pending game deep-link as handled.
+  static void consumeRpsGameRequest() {
+    if (pendingRpsGameId.value != null) {
+      pendingRpsGameId.value = null;
     }
   }
 
@@ -436,6 +496,7 @@ class PushNotificationService {
     _applyRoute(
       message.data['type'] as String?,
       (message.data['photoId'] as String?)?.trim(),
+      gameId: (message.data['gameId'] as String?)?.trim(),
     );
   }
 
@@ -453,6 +514,7 @@ class PushNotificationService {
       _applyRoute(
         data['type'] as String?,
         (data['photoId'] as String?)?.toString().trim(),
+        gameId: data['gameId']?.toString().trim(),
       );
     } catch (_) {
       _applyRoute(payload, null);
@@ -462,7 +524,7 @@ class PushNotificationService {
   /// Routes a notification (push tap OR a foreground banner tap) to the home tab
   /// / deep-link target for its [type]. Unknown/absent types are ignored (no tab
   /// change, no malformed analytics event).
-  void _applyRoute(String? type, String? photoId) {
+  void _applyRoute(String? type, String? photoId, {String? gameId}) {
     switch (type) {
       case 'photo_posted':
         NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
@@ -519,6 +581,26 @@ class PushNotificationService {
         // shared reminder for B — just bring the app to Home.
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         break;
+      case 'rps_invite':
+      case 'rps_moved':
+        // Rock-paper-scissors invite / "người ấy đã ra rồi" (feature rps-game,
+        // no-skip rule 2026-09-14): land on Home and open that exact game.
+        // gameId is published FIRST so a cold-start Home reads both in one
+        // initState pass. Keep in sync with AppNotification.targetHomeTab +
+        // the notification center tap.
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        if (gameId != null && gameId.isNotEmpty) {
+          NotificationTapRouter.pendingRpsGameId.value = gameId;
+        }
+        NotificationTapRouter.pendingHomeFocus.value =
+            NotificationTapRouter.focusRpsGame;
+        break;
+      case 'rps_result':
+        // Game settled while I was away → the history (score + that game).
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        NotificationTapRouter.pendingHomeFocus.value =
+            NotificationTapRouter.focusRpsHistory;
+        break;
       default:
         // Unknown or absent type — leave the current tab untouched and don't
         // log a malformed `notification_opened`.
@@ -551,6 +633,7 @@ class PushNotificationService {
     // window where the app is foregrounded but HomeScreen isn't mounted yet
     // (it's the listener that would otherwise re-evaluate the schedule).
     await _cancelStaleDailyQuestionNudges(message);
+    await _cancelInviteFollowUpsIfPartnerJoined(message);
 
     final notification = message.notification;
     final title = notification?.title ?? message.data['title'] as String?;

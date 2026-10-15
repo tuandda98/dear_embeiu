@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../services/daily_question_service.dart';
 import '../services/streak_service.dart';
 
 /// The streak's UI state (feature streak). Drives the chip/sheet copy + visuals.
@@ -30,10 +31,18 @@ enum StreakState {
 /// fail-soft: any read error leaves the state [StreakState.hidden] so the UI can
 /// simply hide the chip. Never throws, never toasts.
 class StreakProvider extends ChangeNotifier {
-  StreakProvider({StreakService? service})
-      : _service = service ?? StreakService();
+  StreakProvider({StreakService? service, DailyQuestionService? repairService})
+      : _service = service ?? StreakService(),
+        _repairService = repairService ?? DailyQuestionService();
 
   final StreakService _service;
+
+  /// Owns the marker writes — used here only to re-flag days both partners
+  /// answered whose `bothAnswered` went missing (see [watchForCouple]).
+  final DailyQuestionService _repairService;
+
+  /// Couples already healed this app session (a cold-start job, not per watch).
+  final Set<String> _healedCouples = <String>{};
 
   /// Milestones celebrated (design §6). Ordered for `nextMilestone` lookup.
   static const List<int> milestones = [3, 7, 30, 100, 365];
@@ -49,6 +58,11 @@ class StreakProvider extends ChangeNotifier {
   int _longestStreak = 0;
   bool _everHadStreak = false;
   bool _isLoading = false;
+
+  /// Last snapshot + the local day it was computed for, so
+  /// [recomputeIfDayChanged] can re-derive without another Firestore round trip.
+  List<String> _lastDates = const <String>[];
+  DateTime? _computedForDay;
   bool _hasError = false;
 
   /// A milestone the latest update just reached for the first time (one-shot;
@@ -144,6 +158,13 @@ class StreakProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
+    // Self-heal once per couple per session: re-flags days that lost their
+    // `bothAnswered`. Fire-and-forget — the writes land in the collection
+    // streamed below, so a mended day simply shows up and the streak recounts.
+    if (_healedCouples.add(coupleId)) {
+      unawaited(_repairService.healRevealMarkers(coupleId));
+    }
+
     _subscription?.cancel();
     _subscription = _service.watchRevealedDates(coupleId).listen(
       (dates) => _recompute(dates),
@@ -157,10 +178,31 @@ class StreakProvider extends ChangeNotifier {
     );
   }
 
+  /// Re-derives the streak from the last snapshot when the local calendar day
+  /// has rolled over since it was computed. The Firestore stream only emits on
+  /// marker changes, so an app left open across midnight otherwise keeps
+  /// showing "done today" / `needsActionToday == false` for the NEW day and
+  /// feeds a stale count into the end-of-day copy (code-review 2026-09-12).
+  /// Cheap no-op on the same day; safe to call from resume + provider ticks.
+  void recomputeIfDayChanged() {
+    final computedFor = _computedForDay;
+    if (_subscription == null || computedFor == null) {
+      return;
+    }
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (today == computedFor) {
+      return;
+    }
+    _recompute(_lastDates);
+  }
+
   /// Stops watching and resets (sign-out / leaving a couple).
   void clear() {
     _subscription?.cancel();
     _subscription = null;
+    _lastDates = const <String>[];
+    _computedForDay = null;
     _coupleId = null;
     _coupleActive = false;
     _state = StreakState.hidden;
@@ -186,6 +228,7 @@ class StreakProvider extends ChangeNotifier {
   /// calendar day, matching the daily question's day bucket.
   void _recompute(List<String> dates) {
     final previousStreak = _currentStreak;
+    _lastDates = dates;
 
     // Build a set of revealed local dates (date-only DateTimes).
     final revealed = <DateTime>{};
@@ -198,6 +241,7 @@ class StreakProvider extends ChangeNotifier {
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    _computedForDay = today;
     final yesterday = today.subtract(const Duration(days: 1));
     final dayBefore = today.subtract(const Duration(days: 2));
 

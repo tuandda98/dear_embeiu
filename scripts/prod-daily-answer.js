@@ -4,10 +4,15 @@
 //              responses + chuỗi hiện tại (tính y hệt StreakProvider._recompute)
 //   restore  — backfill câu trả lời THIẾU của 1 member cho 1 ngày + stamp marker
 //              `bothAnswered` để chuỗi nối lại (từ chối nếu đã có câu trả lời).
+//   heal     — stamp `bothAnswered` cho mọi ngày CẢ HAI đã trả lời mà marker
+//              thiếu cờ (chuỗi đứt oan). Mặc định chỉ liệt kê, `--apply` mới ghi.
+//              App có self-heal (feature/streak-self-heal) tự vá 90 ngày khi mở;
+//              lệnh này vá ngay, không chờ user mở app.
 //
 // Dùng:
 //   node scripts/prod-daily-answer.js inspect <email> [days=14]
 //   node scripts/prod-daily-answer.js restore <email> <YYYY-MM-DD> "<text>"
+//   node scripts/prod-daily-answer.js heal <email> [days=180] [--apply]
 //   FB_PROJECT=tonyembeiu-dev node scripts/prod-daily-answer.js inspect <email>
 //
 // Credential: firebase-admin qua refresh-token của `npx firebase-tools login`
@@ -163,14 +168,37 @@ async function restore(db, auth, email, date, text) {
   console.log(`[post] created responses/${c.uid} "${t}" · bothAnswered=${allAnswered} · streak=${after.current} (${after.state}) runStart=${after.runStart} gaps=${after.gaps.length ? after.gaps.join(', ') : 'none'}`);
 }
 
+async function heal(db, auth, email, days, apply) {
+  const c = await resolveCouple(db, auth, email);
+  const snap = await db.collection('couples').doc(c.coupleId).collection('dailyAnswers')
+    .orderBy('date', 'desc').limit(days).get();
+  const flagless = [];
+  for (const doc of snap.docs) {
+    if (doc.get('bothAnswered') === true) continue;
+    const resp = await doc.ref.collection('responses').get();
+    if (resp.docs.filter((r) => String(r.get('text') || '').trim()).length >= 2) flagless.push(doc);
+  }
+  console.log(`[heal] ${PROJECT} couple ${c.coupleId}: ${flagless.length} ngày cả hai đã trả lời mà thiếu cờ${flagless.length ? ': ' + flagless.map((d) => d.id).join(', ') : ''}`);
+  if (!flagless.length) return;
+  if (!apply) { console.log('  (thêm --apply để ghi)'); return; }
+  const before = await computeStreak(db, c.coupleId, localTodayKey());
+  for (const doc of flagless) {
+    await doc.ref.set({ bothAnswered: true, revealedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+  }
+  const after = await computeStreak(db, c.coupleId, localTodayKey());
+  console.log(`[heal] đã vá ${flagless.length} ngày · streak ${before.current} → ${after.current} (${after.state}) runStart=${after.runStart}`);
+}
+
 (async () => {
-  const [cmd, email, a, b] = process.argv.slice(2);
+  const apply = process.argv.includes('--apply');
+  const [cmd, email, a, b] = process.argv.slice(2).filter((x) => x !== '--apply');
   if (!cmd || !email) {
-    console.error('usage: prod-daily-answer.js inspect <email> [days] | restore <email> <YYYY-MM-DD> "<text>"');
+    console.error('usage: prod-daily-answer.js inspect <email> [days] | restore <email> <YYYY-MM-DD> "<text>" | heal <email> [days] [--apply]');
     process.exit(2);
   }
   const { db, auth } = bootstrap();
   if (cmd === 'inspect') await inspect(db, auth, email, parseInt(a || '14', 10));
   else if (cmd === 'restore') await restore(db, auth, email, a, b);
+  else if (cmd === 'heal') await heal(db, auth, email, parseInt(a || '180', 10), apply);
   else throw new Error(`lệnh lạ: ${cmd}`);
 })().catch((e) => { console.error('ERROR', e.message || e); process.exit(1); });

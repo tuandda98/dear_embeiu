@@ -1,0 +1,7 @@
+command : NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only firestore:rules,functions:deleteAccount,functions:leaveCoupleCleanup,functions:migrateLoveNotesToChat,functions:nudgeRpsPlayer,functions:generateDailyQuestion --project default 2>&1 | grep -vE "DeprecationWarning|trace-deprecation|punycode" | grep -E "✔|✖|Error|error|rules|Successful|updat|Deploy complete|Failed" | tail -30
+time_utc: 20261012T085200Z
+git_head: fe37652 (fix/audit-2026-10-12)
+dirty   : 97 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout fe37652)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout fe37652 -- functions` rồi redeploy

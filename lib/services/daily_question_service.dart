@@ -218,19 +218,113 @@ class DailyQuestionService {
     // date/questionVi/questionEn, so a merge carrying only `bothAnswered` is
     // DENIED). The CF uses the Admin SDK, which bypasses rules and reads after
     // both docs exist. Kept here so the streak still updates instantly in-app.
-    // Best-effort: a failure must never fail answering.
+    // Never throws — a failure must never fail answering.
+    await ensureRevealMarker(coupleId: coupleId, dateKey: dateKey);
+  }
+
+  // ── Streak marker self-heal (2026-09-09, ported onto the engine 2026-10-12) ─
+  // `bothAnswered` is derived data: true exactly when the day's `responses`
+  // hold both answers. Two writers stamp it (the fast path above and the CF),
+  // but when both miss — an offline second answer while the CF is down, as in
+  // the 2026-09 billing outage — the day stayed flagless FOREVER and the streak
+  // broke on a day we both answered. Nothing re-checked. These two methods are
+  // that re-check: recompute the flag from the responses when we look again.
+
+  /// Whether [marker] still lacks `bothAnswered` AND a client may add it: the
+  /// rule demands `questionVi`/`questionEn` on every member write, and making
+  /// one up from the bank would freeze a wrong question into the journal (the
+  /// marker is the source of truth). Markers without one are the CF's job.
+  static bool markerNeedsRevealFlag(Map<String, dynamic>? marker) =>
+      marker != null &&
+      marker['bothAnswered'] != true &&
+      marker['questionVi'] is String &&
+      marker['questionEn'] is String;
+
+  /// Both members answered = two response docs with non-blank text.
+  static bool bothAnswered(Iterable<Map<String, dynamic>> responses) =>
+      responses
+          .where((r) => (r['text'] as String?)?.trim().isNotEmpty == true)
+          .length >=
+      2;
+
+  /// Flags [dateKey] revealed when both members answered but the marker lacks
+  /// `bothAnswered`. Pass [marker] when the caller already holds its data to
+  /// skip a read. Returns true when it wrote the flag; false on any error.
+  Future<bool> ensureRevealMarker({
+    required String coupleId,
+    required String dateKey,
+    Map<String, dynamic>? marker,
+  }) async {
+    if (!isUsingFirebase || coupleId.trim().isEmpty || dateKey.trim().isEmpty) {
+      return false;
+    }
     try {
-      final responses = await _responses(coupleId, dateKey).get();
-      // `responses` holds at most two docs (one per member). Both present →
-      // today is revealed.
-      if (responses.docs.length >= 2) {
-        await _dailyAnswers(coupleId).doc(dateKey).set({
-          'bothAnswered': true,
-          'revealedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+      final ref = _dailyAnswers(coupleId).doc(dateKey);
+      if (!markerNeedsRevealFlag(marker ?? (await ref.get()).data())) {
+        return false;
       }
+      final responses = await _responses(coupleId, dateKey).get();
+      if (!bothAnswered(responses.docs.map((d) => d.data()))) {
+        return false;
+      }
+      await ref.set({
+        // Required by the rule; a marker missing it also drops out of every
+        // orderBy('date') query (streak + journal).
+        'date': dateKey,
+        'bothAnswered': true,
+        'revealedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return true;
     } catch (_) {
-      // Ignore — the streak flag is auxiliary; the answer is already saved.
+      return false;
+    }
+  }
+
+  /// Flags every day of the last 90 that both members answered but that never
+  /// got `bothAnswered` — mends a streak broken by a lost flag, not by a missed
+  /// day. Bounded: one page of 120 markers, at most 25 flagless days followed
+  /// into their `responses` per run (a day only one of us answered stays
+  /// flagless and is simply re-checked next run). Returns how many days it
+  /// flagged; 0 on any error.
+  Future<int> healRevealMarkers(String coupleId) async {
+    if (!isUsingFirebase || coupleId.trim().isEmpty) {
+      return 0;
+    }
+    try {
+      final snapshot = await _dailyAnswers(
+        coupleId,
+      ).orderBy('date', descending: true).limit(120).get();
+      final now = DateTime.now();
+      final cutoff = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(const Duration(days: 90));
+      var checked = 0;
+      var healed = 0;
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        if (!markerNeedsRevealFlag(data)) {
+          continue;
+        }
+        final day = DateTime.tryParse(doc.id);
+        if (day == null) {
+          continue;
+        }
+        if (day.isBefore(cutoff) || ++checked > 25) {
+          break; // Newest first → everything after this is older.
+        }
+        if (await ensureRevealMarker(
+          coupleId: coupleId,
+          dateKey: doc.id,
+          marker: data,
+        )) {
+          healed++;
+        }
+      }
+      return healed;
+    } catch (_) {
+      return 0;
     }
   }
 

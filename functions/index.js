@@ -50,6 +50,16 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
+// A document id as the app creates it (Firestore auto-id; uuid v4 in old local
+// mode). Every id a client hands us — callable arguments, or fields it writes
+// itself such as users/{uid}.coupleId — must pass this before it reaches
+// `.doc()`: the Admin SDK reads "M/noteHistory/C" as a PATH, i.e. a doc the
+// caller planted under their own couple whose `.id` is the victim's "C"
+// (audit 2026-10-12, N1).
+function isDocId(value) {
+  return typeof value === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value);
+}
+
 // Daily sweep: validate every registered device token with a dry-run send
 // (nothing is delivered) and delete the ones FCM reports as dead. Keeps the
 // users/{uid}/devices subcollections free of stale tokens without waiting for
@@ -304,6 +314,12 @@ exports.notifyPartnerJoined = onDocumentUpdated(
         coupleId,
         joinerUserId: joinerUid,
       },
+      // Wake the creator's app (iOS content-available + Android data-only
+      // companion) so it drops its local invite follow-ups (band 1180–1189)
+      // even while closed/backgrounded — otherwise "người ấy chưa vào" still
+      // fires after the pair is complete (pairing-funnel PF19). Once per couple,
+      // so the iOS background-wake budget is no concern.
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
@@ -405,6 +421,44 @@ exports.notifyPartnerLeft = onDocumentUpdated(
               message: err && err.message,
             });
           }),
+      ),
+    );
+
+    // Sleep (feature sleep). The leaver's data would stay behind: the client
+    // leave write skips leaveCoupleCleanup when a partner remains, and the
+    // leaver can no longer reach it. Whoever stays stops sharing (user
+    // 2026-10-11): a partner joining later must not inherit the old history.
+    // Their nights stay on their phone; switching sharing back on re-uploads.
+    const sleepRef = db.collection("couples").doc(coupleId).collection("sleep");
+    const sleepCleanup = [db.recursiveDelete(sleepRef.doc(leaverUid))];
+    for (const uid of recipientIds) {
+      sleepCleanup.push(
+        sleepRef
+          .doc(uid)
+          .get()
+          .then(async (snap) => {
+            if (!snap.exists) {
+              return;
+            }
+            // Flag first: the rules stop reads as soon as share is false.
+            await snap.ref.set(
+              {share: false, updatedAt: admin.firestore.FieldValue.serverTimestamp()},
+              {merge: true},
+            );
+            await db.recursiveDelete(snap.ref.collection("nights"));
+          }),
+      );
+    }
+    await Promise.all(
+      sleepCleanup.map((p) =>
+        p.catch((err) => {
+          logger.warn("Could not clean up sleep data on partner left.", {
+            coupleId,
+            leaverUid,
+            message: err && err.message,
+          });
+          return null;
+        }),
       ),
     );
 
@@ -959,7 +1013,7 @@ exports.migrateLoveNotesToChat = onCall(
       throw new HttpsError("unauthenticated", "Sign in required.");
     }
     const coupleId = `${(request.data && request.data.coupleId) || ""}`.trim();
-    if (!coupleId) {
+    if (!isDocId(coupleId)) {
       throw new HttpsError("invalid-argument", "coupleId is required.");
     }
 
@@ -1160,6 +1214,10 @@ exports.notifyDailyAnswer = onDocumentCreated(
         // with copy that has become false ("người ấy chưa trả lời", "sắp lỡ mất
         // chuỗi"). FCM data values must be strings.
         bothAnswered: bothAnswered ? "true" : "false",
+        // Which day the pair completed (code-review 2026-09-12): a push about
+        // YESTERDAY that only arrives when the app wakes this morning must not
+        // cancel TODAY's freshly armed nudges. Older clients ignore the key.
+        date,
       },
       // Only the pair-completing push needs to wake the recipient's app (iOS
       // content-available + Android data-only companion); the "answer yours to
@@ -1349,6 +1407,30 @@ exports.notifyDailyAnswerReaction = onDocumentCreated(
       return;
     }
 
+    // Both the reactor AND the answer author (a path segment the rules only
+    // pin as of 2026-09-12) must be CURRENT members of the couple — otherwise a
+    // member could aim this push/inbox at any uid. Fail CLOSED: a membership
+    // lookup we can't complete is not a reason to notify a stranger.
+    try {
+      const coupleSnap = await db.collection("couples").doc(coupleId).get();
+      const memberIds = Array.isArray(coupleSnap.get("memberIds")) ?
+        coupleSnap.get("memberIds") : [];
+      if (!memberIds.includes(answerAuthorUid) || !memberIds.includes(reactorUid)) {
+        logger.warn("Answer reaction notification skipped: author or reactor is not a couple member.", {
+          coupleId,
+          answerAuthorUid,
+          reactorUid,
+        });
+        return;
+      }
+    } catch (err) {
+      logger.warn("Answer reaction notification skipped: could not verify couple membership.", {
+        coupleId,
+        message: err && err.message,
+      });
+      return;
+    }
+
     // Reacting member's display name. Left RAW here (empty when unknown) so the
     // fallback can be localized per recipient device below — hardcoding
     // "Người ấy" is what produced the mixed-language push fixed in 1.4.2.
@@ -1532,6 +1614,775 @@ exports.notifyCareMessage = onDocumentCreated(
       successCount: result.successCount,
       failureCount: result.failureCount,
     });
+  },
+);
+
+// ── Oẳn tù tì (feature rps-game, 2026-09-13) ───────────────────────────────
+// Realtime rock-paper-scissors between the two members. The client drives
+// `invited → playing` (both present) and writes its own `moves/{uid}`; the
+// server owns the OUTCOME: `resolveRpsGame` stamps `moved.{uid}` for every
+// move and closes the game as soon as BOTH moves exist. [2026-09-14 rule
+// change] There is no "skip turn" any more: a `playing` game never times out,
+// it only ends once both players have thrown (the old `finishRpsGame` timeout
+// callable is gone). Whoever is still missing gets told "your person has
+// thrown" (`rps_moved`) — automatically when they are off the game screen,
+// and on demand through `nudgeRpsPlayer` (60s cooldown). Every transition is
+// idempotent through a transaction that re-reads the game, so two triggers
+// racing can only ever finish a game once.
+//
+// Win rule: rock > scissors > paper > rock.
+const RPS_CHOICES = ["rock", "paper", "scissors"];
+const RPS_BEATS = {rock: "scissors", scissors: "paper", paper: "rock"};
+// Server-side cooldown between two `nudgeRpsPlayer` pushes on the same game
+// (the client shows the same 60s countdown on its button).
+const RPS_NUDGE_COOLDOWN_MS = 60 * 1000;
+// Rematch invite: skip the push when the partner's presence on the PREVIOUS
+// game is this fresh — they are still on the result screen and the client
+// follows the new game by itself.
+const RPS_REMATCH_PRESENCE_FRESH_MS = 30 * 1000;
+// Result push AND the automatic "your person has thrown" push: only members
+// whose presence is older than this (they left the game screen) get told; the
+// ones still watching see it live. 8s = two missed 3s heartbeats (PO
+// 2026-09-14, down from 20s): with the client pausing/clearing its heartbeat
+// when the app backgrounds / the game route is covered (RPS-3/19/20), someone
+// who left the screen still gets the push.
+const RPS_RESULT_PRESENCE_STALE_MS = 8 * 1000;
+// resolveRpsGame runs with `retry: true` (Tester RPS-25); a move event older
+// than this stops being retried (a permanent failure must not loop for the
+// whole retention window — the players can still unstick it via the nudge).
+const RPS_RESOLVE_RETRY_MAX_AGE_MS = 60 * 60 * 1000;
+
+// Copy = design.md §9.7 + overview "ĐỔI LUẬT" 2026-09-14 (`rps_moved`).
+// `<name>` (invite + moved) is the sender's RAW display name; empty →
+// `partnerFallback` in the RECIPIENT's language (EN "Your person" matches the
+// app's own fallback). Result pushes are phrased from the recipient's point of
+// view. No timeout copy any more — new games always end with reason 'normal'.
+const RPS_COPY = {
+  vi: {
+    partnerFallback: "Người ấy",
+    inviteTitle: "Oẳn tù tì! ✌️✊✋",
+    inviteBody: (name) => `${name} rủ bạn oẳn tù tì một ván — vào ngay nhé ✌️`,
+    resultWinTitle: "Bạn thắng rồi 🎉",
+    resultWinBody: "Ván oẳn tù tì vừa rồi là của bạn. Xem lại trong lịch sử nhé.",
+    resultLoseTitle: "Người ấy thắng rồi 😝",
+    resultLoseBody: "Thua một ván thôi mà — rủ chơi lại cho đỡ tức nào.",
+    resultDrawTitle: "Hoà! 🤝",
+    resultDrawBody: "Chúng mình ra giống nhau. Thêm ván nữa để phân thắng bại?",
+    movedTitle: (name) => `${name} đã ra rồi! ✊✋✌️`,
+    movedBody: "Tới lượt bạn — người ấy đang chờ đó 😄",
+  },
+  en: {
+    partnerFallback: "Your person",
+    inviteTitle: "Rock, paper, scissors! ✌️✊✋",
+    inviteBody: (name) => `${name} challenged you to a round — jump in ✌️`,
+    resultWinTitle: "You won 🎉",
+    resultWinBody: "That round was yours. Check the history to relive it.",
+    resultLoseTitle: "Your person won 😝",
+    resultLoseBody: "Just one round — challenge them to a rematch.",
+    resultDrawTitle: "A draw! 🤝",
+    resultDrawBody: "You both picked the same. One more to settle it?",
+    movedTitle: (name) => `${name} has thrown! ✊✋✌️`,
+    movedBody: "Your move — they're waiting for you 😄",
+  },
+};
+
+function rpsCopyFor(languageCode) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  return RPS_COPY[code] || RPS_COPY.vi;
+}
+
+// `actorName` may be empty — the fallback is picked per RECIPIENT language.
+function buildRpsInviteText(languageCode, actorName) {
+  const copy = rpsCopyFor(languageCode);
+  const name = `${actorName || ""}`.trim() || copy.partnerFallback;
+  return {title: copy.inviteTitle, body: copy.inviteBody(name)};
+}
+
+// "<name> has thrown" — told to the player who has NOT thrown yet.
+function buildRpsMovedText(languageCode, actorName) {
+  const copy = rpsCopyFor(languageCode);
+  const name = `${actorName || ""}`.trim() || copy.partnerFallback;
+  return {title: copy.movedTitle(name), body: copy.movedBody};
+}
+
+// outcome: 'win' | 'lose' | 'draw' from the RECIPIENT's point of view.
+function buildRpsResultText(languageCode, outcome) {
+  const copy = rpsCopyFor(languageCode);
+  let title = copy.resultDrawTitle;
+  let body = copy.resultDrawBody;
+  if (outcome === "win") {
+    title = copy.resultWinTitle;
+    body = copy.resultWinBody;
+  } else if (outcome === "lose") {
+    title = copy.resultLoseTitle;
+    body = copy.resultLoseBody;
+  }
+  return {title, body};
+}
+
+// Millis of a Firestore Timestamp / Date / number-ish value, or null.
+function rpsToMillis(value) {
+  if (!value) {
+    return null;
+  }
+  if (typeof value.toMillis === "function") {
+    return value.toMillis();
+  }
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  return null;
+}
+
+function rpsPresenceMillis(presence, uid) {
+  if (!presence || typeof presence !== "object") {
+    return null;
+  }
+  return rpsToMillis(presence[uid]);
+}
+
+function rpsNormalizeChoice(value) {
+  const choice = `${value || ""}`.trim().toLowerCase();
+  return RPS_CHOICES.includes(choice) ? choice : "none";
+}
+
+// memberIds: exactly the two players; choices: {uid: 'rock'|'paper'|'scissors'}
+// — BOTH present (the only caller finishes a game once both moves exist).
+// Returns the `result` map stored on the game doc (reason always 'normal'
+// since 2026-09-14; old DEV games may still carry 'timeout' + 'none').
+function rpsComputeResult(memberIds, choices) {
+  const [a, b] = memberIds;
+  const ca = rpsNormalizeChoice(choices[a]);
+  const cb = rpsNormalizeChoice(choices[b]);
+  let winnerUid = null;
+  if (RPS_BEATS[ca] === cb) {
+    winnerUid = a;
+  } else if (RPS_BEATS[cb] === ca) {
+    winnerUid = b;
+  }
+  return {
+    winnerUid,
+    choices: {[a]: ca, [b]: cb},
+    reason: "normal",
+  };
+}
+
+// Plain object copy of the game's `moved` map (uid → Timestamp), or {}.
+function rpsMovedMap(game) {
+  const moved = game && game.moved;
+  return (moved && typeof moved === "object" && !Array.isArray(moved)) ? {...moved} : {};
+}
+
+async function rpsLoadMemberIds(coupleId) {
+  const coupleSnap = await db.collection("couples").doc(coupleId).get();
+  if (!coupleSnap.exists) {
+    return null;
+  }
+  const memberIds = Array.isArray(coupleSnap.get("memberIds")) ?
+    coupleSnap.get("memberIds") : [];
+  return memberIds.filter((id) => typeof id === "string" && id.trim());
+}
+
+async function rpsLoadDisplayName(uid) {
+  if (!uid) {
+    return "";
+  }
+  try {
+    const snap = await db.collection("users").doc(uid).get();
+    return `${(snap.exists && snap.get("displayName")) || ""}`.trim();
+  } catch (err) {
+    logger.warn("rps: could not load display name.", {uid, message: err && err.message});
+    return "";
+  }
+}
+
+// Runs on every new move (resolveRpsGame). Inside ONE transaction:
+//  • stamps `moved.{uid}` (server clock) for each member whose move doc exists
+//    and has no stamp yet — idempotent, a replayed trigger writes nothing;
+//  • when BOTH moves exist → `finished` + `result` (reason 'normal').
+// Resolves to:
+//  {ok:false, reason:'not_found'|'not_playing'}
+//  {ok:true, already:true, result}             — game was already finished
+//  {ok:true, result, finishedGame}             — THIS call finished the game
+//  {ok:true, waiting:true, newlyMoved:[uid…], game} — one move in; `newlyMoved`
+//     lists the stamps THIS call added (empty on a replay ⇒ no second push).
+async function rpsRecordMoveInTransaction(gameRef, memberIds) {
+  return db.runTransaction(async (tx) => {
+    const gameSnap = await tx.get(gameRef);
+    if (!gameSnap.exists) {
+      return {ok: false, reason: "not_found"};
+    }
+    const game = gameSnap.data() || {};
+    if (game.status === "finished") {
+      return {ok: true, already: true, result: game.result || null};
+    }
+    if (game.status !== "playing") {
+      return {ok: false, reason: "not_playing"};
+    }
+
+    const movesSnap = await tx.get(gameRef.collection("moves"));
+    const choices = {};
+    for (const moveDoc of movesSnap.docs) {
+      const choice = rpsNormalizeChoice(moveDoc.get("choice"));
+      if (memberIds.includes(moveDoc.id) && choice !== "none") {
+        choices[moveDoc.id] = choice;
+      }
+    }
+    const movedUids = memberIds.filter((uid) => choices[uid]);
+    const moved = rpsMovedMap(game);
+    const newlyMoved = movedUids.filter((uid) => !moved[uid]);
+    // Whole-map rewrite (read in this transaction ⇒ consistent) instead of a
+    // dotted field path, so an unusual uid can never be split on '.'.
+    const nextMoved = {...moved};
+    for (const uid of newlyMoved) {
+      nextMoved[uid] = admin.firestore.FieldValue.serverTimestamp();
+    }
+
+    if (movedUids.length < memberIds.length) {
+      if (newlyMoved.length > 0) {
+        tx.update(gameRef, {
+          moved: nextMoved,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+      return {ok: true, waiting: true, newlyMoved, game};
+    }
+
+    const result = rpsComputeResult(memberIds, choices);
+    const finishUpdate = {
+      status: "finished",
+      result,
+      finishedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+    if (newlyMoved.length > 0) {
+      finishUpdate.moved = nextMoved;
+    }
+    tx.update(gameRef, finishUpdate);
+    // `finishedGame` = the doc as THIS call committed it (presence as read in
+    // the transaction) — only returned to the caller that actually flipped the
+    // game to finished, so the result push goes out exactly once.
+    return {ok: true, result, finishedGame: {...game, status: "finished", result}};
+  });
+}
+
+// "<name> has thrown — your move" to the player who hasn't thrown yet: inbox
+// item + push, type `rps_moved` (tap → the client opens this game). Used by
+// resolveRpsGame (only when the recipient is off the game screen) and by
+// nudgeRpsPlayer (always). Never throws: a failed push must not fail the
+// caller. Returns the delivery stats (deviceCount 0 when it could not send).
+async function sendRpsMovedNotification(coupleId, gameId, actorUid, recipientId, source) {
+  try {
+    // Left RAW so the fallback localizes per recipient device.
+    const actorName = await rpsLoadDisplayName(actorUid);
+    const inboxPayload = {
+      type: "rps_moved",
+      coupleId,
+      gameId,
+      actorUserId: actorUid,
+    };
+    if (actorName) {
+      inboxPayload.actorName = actorName;
+    }
+    await writeInboxNotifications([recipientId], inboxPayload);
+
+    const result = await sendToRecipientDevices(
+      [recipientId],
+      (languageCode) => buildRpsMovedText(languageCode, actorName),
+      {type: "rps_moved", coupleId, gameId},
+    );
+    if (result.failures.length > 0) {
+      logger.warn("RPS moved notification had delivery failures.", {
+        coupleId,
+        gameId,
+        source,
+        failures: result.failures,
+      });
+    }
+    logger.info("Processed RPS moved notification.", {
+      coupleId,
+      gameId,
+      source,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+    return result;
+  } catch (err) {
+    logger.error("RPS moved notification failed.", {
+      coupleId,
+      gameId,
+      source,
+      message: err && err.message,
+    });
+    return {deviceCount: 0, successCount: 0, failureCount: 0, failures: []};
+  }
+}
+
+// Result push (RPS-14 — replaces the old onDocumentUpdated trigger, which fired
+// on every 3s presence heartbeat ≈ 40 invocations/min/game). Called ONLY by the
+// resolveRpsGame call whose transaction moved the game to `finished` (never on
+// `already`). Tells the members who already LEFT the game
+// screen (presence older than 8s / never present) how it ended; members still
+// watching see the reveal live. Push only — the history screen is the record,
+// so no inbox item. Never throws: a push failure must not fail the finish.
+async function sendRpsResultPushes(coupleId, gameId, gameDataAfter) {
+  try {
+    const game = gameDataAfter || {};
+    const memberIds = await rpsLoadMemberIds(coupleId);
+    if (!memberIds || memberIds.length === 0) {
+      logger.warn("RPS result notification skipped because couple document was not found.", {coupleId, gameId});
+      return;
+    }
+
+    const result = (game.result && typeof game.result === "object") ? game.result : {};
+    const winnerUid = typeof result.winnerUid === "string" ? result.winnerUid : null;
+    const nowMs = Date.now();
+    const recipientIds = memberIds.filter((uid) => {
+      const presenceMs = rpsPresenceMillis(game.presence, uid);
+      return presenceMs === null || nowMs - presenceMs > RPS_RESULT_PRESENCE_STALE_MS;
+    });
+    if (recipientIds.length === 0) {
+      logger.info("RPS result notification skipped: both members are still on the game screen.", {
+        coupleId,
+        gameId,
+      });
+      return;
+    }
+
+    let attemptedTokens = 0;
+    let successCount = 0;
+    let failureCount = 0;
+    for (const recipientId of recipientIds) {
+      let outcome = "draw";
+      if (winnerUid) {
+        outcome = winnerUid === recipientId ? "win" : "lose";
+      }
+      const sendResult = await sendToRecipientDevices(
+        [recipientId],
+        (languageCode) => buildRpsResultText(languageCode, outcome),
+        {type: "rps_result", coupleId, gameId},
+      );
+      attemptedTokens += sendResult.deviceCount;
+      successCount += sendResult.successCount;
+      failureCount += sendResult.failureCount;
+      if (sendResult.failures.length > 0) {
+        logger.warn("RPS result notification had delivery failures.", {
+          coupleId,
+          gameId,
+          recipientId,
+          failures: sendResult.failures,
+        });
+      }
+    }
+
+    logger.info("Processed RPS result notification.", {
+      coupleId,
+      gameId,
+      recipients: recipientIds.length,
+      attemptedTokens,
+      successCount,
+      failureCount,
+    });
+  } catch (err) {
+    logger.error("RPS result notification failed.", {coupleId, gameId, message: err && err.message});
+  }
+}
+
+// A rủ B: push + inbox to the partner. Skipped for a rematch whose partner is
+// still watching the previous game's result screen (presence fresh < 30s) —
+// the client there follows the new game on its own, a push would just nag —
+// or who is already on the rematch itself / it is no longer `invited`
+// (Tester RPS-24: the new game is re-read right before sending).
+exports.notifyRpsInvite = onDocumentCreated(
+  {document: "couples/{coupleId}/games/{gameId}", region: "us-central1"},
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      logger.warn("RPS invite notification skipped because snapshot is missing.");
+      return;
+    }
+
+    const game = snapshot.data() || {};
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const gameId = `${event.params.gameId || ""}`.trim();
+    const createdBy = `${game.createdBy || ""}`.trim();
+
+    if (game.type !== "rps" || game.status !== "invited") {
+      return;
+    }
+    if (!coupleId || !gameId || !createdBy) {
+      logger.warn("RPS invite notification skipped because required fields are missing.", {
+        coupleId,
+        gameId,
+        createdBy,
+      });
+      return;
+    }
+
+    const memberIds = await rpsLoadMemberIds(coupleId);
+    if (!memberIds) {
+      logger.warn("RPS invite notification skipped because couple document was not found.", {coupleId});
+      return;
+    }
+    // Fail closed: the creator must be a current member, else no one is notified.
+    if (!memberIds.includes(createdBy)) {
+      logger.warn("RPS invite notification skipped: creator is not a couple member.", {coupleId, createdBy});
+      return;
+    }
+    const recipientIds = memberIds.filter((id) => id !== createdBy);
+    if (recipientIds.length === 0) {
+      logger.info("RPS invite notification skipped because there is no partner to notify yet.", {coupleId});
+      return;
+    }
+
+    const rematchOf = `${game.rematchOf || ""}`.trim();
+    if (rematchOf) {
+      try {
+        const prevSnap = await db
+          .collection("couples").doc(coupleId)
+          .collection("games").doc(rematchOf)
+          .get();
+        const partnerPresenceMs = prevSnap.exists ?
+          rpsPresenceMillis(prevSnap.get("presence"), recipientIds[0]) : null;
+        if (partnerPresenceMs !== null &&
+            Date.now() - partnerPresenceMs < RPS_REMATCH_PRESENCE_FRESH_MS) {
+          logger.info("RPS invite notification skipped: partner is still on the previous game.", {
+            coupleId,
+            gameId,
+            rematchOf,
+          });
+          return;
+        }
+      } catch (err) {
+        // Fail open: an unreadable previous game is not a reason to swallow the invite.
+        logger.warn("RPS invite: could not read the rematch source game.", {
+          coupleId,
+          gameId,
+          rematchOf,
+          message: err && err.message,
+        });
+      }
+
+      // Tester RPS-24: the partner's phone may already have followed THIS
+      // game (and its previous-game stamp may be gone) by the time we get
+      // here. Re-read the new game: already started / closed, or the partner
+      // beating on it right now ⇒ they are on the screen, no push + inbox.
+      try {
+        const freshSnap = await snapshot.ref.get();
+        const fresh = freshSnap.exists ? (freshSnap.data() || {}) : null;
+        if (!fresh || fresh.status !== "invited") {
+          logger.info("RPS invite notification skipped: the rematch is no longer an open invite.", {
+            coupleId,
+            gameId,
+            rematchOf,
+            status: fresh ? fresh.status || null : "missing",
+          });
+          return;
+        }
+        const freshPresenceMs = rpsPresenceMillis(fresh.presence, recipientIds[0]);
+        if (freshPresenceMs !== null &&
+            Date.now() - freshPresenceMs <= RPS_RESULT_PRESENCE_STALE_MS) {
+          logger.info("RPS invite notification skipped: partner is already on the rematch.", {
+            coupleId,
+            gameId,
+            rematchOf,
+          });
+          return;
+        }
+      } catch (err) {
+        logger.warn("RPS invite: could not re-read the rematch game.", {
+          coupleId,
+          gameId,
+          rematchOf,
+          message: err && err.message,
+        });
+      }
+    }
+
+    // Left RAW so the fallback localizes per recipient device.
+    const actorName = await rpsLoadDisplayName(createdBy);
+
+    const inboxPayload = {
+      type: "rps_invite",
+      coupleId,
+      gameId,
+      actorUserId: createdBy,
+    };
+    if (actorName) {
+      inboxPayload.actorName = actorName;
+    }
+    await writeInboxNotifications(recipientIds, inboxPayload);
+
+    const result = await sendToRecipientDevices(
+      recipientIds,
+      (languageCode) => buildRpsInviteText(languageCode, actorName),
+      {type: "rps_invite", coupleId, gameId},
+    );
+
+    if (result.deviceCount === 0) {
+      logger.info("RPS invite notification skipped because recipient has no active FCM tokens.", {
+        coupleId,
+        gameId,
+      });
+      return;
+    }
+    if (result.failures.length > 0) {
+      logger.warn("RPS invite notification had delivery failures.", {
+        coupleId,
+        gameId,
+        failures: result.failures,
+      });
+    }
+    logger.info("Processed RPS invite notification.", {
+      coupleId,
+      gameId,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+    });
+  },
+);
+
+// Every move lands here. Stamps `moved.{uid}`; second move → close the game
+// (reason 'normal') + result push. First move → "your person has thrown" to
+// the other player, but only when they are OFF the game screen (presence older
+// than 8s / absent) — on screen the UI shows it live. Idempotent: a replayed
+// trigger adds no stamp ⇒ no second push.
+//
+// Tester RPS-25: `retry: true` + a real failure is RETHROWN (it used to be
+// logged and swallowed ⇒ a failed second move left the game `playing` for
+// good, and one-open-game then blocked any new round). Replays are safe: the
+// transaction re-reads everything and a finished game / an existing stamp
+// makes the replay a no-op (no second push). Events older than
+// RPS_RESOLVE_RETRY_MAX_AGE_MS stop retrying (logged) — `nudgeRpsPlayer`
+// is the manual way out for those.
+exports.resolveRpsGame = onDocumentCreated(
+  {document: "couples/{coupleId}/games/{gameId}/moves/{uid}", region: "us-central1", retry: true},
+  async (event) => {
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const gameId = `${event.params.gameId || ""}`.trim();
+    const moverUid = `${event.params.uid || ""}`.trim();
+    if (!coupleId || !gameId) {
+      return;
+    }
+
+    const memberIds = await rpsLoadMemberIds(coupleId);
+    if (!memberIds || memberIds.length < 2) {
+      logger.warn("resolveRpsGame skipped: couple missing or has fewer than two members.", {
+        coupleId,
+        gameId,
+      });
+      return;
+    }
+
+    const gameRef = db.collection("couples").doc(coupleId).collection("games").doc(gameId);
+    try {
+      const outcome = await rpsRecordMoveInTransaction(gameRef, memberIds);
+      let label = outcome.reason || "finished";
+      if (outcome.already) {
+        label = "already";
+      } else if (outcome.waiting) {
+        label = "waiting_for_moves";
+      }
+      logger.info("resolveRpsGame processed.", {
+        coupleId,
+        gameId,
+        outcome: label,
+        newlyMoved: outcome.newlyMoved ? outcome.newlyMoved.length : 0,
+      });
+
+      if (outcome.ok && !outcome.already && outcome.finishedGame) {
+        await sendRpsResultPushes(coupleId, gameId, outcome.finishedGame);
+        return;
+      }
+      if (!outcome.ok || !outcome.waiting || outcome.newlyMoved.length === 0) {
+        return;
+      }
+
+      // Exactly one move in. The actor = the stamp this call added (normally
+      // the trigger's own uid).
+      const actorUid = outcome.newlyMoved.includes(moverUid) ? moverUid : outcome.newlyMoved[0];
+      const moved = rpsMovedMap(outcome.game);
+      const recipientId = memberIds.find((uid) => uid !== actorUid && !moved[uid]);
+      if (!recipientId) {
+        return;
+      }
+      // Fresh read (outside the transaction): the partner may have thrown or
+      // opened the game screen in the meantime. Fail-open to the tx snapshot.
+      let latest = outcome.game;
+      try {
+        const latestSnap = await gameRef.get();
+        if (latestSnap.exists) {
+          latest = latestSnap.data() || {};
+        }
+      } catch (err) {
+        logger.warn("resolveRpsGame: could not re-read the game before the moved push.", {
+          coupleId,
+          gameId,
+          message: err && err.message,
+        });
+      }
+      if (latest.status !== "playing" || rpsMovedMap(latest)[recipientId]) {
+        return;
+      }
+      const presenceMs = rpsPresenceMillis(latest.presence, recipientId);
+      if (presenceMs !== null && Date.now() - presenceMs <= RPS_RESULT_PRESENCE_STALE_MS) {
+        logger.info("RPS moved notification skipped: the other player is on the game screen.", {
+          coupleId,
+          gameId,
+        });
+        return;
+      }
+      await sendRpsMovedNotification(coupleId, gameId, actorUid, recipientId, "auto");
+    } catch (err) {
+      const eventMs = Date.parse(event.time || "");
+      const tooOld = Number.isFinite(eventMs) && Date.now() - eventMs > RPS_RESOLVE_RETRY_MAX_AGE_MS;
+      logger.error("resolveRpsGame failed.", {
+        coupleId,
+        gameId,
+        willRetry: !tooOld,
+        message: err && err.message,
+      });
+      if (!tooOld) {
+        throw err;
+      }
+    }
+  },
+);
+
+// "Nhắc người ấy": the player who has already thrown pokes the one who hasn't.
+// Push + inbox `rps_moved` regardless of the partner's presence, at most once
+// per 60s per game (`lastNudgeAt`, Admin-only field). Business outcomes are
+// RETURNED, never thrown:
+//   {ok:true}
+//   {ok:false, reason:'not_playing'}            — missing / not `playing` game
+//   {ok:false, reason:'not_moved'}              — the caller hasn't thrown yet
+//   {ok:false, reason:'partner_moved'}          — nothing to nudge
+//   {ok:false, reason:'resolved'}               — both hands were in but the
+//       game was still `playing` (resolveRpsGame failed — Tester RPS-25):
+//       this call closed it (idempotent, result push if IT finished it). The
+//       client's "Tải lại" on the resolving screen calls this on purpose.
+//   {ok:false, reason:'cooldown', retryAfterMs} — nudged < 60s ago
+exports.nudgeRpsPlayer = onCall(
+  {region: "us-central1", timeoutSeconds: 30, memory: "256MiB"},
+  async (request) => {
+    const uid = request.auth && request.auth.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+
+    const data = request.data || {};
+    const coupleId = `${data.coupleId || ""}`.trim();
+    const gameId = `${data.gameId || ""}`.trim();
+    if (!isDocId(coupleId) || !isDocId(gameId)) {
+      throw new HttpsError("invalid-argument", "coupleId and gameId are required.");
+    }
+
+    const memberIds = await rpsLoadMemberIds(coupleId);
+    if (!memberIds) {
+      throw new HttpsError("not-found", "Couple not found.");
+    }
+    if (!memberIds.includes(uid)) {
+      throw new HttpsError("permission-denied", "Not a member of this couple.");
+    }
+    const partnerUid = memberIds.find((id) => id !== uid);
+    if (!partnerUid) {
+      // A 1-member couple can't have a started game.
+      return {ok: false, reason: "not_playing"};
+    }
+
+    const gameRef = db.collection("couples").doc(coupleId).collection("games").doc(gameId);
+    let outcome;
+    try {
+      outcome = await db.runTransaction(async (tx) => {
+        const gameSnap = await tx.get(gameRef);
+        if (!gameSnap.exists) {
+          return {ok: false, reason: "not_playing"};
+        }
+        const game = gameSnap.data() || {};
+        if (game.status !== "playing") {
+          return {ok: false, reason: "not_playing"};
+        }
+        const moved = rpsMovedMap(game);
+        // `moved` may lag the move doc by a trigger run ⇒ the move doc counts too.
+        const [myMoveSnap, partnerMoveSnap] = await Promise.all([
+          tx.get(gameRef.collection("moves").doc(uid)),
+          tx.get(gameRef.collection("moves").doc(partnerUid)),
+        ]);
+        if (!moved[uid] && !myMoveSnap.exists) {
+          return {ok: false, reason: "not_moved"};
+        }
+        if (moved[partnerUid] || partnerMoveSnap.exists) {
+          // Both move docs in while still `playing` ⇒ the resolve trigger
+          // missed; close it right after this transaction (RPS-25).
+          return {
+            ok: false,
+            reason: "partner_moved",
+            stuck: myMoveSnap.exists && partnerMoveSnap.exists,
+          };
+        }
+        const lastNudgeMs = rpsToMillis(game.lastNudgeAt);
+        const nowMs = Date.now();
+        if (lastNudgeMs !== null && nowMs - lastNudgeMs < RPS_NUDGE_COOLDOWN_MS) {
+          return {
+            ok: false,
+            reason: "cooldown",
+            retryAfterMs: Math.max(0, RPS_NUDGE_COOLDOWN_MS - (nowMs - lastNudgeMs)),
+          };
+        }
+        tx.update(gameRef, {lastNudgeAt: admin.firestore.FieldValue.serverTimestamp()});
+        return {ok: true};
+      });
+    } catch (err) {
+      logger.error("nudgeRpsPlayer failed.", {coupleId, gameId, message: err && err.message});
+      throw new HttpsError("internal", "Could not nudge the other player.");
+    }
+
+    if (outcome.stuck) {
+      delete outcome.stuck;
+      try {
+        // Same idempotent finish as the trigger: re-reads the game + both
+        // moves; only the call that flips it to `finished` sends the result.
+        const resolved = await rpsRecordMoveInTransaction(gameRef, memberIds);
+        if (resolved.ok && !resolved.waiting) {
+          if (!resolved.already && resolved.finishedGame) {
+            await sendRpsResultPushes(coupleId, gameId, resolved.finishedGame);
+          }
+          logger.info("nudgeRpsPlayer resolved a stuck game.", {
+            coupleId,
+            gameId,
+            uid,
+            finishedHere: !resolved.already,
+          });
+          return {ok: false, reason: "resolved"};
+        }
+      } catch (err) {
+        // Stay on `partner_moved` (client: silent) — "Tải lại" can retry.
+        logger.error("nudgeRpsPlayer could not resolve a stuck game.", {
+          coupleId,
+          gameId,
+          message: err && err.message,
+        });
+      }
+    }
+
+    logger.info("nudgeRpsPlayer processed.", {
+      coupleId,
+      gameId,
+      uid,
+      ok: outcome.ok,
+      reason: outcome.reason || null,
+    });
+    if (outcome.ok) {
+      // Awaited before returning: gen2 CPU is throttled once the response is
+      // sent, so a fire-and-forget push could be dropped.
+      await sendRpsMovedNotification(coupleId, gameId, uid, partnerUid, "nudge");
+    }
+    return outcome;
   },
 );
 
@@ -1782,6 +2633,49 @@ function sanitizeInboxPayload(payload) {
   return out;
 }
 
+// Copy for the HttpsError messages the app shows as-is (feature language,
+// 2026-10-11): released builds put `e.message` straight on screen, so it must
+// be in the reader's language. The caller says which — `lang` (newer builds) or
+// the `languageCode` the email callables have always sent for the email copy.
+// Neither → Vietnamese, exactly what released builds got before.
+const CALLABLE_ERROR_COPY = {
+  vi: {
+    signInToDelete: "Bạn cần đăng nhập để xoá tài khoản.",
+    deleteCoupleFailed: "Chưa xoá được dữ liệu chung của cặp đôi. Bạn thử lại nhé.",
+    deleteAccountFailed: "Chưa xoá xong tài khoản. Bạn thử lại nhé.",
+    signInToVerify: "Bạn cần đăng nhập để gửi email xác thực.",
+    accountLoadFailed: "Chưa lấy được thông tin tài khoản. Bạn thử lại nhé.",
+    noEmail: "Tài khoản chưa có email.",
+    verifyLinkFailed: "Chưa tạo được liên kết xác thực. Bạn thử lại nhé.",
+    verifySendFailed: "Không gửi được email xác thực. Bạn thử lại nhé.",
+    invalidEmail: "Email không hợp lệ.",
+    resetLinkFailed: "Chưa tạo được liên kết đặt lại mật khẩu. Bạn thử lại nhé.",
+    resetSendFailed: "Không gửi được email đặt lại mật khẩu. Bạn thử lại nhé.",
+  },
+  en: {
+    signInToDelete: "Please sign in to delete your account.",
+    deleteCoupleFailed: "Couldn't delete your shared couple data. Please try again.",
+    deleteAccountFailed: "Couldn't finish deleting your account. Please try again.",
+    signInToVerify: "Please sign in to send the verification email.",
+    accountLoadFailed: "Couldn't load your account. Please try again.",
+    noEmail: "This account has no email address.",
+    verifyLinkFailed: "Couldn't create the verification link. Please try again.",
+    verifySendFailed: "Couldn't send the verification email. Please try again.",
+    invalidEmail: "That email isn't valid.",
+    resetLinkFailed: "Couldn't create the password reset link. Please try again.",
+    resetSendFailed: "Couldn't send the password reset email. Please try again.",
+  },
+};
+
+function callableErrorCopy(request) {
+  const data = request.data || {};
+  // 'en-US' / 'en_US' → 'en'. Own keys only: 'constructor' / '__proto__' would
+  // otherwise hit Object.prototype and every message would be undefined.
+  const code = `${data.lang || data.languageCode || ""}`.trim().toLowerCase().split(/[-_]/)[0];
+  return Object.prototype.hasOwnProperty.call(CALLABLE_ERROR_COPY, code) ?
+    CALLABLE_ERROR_COPY[code] : CALLABLE_ERROR_COPY.vi;
+}
+
 // Callable that fully erases the signed-in user's account. It runs with admin
 // privileges so it can remove the things the client is forbidden to delete
 // directly under the Firestore security rules (`users/{uid}` and
@@ -1791,12 +2685,10 @@ function sanitizeInboxPayload(payload) {
 exports.deleteAccount = onCall(
   {region: "us-central1"},
   async (request) => {
+    const copy = callableErrorCopy(request);
     const uid = request.auth && request.auth.uid;
     if (!uid) {
-      throw new HttpsError(
-        "unauthenticated",
-        "Bạn cần đăng nhập để xoá tài khoản.",
-      );
+      throw new HttpsError("unauthenticated", copy.signInToDelete);
     }
 
     const userRef = db.collection("users").doc(uid);
@@ -1815,7 +2707,7 @@ exports.deleteAccount = onCall(
           coupleId,
           message: err && err.message,
         });
-        throw new HttpsError("internal", "Không thể xoá dữ liệu cặp đôi. Vui lòng thử lại.");
+        throw new HttpsError("internal", copy.deleteCoupleFailed);
       }
     }
 
@@ -1837,7 +2729,7 @@ exports.deleteAccount = onCall(
 
     // 3) The invite_code pointer — only if it still points at this user, so we
     //    never clobber a code that has since been reassigned.
-    if (inviteCode) {
+    if (isDocId(inviteCode)) {
       const inviteRef = db.collection("invite_codes").doc(inviteCode);
       const inviteSnap = await inviteRef.get();
       if (inviteSnap.exists && `${inviteSnap.get("userId") || ""}`.trim() === uid) {
@@ -1856,7 +2748,7 @@ exports.deleteAccount = onCall(
       // auth/user-not-found means it's already gone — treat as success.
       if (code !== "auth/user-not-found") {
         logger.error("Failed to delete Auth user during account deletion.", {uid, code});
-        throw new HttpsError("internal", "Không thể xoá tài khoản đăng nhập. Vui lòng thử lại.");
+        throw new HttpsError("internal", copy.deleteAccountFailed);
       }
     }
 
@@ -1884,7 +2776,7 @@ exports.leaveCoupleCleanup = onCall(
     }
 
     const coupleId = `${(request.data && request.data.coupleId) || ""}`.trim();
-    if (!coupleId) {
+    if (!isDocId(coupleId)) {
       throw new HttpsError("invalid-argument", "Thiếu coupleId.");
     }
 
@@ -1923,12 +2815,10 @@ exports.leaveCoupleCleanup = onCall(
 exports.sendCustomVerificationEmail = onCall(
   {region: "us-central1", secrets: [RESEND_API_KEY]},
   async (request) => {
+    const copy = callableErrorCopy(request);
     const uid = request.auth && request.auth.uid;
     if (!uid) {
-      throw new HttpsError(
-        "unauthenticated",
-        "Bạn cần đăng nhập để gửi email xác thực.",
-      );
+      throw new HttpsError("unauthenticated", copy.signInToVerify);
     }
 
     // Pull the authoritative email/name/verified state from the Auth record
@@ -1942,12 +2832,12 @@ exports.sendCustomVerificationEmail = onCall(
         uid,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không thể đọc thông tin tài khoản.");
+      throw new HttpsError("internal", copy.accountLoadFailed);
     }
 
     const email = `${userRecord.email || ""}`.trim();
     if (!email) {
-      throw new HttpsError("failed-precondition", "Tài khoản chưa có email.");
+      throw new HttpsError("failed-precondition", copy.noEmail);
     }
 
     // Already verified — nothing to send. Tell the client so it can skip.
@@ -1966,7 +2856,7 @@ exports.sendCustomVerificationEmail = onCall(
         uid,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không thể tạo liên kết xác thực.");
+      throw new HttpsError("internal", copy.verifyLinkFailed);
     }
 
     // Language for the email copy comes from the client device locale (same
@@ -2002,7 +2892,7 @@ exports.sendCustomVerificationEmail = onCall(
         uid,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không gửi được email xác thực.");
+      throw new HttpsError("internal", copy.verifySendFailed);
     }
 
     if (!response.ok) {
@@ -2013,7 +2903,7 @@ exports.sendCustomVerificationEmail = onCall(
         detail: detail.slice(0, 500),
       });
       // Surface as a failure so the client can show "Resend" / retry.
-      throw new HttpsError("internal", "Không gửi được email xác thực.");
+      throw new HttpsError("internal", copy.verifySendFailed);
     }
 
     logger.info("Custom verification email sent.", {uid, lang});
@@ -2026,6 +2916,12 @@ exports.sendCustomVerificationEmail = onCall(
 // destroyed; otherwise the partner is kept and the couple is demoted back to
 // the "waiting_partner" state.
 async function handleCoupleOnAccountDeletion(coupleId, uid) {
+  // deleteAccount reads coupleId from users/{uid}, which the client writes.
+  // Not an id → leave every couple alone; the account itself still goes.
+  if (!isDocId(coupleId)) {
+    logger.warn("Couple teardown skipped: coupleId is not a document id.", {coupleId, uid});
+    return;
+  }
   const coupleRef = db.collection("couples").doc(coupleId);
   const coupleSnap = await coupleRef.get();
   if (!coupleSnap.exists) {
@@ -2034,6 +2930,31 @@ async function handleCoupleOnAccountDeletion(coupleId, uid) {
 
   const data = coupleSnap.data() || {};
   const memberIds = Array.isArray(data.memberIds) ? data.memberIds : [];
+
+  // Sleep (feature sleep): the leaver's profile + shared nights (data that can
+  // come from Apple Health). Rules already hide them from whoever is in the
+  // couple next, but the leaver can no longer delete them — do it here. Ahead
+  // of the member check on purpose: only the caller ever writes sleep/{uid},
+  // and a former member whose users/{uid}.coupleId still points here gets
+  // theirs cleaned up too.
+  await db.recursiveDelete(coupleRef.collection("sleep").doc(uid)).catch((err) => {
+    logger.warn("Failed to delete the leaving member's sleep data.", {
+      coupleId,
+      uid,
+      message: err && err.message,
+    });
+    return null;
+  });
+
+  // SECURITY (audit 2026-10-12): deleteAccount takes coupleId from
+  // users/{uid}, which the client writes itself, and couple/invite codes are
+  // readable by anyone signed in — so a stranger could aim it at someone
+  // else's couple and demote it to "waiting_partner" for good. Only a real
+  // member may demote / tear down the couple.
+  if (!memberIds.includes(uid)) {
+    logger.warn("Couple teardown skipped: the caller is not a member.", {coupleId, uid});
+    return;
+  }
   const remaining = memberIds.filter(
     (id) => typeof id === "string" && id.trim() && id !== uid,
   );
@@ -2054,15 +2975,17 @@ async function handleCoupleOnAccountDeletion(coupleId, uid) {
   );
 }
 
+// Every Storage path, couple doc field and photo field below is written by the
+// client, and the Admin SDK obeys no rules — so nothing read from them may
+// name what to delete (audit 2026-10-12, N2). Storage goes through ONE prefix
+// sweep of this couple's own folder: storage.rules only ever let clients
+// write couple_photos/{coupleId}/{file} (cover + photos), so the sweep already
+// covers every object a photo doc or couplePhotoStoragePath can point at.
 async function deleteCoupleCompletely(coupleRef, coupleData) {
   const photosSnap = await coupleRef.collection("photos").get();
   const tasks = [];
 
   for (const photoDoc of photosSnap.docs) {
-    const storagePath = `${photoDoc.get("storagePath") || ""}`.trim();
-    if (storagePath) {
-      tasks.push(deleteStorageObject(storagePath));
-    }
     // Reactions (feature: reactions ❤️) live in a subcollection under each
     // photo, so deleting the photo doc alone leaves them orphaned. recursiveDelete
     // the reactions first, then delete the photo doc itself.
@@ -2111,41 +3034,39 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
     }),
   );
 
+  // Sleep (feature sleep): every member's profile + nights.
+  tasks.push(
+    db.recursiveDelete(coupleRef.collection("sleep")).catch((err) => {
+      logger.warn("Failed to recursively delete sleep during couple teardown.", {
+        coupleId: coupleRef.id,
+        message: err && err.message,
+      });
+      return null;
+    }),
+  );
+
   // Couple entry code (feature couple-code): the couple_codes/{code} pointer is
   // a TOP-LEVEL doc, not a subcollection, so recursiveDelete on the couple won't
   // touch it. Remove it explicitly or the 6-char code stays mapped to a dead
-  // couple (and can't be reused).
+  // couple (and can't be reused). Only while the pointer is still THIS
+  // couple's: a member may set `coupleCode` to anyone's code, and deleting
+  // that pointer would let them re-create it aimed at their own couple.
   const coupleCode = `${(coupleData && coupleData.coupleCode) || ""}`.trim().toUpperCase();
-  if (coupleCode) {
+  if (isDocId(coupleCode)) {
+    const codeRef = db.collection("couple_codes").doc(coupleCode);
     tasks.push(
-      db.collection("couple_codes").doc(coupleCode).delete().catch(() => null),
+      codeRef.get()
+        .then((snap) => (snap.get("coupleId") === coupleRef.id ? codeRef.delete() : null))
+        .catch(() => null),
     );
-  }
-
-  const coverPath = `${(coupleData && coupleData.couplePhotoStoragePath) || ""}`.trim();
-  if (coverPath) {
-    tasks.push(deleteStorageObject(coverPath));
   }
 
   await Promise.all(tasks);
 
-  // Sweep the whole prefix too, in case any object was orphaned from its doc.
+  // Storage: this couple's own folder, nothing else (see the note above).
   await deleteStoragePrefix(`couple_photos/${coupleRef.id}/`);
 
   await coupleRef.delete().catch(() => null);
-}
-
-async function deleteStorageObject(path) {
-  try {
-    await admin.storage().bucket().file(path).delete();
-  } catch (err) {
-    if (!err || err.code !== 404) {
-      logger.warn("Failed to delete Storage object during account deletion.", {
-        path,
-        code: err && err.code,
-      });
-    }
-  }
 }
 
 async function deleteStoragePrefix(prefix) {
@@ -2192,7 +3113,7 @@ function buildPhotoNotificationText(languageCode, authorName, caption) {
 const PARTNER_JOINED_COPY = {
   vi: {
     title: (name) => `${name} đã ghép đôi cùng bạn 💞`,
-    body: "Hai bạn đã kết nối rồi — cùng bắt đầu lưu kỷ niệm nhé!",
+    body: "Từ giờ chúng mình cùng lưu ảnh và trả lời câu hỏi mỗi ngày nhé!",
   },
   en: {
     title: (name) => `${name} just paired up with you 💞`,
@@ -2214,7 +3135,7 @@ function buildPartnerJoinedText(languageCode, joinerName) {
 const PARTNER_LEFT_COPY = {
   vi: {
     title: (name) => `${name} đã rời khỏi không gian chung`,
-    body: "Khi nào sẵn sàng, hai bạn có thể kết nối lại nhé 💛",
+    body: "Khi cả hai sẵn sàng, cứ ghép đôi lại nhé 💛",
   },
   en: {
     title: (name) => `${name} has left your shared space`,
@@ -2258,7 +3179,7 @@ function buildLoveNoteText(languageCode, authorName, noteText) {
 const CHAT_MESSAGE_COPY = {
   vi: {
     title: "Tin nhắn mới 💬",
-    body: (author) => `${author} vừa gửi cho bạn một tin nhắn 💌`,
+    body: (author) => `${author} vừa nhắn cho bạn 💌`,
   },
   en: {
     title: "New message 💬",
@@ -2271,7 +3192,7 @@ const CHAT_MESSAGE_COPY = {
 const PARTNER_MOOD_COPY = {
   vi: {
     title: "Tâm trạng hôm nay 💗",
-    // Show the mood when we recognise it ("Anh Tuấn đang thấy Nhớ"); otherwise a
+    // Show the mood when we recognise it ("Anh Tuấn đang thấy nhớ bạn"); otherwise a
     // gentle generic nudge.
     body: (name, moodLabel) => moodLabel ?
       `${name} đang thấy ${moodLabel}` :
@@ -2279,9 +3200,15 @@ const PARTNER_MOOD_COPY = {
   },
   en: {
     title: "Today's mood 💗",
-    body: (name, moodLabel) => moodLabel ?
-      `${name} is feeling ${moodLabel}` :
-      `${name} just shared how they feel today — take a peek`,
+    // "Tuan is feeling missing you" doesn't read — that mood gets its own line.
+    body: (name, moodLabel, moodKey) => {
+      if (moodKey === "missing") {
+        return `${name} is missing you`;
+      }
+      return moodLabel ?
+        `${name} is feeling ${moodLabel}` :
+        `${name} just shared how they feel today — take a peek`;
+    },
   },
 };
 
@@ -2289,12 +3216,13 @@ const PARTNER_MOOD_COPY = {
 // name the mood. Unknown keys fall back to the generic copy above.
 const MOOD_LABELS = {
   vi: {
-    happy: "Vui", loved: "Hạnh phúc", missing: "Nhớ", calm: "Bình yên",
-    meh: "Bình thường", tired: "Mệt", sad: "Buồn", stressed: "Căng thẳng",
+    happy: "vui", loved: "hạnh phúc", missing: "nhớ bạn", calm: "bình yên",
+    meh: "bình thường", tired: "mệt", sad: "buồn", stressed: "căng thẳng",
   },
+  // Lower-case: they sit mid-sentence ("Tuan is feeling happy").
   en: {
-    happy: "Happy", loved: "Loved", missing: "Missing you", calm: "Calm",
-    meh: "Meh", tired: "Tired", sad: "Sad", stressed: "Stressed",
+    happy: "happy", loved: "loved", missing: "missing you", calm: "calm",
+    meh: "meh", tired: "tired", sad: "sad", stressed: "stressed",
   },
 };
 
@@ -2302,10 +3230,12 @@ function buildPartnerMoodText(languageCode, authorName, moodKey) {
   const code = `${languageCode || ""}`.trim().toLowerCase();
   const copy = PARTNER_MOOD_COPY[code] || PARTNER_MOOD_COPY.vi;
   const labels = MOOD_LABELS[code] || MOOD_LABELS.vi;
-  const moodLabel = labels[`${moodKey || ""}`.trim()] || "";
+  const key = `${moodKey || ""}`.trim();
+  // The key is whatever the partner wrote: own keys only, never a prototype member.
+  const moodLabel = Object.prototype.hasOwnProperty.call(labels, key) ? labels[key] : "";
   return {
     title: copy.title,
-    body: copy.body(authorName, moodLabel),
+    body: copy.body(authorName, moodLabel, key),
   };
 }
 
@@ -2324,8 +3254,8 @@ const PARTNER_REMINDER_SET_COPY = {
   vi: {
     title: "Lời nhắc từ người ấy ⏰",
     body: (name, text, hhmm) => hhmm ?
-      `${name} đặt nhắc bạn: ${text} lúc ${hhmm}` :
-      `${name} đặt nhắc bạn: ${text}`,
+      `${name} đặt lời nhắc cho bạn lúc ${hhmm}: ${text}` :
+      `${name} đặt lời nhắc cho bạn: ${text}`,
   },
   en: {
     title: "A reminder from your partner ⏰",
@@ -2367,7 +3297,7 @@ const DAILY_QUESTION_COPY = {
     // normalizeActorName() would hardcode Vietnamese on an English device.
     partnerFallback: "Người ấy",
     title: (author) => `${author} đã trả lời câu hỏi hôm nay 💞`,
-    body: "Trả lời câu hỏi của bạn để mở khoá câu trả lời của người ấy nhé.",
+    body: "Tới lượt bạn. Trả lời xong là xem được người ấy viết gì nhé.",
     bodyBoth: "Cả hai đã trả lời rồi — mở app xem câu trả lời của nhau nhé!",
   },
   en: {
@@ -2459,9 +3389,10 @@ function truncateText(value, maxLength) {
 exports.sendCustomPasswordResetEmail = onCall(
   {region: "us-central1", secrets: [RESEND_API_KEY]},
   async (request) => {
+    const copy = callableErrorCopy(request);
     const email = `${(request.data && request.data.email) || ""}`.trim().toLowerCase();
     if (!email) {
-      throw new HttpsError("invalid-argument", "Email không hợp lệ.");
+      throw new HttpsError("invalid-argument", copy.invalidEmail);
     }
 
     const lang = `${(request.data && request.data.languageCode) || ""}`
@@ -2482,7 +3413,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         email,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không thể xử lý yêu cầu.");
+      throw new HttpsError("internal", copy.resetSendFailed);
     }
 
     // Generate the official Firebase password reset link.
@@ -2494,7 +3425,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         email,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không thể tạo liên kết đặt lại mật khẩu.");
+      throw new HttpsError("internal", copy.resetLinkFailed);
     }
 
     const name = `${userRecord.displayName || ""}`.trim();
@@ -2524,7 +3455,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         email,
         message: err && err.message,
       });
-      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu.");
+      throw new HttpsError("internal", copy.resetSendFailed);
     }
 
     if (!response.ok) {
@@ -2534,7 +3465,7 @@ exports.sendCustomPasswordResetEmail = onCall(
         status: response.status,
         detail: detail.slice(0, 500),
       });
-      throw new HttpsError("internal", "Không gửi được email đặt lại mật khẩu.");
+      throw new HttpsError("internal", copy.resetSendFailed);
     }
 
     logger.info("Password reset email sent.", {email, lang});
@@ -2582,6 +3513,9 @@ const AI_QUESTION_SYSTEM_PROMPT = [
   "- Mỗi bản tối đa 200 ký tự, chỉ một câu hỏi duy nhất.",
   "- Giọng ấm áp, nhẹ nhàng, tôn trọng; hỏi để hai người kể cho nhau nghe.",
   "- Tiếng Việt xưng hô \"chúng mình\" / \"người ấy\" / \"bạn\". KHÔNG dùng tên riêng, KHÔNG dùng \"hai đứa\".",
+  "- Bản tiếng Việt viết tự nhiên như người Việt nói với nhau, không dịch từng chữ từ bản tiếng Anh.",
+  "- Câu ngắn, cụ thể (một việc nhỏ, một kỷ niệm, một tình huống), tránh câu hỏi chung chung.",
+  "- Không dùng cụm sáo rỗng như \"hành trình đầy cảm xúc\", \"trong kỷ nguyên số\", \"đột phá\", \"giải pháp toàn diện\", \"chúng ta hãy cùng khám phá\", \"có thể nói rằng\".",
   "- Dựa vào chủ đề và câu trả lời gần đây để hỏi sâu hơn hoặc nối tiếp (ví dụ nhắc lại một dự định họ từng nói).",
   "- Phù hợp với thứ trong tuần, cột mốc hoặc tâm trạng hôm nay nếu có dữ liệu.",
   "- KHÔNG lặp lại chủ đề của 14 ngày gần nhất.",
@@ -2659,7 +3593,7 @@ exports.generateDailyQuestion = onCall(
     const coupleId = `${data.coupleId || ""}`.trim();
     const date = `${data.date || ""}`.trim();
     const lang = `${data.lang || "vi"}`.trim() === "en" ? "en" : "vi";
-    if (!coupleId) {
+    if (!isDocId(coupleId)) {
       throw new HttpsError("invalid-argument", "coupleId is required.");
     }
     if (!AI_DATE_PATTERN.test(date)) {

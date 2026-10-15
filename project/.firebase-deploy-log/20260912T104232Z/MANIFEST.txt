@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --project dev --only firestore:rules --debug 2>&1 | grep -iE "ENOTFOUND|ECONNRESET|ETIMEDOUT|EAI_AGAIN|ECONNREFUSED|socket|proxy|Failed to make request|FetchError|TypeError|cause" | head -12
+time_utc: 20260912T104232Z
+git_head: f6b729c (release/1.6.1)
+dirty   : 3 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout f6b729c)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout f6b729c -- functions` rồi redeploy

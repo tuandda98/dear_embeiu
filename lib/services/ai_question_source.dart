@@ -5,6 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'firebase_bootstrap_service.dart';
 import 'question_source.dart';
 
+/// TẮT toàn bộ hỏi đáp bằng AI (user chốt 2026-10-12, trước khi chạy ads):
+/// không đăng ký source vào engine, không hiện toggle trong Cài đặt. Cờ
+/// `prefs/home.aiQuestionsEnabled` cũ nếu có vẫn bị bỏ qua. Bật lại = đổi true.
+const bool kAiQuestionsFeatureEnabled = false;
+
 /// AI-generated daily question (feature endless-questions, 2026-09-05).
 ///
 /// The heavy lifting lives server-side: the callable `generateDailyQuestion`

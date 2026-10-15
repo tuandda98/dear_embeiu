@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Default widget background = "Trời đêm Cây Tình Yêu" (design M2, user chốt
+     2026-10-12): navy → chàm 160° + 2 vệt sáng (lavender góc trên phải, hồng
+     góc dưới trái). Shown when the couple has no photo yet; a photo replaces
+     it (widget_photo + widget_scrim). Glows live INSIDE the layer-list so every
+     API level clips them to the rounded corners (clipToOutline is API 31+). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:angle="315"
+                android:centerColor="#241F45"
+                android:endColor="#352A5E"
+                android:startColor="#1A1A2E"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:centerX="0.85"
+                android:centerY="0.1"
+                android:endColor="#00A78BFA"
+                android:gradientRadius="110dp"
+                android:startColor="#59A78BFA"
+                android:type="radial" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:centerX="0.05"
+                android:centerY="1.0"
+                android:endColor="#00FF6B9D"
+                android:gradientRadius="120dp"
+                android:startColor="#47FF6B9D"
+                android:type="radial" />
+        </shape>
+    </item>
+</layer-list>

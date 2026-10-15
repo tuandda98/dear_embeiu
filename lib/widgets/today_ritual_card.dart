@@ -226,9 +226,11 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
           ),
         ),
         if (_showRevealLottie)
-          const IgnorePointer(
-            child: Positioned(
-              top: -8,
+          // Positioned must be the Stack's direct child — wrapping it in
+          // IgnorePointer crashed (ParentData cast) on every reveal.
+          const Positioned(
+            top: -8,
+            child: IgnorePointer(
               child: LoveLottie(slot: LoveLottieSlot.dailyReveal, height: 120),
             ),
           ),
@@ -628,9 +630,27 @@ class _DailyAnswerSheetState extends State<_DailyAnswerSheet> {
     if (text.isEmpty || _submitting) return;
     setState(() => _submitting = true);
     final navigator = Navigator.of(context);
-    final ok = await context.read<DailyQuestionProvider>().submit(text);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final provider = context.read<DailyQuestionProvider>();
+    // The Firestore write can throw (permission-denied once the partner has
+    // left the couple, network errors…). Without this the spinner stayed on
+    // forever and the sheet could neither retry nor close (code-review
+    // 2026-09-12).
+    bool ok;
+    try {
+      ok = await provider.submit(text);
+    } catch (_) {
+      ok = false;
+    }
     if (!mounted) return;
-    navigator.pop(ok);
+    if (!ok) {
+      setState(() => _submitting = false);
+      messenger?.showSnackBar(
+        SnackBar(content: Text(widget.l10n.dailyQuestionSubmitError)),
+      );
+      return;
+    }
+    navigator.pop(true);
   }
 
   @override

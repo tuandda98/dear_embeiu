@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --project prod --only functions:notifyPartnerReminderSet,functions:notifyPartnerMood,functions:migrateLoveNotesToChat,functions:mirrorNoteHistoryToChat,functions:notifyChatMessage,functions:leaveCoupleCleanup,functions:sendCustomPasswordResetEmail,functions:notifyPartnerLeft,functions:sendCustomVerificationEmail,functions:notifyPhotoReaction,functions:notifyLoveNote,functions:notifyPartnerJoined,functions:deleteAccount,functions:pruneDeadDevices,functions:sendPartnerPhotoNotification 2>&1 | tail -60
+time_utc: 20260911T153302Z
+git_head: 3f89686 (release/1.6.1)
+dirty   : 3 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 3f89686)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 3f89686 -- functions` rồi redeploy

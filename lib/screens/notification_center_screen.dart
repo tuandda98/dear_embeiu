@@ -96,7 +96,9 @@ class _Header extends StatelessWidget {
         badgeIcon: IconsaxPlusLinear.notification,
         title: l10n.notifCenterTitle,
         subtitle: subtitle,
-        trailing: hasItems ? _OverflowMenu(provider: provider, l10n: l10n) : null,
+        trailing: hasItems
+            ? _OverflowMenu(provider: provider, l10n: l10n)
+            : null,
       ),
     );
   }
@@ -159,7 +161,7 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(22, 14, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
       child: Text(
         label.toUpperCase(),
         // Header ink vòng 4: navy at .55 on the blush gradient — same recipe
@@ -302,6 +304,20 @@ class _NotificationTile extends StatelessWidget {
               // Daily question (not yet revealed) → scroll its card in on Home.
               if (n.type == AppNotificationType.dailyQuestion) {
                 NotificationTapRouter.pendingHomeFocus.value = 'daily_question';
+              }
+              // Rock-paper-scissors (feature rps-game): same plumbing as the
+              // push tap — Home consumes the focus and opens the game/history.
+              if (n.type == AppNotificationType.rpsInvite ||
+                  n.type == AppNotificationType.rpsMoved) {
+                final gameId = n.gameId;
+                if (gameId != null && gameId.isNotEmpty) {
+                  NotificationTapRouter.pendingRpsGameId.value = gameId;
+                }
+                NotificationTapRouter.pendingHomeFocus.value =
+                    NotificationTapRouter.focusRpsGame;
+              } else if (n.type == AppNotificationType.rpsResult) {
+                NotificationTapRouter.pendingHomeFocus.value =
+                    NotificationTapRouter.focusRpsHistory;
               }
               NotificationTapRouter.pendingHomeTab.value = n.targetHomeTab;
               Navigator.of(context).maybePop();
@@ -450,6 +466,16 @@ class _NotificationTile extends StatelessWidget {
         // Verbatim: a care note's whole point is the partner's own words — only
         // fall back to a template if an older backend omitted the title.
         return n.title ?? l10n.notifCareMessage(name);
+      case AppNotificationType.rpsInvite:
+        return l10n.notifRpsInvite(name);
+      case AppNotificationType.rpsMoved:
+        // Name dropped by the CF when blank → "Người ấy" / "Your person"
+        // (design addendum C2), not the photo poster fallback.
+        return l10n.notifRpsMoved(
+          n.actorName.isNotEmpty ? n.actorName : l10n.reactionPartnerFallback,
+        );
+      case AppNotificationType.rpsResult:
+        return l10n.notifRpsResult(name);
       case AppNotificationType.unknown:
         return l10n.notifGeneric;
     }
@@ -527,6 +553,10 @@ class _Avatar extends StatelessWidget {
         return (IconsaxPlusLinear.messages, AppColors.accentLove);
       case AppNotificationType.careMessage:
         return (IconsaxPlusLinear.message_favorite, AppColors.accentLoveDeep);
+      case AppNotificationType.rpsInvite:
+      case AppNotificationType.rpsMoved:
+      case AppNotificationType.rpsResult:
+        return (IconsaxPlusLinear.game, AppColors.accentLavenderDeep);
       case AppNotificationType.unknown:
         return (IconsaxPlusLinear.notification, AppColors.textSecondary);
     }
@@ -591,7 +621,11 @@ class _OverflowMenu extends StatelessWidget {
           value: 'clear',
           child: Row(
             children: [
-              const Icon(IconsaxPlusLinear.trash, size: 20, color: AppColors.error),
+              const Icon(
+                IconsaxPlusLinear.trash,
+                size: 20,
+                color: AppColors.error,
+              ),
               const SizedBox(width: 12),
               Text(l10n.notifClearAll),
             ],

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/widgets.dart' show StringCharacters;
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/mood.dart';
@@ -24,6 +25,26 @@ class MoodService {
 
   bool get isUsingFirebase =>
       FirebaseBootstrapService.isFirebaseReady && Firebase.apps.isNotEmpty;
+
+  /// Cuts [note] to what the rule's `size()` accepts — [kMoodNoteMaxLength]
+  /// UTF-16 units (😀 counts 2, a family emoji 11; checked on the emulator) —
+  /// keeping whole characters, so an emoji is never cut into "�". The note
+  /// field uses it too, so nothing typed is dropped silently on save.
+  static String fitNote(String note) {
+    if (note.length <= kMoodNoteMaxLength) {
+      return note;
+    }
+    final out = StringBuffer();
+    var units = 0;
+    for (final ch in note.characters) {
+      if (units + ch.length > kMoodNoteMaxLength) {
+        break;
+      }
+      out.write(ch);
+      units += ch.length;
+    }
+    return out.toString();
+  }
 
   FirebaseFirestore get _db => _firestore ?? FirebaseFirestore.instance;
 
@@ -64,10 +85,7 @@ class MoodService {
         moodOptionFor(mood) == null) {
       return;
     }
-    final trimmedNote = note.trim();
-    final clampedNote = trimmedNote.length > kMoodNoteMaxLength
-        ? trimmedNote.substring(0, kMoodNoteMaxLength)
-        : trimmedNote;
+    final clampedNote = fitNote(note.trim()).trim();
 
     if (!isUsingFirebase) {
       await _saveLocal(coupleId, uid, mood, clampedNote, dateKey);

@@ -46,3 +46,6 @@ Khi couple `waiting_partner`, banner Home + Setup đổi thành 3 bước:
 - Có làm intro slides không, hay chỉ checklist + feature tour (mình nghiêng về checklist trước)?
 - Domain landing: dùng `dearembeiu.com/get` (GitHub Pages sẵn) OK?
 - Nhắc lại A khi B chưa vào: 24h/72h đủ hay muốn dày hơn?
+
+## Cập nhật
+- [2026-10-11] [PO] Lịch nhắc lại mời (2.2) đổi theo dữ liệu phễu ghép đôi (feature [`pairing-funnel`](../pairing-funnel/overview.md), PF10): +2h (chỉ khi chưa gửi mã) · +20h · +72h, dời mốc đêm sang 08:30, sau 7 ngày thôi hẳn (bỏ "now+24h" nhắc mãi). Đăng xuất/rời/xoá tài khoản huỷ luôn dải 1180–1189.

@@ -28,9 +28,12 @@ fi
 input="$(cat 2>/dev/null || true)"
 active="$(printf '%s' "$input" | jq -r '.stop_hook_active // false' 2>/dev/null || echo false)"
 
-# --- hash 3 file logic Firebase ---------------------------------------------
+# --- hash logic Firebase + test của nó ---------------------------------------
+# Gồm cả test (functions/test, firebase_rules_test/test) để sửa riêng test cũng
+# chạy lại (audit 2026-10-12).
 sha() { if command -v shasum >/dev/null 2>&1; then shasum -a 256; else sha256sum; fi; }
-cur="$(cat "$ROOT/firestore.rules" "$ROOT/storage.rules" "$ROOT/functions/index.js" 2>/dev/null | sha | awk '{print $1}')"
+cur="$(cat "$ROOT/firestore.rules" "$ROOT/storage.rules" "$ROOT/functions/index.js" \
+  "$ROOT"/functions/test/*.js "$ROOT"/firebase_rules_test/test/*.js 2>/dev/null | sha | awk '{print $1}')"
 
 cache="$ROOT/.firebase_rules_test.cache"
 prev="$(cat "$cache" 2>/dev/null || echo "")"

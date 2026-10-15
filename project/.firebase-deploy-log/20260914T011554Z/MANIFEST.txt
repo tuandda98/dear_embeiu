@@ -1,0 +1,7 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu; NODE_OPTIONS="--dns-result-order=ipv4first" npx firebase-tools deploy --project dev --only functions:notifyRpsInvite,functions:resolveRpsGame,functions:nudgeRpsPlayer --force 2>&1 | tail -12
+time_utc: 20260914T011554Z
+git_head: 48a6479 (feature/rps-game)
+dirty   : 13 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 48a6479)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 48a6479 -- functions` rồi redeploy

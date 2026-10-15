@@ -32,10 +32,10 @@
 **Phễu kích hoạt:**
 | Event | Khi nào | Param (KHÔNG PII) |
 |---|---|---|
-| `sign_up` | đăng ký thành công | `method`: email |
-| `login` | đăng nhập thành công | `method`: email |
+| `sign_up` | đăng ký thành công (Apple/Google: lần đầu tạo hồ sơ) | `method`: email \| apple \| google |
+| `login` | đăng nhập thành công | `method`: email \| apple \| google |
 | `couple_created` | A tạo couple (có mã mời) | — |
-| `invite_shared` | A copy/share mã (feature invite-sharing) | `method`: copy \| share_sheet |
+| `invite_shared` | A copy/share mã (feature invite-sharing) | `method`: copy \| share_sheet \| qr (mở sheet Mã QR, feature pairing-funnel 2026-10-11) |
 | `couple_join_attempt` | B submit mã | `result`: success \| invalid_code \| already_in_couple \| error |
 | `couple_joined` | B join thành công (⭐ kích hoạt) | — |
 | `photo_posted` | đăng ảnh thành công (⭐⭐ North Star) | `is_first`: bool |
@@ -51,6 +51,27 @@
 | `notification_opened` | `type`: photo_posted\|partner_joined\|love_note\|daily_question |
 | `language_changed` | `locale`: en\|vi\|system (đóng Gap G) |
 | `account_deleted` | — |
+
+**Feature mới (thêm 2026-10-14):**
+| Event | Khi nào | Param (KHÔNG PII) |
+|---|---|---|
+| `chat_message_sent` | gửi tin chat | — (KHÔNG nội dung) |
+| `mood_set` | chọn tâm trạng hôm nay | `has_note`: bool (KHÔNG giá trị tâm trạng) |
+| `care_message_sent` | gửi "Quan tâm" | `queued`: bool (offline, chờ gửi) |
+| `sleep_enabled` | xong sheet bật Giấc ngủ | `mode`: auto \| health \| manual |
+| `sleep_share_changed` | bật/tắt chia sẻ giấc ngủ | `enabled`: bool |
+| `sleep_night_saved` | ghi tay / sửa 1 đêm | `source`: manual \| edited (KHÔNG giờ ngủ) |
+| `love_tree_opened` | mở Cây Tình Yêu | — |
+| `intro_finished` | xong intro 3 slide | `skipped`: bool |
+| `feature_tour_shown` | hiện "Có gì mới" | `manual`: bool (mở từ Cài đặt) |
+| `login_failed` | đăng nhập lỗi (email/Apple/Google) | `method` · `reason`: mã lỗi Firebase (`wrong-password`, `invalid-credential`, `canceled`, `unknown`…) |
+| `sign_up_failed` | đăng ký email lỗi | `method` · `reason` (vd `email-already-in-use`, `weak-password`) |
+| `password_reset_requested` | gửi mail quên mật khẩu thành công | — |
+| `password_reset_failed` | gửi mail quên mật khẩu lỗi | `reason`: mã lỗi (`unavailable`, `local-mode`, `unknown`…) |
+| `couple_join_failed` | nhập mã ghép đôi thất bại | `reason`: tên `CoupleErrorCode` (`inviteNotFound`, `ownInvite`, `emptyInvite`, `full`, `alreadyHasCouple`, `unavailable`, `joinGeneric`, `unknown`…) |
+| `couple_create_failed` | tạo không gian cặp đôi thất bại | `reason`: tên `CoupleErrorCode` hoặc `other`/`unknown` |
+
+GA4 custom dimension (Event scope, tạo 2026-10-15): `reason` ("Auth fail reason") · `result` ("Result").
 
 **User properties:** `couple_status` (single\|waiting_partner\|in_couple) · `has_posted_photo` (bool) · `app_locale` (en\|vi\|system) · `is_guest` (bool).
 **Screen view:** auto qua `FirebaseAnalyticsObserver` cho home/gallery/profile/setup/guest/settings.
@@ -85,3 +106,4 @@
 ## 10. Changelog
 - [2026-06-03] [PO] Tạo feature, spec event taxonomy + posture riêng tư (D1–D4, user duyệt). Chuyển Dev.
 - [2026-06-03] [Dev] Implement xong (chi tiết `dev.md`): firebase_analytics + AnalyticsService/AnalyticsEvents no-context (no-op khi Firebase chưa sẵn / opt-out), 17 call site provider/service/widget, user props, screen_view observer, toggle opt-out Settings (l10n en+vi, default ON), Info.plist ad-perso=false, xcprivacy 3 data type (linked, tracking=false), privacy-policy mục Analytics + data transfer + opt-out. `fvm flutter analyze` sạch. Không deploy (không đụng rules/functions). Chờ Tester soi 0-PII + opt-out no-op.
+- [2026-10-11] [PO] `invite_shared.method` thêm `qr` (mở sheet Mã QR — feature pairing-funnel). Đăng nhập Apple/Google log `sign_up`/`login` với `method: apple|google` (`sign_up` = lần đầu tạo hồ sơ Firestore, không dựa `isNewUser` của Firebase).

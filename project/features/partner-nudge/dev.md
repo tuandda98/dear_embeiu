@@ -45,3 +45,4 @@ User làm rõ (qua ảnh form Lời nhắc riêng): muốn tính năng nhắc ng
 - ⏳ Smoke-test 2 thiết bị thật (A bật toggle → B nhận push xác nhận + đến giờ kêu local; sửa/xoá đồng bộ; sign-out B → band 3000–3049 cancel).
 - 🧹 Dọn DEV: rule `nudges` + CF `notifyPartnerNudge` mồ côi (redeploy DEV rules + `firebase functions:delete notifyPartnerNudge --project tonyembeiu-dev`).
 - 🔜 Fast-follow: CF cron backstop cho lịch khi B lâu không mở app.
+- [2026-10-12] [Tester] Audit đổi điện thoại: **F4 P2** — liên kết `partnerReminderId` chỉ ở Hive; máy mới/cài lại/rời couple/xoá tài khoản để mirror `partnerReminders` mồ côi `enabled:true`; `partner_reminder_provider.dart:58` không kiểm author còn member, không UI quản lý, rules chỉ author sửa/xoá, CF rời/xoá không dọn → người ấy (và người ghép mới sau) bị nhắc mãi. Chi tiết: [`project/AUDIT-2026-10-12-account-flows.md`](../../AUDIT-2026-10-12-account-flows.md). Chưa vá (user: chỉ audit).

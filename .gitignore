@@ -74,4 +74,10 @@ ios/Runner/GoogleService-Info.plist
 
 # Figma integration — chứa API token, không commit
 .env.figma
+figma_screenshots/scripts/store-upload/.bin/
+
+# Ảnh chụp màn hình tạm (xuất Figma, so sánh UI) — không thuộc mã nguồn
 figma_screenshots/
+
+# superpowers SDD scratch (ledger/briefs/reports) — không commit
+.superpowers/

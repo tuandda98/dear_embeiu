@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
@@ -47,28 +48,36 @@ class _LunarCalendarScreenState extends State<LunarCalendarScreen> {
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SubScreenHeader(
-                  badge: l10n.lunarCalendarBadge,
-                  badgeIcon: IconsaxPlusLinear.moon,
-                ),
-                const SizedBox(height: 20),
-                _MonthCalendarCard(
-                  month: _month,
-                  onPrev: () => _shiftMonth(-1),
-                  onNext: () => _shiftMonth(1),
-                ),
-                const SizedBox(height: 24),
-                const _LunarReminderConfigCard(),
-              ],
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16 + MediaQuery.paddingOf(context).top,
+                16,
+                24 + MediaQuery.paddingOf(context).bottom,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SubScreenHeader(
+                    badge: l10n.lunarCalendarBadge,
+                    badgeIcon: IconsaxPlusLinear.moon,
+                  ),
+                  const SizedBox(height: 20),
+                  _MonthCalendarCard(
+                    month: _month,
+                    onPrev: () => _shiftMonth(-1),
+                    onNext: () => _shiftMonth(1),
+                  ),
+                  const SizedBox(height: 24),
+                  const _LunarReminderConfigCard(),
+                ],
+              ),
             ),
-          ),
+            const StatusBarScrim(),
+          ],
         ),
       ),
     );
@@ -179,7 +188,7 @@ class _MonthCalendarCard extends StatelessWidget {
           Text(
             l10n.lunarReminderToggleSub,
             style: const TextStyle(
-              color: AppColors.textTertiary,
+              color: AppColors.textSecondary,
               fontSize: 11,
               height: 1.3,
             ),
@@ -239,8 +248,8 @@ class _DayCell extends StatelessWidget {
             style: TextStyle(
               color: isReminderDay
                   ? AppColors.accentLoveDeep
-                  : AppColors.textTertiary,
-              fontSize: 9,
+                  : AppColors.textSecondary,
+              fontSize: 10,
               fontWeight: isReminderDay ? FontWeight.w800 : FontWeight.w500,
             ),
           ),

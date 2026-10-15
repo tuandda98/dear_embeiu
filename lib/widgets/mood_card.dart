@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import '../models/couple.dart';
 import '../models/mood.dart';
 import '../providers/auth_provider.dart';
 import '../providers/mood_provider.dart';
+import '../services/mood_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import 'animated_couple_name.dart';
@@ -189,18 +191,27 @@ class MoodCard extends StatelessWidget {
     );
   }
 
-  void _openPicker(BuildContext context, Mood? current) {
-    HapticFeedback.selectionClick();
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ChangeNotifierProvider<MoodProvider>.value(
-        value: context.read<MoodProvider>(),
-        child: _MoodPickerSheet(current: current),
-      ),
-    );
-  }
+  void _openPicker(BuildContext context, Mood? current) =>
+      showMoodPicker(context);
+}
+
+/// Opens today's mood picker from anywhere (this card, the Love Tree's "Chia sẻ
+/// ngay").
+void showMoodPicker(BuildContext context) {
+  HapticFeedback.selectionClick();
+  final provider = context.read<MoodProvider>();
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    // Tall on a small screen with big text: stop under the status bar
+    // (opened over the Love Tree's night sky the icons there are light).
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => ChangeNotifierProvider<MoodProvider>.value(
+      value: provider,
+      child: _MoodPickerSheet(current: provider.myMood),
+    ),
+  );
 }
 
 /// One half of the card: a member's label + their mood (emoji + note) or an
@@ -447,7 +458,8 @@ class _MoodMatched extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: AppColors.accentLoveDeep,
-              fontSize: 12.5,
+              // Type scale (audit R2-f): 13 body-s, one step above the 12 notes.
+              fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -506,16 +518,29 @@ class _MoodPickerSheetState extends State<_MoodPickerSheet> {
     super.dispose();
   }
 
-  Future<void> _save() async {
+  /// Closes right away: my card already shows the pick, and the write may wait
+  /// for the network (offline it goes out later). Waiting here kept the sheet
+  /// open offline, and every extra tap queued one more write.
+  void _save() {
     final key = _selected;
     if (key == null) {
       return;
     }
     HapticFeedback.lightImpact();
-    await context.read<MoodProvider>().setMood(key, note: _noteController.text);
-    if (mounted) {
-      Navigator.of(context).maybePop();
-    }
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final failed = context.l10n.moodSaveFailed;
+    // Saved mid-word: the word being composed is cut, not the note's end.
+    final typed = _noteController.value;
+    final note = _fitNoteInput(
+      typed,
+      typed.copyWith(composing: TextRange.empty),
+    ).text;
+    context.read<MoodProvider>().setMood(key, note: note).then((saved) {
+      if (!saved) {
+        messenger?.showSnackBar(SnackBar(content: Text(failed)));
+      }
+    });
+    Navigator.of(context).maybePop();
   }
 
   @override
@@ -535,86 +560,176 @@ class _MoodPickerSheetState extends State<_MoodPickerSheet> {
               color: AppColors.cardSurface,
               borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.textTertiary.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  l10n.moodSheetTitle,
-                  textAlign: TextAlign.center,
-                  style: AppTheme.displaySerif(
-                    size: 22,
-                    weight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 10,
-                  runSpacing: 12,
-                  children: [
-                    for (final o in kMoodOptions)
-                      _MoodChoice(
-                        option: o,
-                        label: moodLabel(l10n, o.key),
-                        selected: _selected == o.key,
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _selected = o.key);
-                        },
+            child: SingleChildScrollView(
+              // Small screen + big text: scroll instead of overflowing.
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.textTertiary.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                TextField(
-                  controller: _noteController,
-                  maxLength: kMoodNoteMaxLength,
-                  minLines: 1,
-                  maxLines: 3,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    hintText: l10n.moodNoteHint,
-                    counterText: '',
-                    filled: true,
-                    fillColor: AppColors.surfaceLight,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _selected == null ? null : _save,
-                    child: Text(l10n.moodSaveCta),
+                  const SizedBox(height: 18),
+                  Text(
+                    l10n.moodSheetTitle,
+                    textAlign: TextAlign.center,
+                    style: AppTheme.displaySerif(
+                      size: 22,
+                      weight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.2,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 18),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    runSpacing: 12,
+                    children: [
+                      for (final o in kMoodOptions)
+                        _MoodChoice(
+                          option: o,
+                          label: moodLabel(l10n, o.key),
+                          selected: _selected == o.key,
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _selected = o.key);
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  TextField(
+                    controller: _noteController,
+                    maxLength: kMoodNoteMaxLength,
+                    // Android's default cuts the END of the note when a word
+                    // being composed (glide typing) passes the limit; this way
+                    // [_fitNoteInput] cuts that word once it's done, as on iOS.
+                    maxLengthEnforcement:
+                        MaxLengthEnforcement.truncateAfterCompositionEnds,
+                    inputFormatters: [
+                      TextInputFormatter.withFunction(_fitNoteInput),
+                    ],
+                    minLines: 1,
+                    maxLines: 3,
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(
+                      hintText: l10n.moodNoteHint,
+                      counterText: '',
+                      filled: true,
+                      fillColor: AppColors.surfaceLight,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _selected == null ? null : _save,
+                      child: Text(l10n.moodSaveCta),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+/// `maxLength` counts an emoji as 1, the rule as 2–11: the note field stops
+/// where the save would cut (once IME composing — Telex — is done). Only what
+/// was just typed or pasted is cut, on whole characters: the note already
+/// there stays whole and the cursor stays right after the new text (pasting
+/// at the start of a full note used to drop the note's last words). Gboard
+/// re-composes the word the user taps into: its letters after the cursor were
+/// there before, so what is cut is what sits right before the cursor ("hello"
+/// + "x" in a full note stays "hello", not "hellx").
+TextEditingValue _fitNoteInput(
+  TextEditingValue oldValue,
+  TextEditingValue newValue,
+) {
+  final text = newValue.text;
+  if (newValue.composing.isValid || text.length <= kMoodNoteMaxLength) {
+    return newValue;
+  }
+  final old = oldValue.text;
+  // A word Telex just finished counts as typed now, like the rest.
+  final composing = oldValue.composing;
+  final cursor = newValue.selection.isValid
+      ? newValue.selection.end
+      : text.length;
+  // Unchanged: the text after the cursor, and what both values start with.
+  var tailMax = math.min(text.length - cursor, old.length);
+  if (composing.isValid) {
+    tailMax = math.min(tailMax, old.length - composing.end);
+  }
+  var tail = 0;
+  while (tail < tailMax &&
+      old.codeUnitAt(old.length - 1 - tail) ==
+          text.codeUnitAt(text.length - 1 - tail)) {
+    tail++;
+  }
+  var headMax = math.min(old.length, text.length) - tail;
+  if (composing.isValid) {
+    headMax = math.min(headMax, composing.start);
+  }
+  var same = 0;
+  while (same < headMax && old.codeUnitAt(same) == text.codeUnitAt(same)) {
+    same++;
+  }
+  var head = 0; // back to a character boundary
+  for (final ch in text.characters) {
+    if (head + ch.length > same) {
+      break;
+    }
+    head += ch.length;
+  }
+  final end = text.length - tail;
+  // A word re-composed around the cursor (audit N3b): keep its letters after
+  // the cursor, cut what was typed before it.
+  var after = 0;
+  if (composing.isValid &&
+      cursor > head &&
+      cursor < end &&
+      end - cursor <= kMoodNoteMaxLength - head - tail) {
+    after = end - cursor;
+  }
+  var keep = 0;
+  for (final ch in text.substring(head, end - after).characters) {
+    if (head + keep + ch.length + after + tail > kMoodNoteMaxLength) {
+      break;
+    }
+    keep += ch.length;
+  }
+  if (keep == 0 && after == 0 && !composing.isValid) {
+    return oldValue; // none of it fits: the keystroke / paste is refused
+  }
+  final cut = MoodService.fitNote(
+    text.substring(0, head + keep) + text.substring(end - after),
+  );
+  return TextEditingValue(
+    text: cut,
+    selection: TextSelection.collapsed(
+      offset: math.min(head + keep, cut.length),
+    ),
+  );
 }
 
 class _MoodChoice extends StatelessWidget {

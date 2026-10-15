@@ -14,6 +14,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
 import 'app/app_routes.dart';
+import 'app/route_observers.dart';
 import 'providers/auth_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/couple_provider.dart';
@@ -29,6 +30,8 @@ import 'providers/photo_provider.dart';
 import 'providers/answer_reaction_provider.dart';
 import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
+import 'providers/rps_game_provider.dart';
+import 'providers/sleep_provider.dart';
 import 'providers/streak_provider.dart';
 import 'screens/force_update_screen.dart';
 import 'screens/forgot_password_screen.dart';
@@ -42,6 +45,7 @@ import 'screens/verify_email_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_bootstrap_service.dart';
+import 'services/home_widget_bridge.dart';
 import 'services/install_state_service.dart';
 import 'services/push_notification_service.dart';
 import 'services/reminder_service.dart';
@@ -223,6 +227,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final AuthProvider _authProvider =
       AuthProvider(authService: widget.authService);
 
+  // Home-screen widget (feature home-widget): the bridge listens to these two,
+  // so they are owned here instead of being created inside MultiProvider.
+  final CoupleProvider _coupleProvider = CoupleProvider();
+  late final LocaleProvider _localeProvider =
+      LocaleProvider(initialLocale: widget.initialLocale);
+
   // App-level navigator key (#3): lets the session-revocation listener route
   // from outside the widget tree without threading a context around.
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
@@ -232,6 +242,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _authProvider.addListener(_handleAuthProviderChanged);
+    HomeWidgetBridge.bind(_coupleProvider, _localeProvider);
+    HomeWidgetBridge.consumeLaunch();
   }
 
   @override
@@ -239,6 +251,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _authProvider.removeListener(_handleAuthProviderChanged);
     _authProvider.dispose();
+    _coupleProvider.dispose();
+    _localeProvider.dispose();
     super.dispose();
   }
 
@@ -267,6 +281,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // therefore the partner's notifications) silently unregistered.
     if (state == AppLifecycleState.resumed) {
       _authProvider.refreshPushRegistration();
+      HomeWidgetBridge.consumeLaunch();
     }
   }
 
@@ -275,7 +290,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>.value(value: _authProvider),
-        ChangeNotifierProvider(create: (_) => CoupleProvider()),
+        ChangeNotifierProvider<CoupleProvider>.value(value: _coupleProvider),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
         ChangeNotifierProvider(create: (_) => ReactionProvider()),
         ChangeNotifierProvider(create: (_) => AnswerReactionProvider()),
@@ -285,21 +300,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         // when the couple opted in (prefs/home.aiQuestionsEnabled). Both stay at
         // priority 0 on purpose — a boosted source would run EVERY day.
         ChangeNotifierProvider(
-          create: (_) => DailyQuestionProvider()
-            ..engine.registerSource(RevisitQuestionSource())
-            ..engine.registerSource(AiQuestionSource()),
+          create: (_) {
+            final provider = DailyQuestionProvider()
+              ..engine.registerSource(RevisitQuestionSource());
+            if (kAiQuestionsFeatureEnabled) {
+              provider.engine.registerSource(AiQuestionSource());
+            }
+            return provider;
+          },
         ),
         ChangeNotifierProvider(create: (_) => MoodProvider()),
         ChangeNotifierProvider(create: (_) => StreakProvider()),
         ChangeNotifierProvider(create: (_) => NotificationInboxProvider()),
-        ChangeNotifierProvider(
-          create: (_) => LocaleProvider(initialLocale: widget.initialLocale),
-        ),
+        ChangeNotifierProvider<LocaleProvider>.value(value: _localeProvider),
         ChangeNotifierProvider(create: (_) => ReminderProvider()..load()),
         ChangeNotifierProvider<CustomRemindersProvider>.value(
           value: widget.customRemindersProvider,
         ),
         ChangeNotifierProvider(create: (_) => PartnerReminderProvider()),
+        // Rock-paper-scissors (feature rps-game, 2026-09-13) — watch wired in
+        // SessionResolver like mood/chat.
+        ChangeNotifierProvider(create: (_) => RpsGameProvider()),
+        // Sleep (feature sleep, 2026-10-10) — watch wired in SessionResolver.
+        ChangeNotifierProvider(create: (_) => SleepProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
@@ -345,6 +368,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             navigatorObservers: [
               if (AnalyticsService.instance.observer != null)
                 AnalyticsService.instance.observer!,
+              // Page cover/uncover events for RouteAware screens (rps-game
+              // pauses its presence heartbeat while covered).
+              appPageRouteObserver,
             ],
             debugShowCheckedModeBanner: false,
             routes: {

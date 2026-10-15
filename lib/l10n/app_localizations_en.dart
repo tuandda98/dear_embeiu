@@ -9,6 +9,69 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get loveTreeShareFirstDay => 'Our first day together';
+
+  @override
+  String get loveTreeShareMessageSeed =>
+      'Our love tree just sprouted 🌱💞 — grow yours together on Dear Embeiu.';
+
+  @override
+  String get sleepTheirClock => 'Their time';
+
+  @override
+  String get sleepManualSemantics => '(logged by hand)';
+
+  @override
+  String get moodSaveFailed => 'Couldn\'t save your mood, please try again';
+
+  @override
+  String get setPasswordTitle => 'Set a password';
+
+  @override
+  String get setPasswordSubtitle =>
+      'To sign in with your email on another phone';
+
+  @override
+  String setPasswordBody(String email) {
+    return 'Once set, you can sign in with $email and this password, on iPhone or Android.';
+  }
+
+  @override
+  String setPasswordConfirmNote(String provider) {
+    return '$provider may ask you to confirm it\'s you.';
+  }
+
+  @override
+  String setPasswordDone(String email) {
+    return 'Password set. On another phone, sign in with $email.';
+  }
+
+  @override
+  String get setPasswordAlreadySet => 'This account already has a password.';
+
+  @override
+  String get setPasswordEmailTaken =>
+      'This email belongs to another account, so the password wasn\'t set.';
+
+  @override
+  String get setPasswordWrongGoogleAccount =>
+      'That\'s a different Google account. Pick the one you use for Dear Embeiu, then try again.';
+
+  @override
+  String get setPasswordFailed =>
+      'Couldn\'t set the password. Please try again.';
+
+  @override
+  String get setPasswordAppleIdMismatch =>
+      'This device is using a different Apple ID. To set a password, open the app on a device that uses this account\'s Apple ID.';
+
+  @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
+
+  @override
   String get badgeCareLabel => 'care notes';
 
   @override
@@ -16,14 +79,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get careTimelineSeeAll => 'See all';
-
-  @override
-  String get careTimelineTile => 'Care notes';
-
-  @override
-  String careTimelineCount(int count) {
-    return '$count notes between you';
-  }
 
   @override
   String get careTimelineYesterday => 'Yesterday';
@@ -144,7 +199,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWaitingStep1Desc =>
-      'Send this invite code to your partner in a message.';
+      'Send the code in a message, or let them scan the QR code if you\'re together.';
 
   @override
   String get homeWaitingStep1Cta => 'Send it to them 💌';
@@ -157,7 +212,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWaitingStep2Desc =>
-      'They need to install Dear Embeiu (iOS/Android), sign up, then pick <Enter invite code>.';
+      'They need to install Dear Embeiu (iOS/Android), sign up, then pick <Join with code>.';
 
   @override
   String get homeWaitingStep3Title => 'Entering the code is all it takes';
@@ -194,6 +249,48 @@ class AppLocalizationsEn extends AppLocalizations {
       'Our memories are waiting for them. Remind them to download the app';
 
   @override
+  String get inviteQrBtn => 'QR code';
+
+  @override
+  String get inviteQrTitle => 'Let them scan this code';
+
+  @override
+  String get inviteQrBody =>
+      'They open their Camera and point it here to get Dear Embeiu, with your invite code ready.';
+
+  @override
+  String get inviteQrFallback =>
+      'Can\'t scan? Read this code out for them to type in.';
+
+  @override
+  String get inviteQrDone => 'Done';
+
+  @override
+  String inviteQrSemantics(String code) {
+    return 'Invite QR code, code $code';
+  }
+
+  @override
+  String get clipboardInviteTitle => 'Use the code from your invite?';
+
+  @override
+  String get clipboardInviteBody =>
+      'The invite link you opened has this code. Pair up to join your partner\'s space.';
+
+  @override
+  String get clipboardInviteJoin => 'Pair up now';
+
+  @override
+  String get clipboardInviteSkip => 'Skip';
+
+  @override
+  String get inviteFollowUpTitle2h => 'Send your partner the invite 💌';
+
+  @override
+  String get inviteFollowUpBody2h =>
+      'Together right now? Let them scan the QR code. Apart? Send it in a message. It takes about 10 seconds.';
+
+  @override
   String get back => 'Back';
 
   @override
@@ -212,9 +309,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueBtn => 'Continue';
 
   @override
-  String get keep => 'Keep';
-
-  @override
   String get splashTagline => 'Our story';
 
   @override
@@ -222,16 +316,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkingSession => 'Checking your session...';
-
-  @override
-  String get loginTitle => 'Welcome back';
-
-  @override
-  String get loginSubtitle => 'Sign in to keep counting every day of you two.';
-
-  @override
-  String get loginLocalFallback =>
-      'Local fallback is on — Firebase will be wired up later.';
 
   @override
   String get emailLabel => 'Email';
@@ -265,17 +349,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createAccountLink => 'Create an account';
-
-  @override
-  String get registerTitle => 'Begin your\nlove story';
-
-  @override
-  String get registerSubtitle =>
-      'Create an account to keep every day of you two safe.';
-
-  @override
-  String get registerLocalFallback =>
-      'Local fallback is on — Firebase will be wired up later.';
 
   @override
   String get displayNameLabel => 'Display name';
@@ -394,9 +467,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yourInviteCodeTitle => 'Your invite code';
 
   @override
-  String get sendToPartnerHint => 'Send this to them';
-
-  @override
   String get inviteCodeTiedToAccount => 'Code tied to your account';
 
   @override
@@ -407,9 +477,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please fill in both names and the anniversary date.';
 
   @override
-  String setupErrorSaveCouple(String error) {
-    return 'Could not save couple info: $error';
-  }
+  String get setupErrorSaveCouple =>
+      'Couldn\'t save your couple info. Please try again.';
 
   @override
   String get setupErrorNoAccountShort => 'No account found.';
@@ -418,9 +487,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupErrorNoInviteCode => 'Please enter the invite code first.';
 
   @override
-  String setupErrorJoinCouple(String error) {
-    return 'Could not join couple: $error';
-  }
+  String get setupErrorJoinCouple => 'Couldn\'t pair up. Please try again.';
 
   @override
   String get setupSuccessConnected => 'Connected successfully 💞';
@@ -439,10 +506,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatBadge => 'JUST THE TWO OF US';
-
-  @override
-  String get chatHeaderSubtitle =>
-      'Where the two of you talk about everything.';
 
   @override
   String get chatEmptyHint =>
@@ -513,7 +576,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String lunarOtherDayNotifBody(int day) {
-    return 'Today is the ${day}th day of the lunar month.';
+    return 'Today is lunar day $day.';
   }
 
   @override
@@ -548,12 +611,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ourStoryBadge => 'OUR STORY';
 
   @override
-  String get helloGreeting => 'Hello,';
-
-  @override
-  String get homeSubtitle => 'A good day to look back at your love story.';
-
-  @override
   String get homeGreetingMorning => 'Good morning,';
 
   @override
@@ -564,42 +621,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeGreetingNight => 'Up late,';
-
-  @override
-  String get homeGreetingTeaser1 => 'Send them a big warm hug 🤗';
-
-  @override
-  String get homeGreetingTeaser2 => 'Said \"I love you\" today? 💕';
-
-  @override
-  String get homeGreetingTeaser3 => 'Send them a cute photo 📸';
-
-  @override
-  String get homeGreetingTeaser4 => 'They can\'t wait to hear from you 🕊️';
-
-  @override
-  String get homeGreetingTeaser5 => 'Don\'t forget today\'s question ✨';
-
-  @override
-  String get homeGreetingTeaser6 => 'Send something sweet their way 🍯';
-
-  @override
-  String get homeGreetingTeaser7 => 'Say a little thank-you today 💞';
-
-  @override
-  String get homeGreetingTeaser8 => 'A calm moment together is enough 🍃';
-
-  @override
-  String get homeGreetingTeaser9 => 'A beautiful day to love 💖';
-
-  @override
-  String get homeGreetingTeaser10 => 'Tell them you miss them 💭';
-
-  @override
-  String get homeGreetingTeaser11 => 'Keep writing your love story together ✍️';
-
-  @override
-  String get homeGreetingTeaser12 => 'Keep your love streak going 🔥';
 
   @override
   String get homeTodaySectionTitle => 'Today, together';
@@ -625,35 +646,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dailyCollapse => 'Collapse';
 
   @override
-  String loveNoteSealedTitle(String name) {
-    return 'A new note from $name';
-  }
-
-  @override
-  String get loveNoteSealedTap => 'Tap to open 💌';
-
-  @override
-  String get loveNoteNewBadge => 'NEW';
-
-  @override
-  String get loveNoteComposeCta => 'Compose a message';
-
-  @override
-  String loveNoteSheetTitleTo(String name) {
-    return 'Send a note to $name';
-  }
-
-  @override
-  String get journalLinkShort => 'Journal';
-
-  @override
   String milestoneNextLabel(String label) {
     return 'Milestone: $label';
   }
 
   @override
   String milestoneDaysLeft(int count) {
-    return '$count days left';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days left',
+      one: '1 day left',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -678,22 +683,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Once you\'re paired, you\'ll answer a question like this together every day 💞';
 
   @override
-  String get loveNoteHistoryLinkShort => 'Past notes';
-
-  @override
-  String get loveNoteReplyCta => 'Reply…';
-
-  @override
-  String get loveNoteSendFirstCta => 'Send the first note…';
-
-  @override
-  String get loveNoteStartChat =>
-      'No notes yet — send each other the first one 💌';
-
-  @override
-  String get loveNoteYouLabel => 'You';
-
-  @override
   String notificationBellLabel(int count) {
     return 'Notifications, $count unread';
   }
@@ -711,46 +700,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String daysUntilNextAnniversary(int count) {
-    return '$count days until your next anniversary';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days until your next anniversary',
+      one: '1 day until your next anniversary',
+    );
+    return '$_temp0';
   }
-
-  @override
-  String get quickMomentsTitle => 'Quick moments';
-
-  @override
-  String get quickMomentsSubtitle => 'Shortcuts to revisit your story';
 
   @override
   String get addMemoryCta => 'Add a memory';
-
-  @override
-  String get addMemoryCtaSubtitle => 'Post a new photo for you both to keep';
-
-  @override
-  String cinemaCardSemantics(String caption, int index, int total) {
-    return 'Memory: $caption, photo $index of $total. Tap to view full screen.';
-  }
-
-  @override
-  String get memoriesCardTitle => 'Memories';
-
-  @override
-  String get viewAllPhotos => 'View all photos';
-
-  @override
-  String get profileCardTitle => 'Profile';
-
-  @override
-  String get updateInfo => 'Update info';
-
-  @override
-  String get milestoneCardTitle => 'Milestone';
-
-  @override
-  String get loveInNumbersTitle => 'Love in numbers';
-
-  @override
-  String get loveInNumbersSubtitle => 'Little stats from your journey';
 
   @override
   String get daysTogether => 'Days together';
@@ -768,49 +728,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get secondsShort => 'sec';
 
   @override
-  String get memoriesSaved => 'Memories saved';
-
-  @override
-  String get photosUnit => 'photos';
-
-  @override
-  String get nextAnniversaryLabel => 'Next anniversary';
-
-  @override
-  String get daysAway => 'days away';
-
-  @override
-  String get nextMilestoneTitle => 'Next milestone';
-
-  @override
-  String get milestoneProgressTitle => 'Milestone progress';
-
-  @override
-  String get milestoneProgressSubtitle =>
-      'Gently approaching the next sweet number';
-
-  @override
   String get recentMemoriesTitle => 'Recent memories';
 
   @override
-  String onThisDayTitle(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count years ago',
-      one: '1 year ago',
-    );
-    return 'On this day, $_temp0 💞';
-  }
-
-  @override
-  String get onThisDaySubtitle => 'A memory from this very day';
-
-  @override
   String get addPhotosPrompt => 'Add a few photos to start your love letter';
-
-  @override
-  String get latestMomentsSubtitle => 'A few of your latest moments together';
 
   @override
   String get seeAll => 'See all';
@@ -818,102 +739,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get addPhotosEmpty =>
       'Add a few photos to start filling this love letter.';
-
-  @override
-  String get yourStorySoFar => 'Your story so far';
-
-  @override
-  String get whenItAllBegan => 'When it all began';
-
-  @override
-  String whenItAllBeganSubtitle(String name1, String name2, String date) {
-    return '$name1 & $name2 on $date';
-  }
-
-  @override
-  String monthiversaries(int count) {
-    return '$count monthiversaries';
-  }
-
-  @override
-  String get monthiversaryDesc =>
-      'Each month, another layer of understanding and tenderness.';
-
-  @override
-  String memoriesCaptured(int count) {
-    return '$count memories captured';
-  }
-
-  @override
-  String get memoriesCapturedDesc =>
-      'Your library is becoming a quiet little album.';
-
-  @override
-  String get loveNoteLabel => 'Love note';
-
-  @override
-  String loveNoteQuote(int count) {
-    return '\"$count days isn\'t just time — it\'s every soft moment, every choice to stay, every little kindness we share.\"';
-  }
-
-  @override
-  String loveNoteFromPartner(String name) {
-    return 'Note from $name';
-  }
-
-  @override
-  String loveNoteEmptyFromPartner(String name) {
-    return 'No note from $name yet';
-  }
-
-  @override
-  String get loveNoteWriteCta => 'Write a note';
-
-  @override
-  String get loveNoteEditCta => 'Edit your note';
-
-  @override
-  String get loveNoteWaitingPartner =>
-      'Invite your partner so you can leave little notes for each other.';
-
-  @override
-  String get loveNoteSheetTitle => 'Your love note';
-
-  @override
-  String get loveNoteSheetHint => 'Write something sweet for your partner…';
-
-  @override
-  String loveNoteCharCount(int count) {
-    return '$count/140';
-  }
-
-  @override
-  String get loveNoteSaved => 'Your note was sent 💞';
-
-  @override
-  String get loveNoteSendFailed =>
-      'Couldn\'t send the note — please try again.';
-
-  @override
-  String get loveNoteHistoryCta => 'See past notes';
-
-  @override
-  String get loveNoteHistoryTitle => 'Note journal';
-
-  @override
-  String get loveNoteHistorySubtitle =>
-      'Every note you two have left for each other.';
-
-  @override
-  String get loveNoteHistoryBadge => 'LOVE NOTES';
-
-  @override
-  String get loveNoteHistoryHeaderSubtitle =>
-      'Every note the two of you have sent.';
-
-  @override
-  String get loveNoteHistoryEmpty =>
-      'No notes saved yet. The ones you send each other will be kept here.';
 
   @override
   String get loveNoteJustNow => 'just now';
@@ -961,21 +786,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reactionAddTooltip => 'React';
 
   @override
-  String get reactionChangeTooltip => 'Change reaction';
-
-  @override
   String get reactionRemoveTooltip => 'Remove reaction';
 
   @override
   String get reactionErrorRetry => 'Couldn\'t react, try again';
 
   @override
-  String reactionPartnerReacted(String name, String emoji) {
-    return '$name reacted $emoji';
-  }
-
-  @override
-  String get reactionBothLabel => 'You both reacted 💞';
+  String get dailyQuestionSubmitError =>
+      'Couldn\'t send your answer. Please try again.';
 
   @override
   String get reactionBothShort => 'You both reacted';
@@ -1052,11 +870,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dailyQuestionHint => 'Write your answer…';
 
   @override
-  String dailyQuestionCharCount(int count) {
-    return '$count/280';
-  }
-
-  @override
   String get dailyQuestionSend => 'Send';
 
   @override
@@ -1077,33 +890,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'It will unlock once your partner joins and answers too.';
 
   @override
-  String get dailyQuestionRevealHint =>
-      'You both answered — here\'s what you each said 💞';
-
-  @override
   String get dailyQuestionSent => 'Your answer was sent 💞';
 
   @override
-  String get journalEntryCta => 'Open journal';
-
-  @override
-  String get journalScreenTitle => 'Question journal';
-
-  @override
-  String get journalScreenSubtitle => 'The questions you\'ve both answered.';
-
-  @override
   String get journalBadge => 'QUESTION JOURNAL';
-
-  @override
-  String get journalHeaderSubtitle =>
-      'The questions you two have answered together.';
-
-  @override
-  String get journalSettingsTile => 'Question journal';
-
-  @override
-  String get journalSettingsSection => 'Memories';
 
   @override
   String get journalYourAnswerLabel => 'YOUR ANSWER';
@@ -1140,14 +930,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journalRetry => 'Try again';
 
   @override
-  String get loveNoteYourNoteLabel => 'YOUR NOTE';
-
-  @override
   String get milestoneReached => 'You just reached a beautiful milestone ✨';
 
   @override
   String onlyDaysUntilMilestone(int count) {
-    return 'Only $count days until your next milestone.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Only $count days until your next milestone.',
+      one: 'Only 1 day until your next milestone.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1157,7 +950,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String daysCountLabel(int count) {
-    return '$count days';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1194,19 +993,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privateGalleryBadge => 'PHOTO LIBRARY';
 
   @override
-  String get galleryTitle => 'Photo Library';
-
-  @override
-  String get gallerySubtitle =>
-      'Swipe up to quickly bring up the post frame and manage memories.';
-
-  @override
-  String get addCaptionTitle => 'Add caption';
-
-  @override
-  String get addCaptionHint => 'Write a few lines about this moment...';
-
-  @override
   String get addCaptionOptionalTitle => 'Add caption (optional)';
 
   @override
@@ -1238,12 +1024,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String momentsCount(int count) {
-    return '$count moments';
-  }
-
-  @override
-  String daysTogetherCount(int count) {
-    return '$count days together';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moments',
+      one: '1 moment',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1257,24 +1044,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cameraUnavailable =>
-      'Couldn\'t open the camera. Try again or check camera permission (the Simulator has no camera — use a real device).';
-
-  @override
-  String get galleryDraftTitle => 'Review & post';
-
-  @override
-  String get galleryDraftCaptionHint => 'Add a shared caption (optional)…';
-
-  @override
-  String get galleryDraftEmpty => 'All photos removed.';
-
-  @override
-  String galleryDraftPostBtn(int count) {
-    return 'Post $count photos';
-  }
-
-  @override
-  String get createPostTitle => 'New memory';
+      'Couldn\'t open the camera. Try again, or turn on camera access for the app in your phone\'s Settings.';
 
   @override
   String get createPostBadge => 'NEW MEMORY';
@@ -1338,38 +1108,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String compactCaption(int count) {
-    return '$count moments · Swipe to expand post frame';
-  }
-
-  @override
-  String get todayInLoveBadge => 'TODAY IN LOVE';
-
-  @override
-  String get storyStripBadge => 'STORY STRIP';
-
-  @override
-  String get memoriesTodayTitle => 'Memories today';
-
-  @override
-  String get recentPhotosTitle => 'Recent photos';
-
-  @override
-  String get memoriesTodaySubtitle =>
-      'Moments saved on this exact date, tender and personal.';
-
-  @override
-  String get recentPhotosSubtitle =>
-      'A small story strip for a quick look at your latest moments.';
-
-  @override
-  String get memoryBadge => 'Memory';
-
-  @override
-  String get newBadge => 'New';
-
-  @override
-  String momentLabel(int number) {
-    return 'Moment #$number';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moments · Swipe to expand post frame',
+      one: '1 moment · Swipe to expand post frame',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1403,12 +1148,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportSentConfirm => 'Report sent, thank you.';
 
   @override
-  String get editAction => 'Edit';
-
-  @override
-  String get deleteAction => 'Delete';
-
-  @override
   String get startNewfeedTitle => 'Start building a memory newsfeed';
 
   @override
@@ -1429,7 +1168,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String multiplePhotosAdded(int count) {
-    return 'Added $count photos!';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Added $count photos!',
+      one: 'Added 1 photo!',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1512,108 +1257,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loveProfileBadge => 'LOVE PROFILE';
 
   @override
-  String get profileTitle => 'Your profile';
-
-  @override
-  String get profileSubtitle =>
-      'A private corner to look back on your love journey, milestones, and memory album.';
-
-  @override
-  String get todayIsAnniversaryProfile => 'Today is your anniversary ✨';
-
-  @override
-  String daysUntilAnniversaryProfile(int count) {
-    return '$count days until the next anniversary';
-  }
-
-  @override
-  String khoanhKhacCount(int count) {
-    return '$count moments';
-  }
-
-  @override
-  String get privateDiaryLabel => 'Private diary';
-
-  @override
-  String get loveMilestonesLabel => 'Love milestones';
-
-  @override
-  String get journeySnapshotTitle => 'Journey snapshot';
-
-  @override
   String get yearsTogether => 'Years';
 
   @override
   String get monthsRemaining => 'Months';
 
   @override
-  String get totalDaysLabel => 'Total days';
-
-  @override
-  String get totalHoursLabel => 'Total hours';
-
-  @override
-  String get memoriesSavedLabel => 'Memories saved';
-
-  @override
-  String get infoAndRhythmTitle => 'Info & rhythm';
-
-  @override
-  String get infoAndRhythmSubtitle =>
-      'A clearer look at your start date, album, and upcoming milestones.';
-
-  @override
-  String get loveStartDateLabel => 'Love start date';
-
-  @override
   String get yourInviteCodeLabel => 'Your account invite code';
 
   @override
-  String get memoryAlbumLabel => 'Memory album';
-
-  @override
-  String memoryAlbumValue(int count) {
-    return '$count photos saved in private album';
-  }
-
-  @override
-  String get upcomingMilestoneLabel => 'Upcoming milestone';
-
-  @override
-  String get todaySpecialMsg => 'Today is a very special day for you two';
-
-  @override
-  String daysUntilNextMsg(int count) {
-    return '$count more days until the next anniversary';
-  }
-
-  @override
-  String get customizeProfileTitle => 'Customize profile';
-
-  @override
-  String get customizeProfileSubtitle =>
-      'Update names, anniversary date, and couple photo so the profile always reflects your current journey.';
-
-  @override
   String get editOurStoryBtn => 'Edit our story';
-
-  @override
-  String get profileChipDaysLabel => 'days together';
-
-  @override
-  String get profileChipAnniversaryLabel => 'days to anniversary';
-
-  @override
-  String get profileChipAnniversaryTodayLabel => 'anniversary is today!';
-
-  @override
-  String get profileChipPhotosLabel => 'memories saved';
-
-  @override
-  String get profileMemoryChestTitle => 'Memory chest';
-
-  @override
-  String get profileStreakTile => 'Connection streak';
 
   @override
   String get settingsSectionAccount => 'Account';
@@ -1623,16 +1276,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSectionGeneral => 'General';
-
-  @override
-  String get settingsPushGroupLabel => 'Push from your partner';
-
-  @override
-  String get proTipLabel => 'Pro tip';
-
-  @override
-  String get proTipContent =>
-      'A bright, close-up couple photo with good breathing room will make the hero section look much more polished.';
 
   @override
   String get dataManagementTitle => 'Data management';
@@ -1650,10 +1293,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaveCoupleBtn => 'Leave couple';
-
-  @override
-  String get clearDataNote =>
-      'Deleting all shared data is currently not allowed from one side. In the next sprint, this will be changed to a flow requiring both to confirm.';
 
   @override
   String get clearLocalDialogTitle => 'Clear data on this device';
@@ -1692,25 +1331,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get localDataClearedMsg =>
-      'Local data on this device has been cleared. Shared data on cloud is preserved.';
+      'Local data on this device has been cleared. Shared data in the cloud is preserved.';
 
   @override
   String get languageTitle => 'Language';
-
-  @override
-  String get languageSubtitle => 'Choose the app display language';
 
   @override
   String get languageSystem => 'System default';
 
   @override
   String get languageSystemDesc => 'Follow device language';
-
-  @override
-  String get languageEnglish => 'English';
-
-  @override
-  String get languageVietnamese => 'Tiếng Việt';
 
   @override
   String get loadingCoupleInfo => 'Loading couple info...';
@@ -1742,22 +1372,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get remindersTitle => 'Love reminders';
-
-  @override
-  String get remindersSubtitle => 'Gentle nudges to keep your story growing';
-
-  @override
-  String get remindersToggleLabel => 'Milestone & anniversary reminders';
-
-  @override
-  String get remindersToggleDesc =>
-      'Reminds you of the milestones & anniversaries you choose. Required to use \"Our reminders\".';
-
-  @override
-  String get remindersTimeLabel => 'Reminder time';
-
-  @override
   String get remindersPermissionDeniedMsg =>
       'Turn on notifications in Settings to receive reminders.';
 
@@ -1769,18 +1383,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Nudges you both to answer each day, synced across both phones.';
 
   @override
-  String get dailyQuestionReminderTimeLabel => 'Remind me at';
-
-  @override
-  String get dailyQuestionReminderTimesLabel => 'Reminder times';
-
-  @override
   String get dailyQuestionReminderAddTime => 'Add a time';
-
-  @override
-  String dailyQuestionReminderRemoveTime(String time) {
-    return 'Remove reminder time $time';
-  }
 
   @override
   String get dailyQuestionReminderNotifTitle =>
@@ -1825,17 +1428,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String dqStreakWarningPartnerBody(int days) {
-    return 'Your partner hasn\'t answered yet. A little nudge keeps your $days-day streak alive!';
-  }
-
-  @override
   String get dqStreakWarningStartBody =>
       'The day\'s almost over! Answer today\'s question to start a new streak.';
-
-  @override
-  String get dqStreakWarningStartPartnerBody =>
-      'Your partner hasn\'t answered yet. Nudge them so you can start a streak together.';
 
   @override
   String get dqStreakWarningFinalTitle => 'Less than an hour left! ⏳';
@@ -1848,20 +1442,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dqStreakWarningFinalStartBody =>
       'Answer now to start a new streak before the day ends 🌱';
-
-  @override
-  String get reminderDailyTitle => 'Another day of us 💕';
-
-  @override
-  String get reminderDailyBody => 'Open Dear Embeiu and count today together.';
-
-  @override
-  String get reminderMilestoneApproachingTitle => 'A milestone is near 💕';
-
-  @override
-  String reminderMilestoneApproachingBody(int count, String milestone) {
-    return '$count days until your $milestone milestone!';
-  }
 
   @override
   String get reminderMilestoneTodayTitle => 'Milestone reached 🎉';
@@ -1886,23 +1466,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'It\'s been a while — add a new memory together 💕';
 
   @override
-  String get remindersV2MilestoneEntryTitle => 'Milestones & anniversaries';
-
-  @override
-  String get remindersV2MilestoneEntrySubtitle =>
-      'Choose which milestones to be reminded of';
-
-  @override
   String remindersV2MilestoneCountBadge(int count) {
     return '$count';
   }
 
   @override
   String get remindersV2MilestoneScreenTitle => 'Milestones & anniversaries';
-
-  @override
-  String get remindersV2MilestoneScreenCaption =>
-      'Choose the milestones you want and when to be reminded.';
 
   @override
   String get milestoneBadge => 'SPECIAL DAYS';
@@ -1935,7 +1504,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String remindersV2MilestoneYearsLabel(int count) {
-    return '$count years';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years',
+      one: '1 year',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1995,16 +1570,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Reminders, notifications, language and your account.';
 
   @override
-  String get settingsProfileTileSubtitle => 'Reminders, language, account';
-
-  @override
-  String get settingsRemindersModuleTitle => 'Reminders';
-
-  @override
-  String get settingsRemindersModuleSubtitle =>
-      'Milestones, anniversaries & your own reminders';
-
-  @override
   String get settingsRemindersEntryTitle => 'Reminders';
 
   @override
@@ -2022,26 +1587,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Milestones, anniversaries and your own reminders — all in one place.';
 
   @override
-  String get remindersHubMilestonesSection => 'Milestones & anniversaries';
-
-  @override
-  String get remindersHubMilestonesSectionSub =>
-      'Pick the milestones to be reminded of and set their times.';
-
-  @override
-  String get remindersHubCustomSection => 'Our reminders';
-
-  @override
-  String get remindersHubCustomSectionSub =>
-      'Create reminders for your own special days.';
-
-  @override
-  String get settingsAccountModuleTitle => 'Account & data';
-
-  @override
-  String get settingsAccountModuleSubtitle => 'Your story, data & account';
-
-  @override
   String get settingsAnalyticsTitle => 'Share usage data';
 
   @override
@@ -2049,76 +1594,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Help improve the app with anonymous data. We never collect your private content.';
 
   @override
-  String get settingsNotifTypesTitle => 'Notification types';
-
-  @override
-  String get settingsNotifTypesSubtitle =>
-      'Mute the push types you\'d rather not be interrupted by. They still appear in your notification center.';
-
-  @override
-  String get settingsNotifTypePhoto => 'New photos';
-
-  @override
-  String get settingsNotifTypePhotoSubtitle =>
-      'When your partner posts a photo';
-
-  @override
-  String get settingsNotifTypeReaction => 'Photo reactions';
-
-  @override
-  String get settingsNotifTypeReactionSubtitle =>
-      'When your partner reacts to your photo';
-
-  @override
-  String get settingsNotifTypeDailyQuestion => 'Daily question';
-
-  @override
-  String get settingsNotifTypeDailyQuestionSubtitle =>
-      'When your partner answers today\'s question';
-
-  @override
-  String get settingsEditStorySubtitle => 'Edit names, anniversary date, photo';
-
-  @override
-  String get settingsDefaultTimeLabel => 'Default time';
-
-  @override
-  String get settingsDefaultTimeSubtitle =>
-      'Used for milestones without a custom time';
-
-  @override
-  String settingsMilestoneUsesDefault(String time) {
-    return 'Default · $time';
-  }
-
-  @override
-  String get settingsMilestoneCustomTimeReset => 'Reset to default time';
-
-  @override
-  String get remindersV2ForceOpenTitle => 'Turn on reminders to continue';
-
-  @override
-  String get remindersV2ForceOpenBody =>
-      'You need to turn on \"Milestone & anniversary reminders\" to create and receive your own reminders.';
-
-  @override
-  String get remindersV2ForceOpenConfirm => 'Turn on';
-
-  @override
-  String get remindersV2ForceOpenLater => 'Later';
-
-  @override
-  String get remindersV2ForceOpenDeniedMsg =>
-      'Notification permission denied. Enable notifications in Settings to continue.';
-
-  @override
   String get languageSearchHint => 'Search languages';
-
-  @override
-  String get customRemindersEntryTitle => 'Our reminders';
-
-  @override
-  String get customRemindersEntrySubtitle => 'Create your own special dates';
 
   @override
   String get customRemindersScreenTitle => 'Our reminders';
@@ -2147,12 +1623,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customRemindersFabTooltip => 'Add reminder';
 
   @override
-  String get customRemindersItemMenuEdit => 'Edit';
-
-  @override
-  String get customRemindersItemMenuDelete => 'Delete';
-
-  @override
   String get customRemindersEmptyTitle => 'No reminders yet';
 
   @override
@@ -2164,16 +1634,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customRemindersAddAnother => 'Add a reminder';
-
-  @override
-  String get customRemindersOffTitle => 'Reminders are off';
-
-  @override
-  String get customRemindersOffBody =>
-      'Turn on \"Love reminders\" in Profile so your reminders can work.';
-
-  @override
-  String get customRemindersOffCta => 'Turn on reminders';
 
   @override
   String get customRemindersLimitMsg =>
@@ -2313,32 +1773,74 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authConfigNotFound =>
-      'Firebase Authentication for this project isn\'t enabled, or Email/Password is off. In Firebase Console > Authentication > Sign-in method > Email/Password, turn it on.';
+      'Email sign-in isn\'t available right now. Please try again later.';
 
   @override
   String get authEmailAlreadyUsed => 'This email is already in use.';
 
   @override
   String get authEmailPasswordNotEnabled =>
-      'Firebase Authentication isn\'t fully set up for Email/Password. In Firebase Console > Authentication > Sign-in method, enable Email/Password.';
+      'Email sign-in isn\'t available right now. Please try again later.';
 
   @override
-  String get authFirebaseAuthGeneric => 'A Firebase Auth error occurred.';
+  String get authFirebaseAuthGeneric =>
+      'Couldn\'t verify your account. Please try again.';
+
+  @override
+  String get continueWithApple => 'Continue with Apple';
+
+  @override
+  String get authOrDivider => 'or';
+
+  @override
+  String get appleSignInFailed =>
+      'Couldn\'t sign in with Apple. Please try again.';
+
+  @override
+  String get appleEmailHasPasswordAccount =>
+      'This email already has an account. Sign in the way you did before.';
+
+  @override
+  String get deleteAccountAppleNote =>
+      'Apple will then show a sign-in sheet to confirm it\'s you.';
+
+  @override
+  String get deleteAccountReauthBodyApple =>
+      'For your security, confirm with Apple again to permanently delete your account.';
+
+  @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get googleSignInFailed =>
+      'Couldn\'t sign in with Google. Please try again.';
+
+  @override
+  String get socialConsentPrefix => 'By continuing, you agree to our';
+
+  @override
+  String get deleteAccountReauthBodyGoogle =>
+      'Tap Delete permanently to try again. If it still fails, sign in with Google again, then delete.';
+
+  @override
+  String get deleteAccountAppleIdMismatch =>
+      'This device is using a different Apple ID. To delete the account, open the app on a device that uses this account\'s Apple ID.';
 
   @override
   String get authFirebaseUserCreateFailed =>
-      'Couldn\'t create your Firebase account.';
+      'Couldn\'t create your account. Please try again.';
 
   @override
-  String get authFirestoreGeneric => 'A Firestore error occurred.';
+  String get authFirestoreGeneric =>
+      'Couldn\'t sync your account data. Please try again.';
 
   @override
   String get authFirestorePermissionDenied =>
-      'Firestore is blocking writes to user data. Check this app\'s Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.';
+      'The server didn\'t accept your account info. Please try again in a few minutes.';
 
   @override
   String get authFirestoreUnavailable =>
-      'Firestore is currently unavailable or the network is unstable. Please try again in a few minutes.';
+      'Can\'t reach the server right now. It might be a network hiccup, so try again in a few minutes.';
 
   @override
   String get authInvalidCredential => 'Email or password is incorrect.';
@@ -2356,18 +1858,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authNetworkError =>
-      'No stable network connection to sign in to Firebase.';
+      'Your connection seems unstable. Check it and try again.';
 
   @override
   String get authSessionNotReady =>
-      'Your Firebase session isn\'t ready. Please sign in again.';
+      'Your session isn\'t ready yet. Please sign in again.';
 
   @override
-  String get authSessionUnavailable => 'Couldn\'t get your Firebase session.';
+  String get authSessionUnavailable =>
+      'Couldn\'t sign you in. Please try again.';
 
   @override
   String get authTooManyRequests =>
       'Too many sign-in attempts — please try again in a few minutes.';
+
+  @override
+  String get authUserDisabled =>
+      'This account has been disabled, so you can\'t sign in.';
 
   @override
   String get authWeakPassword =>
@@ -2428,7 +1935,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get coupleFirebaseUnavailable =>
-      'Firebase is currently unavailable or the network is unstable. Please try again in a few minutes.';
+      'Can\'t reach the server right now. It might be a network hiccup, so try again in a few minutes.';
 
   @override
   String get coupleFull => 'This couple already has two people.';
@@ -2466,19 +1973,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get couplePhotoUploadGeneric =>
-      'The couple photo couldn\'t be uploaded to Firebase Storage.';
+      'Couldn\'t upload your couple photo. Try changing it again later.';
 
   @override
   String get couplePhotoUploadPermission =>
-      'The couple photo couldn\'t be uploaded to Firebase Storage. Your couple info was saved first — deploy `storage.rules`, then try changing the photo again.';
+      'Couldn\'t upload your couple photo. Your couple info is saved, so just try changing the photo again later.';
 
   @override
   String get couplePhotoUploadSessionInvalid =>
-      'The couple photo couldn\'t be uploaded because your Firebase session is no longer valid.';
+      'Couldn\'t upload your couple photo because your session expired. Sign in again, then change the photo.';
 
   @override
   String get couplePhotoUploadUnavailable =>
-      'The couple photo couldn\'t be uploaded because Firebase Storage or the network is temporarily unstable.';
+      'Couldn\'t upload your couple photo. The network or server is acting up. Please try again later.';
 
   @override
   String get coupleSaveGeneric => 'Couldn\'t save couple info right now.';
@@ -2493,11 +2000,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get coupleSessionInvalid =>
-      'Your Firebase session is no longer valid. Please sign in again.';
+      'Your session has expired. Please sign in again.';
 
   @override
   String get coupleSessionNotReadyRelogin =>
-      'Your Firebase session isn\'t ready. Please sign out and back in.';
+      'Your session isn\'t ready yet. Please sign out and back in.';
 
   @override
   String get coupleSpaceInvalidRegenerate =>
@@ -2523,10 +2030,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteAccountConfirmBtn => 'Delete permanently';
 
   @override
-  String get deleteAccountDesc =>
-      'Permanently delete your account and all associated data';
-
-  @override
   String get deleteAccountDialogContent =>
       'This action cannot be undone. All your data, including photos and couple information, will be permanently deleted.';
 
@@ -2538,10 +2041,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not delete your account right now. Please try again.';
 
   @override
-  String get deleteAccountRequiresReloginMsg =>
-      'Please sign out, sign in again, and retry to verify your identity';
-
-  @override
   String get deleteAccountReauthTitle => 'Confirm it\'s you';
 
   @override
@@ -2551,12 +2050,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deleteAccountSessionExpiredMsg =>
       'Your session has expired. Please sign in again, then delete your account.';
-
-  @override
-  String get deleteAccountSuccessMsg => 'Account deleted';
-
-  @override
-  String get deleteAccountTitle => 'Delete Account';
 
   @override
   String get editCoupleBadge => 'COUPLE PROFILE';
@@ -2584,17 +2077,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get galleryTodayEmptyTitle => 'No moments captured today yet';
 
   @override
-  String get homeWaitingPartnerSubtitle =>
-      'Share your invite code with your partner to start the journey together.';
-
-  @override
-  String get homeWaitingPartnerTitle => 'Waiting for your partner';
-
-  @override
   String get leavingCouple => 'Leaving the couple...';
-
-  @override
-  String get loveHomeBadge => 'LOVE HOME';
 
   @override
   String get mustAgreeToPrivacyPolicy =>
@@ -2606,29 +2089,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get photoFileNotFoundStorage =>
-      'The photo file wasn\'t found on Firebase Storage.';
+      'This photo couldn\'t be found on the server.';
 
   @override
   String get photoFirebaseUnavailable =>
-      'Firebase is currently unavailable or the network is unstable.';
+      'Can\'t reach the server right now. It might be a network hiccup, so try again in a few minutes.';
 
   @override
   String get photoNotFoundToPost => 'Couldn\'t find the photo to post.';
 
   @override
   String get photoStorageUnauthorized =>
-      'Firebase Storage is refusing this photo operation.';
+      'You can\'t do that with this photo right now. Try signing out and back in.';
 
   @override
   String get photoSyncGeneric => 'Couldn\'t sync photos right now.';
 
   @override
   String get photoSyncPermissionDenied =>
-      'You don\'t have permission to sync photos. Check `firestore.rules` and `storage.rules` on Firebase.';
+      'You don\'t have permission to sync photos yet. Try signing out and back in.';
 
   @override
   String get photoSyncSessionExpired =>
-      'Your Firebase session has expired. Please sign in again.';
+      'Your session has expired. Please sign in again.';
 
   @override
   String get posterNameFallback => 'Your partner';
@@ -2672,18 +2155,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String counterDuration(int years, int months, int days) {
-    return '$years years, $months months, $days days';
+    String _temp0 = intl.Intl.pluralLogic(
+      years,
+      locale: localeName,
+      other: '$years years',
+      one: '1 year',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months months',
+      one: '1 month',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return '$_temp0, $_temp1, $_temp2';
   }
 
   @override
-  String coupleLoadError(String error) {
-    return 'Couldn\'t load couple info: $error';
-  }
+  String get coupleLoadError =>
+      'Couldn\'t load your couple info. Please try again.';
 
   @override
-  String coupleSyncError(String error) {
-    return 'Couldn\'t sync couple info: $error';
-  }
+  String get coupleSyncError =>
+      'Couldn\'t sync your couple info. Please try again.';
 
   @override
   String galleryMonthLabel(String month, String year) {
@@ -2711,19 +2210,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String galleryTodayMomentsCount(int count) {
-    return '$count moments today';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moments today',
+      one: '1 moment today',
+    );
+    return '$_temp0';
   }
-
-  @override
-  String homeCounterStartFrom(String date) {
-    return 'Since $date';
-  }
-
-  @override
-  String get guestTryWithoutLogin => 'Try without signing in';
-
-  @override
-  String get guestLoginDivider => 'or';
 
   @override
   String get guestModeBadge => 'Trial mode';
@@ -2749,6 +2243,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestChangeDate => 'Change anniversary date';
 
   @override
+  String get widgetEmptyTap => 'Tap to start counting your days together';
+
+  @override
   String guestCounterStartFrom(String date) {
     return 'Since $date';
   }
@@ -2760,7 +2257,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestCtaBody => 'Sign in to pair up & share photos together.';
 
   @override
-  String get guestCtaSignIn => 'Sign in';
+  String get guestCtaSignIn => 'Sign in with email';
 
   @override
   String get guestCtaRegister => 'Sign up';
@@ -2791,6 +2288,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get streakSheetNoStreakTitle => 'Light your first spark';
+
+  @override
+  String get streakSheetRestartTitle => 'Light the spark again';
 
   @override
   String get streakSheetNoStreakBody =>
@@ -2825,12 +2325,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String streakSheetRecord(int m) {
-    return 'Your record: $m days 🌟';
+    String _temp0 = intl.Intl.pluralLogic(
+      m,
+      locale: localeName,
+      other: 'Your record: $m days 🌟',
+      one: 'Your record: 1 day 🌟',
+    );
+    return '$_temp0';
   }
 
   @override
   String streakNextMilestone(int n, int m) {
-    return '$n days to your $m-day milestone 🎉';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n days to your $m-day milestone 🎉',
+      one: '1 day to your $m-day milestone 🎉',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2890,16 +2402,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgotPasswordBadge => 'RECOVER ACCESS';
 
   @override
-  String get forgotPasswordTitle => 'Forgot your password?';
-
-  @override
-  String get forgotPasswordSubtitle =>
-      'Enter your email and we\'ll send you a link to reset your password.';
-
-  @override
-  String get forgotPasswordEmailHeading => 'Email';
-
-  @override
   String get forgotPasswordSendBtn => 'Send reset email';
 
   @override
@@ -2926,14 +2428,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verifyEmailBadge => 'VERIFY EMAIL';
-
-  @override
-  String get verifyEmailTitle => 'Verify your email';
-
-  @override
-  String verifyEmailSubtitle(String email) {
-    return 'We\'ve sent a verification link to $email.';
-  }
 
   @override
   String get verifyEmailBody =>
@@ -3017,9 +2511,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'You won\'t be able to see these again.';
 
   @override
-  String get notifDismiss => 'Dismiss';
-
-  @override
   String get notifGeneric => 'You have a new notification';
 
   @override
@@ -3087,7 +2578,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String counterBgSubtitleCount(int count) {
-    return '$count photos picked for the counter background.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos picked for the counter background.',
+      one: '1 photo picked for the counter background.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3163,7 +2660,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String milestoneTrailNext(int days, String label) {
-    return '$days days to $label';
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days to $label',
+      one: '1 day to $label',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3211,8 +2714,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMemoriesTitle => 'Our memories';
 
   @override
-  String profileMemoriesCountLabel(String count) {
-    return '$count memories';
+  String profileMemoriesCountLabel(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString memories',
+      one: '1 memory',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3227,31 +2740,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loveTreeStage0 => 'Tiny seed';
 
   @override
-  String get loveTreeStage1 => 'Sprout';
-
-  @override
-  String get loveTreeStage2 => 'Young tree';
-
-  @override
-  String get loveTreeStage3 => 'Flourishing tree';
-
-  @override
-  String get loveTreeStage4 => 'In full bloom';
-
-  @override
   String loveTreeFlowerCount(int count) {
-    return '$count flowers bloomed';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flowers bloomed',
+      one: '1 flower bloomed',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get loveTreeFlowerCountZero =>
-      'No flowers yet — let\'s grow it together';
-
-  @override
   String get loveTreeSeedSubtitle => 'Your journey starts right here 🌱';
-
-  @override
-  String get loveTreeBloomSubtitle => 'Your tree is in full bloom ✨';
 
   @override
   String loveTreeNewBloomBanner(int count) {
@@ -3263,33 +2763,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your tree just bloomed a new flower 🌸';
 
   @override
-  String get loveTreeNurtureTitle => 'Grow it together';
-
-  @override
-  String get loveTreeNurtureStreakTitle => 'Keep your daily streak';
-
-  @override
-  String get loveTreeNurtureStreakBody =>
-      'Answer daily so your streak lives on';
-
-  @override
-  String get loveTreeNurturePhotoTitle => 'Add a memory';
-
-  @override
-  String get loveTreeNurturePhotoBody => 'Every photo is a new flower';
-
-  @override
-  String get loveTreeNurtureTalkTitle => 'Talk together today';
-
-  @override
-  String get loveTreeNurtureTalkBody => 'Small moments grow the tree';
-
-  @override
-  String get loveTreeMilestonesTitle => 'Milestones';
-
-  @override
   String loveTreeMilestoneDays(int count) {
-    return '$count days together';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days together',
+      one: '1 day together',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3299,29 +2780,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String loveTreeMilestonePhotos(int count) {
-    return '$count memories';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count memories',
+      one: '1 memory',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get loveTreeMilestoneBloomed => 'bloomed';
-
-  @override
   String loveTreeMilestoneDaysLeft(int count) {
-    return '$count days to go';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days to go',
+      one: '1 day to go',
+    );
+    return '$_temp0';
   }
 
   @override
   String loveTreeMilestoneStreakLeft(int count) {
-    return '$count streak days to go';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count streak days to go',
+      one: '1 streak day to go',
+    );
+    return '$_temp0';
   }
 
   @override
   String loveTreeMilestonePhotosLeft(int count) {
-    return '$count photos to go';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos to go',
+      one: '1 photo to go',
+    );
+    return '$_temp0';
   }
-
-  @override
-  String get loveTreeMilestoneAllDone => 'all done 🌟';
 
   @override
   String get loveTreeWaitingTitle => 'Waiting for both of you';
@@ -3339,9 +2838,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loveTreeCoachTooltip => 'Tap to see this moment 🌸';
-
-  @override
-  String get loveTreeTapHint => 'Tap a flower to relive a memory';
 
   @override
   String loveTreeMomentDaysTitle(int count) {
@@ -3385,17 +2881,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String loveTreeLockedDays(int count) {
-    return '$count days to go before this blooms 🌱';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days to go before this blooms 🌱',
+      one: '1 day to go before this blooms 🌱',
+    );
+    return '$_temp0';
   }
 
   @override
   String loveTreeLockedPhotos(int count) {
-    return '$count memories to go before this blooms 🌱';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count memories to go before this blooms 🌱',
+      one: '1 memory to go before this blooms 🌱',
+    );
+    return '$_temp0';
   }
 
   @override
   String loveTreeLockedStreak(int count) {
-    return '$count streak days to go before this blooms 🌱';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count streak days to go before this blooms 🌱',
+      one: '1 streak day to go before this blooms 🌱',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3408,8 +2922,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loveTreeShareButton => 'Share our tree';
 
   @override
-  String loveTreeShareStats(String days, String flowers) {
-    return '$days days together · $flowers flowers in bloom';
+  String loveTreeShareStats(int days, int flowers) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
+    final intl.NumberFormat flowersNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String flowersString = flowersNumberFormat.format(flowers);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$daysString days together',
+      one: '1 day together',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      flowers,
+      locale: localeName,
+      other: '$flowersString flowers in bloom',
+      one: '1 flower in bloom',
+    );
+    return '$_temp0 · $_temp1';
   }
 
   @override
@@ -3419,13 +2953,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loveTreeShareTaglineSeed => 'Our tree just sprouted 🌱';
 
   @override
-  String loveTreeShareMessage(String flowers, String days) {
-    return 'Our love tree has bloomed $flowers flowers after $days days 🌳💞 — grow yours together on Dear Embeiu.';
-  }
+  String loveTreeShareMessage(int flowers, int days) {
+    final intl.NumberFormat flowersNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String flowersString = flowersNumberFormat.format(flowers);
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String daysString = daysNumberFormat.format(days);
 
-  @override
-  String get loveTreeShareFailed =>
-      'Couldn\'t create the card, please try again';
+    String _temp0 = intl.Intl.pluralLogic(
+      flowers,
+      locale: localeName,
+      other: '$flowersString flowers',
+      one: '1 flower',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$daysString days',
+      one: '1 day',
+    );
+    return 'Our love tree has bloomed $_temp0 after $_temp1 🌳💞 — grow yours together on Dear Embeiu.';
+  }
 
   @override
   String get partnerReminderNotifBody => 'A reminder from your partner 💌';
@@ -3452,9 +3002,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get careMessageEntryTitle => 'Send a care note';
-
-  @override
-  String get careMessageEntrySubtitle => 'A little message to warm their day';
 
   @override
   String get careMessageQuickPicksTitle => 'Quick picks';
@@ -3544,5 +3091,1028 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String notifCareMessage(String name) {
     return '$name sent you a care note';
+  }
+
+  @override
+  String get rpsGameTitle => 'Rock Paper Scissors';
+
+  @override
+  String get rpsGameBadge => 'ROCK PAPER SCISSORS';
+
+  @override
+  String get rpsChoiceRock => 'Rock';
+
+  @override
+  String get rpsChoicePaper => 'Paper';
+
+  @override
+  String get rpsChoiceScissors => 'Scissors';
+
+  @override
+  String get rpsChoiceNone => 'Skipped';
+
+  @override
+  String get rpsResultWin => 'You win 🎉';
+
+  @override
+  String get rpsResultLose => 'Your person wins 😝';
+
+  @override
+  String get rpsResultDraw => 'It\'s a draw 🤝';
+
+  @override
+  String get rpsWaitingPartner => 'Waiting for your person…';
+
+  @override
+  String get rpsChosenWaiting => 'You\'ve thrown ✓ · Waiting for your person…';
+
+  @override
+  String get rpsExpired => 'This invite has expired';
+
+  @override
+  String get rpsCancelled => 'Your person cancelled the invite';
+
+  @override
+  String notifRpsInvite(String name) {
+    return '$name challenged you to rock-paper-scissors!';
+  }
+
+  @override
+  String notifRpsResult(String name) {
+    return 'Your rock-paper-scissors game with $name is over';
+  }
+
+  @override
+  String get rpsHistoryBadge => 'MATCH HISTORY';
+
+  @override
+  String get rpsEntryIdleSubtitle => 'Challenge your person to a round';
+
+  @override
+  String rpsEntryWeekScore(String win, String draw, String loss) {
+    return 'This week $win – $draw – $loss';
+  }
+
+  @override
+  String get rpsEntryInvitedTitle => 'You\'re challenged!';
+
+  @override
+  String get rpsEntryInvitedSubtitle => 'Hop in — they\'re waiting';
+
+  @override
+  String get rpsEntryPendingSubtitle => 'Invite stays open for 10 minutes';
+
+  @override
+  String get rpsEntryCtaPlay => 'Play';
+
+  @override
+  String get rpsEntryCtaJoin => 'Join';
+
+  @override
+  String get rpsEntryCtaOpen => 'Open';
+
+  @override
+  String rpsScoreFormat(String win, String draw, String loss) {
+    return '$win – $draw – $loss';
+  }
+
+  @override
+  String rpsScoreSemantics(String win, String draw, String loss) {
+    return 'Score: you $win, draw $draw, your person $loss';
+  }
+
+  @override
+  String rpsChoiceSemantics(String choice) {
+    return 'Pick $choice';
+  }
+
+  @override
+  String get rpsRulesHint =>
+      'Scissors cut Paper · Paper wraps Rock · Rock breaks Scissors';
+
+  @override
+  String get rpsRuleScissorsPaper => 'Scissors cut Paper';
+
+  @override
+  String get rpsRulePaperRock => 'Paper wraps Rock';
+
+  @override
+  String get rpsRuleRockScissors => 'Rock breaks Scissors';
+
+  @override
+  String get rpsMeLabel => 'Me';
+
+  @override
+  String get rpsPartnerLabel => 'Your person';
+
+  @override
+  String get rpsVs => 'vs';
+
+  @override
+  String get rpsWaitingBody => 'Invite sent. Waiting for your person…';
+
+  @override
+  String get rpsWaitingBodyInvitee =>
+      'Connecting to your person… The round starts once you\'re both here.';
+
+  @override
+  String get rpsNudgeCta => 'Nudge again';
+
+  @override
+  String rpsNudgeCooldown(String seconds) {
+    return 'Nudge again (${seconds}s)';
+  }
+
+  @override
+  String get rpsNudgeSentToast => 'Nudged your person again 🔔';
+
+  @override
+  String get rpsCancelCta => 'Cancel invite';
+
+  @override
+  String get rpsCloseCta => 'Close';
+
+  @override
+  String get rpsCancelledToast => 'Invite cancelled';
+
+  @override
+  String get rpsCountdownPrompt => 'Pick now!';
+
+  @override
+  String get rpsCountdownUnit => 'SEC';
+
+  @override
+  String rpsCountdownSemantics(int seconds) {
+    String _temp0 = intl.Intl.pluralLogic(
+      seconds,
+      locale: localeName,
+      other: '$seconds seconds left',
+      one: '1 second left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rpsResolving => 'Revealing…';
+
+  @override
+  String get rpsResolvingSlow => 'Connection is a bit slow…';
+
+  @override
+  String get rpsReloadCta => 'Reload';
+
+  @override
+  String get rpsOfflineHint =>
+      'Offline — your pick will go through once you\'re back online';
+
+  @override
+  String rpsResultDrawSub(String choice) {
+    return 'Both picked $choice';
+  }
+
+  @override
+  String get rpsResultTimeoutPartner => 'Your person didn\'t pick in time';
+
+  @override
+  String get rpsResultTimeoutMe => 'You didn\'t pick in time';
+
+  @override
+  String get rpsResultTimeoutBoth => 'Both skipped — this round is a draw';
+
+  @override
+  String get rpsRematchCta => 'Play again';
+
+  @override
+  String get rpsHistoryCta => 'View history';
+
+  @override
+  String get rpsRematchToast => 'Your person wants a rematch!';
+
+  @override
+  String rpsResultSemantics(String title, String mine, String theirs) {
+    return '$title. You picked $mine, your person picked $theirs.';
+  }
+
+  @override
+  String get rpsExpiredBody =>
+      'This invite expired after 10 minutes. Start a new round!';
+
+  @override
+  String get rpsCancelledBody =>
+      'No worries — you two can play another round any time.';
+
+  @override
+  String get rpsInviteAgainCta => 'Challenge again';
+
+  @override
+  String get rpsErrorTitle => 'Couldn\'t open the round';
+
+  @override
+  String get rpsErrorBody => 'Check your connection and try again.';
+
+  @override
+  String get rpsNeedCouple => 'You need your person in the app to play.';
+
+  @override
+  String get rpsScoreMe => 'ME';
+
+  @override
+  String get rpsScoreDraw => 'DRAW';
+
+  @override
+  String get rpsScorePartner => 'THEM';
+
+  @override
+  String rpsHistoryTotal(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString rounds played',
+      one: '1 round played',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rpsHistoryWinStreak(String count) {
+    return 'Win streak: $count';
+  }
+
+  @override
+  String get rpsOutcomeWin => 'You won';
+
+  @override
+  String get rpsOutcomeLoss => 'They won';
+
+  @override
+  String get rpsOutcomeDraw => 'Draw';
+
+  @override
+  String get rpsOutcomeSkipped => 'Skipped';
+
+  @override
+  String rpsHistoryRowSemantics(
+    String time,
+    String mine,
+    String theirs,
+    String outcome,
+  ) {
+    return '$time: you $mine, your person $theirs, $outcome';
+  }
+
+  @override
+  String get rpsHistoryEmptyTitle => 'No rounds yet';
+
+  @override
+  String get rpsHistoryEmptyBody =>
+      'Every round you two play lands here — draws included.';
+
+  @override
+  String get rpsHistoryEmptyCta => 'Challenge your person';
+
+  @override
+  String get featureTourRpsTitle => 'Rock-paper-scissors together';
+
+  @override
+  String get featureTourRpsBody =>
+      'Send a challenge, count it down together and throw. No skipping — whoever hasn\'t thrown gets a nudge, and the reveal waits for both of you. History and score live on your Profile.';
+
+  @override
+  String get featureTourSleepTitle => 'Our sleep';
+
+  @override
+  String get featureTourSleepBody =>
+      'A moon calendar for every night: the fuller the moon, the better you slept. Share with each other and every morning you\'ll see how long your partner slept.';
+
+  @override
+  String get featureTourSleepMotionTitle => 'Sleep without a watch';
+
+  @override
+  String get featureTourSleepMotionBody =>
+      'Just leave your phone by the bed: the app guesses when you fell asleep and woke up from when it lay still. If a night looks off, tap it to fix.';
+
+  @override
+  String get featureTourSkyTitle => 'Today\'s constellation';
+
+  @override
+  String get featureTourSkyBody =>
+      'The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.';
+
+  @override
+  String get rpsOpenPrompt => 'Go on, throw! No skipping here 😄';
+
+  @override
+  String get rpsOpenRingSemantics => 'No time limit — throw when you\'re ready';
+
+  @override
+  String get rpsPartnerMovedTitle => 'Your person has thrown!';
+
+  @override
+  String get rpsPartnerMovedBody => 'Your move — pick a hand below';
+
+  @override
+  String get rpsMoveNudgeCta => 'Nudge your person';
+
+  @override
+  String rpsMoveNudgeCooldown(String seconds) {
+    return 'Nudged · again in ${seconds}s';
+  }
+
+  @override
+  String get rpsMoveNudgeSentToast => 'Nudged your person 🔔';
+
+  @override
+  String rpsMoveNudgeTooSoon(String seconds) {
+    return 'You just nudged — try again in ${seconds}s';
+  }
+
+  @override
+  String get rpsMoveNudgeFailed => 'Couldn\'t send the nudge — try again';
+
+  @override
+  String get rpsChosenLeaveHint =>
+      'Feel free to step away — we\'ll tell you the result';
+
+  @override
+  String get rpsEntryMyTurnSubtitle => 'Your turn — go ahead 😄';
+
+  @override
+  String get rpsEntryUnplayedTitle => 'Round in progress';
+
+  @override
+  String get rpsEntryUnplayedSubtitle => 'No one\'s thrown — go first';
+
+  @override
+  String get rpsEntryAwaitingTitle => 'Waiting for their move';
+
+  @override
+  String get rpsEntryAwaitingSubtitle => 'You\'ve thrown · we\'ll tell you';
+
+  @override
+  String get rpsEntryCtaThrow => 'Throw';
+
+  @override
+  String notifRpsMoved(String name) {
+    return '$name has thrown — your move!';
+  }
+
+  @override
+  String get sleepCardTitle => 'Last night';
+
+  @override
+  String get sleepBadge => 'SLEEP';
+
+  @override
+  String get sleepYou => 'You';
+
+  @override
+  String get sleepUnitHour => 'h';
+
+  @override
+  String get sleepUnitMinute => 'm';
+
+  @override
+  String sleepDurationShort(int h, int m) {
+    return '${h}h ${m}m';
+  }
+
+  @override
+  String sleepMinutesShort(int m) {
+    return '${m}m';
+  }
+
+  @override
+  String sleepDurationLong(int h, int m) {
+    return '$h hr $m min';
+  }
+
+  @override
+  String sleepTogether(String duration) {
+    return 'Asleep together $duration';
+  }
+
+  @override
+  String sleepWentFirst(String name, String duration) {
+    return '$name fell asleep $duration earlier';
+  }
+
+  @override
+  String get sleepNoOverlap => 'You didn\'t sleep at the same time last night';
+
+  @override
+  String get sleepSetupPitch =>
+      'Let your phone log your sleep and see each morning how your person slept.';
+
+  @override
+  String get sleepEnableCta => 'Turn on';
+
+  @override
+  String get sleepHide => 'Hide';
+
+  @override
+  String get sleepNotRecorded => 'Not recorded';
+
+  @override
+  String get sleepLogManually => 'Log it';
+
+  @override
+  String get sleepPartnerNotShared => 'Not shared';
+
+  @override
+  String sleepPartnerNotSharedLong(String name) {
+    return '$name isn\'t sharing sleep';
+  }
+
+  @override
+  String get sleepNoData => 'No data yet';
+
+  @override
+  String get sleepNeedsPermission => 'Permission needed';
+
+  @override
+  String get sleepOpenSettings => 'Open settings';
+
+  @override
+  String get sleepPermissionBanner =>
+      'The app can\'t see when your screen turns on or off, so it can\'t log your sleep. Turn it back on in Settings → Usage access.';
+
+  @override
+  String get sleepViewBoth => 'Both';
+
+  @override
+  String get sleepPrevMonth => 'Previous month';
+
+  @override
+  String get sleepNextMonth => 'Next month';
+
+  @override
+  String sleepNightTitle(String d1, String d2) {
+    return 'Night of $d1 → $d2';
+  }
+
+  @override
+  String sleepAwakenings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Woke up $count times',
+      one: 'Woke up once',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sleepNoAwakenings => 'Slept straight through';
+
+  @override
+  String get sleepSourceEdited => 'Edited';
+
+  @override
+  String get sleepSourceManual => 'Manual';
+
+  @override
+  String get sleepSourceHealth => 'Apple Health';
+
+  @override
+  String get sleepSourcePhone => 'Phone (automatic)';
+
+  @override
+  String get sleepSourceHealthEmpty => 'Apple Health (no data yet)';
+
+  @override
+  String get sleepSourceMotion => 'Phone motion';
+
+  @override
+  String sleepSourceRow(String source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String get sleepMonthSection => 'This month';
+
+  @override
+  String get sleepPerNight => '/night';
+
+  @override
+  String sleepAvgTimes(String bed, String wake) {
+    return 'Bed ~$bed · Up ~$wake';
+  }
+
+  @override
+  String sleepFullNights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count full nights',
+      one: '1 full night',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sleepOfNights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'of $count nights',
+      one: 'of 1 night',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sleepTogetherNights(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nights asleep together 7h+',
+      one: '1 night asleep together 7h+',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sleepTogetherAvg(String duration) {
+    return 'avg. $duration a night';
+  }
+
+  @override
+  String get sleepShareToggle => 'Share with your person';
+
+  @override
+  String get sleepShareToggleSub => 'When off, only you can see it.';
+
+  @override
+  String get sleepHowItWorks => 'How is sleep worked out?';
+
+  @override
+  String get sleepMyColor => 'Your moon color';
+
+  @override
+  String sleepMyColorSub(String name, String color, String blocked) {
+    return '$name uses $color. Colors too close to it ($blocked) are locked.';
+  }
+
+  @override
+  String sleepMyColorSubNoBlock(String name, String color) {
+    return '$name uses $color.';
+  }
+
+  @override
+  String get sleepMyColorSolo => 'This color marks your sleep everywhere.';
+
+  @override
+  String sleepColorTakenSemantics(String name) {
+    return '$name\'s color';
+  }
+
+  @override
+  String sleepColorTooClose(String name) {
+    return 'Too close to $name\'s color';
+  }
+
+  @override
+  String sleepColorAutoChanged(String color) {
+    return 'Your color matched your person\'s, so $color shows for now.';
+  }
+
+  @override
+  String get sleepColorRose => 'Pink';
+
+  @override
+  String get sleepColorPurple => 'Purple';
+
+  @override
+  String get sleepColorBlue => 'Blue';
+
+  @override
+  String get sleepColorTeal => 'Teal';
+
+  @override
+  String get sleepColorOrange => 'Orange';
+
+  @override
+  String get sleepColorGreen => 'Green';
+
+  @override
+  String get sleepColorMagenta => 'Magenta';
+
+  @override
+  String get sleepColorAmber => 'Amber';
+
+  @override
+  String get sleepLegend0 => '<5h';
+
+  @override
+  String get sleepLegend1 => '5–6h';
+
+  @override
+  String get sleepLegend2 => '6–7h';
+
+  @override
+  String get sleepLegend3 => '7–8h';
+
+  @override
+  String get sleepLegend4 => '8h+';
+
+  @override
+  String get sleepMoonTagline => 'The fuller the moon, the fuller the sleep';
+
+  @override
+  String get sleepMoonLeft => 'Left moon: you';
+
+  @override
+  String sleepMoonRight(String name) {
+    return 'Right moon: $name';
+  }
+
+  @override
+  String get sleepMoonTogether => 'Asleep together 7h+';
+
+  @override
+  String get sleepPhase0 => 'Thin crescent';
+
+  @override
+  String get sleepPhase1 => 'Crescent';
+
+  @override
+  String get sleepPhase2 => 'Half moon';
+
+  @override
+  String get sleepPhase3 => 'Gibbous moon';
+
+  @override
+  String get sleepPhase4 => 'Full moon';
+
+  @override
+  String sleepDaySemantics(String day, String summary) {
+    return '$day: $summary';
+  }
+
+  @override
+  String sleepSemanticsSlept(String name, String duration, String phase) {
+    return '$name slept $duration, $phase';
+  }
+
+  @override
+  String sleepSemanticsNoData(String name) {
+    return '$name: no data';
+  }
+
+  @override
+  String get sleepEditedSemantics => '(edited)';
+
+  @override
+  String get sleepNoOverlapNight =>
+      'You didn\'t sleep at the same time this night';
+
+  @override
+  String get sleepManualHint => 'Tap edit to log it yourself';
+
+  @override
+  String get sleepPartnerNightEmpty => 'Nothing logged this night';
+
+  @override
+  String get sleepEditLocked =>
+      'Older than 7 days, so it can no longer be edited';
+
+  @override
+  String get sleepEditButton => 'Edit this night\'s sleep';
+
+  @override
+  String get sleepSetupTitle => 'Let your phone log your sleep';
+
+  @override
+  String get sleepSetupBodyAndroid =>
+      'Each morning the app checks when your phone sat untouched longest overnight. It never reads messages, photos or any other content.';
+
+  @override
+  String get sleepSetupBodyIos =>
+      'The app reads the sleep your iPhone or Apple Watch saved in Health. Read only, nothing gets written.';
+
+  @override
+  String get sleepSetupUnsupported =>
+      'This phone can\'t log sleep on its own. You can still log it by hand in a few seconds.';
+
+  @override
+  String get sleepSetupPoint1 => 'Nothing to do each day';
+
+  @override
+  String get sleepSetupPoint2 => 'Fix it if the app guesses wrong';
+
+  @override
+  String get sleepSetupPoint3 => 'Shared only if you want';
+
+  @override
+  String get sleepSetupHintAndroid =>
+      'The app opens Settings → Usage access. Turn on Dear Embeiu, then come back here.';
+
+  @override
+  String get sleepSetupHintIos =>
+      'Your iPhone will ask to read Sleep in Health. No data yet? Turn on Sleep Schedule in Health.';
+
+  @override
+  String get sleepPermissionStillOff =>
+      'Dear Embeiu isn\'t turned on in the list yet. Try again.';
+
+  @override
+  String get sleepGrantCta => 'Allow access';
+
+  @override
+  String get sleepManualCta => 'I\'ll log it myself';
+
+  @override
+  String sleepShareAskTitle(String name) {
+    return 'Let $name see your sleep?';
+  }
+
+  @override
+  String get sleepShareAskBody =>
+      'They\'ll see when you fall asleep and wake up, and each time you wake in the night. You can turn this off anytime.';
+
+  @override
+  String sleepShareAskPreview(String name) {
+    return '$name WILL SEE';
+  }
+
+  @override
+  String get sleepShareAskOnly =>
+      'Only bedtime, wake-up time and night wake-ups, in the time zone you slept in. Nights you edit or log by hand get a label.';
+
+  @override
+  String get sleepShareAskCta => 'Share with them';
+
+  @override
+  String get sleepLater => 'Later';
+
+  @override
+  String get sleepBackToStep1 => 'Back to step 1';
+
+  @override
+  String get sleepEditBedTitle => 'Bedtime';
+
+  @override
+  String get sleepEditWakeTitle => 'Wake up';
+
+  @override
+  String sleepEditTotal(String duration) {
+    return 'Total: $duration';
+  }
+
+  @override
+  String get sleepEditInvalid => 'Sleep must be 1 to 16 hours';
+
+  @override
+  String get sleepDeleteNight => 'Delete this night';
+
+  @override
+  String get sleepEditSubtitle => 'Fix it if the app got it wrong.';
+
+  @override
+  String get sleepManualSubtitle => 'Log when you fell asleep and woke up.';
+
+  @override
+  String get sleepEditNote =>
+      'Once saved, this night shows an “Edited” label (your person sees it too) and the app won\'t overwrite it.';
+
+  @override
+  String get sleepManualNote =>
+      'Once saved, this night shows a “Manual” label, and your person sees it too.';
+
+  @override
+  String get sleepPickerSubtitle => 'Scroll to pick the hour and minute';
+
+  @override
+  String get sleepSaveFailed => 'Couldn\'t save, please try again';
+
+  @override
+  String get sleepLoadFailed => 'Couldn\'t load your person\'s sleep';
+
+  @override
+  String get sleepHowBody1 =>
+      'The app counts the longest stretch your phone sits untouched overnight as sleep, between 6 pm and 2 pm the next day, lasting 3 to 16 hours. A stretch that ends before 1 am, like charging in the evening, only counts when nothing that night lasts past 1 am.';
+
+  @override
+  String get sleepHowBody1Ios =>
+      'The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm the next day. Sleep under 3 hours or over 16 hours doesn\'t count. Sleep that ends before 1 am only counts when nothing that night lasts past 1 am.';
+
+  @override
+  String get sleepHowBody2 =>
+      'Picking up your phone for under 5 minutes counts as waking up, not as the end of your sleep.';
+
+  @override
+  String get sleepHowBody3 =>
+      'It\'s an estimate: watching a movie in bed or leaving your phone elsewhere can skew it. You can fix it within 7 days, and your person will see an “Edited” label.';
+
+  @override
+  String get sleepHowBody4 =>
+      'The app reads no content on your phone, only when the screen turns on or off.';
+
+  @override
+  String get sleepHowBody4Ios =>
+      'The app only reads Sleep in Health, nothing else.';
+
+  @override
+  String get sleepHowIphoneInBed =>
+      'Your iPhone can log time in bed by itself: open Health → Browse → Sleep → Sleep Schedule, set a bedtime and turn on tracking time in bed with iPhone. Some iPhones on iOS 18 or later no longer offer this.';
+
+  @override
+  String get sleepHowMotion =>
+      'If you let the app see motion, nights with nothing recorded are guessed from when your phone lay still. It is only a guess: a phone left on the desk all morning may be counted as sleep, and you can fix it by hand. Raw motion data stays on your phone; your person only sees sleep and wake times if you turn sharing on.';
+
+  @override
+  String get sleepGotIt => 'Got it';
+
+  @override
+  String get sleepIosHealthHint =>
+      'Set a *Sleep Schedule* in Health (Browse → Sleep) so your iPhone logs time in bed, if it offers that option.';
+
+  @override
+  String get sleepMotionHint =>
+      'Allow *motion* so nights with nothing recorded can still be guessed from when your phone lay still.';
+
+  @override
+  String get sleepMotionAllow => 'Allow';
+
+  @override
+  String get sleepHintDismiss => 'Dismiss tip';
+
+  @override
+  String get timePickerDefaultTitle => 'Pick a reminder time';
+
+  @override
+  String get timePickerDefaultSubtitle => 'Scroll to pick the hour and minute';
+
+  @override
+  String get timePickerConfirm => 'Confirm';
+
+  @override
+  String sleepHoursShort(int h) {
+    return '${h}h';
+  }
+
+  @override
+  String sleepHoursLong(int h) {
+    return '$h hr';
+  }
+
+  @override
+  String get loveTreeSkyTitle => 'Today\'s constellation';
+
+  @override
+  String get loveTreeSkyExplain =>
+      'Every little thing we do for each other today lights a star. When both halves glow, the heart is complete.';
+
+  @override
+  String get loveTreeLeftHalf => 'Left half: You';
+
+  @override
+  String loveTreeRightHalf(String name) {
+    return 'Right half: $name';
+  }
+
+  @override
+  String get loveTreeStarQuestion => 'Question';
+
+  @override
+  String get loveTreeStarMood => 'Mood';
+
+  @override
+  String get loveTreeStarMessage => 'Message';
+
+  @override
+  String get loveTreeTapStar => 'Tap a star to see more';
+
+  @override
+  String get loveTreeHeartFull => 'Today\'s heart is complete';
+
+  @override
+  String get loveTreeTaskQuestion => 'Answer today\'s question';
+
+  @override
+  String get loveTreeTaskMood => 'Share your mood';
+
+  @override
+  String get loveTreeTaskMessage => 'Send each other a message';
+
+  @override
+  String loveTreeStarAnsweredAt(String name, String time) {
+    return '$name answered at $time';
+  }
+
+  @override
+  String loveTreeStarMoodAt(String mood, String time) {
+    return '$mood · $time';
+  }
+
+  @override
+  String loveTreeStarMessagedAt(String name, String time) {
+    return '$name messaged at $time';
+  }
+
+  @override
+  String get loveTreeStarDone => 'Done for today';
+
+  @override
+  String get loveTreeStarNoAnswer => 'Today\'s question isn\'t answered yet';
+
+  @override
+  String get loveTreeStarNoMood => 'No mood shared yet today';
+
+  @override
+  String get loveTreeStarNoMessage => 'No message yet today';
+
+  @override
+  String get loveTreeActAnswer => 'Answer now';
+
+  @override
+  String get loveTreeActMood => 'Share now';
+
+  @override
+  String get loveTreeActMessage => 'Message now';
+
+  @override
+  String get loveTreeNudge => 'Send some care';
+
+  @override
+  String get loveTreeClosePanel => 'Close';
+
+  @override
+  String loveTreeStarSemantics(String name, String task, String state) {
+    return '$name · $task · $state';
+  }
+
+  @override
+  String get loveTreeStarLit => 'lit';
+
+  @override
+  String get loveTreeStarUnlit => 'not lit yet';
+
+  @override
+  String get loveTreeFlowersExplain =>
+      'Each flower is one of our milestones. Tap one to look back.';
+
+  @override
+  String get loveTreeKindDays => 'Days together';
+
+  @override
+  String get loveTreeKindStreak => 'Question streak';
+
+  @override
+  String get loveTreeKindPhotos => 'Photo memories';
+
+  @override
+  String get loveTreeNextFlower => 'NEXT FLOWER';
+
+  @override
+  String loveTreeNextProgressDays(int current, int target) {
+    return '$current/$target days together';
+  }
+
+  @override
+  String loveTreeNextProgressStreak(int current, int target) {
+    return '$current/$target streak days';
+  }
+
+  @override
+  String loveTreeNextProgressPhotos(int current, int target) {
+    String _temp0 = intl.Intl.pluralLogic(
+      target,
+      locale: localeName,
+      other: '$current/$target photos',
+      one: '$current/$target photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get loveTreeTodayTasks => 'Little things today';
+
+  @override
+  String loveTreeTaskDone(String name) {
+    return '$name ✓';
+  }
+
+  @override
+  String loveTreeTaskPending(String name) {
+    return '$name · not yet';
+  }
+
+  @override
+  String get loveTreeDoNow => 'Do it now';
+
+  @override
+  String get loveTreeBloomedTitle => 'Bloomed milestones';
+
+  @override
+  String get loveTreeShowLess => 'Show less';
+
+  @override
+  String homeConstellationSemantics(int lit) {
+    return 'Today\'s constellation: $lit of 6 stars. Opens the Love Tree';
   }
 }

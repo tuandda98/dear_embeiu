@@ -252,9 +252,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
       );
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.cameraUnavailable)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.cameraUnavailable)));
       }
       return;
     }
@@ -412,9 +412,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
       );
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.photoUpdateError)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.photoUpdateError)));
       }
       return;
     }
@@ -424,10 +424,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
     try {
       await context.read<PhotoProvider>().replacePhotoImage(
-            photo.id,
-            picked.path,
-            currentUser: currentUser,
-          );
+        photo.id,
+        picked.path,
+        currentUser: currentUser,
+      );
     } catch (_) {
       if (!mounted) {
         return;
@@ -446,9 +446,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.photoUpdatedSuccess)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.photoUpdatedSuccess)));
   }
 
   Future<void> _deletePhoto(Photo photo) async {
@@ -737,7 +737,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 12.5,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textSecondary,
                             ),
@@ -889,7 +889,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 child: Text(
                   spec.label,
                   style: TextStyle(
-                    fontSize: 15.5,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: labelColor,
                   ),
@@ -1284,15 +1284,15 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.accentRose,
                     foregroundColor: AppColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     minimumSize: Size.zero,
                     // r16 = in-card button token (C7.8).
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                     textStyle: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   icon: const Icon(IconsaxPlusLinear.camera, size: 16),
@@ -1310,15 +1310,15 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     side: BorderSide(
                       color: AppColors.accentRose.withValues(alpha: 0.24),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     minimumSize: Size.zero,
                     // r16 = in-card button token (C7.8).
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                     textStyle: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   icon: const Icon(IconsaxPlusLinear.grid_3, size: 16),
@@ -2347,9 +2347,15 @@ class _GalleryFloatingShowcaseHeaderDelegate
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.secondaryGradient.colors.first.withValues(alpha: 0.96 * scrim),
-            AppColors.secondaryGradient.colors.last.withValues(alpha: 0.82 * scrim),
-            AppColors.secondaryGradient.colors.last.withValues(alpha: 0.16 * scrim),
+            AppColors.secondaryGradient.colors.first.withValues(
+              alpha: 0.96 * scrim,
+            ),
+            AppColors.secondaryGradient.colors.last.withValues(
+              alpha: 0.82 * scrim,
+            ),
+            AppColors.secondaryGradient.colors.last.withValues(
+              alpha: 0.16 * scrim,
+            ),
             Colors.transparent,
           ],
           stops: const [0.0, 0.42, 0.78, 1.0],
@@ -2803,7 +2809,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                     opacity: overlayOpacity,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.36),
+                        color: Colors.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
                           color: AppColors.white.withValues(alpha: 0.12),
@@ -2849,7 +2855,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                             Text(
                               _previewPostedByLabel(currentPhoto),
                               style: TextStyle(
-                                color: AppColors.white.withValues(alpha: 0.82),
+                                color: AppColors.white.withValues(alpha: 0.9),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.06,
@@ -2859,7 +2865,7 @@ class _FullscreenPhotoPreviewState extends State<_FullscreenPhotoPreview>
                             Text(
                               _formatFeedDate(currentPhoto.uploadDate),
                               style: TextStyle(
-                                color: AppColors.white.withValues(alpha: 0.72),
+                                color: AppColors.white.withValues(alpha: 0.88),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.06,

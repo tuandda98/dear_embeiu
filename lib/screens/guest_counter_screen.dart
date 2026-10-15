@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
+import '../providers/auth_provider.dart';
+import '../services/love_tree_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../widgets/social_sign_in_buttons.dart';
+import '../widgets/status_bar_scrim.dart';
 import '../widgets/content_card.dart';
 import '../widgets/counter_card.dart';
 import '../widgets/eyebrow_chip.dart';
@@ -16,9 +21,11 @@ import '../widgets/language_toggle_button.dart';
 
 /// Guest "try without signing in" love-day counter (Apple 5.1.1 fix).
 ///
-/// Pure local: reads/writes the anniversary date from a Hive box
-/// (`guest_settings`, key `anniversary` storing millisecondsSinceEpoch).
-/// No Provider, no Firestore, no Auth — guest never touches the backend.
+/// The counter is pure local: reads/writes the anniversary date from a Hive box
+/// (`guest_settings`, key `anniversary` storing millisecondsSinceEpoch) and
+/// never touches Firestore. The only backend contact is the CTA card's
+/// Apple / Google buttons (pairing-funnel PF2, PF14), which read
+/// [AuthProvider] to show themselves and to sign in.
 class GuestCounterScreen extends StatefulWidget {
   const GuestCounterScreen({super.key});
 
@@ -77,19 +84,18 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
     setState(() => _anniversaryDate = picked);
   }
 
-  String _formatDate(DateTime date) {
-    return DateFormat(context.l10n.fullDateFormat).format(date);
+  /// Also the PF6 SnackBar action of the social buttons, which can fire after
+  /// this screen is gone — or while Login already sits on top of it (the
+  /// landing stays mounted underneath), which would stack a second Login.
+  void _openSignIn() {
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) {
+      return;
+    }
+    Navigator.of(context).pushNamed(AppRoutes.login);
   }
 
-  int _getTotalDays(DateTime anniversaryDate) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final start = DateTime(
-      anniversaryDate.year,
-      anniversaryDate.month,
-      anniversaryDate.day,
-    );
-    return today.difference(start).inDays;
+  String _formatDate(DateTime date) {
+    return DateFormat(context.l10n.fullDateFormat).format(date);
   }
 
   DateTime _getNextAnniversary(DateTime anniversaryDate) {
@@ -176,32 +182,41 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 460),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeader(l10n),
-                    const SizedBox(height: 20),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 260),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeOutCubic,
-                      child: _anniversaryDate == null
-                          ? _buildEmptyCard(l10n)
-                          : _buildDateContent(l10n, _anniversaryDate!),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildCtaCard(l10n),
-                  ],
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20 + MediaQuery.paddingOf(context).top,
+                20,
+                20 + MediaQuery.paddingOf(context).bottom,
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 460),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHeader(l10n),
+                      const SizedBox(height: 20),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 260),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeOutCubic,
+                        child: _anniversaryDate == null
+                            ? _buildEmptyCard(l10n)
+                            : _buildDateContent(l10n, _anniversaryDate!),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildCtaCard(l10n),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+            // Edge-to-edge: content scrolls under the clock; keep it readable.
+            const StatusBarScrim(),
+          ],
         ),
       ),
     );
@@ -213,14 +228,14 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
       children: [
         // Header-sync vòng 5: boxed eyebrow chip, light-surface navy-ink
         // recolor of the original (user request 2026-06-11).
-        EyebrowChip(label: l10n.guestModeBadge, icon: IconsaxPlusLinear.magic_star),
+        EyebrowChip(
+          label: l10n.guestModeBadge,
+          icon: IconsaxPlusLinear.magic_star,
+        ),
         const SizedBox(height: 14),
         Text(l10n.guestCounterTitle, style: AppTheme.pageTitleStyle()),
         const SizedBox(height: 10),
-        Text(
-          l10n.guestCounterSubtitle,
-          style: AppTheme.pageSubtitleStyle(),
-        ),
+        Text(l10n.guestCounterSubtitle, style: AppTheme.pageSubtitleStyle()),
       ],
     );
   }
@@ -293,7 +308,7 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   }
 
   Widget _buildDateContent(AppLocalizations l10n, DateTime date) {
-    final totalDays = _getTotalDays(date);
+    final totalDays = LoveTreeService.daysTogether(date);
     final nextAnniversary = _getNextAnniversary(date);
     final daysUntilAnniversary = _daysUntil(nextAnniversary);
     final nextMilestone = _getNextMilestone(totalDays);
@@ -427,6 +442,46 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
   }
 
   Widget _buildCtaCard(AppLocalizations l10n) {
+    final authProvider = context.watch<AuthProvider>();
+    final socialBusy = authProvider.isSocialSigningIn;
+    // Email is the quiet third option: an outline pill the same size as the
+    // provider buttons, so "Pick anniversary date" stays the screen's only
+    // filled brand-colour CTA.
+    final email = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AuthPillButton(
+          label: l10n.guestCtaSignIn,
+          background: Colors.transparent,
+          foreground: AppColors.textPrimary,
+          border: BorderSide(
+            color: AppColors.textPrimary.withValues(alpha: 0.18),
+          ),
+          logo: const Icon(
+            IconsaxPlusLinear.sms,
+            size: 20,
+            color: AppColors.textPrimary,
+          ),
+          busy: false,
+          locked: socialBusy,
+          onPressed: socialBusy ? null : _openSignIn,
+        ),
+        const SizedBox(height: 4),
+        Center(
+          child: TextButton(
+            onPressed: socialBusy
+                ? null
+                : () => Navigator.of(context).pushNamed(AppRoutes.register),
+            style: TextButton.styleFrom(foregroundColor: AppColors.textPrimary),
+            child: Text(
+              l10n.guestCtaRegister,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      ],
+    );
+
     return GlassCard(
       borderRadius: AppTheme.cardRadius,
       child: Column(
@@ -464,43 +519,10 @@ class _GuestCounterScreenState extends State<GuestCounterScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 52,
-                  child: FilledButton(
-                    onPressed: () =>
-                        Navigator.of(context).pushNamed(AppRoutes.login),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.accentRose,
-                      foregroundColor: AppColors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
-                    child: Text(l10n.guestCtaSignIn),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pushNamed(AppRoutes.register),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.textPrimary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 14,
-                  ),
-                ),
-                child: Text(
-                  l10n.guestCtaRegister,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
-          ),
+          if (SocialSignInButtons.isAvailable(authProvider))
+            SocialSignInButtons(onSignInInstead: _openSignIn, below: email)
+          else
+            email,
         ],
       ),
     );

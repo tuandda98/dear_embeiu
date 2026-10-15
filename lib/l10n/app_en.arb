@@ -1,7 +1,92 @@
 {
   "@@locale": "en",
+  "loveTreeShareFirstDay": "Our first day together",
+  "@loveTreeShareFirstDay": {
+    "description": "Stats line of the love-tree share card when the couple's anniversary is today (replaces '0 days together')"
+  },
+  "loveTreeShareMessageSeed": "Our love tree just sprouted 🌱💞 — grow yours together on Dear Embeiu.",
+  "@loveTreeShareMessageSeed": {
+    "description": "Share-sheet text for the love tree while no flower has bloomed yet (replaces 'has bloomed 0 flowers')"
+  },
+  "sleepTheirClock": "Their time",
+  "@sleepTheirClock": {
+    "description": "Pill beside the partner's sleep times when their night was recorded in another time zone than this phone's"
+  },
+  "sleepManualSemantics": "(logged by hand)",
+  "@sleepManualSemantics": {
+    "description": "Sleep calendar cell suffix for a night logged by hand (screen reader)"
+  },
+  "moodSaveFailed": "Couldn't save your mood, please try again",
+  "@moodSaveFailed": {
+    "description": "SnackBar when saving today's mood failed (the pick is rolled back)"
+  },
+  "setPasswordTitle": "Set a password",
+  "@setPasswordTitle": {
+    "description": "Settings → Account row and dialog title: an Apple/Google account adds a password so it can sign in with email elsewhere (audit AU1)"
+  },
+  "setPasswordSubtitle": "To sign in with your email on another phone",
+  "@setPasswordSubtitle": {
+    "description": "Subtitle of the Settings 'Set a password' row"
+  },
+  "setPasswordBody": "Once set, you can sign in with {email} and this password, on iPhone or Android.",
+  "@setPasswordBody": {
+    "description": "Set-password dialog body. email = the account's email, may be Apple's hidden relay address",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordConfirmNote": "{provider} may ask you to confirm it's you.",
+  "@setPasswordConfirmNote": {
+    "description": "Set-password dialog: Apple/Google may show their sheet first when the session is old. provider = 'Apple' or 'Google'",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordDone": "Password set. On another phone, sign in with {email}.",
+  "@setPasswordDone": {
+    "description": "SnackBar after the password was added; has a Copy action for the email",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordAlreadySet": "This account already has a password.",
+  "@setPasswordAlreadySet": {
+    "description": "Set password: the account got a password meanwhile (provider-already-linked)"
+  },
+  "setPasswordEmailTaken": "This email belongs to another account, so the password wasn't set.",
+  "@setPasswordEmailTaken": {
+    "description": "Set password: another account already signs in with this email"
+  },
+  "setPasswordWrongGoogleAccount": "That's a different Google account. Pick the one you use for Dear Embeiu, then try again.",
+  "@setPasswordWrongGoogleAccount": {
+    "description": "Set password: the Google confirmation picked another Google account (user-mismatch)"
+  },
+  "setPasswordFailed": "Couldn't set the password. Please try again.",
+  "@setPasswordFailed": {
+    "description": "Set password: any other error"
+  },
+  "setPasswordAppleIdMismatch": "This device is using a different Apple ID. To set a password, open the app on a device that uses this account's Apple ID.",
+  "@setPasswordAppleIdMismatch": {
+    "description": "Set password: this device's Apple ID isn't the account's. Usually iOS said so before the Apple sheet, the user stays signed in (BUG-27); rarely the sheet itself signed another Apple ID in and the app signed out"
+  },
+  "showPassword": "Show password",
+  "@showPassword": {
+    "description": "Tooltip of the eye button that reveals a password field"
+  },
+  "hidePassword": "Hide password",
+  "@hidePassword": {
+    "description": "Tooltip of the eye button that hides a password field again"
+  },
   "badgeCareLabel": "care notes",
-  "@badgeCareLabel": {"description": "Profile badge label under the care-notes count"},
+  "@badgeCareLabel": {
+    "description": "Profile badge label under the care-notes count"
+  },
   "careTimelineBadge": "CARE NOTES",
   "@careTimelineBadge": {
     "description": "Eyebrow chip on the care-notes timeline screen."
@@ -9,17 +94,6 @@
   "careTimelineSeeAll": "See all",
   "@careTimelineSeeAll": {
     "description": "Link next to the recent care notes that opens the full timeline."
-  },
-  "careTimelineTile": "Care notes",
-  "@careTimelineTile": {
-    "description": "Profile tile opening the care-notes timeline."
-  },
-  "careTimelineCount": "{count} notes between you",
-  "@careTimelineCount": {
-    "description": "Subtitle of the profile care-timeline tile: how many care notes exist.",
-    "placeholders": {
-      "count": {"type": "int"}
-    }
   },
   "careTimelineYesterday": "Yesterday",
   "@careTimelineYesterday": {
@@ -79,11 +153,11 @@
   "featureTourInviteBody": "Share a download link together with your invite code, with step-by-step guidance.",
   "homeWaitingBadge": "WAITING FOR THEM",
   "homeWaitingStep1Title": "Send the invite",
-  "homeWaitingStep1Desc": "Send this invite code to your partner in a message.",
+  "homeWaitingStep1Desc": "Send the code in a message, or let them scan the QR code if you're together.",
   "homeWaitingStep1Cta": "Send it to them 💌",
   "homeWaitingStep1Copy": "Copy code",
   "homeWaitingStep2Title": "They install the app and sign up",
-  "homeWaitingStep2Desc": "They need to install Dear Embeiu (iOS/Android), sign up, then pick <Enter invite code>.",
+  "homeWaitingStep2Desc": "They need to install Dear Embeiu (iOS/Android), sign up, then pick <Join with code>.",
   "homeWaitingStep3Title": "Entering the code is all it takes",
   "homeWaitingStep3Desc": "Once you are paired the app switches over by itself and you get a notification.",
   "homeWaitingMeanwhileTitle": "While you wait, you can already:",
@@ -93,20 +167,48 @@
   "homeWaitingMeanwhileFooter": "They will see all of it when they join.",
   "inviteFollowUpTitle": "Your partner hasn't joined yet 💌",
   "inviteFollowUpBody24h": "Send the invite again — it only takes 10 seconds",
+  "@inviteFollowUpBody24h": {
+    "description": "Invite follow-up body. Since pairing-funnel PF10 it fires at the +20 hour mark; the key keeps its old 24h name."
+  },
   "inviteFollowUpBody72h": "Our memories are waiting for them. Remind them to download the app",
+  "inviteQrBtn": "QR code",
+  "@inviteQrBtn": {
+    "description": "Pill next to Copy / Share (and on the Home waiting card) that opens the invite QR sheet."
+  },
+  "inviteQrTitle": "Let them scan this code",
+  "inviteQrBody": "They open their Camera and point it here to get Dear Embeiu, with your invite code ready.",
+  "inviteQrFallback": "Can't scan? Read this code out for them to type in.",
+  "inviteQrDone": "Done",
+  "inviteQrSemantics": "Invite QR code, code {code}",
+  "@inviteQrSemantics": {
+    "description": "Screen reader label of the invite QR image.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "clipboardInviteTitle": "Use the code from your invite?",
+  "@clipboardInviteTitle": {
+    "description": "Setup sheet shown when the clipboard holds an invite link from the get page."
+  },
+  "clipboardInviteBody": "The invite link you opened has this code. Pair up to join your partner's space.",
+  "clipboardInviteJoin": "Pair up now",
+  "clipboardInviteSkip": "Skip",
+  "inviteFollowUpTitle2h": "Send your partner the invite 💌",
+  "@inviteFollowUpTitle2h": {
+    "description": "Local nudge 2 hours after creating the couple, only while the invite hasn't been sent yet."
+  },
+  "inviteFollowUpBody2h": "Together right now? Let them scan the QR code. Apart? Send it in a message. It takes about 10 seconds.",
   "back": "Back",
   "cancel": "Cancel",
   "save": "Save",
   "delete": "Delete",
   "edit": "Edit",
   "continueBtn": "Continue",
-  "keep": "Keep",
   "splashTagline": "Our story",
   "splashSubtitle": "Counting every day of us",
   "checkingSession": "Checking your session...",
-  "loginTitle": "Welcome back",
-  "loginSubtitle": "Sign in to keep counting every day of you two.",
-  "loginLocalFallback": "Local fallback is on — Firebase will be wired up later.",
   "emailLabel": "Email",
   "emailHint": "you@example.com",
   "emailRequired": "Please enter your email",
@@ -118,9 +220,6 @@
   "signIn": "Sign in",
   "newHere": "New here?",
   "createAccountLink": "Create an account",
-  "registerTitle": "Begin your\nlove story",
-  "registerSubtitle": "Create an account to keep every day of you two safe.",
-  "registerLocalFallback": "Local fallback is on — Firebase will be wired up later.",
   "displayNameLabel": "Display name",
   "displayNameHint": "How you'll appear",
   "displayNameRequired": "Please enter a display name",
@@ -168,35 +267,19 @@
   "theirInviteCodeHint": "e.g. A7B9KD",
   "joinBtn": "Join their space",
   "yourInviteCodeTitle": "Your invite code",
-  "sendToPartnerHint": "Send this to them",
   "inviteCodeTiedToAccount": "Code tied to your account",
   "setupErrorNoAccount": "No account found. Please sign in again.",
   "setupErrorFillRequired": "Please fill in both names and the anniversary date.",
-  "setupErrorSaveCouple": "Could not save couple info: {error}",
-  "@setupErrorSaveCouple": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "setupErrorSaveCouple": "Couldn't save your couple info. Please try again.",
   "setupErrorNoAccountShort": "No account found.",
   "setupErrorNoInviteCode": "Please enter the invite code first.",
-  "setupErrorJoinCouple": "Could not join couple: {error}",
-  "@setupErrorJoinCouple": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "setupErrorJoinCouple": "Couldn't pair up. Please try again.",
   "setupSuccessConnected": "Connected successfully 💞",
   "navHome": "Home",
   "navChat": "Chat",
   "navMemories": "Memories",
   "navProfile": "Profile",
   "chatBadge": "JUST THE TWO OF US",
-  "chatHeaderSubtitle": "Where the two of you talk about everything.",
   "chatEmptyHint": "No messages yet — send your love the first one 💬",
   "chatComposerHint": "Message your love…",
   "chatSendFailed": "Couldn't send your message. Please try again.",
@@ -234,7 +317,7 @@
       }
     }
   },
-  "lunarOtherDayNotifBody": "Today is the {day}th day of the lunar month.",
+  "lunarOtherDayNotifBody": "Today is lunar day {day}.",
   "@lunarOtherDayNotifBody": {
     "placeholders": {
       "day": {
@@ -252,24 +335,10 @@
   "chatWaitingPartnerBody": "Invite your partner to pair up and start your private chat.",
   "chatWaitingPartnerCta": "Invite to pair",
   "ourStoryBadge": "OUR STORY",
-  "helloGreeting": "Hello,",
-  "homeSubtitle": "A good day to look back at your love story.",
   "homeGreetingMorning": "Good morning,",
   "homeGreetingAfternoon": "Good afternoon,",
   "homeGreetingEvening": "Good evening,",
   "homeGreetingNight": "Up late,",
-  "homeGreetingTeaser1": "Send them a big warm hug 🤗",
-  "homeGreetingTeaser2": "Said \"I love you\" today? 💕",
-  "homeGreetingTeaser3": "Send them a cute photo 📸",
-  "homeGreetingTeaser4": "They can't wait to hear from you 🕊️",
-  "homeGreetingTeaser5": "Don't forget today's question ✨",
-  "homeGreetingTeaser6": "Send something sweet their way 🍯",
-  "homeGreetingTeaser7": "Say a little thank-you today 💞",
-  "homeGreetingTeaser8": "A calm moment together is enough 🍃",
-  "homeGreetingTeaser9": "A beautiful day to love 💖",
-  "homeGreetingTeaser10": "Tell them you miss them 💭",
-  "homeGreetingTeaser11": "Keep writing your love story together ✍️",
-  "homeGreetingTeaser12": "Keep your love streak going 🔥",
   "homeTodaySectionTitle": "Today, together",
   "dailyTapToAnswer": "Tap to answer…",
   "dailyPartnerAnsweredTeaser": "{name} has answered 👀",
@@ -284,26 +353,6 @@
   "dailyBothAnsweredToday": "You both answered today",
   "dailyReadAgain": "Read again",
   "dailyCollapse": "Collapse",
-  "loveNoteSealedTitle": "A new note from {name}",
-  "@loveNoteSealedTitle": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "loveNoteSealedTap": "Tap to open 💌",
-  "loveNoteNewBadge": "NEW",
-  "loveNoteComposeCta": "Compose a message",
-  "loveNoteSheetTitleTo": "Send a note to {name}",
-  "@loveNoteSheetTitleTo": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "journalLinkShort": "Journal",
   "milestoneNextLabel": "Milestone: {label}",
   "@milestoneNextLabel": {
     "placeholders": {
@@ -312,7 +361,7 @@
       }
     }
   },
-  "milestoneDaysLeft": "{count} days left",
+  "milestoneDaysLeft": "{count, plural, =1{1 day left} other{{count} days left}}",
   "@milestoneDaysLeft": {
     "placeholders": {
       "count": {
@@ -331,11 +380,6 @@
   },
   "counterBgSwipeHint": "Swipe to change the photo",
   "dailyQuestionPairedFirst": "Once you're paired, you'll answer a question like this together every day 💞",
-  "loveNoteHistoryLinkShort": "Past notes",
-  "loveNoteReplyCta": "Reply…",
-  "loveNoteSendFirstCta": "Send the first note…",
-  "loveNoteStartChat": "No notes yet — send each other the first one 💌",
-  "loveNoteYouLabel": "You",
   "notificationBellLabel": "Notifications, {count} unread",
   "@notificationBellLabel": {
     "placeholders": {
@@ -354,7 +398,7 @@
     }
   },
   "todayIsAnniversary": "Today is your anniversary ✨",
-  "daysUntilNextAnniversary": "{count} days until your next anniversary",
+  "daysUntilNextAnniversary": "{count, plural, =1{1 day until your next anniversary} other{{count} days until your next anniversary}}",
   "@daysUntilNextAnniversary": {
     "placeholders": {
       "count": {
@@ -362,137 +406,16 @@
       }
     }
   },
-  "quickMomentsTitle": "Quick moments",
-  "quickMomentsSubtitle": "Shortcuts to revisit your story",
   "addMemoryCta": "Add a memory",
-  "addMemoryCtaSubtitle": "Post a new photo for you both to keep",
-  "cinemaCardSemantics": "Memory: {caption}, photo {index} of {total}. Tap to view full screen.",
-  "@cinemaCardSemantics": {
-    "placeholders": {
-      "caption": {
-        "type": "String"
-      },
-      "index": {
-        "type": "int"
-      },
-      "total": {
-        "type": "int"
-      }
-    }
-  },
-  "memoriesCardTitle": "Memories",
-  "viewAllPhotos": "View all photos",
-  "profileCardTitle": "Profile",
-  "updateInfo": "Update info",
-  "milestoneCardTitle": "Milestone",
-  "loveInNumbersTitle": "Love in numbers",
-  "loveInNumbersSubtitle": "Little stats from your journey",
   "daysTogether": "Days together",
   "daysUnit": "Days",
   "hoursShort": "hr",
   "minutesShort": "min",
   "secondsShort": "sec",
-  "memoriesSaved": "Memories saved",
-  "photosUnit": "photos",
-  "nextAnniversaryLabel": "Next anniversary",
-  "daysAway": "days away",
-  "nextMilestoneTitle": "Next milestone",
-  "milestoneProgressTitle": "Milestone progress",
-  "milestoneProgressSubtitle": "Gently approaching the next sweet number",
   "recentMemoriesTitle": "Recent memories",
-  "onThisDayTitle": "On this day, {count, plural, =1{1 year ago} other{{count} years ago}} 💞",
-  "@onThisDayTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "onThisDaySubtitle": "A memory from this very day",
   "addPhotosPrompt": "Add a few photos to start your love letter",
-  "latestMomentsSubtitle": "A few of your latest moments together",
   "seeAll": "See all",
   "addPhotosEmpty": "Add a few photos to start filling this love letter.",
-  "yourStorySoFar": "Your story so far",
-  "whenItAllBegan": "When it all began",
-  "whenItAllBeganSubtitle": "{name1} & {name2} on {date}",
-  "@whenItAllBeganSubtitle": {
-    "placeholders": {
-      "name1": {
-        "type": "String"
-      },
-      "name2": {
-        "type": "String"
-      },
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "monthiversaries": "{count} monthiversaries",
-  "@monthiversaries": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "monthiversaryDesc": "Each month, another layer of understanding and tenderness.",
-  "memoriesCaptured": "{count} memories captured",
-  "@memoriesCaptured": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "memoriesCapturedDesc": "Your library is becoming a quiet little album.",
-  "loveNoteLabel": "Love note",
-  "loveNoteQuote": "\"{count} days isn't just time — it's every soft moment, every choice to stay, every little kindness we share.\"",
-  "@loveNoteQuote": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "loveNoteFromPartner": "Note from {name}",
-  "@loveNoteFromPartner": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "loveNoteEmptyFromPartner": "No note from {name} yet",
-  "@loveNoteEmptyFromPartner": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "loveNoteWriteCta": "Write a note",
-  "loveNoteEditCta": "Edit your note",
-  "loveNoteWaitingPartner": "Invite your partner so you can leave little notes for each other.",
-  "loveNoteSheetTitle": "Your love note",
-  "loveNoteSheetHint": "Write something sweet for your partner…",
-  "loveNoteCharCount": "{count}/140",
-  "@loveNoteCharCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "loveNoteSaved": "Your note was sent 💞",
-  "loveNoteSendFailed": "Couldn't send the note — please try again.",
-  "loveNoteHistoryCta": "See past notes",
-  "loveNoteHistoryTitle": "Note journal",
-  "loveNoteHistorySubtitle": "Every note you two have left for each other.",
-  "loveNoteHistoryBadge": "LOVE NOTES",
-  "loveNoteHistoryHeaderSubtitle": "Every note the two of you have sent.",
-  "loveNoteHistoryEmpty": "No notes saved yet. The ones you send each other will be kept here.",
   "loveNoteJustNow": "just now",
   "loveNoteMinutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
   "@loveNoteMinutesAgo": {
@@ -530,33 +453,14 @@
   "@reactionAddTooltip": {
     "description": "Tooltip / a11y label for the heart button when adding a reaction"
   },
-  "reactionChangeTooltip": "Change reaction",
-  "@reactionChangeTooltip": {
-    "description": "Tooltip / a11y label for long-pressing to change the reaction emoji"
-  },
   "reactionRemoveTooltip": "Remove reaction",
   "@reactionRemoveTooltip": {
     "description": "Tooltip / a11y label for the heart button when it would remove the user's reaction"
   },
   "reactionErrorRetry": "Couldn't react, try again",
+  "dailyQuestionSubmitError": "Couldn't send your answer. Please try again.",
   "@reactionErrorRetry": {
     "description": "SnackBar shown when writing a reaction fails and was rolled back"
-  },
-  "reactionPartnerReacted": "{name} reacted {emoji}",
-  "@reactionPartnerReacted": {
-    "description": "a11y label / tooltip for the partner's reaction chip",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "emoji": {
-        "type": "String"
-      }
-    }
-  },
-  "reactionBothLabel": "You both reacted 💞",
-  "@reactionBothLabel": {
-    "description": "a11y label when both members have reacted to a photo"
   },
   "reactionBothShort": "You both reacted",
   "@reactionBothShort": {
@@ -606,14 +510,6 @@
   "moodStressed": "Stressed",
   "dailyQuestionLabel": "Today's question",
   "dailyQuestionHint": "Write your answer…",
-  "dailyQuestionCharCount": "{count}/280",
-  "@dailyQuestionCharCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "dailyQuestionSend": "Send",
   "dailyQuestionYourAnswerLabel": "Your answer",
   "dailyQuestionAnsweredWaiting": "Answered ✓ — waiting for {name}",
@@ -633,15 +529,8 @@
     }
   },
   "dailyQuestionWaitingPartner": "It will unlock once your partner joins and answers too.",
-  "dailyQuestionRevealHint": "You both answered — here's what you each said 💞",
   "dailyQuestionSent": "Your answer was sent 💞",
-  "journalEntryCta": "Open journal",
-  "journalScreenTitle": "Question journal",
-  "journalScreenSubtitle": "The questions you've both answered.",
   "journalBadge": "QUESTION JOURNAL",
-  "journalHeaderSubtitle": "The questions you two have answered together.",
-  "journalSettingsTile": "Question journal",
-  "journalSettingsSection": "Memories",
   "journalYourAnswerLabel": "YOUR ANSWER",
   "journalPartnerAnswerLabel": "{name}'S ANSWER",
   "@journalPartnerAnswerLabel": {
@@ -659,9 +548,8 @@
   "journalEmptyNoPartnerCta": "Invite partner",
   "journalErrorTitle": "Couldn't load the journal",
   "journalRetry": "Try again",
-  "loveNoteYourNoteLabel": "YOUR NOTE",
   "milestoneReached": "You just reached a beautiful milestone ✨",
-  "onlyDaysUntilMilestone": "Only {count} days until your next milestone.",
+  "onlyDaysUntilMilestone": "{count, plural, =1{Only 1 day until your next milestone.} other{Only {count} days until your next milestone.}}",
   "@onlyDaysUntilMilestone": {
     "placeholders": {
       "count": {
@@ -677,7 +565,7 @@
       }
     }
   },
-  "daysCountLabel": "{count} days",
+  "daysCountLabel": "{count, plural, =1{1 day} other{{count} days}}",
   "@daysCountLabel": {
     "placeholders": {
       "count": {
@@ -734,10 +622,6 @@
     }
   },
   "privateGalleryBadge": "PHOTO LIBRARY",
-  "galleryTitle": "Photo Library",
-  "gallerySubtitle": "Swipe up to quickly bring up the post frame and manage memories.",
-  "addCaptionTitle": "Add caption",
-  "addCaptionHint": "Write a few lines about this moment...",
   "addCaptionOptionalTitle": "Add caption (optional)",
   "addCaptionOptionalHint": "Write something truly memorable...",
   "editCaptionTitle": "Edit caption",
@@ -754,16 +638,8 @@
       }
     }
   },
-  "momentsCount": "{count} moments",
+  "momentsCount": "{count, plural, =1{1 moment} other{{count} moments}}",
   "@momentsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "daysTogetherCount": "{count} days together",
-  "@daysTogetherCount": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -773,19 +649,7 @@
   "privateFeedLabel": "Private feed for you two",
   "postNewPhotoBtn": "Take photo",
   "addMultipleBtn": "Add photos",
-  "cameraUnavailable": "Couldn't open the camera. Try again or check camera permission (the Simulator has no camera — use a real device).",
-  "galleryDraftTitle": "Review & post",
-  "galleryDraftCaptionHint": "Add a shared caption (optional)…",
-  "galleryDraftEmpty": "All photos removed.",
-  "galleryDraftPostBtn": "Post {count} photos",
-  "@galleryDraftPostBtn": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "createPostTitle": "New memory",
+  "cameraUnavailable": "Couldn't open the camera. Try again, or turn on camera access for the app in your phone's Settings.",
   "createPostBadge": "NEW MEMORY",
   "createPostAuthorMeta": "Posted by {name} · {when}",
   "@createPostAuthorMeta": {
@@ -819,26 +683,10 @@
   "addNewMemoryTitle": "Add a new memory today",
   "whatNewToday": "what's new today?",
   "composerSubtitle": "Turn the library into a private and memorable love newsfeed.",
-  "compactCaption": "{count} moments · Swipe to expand post frame",
+  "compactCaption": "{count, plural, =1{1 moment · Swipe to expand post frame} other{{count} moments · Swipe to expand post frame}}",
   "@compactCaption": {
     "placeholders": {
       "count": {
-        "type": "int"
-      }
-    }
-  },
-  "todayInLoveBadge": "TODAY IN LOVE",
-  "storyStripBadge": "STORY STRIP",
-  "memoriesTodayTitle": "Memories today",
-  "recentPhotosTitle": "Recent photos",
-  "memoriesTodaySubtitle": "Moments saved on this exact date, tender and personal.",
-  "recentPhotosSubtitle": "A small story strip for a quick look at your latest moments.",
-  "memoryBadge": "Memory",
-  "newBadge": "New",
-  "momentLabel": "Moment #{number}",
-  "@momentLabel": {
-    "placeholders": {
-      "number": {
         "type": "int"
       }
     }
@@ -853,15 +701,13 @@
   "reportReasonOther": "Something else",
   "reportCancel": "Cancel",
   "reportSentConfirm": "Report sent, thank you.",
-  "editAction": "Edit",
-  "deleteAction": "Delete",
   "startNewfeedTitle": "Start building a memory newsfeed",
   "postFirstMomentOf": "Post the first moment of",
   "emptyFeedContent": "Once you add photos, this library will become a private love newsfeed with timelines that are easy to view and feel.",
   "postFirstPhotoBtn": "Post first photo",
   "photoAddedSuccess": "Photo added successfully!",
   "photoAddError": "Could not post photo right now.",
-  "multiplePhotosAdded": "Added {count} photos!",
+  "multiplePhotosAdded": "{count, plural, =1{Added 1 photo!} other{Added {count} photos!}}",
   "@multiplePhotosAdded": {
     "placeholders": {
       "count": {
@@ -923,77 +769,18 @@
     }
   },
   "loveProfileBadge": "LOVE PROFILE",
-  "profileTitle": "Your profile",
-  "profileSubtitle": "A private corner to look back on your love journey, milestones, and memory album.",
-  "todayIsAnniversaryProfile": "Today is your anniversary ✨",
-  "daysUntilAnniversaryProfile": "{count} days until the next anniversary",
-  "@daysUntilAnniversaryProfile": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "khoanhKhacCount": "{count} moments",
-  "@khoanhKhacCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "privateDiaryLabel": "Private diary",
-  "loveMilestonesLabel": "Love milestones",
-  "journeySnapshotTitle": "Journey snapshot",
   "yearsTogether": "Years",
   "monthsRemaining": "Months",
-  "totalDaysLabel": "Total days",
-  "totalHoursLabel": "Total hours",
-  "memoriesSavedLabel": "Memories saved",
-  "infoAndRhythmTitle": "Info & rhythm",
-  "infoAndRhythmSubtitle": "A clearer look at your start date, album, and upcoming milestones.",
-  "loveStartDateLabel": "Love start date",
   "yourInviteCodeLabel": "Your account invite code",
-  "memoryAlbumLabel": "Memory album",
-  "memoryAlbumValue": "{count} photos saved in private album",
-  "@memoryAlbumValue": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "upcomingMilestoneLabel": "Upcoming milestone",
-  "todaySpecialMsg": "Today is a very special day for you two",
-  "daysUntilNextMsg": "{count} more days until the next anniversary",
-  "@daysUntilNextMsg": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "customizeProfileTitle": "Customize profile",
-  "customizeProfileSubtitle": "Update names, anniversary date, and couple photo so the profile always reflects your current journey.",
   "editOurStoryBtn": "Edit our story",
-  "profileChipDaysLabel": "days together",
-  "profileChipAnniversaryLabel": "days to anniversary",
-  "profileChipAnniversaryTodayLabel": "anniversary is today!",
-  "profileChipPhotosLabel": "memories saved",
-  "profileMemoryChestTitle": "Memory chest",
-  "profileStreakTile": "Connection streak",
   "settingsSectionAccount": "Account",
   "settingsSectionNotifications": "Notifications",
   "settingsSectionGeneral": "General",
-  "settingsPushGroupLabel": "Push from your partner",
-  "proTipLabel": "Pro tip",
-  "proTipContent": "A bright, close-up couple photo with good breathing room will make the hero section look much more polished.",
   "dataManagementTitle": "Data management",
   "dataManagementDesc": "One person can only clear cache on this device or leave the couple. To delete shared data, both must confirm.",
   "clearLocalDataBtn": "Clear data on this device",
   "localFallbackWarning": "App is in local fallback mode so safe individual cache clearing is not yet supported. You can leave the current local couple if you want to reset.",
   "leaveCoupleBtn": "Leave couple",
-  "clearDataNote": "Deleting all shared data is currently not allowed from one side. In the next sprint, this will be changed to a flow requiring both to confirm.",
   "clearLocalDialogTitle": "Clear data on this device",
   "clearLocalDialogContent": "This only clears the cache on the current device. Shared data on Firebase is preserved and will reload when needed.",
   "clearLocalActionBtn": "Clear local",
@@ -1007,13 +794,10 @@
   "@leaveCoupleError": {
     "description": "Snackbar shown when leaving the couple fails"
   },
-  "localDataClearedMsg": "Local data on this device has been cleared. Shared data on cloud is preserved.",
+  "localDataClearedMsg": "Local data on this device has been cleared. Shared data in the cloud is preserved.",
   "languageTitle": "Language",
-  "languageSubtitle": "Choose the app display language",
   "languageSystem": "System default",
   "languageSystemDesc": "Follow device language",
-  "languageEnglish": "English",
-  "languageVietnamese": "Tiếng Việt",
   "loadingCoupleInfo": "Loading couple info...",
   "savingCoupleSpace": "Saving couple space...",
   "connectingCouple": "Connecting couple...",
@@ -1030,25 +814,10 @@
       }
     }
   },
-  "remindersTitle": "Love reminders",
-  "remindersSubtitle": "Gentle nudges to keep your story growing",
-  "remindersToggleLabel": "Milestone & anniversary reminders",
-  "remindersToggleDesc": "Reminds you of the milestones & anniversaries you choose. Required to use \"Our reminders\".",
-  "remindersTimeLabel": "Reminder time",
   "remindersPermissionDeniedMsg": "Turn on notifications in Settings to receive reminders.",
   "dailyQuestionReminderTitle": "Daily question reminder",
   "dailyQuestionReminderSubtitle": "Nudges you both to answer each day, synced across both phones.",
-  "dailyQuestionReminderTimeLabel": "Remind me at",
-  "dailyQuestionReminderTimesLabel": "Reminder times",
   "dailyQuestionReminderAddTime": "Add a time",
-  "dailyQuestionReminderRemoveTime": "Remove reminder time {time}",
-  "@dailyQuestionReminderRemoveTime": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
   "dailyQuestionReminderNotifTitle": "Today's question is waiting 💌",
   "dailyQuestionReminderNotifBody": "Answer it to unlock your partner's reply.",
   "dailyQuestionReminderNotifBodyAlt1": "There's a new question for the two of you — answer yours first 💞",
@@ -1067,16 +836,7 @@
       }
     }
   },
-  "dqStreakWarningPartnerBody": "Your partner hasn't answered yet. A little nudge keeps your {days}-day streak alive!",
-  "@dqStreakWarningPartnerBody": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
   "dqStreakWarningStartBody": "The day's almost over! Answer today's question to start a new streak.",
-  "dqStreakWarningStartPartnerBody": "Your partner hasn't answered yet. Nudge them so you can start a streak together.",
   "dqStreakWarningFinalTitle": "Less than an hour left! ⏳",
   "dqStreakWarningFinalBody": "Answer now so your {days}-day streak doesn't break 🔥",
   "@dqStreakWarningFinalBody": {
@@ -1087,20 +847,6 @@
     }
   },
   "dqStreakWarningFinalStartBody": "Answer now to start a new streak before the day ends 🌱",
-  "reminderDailyTitle": "Another day of us 💕",
-  "reminderDailyBody": "Open Dear Embeiu and count today together.",
-  "reminderMilestoneApproachingTitle": "A milestone is near 💕",
-  "reminderMilestoneApproachingBody": "{count} days until your {milestone} milestone!",
-  "@reminderMilestoneApproachingBody": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "milestone": {
-        "type": "String"
-      }
-    }
-  },
   "reminderMilestoneTodayTitle": "Milestone reached 🎉",
   "reminderMilestoneTodayBody": "Today you reach {milestone} together 💕",
   "@reminderMilestoneTodayBody": {
@@ -1114,8 +860,6 @@
   "reminderAnniversaryBody": "Celebrate another year of your love story today 💕",
   "reminderInactivityTitle": "Missing your moments 💭",
   "reminderInactivityBody": "It's been a while — add a new memory together 💕",
-  "remindersV2MilestoneEntryTitle": "Milestones & anniversaries",
-  "remindersV2MilestoneEntrySubtitle": "Choose which milestones to be reminded of",
   "remindersV2MilestoneCountBadge": "{count}",
   "@remindersV2MilestoneCountBadge": {
     "placeholders": {
@@ -1125,7 +869,6 @@
     }
   },
   "remindersV2MilestoneScreenTitle": "Milestones & anniversaries",
-  "remindersV2MilestoneScreenCaption": "Choose the milestones you want and when to be reminded.",
   "milestoneBadge": "SPECIAL DAYS",
   "milestoneHeaderSubtitle": "Pick milestones to be reminded of, with their own times.",
   "remindersV2MilestoneNext": "Next: {date}",
@@ -1157,7 +900,7 @@
       }
     }
   },
-  "remindersV2MilestoneYearsLabel": "{count} years",
+  "remindersV2MilestoneYearsLabel": "{count, plural, =1{1 year} other{{count} years}}",
   "@remindersV2MilestoneYearsLabel": {
     "placeholders": {
       "count": {
@@ -1183,50 +926,14 @@
   "settingsTitle": "Settings",
   "settingsBadge": "APP PREFERENCES",
   "settingsHeaderSubtitle": "Reminders, notifications, language and your account.",
-  "settingsProfileTileSubtitle": "Reminders, language, account",
-  "settingsRemindersModuleTitle": "Reminders",
-  "settingsRemindersModuleSubtitle": "Milestones, anniversaries & your own reminders",
   "settingsRemindersEntryTitle": "Reminders",
   "settingsRemindersEntrySubtitle": "Milestones, anniversaries and your own reminders",
   "remindersHubBadge": "REMINDERS",
   "remindersHubTitle": "Our reminders",
   "remindersHubSubtitle": "Milestones, anniversaries and your own reminders — all in one place.",
-  "remindersHubMilestonesSection": "Milestones & anniversaries",
-  "remindersHubMilestonesSectionSub": "Pick the milestones to be reminded of and set their times.",
-  "remindersHubCustomSection": "Our reminders",
-  "remindersHubCustomSectionSub": "Create reminders for your own special days.",
-  "settingsAccountModuleTitle": "Account & data",
-  "settingsAccountModuleSubtitle": "Your story, data & account",
   "settingsAnalyticsTitle": "Share usage data",
   "settingsAnalyticsSubtitle": "Help improve the app with anonymous data. We never collect your private content.",
-  "settingsNotifTypesTitle": "Notification types",
-  "settingsNotifTypesSubtitle": "Mute the push types you'd rather not be interrupted by. They still appear in your notification center.",
-  "settingsNotifTypePhoto": "New photos",
-  "settingsNotifTypePhotoSubtitle": "When your partner posts a photo",
-  "settingsNotifTypeReaction": "Photo reactions",
-  "settingsNotifTypeReactionSubtitle": "When your partner reacts to your photo",
-  "settingsNotifTypeDailyQuestion": "Daily question",
-  "settingsNotifTypeDailyQuestionSubtitle": "When your partner answers today's question",
-  "settingsEditStorySubtitle": "Edit names, anniversary date, photo",
-  "settingsDefaultTimeLabel": "Default time",
-  "settingsDefaultTimeSubtitle": "Used for milestones without a custom time",
-  "settingsMilestoneUsesDefault": "Default · {time}",
-  "@settingsMilestoneUsesDefault": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "settingsMilestoneCustomTimeReset": "Reset to default time",
-  "remindersV2ForceOpenTitle": "Turn on reminders to continue",
-  "remindersV2ForceOpenBody": "You need to turn on \"Milestone & anniversary reminders\" to create and receive your own reminders.",
-  "remindersV2ForceOpenConfirm": "Turn on",
-  "remindersV2ForceOpenLater": "Later",
-  "remindersV2ForceOpenDeniedMsg": "Notification permission denied. Enable notifications in Settings to continue.",
   "languageSearchHint": "Search languages",
-  "customRemindersEntryTitle": "Our reminders",
-  "customRemindersEntrySubtitle": "Create your own special dates",
   "customRemindersScreenTitle": "Our reminders",
   "customRemindersBadge": "YOUR OWN MOMENTS",
   "customRemindersHeaderSubtitle": "Create reminders for your own special moments.",
@@ -1248,15 +955,10 @@
   },
   "customRemindersDisabledLabel": "Off",
   "customRemindersFabTooltip": "Add reminder",
-  "customRemindersItemMenuEdit": "Edit",
-  "customRemindersItemMenuDelete": "Delete",
   "customRemindersEmptyTitle": "No reminders yet",
   "customRemindersEmptyBody": "Create your own moments: birthdays, monthsaries, special days…",
   "customRemindersEmptyCta": "Create your first reminder",
   "customRemindersAddAnother": "Add a reminder",
-  "customRemindersOffTitle": "Reminders are off",
-  "customRemindersOffBody": "Turn on \"Love reminders\" in Profile so your reminders can work.",
-  "customRemindersOffCta": "Turn on reminders",
   "customRemindersLimitMsg": "You've reached the max of 20 reminders. Delete one to add more.",
   "customRemindersAddTitle": "New reminder",
   "customRemindersEditTitle": "Edit reminder",
@@ -1360,7 +1062,7 @@
   "@authAccountNotFound": {
     "description": "authAccountNotFound"
   },
-  "authConfigNotFound": "Firebase Authentication for this project isn't enabled, or Email/Password is off. In Firebase Console > Authentication > Sign-in method > Email/Password, turn it on.",
+  "authConfigNotFound": "Email sign-in isn't available right now. Please try again later.",
   "@authConfigNotFound": {
     "description": "authConfigNotFound"
   },
@@ -1368,27 +1070,71 @@
   "@authEmailAlreadyUsed": {
     "description": "authEmailAlreadyUsed"
   },
-  "authEmailPasswordNotEnabled": "Firebase Authentication isn't fully set up for Email/Password. In Firebase Console > Authentication > Sign-in method, enable Email/Password.",
+  "authEmailPasswordNotEnabled": "Email sign-in isn't available right now. Please try again later.",
   "@authEmailPasswordNotEnabled": {
     "description": "authEmailPasswordNotEnabled"
   },
-  "authFirebaseAuthGeneric": "A Firebase Auth error occurred.",
+  "authFirebaseAuthGeneric": "Couldn't verify your account. Please try again.",
   "@authFirebaseAuthGeneric": {
     "description": "authFirebaseAuthGeneric"
   },
-  "authFirebaseUserCreateFailed": "Couldn't create your Firebase account.",
+  "continueWithApple": "Continue with Apple",
+  "@continueWithApple": {
+    "description": "Sign in with Apple button label (iOS only, pairing-funnel PF2)"
+  },
+  "authOrDivider": "or",
+  "@authOrDivider": {
+    "description": "Label in the divider between the email form and the Apple/Google buttons"
+  },
+  "appleSignInFailed": "Couldn't sign in with Apple. Please try again.",
+  "@appleSignInFailed": {
+    "description": "Generic Sign in with Apple error"
+  },
+  "appleEmailHasPasswordAccount": "This email already has an account. Sign in the way you did before.",
+  "@appleEmailHasPasswordAccount": {
+    "description": "Apple or Google sign-in returned an email that already belongs to another account (password, Apple or Google); provider-neutral (PF6)"
+  },
+  "deleteAccountAppleNote": "Apple will then show a sign-in sheet to confirm it's you.",
+  "@deleteAccountAppleNote": {
+    "description": "Extra line in the delete-account dialog for Apple accounts, warning that the Apple sheet comes next"
+  },
+  "deleteAccountReauthBodyApple": "For your security, confirm with Apple again to permanently delete your account.",
+  "@deleteAccountReauthBodyApple": {
+    "description": "Body of the re-auth dialog for Apple accounts (no password field)"
+  },
+  "continueWithGoogle": "Continue with Google",
+  "@continueWithGoogle": {
+    "description": "Sign in with Google button label (pairing-funnel PF15)"
+  },
+  "googleSignInFailed": "Couldn't sign in with Google. Please try again.",
+  "@googleSignInFailed": {
+    "description": "Generic Google sign-in error"
+  },
+  "socialConsentPrefix": "By continuing, you agree to our",
+  "@socialConsentPrefix": {
+    "description": "Implied-consent line under the Apple/Google buttons, followed by a space, the privacyPolicyLabel link and a period"
+  },
+  "deleteAccountReauthBodyGoogle": "Tap Delete permanently to try again. If it still fails, sign in with Google again, then delete.",
+  "@deleteAccountReauthBodyGoogle": {
+    "description": "Body of the re-auth dialog for Google accounts (no password field); 'Delete permanently' is deleteAccountConfirmBtn"
+  },
+  "deleteAccountAppleIdMismatch": "This device is using a different Apple ID. To delete the account, open the app on a device that uses this account's Apple ID.",
+  "@deleteAccountAppleIdMismatch": {
+    "description": "Deleting an Apple account, but the Apple sheet signed in with a different Apple ID (PF18); the user has been signed out"
+  },
+  "authFirebaseUserCreateFailed": "Couldn't create your account. Please try again.",
   "@authFirebaseUserCreateFailed": {
     "description": "authFirebaseUserCreateFailed"
   },
-  "authFirestoreGeneric": "A Firestore error occurred.",
+  "authFirestoreGeneric": "Couldn't sync your account data. Please try again.",
   "@authFirestoreGeneric": {
     "description": "authFirestoreGeneric"
   },
-  "authFirestorePermissionDenied": "Firestore is blocking writes to user data. Check this app's Firestore Rules and allow a signed-in user to create/write their own `users/<uid>` and `invite_codes/<code>`.",
+  "authFirestorePermissionDenied": "The server didn't accept your account info. Please try again in a few minutes.",
   "@authFirestorePermissionDenied": {
     "description": "authFirestorePermissionDenied"
   },
-  "authFirestoreUnavailable": "Firestore is currently unavailable or the network is unstable. Please try again in a few minutes.",
+  "authFirestoreUnavailable": "Can't reach the server right now. It might be a network hiccup, so try again in a few minutes.",
   "@authFirestoreUnavailable": {
     "description": "authFirestoreUnavailable"
   },
@@ -1408,21 +1154,25 @@
   "@authInviteCodeUnavailable": {
     "description": "authInviteCodeUnavailable"
   },
-  "authNetworkError": "No stable network connection to sign in to Firebase.",
+  "authNetworkError": "Your connection seems unstable. Check it and try again.",
   "@authNetworkError": {
     "description": "authNetworkError"
   },
-  "authSessionNotReady": "Your Firebase session isn't ready. Please sign in again.",
+  "authSessionNotReady": "Your session isn't ready yet. Please sign in again.",
   "@authSessionNotReady": {
     "description": "authSessionNotReady"
   },
-  "authSessionUnavailable": "Couldn't get your Firebase session.",
+  "authSessionUnavailable": "Couldn't sign you in. Please try again.",
   "@authSessionUnavailable": {
     "description": "authSessionUnavailable"
   },
   "authTooManyRequests": "Too many sign-in attempts — please try again in a few minutes.",
   "@authTooManyRequests": {
     "description": "authTooManyRequests"
+  },
+  "authUserDisabled": "This account has been disabled, so you can't sign in.",
+  "@authUserDisabled": {
+    "description": "Sign-in error: FirebaseAuth user-disabled"
   },
   "authWeakPassword": "That password is too weak — please choose a stronger one.",
   "@authWeakPassword": {
@@ -1484,7 +1234,7 @@
   "@coupleEnterCodeFirst": {
     "description": "coupleEnterCodeFirst"
   },
-  "coupleFirebaseUnavailable": "Firebase is currently unavailable or the network is unstable. Please try again in a few minutes.",
+  "coupleFirebaseUnavailable": "Can't reach the server right now. It might be a network hiccup, so try again in a few minutes.",
   "@coupleFirebaseUnavailable": {
     "description": "coupleFirebaseUnavailable"
   },
@@ -1528,19 +1278,19 @@
   "@couplePartnerHasNoSpace": {
     "description": "couplePartnerHasNoSpace"
   },
-  "couplePhotoUploadGeneric": "The couple photo couldn't be uploaded to Firebase Storage.",
+  "couplePhotoUploadGeneric": "Couldn't upload your couple photo. Try changing it again later.",
   "@couplePhotoUploadGeneric": {
     "description": "couplePhotoUploadGeneric"
   },
-  "couplePhotoUploadPermission": "The couple photo couldn't be uploaded to Firebase Storage. Your couple info was saved first — deploy `storage.rules`, then try changing the photo again.",
+  "couplePhotoUploadPermission": "Couldn't upload your couple photo. Your couple info is saved, so just try changing the photo again later.",
   "@couplePhotoUploadPermission": {
     "description": "couplePhotoUploadPermission"
   },
-  "couplePhotoUploadSessionInvalid": "The couple photo couldn't be uploaded because your Firebase session is no longer valid.",
+  "couplePhotoUploadSessionInvalid": "Couldn't upload your couple photo because your session expired. Sign in again, then change the photo.",
   "@couplePhotoUploadSessionInvalid": {
     "description": "couplePhotoUploadSessionInvalid"
   },
-  "couplePhotoUploadUnavailable": "The couple photo couldn't be uploaded because Firebase Storage or the network is temporarily unstable.",
+  "couplePhotoUploadUnavailable": "Couldn't upload your couple photo. The network or server is acting up. Please try again later.",
   "@couplePhotoUploadUnavailable": {
     "description": "couplePhotoUploadUnavailable"
   },
@@ -1556,11 +1306,11 @@
   "@coupleSessionExpiredJoin": {
     "description": "coupleSessionExpiredJoin"
   },
-  "coupleSessionInvalid": "Your Firebase session is no longer valid. Please sign in again.",
+  "coupleSessionInvalid": "Your session has expired. Please sign in again.",
   "@coupleSessionInvalid": {
     "description": "coupleSessionInvalid"
   },
-  "coupleSessionNotReadyRelogin": "Your Firebase session isn't ready. Please sign out and back in.",
+  "coupleSessionNotReadyRelogin": "Your session isn't ready yet. Please sign out and back in.",
   "@coupleSessionNotReadyRelogin": {
     "description": "coupleSessionNotReadyRelogin"
   },
@@ -1592,10 +1342,6 @@
   "@deleteAccountConfirmBtn": {
     "description": "deleteAccountConfirmBtn"
   },
-  "deleteAccountDesc": "Permanently delete your account and all associated data",
-  "@deleteAccountDesc": {
-    "description": "deleteAccountDesc"
-  },
   "deleteAccountDialogContent": "This action cannot be undone. All your data, including photos and couple information, will be permanently deleted.",
   "@deleteAccountDialogContent": {
     "description": "deleteAccountDialogContent"
@@ -1608,10 +1354,6 @@
   "@deleteAccountFailed": {
     "description": "deleteAccountFailed"
   },
-  "deleteAccountRequiresReloginMsg": "Please sign out, sign in again, and retry to verify your identity",
-  "@deleteAccountRequiresReloginMsg": {
-    "description": "deleteAccountRequiresReloginMsg"
-  },
   "deleteAccountReauthTitle": "Confirm it's you",
   "@deleteAccountReauthTitle": {
     "description": "Title of the re-auth dialog shown when deleting an account needs a recent login"
@@ -1623,14 +1365,6 @@
   "deleteAccountSessionExpiredMsg": "Your session has expired. Please sign in again, then delete your account.",
   "@deleteAccountSessionExpiredMsg": {
     "description": "Shown when re-auth can't proceed because there's no local session left"
-  },
-  "deleteAccountSuccessMsg": "Account deleted",
-  "@deleteAccountSuccessMsg": {
-    "description": "deleteAccountSuccessMsg"
-  },
-  "deleteAccountTitle": "Delete Account",
-  "@deleteAccountTitle": {
-    "description": "deleteAccountTitle"
   },
   "editCoupleBadge": "COUPLE PROFILE",
   "@editCoupleBadge": {
@@ -1664,21 +1398,9 @@
   "@galleryTodayEmptyTitle": {
     "description": "galleryTodayEmptyTitle"
   },
-  "homeWaitingPartnerSubtitle": "Share your invite code with your partner to start the journey together.",
-  "@homeWaitingPartnerSubtitle": {
-    "description": "homeWaitingPartnerSubtitle"
-  },
-  "homeWaitingPartnerTitle": "Waiting for your partner",
-  "@homeWaitingPartnerTitle": {
-    "description": "homeWaitingPartnerTitle"
-  },
   "leavingCouple": "Leaving the couple...",
   "@leavingCouple": {
     "description": "leavingCouple"
-  },
-  "loveHomeBadge": "LOVE HOME",
-  "@loveHomeBadge": {
-    "description": "loveHomeBadge"
   },
   "mustAgreeToPrivacyPolicy": "Please agree to the privacy policy to continue",
   "@mustAgreeToPrivacyPolicy": {
@@ -1688,11 +1410,11 @@
   "@photoConnectCoupleFirst": {
     "description": "photoConnectCoupleFirst"
   },
-  "photoFileNotFoundStorage": "The photo file wasn't found on Firebase Storage.",
+  "photoFileNotFoundStorage": "This photo couldn't be found on the server.",
   "@photoFileNotFoundStorage": {
     "description": "photoFileNotFoundStorage"
   },
-  "photoFirebaseUnavailable": "Firebase is currently unavailable or the network is unstable.",
+  "photoFirebaseUnavailable": "Can't reach the server right now. It might be a network hiccup, so try again in a few minutes.",
   "@photoFirebaseUnavailable": {
     "description": "photoFirebaseUnavailable"
   },
@@ -1700,7 +1422,7 @@
   "@photoNotFoundToPost": {
     "description": "photoNotFoundToPost"
   },
-  "photoStorageUnauthorized": "Firebase Storage is refusing this photo operation.",
+  "photoStorageUnauthorized": "You can't do that with this photo right now. Try signing out and back in.",
   "@photoStorageUnauthorized": {
     "description": "photoStorageUnauthorized"
   },
@@ -1708,11 +1430,11 @@
   "@photoSyncGeneric": {
     "description": "photoSyncGeneric"
   },
-  "photoSyncPermissionDenied": "You don't have permission to sync photos. Check `firestore.rules` and `storage.rules` on Firebase.",
+  "photoSyncPermissionDenied": "You don't have permission to sync photos yet. Try signing out and back in.",
   "@photoSyncPermissionDenied": {
     "description": "photoSyncPermissionDenied"
   },
-  "photoSyncSessionExpired": "Your Firebase session has expired. Please sign in again.",
+  "photoSyncSessionExpired": "Your session has expired. Please sign in again.",
   "@photoSyncSessionExpired": {
     "description": "photoSyncSessionExpired"
   },
@@ -1764,7 +1486,7 @@
   "@welcomeBackBadge": {
     "description": "welcomeBackBadge"
   },
-  "counterDuration": "{years} years, {months} months, {days} days",
+  "counterDuration": "{years, plural, =1{1 year} other{{years} years}}, {months, plural, =1{1 month} other{{months} months}}, {days, plural, =1{1 day} other{{days} days}}",
   "@counterDuration": {
     "description": "Love duration breakdown",
     "placeholders": {
@@ -1779,23 +1501,13 @@
       }
     }
   },
-  "coupleLoadError": "Couldn't load couple info: {error}",
+  "coupleLoadError": "Couldn't load your couple info. Please try again.",
   "@coupleLoadError": {
-    "description": "Error loading couple info",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
+    "description": "Error loading couple info"
   },
-  "coupleSyncError": "Couldn't sync couple info: {error}",
+  "coupleSyncError": "Couldn't sync your couple info. Please try again.",
   "@coupleSyncError": {
-    "description": "Error syncing couple info",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
+    "description": "Error syncing couple info"
   },
   "galleryMonthLabel": "{month, select, 1{January {year}} 2{February {year}} 3{March {year}} 4{April {year}} 5{May {year}} 6{June {year}} 7{July {year}} 8{August {year}} 9{September {year}} 10{October {year}} 11{November {year}} 12{December {year}} other{{month} {year}}}",
   "@galleryMonthLabel": {
@@ -1810,7 +1522,7 @@
     }
   },
   "galleryEndOfFeed": "That's every memory 💕 — go make some new ones together",
-  "galleryTodayMomentsCount": "{count} moments today",
+  "galleryTodayMomentsCount": "{count, plural, =1{1 moment today} other{{count} moments today}}",
   "@galleryTodayMomentsCount": {
     "description": "Count of moments posted today",
     "placeholders": {
@@ -1818,23 +1530,6 @@
         "type": "int"
       }
     }
-  },
-  "homeCounterStartFrom": "Since {date}",
-  "@homeCounterStartFrom": {
-    "description": "Start date label",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "guestTryWithoutLogin": "Try without signing in",
-  "@guestTryWithoutLogin": {
-    "description": "Login screen button entering guest counter mode"
-  },
-  "guestLoginDivider": "or",
-  "@guestLoginDivider": {
-    "description": "Divider label between sign-in and guest button on login"
   },
   "guestModeBadge": "Trial mode",
   "@guestModeBadge": {
@@ -1864,6 +1559,10 @@
   "@guestChangeDate": {
     "description": "Button to reopen the date picker once a date is set"
   },
+  "widgetEmptyTap": "Tap to start counting your days together",
+  "@widgetEmptyTap": {
+    "description": "Home-screen widget, empty state (guest / no couple / signed out). One line under the app-name chip; widget is 158pt wide, max 3 lines."
+  },
   "guestCounterStartFrom": "Since {date}",
   "@guestCounterStartFrom": {
     "description": "Counter card subtitle showing the guest start date",
@@ -1881,7 +1580,7 @@
   "@guestCtaBody": {
     "description": "Body of the conversion CTA card on the guest screen"
   },
-  "guestCtaSignIn": "Sign in",
+  "guestCtaSignIn": "Sign in with email",
   "@guestCtaSignIn": {
     "description": "CTA button returning to the login screen"
   },
@@ -1923,6 +1622,10 @@
   },
   "streakSheetUnit": "days connected in a row",
   "streakSheetNoStreakTitle": "Light your first spark",
+  "streakSheetRestartTitle": "Light the spark again",
+  "@streakSheetRestartTitle": {
+    "description": "Streak sheet title when the couple had a streak before and it reset"
+  },
   "streakSheetNoStreakBody": "Each day you both answer the question, your streak grows. Let's begin 💞",
   "streakSheetActiveTitle": "You're keeping the spark alive 💞",
   "streakSheetActiveBody": "All done today! See you at tomorrow's question.",
@@ -1945,7 +1648,7 @@
     }
   },
   "streakSheetRestartBody": "The old streak wrapped up, but every new day's a fresh start. Let's light it again 🌱",
-  "streakSheetRecord": "Your record: {m} days 🌟",
+  "streakSheetRecord": "{m, plural, =1{Your record: 1 day 🌟} other{Your record: {m} days 🌟}}",
   "@streakSheetRecord": {
     "placeholders": {
       "m": {
@@ -1953,7 +1656,7 @@
       }
     }
   },
-  "streakNextMilestone": "{n} days to your {m}-day milestone 🎉",
+  "streakNextMilestone": "{n, plural, =1{1 day to your {m}-day milestone 🎉} other{{n} days to your {m}-day milestone 🎉}}",
   "@streakNextMilestone": {
     "placeholders": {
       "n": {
@@ -1996,18 +1699,6 @@
   "@forgotPasswordBadge": {
     "description": "forgotPasswordBadge"
   },
-  "forgotPasswordTitle": "Forgot your password?",
-  "@forgotPasswordTitle": {
-    "description": "forgotPasswordTitle"
-  },
-  "forgotPasswordSubtitle": "Enter your email and we'll send you a link to reset your password.",
-  "@forgotPasswordSubtitle": {
-    "description": "forgotPasswordSubtitle"
-  },
-  "forgotPasswordEmailHeading": "Email",
-  "@forgotPasswordEmailHeading": {
-    "description": "forgotPasswordEmailHeading"
-  },
   "forgotPasswordSendBtn": "Send reset email",
   "@forgotPasswordSendBtn": {
     "description": "forgotPasswordSendBtn"
@@ -2044,19 +1735,6 @@
   "verifyEmailBadge": "VERIFY EMAIL",
   "@verifyEmailBadge": {
     "description": "verifyEmailBadge"
-  },
-  "verifyEmailTitle": "Verify your email",
-  "@verifyEmailTitle": {
-    "description": "verifyEmailTitle"
-  },
-  "verifyEmailSubtitle": "We've sent a verification link to {email}.",
-  "@verifyEmailSubtitle": {
-    "description": "verifyEmailSubtitle",
-    "placeholders": {
-      "email": {
-        "type": "String"
-      }
-    }
   },
   "verifyEmailBody": "Open the email, tap the verification link, then come back here and tap \"I've verified\".",
   "@verifyEmailBody": {
@@ -2114,7 +1792,6 @@
   "notifClearAll": "Clear all",
   "notifClearAllConfirmTitle": "Clear all notifications?",
   "notifClearAllConfirmBody": "You won't be able to see these again.",
-  "notifDismiss": "Dismiss",
   "notifGeneric": "You have a new notification",
   "notifPhotoPosted": "{name} shared a new photo",
   "@notifPhotoPosted": {
@@ -2190,7 +1867,7 @@
   "counterBgBadge": "BACKGROUND",
   "counterBgTitle": "Counter background",
   "counterBgSubtitleAll": "Pick which photos can back the day-counter card. Leave empty to cycle through them all.",
-  "counterBgSubtitleCount": "{count} photos picked for the counter background.",
+  "counterBgSubtitleCount": "{count, plural, =1{1 photo picked for the counter background.} other{{count} photos picked for the counter background.}}",
   "@counterBgSubtitleCount": {
     "placeholders": {
       "count": {
@@ -2220,7 +1897,7 @@
   "chatBgNoneValidBody": "Add a tall, sharp photo to your gallery — landscape or low-resolution photos can't be used as a chat background.",
   "chatBgSavedMsg": "Chat background saved 💕",
   "journeyTrailTitle": "Our journey",
-  "milestoneTrailNext": "{days} days to {label}",
+  "milestoneTrailNext": "{days, plural, =1{1 day to {label}} other{{days} days to {label}}}",
   "@milestoneTrailNext": {
     "placeholders": {
       "days": {
@@ -2253,12 +1930,13 @@
     }
   },
   "profileMemoriesTitle": "Our memories",
-  "profileMemoriesCountLabel": "{count} memories",
+  "profileMemoriesCountLabel": "{count, plural, =1{1 memory} other{{count} memories}}",
   "@profileMemoriesCountLabel": {
     "description": "Total memories subtitle in the memories sheet",
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -2276,11 +1954,7 @@
   },
   "loveTreeBadge": "LOVE TREE",
   "loveTreeStage0": "Tiny seed",
-  "loveTreeStage1": "Sprout",
-  "loveTreeStage2": "Young tree",
-  "loveTreeStage3": "Flourishing tree",
-  "loveTreeStage4": "In full bloom",
-  "loveTreeFlowerCount": "{count} flowers bloomed",
+  "loveTreeFlowerCount": "{count, plural, =1{1 flower bloomed} other{{count} flowers bloomed}}",
   "@loveTreeFlowerCount": {
     "placeholders": {
       "count": {
@@ -2288,9 +1962,7 @@
       }
     }
   },
-  "loveTreeFlowerCountZero": "No flowers yet — let's grow it together",
   "loveTreeSeedSubtitle": "Your journey starts right here 🌱",
-  "loveTreeBloomSubtitle": "Your tree is in full bloom ✨",
   "loveTreeNewBloomBanner": "Your tree just bloomed {count} new flowers 🌸",
   "@loveTreeNewBloomBanner": {
     "placeholders": {
@@ -2300,15 +1972,7 @@
     }
   },
   "loveTreeNewBloomBannerOne": "Your tree just bloomed a new flower 🌸",
-  "loveTreeNurtureTitle": "Grow it together",
-  "loveTreeNurtureStreakTitle": "Keep your daily streak",
-  "loveTreeNurtureStreakBody": "Answer daily so your streak lives on",
-  "loveTreeNurturePhotoTitle": "Add a memory",
-  "loveTreeNurturePhotoBody": "Every photo is a new flower",
-  "loveTreeNurtureTalkTitle": "Talk together today",
-  "loveTreeNurtureTalkBody": "Small moments grow the tree",
-  "loveTreeMilestonesTitle": "Milestones",
-  "loveTreeMilestoneDays": "{count} days together",
+  "loveTreeMilestoneDays": "{count, plural, =1{1 day together} other{{count} days together}}",
   "@loveTreeMilestoneDays": {
     "placeholders": {
       "count": {
@@ -2324,7 +1988,7 @@
       }
     }
   },
-  "loveTreeMilestonePhotos": "{count} memories",
+  "loveTreeMilestonePhotos": "{count, plural, =1{1 memory} other{{count} memories}}",
   "@loveTreeMilestonePhotos": {
     "placeholders": {
       "count": {
@@ -2332,8 +1996,7 @@
       }
     }
   },
-  "loveTreeMilestoneBloomed": "bloomed",
-  "loveTreeMilestoneDaysLeft": "{count} days to go",
+  "loveTreeMilestoneDaysLeft": "{count, plural, =1{1 day to go} other{{count} days to go}}",
   "@loveTreeMilestoneDaysLeft": {
     "placeholders": {
       "count": {
@@ -2341,7 +2004,7 @@
       }
     }
   },
-  "loveTreeMilestoneStreakLeft": "{count} streak days to go",
+  "loveTreeMilestoneStreakLeft": "{count, plural, =1{1 streak day to go} other{{count} streak days to go}}",
   "@loveTreeMilestoneStreakLeft": {
     "placeholders": {
       "count": {
@@ -2349,7 +2012,7 @@
       }
     }
   },
-  "loveTreeMilestonePhotosLeft": "{count} photos to go",
+  "loveTreeMilestonePhotosLeft": "{count, plural, =1{1 photo to go} other{{count} photos to go}}",
   "@loveTreeMilestonePhotosLeft": {
     "placeholders": {
       "count": {
@@ -2357,13 +2020,11 @@
       }
     }
   },
-  "loveTreeMilestoneAllDone": "all done 🌟",
   "loveTreeWaitingTitle": "Waiting for both of you",
   "loveTreeWaitingBody": "The tree grows when you're both here. Invite your partner 💌",
   "loveTreeWaitingCta": "Invite partner",
   "loveTreeNoCoupleBody": "Connect with your partner to start growing 🌱",
   "loveTreeCoachTooltip": "Tap to see this moment 🌸",
-  "loveTreeTapHint": "Tap a flower to relive a memory",
   "loveTreeMomentDaysTitle": "{count} days together",
   "@loveTreeMomentDaysTitle": {
     "placeholders": {
@@ -2408,7 +2069,7 @@
   "loveTreeMomentPhotosCopy": "A moment the two of you chose to keep 💞",
   "loveTreeMomentStreakCopy": "The record you two once kept together. Start a new streak to beat it 🔥",
   "loveTreeMomentViewInGallery": "View in Gallery",
-  "loveTreeLockedDays": "{count} days to go before this blooms 🌱",
+  "loveTreeLockedDays": "{count, plural, =1{1 day to go before this blooms 🌱} other{{count} days to go before this blooms 🌱}}",
   "@loveTreeLockedDays": {
     "placeholders": {
       "count": {
@@ -2416,7 +2077,7 @@
       }
     }
   },
-  "loveTreeLockedPhotos": "{count} memories to go before this blooms 🌱",
+  "loveTreeLockedPhotos": "{count, plural, =1{1 memory to go before this blooms 🌱} other{{count} memories to go before this blooms 🌱}}",
   "@loveTreeLockedPhotos": {
     "placeholders": {
       "count": {
@@ -2424,7 +2085,7 @@
       }
     }
   },
-  "loveTreeLockedStreak": "{count} streak days to go before this blooms 🌱",
+  "loveTreeLockedStreak": "{count, plural, =1{1 streak day to go before this blooms 🌱} other{{count} streak days to go before this blooms 🌱}}",
   "@loveTreeLockedStreak": {
     "placeholders": {
       "count": {
@@ -2435,31 +2096,34 @@
   "loveTreeLockedPhotosCta": "Add a memory",
   "loveTreeLockedStreakCta": "Answer today",
   "loveTreeShareButton": "Share our tree",
-  "loveTreeShareStats": "{days} days together · {flowers} flowers in bloom",
+  "loveTreeShareStats": "{days, plural, =1{1 day together} other{{days} days together}} · {flowers, plural, =1{1 flower in bloom} other{{flowers} flowers in bloom}}",
   "@loveTreeShareStats": {
     "placeholders": {
       "days": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "flowers": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
   "loveTreeShareTagline": "The tree we grew together 🌳",
   "loveTreeShareTaglineSeed": "Our tree just sprouted 🌱",
-  "loveTreeShareMessage": "Our love tree has bloomed {flowers} flowers after {days} days 🌳💞 — grow yours together on Dear Embeiu.",
+  "loveTreeShareMessage": "Our love tree has bloomed {flowers, plural, =1{1 flower} other{{flowers} flowers}} after {days, plural, =1{1 day} other{{days} days}} 🌳💞 — grow yours together on Dear Embeiu.",
   "@loveTreeShareMessage": {
     "placeholders": {
       "flowers": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "days": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
-  "loveTreeShareFailed": "Couldn't create the card, please try again",
   "partnerReminderNotifBody": "A reminder from your partner 💌",
   "notifAnswerReaction": "{name} reacted {emoji} to your answer",
   "@notifAnswerReaction": {
@@ -2497,10 +2161,6 @@
   "@careMessageEntryTitle": {
     "description": "Profile menu entry opening the care-note composer."
   },
-  "careMessageEntrySubtitle": "A little message to warm their day",
-  "@careMessageEntrySubtitle": {
-    "description": "Subtitle of the profile care-note entry."
-  },
   "careMessageQuickPicksTitle": "Quick picks",
   "@careMessageQuickPicksTitle": {
     "description": "Section title above the ready-made care-note chips."
@@ -2526,11 +2186,17 @@
     "description": "Primary button that sends the care note."
   },
   "aiQuestionsSaveFailed": "Couldn't save that, please try again",
-  "@aiQuestionsSaveFailed": {"description": "aiQuestionsSaveFailed"},
+  "@aiQuestionsSaveFailed": {
+    "description": "aiQuestionsSaveFailed"
+  },
   "dailyQuestionPreparing": "Getting today's question ready…",
-  "@dailyQuestionPreparing": {"description": "dailyQuestionPreparing"},
+  "@dailyQuestionPreparing": {
+    "description": "dailyQuestionPreparing"
+  },
   "careMessageQueuedToast": "Slow network — your note will be sent as soon as you're back online 💌",
-  "@careMessageQueuedToast": {"description": "Toast when the care note write timed out offline and is queued"},
+  "@careMessageQueuedToast": {
+    "description": "Toast when the care note write timed out offline and is queued"
+  },
   "careMessageSentToast": "Sent 💌",
   "@careMessageSentToast": {
     "description": "Snackbar after a care note was sent."
@@ -2609,6 +2275,1472 @@
     "placeholders": {
       "name": {
         "type": "String"
+      }
+    }
+  },
+  "rpsGameTitle": "Rock Paper Scissors",
+  "@rpsGameTitle": {
+    "description": "Name of the rock-paper-scissors mini game (feature rps-game)."
+  },
+  "rpsGameBadge": "ROCK PAPER SCISSORS",
+  "@rpsGameBadge": {
+    "description": "Uppercase eyebrow chip naming the rock-paper-scissors screen."
+  },
+  "rpsChoiceRock": "Rock",
+  "@rpsChoiceRock": {
+    "description": "Rock-paper-scissors hand: rock."
+  },
+  "rpsChoicePaper": "Paper",
+  "@rpsChoicePaper": {
+    "description": "Rock-paper-scissors hand: paper."
+  },
+  "rpsChoiceScissors": "Scissors",
+  "@rpsChoiceScissors": {
+    "description": "Rock-paper-scissors hand: scissors."
+  },
+  "rpsChoiceNone": "Skipped",
+  "@rpsChoiceNone": {
+    "description": "Rock-paper-scissors: the player didn't pick before the timer ran out (history + result). Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it."
+  },
+  "rpsResultWin": "You win 🎉",
+  "@rpsResultWin": {
+    "description": "Rock-paper-scissors result headline when the current user won."
+  },
+  "rpsResultLose": "Your person wins 😝",
+  "@rpsResultLose": {
+    "description": "Rock-paper-scissors result headline when the partner won."
+  },
+  "rpsResultDraw": "It's a draw 🤝",
+  "@rpsResultDraw": {
+    "description": "Rock-paper-scissors result headline for a draw."
+  },
+  "rpsWaitingPartner": "Waiting for your person…",
+  "@rpsWaitingPartner": {
+    "description": "Rock-paper-scissors: invite sent, the partner hasn't opened the game yet."
+  },
+  "rpsChosenWaiting": "You've thrown ✓ · Waiting for your person…",
+  "@rpsChosenWaiting": {
+    "description": "Rock-paper-scissors: the user has picked a hand and is waiting for the partner."
+  },
+  "rpsExpired": "This invite has expired",
+  "@rpsExpired": {
+    "description": "Rock-paper-scissors: the invite went unanswered for 10 minutes."
+  },
+  "rpsCancelled": "Your person cancelled the invite",
+  "@rpsCancelled": {
+    "description": "Rock-paper-scissors: the inviter withdrew the invite."
+  },
+  "notifRpsInvite": "{name} challenged you to rock-paper-scissors!",
+  "@notifRpsInvite": {
+    "description": "Notification center title for a rock-paper-scissors invite from the partner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifRpsResult": "Your rock-paper-scissors game with {name} is over",
+  "@notifRpsResult": {
+    "description": "Notification center title when a rock-paper-scissors game finished.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsHistoryBadge": "MATCH HISTORY",
+  "@rpsHistoryBadge": {
+    "description": "Uppercase eyebrow chip on the rock-paper-scissors history screen."
+  },
+  "rpsEntryIdleSubtitle": "Challenge your person to a round",
+  "@rpsEntryIdleSubtitle": {
+    "description": "Home card subtitle when no game is open."
+  },
+  "rpsEntryWeekScore": "This week {win} – {draw} – {loss}",
+  "@rpsEntryWeekScore": {
+    "description": "Home card score line for the current week (wins – draws – losses).",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsEntryInvitedTitle": "You're challenged!",
+  "@rpsEntryInvitedTitle": {
+    "description": "Home card title when the partner has an open invite."
+  },
+  "rpsEntryInvitedSubtitle": "Hop in — they're waiting",
+  "@rpsEntryInvitedSubtitle": {
+    "description": "Home card subtitle when the partner has an open invite."
+  },
+  "rpsEntryPendingSubtitle": "Invite stays open for 10 minutes",
+  "@rpsEntryPendingSubtitle": {
+    "description": "Home card subtitle while my own invite is pending."
+  },
+  "rpsEntryCtaPlay": "Play",
+  "@rpsEntryCtaPlay": {
+    "description": "Home card CTA (idle)."
+  },
+  "rpsEntryCtaJoin": "Join",
+  "@rpsEntryCtaJoin": {
+    "description": "Home card CTA when the partner invited me."
+  },
+  "rpsEntryCtaOpen": "Open",
+  "@rpsEntryCtaOpen": {
+    "description": "Home card CTA while my invite is pending."
+  },
+  "rpsScoreFormat": "{win} – {draw} – {loss}",
+  "@rpsScoreFormat": {
+    "description": "Score triple (wins – draws – losses) with en dashes.",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsScoreSemantics": "Score: you {win}, draw {draw}, your person {loss}",
+  "@rpsScoreSemantics": {
+    "description": "Accessibility label for the score triple.",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsChoiceSemantics": "Pick {choice}",
+  "@rpsChoiceSemantics": {
+    "description": "Accessibility label for a hand button.",
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsRulesHint": "Scissors cut Paper · Paper wraps Rock · Rock breaks Scissors",
+  "@rpsRulesHint": {
+    "description": "One-line rules reminder under the three hand buttons."
+  },
+  "rpsRuleScissorsPaper": "Scissors cut Paper",
+  "@rpsRuleScissorsPaper": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsRulePaperRock": "Paper wraps Rock",
+  "@rpsRulePaperRock": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsRuleRockScissors": "Rock breaks Scissors",
+  "@rpsRuleRockScissors": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsMeLabel": "Me",
+  "@rpsMeLabel": {
+    "description": "Label under my avatar / my card."
+  },
+  "rpsPartnerLabel": "Your person",
+  "@rpsPartnerLabel": {
+    "description": "Label under the partner's avatar / card."
+  },
+  "rpsVs": "vs",
+  "@rpsVs": {
+    "description": "The small 'vs' pill between the two players."
+  },
+  "rpsWaitingBody": "Invite sent. Waiting for your person…",
+  "@rpsWaitingBody": {
+    "description": "Waiting screen body for the inviter. Neutral on purpose (Tester RPS-21): the CF may skip the push (partner still on the previous result screen), so never claim they were notified."
+  },
+  "rpsWaitingBodyInvitee": "Connecting to your person… The round starts once you're both here.",
+  "@rpsWaitingBodyInvitee": {
+    "description": "Waiting screen body for the invitee."
+  },
+  "rpsNudgeCta": "Nudge again",
+  "@rpsNudgeCta": {
+    "description": "Waiting screen: re-send the invite push."
+  },
+  "rpsNudgeCooldown": "Nudge again ({seconds}s)",
+  "@rpsNudgeCooldown": {
+    "description": "Waiting screen nudge button while on cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsNudgeSentToast": "Nudged your person again 🔔",
+  "@rpsNudgeSentToast": {
+    "description": "Toast after re-sending the invite."
+  },
+  "rpsCancelCta": "Cancel invite",
+  "@rpsCancelCta": {
+    "description": "Waiting screen: creator withdraws the invite."
+  },
+  "rpsCloseCta": "Close",
+  "@rpsCloseCta": {
+    "description": "Tertiary close button on the game screen."
+  },
+  "rpsCancelledToast": "Invite cancelled",
+  "@rpsCancelledToast": {
+    "description": "Toast after the creator cancelled the invite."
+  },
+  "rpsCountdownPrompt": "Pick now!",
+  "@rpsCountdownPrompt": {
+    "description": "Prompt under the countdown ring."
+  },
+  "rpsCountdownUnit": "SEC",
+  "@rpsCountdownUnit": {
+    "description": "Micro-caps unit under the countdown number."
+  },
+  "rpsCountdownSemantics": "{seconds, plural, =1{1 second left} other{{seconds} seconds left}}",
+  "@rpsCountdownSemantics": {
+    "description": "Accessibility live label for the countdown.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "rpsResolving": "Revealing…",
+  "@rpsResolving": {
+    "description": "Caption while the server settles the round."
+  },
+  "rpsResolvingSlow": "Connection is a bit slow…",
+  "@rpsResolvingSlow": {
+    "description": "Caption when settling takes more than 6 seconds."
+  },
+  "rpsReloadCta": "Reload",
+  "@rpsReloadCta": {
+    "description": "Button to re-read the game when settling is slow."
+  },
+  "rpsOfflineHint": "Offline — your pick will go through once you're back online",
+  "@rpsOfflineHint": {
+    "description": "Offline strip above the hand buttons."
+  },
+  "rpsResultDrawSub": "Both picked {choice}",
+  "@rpsResultDrawSub": {
+    "description": "Result subtitle for a draw.",
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsResultTimeoutPartner": "Your person didn't pick in time",
+  "@rpsResultTimeoutPartner": {
+    "description": "Result subtitle when the partner skipped. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it."
+  },
+  "rpsResultTimeoutMe": "You didn't pick in time",
+  "@rpsResultTimeoutMe": {
+    "description": "Result subtitle when I skipped. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it."
+  },
+  "rpsResultTimeoutBoth": "Both skipped — this round is a draw",
+  "@rpsResultTimeoutBoth": {
+    "description": "Result subtitle when both skipped. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it."
+  },
+  "rpsRematchCta": "Play again",
+  "@rpsRematchCta": {
+    "description": "Result screen primary CTA."
+  },
+  "rpsHistoryCta": "View history",
+  "@rpsHistoryCta": {
+    "description": "Result screen secondary CTA."
+  },
+  "rpsRematchToast": "Your person wants a rematch!",
+  "@rpsRematchToast": {
+    "description": "Toast when the partner created a rematch while I'm on the result screen."
+  },
+  "rpsResultSemantics": "{title}. You picked {mine}, your person picked {theirs}.",
+  "@rpsResultSemantics": {
+    "description": "Accessibility summary of the result.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "mine": {
+        "type": "String"
+      },
+      "theirs": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsExpiredBody": "This invite expired after 10 minutes. Start a new round!",
+  "@rpsExpiredBody": {
+    "description": "Body of the expired-invite state."
+  },
+  "rpsCancelledBody": "No worries — you two can play another round any time.",
+  "@rpsCancelledBody": {
+    "description": "Body of the cancelled-invite state."
+  },
+  "rpsInviteAgainCta": "Challenge again",
+  "@rpsInviteAgainCta": {
+    "description": "CTA on the expired/cancelled states."
+  },
+  "rpsErrorTitle": "Couldn't open the round",
+  "@rpsErrorTitle": {
+    "description": "Error state title on the game screen."
+  },
+  "rpsErrorBody": "Check your connection and try again.",
+  "@rpsErrorBody": {
+    "description": "Error state body on the game screen."
+  },
+  "rpsNeedCouple": "You need your person in the app to play.",
+  "@rpsNeedCouple": {
+    "description": "Shown when there is no partner to play with."
+  },
+  "rpsScoreMe": "ME",
+  "@rpsScoreMe": {
+    "description": "Scoreboard column header (mine)."
+  },
+  "rpsScoreDraw": "DRAW",
+  "@rpsScoreDraw": {
+    "description": "Scoreboard column header (draws)."
+  },
+  "rpsScorePartner": "THEM",
+  "@rpsScorePartner": {
+    "description": "Scoreboard column header (partner)."
+  },
+  "rpsHistoryTotal": "{count, plural, =1{1 round played} other{{count} rounds played}}",
+  "@rpsHistoryTotal": {
+    "description": "Scoreboard footer: total rounds.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "rpsHistoryWinStreak": "Win streak: {count}",
+  "@rpsHistoryWinStreak": {
+    "description": "Scoreboard footer: my current win streak (hidden at 0).",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsOutcomeWin": "You won",
+  "@rpsOutcomeWin": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeLoss": "They won",
+  "@rpsOutcomeLoss": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeDraw": "Draw",
+  "@rpsOutcomeDraw": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeSkipped": "Skipped",
+  "@rpsOutcomeSkipped": {
+    "description": "History row outcome pill when a hand was missing. Legacy — rounds before the 2026-09-14 no-skip rule; new rounds never produce it."
+  },
+  "rpsHistoryRowSemantics": "{time}: you {mine}, your person {theirs}, {outcome}",
+  "@rpsHistoryRowSemantics": {
+    "description": "Accessibility label for a history row.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "mine": {
+        "type": "String"
+      },
+      "theirs": {
+        "type": "String"
+      },
+      "outcome": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsHistoryEmptyTitle": "No rounds yet",
+  "@rpsHistoryEmptyTitle": {
+    "description": "History empty state title."
+  },
+  "rpsHistoryEmptyBody": "Every round you two play lands here — draws included.",
+  "@rpsHistoryEmptyBody": {
+    "description": "History empty state body."
+  },
+  "rpsHistoryEmptyCta": "Challenge your person",
+  "@rpsHistoryEmptyCta": {
+    "description": "History empty state CTA."
+  },
+  "featureTourRpsTitle": "Rock-paper-scissors together",
+  "@featureTourRpsTitle": {
+    "description": "Feature tour entry title (build 23)."
+  },
+  "featureTourRpsBody": "Send a challenge, count it down together and throw. No skipping — whoever hasn't thrown gets a nudge, and the reveal waits for both of you. History and score live on your Profile.",
+  "@featureTourRpsBody": {
+    "description": "Feature tour entry body (build 23)."
+  },
+  "featureTourSleepTitle": "Our sleep",
+  "@featureTourSleepTitle": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSleepBody": "A moon calendar for every night: the fuller the moon, the better you slept. Share with each other and every morning you'll see how long your partner slept.",
+  "@featureTourSleepBody": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSleepMotionTitle": "Sleep without a watch",
+  "@featureTourSleepMotionTitle": {
+    "description": "Feature tour entry (build 28): motion fallback for sleep."
+  },
+  "featureTourSleepMotionBody": "Just leave your phone by the bed: the app guesses when you fell asleep and woke up from when it lay still. If a night looks off, tap it to fix.",
+  "@featureTourSleepMotionBody": {
+    "description": "Feature tour entry (build 28)."
+  },
+  "featureTourSkyTitle": "Today's constellation",
+  "@featureTourSkyTitle": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSkyBody": "The Love Tree now has a night sky. Each of you has 3 stars: answer the question, pick a mood, send a message. Light all 6 and the heart is complete.",
+  "@featureTourSkyBody": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "rpsOpenPrompt": "Go on, throw! No skipping here 😄",
+  "@rpsOpenPrompt": {
+    "description": "Play screen caption once the 5s beat is over and nobody has thrown (no time limit)."
+  },
+  "rpsOpenRingSemantics": "No time limit — throw when you're ready",
+  "@rpsOpenRingSemantics": {
+    "description": "Screen-reader label of the ring once the 5s beat is over."
+  },
+  "rpsPartnerMovedTitle": "Your person has thrown!",
+  "@rpsPartnerMovedTitle": {
+    "description": "Play screen banner + Home card title: the partner has thrown, I have not (never says which hand)."
+  },
+  "rpsPartnerMovedBody": "Your move — pick a hand below",
+  "@rpsPartnerMovedBody": {
+    "description": "Play screen banner body under rpsPartnerMovedTitle."
+  },
+  "rpsMoveNudgeCta": "Nudge your person",
+  "@rpsMoveNudgeCta": {
+    "description": "Play screen: I have thrown, ask the partner (push) to throw too."
+  },
+  "rpsMoveNudgeCooldown": "Nudged · again in {seconds}s",
+  "@rpsMoveNudgeCooldown": {
+    "description": "Play screen nudge button during its 60s cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsMoveNudgeSentToast": "Nudged your person 🔔",
+  "@rpsMoveNudgeSentToast": {
+    "description": "Snackbar after the move nudge was sent."
+  },
+  "rpsMoveNudgeTooSoon": "You just nudged — try again in {seconds}s",
+  "@rpsMoveNudgeTooSoon": {
+    "description": "Snackbar when the server refused the move nudge because of the cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsMoveNudgeFailed": "Couldn't send the nudge — try again",
+  "@rpsMoveNudgeFailed": {
+    "description": "Snackbar when the move nudge failed (network / other error)."
+  },
+  "rpsChosenLeaveHint": "Feel free to step away — we'll tell you the result",
+  "@rpsChosenLeaveHint": {
+    "description": "Play screen hint under the nudge button: leaving is fine, the result is pushed."
+  },
+  "rpsEntryMyTurnSubtitle": "Your turn — go ahead 😄",
+  "@rpsEntryMyTurnSubtitle": {
+    "description": "Home card subtitle when the partner has thrown and I have not."
+  },
+  "rpsEntryUnplayedTitle": "Round in progress",
+  "@rpsEntryUnplayedTitle": {
+    "description": "Home card title: a started round where nobody has thrown yet."
+  },
+  "rpsEntryUnplayedSubtitle": "No one's thrown — go first",
+  "@rpsEntryUnplayedSubtitle": {
+    "description": "Home card subtitle for rpsEntryUnplayedTitle."
+  },
+  "rpsEntryAwaitingTitle": "Waiting for their move",
+  "@rpsEntryAwaitingTitle": {
+    "description": "Home card title: I have thrown, the partner has not."
+  },
+  "rpsEntryAwaitingSubtitle": "You've thrown · we'll tell you",
+  "@rpsEntryAwaitingSubtitle": {
+    "description": "Home card subtitle for rpsEntryAwaitingTitle."
+  },
+  "rpsEntryCtaThrow": "Throw",
+  "@rpsEntryCtaThrow": {
+    "description": "Home card CTA to open a started round and throw."
+  },
+  "notifRpsMoved": "{name} has thrown — your move!",
+  "@notifRpsMoved": {
+    "description": "Notification center title: the partner threw in rock-paper-scissors and it is my move.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepCardTitle": "Last night",
+  "@sleepCardTitle": {
+    "description": "Sleep: Home card title"
+  },
+  "sleepBadge": "SLEEP",
+  "@sleepBadge": {
+    "description": "Sleep screen header chip"
+  },
+  "sleepYou": "You",
+  "@sleepYou": {
+    "description": "Sleep: label for my own data"
+  },
+  "sleepUnitHour": "h",
+  "@sleepUnitHour": {
+    "description": "Sleep: hour unit after a big number (7g 15p)"
+  },
+  "sleepUnitMinute": "m",
+  "@sleepUnitMinute": {
+    "description": "Sleep: minute unit after a big number"
+  },
+  "sleepDurationShort": "{h}h {m}m",
+  "@sleepDurationShort": {
+    "description": "Sleep: compact duration",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepMinutesShort": "{m}m",
+  "@sleepMinutesShort": {
+    "description": "Sleep: compact duration under one hour",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepDurationLong": "{h} hr {m} min",
+  "@sleepDurationLong": {
+    "description": "Sleep: spelled-out duration (screen readers, edit total)",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogether": "Asleep together {duration}",
+  "@sleepTogether": {
+    "description": "Sleep: overlap of both sleeps",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepWentFirst": "{name} fell asleep {duration} earlier",
+  "@sleepWentFirst": {
+    "description": "Sleep: who fell asleep first, shown when 10+ min apart",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepNoOverlap": "You didn't sleep at the same time last night",
+  "@sleepNoOverlap": {
+    "description": "Sleep card footer when the two sleeps did not overlap"
+  },
+  "sleepSetupPitch": "Let your phone log your sleep and see each morning how your person slept.",
+  "@sleepSetupPitch": {
+    "description": "Sleep card before tracking is on"
+  },
+  "sleepEnableCta": "Turn on",
+  "@sleepEnableCta": {
+    "description": "Sleep card CTA opening the setup sheet"
+  },
+  "sleepHide": "Hide",
+  "@sleepHide": {
+    "description": "Sleep card: hide for 30 days"
+  },
+  "sleepNotRecorded": "Not recorded",
+  "@sleepNotRecorded": {
+    "description": "Sleep: no night found for me"
+  },
+  "sleepLogManually": "Log it",
+  "@sleepLogManually": {
+    "description": "Sleep: link opening the edit sheet to log a night by hand"
+  },
+  "sleepPartnerNotShared": "Not shared",
+  "@sleepPartnerNotShared": {
+    "description": "Sleep card: partner does not share"
+  },
+  "sleepPartnerNotSharedLong": "{name} isn't sharing sleep",
+  "@sleepPartnerNotSharedLong": {
+    "description": "Sleep screen: partner does not share",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepNoData": "No data yet",
+  "@sleepNoData": {
+    "description": "Sleep: partner shares but has no night"
+  },
+  "sleepNeedsPermission": "Permission needed",
+  "@sleepNeedsPermission": {
+    "description": "Sleep: Android usage access lost"
+  },
+  "sleepOpenSettings": "Open settings",
+  "@sleepOpenSettings": {
+    "description": "Sleep: open the permission settings"
+  },
+  "sleepPermissionBanner": "The app can't see when your screen turns on or off, so it can't log your sleep. Turn it back on in Settings → Usage access.",
+  "@sleepPermissionBanner": {
+    "description": "Sleep screen banner when Android usage access is off"
+  },
+  "sleepViewBoth": "Both",
+  "@sleepViewBoth": {
+    "description": "Sleep screen segmented: both people"
+  },
+  "sleepPrevMonth": "Previous month",
+  "@sleepPrevMonth": {
+    "description": "Sleep calendar arrow (screen reader)"
+  },
+  "sleepNextMonth": "Next month",
+  "@sleepNextMonth": {
+    "description": "Sleep calendar arrow (screen reader)"
+  },
+  "sleepNightTitle": "Night of {d1} → {d2}",
+  "@sleepNightTitle": {
+    "description": "Sleep night detail title, d1 = day of the evening, d2 = wake date (10/10)",
+    "placeholders": {
+      "d1": {
+        "type": "String"
+      },
+      "d2": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepAwakenings": "{count, plural, =1{Woke up once} other{Woke up {count} times}}",
+  "@sleepAwakenings": {
+    "description": "Sleep: number of short wake-ups",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepNoAwakenings": "Slept straight through",
+  "@sleepNoAwakenings": {
+    "description": "Sleep: no wake-up"
+  },
+  "sleepSourceEdited": "Edited",
+  "@sleepSourceEdited": {
+    "description": "Sleep label: night edited by its owner (everyone sees it)"
+  },
+  "sleepSourceManual": "Manual",
+  "@sleepSourceManual": {
+    "description": "Sleep label: night logged by hand (everyone sees it)"
+  },
+  "sleepSourceHealth": "Apple Health",
+  "@sleepSourceHealth": {
+    "description": "Sleep source name"
+  },
+  "sleepSourcePhone": "Phone (automatic)",
+  "@sleepSourcePhone": {
+    "description": "Sleep source name on Android"
+  },
+  "sleepSourceHealthEmpty": "Apple Health (no data yet)",
+  "@sleepSourceHealthEmpty": {
+    "description": "Sleep source row: iOS Health mode with no Health night in the last 14 days."
+  },
+  "sleepSourceMotion": "Phone motion",
+  "@sleepSourceMotion": {
+    "description": "Sleep source name: motion fallback (phone lying still)"
+  },
+  "sleepSourceRow": "Source: {source}",
+  "@sleepSourceRow": {
+    "description": "Sleep settings row",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMonthSection": "This month",
+  "@sleepMonthSection": {
+    "description": "Sleep stats section title for the current month"
+  },
+  "sleepPerNight": "/night",
+  "@sleepPerNight": {
+    "description": "Sleep stats unit after the average"
+  },
+  "sleepAvgTimes": "Bed ~{bed} · Up ~{wake}",
+  "@sleepAvgTimes": {
+    "description": "Sleep stats: average bed and wake time",
+    "placeholders": {
+      "bed": {
+        "type": "String"
+      },
+      "wake": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepFullNights": "{count, plural, =1{1 full night} other{{count} full nights}}",
+  "@sleepFullNights": {
+    "description": "Sleep stats: nights of 8 hours or more",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepOfNights": "{count, plural, =1{of 1 night} other{of {count} nights}}",
+  "@sleepOfNights": {
+    "description": "Sleep stats: nights with data",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogetherNights": "{count, plural, =1{1 night asleep together 7h+} other{{count} nights asleep together 7h+}}",
+  "@sleepTogetherNights": {
+    "description": "Sleep stats: nights with 7h+ overlap",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogetherAvg": "avg. {duration} a night",
+  "@sleepTogetherAvg": {
+    "description": "Sleep stats: average overlap",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareToggle": "Share with your person",
+  "@sleepShareToggle": {
+    "description": "Sleep settings switch"
+  },
+  "sleepShareToggleSub": "When off, only you can see it.",
+  "@sleepShareToggleSub": {
+    "description": "Sleep settings switch subtitle"
+  },
+  "sleepHowItWorks": "How is sleep worked out?",
+  "@sleepHowItWorks": {
+    "description": "Sleep settings row + explainer sheet title"
+  },
+  "sleepMyColor": "Your moon color",
+  "@sleepMyColor": {
+    "description": "Sleep settings: color picker title"
+  },
+  "sleepMyColorSub": "{name} uses {color}. Colors too close to it ({blocked}) are locked.",
+  "@sleepMyColorSub": {
+    "description": "Sleep color picker subtitle",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "color": {
+        "type": "String"
+      },
+      "blocked": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMyColorSubNoBlock": "{name} uses {color}.",
+  "@sleepMyColorSubNoBlock": {
+    "description": "Sleep color picker subtitle when nothing else is locked",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMyColorSolo": "This color marks your sleep everywhere.",
+  "@sleepMyColorSolo": {
+    "description": "Sleep color picker subtitle without partner data"
+  },
+  "sleepColorTakenSemantics": "{name}'s color",
+  "@sleepColorTakenSemantics": {
+    "description": "Sleep color picker: swatch used by the partner (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorTooClose": "Too close to {name}'s color",
+  "@sleepColorTooClose": {
+    "description": "Sleep color picker: locked swatch (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorAutoChanged": "Your color matched your person's, so {color} shows for now.",
+  "@sleepColorAutoChanged": {
+    "description": "Sleep color picker when both picked clashing colors",
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorRose": "Pink",
+  "@sleepColorRose": {
+    "description": "Sleep color name"
+  },
+  "sleepColorPurple": "Purple",
+  "@sleepColorPurple": {
+    "description": "Sleep color name"
+  },
+  "sleepColorBlue": "Blue",
+  "@sleepColorBlue": {
+    "description": "Sleep color name"
+  },
+  "sleepColorTeal": "Teal",
+  "@sleepColorTeal": {
+    "description": "Sleep color name"
+  },
+  "sleepColorOrange": "Orange",
+  "@sleepColorOrange": {
+    "description": "Sleep color name"
+  },
+  "sleepColorGreen": "Green",
+  "@sleepColorGreen": {
+    "description": "Sleep color name"
+  },
+  "sleepColorMagenta": "Magenta",
+  "@sleepColorMagenta": {
+    "description": "Sleep color name"
+  },
+  "sleepColorAmber": "Amber",
+  "@sleepColorAmber": {
+    "description": "Sleep color name"
+  },
+  "sleepLegend0": "<5h",
+  "@sleepLegend0": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend1": "5–6h",
+  "@sleepLegend1": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend2": "6–7h",
+  "@sleepLegend2": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend3": "7–8h",
+  "@sleepLegend3": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend4": "8h+",
+  "@sleepLegend4": {
+    "description": "Sleep moon legend"
+  },
+  "sleepMoonTagline": "The fuller the moon, the fuller the sleep",
+  "@sleepMoonTagline": {
+    "description": "Sleep calendar legend line"
+  },
+  "sleepMoonLeft": "Left moon: you",
+  "@sleepMoonLeft": {
+    "description": "Sleep calendar legend (both view)"
+  },
+  "sleepMoonRight": "Right moon: {name}",
+  "@sleepMoonRight": {
+    "description": "Sleep calendar legend (both view)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMoonTogether": "Asleep together 7h+",
+  "@sleepMoonTogether": {
+    "description": "Sleep calendar legend: the heart"
+  },
+  "sleepPhase0": "Thin crescent",
+  "@sleepPhase0": {
+    "description": "Sleep moon phase, under 5 hours"
+  },
+  "sleepPhase1": "Crescent",
+  "@sleepPhase1": {
+    "description": "Sleep moon phase, 5–6 hours"
+  },
+  "sleepPhase2": "Half moon",
+  "@sleepPhase2": {
+    "description": "Sleep moon phase, 6–7 hours"
+  },
+  "sleepPhase3": "Gibbous moon",
+  "@sleepPhase3": {
+    "description": "Sleep moon phase, 7–8 hours"
+  },
+  "sleepPhase4": "Full moon",
+  "@sleepPhase4": {
+    "description": "Sleep moon phase, 8 hours or more"
+  },
+  "sleepDaySemantics": "{day}: {summary}",
+  "@sleepDaySemantics": {
+    "description": "Sleep calendar cell (screen reader)",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepSemanticsSlept": "{name} slept {duration}, {phase}",
+  "@sleepSemanticsSlept": {
+    "description": "Sleep calendar cell part (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepSemanticsNoData": "{name}: no data",
+  "@sleepSemanticsNoData": {
+    "description": "Sleep calendar cell part (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepEditedSemantics": "(edited)",
+  "@sleepEditedSemantics": {
+    "description": "Sleep calendar cell suffix for edited/manual nights (screen reader)"
+  },
+  "sleepNoOverlapNight": "You didn't sleep at the same time this night",
+  "@sleepNoOverlapNight": {
+    "description": "Sleep night detail footer"
+  },
+  "sleepManualHint": "Tap edit to log it yourself",
+  "@sleepManualHint": {
+    "description": "Sleep night detail: my night is empty"
+  },
+  "sleepPartnerNightEmpty": "Nothing logged this night",
+  "@sleepPartnerNightEmpty": {
+    "description": "Sleep night detail: partner night is empty"
+  },
+  "sleepEditLocked": "Older than 7 days, so it can no longer be edited",
+  "@sleepEditLocked": {
+    "description": "Sleep night detail: edit window closed"
+  },
+  "sleepEditButton": "Edit this night's sleep",
+  "@sleepEditButton": {
+    "description": "Sleep edit button (screen reader)"
+  },
+  "sleepSetupTitle": "Let your phone log your sleep",
+  "@sleepSetupTitle": {
+    "description": "Sleep setup step 1 title"
+  },
+  "sleepSetupBodyAndroid": "Each morning the app checks when your phone sat untouched longest overnight. It never reads messages, photos or any other content.",
+  "@sleepSetupBodyAndroid": {
+    "description": "Sleep setup step 1 body (Android)"
+  },
+  "sleepSetupBodyIos": "The app reads the sleep your iPhone or Apple Watch saved in Health. Read only, nothing gets written.",
+  "@sleepSetupBodyIos": {
+    "description": "Sleep setup step 1 body (iOS)"
+  },
+  "sleepSetupUnsupported": "This phone can't log sleep on its own. You can still log it by hand in a few seconds.",
+  "@sleepSetupUnsupported": {
+    "description": "Sleep setup step 1 body when no automatic source exists"
+  },
+  "sleepSetupPoint1": "Nothing to do each day",
+  "@sleepSetupPoint1": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupPoint2": "Fix it if the app guesses wrong",
+  "@sleepSetupPoint2": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupPoint3": "Shared only if you want",
+  "@sleepSetupPoint3": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupHintAndroid": "The app opens Settings → Usage access. Turn on Dear Embeiu, then come back here.",
+  "@sleepSetupHintAndroid": {
+    "description": "Sleep setup hint (Android)"
+  },
+  "sleepSetupHintIos": "Your iPhone will ask to read Sleep in Health. No data yet? Turn on Sleep Schedule in Health.",
+  "@sleepSetupHintIos": {
+    "description": "Sleep setup hint (iOS)"
+  },
+  "sleepPermissionStillOff": "Dear Embeiu isn't turned on in the list yet. Try again.",
+  "@sleepPermissionStillOff": {
+    "description": "Sleep setup: back from Settings without granting access"
+  },
+  "sleepGrantCta": "Allow access",
+  "@sleepGrantCta": {
+    "description": "Sleep setup primary button"
+  },
+  "sleepManualCta": "I'll log it myself",
+  "@sleepManualCta": {
+    "description": "Sleep setup secondary button"
+  },
+  "sleepShareAskTitle": "Let {name} see your sleep?",
+  "@sleepShareAskTitle": {
+    "description": "Sleep setup step 2 title",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareAskBody": "They'll see when you fall asleep and wake up, and each time you wake in the night. You can turn this off anytime.",
+  "@sleepShareAskBody": {
+    "description": "Sleep setup step 2 body"
+  },
+  "sleepShareAskPreview": "{name} WILL SEE",
+  "@sleepShareAskPreview": {
+    "description": "Sleep setup step 2 preview caption (uppercase)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareAskOnly": "Only bedtime, wake-up time and night wake-ups, in the time zone you slept in. Nights you edit or log by hand get a label.",
+  "@sleepShareAskOnly": {
+    "description": "Sleep setup step 2 under the preview"
+  },
+  "sleepShareAskCta": "Share with them",
+  "@sleepShareAskCta": {
+    "description": "Sleep setup step 2 primary button"
+  },
+  "sleepLater": "Later",
+  "@sleepLater": {
+    "description": "Sleep setup step 2 secondary button"
+  },
+  "sleepBackToStep1": "Back to step 1",
+  "@sleepBackToStep1": {
+    "description": "Sleep setup step 2 link"
+  },
+  "sleepEditBedTitle": "Bedtime",
+  "@sleepEditBedTitle": {
+    "description": "Sleep edit tile + time picker title"
+  },
+  "sleepEditWakeTitle": "Wake up",
+  "@sleepEditWakeTitle": {
+    "description": "Sleep edit tile + time picker title"
+  },
+  "sleepEditTotal": "Total: {duration}",
+  "@sleepEditTotal": {
+    "description": "Sleep edit live total",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepEditInvalid": "Sleep must be 1 to 16 hours",
+  "@sleepEditInvalid": {
+    "description": "Sleep edit validation error"
+  },
+  "sleepDeleteNight": "Delete this night",
+  "@sleepDeleteNight": {
+    "description": "Sleep edit delete button"
+  },
+  "sleepEditSubtitle": "Fix it if the app got it wrong.",
+  "@sleepEditSubtitle": {
+    "description": "Sleep edit sheet subtitle (existing night)"
+  },
+  "sleepManualSubtitle": "Log when you fell asleep and woke up.",
+  "@sleepManualSubtitle": {
+    "description": "Sleep edit sheet subtitle (empty night)"
+  },
+  "sleepEditNote": "Once saved, this night shows an “Edited” label (your person sees it too) and the app won't overwrite it.",
+  "@sleepEditNote": {
+    "description": "Sleep edit sheet note (R4)"
+  },
+  "sleepManualNote": "Once saved, this night shows a “Manual” label, and your person sees it too.",
+  "@sleepManualNote": {
+    "description": "Sleep edit sheet note for a hand-logged night (R4)"
+  },
+  "sleepPickerSubtitle": "Scroll to pick the hour and minute",
+  "@sleepPickerSubtitle": {
+    "description": "Sleep time picker subtitle"
+  },
+  "sleepSaveFailed": "Couldn't save, please try again",
+  "@sleepSaveFailed": {
+    "description": "Sleep edit save error"
+  },
+  "sleepLoadFailed": "Couldn't load your person's sleep",
+  "@sleepLoadFailed": {
+    "description": "Sleep: partner nights failed to load"
+  },
+  "sleepHowBody1": "The app counts the longest stretch your phone sits untouched overnight as sleep, between 6 pm and 2 pm the next day, lasting 3 to 16 hours. A stretch that ends before 1 am, like charging in the evening, only counts when nothing that night lasts past 1 am.",
+  "@sleepHowBody1": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody1Ios": "The app takes the longest sleep your iPhone or Apple Watch saved in Health between 6 pm and 2 pm the next day. Sleep under 3 hours or over 16 hours doesn't count. Sleep that ends before 1 am only counts when nothing that night lasts past 1 am.",
+  "@sleepHowBody1Ios": {
+    "description": "Sleep explainer paragraph (iOS)"
+  },
+  "sleepHowBody2": "Picking up your phone for under 5 minutes counts as waking up, not as the end of your sleep.",
+  "@sleepHowBody2": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody3": "It's an estimate: watching a movie in bed or leaving your phone elsewhere can skew it. You can fix it within 7 days, and your person will see an “Edited” label.",
+  "@sleepHowBody3": {
+    "description": "Sleep explainer paragraph"
+  },
+  "sleepHowBody4": "The app reads no content on your phone, only when the screen turns on or off.",
+  "@sleepHowBody4": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody4Ios": "The app only reads Sleep in Health, nothing else.",
+  "@sleepHowBody4Ios": {
+    "description": "Sleep explainer paragraph (iOS)"
+  },
+  "sleepHowIphoneInBed": "Your iPhone can log time in bed by itself: open Health → Browse → Sleep → Sleep Schedule, set a bedtime and turn on tracking time in bed with iPhone. Some iPhones on iOS 18 or later no longer offer this.",
+  "@sleepHowIphoneInBed": {
+    "description": "Sleep explainer paragraph (iOS): Sleep Schedule / time in bed"
+  },
+  "sleepHowMotion": "If you let the app see motion, nights with nothing recorded are guessed from when your phone lay still. It is only a guess: a phone left on the desk all morning may be counted as sleep, and you can fix it by hand. Raw motion data stays on your phone; your person only sees sleep and wake times if you turn sharing on.",
+  "@sleepHowMotion": {
+    "description": "Sleep explainer paragraph: motion fallback (both platforms)"
+  },
+  "sleepGotIt": "Got it",
+  "@sleepGotIt": {
+    "description": "Sleep explainer close button"
+  },
+  "sleepIosHealthHint": "Set a *Sleep Schedule* in Health (Browse → Sleep) so your iPhone logs time in bed, if it offers that option.",
+  "@sleepIosHealthHint": {
+    "description": "Sleep screen banner (iOS, no Health data). Text between * is rendered bold."
+  },
+  "sleepMotionHint": "Allow *motion* so nights with nothing recorded can still be guessed from when your phone lay still.",
+  "@sleepMotionHint": {
+    "description": "Sleep screen tip for users set up before the motion fallback existed. Text between * is rendered bold."
+  },
+  "sleepMotionAllow": "Allow",
+  "@sleepMotionAllow": {
+    "description": "Button on the motion tip: shows the motion permission prompt"
+  },
+  "sleepHintDismiss": "Dismiss tip",
+  "@sleepHintDismiss": {
+    "description": "Sleep banner close button (screen reader)"
+  },
+  "timePickerDefaultTitle": "Pick a reminder time",
+  "@timePickerDefaultTitle": {
+    "description": "Time picker sheet default title"
+  },
+  "timePickerDefaultSubtitle": "Scroll to pick the hour and minute",
+  "@timePickerDefaultSubtitle": {
+    "description": "Time picker sheet default subtitle"
+  },
+  "timePickerConfirm": "Confirm",
+  "@timePickerConfirm": {
+    "description": "Time picker sheet confirm button"
+  },
+  "sleepHoursShort": "{h}h",
+  "@sleepHoursShort": {
+    "description": "Sleep: compact duration with no leftover minutes",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepHoursLong": "{h} hr",
+  "@sleepHoursLong": {
+    "description": "Sleep: spelled-out duration with no leftover minutes",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeSkyTitle": "Today's constellation",
+  "@loveTreeSkyTitle": {
+    "description": "Love tree v3: title above the 6-star heart"
+  },
+  "loveTreeSkyExplain": "Every little thing we do for each other today lights a star. When both halves glow, the heart is complete.",
+  "@loveTreeSkyExplain": {
+    "description": "Love tree v3: what the constellation means"
+  },
+  "loveTreeLeftHalf": "Left half: You",
+  "@loveTreeLeftHalf": {
+    "description": "Love tree v3 legend"
+  },
+  "loveTreeRightHalf": "Right half: {name}",
+  "@loveTreeRightHalf": {
+    "description": "Love tree v3 legend",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarQuestion": "Question",
+  "@loveTreeStarQuestion": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeStarMood": "Mood",
+  "@loveTreeStarMood": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeStarMessage": "Message",
+  "@loveTreeStarMessage": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeTapStar": "Tap a star to see more",
+  "@loveTreeTapStar": {
+    "description": "Love tree v3: hint under the constellation"
+  },
+  "loveTreeHeartFull": "Today's heart is complete",
+  "@loveTreeHeartFull": {
+    "description": "Love tree v3: all six stars lit"
+  },
+  "loveTreeTaskQuestion": "Answer today's question",
+  "@loveTreeTaskQuestion": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeTaskMood": "Share your mood",
+  "@loveTreeTaskMood": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeTaskMessage": "Send each other a message",
+  "@loveTreeTaskMessage": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeStarAnsweredAt": "{name} answered at {time}",
+  "@loveTreeStarAnsweredAt": {
+    "description": "Love tree v3 star detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarMoodAt": "{mood} · {time}",
+  "@loveTreeStarMoodAt": {
+    "description": "Love tree v3 star detail: mood picked + time",
+    "placeholders": {
+      "mood": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarMessagedAt": "{name} messaged at {time}",
+  "@loveTreeStarMessagedAt": {
+    "description": "Love tree v3 star detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarDone": "Done for today",
+  "@loveTreeStarDone": {
+    "description": "Love tree v3 star detail when the time is unknown"
+  },
+  "loveTreeStarNoAnswer": "Today's question isn't answered yet",
+  "@loveTreeStarNoAnswer": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeStarNoMood": "No mood shared yet today",
+  "@loveTreeStarNoMood": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeStarNoMessage": "No message yet today",
+  "@loveTreeStarNoMessage": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeActAnswer": "Answer now",
+  "@loveTreeActAnswer": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeActMood": "Share now",
+  "@loveTreeActMood": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeActMessage": "Message now",
+  "@loveTreeActMessage": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeNudge": "Send some care",
+  "@loveTreeNudge": {
+    "description": "Love tree v3: partner's unlit star opens the care message screen"
+  },
+  "loveTreeClosePanel": "Close",
+  "@loveTreeClosePanel": {
+    "description": "Love tree v3: close the star detail (screen reader)"
+  },
+  "loveTreeStarSemantics": "{name} · {task} · {state}",
+  "@loveTreeStarSemantics": {
+    "description": "Love tree v3: star button (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "task": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarLit": "lit",
+  "@loveTreeStarLit": {
+    "description": "Love tree v3: star state (screen reader)"
+  },
+  "loveTreeStarUnlit": "not lit yet",
+  "@loveTreeStarUnlit": {
+    "description": "Love tree v3: star state (screen reader)"
+  },
+  "loveTreeFlowersExplain": "Each flower is one of our milestones. Tap one to look back.",
+  "@loveTreeFlowersExplain": {
+    "description": "Love tree v3: under the flower count"
+  },
+  "loveTreeKindDays": "Days together",
+  "@loveTreeKindDays": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeKindStreak": "Question streak",
+  "@loveTreeKindStreak": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeKindPhotos": "Photo memories",
+  "@loveTreeKindPhotos": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeNextFlower": "NEXT FLOWER",
+  "@loveTreeNextFlower": {
+    "description": "Love tree v3: next milestone card caption"
+  },
+  "loveTreeNextProgressDays": "{current}/{target} days together",
+  "@loveTreeNextProgressDays": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeNextProgressStreak": "{current}/{target} streak days",
+  "@loveTreeNextProgressStreak": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeNextProgressPhotos": "{target, plural, =1{{current}/{target} photo} other{{current}/{target} photos}}",
+  "@loveTreeNextProgressPhotos": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeTodayTasks": "Little things today",
+  "@loveTreeTodayTasks": {
+    "description": "Love tree v3: section title"
+  },
+  "loveTreeTaskDone": "{name} ✓",
+  "@loveTreeTaskDone": {
+    "description": "Love tree v3: task done by that person",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeTaskPending": "{name} · not yet",
+  "@loveTreeTaskPending": {
+    "description": "Love tree v3: task not done yet by that person",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeDoNow": "Do it now",
+  "@loveTreeDoNow": {
+    "description": "Love tree v3: task row button"
+  },
+  "loveTreeBloomedTitle": "Bloomed milestones",
+  "@loveTreeBloomedTitle": {
+    "description": "Love tree v3: section title above the milestone chips"
+  },
+  "loveTreeShowLess": "Show less",
+  "@loveTreeShowLess": {
+    "description": "Love tree v3: collapse the milestone chips"
+  },
+  "homeConstellationSemantics": "Today's constellation: {lit} of 6 stars. Opens the Love Tree",
+  "@homeConstellationSemantics": {
+    "description": "Home: Love Tree entry pill (screen reader)",
+    "placeholders": {
+      "lit": {
+        "type": "int"
       }
     }
   }

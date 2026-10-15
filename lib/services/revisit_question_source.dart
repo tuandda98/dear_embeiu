@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -112,6 +113,7 @@ class RevisitQuestionSource implements QuestionSource {
       oldQuestionVi: old.vi,
       oldQuestionEn: old.en,
       seedKey: seedKey,
+      exact: pick.exact,
     );
 
     // Per-user hint: only MY own old answer, never the partner's.
@@ -160,12 +162,20 @@ class RevisitTarget {
 
 /// The day the source decided to revisit.
 class RevisitPick {
-  const RevisitPick({required this.bucket, required this.dateKey});
+  const RevisitPick({
+    required this.bucket,
+    required this.dateKey,
+    this.exact = true,
+  });
 
   final String bucket;
 
   /// 'YYYY-MM-DD' of the old day.
   final String dateKey;
+
+  /// False when the day only falls NEAR the target (inside the ±2 tolerance):
+  /// the copy must then say "khoảng một năm trước", never "đúng một năm trước".
+  final bool exact;
 }
 
 /// Rendered question text, both languages.
@@ -210,7 +220,9 @@ List<RevisitTarget> revisitTargetsFor(DateTime today) {
   return <RevisitTarget>[
     RevisitTarget(
       bucket: revisitBucketYear,
-      date: base.subtract(const Duration(days: 365)),
+      // Calendar year, not 365 days: across a leap year the two differ by a
+      // day and "ngày này năm ngoái" would quote the wrong day.
+      date: monthsAgo(base, 12),
       toleranceDays: 2,
     ),
     RevisitTarget(
@@ -254,10 +266,10 @@ DateTime monthsAgo(DateTime date, int months) {
 
 /// Picks the old day to revisit, or null when nothing qualifies.
 ///
-/// Walks [revisitTargetsFor] in priority order; within one window every eligible
-/// day is equally good, so the choice is deterministic on
-/// FNV-1a([seedKey]) — both partners' devices land on the same day without any
-/// coordination.
+/// Walks [revisitTargetsFor] in priority order; within one window the exact day
+/// wins, otherwise the closest one ([RevisitPick.exact] = false). Ties (±1, ±2)
+/// are broken deterministically on FNV-1a([seedKey]) — both partners' devices
+/// land on the same day without any coordination.
 RevisitPick? pickRevisitDate({
   required DateTime today,
   required Iterable<String> availableDateKeys,
@@ -288,17 +300,19 @@ RevisitPick? pickRevisitDate({
   }
 
   for (final target in revisitTargetsFor(base)) {
-    final matches = <String>[];
+    final gaps = <String, int>{};
     eligible.forEach((key, date) {
       final gap = date.difference(target.date).inDays.abs();
       if (gap <= target.toleranceDays) {
-        matches.add(key);
+        gaps[key] = gap;
       }
     });
-    if (matches.isEmpty) {
+    if (gaps.isEmpty) {
       continue;
     }
-    matches.sort();
+    final closest = gaps.values.reduce(min);
+    final matches = gaps.keys.where((key) => gaps[key] == closest).toList()
+      ..sort();
     final index = fnv1a32('$seedKey|${target.bucket}') % matches.length;
     final chosen = matches[index];
     // A calendar month back is always 28–31 days, i.e. it always falls inside
@@ -309,22 +323,31 @@ RevisitPick? pickRevisitDate({
             chosen == _dateKeyOf(monthsAgo(base, 1))
         ? revisitBucketMonth
         : target.bucket;
-    return RevisitPick(bucket: bucket, dateKey: chosen);
+    return RevisitPick(
+      bucket: bucket,
+      dateKey: chosen,
+      // A month-ago date is exact by construction (its window is 0 days).
+      exact: closest == 0 || bucket == revisitBucketMonth,
+    );
   }
   return null;
 }
 
 /// Renders the revisit question for [bucket], quoting [oldQuestionVi] /
-/// [oldQuestionEn]. Deterministic on FNV-1a([seedKey]); the result never exceeds
-/// [kRevisitQuestionMaxChars] and never contains ICU braces.
+/// [oldQuestionEn]. [exact] false (the day is only near the target) switches to
+/// the "khoảng / about" wording of [revisitTemplatesApprox]. Deterministic on
+/// FNV-1a([seedKey]); the result never exceeds [kRevisitQuestionMaxChars] and
+/// never contains ICU braces.
 RevisitQuestionText renderRevisitQuestion({
   required String bucket,
   required String oldQuestionVi,
   required String oldQuestionEn,
   required String seedKey,
+  bool exact = true,
 }) {
-  final variants =
-      revisitTemplates[bucket] ?? revisitTemplates[revisitBucketThirty]!;
+  final variants = (exact ? null : revisitTemplatesApprox[bucket]) ??
+      revisitTemplates[bucket] ??
+      revisitTemplates[revisitBucketThirty]!;
   final template = variants[fnv1a32('$seedKey#$bucket') % variants.length];
 
   final vi = oldQuestionVi.trim();

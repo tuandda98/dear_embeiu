@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
+import '../l10n/l10n.dart';
 import '../theme/app_colors.dart';
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -11,18 +12,18 @@ import '../theme/app_colors.dart';
 Future<TimeOfDay?> showAppTimePicker(
   BuildContext context, {
   required TimeOfDay initialTime,
-  String title = 'Chọn giờ nhắc',
-  String subtitle = 'Kéo để chọn giờ và phút',
+  String? title,
+  String? subtitle,
 }) {
   return showModalBottomSheet<TimeOfDay>(
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     enableDrag: true,
-    builder: (_) => _AppTimePickerSheet(
+    builder: (sheetContext) => _AppTimePickerSheet(
       initialTime: initialTime,
-      title: title,
-      subtitle: subtitle,
+      title: title ?? sheetContext.l10n.timePickerDefaultTitle,
+      subtitle: subtitle ?? sheetContext.l10n.timePickerDefaultSubtitle,
     ),
   );
 }
@@ -89,12 +90,9 @@ class _AppTimePickerSheetState extends State<_AppTimePickerSheet> {
 
   void _confirm() {
     HapticFeedback.lightImpact();
-    Navigator.of(context).pop(
-      TimeOfDay(
-        hour: _hourNotifier.value,
-        minute: _minNotifier.value,
-      ),
-    );
+    Navigator.of(
+      context,
+    ).pop(TimeOfDay(hour: _hourNotifier.value, minute: _minNotifier.value));
   }
 
   @override
@@ -125,7 +123,10 @@ class _AppTimePickerSheetState extends State<_AppTimePickerSheet> {
             onMinChanged: _onMinChanged,
           ),
           const SizedBox(height: 28),
-          _Footer(onCancel: () => Navigator.of(context).pop(), onConfirm: _confirm),
+          _Footer(
+            onCancel: () => Navigator.of(context).pop(),
+            onConfirm: _confirm,
+          ),
         ],
       ),
     );
@@ -137,15 +138,15 @@ class _AppTimePickerSheetState extends State<_AppTimePickerSheet> {
 class _Handle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
-        child: Container(
-          width: 40,
-          height: 4,
-          decoration: BoxDecoration(
-            color: AppColors.textPrimary.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(999),
-          ),
-        ),
-      );
+    child: Container(
+      width: 40,
+      height: 4,
+      decoration: BoxDecoration(
+        color: AppColors.textPrimary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+    ),
+  );
 }
 
 class _Header extends StatelessWidget {
@@ -155,46 +156,46 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
+    children: [
+      Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          gradient: AppColors.sunsetRomance,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [AppColors.softCardShadow(opacity: 0.18)],
+        ),
+        child: const Icon(
+          IconsaxPlusBold.clock,
+          size: 22,
+          color: AppColors.white,
+        ),
+      ),
+      const SizedBox(width: 14),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              gradient: AppColors.sunsetRomance,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [AppColors.softCardShadow(opacity: 0.18)],
-            ),
-            child: const Icon(
-              IconsaxPlusBold.clock,
-              size: 22,
-              color: AppColors.white,
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(width: 14),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+            ),
           ),
         ],
-      );
+      ),
+    ],
+  );
 }
 
 class _WheelArea extends StatelessWidget {
@@ -367,8 +368,7 @@ class _Wheel extends StatelessWidget {
                       ? AppColors.accentLove
                       : AppColors.textPrimary.withValues(alpha: 0.28),
                   fontSize: isSelected ? 30 : 22,
-                  fontWeight:
-                      isSelected ? FontWeight.w800 : FontWeight.w400,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w400,
                   height: 1,
                 ),
                 child: Text(index.toString().padLeft(2, '0')),
@@ -388,73 +388,73 @@ class _Footer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        children: [
-          // Cancel — ghost
-          Expanded(
-            child: TextButton(
-              onPressed: onCancel,
-              style: TextButton.styleFrom(
-                minimumSize: const Size(double.infinity, 52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999),
-                  side: BorderSide(
-                    color: AppColors.textPrimary.withValues(alpha: 0.12),
-                  ),
-                ),
-              ),
-              child: const Text(
-                'Huỷ',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
+    children: [
+      // Cancel — ghost
+      Expanded(
+        child: TextButton(
+          onPressed: onCancel,
+          style: TextButton.styleFrom(
+            minimumSize: const Size(double.infinity, 52),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(999),
+              side: BorderSide(
+                color: AppColors.textPrimary.withValues(alpha: 0.12),
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          // Confirm — rose filled pill
-          Expanded(
-            flex: 2,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: AppColors.sunsetRomance,
-                borderRadius: BorderRadius.circular(999),
-                boxShadow: [AppColors.softCardShadow(opacity: 0.22)],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(999),
-                child: InkWell(
-                  onTap: onConfirm,
-                  borderRadius: BorderRadius.circular(999),
-                  splashColor: Colors.white.withValues(alpha: 0.15),
-                  child: const SizedBox(
-                    height: 52,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          IconsaxPlusBold.tick_circle,
-                          size: 18,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Xác nhận',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
+          child: Text(
+            context.l10n.cancel,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(width: 12),
+      // Confirm — rose filled pill
+      Expanded(
+        flex: 2,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: AppColors.sunsetRomance,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: [AppColors.softCardShadow(opacity: 0.22)],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            child: InkWell(
+              onTap: onConfirm,
+              borderRadius: BorderRadius.circular(999),
+              splashColor: Colors.white.withValues(alpha: 0.15),
+              child: SizedBox(
+                height: 52,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      IconsaxPlusBold.tick_circle,
+                      size: 18,
+                      color: Colors.white,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n.timePickerConfirm,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
-      );
+        ),
+      ),
+    ],
+  );
 }

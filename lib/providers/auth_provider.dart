@@ -2,11 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/auth_status.dart';
 import '../services/analytics_service.dart';
 import '../services/auth_service.dart';
 import '../services/push_notification_service.dart';
+
+/// Social sign-in providers (pairing-funnel PF1 Apple, PF14 Google). `name` is
+/// also the analytics `method`.
+enum SocialSignIn { apple, google }
 
 class AuthProvider extends ChangeNotifier {
   AuthProvider({required AuthService authService}) : _authService = authService;
@@ -18,6 +23,14 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isInitialized = false;
   String? _errorMessage;
+
+  /// The social sign-in in flight has its own state (pairing-funnel design §1):
+  /// driving [isLoading] would spin the email button on the same screen too.
+  SocialSignIn? _socialSignIn;
+  EmailHasPasswordAccountException? _emailConflict;
+
+  /// A [deleteAccount] is running (BUG-26).
+  bool _deleting = false;
 
   /// Session-liveness listener (feature auth — #3). Subscribes once to the
   /// service's session-presence stream; drives [sessionRevoked].
@@ -47,8 +60,34 @@ class AuthProvider extends ChangeNotifier {
   AuthStatus get status => _status;
   AppUser? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
+
+  /// Which social sign-in is running: only its button spins, the other
+  /// buttons and links on the screen lock.
+  SocialSignIn? get socialSignIn => _socialSignIn;
+  bool get isSocialSigningIn => _socialSignIn != null;
   bool get isInitialized => _isInitialized;
   String? get errorMessage => _errorMessage;
+
+  /// PF6 — set when the last Apple/Google sign-in hit an email that already
+  /// has a password account; carries the email so Sign in can prefill it.
+  EmailHasPasswordAccountException? get emailConflict => _emailConflict;
+
+  /// This account confirms through the Apple sheet (PF5, AU3) — for a
+  /// deletion, ask [deletesWithAppleSheet].
+  bool get reauthWithApple => _authService.reauthWithApple;
+
+  /// Deleting this account confirms through the Apple sheet — with a
+  /// password too only when this iPhone's Apple ID is the account's, which
+  /// iOS is asked here (BUG-25). Ask once, right before the delete dialog,
+  /// and hand the answer to [deleteAccount] (BUG-26).
+  Future<bool> deletesWithAppleSheet() async =>
+      reauthWithApple && !await _authService.passwordInsteadOfAppleSheet();
+
+  /// Deleting this account confirms with Google, no password (PF16).
+  bool get reauthWithGoogle => _authService.reauthWithGoogle;
+
+  /// AU1: an Apple/Google account without a password can add one in Settings.
+  bool get canSetPassword => _authService.canSetPassword;
   bool get isUsingFirebase => _authService.isUsingFirebase;
   String get authSourceLabel => _authService.authSourceLabel;
   String? get bootstrapMessage => _authService.bootstrapMessage;
@@ -132,6 +171,11 @@ class AuthProvider extends ChangeNotifier {
       _localToken = null;
       unawaited(_authService.signOut());
       notifyListeners();
+    }, onError: (Object e) {
+      // The listener outlives a session that ended under it (another Apple ID
+      // in the delete sheet, external revocation): rules then deny the read.
+      // Not a crash — keep it out of Crashlytics' fatal handler.
+      debugPrint('AuthProvider session token watch ended: $e');
     });
   }
 
@@ -179,7 +223,8 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = 'Could not initialize session: $e';
+      debugPrint('AuthProvider.initialize failed: $e');
+      _errorMessage = AppL10n.strings.authSessionNotReady;
     } finally {
       _isInitialized = true;
       // Start watching session liveness once the initial state is settled (#3).
@@ -217,13 +262,85 @@ class AuthProvider extends ChangeNotifier {
     } on AuthException catch (e) {
       _status = AuthStatus.unauthenticated;
       _errorMessage = e.message;
+      AnalyticsService.instance.logLoginFailed(reason: _failReason(e));
       return false;
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = 'Sign in failed: $e';
+      debugPrint('AuthProvider.signIn failed: $e');
+      AnalyticsService.instance.logLoginFailed(reason: 'unknown');
+      _errorMessage = AppL10n.strings.authSessionUnavailable;
       return false;
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Sign in with Apple (PF1) or Google (PF14), same success path as
+  /// [signIn]. Returns false on failure; [errorMessage] stays null when the
+  /// user just closed the sheet or picker, so the UI can stay silent.
+  Future<bool> signInWithSocial(SocialSignIn provider) async {
+    // AU5: Apple and Google tapped in the same frame both get here before the
+    // buttons lock — only the first runs, the second stays silent.
+    if (_socialSignIn != null) {
+      return false;
+    }
+    _socialSignIn = provider;
+    _emailConflict = null;
+    _clearError();
+    // A fresh session is beginning — re-arm external-revocation detection.
+    _intentionalAuthClear = false;
+
+    try {
+      final result = provider == SocialSignIn.apple
+          ? await _authService.signInWithApple()
+          : await _authService.signInWithGoogle();
+      _currentUser = result.user;
+      _status = AuthStatus.authenticated;
+      _isInitialized = true;
+      await PushNotificationService.instance.syncForUser(_currentUser);
+      // Single-session: mint a new token — kicks any other active session.
+      if (_currentUser != null) {
+        await _mintAndWatchSessionToken(_currentUser!.id);
+      }
+      unawaited(AnalyticsService.instance.setUserId(_currentUser?.id));
+      AnalyticsService.instance.setIsGuest(false);
+      if (result.isNewUser) {
+        AnalyticsService.instance.logSignUp(method: provider.name);
+      } else {
+        AnalyticsService.instance.logLogin(method: provider.name);
+      }
+      return true;
+    } on EmailHasPasswordAccountException catch (e) {
+      _status = AuthStatus.unauthenticated;
+      _emailConflict = e;
+      _errorMessage = e.message;
+      AnalyticsService.instance.logLoginFailed(
+        method: provider.name,
+        reason: 'email-has-password-account',
+      );
+      return false;
+    } on AuthException catch (e) {
+      _status = AuthStatus.unauthenticated;
+      _errorMessage = e.message == 'social-canceled' ? null : e.message;
+      AnalyticsService.instance.logLoginFailed(
+        method: provider.name,
+        reason: _failReason(e),
+      );
+      return false;
+    } catch (e) {
+      _status = AuthStatus.unauthenticated;
+      debugPrint('AuthProvider.signInWithSocial(${provider.name}) failed: $e');
+      AnalyticsService.instance.logLoginFailed(
+        method: provider.name,
+        reason: 'unknown',
+      );
+      _errorMessage = provider == SocialSignIn.apple
+          ? AppL10n.strings.appleSignInFailed
+          : AppL10n.strings.googleSignInFailed;
+      return false;
+    } finally {
+      _socialSignIn = null;
+      notifyListeners();
     }
   }
 
@@ -260,10 +377,13 @@ class AuthProvider extends ChangeNotifier {
     } on AuthException catch (e) {
       _status = AuthStatus.unauthenticated;
       _errorMessage = e.message;
+      AnalyticsService.instance.logSignUpFailed(reason: _failReason(e));
       return false;
     } catch (e) {
       _status = AuthStatus.unauthenticated;
-      _errorMessage = 'Account creation failed: $e';
+      debugPrint('AuthProvider.signUp failed: $e');
+      AnalyticsService.instance.logSignUpFailed(reason: 'unknown');
+      _errorMessage = AppL10n.strings.authFirebaseUserCreateFailed;
       return false;
     } finally {
       _setLoading(false);
@@ -312,21 +432,33 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       // Sign-out failed — the session is still alive, so re-arm detection.
       _intentionalAuthClear = false;
-      _errorMessage = 'Sign out failed: $e';
+      debugPrint('AuthProvider.signOut failed: $e');
+      _errorMessage = AppL10n.strings.signOutFailedMsg;
       return false;
     } finally {
       _setLoading(false);
     }
   }
 
-  Future<String?> deleteAccount() async {
+  /// [appleSheet]: the delete dialog's [deletesWithAppleSheet] answer — the
+  /// Apple sheet confirms first, else nothing more does (a password, Google,
+  /// a re-auth already done). iOS isn't asked again: the deletion does what
+  /// the dialog said (BUG-26). While one runs, another call returns
+  /// `'delete-in-progress'` at once and leaves it alone.
+  Future<String?> deleteAccount({required bool appleSheet}) async {
     final user = _currentUser;
     if (user == null) return null;
+    if (_deleting) return 'delete-in-progress';
+    _deleting = true;
 
     _setLoading(true);
     _clearError(notify: false);
 
     try {
+      // PF5: Apple accounts confirm in the Apple sheet FIRST. Closing it must
+      // leave everything as it was (push registration, single-session watch),
+      // so nothing below may run before this.
+      await _authService.confirmAppleDeletionIfNeeded(appleSheet: appleSheet);
       // Robustness (app-robustness B/C): unregistering this device is cleanup
       // (the server-side deleteAccount also removes all device docs), so bound
       // it to 5s and never let it block the deletion itself.
@@ -344,6 +476,15 @@ class AuthProvider extends ChangeNotifier {
       _tokenSub = null;
       _localToken = null;
       await _authService.deleteAccount(currentUser: user);
+      // The dialog promised every piece of data goes (AU8): sleep nights live
+      // only on this phone. Best-effort — the account is gone either way.
+      try {
+        await _authService
+            .wipeLocalUserData(user.id)
+            .timeout(const Duration(seconds: 5));
+      } catch (e) {
+        debugPrint('AuthProvider local data wipe failed: $e');
+      }
       _currentUser = null;
       _status = AuthStatus.unauthenticated;
       // Analytics — success path only; log then clear the user id (D2).
@@ -354,16 +495,26 @@ class AuthProvider extends ChangeNotifier {
       // Deletion did NOT happen — the session is still alive, so re-arm
       // external-revocation detection (#3).
       _intentionalAuthClear = false;
-      if (e.message == 'requires-recent-login') {
-        return 'requires-recent-login';
+      // Sentinels the UI branches on, never shown as text. `social-canceled` =
+      // the user closed the Apple confirmation sheet (PF5) — nothing deleted.
+      // `apple-id-mismatch` = the sheet signed in another Apple ID (PF18);
+      // `session-gone` = no session left. Both: signed out.
+      _forgetSignedOutUser(e.message);
+      if (e.message == 'requires-recent-login' ||
+          e.message == 'social-canceled' ||
+          e.message == 'apple-id-mismatch' ||
+          e.message == 'session-gone') {
+        return e.message;
       }
       _errorMessage = e.message;
       return e.message;
     } catch (e) {
       _intentionalAuthClear = false;
-      _errorMessage = 'Delete account failed: $e';
+      debugPrint('AuthProvider.deleteAccount failed: $e');
+      _errorMessage = AppL10n.strings.deleteAccountFailed;
       return _errorMessage;
     } finally {
+      _deleting = false;
       _setLoading(false);
     }
   }
@@ -384,11 +535,58 @@ class AuthProvider extends ChangeNotifier {
       return e.message;
     } catch (e) {
       _setLoading(false);
-      return 'Reauth failed: $e';
+      debugPrint('AuthProvider.reauthenticate failed: $e');
+      return AppL10n.strings.authFirebaseAuthGeneric;
     }
     _setLoading(false);
-    // Token is fresh now — retry the authoritative server-side delete.
-    return deleteAccount();
+    // Token is fresh now — retry the authoritative server-side delete. The
+    // password confirmed it: no Apple sheet.
+    return deleteAccount(appleSheet: false);
+  }
+
+  /// Adds a password to the signed-in Apple/Google account (AU1). Null on
+  /// success — the Settings row then goes away. Otherwise a sentinel the UI
+  /// branches on (`social-canceled`; `apple-id-mismatch` / `session-gone`:
+  /// already signed out) or the copy to show.
+  Future<String?> setPassword(String password) async {
+    try {
+      // BUG-24: onto the account on screen, never onto a session the Apple
+      // sheet left behind.
+      final uid = _currentUser?.id;
+      if (uid == null) {
+        return 'session-gone';
+      }
+      await _authService.setPassword(password, uid: uid);
+      return null;
+    } on AuthException catch (e) {
+      _forgetSignedOutUser(e.message);
+      return e.message;
+    } catch (e) {
+      debugPrint('AuthProvider.setPassword failed: $e');
+      return AppL10n.strings.setPasswordFailed;
+    } finally {
+      // [canSetPassword] reads the Firebase user, which may have changed.
+      notifyListeners();
+    }
+  }
+
+  /// `apple-id-mismatch` / `session-gone` mean this account's session is
+  /// over — even when signing the other Apple ID out failed and no
+  /// sign-out event comes (BUG-24). authGate must not route back into it.
+  /// Analytics reason for a failed auth call: the error code, `canceled` for
+  /// a dismissed Apple/Google sheet, else `other`. Never the message text.
+  static String _failReason(AuthException e) {
+    if (e.message == 'social-canceled') {
+      return 'canceled';
+    }
+    return e.code ?? 'other';
+  }
+
+  void _forgetSignedOutUser(String code) {
+    if (code == 'apple-id-mismatch' || code == 'session-gone') {
+      _currentUser = null;
+      _status = AuthStatus.unauthenticated;
+    }
   }
 
   /// Sends a password-reset email (feature auth, Đợt 1). Returns true on
@@ -398,12 +596,16 @@ class AuthProvider extends ChangeNotifier {
     _clearError(notify: false);
     try {
       await _authService.sendPasswordResetEmail(email);
+      AnalyticsService.instance.logPasswordResetRequested();
       return true;
     } on AuthException catch (e) {
       _errorMessage = e.message;
+      AnalyticsService.instance.logPasswordResetFailed(_failReason(e));
       return false;
     } catch (e) {
-      _errorMessage = 'Password reset failed: $e';
+      debugPrint('AuthProvider.requestPasswordReset failed: $e');
+      AnalyticsService.instance.logPasswordResetFailed('unknown');
+      _errorMessage = AppL10n.strings.forgotPasswordNetworkError;
       return false;
     }
   }
@@ -419,7 +621,8 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = e.message;
       return false;
     } catch (e) {
-      _errorMessage = 'Resend verification failed: $e';
+      debugPrint('AuthProvider.resendVerificationEmail failed: $e');
+      _errorMessage = AppL10n.strings.verifyEmailResendError;
       return false;
     }
   }

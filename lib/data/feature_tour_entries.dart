@@ -1,5 +1,8 @@
 import 'package:flutter/widgets.dart';
 import '../screens/care_message_screen.dart';
+import '../screens/love_tree_screen.dart';
+import '../screens/rps_game_screen.dart';
+import '../screens/sleep_screen.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../l10n/app_localizations.dart';
@@ -64,5 +67,40 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
     icon: IconsaxPlusLinear.user_add,
     title: (l10n) => l10n.featureTourInviteTitle,
     body: (l10n) => l10n.featureTourInviteBody,
+  ),
+  // ---- Build 23 ------------------------------------------------------------
+  FeatureTourEntry(
+    sinceBuild: 23,
+    icon: IconsaxPlusLinear.game,
+    title: (l10n) => l10n.featureTourRpsTitle,
+    body: (l10n) => l10n.featureTourRpsBody,
+    onOpen: (context) => openRpsGame(context),
+  ),
+  // ---- Build 25 (1.8.0) ----------------------------------------------------
+  FeatureTourEntry(
+    sinceBuild: 25,
+    icon: IconsaxPlusLinear.moon,
+    title: (l10n) => l10n.featureTourSleepTitle,
+    body: (l10n) => l10n.featureTourSleepBody,
+    onOpen: openSleepScreen,
+  ),
+  FeatureTourEntry(
+    sinceBuild: 25,
+    icon: IconsaxPlusLinear.star,
+    title: (l10n) => l10n.featureTourSkyTitle,
+    body: (l10n) => l10n.featureTourSkyBody,
+    onOpen: openLoveTree,
+  ),
+  // Build 26 (1.9.0): no entry. The pairing tip also showed to couples already
+  // paired; people still waiting see the QR button on the waiting card.
+  // ---- Build 28 ------------------------------------------------------------
+  // Sleep users from 1.8.0 never see the build-25 entry again: tell them the
+  // phone alone now guesses the nights Health / screen events miss.
+  FeatureTourEntry(
+    sinceBuild: 28,
+    icon: IconsaxPlusLinear.mobile,
+    title: (l10n) => l10n.featureTourSleepMotionTitle,
+    body: (l10n) => l10n.featureTourSleepMotionBody,
+    onOpen: openSleepScreen,
   ),
 ];

@@ -1,0 +1,7 @@
+command : npx firebase-tools deploy --only firestore:rules,functions:deleteAccount,functions:leaveCoupleCleanup,functions:notifyPartnerMood,functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail --project default 2>&1 | tail -40
+time_utc: 20261012T073839Z
+git_head: fe37652 (fix/audit-2026-10-12)
+dirty   : 19 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout fe37652)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout fe37652 -- functions` rồi redeploy

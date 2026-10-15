@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import 'entrance_reveal.dart';
 import 'eyebrow_chip.dart';
 import 'icon_badge.dart';
+import '../services/analytics_service.dart';
 
 /// "Có gì mới" — version-based feature tour (feature: onboarding, 2026-09-05).
 ///
@@ -30,17 +31,24 @@ class FeatureTour {
 
   /// Called post-frame from Home. Shows the entries released between the last
   /// seen build and the current one, then records the current build.
-  static Future<void> maybeShow(
+  ///
+  /// [deferIf] is re-checked right before the sheet would open (after the
+  /// async package/Hive reads): true → nothing is shown NOR recorded, and the
+  /// call returns false so the caller can try again later (feature rps-game,
+  /// Tester RPS-7 — the sheet must not land on top of a running round).
+  /// Returns true when handled (shown, or nothing to show).
+  static Future<bool> maybeShow(
     BuildContext context, {
     void Function(int tab)? onOpenTab,
+    bool Function()? deferIf,
   }) async {
     final info = await _packageInfo();
     if (info == null) {
-      return;
+      return true;
     }
     final current = int.tryParse(info.buildNumber) ?? 0;
     if (current <= 0) {
-      return;
+      return true;
     }
 
     final Box<String> box;
@@ -49,7 +57,7 @@ class FeatureTour {
           ? Hive.box<String>(_boxName)
           : await Hive.openBox<String>(_boxName);
     } catch (_) {
-      return;
+      return true;
     }
 
     var seen = int.tryParse(box.get(_seenKey) ?? '');
@@ -58,7 +66,7 @@ class FeatureTour {
         // Brand-new install — the intro already introduced the app; remember
         // where we are and stay quiet.
         await _remember(box, current);
-        return;
+        return true;
       }
       // Upgraded from a build that predates this flag (the flag itself ships
       // in build 20): treat every entry as unseen, otherwise the tour would
@@ -66,19 +74,24 @@ class FeatureTour {
       seen = 0;
     }
     if (seen >= current) {
-      return;
+      return true;
     }
 
     final seenBuild = seen; // promoted copy — closures don't see promotion
     final entries = featureTourEntries
         .where((e) => e.sinceBuild > seenBuild && e.sinceBuild <= current)
         .toList();
+    if (entries.isNotEmpty && (deferIf?.call() ?? false)) {
+      return false; // not recorded — shows on the next attempt
+    }
     await _remember(box, current);
 
     if (entries.isEmpty || !context.mounted) {
-      return;
+      return true;
     }
+    AnalyticsService.instance.logFeatureTourShown(manual: false);
     await _open(context, entries, info.version, onOpenTab);
+    return true;
   }
 
   /// Manual entry point (Settings → "Có gì mới") — always shows every entry.
@@ -110,6 +123,7 @@ class FeatureTour {
     if (!context.mounted || entries.isEmpty) {
       return;
     }
+    AnalyticsService.instance.logFeatureTourShown(manual: true);
     await _open(context, entries, info?.version, onOpenTab);
   }
 

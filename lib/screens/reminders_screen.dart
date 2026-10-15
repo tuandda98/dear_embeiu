@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../l10n/l10n.dart';
@@ -31,28 +32,34 @@ class RemindersScreen extends StatelessWidget {
       decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-            children: [
-              SubScreenHeader(
-                badge: l10n.remindersHubBadge,
-                badgeIcon: IconsaxPlusLinear.notification_bing,
-                title: l10n.remindersHubTitle,
-                subtitle: l10n.remindersHubSubtitle,
+        body: Stack(
+          children: [
+            ListView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16 + MediaQuery.paddingOf(context).top,
+                16,
+                32 + MediaQuery.paddingOf(context).bottom,
               ),
-              const SizedBox(height: 20),
-              // ONE flat list (user 2026-06-14 "gộp chung — tất cả đều là lời
-              // nhắc"): the curated milestones (pre-seeded, toggle + time) flow
-              // straight into the couple's own custom reminders, no section
-              // dividers / headers. Milestones keep their auto-computed dates
-              // and can't be deleted (toggle only); custom ones add/edit/delete
-              // as before. "Gộp hiển thị" — không đổi data-model.
-              const MilestoneRemindersBody(),
-              const SizedBox(height: 12),
-              const CustomRemindersBody(),
-            ],
-          ),
+              children: [
+                SubScreenHeader(
+                  badge: l10n.remindersHubBadge,
+                  badgeIcon: IconsaxPlusLinear.notification_bing,
+                ),
+                const SizedBox(height: 20),
+                // ONE flat list (user 2026-06-14 "gộp chung — tất cả đều là lời
+                // nhắc"): the curated milestones (pre-seeded, toggle + time) flow
+                // straight into the couple's own custom reminders, no section
+                // dividers / headers. Milestones keep their auto-computed dates
+                // and can't be deleted (toggle only); custom ones add/edit/delete
+                // as before. "Gộp hiển thị" — không đổi data-model.
+                const MilestoneRemindersBody(),
+                const SizedBox(height: 12),
+                const CustomRemindersBody(),
+              ],
+            ),
+            const StatusBarScrim(),
+          ],
         ),
       ),
     );

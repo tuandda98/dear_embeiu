@@ -1,4 +1,4 @@
-const { doc, setDoc, getDoc, updateDoc, deleteDoc } = require('firebase/firestore');
+const { doc, setDoc, getDoc, getDocs, collection, query, where, updateDoc, deleteDoc } = require('firebase/firestore');
 const {
   assertSucceeds,
   assertFails,
@@ -44,13 +44,19 @@ describe('firestore: /invite_codes/{code}', () => {
     });
   });
 
-  describe('read (enumeration is allowed by design for the join lookup)', () => {
+  describe('read (get by code only — no listing)', () => {
     beforeEach(async () => {
       await seedDoc('invite_codes/ABC123', validInviteCode('alice'));
     });
 
     it('lets ANY signed-in user read a code (needed to join by code)', async () => {
       await assertSucceeds(getDoc(doc(authedDb('bob'), 'invite_codes/ABC123')));
+    });
+
+    // H1: a list handed every code + coupleId to anyone signed in.
+    it('forbids listing or querying the codes', async () => {
+      await assertFails(getDocs(collection(authedDb('bob'), 'invite_codes')));
+      await assertFails(getDocs(query(collection(authedDb('bob'), 'invite_codes'), where('userId', '==', 'alice'))));
     });
 
     it('forbids an unauthenticated read', async () => {

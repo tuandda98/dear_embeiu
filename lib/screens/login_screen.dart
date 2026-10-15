@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
@@ -7,6 +8,7 @@ import '../app/app_routes.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/social_sign_in_buttons.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/header_icon_button.dart';
@@ -23,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
+  final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
 
   @override
@@ -36,7 +39,15 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
+  }
+
+  /// PF6: the Apple/Google email already has a password account — hand the
+  /// form over with the email filled in, ready for the password.
+  void _prefillExistingEmail(String email) {
+    _emailController.text = email;
+    _passwordFocusNode.requestFocus();
   }
 
   Future<void> _submit() async {
@@ -49,19 +60,22 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     final authProvider = context.read<AuthProvider>();
+    // AU4: taken before the await. Going back while Firebase finishes leaves
+    // a live session behind — it must still go through authGate.
+    final navigator = Navigator.of(context);
     final didSignIn = await authProvider.signIn(
       email: _emailController.text,
       password: _passwordController.text,
     );
 
-    if (!mounted) {
+    if (didSignIn) {
+      if (navigator.mounted) {
+        navigator.pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+      }
       return;
     }
 
-    if (didSignIn) {
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+    if (!mounted) {
       return;
     }
 
@@ -80,75 +94,79 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 460),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Clear the top-bar (back button + centered chip +
-                        // language toggle) so a tall form never pushes the
-                        // content under them.
-                        const SizedBox(height: 52),
-                        if (authProvider.bootstrapMessage != null) ...[
-                          _buildStatusBanner(
-                            label: authProvider.authSourceLabel,
-                            message: authProvider.bootstrapMessage!,
-                            icon: authProvider.isUsingFirebase
-                                ? IconsaxPlusLinear.cloud
-                                : IconsaxPlusLinear.cloud_cross,
-                            color: authProvider.isUsingFirebase
-                                ? AppColors.success
-                                : AppColors.warning,
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-                        _buildFormCard(authProvider),
+        child: Stack(
+          children: [
+            Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  20 + MediaQuery.paddingOf(context).top,
+                  20,
+                  20 + MediaQuery.paddingOf(context).bottom,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 460),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Clear the top-bar (back button + centered chip +
+                      // language toggle) so a tall form never pushes the
+                      // content under them.
+                      const SizedBox(height: 52),
+                      if (authProvider.bootstrapMessage != null) ...[
+                        _buildStatusBanner(
+                          label: authProvider.authSourceLabel,
+                          message: authProvider.bootstrapMessage!,
+                          icon: authProvider.isUsingFirebase
+                              ? IconsaxPlusLinear.cloud
+                              : IconsaxPlusLinear.cloud_cross,
+                          color: authProvider.isUsingFirebase
+                              ? AppColors.success
+                              : AppColors.warning,
+                        ),
+                        const SizedBox(height: 24),
                       ],
+                      _buildFormCard(authProvider),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const StatusBarScrim(),
+            // Header redesign (2026-06-14): the eyebrow chip is centered on
+            // the top-bar, level with the back squircle (left) and language
+            // toggle (right) — the page title + subtitle were removed.
+            Positioned(
+              top: 8 + MediaQuery.paddingOf(context).top,
+              left: 16,
+              child: HeaderIconButton(
+                icon: IconsaxPlusLinear.arrow_left,
+                onTap: () => Navigator.of(context).maybePop(),
+                semanticsLabel: context.l10n.back,
+              ),
+            ),
+            Positioned(
+              top: 8 + MediaQuery.paddingOf(context).top,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: SizedBox(
+                  height: 44,
+                  child: Center(
+                    child: EyebrowChip(
+                      label: context.l10n.welcomeBackBadge,
+                      icon: IconsaxPlusLinear.lock,
                     ),
                   ),
                 ),
               ),
-              // Header redesign (2026-06-14): the eyebrow chip is centered on
-              // the top-bar, level with the back squircle (left) and language
-              // toggle (right) — the page title + subtitle were removed.
-              Positioned(
-                top: 8,
-                left: 16,
-                child: HeaderIconButton(
-                  icon: IconsaxPlusLinear.arrow_left,
-                  onTap: () => Navigator.of(context).maybePop(),
-                  semanticsLabel: context.l10n.back,
-                ),
-              ),
-              Positioned(
-                top: 8,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: SizedBox(
-                    height: 44,
-                    child: Center(
-                      child: EyebrowChip(
-                        label: context.l10n.welcomeBackBadge,
-                        icon: IconsaxPlusLinear.lock,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const Positioned(
-                top: 12,
-                right: 16,
-                child: LanguageToggleButton(),
-              ),
-            ],
-          ),
+            ),
+            Positioned(
+              top: 12 + MediaQuery.paddingOf(context).top,
+              right: 16,
+              child: LanguageToggleButton(),
+            ),
+          ],
         ),
       ),
     );
@@ -225,15 +243,8 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.emailLabel,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 18),
+            // No card heading: "WELCOME BACK" chip names the screen and the
+            // first field already says "Email" (duplicate, user 2026-10-13).
             _buildFieldBlock(
               label: l10n.emailLabel,
               child: TextFormField(
@@ -261,6 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
               label: l10n.passwordLabel,
               child: TextFormField(
                 controller: _passwordController,
+                focusNode: _passwordFocusNode,
                 obscureText: _obscurePassword,
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => _submit(),
@@ -272,7 +284,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       setState(() => _obscurePassword = !_obscurePassword);
                     },
                     icon: Icon(
-                      _obscurePassword ? IconsaxPlusLinear.eye : IconsaxPlusLinear.eye_slash,
+                      _obscurePassword
+                          ? IconsaxPlusLinear.eye
+                          : IconsaxPlusLinear.eye_slash,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -293,17 +307,18 @@ class _LoginScreenState extends State<LoginScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    AppRoutes.forgotPassword,
-                    arguments: _emailController.text.trim(),
-                  );
-                },
+                onPressed: authProvider.isSocialSigningIn
+                    ? null
+                    : () {
+                        Navigator.of(context).pushNamed(
+                          AppRoutes.forgotPassword,
+                          arguments: _emailController.text.trim(),
+                        );
+                      },
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
+                  minimumSize: const Size(44, 44),
+                  tapTargetSize: MaterialTapTargetSize.padded,
                   foregroundColor: AppColors.accentRose,
                 ),
                 child: Text(
@@ -321,7 +336,10 @@ class _LoginScreenState extends State<LoginScreen> {
               width: double.infinity,
               height: 52,
               child: FilledButton(
-                onPressed: authProvider.isLoading ? null : _submit,
+                onPressed:
+                    authProvider.isLoading || authProvider.isSocialSigningIn
+                    ? null
+                    : _submit,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accentRose,
                   foregroundColor: AppColors.white,
@@ -347,6 +365,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
               ),
             ),
+            // Apple/Google sit BELOW the form here (design §1b): everyone
+            // opening Sign in so far has an email account, and a different
+            // Apple ID / "Hide my email" would mint an empty new account.
+            if (SocialSignInButtons.isAvailable(authProvider)) ...[
+              const SizedBox(height: 18),
+              const AuthOrDivider(),
+              const SizedBox(height: 18),
+              SocialSignInButtons(onExistingEmail: _prefillExistingEmail),
+            ],
             const SizedBox(height: 14),
             Align(
               child: Wrap(
@@ -358,15 +385,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   TextButton(
-                    onPressed: () {
-                      // Swap login↔register in place (both sit directly on top
-                      // of /guest): keeps the stack at guest→[login|register],
-                      // so "back" always returns to guest and tapping the
-                      // cross-links repeatedly never piles up screens.
-                      Navigator.of(
-                        context,
-                      ).pushReplacementNamed(AppRoutes.register);
-                    },
+                    onPressed: authProvider.isSocialSigningIn
+                        ? null
+                        : () {
+                            // Swap login↔register in place (both sit directly
+                            // on top of /guest): keeps the stack at
+                            // guest→[login|register], so "back" always returns
+                            // to guest and tapping the cross-links repeatedly
+                            // never piles up screens.
+                            Navigator.of(
+                              context,
+                            ).pushReplacementNamed(AppRoutes.register);
+                          },
                     child: Text(l10n.createAccountLink),
                   ),
                 ],

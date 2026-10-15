@@ -21,6 +21,7 @@ class SectionHeader extends StatelessWidget {
     this.subtitle,
     this.actionLabel,
     this.onActionTap,
+    this.trailing,
   });
 
   final String title;
@@ -28,19 +29,32 @@ class SectionHeader extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onActionTap;
 
+  /// A widget on the title's row, right-aligned and vertically centred with
+  /// it (e.g. Home's constellation pill). The title then stays on ONE line
+  /// and scales down on narrow phones (< ~390dp with "Hôm nay của chúng
+  /// mình") instead of wrapping under the widget — user asked for the two
+  /// to line up (2026-10-12).
+  final Widget? trailing;
+
   @override
   Widget build(BuildContext context) {
+    final titleText = Text(title, style: AppTheme.sectionTitleStyle());
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          trailing != null ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: AppTheme.sectionTitleStyle(),
-              ),
+              if (trailing != null)
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: titleText,
+                )
+              else
+                titleText,
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
                 Text(
@@ -67,6 +81,7 @@ class SectionHeader extends StatelessWidget {
             ),
             child: Text(actionLabel!),
           ),
+        if (trailing != null) ...[const SizedBox(width: 12), trailing!],
       ],
     );
   }

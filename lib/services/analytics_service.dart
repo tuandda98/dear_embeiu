@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -40,6 +42,35 @@ class AnalyticsEvents {
   static const String loveNoteEnvelopeOpened = 'love_note_envelope_opened';
   static const String accountDeleted = 'account_deleted';
 
+  // --- Rock-paper-scissors (feature rps-game, 2026-09-13) ---
+  static const String rpsInviteSent = 'rps_invite_sent';
+  static const String rpsGameFinished = 'rps_game_finished';
+
+  // Home-screen widget (feature home-widget)
+  static const String widgetTap = 'widget_tap'; // home-screen widget opened the app
+
+  // Features 2026-06 → 2026-10 (chat, mood, care-message, sleep, love-tree,
+  // onboarding). Same privacy rules: no text, no times, no mood value.
+  static const String chatMessageSent = 'chat_message_sent';
+  static const String moodSet = 'mood_set';
+  static const String careMessageSent = 'care_message_sent';
+  static const String sleepEnabled = 'sleep_enabled';
+  static const String sleepShareChanged = 'sleep_share_changed';
+  static const String sleepNightSaved = 'sleep_night_saved';
+  static const String loveTreeOpened = 'love_tree_opened';
+  static const String introFinished = 'intro_finished';
+  static const String featureTourShown = 'feature_tour_shown';
+
+  // Auth failures + forgot password (2026-10-14). `reason` = Firebase error
+  // code (e.g. wrong-password), never the message or the email.
+  static const String loginFailed = 'login_failed';
+  static const String signUpFailed = 'sign_up_failed';
+  static const String passwordResetRequested = 'password_reset_requested';
+  static const String passwordResetFailed = 'password_reset_failed';
+  // Pairing failures (2026-10-15). `reason` = CoupleErrorCode name.
+  static const String coupleJoinFailed = 'couple_join_failed';
+  static const String coupleCreateFailed = 'couple_create_failed';
+
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
   static const String pResult = 'result'; // couple_join_attempt
@@ -49,6 +80,16 @@ class AnalyticsEvents {
   static const String pRepeat = 'repeat'; // reminder_created
   static const String pType = 'type'; // notification_opened
   static const String pLocale = 'locale'; // language_changed
+  static const String pRematch = 'rematch'; // rps_invite_sent (bool)
+  static const String pFamily = 'family'; // widget_tap: small / medium
+  static const String pHasNote = 'has_note'; // mood_set (bool)
+  static const String pQueued = 'queued'; // care_message_sent (bool, offline)
+  static const String pMode = 'mode'; // sleep_enabled: auto / health / manual
+  static const String pEnabled = 'enabled'; // sleep_share_changed (bool)
+  static const String pSource = 'source'; // sleep_night_saved: manual / edited
+  static const String pSkipped = 'skipped'; // intro_finished (bool)
+  static const String pManual = 'manual'; // feature_tour_shown (bool)
+  static const String pReason = 'reason'; // *_failed events
 
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
@@ -231,16 +272,28 @@ class AnalyticsService {
       clean = <String, Object>{};
       params.forEach((key, value) {
         if (value == null) return;
-        if (value is String || value is num || value is bool) {
+        if (value is String || value is num) {
           clean![key] = value;
+        } else if (value is bool) {
+          // The plugin only accepts String/num (debug assertion — it threw
+          // straight into the caller, e.g. RpsGameProvider.invite after the
+          // game was already created, found 2026-09-14). GA4 convention: 1/0.
+          clean![key] = value ? 1 : 0;
         }
       });
       if (clean.isEmpty) {
         clean = null;
       }
     }
-    // Fire-and-forget; analytics latency must never block the caller.
-    analytics.logEvent(name: name, parameters: clean);
+    // Fire-and-forget; analytics latency must never block the caller — nor
+    // may an analytics error escape into it.
+    try {
+      unawaited(
+        analytics.logEvent(name: name, parameters: clean).catchError((_) {}),
+      );
+    } catch (e) {
+      debugPrint('AnalyticsService.logEvent($name) failed: $e');
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -317,6 +370,13 @@ class AnalyticsService {
   /// Swiped the home counter-card background photo (feature home).
   void logCounterBgSwiped() => logEvent(AnalyticsEvents.counterBgSwiped);
 
+  /// The app was opened by tapping the home-screen widget (feature home-widget).
+  /// [family] is `small` or `medium`.
+  void logWidgetTap(String family) => logEvent(
+        AnalyticsEvents.widgetTap,
+        params: {AnalyticsEvents.pFamily: family},
+      );
+
   /// Opened the Memory Cinema viewer on Home (feature home).
   void logMemoryCinemaOpened() =>
       logEvent(AnalyticsEvents.memoryCinemaOpened);
@@ -331,6 +391,104 @@ class AnalyticsService {
       );
 
   void logAccountDeleted() => logEvent(AnalyticsEvents.accountDeleted);
+
+  /// Rock-paper-scissors invite created (feature rps-game). [rematch] = it
+  /// was a "Chơi lại" from a result screen. No ids, no content.
+  void logRpsInviteSent({bool rematch = false}) => logEvent(
+        AnalyticsEvents.rpsInviteSent,
+        params: {AnalyticsEvents.pRematch: rematch},
+      );
+
+  /// A rock-paper-scissors game reached `finished`. [result] is the outcome
+  /// from THIS user's side: `win` / `lose` / `draw` (enum name, never content).
+  void logRpsGameFinished(String result) => logEvent(
+        AnalyticsEvents.rpsGameFinished,
+        params: {AnalyticsEvents.pResult: result},
+      );
+
+  void logChatMessageSent() => logEvent(AnalyticsEvents.chatMessageSent);
+
+  /// Never the mood itself — only whether a note was added.
+  void logMoodSet({required bool hasNote}) => logEvent(
+        AnalyticsEvents.moodSet,
+        params: {AnalyticsEvents.pHasNote: hasNote},
+      );
+
+  void logCareMessageSent({required bool queued}) => logEvent(
+        AnalyticsEvents.careMessageSent,
+        params: {AnalyticsEvents.pQueued: queued},
+      );
+
+  /// [mode] is the [SleepMode] name.
+  void logSleepEnabled(String mode) => logEvent(
+        AnalyticsEvents.sleepEnabled,
+        params: {AnalyticsEvents.pMode: mode},
+      );
+
+  void logSleepShareChanged(bool enabled) => logEvent(
+        AnalyticsEvents.sleepShareChanged,
+        params: {AnalyticsEvents.pEnabled: enabled},
+      );
+
+  /// [source] is `manual` (new night) or `edited`. Never the times.
+  void logSleepNightSaved(String source) => logEvent(
+        AnalyticsEvents.sleepNightSaved,
+        params: {AnalyticsEvents.pSource: source},
+      );
+
+  void logLoveTreeOpened() => logEvent(AnalyticsEvents.loveTreeOpened);
+
+  void logIntroFinished({required bool skipped}) => logEvent(
+        AnalyticsEvents.introFinished,
+        params: {AnalyticsEvents.pSkipped: skipped},
+      );
+
+  /// [manual] = opened from Settings → "Có gì mới".
+  void logFeatureTourShown({required bool manual}) => logEvent(
+        AnalyticsEvents.featureTourShown,
+        params: {AnalyticsEvents.pManual: manual},
+      );
+
+  /// [reason] is an error code (`wrong-password`, `canceled`, `unknown`…).
+  void logLoginFailed({String method = 'email', required String reason}) =>
+      logEvent(
+        AnalyticsEvents.loginFailed,
+        params: {
+          AnalyticsEvents.pMethod: method,
+          AnalyticsEvents.pReason: reason,
+        },
+      );
+
+  void logSignUpFailed({String method = 'email', required String reason}) =>
+      logEvent(
+        AnalyticsEvents.signUpFailed,
+        params: {
+          AnalyticsEvents.pMethod: method,
+          AnalyticsEvents.pReason: reason,
+        },
+      );
+
+  /// Reset mail sent (incl. unknown email — anti-enumeration).
+  void logPasswordResetRequested() =>
+      logEvent(AnalyticsEvents.passwordResetRequested);
+
+  void logPasswordResetFailed(String reason) => logEvent(
+        AnalyticsEvents.passwordResetFailed,
+        params: {AnalyticsEvents.pReason: reason},
+      );
+
+  /// Every failed join, with the precise [reason] (CoupleErrorCode name,
+  /// `unknown` for an unexpected throw). `couple_join_attempt` keeps its
+  /// coarse 4-bucket `result` for the old funnel.
+  void logCoupleJoinFailed(String reason) => logEvent(
+        AnalyticsEvents.coupleJoinFailed,
+        params: {AnalyticsEvents.pReason: reason},
+      );
+
+  void logCoupleCreateFailed(String reason) => logEvent(
+        AnalyticsEvents.coupleCreateFailed,
+        params: {AnalyticsEvents.pReason: reason},
+      );
 
   // ---------------------------------------------------------------------------
   // User id + properties. D2 — user_id = Firebase uid while authed (an id, not

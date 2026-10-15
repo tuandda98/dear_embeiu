@@ -1,0 +1,7 @@
+command : git diff --stat HEAD -- functions/ | tail -1; NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:notifyPartnerJoined --project prod 2>&1 | tail -6
+time_utc: 20261011T150858Z
+git_head: 38df0b4 (feature/pairing-funnel)
+dirty   : 9 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 38df0b4)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 38df0b4 -- functions` rồi redeploy

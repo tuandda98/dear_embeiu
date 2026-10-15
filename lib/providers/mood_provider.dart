@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../models/mood.dart';
+import '../services/analytics_service.dart';
 import '../services/mood_service.dart';
 
 /// State for the "Tâm trạng hôm nay" Home card (feature mood): streams both
@@ -24,6 +25,11 @@ class MoodProvider extends ChangeNotifier {
   Map<String, Mood> _moods = const <String, Mood>{};
 
   bool get isReady => _coupleId != null && _myUid != null;
+
+  /// True from [watchForCouple] until the first snapshot (or error) lands —
+  /// lets Home hold the question engine until moods are actually known.
+  bool get isLoading => _isLoading;
+  bool _isLoading = false;
   bool get isUsingFirebase => _service.isUsingFirebase;
 
   /// Local-date key 'YYYY-MM-DD' for today (matches what we write).
@@ -81,59 +87,84 @@ class MoodProvider extends ChangeNotifier {
     _coupleId = coupleId;
     _myUid = myUid;
     _moods = const <String, Mood>{};
+    _isLoading = true;
     notifyListeners();
 
     _subscription?.cancel();
     _subscription = _service.watchMoods(coupleId).listen(
       (moods) {
         _moods = moods;
+        _isLoading = false;
         notifyListeners();
       },
       onError: (_) {
         // Keep last good data; nothing global to surface.
+        _isLoading = false;
         notifyListeners();
       },
     );
   }
 
   /// Sets my mood for today (create or change). [note] is optional.
-  Future<void> setMood(String moodKey, {String note = ''}) async {
+  ///
+  /// My card shows the pick at once; the write itself may wait for the
+  /// network (offline, Firestore queues it), so the picker doesn't await this.
+  /// Returns false when nothing was saved — the pick is then rolled back.
+  Future<bool> setMood(String moodKey, {String note = ''}) async {
     final coupleId = _coupleId;
     final uid = _myUid;
     if (coupleId == null || uid == null || moodOptionFor(moodKey) == null) {
-      return;
+      return false;
     }
 
     // Optimistic: reflect my pick immediately so the card responds instantly.
+    final previous = _moods[uid];
     final optimistic = Mood(
       authorUserId: uid,
       mood: moodKey,
-      note: note.trim(),
+      note: MoodService.fitNote(note.trim()).trim(),
       date: todayKey(),
       updatedAt: DateTime.now(),
     );
     _moods = {..._moods, uid: optimistic};
     notifyListeners();
 
-    await _service.setMood(
-      coupleId: coupleId,
-      uid: uid,
-      mood: moodKey,
-      note: note,
-      dateKey: todayKey(),
-    );
+    try {
+      await _service.setMood(
+        coupleId: coupleId,
+        uid: uid,
+        mood: moodKey,
+        note: note,
+        dateKey: todayKey(),
+      );
+    } catch (_) {
+      // e.g. the rules said no. Undo unless the stream already brought the
+      // server's copy back (Firestore reverts a rejected write itself).
+      if (_myUid == uid && identical(_moods[uid], optimistic)) {
+        _moods = {
+          for (final e in _moods.entries)
+            if (e.key != uid) e.key: e.value,
+          uid: ?previous,
+        };
+        notifyListeners();
+      }
+      return false;
+    }
 
     // Local fallback has no stream — re-read to confirm (Firebase pushes itself).
-    if (!_service.isUsingFirebase) {
+    if (!_service.isUsingFirebase && _coupleId == coupleId) {
       _moods = await _service.watchMoods(coupleId).first;
       notifyListeners();
     }
+    AnalyticsService.instance.logMoodSet(hasNote: optimistic.note.isNotEmpty);
+    return true;
   }
 
   /// Stops watching and resets state (sign-out / leaving a couple).
   void clear() {
     _subscription?.cancel();
     _subscription = null;
+    _isLoading = false;
     _coupleId = null;
     _myUid = null;
     _moods = const <String, Mood>{};

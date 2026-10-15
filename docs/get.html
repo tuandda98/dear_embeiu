@@ -237,7 +237,7 @@
       vi: {
         footTag: 'Lưu giữ kỷ niệm & đếm ngày yêu 💞',
         title: 'Bạn được mời rồi! 💞',
-        msgWithCode: 'Người ấy mời bạn cùng lưu giữ kỷ niệm trên Dear Embeiu 💞 · Tải app, đăng ký rồi chọn <b>Nhập mã mời</b> và dán mã bên dưới.',
+        msgWithCode: 'Người ấy mời bạn cùng lưu giữ kỷ niệm trên Dear Embeiu 💞 Tải app và đăng ký, mã bên dưới sẽ ghép đôi hai bạn.',
         msgNoCode: 'Tải Dear Embeiu để cùng người ấy đếm ngày yêu và lưu giữ kỷ niệm chung 💞',
         codeLabel: 'Mã mời',
         copy: 'Sao chép mã',
@@ -248,12 +248,16 @@
         openApp: 'Mở Dear Embeiu (nếu đã cài)',
         redirectIos: 'Đang chuyển bạn tới App Store…',
         redirectAndroid: 'Đang chuyển bạn tới Google Play…',
-        subNote: 'Sau khi cài, mở app → Đăng ký → Nhập mã mời để ghép đôi nhé.',
+        copyHint: 'Bấm tải là mã được chép sẵn. Cài xong mở app là có.',
+        copyHintDone: 'Mã đã được chép sẵn ✓ Cài xong mở app là có.',
+        copyHintFail: 'Chưa chép được mã. Nhớ mã ở trên để nhập trong app nhé.',
+        subNote: 'Cài xong, mở app, đăng ký rồi chọn “Tham gia bằng mã” để ghép đôi nhé.',
+        subNoteAuto: 'App không hỏi mã? Chọn “Tham gia bằng mã” rồi nhập mã ở trên.',
       },
       en: {
         footTag: 'Keep your memories & count the days in love 💞',
         title: 'You are invited! 💞',
-        msgWithCode: 'Someone invited you to keep memories together on Dear Embeiu 💞 · Install the app, sign up, then tap <b>Enter invite code</b> and paste the code below.',
+        msgWithCode: 'Your partner invited you to keep memories together on Dear Embeiu 💞 Get the app and sign up, and the code below pairs you two.',
         msgNoCode: 'Get Dear Embeiu to count the days in love and keep shared memories 💞',
         codeLabel: 'Invite code',
         copy: 'Copy code',
@@ -264,7 +268,11 @@
         openApp: 'Open Dear Embeiu (if installed)',
         redirectIos: 'Taking you to the App Store…',
         redirectAndroid: 'Taking you to Google Play…',
-        subNote: 'After installing, open the app → Sign up → Enter invite code to pair.',
+        copyHint: 'Tap download and your code is copied. Open the app after installing and it\'s there.',
+        copyHintDone: 'Code copied ✓ Open the app after installing and it\'s there.',
+        copyHintFail: 'Couldn\'t copy the code. Keep the code above handy to type in the app.',
+        subNote: 'After installing, open the app, sign up, then pick “Join with code” to pair.',
+        subNoteAuto: 'App didn\'t ask? Pick “Join with code” and type the code above.',
       },
     };
 
@@ -294,15 +302,50 @@
     $('androidBtn').textContent = t.android;
     $('openApp').textContent = t.openApp;
     $('openApp').setAttribute('href', APP_LINK);
-    $('subNote').textContent = t.subNote;
+
+    // ── Nền tảng ──────────────────────────────────────────────────────────
+    var ua = navigator.userAgent || '';
+    // iPadOS 13+ báo UA giống macOS → nhận thêm qua touch points.
+    var isIOS = /iPhone|iPad|iPod/i.test(ua) ||
+      (/Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1);
+    var isAndroid = /Android/i.test(ua);
+    var onPhone = isIOS || isAndroid;
 
     // ── Mã mời: 6 ký tự [A-Z0-9] ──────────────────────────────────────────
     var rawCode = (getParam('code') || '').trim().toUpperCase();
     var code = /^[A-Z0-9]{6}$/.test(rawCode) ? rawCode : '';
 
     $('message').innerHTML = code ? t.msgWithCode : t.msgNoCode;
+    $('subNote').textContent = code && onPhone ? t.subNoteAuto : t.subNote;
 
     if (code) {
+      // Bấm tải / mở app → chép LINK mời (không chỉ mã, để app phân biệt với
+      // mã OTP) ngay trong sự kiện bấm; app hỏi "Nhập mã …?" ở màn Setup.
+      // Link dựng từ mã đã kiểm, không lấy location.href (có thể dính lang
+      // hay tham số theo dõi). Không preventDefault: store/app vẫn mở như cũ.
+      var inviteLink = 'https://dearembeiu.com/get?code=' + code;
+      var copyInviteLink = function () {
+        var note = $('redirectNote');
+        function done(ok) { note.textContent = ok ? t.copyHintDone : t.copyHintFail; }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(inviteLink).then(function () { done(true); },
+            function () { done(legacyCopy(inviteLink)); });
+        } else {
+          done(legacyCopy(inviteLink));
+        }
+      };
+      ['iosBtn', 'androidBtn', 'openApp'].forEach(function (id) {
+        $(id).addEventListener('click', copyInviteLink);
+      });
+
+      // Điện thoại: chỉ nút store đúng nền tảng + câu báo trước việc chép mã.
+      // Chữ nằm yên (không toast) để người quay lại trình duyệt vẫn đọc được.
+      if (onPhone) {
+        hide($(isIOS ? 'androidBtn' : 'iosBtn'));
+        $('redirectNote').textContent = t.copyHint;
+        show($('redirectNote'));
+      }
+
       $('codeLabel').textContent = t.codeLabel;
       $('codeValue').textContent = code;
       $('copyBtn').textContent = t.copy;
@@ -343,12 +386,7 @@
 
     // ── Nhận diện nền tảng → tự chuyển tới đúng store ─────────────────────
     (function routeByPlatform() {
-      var ua = navigator.userAgent || '';
-      // iPadOS 13+ báo UA giống macOS → nhận thêm qua touch points.
-      var isIOS = /iPhone|iPad|iPod/i.test(ua) ||
-        (/Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1);
-      var isAndroid = /Android/i.test(ua);
-      if (!isIOS && !isAndroid) return; // desktop/khác: chỉ hiện 2 nút
+      if (!onPhone) return; // desktop/khác: chỉ hiện 2 nút
       // Có mã mời hợp lệ → ĐỨNG YÊN: người nhận cần đọc/sao chép mã, và người
       // đã cài app cần nút "Mở Dear Embeiu" thay vì bị đá sang store (vòng lặp
       // cài xong quay lại link lại bị đá). Chỉ tự chuyển khi link không có mã.

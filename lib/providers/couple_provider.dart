@@ -77,7 +77,8 @@ class CoupleProvider extends ChangeNotifier {
             // leaving the couple ourselves — it's expected, not a real sync
             // failure, and would otherwise surface on Setup after leaving.
             if (_isLeaving) return;
-            _errorMessage = AppL10n.strings.coupleSyncError('$error');
+            debugPrint('CoupleProvider couple stream error: $error');
+            _errorMessage = AppL10n.strings.coupleSyncError;
             notifyListeners();
           },
         );
@@ -98,7 +99,8 @@ class CoupleProvider extends ChangeNotifier {
         }
         // No error banner — the user just sees Setup, which is correct.
       } else {
-        _errorMessage = AppL10n.strings.coupleLoadError('$e');
+        debugPrint('CoupleProvider.loadCoupleForUser failed: $e');
+        _errorMessage = AppL10n.strings.coupleLoadError;
       }
     } finally {
       _setLoading(false);
@@ -159,6 +161,12 @@ class CoupleProvider extends ChangeNotifier {
     } on CoupleException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
+      AnalyticsService.instance.logCoupleCreateFailed(
+        e.code?.name ?? 'other',
+      );
+      rethrow;
+    } catch (_) {
+      AnalyticsService.instance.logCoupleCreateFailed('unknown');
       rethrow;
     } finally {
       _setLoading(false);
@@ -190,7 +198,14 @@ class CoupleProvider extends ChangeNotifier {
       _errorMessage = e.message;
       notifyListeners();
       // Analytics — failed attempt, bucketed by stable code (never PII).
-      AnalyticsService.instance.logCoupleJoinAttempt(_joinResultFor(e.code));
+      AnalyticsService.instance
+        ..logCoupleJoinAttempt(_joinResultFor(e.code))
+        ..logCoupleJoinFailed(e.code?.name ?? 'other');
+      rethrow;
+    } catch (_) {
+      AnalyticsService.instance
+        ..logCoupleJoinAttempt(AnalyticsJoinResult.error)
+        ..logCoupleJoinFailed('unknown');
       rethrow;
     } finally {
       _setLoading(false);

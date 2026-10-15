@@ -16,6 +16,7 @@ import '../providers/locale_provider.dart';
 import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../services/analytics_service.dart';
+import '../services/ai_question_source.dart';
 import '../services/home_prefs_service.dart';
 import '../theme/app_colors.dart';
 import '../utils/lunar_calendar.dart';
@@ -27,6 +28,7 @@ import '../widgets/icon_badge.dart';
 import '../widgets/language_toggle_button.dart';
 import '../widgets/app_time_picker.dart';
 import '../widgets/section_header.dart';
+import '../widgets/status_bar_scrim.dart';
 import '../widgets/sub_screen_header.dart';
 import 'chat_bg_screen.dart';
 import 'counter_bg_screen.dart';
@@ -45,6 +47,9 @@ import 'reminders_screen.dart';
 /// The journal entry and edit-story tile moved to the Profile tab (memory
 /// chest / hero tap-to-edit — Profile v2); every remaining control keeps its
 /// original logic (permission flows, force-open gate, danger dialogs).
+///
+/// Also opened from Setup (no couple yet): then only Account → delete account
+/// → sign-out → version render (App Review 5.1.1(v), 2026-10-11).
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -57,6 +62,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // flag (not a provider flag) so the overlay stays up CONTINUOUSLY across the
   // whole sequence (leaveCouple → updateCurrentUser → sync) with no dead gap.
   bool _leaving = false;
+
+  // iOS is being asked how the deletion confirms (≤2 s): the Delete button
+  // spins and ignores taps, so a second tap can't stack a second dialog and
+  // a second deletion (BUG-26).
+  bool _askingDelete = false;
 
   // Accounts that should NOT see the "Quản lý dữ liệu" (data management) card —
   // i.e. clear-local-cache / leave-couple / delete-account are hidden for them
@@ -79,6 +89,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Lock system back and the iOS edge swipe while leaving the couple,
+    // signing out or deleting the account: popping Settings mid-way strands
+    // the user on a stale screen, nothing routes them through authGate any
+    // more (AU2). The loaders below only block taps.
+    final busy =
+        _leaving ||
+        context.select<AuthProvider, bool>((auth) => auth.isLoading);
+    return PopScope(canPop: !busy, child: _buildPage(context));
+  }
+
+  Widget _buildPage(BuildContext context) {
     final l10n = context.l10n;
 
     // Leave-couple teardown: show the SAME full-screen transition loader the
@@ -87,31 +108,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // very next screen (authGate → SessionResolver), so the handoff is seamless
     // with no flash and the loader looks identical to the rest of the app.
     if (_leaving) {
-      // Lock the system back button so the teardown can't be interrupted
-      // (popping mid-leave would strand the user on a stale screen).
-      return PopScope(
-        canPop: false,
-        child: Scaffold(
-          body: Container(
-            decoration: const BoxDecoration(
-              gradient: AppColors.secondaryGradient,
-            ),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(color: AppColors.white),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.leavingCouple,
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
+      return Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.secondaryGradient,
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(color: AppColors.white),
+                const SizedBox(height: 16),
+                Text(
+                  l10n.leavingCouple,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -135,86 +151,107 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: settingsBody!,
             );
           },
+          // Edge-to-edge (user 2026-10-13): the list scrolls under the status
+          // bar and home indicator; the insets become scroll padding so the
+          // first/last card still start clear of the bars.
           child: SafeArea(
-            child: Consumer<CoupleProvider>(
-              builder: (context, coupleProvider, _) {
-                final couple = coupleProvider.couple;
-                if (couple == null) {
-                  // No couple loaded — nothing to configure yet.
-                  return const SizedBox.shrink();
-                }
-                final authProvider = context.watch<AuthProvider>();
-                // Hide the data-management card for specific accounts.
-                final email =
-                    (authProvider.currentUser?.email ??
-                            authProvider.currentEmail ??
-                            '')
-                        .trim()
-                        .toLowerCase();
-                final hideDataManagement = _hideDataManagementEmails.contains(
-                  email,
-                );
-                final showLunar = _lunarCalendarEmails.contains(email);
+            top: false,
+            bottom: false,
+            child: Stack(
+              children: [
+                Consumer<CoupleProvider>(
+                  builder: (context, coupleProvider, _) {
+                    // No couple yet (opened from Setup, P1 2026-10-11): keep the
+                    // account card, delete account and sign-out so an unpaired
+                    // user can still delete the account (App Review 5.1.1(v)).
+                    // Every couple-shared group hides.
+                    final hasCouple = coupleProvider.couple != null;
+                    final authProvider = context.watch<AuthProvider>();
+                    // Hide the data-management card for specific accounts.
+                    final email =
+                        (authProvider.currentUser?.email ??
+                                authProvider.currentEmail ??
+                                '')
+                            .trim()
+                            .toLowerCase();
+                    final hideDataManagement = _hideDataManagementEmails
+                        .contains(email);
+                    final showLunar = _lunarCalendarEmails.contains(email);
 
-                return SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SubScreenHeader(
-                        badge: l10n.settingsBadge,
-                        badgeIcon: IconsaxPlusLinear.setting_2,
-                        title: l10n.settingsTitle,
-                        subtitle: l10n.settingsHeaderSubtitle,
+                    final insets = MediaQuery.paddingOf(context);
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        16 + insets.top,
+                        16,
+                        24 + insets.bottom,
                       ),
-                      const SizedBox(height: 20),
-                      // Account first: "who am I signed in as" orients every
-                      // control below (standard OS-settings order).
-                      EntranceReveal(
-                        order: 0,
-                        child: _buildAccountSection(context),
-                      ),
-                      const SizedBox(height: 24),
-                      EntranceReveal(
-                        order: 1,
-                        child: _buildNotificationsSection(context),
-                      ),
-                      if (showLunar) ...[
-                        const SizedBox(height: 24),
-                        EntranceReveal(
-                          order: 2,
-                          child: _buildLunarSection(context),
-                        ),
-                      ],
-                      const SizedBox(height: 24),
-                      EntranceReveal(
-                        order: 2,
-                        child: _buildGeneralSection(context),
-                      ),
-                      if (!hideDataManagement) ...[
-                        const SizedBox(height: 24),
-                        EntranceReveal(
-                          order: 3,
-                          child: _buildDangerZone(
-                            context,
-                            isUsingFirebase: authProvider.isUsingFirebase,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SubScreenHeader(
+                            badge: l10n.settingsBadge,
+                            badgeIcon: IconsaxPlusLinear.setting_2,
+                            title: l10n.settingsTitle,
+                            subtitle: l10n.settingsHeaderSubtitle,
                           ),
-                        ),
-                      ],
-                      // Sign-out closes the page — the universal settings
-                      // convention: scan order runs frequent → rare → leave.
-                      const SizedBox(height: 18),
-                      EntranceReveal(
-                        order: 4,
-                        child: _buildSignOutButton(context),
+                          const SizedBox(height: 20),
+                          // Account first: "who am I signed in as" orients every
+                          // control below (standard OS-settings order).
+                          EntranceReveal(
+                            order: 0,
+                            child: _buildAccountSection(context),
+                          ),
+                          if (hasCouple) ...[
+                            const SizedBox(height: 24),
+                            EntranceReveal(
+                              order: 1,
+                              child: _buildNotificationsSection(context),
+                            ),
+                            if (showLunar) ...[
+                              const SizedBox(height: 24),
+                              EntranceReveal(
+                                order: 2,
+                                child: _buildLunarSection(context),
+                              ),
+                            ],
+                            const SizedBox(height: 24),
+                            EntranceReveal(
+                              order: 2,
+                              child: _buildGeneralSection(context),
+                            ),
+                          ],
+                          if (!hideDataManagement) ...[
+                            const SizedBox(height: 24),
+                            EntranceReveal(
+                              order: 3,
+                              child: _buildDangerZone(
+                                context,
+                                isUsingFirebase: authProvider.isUsingFirebase,
+                                hasCouple: hasCouple,
+                              ),
+                            ),
+                          ],
+                          // Sign-out closes the page — the universal settings
+                          // convention: scan order runs frequent → rare → leave.
+                          const SizedBox(height: 18),
+                          EntranceReveal(
+                            order: 4,
+                            child: _buildSignOutButton(context),
+                          ),
+                          const SizedBox(height: 14),
+                          EntranceReveal(
+                            order: 4,
+                            child: _buildVersionFooter(),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 14),
-                      EntranceReveal(order: 4, child: _buildVersionFooter()),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+                const StatusBarScrim(),
+              ],
             ),
           ),
         ),
@@ -333,7 +370,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ---------------------------------------------------------------------------
   Widget _buildAccountSection(BuildContext context) {
     final l10n = context.l10n;
-    final currentUser = context.watch<AuthProvider>().currentUser;
+    final auth = context.watch<AuthProvider>();
+    final currentUser = auth.currentUser;
     final name = currentUser?.displayName.trim() ?? '';
     final email = currentUser?.email.trim() ?? '';
 
@@ -360,6 +398,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   IconsaxPlusLinear.sms,
                   l10n.emailLabel,
                   email,
+                ),
+              ],
+              // AU1: Apple/Google accounts add a password to sign in with
+              // email where their provider isn't offered (Apple → Android).
+              // Gone once the account has one.
+              if (auth.canSetPassword) ...[
+                _rowDivider(),
+                _navRow(
+                  icon: IconsaxPlusLinear.lock,
+                  title: l10n.setPasswordTitle,
+                  subtitle: l10n.setPasswordSubtitle,
+                  onTap: () => _showSetPasswordDialog(context),
                 ),
               ],
             ],
@@ -460,7 +510,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _rowDivider(),
                   // AI-personalised daily questions (endless-questions,
                   // 2026-09-05): couple-shared opt-in, hidden until paired.
-                  const _AiQuestionsTile(),
+                  if (kAiQuestionsFeatureEnabled) const _AiQuestionsTile(),
                   // Single entry to the merged Reminders screen (milestones +
                   // custom). Badge shows how many milestones are on.
                   _navRow(
@@ -764,10 +814,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // ---------------------------------------------------------------------------
   // Danger zone (unchanged — compliance-sensitive block, three severity tiers).
+  // [hasCouple] false (no couple yet): only the delete-account tier — the
+  // description, clear-cache and leave-couple are all about a couple.
   // ---------------------------------------------------------------------------
   Widget _buildDangerZone(
     BuildContext context, {
     required bool isUsingFirebase,
+    required bool hasCouple,
   }) {
     final l10n = context.l10n;
 
@@ -805,15 +858,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.dataManagementDesc,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                        height: 1.45,
+                    if (hasCouple) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.dataManagementDesc,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                          height: 1.45,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -821,100 +876,113 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 14),
 
-          // Firebase-specific: clear local cache (low severity)
-          if (isUsingFirebase) ...[
+          // Couple-only tiers: clear cache (low) + leave couple (medium).
+          if (hasCouple) ...[
+            // Firebase-specific: clear local cache (low severity)
+            if (isUsingFirebase) ...[
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _showClearLocalDialog(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: BorderSide(
+                      color: AppColors.textSecondary.withValues(alpha: 0.22),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(IconsaxPlusLinear.eraser, size: 18),
+                  label: Text(l10n.clearLocalDataBtn),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ] else ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(13),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.warning.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: Text(
+                  l10n.localFallbackWarning,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    height: 1.45,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+
+            // Leave Couple (medium severity — outlined)
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => _showClearLocalDialog(context),
+                onPressed: () => _showLeaveCoupleDialog(context),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textPrimary,
+                  foregroundColor: AppColors.error,
                   side: BorderSide(
-                    color: AppColors.textSecondary.withValues(alpha: 0.22),
+                    color: AppColors.error.withValues(alpha: 0.30),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                icon: const Icon(IconsaxPlusLinear.eraser, size: 18),
-                label: Text(l10n.clearLocalDataBtn),
+                icon: const Icon(IconsaxPlusLinear.logout, size: 18),
+                label: Text(l10n.leaveCoupleBtn),
               ),
             ),
-            const SizedBox(height: 10),
-          ] else ...[
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(13),
-              decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.warning.withValues(alpha: 0.18),
-                ),
-              ),
-              child: Text(
-                l10n.localFallbackWarning,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  height: 1.45,
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
           ],
 
-          // Leave Couple (medium severity — outlined)
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _showLeaveCoupleDialog(context),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: BorderSide(
-                  color: AppColors.error.withValues(alpha: 0.30),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              icon: const Icon(IconsaxPlusLinear.logout, size: 18),
-              label: Text(l10n.leaveCoupleBtn),
-            ),
-          ),
-
-          // Divider separating medium vs high severity
+          // Divider separating medium vs high severity. With large text the
+          // warning wraps, centred, instead of overflowing (audit R2-d); each
+          // rule keeps at least 24px.
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 14),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Divider(
-                    color: AppColors.error.withValues(alpha: 0.15),
-                    height: 1,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Text(
-                    l10n.profileDangerIrreversible,
-                    style: TextStyle(
-                      color: AppColors.error.withValues(alpha: 0.50),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.4,
+            child: LayoutBuilder(
+              builder: (context, constraints) => Row(
+                children: [
+                  Expanded(
+                    child: Divider(
+                      color: AppColors.error.withValues(alpha: 0.15),
+                      height: 1,
                     ),
                   ),
-                ),
-                Expanded(
-                  child: Divider(
-                    color: AppColors.error.withValues(alpha: 0.15),
-                    height: 1,
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: constraints.maxWidth - 2 * 24,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(
+                        l10n.profileDangerIrreversible,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.error.withValues(alpha: 0.50),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: Divider(
+                      color: AppColors.error.withValues(alpha: 0.15),
+                      height: 1,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -922,16 +990,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: () => _showDeleteAccountDialog(context),
+              onPressed: _askingDelete
+                  ? null
+                  : () => _showDeleteAccountDialog(context),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.error,
                 foregroundColor: AppColors.white,
+                // Busy, not greyed out: it stays red while iOS answers.
+                disabledBackgroundColor: AppColors.error,
+                disabledForegroundColor: AppColors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              icon: const Icon(IconsaxPlusLinear.trash, size: 18),
+              // The spinner takes the icon's 18 px: nothing moves.
+              icon: _askingDelete
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.white,
+                      ),
+                    )
+                  : const Icon(IconsaxPlusLinear.trash, size: 18),
               label: Text(
                 l10n.deleteAccountBtn,
                 style: const TextStyle(fontWeight: FontWeight.w700),
@@ -1008,8 +1090,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showDeleteAccountDialog(BuildContext context) {
+  Future<void> _showDeleteAccountDialog(BuildContext context) async {
+    // BUG-26: the button is already asking — a second tap opens nothing.
+    if (_askingDelete) {
+      return;
+    }
     final l10n = context.l10n;
+    final auth = context.read<AuthProvider>();
+    // How the deletion confirms (AU3, BUG-25): the Apple sheet on iOS whenever
+    // Apple is linked (with a password too, only when this iPhone's Apple ID
+    // is the account's), Google for a Google account without a password, else
+    // the password. Asked ONCE: every deleteAccount below gets this answer, so
+    // the deletion does what the dialog says (BUG-26).
+    setState(() => _askingDelete = true);
+    final isAppleAccount = await auth.deletesWithAppleSheet().whenComplete(() {
+      if (mounted) {
+        setState(() => _askingDelete = false);
+      }
+    });
+    final isGoogleAccount = auth.reauthWithGoogle;
+    if (!context.mounted) {
+      return;
+    }
 
     showDialog(
       context: context,
@@ -1018,7 +1120,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
           l10n.deleteAccountDialogTitle,
           style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w800),
         ),
-        content: Text(l10n.deleteAccountDialogContent),
+        content: isAppleAccount
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.deleteAccountDialogContent),
+                  const SizedBox(height: 12),
+                  // PF5: the Apple sheet looks like a sign-in prompt — say it
+                  // is coming so nobody cancels it thinking it's a mistake.
+                  Text(
+                    l10n.deleteAccountAppleNote,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              )
+            : Text(l10n.deleteAccountDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -1029,18 +1150,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(ctx);
 
               final authProvider = context.read<AuthProvider>();
-              final errorCode = await authProvider.deleteAccount();
-
-              if (!context.mounted) return;
+              final messenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+              final errorCode = await authProvider.deleteAccount(
+                appleSheet: isAppleAccount,
+              );
 
               if (errorCode == null) {
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+                _toAuthGate(navigator);
+                return;
+              }
+              if (!context.mounted) {
+                // BUG-8: a brand-new Apple ID in the PF18 sheet is deleted, the
+                // session listener reads that as a revocation and the shell
+                // resets to authGate before we get here. Still say why.
+                if (errorCode == 'session-gone' ||
+                    errorCode == 'apple-id-mismatch') {
+                  _showSignedOutSnack(messenger, l10n, errorCode);
+                }
+                return;
+              }
+
+              if (errorCode == 'social-canceled' ||
+                  errorCode == 'delete-in-progress') {
+                // Closed the Apple sheet — nothing deleted, nothing to say. Or
+                // another deletion runs: that one finishes the job (BUG-26).
+              } else if (errorCode == 'session-gone' ||
+                  errorCode == 'apple-id-mismatch') {
+                // The Apple sheet signed in another Apple ID (PF18): nothing of
+                // this account deleted, already signed out — same exit as the
+                // re-auth dialog.
+                _showSignedOutSnack(messenger, l10n, errorCode);
+                _toAuthGate(navigator);
               } else if (errorCode == 'requires-recent-login') {
                 // Stale-session challenge — don't dead-end. Collect the password
-                // and re-auth + retry the delete in place (#2).
-                _showReauthToDeleteDialog(context);
+                // (Apple/Google: no password, just retry) and re-auth + retry in
+                // place (#2).
+                _showReauthToDeleteDialog(
+                  context,
+                  appleSheet: isAppleAccount,
+                  noPasswordBody: isAppleAccount
+                      ? l10n.deleteAccountReauthBodyApple
+                      : isGoogleAccount
+                      ? l10n.deleteAccountReauthBodyGoogle
+                      : null,
+                );
               } else {
                 ScaffoldMessenger.of(context)
                   ..clearSnackBars()
@@ -1060,6 +1214,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Resets the stack to authGate once the session ended here (deleted, signed
+  /// out). Takes the root navigator grabbed before the await: Settings may be
+  /// gone by then, and the shell ignores a sign-out we caused (AU2).
+  static void _toAuthGate(NavigatorState navigator) {
+    if (navigator.mounted) {
+      navigator.pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+    }
+  }
+
+  /// Why a delete attempt ended signed out (`apple-id-mismatch`, else the
+  /// session-expired copy). Takes the root messenger grabbed before the await,
+  /// not a context: Settings may already be gone (BUG-8).
+  static void _showSignedOutSnack(
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+    String? code,
+  ) {
+    messenger
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            code == 'apple-id-mismatch'
+                ? l10n.deleteAccountAppleIdMismatch
+                : l10n.deleteAccountSessionExpiredMsg,
+          ),
+        ),
+      );
+  }
+
   /// Re-auth recovery for the delete-account dead-end (#2). When deletion hits a
   /// stale-session `requires-recent-login`, we collect the password here,
   /// re-authenticate to mint a fresh token, and retry the delete — keeping the
@@ -1067,9 +1251,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// session is fully gone (`session-gone`) we send them through the auth gate
   /// to sign in again. Uses [StatefulBuilder] for the dialog's local
   /// busy/error state.
-  void _showReauthToDeleteDialog(BuildContext context) {
+  ///
+  /// [noPasswordBody]: Apple/Google-only accounts have no password (PF5,
+  /// PF16). The dialog shows this text instead of the field, and confirming
+  /// retries the delete once — for Apple that shows the sheet again, which
+  /// re-authenticates; for Google it refreshes the token. [appleSheet]: the
+  /// first dialog's answer, kept for that retry (BUG-26).
+  void _showReauthToDeleteDialog(
+    BuildContext context, {
+    required bool appleSheet,
+    String? noPasswordBody,
+  }) {
     final l10n = context.l10n;
-    final passwordController = TextEditingController();
+    final noPassword = noPasswordBody != null;
+    // No controller of our own: the field's disposes itself when the dialog
+    // unmounts. One disposed on the route's result was still in use by the
+    // closing animation (debug assert on every successful delete).
+    var password = '';
     final formKey = GlobalKey<FormState>();
     var busy = false;
     String? inlineError;
@@ -1082,7 +1280,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (ctx, setLocalState) {
             Future<void> submit() async {
               if (busy) return;
-              if (!(formKey.currentState?.validate() ?? false)) return;
+              if (!noPassword && !(formKey.currentState?.validate() ?? false)) {
+                return;
+              }
               FocusScope.of(ctx).unfocus();
               setLocalState(() {
                 busy = true;
@@ -1090,33 +1290,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
 
               final authProvider = ctx.read<AuthProvider>();
-              final result = await authProvider.reauthenticateAndDeleteAccount(
-                passwordController.text,
-              );
-              if (!ctx.mounted) return;
-
+              final messenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+              final result = noPassword
+                  ? await authProvider.deleteAccount(appleSheet: appleSheet)
+                  : await authProvider.reauthenticateAndDeleteAccount(password);
               if (result == null) {
                 // Deleted — close the dialog and reset to the auth gate.
-                Navigator.of(ctx).pop();
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+                if (ctx.mounted) {
+                  Navigator.of(ctx).pop();
+                }
+                _toAuthGate(navigator);
+                return;
+              }
+              if (!ctx.mounted) {
+                // BUG-8: the shell's authGate reset took this dialog with it.
+                if (result == 'session-gone' || result == 'apple-id-mismatch') {
+                  _showSignedOutSnack(messenger, l10n, result);
+                }
                 return;
               }
 
-              if (result == 'session-gone') {
+              if (result == 'social-canceled') {
+                // Closed the Apple sheet — back to Settings, nothing deleted.
+                Navigator.of(ctx).pop();
+                return;
+              }
+
+              // A second `requires-recent-login` means the server still
+              // rejects the session: never show that sentinel as text.
+              if (result == 'session-gone' ||
+                  result == 'requires-recent-login' ||
+                  result == 'apple-id-mismatch') {
                 // No local session left to re-auth — send them to sign in again.
+                Navigator.of(ctx).pop();
+                _showSignedOutSnack(messenger, l10n, result);
+                _toAuthGate(navigator);
+                return;
+              }
+
+              if (noPassword) {
+                // No field to show it under — same SnackBar as the first try.
                 Navigator.of(ctx).pop();
                 ScaffoldMessenger.of(context)
                   ..clearSnackBars()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.deleteAccountSessionExpiredMsg),
-                    ),
-                  );
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+                  ..showSnackBar(SnackBar(content: Text(result)));
                 return;
               }
 
@@ -1129,68 +1347,315 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
             }
 
-            return AlertDialog(
-              title: Text(
-                l10n.deleteAccountReauthTitle,
-                style: TextStyle(
-                  color: AppColors.error,
-                  fontWeight: FontWeight.w800,
+            // AU2: system back / the edge swipe can't drop it mid-delete.
+            return PopScope(
+              canPop: !busy,
+              child: AlertDialog(
+                title: Text(
+                  l10n.deleteAccountReauthTitle,
+                  style: TextStyle(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.deleteAccountReauthBody),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: passwordController,
-                      obscureText: true,
-                      autofocus: true,
-                      enabled: !busy,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => submit(),
-                      decoration: InputDecoration(
-                        labelText: l10n.passwordLabel,
-                        errorText: inlineError,
-                      ),
-                      validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                          ? l10n.passwordRequired
-                          : null,
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: busy ? null : () => Navigator.of(ctx).pop(),
-                  child: Text(l10n.cancel),
-                ),
-                TextButton(
-                  onPressed: busy ? null : submit,
-                  child: busy
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(
-                          l10n.deleteAccountConfirmBtn,
-                          style: TextStyle(
-                            color: AppColors.error,
-                            fontWeight: FontWeight.w700,
-                          ),
+                content: noPasswordBody != null
+                    ? Text(noPasswordBody)
+                    : Form(
+                        key: formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(l10n.deleteAccountReauthBody),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              onChanged: (value) => password = value,
+                              obscureText: true,
+                              autofocus: true,
+                              enabled: !busy,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) => submit(),
+                              decoration: InputDecoration(
+                                labelText: l10n.passwordLabel,
+                                errorText: inlineError,
+                              ),
+                              validator: (value) =>
+                                  (value == null || value.trim().isEmpty)
+                                  ? l10n.passwordRequired
+                                  : null,
+                            ),
+                          ],
                         ),
-                ),
-              ],
+                      ),
+                actions: [
+                  TextButton(
+                    onPressed: busy ? null : () => Navigator.of(ctx).pop(),
+                    child: Text(l10n.cancel),
+                  ),
+                  TextButton(
+                    onPressed: busy ? null : submit,
+                    child: busy
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            l10n.deleteAccountConfirmBtn,
+                            style: TextStyle(
+                              color: AppColors.error,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                  ),
+                ],
+              ),
             );
           },
         );
       },
-    ).whenComplete(passwordController.dispose);
+    );
+  }
+
+  /// AU1 — "Set a password": the password twice (sign-up's rules), then the
+  /// account also signs in with its email. With an old session Apple / Google
+  /// confirm first; closing their sheet keeps the dialog open, quietly.
+  void _showSetPasswordDialog(BuildContext context) {
+    final l10n = context.l10n;
+    final auth = context.read<AuthProvider>();
+    final email = auth.currentEmail ?? '';
+    final confirmWith = auth.reauthWithApple
+        ? 'Apple'
+        : auth.reauthWithGoogle
+        ? 'Google'
+        : null;
+    // The fields own their controllers (see _showReauthToDeleteDialog).
+    var password = '';
+    final formKey = GlobalKey<FormState>();
+    var busy = false;
+    var hidePassword = true;
+    var hideConfirm = true;
+    // Server errors: under the password field when they are about it,
+    // otherwise under the form.
+    String? passwordError;
+    String? formError;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setLocalState) {
+            Future<void> submit() async {
+              if (busy || !(formKey.currentState?.validate() ?? false)) {
+                return;
+              }
+              FocusScope.of(ctx).unfocus();
+              setLocalState(() {
+                busy = true;
+                passwordError = null;
+                formError = null;
+              });
+
+              final messenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+              final result = await auth.setPassword(password);
+              if (result == null) {
+                if (ctx.mounted) {
+                  Navigator.of(ctx).pop();
+                }
+                messenger
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.setPasswordDone(email)),
+                      // Time to note an Apple relay address down, or copy it.
+                      duration: const Duration(seconds: 8),
+                      persist: false,
+                      action: SnackBarAction(
+                        label: l10n.copyBtn,
+                        onPressed: () =>
+                            Clipboard.setData(ClipboardData(text: email)),
+                      ),
+                    ),
+                  );
+                return;
+              }
+              if (result == 'apple-id-mismatch' || result == 'session-gone') {
+                // The Apple sheet signed in another Apple ID: signed out.
+                messenger
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        result == 'apple-id-mismatch'
+                            ? l10n.setPasswordAppleIdMismatch
+                            : l10n.authSessionNotReady,
+                      ),
+                    ),
+                  );
+                _toAuthGate(navigator);
+                return;
+              }
+              if (!ctx.mounted) {
+                return;
+              }
+              if (result == 'social-canceled') {
+                // Closed the Apple sheet / Google picker: stay, say nothing.
+                setLocalState(() => busy = false);
+                return;
+              }
+              HapticFeedback.heavyImpact();
+              setLocalState(() {
+                busy = false;
+                if (result == l10n.authWeakPassword) {
+                  passwordError = result;
+                } else {
+                  formError = result;
+                }
+              });
+            }
+
+            // Out of focus traversal so the keyboard's "next" lands on the
+            // second field; taps and screen readers still reach it.
+            Widget visibilityToggle(bool hidden, VoidCallback onToggle) {
+              return ExcludeFocus(
+                child: IconButton(
+                  tooltip: hidden ? l10n.showPassword : l10n.hidePassword,
+                  onPressed: onToggle,
+                  icon: Icon(
+                    hidden
+                        ? IconsaxPlusLinear.eye
+                        : IconsaxPlusLinear.eye_slash,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              );
+            }
+
+            return PopScope(
+              canPop: !busy,
+              child: AlertDialog(
+                // Two fields + the keyboard outgrow a small phone.
+                scrollable: true,
+                title: Text(l10n.setPasswordTitle),
+                content: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.setPasswordBody(email)),
+                      if (confirmWith != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.setPasswordConfirmNote(confirmWith),
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        onChanged: (value) => password = value,
+                        obscureText: hidePassword,
+                        autofocus: true,
+                        enabled: !busy,
+                        textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(
+                          labelText: l10n.passwordLabel,
+                          helperText: l10n.passwordHint,
+                          errorText: passwordError,
+                          errorMaxLines: 2,
+                          suffixIcon: visibilityToggle(
+                            hidePassword,
+                            () => setLocalState(
+                              () => hidePassword = !hidePassword,
+                            ),
+                          ),
+                        ),
+                        // Sign-up's rules, so the same typing signs in later.
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) {
+                            return l10n.passwordRequired;
+                          }
+                          if (text.length < 6) {
+                            return l10n.passwordTooShort;
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        obscureText: hideConfirm,
+                        enabled: !busy,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => submit(),
+                        decoration: InputDecoration(
+                          labelText: l10n.confirmPasswordLabel,
+                          errorMaxLines: 2,
+                          suffixIcon: visibilityToggle(
+                            hideConfirm,
+                            () =>
+                                setLocalState(() => hideConfirm = !hideConfirm),
+                          ),
+                        ),
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) {
+                            return l10n.confirmPasswordRequired;
+                          }
+                          if (text != password.trim()) {
+                            return l10n.passwordsMismatch;
+                          }
+                          return null;
+                        },
+                      ),
+                      if (formError case final error?) ...[
+                        const SizedBox(height: 12),
+                        Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            error,
+                            style: const TextStyle(
+                              color: AppColors.error,
+                              fontSize: 13,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: busy ? null : () => Navigator.of(ctx).pop(),
+                    child: Text(l10n.cancel),
+                  ),
+                  TextButton(
+                    onPressed: busy ? null : submit,
+                    child: busy
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            l10n.save,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showSignOutDialog(BuildContext context) {
@@ -1210,8 +1675,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               final messenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
               final signedOut = await context.read<AuthProvider>().signOut();
-              if (!context.mounted) return;
               // Robustness (app-robustness B): only navigate on a real sign-out;
               // a genuine failure shows a snackbar instead of a fake navigation.
               if (!signedOut) {
@@ -1222,9 +1687,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 return;
               }
-              Navigator.of(
-                context,
-              ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
+              _toAuthGate(navigator);
             },
             child: Text(l10n.signOutConfirmBtn),
           ),
@@ -1493,7 +1956,7 @@ class _DailyQuestionReminderTile extends StatelessWidget {
                 l10n.dailyQuestionReminderEndOfDayHint,
                 style: const TextStyle(
                   color: AppColors.textSecondary,
-                  fontSize: 11.5,
+                  fontSize: 12,
                   height: 1.45,
                 ),
               ),

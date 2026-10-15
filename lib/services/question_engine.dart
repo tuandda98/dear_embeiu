@@ -26,10 +26,17 @@ class ResolvedQuestion {
     this.refDate,
     this.templateKey,
     this.questionId,
+    this.published = true,
   });
 
   final String questionVi;
   final String questionEn;
+
+  /// False when this phone chose the question locally but could NOT write it
+  /// onto the marker (offline / denied). The caller may show it, but should
+  /// retry resolving later — the other phone may have published a different
+  /// question meanwhile, and answers are always filed under the marker's.
+  final bool published;
 
   /// 'bank' | 'template' | 'revisit' | 'ai'.
   final String source;
@@ -243,8 +250,14 @@ class QuestionEngine {
 
     // (e) Publish on the marker — first writer wins, the loser adopts theirs.
     _publishFailed = false;
-    final winner = await _publish(markerRef, dateKey, candidate);
+    var winner = await _publish(markerRef, dateKey, candidate);
     if (winner != null) {
+      // Same treatment as path (b): the other phone's revisit question needs
+      // MY "back then you wrote…" hint rebuilt from refDate, or the loser of
+      // the race shows a bare "nhìn lại" prompt all day.
+      if (winner.source == 'revisit' && (winner.refDate ?? '').isNotEmpty) {
+        winner = await _withRevisitHint(winner, markerRef, myUid);
+      }
       return winner;
     }
 
@@ -259,6 +272,10 @@ class QuestionEngine {
           bankId: candidate.source == 'bank' ? candidate.questionId : null,
           templateKey: candidate.templateKey,
           revisitDate: candidate.refDate,
+          // Bank fully cycled → start a fresh no-repeat cycle from this pick
+          // instead of leaving `askedBankIds` saturated forever.
+          resetAskedBankIds: candidate.source == 'bank' &&
+              BankQuestionSource.isExhausted(ctx.askedBankIds),
         ),
       );
     }
@@ -272,6 +289,7 @@ class QuestionEngine {
       refDate: candidate.refDate,
       templateKey: candidate.templateKey,
       questionId: candidate.questionId,
+      published: !_publishFailed,
     );
   }
 
@@ -444,7 +462,9 @@ class QuestionEngine {
       });
     } catch (_) {
       // Offline / rules race: keep the locally chosen question. The marker will
-      // be written again by `submitAnswer` when the user answers.
+      // be written again by `submitAnswer` when the user answers. Flag it so the
+      // caller neither records this pick as "asked" nor treats it as final.
+      _publishFailed = true;
       return null;
     }
   }

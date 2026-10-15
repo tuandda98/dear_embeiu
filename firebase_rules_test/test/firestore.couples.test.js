@@ -1,4 +1,5 @@
-const { doc, setDoc, getDoc, updateDoc, deleteDoc } = require('firebase/firestore');
+const { doc, setDoc, getDoc, getDocs, collection, updateDoc, deleteDoc } = require('firebase/firestore');
+const assert = require('node:assert');
 const {
   assertSucceeds,
   assertFails,
@@ -8,6 +9,7 @@ const {
   seedActiveCouple,
   seedWaitingCouple,
   validCouple,
+  validUser,
 } = require('./helpers');
 
 describe('firestore: /couples/{coupleId}', () => {
@@ -79,6 +81,30 @@ describe('firestore: /couples/{coupleId}', () => {
       await seedActiveCouple('c1', 'alice', 'bob');
       await assertFails(getDoc(doc(unauthedDb(), 'couples/c1')));
     });
+
+    // PA-N1: a code still pointing at a deleted couple must read as "not
+    // found" (exists false), not permission-denied ("already has 2 people").
+    it('lets a signed-in user get a couple that no longer exists (exists false)', async () => {
+      await seedDoc('users/dave', validUser({ email: 'dave@example.com', inviteCode: 'DAVE01' }));
+      const snap = await assertSucceeds(getDoc(doc(authedDb('dave'), 'couples/gone')));
+      assert.strictEqual(snap.exists(), false);
+    });
+
+    it('keeps permission-denied for a user whose profile still points at the deleted couple', async () => {
+      // Released apps clear that stale pointer only on permission-denied.
+      await seedDoc('users/dave', validUser({ email: 'dave@example.com', inviteCode: 'DAVE01', coupleId: 'gone', status: 'in_couple' }));
+      await assertFails(getDoc(doc(authedDb('dave'), 'couples/gone')));
+    });
+
+    it('forbids an unauthenticated get of a missing couple', async () => {
+      await assertFails(getDoc(doc(unauthedDb(), 'couples/gone')));
+    });
+
+    it('still forbids listing couples', async () => {
+      await seedActiveCouple('c1', 'alice', 'bob');
+      await seedDoc('users/dave', validUser({ email: 'dave@example.com', inviteCode: 'DAVE01' }));
+      await assertFails(getDocs(collection(authedDb('dave'), 'couples')));
+    });
   });
 
   describe('update: profile edit', () => {
@@ -140,6 +166,38 @@ describe('firestore: /couples/{coupleId}', () => {
       await assertFails(
         updateDoc(doc(authedDb('bob'), 'couples/cw'), {
           memberIds: ['bob', 'dave'],
+          memberCount: 2,
+          status: 'active',
+        }),
+      );
+    });
+
+    // N4: the member already inside can't pull in a uid read off an invite code.
+    it('forbids the sole member adding someone else (no consent)', async () => {
+      await assertFails(
+        updateDoc(doc(authedDb('carol'), 'couples/cw'), {
+          memberIds: ['carol', 'dave'],
+          memberCount: 2,
+          status: 'active',
+        }),
+      );
+    });
+
+    it('forbids the sole member "joining" her own couple twice', async () => {
+      await assertFails(
+        updateDoc(doc(authedDb('carol'), 'couples/cw'), {
+          memberIds: ['carol', 'carol'],
+          memberCount: 2,
+          status: 'active',
+        }),
+      );
+    });
+
+    it('lets the creator rejoin the couple she left (partner waiting inside)', async () => {
+      await seedDoc('couples/cr', validCouple({ memberIds: ['bob'], createdByUserId: 'alice' }));
+      await assertSucceeds(
+        updateDoc(doc(authedDb('alice'), 'couples/cr'), {
+          memberIds: ['bob', 'alice'],
           memberCount: 2,
           status: 'active',
         }),

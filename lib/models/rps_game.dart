@@ -1,0 +1,616 @@
+/// Rock-paper-scissors (feature rps-game, 2026-09-13) — pure data layer.
+///
+/// Mirrors the CHỐT data contract in `project/features/rps-game/overview.md`
+/// §3: `couples/{coupleId}/games/{gameId}` (+ `moves/{uid}`). No
+/// cloud_firestore import on purpose (same duck-typed timestamp parsing as
+/// [AppNotification]) so the judge + parsers are unit-testable without Firebase.
+library;
+
+/// Game-wide timing constants — single source of truth shared by the provider
+/// (countdown/heartbeat), the service (transactions) and, later, the screens.
+/// The backend (rules + CF) hardcodes the same numbers; keep them in sync.
+class RpsTiming {
+  RpsTiming._();
+
+  /// The "oẳn tù tì" beat once the game is `playing` (ring 5→0). Since the
+  /// 2026-09-14 no-skip rule it is ONLY a rhythm: the round never ends on the
+  /// clock — it finishes when both hands are in (CF `resolveRpsGame`), and a
+  /// move is accepted any time while the game is `playing`.
+  static const Duration countdown = Duration(seconds: 5);
+
+  /// Spacing between two "Nhắc người ấy" pushes on one round — the callable
+  /// `nudgeRpsPlayer` enforces the same 60s from `games/{id}.lastNudgeAt`.
+  static const Duration nudgeCooldown = Duration(seconds: 60);
+
+  /// Presence heartbeat interval while on the game screen.
+  static const Duration heartbeat = Duration(seconds: 3);
+
+  /// A presence stamp older than this means "not on the screen any more".
+  static const Duration presenceFresh = Duration(seconds: 10);
+
+  /// An `invited` game older than this can be flipped to `expired` by either
+  /// member (client-side; rules check the same age).
+  static const Duration inviteTtl = Duration(minutes: 10);
+}
+
+/// The three hands + [none] (= no pick before the deadline; only ever appears
+/// inside a finished game's `result.choices`, never in a `moves` doc).
+/// ⚠️ [none] is LEGACY since the 2026-09-14 no-skip rule — new rounds always
+/// carry two real hands — but finished rounds from before still hold it, so
+/// it must keep parsing/rendering (history "Bỏ lượt", result ⏳).
+enum RpsChoice {
+  rock,
+  paper,
+  scissors,
+  none;
+
+  /// Firestore string (`'rock' | 'paper' | 'scissors' | 'none'`).
+  String get key => name;
+
+  String get emoji {
+    switch (this) {
+      case RpsChoice.rock:
+        return '✊';
+      case RpsChoice.paper:
+        return '✋';
+      case RpsChoice.scissors:
+        return '✌️';
+      case RpsChoice.none:
+        return '⏱️';
+    }
+  }
+
+  /// A real hand (something the player actually threw).
+  bool get isHand => this != RpsChoice.none;
+
+  /// Parses a Firestore value; anything unknown/absent reads as [none] so a
+  /// corrupt doc degrades to "no pick" instead of throwing.
+  static RpsChoice fromKey(dynamic raw) {
+    switch ((raw is String ? raw : '').trim()) {
+      case 'rock':
+        return RpsChoice.rock;
+      case 'paper':
+        return RpsChoice.paper;
+      case 'scissors':
+        return RpsChoice.scissors;
+      default:
+        return RpsChoice.none;
+    }
+  }
+
+  /// The hands a player may actually throw (excludes [none]).
+  static const List<RpsChoice> hands = <RpsChoice>[
+    RpsChoice.rock,
+    RpsChoice.paper,
+    RpsChoice.scissors,
+  ];
+}
+
+/// `games/{id}.status` — see overview §4 for the transitions. [unknown] keeps
+/// forward-compat with a status this build doesn't know.
+enum RpsGameStatus {
+  invited,
+  playing,
+  finished,
+  cancelled,
+  expired,
+  unknown;
+
+  String get key => name;
+
+  /// A game the couple is still "in" (shown as the current game; blocks
+  /// creating another one).
+  bool get isOpen => this == RpsGameStatus.invited || this == RpsGameStatus.playing;
+
+  static RpsGameStatus fromKey(dynamic raw) {
+    switch ((raw is String ? raw : '').trim()) {
+      case 'invited':
+        return RpsGameStatus.invited;
+      case 'playing':
+        return RpsGameStatus.playing;
+      case 'finished':
+        return RpsGameStatus.finished;
+      case 'cancelled':
+        return RpsGameStatus.cancelled;
+      case 'expired':
+        return RpsGameStatus.expired;
+      default:
+        return RpsGameStatus.unknown;
+    }
+  }
+}
+
+/// Why a game ended: both hands thrown ([normal]) or the deadline hit with at
+/// least one missing hand ([timeout] — LEGACY: only rounds settled before the
+/// 2026-09-14 no-skip rule; the CF now writes `normal` only).
+enum RpsResultReason {
+  normal,
+  timeout;
+
+  String get key => name;
+
+  static RpsResultReason fromKey(dynamic raw) =>
+      (raw is String && raw.trim() == 'timeout')
+          ? RpsResultReason.timeout
+          : RpsResultReason.normal;
+}
+
+/// A finished game seen from ONE player's side.
+enum RpsOutcome { win, lose, draw }
+
+/// `games/{id}.result` — written ONLY by Cloud Functions (`resolveRpsGame`;
+/// the retired `finishRpsGame` wrote the legacy timeout ones); the client
+/// merely reads it. [judge] re-implements the same law locally (optimistic
+/// reveal + unit tests + history score).
+class RpsResult {
+  const RpsResult({
+    required this.winnerUid,
+    required this.choices,
+    required this.reason,
+  });
+
+  /// null = draw.
+  final String? winnerUid;
+
+  /// `{uid: choice}` for BOTH members (missing hand = [RpsChoice.none]).
+  final Map<String, RpsChoice> choices;
+  final RpsResultReason reason;
+
+  bool get isDraw => winnerUid == null || winnerUid!.isEmpty;
+
+  /// The hand [uid] threw ([RpsChoice.none] when unknown / not thrown).
+  RpsChoice choiceOf(String uid) => choices[uid] ?? RpsChoice.none;
+
+  /// Outcome from [uid]'s point of view.
+  RpsOutcome outcomeFor(String uid) {
+    if (isDraw) {
+      return RpsOutcome.draw;
+    }
+    return winnerUid == uid ? RpsOutcome.win : RpsOutcome.lose;
+  }
+
+  /// The law: rock > scissors > paper > rock. Returns 1 when [a] beats [b],
+  /// -1 when [b] beats [a], 0 for a draw. [RpsChoice.none] loses to any real
+  /// hand and draws with another [none] ("both skipped").
+  static int compare(RpsChoice a, RpsChoice b) {
+    if (a == b) {
+      return 0;
+    }
+    if (a == RpsChoice.none) {
+      return -1;
+    }
+    if (b == RpsChoice.none) {
+      return 1;
+    }
+    final aWins = (a == RpsChoice.rock && b == RpsChoice.scissors) ||
+        (a == RpsChoice.scissors && b == RpsChoice.paper) ||
+        (a == RpsChoice.paper && b == RpsChoice.rock);
+    return aWins ? 1 : -1;
+  }
+
+  /// Judges one game. [reason] defaults to `timeout` whenever a hand is
+  /// missing, `normal` otherwise — exactly what the CF writes.
+  static RpsResult judge({
+    required String uidA,
+    required RpsChoice a,
+    required String uidB,
+    required RpsChoice b,
+    RpsResultReason? reason,
+  }) {
+    final cmp = compare(a, b);
+    final String? winner;
+    if (cmp > 0) {
+      winner = uidA;
+    } else if (cmp < 0) {
+      winner = uidB;
+    } else {
+      winner = null;
+    }
+    return RpsResult(
+      winnerUid: winner,
+      choices: <String, RpsChoice>{uidA: a, uidB: b},
+      reason: reason ??
+          ((a.isHand && b.isHand)
+              ? RpsResultReason.normal
+              : RpsResultReason.timeout),
+    );
+  }
+
+  static RpsResult? fromMap(dynamic raw) {
+    if (raw is! Map) {
+      return null;
+    }
+    final rawChoices = raw['choices'];
+    final choices = <String, RpsChoice>{};
+    if (rawChoices is Map) {
+      for (final entry in rawChoices.entries) {
+        final uid = entry.key.toString().trim();
+        if (uid.isNotEmpty) {
+          choices[uid] = RpsChoice.fromKey(entry.value);
+        }
+      }
+    }
+    final winner = raw['winnerUid'];
+    return RpsResult(
+      winnerUid:
+          (winner is String && winner.trim().isNotEmpty) ? winner.trim() : null,
+      choices: choices,
+      reason: RpsResultReason.fromKey(raw['reason']),
+    );
+  }
+
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'winnerUid': winnerUid,
+        'choices': choices.map((uid, c) => MapEntry(uid, c.key)),
+        'reason': reason.key,
+      };
+}
+
+/// `games/{id}/moves/{uid}` — create-only, one per player. Readable by the
+/// other player ONLY once the parent is `finished` (rules), so a live game
+/// never leaks the partner's hand.
+class RpsMove {
+  const RpsMove({
+    required this.uid,
+    required this.choice,
+    this.createdAt,
+  });
+
+  final String uid;
+  final RpsChoice choice;
+  final DateTime? createdAt;
+
+  factory RpsMove.fromDoc(String uid, Map<String, dynamic> data) => RpsMove(
+        uid: uid,
+        choice: RpsChoice.fromKey(data['choice']),
+        createdAt: rpsParseTimestamp(data['createdAt']),
+      );
+}
+
+/// One `games/{gameId}` doc.
+class RpsGame {
+  const RpsGame({
+    required this.id,
+    required this.createdBy,
+    required this.status,
+    this.type = RpsGame.typeKey,
+    this.createdAt,
+    this.presence = const <String, DateTime>{},
+    this.startedAt,
+    this.rematchOf,
+    this.finishedAt,
+    this.result,
+    this.cancelledBy,
+    this.updatedAt,
+    this.moved = const <String, DateTime>{},
+    this.lastNudgeAt,
+  });
+
+  static const String typeKey = 'rps';
+
+  final String id;
+  final String type;
+  final String createdBy;
+  final RpsGameStatus status;
+  final DateTime? createdAt;
+
+  /// `{uid: last heartbeat}` — server timestamps.
+  final Map<String, DateTime> presence;
+  final DateTime? startedAt;
+  final String? rematchOf;
+  final DateTime? finishedAt;
+  final RpsResult? result;
+  final String? cancelledBy;
+  final DateTime? updatedAt;
+
+  /// `{uid: when that player's hand landed}` — written ONLY by the CF
+  /// (`resolveRpsGame`, 2026-09-14 no-skip rule). Says WHO has thrown, never
+  /// WHAT: the hands stay unreadable until `finished`.
+  final Map<String, DateTime> moved;
+
+  /// Last "Nhắc người ấy" push on this round (CF `nudgeRpsPlayer` only) — the
+  /// 60s cooldown is measured from it so every phone shows the same seconds.
+  final DateTime? lastNudgeAt;
+
+  bool get isInvited => status == RpsGameStatus.invited;
+  bool get isPlaying => status == RpsGameStatus.playing;
+  bool get isFinished => status == RpsGameStatus.finished;
+  bool get isOpen => status.isOpen;
+
+  /// Whether [uid] created this game (the only one allowed to cancel it).
+  bool isCreatedBy(String uid) => createdBy == uid;
+
+  /// The other member's uid as far as this doc knows it (from presence /
+  /// moved / result); null until the partner has touched the game.
+  String? partnerOf(String uid) {
+    for (final key in <String>[...presence.keys, ...moved.keys]) {
+      if (key != uid) {
+        return key;
+      }
+    }
+    final choices = result?.choices;
+    if (choices != null) {
+      for (final key in choices.keys) {
+        if (key != uid) {
+          return key;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// True when [uid]'s heartbeat is within [within] of [reference]
+  /// (default: now). Compare against your OWN server-stamped presence to stay
+  /// immune to client clock skew.
+  bool isPresenceFresh(
+    String uid, {
+    DateTime? reference,
+    Duration within = RpsTiming.presenceFresh,
+  }) {
+    final stamp = presence[uid];
+    if (stamp == null) {
+      return false;
+    }
+    final ref = reference ?? DateTime.now();
+    return ref.difference(stamp).abs() <= within;
+  }
+
+  /// `invited` for longer than [RpsTiming.inviteTtl] (relative to [now]).
+  bool isInviteStale({DateTime? now}) {
+    final created = createdAt;
+    if (!isInvited || created == null) {
+      return false;
+    }
+    return (now ?? DateTime.now()).difference(created) >= RpsTiming.inviteTtl;
+  }
+
+  /// [uid]'s hand is in (per the CF's `moved` stamp). The client also knows
+  /// its OWN move from its `moves/{uid}` doc before the CF stamps it — the
+  /// provider combines both.
+  bool hasMoved(String uid) => moved.containsKey(uid);
+
+  /// Someone other than [myUid] has thrown (the only other member is the
+  /// partner, so this is "người ấy đã ra rồi").
+  bool partnerMoved(String myUid) => moved.keys.any((uid) => uid != myUid);
+
+  /// Time left before another "Nhắc người ấy" is allowed, from the server's
+  /// [lastNudgeAt] ([now] = best SERVER-time estimate). Zero when never
+  /// nudged or the cooldown has run out.
+  Duration nudgeCooldownRemaining({required DateTime now}) {
+    final last = lastNudgeAt;
+    if (last == null) {
+      return Duration.zero;
+    }
+    final left = RpsTiming.nudgeCooldown - now.difference(last);
+    if (left.isNegative) {
+      return Duration.zero;
+    }
+    return left > RpsTiming.nudgeCooldown ? RpsTiming.nudgeCooldown : left;
+  }
+
+  /// Time left of the 5s beat, clamped to `0..countdown`. Null when not
+  /// `playing` or `startedAt` hasn't come back from the server yet. Zero does
+  /// NOT end anything any more (no-skip rule) — it only switches the ring to
+  /// its "open" mode.
+  Duration? countdownRemaining({DateTime? now}) {
+    final started = startedAt;
+    if (!isPlaying || started == null) {
+      return null;
+    }
+    final elapsed = (now ?? DateTime.now()).difference(started);
+    final left = RpsTiming.countdown - elapsed;
+    if (left.isNegative) {
+      return Duration.zero;
+    }
+    return left > RpsTiming.countdown ? RpsTiming.countdown : left;
+  }
+
+  /// Still `invited` on the server but nobody can join it any more (Tester
+  /// RPS-2): an invite past its TTL that no client flipped to `expired` yet.
+  /// Such a game must never be treated as "the couple's current game".
+  /// [now] = best SERVER-time estimate.
+  ///
+  /// A `playing` round is NEVER dead (2026-09-14 no-skip rule): it waits —
+  /// for minutes, days — until both hands are in, and stays the couple's
+  /// current game (Home card "tới lượt bạn" / "đang chờ người ấy ra").
+  bool isDeadOpen({required DateTime now}) =>
+      isInvited && isInviteStale(now: now);
+
+  /// Strictly newer than [other] by server `createdAt`. A missing stamp (a
+  /// create still pending locally) never counts as newer — the two phones
+  /// must agree, and only the server stamp is shared.
+  bool isNewerThan(RpsGame other) {
+    final mine = createdAt;
+    final theirs = other.createdAt;
+    return mine != null && theirs != null && mine.isAfter(theirs);
+  }
+
+  /// The couple's current open game from newest-first [candidates] (the
+  /// open-games stream): the first one that is open and not
+  /// [isDeadOpen] (so a `playing` round, however old, always wins over a
+  /// newer stale invite). Both phones read the same docs, so they agree on it.
+  static RpsGame? pickOpen(Iterable<RpsGame> candidates, {required DateTime now}) {
+    for (final game in candidates) {
+      if (game.isOpen && !game.isDeadOpen(now: now)) {
+        return game;
+      }
+    }
+    return null;
+  }
+
+  /// Whether the game screen showing [current] should switch to [open] (the
+  /// [pickOpen] result) — Tester RPS-1/RPS-2:
+  /// - never to a game I created (I entered it myself) or the same game;
+  /// - from a CLOSED game (result/expired/cancelled): only to its own rematch
+  ///   (`open.rematchOf == current.id`) or a strictly newer game — never
+  ///   back to an older, dead-looking one;
+  /// - while WAITING on an invite: to the partner's game when both are
+  ///   rematches of the same round (two "Chơi lại" taps that raced), to the
+  ///   deterministic rematch target, or to a strictly newer invite — both
+  ///   phones pick the same newest game, so they converge instead of each
+  ///   waiting on its own;
+  /// - never mid-round (`playing`).
+  static bool shouldFollow({
+    required RpsGame current,
+    required RpsGame open,
+    required String myUid,
+  }) {
+    if (open.id == current.id || !open.isOpen || open.isCreatedBy(myUid)) {
+      return false;
+    }
+    switch (current.status) {
+      case RpsGameStatus.playing:
+        return false;
+      case RpsGameStatus.invited:
+        final source = current.rematchOf;
+        if (source != null &&
+            (open.rematchOf == source || open.id == rpsRematchGameId(source))) {
+          return true;
+        }
+        return open.isNewerThan(current);
+      case RpsGameStatus.finished:
+      case RpsGameStatus.cancelled:
+      case RpsGameStatus.expired:
+      case RpsGameStatus.unknown:
+        return open.rematchOf == current.id || open.isNewerThan(current);
+    }
+  }
+
+  factory RpsGame.fromFirestore(String id, Map<String, dynamic> data) {
+    return RpsGame(
+      id: id,
+      type: (data['type'] as String?)?.trim() ?? typeKey,
+      createdBy: (data['createdBy'] as String?)?.trim() ?? '',
+      status: RpsGameStatus.fromKey(data['status']),
+      createdAt: rpsParseTimestamp(data['createdAt']),
+      presence: _stampMap(data['presence']),
+      startedAt: rpsParseTimestamp(data['startedAt']),
+      rematchOf: _nullableString(data['rematchOf']),
+      finishedAt: rpsParseTimestamp(data['finishedAt']),
+      result: RpsResult.fromMap(data['result']),
+      cancelledBy: _nullableString(data['cancelledBy']),
+      updatedAt: rpsParseTimestamp(data['updatedAt']),
+      moved: _stampMap(data['moved']),
+      lastNudgeAt: rpsParseTimestamp(data['lastNudgeAt']),
+    );
+  }
+
+  /// `{uid: timestamp}` maps (`presence`, `moved`): unparseable stamps and
+  /// blank keys are dropped instead of throwing.
+  static Map<String, DateTime> _stampMap(dynamic raw) {
+    final out = <String, DateTime>{};
+    if (raw is Map) {
+      for (final entry in raw.entries) {
+        final stamp = rpsParseTimestamp(entry.value);
+        final uid = entry.key.toString().trim();
+        if (stamp != null && uid.isNotEmpty) {
+          out[uid] = stamp;
+        }
+      }
+    }
+    return out;
+  }
+
+  /// Plain-value snapshot (timestamps as ISO strings). NOT the create payload —
+  /// the service builds that with `FieldValue.serverTimestamp()` because the
+  /// rules require `createdAt == request.time`.
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'type': type,
+        'createdBy': createdBy,
+        'status': status.key,
+        'createdAt': createdAt?.toIso8601String(),
+        'presence': presence.map((uid, t) => MapEntry(uid, t.toIso8601String())),
+        if (startedAt != null) 'startedAt': startedAt!.toIso8601String(),
+        if (rematchOf != null) 'rematchOf': rematchOf,
+        if (finishedAt != null) 'finishedAt': finishedAt!.toIso8601String(),
+        if (result != null) 'result': result!.toMap(),
+        if (cancelledBy != null) 'cancelledBy': cancelledBy,
+        if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+        if (moved.isNotEmpty)
+          'moved': moved.map((uid, t) => MapEntry(uid, t.toIso8601String())),
+        if (lastNudgeAt != null) 'lastNudgeAt': lastNudgeAt!.toIso8601String(),
+      };
+
+  static String? _nullableString(dynamic value) {
+    if (value is String) {
+      final trimmed = value.trim();
+      return trimmed.isEmpty ? null : trimmed;
+    }
+    return null;
+  }
+}
+
+/// Deterministic doc id of the "Chơi lại" game for [previousGameId] (Tester
+/// RPS-1): both phones tapping "Chơi lại" at once land on the SAME doc — the
+/// first create wins, the second finds it and just joins.
+///
+/// `rematch_<prev>` for the first rematch of a round; a rematch OF a rematch
+/// keeps the root and counts rounds (`rematch_<root>_2`, `_3`, …) instead of
+/// nesting `rematch_rematch_…` — a long evening of "Chơi lại" would otherwise
+/// grow the id ~8 bytes per round toward Firestore's 1500-byte doc-id cap.
+String rpsRematchGameId(String previousGameId) {
+  final prev = previousGameId.trim();
+  final match = _rpsRematchIdPattern.firstMatch(prev);
+  if (match == null) {
+    return 'rematch_$prev';
+  }
+  final round = int.tryParse(match.group(2) ?? '') ?? 1;
+  return 'rematch_${match.group(1)}_${round + 1}';
+}
+
+final RegExp _rpsRematchIdPattern = RegExp(r'^rematch_([A-Za-z0-9]+)(?:_(\d+))?$');
+
+/// Win/loss/draw tally from MY side, computed from a list of finished games.
+class RpsScore {
+  const RpsScore({this.wins = 0, this.losses = 0, this.draws = 0});
+
+  final int wins;
+  final int losses;
+  final int draws;
+
+  int get total => wins + losses + draws;
+
+  static RpsScore tally(Iterable<RpsGame> games, String myUid) {
+    var w = 0;
+    var l = 0;
+    var d = 0;
+    for (final game in games) {
+      final result = game.result;
+      if (!game.isFinished || result == null) {
+        continue;
+      }
+      switch (result.outcomeFor(myUid)) {
+        case RpsOutcome.win:
+          w++;
+        case RpsOutcome.lose:
+          l++;
+        case RpsOutcome.draw:
+          d++;
+      }
+    }
+    return RpsScore(wins: w, losses: l, draws: d);
+  }
+}
+
+/// Accepts a Firestore Timestamp (duck-typed via `toDate()`), a [DateTime], an
+/// ISO string or epoch millis — without importing cloud_firestore here.
+DateTime? rpsParseTimestamp(dynamic value) {
+  if (value == null) {
+    return null;
+  }
+  if (value is DateTime) {
+    return value;
+  }
+  if (value is String) {
+    return DateTime.tryParse(value);
+  }
+  if (value is int) {
+    return DateTime.fromMillisecondsSinceEpoch(value);
+  }
+  try {
+    final dynamic d = (value as dynamic).toDate();
+    return d is DateTime ? d : null;
+  } catch (_) {
+    return null;
+  }
+}

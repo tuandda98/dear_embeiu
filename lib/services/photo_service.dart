@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../l10n/app_l10n.dart';
@@ -416,7 +417,9 @@ class PhotoService {
       case 'unavailable':
         return l10n.photoFirebaseUnavailable;
       default:
-        return exception.message ?? l10n.photoSyncGeneric;
+        // Firebase's own message is English and technical — log it, never show it.
+        debugPrint('PhotoService error ${exception.code}: ${exception.message}');
+        return l10n.photoSyncGeneric;
     }
   }
 }

@@ -1,7 +1,92 @@
 {
   "@@locale": "vi",
+  "loveTreeShareFirstDay": "Ngày đầu tiên bên nhau",
+  "@loveTreeShareFirstDay": {
+    "description": "Stats line of the love-tree share card when the couple's anniversary is today (replaces '0 ngày bên nhau')"
+  },
+  "loveTreeShareMessageSeed": "Cây tình yêu của chúng mình vừa nảy mầm 🌱💞 — vun cây cùng người ấy trên Dear Embeiu.",
+  "@loveTreeShareMessageSeed": {
+    "description": "Share-sheet text for the love tree while no flower has bloomed yet (replaces 'đã nở 0 bông hoa')"
+  },
+  "sleepTheirClock": "Giờ bên ấy",
+  "@sleepTheirClock": {
+    "description": "Pill beside the partner's sleep times when their night was recorded in another time zone than this phone's"
+  },
+  "sleepManualSemantics": "(ghi tay)",
+  "@sleepManualSemantics": {
+    "description": "Sleep calendar cell suffix for a night logged by hand (screen reader)"
+  },
+  "moodSaveFailed": "Chưa lưu được tâm trạng, thử lại nhé",
+  "@moodSaveFailed": {
+    "description": "SnackBar when saving today's mood failed (the pick is rolled back)"
+  },
+  "setPasswordTitle": "Đặt mật khẩu",
+  "@setPasswordTitle": {
+    "description": "Settings → Account row and dialog title: an Apple/Google account adds a password so it can sign in with email elsewhere (audit AU1)"
+  },
+  "setPasswordSubtitle": "Để đăng nhập bằng email trên máy khác",
+  "@setPasswordSubtitle": {
+    "description": "Subtitle of the Settings 'Set a password' row"
+  },
+  "setPasswordBody": "Đặt xong, bạn đăng nhập bằng {email} và mật khẩu này trên iPhone hay Android đều được.",
+  "@setPasswordBody": {
+    "description": "Set-password dialog body. email = the account's email, may be Apple's hidden relay address",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordConfirmNote": "{provider} có thể hỏi lại để xác nhận đó là bạn.",
+  "@setPasswordConfirmNote": {
+    "description": "Set-password dialog: Apple/Google may show their sheet first when the session is old. provider = 'Apple' or 'Google'",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordDone": "Đã đặt mật khẩu. Trên máy khác, bạn đăng nhập bằng {email} nhé.",
+  "@setPasswordDone": {
+    "description": "SnackBar after the password was added; has a Copy action for the email",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "setPasswordAlreadySet": "Tài khoản này đã có mật khẩu rồi.",
+  "@setPasswordAlreadySet": {
+    "description": "Set password: the account got a password meanwhile (provider-already-linked)"
+  },
+  "setPasswordEmailTaken": "Email này đang thuộc một tài khoản khác nên chưa đặt được mật khẩu.",
+  "@setPasswordEmailTaken": {
+    "description": "Set password: another account already signs in with this email"
+  },
+  "setPasswordWrongGoogleAccount": "Đó là một tài khoản Google khác. Bạn chọn đúng tài khoản đang dùng cho Dear Embeiu rồi thử lại nhé.",
+  "@setPasswordWrongGoogleAccount": {
+    "description": "Set password: the Google confirmation picked another Google account (user-mismatch)"
+  },
+  "setPasswordFailed": "Chưa đặt được mật khẩu. Bạn thử lại nhé.",
+  "@setPasswordFailed": {
+    "description": "Set password: any other error"
+  },
+  "setPasswordAppleIdMismatch": "Máy này đang dùng một Apple ID khác. Bạn mở app trên máy dùng Apple ID của tài khoản này để đặt mật khẩu nhé.",
+  "@setPasswordAppleIdMismatch": {
+    "description": "Set password: this device's Apple ID isn't the account's. Usually iOS said so before the Apple sheet, the user stays signed in (BUG-27); rarely the sheet itself signed another Apple ID in and the app signed out"
+  },
+  "showPassword": "Hiện mật khẩu",
+  "@showPassword": {
+    "description": "Tooltip of the eye button that reveals a password field"
+  },
+  "hidePassword": "Ẩn mật khẩu",
+  "@hidePassword": {
+    "description": "Tooltip of the eye button that hides a password field again"
+  },
   "badgeCareLabel": "lời quan tâm",
-  "@badgeCareLabel": {"description": "Profile badge label under the care-notes count"},
+  "@badgeCareLabel": {
+    "description": "Profile badge label under the care-notes count"
+  },
   "careTimelineBadge": "LỜI QUAN TÂM",
   "@careTimelineBadge": {
     "description": "Eyebrow chip on the care-notes timeline screen."
@@ -9,17 +94,6 @@
   "careTimelineSeeAll": "Xem tất cả",
   "@careTimelineSeeAll": {
     "description": "Link next to the recent care notes that opens the full timeline."
-  },
-  "careTimelineTile": "Lời quan tâm",
-  "@careTimelineTile": {
-    "description": "Profile tile opening the care-notes timeline."
-  },
-  "careTimelineCount": "{count} lời nhắn cho nhau",
-  "@careTimelineCount": {
-    "description": "Subtitle of the profile care-timeline tile: how many care notes exist.",
-    "placeholders": {
-      "count": {"type": "int"}
-    }
   },
   "careTimelineYesterday": "Hôm qua",
   "@careTimelineYesterday": {
@@ -29,7 +103,7 @@
   "@careTimelineEmptyTitle": {
     "description": "Empty state title on the care timeline (also the profile tile subtitle when the count is zero)."
   },
-  "careTimelineEmptyBody": "Mỗi lời nhắn nhỏ chúng mình gửi nhau đều được giữ lại ở đây, theo thứ tự thời gian.",
+  "careTimelineEmptyBody": "Mỗi lời nhắn nhỏ chúng mình gửi nhau sẽ nằm lại ở đây, xếp theo từng ngày.",
   "@careTimelineEmptyBody": {
     "description": "Empty state body on the care timeline."
   },
@@ -41,10 +115,10 @@
   "@careTimelineLoadError": {
     "description": "Error state on the care timeline."
   },
-  "aiQuestionsTitle": "Câu hỏi cá nhân hoá bằng AI",
-  "aiQuestionsSubtitle": "Dùng 30 ngày câu trả lời gần nhất của cả hai để tạo câu hỏi riêng cho chúng mình. Dữ liệu chỉ dùng để tạo câu hỏi, không dùng để huấn luyện. Tắt bất cứ lúc nào.",
-  "aiQuestionsDialogTitle": "Bật câu hỏi cá nhân hoá?",
-  "aiQuestionsDialogBody": "Cài đặt này áp dụng cho cả hai: người ấy cũng sẽ thấy câu hỏi do AI tạo. Chúng mình chỉ đọc 30 ngày câu trả lời gần nhất để tạo câu hỏi, không dùng để huấn luyện, và có thể tắt bất cứ lúc nào. Câu hỏi AI bắt đầu từ câu hỏi ngày mai.",
+  "aiQuestionsTitle": "Câu hỏi do AI soạn riêng",
+  "aiQuestionsSubtitle": "AI đọc câu trả lời 30 ngày gần nhất của cả hai rồi soạn câu hỏi riêng cho chúng mình. Những câu trả lời này chỉ dùng để soạn câu hỏi, không dùng để huấn luyện AI. Tắt lúc nào cũng được.",
+  "aiQuestionsDialogTitle": "Bật câu hỏi do AI soạn?",
+  "aiQuestionsDialogBody": "Cài đặt này dùng chung cho cả hai: người ấy cũng sẽ thấy câu hỏi do AI soạn. AI chỉ đọc câu trả lời 30 ngày gần nhất để soạn câu hỏi. Những câu trả lời này không dùng để huấn luyện AI. Bạn tắt lúc nào cũng được. Câu hỏi AI bắt đầu từ ngày mai.",
   "aiQuestionsDialogConfirm": "Bật",
   "introSkip": "Bỏ qua",
   "introNext": "Tiếp",
@@ -73,17 +147,17 @@
   "featureTourSettingsTileSub": "Xem lại những tính năng mới nhất",
   "featureTourCareTitle": "Gửi quan tâm",
   "featureTourCareBody": "Soạn một lời nhắn ngắn, người ấy nhận thông báo ngay.",
-  "featureTourQuestionsTitle": "Câu hỏi mỗi ngày mới hơn",
-  "featureTourQuestionsBody": "Câu hỏi theo tuần, theo tháng và theo tâm trạng, xem lại câu trả lời cũ, và tuỳ chọn AI cá nhân hoá có thể bật trong Cài đặt.",
+  "featureTourQuestionsTitle": "Câu hỏi mỗi ngày mới mẻ hơn",
+  "featureTourQuestionsBody": "Câu hỏi đổi theo tuần, tháng và tâm trạng, có hôm còn rủ chúng mình nhìn lại câu trả lời cũ. Muốn AI soạn câu hỏi riêng thì bật trong Cài đặt.",
   "featureTourInviteTitle": "Mời người ấy dễ hơn",
   "featureTourInviteBody": "Chia sẻ link tải app kèm mã mời, có hướng dẫn từng bước.",
   "homeWaitingBadge": "CHỜ NGƯỜI ẤY",
   "homeWaitingStep1Title": "Gửi lời mời",
-  "homeWaitingStep1Desc": "Gửi mã mời này cho người ấy qua tin nhắn.",
+  "homeWaitingStep1Desc": "Gửi mã qua tin nhắn, hoặc cho người ấy quét mã QR nếu đang ở cạnh nhau.",
   "homeWaitingStep1Cta": "Gửi cho người ấy 💌",
   "homeWaitingStep1Copy": "Sao chép mã",
   "homeWaitingStep2Title": "Người ấy tải app và đăng ký",
-  "homeWaitingStep2Desc": "Người ấy cần cài Dear Embeiu (iOS/Android), đăng ký rồi chọn <Nhập mã mời>.",
+  "homeWaitingStep2Desc": "Người ấy cần cài Dear Embeiu (iOS/Android), đăng ký rồi chọn <Tham gia bằng mã>.",
   "homeWaitingStep3Title": "Nhập mã là xong",
   "homeWaitingStep3Desc": "Ghép xong app tự chuyển, bạn sẽ nhận thông báo.",
   "homeWaitingMeanwhileTitle": "Trong lúc chờ, bạn vẫn có thể:",
@@ -94,54 +168,66 @@
   "inviteFollowUpTitle": "Người ấy chưa vào nè 💌",
   "inviteFollowUpBody24h": "Gửi lại lời mời cho người ấy nha, chỉ mất 10 giây",
   "inviteFollowUpBody72h": "Kỷ niệm của chúng mình đang đợi người ấy. Nhắc người ấy tải app nhé",
+  "inviteQrBtn": "Mã QR",
+  "inviteQrTitle": "Cho người ấy quét mã này",
+  "inviteQrBody": "Người ấy mở Camera, hướng vào mã là tới trang tải Dear Embeiu, có sẵn mã mời của bạn.",
+  "inviteQrFallback": "Không quét được? Đọc mã này cho người ấy nhập.",
+  "inviteQrDone": "Xong",
+  "inviteQrSemantics": "Mã QR mời ghép đôi, mã {code}",
+  "@inviteQrSemantics": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "clipboardInviteTitle": "Nhập mã từ lời mời?",
+  "clipboardInviteBody": "Link mời bạn mở có mã này. Ghép đôi là vào chung không gian với người ấy.",
+  "clipboardInviteJoin": "Ghép đôi ngay",
+  "clipboardInviteSkip": "Bỏ qua",
+  "inviteFollowUpTitle2h": "Gửi lời mời cho người ấy nhé 💌",
+  "inviteFollowUpBody2h": "Đang ở cạnh nhau thì cho người ấy quét mã QR, ở xa thì gửi qua tin nhắn. Mất chừng 10 giây thôi.",
   "back": "Quay lại",
-  "cancel": "Hủy",
+  "cancel": "Huỷ",
   "save": "Lưu",
-  "delete": "Xóa",
+  "delete": "Xoá",
   "edit": "Chỉnh sửa",
   "continueBtn": "Tiếp tục",
-  "keep": "Giữ lại",
   "splashTagline": "Câu chuyện của chúng mình",
   "splashSubtitle": "Đếm từng ngày bên nhau",
   "checkingSession": "Đang kiểm tra phiên đăng nhập...",
-  "loginTitle": "Chào mừng trở lại",
-  "loginSubtitle": "Đăng nhập để tiếp tục đếm từng ngày bên nhau.",
-  "loginLocalFallback": "Đang dùng local fallback — Firebase sẽ được kết nối sau.",
   "emailLabel": "Email",
   "emailHint": "you@example.com",
-  "emailRequired": "Vui lòng nhập email",
+  "emailRequired": "Bạn chưa nhập email",
   "emailInvalid": "Email không hợp lệ",
   "passwordLabel": "Mật khẩu",
   "passwordHint": "Ít nhất 6 ký tự",
-  "passwordRequired": "Vui lòng nhập mật khẩu",
+  "passwordRequired": "Bạn chưa nhập mật khẩu",
   "passwordTooShort": "Mật khẩu cần ít nhất 6 ký tự",
   "signIn": "Đăng nhập",
   "newHere": "Chưa có tài khoản?",
   "createAccountLink": "Tạo tài khoản",
-  "registerTitle": "Bắt đầu\ncâu chuyện tình",
-  "registerSubtitle": "Tạo tài khoản để lưu giữ từng ngày bên nhau.",
-  "registerLocalFallback": "Đang dùng local fallback — Firebase sẽ được kết nối sau.",
   "displayNameLabel": "Tên hiển thị",
   "displayNameHint": "Tên của bạn",
-  "displayNameRequired": "Vui lòng nhập tên hiển thị",
+  "displayNameRequired": "Bạn chưa nhập tên hiển thị",
   "displayNameTooShort": "Tên quá ngắn",
   "confirmPasswordLabel": "Xác nhận mật khẩu",
   "confirmPasswordHint": "Nhập lại mật khẩu",
-  "confirmPasswordRequired": "Vui lòng xác nhận mật khẩu",
+  "confirmPasswordRequired": "Bạn chưa nhập lại mật khẩu",
   "passwordsMismatch": "Mật khẩu chưa khớp",
   "createAccountBtn": "Tạo tài khoản",
   "alreadyWithUs": "Đã có tài khoản?",
   "backToSignIn": "Quay lại đăng nhập",
-  "setupCreateTitle": "Bắt đầu\ncâu chuyện của hai mình",
+  "setupCreateTitle": "Bắt đầu\ncâu chuyện của chúng mình",
   "setupEditTitle": "Chỉnh sửa câu chuyện của\n{me} ❤️ {partner}",
   "setupEditTitleGeneric": "Chỉnh sửa\ncâu chuyện của chúng mình",
   "setupTabCreate": "Tạo mới",
   "setupTabJoin": "Tham gia bằng mã",
-  "inviteCodeDialogTitle": "Mã mời tài khoản của bạn",
-  "inviteCodeDialogContent": "Mã mời này gắn trực tiếp với tài khoản của bạn. Gửi nó cho người còn lại để họ đăng nhập bằng tài khoản riêng và nhập vào màn hình tham gia cặp đôi.",
+  "inviteCodeDialogTitle": "Mã mời của bạn",
+  "inviteCodeDialogContent": "Mã này gắn với tài khoản của bạn. Gửi mã cho người ấy. Người ấy chỉ cần đăng nhập tài khoản riêng rồi nhập mã ở mục <Tham gia bằng mã>.",
   "sectionAboutCouple": "Thông tin cặp đôi",
-  "setupEditSectionDesc": "Chỉnh sửa thông tin chung — tên, ngày kỷ niệm, ảnh đôi.",
-  "setupCreateSectionDesc": "Tạo không gian trước, sau đó chia sẻ mã mời với người ấy.",
+  "setupEditSectionDesc": "Chỉnh sửa thông tin chung: tên, ngày kỷ niệm, ảnh đôi.",
+  "setupCreateSectionDesc": "Tạo không gian trước, rồi gửi mã mời cho người ấy.",
   "yourNameLabel": "Tên của bạn",
   "yourNameHint": "VD: Anh",
   "partnerNameLabel": "Tên người ấy",
@@ -149,45 +235,29 @@
   "anniversaryLabel": "Ngày kỷ niệm",
   "anniversaryHint": "Chọn ngày bắt đầu",
   "couplePhotoLabel": "Ảnh đôi",
-  "couplePhotoHint": "Thêm ảnh đôi (tùy chọn)",
+  "couplePhotoHint": "Thêm ảnh đôi (tuỳ chọn)",
   "couplePhotoSelected": "Đã chọn ảnh",
   "saveChangesBtn": "Lưu thay đổi",
-  "createOurSpaceBtn": "Tạo không gian của hai mình",
+  "createOurSpaceBtn": "Tạo không gian của chúng mình",
   "useInviteCodeTitle": "Dùng mã mời",
   "theirInviteCodeLabel": "Mã mời của người ấy",
   "theirInviteCodeHint": "VD: A7B9KD",
   "joinBtn": "Tham gia",
   "yourInviteCodeTitle": "Mã mời của bạn",
-  "sendToPartnerHint": "Gửi mã này cho người ấy",
   "inviteCodeTiedToAccount": "Mã gắn với tài khoản bạn",
   "setupErrorNoAccount": "Không tìm thấy tài khoản. Bạn đăng nhập lại nhé.",
-  "setupErrorFillRequired": "Vui lòng điền đầy đủ tên hai bạn và ngày kỷ niệm.",
-  "setupErrorSaveCouple": "Không thể lưu thông tin cặp đôi: {error}",
-  "@setupErrorSaveCouple": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
+  "setupErrorFillRequired": "Điền đủ tên hai bạn và ngày kỷ niệm nhé.",
+  "setupErrorSaveCouple": "Chưa lưu được thông tin cặp đôi. Bạn thử lại nhé.",
   "setupErrorNoAccountShort": "Không tìm thấy tài khoản.",
   "setupErrorNoInviteCode": "Bạn hãy nhập mã mời trước nhé.",
-  "setupErrorJoinCouple": "Không thể tham gia cặp đôi: {error}",
-  "@setupErrorJoinCouple": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "setupSuccessConnected": "Kết nối thành công rồi 💞",
+  "setupErrorJoinCouple": "Chưa ghép đôi được. Bạn thử lại nhé.",
+  "setupSuccessConnected": "Ghép đôi thành công rồi 💞",
   "navHome": "Trang chủ",
   "navChat": "Trò chuyện",
   "navMemories": "Kỷ niệm",
   "navProfile": "Hồ sơ",
   "chatBadge": "CHUYỆN CỦA CHÚNG MÌNH",
-  "chatHeaderSubtitle": "Nơi chúng mình nói đủ thứ chuyện trên đời.",
-  "chatEmptyHint": "Chưa có tin nhắn nào — gửi lời đầu tiên cho người ấy nhé 💬",
+  "chatEmptyHint": "Chưa có tin nhắn nào, gửi lời đầu tiên cho người ấy nhé 💬",
   "chatComposerHint": "Nhắn gì đó cho người ấy…",
   "chatSendFailed": "Chưa gửi được tin nhắn. Thử lại nhé.",
   "chatSendSemantics": "Gửi tin nhắn",
@@ -242,24 +312,10 @@
   "chatWaitingPartnerBody": "Mời người ấy ghép đôi để bắt đầu cuộc trò chuyện riêng của chúng mình.",
   "chatWaitingPartnerCta": "Mời ghép đôi",
   "ourStoryBadge": "CÂU CHUYỆN CỦA CHÚNG MÌNH",
-  "helloGreeting": "Xin chào,",
-  "homeSubtitle": "Hôm nay là ngày tốt để nhìn lại câu chuyện tình yêu.",
   "homeGreetingMorning": "Chào buổi sáng,",
   "homeGreetingAfternoon": "Chào buổi chiều,",
   "homeGreetingEvening": "Chào buổi tối,",
   "homeGreetingNight": "Khuya rồi đó,",
-  "homeGreetingTeaser1": "Gửi người ấy một cái ôm thật chặt 🤗",
-  "homeGreetingTeaser2": "Hôm nay đã nói yêu người ấy chưa? 💕",
-  "homeGreetingTeaser3": "Gửi người ấy một tấm ảnh xinh nhé 📸",
-  "homeGreetingTeaser4": "Người ấy đang chờ tin của bạn đó 🕊️",
-  "homeGreetingTeaser5": "Đừng quên câu hỏi hôm nay nha ✨",
-  "homeGreetingTeaser6": "Một lời ngọt ngào cho người ấy nào 🍯",
-  "homeGreetingTeaser7": "Nói một lời cảm ơn nhỏ xíu hôm nay nhé 💞",
-  "homeGreetingTeaser8": "Một khoảnh khắc bình yên bên nhau là đủ rồi 🍃",
-  "homeGreetingTeaser9": "Một ngày thật đẹp để yêu thương 💖",
-  "homeGreetingTeaser10": "Nhắn người ấy là bạn đang nhớ họ nha 💭",
-  "homeGreetingTeaser11": "Cùng nhau viết tiếp chuyện tình của chúng mình ✍️",
-  "homeGreetingTeaser12": "Cùng nhau giữ chuỗi ngày yêu nhé 🔥",
   "homeTodaySectionTitle": "Hôm nay của chúng mình",
   "dailyTapToAnswer": "Chạm để trả lời…",
   "dailyPartnerAnsweredTeaser": "{name} đã trả lời rồi đó 👀",
@@ -274,26 +330,6 @@
   "dailyBothAnsweredToday": "Hôm nay cả hai đã trả lời",
   "dailyReadAgain": "Đọc lại",
   "dailyCollapse": "Thu gọn",
-  "loveNoteSealedTitle": "Lời nhắn mới từ {name}",
-  "@loveNoteSealedTitle": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "loveNoteSealedTap": "Chạm để mở 💌",
-  "loveNoteNewBadge": "MỚI",
-  "loveNoteComposeCta": "Soạn tin nhắn",
-  "loveNoteSheetTitleTo": "Gửi lời nhắn cho {name}",
-  "@loveNoteSheetTitleTo": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "journalLinkShort": "Nhật ký",
   "milestoneNextLabel": "Cột mốc {label}",
   "@milestoneNextLabel": {
     "placeholders": {
@@ -321,11 +357,6 @@
   },
   "counterBgSwipeHint": "Vuốt ngang để đổi ảnh nền",
   "dailyQuestionPairedFirst": "Ghép đôi xong là chúng mình sẽ cùng trả lời một câu hỏi như vầy mỗi ngày 💞",
-  "loveNoteHistoryLinkShort": "Lời nhắn cũ",
-  "loveNoteReplyCta": "Nhắn lại…",
-  "loveNoteSendFirstCta": "Gửi lời nhắn đầu tiên…",
-  "loveNoteStartChat": "Chưa có lời nhắn nào — gửi cho nhau lời đầu tiên nhé 💌",
-  "loveNoteYouLabel": "Bạn",
   "notificationBellLabel": "Thông báo, {count} chưa đọc",
   "@notificationBellLabel": {
     "placeholders": {
@@ -344,7 +375,7 @@
     }
   },
   "todayIsAnniversary": "Hôm nay là ngày kỷ niệm của hai bạn ✨",
-  "daysUntilNextAnniversary": "Còn {count} ngày tới kỷ niệm tiếp theo",
+  "daysUntilNextAnniversary": "Còn {count} ngày nữa là tới ngày kỷ niệm",
   "@daysUntilNextAnniversary": {
     "placeholders": {
       "count": {
@@ -352,137 +383,16 @@
       }
     }
   },
-  "quickMomentsTitle": "Khoảnh khắc nhanh",
-  "quickMomentsSubtitle": "Lối tắt để xem lại câu chuyện của hai bạn",
   "addMemoryCta": "Thêm kỷ niệm",
-  "addMemoryCtaSubtitle": "Đăng một tấm ảnh mới cho cả hai cùng xem",
-  "cinemaCardSemantics": "Kỷ niệm: {caption}, ảnh {index} trên {total}. Chạm để xem toàn màn hình.",
-  "@cinemaCardSemantics": {
-    "placeholders": {
-      "caption": {
-        "type": "String"
-      },
-      "index": {
-        "type": "int"
-      },
-      "total": {
-        "type": "int"
-      }
-    }
-  },
-  "memoriesCardTitle": "Kỷ niệm",
-  "viewAllPhotos": "Xem tất cả ảnh",
-  "profileCardTitle": "Hồ sơ",
-  "updateInfo": "Cập nhật thông tin",
-  "milestoneCardTitle": "Cột mốc",
-  "loveInNumbersTitle": "Tình yêu qua con số",
-  "loveInNumbersSubtitle": "Những thống kê nhỏ từ hành trình của hai bạn",
   "daysTogether": "Ngày bên nhau",
   "daysUnit": "Ngày",
   "hoursShort": "giờ",
   "minutesShort": "phút",
   "secondsShort": "giây",
-  "memoriesSaved": "Kỷ niệm đã lưu",
-  "photosUnit": "ảnh",
-  "nextAnniversaryLabel": "Kỷ niệm tiếp theo",
-  "daysAway": "ngày nữa",
-  "nextMilestoneTitle": "Cột mốc tiếp theo",
-  "milestoneProgressTitle": "Tiến trình cột mốc",
-  "milestoneProgressSubtitle": "Nhẹ nhàng tiến về con số ngọt ngào tiếp theo",
   "recentMemoriesTitle": "Kỷ niệm gần đây",
-  "onThisDayTitle": "Ngày này {count, plural, other{{count} năm trước}} 💞",
-  "@onThisDayTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "onThisDaySubtitle": "Một kỷ niệm đúng vào ngày này",
-  "addPhotosPrompt": "Thêm vài ảnh để bắt đầu thư tình của hai bạn",
-  "latestMomentsSubtitle": "Một vài khoảnh khắc mới nhất của hai bạn",
+  "addPhotosPrompt": "Ảnh hai bạn đăng sẽ hiện ở đây",
   "seeAll": "Xem tất cả",
-  "addPhotosEmpty": "Thêm vài ảnh để bắt đầu lấp đầy bức thư tình này.",
-  "yourStorySoFar": "Câu chuyện của hai bạn",
-  "whenItAllBegan": "Khi tất cả bắt đầu",
-  "whenItAllBeganSubtitle": "{name1} & {name2} vào {date}",
-  "@whenItAllBeganSubtitle": {
-    "placeholders": {
-      "name1": {
-        "type": "String"
-      },
-      "name2": {
-        "type": "String"
-      },
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "monthiversaries": "{count} tháng kỷ niệm",
-  "@monthiversaries": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "monthiversaryDesc": "Mỗi tháng là thêm một lớp hiểu biết và trìu mến.",
-  "memoriesCaptured": "{count} kỷ niệm đã lưu",
-  "@memoriesCaptured": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "memoriesCapturedDesc": "Thư viện của hai bạn đang trở thành một album nhỏ xinh.",
-  "loveNoteLabel": "Ghi chú tình yêu",
-  "loveNoteQuote": "\"{count} ngày không chỉ là thời gian — đó là từng khoảnh khắc nhẹ nhàng, từng lựa chọn ở lại, từng điều nhỏ bé chúng mình chia sẻ.\"",
-  "@loveNoteQuote": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "loveNoteFromPartner": "Lời nhắn từ {name}",
-  "@loveNoteFromPartner": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "loveNoteEmptyFromPartner": "Chưa có lời nhắn từ {name}",
-  "@loveNoteEmptyFromPartner": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "loveNoteWriteCta": "Viết lời nhắn",
-  "loveNoteEditCta": "Sửa lời nhắn",
-  "loveNoteWaitingPartner": "Mời người ấy để cùng để lại lời nhắn cho nhau.",
-  "loveNoteSheetTitle": "Lời nhắn của bạn",
-  "loveNoteSheetHint": "Viết điều gì đó ngọt ngào cho người ấy…",
-  "loveNoteCharCount": "{count}/140",
-  "@loveNoteCharCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "loveNoteSaved": "Đã gửi lời nhắn 💞",
-  "loveNoteSendFailed": "Chưa gửi được lời nhắn — thử lại nhé.",
-  "loveNoteHistoryCta": "Xem lại lời nhắn cũ",
-  "loveNoteHistoryTitle": "Nhật ký lời nhắn",
-  "loveNoteHistorySubtitle": "Tất cả những lời hai bạn đã để lại cho nhau.",
-  "loveNoteHistoryBadge": "LỜI NHẮN YÊU THƯƠNG",
-  "loveNoteHistoryHeaderSubtitle": "Tất cả lời nhắn hai bạn đã gửi nhau.",
-  "loveNoteHistoryEmpty": "Chưa có lời nhắn nào được lưu. Những lời hai bạn gửi nhau sẽ được giữ ở đây.",
+  "addPhotosEmpty": "Chạm vào khung ảnh bên dưới để đăng tấm đầu tiên.",
   "loveNoteJustNow": "vừa xong",
   "loveNoteMinutesAgo": "{count, plural, =1{1 phút trước} other{{count} phút trước}}",
   "@loveNoteMinutesAgo": {
@@ -520,33 +430,14 @@
   "@reactionAddTooltip": {
     "description": "Tooltip / a11y label for the heart button when adding a reaction"
   },
-  "reactionChangeTooltip": "Đổi cảm xúc",
-  "@reactionChangeTooltip": {
-    "description": "Tooltip / a11y label for long-pressing to change the reaction emoji"
-  },
   "reactionRemoveTooltip": "Gỡ cảm xúc",
   "@reactionRemoveTooltip": {
     "description": "Tooltip / a11y label for the heart button when it would remove the user's reaction"
   },
   "reactionErrorRetry": "Chưa thả được tim, thử lại nhé",
+  "dailyQuestionSubmitError": "Chưa gửi được câu trả lời, thử lại nhé.",
   "@reactionErrorRetry": {
     "description": "SnackBar shown when writing a reaction fails and was rolled back"
-  },
-  "reactionPartnerReacted": "{name} đã thả {emoji}",
-  "@reactionPartnerReacted": {
-    "description": "a11y label / tooltip for the partner's reaction chip",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "emoji": {
-        "type": "String"
-      }
-    }
-  },
-  "reactionBothLabel": "Cả hai đã thả tim 💞",
-  "@reactionBothLabel": {
-    "description": "a11y label when both members have reacted to a photo"
   },
   "reactionBothShort": "Cả hai đã thả tim",
   "@reactionBothShort": {
@@ -596,14 +487,6 @@
   "moodStressed": "Căng thẳng",
   "dailyQuestionLabel": "Câu hỏi hôm nay",
   "dailyQuestionHint": "Viết câu trả lời của bạn…",
-  "dailyQuestionCharCount": "{count}/280",
-  "@dailyQuestionCharCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "dailyQuestionSend": "Gửi",
   "dailyQuestionYourAnswerLabel": "Câu trả lời của bạn",
   "dailyQuestionAnsweredWaiting": "Đã trả lời ✓ — đang chờ {name}",
@@ -622,16 +505,9 @@
       }
     }
   },
-  "dailyQuestionWaitingPartner": "Sẽ mở khoá khi người ấy tham gia và trả lời nhé.",
-  "dailyQuestionRevealHint": "Cả hai đã trả lời — cùng xem hai bạn đã nói gì nhé 💞",
+  "dailyQuestionWaitingPartner": "Người ấy nhập mã mời và trả lời xong là mở khoá nhé.",
   "dailyQuestionSent": "Đã gửi câu trả lời của bạn 💞",
-  "journalEntryCta": "Xem lại nhật ký",
-  "journalScreenTitle": "Nhật ký câu hỏi",
-  "journalScreenSubtitle": "Những câu hỏi hai bạn đã cùng trả lời.",
   "journalBadge": "NHẬT KÝ CÂU HỎI",
-  "journalHeaderSubtitle": "Những câu hỏi hai bạn đã cùng trả lời.",
-  "journalSettingsTile": "Nhật ký câu hỏi",
-  "journalSettingsSection": "Kỷ niệm",
   "journalYourAnswerLabel": "CÂU TRẢ LỜI CỦA BẠN",
   "journalPartnerAnswerLabel": "CÂU TRẢ LỜI CỦA {name}",
   "@journalPartnerAnswerLabel": {
@@ -642,14 +518,13 @@
     }
   },
   "journalLoadMore": "Xem thêm",
-  "journalEmptyTitle": "Chưa có kỷ niệm câu hỏi nào",
-  "journalEmptyBody": "Khi cả hai cùng trả lời câu hỏi trong ngày, khoảnh khắc đó sẽ được lưu vào đây.",
+  "journalEmptyTitle": "Nhật ký còn trống",
+  "journalEmptyBody": "Ngày nào cả hai cùng trả lời, câu hỏi và hai câu trả lời hôm đó sẽ nằm ở đây.",
   "journalEmptyCta": "Trả lời câu hôm nay",
-  "journalEmptyNoPartnerBody": "Mời người ấy để cùng nhau bắt đầu viết nhật ký.",
+  "journalEmptyNoPartnerBody": "Mời người ấy vào để chúng mình cùng viết nhật ký nhé.",
   "journalEmptyNoPartnerCta": "Mời người ấy",
   "journalErrorTitle": "Chưa tải được nhật ký",
   "journalRetry": "Thử lại",
-  "loveNoteYourNoteLabel": "LỜI NHẮN CỦA BẠN",
   "milestoneReached": "Hai bạn vừa đạt một cột mốc đẹp ✨",
   "onlyDaysUntilMilestone": "Chỉ còn {count} ngày tới cột mốc tiếp theo.",
   "@onlyDaysUntilMilestone": {
@@ -724,19 +599,15 @@
     }
   },
   "privateGalleryBadge": "THƯ VIỆN ẢNH",
-  "galleryTitle": "Thư viện ảnh",
-  "gallerySubtitle": "Vuốt lên nhẹ để gọi lại nhanh khung đăng ảnh và quản lý kỷ niệm.",
-  "addCaptionTitle": "Thêm chú thích",
-  "addCaptionHint": "Viết vài dòng về khoảnh khắc này...",
-  "addCaptionOptionalTitle": "Thêm chú thích (tùy chọn)",
-  "addCaptionOptionalHint": "Viết điều gì đó thật đáng nhớ...",
+  "addCaptionOptionalTitle": "Thêm chú thích (tuỳ chọn)",
+  "addCaptionOptionalHint": "Viết vài dòng về tấm ảnh này...",
   "editCaptionTitle": "Chỉnh sửa chú thích",
-  "editCaptionHint": "Khoảnh khắc này đáng nhớ thế nào?",
-  "deletePhotoTitle": "Xóa ảnh này?",
-  "deletePhotoContent": "Khoảnh khắc này sẽ bị xóa khỏi nhật ký của hai bạn.",
+  "editCaptionHint": "Lúc chụp tấm này có chuyện gì?",
+  "deletePhotoTitle": "Xoá ảnh này?",
+  "deletePhotoContent": "Cả hai bạn sẽ không còn thấy ảnh này nữa.",
   "keepPhotoBtn": "Giữ lại",
-  "deletePhotoBtn": "Xóa",
-  "postedByLabel": "Đăng bởi {name}",
+  "deletePhotoBtn": "Xoá",
+  "postedByLabel": "{name} đăng",
   "@postedByLabel": {
     "placeholders": {
       "name": {
@@ -752,32 +623,12 @@
       }
     }
   },
-  "daysTogetherCount": "{count} ngày bên nhau",
-  "@daysTogetherCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "privateFeedLabel": "Feed riêng của hai bạn",
+  "privateFeedLabel": "Chỉ hai bạn xem được",
   "postNewPhotoBtn": "Chụp hình",
   "addMultipleBtn": "Thêm hình",
-  "cameraUnavailable": "Không mở được camera. Hãy thử lại hoặc kiểm tra quyền camera (máy ảo không có camera — dùng điện thoại thật nhé).",
-  "galleryDraftTitle": "Xem trước & đăng",
-  "galleryDraftCaptionHint": "Thêm chú thích chung (không bắt buộc)…",
-  "galleryDraftEmpty": "Đã bỏ hết ảnh.",
-  "galleryDraftPostBtn": "Đăng {count} ảnh",
-  "@galleryDraftPostBtn": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "createPostTitle": "Kỷ niệm mới",
+  "cameraUnavailable": "Chưa mở được camera. Bạn thử lại hoặc vào Cài đặt của máy, bật quyền camera cho app nhé.",
   "createPostBadge": "KỶ NIỆM MỚI",
-  "createPostAuthorMeta": "Đăng bởi {name} · {when}",
+  "createPostAuthorMeta": "{name} đăng · {when}",
   "@createPostAuthorMeta": {
     "placeholders": {
       "name": {
@@ -789,7 +640,7 @@
     }
   },
   "today": "Hôm nay",
-  "createPostCaptionHint": "Hôm nay của hai bạn có gì?…",
+  "createPostCaptionHint": "Hôm nay hai bạn có gì mới?…",
   "createPostAddMore": "Thêm ảnh",
   "createPostAddFromLibrary": "Thêm ảnh từ thư viện",
   "createPostPhotoCount": "{count} ảnh",
@@ -803,13 +654,13 @@
   "createPostBtn": "Đăng",
   "createPostRemovePhoto": "Gỡ ảnh",
   "createPostDiscardTitle": "Bỏ kỷ niệm này?",
-  "createPostDiscardMessage": "Phần chú thích chúng mình vừa viết sẽ không được lưu.",
+  "createPostDiscardMessage": "Chú thích bạn vừa viết sẽ mất luôn.",
   "createPostDiscardConfirm": "Bỏ",
   "createPostDiscardKeep": "Tiếp tục soạn",
   "addNewMemoryTitle": "Thêm một kỷ niệm mới hôm nay",
   "whatNewToday": "hôm nay có gì mới?",
-  "composerSubtitle": "Để thư viện thành một newfeed tình yêu thật riêng tư và đáng nhớ.",
-  "compactCaption": "{count} khoảnh khắc · Vuốt thêm để bung khung đăng ảnh",
+  "composerSubtitle": "Chụp một tấm, viết vài dòng là có thêm một kỷ niệm.",
+  "compactCaption": "{count} khoảnh khắc · Cuộn lên đầu để bung khung đăng ảnh",
   "@compactCaption": {
     "placeholders": {
       "count": {
@@ -817,40 +668,22 @@
       }
     }
   },
-  "todayInLoveBadge": "HÔM NAY TRONG TÌNH YÊU",
-  "storyStripBadge": "DẢI STORY",
-  "memoriesTodayTitle": "Kỷ niệm hôm nay",
-  "recentPhotosTitle": "Ảnh gần đây",
-  "memoriesTodaySubtitle": "Những khoảnh khắc được lưu đúng ngày này, dịu dàng và rất riêng.",
-  "recentPhotosSubtitle": "Một dải story nhỏ để xem nhanh những khoảnh khắc mới nhất của hai bạn.",
-  "memoryBadge": "Kỷ niệm",
-  "newBadge": "Mới",
-  "momentLabel": "Khoảnh khắc #{number}",
-  "@momentLabel": {
-    "placeholders": {
-      "number": {
-        "type": "int"
-      }
-    }
-  },
   "editCaptionAction": "Chỉnh sửa chú thích",
-  "deletePhotoAction": "Xóa ảnh",
+  "deletePhotoAction": "Xoá ảnh",
   "reportPhotoAction": "Báo cáo ảnh",
   "reportPhotoTitle": "Báo cáo ảnh",
-  "reportPhotoSubtitle": "Cho chúng tôi biết vấn đề với ảnh này.",
+  "reportPhotoSubtitle": "Ảnh này có gì không ổn?",
   "reportReasonInappropriate": "Nội dung không phù hợp",
   "reportReasonSpam": "Spam hoặc lừa đảo",
   "reportReasonOther": "Khác",
   "reportCancel": "Huỷ",
   "reportSentConfirm": "Đã gửi báo cáo, cảm ơn bạn.",
-  "editAction": "Chỉnh sửa",
-  "deleteAction": "Xóa",
-  "startNewfeedTitle": "Bắt đầu tạo newfeed kỷ niệm",
+  "startNewfeedTitle": "Bắt đầu lưu giữ kỷ niệm",
   "postFirstMomentOf": "Hãy đăng khoảnh khắc đầu tiên của",
-  "emptyFeedContent": "Khi thêm ảnh, thư viện này sẽ trở thành một newfeed tình yêu riêng tư với những dòng thời gian thật dễ nhìn và cảm xúc.",
+  "emptyFeedContent": "Mỗi tấm ảnh hai bạn đăng sẽ hiện ở đây, kèm ngày giờ và chú thích.",
   "postFirstPhotoBtn": "Đăng ảnh đầu tiên",
-  "photoAddedSuccess": "Thêm ảnh thành công!",
-  "photoAddError": "Không thể đăng ảnh lúc này.",
+  "photoAddedSuccess": "Đã thêm ảnh!",
+  "photoAddError": "Chưa đăng được ảnh, thử lại nhé.",
   "multiplePhotosAdded": "Đã thêm {count} ảnh!",
   "@multiplePhotosAdded": {
     "placeholders": {
@@ -860,9 +693,9 @@
     }
   },
   "captionUpdatedSuccess": "Đã cập nhật chú thích",
-  "captionUpdateError": "Không thể cập nhật chú thích.",
-  "photoDeletedSuccess": "Đã xóa ảnh",
-  "photoDeleteError": "Không thể xóa ảnh lúc này.",
+  "captionUpdateError": "Chưa lưu được chú thích, thử lại nhé.",
+  "photoDeletedSuccess": "Đã xoá ảnh",
+  "photoDeleteError": "Chưa xoá được ảnh, thử lại nhé.",
   "youTwoLabel": "Hai bạn",
   "syncingLibrary": "Đang đồng bộ thư viện...",
   "uploadingPhoto": "Đang đăng ảnh...",
@@ -877,18 +710,18 @@
       }
     }
   },
-  "deletingPhoto": "Đang xóa ảnh...",
+  "deletingPhoto": "Đang xoá ảnh...",
   "updatingCaption": "Đang cập nhật chú thích...",
-  "photoOptionsTitle": "Tùy chọn ảnh",
+  "photoOptionsTitle": "Tuỳ chọn ảnh",
   "replacePhotoAction": "Đổi ảnh khác",
   "galleryReplacePhotoTooltip": "Đổi ảnh khác",
   "replacingPhoto": "Đang cập nhật ảnh...",
   "photoUpdatedSuccess": "Đã cập nhật ảnh",
   "photoUpdateError": "Chưa cập nhật được ảnh, thử lại nhé.",
   "galleryLoadErrorTitle": "Chưa tải được ảnh",
-  "galleryLoadErrorSubtitle": "Kỷ niệm của bạn vẫn an toàn — chỉ là chưa kết nối tới được lúc này.",
+  "galleryLoadErrorSubtitle": "Kỷ niệm vẫn còn nguyên, chỉ là lúc này chưa tải về được.",
   "galleryRetryBtn": "Thử lại",
-  "multiPhotosResultPartial": "Đã đăng {success}/{total}, {failed} ảnh lỗi",
+  "multiPhotosResultPartial": "Đã đăng {success}/{total} ảnh, {failed} ảnh chưa lên được",
   "@multiPhotosResultPartial": {
     "placeholders": {
       "success": {
@@ -913,97 +746,35 @@
     }
   },
   "loveProfileBadge": "HỒ SƠ TÌNH YÊU",
-  "profileTitle": "Hồ sơ của hai bạn",
-  "profileSubtitle": "Một góc riêng để nhìn lại hành trình yêu nhau, cột mốc và album kỷ ức của hai bạn.",
-  "todayIsAnniversaryProfile": "Hôm nay là ngày kỷ niệm ✨",
-  "daysUntilAnniversaryProfile": "Còn {count} ngày tới kỷ niệm tiếp theo",
-  "@daysUntilAnniversaryProfile": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "khoanhKhacCount": "{count} khoảnh khắc",
-  "@khoanhKhacCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "privateDiaryLabel": "Nhật ký riêng tư",
-  "loveMilestonesLabel": "Mốc yêu thương",
-  "journeySnapshotTitle": "Bức tranh hành trình",
   "yearsTogether": "Năm",
   "monthsRemaining": "Tháng",
-  "totalDaysLabel": "Tổng số ngày",
-  "totalHoursLabel": "Tổng số giờ",
-  "memoriesSavedLabel": "Khoảnh khắc lưu",
-  "infoAndRhythmTitle": "Thông tin & nhịp sống",
-  "infoAndRhythmSubtitle": "Một cách nhìn rõ ràng hơn về ngày bắt đầu, album và cột mốc sắp tới.",
-  "loveStartDateLabel": "Ngày yêu nhau",
-  "yourInviteCodeLabel": "Mã mời tài khoản của bạn",
-  "memoryAlbumLabel": "Thư viện kỷ niệm",
-  "memoryAlbumValue": "{count} ảnh đang được lưu trong album riêng",
-  "@memoryAlbumValue": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "upcomingMilestoneLabel": "Cột mốc gần nhất",
-  "todaySpecialMsg": "Hôm nay là ngày thật đặc biệt của hai bạn",
-  "daysUntilNextMsg": "Còn {count} ngày nữa tới kỷ niệm tiếp theo",
-  "@daysUntilNextMsg": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "customizeProfileTitle": "Tùy chỉnh hồ sơ",
-  "customizeProfileSubtitle": "Cập nhật tên, ngày yêu và ảnh đôi để trang hồ sơ luôn phản ánh đúng hành trình hiện tại.",
+  "yourInviteCodeLabel": "Mã mời riêng của bạn",
   "editOurStoryBtn": "Chỉnh sửa câu chuyện",
-  "profileChipDaysLabel": "ngày bên nhau",
-  "profileChipAnniversaryLabel": "ngày tới kỷ niệm",
-  "profileChipAnniversaryTodayLabel": "kỷ niệm là hôm nay!",
-  "profileChipPhotosLabel": "kỷ niệm đã lưu",
-  "profileMemoryChestTitle": "Tủ kỷ niệm",
-  "profileStreakTile": "Chuỗi kết nối",
   "settingsSectionAccount": "Tài khoản",
   "settingsSectionNotifications": "Thông báo",
   "settingsSectionGeneral": "Chung",
-  "settingsPushGroupLabel": "Đẩy từ người ấy",
-  "proTipLabel": "Mẹo nhỏ",
-  "proTipContent": "Một ảnh đôi sáng, cận mặt và có nhiều khoảng thở sẽ giúp phần hero ở hồ sơ trông sang hơn hẳn.",
   "dataManagementTitle": "Quản lý dữ liệu",
-  "dataManagementDesc": "Một người chỉ được xóa cache trên máy này hoặc rời khỏi couple. Muốn xóa dữ liệu chung, cả hai phải cùng xác nhận.",
-  "clearLocalDataBtn": "Xóa dữ liệu trên máy này",
-  "localFallbackWarning": "App đang ở local fallback nên chưa hỗ trợ xóa cache riêng an toàn. Bạn có thể rời khỏi couple local hiện tại nếu muốn làm mới.",
-  "leaveCoupleBtn": "Rời khỏi couple",
-  "clearDataNote": "Xóa toàn bộ dữ liệu chung hiện chưa cho phép từ một phía. Ở sprint sau, mình sẽ đổi sang flow cần cả hai cùng xác nhận.",
-  "clearLocalDialogTitle": "Xóa dữ liệu trên máy này",
-  "clearLocalDialogContent": "Thao tác này chỉ xóa cache trên thiết bị hiện tại. Dữ liệu chung trên Firebase vẫn được giữ nguyên và sẽ tải lại khi cần.",
-  "clearLocalActionBtn": "Xóa local",
-  "leaveCoupleDialogTitle": "Rời khỏi couple",
-  "leaveCoupleDialogContent": "Bạn sẽ rời khỏi không gian couple hiện tại. Người còn lại vẫn giữ dữ liệu chung. Bạn không thể xóa toàn bộ dữ liệu chung chỉ từ một phía.",
-  "leaveCoupleActionBtn": "Rời khỏi couple",
+  "dataManagementDesc": "Một mình bạn chỉ xoá được dữ liệu trên máy này hoặc rời cặp đôi. Muốn xoá dữ liệu chung, cả hai phải cùng xác nhận.",
+  "clearLocalDataBtn": "Xoá dữ liệu trên máy này",
+  "localFallbackWarning": "App đang chạy trên máy này (chưa kết nối máy chủ) nên chưa xoá riêng dữ liệu tạm được. Muốn làm mới, bạn có thể rời cặp đôi hiện tại.",
+  "leaveCoupleBtn": "Rời cặp đôi",
+  "clearLocalDialogTitle": "Xoá dữ liệu trên máy này",
+  "clearLocalDialogContent": "Việc này chỉ xoá dữ liệu tạm trên máy này. Dữ liệu chung vẫn còn trên máy chủ và sẽ tự tải lại khi cần.",
+  "clearLocalActionBtn": "Xoá",
+  "leaveCoupleDialogTitle": "Rời cặp đôi?",
+  "leaveCoupleDialogContent": "Bạn sẽ rời không gian chung này. Dữ liệu chung vẫn ở lại với người ấy, một mình bạn không xoá được.",
+  "leaveCoupleActionBtn": "Rời cặp đôi",
   "leaveCoupleDeleteAllTitle": "Xoá vĩnh viễn không gian của hai người?",
-  "leaveCoupleDeleteAllContent": "Bạn là thành viên cuối cùng. Khi rời đi, TẤT CẢ kỷ niệm chung — ảnh, lời nhắn, nhật ký câu hỏi — sẽ bị xoá vĩnh viễn và KHÔNG THỂ khôi phục.",
+  "leaveCoupleDeleteAllContent": "Chỉ còn mình bạn ở lại. Khi rời đi, TẤT CẢ kỷ niệm chung — ảnh, lời nhắn, nhật ký câu hỏi — sẽ bị xoá vĩnh viễn và KHÔNG THỂ khôi phục.",
   "leaveCoupleDeleteAllBtn": "Xoá tất cả",
-  "leaveCoupleError": "Chưa rời khỏi couple được lúc này. Kiểm tra kết nối mạng rồi thử lại nhé.",
-  "localDataClearedMsg": "Đã xóa dữ liệu local trên máy này. Dữ liệu chung trên cloud vẫn được giữ nguyên.",
+  "leaveCoupleError": "Chưa rời cặp đôi được lúc này. Kiểm tra kết nối mạng rồi thử lại nhé.",
+  "localDataClearedMsg": "Đã xoá dữ liệu tạm trên máy này. Dữ liệu chung trên máy chủ vẫn còn nguyên.",
   "languageTitle": "Ngôn ngữ",
-  "languageSubtitle": "Chọn ngôn ngữ hiển thị của ứng dụng",
   "languageSystem": "Theo hệ thống",
   "languageSystemDesc": "Theo ngôn ngữ thiết bị",
-  "languageEnglish": "English",
-  "languageVietnamese": "Tiếng Việt",
   "loadingCoupleInfo": "Đang tải thông tin cặp đôi...",
-  "savingCoupleSpace": "Đang lưu không gian cặp đôi...",
-  "connectingCouple": "Đang kết nối cặp đôi...",
+  "savingCoupleSpace": "Đang tạo không gian của chúng mình...",
+  "connectingCouple": "Đang ghép đôi...",
   "updatingCoupleInfo": "Đang cập nhật thông tin cặp đôi...",
   "setupNoChangesToSaveMsg": "Không có gì thay đổi để lưu.",
   "inviteCodeCopiedMsg": "Đã sao chép mã mời",
@@ -1017,35 +788,20 @@
       }
     }
   },
-  "remindersTitle": "Nhắc nhở yêu thương",
-  "remindersSubtitle": "Những lời nhắc nhẹ nhàng để câu chuyện thêm đong đầy",
-  "remindersToggleLabel": "Nhắc cột mốc & kỷ niệm",
-  "remindersToggleDesc": "Tự nhắc các cột mốc & kỷ niệm bạn chọn. Cần bật để dùng \"Lời nhắc của chúng mình\".",
-  "remindersTimeLabel": "Giờ nhắc",
   "remindersPermissionDeniedMsg": "Hãy bật thông báo trong Cài đặt để nhận lời nhắc.",
   "dailyQuestionReminderTitle": "Nhắc trả lời câu hỏi",
-  "dailyQuestionReminderSubtitle": "Nhắc cả hai cùng trả lời mỗi ngày, đồng bộ trên cả hai máy.",
-  "dailyQuestionReminderTimeLabel": "Nhắc lúc",
-  "dailyQuestionReminderTimesLabel": "Giờ nhắc",
+  "dailyQuestionReminderSubtitle": "Nhắc cả hai cùng trả lời mỗi ngày, hai máy dùng chung giờ nhắc.",
   "dailyQuestionReminderAddTime": "Thêm giờ nhắc",
-  "dailyQuestionReminderRemoveTime": "Xoá giờ nhắc {time}",
-  "@dailyQuestionReminderRemoveTime": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
   "dailyQuestionReminderNotifTitle": "Câu hỏi hôm nay đang chờ 💌",
   "dailyQuestionReminderNotifBody": "Ghé trả lời để mở khoá câu trả lời của người ấy nhé.",
-  "dailyQuestionReminderNotifBodyAlt1": "Hôm nay chúng mình có một câu hỏi mới — bạn trả lời trước nha 💞",
+  "dailyQuestionReminderNotifBodyAlt1": "Hôm nay chúng mình có câu hỏi mới, bạn trả lời phần mình nha 💞",
   "dailyQuestionReminderNotifBodyAlt2": "Một câu hỏi nhỏ đang đợi chúng mình, ghé trả lời nhé 🌸",
   "dqPartnerOnlyNudgeTitle": "Chỉ còn người ấy nữa thôi 💌",
-  "dailyQuestionReminderEndOfDayHint": "Nếu cuối ngày câu hỏi vẫn chưa xong, chúng mình được nhắc thêm lúc 21:00 — và cả 22:00, 23:00 nếu bạn vẫn chưa trả lời.",
+  "dailyQuestionReminderEndOfDayHint": "Cuối ngày mà câu hỏi chưa xong, app nhắc thêm lúc 21:00. Nếu bạn vẫn chưa trả lời, app nhắc tiếp lúc 22:00 và 23:00.",
   "dqEndOfDayNudgeTitle": "Ngày sắp khép lại rồi 🌙",
   "dqEndOfDayNudgeBody": "Câu hỏi hôm nay vẫn đang chờ — ghé trả lời trước khi hết ngày nhé.",
   "dqEndOfDayNudgePartnerBody": "Người ấy chưa trả lời câu hỏi hôm nay — nhắc một câu cho kịp nhé.",
-  "dqStreakWarningTitle": "Sắp lỡ mất chuỗi rồi! 🔥",
+  "dqStreakWarningTitle": "Chuỗi sắp đứt rồi! 🔥",
   "dqStreakWarningBody": "Sắp hết ngày rồi. Trả lời câu hỏi để giữ chuỗi {days} ngày của chúng mình nhé!",
   "@dqStreakWarningBody": {
     "placeholders": {
@@ -1054,16 +810,7 @@
       }
     }
   },
-  "dqStreakWarningPartnerBody": "Người ấy chưa trả lời. Nhắc nhẹ một câu để khỏi đứt chuỗi {days} ngày nhé!",
-  "@dqStreakWarningPartnerBody": {
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
   "dqStreakWarningStartBody": "Sắp hết ngày rồi! Trả lời câu hỏi để mở chuỗi mới cho chúng mình nhé.",
-  "dqStreakWarningStartPartnerBody": "Người ấy chưa trả lời. Nhắc một câu để chúng mình cùng bắt đầu chuỗi nhé.",
   "dqStreakWarningFinalTitle": "Còn chưa đầy 1 tiếng nữa thôi! ⏳",
   "dqStreakWarningFinalBody": "Trả lời ngay để chuỗi {days} ngày của chúng mình không đứt nhé 🔥",
   "@dqStreakWarningFinalBody": {
@@ -1074,20 +821,6 @@
     }
   },
   "dqStreakWarningFinalStartBody": "Trả lời ngay để chúng mình mở chuỗi mới trước khi hết ngày nhé 🌱",
-  "reminderDailyTitle": "Thêm một ngày của chúng mình 💕",
-  "reminderDailyBody": "Mở Dear Embeiu và cùng đếm thêm một ngày bên nhau nhé.",
-  "reminderMilestoneApproachingTitle": "Sắp đến cột mốc rồi 💕",
-  "reminderMilestoneApproachingBody": "Còn {count} ngày nữa là đến cột mốc {milestone}!",
-  "@reminderMilestoneApproachingBody": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "milestone": {
-        "type": "String"
-      }
-    }
-  },
   "reminderMilestoneTodayTitle": "Đã đến cột mốc 🎉",
   "reminderMilestoneTodayBody": "Hôm nay chúng mình chạm mốc {milestone} rồi 💕",
   "@reminderMilestoneTodayBody": {
@@ -1098,14 +831,11 @@
     }
   },
   "reminderAnniversaryTitle": "Chúc mừng kỷ niệm 🎉",
-  "reminderAnniversaryBody": "Hôm nay hãy cùng mừng thêm một năm yêu thương 💕",
-  "reminderInactivityTitle": "Nhớ những khoảnh khắc 💭",
-  "reminderInactivityBody": "Đã lâu rồi — cùng thêm một kỷ niệm mới nhé 💕",
-  "remindersV2MilestoneEntryTitle": "Cột mốc & kỷ niệm",
-  "remindersV2MilestoneEntrySubtitle": "Chọn cột mốc muốn được nhắc",
+  "reminderAnniversaryBody": "Hôm nay chúng mình tròn thêm một năm bên nhau 💕",
+  "reminderInactivityTitle": "Lâu rồi chưa có ảnh mới 💭",
+  "reminderInactivityBody": "Cùng thêm một kỷ niệm mới nhé 💕",
   "remindersV2MilestoneCountBadge": "{count} mốc",
   "remindersV2MilestoneScreenTitle": "Cột mốc & kỷ niệm",
-  "remindersV2MilestoneScreenCaption": "Chọn cột mốc muốn được nhắc và giờ nhắc.",
   "milestoneBadge": "NHỮNG NGÀY ĐẶC BIỆT",
   "milestoneHeaderSubtitle": "Chọn cột mốc muốn được nhắc và đặt giờ riêng.",
   "remindersV2MilestoneNext": "Sắp tới: {date}",
@@ -1113,7 +843,7 @@
   "remindersV2MilestonePast": "Đã qua",
   "remindersV2MilestonePending": "Sẽ tính khi tới ngày kỷ niệm",
   "remindersV2MilestoneDaysLabel": "{count} ngày",
-  "remindersV2MilestoneYearsLabel": "{count} năm",
+  "remindersV2MilestoneYearsLabel": "{count, plural, other{{count} năm}}",
   "milestoneEvery100Title": "Mỗi 100 ngày",
   "milestoneEvery100Desc": "Ăn mừng mỗi 100 ngày bên nhau",
   "milestone520Title": "520 ngày",
@@ -1125,50 +855,21 @@
   "milestoneHalfYearTitle": "Nửa năm yêu nhau",
   "milestoneHalfYearDesc": "Tròn 6 tháng bên nhau",
   "milestoneYearlyTitle": "Kỷ niệm hằng năm",
-  "milestoneYearlyDesc": "Mỗi năm tròn ngày yêu nhau",
+  "milestoneYearlyDesc": "Đúng ngày yêu nhau mỗi năm",
   "milestoneInactivityTitle": "Lâu chưa đăng ảnh",
   "milestoneInactivityDesc": "Nhắc nhẹ khi 7 ngày chưa có ảnh mới",
   "milestoneInactivitySub": "Nhắc khi vắng ảnh 7 ngày",
   "settingsTitle": "Cài đặt",
   "settingsBadge": "TUỲ CHỈNH ỨNG DỤNG",
   "settingsHeaderSubtitle": "Nhắc nhở, thông báo, ngôn ngữ và tài khoản của hai bạn.",
-  "settingsProfileTileSubtitle": "Nhắc nhở, ngôn ngữ, tài khoản",
-  "settingsRemindersModuleTitle": "Nhắc nhở",
-  "settingsRemindersModuleSubtitle": "Cột mốc, kỷ niệm & lời nhắc riêng",
   "settingsRemindersEntryTitle": "Lời nhắc",
   "settingsRemindersEntrySubtitle": "Cột mốc, kỷ niệm và lời nhắc riêng của hai bạn",
   "remindersHubBadge": "LỜI NHẮC",
   "remindersHubTitle": "Lời nhắc của chúng mình",
-  "remindersHubSubtitle": "Cột mốc, kỷ niệm và những lời nhắc riêng — tất cả ở một nơi.",
-  "remindersHubMilestonesSection": "Cột mốc & kỷ niệm",
-  "remindersHubMilestonesSectionSub": "Chọn cột mốc muốn được nhắc và đặt giờ riêng.",
-  "remindersHubCustomSection": "Lời nhắc của chúng mình",
-  "remindersHubCustomSectionSub": "Tự tạo lời nhắc cho những dịp riêng của hai bạn.",
-  "settingsAccountModuleTitle": "Tài khoản & dữ liệu",
-  "settingsAccountModuleSubtitle": "Câu chuyện, dữ liệu & tài khoản",
+  "remindersHubSubtitle": "Cột mốc, kỷ niệm và lời nhắc riêng của hai bạn.",
   "settingsAnalyticsTitle": "Chia sẻ dữ liệu sử dụng",
-  "settingsAnalyticsSubtitle": "Giúp cải thiện app bằng dữ liệu ẩn danh. Không bao giờ thu thập nội dung riêng tư của bạn.",
-  "settingsNotifTypesTitle": "Loại thông báo",
-  "settingsNotifTypesSubtitle": "Tắt loại push bạn không muốn bị làm phiền. Chúng vẫn xuất hiện trong trung tâm thông báo.",
-  "settingsNotifTypePhoto": "Ảnh mới",
-  "settingsNotifTypePhotoSubtitle": "Khi người ấy đăng ảnh mới",
-  "settingsNotifTypeReaction": "Thả tim ảnh",
-  "settingsNotifTypeReactionSubtitle": "Khi người ấy thả cảm xúc vào ảnh của bạn",
-  "settingsNotifTypeDailyQuestion": "Câu hỏi hôm nay",
-  "settingsNotifTypeDailyQuestionSubtitle": "Khi người ấy trả lời câu hỏi hôm nay",
-  "settingsEditStorySubtitle": "Đổi tên, ngày yêu, ảnh đại diện",
-  "settingsDefaultTimeLabel": "Giờ mặc định",
-  "settingsDefaultTimeSubtitle": "Áp dụng cho mốc chưa đặt giờ riêng",
-  "settingsMilestoneUsesDefault": "Theo mặc định · {time}",
-  "settingsMilestoneCustomTimeReset": "Về giờ mặc định",
-  "remindersV2ForceOpenTitle": "Bật nhắc nhở để tiếp tục",
-  "remindersV2ForceOpenBody": "Bạn cần bật \"Nhắc cột mốc & kỷ niệm\" để tạo và nhận lời nhắc riêng của hai bạn.",
-  "remindersV2ForceOpenConfirm": "Bật",
-  "remindersV2ForceOpenLater": "Để sau",
-  "remindersV2ForceOpenDeniedMsg": "Chưa cấp quyền thông báo. Hãy bật thông báo trong Cài đặt để tiếp tục.",
+  "settingsAnalyticsSubtitle": "Gửi dữ liệu ẩn danh giúp app tốt hơn. Ảnh, tin nhắn và mọi nội dung riêng tư của bạn không bao giờ nằm trong đó.",
   "languageSearchHint": "Tìm ngôn ngữ",
-  "customRemindersEntryTitle": "Lời nhắc của chúng mình",
-  "customRemindersEntrySubtitle": "Tự tạo mốc riêng của hai bạn",
   "customRemindersScreenTitle": "Lời nhắc của chúng mình",
   "customRemindersBadge": "MỐC RIÊNG CỦA HAI BẠN",
   "customRemindersHeaderSubtitle": "Tự tạo lời nhắc cho những dịp riêng của hai bạn.",
@@ -1176,15 +877,10 @@
   "customRemindersNextFire": "Sắp tới: {date}",
   "customRemindersDisabledLabel": "Đã tắt",
   "customRemindersFabTooltip": "Thêm lời nhắc",
-  "customRemindersItemMenuEdit": "Sửa",
-  "customRemindersItemMenuDelete": "Xoá",
   "customRemindersEmptyTitle": "Chưa có lời nhắc nào",
-  "customRemindersEmptyBody": "Tạo mốc riêng của hai bạn: sinh nhật, monthsary, ngày đặc biệt…",
+  "customRemindersEmptyBody": "Tạo mốc riêng của hai bạn: sinh nhật, ngày tròn tháng, ngày hẹn đầu tiên…",
   "customRemindersEmptyCta": "Tạo lời nhắc đầu tiên",
   "customRemindersAddAnother": "Thêm lời nhắc",
-  "customRemindersOffTitle": "Lời nhắc đang tắt",
-  "customRemindersOffBody": "Hãy bật \"Nhắc nhớ yêu thương\" ở trang Hồ sơ để các lời nhắc có hiệu lực.",
-  "customRemindersOffCta": "Bật lời nhắc",
   "customRemindersLimitMsg": "Bạn đã đạt tối đa 20 lời nhắc. Hãy xoá bớt để thêm mới.",
   "customRemindersAddTitle": "Lời nhắc mới",
   "customRemindersEditTitle": "Sửa lời nhắc",
@@ -1224,98 +920,103 @@
   "customRemindersNotifBodyFallback": "Một mốc đáng nhớ của hai bạn 💞",
   "agreeToPrivacyPolicy": "Tôi đồng ý với Chính sách bảo mật",
   "appTitle": "Kỷ Niệm Của Chúng Mình",
-  "authAccountNotFound": "Không tìm thấy tài khoản với email này.",
-  "authConfigNotFound": "Firebase Authentication của project này chưa được bật hoặc chưa bật Email/Password. Bạn vào Firebase Console > Authentication > Sign-in method > Email/Password để bật lên.",
-  "authEmailAlreadyUsed": "Email này đã được sử dụng rồi.",
-  "authEmailPasswordNotEnabled": "Firebase Authentication chưa được cấu hình đầy đủ cho Email/Password. Bạn vào Firebase Console > Authentication > Sign-in method và bật Email/Password nhé.",
-  "authFirebaseAuthGeneric": "Đã có lỗi Firebase Auth xảy ra.",
-  "authFirebaseUserCreateFailed": "Không tạo được người dùng Firebase.",
-  "authFirestoreGeneric": "Đã có lỗi Firestore xảy ra.",
-  "authFirestorePermissionDenied": "Firestore đang chặn quyền ghi dữ liệu người dùng. Hãy kiểm tra Firestore Rules của project đang kết nối và cho phép user đã đăng nhập tạo/ghi `users/<uid>` cùng `invite_codes/<code>` của chính họ.",
-  "authFirestoreUnavailable": "Firestore hiện chưa khả dụng hoặc mạng không ổn định. Bạn thử lại sau ít phút nhé.",
+  "authAccountNotFound": "Chưa có tài khoản nào dùng email này.",
+  "authConfigNotFound": "Hiện chưa đăng nhập bằng email được. Bạn thử lại sau nhé.",
+  "authEmailAlreadyUsed": "Email này đã có tài khoản rồi.",
+  "authEmailPasswordNotEnabled": "Hiện chưa đăng nhập bằng email được. Bạn thử lại sau nhé.",
+  "authFirebaseAuthGeneric": "Có lỗi khi xác thực tài khoản. Bạn thử lại nhé.",
+  "continueWithApple": "Tiếp tục với Apple",
+  "authOrDivider": "hoặc",
+  "appleSignInFailed": "Chưa đăng nhập được với Apple. Bạn thử lại nhé.",
+  "appleEmailHasPasswordAccount": "Email này đã có tài khoản. Đăng nhập bằng cách bạn đã dùng lần trước nhé.",
+  "deleteAccountAppleNote": "Sau đó Apple sẽ hiện hộp đăng nhập để xác nhận đó là bạn.",
+  "deleteAccountReauthBodyApple": "Vì lý do bảo mật, bạn xác nhận lại với Apple để xoá tài khoản vĩnh viễn.",
+  "continueWithGoogle": "Tiếp tục với Google",
+  "googleSignInFailed": "Chưa đăng nhập được với Google. Bạn thử lại nhé.",
+  "socialConsentPrefix": "Khi tiếp tục, bạn đồng ý với",
+  "deleteAccountReauthBodyGoogle": "Bấm Xoá vĩnh viễn để thử lại. Nếu vẫn lỗi, bạn đăng nhập lại bằng Google rồi xoá nhé.",
+  "deleteAccountAppleIdMismatch": "Máy này đang dùng một Apple ID khác. Bạn mở app trên máy dùng Apple ID của tài khoản này để xoá tài khoản nhé.",
+  "authFirebaseUserCreateFailed": "Chưa tạo được tài khoản, bạn thử lại nhé.",
+  "authFirestoreGeneric": "Chưa đồng bộ được dữ liệu tài khoản. Bạn thử lại nhé.",
+  "authFirestorePermissionDenied": "Chưa lưu được thông tin tài khoản vì máy chủ từ chối. Bạn thử lại sau ít phút nhé.",
+  "authFirestoreUnavailable": "Chưa kết nối được máy chủ, có thể do mạng chập chờn. Bạn thử lại sau ít phút nhé.",
   "authInvalidCredential": "Email hoặc mật khẩu chưa đúng.",
   "authInvalidEmail": "Email chưa hợp lệ.",
   "authInviteCodeGenerateFailed": "Không thể tạo mã mời mới, bạn thử lại sau nhé.",
   "authInviteCodeUnavailable": "Không thể tạo mã mời cho tài khoản lúc này, bạn thử lại nhé.",
-  "authNetworkError": "Không có kết nối mạng ổn định để đăng nhập Firebase.",
-  "authSessionNotReady": "Phiên đăng nhập Firebase chưa sẵn sàng. Bạn thử đăng nhập lại giúp mình nhé.",
-  "authSessionUnavailable": "Không thể lấy phiên đăng nhập Firebase.",
-  "authTooManyRequests": "Bạn thử lại sau ít phút nhé, hiện có quá nhiều yêu cầu đăng nhập.",
+  "authNetworkError": "Mạng đang chập chờn. Bạn kiểm tra kết nối rồi thử lại nhé.",
+  "authSessionNotReady": "Phiên đăng nhập chưa sẵn sàng. Bạn thử đăng nhập lại giúp mình nhé.",
+  "authSessionUnavailable": "Chưa đăng nhập được, bạn thử lại nhé.",
+  "authTooManyRequests": "Có quá nhiều lần thử đăng nhập. Bạn đợi vài phút rồi thử lại nhé.",
+  "authUserDisabled": "Tài khoản này đã bị khoá nên không đăng nhập được.",
   "authWeakPassword": "Mật khẩu còn yếu, bạn chọn mật khẩu mạnh hơn nhé.",
   "authWrongPassword": "Mật khẩu chưa đúng, bạn kiểm tra lại nhé.",
-  "bootstrapAndroidNotReady": "Firebase Android chưa sẵn sàng. Kiểm tra lại `android/app/google-services.json` và package name của app.",
-  "bootstrapIosNotConfigured": "Bạn đang chạy iOS nhưng project chưa có `GoogleService-Info.plist`, nên app đang rơi về local fallback.",
-  "bootstrapLinuxNotConfigured": "Firebase cho Linux chưa được cấu hình nên app đang chạy local fallback.",
-  "bootstrapMacosNotConfigured": "Firebase cho macOS chưa được cấu hình nên app đang chạy local fallback.",
-  "bootstrapPlatformNotConfigured": "Firebase chưa được cấu hình cho platform hiện tại nên app đang chạy local fallback.",
-  "bootstrapWebNotConfigured": "Firebase chưa được cấu hình cho Web nên app đang chạy local fallback.",
-  "bootstrapWindowsNotConfigured": "Firebase cho Windows chưa được cấu hình nên app đang chạy local fallback.",
-  "coupleAlreadyInCouple": "Tài khoản này đã thuộc một cặp đôi rồi.",
+  "bootstrapAndroidNotReady": "App chưa kết nối được máy chủ, dữ liệu tạm lưu trên máy này.",
+  "bootstrapIosNotConfigured": "App chưa kết nối được máy chủ, dữ liệu tạm lưu trên máy này.",
+  "bootstrapLinuxNotConfigured": "Bản Linux chưa kết nối máy chủ, dữ liệu tạm lưu trên máy này.",
+  "bootstrapMacosNotConfigured": "Bản macOS chưa kết nối máy chủ, dữ liệu tạm lưu trên máy này.",
+  "bootstrapPlatformNotConfigured": "Thiết bị này chưa kết nối máy chủ, dữ liệu tạm lưu trên máy.",
+  "bootstrapWebNotConfigured": "Bản web chưa kết nối máy chủ, dữ liệu tạm lưu trên trình duyệt này.",
+  "bootstrapWindowsNotConfigured": "Bản Windows chưa kết nối máy chủ, dữ liệu tạm lưu trên máy này.",
+  "coupleAlreadyInCouple": "Tài khoản này đã ghép đôi rồi.",
   "coupleAlreadyInThisCouple": "Bạn đã ở trong cặp đôi này rồi.",
   "coupleCannotUseOwnCode": "Bạn không thể nhập mã mời của chính mình.",
-  "coupleCodeNoLongerValid": "Mã mời này không còn trỏ tới một cặp đôi hợp lệ nữa.",
-  "coupleCodeNotFoundLocal": "Không tìm thấy mã kết nối trong local fallback.",
-  "coupleEnterCodeFirst": "Bạn hãy nhập mã kết nối trước nhé.",
-  "coupleFirebaseUnavailable": "Firebase hiện chưa khả dụng hoặc mạng chưa ổn định. Bạn thử lại sau ít phút nhé.",
+  "coupleCodeNoLongerValid": "Mã mời này không còn dùng được nữa. Bạn nhờ người ấy tạo lại mã mời nhé.",
+  "coupleCodeNotFoundLocal": "Không tìm thấy mã mời trên máy này (chưa kết nối máy chủ).",
+  "coupleEnterCodeFirst": "Bạn hãy nhập mã mời trước nhé.",
+  "coupleFirebaseUnavailable": "Chưa kết nối được máy chủ, có thể do mạng chập chờn. Bạn thử lại sau ít phút nhé.",
   "coupleFull": "Cặp đôi này đã đủ 2 người rồi.",
-  "coupleFullLocal": "Cặp đôi local này đã đủ 2 người rồi.",
-  "coupleInviteCodeInvalid": "Mã mời không hợp lệ hoặc không còn tồn tại.",
-  "coupleJoinGeneric": "Không thể kết nối bằng mã mời lúc này.",
-  "coupleJoinPermissionDenied": "Không thể kết nối bằng mã mời này. Có thể không gian cặp đôi đã thay đổi hoặc không còn hợp lệ — bạn nhờ người ấy tạo lại mã mời, hoặc đăng xuất/đăng nhập lại rồi thử nhé.",
-  "coupleMatchedLocal": "Đã ghép cặp trong local fallback mode.",
+  "coupleFullLocal": "Cặp đôi trên máy này đã đủ 2 người rồi.",
+  "coupleInviteCodeInvalid": "Mã mời không đúng hoặc không còn dùng được.",
+  "coupleJoinGeneric": "Chưa kết nối được bằng mã mời. Bạn thử lại sau nhé.",
+  "coupleJoinPermissionDenied": "Chưa kết nối được bằng mã mời này. Có thể không gian cặp đôi đã thay đổi hoặc không còn dùng được. Bạn nhờ người ấy tạo lại mã mời, hoặc đăng xuất rồi đăng nhập lại và thử lần nữa nhé.",
+  "coupleMatchedLocal": "Đã ghép đôi trên máy này (chưa kết nối máy chủ).",
   "coupleNoDataToUpdate": "Chưa có thông tin cặp đôi để cập nhật.",
-  "coupleNotFoundForCode": "Không tìm thấy cặp đôi tương ứng với mã này.",
+  "coupleNotFoundForCode": "Không tìm thấy cặp đôi nào dùng mã này.",
   "coupleOnboardingBadge": "BẮT ĐẦU",
   "couplePartnerHasNoSpace": "Người ấy đã có mã mời riêng nhưng chưa tạo không gian cặp đôi để bạn tham gia.",
-  "couplePhotoUploadGeneric": "Ảnh đôi chưa upload được lên Firebase Storage.",
-  "couplePhotoUploadPermission": "Ảnh đôi chưa upload được lên Firebase Storage. Mình vẫn lưu thông tin cặp đôi trước, bạn deploy `storage.rules` rồi thử đổi ảnh lại sau nhé.",
-  "couplePhotoUploadSessionInvalid": "Ảnh đôi chưa upload được vì phiên đăng nhập Firebase không còn hợp lệ.",
-  "couplePhotoUploadUnavailable": "Ảnh đôi chưa upload được vì Firebase Storage hoặc mạng đang tạm thời không ổn định.",
-  "coupleSaveGeneric": "Không thể lưu thông tin cặp đôi lúc này.",
-  "coupleSavePermissionDenied": "Không thể lưu thông tin cặp đôi do quyền truy cập bị từ chối. Dữ liệu có thể đang ở trạng thái không hợp lệ — bạn thử đăng xuất/đăng nhập lại rồi thử lại nhé.",
-  "coupleSessionExpiredJoin": "Phiên đăng nhập đã hết hạn. Bạn đăng nhập lại rồi thử kết nối lại nhé.",
-  "coupleSessionInvalid": "Phiên đăng nhập Firebase không còn hợp lệ. Bạn đăng nhập lại giúp mình nhé.",
-  "coupleSessionNotReadyRelogin": "Phiên đăng nhập Firebase chưa sẵn sàng. Bạn đăng xuất rồi đăng nhập lại giúp mình nhé.",
-  "coupleSpaceInvalidRegenerate": "Mã mời này đang trỏ tới một không gian cặp đôi không còn hợp lệ. Bạn nhờ người ấy tạo lại mã mời rồi thử lại nhé.",
+  "couplePhotoUploadGeneric": "Chưa tải được ảnh đôi lên. Bạn thử đổi ảnh lại sau nhé.",
+  "couplePhotoUploadPermission": "Chưa tải được ảnh đôi lên. Mình đã lưu thông tin cặp đôi trước, bạn thử đổi ảnh lại sau nhé.",
+  "couplePhotoUploadSessionInvalid": "Chưa tải được ảnh đôi lên vì phiên đăng nhập không còn hiệu lực. Bạn đăng nhập lại rồi đổi ảnh nhé.",
+  "couplePhotoUploadUnavailable": "Chưa tải được ảnh đôi lên vì mạng hoặc máy chủ đang chập chờn. Bạn thử lại sau nhé.",
+  "coupleSaveGeneric": "Chưa lưu được thông tin cặp đôi. Bạn thử lại sau nhé.",
+  "coupleSavePermissionDenied": "Chưa lưu được thông tin cặp đôi vì máy chủ từ chối. Có thể dữ liệu đang bị lỗi, bạn đăng xuất rồi đăng nhập lại và thử lần nữa nhé.",
+  "coupleSessionExpiredJoin": "Phiên đăng nhập đã hết hạn. Bạn đăng nhập lại rồi thử kết nối lần nữa nhé.",
+  "coupleSessionInvalid": "Phiên đăng nhập không còn hiệu lực. Bạn đăng nhập lại giúp mình nhé.",
+  "coupleSessionNotReadyRelogin": "Phiên đăng nhập chưa sẵn sàng. Bạn đăng xuất rồi đăng nhập lại giúp mình nhé.",
+  "coupleSpaceInvalidRegenerate": "Không gian cặp đôi của mã mời này không còn dùng được. Bạn nhờ người ấy tạo lại mã mời rồi thử lại nhé.",
   "coupleUpdatedSuccess": "Đã cập nhật thông tin cặp đôi.",
-  "coupleUserNotFoundForCreate": "Không tìm thấy người dùng hiện tại để tạo cặp đôi.",
+  "coupleUserNotFoundForCreate": "Không tìm thấy tài khoản của bạn để tạo cặp đôi. Bạn đăng nhập lại nhé.",
   "createAccountBadge": "TẠO TÀI KHOẢN",
   "defaultDisplayName": "Người dùng mới",
-  "deleteAccountBtn": "Xóa tài khoản",
-  "deleteAccountConfirmBtn": "Xóa vĩnh viễn",
-  "deleteAccountDesc": "Xóa vĩnh viễn tài khoản và toàn bộ dữ liệu của bạn",
-  "deleteAccountDialogContent": "Hành động này không thể hoàn tác. Toàn bộ dữ liệu của bạn bao gồm ảnh và thông tin cặp đôi sẽ bị xóa vĩnh viễn.",
-  "deleteAccountDialogTitle": "Xóa tài khoản?",
-  "deleteAccountFailed": "Hiện chưa thể xoá tài khoản. Vui lòng thử lại.",
-  "deleteAccountRequiresReloginMsg": "Vui lòng đăng xuất, đăng nhập lại và thử lại để xác nhận danh tính",
+  "deleteAccountBtn": "Xoá tài khoản",
+  "deleteAccountConfirmBtn": "Xoá vĩnh viễn",
+  "deleteAccountDialogContent": "Việc này không thể hoàn tác. Toàn bộ dữ liệu của bạn, gồm ảnh và thông tin cặp đôi, sẽ bị xoá vĩnh viễn.",
+  "deleteAccountDialogTitle": "Xoá tài khoản?",
+  "deleteAccountFailed": "Chưa xoá được tài khoản. Bạn thử lại nhé.",
   "deleteAccountReauthTitle": "Xác minh đó là bạn",
   "deleteAccountReauthBody": "Vì lý do bảo mật, hãy nhập lại mật khẩu để xoá tài khoản vĩnh viễn.",
-  "deleteAccountSessionExpiredMsg": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại rồi xoá tài khoản.",
-  "deleteAccountSuccessMsg": "Tài khoản đã được xóa",
-  "deleteAccountTitle": "Xóa tài khoản",
+  "deleteAccountSessionExpiredMsg": "Phiên đăng nhập đã hết hạn. Bạn đăng nhập lại rồi xoá tài khoản nhé.",
   "editCoupleBadge": "HỒ SƠ CẶP ĐÔI",
   "galleryEditCaptionTooltip": "Sửa chú thích",
   "galleryEmptySubtitle": "Thêm ảnh để bắt đầu tạo kỷ niệm",
   "galleryEmptyTitle": "Chưa có ảnh nào",
   "galleryRecordTodayMoment": "Ghi lại khoảnh khắc hôm nay",
   "galleryTodayBadge": "Hôm nay",
-  "galleryTodayEmptySubtitle": "Mỗi tấm ảnh là một kỷ niệm chung của nhau.",
+  "galleryTodayEmptySubtitle": "Mỗi tấm ảnh là một kỷ niệm của chúng mình.",
   "galleryTodayEmptyTitle": "Hôm nay chưa có khoảnh khắc nào",
-  "homeWaitingPartnerSubtitle": "Chia sẻ mã mời với người ấy để bắt đầu hành trình cùng nhau.",
-  "homeWaitingPartnerTitle": "Chờ bạn đồng hành",
   "leavingCouple": "Đang rời cặp đôi...",
-  "loveHomeBadge": "TRANG CHỦ",
-  "mustAgreeToPrivacyPolicy": "Vui lòng đồng ý với chính sách bảo mật để tiếp tục",
-  "photoConnectCoupleFirst": "Bạn cần kết nối couple trước khi đăng ảnh.",
-  "photoFileNotFoundStorage": "Không tìm thấy file ảnh trên Firebase Storage.",
-  "photoFirebaseUnavailable": "Firebase hiện chưa khả dụng hoặc mạng chưa ổn định.",
+  "mustAgreeToPrivacyPolicy": "Bạn cần đồng ý với Chính sách bảo mật để tiếp tục",
+  "photoConnectCoupleFirst": "Bạn cần ghép đôi trước khi đăng ảnh nhé.",
+  "photoFileNotFoundStorage": "Không tìm thấy ảnh này trên máy chủ.",
+  "photoFirebaseUnavailable": "Chưa kết nối được máy chủ, có thể do mạng chập chờn. Bạn thử lại sau ít phút nhé.",
   "photoNotFoundToPost": "Không tìm thấy ảnh để đăng.",
-  "photoStorageUnauthorized": "Firebase Storage đang từ chối thao tác với ảnh này.",
-  "photoSyncGeneric": "Không thể đồng bộ ảnh lúc này.",
-  "photoSyncPermissionDenied": "Bạn chưa có quyền đồng bộ ảnh. Hãy kiểm tra `firestore.rules` và `storage.rules` trên Firebase.",
-  "photoSyncSessionExpired": "Phiên đăng nhập Firebase đã hết hạn. Bạn đăng nhập lại giúp mình nhé.",
+  "photoStorageUnauthorized": "Chưa làm được việc này với ảnh. Bạn thử đăng xuất rồi đăng nhập lại nhé.",
+  "photoSyncGeneric": "Chưa đồng bộ được ảnh. Bạn thử lại sau nhé.",
+  "photoSyncPermissionDenied": "Bạn chưa có quyền đồng bộ ảnh. Thử đăng xuất rồi đăng nhập lại nhé.",
+  "photoSyncSessionExpired": "Phiên đăng nhập đã hết hạn. Bạn đăng nhập lại giúp mình nhé.",
   "posterNameFallback": "Người ấy",
-  "privacyDisclosure": "Bằng cách tạo tài khoản, bạn đồng ý với Chính sách bảo mật của chúng tôi. Chúng tôi thu thập email, tên hiển thị và ảnh bạn chia sẻ để cung cấp dịch vụ.",
+  "privacyDisclosure": "Khi tạo tài khoản, bạn đồng ý với Chính sách bảo mật của chúng tôi. Chúng tôi thu thập email, tên hiển thị và ảnh bạn chia sẻ để cung cấp dịch vụ.",
   "privacyPolicyLabel": "Chính sách bảo mật",
   "profileDangerIrreversible": "Không thể hoàn tác",
   "pushPhotoChannelDescription": "Thông báo khi người ấy đăng ảnh mới.",
@@ -1324,28 +1025,29 @@
   "signOutConfirmBtn": "Đăng xuất",
   "signOutDialogContent": "Bạn có chắc muốn đăng xuất khỏi tài khoản không?",
   "signOutDialogTitle": "Đăng xuất?",
-  "signOutFailedMsg": "Không thể đăng xuất. Vui lòng kiểm tra kết nối và thử lại.",
+  "signOutFailedMsg": "Chưa đăng xuất được. Bạn kiểm tra kết nối rồi thử lại nhé.",
   "welcomeBackBadge": "CHÀO MỪNG TRỞ LẠI",
   "counterDuration": "{years} năm, {months} tháng, {days} ngày",
-  "coupleLoadError": "Không thể tải thông tin cặp đôi: {error}",
-  "coupleSyncError": "Không thể đồng bộ thông tin cặp đôi: {error}",
+  "coupleLoadError": "Chưa tải được thông tin cặp đôi. Bạn thử lại nhé.",
+  "coupleSyncError": "Chưa đồng bộ được thông tin cặp đôi. Bạn thử lại nhé.",
   "galleryMonthLabel": "{month, select, 1{Tháng 01 • {year}} 2{Tháng 02 • {year}} 3{Tháng 03 • {year}} 4{Tháng 04 • {year}} 5{Tháng 05 • {year}} 6{Tháng 06 • {year}} 7{Tháng 07 • {year}} 8{Tháng 08 • {year}} 9{Tháng 09 • {year}} 10{Tháng 10 • {year}} 11{Tháng 11 • {year}} 12{Tháng 12 • {year}} other{Tháng {month} • {year}}}",
   "galleryTodayMomentsCount": "{count} khoảnh khắc hôm nay",
-  "galleryEndOfFeed": "Đã hết kỷ niệm 💕, hãy tạo thêm kỷ niệm mới cùng nhau nhé",
-  "homeCounterStartFrom": "Bắt đầu từ {date}",
-  "guestTryWithoutLogin": "Dùng thử không cần đăng nhập",
-  "guestLoginDivider": "hoặc",
+  "galleryEndOfFeed": "Đã xem hết kỷ niệm rồi 💕 Cùng nhau tạo thêm kỷ niệm mới nhé",
   "guestModeBadge": "Chế độ dùng thử",
   "guestCounterTitle": "Đếm ngày yêu",
-  "guestCounterSubtitle": "Nhập ngày hai bạn bắt đầu để xem đã bên nhau bao lâu.",
+  "guestCounterSubtitle": "Chọn ngày hai bạn bắt đầu yêu để xem đã bên nhau bao lâu.",
   "guestEmptyTitle": "Bắt đầu đếm ngày yêu của bạn",
   "guestEmptyBody": "Chọn ngày kỷ niệm để xem hai bạn đã bên nhau bao lâu rồi.",
   "guestPickDate": "Chọn ngày kỷ niệm",
   "guestChangeDate": "Đổi ngày kỷ niệm",
+  "widgetEmptyTap": "Chạm để bắt đầu đếm ngày yêu",
+  "@widgetEmptyTap": {
+    "description": "Home-screen widget, empty state (guest / no couple / signed out). One line under the app-name chip; widget is 158pt wide, max 3 lines."
+  },
   "guestCounterStartFrom": "Bắt đầu từ {date}",
   "guestCtaTitle": "Muốn lưu kỷ niệm cùng người ấy?",
   "guestCtaBody": "Đăng nhập để ghép đôi & lưu ảnh chung.",
-  "guestCtaSignIn": "Đăng nhập",
+  "guestCtaSignIn": "Đăng nhập bằng email",
   "guestCtaRegister": "Đăng ký",
   "streakChipNoStreak": "Bắt đầu chuỗi cùng nhau",
   "@streakChipNoStreak": {
@@ -1363,7 +1065,7 @@
       }
     }
   },
-  "streakChipInProgress": "{n} ngày kết nối · tới lượt hôm nay 🌸",
+  "streakChipInProgress": "{n} ngày kết nối · chờ trả lời hôm nay 🌸",
   "@streakChipInProgress": {
     "placeholders": {
       "n": {
@@ -1381,6 +1083,7 @@
   },
   "streakSheetUnit": "ngày kết nối liên tiếp",
   "streakSheetNoStreakTitle": "Thắp ngọn lửa đầu tiên",
+  "streakSheetRestartTitle": "Thắp lại ngọn lửa",
   "streakSheetNoStreakBody": "Mỗi ngày chúng mình cùng trả lời câu hỏi là chuỗi lại dài thêm. Cùng bắt đầu nhé 💞",
   "streakSheetActiveTitle": "Chúng mình đang giữ lửa 💞",
   "streakSheetActiveBody": "Hôm nay xong rồi đó! Hẹn gặp ở câu hỏi ngày mai nha.",
@@ -1393,8 +1096,8 @@
       }
     }
   },
-  "streakSheetAtRiskTitle": "Còn một nhịp đệm thôi 🫶",
-  "streakSheetAtRiskBody": "Hôm qua chúng mình lỡ một nhịp — không sao cả! Trả lời hôm nay là chuỗi {n} ngày tiếp tục liền.",
+  "streakSheetAtRiskTitle": "Vẫn còn kịp nè 🫶",
+  "streakSheetAtRiskBody": "Hôm qua chúng mình lỡ một nhịp, không sao cả! Trả lời hôm nay là chuỗi {n} ngày tiếp tục liền.",
   "@streakSheetAtRiskBody": {
     "placeholders": {
       "n": {
@@ -1402,7 +1105,7 @@
       }
     }
   },
-  "streakSheetRestartBody": "Chuỗi cũ khép lại rồi, nhưng mỗi ngày mới là một khởi đầu. Cùng thắp lại nào 🌱",
+  "streakSheetRestartBody": "Chuỗi cũ khép lại rồi. Hôm nay chúng mình cùng trả lời câu hỏi là thắp lại được ngay 🌱",
   "streakSheetRecord": "Kỷ lục của chúng mình: {m} ngày 🌟",
   "@streakSheetRecord": {
     "placeholders": {
@@ -1411,7 +1114,7 @@
       }
     }
   },
-  "streakNextMilestone": "Còn {n} ngày tới mốc {m} 🎉",
+  "streakNextMilestone": "Còn {n} ngày tới mốc {m} ngày 🎉",
   "@streakNextMilestone": {
     "placeholders": {
       "n": {
@@ -1426,14 +1129,14 @@
   "streakCtaKeepGoing": "Giữ chuỗi nhé",
   "streakMilestone3Title": "3 ngày rồi đó! 🌸",
   "streakMilestone3Body": "Khởi đầu thật đáng yêu. Chúng mình đang làm tốt lắm 💞",
-  "streakMilestone7Title": "Trọn một tuần! ✨",
+  "streakMilestone7Title": "Tròn một tuần! ✨",
   "streakMilestone7Body": "7 ngày liền chúng mình không lỡ nhịp nào. Tự hào ghê!",
-  "streakMilestone30Title": "30 ngày bên nhau mỗi ngày! 🔥",
-  "streakMilestone30Body": "Một tháng giữ lửa — đây là thói quen của chúng mình rồi đấy 💞",
+  "streakMilestone30Title": "Tròn 30 ngày liền! 🔥",
+  "streakMilestone30Body": "Một tháng giữ lửa, giờ thành thói quen của chúng mình rồi đấy 💞",
   "streakMilestone100Title": "100 ngày! 💯",
-  "streakMilestone100Body": "Trăm ngày cùng nhau trả lời, cùng nhau lớn lên. Hiếm cặp nào làm được như chúng mình 🌟",
+  "streakMilestone100Body": "Trăm ngày cùng nhau trả lời, hiểu nhau thêm từng chút. Hiếm cặp nào làm được như chúng mình 🌟",
   "streakMilestone365Title": "Tròn một năm! 👑",
-  "streakMilestone365Body": "365 ngày không lỡ một nhịp kết nối. Đây là chuyện tình của riêng chúng mình 💞👑",
+  "streakMilestone365Body": "365 ngày chưa lỡ nhịp nào. Cả năm trời, ngày nào chúng mình cũng có nhau 💞👑",
   "streakJournalSummary": "Chuỗi hiện tại {n} ngày · Dài nhất {m}",
   "@streakJournalSummary": {
     "placeholders": {
@@ -1447,10 +1150,7 @@
   },
   "streakJournalSummaryNone": "Cùng trả lời mỗi ngày để bắt đầu chuỗi nhé 🌸",
   "forgotPasswordLink": "Quên mật khẩu?",
-  "forgotPasswordBadge": "KHÔI PHỤC TRUY CẬP",
-  "forgotPasswordTitle": "Quên mật khẩu?",
-  "forgotPasswordSubtitle": "Nhập email của bạn, mình sẽ gửi liên kết để đặt lại mật khẩu.",
-  "forgotPasswordEmailHeading": "Email",
+  "forgotPasswordBadge": "LẤY LẠI MẬT KHẨU",
   "forgotPasswordSendBtn": "Gửi email đặt lại",
   "forgotPasswordBackToLogin": "Quay lại đăng nhập",
   "forgotPasswordSentTitle": "Kiểm tra hộp thư",
@@ -1466,15 +1166,6 @@
   "forgotPasswordNetworkError": "Không gửi được email. Kiểm tra kết nối mạng rồi thử lại nhé.",
   "forgotPasswordLocalFallback": "Tính năng này cần kết nối mạng. Bạn kết nối internet rồi thử lại nhé.",
   "verifyEmailBadge": "XÁC THỰC EMAIL",
-  "verifyEmailTitle": "Xác thực email của bạn",
-  "verifyEmailSubtitle": "Mình đã gửi liên kết xác thực tới {email}.",
-  "@verifyEmailSubtitle": {
-    "placeholders": {
-      "email": {
-        "type": "String"
-      }
-    }
-  },
   "verifyEmailBody": "Mở email, bấm vào liên kết xác thực, rồi quay lại đây và bấm \"Tôi đã xác thực\".",
   "verifyEmailCheckBtn": "Tôi đã xác thực",
   "verifyEmailResend": "Gửi lại email",
@@ -1486,17 +1177,17 @@
       }
     }
   },
-  "verifyEmailNotYet": "Chưa thấy xác thực — bạn kiểm tra lại hộp thư rồi thử lại nhé.",
+  "verifyEmailNotYet": "Email vẫn chưa được xác thực. Bạn mở hộp thư, bấm vào liên kết rồi thử lại nhé.",
   "verifyEmailSuccess": "Đã xác thực! Đang đưa bạn vào...",
   "verifyEmailResendError": "Không gửi lại được email. Kiểm tra kết nối rồi thử lại nhé.",
   "setupWaitingCoupleCodeTitle": "Gửi mã này cho người ấy để ghép đôi",
-  "setupCoupleCodeDesc": "Đây là mã ghép đôi của hai bạn. Cả hai đều dùng mã này để kết nối lại nếu cần.",
-  "setupCoupleCodeRejoinHint": "Lưu mã lại — bạn có thể dùng nó để quay lại không gian này bất cứ lúc nào.",
+  "setupCoupleCodeDesc": "Đây là mã mời chung của hai bạn. Cả hai đều dùng mã này để kết nối lại nếu cần.",
+  "setupCoupleCodeRejoinHint": "Lưu mã lại nhé, lúc nào cần quay lại không gian này cũng dùng được.",
   "galleryNeedsCoupleToUpload": "Bạn cần ghép đôi trước để đăng ảnh chung nhé 💞",
   "notifCenterTitle": "Thông báo",
   "notifCenterBadge": "TIN MỚI CỦA HAI BẠN",
   "notifCenterEmptyTitle": "Chưa có thông báo",
-  "notifCenterEmptyBody": "Hoạt động của hai bạn sẽ xuất hiện ở đây.",
+  "notifCenterEmptyBody": "Ảnh mới, tin nhắn của người ấy sẽ hiện ở đây.",
   "notifGroupToday": "Hôm nay",
   "notifGroupEarlier": "Trước đó",
   "notifUnreadCount": "{count} chưa đọc",
@@ -1507,12 +1198,11 @@
       }
     }
   },
-  "notifAllCaughtUp": "Hai bạn đã xem hết rồi 💛",
+  "notifAllCaughtUp": "Bạn đã xem hết rồi 💛",
   "notifMarkAllRead": "Đánh dấu đã đọc",
   "notifClearAll": "Xoá tất cả",
   "notifClearAllConfirmTitle": "Xoá tất cả thông báo?",
   "notifClearAllConfirmBody": "Bạn sẽ không xem lại được những thông báo này.",
-  "notifDismiss": "Xoá",
   "notifGeneric": "Bạn có thông báo mới",
   "notifPhotoPosted": "{name} vừa đăng ảnh mới",
   "@notifPhotoPosted": {
@@ -1573,7 +1263,7 @@
       }
     }
   },
-  "notifChatMessage": "{name} vừa gửi cho bạn một tin nhắn 💬",
+  "notifChatMessage": "{name} vừa nhắn tin cho bạn 💬",
   "@notifChatMessage": {
     "placeholders": {
       "name": {
@@ -1587,7 +1277,7 @@
   "forceUpdateButton": "Cập nhật ngay",
   "counterBgBadge": "ẢNH NỀN",
   "counterBgTitle": "Ảnh nền thẻ đếm",
-  "counterBgSubtitleAll": "Chọn ảnh được dùng làm nền thẻ đếm ngày. Bỏ trống thì xoay vòng tất cả ảnh.",
+  "counterBgSubtitleAll": "Chọn ảnh muốn làm nền thẻ đếm ngày. Bỏ trống thì thẻ sẽ xoay vòng tất cả ảnh.",
   "counterBgSubtitleCount": "Đã chọn {count} ảnh làm nền thẻ đếm.",
   "@counterBgSubtitleCount": {
     "placeholders": {
@@ -1596,7 +1286,7 @@
       }
     }
   },
-  "counterBgCoverLabel": "Ảnh đại diện",
+  "counterBgCoverLabel": "Ảnh đôi",
   "counterBgEmptyTitle": "Chưa có ảnh nào",
   "counterBgEmptyBody": "Hãy thêm vài kỷ niệm vào thư viện trước nhé.",
   "settingsCounterBgTitle": "Ảnh nền thẻ đếm",
@@ -1604,21 +1294,21 @@
   "counterBgSave": "Lưu",
   "counterBgSavedMsg": "Đã lưu ảnh nền thẻ đếm 💕",
   "counterBgDiscardTitle": "Bỏ thay đổi?",
-  "counterBgDiscardBody": "Bạn có thay đổi chưa lưu. Thoát mà không lưu nhé?",
+  "counterBgDiscardBody": "Bạn chưa lưu thay đổi. Vẫn thoát chứ?",
   "counterBgDiscardLeave": "Thoát",
   "settingsChatBgTitle": "Ảnh nền đoạn chat",
   "settingsChatBgSubtitle": "Chọn một ảnh làm nền cuộc trò chuyện",
   "chatBgBadge": "ẢNH NỀN CHAT",
   "chatBgTitle": "Ảnh nền đoạn chat",
   "chatBgSubtitle": "Chọn một ảnh làm nền cuộc trò chuyện, hoặc giữ nền mặc định.",
-  "chatBgFilterHint": "Chỉ hiện ảnh dọc, độ phân giải cao — phủ kín màn hình mà không bị cắt hay vỡ nét.",
+  "chatBgFilterHint": "Chỉ hiện ảnh dọc, đủ nét để phủ kín màn hình mà không bị cắt hay vỡ hình.",
   "chatBgNoneLabel": "Mặc định",
   "chatBgMeasuring": "Đang lọc ảnh…",
   "chatBgNoneValidTitle": "Chưa có ảnh phù hợp",
-  "chatBgNoneValidBody": "Hãy thêm ảnh dọc, sắc nét vào thư viện — ảnh ngang hoặc độ phân giải thấp không dùng làm nền chat được.",
+  "chatBgNoneValidBody": "Thêm ảnh dọc, sắc nét vào thư viện nhé. Ảnh ngang hoặc kém nét thì không làm nền chat được.",
   "chatBgSavedMsg": "Đã lưu ảnh nền chat 💕",
-  "journeyTrailTitle": "Hành trình của chúng mình",
-  "milestoneTrailNext": "Còn {days} ngày tới {label}",
+  "journeyTrailTitle": "Cột mốc của chúng mình",
+  "milestoneTrailNext": "Còn {days} ngày tới mốc {label}",
   "@milestoneTrailNext": {
     "placeholders": {
       "days": {
@@ -1629,7 +1319,7 @@
       }
     }
   },
-  "milestoneTrailAllDone": "Hai bạn đã chinh phục mọi cột mốc rồi 🎉",
+  "milestoneTrailAllDone": "Hai bạn đã đi qua mọi cột mốc rồi 🎉",
   "profileAchievementsTitle": "Huy hiệu của chúng mình",
   "badgeStreakLabel": "ngày chuỗi",
   "badgeRecordLabel": "kỷ lục",
@@ -1640,7 +1330,7 @@
   "profileRecordDaysTogether": "Ngày bên nhau",
   "profileRecordTotalMemories": "Tổng kỷ niệm",
   "profileRecordJournalEntries": "Câu hỏi đã trả lời",
-  "profileRecordStreakMilestones": "Cột mốc chuỗi đạt",
+  "profileRecordStreakMilestones": "Mốc chuỗi đã đạt",
   "profileJournalCountLabel": "{count} câu",
   "@profileJournalCountLabel": {
     "description": "Journal entry count value, e.g. '5 câu' (Q&As answered)",
@@ -1656,7 +1346,8 @@
     "description": "Total memories subtitle in the memories sheet",
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -1674,38 +1365,21 @@
   },
   "loveTreeBadge": "CÂY TÌNH YÊU",
   "loveTreeStage0": "Hạt mầm",
-  "loveTreeStage1": "Mầm non",
-  "loveTreeStage2": "Cây non",
-  "loveTreeStage3": "Cây xanh",
-  "loveTreeStage4": "Nở rộ",
   "loveTreeFlowerCount": "{count} bông hoa đã nở",
-  "loveTreeFlowerCountZero": "Chưa có bông nào — hãy cùng vun đắp",
-  "loveTreeSeedSubtitle": "Hành trình của hai bạn bắt đầu từ đây 🌱",
-  "loveTreeBloomSubtitle": "Cây của hai bạn đang rực rỡ ✨",
+  "loveTreeSeedSubtitle": "Chúng mình vừa gieo hạt mầm đầu tiên 🌱",
   "loveTreeNewBloomBanner": "Cây vừa nở {count} bông mới 🌸",
   "loveTreeNewBloomBannerOne": "Cây vừa nở một bông mới 🌸",
-  "loveTreeNurtureTitle": "Cùng vun đắp",
-  "loveTreeNurtureStreakTitle": "Giữ chuỗi mỗi ngày",
-  "loveTreeNurtureStreakBody": "Trả lời câu hỏi để chuỗi không đứt",
-  "loveTreeNurturePhotoTitle": "Thêm một kỷ niệm",
-  "loveTreeNurturePhotoBody": "Mỗi tấm ảnh là một bông hoa mới",
-  "loveTreeNurtureTalkTitle": "Cùng trò chuyện hôm nay",
-  "loveTreeNurtureTalkBody": "Những khoảnh khắc nhỏ nuôi cây lớn",
-  "loveTreeMilestonesTitle": "Cột mốc",
   "loveTreeMilestoneDays": "{count} ngày bên nhau",
   "loveTreeMilestoneStreak": "Chuỗi {count} ngày",
   "loveTreeMilestonePhotos": "{count} ảnh kỷ niệm",
-  "loveTreeMilestoneBloomed": "đã nở",
   "loveTreeMilestoneDaysLeft": "còn {count} ngày",
   "loveTreeMilestoneStreakLeft": "còn {count} ngày chuỗi",
   "loveTreeMilestonePhotosLeft": "còn {count} ảnh",
-  "loveTreeMilestoneAllDone": "đã đủ 🌟",
   "loveTreeWaitingTitle": "Cây đang chờ cả hai",
   "loveTreeWaitingBody": "Cây sẽ lớn khi cả hai cùng có mặt. Mời người ấy tham gia nhé 💌",
   "loveTreeWaitingCta": "Mời người ấy",
-  "loveTreeNoCoupleBody": "Hãy kết nối với người ấy để bắt đầu trồng cây 🌱",
+  "loveTreeNoCoupleBody": "Ghép đôi với người ấy để bắt đầu trồng cây nhé 🌱",
   "loveTreeCoachTooltip": "Chạm để xem khoảnh khắc 🌸",
-  "loveTreeTapHint": "Chạm vào mỗi bông để xem kỷ niệm",
   "loveTreeMomentDaysTitle": "{count} ngày bên nhau",
   "@loveTreeMomentDaysTitle": {
     "placeholders": {
@@ -1747,10 +1421,10 @@
     }
   },
   "loveTreeMomentDaysCopy": "Mỗi ngày bên nhau là một cánh hoa nở 🌸",
-  "loveTreeMomentPhotosCopy": "Một khoảnh khắc hai đứa đã cùng lưu giữ 💞",
-  "loveTreeMomentStreakCopy": "Kỷ lục các bạn từng cùng nhau giữ. Bắt đầu chuỗi mới để vượt nó nhé 🔥",
+  "loveTreeMomentPhotosCopy": "Tấm ảnh chúng mình đã cùng giữ lại 💞",
+  "loveTreeMomentStreakCopy": "Chuỗi dài nhất hai bạn từng giữ được. Bắt đầu chuỗi mới để phá kỷ lục này nhé 🔥",
   "loveTreeMomentViewInGallery": "Xem trong Thư viện",
-  "loveTreeLockedDays": "Còn {count} ngày nữa để nở 🌱",
+  "loveTreeLockedDays": "Còn {count} ngày nữa là nở 🌱",
   "@loveTreeLockedDays": {
     "placeholders": {
       "count": {
@@ -1758,7 +1432,7 @@
       }
     }
   },
-  "loveTreeLockedPhotos": "Còn {count} kỷ niệm nữa để nở 🌱",
+  "loveTreeLockedPhotos": "Còn {count} kỷ niệm nữa là nở 🌱",
   "@loveTreeLockedPhotos": {
     "placeholders": {
       "count": {
@@ -1766,7 +1440,7 @@
       }
     }
   },
-  "loveTreeLockedStreak": "Còn {count} ngày chuỗi nữa để nở 🌱",
+  "loveTreeLockedStreak": "Còn {count} ngày chuỗi nữa là nở 🌱",
   "@loveTreeLockedStreak": {
     "placeholders": {
       "count": {
@@ -1781,27 +1455,30 @@
   "@loveTreeShareStats": {
     "placeholders": {
       "days": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "flowers": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
   "loveTreeShareTagline": "Cây tình yêu của chúng mình 🌳",
-  "loveTreeShareTaglineSeed": "Cây vừa gieo mầm 🌱",
+  "loveTreeShareTaglineSeed": "Cây vừa nảy mầm 🌱",
   "loveTreeShareMessage": "Cây tình yêu của chúng mình đã nở {flowers} bông hoa sau {days} ngày 🌳💞 — vun cây cùng người ấy trên Dear Embeiu.",
   "@loveTreeShareMessage": {
     "placeholders": {
       "flowers": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       },
       "days": {
-        "type": "String"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
-  "loveTreeShareFailed": "Không tạo được thẻ, thử lại nhé",
   "partnerReminderNotifBody": "Người ấy nhắc bạn 💌",
   "notifAnswerReaction": "{name} đã thả {emoji} cho câu trả lời của bạn",
   "@notifAnswerReaction": {
@@ -1839,10 +1516,6 @@
   "@careMessageEntryTitle": {
     "description": "Profile menu entry opening the care-note composer."
   },
-  "careMessageEntrySubtitle": "Một lời nhắn nhỏ cho người ấy ấm lòng",
-  "@careMessageEntrySubtitle": {
-    "description": "Subtitle of the profile care-note entry."
-  },
   "careMessageQuickPicksTitle": "Gợi ý nhanh",
   "@careMessageQuickPicksTitle": {
     "description": "Section title above the ready-made care-note chips."
@@ -1868,11 +1541,17 @@
     "description": "Primary button that sends the care note."
   },
   "aiQuestionsSaveFailed": "Chưa lưu được, thử lại sau nhé",
-  "@aiQuestionsSaveFailed": {"description": "aiQuestionsSaveFailed"},
+  "@aiQuestionsSaveFailed": {
+    "description": "aiQuestionsSaveFailed"
+  },
   "dailyQuestionPreparing": "Đang chuẩn bị câu hỏi hôm nay…",
-  "@dailyQuestionPreparing": {"description": "dailyQuestionPreparing"},
+  "@dailyQuestionPreparing": {
+    "description": "dailyQuestionPreparing"
+  },
   "careMessageQueuedToast": "Mạng chậm xíu, lời quan tâm sẽ tự gửi khi có mạng 💌",
-  "@careMessageQueuedToast": {"description": "Toast when the care note write timed out offline and is queued"},
+  "@careMessageQueuedToast": {
+    "description": "Toast when the care note write timed out offline and is queued"
+  },
   "careMessageSentToast": "Đã gửi rồi nhé 💌",
   "@careMessageSentToast": {
     "description": "Snackbar after a care note was sent."
@@ -1881,7 +1560,7 @@
   "@careMessageErrorToast": {
     "description": "Snackbar when sending a care note failed."
   },
-  "careMessageNeedCouple": "Cần ghép đôi trước khi gửi quan tâm nhé.",
+  "careMessageNeedCouple": "Cần ghép đôi trước khi gửi lời quan tâm nhé.",
   "@careMessageNeedCouple": {
     "description": "Shown when the user has no active couple yet."
   },
@@ -1917,7 +1596,7 @@
   "@careQuick3Title": {
     "description": "Quick-pick care note title 3."
   },
-  "careQuick3Body": "Nhớ ăn đúng bữa nha, đừng bỏ bữa nhé.",
+  "careQuick3Body": "Nhớ ăn cơm đúng bữa, đừng bỏ bữa nha.",
   "@careQuick3Body": {
     "description": "Quick-pick care note body 3."
   },
@@ -1941,7 +1620,7 @@
   "@careQuick6Title": {
     "description": "Quick-pick care note title 6."
   },
-  "careQuick6Body": "Hôm nay chắc mệt lắm. Cố lên nha, luôn có chúng mình ở đây.",
+  "careQuick6Body": "Hôm nay chắc mệt lắm. Cố lên nha, luôn có mình ở đây mà.",
   "@careQuick6Body": {
     "description": "Quick-pick care note body 6."
   },
@@ -1951,6 +1630,1472 @@
     "placeholders": {
       "name": {
         "type": "String"
+      }
+    }
+  },
+  "rpsGameTitle": "Oẳn tù tì",
+  "@rpsGameTitle": {
+    "description": "Name of the rock-paper-scissors mini game (feature rps-game)."
+  },
+  "rpsGameBadge": "OẲN TÙ TÌ",
+  "@rpsGameBadge": {
+    "description": "Uppercase eyebrow chip naming the rock-paper-scissors screen."
+  },
+  "rpsChoiceRock": "Búa",
+  "@rpsChoiceRock": {
+    "description": "Rock-paper-scissors hand: rock."
+  },
+  "rpsChoicePaper": "Bao",
+  "@rpsChoicePaper": {
+    "description": "Rock-paper-scissors hand: paper."
+  },
+  "rpsChoiceScissors": "Kéo",
+  "@rpsChoiceScissors": {
+    "description": "Rock-paper-scissors hand: scissors."
+  },
+  "rpsChoiceNone": "Bỏ lượt",
+  "@rpsChoiceNone": {
+    "description": "Rock-paper-scissors: the player didn't pick before the timer ran out (history + result)."
+  },
+  "rpsResultWin": "Bạn thắng 🎉",
+  "@rpsResultWin": {
+    "description": "Rock-paper-scissors result headline when the current user won."
+  },
+  "rpsResultLose": "Người ấy thắng 😝",
+  "@rpsResultLose": {
+    "description": "Rock-paper-scissors result headline when the partner won."
+  },
+  "rpsResultDraw": "Hoà 🤝",
+  "@rpsResultDraw": {
+    "description": "Rock-paper-scissors result headline for a draw."
+  },
+  "rpsWaitingPartner": "Đang chờ người ấy…",
+  "@rpsWaitingPartner": {
+    "description": "Rock-paper-scissors: invite sent, the partner hasn't opened the game yet."
+  },
+  "rpsChosenWaiting": "Bạn đã ra rồi ✓ · Chờ người ấy ra…",
+  "@rpsChosenWaiting": {
+    "description": "Rock-paper-scissors: the user has picked a hand and is waiting for the partner."
+  },
+  "rpsExpired": "Lời mời đã hết hạn",
+  "@rpsExpired": {
+    "description": "Rock-paper-scissors: the invite went unanswered for 10 minutes."
+  },
+  "rpsCancelled": "Người ấy đã huỷ lời mời",
+  "@rpsCancelled": {
+    "description": "Rock-paper-scissors: the inviter withdrew the invite."
+  },
+  "notifRpsInvite": "{name} rủ bạn oẳn tù tì!",
+  "@notifRpsInvite": {
+    "description": "Notification center title for a rock-paper-scissors invite from the partner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifRpsResult": "Ván oẳn tù tì với {name} đã có kết quả",
+  "@notifRpsResult": {
+    "description": "Notification center title when a rock-paper-scissors game finished.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsHistoryBadge": "LỊCH SỬ VÁN",
+  "@rpsHistoryBadge": {
+    "description": "Uppercase eyebrow chip on the rock-paper-scissors history screen."
+  },
+  "rpsEntryIdleSubtitle": "Rủ người ấy một ván nhé",
+  "@rpsEntryIdleSubtitle": {
+    "description": "Home card subtitle when no game is open."
+  },
+  "rpsEntryWeekScore": "Tuần này {win} – {draw} – {loss}",
+  "@rpsEntryWeekScore": {
+    "description": "Home card score line for the current week (wins – draws – losses).",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsEntryInvitedTitle": "Người ấy đang rủ!",
+  "@rpsEntryInvitedTitle": {
+    "description": "Home card title when the partner has an open invite."
+  },
+  "rpsEntryInvitedSubtitle": "Vào chơi ngay nhé",
+  "@rpsEntryInvitedSubtitle": {
+    "description": "Home card subtitle when the partner has an open invite."
+  },
+  "rpsEntryPendingSubtitle": "Lời mời hết hạn sau 10 phút",
+  "@rpsEntryPendingSubtitle": {
+    "description": "Home card subtitle while my own invite is pending."
+  },
+  "rpsEntryCtaPlay": "Chơi",
+  "@rpsEntryCtaPlay": {
+    "description": "Home card CTA (idle)."
+  },
+  "rpsEntryCtaJoin": "Vào chơi",
+  "@rpsEntryCtaJoin": {
+    "description": "Home card CTA when the partner invited me."
+  },
+  "rpsEntryCtaOpen": "Mở",
+  "@rpsEntryCtaOpen": {
+    "description": "Home card CTA while my invite is pending."
+  },
+  "rpsScoreFormat": "{win} – {draw} – {loss}",
+  "@rpsScoreFormat": {
+    "description": "Score triple (wins – draws – losses) with en dashes.",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsScoreSemantics": "Tỉ số: bạn {win}, hoà {draw}, người ấy {loss}",
+  "@rpsScoreSemantics": {
+    "description": "Accessibility label for the score triple.",
+    "placeholders": {
+      "win": {
+        "type": "String"
+      },
+      "draw": {
+        "type": "String"
+      },
+      "loss": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsChoiceSemantics": "Chọn {choice}",
+  "@rpsChoiceSemantics": {
+    "description": "Accessibility label for a hand button.",
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsRulesHint": "Kéo cắt Bao · Bao bọc Búa · Búa đập Kéo",
+  "@rpsRulesHint": {
+    "description": "One-line rules reminder under the three hand buttons."
+  },
+  "rpsRuleScissorsPaper": "Kéo cắt Bao",
+  "@rpsRuleScissorsPaper": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsRulePaperRock": "Bao bọc Búa",
+  "@rpsRulePaperRock": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsRuleRockScissors": "Búa đập Kéo",
+  "@rpsRuleRockScissors": {
+    "description": "Rule line shown on the result screen."
+  },
+  "rpsMeLabel": "Mình",
+  "@rpsMeLabel": {
+    "description": "Label under my avatar / my card."
+  },
+  "rpsPartnerLabel": "Người ấy",
+  "@rpsPartnerLabel": {
+    "description": "Label under the partner's avatar / card."
+  },
+  "rpsVs": "vs",
+  "@rpsVs": {
+    "description": "The small 'vs' pill between the two players."
+  },
+  "rpsWaitingBody": "Đã gửi lời mời. Chờ người ấy vào nhé…",
+  "@rpsWaitingBody": {
+    "description": "Waiting screen body for the inviter. Neutral on purpose (Tester RPS-21): the CF may skip the push (partner still on the previous result screen), so never claim they were notified."
+  },
+  "rpsWaitingBodyInvitee": "Đang kết nối với người ấy… Cả hai cùng có mặt là bắt đầu.",
+  "@rpsWaitingBodyInvitee": {
+    "description": "Waiting screen body for the invitee."
+  },
+  "rpsNudgeCta": "Nhắc lại",
+  "@rpsNudgeCta": {
+    "description": "Waiting screen: re-send the invite push."
+  },
+  "rpsNudgeCooldown": "Nhắc lại ({seconds}s)",
+  "@rpsNudgeCooldown": {
+    "description": "Waiting screen nudge button while on cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsNudgeSentToast": "Đã nhắc người ấy lần nữa 🔔",
+  "@rpsNudgeSentToast": {
+    "description": "Toast after re-sending the invite."
+  },
+  "rpsCancelCta": "Huỷ lời mời",
+  "@rpsCancelCta": {
+    "description": "Waiting screen: creator withdraws the invite."
+  },
+  "rpsCloseCta": "Đóng",
+  "@rpsCloseCta": {
+    "description": "Tertiary close button on the game screen."
+  },
+  "rpsCancelledToast": "Đã huỷ lời mời",
+  "@rpsCancelledToast": {
+    "description": "Toast after the creator cancelled the invite."
+  },
+  "rpsCountdownPrompt": "Chọn ngay!",
+  "@rpsCountdownPrompt": {
+    "description": "Prompt under the countdown ring."
+  },
+  "rpsCountdownUnit": "GIÂY",
+  "@rpsCountdownUnit": {
+    "description": "Micro-caps unit under the countdown number."
+  },
+  "rpsCountdownSemantics": "Còn {seconds} giây",
+  "@rpsCountdownSemantics": {
+    "description": "Accessibility live label for the countdown.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "rpsResolving": "Đang mở kết quả…",
+  "@rpsResolving": {
+    "description": "Caption while the server settles the round."
+  },
+  "rpsResolvingSlow": "Mạng đang hơi chậm…",
+  "@rpsResolvingSlow": {
+    "description": "Caption when settling takes more than 6 seconds."
+  },
+  "rpsReloadCta": "Tải lại",
+  "@rpsReloadCta": {
+    "description": "Button to re-read the game when settling is slow."
+  },
+  "rpsOfflineHint": "Mất mạng rồi, có mạng lại sẽ tự gửi lựa chọn của bạn",
+  "@rpsOfflineHint": {
+    "description": "Offline strip above the hand buttons."
+  },
+  "rpsResultDrawSub": "Cùng ra {choice}",
+  "@rpsResultDrawSub": {
+    "description": "Result subtitle for a draw.",
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsResultTimeoutPartner": "Người ấy không kịp chọn",
+  "@rpsResultTimeoutPartner": {
+    "description": "Result subtitle when the partner skipped."
+  },
+  "rpsResultTimeoutMe": "Bạn không kịp chọn",
+  "@rpsResultTimeoutMe": {
+    "description": "Result subtitle when I skipped."
+  },
+  "rpsResultTimeoutBoth": "Cả hai bỏ lượt — ván này hoà",
+  "@rpsResultTimeoutBoth": {
+    "description": "Result subtitle when both skipped."
+  },
+  "rpsRematchCta": "Chơi lại",
+  "@rpsRematchCta": {
+    "description": "Result screen primary CTA."
+  },
+  "rpsHistoryCta": "Xem lịch sử",
+  "@rpsHistoryCta": {
+    "description": "Result screen secondary CTA."
+  },
+  "rpsRematchToast": "Người ấy rủ chơi lại!",
+  "@rpsRematchToast": {
+    "description": "Toast when the partner created a rematch while I'm on the result screen."
+  },
+  "rpsResultSemantics": "{title}. Bạn ra {mine}, người ấy ra {theirs}.",
+  "@rpsResultSemantics": {
+    "description": "Accessibility summary of the result.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "mine": {
+        "type": "String"
+      },
+      "theirs": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsExpiredBody": "Lời mời quá 10 phút nên đã hết hạn. Rủ lại nhé!",
+  "@rpsExpiredBody": {
+    "description": "Body of the expired-invite state."
+  },
+  "rpsCancelledBody": "Không sao, lúc nào rủ ván khác cũng được mà.",
+  "@rpsCancelledBody": {
+    "description": "Body of the cancelled-invite state."
+  },
+  "rpsInviteAgainCta": "Rủ lại",
+  "@rpsInviteAgainCta": {
+    "description": "CTA on the expired/cancelled states."
+  },
+  "rpsErrorTitle": "Chưa mở được ván chơi",
+  "@rpsErrorTitle": {
+    "description": "Error state title on the game screen."
+  },
+  "rpsErrorBody": "Kiểm tra mạng rồi thử lại nhé.",
+  "@rpsErrorBody": {
+    "description": "Error state body on the game screen."
+  },
+  "rpsNeedCouple": "Ghép đôi với người ấy rồi mới chơi cùng được nhé.",
+  "@rpsNeedCouple": {
+    "description": "Shown when there is no partner to play with."
+  },
+  "rpsScoreMe": "MÌNH",
+  "@rpsScoreMe": {
+    "description": "Scoreboard column header (mine)."
+  },
+  "rpsScoreDraw": "HOÀ",
+  "@rpsScoreDraw": {
+    "description": "Scoreboard column header (draws)."
+  },
+  "rpsScorePartner": "NGƯỜI ẤY",
+  "@rpsScorePartner": {
+    "description": "Scoreboard column header (partner)."
+  },
+  "rpsHistoryTotal": "Đã chơi {count} ván",
+  "@rpsHistoryTotal": {
+    "description": "Scoreboard footer: total rounds.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "rpsHistoryWinStreak": "Chuỗi thắng: {count}",
+  "@rpsHistoryWinStreak": {
+    "description": "Scoreboard footer: my current win streak (hidden at 0).",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsOutcomeWin": "Bạn thắng",
+  "@rpsOutcomeWin": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeLoss": "Người ấy thắng",
+  "@rpsOutcomeLoss": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeDraw": "Hoà",
+  "@rpsOutcomeDraw": {
+    "description": "History row outcome pill."
+  },
+  "rpsOutcomeSkipped": "Bỏ lượt",
+  "@rpsOutcomeSkipped": {
+    "description": "History row outcome pill when a hand was missing."
+  },
+  "rpsHistoryRowSemantics": "{time}: bạn {mine}, người ấy {theirs}, {outcome}",
+  "@rpsHistoryRowSemantics": {
+    "description": "Accessibility label for a history row.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "mine": {
+        "type": "String"
+      },
+      "theirs": {
+        "type": "String"
+      },
+      "outcome": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsHistoryEmptyTitle": "Chưa có ván nào",
+  "@rpsHistoryEmptyTitle": {
+    "description": "History empty state title."
+  },
+  "rpsHistoryEmptyBody": "Ván nào chúng mình chơi cũng sẽ nằm ở đây, kể cả ván hoà.",
+  "@rpsHistoryEmptyBody": {
+    "description": "History empty state body."
+  },
+  "rpsHistoryEmptyCta": "Rủ người ấy một ván",
+  "@rpsHistoryEmptyCta": {
+    "description": "History empty state CTA."
+  },
+  "featureTourRpsTitle": "Oẳn tù tì cùng người ấy",
+  "@featureTourRpsTitle": {
+    "description": "Feature tour entry title (build 23)."
+  },
+  "featureTourRpsBody": "Rủ một ván, cùng đếm oẳn tù tì rồi ra tay. Không có chuyện bỏ lượt, ai chưa ra thì app nhắc. Cả hai chọn xong mới lộ kết quả. Lịch sử và tỉ số nằm ở Hồ sơ.",
+  "@featureTourRpsBody": {
+    "description": "Feature tour entry body (build 23)."
+  },
+  "featureTourSleepTitle": "Giấc ngủ của chúng mình",
+  "@featureTourSleepTitle": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSleepBody": "Lịch trăng ghi lại từng đêm, trăng càng tròn là ngủ càng đủ giấc. Cùng bật chia sẻ thì sáng ra mở app là biết đêm qua người ấy ngủ mấy tiếng.",
+  "@featureTourSleepBody": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSleepMotionTitle": "Không cần đồng hồ vẫn biết giấc ngủ",
+  "@featureTourSleepMotionTitle": {
+    "description": "Feature tour entry (build 28): motion fallback for sleep."
+  },
+  "featureTourSleepMotionBody": "Để điện thoại cạnh giường là đủ: app đoán giờ ngủ, giờ dậy từ lúc máy nằm yên. Đêm nào lệch thì chạm vào sửa lại.",
+  "@featureTourSleepMotionBody": {
+    "description": "Feature tour entry (build 28)."
+  },
+  "featureTourSkyTitle": "Chòm sao hôm nay",
+  "@featureTourSkyTitle": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "featureTourSkyBody": "Cây Tình Yêu giờ có bầu trời đêm. Mỗi người 3 ngôi sao: trả lời câu hỏi, chọn tâm trạng, nhắn một tin. Đủ 6 sao là trái tim sáng trọn.",
+  "@featureTourSkyBody": {
+    "description": "Feature tour entry (build 25)."
+  },
+  "rpsOpenPrompt": "Ra tay đi! Không có bỏ lượt đâu 😄",
+  "@rpsOpenPrompt": {
+    "description": "Play screen caption once the 5s beat is over and nobody has thrown (no time limit)."
+  },
+  "rpsOpenRingSemantics": "Không giới hạn thời gian, ra tay khi bạn sẵn sàng",
+  "@rpsOpenRingSemantics": {
+    "description": "Screen-reader label of the ring once the 5s beat is over."
+  },
+  "rpsPartnerMovedTitle": "Người ấy đã ra rồi!",
+  "@rpsPartnerMovedTitle": {
+    "description": "Play screen banner + Home card title: the partner has thrown, I have not (never says which hand)."
+  },
+  "rpsPartnerMovedBody": "Tới lượt bạn — chọn tay bên dưới",
+  "@rpsPartnerMovedBody": {
+    "description": "Play screen banner body under rpsPartnerMovedTitle."
+  },
+  "rpsMoveNudgeCta": "Nhắc người ấy",
+  "@rpsMoveNudgeCta": {
+    "description": "Play screen: I have thrown, ask the partner (push) to throw too."
+  },
+  "rpsMoveNudgeCooldown": "Đã nhắc · nhắc lại sau {seconds}s",
+  "@rpsMoveNudgeCooldown": {
+    "description": "Play screen nudge button during its 60s cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsMoveNudgeSentToast": "Đã nhắc người ấy 🔔",
+  "@rpsMoveNudgeSentToast": {
+    "description": "Snackbar after the move nudge was sent."
+  },
+  "rpsMoveNudgeTooSoon": "Vừa nhắc rồi — đợi {seconds}s nữa nhé",
+  "@rpsMoveNudgeTooSoon": {
+    "description": "Snackbar when the server refused the move nudge because of the cooldown.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "rpsMoveNudgeFailed": "Chưa gửi được lời nhắc, thử lại nhé",
+  "@rpsMoveNudgeFailed": {
+    "description": "Snackbar when the move nudge failed (network / other error)."
+  },
+  "rpsChosenLeaveHint": "Cứ làm việc khác nhé, có kết quả là báo bạn ngay",
+  "@rpsChosenLeaveHint": {
+    "description": "Play screen hint under the nudge button: leaving is fine, the result is pushed."
+  },
+  "rpsEntryMyTurnSubtitle": "Tới lượt bạn, ra tay nhé 😄",
+  "@rpsEntryMyTurnSubtitle": {
+    "description": "Home card subtitle when the partner has thrown and I have not."
+  },
+  "rpsEntryUnplayedTitle": "Ván đang dở",
+  "@rpsEntryUnplayedTitle": {
+    "description": "Home card title: a started round where nobody has thrown yet."
+  },
+  "rpsEntryUnplayedSubtitle": "Chưa ai ra — vào trước nhé",
+  "@rpsEntryUnplayedSubtitle": {
+    "description": "Home card subtitle for rpsEntryUnplayedTitle."
+  },
+  "rpsEntryAwaitingTitle": "Đang chờ người ấy ra",
+  "@rpsEntryAwaitingTitle": {
+    "description": "Home card title: I have thrown, the partner has not."
+  },
+  "rpsEntryAwaitingSubtitle": "Bạn đã ra · có kết quả sẽ báo",
+  "@rpsEntryAwaitingSubtitle": {
+    "description": "Home card subtitle for rpsEntryAwaitingTitle."
+  },
+  "rpsEntryCtaThrow": "Ra tay",
+  "@rpsEntryCtaThrow": {
+    "description": "Home card CTA to open a started round and throw."
+  },
+  "notifRpsMoved": "{name} đã ra rồi — tới lượt bạn!",
+  "@notifRpsMoved": {
+    "description": "Notification center title: the partner threw in rock-paper-scissors and it is my move.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepCardTitle": "Đêm qua",
+  "@sleepCardTitle": {
+    "description": "Sleep: Home card title"
+  },
+  "sleepBadge": "GIẤC NGỦ",
+  "@sleepBadge": {
+    "description": "Sleep screen header chip"
+  },
+  "sleepYou": "Bạn",
+  "@sleepYou": {
+    "description": "Sleep: label for my own data"
+  },
+  "sleepUnitHour": "g",
+  "@sleepUnitHour": {
+    "description": "Sleep: hour unit after a big number (7g 15p)"
+  },
+  "sleepUnitMinute": "p",
+  "@sleepUnitMinute": {
+    "description": "Sleep: minute unit after a big number"
+  },
+  "sleepDurationShort": "{h}g {m}p",
+  "@sleepDurationShort": {
+    "description": "Sleep: compact duration",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepMinutesShort": "{m}p",
+  "@sleepMinutesShort": {
+    "description": "Sleep: compact duration under one hour",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepDurationLong": "{h} giờ {m} phút",
+  "@sleepDurationLong": {
+    "description": "Sleep: spelled-out duration (screen readers, edit total)",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogether": "Ngủ cùng lúc {duration}",
+  "@sleepTogether": {
+    "description": "Sleep: overlap of both sleeps",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepWentFirst": "{name} ngủ trước {duration}",
+  "@sleepWentFirst": {
+    "description": "Sleep: who fell asleep first, shown when 10+ min apart",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepNoOverlap": "Đêm qua hai bạn không ngủ cùng lúc",
+  "@sleepNoOverlap": {
+    "description": "Sleep card footer when the two sleeps did not overlap"
+  },
+  "sleepSetupPitch": "Để điện thoại tự ghi giấc ngủ, sáng nào cũng biết đêm qua người ấy ngủ ra sao.",
+  "@sleepSetupPitch": {
+    "description": "Sleep card before tracking is on"
+  },
+  "sleepEnableCta": "Bật theo dõi",
+  "@sleepEnableCta": {
+    "description": "Sleep card CTA opening the setup sheet"
+  },
+  "sleepHide": "Ẩn",
+  "@sleepHide": {
+    "description": "Sleep card: hide for 30 days"
+  },
+  "sleepNotRecorded": "Chưa ghi nhận",
+  "@sleepNotRecorded": {
+    "description": "Sleep: no night found for me"
+  },
+  "sleepLogManually": "Ghi tay",
+  "@sleepLogManually": {
+    "description": "Sleep: link opening the edit sheet to log a night by hand"
+  },
+  "sleepPartnerNotShared": "Chưa chia sẻ",
+  "@sleepPartnerNotShared": {
+    "description": "Sleep card: partner does not share"
+  },
+  "sleepPartnerNotSharedLong": "{name} chưa chia sẻ giấc ngủ",
+  "@sleepPartnerNotSharedLong": {
+    "description": "Sleep screen: partner does not share",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepNoData": "Chưa có dữ liệu",
+  "@sleepNoData": {
+    "description": "Sleep: partner shares but has no night"
+  },
+  "sleepNeedsPermission": "Cần cấp lại quyền",
+  "@sleepNeedsPermission": {
+    "description": "Sleep: Android usage access lost"
+  },
+  "sleepOpenSettings": "Mở cài đặt",
+  "@sleepOpenSettings": {
+    "description": "Sleep: open the permission settings"
+  },
+  "sleepPermissionBanner": "App chưa được xem lúc màn hình bật, tắt nên chưa ghi được giấc ngủ. Bạn bật lại trong Cài đặt → Quyền truy cập dữ liệu sử dụng nhé.",
+  "@sleepPermissionBanner": {
+    "description": "Sleep screen banner when Android usage access is off"
+  },
+  "sleepViewBoth": "Cả hai",
+  "@sleepViewBoth": {
+    "description": "Sleep screen segmented: both people"
+  },
+  "sleepPrevMonth": "Tháng trước",
+  "@sleepPrevMonth": {
+    "description": "Sleep calendar arrow (screen reader)"
+  },
+  "sleepNextMonth": "Tháng sau",
+  "@sleepNextMonth": {
+    "description": "Sleep calendar arrow (screen reader)"
+  },
+  "sleepNightTitle": "Đêm {d1} → sáng {d2}",
+  "@sleepNightTitle": {
+    "description": "Sleep night detail title, d1 = day of the evening, d2 = wake date (10/10)",
+    "placeholders": {
+      "d1": {
+        "type": "String"
+      },
+      "d2": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepAwakenings": "{count, plural, other{Thức giấc {count} lần}}",
+  "@sleepAwakenings": {
+    "description": "Sleep: number of short wake-ups",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepNoAwakenings": "Ngủ một mạch",
+  "@sleepNoAwakenings": {
+    "description": "Sleep: no wake-up"
+  },
+  "sleepSourceEdited": "Đã sửa",
+  "@sleepSourceEdited": {
+    "description": "Sleep label: night edited by its owner (everyone sees it)"
+  },
+  "sleepSourceManual": "Ghi tay",
+  "@sleepSourceManual": {
+    "description": "Sleep label: night logged by hand (everyone sees it)"
+  },
+  "sleepSourceHealth": "Apple Health",
+  "@sleepSourceHealth": {
+    "description": "Sleep source name"
+  },
+  "sleepSourcePhone": "Điện thoại (tự động)",
+  "@sleepSourcePhone": {
+    "description": "Sleep source name on Android"
+  },
+  "sleepSourceHealthEmpty": "Apple Health (chưa có dữ liệu)",
+  "@sleepSourceHealthEmpty": {
+    "description": "Sleep source row: iOS Health mode with no Health night in the last 14 days."
+  },
+  "sleepSourceMotion": "Chuyển động của điện thoại",
+  "@sleepSourceMotion": {
+    "description": "Sleep source name: motion fallback (phone lying still)"
+  },
+  "sleepSourceRow": "Nguồn: {source}",
+  "@sleepSourceRow": {
+    "description": "Sleep settings row",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMonthSection": "Tháng này",
+  "@sleepMonthSection": {
+    "description": "Sleep stats section title for the current month"
+  },
+  "sleepPerNight": "/đêm",
+  "@sleepPerNight": {
+    "description": "Sleep stats unit after the average"
+  },
+  "sleepAvgTimes": "Ngủ ~{bed} · Dậy ~{wake}",
+  "@sleepAvgTimes": {
+    "description": "Sleep stats: average bed and wake time",
+    "placeholders": {
+      "bed": {
+        "type": "String"
+      },
+      "wake": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepFullNights": "{count, plural, other{{count} đêm tròn giấc}}",
+  "@sleepFullNights": {
+    "description": "Sleep stats: nights of 8 hours or more",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepOfNights": "{count, plural, other{trên {count} đêm}}",
+  "@sleepOfNights": {
+    "description": "Sleep stats: nights with data",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogetherNights": "{count, plural, other{{count} đêm ngủ cùng lúc từ 7 tiếng}}",
+  "@sleepTogetherNights": {
+    "description": "Sleep stats: nights with 7h+ overlap",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepTogetherAvg": "trung bình {duration} mỗi đêm",
+  "@sleepTogetherAvg": {
+    "description": "Sleep stats: average overlap",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareToggle": "Chia sẻ với người ấy",
+  "@sleepShareToggle": {
+    "description": "Sleep settings switch"
+  },
+  "sleepShareToggleSub": "Tắt thì chỉ mình bạn xem được.",
+  "@sleepShareToggleSub": {
+    "description": "Sleep settings switch subtitle"
+  },
+  "sleepHowItWorks": "App tính giấc ngủ thế nào?",
+  "@sleepHowItWorks": {
+    "description": "Sleep settings row + explainer sheet title"
+  },
+  "sleepMyColor": "Màu trăng của bạn",
+  "@sleepMyColor": {
+    "description": "Sleep settings: color picker title"
+  },
+  "sleepMyColorSub": "{name} đang dùng màu {color}. Màu quá giống ({blocked}) bị khoá.",
+  "@sleepMyColorSub": {
+    "description": "Sleep color picker subtitle",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "color": {
+        "type": "String"
+      },
+      "blocked": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMyColorSubNoBlock": "{name} đang dùng màu {color}.",
+  "@sleepMyColorSubNoBlock": {
+    "description": "Sleep color picker subtitle when nothing else is locked",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMyColorSolo": "Màu này đánh dấu giấc ngủ của bạn ở mọi chỗ.",
+  "@sleepMyColorSolo": {
+    "description": "Sleep color picker subtitle without partner data"
+  },
+  "sleepColorTakenSemantics": "Màu của {name}",
+  "@sleepColorTakenSemantics": {
+    "description": "Sleep color picker: swatch used by the partner (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorTooClose": "Quá giống màu của {name}",
+  "@sleepColorTooClose": {
+    "description": "Sleep color picker: locked swatch (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorAutoChanged": "Màu bạn chọn trùng với người ấy nên tạm hiện màu {color}.",
+  "@sleepColorAutoChanged": {
+    "description": "Sleep color picker when both picked clashing colors",
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepColorRose": "Hồng",
+  "@sleepColorRose": {
+    "description": "Sleep color name"
+  },
+  "sleepColorPurple": "Tím",
+  "@sleepColorPurple": {
+    "description": "Sleep color name"
+  },
+  "sleepColorBlue": "Xanh dương",
+  "@sleepColorBlue": {
+    "description": "Sleep color name"
+  },
+  "sleepColorTeal": "Ngọc",
+  "@sleepColorTeal": {
+    "description": "Sleep color name"
+  },
+  "sleepColorOrange": "Cam",
+  "@sleepColorOrange": {
+    "description": "Sleep color name"
+  },
+  "sleepColorGreen": "Xanh lá",
+  "@sleepColorGreen": {
+    "description": "Sleep color name"
+  },
+  "sleepColorMagenta": "Hồng sen",
+  "@sleepColorMagenta": {
+    "description": "Sleep color name"
+  },
+  "sleepColorAmber": "Vàng nghệ",
+  "@sleepColorAmber": {
+    "description": "Sleep color name"
+  },
+  "sleepLegend0": "dưới 5g",
+  "@sleepLegend0": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend1": "5–6g",
+  "@sleepLegend1": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend2": "6–7g",
+  "@sleepLegend2": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend3": "7–8g",
+  "@sleepLegend3": {
+    "description": "Sleep moon legend"
+  },
+  "sleepLegend4": "từ 8g",
+  "@sleepLegend4": {
+    "description": "Sleep moon legend"
+  },
+  "sleepMoonTagline": "Trăng càng tròn, ngủ càng tròn giấc",
+  "@sleepMoonTagline": {
+    "description": "Sleep calendar legend line"
+  },
+  "sleepMoonLeft": "Trăng trái: Bạn",
+  "@sleepMoonLeft": {
+    "description": "Sleep calendar legend (both view)"
+  },
+  "sleepMoonRight": "Trăng phải: {name}",
+  "@sleepMoonRight": {
+    "description": "Sleep calendar legend (both view)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepMoonTogether": "Ngủ cùng lúc từ 7 tiếng",
+  "@sleepMoonTogether": {
+    "description": "Sleep calendar legend: the heart"
+  },
+  "sleepPhase0": "Trăng lưỡi liềm",
+  "@sleepPhase0": {
+    "description": "Sleep moon phase, under 5 hours"
+  },
+  "sleepPhase1": "Trăng non",
+  "@sleepPhase1": {
+    "description": "Sleep moon phase, 5–6 hours"
+  },
+  "sleepPhase2": "Trăng bán nguyệt",
+  "@sleepPhase2": {
+    "description": "Sleep moon phase, 6–7 hours"
+  },
+  "sleepPhase3": "Trăng gần tròn",
+  "@sleepPhase3": {
+    "description": "Sleep moon phase, 7–8 hours"
+  },
+  "sleepPhase4": "Trăng tròn",
+  "@sleepPhase4": {
+    "description": "Sleep moon phase, 8 hours or more"
+  },
+  "sleepDaySemantics": "Ngày {day}: {summary}",
+  "@sleepDaySemantics": {
+    "description": "Sleep calendar cell (screen reader)",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepSemanticsSlept": "{name} ngủ {duration}, {phase}",
+  "@sleepSemanticsSlept": {
+    "description": "Sleep calendar cell part (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepSemanticsNoData": "{name} chưa có dữ liệu",
+  "@sleepSemanticsNoData": {
+    "description": "Sleep calendar cell part (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepEditedSemantics": "(đã sửa)",
+  "@sleepEditedSemantics": {
+    "description": "Sleep calendar cell suffix for edited/manual nights (screen reader)"
+  },
+  "sleepNoOverlapNight": "Đêm này hai bạn không ngủ cùng lúc",
+  "@sleepNoOverlapNight": {
+    "description": "Sleep night detail footer"
+  },
+  "sleepManualHint": "Bấm nút sửa để ghi tay",
+  "@sleepManualHint": {
+    "description": "Sleep night detail: my night is empty"
+  },
+  "sleepPartnerNightEmpty": "Chưa có dữ liệu đêm này",
+  "@sleepPartnerNightEmpty": {
+    "description": "Sleep night detail: partner night is empty"
+  },
+  "sleepEditLocked": "Đêm này quá 7 ngày rồi nên không sửa được nữa",
+  "@sleepEditLocked": {
+    "description": "Sleep night detail: edit window closed"
+  },
+  "sleepEditButton": "Sửa giờ ngủ đêm này",
+  "@sleepEditButton": {
+    "description": "Sleep edit button (screen reader)"
+  },
+  "sleepSetupTitle": "Để điện thoại tự ghi giấc ngủ",
+  "@sleepSetupTitle": {
+    "description": "Sleep setup step 1 title"
+  },
+  "sleepSetupBodyAndroid": "Mỗi sáng, app xem đêm qua bạn để điện thoại yên lâu nhất từ mấy giờ đến mấy giờ. App không đọc tin nhắn, ảnh hay bất kỳ nội dung nào.",
+  "@sleepSetupBodyAndroid": {
+    "description": "Sleep setup step 1 body (Android)"
+  },
+  "sleepSetupBodyIos": "App đọc giấc ngủ mà iPhone hoặc Apple Watch đã ghi trong app Sức khoẻ. Chỉ đọc, không ghi gì vào đó.",
+  "@sleepSetupBodyIos": {
+    "description": "Sleep setup step 1 body (iOS)"
+  },
+  "sleepSetupUnsupported": "Máy này chưa tự ghi được giấc ngủ. Bạn vẫn ghi tay được, mỗi lần chỉ mất vài giây.",
+  "@sleepSetupUnsupported": {
+    "description": "Sleep setup step 1 body when no automatic source exists"
+  },
+  "sleepSetupPoint1": "Không cần làm gì mỗi ngày",
+  "@sleepSetupPoint1": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupPoint2": "App đoán sai thì bạn sửa được",
+  "@sleepSetupPoint2": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupPoint3": "Chỉ chia sẻ khi bạn muốn",
+  "@sleepSetupPoint3": {
+    "description": "Sleep setup check line"
+  },
+  "sleepSetupHintAndroid": "App sẽ mở Cài đặt → Quyền truy cập dữ liệu sử dụng. Bạn bật Dear Embeiu rồi quay lại đây nhé.",
+  "@sleepSetupHintAndroid": {
+    "description": "Sleep setup hint (Android)"
+  },
+  "sleepSetupHintIos": "iPhone sẽ hỏi quyền đọc mục Giấc ngủ trong Sức khoẻ. Chưa có dữ liệu thì bật Lịch ngủ trong app Sức khoẻ.",
+  "@sleepSetupHintIos": {
+    "description": "Sleep setup hint (iOS)"
+  },
+  "sleepPermissionStillOff": "Dear Embeiu chưa được bật trong danh sách. Bạn thử lại nhé.",
+  "@sleepPermissionStillOff": {
+    "description": "Sleep setup: back from Settings without granting access"
+  },
+  "sleepGrantCta": "Cấp quyền",
+  "@sleepGrantCta": {
+    "description": "Sleep setup primary button"
+  },
+  "sleepManualCta": "Mình sẽ tự ghi",
+  "@sleepManualCta": {
+    "description": "Sleep setup secondary button"
+  },
+  "sleepShareAskTitle": "Cho {name} xem giấc ngủ của bạn?",
+  "@sleepShareAskTitle": {
+    "description": "Sleep setup step 2 title",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareAskBody": "Người ấy sẽ thấy giờ ngủ, giờ dậy và những lần bạn thức giấc trong đêm. Bạn tắt lúc nào cũng được.",
+  "@sleepShareAskBody": {
+    "description": "Sleep setup step 2 body"
+  },
+  "sleepShareAskPreview": "{name} SẼ THẤY",
+  "@sleepShareAskPreview": {
+    "description": "Sleep setup step 2 preview caption (uppercase)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepShareAskOnly": "Chỉ giờ ngủ, giờ dậy và những lần thức giấc trong đêm, theo giờ nơi bạn ngủ. Đêm nào bạn sửa hoặc ghi tay sẽ có thêm nhãn.",
+  "@sleepShareAskOnly": {
+    "description": "Sleep setup step 2 under the preview"
+  },
+  "sleepShareAskCta": "Chia sẻ với người ấy",
+  "@sleepShareAskCta": {
+    "description": "Sleep setup step 2 primary button"
+  },
+  "sleepLater": "Để sau",
+  "@sleepLater": {
+    "description": "Sleep setup step 2 secondary button"
+  },
+  "sleepBackToStep1": "Quay lại bước 1",
+  "@sleepBackToStep1": {
+    "description": "Sleep setup step 2 link"
+  },
+  "sleepEditBedTitle": "Đi ngủ",
+  "@sleepEditBedTitle": {
+    "description": "Sleep edit tile + time picker title"
+  },
+  "sleepEditWakeTitle": "Thức dậy",
+  "@sleepEditWakeTitle": {
+    "description": "Sleep edit tile + time picker title"
+  },
+  "sleepEditTotal": "Tổng: {duration}",
+  "@sleepEditTotal": {
+    "description": "Sleep edit live total",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepEditInvalid": "Giấc ngủ cần dài từ 1 đến 16 tiếng",
+  "@sleepEditInvalid": {
+    "description": "Sleep edit validation error"
+  },
+  "sleepDeleteNight": "Xoá đêm này",
+  "@sleepDeleteNight": {
+    "description": "Sleep edit delete button"
+  },
+  "sleepEditSubtitle": "Sửa lại nếu app đoán chưa đúng.",
+  "@sleepEditSubtitle": {
+    "description": "Sleep edit sheet subtitle (existing night)"
+  },
+  "sleepManualSubtitle": "Ghi lại lúc bạn đi ngủ và lúc thức dậy.",
+  "@sleepManualSubtitle": {
+    "description": "Sleep edit sheet subtitle (empty night)"
+  },
+  "sleepEditNote": "Lưu xong, đêm này mang nhãn “Đã sửa” (người ấy cũng thấy) và app không tự ghi đè nữa.",
+  "@sleepEditNote": {
+    "description": "Sleep edit sheet note (R4)"
+  },
+  "sleepManualNote": "Lưu xong, đêm này mang nhãn “Ghi tay”, người ấy cũng thấy.",
+  "@sleepManualNote": {
+    "description": "Sleep edit sheet note for a hand-logged night (R4)"
+  },
+  "sleepPickerSubtitle": "Kéo để chọn giờ và phút",
+  "@sleepPickerSubtitle": {
+    "description": "Sleep time picker subtitle"
+  },
+  "sleepSaveFailed": "Chưa lưu được, thử lại nhé",
+  "@sleepSaveFailed": {
+    "description": "Sleep edit save error"
+  },
+  "sleepLoadFailed": "Chưa tải được giấc ngủ của người ấy",
+  "@sleepLoadFailed": {
+    "description": "Sleep: partner nights failed to load"
+  },
+  "sleepHowBody1": "App coi khoảng điện thoại nằm yên lâu nhất trong đêm là giấc ngủ, tính từ 18h tới 14h hôm sau, dài 3 đến 16 tiếng. Khoảng kết thúc trước 1 giờ sáng, như lúc cắm sạc buổi tối, chỉ được tính khi đêm đó không có khoảng nào kéo dài sau 1 giờ.",
+  "@sleepHowBody1": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody1Ios": "App lấy giấc ngủ dài nhất mà iPhone hoặc Apple Watch ghi trong Sức khoẻ, tính từ 18h tới 14h hôm sau. Giấc dưới 3 tiếng hoặc quá 16 tiếng không được tính. Giấc kết thúc trước 1 giờ sáng chỉ được tính khi đêm đó không có giấc nào kéo dài sau 1 giờ.",
+  "@sleepHowBody1Ios": {
+    "description": "Sleep explainer paragraph (iOS)"
+  },
+  "sleepHowBody2": "Cầm máy dưới 5 phút giữa đêm chỉ tính là một lần thức giấc, giấc ngủ không bị cắt đôi.",
+  "@sleepHowBody2": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody3": "Đây chỉ là ước tính: nằm xem phim hay để quên máy ở xa đều làm số lệch. Bạn sửa được trong 7 ngày, và người ấy sẽ thấy nhãn “Đã sửa”.",
+  "@sleepHowBody3": {
+    "description": "Sleep explainer paragraph"
+  },
+  "sleepHowBody4": "App không đọc nội dung nào trên máy, chỉ biết lúc màn hình bật hay tắt.",
+  "@sleepHowBody4": {
+    "description": "Sleep explainer paragraph (Android)"
+  },
+  "sleepHowBody4Ios": "App chỉ đọc mục Giấc ngủ trong Sức khoẻ, ngoài ra không đọc gì.",
+  "@sleepHowBody4Ios": {
+    "description": "Sleep explainer paragraph (iOS)"
+  },
+  "sleepHowIphoneInBed": "iPhone có thể tự ghi giờ lên giường: mở Sức khoẻ → Duyệt → Giấc ngủ → Lịch ngủ, đặt giờ ngủ rồi bật theo dõi thời gian trên giường bằng iPhone. Một số máy từ iOS 18 không còn tuỳ chọn này.",
+  "@sleepHowIphoneInBed": {
+    "description": "Sleep explainer paragraph (iOS): Sleep Schedule / time in bed"
+  },
+  "sleepHowMotion": "Nếu bạn cho app xem chuyển động, đêm nào không có số liệu thì app đoán từ quãng điện thoại nằm yên. Đây chỉ là phỏng đoán: điện thoại nằm trên bàn cả buổi sáng có thể bị tính nhầm là đang ngủ, bạn sửa tay được. Dữ liệu chuyển động thô chỉ nằm trên máy; người ấy chỉ thấy giờ ngủ và giờ thức khi bạn bật chia sẻ.",
+  "@sleepHowMotion": {
+    "description": "Sleep explainer paragraph: motion fallback (both platforms)"
+  },
+  "sleepGotIt": "Đã hiểu",
+  "@sleepGotIt": {
+    "description": "Sleep explainer close button"
+  },
+  "sleepIosHealthHint": "Đặt *Lịch ngủ* trong Sức khoẻ (Duyệt → Giấc ngủ) để iPhone tự ghi giờ lên giường, nếu máy có tuỳ chọn này.",
+  "@sleepIosHealthHint": {
+    "description": "Sleep screen banner (iOS, no Health data). Text between * is rendered bold."
+  },
+  "sleepMotionHint": "Cho app xem *chuyển động* để đêm nào thiếu số liệu vẫn được đoán từ lúc điện thoại nằm yên.",
+  "@sleepMotionHint": {
+    "description": "Sleep screen tip for users set up before the motion fallback existed. Text between * is rendered bold."
+  },
+  "sleepMotionAllow": "Cho phép",
+  "@sleepMotionAllow": {
+    "description": "Button on the motion tip: shows the motion permission prompt"
+  },
+  "sleepHintDismiss": "Ẩn gợi ý",
+  "@sleepHintDismiss": {
+    "description": "Sleep banner close button (screen reader)"
+  },
+  "timePickerDefaultTitle": "Chọn giờ nhắc",
+  "@timePickerDefaultTitle": {
+    "description": "Time picker sheet default title"
+  },
+  "timePickerDefaultSubtitle": "Kéo để chọn giờ và phút",
+  "@timePickerDefaultSubtitle": {
+    "description": "Time picker sheet default subtitle"
+  },
+  "timePickerConfirm": "Xác nhận",
+  "@timePickerConfirm": {
+    "description": "Time picker sheet confirm button"
+  },
+  "sleepHoursShort": "{h}g",
+  "@sleepHoursShort": {
+    "description": "Sleep: compact duration with no leftover minutes",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepHoursLong": "{h} giờ",
+  "@sleepHoursLong": {
+    "description": "Sleep: spelled-out duration with no leftover minutes",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeSkyTitle": "Chòm sao hôm nay",
+  "@loveTreeSkyTitle": {
+    "description": "Love tree v3: title above the 6-star heart"
+  },
+  "loveTreeSkyExplain": "Mỗi việc nhỏ chúng mình làm cho nhau hôm nay thắp một ngôi sao. Đủ cả hai nửa, trái tim sáng trọn.",
+  "@loveTreeSkyExplain": {
+    "description": "Love tree v3: what the constellation means"
+  },
+  "loveTreeLeftHalf": "Nửa trái: Bạn",
+  "@loveTreeLeftHalf": {
+    "description": "Love tree v3 legend"
+  },
+  "loveTreeRightHalf": "Nửa phải: {name}",
+  "@loveTreeRightHalf": {
+    "description": "Love tree v3 legend",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarQuestion": "Câu hỏi",
+  "@loveTreeStarQuestion": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeStarMood": "Tâm trạng",
+  "@loveTreeStarMood": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeStarMessage": "Nhắn tin",
+  "@loveTreeStarMessage": {
+    "description": "Love tree v3: label next to a star"
+  },
+  "loveTreeTapStar": "Chạm vào một ngôi sao để xem chi tiết",
+  "@loveTreeTapStar": {
+    "description": "Love tree v3: hint under the constellation"
+  },
+  "loveTreeHeartFull": "Trái tim hôm nay đã sáng trọn",
+  "@loveTreeHeartFull": {
+    "description": "Love tree v3: all six stars lit"
+  },
+  "loveTreeTaskQuestion": "Trả lời câu hỏi hôm nay",
+  "@loveTreeTaskQuestion": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeTaskMood": "Chia sẻ tâm trạng",
+  "@loveTreeTaskMood": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeTaskMessage": "Nhắn cho nhau một câu",
+  "@loveTreeTaskMessage": {
+    "description": "Love tree v3: one of the three small things"
+  },
+  "loveTreeStarAnsweredAt": "{name} đã trả lời lúc {time}",
+  "@loveTreeStarAnsweredAt": {
+    "description": "Love tree v3 star detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarMoodAt": "{mood} · {time}",
+  "@loveTreeStarMoodAt": {
+    "description": "Love tree v3 star detail: mood picked + time",
+    "placeholders": {
+      "mood": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarMessagedAt": "{name} đã nhắn lúc {time}",
+  "@loveTreeStarMessagedAt": {
+    "description": "Love tree v3 star detail",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarDone": "Đã xong hôm nay",
+  "@loveTreeStarDone": {
+    "description": "Love tree v3 star detail when the time is unknown"
+  },
+  "loveTreeStarNoAnswer": "Chưa trả lời câu hỏi hôm nay",
+  "@loveTreeStarNoAnswer": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeStarNoMood": "Chưa chia sẻ tâm trạng hôm nay",
+  "@loveTreeStarNoMood": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeStarNoMessage": "Chưa nhắn gì hôm nay",
+  "@loveTreeStarNoMessage": {
+    "description": "Love tree v3 star detail"
+  },
+  "loveTreeActAnswer": "Trả lời ngay",
+  "@loveTreeActAnswer": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeActMood": "Chia sẻ ngay",
+  "@loveTreeActMood": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeActMessage": "Nhắn ngay",
+  "@loveTreeActMessage": {
+    "description": "Love tree v3: act on my unlit star"
+  },
+  "loveTreeNudge": "Gửi lời quan tâm",
+  "@loveTreeNudge": {
+    "description": "Love tree v3: partner's unlit star opens the care message screen"
+  },
+  "loveTreeClosePanel": "Đóng",
+  "@loveTreeClosePanel": {
+    "description": "Love tree v3: close the star detail (screen reader)"
+  },
+  "loveTreeStarSemantics": "{name} · {task} · {state}",
+  "@loveTreeStarSemantics": {
+    "description": "Love tree v3: star button (screen reader)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "task": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeStarLit": "đã thắp",
+  "@loveTreeStarLit": {
+    "description": "Love tree v3: star state (screen reader)"
+  },
+  "loveTreeStarUnlit": "chưa thắp",
+  "@loveTreeStarUnlit": {
+    "description": "Love tree v3: star state (screen reader)"
+  },
+  "loveTreeFlowersExplain": "Mỗi bông là một cột mốc của chúng mình. Chạm vào bông hoa để xem lại.",
+  "@loveTreeFlowersExplain": {
+    "description": "Love tree v3: under the flower count"
+  },
+  "loveTreeKindDays": "Ngày bên nhau",
+  "@loveTreeKindDays": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeKindStreak": "Chuỗi câu hỏi",
+  "@loveTreeKindStreak": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeKindPhotos": "Kỷ niệm ảnh",
+  "@loveTreeKindPhotos": {
+    "description": "Love tree v3: flower kind chip"
+  },
+  "loveTreeNextFlower": "BÔNG TIẾP THEO",
+  "@loveTreeNextFlower": {
+    "description": "Love tree v3: next milestone card caption"
+  },
+  "loveTreeNextProgressDays": "{current}/{target} ngày bên nhau",
+  "@loveTreeNextProgressDays": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeNextProgressStreak": "{current}/{target} ngày chuỗi",
+  "@loveTreeNextProgressStreak": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeNextProgressPhotos": "{current}/{target} ảnh",
+  "@loveTreeNextProgressPhotos": {
+    "description": "Love tree v3: next milestone progress",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "loveTreeTodayTasks": "Việc nhỏ hôm nay",
+  "@loveTreeTodayTasks": {
+    "description": "Love tree v3: section title"
+  },
+  "loveTreeTaskDone": "{name} ✓",
+  "@loveTreeTaskDone": {
+    "description": "Love tree v3: task done by that person",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeTaskPending": "{name} · chưa",
+  "@loveTreeTaskPending": {
+    "description": "Love tree v3: task not done yet by that person",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loveTreeDoNow": "Làm ngay",
+  "@loveTreeDoNow": {
+    "description": "Love tree v3: task row button"
+  },
+  "loveTreeBloomedTitle": "Cột mốc đã nở",
+  "@loveTreeBloomedTitle": {
+    "description": "Love tree v3: section title above the milestone chips"
+  },
+  "loveTreeShowLess": "Thu gọn",
+  "@loveTreeShowLess": {
+    "description": "Love tree v3: collapse the milestone chips"
+  },
+  "homeConstellationSemantics": "Chòm sao hôm nay: {lit} trên 6 sao. Mở Cây Tình Yêu",
+  "@homeConstellationSemantics": {
+    "description": "Home: Love Tree entry pill (screen reader)",
+    "placeholders": {
+      "lit": {
+        "type": "int"
       }
     }
   }

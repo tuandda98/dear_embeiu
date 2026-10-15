@@ -1,0 +1,15 @@
+/* iOS shows these instead of the same keys in Info.plist.
+   Info.plist keeps this Vietnamese copy as the fallback: change a sentence
+   here and change it in Info.plist too (and the other way round).
+   Change the wording in both en.lproj and vi.lproj.
+   test/pairing_native_config_test.dart checks they match. */
+
+"NSPhotoLibraryUsageDescription" = "Dear Embeiu cần truy cập thư viện ảnh để bạn chọn và chia sẻ ảnh kỷ niệm với người ấy.";
+
+"NSCameraUsageDescription" = "Dear Embeiu cần dùng camera để bạn chụp và đăng khoảnh khắc kỷ niệm với người ấy.";
+
+"NSHealthShareUsageDescription" = "Dear Embeiu đọc giấc ngủ mà iPhone hoặc Apple Watch đã ghi trong app Sức khoẻ, để hiện giờ ngủ, giờ dậy và những lần bạn thức giấc trong đêm. Bật chia sẻ thì người ấy cũng xem được. App chỉ đọc, không ghi gì vào Sức khoẻ.";
+
+"NSHealthUpdateUsageDescription" = "Dear Embeiu không ghi gì vào app Sức khoẻ. App chỉ đọc giấc ngủ để hiện giờ ngủ và giờ dậy của bạn.";
+
+"NSMotionUsageDescription" = "Dear Embeiu xem điện thoại nằm yên lúc nào vào ban đêm để đoán giờ bạn ngủ và thức. Dữ liệu chuyển động thô chỉ nằm trên máy; giờ ngủ và giờ thức chỉ được gửi cho người ấy khi bạn bật chia sẻ.";

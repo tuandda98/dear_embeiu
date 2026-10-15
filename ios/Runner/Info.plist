@@ -10,6 +10,12 @@
 		<false/>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Dear Embeiu cần truy cập thư viện ảnh để bạn chọn và chia sẻ ảnh kỷ niệm với người ấy.</string>
+		<key>NSHealthShareUsageDescription</key>
+		<string>Dear Embeiu đọc giấc ngủ mà iPhone hoặc Apple Watch đã ghi trong app Sức khoẻ, để hiện giờ ngủ, giờ dậy và những lần bạn thức giấc trong đêm. Bật chia sẻ thì người ấy cũng xem được. App chỉ đọc, không ghi gì vào Sức khoẻ.</string>
+		<key>NSHealthUpdateUsageDescription</key>
+		<string>Dear Embeiu không ghi gì vào app Sức khoẻ. App chỉ đọc giấc ngủ để hiện giờ ngủ và giờ dậy của bạn.</string>
+		<key>NSMotionUsageDescription</key>
+		<string>Dear Embeiu xem điện thoại nằm yên lúc nào vào ban đêm để đoán giờ bạn ngủ và thức. Dữ liệu chuyển động thô chỉ nằm trên máy; giờ ngủ và giờ thức chỉ được gửi cho người ấy khi bạn bật chia sẻ.</string>
 		<key>NSCameraUsageDescription</key>
 		<string>Dear Embeiu cần dùng camera để bạn chụp và đăng khoảnh khắc kỷ niệm với người ấy.</string>
 		<key>CFBundleDevelopmentRegion</key>
@@ -30,7 +36,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>dear_embeiu</string>
+		<string>$(APP_DISPLAY_NAME)</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -54,9 +60,30 @@
 					<string>dearembeiu</string>
 				</array>
 			</dict>
+			<!-- Google sign-in (pairing-funnel PF14) returns to the app through
+			     the REVERSED_CLIENT_ID of GoogleService-Info.plist. The build
+			     copies the DEV or PROD plist, so both schemes are listed. -->
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>google-sign-in</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.529060310047-u3iur17juokp95cgtnov063s5dj03llk</string>
+					<string>com.googleusercontent.apps.478033104351-83r17l3e1o4cvegogi330telu8b9oar8</string>
+				</array>
+			</dict>
 		</array>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<key>AppGroupId</key>
+		<string>$(APP_GROUP_ID)</string>
+		<!-- The app never reads a dearembeiu:// URL — opening one only has to
+		     bring the app forward. Flutter's own deep linking would push a
+		     second "/" route (audit D8). Plugins still see openURL first. -->
+		<key>FlutterDeepLinkingEnabled</key>
+		<false/>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>UIBackgroundModes</key>
@@ -90,11 +117,11 @@
 		<string>LaunchScreen</string>
 		<key>UIMainStoryboardFile</key>
 		<string>Main</string>
+		<!-- Phones stay portrait (audit D3: the time pickers break in
+		     landscape); iPad keeps every orientation below. -->
 		<key>UISupportedInterfaceOrientations</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>
-			<string>UIInterfaceOrientationLandscapeLeft</string>
-			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
 		<key>UISupportedInterfaceOrientations~ipad</key>
 		<array>

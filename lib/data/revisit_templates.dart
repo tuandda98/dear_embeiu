@@ -54,7 +54,7 @@ const Map<String, List<RevisitTemplate>> revisitTemplates =
   revisitBucketYear: <RevisitTemplate>[
     RevisitTemplate(
       viPrefix: 'Đúng một năm trước, câu hỏi của chúng mình là "',
-      viSuffix: '". Một năm qua điều đó thay đổi thế nào?',
+      viSuffix: '". Tới giờ, câu trả lời của bạn đã khác đi chưa?',
       enPrefix: 'Exactly a year ago our question was "',
       enSuffix: '". How has that changed over the past year?',
     ),
@@ -66,19 +66,19 @@ const Map<String, List<RevisitTemplate>> revisitTemplates =
     ),
     RevisitTemplate(
       viPrefix: 'Tròn một năm kể từ câu hỏi "',
-      viSuffix: '". Điều gì trong bạn vẫn còn nguyên vẹn?',
+      viSuffix: '". Điều gì ở bạn vẫn y nguyên như hồi ấy?',
       enPrefix: 'A full year since the question "',
       enSuffix: '". What inside you has stayed exactly the same?',
     ),
     RevisitTemplate(
       viPrefix: 'Ngày này năm ngoái, chúng mình đã trả lời "',
-      viSuffix: '". Bạn tự hào nhất điều gì của một năm qua?',
+      viSuffix: '". Một năm qua, bạn tự hào nhất về điều gì?',
       enPrefix: 'On this day last year we answered "',
       enSuffix: '". What are you proudest of from this past year?',
     ),
     RevisitTemplate(
-      viPrefix: 'Một năm trước, câu hỏi này từng ở đây: "',
-      viSuffix: '". Chúng mình đã đi được bao xa rồi?',
+      viPrefix: 'Một năm trước, cũng ở đây, chúng mình được hỏi: "',
+      viSuffix: '". Từ hôm đó tới giờ, chúng mình đã cùng làm được những gì?',
       enPrefix: 'A year ago this question was right here: "',
       enSuffix: '". How far have we come since then?',
     ),
@@ -97,14 +97,14 @@ const Map<String, List<RevisitTemplate>> revisitTemplates =
       enSuffix: '". After a hundred days, how has your answer changed?',
     ),
     RevisitTemplate(
-      viPrefix: 'Tròn 100 ngày kể từ câu hỏi "',
+      viPrefix: 'Đã 100 ngày kể từ câu hỏi "',
       viSuffix: '". Hôm nay bạn trả lời sao?',
       enPrefix: 'It has been a hundred days since the question "',
       enSuffix: '". How would you answer it today?',
     ),
     RevisitTemplate(
       viPrefix: 'Chúng mình từng trả lời "',
-      viSuffix: '" cách đây 100 ngày. Điều gì bây giờ bạn thấy rõ hơn?',
+      viSuffix: '" cách đây 100 ngày. Giờ nghĩ lại, bạn thấy rõ hơn điều gì?',
       enPrefix: 'We answered "',
       enSuffix: '" a hundred days ago. What do you see more clearly now?',
     ),
@@ -116,7 +116,7 @@ const Map<String, List<RevisitTemplate>> revisitTemplates =
     ),
     RevisitTemplate(
       viPrefix: 'Nhìn lại 100 ngày: "',
-      viSuffix: '". Điều gì giữa chúng mình đã lớn lên từ đó?',
+      viSuffix: '". Kể từ đó, chúng mình đã gắn bó hơn ở điểm nào?',
       enPrefix: 'Looking back a hundred days: "',
       enSuffix: '". What has grown between us since then?',
     ),
@@ -144,7 +144,7 @@ const Map<String, List<RevisitTemplate>> revisitTemplates =
     ),
     RevisitTemplate(
       viPrefix: '30 ngày trước, câu hỏi của chúng mình là "',
-      viSuffix: '". Điều gì trong câu trả lời của bạn vẫn nguyên vẹn?',
+      viSuffix: '". Ý nào trong câu trả lời của bạn tới giờ vẫn giữ nguyên?',
       enPrefix: 'Thirty days back, our question was "',
       enSuffix: '". What part of your answer is still exactly the same?',
     ),
@@ -155,14 +155,14 @@ const Map<String, List<RevisitTemplate>> revisitTemplates =
       enSuffix: '". What would you add to it today?',
     ),
     RevisitTemplate(
-      viPrefix: '30 ngày vừa rồi bắt đầu bằng câu hỏi này: "',
+      viPrefix: '30 ngày trước, chúng mình bắt đầu một ngày bằng câu hỏi: "',
       viSuffix: '". Từ đó tới giờ, điều gì giữa chúng mình đã khác đi?',
       enPrefix: 'The last thirty days started with this question: "',
       enSuffix: '". Since then, what has shifted between us?',
     ),
     RevisitTemplate(
       viPrefix: '30 ngày trước bạn từng trả lời câu này: "',
-      viSuffix: '". Bạn có bất ngờ với chính mình của hồi đó không?',
+      viSuffix: '". Nhớ lại câu trả lời hồi đó, bạn có thấy bất ngờ không?',
       enPrefix: 'Thirty days ago you answered this one: "',
       enSuffix: '". Does your past self surprise you at all?',
     ),
@@ -176,19 +176,19 @@ const Map<String, List<RevisitTemplate>> revisitTemplates =
     ),
     RevisitTemplate(
       viPrefix: 'Tháng trước, đúng ngày này, câu hỏi là "',
-      viSuffix: '". Bạn trả lời lại thế nào?',
+      viSuffix: '". Giờ bạn sẽ trả lời ra sao?',
       enPrefix: 'Last month, on this very day, the question was "',
       enSuffix: '". How would you answer it now?',
     ),
     RevisitTemplate(
       viPrefix: 'Chúng mình từng trả lời "',
-      viSuffix: '" vào ngày này tháng trước. Điều gì bạn muốn giữ lại?',
+      viSuffix: '" vào ngày này tháng trước. Bạn muốn giữ lại điều gì từ hôm ấy?',
       enPrefix: 'We answered "',
       enSuffix: '" on this day last month. What would you like to keep?',
     ),
     RevisitTemplate(
       viPrefix: 'Một tháng trôi qua kể từ câu hỏi "',
-      viSuffix: '". Hôm nay bạn thấy thế nào?',
+      viSuffix: '". Hôm nay đọc lại, bạn thấy thế nào?',
       enPrefix: 'A month has passed since the question "',
       enSuffix: '". How do you feel about it today?',
     ),
@@ -203,6 +203,73 @@ const Map<String, List<RevisitTemplate>> revisitTemplates =
       viSuffix: '". Bạn muốn nói thêm gì với người ấy?',
       enPrefix: 'Last month we answered "',
       enSuffix: '". What else would you like to say to your partner?',
+    ),
+  ],
+};
+
+/// Wording for a day that is only NEAR the target (±2 days, see
+/// `RevisitPick.exact`): "khoảng / about", never "đúng / tròn / ngày này" or
+/// "exactly / on this day". No 'month' entry — that window is exact-only.
+const Map<String, List<RevisitTemplate>> revisitTemplatesApprox =
+    <String, List<RevisitTemplate>>{
+  revisitBucketYear: <RevisitTemplate>[
+    RevisitTemplate(
+      viPrefix: 'Khoảng một năm trước, câu hỏi của chúng mình là "',
+      viSuffix: '". Tới giờ, câu trả lời của bạn đã khác đi chưa?',
+      enPrefix: 'About a year ago our question was "',
+      enSuffix: '". Has your answer changed since then?',
+    ),
+    RevisitTemplate(
+      viPrefix: 'Cách đây khoảng một năm, chúng mình cùng trả lời: "',
+      viSuffix: '". Hôm nay bạn sẽ trả lời khác đi ở chỗ nào?',
+      enPrefix: 'Around a year ago we both answered: "',
+      enSuffix: '". Where would your answer be different today?',
+    ),
+    RevisitTemplate(
+      viPrefix: 'Nhìn lại khoảng một năm trước: "',
+      viSuffix: '". Một năm qua, bạn tự hào nhất về điều gì?',
+      enPrefix: 'Looking back about a year: "',
+      enSuffix: '". What are you proudest of from this past year?',
+    ),
+  ],
+  revisitBucketHundred: <RevisitTemplate>[
+    RevisitTemplate(
+      viPrefix: 'Khoảng 100 ngày trước chúng mình cùng trả lời: "',
+      viSuffix: '". Tới giờ, câu trả lời của bạn đổi khác thế nào?',
+      enPrefix: 'About a hundred days ago we both answered: "',
+      enSuffix: '". How has your answer changed since?',
+    ),
+    RevisitTemplate(
+      viPrefix: 'Cách đây khoảng 100 ngày, câu hỏi của chúng mình là "',
+      viSuffix: '". Hôm nay bạn trả lời sao?',
+      enPrefix: 'Around a hundred days ago our question was "',
+      enSuffix: '". How would you answer it today?',
+    ),
+    RevisitTemplate(
+      viPrefix: 'Nhìn lại khoảng 100 ngày: "',
+      viSuffix: '". Kể từ đó, chúng mình đã gắn bó hơn ở điểm nào?',
+      enPrefix: 'Looking back about a hundred days: "',
+      enSuffix: '". What has grown between us since then?',
+    ),
+  ],
+  revisitBucketThirty: <RevisitTemplate>[
+    RevisitTemplate(
+      viPrefix: 'Khoảng một tháng trước chúng mình cùng trả lời: "',
+      viSuffix: '". Giờ nhìn lại, câu trả lời của bạn còn như cũ không?',
+      enPrefix: 'About a month ago we both answered: "',
+      enSuffix: '". Looking back now, does your answer still hold?',
+    ),
+    RevisitTemplate(
+      viPrefix: 'Cách đây khoảng một tháng, câu hỏi của chúng mình là "',
+      viSuffix: '". Nếu trả lời lại hôm nay, bạn sẽ viết gì?',
+      enPrefix: 'Around a month ago our question was "',
+      enSuffix: '". If you answered it again today, what would you write?',
+    ),
+    RevisitTemplate(
+      viPrefix: 'Nhìn lại khoảng một tháng: chúng mình từng trả lời "',
+      viSuffix: '". Hôm nay bạn muốn nói thêm điều gì?',
+      enPrefix: 'Looking back about a month: we once answered "',
+      enSuffix: '". What would you add to it today?',
     ),
   ],
 };

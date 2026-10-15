@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -9,22 +10,29 @@ import 'package:provider/provider.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../app/app_routes.dart';
+import '../app/route_observers.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
 import '../models/couple.dart';
 import '../services/couple_service.dart';
+import '../services/invite_clipboard.dart';
+import '../services/user_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/content_card.dart';
 import '../widgets/eyebrow_chip.dart';
+import '../widgets/status_bar_scrim.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/header_icon_button.dart';
 import '../widgets/invite_action_buttons.dart';
+import '../widgets/invite_qr_sheet.dart';
 import '../widgets/love_lottie.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/sub_screen_header.dart';
+import 'settings_screen.dart';
 
 enum _SetupMode { create, join }
 
@@ -35,7 +43,8 @@ class SetupScreen extends StatefulWidget {
   State<SetupScreen> createState() => _SetupScreenState();
 }
 
-class _SetupScreenState extends State<SetupScreen> {
+class _SetupScreenState extends State<SetupScreen>
+    with WidgetsBindingObserver, RouteAware {
   late final TextEditingController _person1Controller;
   late final TextEditingController _person2Controller;
   late final TextEditingController _inviteCodeController;
@@ -45,17 +54,121 @@ class _SetupScreenState extends State<SetupScreen> {
   bool _didPrefill = false;
   _SetupMode _mode = _SetupMode.create;
 
+  // Clipboard invite check (feature pairing-funnel, PF9) in flight — keeps the
+  // first-frame check and an iOS resume from stacking two sheets.
+  bool _clipboardCheckBusy = false;
+
+  // The page route [appPageRouteObserver] reports for (PA5).
+  PageRoute<dynamic>? _subscribedRoute;
+
   @override
   void initState() {
     super.initState();
     _person1Controller = TextEditingController();
     _person2Controller = TextEditingController();
     _inviteCodeController = TextEditingController();
+    WidgetsBinding.instance.addObserver(this);
+    // Let the screen settle first: iOS may put its "Allow Paste" alert on top.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future<void>.delayed(
+        const Duration(milliseconds: 500),
+        _checkClipboardInvite,
+      );
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // PF12: iOS looks again on every return to the app (changeCount stops a
+    // repeat prompt); Android only on open — no changeCount, every read toasts.
+    if (state == AppLifecycleState.resumed &&
+        defaultTargetPlatform == TargetPlatform.iOS) {
+      _checkClipboardInvite();
+    }
+  }
+
+  // PA5: a resume while Settings sat on top skipped the check (Setup wasn't
+  // the top route), so look again once Setup is uncovered. iOS only, like the
+  // resume check; the delay lets the pop transition finish first.
+  @override
+  void didPopNext() {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      Future<void>.delayed(
+        const Duration(milliseconds: 500),
+        _checkClipboardInvite,
+      );
+    }
+  }
+
+  /// Offers the code of an invite link sitting in the clipboard (PF9): only on
+  /// the pairing landing (signed in, no couple, not editing), only when Setup
+  /// is the top route, never for the member's own code.
+  Future<void> _checkClipboardInvite() async {
+    if (!mounted || _clipboardCheckBusy) {
+      return;
+    }
+    final user = context.read<AuthProvider>().currentUser;
+    final coupleProvider = context.read<CoupleProvider>();
+    if (user == null ||
+        user.hasCouple ||
+        coupleProvider.isLoading ||
+        ModalRoute.of(context)?.isCurrent == false) {
+      return;
+    }
+    _clipboardCheckBusy = true;
+    try {
+      final code = await InviteClipboard.peekInviteCode();
+      if (code == null || !mounted) {
+        return;
+      }
+      final ownCodes = {
+        user.inviteCode,
+        coupleProvider.couple?.coupleCode,
+      }.map((c) => (c ?? '').trim().toUpperCase());
+      if (ownCodes.contains(code)) {
+        return;
+      }
+      await InviteClipboard.markAsked(code);
+      if (!mounted) {
+        return;
+      }
+      final join = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => _ClipboardInviteSheet(code: code),
+      );
+      if (!mounted) {
+        return;
+      }
+      // Skipped or swiped away: the code still waits in the join field, so a
+      // slip of the thumb costs one tab tap, not retyping.
+      _inviteCodeController.text = code;
+      if (join != true) {
+        return;
+      }
+      setState(() => _mode = _SetupMode.join);
+      // Let the tab slide over and the code show in the field, then pair.
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      if (mounted) {
+        await _submitJoin();
+      }
+    } finally {
+      _clipboardCheckBusy = false;
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute<dynamic> && !identical(route, _subscribedRoute)) {
+      if (_subscribedRoute != null) {
+        appPageRouteObserver.unsubscribe(this);
+      }
+      _subscribedRoute = route;
+      appPageRouteObserver.subscribe(this, route);
+    }
     if (_didPrefill) {
       return;
     }
@@ -71,7 +184,10 @@ class _SetupScreenState extends State<SetupScreen> {
       _selectedDate = existingCouple.anniversaryDate;
       _couplePhotoPath = existingCouple.couplePhotoPath;
     } else {
-      if (currentUser != null && currentUser.displayName.trim().isNotEmpty) {
+      // Not the "New user" placeholder (PA8): the field would look filled in,
+      // and that name would end up in every push the partner gets.
+      if (currentUser != null &&
+          !UserService.isPlaceholderDisplayName(currentUser.displayName)) {
         _person1Controller.text = currentUser.displayName.trim();
       }
       // Carry the love date the user already set in guest mode into the very
@@ -96,6 +212,8 @@ class _SetupScreenState extends State<SetupScreen> {
 
   @override
   void dispose() {
+    appPageRouteObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
     _person1Controller.dispose();
     _person2Controller.dispose();
     _inviteCodeController.dispose();
@@ -114,15 +232,14 @@ class _SetupScreenState extends State<SetupScreen> {
       return null;
     }
     final millis = Hive.box(boxName).get(anniversaryKey);
-    return millis is int
-        ? DateTime.fromMillisecondsSinceEpoch(millis)
-        : null;
+    return millis is int ? DateTime.fromMillisecondsSinceEpoch(millis) : null;
   }
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now().subtract(const Duration(days: 365)),
+      initialDate:
+          _selectedDate ?? DateTime.now().subtract(const Duration(days: 365)),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
     );
@@ -172,7 +289,8 @@ class _SetupScreenState extends State<SetupScreen> {
       return;
     }
 
-    if (isEditing && !_hasPendingChanges(existingCouple, person1, person2, _selectedDate!)) {
+    if (isEditing &&
+        !_hasPendingChanges(existingCouple, person1, person2, _selectedDate!)) {
       _showSnack(l10n.setupNoChangesToSaveMsg);
       final navigator = Navigator.of(context);
       if (navigator.canPop()) {
@@ -236,7 +354,8 @@ class _SetupScreenState extends State<SetupScreen> {
       _showSnack(e.message);
     } catch (e) {
       if (!mounted) return;
-      _showSnack(context.l10n.setupErrorSaveCouple('$e'));
+      debugPrint('SetupScreen save couple failed: $e');
+      _showSnack(context.l10n.setupErrorSaveCouple);
     }
   }
 
@@ -253,8 +372,7 @@ class _SetupScreenState extends State<SetupScreen> {
         anniversary.day != existing.anniversaryDate.day) {
       return true;
     }
-    if ((_couplePhotoPath ?? '') != (existing.couplePhotoPath ?? '')) return true;
-    return false;
+    return (_couplePhotoPath ?? '') != (existing.couplePhotoPath ?? '');
   }
 
   Future<void> _submitJoin() async {
@@ -271,7 +389,17 @@ class _SetupScreenState extends State<SetupScreen> {
       return;
     }
 
-    final inviteCode = _inviteCodeController.text.trim();
+    // The get page copies the whole invite link, so people may paste that; a
+    // code may also come with spaces or full-width characters (PA4). Look up
+    // the bare code, and show it in the field only when it is a code: other
+    // text stays as typed ("Mã: abc234" doesn't come back as "MÃ:ABC234").
+    final inviteCode = InviteClipboard.normalizeInviteCode(
+      _inviteCodeController.text,
+    );
+    if (InviteClipboard.isInviteCode(inviteCode) &&
+        inviteCode != _inviteCodeController.text) {
+      _inviteCodeController.text = inviteCode;
+    }
     if (inviteCode.isEmpty) {
       HapticFeedback.heavyImpact();
       _showSnack(l10n.setupErrorNoInviteCode);
@@ -300,15 +428,15 @@ class _SetupScreenState extends State<SetupScreen> {
       // couple + love-note / daily-question / reaction / streak watchers — same
       // reason as create. Going straight to /home skipped that wiring, so the
       // joiner's notes/streak/reactions wouldn't sync until a manual restart.
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRoutes.authGate,
-        (route) => false,
-      );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.authGate, (route) => false);
     } on CoupleException catch (e) {
       _showSnack(e.message);
     } catch (e) {
       if (!mounted) return;
-      _showSnack(context.l10n.setupErrorJoinCouple('$e'));
+      debugPrint('SetupScreen join couple failed: $e');
+      _showSnack(context.l10n.setupErrorJoinCouple);
     }
   }
 
@@ -333,10 +461,7 @@ class _SetupScreenState extends State<SetupScreen> {
       barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.35),
       builder: (_) => const Center(
-        child: LoveLottie(
-          slot: LoveLottieSlot.coupleJoined,
-          height: 220,
-        ),
+        child: LoveLottie(slot: LoveLottieSlot.coupleJoined, height: 220),
       ),
     );
     await Future<void>.delayed(const Duration(milliseconds: 1900));
@@ -353,7 +478,9 @@ class _SetupScreenState extends State<SetupScreen> {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           title: Text(l10n.inviteCodeDialogTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -363,7 +490,10 @@ class _SetupScreenState extends State<SetupScreen> {
               const SizedBox(height: 16),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 18,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(18),
@@ -428,7 +558,8 @@ class _SetupScreenState extends State<SetupScreen> {
     // Editing: gate the Save button on an actual pending change so it can't
     // no-op (create mode stays always-actionable). Mirrors _hasPendingChanges +
     // the required-field guard inside _submitCreateOrUpdate.
-    final bool canSaveEdit = !isEditing ||
+    final bool canSaveEdit =
+        !isEditing ||
         editingCouple == null ||
         (_person1Controller.text.trim().isNotEmpty &&
             _person2Controller.text.trim().isNotEmpty &&
@@ -450,45 +581,57 @@ class _SetupScreenState extends State<SetupScreen> {
         isVisible: isBusy,
         message: loadingMessage,
         child: Container(
-          decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
-          child: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(authProvider, coupleProvider, isEditing),
-                      const SizedBox(height: 24),
-                      if (hasInviteCode) ...[
-                        _buildInviteCard(
-                          inviteCode: currentUser!.inviteCode,
-                          coupleCode: existingCouple?.coupleCode,
-                          hasCreatedCoupleSpace: currentUser.hasCouple,
-                          isWaitingForPartner: editingCouple?.isWaitingForPartner ?? false,
-                        ),
-                        const SizedBox(height: 16),
+          decoration: const BoxDecoration(
+            gradient: AppColors.secondaryGradient,
+          ),
+          child: Center(
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    20 + MediaQuery.paddingOf(context).top,
+                    20,
+                    20 + MediaQuery.paddingOf(context).bottom,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(authProvider, coupleProvider, isEditing),
+                        const SizedBox(height: 24),
+                        if (hasInviteCode) ...[
+                          _buildInviteCard(
+                            inviteCode: currentUser!.inviteCode,
+                            coupleCode: existingCouple?.coupleCode,
+                            hasCreatedCoupleSpace: currentUser.hasCouple,
+                            isWaitingForPartner:
+                                editingCouple?.isWaitingForPartner ?? false,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (!isEditing) _buildModeSelector(),
+                        if (!isEditing) const SizedBox(height: 16),
+                        if (isEditing || _mode == _SetupMode.create)
+                          _buildCreateCard(
+                            existingCouple: editingCouple,
+                            isEditing: isEditing,
+                            isLoading: coupleProvider.isLoading,
+                            canSave: canSaveEdit,
+                          )
+                        else
+                          _buildJoinCard(
+                            authProvider: authProvider,
+                            isLoading: coupleProvider.isLoading,
+                          ),
                       ],
-                      if (!isEditing) _buildModeSelector(),
-                      if (!isEditing) const SizedBox(height: 16),
-                      if (isEditing || _mode == _SetupMode.create)
-                        _buildCreateCard(
-                          existingCouple: editingCouple,
-                          isEditing: isEditing,
-                          isLoading: coupleProvider.isLoading,
-                          canSave: canSaveEdit,
-                        )
-                      else
-                        _buildJoinCard(
-                          authProvider: authProvider,
-                          isLoading: coupleProvider.isLoading,
-                        ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+                // Edge-to-edge: content scrolls under the clock; keep it readable.
+                const StatusBarScrim(),
+              ],
             ),
           ),
         ),
@@ -528,57 +671,96 @@ class _SetupScreenState extends State<SetupScreen> {
           SubScreenHeader(
             badge: l10n.editCoupleBadge,
             badgeIcon: IconsaxPlusLinear.edit_2,
-            title: title,
-            subtitle: subtitle,
           )
         else ...[
-          Row(
+          // OverflowBar, not Row: with large text the gear + sign-out pair
+          // drops below the chip instead of running off screen — a Row
+          // overflowed at 375pt from 1.75x (EN).
+          OverflowBar(
+            alignment: MainAxisAlignment.spaceBetween,
+            overflowAlignment: OverflowBarAlignment.start,
+            overflowSpacing: 10,
             children: [
               EyebrowChip(
                 label: l10n.coupleOnboardingBadge,
                 icon: IconsaxPlusBold.heart,
               ),
-              const Spacer(),
-              Tooltip(
-                message: l10n.signOutBtn,
-                child: InkWell(
-                  onTap: () async {
-                    await authProvider.signOut();
-                    if (mounted) {
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        AppRoutes.authGate,
-                        (route) => false,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Settings before pairing (P1 2026-10-11): the only way
+                  // to "Delete account" for a signed-in user with no couple
+                  // yet (App Review 5.1.1(v)); Settings shows its no-couple
+                  // variant.
+                  HeaderIconButton(
+                    icon: IconsaxPlusLinear.setting_2,
+                    semanticsLabel: l10n.settingsTitle,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          settings: const RouteSettings(name: 'Settings'),
+                          builder: (_) => const SettingsScreen(),
+                        ),
                       );
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(999),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    // Header ink vòng 4 (2026-06-11): navy ink on a near-solid
-                    // white pill (same .72 fill as the light row tiles) — the
-                    // frosted-glass + white-text version failed contrast.
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.72),
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  Tooltip(
+                    message: l10n.signOutBtn,
+                    child: InkWell(
+                      onTap: () async {
+                        await authProvider.signOut();
+                        if (mounted) {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            AppRoutes.authGate,
+                            (route) => false,
+                          );
+                        }
+                      },
                       borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColors.white.withValues(alpha: 0.65)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(IconsaxPlusLinear.logout, size: 13, color: AppColors.textPrimary.withValues(alpha: 0.85)),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.signOutBtn,
-                          style: TextStyle(
-                            color: AppColors.textPrimary.withValues(alpha: 0.85),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        // Header ink vòng 4 (2026-06-11): navy ink on a near-solid
+                        // white pill (same .72 fill as the light row tiles) — the
+                        // frosted-glass + white-text version failed contrast.
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.72),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: AppColors.white.withValues(alpha: 0.65),
                           ),
                         ),
-                      ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              IconsaxPlusLinear.logout,
+                              size: 13,
+                              color: AppColors.textPrimary.withValues(
+                                alpha: 0.85,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              l10n.signOutBtn,
+                              style: TextStyle(
+                                color: AppColors.textPrimary.withValues(
+                                  alpha: 0.85,
+                                ),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -598,7 +780,9 @@ class _SetupScreenState extends State<SetupScreen> {
             decoration: BoxDecoration(
               color: AppColors.white.withValues(alpha: 0.72),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.warning.withValues(alpha: 0.30)),
+              border: Border.all(
+                color: AppColors.warning.withValues(alpha: 0.30),
+              ),
             ),
             child: Text(
               coupleProvider.errorMessage!,
@@ -700,35 +884,38 @@ class _SetupScreenState extends State<SetupScreen> {
           highlightColor: Colors.transparent,
           child: SizedBox.expand(
             child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  icon,
-                  key: ValueKey('$icon-$selected'),
-                  size: 15,
-                  // Header ink vòng 4: unselected tab reads navy .60 — white
-                  // type on the glass track failed contrast on blush.
-                  color: selected
-                      ? AppColors.accentRose
-                      : AppColors.textPrimary.withValues(alpha: 0.60),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    icon,
+                    key: ValueKey('$icon-$selected'),
+                    size: 15,
+                    // Header ink vòng 4: unselected tab reads navy .60 — white
+                    // type on the glass track failed contrast on blush.
+                    color: selected
+                        ? AppColors.accentRose
+                        : AppColors.textPrimary.withValues(alpha: 0.60),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 6),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOutCubic,
-                style: TextStyle(
-                  color: selected
-                      ? AppColors.textPrimary
-                      : AppColors.textPrimary.withValues(alpha: 0.60),
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
+                const SizedBox(width: 6),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOutCubic,
+                  style: TextStyle(
+                    // This style replaces the inherited one: without a family
+                    // the label falls back to the system font, not Quicksand.
+                    fontFamily: AppTheme.fontFamily,
+                    color: selected
+                        ? AppColors.textPrimary
+                        : AppColors.textPrimary.withValues(alpha: 0.60),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                  child: Text(label),
                 ),
-                child: Text(label),
-              ),
-            ],
+              ],
             ),
           ),
         ),
@@ -748,14 +935,15 @@ class _SetupScreenState extends State<SetupScreen> {
     // inviteCode), falling back to inviteCode for legacy couples that predate
     // the coupleCode field. When not waiting, show the personal inviteCode as
     // before (still useful for the partner to check their own code).
-    final displayCode =
-        isWaitingForPartner ? (coupleCode ?? inviteCode) : inviteCode;
+    final displayCode = isWaitingForPartner
+        ? (coupleCode ?? inviteCode)
+        : inviteCode;
 
     final title = !hasCreatedCoupleSpace
         ? l10n.yourInviteCodeTitle
         : isWaitingForPartner
-            ? l10n.setupWaitingCoupleCodeTitle
-            : l10n.inviteCodeTiedToAccount;
+        ? l10n.setupWaitingCoupleCodeTitle
+        : l10n.inviteCodeTiedToAccount;
 
     // Couple-active branch: `inviteCodeTiedToAccount` already serves as the
     // title — repeating it as the description read as a copy bug, so that
@@ -763,20 +951,20 @@ class _SetupScreenState extends State<SetupScreen> {
     final String? description = !hasCreatedCoupleSpace
         ? l10n.inviteCodeDialogContent
         : isWaitingForPartner
-            ? l10n.setupCoupleCodeDesc
-            : null;
+        ? l10n.setupCoupleCodeDesc
+        : null;
 
     final statusIcon = isWaitingForPartner
         ? IconsaxPlusLinear.timer_1
         : hasCreatedCoupleSpace
-            ? IconsaxPlusBold.heart
-            : IconsaxPlusLinear.key;
+        ? IconsaxPlusBold.heart
+        : IconsaxPlusLinear.key;
 
     final statusColor = isWaitingForPartner
         ? AppColors.warning
         : hasCreatedCoupleSpace
-            ? AppColors.accentRose
-            : AppColors.textSecondary;
+        ? AppColors.accentRose
+        : AppColors.textSecondary;
 
     // Cụm Copy/Share chỉ có nghĩa khi couple đang chờ partner: mã mời còn
     // join được. Khi couple đã active (đã tạo space & không còn waiting),
@@ -817,12 +1005,14 @@ class _SetupScreenState extends State<SetupScreen> {
               letterSpacing: 4,
             ),
           ),
+          // Pills carry 6pt of invisible tap padding above and below (36 shape
+          // in a 48 target), so the gaps around them shrink 10→4 and 8→2.
           if (showInviteActions) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 4),
             InviteActionButtons(code: displayCode, onDark: false),
           ],
           if (description != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: showInviteActions ? 2 : 8),
             Text(
               description,
               style: const TextStyle(
@@ -956,10 +1146,12 @@ class _SetupScreenState extends State<SetupScreen> {
     bool canSave = true,
   }) {
     final l10n = context.l10n;
-    final hasPhoto = _couplePhotoPath != null &&
+    final hasPhoto =
+        _couplePhotoPath != null &&
         _couplePhotoPath!.isNotEmpty &&
         File(_couplePhotoPath!).existsSync();
-    final hasSyncedPhoto = existingCouple?.couplePhotoUrl?.trim().isNotEmpty == true;
+    final hasSyncedPhoto =
+        existingCouple?.couplePhotoUrl?.trim().isNotEmpty == true;
 
     return SizedBox(
       width: double.infinity,
@@ -970,155 +1162,172 @@ class _SetupScreenState extends State<SetupScreen> {
           children: [
             Text(
               l10n.sectionAboutCouple,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildFieldBlock(
-            label: l10n.yourNameLabel,
-            child: TextField(
-              controller: _person1Controller,
-              decoration: _inputDecoration(
-                hint: l10n.yourNameHint,
-                icon: IconsaxPlusLinear.user,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
               ),
             ),
-          ),
-          const SizedBox(height: 14),
-          _buildFieldBlock(
-            label: l10n.partnerNameLabel,
-            child: TextField(
-              controller: _person2Controller,
-              decoration: _inputDecoration(
-                hint: l10n.partnerNameHint,
-                icon: IconsaxPlusBold.heart,
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          _buildFieldBlock(
-            label: l10n.anniversaryLabel,
-            child: InkWell(
-              onTap: _pickDate,
-              borderRadius: BorderRadius.circular(20),
-              child: Ink(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.white.withValues(alpha: 0.9),
-                  ),
+            const SizedBox(height: 16),
+            _buildFieldBlock(
+              label: l10n.yourNameLabel,
+              child: TextField(
+                controller: _person1Controller,
+                decoration: _inputDecoration(
+                  hint: l10n.yourNameHint,
+                  icon: IconsaxPlusLinear.user,
                 ),
-                child: Row(
-                  children: [
-                    const Icon(IconsaxPlusLinear.calendar, color: AppColors.accentCoral),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _selectedDate == null
-                            ? l10n.anniversaryHint
-                            : _formatDate(_selectedDate!),
-                        style: TextStyle(
-                          color: _selectedDate == null
-                              ? AppColors.textSecondary
-                              : AppColors.textPrimary,
-                          fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 14),
+            _buildFieldBlock(
+              label: l10n.partnerNameLabel,
+              child: TextField(
+                controller: _person2Controller,
+                decoration: _inputDecoration(
+                  hint: l10n.partnerNameHint,
+                  icon: IconsaxPlusBold.heart,
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            _buildFieldBlock(
+              label: l10n.anniversaryLabel,
+              child: InkWell(
+                onTap: _pickDate,
+                borderRadius: BorderRadius.circular(20),
+                child: Ink(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        IconsaxPlusLinear.calendar,
+                        color: AppColors.accentCoral,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _selectedDate == null
+                              ? l10n.anniversaryHint
+                              : _formatDate(_selectedDate!),
+                          style: TextStyle(
+                            color: _selectedDate == null
+                                ? AppColors.textSecondary
+                                : AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                    const Icon(IconsaxPlusLinear.arrow_right_3),
-                  ],
+                      const Icon(IconsaxPlusLinear.arrow_right_3),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 14),
-          _buildFieldBlock(
-            label: l10n.couplePhotoLabel,
-            child: InkWell(
-              onTap: _pickPhoto,
-              borderRadius: BorderRadius.circular(20),
-              child: Ink(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.white.withValues(alpha: 0.9),
+            const SizedBox(height: 14),
+            _buildFieldBlock(
+              label: l10n.couplePhotoLabel,
+              child: InkWell(
+                onTap: _pickPhoto,
+                borderRadius: BorderRadius.circular(20),
+                child: Ink(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.white.withValues(alpha: 0.9),
+                    ),
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(IconsaxPlusLinear.gallery, color: AppColors.info),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            hasPhoto ? l10n.couplePhotoSelected : l10n.couplePhotoHint,
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w700,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            IconsaxPlusLinear.gallery,
+                            color: AppColors.info,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              hasPhoto
+                                  ? l10n.couplePhotoSelected
+                                  : l10n.couplePhotoHint,
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
+                          ),
+                        ],
+                      ),
+                      if (hasPhoto || hasSyncedPhoto) ...[
+                        const SizedBox(height: 14),
+                        Center(
+                          child: _buildCircularPhotoPreview(
+                            hasPhoto: hasPhoto,
+                            existingCouple: existingCouple,
                           ),
                         ),
                       ],
-                    ),
-                    if (hasPhoto || hasSyncedPhoto) ...[
-                      const SizedBox(height: 14),
-                      Center(
-                        child: _buildCircularPhotoPreview(
-                          hasPhoto: hasPhoto,
-                          existingCouple: existingCouple,
-                        ),
-                      ),
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-          // Primary CTA token (design-unify B10): pill r999, height 52, rose.
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: FilledButton.icon(
-              onPressed: (isLoading || !canSave) ? null : _submitCreateOrUpdate,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.accentRose,
-                foregroundColor: AppColors.white,
-                // Disabled state (editing, no pending change): a muted rose so
-                // the button reads clearly inactive instead of full-strength.
-                disabledBackgroundColor:
-                    AppColors.accentRose.withValues(alpha: 0.35),
-                disabledForegroundColor: AppColors.white.withValues(alpha: 0.7),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999),
+            const SizedBox(height: 20),
+            // Primary CTA token (design-unify B10): pill r999, height 52, rose.
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton.icon(
+                onPressed: (isLoading || !canSave)
+                    ? null
+                    : _submitCreateOrUpdate,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.accentRose,
+                  foregroundColor: AppColors.white,
+                  // Disabled state (editing, no pending change): a muted rose so
+                  // the button reads clearly inactive instead of full-strength.
+                  disabledBackgroundColor: AppColors.accentRose.withValues(
+                    alpha: 0.35,
+                  ),
+                  disabledForegroundColor: AppColors.white.withValues(
+                    alpha: 0.7,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
-              ),
-              icon: isLoading
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: AppColors.white,
+                icon: isLoading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          color: AppColors.white,
+                        ),
+                      )
+                    : Icon(
+                        isEditing
+                            ? IconsaxPlusLinear.save_2
+                            : IconsaxPlusBold.heart,
                       ),
-                    )
-                  : Icon(isEditing ? IconsaxPlusLinear.save_2 : IconsaxPlusBold.heart),
-              label: Text(
-                isEditing ? l10n.saveChangesBtn : l10n.createOurSpaceBtn,
-                style: const TextStyle(fontWeight: FontWeight.w700),
+                label: Text(
+                  isEditing ? l10n.saveChangesBtn : l10n.createOurSpaceBtn,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
@@ -1139,64 +1348,67 @@ class _SetupScreenState extends State<SetupScreen> {
           children: [
             Text(
               l10n.useInviteCodeTitle,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildFieldBlock(
-            label: l10n.theirInviteCodeLabel,
-            child: TextField(
-              controller: _inviteCodeController,
-              textCapitalization: TextCapitalization.characters,
-              decoration: _inputDecoration(
-                hint: l10n.theirInviteCodeHint,
-                icon: IconsaxPlusLinear.lock,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-          // Primary CTA token (design-unify B10): pill r999, height 52, rose.
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: FilledButton.icon(
-              onPressed: isLoading ? null : _submitJoin,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.accentRose,
-                foregroundColor: AppColors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999),
+            const SizedBox(height: 16),
+            _buildFieldBlock(
+              label: l10n.theirInviteCodeLabel,
+              child: TextField(
+                controller: _inviteCodeController,
+                textCapitalization: TextCapitalization.characters,
+                // A code, not words (PA4): no autocorrect or suggestions, and the
+                // visible-password (ASCII) keyboard, so the keyboard stops
+                // composing Vietnamese — Telex turns "AA" into "Â".
+                keyboardType: TextInputType.visiblePassword,
+                autocorrect: false,
+                enableSuggestions: false,
+                decoration: _inputDecoration(
+                  hint: l10n.theirInviteCodeHint,
+                  icon: IconsaxPlusLinear.lock,
                 ),
               ),
-              icon: isLoading
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: AppColors.white,
-                      ),
-                    )
-                  : const Icon(IconsaxPlusLinear.link),
-              label: Text(
-                l10n.joinBtn,
-                style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 20),
+            // Primary CTA token (design-unify B10): pill r999, height 52, rose.
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton.icon(
+                onPressed: isLoading ? null : _submitJoin,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.accentRose,
+                  foregroundColor: AppColors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                icon: isLoading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          color: AppColors.white,
+                        ),
+                      )
+                    : const Icon(IconsaxPlusLinear.link),
+                label: Text(
+                  l10n.joinBtn,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFieldBlock({
-    required String label,
-    required Widget child,
-  }) {
+  Widget _buildFieldBlock({required String label, required Widget child}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1248,10 +1460,26 @@ class _SetupScreenState extends State<SetupScreen> {
           children: [
             ColorFiltered(
               colorFilter: const ColorFilter.matrix([
-                1, 0, 0, 0, 10,
-                0, 1, 0, 0, 10,
-                0, 0, 1, 0, 10,
-                0, 0, 0, 1, 0,
+                1,
+                0,
+                0,
+                0,
+                10,
+                0,
+                1,
+                0,
+                0,
+                10,
+                0,
+                0,
+                1,
+                0,
+                10,
+                0,
+                0,
+                0,
+                1,
+                0,
               ]),
               child: hasPhoto
                   ? Image.file(
@@ -1260,17 +1488,17 @@ class _SetupScreenState extends State<SetupScreen> {
                       height: 100,
                       fit: BoxFit.cover,
                       // 100px slot → decode at ~3x DPR, not the full-res source.
-                      cacheWidth: (100 *
-                              MediaQuery.of(context).devicePixelRatio)
-                          .round(),
+                      cacheWidth:
+                          (100 * MediaQuery.of(context).devicePixelRatio)
+                              .round(),
                     )
                   : SharedCouplePhotoView(
                       localPath: existingCouple?.couplePhotoPath,
                       remoteUrl: existingCouple?.couplePhotoUrl,
                       fit: BoxFit.cover,
-                      decodeWidth: (100 *
-                              MediaQuery.of(context).devicePixelRatio)
-                          .round(),
+                      decodeWidth:
+                          (100 * MediaQuery.of(context).devicePixelRatio)
+                              .round(),
                     ),
             ),
             Container(
@@ -1323,6 +1551,91 @@ class _SetupScreenState extends State<SetupScreen> {
           width: 1.2,
         ),
       ),
+    );
+  }
+}
+
+/// "Use the code from your invite?" (feature pairing-funnel, design W9). Pops
+/// `true` on "Pair up now"; "Skip", a swipe down or a tap outside pop null.
+/// Navy primary button: white on rose is only 3.2:1.
+class _ClipboardInviteSheet extends StatelessWidget {
+  const _ClipboardInviteSheet({required this.code});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return InviteSheetFrame(
+      children: [
+        const SizedBox(height: 20),
+        Center(
+          child: Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.accentLove.withValues(alpha: 0.14),
+            ),
+            child: const Icon(
+              IconsaxPlusBold.heart,
+              size: 30,
+              color: AppColors.accentLove,
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          l10n.clipboardInviteTitle,
+          textAlign: TextAlign.center,
+          style: AppTheme.displaySerif(
+            size: 20,
+            weight: FontWeight.w700,
+            letterSpacing: -0.2,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.clipboardInviteBody,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            height: 1.45,
+          ),
+        ),
+        const SizedBox(height: 18),
+        Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.accentLove.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              code,
+              style: const TextStyle(
+                color: AppColors.accentLoveDeep,
+                fontSize: 30,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 4,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(l10n.clipboardInviteJoin),
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+          child: Text(l10n.clipboardInviteSkip),
+        ),
+      ],
     );
   }
 }

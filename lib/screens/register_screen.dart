@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
@@ -10,6 +11,7 @@ import '../app/app_urls.dart';
 import '../l10n/l10n.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/social_sign_in_buttons.dart';
 import '../widgets/eyebrow_chip.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/header_icon_button.dart';
@@ -67,15 +69,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     final authProvider = context.read<AuthProvider>();
+    // AU4: taken before the await. Going back while Firebase finishes leaves
+    // a live session behind — it must still leave this flow.
+    final navigator = Navigator.of(context);
     final didSignUp = await authProvider.signUp(
       email: _emailController.text,
       password: _passwordController.text,
       displayName: _displayNameController.text,
     );
-
-    if (!mounted) {
-      return;
-    }
 
     if (didSignUp) {
       // A just-created Firebase account is, by definition, a brand-new
@@ -86,9 +87,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final nextRoute = authProvider.isUsingFirebase
           ? AppRoutes.verifyEmail
           : AppRoutes.authGate;
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(nextRoute, (route) => false);
+      if (navigator.mounted) {
+        navigator.pushNamedAndRemoveUntil(nextRoute, (route) => false);
+      }
+      return;
+    }
+
+    if (!mounted) {
       return;
     }
 
@@ -100,6 +105,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  /// Always land on /login (not a bare pop): when register is opened straight
+  /// from /guest a pop would return to guest, contradicting the "back to sign
+  /// in" label. Swapping in place keeps the stack at guest→[login|register].
+  /// Also the PF6 SnackBar action, which can fire after this screen is gone.
+  void _openSignIn() {
+    if (!mounted) {
+      return;
+    }
+    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -107,75 +123,79 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 460),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Clear the top-bar (back button + centered chip +
-                        // language toggle) so a tall form never pushes the
-                        // content under them.
-                        const SizedBox(height: 52),
-                        if (authProvider.bootstrapMessage != null) ...[
-                          _buildStatusBanner(
-                            label: authProvider.authSourceLabel,
-                            message: authProvider.bootstrapMessage!,
-                            icon: authProvider.isUsingFirebase
-                                ? IconsaxPlusLinear.cloud
-                                : IconsaxPlusLinear.cloud_cross,
-                            color: authProvider.isUsingFirebase
-                                ? AppColors.success
-                                : AppColors.warning,
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-                        _buildFormCard(authProvider),
+        child: Stack(
+          children: [
+            Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  20 + MediaQuery.paddingOf(context).top,
+                  20,
+                  20 + MediaQuery.paddingOf(context).bottom,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 460),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Clear the top-bar (back button + centered chip +
+                      // language toggle) so a tall form never pushes the
+                      // content under them.
+                      const SizedBox(height: 52),
+                      if (authProvider.bootstrapMessage != null) ...[
+                        _buildStatusBanner(
+                          label: authProvider.authSourceLabel,
+                          message: authProvider.bootstrapMessage!,
+                          icon: authProvider.isUsingFirebase
+                              ? IconsaxPlusLinear.cloud
+                              : IconsaxPlusLinear.cloud_cross,
+                          color: authProvider.isUsingFirebase
+                              ? AppColors.success
+                              : AppColors.warning,
+                        ),
+                        const SizedBox(height: 24),
                       ],
+                      _buildFormCard(authProvider),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const StatusBarScrim(),
+            // Header redesign (2026-06-14): the eyebrow chip is centered on
+            // the top-bar, level with the back squircle (left) and language
+            // toggle (right) — the page title + subtitle were removed.
+            Positioned(
+              top: 8 + MediaQuery.paddingOf(context).top,
+              left: 16,
+              child: HeaderIconButton(
+                icon: IconsaxPlusLinear.arrow_left,
+                onTap: () => Navigator.of(context).maybePop(),
+                semanticsLabel: context.l10n.back,
+              ),
+            ),
+            Positioned(
+              top: 8 + MediaQuery.paddingOf(context).top,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: SizedBox(
+                  height: 44,
+                  child: Center(
+                    child: EyebrowChip(
+                      label: context.l10n.createAccountBadge,
+                      icon: IconsaxPlusLinear.user_add,
                     ),
                   ),
                 ),
               ),
-              // Header redesign (2026-06-14): the eyebrow chip is centered on
-              // the top-bar, level with the back squircle (left) and language
-              // toggle (right) — the page title + subtitle were removed.
-              Positioned(
-                top: 8,
-                left: 16,
-                child: HeaderIconButton(
-                  icon: IconsaxPlusLinear.arrow_left,
-                  onTap: () => Navigator.of(context).maybePop(),
-                  semanticsLabel: context.l10n.back,
-                ),
-              ),
-              Positioned(
-                top: 8,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: SizedBox(
-                    height: 44,
-                    child: Center(
-                      child: EyebrowChip(
-                        label: context.l10n.createAccountBadge,
-                        icon: IconsaxPlusLinear.user_add,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const Positioned(
-                top: 12,
-                right: 16,
-                child: LanguageToggleButton(),
-              ),
-            ],
-          ),
+            ),
+            Positioned(
+              top: 12 + MediaQuery.paddingOf(context).top,
+              right: 16,
+              child: LanguageToggleButton(),
+            ),
+          ],
         ),
       ),
     );
@@ -252,15 +272,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.displayNameLabel,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 18),
+            // Apple/Google lead Sign up (design §1c). They don't depend on the
+            // checkbox below — consent is the line under the buttons (PF2).
+            if (SocialSignInButtons.isAvailable(authProvider)) ...[
+              SocialSignInButtons(onSignInInstead: _openSignIn),
+              const SizedBox(height: 18),
+              const AuthOrDivider(),
+              const SizedBox(height: 18),
+            ],
             _buildFieldBlock(
               label: l10n.displayNameLabel,
               child: TextFormField(
@@ -320,7 +339,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       setState(() => _obscurePassword = !_obscurePassword);
                     },
                     icon: Icon(
-                      _obscurePassword ? IconsaxPlusLinear.eye : IconsaxPlusLinear.eye_slash,
+                      _obscurePassword
+                          ? IconsaxPlusLinear.eye
+                          : IconsaxPlusLinear.eye_slash,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -424,8 +445,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 if (_agreedToTerms) _showTermsError = false;
               }),
               borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 44),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -485,7 +506,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               width: double.infinity,
               height: 52,
               child: FilledButton(
-                onPressed: authProvider.isLoading ? null : _submit,
+                onPressed:
+                    authProvider.isLoading || authProvider.isSocialSigningIn
+                    ? null
+                    : _submit,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accentRose,
                   foregroundColor: AppColors.white,
@@ -522,15 +546,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   TextButton(
-                    onPressed: () {
-                      // Always land on /login (not a bare pop): when register is
-                      // opened straight from /guest a pop would return to guest,
-                      // contradicting the "back to sign in" label. Swapping in
-                      // place keeps the stack at guest→[login|register].
-                      Navigator.of(
-                        context,
-                      ).pushReplacementNamed(AppRoutes.login);
-                    },
+                    onPressed: authProvider.isSocialSigningIn
+                        ? null
+                        : _openSignIn,
                     child: Text(l10n.backToSignIn),
                   ),
                 ],

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Empty state: guest / no couple / signed out / app not opened since this build. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:clipToOutline="true">
+
+    <!-- Couple photo (feature home-widget, 2026-10-12): native sets the bitmap
+         with rounded corners baked in; GONE = brand gradient from widget_bg. -->
+    <ImageView
+        android:id="@+id/widget_photo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:visibility="gone" />
+
+    <!-- FrameLayout, not View: RemoteViews refuses to inflate android.view.View. -->
+    <FrameLayout
+        android:id="@+id/widget_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/widget_scrim"
+        android:visibility="gone" />
+
+    <!-- Night-sky default (design M2): stars + heart constellation; hidden when a photo shows. -->
+    <ImageView
+        android:id="@+id/widget_stars"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="center"
+        android:src="@drawable/widget_stars" />
+
+    <ImageView
+        android:id="@+id/widget_sky"
+        android:layout_width="52dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="14dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/widget_constellation" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:id="@+id/widget_chip"
+            android:layout_height="20dp"
+            android:background="@drawable/widget_chip_bg_dark"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <ImageView
+                android:id="@+id/widget_heart"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginEnd="4dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/widget_heart_light" />
+
+            <TextView
+                android:id="@+id/widget_name1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/widget_empty_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:textStyle="bold"
+            android:maxLines="3"
+            android:shadowColor="#4D000000"
+            android:shadowDy="1"
+            android:shadowRadius="8"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
+</FrameLayout>

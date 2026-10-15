@@ -1,0 +1,7 @@
+command : git fetch -q origin && git worktree add -q --detach ../dear_embeiu-wt-restore origin/fix/audit-2026-10-12 && cd ../dear_embeiu-wt-restore/functions && npm install --silent >/dev/null 2>&1; cd .. && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail --project tonyembeiu-dev 2>&1 | tail -3
+time_utc: 20261012T144923Z
+git_head: 4cef979 (feature/home-widget)
+dirty   : 1 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout 4cef979)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout 4cef979 -- functions` rồi redeploy

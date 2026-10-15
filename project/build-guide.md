@@ -13,6 +13,13 @@
    ```
 2. CocoaPods (Ruby 4.0.2) báo `Ignoring ffi … extensions not built` + lỗi gRPC-Core modulemap → fix: `brew reinstall cocoapods` rồi `cd ios && pod install` (warning ffi là benign, vẫn cài xong).
 3. `flutter clean` xoá ephemeral → ép `pod install` chạy lại (lộ lỗi cocoapods); `Pods/` KHÔNG bị clean xoá.
+4. **Thêm capability mới (vd HealthKit, 1.8.0 ngày 2026-10-11):** `flutter build ipa` lỗi `Provisioning profile "iOS Team Provisioning Profile: com.tony.dearembeiu" doesn't include the com.apple.developer.healthkit… entitlements`. Lý do: project đã đặt `DEVELOPMENT_TEAM` nên Flutter KHÔNG truyền `-allowProvisioningUpdates` ở bước archive (chỉ truyền ở bước export) ⇒ Xcode không được tự bật capability cho App ID. Cách làm: chạy `flutter build ipa --release` một lần cho Flutter sinh `ios/Flutter/Generated.xcconfig` đúng version, rồi archive tay:
+   ```
+   cd ios && xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release -sdk iphoneos \
+     -destination 'generic/platform=iOS' -archivePath ../build/ios/archive/Runner.xcarchive -allowProvisioningUpdates archive
+   ```
+   rồi export bằng `xcodebuild -exportArchive … -allowProvisioningUpdates` (hoặc chạy lại `flutter build ipa`, lúc này profile mới đã có). Điều kiện: Xcode → Settings → Accounts phải có Apple ID (`No Accounts` = bị đăng xuất, user tự đăng nhập lại).
+   Hai chốt chặn khác gặp cùng ngày: (a) `PLA Update available` = Apple vừa đổi Program License Agreement, chủ tài khoản phải tự bấm đồng ý ở developer.apple.com/account; (b) Transporter báo lỗi **90683** nếu thiếu `NSHealthUpdateUsageDescription`: có entitlement HealthKit là phải có CẢ khoá đọc lẫn khoá ghi trong Info.plist, kể cả app chỉ đọc. Build lỗi validation thì App Store chưa nhận số build, nên upload lại vẫn dùng được build cũ.
 
 ## iOS Simulator — native_assets bug (Flutter 3.22+, vẫn còn 3.41.6, 2026-06-07)
 
@@ -45,3 +52,12 @@ Build-phase "Strip Invalid Architectures" (thêm vào target Runner qua `ios/Pod
 - `ios/Runner/GoogleService-Info.plist` — dynamic (gitignored, copy by build-phase `Select GoogleService-Info (env)`)
 - `.firebaserc` — alias `default`=`tonyembeiu-dev`, `prod`, `dev`
 - `android/key.properties` + keystore — KHÔNG commit; signing fallback debug nếu thiếu
+
+## Widget extension (home-widget)
+
+Target `DearEmbeiuWidget` (WidgetKit) không tạo bằng Xcode mà bằng `scripts/ios-add-widget-target.sh` — idempotent, chạy lại chỉ in `already in the project`. Cần `flutter build ios --config-only` trước (để có `Generated.xcconfig`) và gem `xcodeproj` của CocoaPods Homebrew: `GEM_HOME=$(brew --prefix cocoapods)/libexec`, KHÔNG set `GEM_PATH` (set rồi thì không thấy gem).
+- **Kiểm extension nằm trong app:** `flutter build ios --debug --no-codesign` rồi `ls build/ios/iphoneos/Runner.app/PlugIns/` phải có `DearEmbeiuWidget.appex`; `plutil -p …/Info.plist` đối chiếu `CFBundleIdentifier` (`com.tony.dearembeiu[.dev].widget`), version/build = pubspec, `AppGroupId`.
+- **Strip Invalid Architectures không đụng `.appex`:** script chỉ quét `${FRAMEWORKS_FOLDER_PATH}`; widget nằm ở `PlugIns/` và không nhúng framework nào.
+- **App Group + chữ ký:** lần archive đầu Xcode phải đăng nhập Apple ID (`-allowProvisioningUpdates`) để tạo App Group `group.com.tony.dearembeiu` cho App ID `com.tony.dearembeiu` + `.widget` (Debug thì `.dev`) — như Sign in with Apple/HealthKit. Simulator ký ad-hoc nên `codesign -d --entitlements :-` ra rỗng; đọc Mach-O: section `__TEXT,__entitlements`.
+- **`flutter build ios` luôn chạy `pod install`, và pod install đảo thứ tự 2 phase của Runner trong `project.pbxproj`** (có từ trước widget) → `git checkout ios/Runner.xcodeproj/project.pbxproj` trước khi commit nếu diff chỉ là đổi thứ tự phase. Phase "Embed Foundation Extensions" phải đứng TRƯỚC "Thin Binary" (script đã xếp sẵn), đứng sau thì Xcode báo `Cycle inside Runner`.
+- **Android:** `./gradlew :app:testDebugUnitTest --tests "com.tony.dearembeiu.widget.DayMathTest"`; `android/.gitignore` loại `gradlew` + wrapper jar nên worktree/clone sạch phải chép từ checkout chính.

@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 
 /// B8 — Tap-to-compose pill (design-unify, 2026-06-11).
 ///
@@ -31,10 +32,12 @@ class ComposePill extends StatelessWidget {
     final fill = emphasized
         ? AppColors.accentLove.withValues(alpha: 0.08)
         : AppColors.cardSurface;
-    final textColor =
-        emphasized ? AppColors.accentLoveDeep : AppColors.textSecondary;
-    final iconColor =
-        emphasized ? AppColors.accentLoveDeep : AppColors.accentRose;
+    final textColor = emphasized
+        ? AppColors.accentLoveDeep
+        : AppColors.textSecondary;
+    final iconColor = emphasized
+        ? AppColors.accentLoveDeep
+        : AppColors.accentRose;
 
     Widget pill = _GradientBorder(
       emphasized: emphasized,
@@ -60,7 +63,9 @@ class ComposePill extends StatelessWidget {
                     style: TextStyle(
                       color: textColor,
                       fontSize: 14,
-                      fontWeight: emphasized ? FontWeight.w700 : FontWeight.w600,
+                      fontWeight: emphasized
+                          ? FontWeight.w700
+                          : FontWeight.w600,
                     ),
                   ),
                 ),
@@ -80,14 +85,10 @@ class ComposePill extends StatelessWidget {
     );
 
     // Quiet state: gentle breathing pulse to invite the first tap.
-    if (!emphasized) {
+    if (!emphasized && !AppMotion.reduceMotion(context)) {
       pill = pill
           .animate(onPlay: (c) => c.repeat(reverse: true), delay: 600.ms)
-          .scaleXY(
-            end: 1.018,
-            duration: 1600.ms,
-            curve: Curves.easeInOut,
-          );
+          .scaleXY(end: 1.018, duration: 1600.ms, curve: Curves.easeInOut);
     }
 
     return pill;

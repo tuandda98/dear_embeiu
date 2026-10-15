@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/chat_message.dart';
 import '../services/chat_service.dart';
+import '../services/analytics_service.dart';
 
 /// Delivery state of one of MY outgoing messages (feature chat-status,
 /// 2026-06-18), derived from the partner's receipt. `none` = not applicable
@@ -339,6 +340,7 @@ class ChatProvider extends ChangeNotifier {
         notifyListeners();
       }
     }
+    AnalyticsService.instance.logChatMessageSent();
     return true;
   }
 

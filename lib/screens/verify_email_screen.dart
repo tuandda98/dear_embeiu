@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../widgets/status_bar_scrim.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
@@ -207,51 +208,52 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen>
           decoration: const BoxDecoration(
             gradient: AppColors.secondaryGradient,
           ),
-          child: SafeArea(
-            child: Stack(
-              children: [
-                Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 460),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 52),
-                          _buildCard(),
-                        ],
+          child: Stack(
+            children: [
+              Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    20 + MediaQuery.paddingOf(context).top,
+                    20,
+                    20 + MediaQuery.paddingOf(context).bottom,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 460),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [const SizedBox(height: 52), _buildCard()],
+                    ),
+                  ),
+                ),
+              ),
+              const StatusBarScrim(),
+              // No back arrow — this is a gate. The eyebrow chip is centered
+              // alone on the top-bar (header redesign 2026-06-14: chip lives
+              // on the bar; the title + subtitle were removed). The language
+              // toggle trails on the right.
+              Positioned(
+                top: 8 + MediaQuery.paddingOf(context).top,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: SizedBox(
+                    height: 44,
+                    child: Center(
+                      child: EyebrowChip(
+                        label: context.l10n.verifyEmailBadge,
+                        icon: IconsaxPlusLinear.sms_tracking,
                       ),
                     ),
                   ),
                 ),
-                // No back arrow — this is a gate. The eyebrow chip is centered
-                // alone on the top-bar (header redesign 2026-06-14: chip lives
-                // on the bar; the title + subtitle were removed). The language
-                // toggle trails on the right.
-                Positioned(
-                  top: 8,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: SizedBox(
-                      height: 44,
-                      child: Center(
-                        child: EyebrowChip(
-                          label: context.l10n.verifyEmailBadge,
-                          icon: IconsaxPlusLinear.sms_tracking,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const Positioned(
-                  top: 12,
-                  right: 16,
-                  child: LanguageToggleButton(),
-                ),
-              ],
-            ),
+              ),
+              Positioned(
+                top: 12 + MediaQuery.paddingOf(context).top,
+                right: 16,
+                child: LanguageToggleButton(),
+              ),
+            ],
           ),
         ),
       ),
