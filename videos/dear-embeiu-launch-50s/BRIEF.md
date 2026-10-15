@@ -53,112 +53,89 @@ Through-line: the clock tick. It opens the film (seconds ticking at f0), becomes
 
 ## 5. Shot-by-shot script (s = seconds, f = frames)
 
+v3 (15/10/2026, after a viewer / critic / director review of the first cut): every line the story needs reads full-screen on a phone (story captions 64 px, anything the viewer must read ≥ 40 px), the daily question is the hero beat, the couple's own photo appears, nothing is said twice, at most two things move at once, and nothing is ever half-covered.
+
 ### ACT 1 · "Một con số" (0.0–4.0 s · bars 1–2 · f 0–239)
-- f0: no fade from black. On the #FAFAFC ground, the counter is already alive at the left third: "1250" (Quicksand 700, 320px, navy) with "NGÀY" under it and the live clock "30.009 : 41 : 07" (GIỜ · PHÚT · GIÂY); the seconds tick on beats 1 and 3 of every bar. Above it the eyebrow "HAI BẠN ĐÃ BÊN NHAU". Nothing else. The clock is this film's caret.
-- 0.5–3.0 s: a caption types in under the clock, letter by letter at uneven human intervals (2–4 f), each word finishing on an 8th note: **"Mọi app đếm ngày yêu chỉ biết đếm."**
+- f0: no fade from black. On the #FAFAFC ground, the counter is already alive at the left third: "1250" (Quicksand 700, 320px, navy) with "NGÀY" under it and the live clock "30.009 : 41 : 07" (GIỜ · PHÚT · GIÂY); the seconds tick on beats 1 and 3 of every bar. Above it the eyebrow "HAI BẠN ĐÃ BÊN NHAU" (28px). The clock is this film's caret.
+- 0.3–1.75 s: the hook types in under the clock, fast (2–3 f between letters, one word every 12 f): **"Mọi app đếm ngày yêu chỉ biết đếm."** (Quicksand 700, 64px, y 860). It is complete by 1.75 s and holds — the line reads before anything moves.
 - Camera: almost invisible push-in, 100% → 104%.
 - 3.5 s: the clock waits one beat. 4.0 s: a lavender dot drops in from the top edge and lands beside the number — the partner arrives (the "Enter").
 - Sound:
   - Room tone; the clock's tick is a soft wood tick, nothing electronic.
-  - Each finished word plays one note of the film's motif (felt piano + soft marimba), so the theme is literally typed.
+  - Each finished word plays one note of the film's motif (felt piano + soft marimba), so the theme is literally typed; the last note hangs until the landing.
   - The landing = a deep soft "thock" + a D1 sub pulse + the first kick.
 
-### ACT 2 · "Người ấy" (4.0–12.0 s · bars 3–6 · f 240–719)
-- 4.0–5.0: the lavender dot unfolds into a notification card (iOS style, white 85%, app icon left): "Tâm trạng hôm nay 💗" / "Tuấn đang thấy Nhớ". The number steps back (scale 1 → 0.55) into columns 1–4.
-- 5.0–8.0: three rows are pulled out by leader lines (stroke draw, 8 f) into a today sheet on the right — the product's "Hôm nay của chúng mình", rebuilt as rows:
-  - Header: "HÔM NAY CỦA CHÚNG MÌNH" (14px, #6B6B7B, +0.08em).
-  - Rows: Câu hỏi hôm nay — "Tuấn đã trả lời rồi đó 👀" / Tâm trạng — TUẤN 🥹 Nhớ · BẠN — / Đêm qua — Tuấn 23:10 → 06:00 · Bạn —.
-  - The partner's side is filled in lavender. Your side is empty: a rose caret blinks in each empty slot.
-- 8.0–10.0: live answer.
-  - The caret jumps into the mood row. The sheet's 8 moods fan in; "Nhớ" is picked (a rose ring draws around it); the row flashes a single rose hairline and reads **"Chúng mình cùng một tâm trạng 💞"**.
-  - Caption (Quicksand 600, 34px, bottom left): **"Cần cả hai."**
-- 10.0–12.0: the navy "Gửi" pill is pressed (scale 1 → 0.96 → 1, 6 f down / 10 f up) on the question row and the row unfolds into both answers — "Câu trả lời của bạn · Anh luôn nhắn "về chưa" dù biết em về rồi" then "Câu trả lời của Tuấn · Em hay để lại mẩu giấy nhỏ trong túi áo anh, mỗi lần lấy ra là cười một mình." — with a check stroke under "Hôm nay cả hai đã trả lời". The sheet compresses into Act 3.
+### ACT 2 · "Người ấy" (4.0–12.0 s · bars 3–6 · f 240–719) — the hero beat
+- 4.0–5.0: the number steps back into the top-left corner (scale 0.32, 70%; its small labels fade out) and stays there, small, through Act 4. The lavender dot swoops into the avatar of a large notification card: "Tâm trạng hôm nay 💗" / "Tuấn đang thấy Nhớ" / "bây giờ" (40 / 36 / 28px). The phone (the real Home, ≈ 840px tall) rises at the right: the counter card over the couple's photo, then the page scrolls down to today's question.
+- 6.5–7.4: the notification leaves; the question card lifts out of the phone into the left column at hero scale: **"Điều nhỏ nhặt nào người ấy làm khiến bạn thấy được yêu thương?"** (56px). Under it two answer cards: Tuấn's (lavender edge) locked — his words redacted under "🔒 Tuấn đã trả lời rồi đó 👀"; yours (rose edge) empty with a caret.
+- 7.5–8.7: your answer types in (40px): "Anh luôn nhắn "về chưa" dù biết em về rồi"; the navy "Gửi" pill unfolds and is pressed.
+- 9.0: UNLOCK — both answers open at the same instant; his line unmasks: "Em hay để lại mẩu giấy nhỏ trong túi áo anh, mỗi lần lấy ra là cười một mình." Both edges glow once.
+- 9.25: caption (64px): **"Cần cả hai."** The phone's card shows both answers too. Everything holds until 11.5, then compresses into Act 3's first streak cell.
 - Sound (bed "Paper"):
   - Muted plucked ostinato in 8ths, D major; brushed side-stick on beats 2 and 4.
-  - A pencil scrape on each leader line; a paper slide per row, panned to the row's position.
-  - A soft pop when the mood is picked; a tiny click per typed letter.
-  - "Gửi" = rubber dome + an air-pop on the downbeat at 12.0.
+  - A suspended swell (no third) rises from 8.0 and resolves on the unlock, where the major third lands.
+  - The unlock itself: a paper wipe and a breathing glass D5 — intimate, no ping, no "win".
+  - Tiny digit clicks for the typing; "Gửi" = rubber dome + an air-pop.
 
 ### ACT 3 · "Chuỗi" (12.0–20.0 s · bars 7–10 · f 720–1199)
-- 12.0–13.5: the two revealed answers compress into one filled cell on a calendar strip; the strip extends to the right, cells arriving every 3 frames while the count rolls in digit boxes to the real streak, and a thin navy flame glyph draws above it (45 f). Cells + flame = the streak chip ("31 ngày kết nối · hôm nay xong rồi"). The streak is earned here, not stamped on.
-- 13.5–17.0: the growth happens under the strip.
-  - The love tree's stem rises in ruled STEPS, one node per beat (not a smooth grow), on the tree's night sky.
-  - Three ruled rows tick in on beats, each check drawing itself (the three flower kinds of the real love tree, the last milestone of each the couple has crossed):
-    ✓ 1000 ngày bên nhau
-    ✓ Chuỗi 30 ngày
-    ✓ 10 ảnh kỷ niệm
-- 17.0–20.0: the tree blooms — three flowers open on their nodes; the two dots rise to the top of the frame; the heart constellation of today (6 stars, 3 rose, 3 lavender) draws between them and resolves into the app's white heart; the sunset tile fills behind it with one light sweep.
-  - The label types in: "CÂY TÌNH YÊU · 12 bông hoa đã nở".
+- 12.0–13.8: the two revealed answers compress into one filled cell on a calendar strip; the strip extends to the right, cells arriving every 3 frames while the count rolls in digit boxes to the real streak, and a thin navy flame glyph draws above it. Cells + flame = the streak chip ("31 ngày kết nối · hôm nay xong rồi", 32px). The streak is earned here, not stamped on.
+- 13.2–16.3: the love tree's night sky rises as a complete card inside the frame (x 96–1824, y 600–1000, radius 28). Its branch climbs in ruled STEPS, one node per 8th; three ruled rows tick in, each check drawing itself (the last milestone of each flower kind the couple has crossed): ✓ 1000 ngày bên nhau · ✓ Chuỗi 30 ngày · ✓ 10 ảnh kỷ niệm. Three flowers open on the top nodes.
+- 16.75–20.0: the chip collapses into a point where the two dots are born; the card grows into the whole night; the dots rise to the top; today's heart constellation (6 stars, 3 rose, 3 lavender, labelled Câu hỏi · Tâm trạng · Nhắn tin at 28px) draws between them and resolves into the app's white heart; the sunset tile fills behind it with one light sweep. The label types in (28px): "CÂY TÌNH YÊU · 12 bông hoa đã nở". Never more than two things move at once.
 - Sound (bed "Garden"):
   - A glass tone per day cell, tuned to D; a soft wood tick per stem node.
-  - Three rising chimes, D–F#–A, one per check; a filtered riser across bars 9–10.
+  - Three rising chimes, D–F#–A, one per check; a filtered riser into the night.
   - Granular shimmer in key during the bloom.
   - 20.0: one glass "ting" + a low boom as the heart sets.
 
 ### ACT 4 · "Một ngày" (20.0–32.0 s · bars 11–16 · f 1200–1919)
-- 20.0–22.0: the heart shrinks to the top-left. The phone rises at the left (hero scale) showing the real Home rebuilt as vectors: counter card over the couple photo, streak chip, "Hôm nay của chúng mình". A vertical rose | lavender hairline (the Act 1 tick, now the playhead) stands at the right third; a 24-hour ruler streams in from the right.
-  - Label: "HÔM NAY · 15/10/2026 · 00:00 → 24:00".
-- 22.0–28.0: speed ramp (ease in over 1 bar, hold, ease out). The day streams through the playhead; each event is a card that drops onto the ruler as its hour crosses the playhead — lavender when it comes from Tuấn, rose when it is you:
-  06:00 ☾ "Tuấn dậy · 6g 50p" · 07:08 ☾ (rose) "Bạn dậy · 7g 23p" · 08:12 📷 "Tuấn vừa đăng ảnh mới 💞 / Ghế quen ở hồ Gươm" · 12:30 💌 "Ăn cơm chưa? 🍚 / Nhớ ăn cơm đúng bữa, đừng bỏ bữa nha." · 15:05 💞 "Tuấn đã trả lời câu hỏi hôm nay 💞 / Tới lượt bạn." · 15:30 (rose) "Bạn đã trả lời · mở cả hai 💞" · 19:40 💬 "Tin nhắn mới 💬 / Tuấn vừa nhắn cho bạn 💌" · 21:00 ⏰ "Lời nhắc từ người ấy ⏰ / Tuấn đặt lời nhắc cho bạn lúc 21:00: Uống nước nha" · 22:41 💗 "Tâm trạng hôm nay 💗 / Tuấn đang thấy Nhớ" · 22:45 (rose) "Bạn: Nhớ 🥹 · Chúng mình cùng một tâm trạng 💞" · 23:10 ☾ "Tuấn đi ngủ".
-  - On the phone the matching card lights with each event (the constellation pill counts up).
-  - Counters roll in digit boxes under the ruler: Ảnh 11 → 12 · Sao hôm nay 2 → 6 · Chuỗi 30 → 31. Never a chart, never money.
-- 28.0–30.0: the playhead stops with a 4 f overshoot and the counters lock.
-  - Caption (Quicksand 700, 56px): **"Con số vẫn thế. Chỉ là có thêm người ấy."**
-- 30.0–32.0: delivery.
-  - The counter card lifts off the phone and lands on a rebuilt iOS home screen as the medium widget (couple photo, "1250 ngày", the lavender progress bar) — the real home-screen widget. At 31.0 the small widget snaps in beside it, and the Android 2×2 widget beside that.
-  - 32.0: HARD CUT.
+- 20.0–21.6: the heart tile and its label hold while the phone rises at the left (hero scale) showing the real Home rebuilt as vectors; then the tile shrinks away in place. The two dots descend into the playhead — a short rose-over-lavender needle standing on a 24-hour ruler that streams in from the right. Label: "HÔM NAY · 15/10/2026".
+- 21.6–28.0: the day runs 06:00 → 24:00 — fast between moments, slow at them. Six moments, ONE large card at a time (title 40px, body 30px; a lavender edge when it comes from Tuấn, rose when it is you), each readable for at least 0.9 s; the previous card leaves completely into its dot on the ruler:
+  06:00 ☾ "Tuấn dậy · 6g 50p / 23:10 → 6:00" · 10:40 📷 "Tuấn vừa đăng ảnh mới 💞 / Ghế quen ở hồ Gươm" — the photo itself (the couple on a bench by the lake) pops out as a print and flies into the phone · 12:30 💌 "Ăn cơm chưa? 🍚 / Nhớ ăn cơm đúng bữa, đừng bỏ bữa nha." · 15:30 (rose) "Hôm nay cả hai đã trả lời 💞 / 31 ngày kết nối" · 22:45 (rose) "Chúng mình cùng một tâm trạng 💞 / Bạn và Tuấn đều thấy Nhớ 🥹" · 23:10 ☾ "Tuấn đi ngủ / 23:10".
+  - Counters roll in digit boxes under the ruler: Ảnh 11 → 12 (as the print lands) · Sao hôm nay 2 → 6 · Chuỗi 30 → 31. Never a chart, never money.
+- 28.0: the playhead stops with a 4 f overshoot and the counters lock. Caption (Quicksand 700, 64px): **"Con số vẫn thế. Chỉ là có thêm người ấy."**
+- 29.0–31.6: delivery, on its own beat. The counter card lifts off the phone while its screen wipes to a rebuilt iOS home screen; the medium widget lands (couple photo, "1250 ngày bên nhau", the lavender milestone bar), then the small one; then the Android 2×2 widget lands beside the phone, large (night sky + the heart constellation, "1250 ngày bên nhau").
+- 31.6–32.0: a navy sheet rises from the bottom over everything. 32.0: HARD CUT.
 - Sound (bed "Day"):
-  - A tight muted four-on-the-floor kick, 16th hats, rolling D bass. The low-pass opens with the speed ramp.
-  - A dry airflow texture whose pitch and volume follow playback speed.
-  - SONIFICATION: each event = one short pluck. Pitch follows the hour (D-major pentatonic); lavender events sit a fifth below rose ones.
-  - Counters = very quiet mechanical micro-ticks.
+  - Warm, not a tech groove: marimba 8ths, a felt-piano chord per bar, a muted bass in half notes, a soft kick on 1 and 3, side-stick on 2 and 4. A low-pass opens with the hour.
+  - SONIFICATION: each moment = one short pluck; pitch follows the hour (D-major pentatonic); lavender moments sit a fifth below rose ones.
+  - The print: a pop, a short flutter, a soft set-down. Counters = very quiet mechanical micro-ticks.
   - 28.0: tape-stop + stamp. Widgets land with a soft thunk + a short ping.
   - The music cuts dead at 32.0 with no reverb tail.
 
 ### ACT 5 · "Nói trước" (32.0–38.0 s · bars 17–19 · f 1920–2279)
 - 32.0–32.5: 30 frames of pure #1A1A2E (the app's black) and true digital silence. This is the most confident moment of the film.
-- 32.5–35.0: a 3×2 grid of six facts, each typeset in place on consecutive 8ths, white on navy:
-  Miễn phí · Không quảng cáo
-  Chỉ hai người · ghép bằng mã mời 6 ký tự
-  Ảnh, tin nhắn, câu trả lời — chỉ hai người thấy
-  Không bạn bè · không bảng tin · không ai khác
-  Xoá tài khoản ngay trong app
-  Tiếng Việt · English · iOS 14+ · Android 6+
-  - Label: white, 28px. Detail: #A0A0B0. Footer: "dearembeiu.com".
-- 35.0–36.5: the grid slides down into a fine-print strip at the bottom (22px white at 70%, two rows), so the headlines land on clean navy — never text over text. Headline: **"Không bạn bè. Không mạng xã hội."**, then on the next beat **"Chỉ hai người."**
-- 36.5–38.0: **"Miễn phí. Không quảng cáo."**, with "Không quảng cáo" in rose.
+- Three headlines, white, 96px, each said once, left-aligned:
+  - 32.6: **"Không bảng tin. Không người lạ."**
+  - 34.0: **"Chỉ hai người."** — the two dots (rose, lavender) glide in from the frame edges and come to rest just after it.
+  - 35.5: **"Miễn phí. Không quảng cáo."**, with "Không quảng cáo." in rose.
+- 36.2: one fine-print line, 26px, white at 60%: "Ghép đôi bằng mã mời · Xoá tài khoản ngay trong app · Tiếng Việt · English".
 - Sound:
-  - One sustained low felt-piano D2 over faint room tone.
-  - Each fact lands with the same soft paper click; nothing is louder than anything else — plainness is the message.
-  - A soft pad swell in D major on "Chỉ hai người.": the first full major colour since the bloom, signalling trust.
+  - A felt-piano D2 enters with the first line over a soft D–A drone; the D-major pad swell starts on "Chỉ hai người." (the first full major colour since the bloom, signalling trust); D2 is struck again on the third line.
+  - Each line lands with the same soft typeset click; the dots = two converging breaths and two small ticks. Plainness is the message.
 
 ### ACT 6 · "Mở rộng" (38.0–44.0 s · bars 20–22 · f 2280–2639)
-- 38.0–40.0: the product's chat rises as one white panel (x 560–1360, y 280–960, radius 28: header chip "THẢO ♥ TUẤN", the seeded thread, the composer at its bottom — white field, placeholder "Nhắn gì đó cho người ấy…").
-  - It types "Tối nay xem phim nha" and sends on beat 3; the bubble lands navy on the right; a lavender "đang soạn…" indicator answers on the left.
-  - Above it, the care sheet's quick picks fan in as chips: "Nhớ quá 💕" "Uống nước nha 💧" "Ăn cơm chưa? 🍚" "Ngủ sớm nha 🌙" "Yêu nhiều lắm ❤️" "Cố lên nha 💪".
-- 40.0–42.0: the 8 things the two of you do here, one per 8th note, as a 4×2 grid of tinted cards (400×220, rose #FFF1F4 / lavender #F3EFFD alternating): a filled 64px rose/lavender circle carrying the glyph in white, the name (28px) and a one-line benefit (20px, e.g. Đếm ngày yêu → "tới từng giây, trên ảnh chúng mình", Câu hỏi mỗi ngày → "trả lời xong mới mở câu của người ấy"). Each has its own 1-second glyph:
-  - Đếm ngày yêu: digits ticking in a box
-  - Ảnh chung: two frames overlapping
-  - Câu hỏi mỗi ngày: two bubbles with a lock that opens
-  - Tâm trạng: a face that smiles
-  - Giấc ngủ: a moon filling
-  - Trò chuyện: a bubble with three dots
-  - Lời nhắc: a bell swinging once
-  - Oẳn tù tì: three strokes ✌️ ✊ ✋
-- 42.0–44.0: a masked one-line ticker: Widget màn hình chính · Cây tình yêu · Lịch âm · Nhật ký câu hỏi · Gửi quan tâm · Mã QR mời.
-  - Caption: **"Miễn phí trên App Store & Google Play"**.
-  - Everything recedes into the two dots, which travel to the center.
+- 38.0–38.5: a light sheet rises from the bottom edge over the navy (radius 28 on its top corners).
+- 38.5–40.25: the 8 things the two of you do here land one per 8th note, as a 4×2 grid of tinted cards (402×290, rose #FFF1F4 / lavender #F3EFFD alternating): a 72px rose/lavender circle carrying a white glyph that animates once (1 s), the name (40px) and a two-line benefit (28px):
+  - Đếm ngày yêu — "tới từng giây, trên ảnh chúng mình" · digits ticking in a box
+  - Ảnh chung — "cả hai cùng đăng, chỉ hai người thấy" · two frames overlapping
+  - Câu hỏi mỗi ngày — "trả lời xong mới mở câu của người ấy" · two bubbles with a lock that opens
+  - Tâm trạng — "cùng một tâm trạng là app báo ngay" · a face that smiles
+  - Giấc ngủ — "đêm qua người ấy ngủ lúc mấy giờ" · a moon filling
+  - Trò chuyện — "chỉ hai người nhắn, thấy cả lúc đang soạn" · a bubble with three dots
+  - Lời nhắc — "nhắc cả người ấy, đúng giờ bên ấy" · a bell swinging once
+  - Oẳn tù tì — "một ván với người ấy, hai tay mở cùng lúc" · three strokes ✌️ ✊ ✋
+- 40.25–42.7: the cards hold — long enough to read them.
+- 42.7–44.0: the two dots enter from the frame edges; everything recedes into them while they travel to the center.
 - Sound (bed "Range"):
   - Lighter and wider: claps on 2 and 4, a plucked arp an octave up, the bass returns.
-  - Chat send = a short air-pop; the typing dots = three soft ticks; chips = paper clicks.
-  - 8 different micro-sounds from ONE coherent kit (wood, glass, paper, rubber, metal tick…), one per glyph.
-  - The ticker = a dry card-shuffle flutter, not a whoosh.
+  - Each card = a paper set-down, then its own micro-sound from ONE coherent kit (wood, glass, paper, rubber, metal tick…), and one climbing marimba note.
+  - IV – ii – V into the touch at 44.0.
 
 ### ACT 7 · "Ký tên" (44.0–50.0 s · bars 23–25 · f 2640–2999)
 - 44.0–46.0: the two dots touch. The heart path (the app icon's heart) draws around them (stroke draw, 45 f) and fills white; the sunset tile fills behind it; the wordmark "Dear Embeiu" (Quicksand 700) slides out from behind the mark under a mask. Lock-up on the downbeat at 46.0.
-- 46.0–48.0: **"Đếm ngày yêu."** (navy) / **"Và mọi thứ sau con số."** (rose).
-- 48.0–49.5: **"Miễn phí · App Store & Google Play"** + a navy pill "dearembeiu.com".
-- Legal line, 18px #6B6B7B, on screen from 46.0 to the end: "Chỉ hai người đã ghép đôi xem được dữ liệu của nhau. iOS 14 trở lên · Android 6 trở lên."
+- 46.0–48.0: **"Đếm ngày yêu."** (navy) / **"Và mọi thứ sau con số."** (rose) — 56px.
+- 48.0–49.5: **"Miễn phí · App Store & Google Play"** (34px) + a navy pill "dearembeiu.com".
+- Legal line, 22px #6B6B7B, on screen from 46.0 to the end: "Chỉ hai người đã ghép đôi xem được dữ liệu của nhau. iOS 14 trở lên · Android 6 trở lên."
 - 49.5–50.0: everything holds. The last frame is a clean poster.
 - Sound (bed "Resolve"):
   - The full arrangement for one bar, then the Act 1 motif played COMPLETE for the first time, harmonized in D major.
@@ -177,10 +154,12 @@ Through-line: the clock tick. It opens the film (seconds ticking at f0), becomes
 2. One continuous virtual camera. EXACTLY ONE hard cut in the whole film, at 32.0. Everything else is a match transition.
 3. Overlap actions: the next one starts 4–8 f before the previous one settles. No dead pauses except the planned silence.
 4. Motion blur by sub-frame sampling (180° shutter) on anything moving faster than 20 px/frame. Static text stays perfectly crisp and pixel-snapped.
-5. Captions are at most 7 words and stay on screen at least 1.5 s. Never bounce or scale letters.
+5. Captions are at most two short sentences (≤ 10 words), 64px, and hold still for at least max(1.5 s, 0.3 s per word). Never bounce or scale letters.
 6. Hairlines are exactly 1px. Strict colour roles: rose = you / love actions, lavender = the other, navy = the number and the product's words, gradients only where the app has them.
 7. 2.5D parallax with at most 3 layers. No fake 3D tilting of UI cards.
 8. Every SFX lands within ±1 frame of its visual event.
+9. At most two elements move at once; nothing travels across text that is being read; a card that is replaced leaves completely (never half-covered, never clipped words peeking out).
+10. Type floor: story lines ≥ 56px, anything the viewer must read ≥ 40px, secondary ≥ 28px, fine print ≥ 22px; contrast ≥ 4.5:1 under 40px. Product UI inside the phone may be small only while the same content is also shown large outside it.
 
 ## 8. Banned
 - AI-slop clichés:
@@ -200,5 +179,5 @@ Through-line: the clock tick. It opens the film (seconds ticking at f0), becomes
 ## 9. Definition of done
 - Exactly 3000 frames at 1920×1080 / 60 fps. Every Vietnamese diacritic renders correctly (check ỗ ợ ả ữ ẫ, and the stacked ấ ề ộ of "Chúng mình cùng một tâm trạng").
 - All copy matches section 1 and 5 exactly, with no lorem or placeholders.
-- Export stills at f 0, 240, 480, 720, 1020, 1200, 1500, 1800, 1920, 1950, 2160, 2280, 2400, 2520, 2640, 2880 and 2999. Critique each one like a design review: alignment to the grid, spacing, contrast (≥ 4.5:1 for small text), no orphaned words. Fix, then re-render.
+- Export stills at f 0, 120, 240, 420, 540, 600, 720, 900, 1020, 1100, 1200, 1294, 1380, 1560, 1700, 1880, 1920, 1960, 2050, 2150, 2280, 2420, 2560, 2640, 2880 and 2999. Critique each one like a design review: alignment to the grid, spacing, contrast (≥ 4.5:1 for small text), no orphaned words. Fix, then re-render.
 - Watch the full film with sound twice. Check sync, loudness, and that no section reads like a template.

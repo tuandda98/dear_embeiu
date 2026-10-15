@@ -1,12 +1,15 @@
-// node audio/sfx/build.ts (project root) → out/audio/sfx.wav. The film's foley (DESIGN §7): one kit, close-miked,
-// dry-ish, tactile, quiet — paper, wood, glass, a little rubber and air. Every voice is placed on an EVENTS frame (its
-// first sample is the transient; the few swells END on the frame they lead into). Nothing that starts before the cut
-// (1920) sounds past it, nothing reaches 2988. Room tone under everything but the two silences.
+// node audio/sfx/build.ts (project root) → out/audio/sfx.wav. The film's foley (DESIGN §7, V3.md § Audio): one kit,
+// close-miked, dry-ish, tactile, quiet — paper, wood, glass, a little rubber and air. Every voice is placed on an EVENTS
+// frame (its first sample is the transient; the few swells END on the frame they lead into). Designs are per event id,
+// never per frame: a moved or added event moves its sound. Nothing that starts before the cut (1920) sounds past it,
+// nothing reaches 2988. Phone speakers: no noise voice longer than 0.8 s, all of it band-passed. Room tone under
+// everything but the two silences.
 import { mkdirSync } from "node:fs";
-import { LEN, SILENCE, SPF, SR, smp, stereo, enforceSilence, writeWav24, peakDb } from "../core.ts";
-import { EVENTS, num, str, A1, A2, A3, A4, A6, A7, type Ev } from "../events.ts";
+import { LEN, SILENCE, SPF, smp, stereo, enforceSilence, writeWav24, peakDb } from "../core.ts";
+import { EVENTS, num, str, A1, A2, A3, A4, A5, A6, A7, type Ev } from "../events.ts";
 import { ACTS } from "../../src/timeline/grid.ts";
-import { type Rand, rand, add, bell, bp, buf, chirp, db, env, hp, lp, mix, modes, ms, mul, noise, norm, sat, svfBand, tone, uni } from "./synth.ts";
+import { T } from "../../src/copy/strings.ts";
+import { type Rand, rand, bell, bp, buf, chirp, db, env, hp, lp, mix, modes, ms, mul, noise, norm, sat, svfBand, tone, uni } from "./synth.ts";
 import { key, thock, scrape, paperSlide, paperClick, typeset, stamp, hairTick, dome, glassDraw, settleAir, paperZip, exhale, uiSlide, airPop, cardFlutter, gather, sheen, roomTone } from "./kit.ts";
 
 const out = stereo();
@@ -21,6 +24,7 @@ const LIFT = 11;
 const tame = (x: Float32Array, drive = 3) => norm(sat(norm(x, 0), drive), 0);
 const D5 = 587.33, D6 = 1174.66, D7 = 2349.32;
 const GLASS = [1, 2.32, 4.25, 6.63]; // wine-glass partials (the kit's)
+const AIR_MAX = 48; // frames: the longest noise voice (0.8 s)
 
 // ───────────────────────────────────────── placement: walls, pans, the sync log
 const WALLS = SILENCE.map(([a]) => a); // smp(1920), smp(2988): a voice that starts before a wall never sounds past it
@@ -95,7 +99,7 @@ function thunk(r: Rand, f0 = 120): Float32Array {
   const tick = mul(bp(noise(ms(3), r), 2100, 1.2), env(ms(3), ms(0.08), ms(0.5)));
   return norm(mix([{ b: body, g: 0.8 }, { b: felt }, { b: tick, g: 0.25 }]), 0);
 }
-/** a paper flower opening: a soft low pop, the petals' flick */
+/** paper popping open: a soft low pop and a flick (the flowers; lower, the photo print popping out of its card) */
 function paperPop(r: Rand, p = 1): Float32Array {
   const pop = mul(tone(ms(40), chirp(420 * p, 160 * p, ms(30))), env(ms(40), ms(0.4), ms(8)));
   const flick = mul(bp(noise(ms(30), r), 2300 * p, 0.9), env(ms(30), ms(0.3), ms(4)));
@@ -107,14 +111,15 @@ function tinyPop(r: Rand): Float32Array {
   const pop = mul(tone(ms(30), chirp(900, 380, ms(22))), env(ms(30), ms(0.3), ms(5)));
   return norm(mix([{ b: pop }, { b: mul(bp(noise(ms(50), r), 1800, 0.7), env(ms(50), ms(1), ms(10))), g: 0.35 }]), 0);
 }
-/** air that swells INTO its end (the dot's fall, the riser): band noise sweeping up, ends on the frame it leads to */
-function airRise(r: Rand, dur: number, f0: number, f1: number): Float32Array {
+/** air that swells INTO its end (the dot's fall, the riser, the cover): band noise sweeping up, gone `taper` ms after
+ *  its end frame */
+function airRise(r: Rand, dur: number, f0: number, f1: number, taper = 6): Float32Array {
   const y = svfBand(noise(dur, r), (i) => f0 * (f1 / f0) ** (i / dur), (i) => 0.8 + 1.6 * (i / dur));
   const e = buf(dur);
-  for (let i = 0; i < dur; i++) e[i] = (i / dur) ** 2.2 * (1 - Math.exp(-(dur - i) / ms(6)));
+  for (let i = 0; i < dur; i++) e[i] = (i / dur) ** 2.2 * (1 - Math.exp(-(dur - i) / ms(taper)));
   return norm(mul(y, e), 0);
 }
-/** air that swells and settles over `dur` (a lift, a rise): band noise gliding f0 → f1, raised-cosine arc */
+/** air that swells and settles over `dur` (a lift, a swoop, a flight): band noise gliding f0 → f1, raised-cosine arc */
 function airArc(r: Rand, dur: number, f0: number, f1: number, peakAt = 0.4): Float32Array {
   const y = svfBand(noise(dur, r), (i) => f0 * (f1 / f0) ** (i / dur), () => 1.1);
   const a = Math.max(1, Math.round(dur * peakAt));
@@ -127,14 +132,6 @@ function easeSlide(r: Rand, dur: number, f0: number, f1: number, stop = 0.25): F
   const e = Float32Array.from({ length: dur }, (_, i) => Math.min(1, i / ms(8)) * (1 - i / dur) ** 2);
   const felt = mul(lp(noise(ms(40), r), 420), env(ms(40), ms(0.5), ms(7)));
   return norm(mix([{ b: mul(fr, e) }, { b: felt, at: dur, g: stop }]), 0);
-}
-/** a dry card riffle (the kit's cardFlutter) whose tick rate `rate(p)` /s, level `amp(p)` and pitch `lift(p)` follow the
- *  motion, p = 0…1 */
-function riffle(r: Rand, dur: number, rate: (p: number) => number, amp: (p: number) => number, lift = (_p: number) => 1): Float32Array {
-  const y = buf(dur + ms(30));
-  for (let t = 0; t < dur; t += Math.round((SR / rate(t / dur)) * uni(r, 0.85, 1.15)))
-    add(y, mul(bp(noise(ms(4), r), uni(r, 1500, 3400) * lift(t / dur), 1.3), env(ms(4), ms(0.08), ms(0.7))), t, uni(r, 0.4, 1) * amp(t / dur));
-  return norm(mix([{ b: y }, { b: mul(lp(noise(y.length, r), 700), bell(y.length, ms(60), ms(200))), g: 0.12 }]), 0);
 }
 /** a tiny bell swinging once: the clapper hits both sides (same bell, the return softer) */
 function bellSwing(r: Rand): Float32Array {
@@ -178,144 +175,172 @@ const next = (id: string, f: number, d: number) => EVENTS.find((x) => x.id === i
 /** where a span sound ends: the event's own `to`, else the cue's end, kept within 6–180 f (a reused id never runs away) */
 const till = (e: Ev, end: number) => Math.max(e.f + 6, Math.min(num(e, "to", end), e.f + 180));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-/** where letter `f` of a typed line sits (0 … 1), to pan the keys along the line as it types */
-const along = (keys: { frames: number[] }, f: number) => Math.max(0, keys.frames.indexOf(f)) / Math.max(1, keys.frames.length - 1);
-/** Act 5: the SAME soft paper click for all seven facts, identical samples (plainness is the message) */
+/** where letter frame `f` sits along a typed line (0 … 1), to pan the keys with the line as it types */
+const along = (frames: number[], f: number) => Math.max(0, frames.indexOf(f)) / Math.max(1, frames.length - 1);
+/** A2: your answer, typed letter by letter (the k-th key of Act 2 is the k-th letter of T.a2.answerYou.text) */
+const ANSWER = EVENTS.filter((x) => x.id === "key" && actOf(x.f) === "a2").map((x) => x.f);
+/** A5: the fine-print line lands with the same soft paper click the v2 facts used (one buffer: plainness) */
 const FACT = tame(paperClick(rand(1950)), 2.5);
-/** the three captions: level and where they sit (A2 bottom left, A4 under the ruler, A6 bottom left) */
-const CAPTION: Record<string, [number, number]> = { a2: [-28, -0.4], a4: [-25, 0.06], a6: [-27, -0.3] };
+/** the captions: level and where they sit (A2 "Cần cả hai." bottom left · A4 the two lines where the last card was) */
+const CAPTION: Record<string, [number, number]> = { a2: [-28, -0.4], a4: [-25, 0.2] };
 
 const DESIGN: Record<string, (e: Ev, r: Rand) => void> = {
-  // A1 · the number
-  tick: (e, r) => (e.f < A1.land ? at(tame(woodTick(r), 2), e.f, -24, -0.2) : at(tame(woodTick(r), 2), e.f, -32, -0.32)), // after A1 the counter sits small at 60 %
+  // ── A1 · the number
+  tick: (e, r) => (e.f < A1.land ? at(tame(woodTick(r), 2), e.f, -24, -0.2) : at(tame(woodTick(r), 2), e.f, -32, -0.4)), // after A1 the counter rests small at CORNER
   key: (e, r) => {
     const a = actOf(e.f);
-    if (a === "a6") {
-      const sp = e.data?.space;
-      const space = sp !== undefined ? !!sp : A6.typed.text[A6.typed.frames.indexOf(e.f)] === " ";
-      return at(tame(key(r, space ? "space" : "key")), e.f, -29 + uni(r, -1.5, 1), lerp(-0.33, -0.14, along(A6.typed, e.f)));
+    if (a === "a2") {
+      // your answer types into your card at ~40 letters/s: full key bodies would pile into a rattle louder than the unlock,
+      // so tiny clicks (spaces softer), panned along the line
+      const k = ANSWER.indexOf(e.f);
+      const space = T.a2.answerYou.text[k] === " ";
+      return at(tame(key(r, "digit")), e.f, space ? -36 : -33, lerp(-0.45, -0.05, k / Math.max(1, ANSWER.length - 1)));
     }
-    if (a === "a3" || (a === "a4" && e.f < A4.ruler[0])) return at(tame(key(r, "ai")), e.f, -34, lerp(-0.12, 0.12, along(A3.label, e.f))); // A3's label (a tail typed past 1200 still belongs to it)
-    if (a === "a4") return at(tame(key(r, "ai")), e.f, -34, lerp(0.1, 0.3, along(A4.label, e.f)));
-    at(tame(key(r, "digit")), e.f, -31, lerp(-0.45, -0.1, along(A1.caption, e.f))); // the caption types left → right
+    if (a === "a3") return at(tame(key(r, "ai")), e.f, -34, lerp(-0.12, 0.12, along(A3.label.frames, e.f))); // the tree's label
+    if (a === "a4") return at(tame(key(r, "ai")), e.f, -34, lerp(0.1, 0.3, along(A4.label.frames, e.f))); // the ruler's label
+    at(tame(key(r, "digit")), e.f, -31, lerp(-0.5, 0.2, along(A1.caption.frames, e.f))); // the 64 px caption types left → right
   },
   drop: (e, r) => at(airRise(r, S(till(e, next("land", e.f, A1.land))) - S(e.f), 500, 2600), e.f, -30, 0.03), // swells into the landing
   land: (e, r) => at(tame(thock(r), 2.2), e.f, -17, 0.03),
 
-  // A2 · the other
-  scroll: (e, r) => at(tame(paperSlide(r), 2), e.f, -34, 0.05), // the Home is flicked inside the phone (A2.scroll)
-  sheet: (e, r) => at(uiSlide(r, S(num(e, "n") === 1 ? 8 : 16)), e.f, -34, 0.05), // a sheet rises inside the phone: mood 16 f, answer 8 f
-  unfold: (e, r) => at(easeSlide(r, S(till(e, A2.card[1])) - S(e.f), 700, 1500), e.f, -31, [0.05, 0.2]),
-  leader: (e, r) => at(scrape(r, ms(150), { f0: 2300 + 100 * num(e, "n"), f1: 3200 }), e.f, -32, [-0.05, 0.12]),
-  row: (e, r) => at(tame(paperSlide(r), 2), e.f - (95 / 1000) * 60, -30, [0.12 + 0.05 * num(e, "n"), 0.25 + 0.05 * num(e, "n")]), // its settle tap lands on the row
-  jump: (e, r) => at(hairTick(r), e.f, -21, 0.15),
-  mood: (e, r) => at(tame(hp(paperClick(r), 900), 3), e.f, -35, 0.05 + 0.05 * num(e, "n")),
-  pick: (e, r) => at(airPop(r), e.f, -22, 0.15),
-  matched: (e, r) => {
-    at(hairTick(r), e.f, -21, 0.2);
-    at(sheen(r, ms(320)), e.f, -32, [0.05, 0.4]);
+  // ── A2 · the other: the daily question is the hero
+  swoop: (e, r) => at(airArc(r, S(till(e, A2.fly[1])) - S(e.f), 700, 1500, 0.5), e.f, -33, [0.03, -0.45]), // the dot swoops into the avatar slot
+  unfold: (e, r) => at(easeSlide(r, S(till(e, A2.card[1])) - S(e.f), 700, 1500), e.f, -31, [-0.45, -0.2]), // the notification opens rightward
+  phoneRise: (e, r) => {
+    const a2 = actOf(e.f) === "a2";
+    const end = till(e, a2 ? A2.phone[1] : A4.phone[1]);
+    const pan = a2 ? 0.3 : -0.38; // A2: the phone rises at the right · A4: at the left
+    at(settleAir(r, S(Math.min(end, e.f + AIR_MAX)) - S(e.f)), e.f, -32, pan);
+    at(tame(thunk(r), 2), end, -27, pan); // it settles
+  },
+  scroll: (e, r) => at(easeSlide(r, S(till(e, A2.scroll[1])) - S(e.f), 1400, 2400, 0.12), e.f, -36, 0.3), // the Home glides down inside the phone
+  leave: (e, r) => at(airRise(r, S(till(e, A2.leave[1])) - S(e.f), 900, 1900, 15), e.f, -34, [-0.3, -0.7]), // the notification slides out, left
+  lift: (e, r) => {
+    if (actOf(e.f) === "a2") {
+      const end = till(e, A2.lift[1]); // the question card lifts out of the phone into the left column, at hero scale…
+      at(airArc(r, S(end) - S(e.f), 380, 1300, 0.45), e.f, -32, [0.3, -0.3]);
+      return at(tame(lp(paperClick(r), 1600), 2), end, -29, -0.3); // …and settles there
+    }
+    at(airArc(r, S(till(e, next("widget", e.f, A4.widgetMedium) - 2)) - S(e.f), 380, 1500, 0.45), e.f, -32, -0.35); // A4: the counter card lifts off
+  },
+  sendIn: (e, r) => at(tame(dome(r, true), 2), e.f, -27, -0.05), // the Gửi pill unfolds in your card
+  press: (e, r) => {
+    at(tame(dome(r)), e.f, -24, -0.05); // smaller than the unlock it leads into
+    at(tame(dome(r, true)), e.f + 6, -30, -0.05);
+    at(tame(airPop(r), 2), e.f + 6, -28, -0.05); // your answer leaves
+  },
+  // UNLOCK — THE hero beat: both answers open at the same instant. Intimate, not a win: no ping, no rising figure. The
+  // mask lifts off his text like tissue (a soft glide following the 18 f left → right wipe), both edges glow once (glass
+  // breathing in D5, the motif of every "both" moment) over a low breath.
+  unlock: (e, r) => {
+    // −1.5 dB (v3 integration): the music lands its home chord on the same frame; together they drove the limiter 2.8 dB
+    at(easeSlide(r, ms(300), 1100, 2300, 0), e.f, -24.5, [-0.42, -0.08]);
+    at(glassDraw(r, ms(140), { gentle: true }), e.f, -19.5, -0.24);
+    at(exhale(r, ms(520)), e.f, -27.5, -0.24);
   },
   caption: (e, r) => {
     const [g, p] = CAPTION[actOf(e.f)] ?? [-28, 0];
     at(tame(typeset(r), 2), e.f, g, p);
   },
-  press: (e, r) => {
-    at(tame(dome(r)), e.f, -21, 0.35);
-    at(tame(dome(r, true)), e.f + 6, -27, 0.35);
-    at(tame(airPop(r), 2), e.f + 6, -25, 0.35);
-  },
-  unfoldRow: (e, r) => at(paperZip(r, ms(170)), e.f, -27, 0.25),
-  check: (e, r) => {
-    const draw = glassDraw(r, ms(200), { gentle: true });
-    const touch = mul(lp(noise(ms(6), r), 2500), env(ms(6), ms(0.2), ms(1.2))); // the felt tip touches down on 672
-    at(norm(mix([{ b: draw }, { b: norm(touch, 0), g: 0.35 }]), 0), e.f, -31, 0.25);
-  },
+  unfoldRow: (e, r) => at(paperZip(r, ms(170)), e.f, -27, 0.3), // the phone's card opens both answers too
   compress: (e, r) => {
     const end = till(e, next("cell", e.f, A2.compress[1]));
-    at(gather(r, S(end) - S(e.f)), e.f, -29, [0.25, -0.45]);
-    at(tame(lp(paperClick(r), 1200), 2), end, -31, -0.5); // the sheet lands as the first cell
+    at(gather(r, S(end) - S(e.f)), e.f, -29, [0, -0.5]);
+    at(tame(lp(paperClick(r), 1200), 2), end, -31, -0.5); // everything lands as the first cell
   },
 
-  // A3 · the streak
+  // ── A3 · the streak
   cell: (e, r) => {
     const k = num(e, "n") / 30;
     at(tame(leaf(r, "counter", 1 + 0.35 * k), 2), e.f, -33, lerp(-0.52, 0.16, k)); // the strip extends to the right
   },
   flame: (e, r) => at(sheen(r, ms(450)), e.f, -33, 0.17),
-  chip: (e, r) => (actOf(e.f) === "a6" ? at(tame(paperClick(r), 2.5), e.f, -29, -0.45 + 0.18 * num(e, "n")) : at(tame(paperClick(r), 2.5), e.f, -28, 0)),
-  node: (e, r) => at(tame(woodTick(r, { bright: 0.75, body: 0.15 }), 2), e.f, -27, -0.15), // the clock's wood, one per step, under the score's climbing marimba knock
+  skyRise: (e, r) => at(easeSlide(r, S(till(e, A3.sky[1])) - S(e.f), 350, 800, 0.3), e.f, -33, 0), // the night card rises into place
+  chip: (e, r) => at(tame(paperClick(r), 2.5), e.f, -28, 0),
+  node: (e, r) => at(tame(woodTick(r, { bright: 0.75, body: 0.15 }), 2), e.f, -27, -0.15), // the clock's wood, one per step, under the score's marimba
   treeCheck: (e, r) => at(hairTick(r), e.f, -22, 0.15),
-  riser: (e, r) => at(airRise(r, S(till(e, A3.riser[1])) - S(e.f), 300, 2400), e.f, -34, 0),
+  riser: (e, r) => {
+    const end = till(e, A3.riser[1]); // a quiet air rising into the collapse; it starts late so it stays ≤ 0.8 s
+    const from = Math.max(e.f, end - AIR_MAX);
+    at(airRise(r, S(end) - S(from), 300, 2400), from, -34, 0);
+  },
   flower: (e, r) => {
     const n = num(e, "n");
     at(tame(paperPop(r, [1, 1.12, 1.26][n % 3]), 2), e.f, -28, [-0.2, -0.12, -0.16][n % 3]);
   },
-  skyRise: (e, r) => at(easeSlide(r, S(till(e, A3.sky[1])) - S(e.f), 350, 800, 0.3), e.f, -33, 0), // the night sheet rises from the bottom edge
-  rise: (e, r) => at(settleAir(r, S(till(e, A3.dotsRise[1])) - S(e.f)), e.f, -35, 0), // the two dots rise and come to rest
+  collapse: (e, r) => at(gather(r, S(till(e, A3.collapse[1])) - S(e.f)), e.f, -32, 0.1), // the chip scales into a point, where the dots are born
+  rise: (e, r) => at(settleAir(r, S(Math.min(till(e, A3.dotsRise[1]), e.f + AIR_MAX)) - S(e.f)), e.f, -35, 0), // the two dots rise and come to rest
   star: (e, r) => {
-    const n = num(e, "n"); // one per 16th: you, other × Câu hỏi, Tâm trạng, Nhắn tin (A3.stars)
+    const n = num(e, "n"); // you, other × Câu hỏi, Tâm trạng, Nhắn tin
     const you = (str(e, "who") || (n % 2 ? "other" : "you")) === "you";
     const f0 = [D7, D7 * 1.26, D7 * 1.498][(n >> 1) % 3]; // D F# A for your three; the other's sit a fifth below
     at(glassTick(r, you ? f0 : f0 / 1.5, 140), e.f, -33, (you ? -1 : 1) * (0.06 + 0.04 * (n >> 1))); // rose half left, lavender right
   },
   heartResolve: (e, r) => at(gather(r, S(till(e, A3.heart[1])) - S(e.f)), e.f, -31, 0),
+  fill: (e, r) => at(airArc(r, S(Math.max(till(e, A3.fill[1]), e.f + 14)) - S(e.f), 500, 1400, 0.4), e.f, -34, 0), // the heart fills white from the tip up
   sweep: (e, r) => at(sheen(r, S(till(e, A3.sweep[1])) - S(e.f)), e.f, -33, [-0.12, 0.12]), // the one light sweep across the tile
+  recede: (e, r) =>
+    actOf(e.f) === "a6"
+      ? at(gather(r, S(Math.min(till(e, A6.recede[1]), e.f + AIR_MAX)) - S(e.f)), e.f, -33, 0) // everything gathers into the two dots
+      : at(exhale(r, S(Math.min(till(e, A3.recede[1]), e.f + 24)) - S(e.f)), e.f, -38, 0), // A3: the night sheet drops away, a short breath down
   ting: (e, r) => at(ting(r), e.f, -18, 0),
 
-  // A4 · one day
-  phoneRise: (e, r) => {
-    at(settleAir(r, S(till(e, A4.phone[1])) - S(e.f)), e.f, -29, -0.38);
-    at(tame(thunk(r), 2), A4.phone[1], -25, -0.38);
+  // ── A4 · one day, one card at a time
+  shrink: (e, r) => at(gather(r, S(till(e, A4.heartShrink[1])) - S(e.f)), e.f, -32, 0), // the heart tile shrinks away in place
+  playhead: (e, r) => {
+    const end = till(e, A4.dots[1]); // the two dots descend to the ruler…
+    at(settleAir(r, S(end) - S(e.f)), e.f, -36, 0.2);
+    at(leaf(r, "entry", 1.3), end, -30, 0.2); // …and click into the playhead, rose above lavender
+    at(leaf(r, "entry", 1), end, -30, 0.2);
   },
-  rulerIn: (e, r) => at(cardFlutter(r, ms(700)), e.f, -22, [0.55, 0.25]),
+  rulerIn: (e, r) => at(cardFlutter(r, S(till(e, A4.ruler[1])) - S(e.f)), e.f, -22, [0.55, 0.25]), // the hours stream in from the right
   event: (e, r) => {
     const you = str(e, "who") === "you";
     const card = tame(paperClick(r), 2.5);
-    at(you ? norm(mix([{ b: card }, { b: hp(card, 2500), g: 0.6 }]), 0) : card, e.f, -24, 0.2 + uni(r, -0.03, 0.03));
+    at(you ? norm(mix([{ b: card }, { b: hp(card, 2500), g: 0.6 }]), 0) : card, e.f, -24, 0.2 + uni(r, -0.03, 0.03)); // the card drops at the playhead
     at(leaf(r, "entry", you ? 1.3 : 1), e.f, -25, 0.2);
   },
+  eventOut: (e, r) => at(gather(r, S(e.f + 12) - S(e.f)), e.f, -36, 0.2), // the card slides up and scales into its dot on the ruler
+  photoPop: (e, r) => at(tame(paperPop(r, 0.85), 2), e.f, -24, 0.15), // the print pops up out of its card
+  photoFly: (e, r) => at(airArc(r, S(till(e, next("photoLand", e.f, A4.photo.land))) - S(e.f), 600, 1600, 0.6), e.f, -33, [0.15, -0.38]), // …flies into the phone
+  photoLand: (e, r) => at(tame(lp(paperClick(r), 2200), 2), e.f, -27, -0.38), // …and lands on its Kỷ niệm tab
   count: (e, r) => {
     const n = num(e, "n") % 3; // a digit lands in its box: Ảnh · Sao hôm nay · Chuỗi (colX 9 / 10 / 11 under the ruler)
     at(tame(leaf(r, "counter", [1, 1.06, 1.12][n]), 2), e.f, -34, [0.3, 0.39, 0.47][n]);
   },
-  stop: (e, r) => at(stamp(r, true), e.f, -17, 0.2),
-  lift: (e, r) => at(airArc(r, S(till(e, next("widget", e.f, A4.widgetMedium) - 2)) - S(e.f), 380, 1500, 0.45), e.f, -32, -0.35),
+  stop: (e, r) => at(stamp(r, true), e.f, -15, 0.2),
   widget: (e, r) => {
     const n = num(e, "n");
-    at(tame(thunk(r, 120 - 8 * n), 2), e.f, -28, [-0.35, -0.2, -0.05][n % 3]);
-    at(ping(r, [D6, D6 * 0.8409, D6 * 0.7492][n % 3]), e.f, -27 - n, [-0.35, -0.2, -0.05][n % 3]); // D6 → B5 → A5
+    const pan = [-0.38, -0.3, -0.12][n % 3]; // medium + small on the phone; the Android 2×2 outside it, at its right
+    at(tame(thunk(r, 120 - 8 * n), 2), e.f, -28, pan);
+    at(ping(r, [D6, D6 * 0.8409, D6 * 0.7492][n % 3]), e.f, -27 - n, pan); // D6 → B5 → A5
   },
-  cover: (e, r) => at(uiSlide(r, S(till(e, A4.cover[1])) - S(e.f)), e.f, -36, 0), // the navy sheet rises; the wall at 1920 cuts its stop dead
+  cover: (e, r) => at(airRise(r, S(till(e, A4.cover[1])) - S(e.f), 260, 900), e.f, -28, 0), // the navy sheet rises and is cut dead on 1920
   cut: () => {}, // NOTHING: the walls in at() and the room tone's dead cut do the work
 
-  // A5 · said up front
-  fact: (e) => at(FACT, e.f, -32, 0),
-  dim: (e, r) => at(exhale(r, ms(600)), e.f, -41, 0),
-  headline: (e, r) => at(tame(typeset(r), 2), e.f, -29, [-0.02, -0.3, -0.13][num(e, "n") % 3]),
-
-  // A6 · the range
-  composerIn: (e, r) => at(uiSlide(r, S(till(e, A6.composer[1])) - S(e.f)), e.f, -35, 0), // felt stop when the sheet covers the frame
-  send: (e, r) => at(tame(airPop(r), 2), e.f, -21, 0.3),
-  typingDot: (e, r) => {
-    const n = num(e, "n") % 3; // the three dots rise one after another (D6 E6 F#6), levelled to read alike
-    at(tame(woodTick(r, { f0: D6 * [1, 1.122, 1.26][n], bright: 0.7, body: 0.12 }), 2), e.f, -31 + [2, 1, 0][n], -0.35);
+  // ── A5 · said up front
+  headline: (e, r) => at(tame(typeset(r), 2), e.f, -26, [-0.06, -0.33, -0.13][num(e, "n") % 3]),
+  dotsIn: (e, r) => {
+    const a5 = actOf(e.f) === "a5";
+    const end = till(e, a5 ? A5.dots[1] : A6.dots[1]);
+    const [rose, lav] = a5 ? [-0.12, -0.08] : [-0.5, 0.5]; // where they rest: A5 just after "người." · A6 near the edges, y 960
+    at(airArc(r, S(end) - S(e.f), 900, 1500, 0.35), e.f, -37, [-0.7, rose]); // the rose dot glides in from the left edge…
+    at(airArc(r, S(end) - S(e.f), 820, 1400, 0.35), e.f, -37, [0.7, lav]); // …the lavender one from the right
+    at(leaf(r, "entry", 1.3), end, -29, rose); // and they come to rest (rose brighter)
+    at(leaf(r, "entry", 1), end, -29, lav);
   },
+  fact: (e) => at(FACT, e.f, -34, -0.2), // the fine-print line
+
+  // ── A6 · the range: eight cards
+  composerIn: (e, r) => at(uiSlide(r, S(till(e, A6.composer[1])) - S(e.f)), e.f, -35, 0), // the light sheet rises; felt stop when it covers the navy
   glyph: (e, r) => {
     const n = num(e, "n") % 8;
-    at(glyphSound(r, n), e.f, -26 + GLYPH_TRIM[n], [-0.44, -0.17, 0.1, 0.36][n % 4]);
+    const pan = [-0.4, -0.13, 0.13, 0.4][n % 4]; // 4×2 cards at x 120 / 546 / 972 / 1398
+    at(tame(lp(paperClick(r), 2400), 2), e.f, -28, pan); // the card lands…
+    at(glyphSound(r, n), e.f + 6, -24 + GLYPH_TRIM[n], pan); // …and its glyph plays 6 f later
   },
-  chipsOut: (e, r) => at(riffle(r, S(till(e, A6.chipsOut[1])) - S(e.f), (p) => 30 + 20 * p, (p) => 1 - 0.5 * p, (p) => 1 + 0.6 * p), e.f, -27, 0), // the picks lift out of the top edge
-  dotsIn: (e, r) => {
-    at(leaf(r, "entry", 1.3), e.f, -27, -0.5); // the rose dot from the left edge (brighter)
-    at(leaf(r, "entry", 1), e.f, -27, 0.5); // the lavender one from the right
-  },
-  ticker: (e, r) => at(riffle(r, S(till(e, A6.ticker[1])) - S(e.f), (p) => 14 + 50 * (1 - p) ** 2, (p) => 0.35 + 0.65 * (1 - p) ** 1.5), e.f, -22, [0.3, -0.1]), // flicks in from behind the lavender dot, then drifts
-  recede: (e, r) =>
-    actOf(e.f) === "a6"
-      ? at(gather(r, S(till(e, A6.recede[1])) - S(e.f)), e.f, -31, 0) // everything gathers into the two dots
-      : at(exhale(r, S(Math.min(till(e, A3.recede[1]), e.f + 24)) - S(e.f)), e.f, -38, 0), // A3: the night sheet drops away, a short breath down
 
-  // A7 · the signature
+  // ── A7 · the signature
   touch: (e, r) => at(tinyPop(r), e.f, -22, 0),
   heartDraw: (e, r) => at(glassDraw(r, S(till(e, A7.heart[1])) - S(e.f), { gentle: true }), e.f, -32, 0),
   heartFill: (e, r) => at(sheen(r, S(till(e, A7.tile[1])) - S(e.f)), e.f, -34, 0),
@@ -330,8 +355,7 @@ const DESIGN: Record<string, (e: Ev, r: Rand) => void> = {
 /** ids that are deliberately not foley */
 const IGNORED: Record<string, string> = {
   word: "the motif note is the score's",
-  night: "the sky's growth sits under the dots' rise air: no second air",
-  fill: "the heart's gather is still closing over it; the sweep's sheen and the ting follow",
+  night: "the sky grows over the same frames the dots rise: the rise air carries both",
 };
 
 const seed = (e: Ev) => {
@@ -363,11 +387,13 @@ const ids = [...new Set(EVENTS.map((e) => e.id))];
 const lag = new Map<string, number>();
 for (const v of log) if (v.late > 1) lag.set(v.id, Math.max(lag.get(v.id) ?? 0, v.late));
 const late = [...lag].map(([id, f]) => `${id} ${f.toFixed(1)}f`);
+const unused = Object.keys(DESIGN).filter((d) => !ids.includes(d));
 console.log(
   [
     `sfx.wav · ${EVENTS.length} events · ${log.length} voices · peak ${peakDb(out).toFixed(2)} dBFS`,
     `ids ${ids.length}: handled ${ids.filter((i) => DESIGN[i]).join(" ")}`,
     `ignored: ${ids.filter((i) => IGNORED[i]).map((i) => `${i} (${IGNORED[i]})`).join(", ") || "none"}`,
+    `designs with no event: ${unused.join(" ") || "none"}`,
     `onset > 1 f after the start (swells into their frame, by design): ${late.join(" ") || "none"}`,
     `trimmed at a wall: ${trimmed.join(" ") || "none"}`,
   ].join("\n"),

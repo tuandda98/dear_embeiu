@@ -23,22 +23,25 @@ const DROP_K = (WD / Math.sqrt(1 - Z * Z)) ** 2; // ≈ 148.6 for an 18 f fall
 export const DROP_FROM = -40;
 export const dropY = (f: number) => lerp(DROP_FROM, COUNTER_DOT.y, settle(f, A1.dropStart, { zeta: Z, stiffness: DROP_K }));
 
-/** the caption under the clock, typed; a rose caret rides after the last letter, solid while typing, then blinks
- *  (beat-locked) from A1.wait until the landing, after which it is gone. `exit` 0 → 1 drops the line out of its mask. */
-export const A1_CAPTION = { x: 120, y: 930, size: 34 } as const;
+/** the caption under the clock (v3: 64 px, weight 700), typed; a rose caret rides after the last letter, solid while
+ *  typing and for 15 f after, then blinks (beat-locked) until the landing, after which it is gone. `exit` 0 → 1 drops
+ *  the line out of its mask. */
+export const A1_CAPTION = { x: 120, y: 860, size: 64, weight: 700 } as const; // y 760 (V3) runs into the clock labels (778–798)
+const LAST_KEY = A1.caption.frames[A1.caption.frames.length - 1];
 export const A1Caption: React.FC<{ f: number; exit?: number }> = ({ f, exit = 0 }) => {
-  const caret = f >= A1.caption.frames[0] && f < A1.land && (f < A1.wait || blink(f) === 1);
-  const { x, y, size } = A1_CAPTION;
+  const caret = f >= A1.caption.frames[0] && f < A1.land && (f <= LAST_KEY + 15 || blink(f) === 1);
+  const { x, y, size, weight } = A1_CAPTION;
   const pad = 14; // room inside the mask for the stacked marks (ỗ) and descenders
   return (
-    <div style={{ position: "absolute", left: x, top: y - pad, height: size * 1.2 + 2 * pad, width: 1100, overflow: "hidden" }}>
+    <div style={{ position: "absolute", left: x, top: y - pad, height: size * 1.2 + 2 * pad, width: 1500, overflow: "hidden" }}>
       <div
         style={{
           position: "absolute",
           left: 0,
           top: pad,
           fontSize: size,
-          fontWeight: 600,
+          fontWeight: weight,
+          letterSpacing: "-0.01em",
           lineHeight: 1.2,
           whiteSpace: "nowrap",
           color: C.ink,
@@ -49,9 +52,9 @@ export const A1Caption: React.FC<{ f: number; exit?: number }> = ({ f, exit = 0 
         <span
           style={{
             display: "inline-block",
-            width: 2,
-            height: size * 1.05,
-            marginLeft: 5,
+            width: 4,
+            height: size * 1.0,
+            marginLeft: 8,
             verticalAlign: "-0.2em",
             background: C.rose,
             opacity: caret ? 1 : 0,

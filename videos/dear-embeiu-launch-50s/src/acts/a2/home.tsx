@@ -1,12 +1,11 @@
-// The app's Home inside Act 2's phone, in screen points (402×874), plus the two sheets Act 2 opens on it (the mood
-// sheet, ref/ios/mood-sheet*.png; the answer sheet, dq-sheet-typed.png). Act 4's HomeApp follows Act 4's clock (its
+// The app's Home inside Act 2's phone, in screen points (402×874). Act 4's HomeApp follows Act 4's clock (its
 // scroll, the reveal and the match are keyed to the day there) and its cards are not exported, so the cards Act 2 needs
 // in Act 2's states (his answer locked, his mood shared, your sides empty) are drawn here from a4's layout (HOME) and
 // its exported parts (CounterContent, PhotoBack, Names, G, Roll, diag); every state is an explicit prop.
 // ponytail: mirrors a4/home.tsx's cards, header and nav — if a4 exports state-driven versions, use those and delete these.
 import type { CSSProperties, ReactNode } from "react";
 import { C } from "../../lib/tokens.ts";
-import { ease, lerp, settle } from "../../lib/ease.ts";
+import { ease, lerp } from "../../lib/ease.ts";
 import { T } from "../../copy/strings.ts";
 import { StatusBar } from "../../components/Phone.tsx";
 import { CARD_SHADOW, CounterContent, HOME, Names, PhotoBack } from "../a4/home.tsx";
@@ -17,8 +16,6 @@ const H = T.a4.home;
 const SURFACE = C.tint;
 const CONTENT_SHADOW = "0 10px 16px rgba(0,0,0,0.06)";
 const abs = (s: CSSProperties): CSSProperties => ({ position: "absolute", ...s });
-const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
-const mix = (a: string, b: string, t: number) => `rgb(${hex(a).map((v, i) => Math.round(lerp(v, hex(b)[i], t))).join(",")})`;
 const Txt: React.FC<{ s: CSSProperties; children: ReactNode }> = ({ s, children }) => <div style={abs({ whiteSpace: "nowrap", ...s })}>{children}</div>;
 
 // ── layout (content y = screen y at scroll 0) ──────────────────────────────────────────────────────────────────────
@@ -27,23 +24,6 @@ export const Q_H = [288, 337] as const; // his answer locked (home-today) → bo
 export const SLEEP_H = 168; // your night not in yet: the together line is not shown
 export const moodY = (qH: number) => HOME.q + qH + 16;
 export const sleepY = (qH: number, mH: number) => moodY(qH) + mH + 16;
-/** where the film attaches to the page (content coords, before any scroll): his side and your side of each card */
-export const anchors = (qH: number) => {
-  const m = moodY(qH), s = sleepY(qH, HOME.moodH[0]);
-  return {
-    other: [
-      { x: 36, y: HOME.q + BODY + 91 }, // the locked teaser of his answer
-      { x: 16 + 20 + 172 + 79 - 28, y: m + 72 + 55 }, // the left edge of his mood's circle
-      { x: 16 + 199 + 4, y: s + 81 }, // his lane's dot
-    ],
-    you: [
-      { x: 16 + 20 + 44, y: HOME.q + 217 + 25.5 }, // in the rose pill, after its pen
-      { x: 16 + 20 + 79, y: m + 72 + 8 + 13 + 10 + 28 }, // in your empty mood circle
-      { x: 16 + 16 + 2, y: s + 74 + 37 }, // where your night would be
-    ],
-  };
-};
-
 /** Act 2's Home at one moment; every field is decided by the act, not by a clock */
 export type HomeState = {
   f: number; // the frame: the counter card's clock
@@ -325,61 +305,3 @@ export const HomeA2: React.FC<{ s: HomeState }> = ({ s }) => {
     </div>
   );
 };
-
-// ── the sheets (screen coords; the sheet slides up from the screen's bottom edge) ─────────────────────────────────
-export const Scrim: React.FC<{ o: number }> = ({ o }) => (o > 0 ? <div style={abs({ inset: 0, background: `rgba(26,26,46,${0.45 * o})` })} /> : null);
-const SheetBox: React.FC<{ top: number; rise: number; children: ReactNode }> = ({ top, rise, children }) => (
-  <div style={abs({ left: 0, top: lerp(874, top, rise), width: 402, height: 874 - top, borderRadius: "28px 28px 0 0", background: C.card, boxShadow: "0 -8px 30px rgba(26,26,46,0.12)" })}>
-    <div style={abs({ left: 181, top: 12, width: 40, height: 4, borderRadius: 2, background: "rgba(160,160,176,0.45)" })} />
-    {children}
-  </div>
-);
-
-/** ref/ios/mood-sheet.png: title, 4×2 moods, the note field, the save pill (navy once a mood is picked) */
-export const MoodSheet: React.FC<{ f: number; rise: number; drops: readonly number[]; ring: number; picked: number }> = ({ f, rise, drops, ring, picked }) => (
-  <SheetBox top={450} rise={rise}>
-    <Txt s={{ left: 0, right: 0, top: 32, textAlign: "center", fontSize: 22, fontWeight: 700, lineHeight: "28px", color: C.ink }}>{T.a2.sheetTitle}</Txt>
-    {T.a2.moods.map(([emoji, label], k) => {
-      const d = f >= drops[k] ? settle(f, drops[k], { stiffness: 320 }) : 0;
-      const me = k === T.a2.picked;
-      const [x, y] = [30.6 + (k % 4) * 87.8, 73 + Math.floor(k / 4) * 102.6];
-      return d > 0 ? (
-        <div key={k} style={abs({ left: x, top: y - 10 * (1 - d), width: 77, height: 90, transform: `scale(${lerp(0.82, 1, d)})` })}>
-          <div style={abs({ inset: 0, borderRadius: 22, background: me ? mix(SURFACE, "#FFE5EA", picked) : SURFACE })} />
-          <div style={abs({ left: 0, right: 0, top: 15, textAlign: "center", fontSize: 36, lineHeight: 1 })}>{emoji}</div>
-          <div style={abs({ left: -6, right: -6, top: 62, textAlign: "center", fontSize: 13, fontWeight: 600, lineHeight: "16px", color: me && picked > 0.5 ? C.roseDeep : C.ink2, whiteSpace: "nowrap" })}>{label}</div>
-          {me && ring > 0 && (
-            <svg style={abs({ left: -2, top: -2 })} width={81} height={94} viewBox="0 0 81 94">
-              <rect x={1.25} y={1.25} width={78.5} height={91.5} rx={23} fill="none" stroke={C.rose} strokeWidth={2.5} pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - ring} />
-            </svg>
-          )}
-        </div>
-      ) : null;
-    })}
-    <div style={abs({ left: 20, top: 284, width: 362, height: 48, borderRadius: 24, background: SURFACE, display: "flex", alignItems: "center", padding: "0 22px", boxSizing: "border-box", fontSize: 16, color: C.ink3, whiteSpace: "nowrap" })}>{T.a2.noteHint}</div>
-    <div style={abs({ left: 20, top: 349, width: 362, height: 50, borderRadius: 999, background: mix("#E9E9EE", C.ink, picked), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 600, color: picked > 0.5 ? C.white : C.ink3 })}>{T.a2.save}</div>
-  </SheetBox>
-);
-
-/** ref/ios/dq-sheet-typed.png: the sunset header with the question, your typed answer, the count, the pink Gửi pill */
-export const AnswerSheet: React.FC<{ rise: number; send: number }> = ({ rise, send }) => (
-  <SheetBox top={491} rise={rise}>
-    <div style={abs({ left: 20, top: 28, width: 362, height: 107, borderRadius: 24, background: `linear-gradient(${diag(362, 107)}deg, ${C.sunset.join(", ")})`, boxShadow: "0 10px 24px rgba(255,107,157,0.22)" })}>
-      <div style={abs({ left: 20, top: 18, display: "flex", alignItems: "center", gap: 8 })}>
-        <G name="heart" size={16} color={C.white} />
-        <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "0.01em", color: C.white }}>{T.a2.rows[0].label}</span>
-      </div>
-      <div style={abs({ left: 20, top: 44, width: 322, fontSize: 19, fontWeight: 700, lineHeight: "25px", color: C.white, textShadow: "0 1px 4px rgba(0,0,0,0.12)" })}>{T.a2.question}</div>
-    </div>
-    <div style={abs({ left: 20, top: 155, width: 362, height: 116, borderRadius: 24, background: "#F7F2F7", boxShadow: "inset 0 0 0 1px rgba(255,107,157,0.16)" })}>
-      <div style={abs({ left: 18, right: 18, top: 20, fontSize: 16, fontWeight: 500, lineHeight: "22px", color: C.ink })}>{T.a2.answerYou.text}</div>
-    </div>
-    <Txt s={{ left: 20, top: 303, fontSize: 15, fontWeight: 600, color: C.ink3 }}>{`${280 - T.a2.answerYou.text.length} / 280`}</Txt>
-    <div style={abs({ left: 295, top: 286, width: 87, height: 47, borderRadius: 999, transform: `scale(${send})`, background: "linear-gradient(90deg, #FF8FA3 0%, #FFB0BF 100%)", boxShadow: "0 8px 18px rgba(255,107,157,0.30)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, color: C.white, fontSize: 17, fontWeight: 700 })}>
-      {T.a2.send}
-      <svg width={18} height={18} viewBox="0 0 24 24" fill={C.white}>
-        <path d="M21.4 2.6a1 1 0 0 0-1.06-.23L3.1 8.9a1 1 0 0 0 .02 1.88l6.9 2.32 2.32 6.9a1 1 0 0 0 1.88.02l6.53-17.24a1 1 0 0 0-.35-1.18zM11 13l3.5-3.5" />
-      </svg>
-    </div>
-  </SheetBox>
-);

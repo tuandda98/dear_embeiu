@@ -19,8 +19,8 @@ export const Titles: React.FC = () => {
   const line = t.dark ? "rgba(255,255,255,0.35)" : C.rose;
   return (
     <div style={{ position: "absolute", left: colX(8), top: 96, width: 1920 - colX(8) - 120, clipPath: clip }}>
-      <div style={{ fontSize: 24, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color, whiteSpace: "nowrap", textAlign: "right" }}>{t.text}</div>
-      <div style={{ marginTop: 10, marginLeft: "auto", width: 64, height: 3, background: line }} />
+      <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color, whiteSpace: "nowrap", textAlign: "right" }}>{t.text}</div>
+      <div style={{ marginTop: 12, marginLeft: "auto", width: 72, height: 3, background: line }} />
     </div>
   );
 };

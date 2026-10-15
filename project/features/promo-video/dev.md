@@ -68,3 +68,13 @@ Thư mục `videos/dear-embeiu-launch-50s/` (có `.gitignore` riêng: `node_modu
    chips 1 hàng trên panel); (g) lưới tính năng thành 8 thẻ 400×220 tint hồng/tím, vòng tròn 64 px glyph trắng, tên
    28 + lợi ích 20 (`T.a6.benefits`). SFX thêm `cover`, `scroll`, `sheet` (không còn event câm). Render lại không VO,
    gửi Telegram bản `_preview.mp4`.
+9. **v3 — dựng lại theo nhận xét đạo diễn (2026-10-15 khuya):** chỉ thị chung viết ở `V3.md` (đã gộp vào BRIEF §5 +
+   DESIGN §4–§7 rồi xoá). Số đếm sau Act 1 nằm ở `CORNER` (`src/story/Counter.tsx`: x 120, y 92, scale 0.32, chữ phụ tự
+   mờ dưới scale 0.4). Act 2: sheet tâm trạng bỏ; câu hỏi + 2 câu trả lời to bên trái, `A2.unlock` 540. Act 3: tối đa
+   2 chuyển động mỗi khung (cue A3 dời hết), chip 32 px, nhãn 28 px. Act 4: `hourAt`/`hourToFrame` qua nút (frame, giờ),
+   `A4.eventFrames` 6 khoảnh khắc, `A4.photo` (ảnh 11.jpg), widget Android ngoài điện thoại. Act 5: không lưới, 3 câu +
+   hai chấm + 1 dòng chữ nhỏ (`A5.dots`, `A5.fine`). Act 6: chỉ 8 thẻ 402×290. Act 7: chữ to hơn. Key cue/chuỗi cũ giữ
+   lại có chú thích "v3: dead" cho audio/scripts. Nhạc Act 4 = marimba + piano + kick 1/3 + side-stick 2/4, low-pass theo
+   giờ; swell Act 2 về chủ âm đúng `unlock`. SFX thêm swoop/leave/lift/sendIn/unlock/collapse/shrink/playhead/eventOut/
+   photoPop/photoFly/photoLand/dotsIn. `scripts/srt.ts` viết lại theo cue mới; `audio/build.ts` đặt file đo tạm theo pid.
+   Tiêu đề act 30 px.

@@ -1,9 +1,10 @@
 // The streak (BRIEF §5 act 3, 12.0–13.5 s): 31 day cells slide out one from under the other, the count rides the head
 // of the strip, a navy flame draws above the newest cell. At A3.chip the strip steps back (×32/46 about its left end,
 // as the number steps back in act 2) to make room for its words, the flame tucks in beside it and a frosted pill
-// draws around strip + flame + count + words: the product's streak chip, earned rather than stamped on.
-// Reads the frame itself, so <Blur> can sample the step-back.
-import { useCurrentFrame } from "remotion";
+// draws around strip + flame + count + words: the product's streak chip, earned rather than stamped on. At A3.collapse
+// the whole chip scales into one point between its cells 22 and 30, where the two dots are born (V3 G3: it leaves
+// completely before the night covers its place). Reads the frame itself, so <Blur> can sample its fast moves.
+import { Easing, useCurrentFrame } from "remotion";
 import { measureText } from "@remotion/layout-utils";
 import { Digits, digitsWidth, roll } from "../../components/Digits.tsx";
 import { C, FONT } from "../../lib/tokens.ts";
@@ -16,7 +17,7 @@ const NUM = String(N);
 const REST = T.a3.chip.slice(NUM.length); // the chip's words after its number (the number is the count)
 const TEXT = REST.trimStart();
 const TEXT_GAP = REST.startsWith(" ") ? 14 : 3;
-const TEXT_SIZE = 30;
+const TEXT_SIZE = 32;
 
 // the build: 36 px cells, 10 px gaps, from x 120 on the H720 cell's row (centre y 554); 31 cells end at x 1536
 const X0 = 120;
@@ -24,9 +25,9 @@ const MID = 554;
 const CELL = 36;
 const PITCH = 46;
 const END = X0 + (N - 1) * PITCH + CELL;
-// the chip: the strip at ×32/46, its row centred at y 540 (clear of the counter above and the sky below)
+// the chip: the strip at ×32/46, its row centred at y 524 (pill 482–566: 34 px clear of the sky card at y 600)
 const S = 32 / 46;
-export const CHIP_MID = 540;
+export const CHIP_MID = 524;
 const COUNT = 64;
 const FLAME = { h: 56, inline: 44, w: 28 / 40 }; // the glyph's box is 28 × 40 (w = width / height)
 const END_CHIP = X0 + (END - X0) * S;
@@ -48,10 +49,14 @@ const cellLeft = (f: number, k: number) => {
 const back = (f: number) => (f < A3.chip ? 0 : settle(f, A3.chip, { stiffness: 200, zeta: 0.86 }));
 const headOf = (f: number) => Math.max(0, Math.min(N - 1, Math.floor((f - A3.cells[0]) / STEP)));
 const countX = (f: number) => lerp(cellLeft(f, headOf(f)) + CELL + 24, COUNT_CHIP, back(f));
-/** the centre of cell k once the strip is the chip (the two dots are born there) */
-export const chipCell = (k: number) => ({ x: X0 + (k * PITCH + CELL / 2) * S, y: CHIP_MID });
-/** px per frame of the fastest part (the count) — for the motion-blur decision */
-export const stripSpeed = (f: number) => Math.abs(countX(f + 0.5) - countX(f - 0.5));
+/** the centre of cell k once the strip is the chip */
+const chipCell = (k: number) => ({ x: X0 + (k * PITCH + CELL / 2) * S, y: CHIP_MID });
+/** where the chip collapses to and the two dots are born: between its cells 22 and 30, under the dots' targets */
+export const CHIP_POINT = { x: (chipCell(22).x + chipCell(30).x) / 2, y: CHIP_MID };
+const gone = (f: number) => Easing.in(Easing.cubic)(Math.min(1, Math.max(0, (f - A3.collapse[0]) / (A3.collapse[1] - A3.collapse[0]))));
+/** px per frame of the fastest part (the count while it rides and steps back, the pill's far end while it collapses) */
+export const stripSpeed = (f: number) =>
+  Math.max(Math.abs(countX(f + 0.5) - countX(f - 0.5)), (CHIP_POINT.x - X0 + 24) * Math.abs(gone(f + 0.5) - gone(f - 0.5)));
 
 // the flame: two strokes in a 28×40 box (outer tongue with a curled tip, inner tongue)
 const FLAME_OUTER = "M14 38.5C7 38.5 2.5 33.5 2.5 27C2.5 19.5 8 15 11.5 9C13 6.5 13.6 4 13.4 1.5C20.5 6 25.5 14.5 25.5 24.5C25.5 32.5 20.5 38.5 14 38.5Z";
@@ -82,13 +87,15 @@ export const Strip: React.FC = () => {
   const headCx = cellLeft(f, head) + CELL / 2;
   const fh = lerp(FLAME.h, FLAME.inline, c);
   const flame = { x: lerp(headCx, FLAME_CHIP.x, c), y: lerp(MID - CELL / 2 - 8 - FLAME.h / 2, FLAME_CHIP.y, c) };
-  const outer = ease(f, A3.flame[0], A3.flame[0] + 30);
-  const inner = ease(f, A3.flame[0] + 21, A3.flame[1]);
+  const outer = ease(f, A3.flame[0], A3.flame[0] + 20);
+  const inner = ease(f, A3.flame[0] + 14, A3.flame[1]);
   const countIn = ease(f, A3.cells[0] + 1, A3.cells[0] + 9); // the number rises into its slot (masked)
   const countTop = lerp(capTop(MID, COUNT), capTop(CHIP_MID, COUNT), c);
 
+  const k = 1 - gone(f);
+  if (k <= 0) return null;
   return (
-    <div style={{ position: "absolute", inset: 0 }}>
+    <div style={{ position: "absolute", inset: 0, transformOrigin: `${CHIP_POINT.x}px ${CHIP_POINT.y}px`, transform: k < 1 ? `scale(${k})` : undefined }}>
       {w > 0 && (
         <div style={{ position: "absolute", inset: 0, clipPath: clipTo(front) }}>
           <div style={{ position: "absolute", left, top, width, height: h, borderRadius: r, background: C.white, boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.65), ${C.shadow}` }} />
@@ -121,7 +128,9 @@ export const Strip: React.FC = () => {
       )}
       {w > 0 && (
         <div style={{ position: "absolute", inset: 0, clipPath: clipTo(front) }}>
-          <div style={{ position: "absolute", left: TEXT_X, top: capTop(CHIP_MID, COUNT) + 0.875 * COUNT - 0.875 * TEXT_SIZE, fontSize: TEXT_SIZE, lineHeight: 1, fontWeight: 600, color: C.ink, whiteSpace: "nowrap" }}>
+          {/* the words ride the count's live right edge (+ the final gap), so they never touch it while it steps back;
+              once the count has settled this is exactly TEXT_X */}
+          <div style={{ position: "absolute", left: countX(f) + digitsWidth(NUM, COUNT) + TEXT_GAP, top: capTop(CHIP_MID, COUNT) + 0.875 * COUNT - 0.875 * TEXT_SIZE, fontSize: TEXT_SIZE, lineHeight: 1, fontWeight: 600, color: C.ink, whiteSpace: "nowrap" }}>
             {TEXT}
           </div>
         </div>

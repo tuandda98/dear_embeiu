@@ -53,3 +53,18 @@ chốt làm cả hai bản, **không lồng tiếng, chỉ nhạc + tiếng đ�
   + tick/click/riffle; `scripts/render-demo.sh` → `out/deliver/dear-embeiu-demo-45s.mp4` (9,3 MB) + `_preview.mp4`.
 - Cả hai đã gửi Telegram (chat 6199499346). Chờ user chọn.
 
+
+### Bản 1 v3 — dựng lại theo nhận xét người xem / phê bình / đạo diễn (2026-10-15 khuya)
+
+User nhờ nhận xét phim 50 s dưới 3 góc nhìn, rồi chốt: "từ những nhận xét này, hãy sửa lại video, làm 1 video tuyệt
+nhất bạn có thể". Giữ khung 7 act, cú cắt 32 s, giao hàng như cũ; dựng lại phần ruột:
+- Chữ đọc được khi xem toàn màn hình trên điện thoại: câu kể chuyện 64 px, chữ phải đọc ≥ 40 px (trước đó câu mở
+  34 px, lợi ích thẻ 20 px).
+- Câu hỏi mỗi ngày thành khoảnh khắc chính (giây 6,5–11,5): câu hỏi 56 px, hai câu trả lời 40 px, mở cùng lúc ở giây 9.
+- Thêm ảnh thật của cặp đôi (ảnh "Ghế quen ở hồ Gươm" bung ra khi Tuấn đăng ảnh).
+- Một ngày từ 6:00, 6 khoảnh khắc, mỗi thẻ đọc kịp ≥ 0,9 s, không còn thẻ chồng lộ chữ cụt; widget có nhịp riêng.
+- Act 5 nói một lần: "Không bảng tin. Không người lạ." thay "Không bạn bè" (dễ hiểu thành "không có bạn"); bỏ lưới
+  fact lặp; "Miễn phí" chỉ còn 2 chỗ.
+- Act 6 chỉ còn 8 thẻ tính năng to, lợi ích 2 dòng, đứng đủ lâu; bỏ chat, chip, dòng chạy.
+- Nhạc Act 4 ấm (marimba, piano, kick nhẹ) thay nhịp bốn phách + hi-hat + lớp tiếng xì; Act 5 không còn chìm.
+- Chưa làm: bản 9:16 riêng cho Threads/TikTok (xem dọc, chữ 16:9 vẫn nhỏ).

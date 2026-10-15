@@ -35,10 +35,10 @@ const PETAL = C.sunset[2];
 // the branch (love-tree-flowers.png): one sweep from the card's bottom-left to its upper-right, 14 px tapering to 6
 const B = [
   { x: 200, y: 1012 },
-  { x: 520, y: 920 },
-  { x: 960, y: 840 },
-  { x: 1290, y: 650 },
-];
+  { x: 560, y: 940 },
+  { x: 1000, y: 880 },
+  { x: 1300, y: 700 },
+]; // its top stays ≥ 50 px under H1200's label (y 642–678), which types on the night before the sky drops
 const at = (t: number) => {
   const m = 1 - t;
   const [a, b, c, d] = [m * m * m, 3 * m * m * t, 3 * m * t * t, t * t * t];

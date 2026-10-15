@@ -77,7 +77,7 @@ const MediumFace: React.FC<{ number?: boolean }> = ({ number }) => (
 
 // ── the counter card lifting off and landing as the medium widget ─────────────────────────────────────────────────
 const lift = (f: number) => inOut(f, A4.lift[0], FLY);
-const fly = (f: number) => (f < FLY ? 0 : settle(f, FLY, { stiffness: 95, zeta: 0.8 }));
+const fly = (f: number) => (f < FLY ? 0 : settle(f, FLY, { stiffness: 130, zeta: 0.8 }));
 const box = (f: number) => {
   const p = fly(f);
   const l = lift(f) * (1 - p);
@@ -238,10 +238,12 @@ export const AndroidWidget: React.FC<{ scale: number; style?: CSSProperties }> =
         {STARS.map(([x, y, r, a]) => (
           <circle key={x} cx={x * 158} cy={y * 158} r={r} fill="#FFFFFF" fillOpacity={a} />
         ))}
-        <g transform={`translate(${158 - 14 - 52} 12)`}>
-          <polygon points={SKY_PTS.map((p) => p.join(",")).join(" ")} fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth={1} strokeLinejoin="round" />
+        {/* the heart constellation, 0.7× and tucked into the corner so no star or line touches the names chip */}
+        <g transform={`translate(${158 - 6 - 52 * 0.7} 13) scale(0.7)`}>
+          {/* the line and the stars keep their size: only the span shrinks */}
+          <polygon points={SKY_PTS.map((p) => p.join(",")).join(" ")} fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth={1 / 0.7} strokeLinejoin="round" />
           {SKY_PTS.map(([x, y], i) => (
-            <circle key={i} cx={x} cy={y} r={SKY_DOTS[i][0]} fill={SKY_DOTS[i][1]} />
+            <circle key={i} cx={x} cy={y} r={SKY_DOTS[i][0] / 0.85} fill={SKY_DOTS[i][1]} />
           ))}
         </g>
       </svg>

@@ -80,7 +80,8 @@ function sh(cmd: string, args: string[], quiet = false) {
 }
 
 /** BS.1770 integrated loudness, true peak and LRA, as ffmpeg's ebur128 measures them */
-function measure(t: Stereo, tmp = "out/audio/.measure.wav") {
+const MEASURE = `out/audio/.measure.${process.pid}.wav`; // per process: two builds at once must not share it
+function measure(t: Stereo, tmp = MEASURE) {
   writeWav24(tmp, t);
   const log = sh("ffmpeg", ["-hide_banner", "-nostats", "-i", tmp, "-af", "ebur128=peak=true:framelog=quiet", "-f", "null", "-"], true);
   const last = (re: RegExp) => Number([...log.matchAll(re)].at(-1)?.[1] ?? NaN);
@@ -122,7 +123,7 @@ if (import.meta.main) {
     if (!okI) gDb += TARGET - m.I;
     if (!okTP) ceilDb -= m.TP + 1.0 + 0.05;
   }
-  rmSync("out/audio/.measure.wav", { force: true });
+  rmSync(MEASURE, { force: true });
   if (Math.abs(m.I - TARGET) > 0.05 || m.TP > -1.0) throw new Error(`master missed the target: ${JSON.stringify(m)}`);
   for (const [a, b] of SILENCE)
     for (let i = a; i < b; i++) if (out.L[i] !== 0 || out.R[i] !== 0) throw new Error(`sample ${i} must be digital zero`);

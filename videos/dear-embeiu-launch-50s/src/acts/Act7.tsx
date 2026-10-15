@@ -14,11 +14,13 @@ import { A7 } from "../timeline/cues.ts";
 import { softWipe } from "./a5/wipe.ts";
 import { TOUCH } from "./a6/layout.ts";
 
-const MARK = { x: 960, y: 390, size: 320 } as const; // the tile spans y 230 → 550
-const MARK_BOTTOM = MARK.y + MARK.size / 2; // 550: the wordmark slides out from under this edge
+const MARK = { x: 960, y: 300, size: 320 } as const; // the tile spans y 140 → 460
+const MARK_BOTTOM = MARK.y + MARK.size / 2; // 460: the wordmark slides out from under this edge
 const INSIDE = Math.round(MARK.y + ((420 - 512) / 1024) * MARK.size); // where the touching dots rest: the heart's interior centre
-const CARD = { wordmark: 580, l1: 690, l2: 752, offer: 860, url: 912, legal: 1010 } as const; // tops of the line boxes
-const PILL = { size: 20, padX: 32, h: 60 } as const; // the app's navy primary pill, at end-card size
+// tops of the line boxes: tile → wordmark caps 48 · wordmark → l1 52 · l1 / l2 pitch 70 · l2 → offer 60 · offer → pill 24 ·
+// pill → legal 46; the stack (140 → 970) sits optically centred and ends 110 px above the bottom edge
+const CARD = { wordmark: 483, l1: 602, l2: 672, offer: 778, url: 836, legal: 943 } as const;
+const PILL = { size: 26, padX: 42, h: 68 } as const; // the app's navy primary pill, at end-card size
 
 const textW = (text: string, size: number, weight: number, letterSpacing?: string) => measureText({ text, fontFamily: FONT, fontSize: size, fontWeight: weight, letterSpacing }).width;
 
@@ -85,15 +87,15 @@ export const Act7: React.FC = () => {
           <Dot x={lerp(TOUCH.other.x, 960, melt)} y={dotY} r={dotR} who="other" />
         </>
       )}
-      <Line f={f} at={A7.l1} dur={16} text={T.a7.l1} y={CARD.l1} size={52} weight={700} color={C.ink} head />
-      <Line f={f} at={A7.l2} dur={18} text={T.a7.l2} y={CARD.l2} size={52} weight={700} color={C.rose} head />
-      <Line f={f} at={A7.offer} dur={16} text={T.a7.offer} y={CARD.offer} size={28} weight={600} color={C.ink2} />
+      <Line f={f} at={A7.l1} dur={16} text={T.a7.l1} y={CARD.l1} size={56} weight={700} color={C.ink} head />
+      <Line f={f} at={A7.l2} dur={18} text={T.a7.l2} y={CARD.l2} size={56} weight={700} color={C.rose} head />
+      <Line f={f} at={A7.offer} dur={16} text={T.a7.offer} y={CARD.offer} size={34} weight={600} color={C.ink2} />
       {f >= A7.url && (
         <div style={{ position: "absolute", left: Math.round(960 - pillW / 2) - 6, top: CARD.url - 12, width: pillW + 12, height: pillH + 12, overflow: "hidden" }}>
           <Pill text={T.a7.url} size={PILL.size} style={{ left: 6, top: 12 + pillDrop, height: PILL.h }} />
         </div>
       )}
-      <Line f={f} at={A7.legal} dur={24} text={T.a7.legal} y={CARD.legal} size={18} weight={500} color={C.ink2} />
+      <Line f={f} at={A7.legal} dur={24} text={T.a7.legal} y={CARD.legal} size={22} weight={500} color={C.ink2} />
     </AbsoluteFill>
   );
 };

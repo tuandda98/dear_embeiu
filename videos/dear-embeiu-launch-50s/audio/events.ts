@@ -1,8 +1,10 @@
 // Every sound event of the film, read from the picture: the cue sheet (src/timeline/cues.ts) and the event lists the
 // acts export (src/acts/aN/events.ts → `AN_EVENTS`, optional). A moved visual moves its sound on the next build. Where
-// an act has not exported its list, its events come from the cue sheet (FALLBACK). Ids are the vocabulary the music
-// and SFX builds share — keep them stable; add new ids with a comment.
-import { A1, A2, A3, A4, A5, A6, A7, hourToFrame } from "../src/timeline/cues.ts";
+// an act has not exported its list (or its file fails to load), its events come from the cue sheet (FALLBACK, v3: it
+// mirrors the acts' lists from live cue keys only — none of the keys the acts keep "dead, for audio/scripts"). Ids are
+// the vocabulary the music and SFX builds share — keep them stable; add new ids with a comment.
+import { A1, A2, A3, A4, A5, A6, A7 } from "../src/timeline/cues.ts";
+import { even } from "../src/timeline/typing.ts";
 import { T } from "../src/copy/strings.ts";
 
 export type Ev = { f: number; id: string; data?: Record<string, number | string> };
@@ -29,76 +31,86 @@ const a7 = await load("../src/acts/a7/events.ts", "A7_EVENTS");
 const wordEnds = (keys: { frames: number[]; text: string }) =>
   // the frame of each unit's last letter = the frames followed by a space, plus the final one
   keys.frames.filter((_, i) => i === keys.frames.length - 1 || keys.text[i + 1] === " ");
+/** the clock's seconds (clockAt changes every 60 f) in [from, to) */
+const ticks = (from: number, to: number) => Array.from({ length: Math.ceil((to - from) / 60) }, (_, k) => ({ f: from + 60 * k, id: "tick" }));
 
 const FALLBACK = {
   a1: (): Ev[] => [
-    ...[0, 60, 120, 180].map((f) => ({ f, id: "tick" })), // the clock's seconds
+    ...ticks(0, A1.land),
     ...A1.caption.frames.map((f) => ({ f, id: "key" })), // every typed letter
     ...wordEnds(A1.caption).map((f, n) => ({ f, id: "word", data: { n } })), // the motif, one note per word
     { f: A1.dropStart, id: "drop" },
     { f: A1.land, id: "land" },
   ],
   a2: (): Ev[] => [
+    ...ticks(A2.land, A2.compress[1]), // the small counter keeps ticking
+    { f: A2.fly[0], id: "swoop" },
     { f: A2.card[0], id: "unfold" },
-    ...A2.rows.map((f, n) => ({ f, id: "leader", data: { n } })),
-    ...A2.rowLand.map((f, n) => ({ f, id: "row", data: { n } })),
-    { f: A2.moodJump, id: "jump" },
-    ...A2.moods.map((f, n) => ({ f, id: "mood", data: { n } })),
-    { f: A2.pick, id: "pick" },
-    { f: A2.matched, id: "matched" },
-    { f: A2.caption, id: "caption" },
+    { f: A2.phone[0], id: "phoneRise" },
+    { f: A2.scroll[0], id: "scroll" },
+    { f: A2.leave[0], id: "leave" },
+    { f: A2.lift[0], id: "lift" },
+    ...even(T.a2.answerYou.text, A2.type[0], A2.type[1]).frames.map((f) => ({ f, id: "key" })), // your answer
+    { f: A2.sendIn[0], id: "sendIn" },
     { f: A2.press, id: "press" },
-    { f: A2.answerYou, id: "unfoldRow", data: { n: 0 } },
-    { f: A2.answerOther, id: "unfoldRow", data: { n: 1 } },
-    { f: A2.check, id: "check" },
+    { f: A2.unlock, id: "unlock" },
+    { f: A2.caption, id: "caption" },
+    { f: A2.mirror, id: "unfoldRow" },
     { f: A2.compress[0], id: "compress" },
   ],
   a3: (): Ev[] => [
-    ...Array.from({ length: T.a3.streak }, (_, k) => ({ f: A3.cells[0] + k * 3, id: "cell", data: { n: k } })),
+    ...Array.from({ length: T.a3.streak }, (_, n) => ({ f: A3.cells[0] + (n * (A3.cells[1] - A3.cells[0])) / (T.a3.streak - 1), id: "cell", data: { n } })),
     { f: A3.flame[0], id: "flame" },
+    { f: A3.sky[0], id: "skyRise", data: { to: A3.sky[1] } },
     { f: A3.chip, id: "chip" },
     ...A3.nodes.map((f, n) => ({ f, id: "node", data: { n } })),
     ...A3.checks.map((f, n) => ({ f, id: "treeCheck", data: { n } })),
-    { f: A3.riser[0], id: "riser" },
+    { f: A3.riser[0], id: "riser", data: { to: A3.riser[1] } },
     ...A3.flowers.map((f, n) => ({ f, id: "flower", data: { n } })),
-    { f: A3.dotsRise[0], id: "rise" },
-    ...Array.from({ length: 6 }, (_, k) => ({ f: A3.constellation[0] + k * 10, id: "star", data: { n: k } })),
-    { f: A3.heart[0], id: "heartResolve" },
-    { f: A3.tile[0], id: "sweep" },
+    { f: A3.collapse[0], id: "collapse", data: { to: A3.collapse[1] } },
+    { f: A3.night[0], id: "night", data: { to: A3.night[1] } },
+    { f: A3.dotsRise[0], id: "rise", data: { to: A3.dotsRise[1] } },
+    ...A3.stars.map((f, n) => ({ f, id: "star", data: { n, who: n % 2 ? "other" : "you" } })),
+    { f: A3.heart[0], id: "heartResolve", data: { to: A3.heart[1] } },
+    { f: A3.recede[0], id: "recede", data: { to: A3.recede[1] } },
+    { f: A3.fill[0], id: "fill", data: { to: A3.fill[1] } },
+    { f: A3.sweep[0], id: "sweep", data: { to: A3.sweep[1] } },
     ...A3.label.frames.map((f) => ({ f, id: "key" })),
     { f: A3.set, id: "ting" },
   ],
   a4: (): Ev[] => [
-    { f: A4.phone[0], id: "phoneRise" },
-    { f: A4.ruler[0], id: "rulerIn" },
+    { f: A4.heartShrink[0], id: "shrink", data: { to: A4.heartShrink[1] } },
+    { f: A4.phone[0], id: "phoneRise", data: { to: A4.phone[1] } },
+    { f: A4.dots[0], id: "playhead", data: { to: A4.dots[1] } },
+    { f: A4.ruler[0], id: "rulerIn", data: { to: A4.ruler[1] } },
     ...A4.label.frames.map((f) => ({ f, id: "key" })),
-    ...T.a4.events.map((e, n) => ({ f: hourToFrame(e.hour), id: "event", data: { n, who: e.who, icon: e.icon, hour: e.hour } })),
+    ...A4.eventFrames.map((f, n) => ({ f, id: "event", data: { n, who: T.a4.events[n]?.who ?? "other", icon: T.a4.events[n]?.icon ?? "", hour: A4.events[n] } })),
+    ...A4.eventFrames.map((f, n, all) => ({ f: n + 1 < all.length ? all[n + 1] - 10 : A4.caption - 12, id: "eventOut", data: { n } })),
+    { f: A4.photo.pop, id: "photoPop" },
+    { f: A4.photo.fly, id: "photoFly", data: { to: A4.photo.land } },
+    { f: A4.photo.land, id: "photoLand" },
+    { f: A4.photo.land + 10, id: "count", data: { n: 0 } }, // Ảnh 11 → 12 (the other counters' steps live in the act's own table)
     { f: A4.stop, id: "stop" },
     { f: A4.caption, id: "caption" },
     { f: A4.lift[0], id: "lift" },
     { f: A4.widgetMedium, id: "widget", data: { n: 0 } },
     { f: A4.widgetSmall, id: "widget", data: { n: 1 } },
     { f: A4.widgetAndroid, id: "widget", data: { n: 2 } },
+    { f: A4.cover[0], id: "cover", data: { to: A4.cover[1] } },
     { f: A4.cut, id: "cut" },
   ],
   a5: (): Ev[] => [
-    ...A5.facts.map((f, n) => ({ f, id: "fact", data: { n } })),
-    { f: A5.footer, id: "fact", data: { n: 6 } },
-    { f: A5.dim, id: "dim" },
     { f: A5.h1, id: "headline", data: { n: 0 } },
     { f: A5.h2, id: "headline", data: { n: 1 } },
+    { f: A5.dots[0], id: "dotsIn", data: { to: A5.dots[1] } },
     { f: A5.h3, id: "headline", data: { n: 2 } },
+    { f: A5.fine, id: "fact", data: { n: 0 } },
   ],
   a6: (): Ev[] => [
-    { f: A6.composer[0], id: "composerIn" },
-    ...A6.typed.frames.map((f) => ({ f, id: "key" })),
-    { f: A6.send, id: "send" },
-    ...[0, 1, 2].map((k) => ({ f: A6.typing[0] + k * 8, id: "typingDot", data: { n: k } })),
-    ...A6.chips.map((f, n) => ({ f, id: "chip", data: { n } })),
+    { f: A6.composer[0], id: "composerIn", data: { to: A6.composer[1] } },
     ...A6.glyphs.map((f, n) => ({ f, id: "glyph", data: { n } })),
-    { f: A6.ticker[0], id: "ticker" },
-    { f: A6.caption, id: "caption" },
-    { f: A6.recede[0], id: "recede" },
+    { f: A6.dots[0], id: "dotsIn", data: { to: A6.dots[1] } },
+    { f: A6.recede[0], id: "recede", data: { to: A6.recede[1] } },
   ],
   a7: (): Ev[] => [
     { f: A7.touch, id: "touch" },
@@ -129,4 +141,4 @@ export const EVENTS: Ev[] = [
 export const evs = (id: string, from = 0, to = 3000) => EVENTS.filter((e) => e.id === id && e.f >= from && e.f < to);
 export const num = (e: Ev, k: string, d = 0) => (typeof e.data?.[k] === "number" ? (e.data[k] as number) : d);
 export const str = (e: Ev, k: string, d = "") => (typeof e.data?.[k] === "string" ? (e.data[k] as string) : d);
-export { A1, A2, A3, A4, A5, A6, A7, hourToFrame };
+export { A1, A2, A3, A4, A5, A6, A7 };

@@ -1,27 +1,32 @@
-// Act 2 · Người ấy (f 240–719). The partner's dot swoops into an iOS notification while the number steps back and the
-// phone rises with the real Home; the Home is flicked down to today's cards and three lavender leader lines pin his side
-// of each (question, mood, sleep); rose carets wait on your side. You pick the same mood in the app's sheet, you send
-// your answer in the app's sheet, both answers open (echoed large beside the phone), and the whole picture compresses
-// into one navy cell (H720). Every position is a pure function of the GLOBAL frame.
+// Act 2 · Người ấy (f 240–719), v3: the daily question is the hero. The number steps back to its corner and the
+// partner's dot opens into a large notification while the phone (the real Home) rises at the right and scrolls to
+// today's question. The notification leaves; the question card lifts out of the phone into the left column at hero
+// scale — his answer locked, yours empty. You type, press Gửi, and both answers open at the same instant (UNLOCK).
+// "Cần cả hai." Then everything compresses into the first streak cell (H720). One or two motions at a time (V3 G2).
+// Every position is a pure function of the GLOBAL frame.
 import type { CSSProperties, ReactNode } from "react";
 import { Easing, useCurrentFrame } from "remotion";
 import { A2 } from "../timeline/cues.ts";
+import { typed } from "../timeline/typing.ts";
 import { T } from "../copy/strings.ts";
-import { C, PHONE, RADIUS } from "../lib/tokens.ts";
+import { C, PHONE, colX } from "../lib/tokens.ts";
 import { ease, lerp, press, settle } from "../lib/ease.ts";
-import { COUNTER, COUNTER_DOT, Counter } from "../story/Counter.tsx";
+import { CORNER, COUNTER, COUNTER_DOT, Counter } from "../story/Counter.tsx";
 import { Blur } from "../components/Blur.tsx";
 import { Dot } from "../components/Dot.tsx";
 import { Heart } from "../components/Heart.tsx";
 import { Phone } from "../components/Phone.tsx";
+import { Pill } from "../components/Card.tsx";
 import { Caption } from "../components/Text.tsx";
+import { G as Glyph } from "./a4/glyphs.tsx";
+import { HOME } from "./a4/home.tsx";
 import { A1Caption, a1CaptionExit, Camera, dropY } from "./a1/shared.tsx";
-import { AnswerSheet, HomeA2, MoodSheet, Q_H, Scrim, anchors, type HomeState } from "./a2/home.tsx";
+import { HomeA2, Q_H, type HomeState } from "./a2/home.tsx";
 import * as K from "./a2/timing.ts";
 
 const IN_OUT = Easing.inOut(Easing.cubic);
 const IN = Easing.in(Easing.cubic);
-const FLICK = Easing.bezier(0.2, 0.55, 0.1, 1); // a finger flick: a short push, a long glide
+const SINE = Easing.inOut(Easing.sin);
 const SNAP = 20; // px/frame: above this a piece is motion-blurred (BRIEF §7.4)
 
 type Rect = { x: number; y: number; w: number; h: number };
@@ -32,32 +37,43 @@ const speedOf = (at: (f: number) => Rect, f: number) => {
   return Math.max(Math.hypot(b.x - a.x, b.y - a.y), Math.hypot(b.x + b.w - a.x - a.w, b.y + b.h - a.y - a.h));
 };
 const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+const rgba = (c: string, a: number) => `rgba(${hex(c).join(",")},${a})`;
+const abs = (x: number, y: number, extra?: CSSProperties): CSSProperties => ({ position: "absolute", left: x, top: y, ...extra });
 
 // ── geometry (film px) ────────────────────────────────────────────────────────────────────────────────────────────
 const CELL: Rect = { x: 120, y: 540, w: 28, h: 28 }; // H720: the first streak cell (radius 6, navy)
-const CARD: Rect = { x: 120, y: 520, w: 560, h: 124 }; // the notification, under the stepped-back number
-const AV = { cx: CARD.x + 28 + 28, cy: CARD.y + CARD.h / 2, r: 28 }; // its 56 px app-icon slot = the dot's place
+const CARD: Rect = { x: 120, y: 330, w: 780, h: 170 }; // the notification, large (40 / 36 / 28 px)
+const AV = { cx: CARD.x + 36 + 44, cy: CARD.y + CARD.h / 2, r: 44 }; // its 88 px app-icon slot = the dot's place
 const BEZEL = 12; // Phone.tsx's bezel, in screen points
-const PH: Rect = { x: 1180, y: 230, w: (PHONE.w + 2 * BEZEL) * PHONE.side, h: (PHONE.h + 2 * BEZEL) * PHONE.side }; // ≈ 307×647
-const ECHO: Rect = { x: 120, y: 680, w: 600, h: 213 }; // both answers, large, under the notification (his first line fits)
-const ECHO_B = 96; // his block's top inside the echo
-const S1 = 620, S2 = 470; // the page's scroll: today's three cards (his sides above the nav) · the whole question card
+const PS = 840 / (PHONE.h + 2 * BEZEL); // ≈ 0.935: the phone ≈ 840 px tall
+const PH: Rect = { x: colX(9), y: 180, w: (PHONE.w + 2 * BEZEL) * PS, h: (PHONE.h + 2 * BEZEL) * PS }; // columns 10–12, under the act title (y 96–150)
+const SCROLL = 436; // pt: "Hôm nay của chúng mình" under the header, today's question card below it
+/** the hero: the question card lifted out at film scale, laid out in its own box at (120, 330) */
+const HERO: Rect = { x: 120, y: 330, w: 1000, h: 524 }; // question 330–462 · his card 494–690 · yours 710–854
+const HIS = { y: 164, h: 196 }; // his answer card (hero-local): label + two 40 px lines, broken at his comma
+const YOURS = { y: 380, h: 144 }; // your answer card: label + one 40 px line + the Gửi pill beside it
+const TEXT_X = 36; // after the 6 px edge
+const TEXT_Y = 68; // the answers' first line, under their 28 px label
+const LINE = 50; // 40 px answers
+const SEND = { w: 112, h: 56 };
+/** where the lift starts: the phone's question card at the scroll above (film px) */
+const FROM: Rect = { x: PH.x + (BEZEL + 16) * PS, y: PH.y + (BEZEL + HOME.q - SCROLL) * PS, w: 370 * PS, h: Q_H[0] * PS };
 
 // ── timing as pure functions ──────────────────────────────────────────────────────────────────────────────────────
 const camAt = (f: number) => 1.04 - 0.04 * ease(f, K.CAM[0], K.CAM[1], IN_OUT);
 const stepAt = (f: number) => {
   const e = ease(f, K.STEP[0], K.STEP[1], Easing.out(Easing.sin)); // a recoil: quick off the contact, settling
-  return { y: lerp(COUNTER.hero.y, 160, e), s: lerp(1, 0.55, e), o: lerp(1, 0.6, e) };
+  return { x: lerp(COUNTER.hero.x, CORNER.x, e), y: lerp(COUNTER.hero.y, CORNER.y, e), s: lerp(1, CORNER.scale, e), o: lerp(1, CORNER.opacity, e) };
 };
 const counterRect = (f: number): Rect => {
-  const { y, s } = stepAt(f);
-  return { x: COUNTER.hero.x, y, w: 800 * s, h: 560 * s }; // the number's far corner leads the step-back
+  const { x, y, s } = stepAt(f);
+  return { x, y, w: 800 * s, h: 560 * s }; // the number's far corner leads the step-back
 };
 const dotR = (f: number) => lerp(14, AV.r, ease(f, K.GROW[0], K.GROW[1]));
-/** the dot's swoop: a quadratic arc from its landing spot, under the small number, arriving level into the slot */
+/** the dot's swoop: a quadratic arc from its landing spot, under the corner, arriving level into the avatar slot */
 const dotAt = (f: number) => {
   const t = ease(f, A2.fly[0], A2.fly[1], IN_OUT), u = 1 - t;
-  const [x0, y0, cx, cy] = [COUNTER_DOT.x, dropY(f), 560, AV.cy];
+  const [x0, y0, cx, cy] = [COUNTER_DOT.x, dropY(f), 600, AV.cy];
   return { x: u * u * x0 + 2 * u * t * cx + t * t * AV.cx, y: u * u * y0 + 2 * u * t * cy + t * t * AV.cy };
 };
 const dotRect = (f: number): Rect => {
@@ -66,10 +82,9 @@ const dotRect = (f: number): Rect => {
 };
 const C0 = A2.compress[0];
 
-/** the compress. The whole picture (card + answers + phone) shrinks uniformly about its centre while sliding left onto
- *  the cell's centre — a miniature of the day — then its pieces merge into the cell and turn navy as they land.
- *  Ends exactly on CELL_AT (719). */
-const G = { cx: (CARD.x + PH.x + PH.w) / 2, cy: (PH.y + ECHO.y + ECHO.h) / 2 };
+/** the compress. Hero + phone (centred on the frame) shrink uniformly about their common centre while sliding onto the
+ *  cell's centre — a miniature of the moment — then merge into the cell and turn navy as they land, on CELL_AT (719) */
+const G = { cx: (HERO.x + PH.x + PH.w) / 2, cy: (PH.y + PH.y + PH.h) / 2 };
 const shrink = (f: number) => ease(f, C0, K.CELL_AT - 3, IN_OUT);
 const groupScale = (f: number) => lerp(1, 0.035, shrink(f));
 const inGroup = (r: Rect, f: number): Rect => {
@@ -79,56 +94,42 @@ const inGroup = (r: Rect, f: number): Rect => {
 };
 const merge = (f: number) => ease(f, K.CELL_AT - 12, K.CELL_AT, IN_OUT);
 const squeeze = (home: Rect, f: number) => mixRect(inGroup(home, f), CELL, merge(f));
-const navy = (f: number) => ease(f, K.CELL_AT - 13, K.CELL_AT - 3); // white → navy while still a miniature
-const cardRect = (f: number): Rect => (f >= C0 ? squeeze(CARD, f) : mixRect(dotRect(f), CARD, ease(f, K.OPEN[0], K.OPEN[1])));
-/** the phone rises from below the frame over A2.card (a spring, one small overshoot), then rides the compress */
-const phoneRect = (f: number): Rect =>
-  f >= C0 ? squeeze(PH, f) : { ...PH, y: lerp(1080 + 24, PH.y, settle(f, A2.card[0], { stiffness: 200, zeta: 0.85 })) };
-const echoRect = (f: number): Rect => (f >= C0 ? squeeze(ECHO, f) : ECHO);
+const navy = (f: number) => ease(f, K.CELL_AT - 13, K.CELL_AT - 3);
 
-/** the page inside the phone at frame f */
-const scrollAt = (f: number) =>
-  f < K.BACK_SCROLL[0] ? S1 * ease(f, A2.scroll[0], A2.scroll[1], FLICK) : lerp(S1, S2, ease(f, K.BACK_SCROLL[0], K.BACK_SCROLL[1], IN_OUT));
-const ANCHOR = anchors(Q_H[0]);
-const hop = (a: { x: number; y: number }, b: { x: number; y: number }, t: number) => ({ x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) - 26 * Math.sin(Math.PI * t) });
+/** the notification: opens from the dot, holds, slides out to the left completely */
+const cardRect = (f: number): Rect => {
+  const open = mixRect(dotRect(f), CARD, ease(f, A2.card[0], A2.card[1]));
+  return { ...open, x: open.x - (CARD.x + CARD.w + 40) * ease(f, A2.leave[0], A2.leave[1], IN) };
+};
+/** the phone rises from below the frame (a spring, one small overshoot), then rides the compress */
+const phoneRect = (f: number): Rect => (f >= C0 ? squeeze(PH, f) : { ...PH, y: lerp(1080 + 24, PH.y, settle(f, A2.phone[0], { stiffness: 190, zeta: 0.85 })) });
+/** the hero lifts out of the phone's question card (scale + travel), then rides the compress */
+const lift = (f: number) => ease(f, A2.lift[0], A2.lift[1], IN_OUT);
+const heroRect = (f: number): Rect => {
+  if (f >= C0) return squeeze(HERO, f);
+  const k = lerp(FROM.w / HERO.w, 1, lift(f));
+  return { x: lerp(FROM.x, HERO.x, lift(f)), y: lerp(FROM.y, HERO.y, lift(f)), w: HERO.w * k, h: HERO.h * k };
+};
+
+/** the page inside the phone: scrolled to today's question; from A2.mirror its card shows both answers */
 const homeAt = (f: number): HomeState => {
-  const jump = ease(f, A2.moodJump, A2.moodJump + K.JUMP, IN_OUT);
-  const blinkOn = Math.floor((f - A2.carets) / 30) % 2 === 0;
-  const jumping = f >= A2.moodJump && f < A2.moodJump + K.JUMP + 3;
-  const carets =
-    f >= A2.carets && f < A2.moodJump + K.JUMP + 3
-      ? ANCHOR.you.map((p, k) => ({ ...(k === 1 ? p : hop(p, ANCHOR.you[1], jump)), on: jumping || blinkOn }))
-      : [];
+  const m = A2.mirror;
   return {
     f,
-    scroll: scrollAt(f),
-    qH: lerp(Q_H[0], Q_H[1], ease(f, A2.answerYou, A2.answerOther + K.UNFOLD)),
-    teaserOut: ease(f, A2.answerYou, A2.answerYou + 5, IN),
-    ansA: ease(f, A2.answerYou, A2.answerYou + K.UNFOLD),
-    ansB: ease(f, A2.answerOther, A2.answerOther + K.UNFOLD),
-    check: ease(f, A2.check, A2.check + K.CHECK),
-    match: ease(f, A2.matched, A2.matched + K.MATCH),
-    cta: press(f, A2.press),
-    answered: ease(f, A2.answerYou, A2.answerYou + 12),
-    carets,
+    scroll: SCROLL * ease(f, A2.scroll[0], A2.scroll[1], SINE),
+    qH: lerp(Q_H[0], Q_H[1], ease(f, m, m + 27)),
+    teaserOut: ease(f, m, m + 5, IN),
+    ansA: ease(f, m, m + 22),
+    ansB: ease(f, m + 5, m + 27),
+    check: ease(f, m + 22, m + 34),
+    match: 0, // the mood match is Act 4's (V3)
+    cta: 1,
+    answered: ease(f, m, m + 12),
+    carets: [],
   };
 };
-/** the two sheets: up (house ease) after their cue, down (accelerating) at the match / after Gửi */
-const moodSheetAt = (f: number) => (f < A2.matched ? ease(f, A2.sheets[0], A2.sheets[0] + K.SHEET_UP) : 1 - ease(f, A2.matched, A2.matched + K.SHEET_DOWN, IN));
-const answerSheetAt = (f: number) => (f < A2.send + 8 ? ease(f, A2.sheets[1], A2.sheets[1] + K.ANSWER_UP) : 1 - ease(f, A2.send + 8, A2.send + 8 + K.SHEET_DOWN, IN));
-const scrimAt = (f: number) =>
-  f < A2.sheets[1] ? Math.min(ease(f, A2.sheets[0], A2.sheets[0] + 12), 1 - ease(f, A2.matched, A2.matched + 10)) : Math.min(ease(f, A2.sheets[1], A2.sheets[1] + 6), 1 - ease(f, A2.send + 8, A2.send + 18));
 
-/** a screen point of the page (content coords) → film coords, through the phone's current rect and the scroll */
-const onScreen = (p: { x: number; y: number }, f: number) => {
-  const r = phoneRect(f), k = r.w / (PHONE.w + 2 * BEZEL);
-  return { x: r.x + (BEZEL + p.x) * k, y: r.y + (BEZEL + p.y - scrollAt(f)) * k };
-};
-
-// ── small pieces ──────────────────────────────────────────────────────────────────────────────────────────────────
-const abs = (x: number, y: number, extra?: CSSProperties): CSSProperties => ({ position: "absolute", left: x, top: y, ...extra });
-
-/** a piece whose rect animates; content is laid out for `home` and either fixed or, from C0, squeezed into the cell */
+// ── a piece whose rect animates; content is laid out for `home`; from C0 it is squeezed into the cell ───────────────
 const Piece: React.FC<{ rect: Rect; home: Rect; f: number; radius: number; alpha?: number; shadow?: boolean; children: ReactNode }> = ({ rect, home, f, radius, alpha = 1, shadow = true, children }) => {
   const squeezing = f >= C0;
   const fade = squeezing ? 1 - ease(f, K.CELL_AT - 9, K.CELL_AT - 4) : 1;
@@ -168,116 +169,146 @@ const Piece: React.FC<{ rect: Rect; home: Rect; f: number; radius: number; alpha
   );
 };
 
-// ── the number, stepping back ─────────────────────────────────────────────────────────────────────────────────────
+// ── the number, stepping back to its corner ───────────────────────────────────────────────────────────────────────
 const SteppedCounter: React.FC = () => {
   const f = useCurrentFrame();
-  const { y, s, o } = stepAt(f);
-  return <Counter x={COUNTER.hero.x} y={y} scale={s} opacity={o} f={f} />;
+  const { x, y, s, o } = stepAt(f);
+  return <Counter x={x} y={y} scale={s} opacity={o} f={f} />;
 };
 
 // ── the partner's dot → the notification ──────────────────────────────────────────────────────────────────────────
 const FlyingDot: React.FC = () => {
   const f = useCurrentFrame();
   const p = dotAt(f);
-  return <Dot x={p.x} y={p.y} r={dotR(f)} who="other" glow={0.35 * (1 - ease(f, K.GROW[0], K.OPEN[0]))} />;
+  return <Dot x={p.x} y={p.y} r={dotR(f)} who="other" glow={0.35 * (1 - ease(f, K.GROW[0], A2.card[0] + 4))} />;
 };
 const Notification: React.FC = () => {
   const f = useCurrentFrame();
   const rect = cardRect(f);
-  const r = f >= C0 ? AV.r : dotR(f);
+  const r = dotR(f);
   const p = T.a2.push;
   const [ax, ay] = [AV.cx - CARD.x, AV.cy - CARD.y];
+  // while it opens the card is the dot growing; once open it slides as one piece
+  const home = f < A2.leave[0] ? CARD : { ...CARD, x: rect.x };
   return (
-    <Piece rect={rect} home={CARD} f={f} radius={f >= C0 ? RADIUS.card : Math.min(RADIUS.card, rect.h / 2)} alpha={0.92}>
+    <Piece rect={rect} home={home} f={f} radius={Math.min(32, rect.h / 2)} alpha={0.94}>
       <div style={abs(ax - r, ay - r, { width: 2 * r, height: 2 * r, borderRadius: "50%", background: C.lavender })} />
-      <div style={abs(ax + 20 - 14, ay + 20 - 14, { width: 28, height: 28, borderRadius: 8, background: C.white })} />
-      <Heart x={ax + 20} y={ay + 20} size={23} />
-      <div style={abs(102, 30, { width: CARD.w - 102 - 28, height: 30, display: "flex", alignItems: "baseline", justifyContent: "space-between", whiteSpace: "nowrap" })}>
-        <span style={{ fontSize: 24, fontWeight: 600, color: C.ink }}>{p.title}</span>
-        <span style={{ fontSize: 18, fontWeight: 500, color: C.ink3 }}>{p.when}</span>
+      <div style={abs(ax + 31 - 19, ay + 31 - 19, { width: 38, height: 38, borderRadius: 11, background: C.white })} />
+      <Heart x={ax + 31} y={ay + 31} size={32} />
+      <div style={abs(152, 36, { width: CARD.w - 152 - 36, height: 50, display: "flex", alignItems: "baseline", justifyContent: "space-between", whiteSpace: "nowrap" })}>
+        <span style={{ fontSize: 40, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em" }}>{p.title}</span>
+        <span style={{ fontSize: 28, fontWeight: 500, color: C.ink2 }}>{p.when}</span>
       </div>
-      <div style={abs(102, 66, { fontSize: 22, fontWeight: 500, color: C.ink2, whiteSpace: "nowrap", lineHeight: "28px" })}>{p.body}</div>
+      <div style={abs(152, 94, { fontSize: 36, fontWeight: 500, color: C.ink2, whiteSpace: "nowrap", lineHeight: "44px" })}>{p.body}</div>
     </Piece>
   );
 };
 
-// ── the phone: the real Home, its sheets ──────────────────────────────────────────────────────────────────────────
+// ── the phone: the real Home ──────────────────────────────────────────────────────────────────────────────────────
 const PhoneShot: React.FC = () => {
   const f = useCurrentFrame();
   const rect = phoneRect(f);
-  const screen = (
-    <>
-      <HomeA2 s={homeAt(f)} />
-      <Scrim o={scrimAt(f)} />
-      {f >= A2.sheets[0] && f < A2.matched + K.SHEET_DOWN && (
-        <MoodSheet f={f} rise={moodSheetAt(f)} drops={A2.moods} ring={ease(f, A2.pick, A2.pick + K.RING)} picked={ease(f, A2.pick, A2.pick + 8)} />
-      )}
-      {f >= A2.sheets[1] && f < A2.send + 8 + K.SHEET_DOWN && <AnswerSheet rise={answerSheetAt(f)} send={press(f, A2.send)} />}
-    </>
-  );
-  if (f < C0) return <Phone x={rect.x} y={rect.y} scale={PHONE.side}>{screen}</Phone>;
+  const screen = <HomeA2 s={homeAt(f)} />;
+  if (f < C0) return <Phone x={rect.x} y={rect.y} scale={PS}>{screen}</Phone>;
   return (
-    <Piece rect={rect} home={PH} f={f} radius={(PHONE.radius + BEZEL) * PHONE.side} alpha={0} shadow={false}>
-      <Phone x={0} y={0} scale={PHONE.side}>
+    <Piece rect={rect} home={PH} f={f} radius={(PHONE.radius + BEZEL) * PS} alpha={0} shadow={false}>
+      <Phone x={0} y={0} scale={PS}>
         {screen}
       </Phone>
     </Piece>
   );
 };
 
-// ── leader lines (1 px lavender) from the card's right edge into the phone, each pinning his side of a card ───────
-const Leaders: React.FC<{ f: number }> = ({ f }) => {
-  if (f < A2.rows[0] || f >= K.LET_GO[1]) return null;
-  const c = cardRect(f);
-  const gone = ease(f, K.LET_GO[0], K.LET_GO[1], IN);
+// ── the hero: the question and the two answers at film scale ──────────────────────────────────────────────────────
+const glowAt = (f: number) => (f < A2.unlock ? 0 : Math.sin(Math.PI * Math.min(1, (f - A2.unlock) / K.GLOW))); // once: up and gone
+const AnswerCard: React.FC<{ y: number; h: number; who: "you" | "other"; glow: number; children: ReactNode }> = ({ y, h, who, glow, children }) => {
+  const edge = who === "you" ? C.rose : C.lavender;
   return (
-    <svg style={abs(0, 0)} width={1920} height={1080}>
-      {A2.rows.map((start, k) => {
-        if (f < start) return null;
-        const end = onScreen(ANCHOR.other[k], f);
-        const [x0, y0, x1, y1] = [c.x + c.w, c.y + c.h / 2, end.x, end.y];
-        const d = (x1 - x0) * 0.5;
-        const pin = f >= A2.rowLand[k] ? settle(f, A2.rowLand[k], { stiffness: 420, zeta: 0.8 }) * (1 - gone) : 0;
-        return (
-          <g key={k}>
-            <path
-              d={`M ${x0} ${y0} C ${x0 + d} ${y0}, ${x1 - d} ${y1}, ${x1} ${y1}`}
-              fill="none"
-              stroke={C.lavender}
-              strokeWidth={1}
-              pathLength={1}
-              strokeDasharray="1 1"
-              strokeDashoffset={gone > 0 ? -gone : 1 - ease(f, start, start + K.LEADER)}
-            />
-            {pin > 0 && <circle cx={x1} cy={y1} r={5 * pin} fill={C.lavender} stroke={C.white} strokeWidth={1.5 * pin} />}
-          </g>
-        );
+    <div
+      style={abs(0, y, {
+        width: HERO.w,
+        height: h,
+        borderRadius: 24,
+        background: C.card,
+        boxShadow: `0 8px 24px rgba(255,107,157,0.12), 0 0 0 ${3 * glow}px ${rgba(edge, 0.45 * glow)}, 0 0 ${48 * glow}px ${rgba(edge, 0.5 * glow)}`,
+        overflow: "hidden",
       })}
-    </svg>
+    >
+      <div style={abs(0, 0, { width: 6, height: h, background: edge })} />
+      {children}
+    </div>
   );
 };
-
-// ── both answers, large, beside the phone (the phone's words are too small at film scale) ─────────────────────────
-const field = (top: number, h: number, u: number, tint: string, label: string, labelColor: string, text: string) => (
-  <div style={abs(0, top, { width: ECHO.w, height: h * u, borderRadius: 20, background: tint, overflow: "hidden" })}>
-    <div style={abs(22, 14 - 12 * (1 - u))}>
-      <div style={{ fontSize: 18, fontWeight: 600, color: labelColor, lineHeight: "23px" }}>{label}</div>
-      <div style={{ marginTop: 4, fontSize: 24, fontWeight: 500, color: C.ink, lineHeight: "31px", whiteSpace: "nowrap" }}>
-        {text.split(/(?<=,) /).map((part, i) => (
-          <div key={i}>{part}</div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
-const Echo: React.FC = () => {
+const answerLines = (text: string) => text.split(/(?<=,) /).map((part, i) => <div key={i}>{part}</div>); // his breaks at his comma
+const HeroContent: React.FC = () => {
   const f = useCurrentFrame();
-  const uA = ease(f, A2.answerYou, A2.answerYou + K.UNFOLD), uB = ease(f, A2.answerOther, A2.answerOther + K.UNFOLD);
+  const g = glowAt(f);
+  const unmask = ease(f, A2.unlock + 4, A2.unlock + 4 + K.UNLOCK_WIPE); // starts once the teaser is out of its way
+  const veil = 1 - ease(f, A2.unlock, A2.unlock + 12);
+  const teaserOut = ease(f, A2.unlock, A2.unlock + 4, IN);
+  const sendIn = ease(f, A2.sendIn[0], A2.sendIn[1]);
+  const sendOut = ease(f, A2.unlock, A2.unlock + 8, IN);
+  const typing = f >= A2.type[0] && f <= A2.type[1];
+  const caretOn = f >= A2.lift[1] && f < A2.press && (typing || Math.floor((f - A2.lift[1]) / 30) % 2 === 0);
+  const TEXT: CSSProperties = { fontSize: 40, fontWeight: 500, color: C.ink, lineHeight: `${LINE}px`, letterSpacing: "-0.005em", whiteSpace: "nowrap" };
+  const LABEL: CSSProperties = { fontSize: 28, fontWeight: 600, lineHeight: "34px", whiteSpace: "nowrap" };
   return (
-    <Piece rect={echoRect(f)} home={ECHO} f={f} radius={20} alpha={0} shadow={false}>
-      {field(0, 86, uA, "#FFEDF0", T.a2.answerYou.label, C.roseDeep, T.a2.answerYou.text)}
-      {f >= A2.answerOther && field(ECHO_B, 117, uB, "#F6F3FE", T.a2.answerOther.label, C.lavenderDeep, T.a2.answerOther.text)}
-    </Piece>
+    <>
+      <div style={abs(0, 0, { width: HERO.w, fontSize: 56, fontWeight: 700, lineHeight: "66px", letterSpacing: "-0.012em", color: C.ink, textWrap: "balance" } as CSSProperties)}>{T.a2.question}</div>
+      <AnswerCard y={HIS.y} h={HIS.h} who="other" glow={g}>
+        <div style={abs(TEXT_X, 24, { ...LABEL, color: C.lavenderDeep })}>{T.a2.answerOther.label}</div>
+        {/* locked: his words are there but blurred under a lavender veil, the teaser on top */}
+        {veil > 0 && (
+          <div style={abs(TEXT_X, TEXT_Y, { ...TEXT, filter: "blur(12px)", opacity: veil })}>{answerLines(T.a2.answerOther.text)}</div>
+        )}
+        {veil > 0 && <div style={abs(TEXT_X - 12, TEXT_Y - 6, { width: HERO.w - TEXT_X - 24, height: 2 * LINE + 12, borderRadius: 18, background: rgba(C.lavender, 0.1 * veil) })} />}
+        {teaserOut < 1 && (
+          <div style={abs(TEXT_X + 8, TEXT_Y + LINE - 22 - 12 * teaserOut, { height: 44, display: "flex", alignItems: "center", gap: 16, opacity: 1 - teaserOut })}>
+            <Glyph name="lock" size={34} color={C.lavenderDeep} />
+            <span style={{ fontSize: 36, fontWeight: 600, color: C.ink, whiteSpace: "nowrap" }}>{T.a2.rows[0].other}</span>
+          </div>
+        )}
+        {/* UNLOCK: the words unmask left → right */}
+        {unmask > 0 && <div style={abs(TEXT_X, TEXT_Y, { ...TEXT, clipPath: `inset(-8px ${(1 - unmask) * 100}% -8px 0)` })}>{answerLines(T.a2.answerOther.text)}</div>}
+      </AnswerCard>
+      <AnswerCard y={YOURS.y} h={YOURS.h} who="you" glow={g}>
+        <div style={abs(TEXT_X, 24, { ...LABEL, color: C.roseDeep })}>{T.a2.answerYou.label}</div>
+        <div style={abs(TEXT_X, TEXT_Y, { ...TEXT, display: "flex", alignItems: "center" })}>
+          {typed(K.TYPED, f)}
+          <span style={{ display: "inline-block", width: 3, height: 44, marginLeft: 5, background: C.rose, opacity: caretOn ? 1 : 0 }} />
+        </div>
+        {sendIn > 0 && sendOut < 1 && (
+          <Pill
+            text={T.a2.send}
+            size={28}
+            scale={press(f, A2.press) * (1 - sendOut)}
+            style={{ left: HERO.w - 28 - SEND.w, top: TEXT_Y + LINE / 2 - SEND.h / 2, width: lerp(SEND.h, SEND.w, sendIn), height: SEND.h, padding: 0, overflow: "hidden" }}
+          />
+        )}
+      </AnswerCard>
+    </>
+  );
+};
+const Hero: React.FC = () => {
+  const f = useCurrentFrame();
+  const rect = heroRect(f);
+  if (f >= C0)
+    return (
+      <Piece rect={rect} home={HERO} f={f} radius={24} alpha={0} shadow={false}>
+        <HeroContent />
+      </Piece>
+    );
+  const k = rect.w / HERO.w;
+  // the plate: the phone's white card, growing with the lift and melting away as the hero arrives
+  const plate = mixRect(FROM, { x: HERO.x - 28, y: HERO.y - 28, w: HERO.w + 56, h: HERO.h + 56 }, lift(f));
+  const plateO = 1 - ease(f, (A2.lift[0] + A2.lift[1]) / 2, A2.lift[1]);
+  return (
+    <>
+      {plateO > 0 && <div style={abs(plate.x, plate.y, { width: plate.w, height: plate.h, borderRadius: lerp(24 * PS, 32, lift(f)), background: C.card, opacity: plateO, boxShadow: "0 10px 30px rgba(255,107,157,0.14)" })} />}
+      <div style={abs(rect.x, rect.y, { width: HERO.w, height: HERO.h, transformOrigin: "0 0", transform: `scale(${k})` })}>
+        <HeroContent />
+      </div>
+    </>
   );
 };
 
@@ -285,7 +316,7 @@ const Echo: React.FC = () => {
 export const Act2: React.FC = () => {
   const f = useCurrentFrame();
   if (f >= K.CELL_AT) {
-    // H720: the picture IS the cell now; the number stays small, dim and ticking. Nothing else.
+    // H720: the picture IS the cell now; the number rests at its corner, ticking. Nothing else.
     return (
       <Camera s={1}>
         <SteppedCounter />
@@ -293,7 +324,7 @@ export const Act2: React.FC = () => {
       </Camera>
     );
   }
-  const capIn = ease(f, A2.caption, A2.caption + 16);
+  const capIn = ease(f, A2.caption, A2.caption + K.CAP_IN);
   const capOut = ease(f, K.CAP_OUT[0], K.CAP_OUT[1], IN);
   return (
     <Camera s={camAt(f)}>
@@ -301,27 +332,30 @@ export const Act2: React.FC = () => {
         <SteppedCounter />
       </Blur>
       {f < K.OLD_OUT[1] && <A1Caption f={f} exit={a1CaptionExit(f, K.OLD_OUT[0], K.OLD_OUT[1])} />}
-      {f >= A2.card[0] && (
+      {f >= A2.phone[0] && (
         <Blur on={speedOf(phoneRect, f) > SNAP}>
           <PhoneShot />
         </Blur>
       )}
-      {f >= A2.answerYou && (
-        <Blur on={speedOf(echoRect, f) > SNAP}>
-          <Echo />
-        </Blur>
-      )}
-      {f < K.OPEN[0] ? (
+      {f < A2.card[0] ? (
         <Blur on={speedOf(dotRect, f) > SNAP}>
           <FlyingDot />
         </Blur>
       ) : (
-        <Blur on={speedOf(cardRect, f) > SNAP}>
-          <Notification />
+        f < A2.leave[1] && (
+          <Blur on={speedOf(cardRect, f) > SNAP}>
+            <Notification />
+          </Blur>
+        )
+      )}
+      {f >= A2.lift[0] && (
+        <Blur on={speedOf(heroRect, f) > SNAP}>
+          <Hero />
         </Blur>
       )}
-      <Leaders f={f} />
-      {f >= A2.caption && <Caption text={T.a2.caption} x={120} y={930} style={{ clipPath: `inset(-12px ${(1 - capIn) * 100}% -12px ${capOut * 100}%)` }} />}
+      {f >= A2.caption && (
+        <Caption text={T.a2.caption} x={120} y={900} size={64} weight={700} style={{ letterSpacing: "-0.01em", clipPath: `inset(-14px ${(1 - capIn) * 100}% -14px ${capOut * 100}%)` }} />
+      )}
     </Camera>
   );
 };

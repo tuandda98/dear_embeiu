@@ -91,12 +91,16 @@ Materials (BRIEF §2) — never mix their roles:
 - Hairlines are exactly 1 px (`C.ink3` at 50 % on light, white at 25 % on dark). No outlines on cards, no hard shadows,
   no glow filters (a Dot's glow is one bounded radial gradient).
 
-Type ramp (film px): display 320 (the number) · 136 / 96 (act headlines) · 56 (the Act 4 caption) · 44 (end-card lines)
-· 34 (captions) · 28 (fact labels) · 16–18 (chips, legal). Quicksand 700 for display and numbers, 600 for chips and
-captions, 500 for UI body. Product UI inside the phone keeps the app's sizes in screen points (the phone scales them).
+Type ramp (film px, v3 floor — the film must read full-screen on a phone, where the frame shows at ≈ 0.44×):
+display 320 (the number) · 96 (Act 5 headlines) · 64 (story captions: A1, A2, A4) · 56 (the Act 2 question, end-card
+lines) · 40 (anything the viewer must read: answers, event titles, card titles) · 28–36 (secondary: labels, benefits,
+chips) · 22–26 (fine print, unit labels). Contrast ≥ 4.5:1 for everything under 40 px. Quicksand 700 for display and
+numbers, 600 for chips and captions, 500 for UI body. Product UI inside the phone keeps the app's sizes in screen
+points (the phone scales them); it may be small only while the same content is also shown large outside the phone.
 
 Grid: `colX(i)` / `colW(n)`. Text left-aligned on column edges; only the end card is centred. Captions sit at
-`colX(0)`, y 930 (Acts 1–2) or under the ruler (Act 4).
+`colX(0)`: y 860 (A1), y 900 (A2), under the ruler (A4). Two rules from the v3 review hold everywhere: at most two
+elements move at once, and nothing is ever half-covered by another card (an outgoing card leaves completely).
 
 Camera: one continuous virtual camera. Push-ins are a `transform: scale()` around the frame centre; the one hard cut
 is at 1920. Every act boundary is a MATCH: the element that crosses it is drawn by both acts at identical geometry on
@@ -114,83 +118,89 @@ glyphs (never an icon font image). Match the captures' proportions by eye; they 
 ## 5. Hand-offs (the boundary frame is drawn by BOTH acts, identically)
 
 - H240 (A1 → A2): the counter at `COUNTER.hero` (120, 250), scale 1, clock showing `clockAt(240)`; the caption fully
-  typed at (120, 930); the lavender dot (r 14) landed at `COUNTER_DOT`; camera at 104 % (A2 starts at 104 % and eases
-  back to 100 % over its first 60 f while the number steps back).
-- H720 (A2 → A3): the whole sheet has compressed into ONE navy cell, 28×28, radius 6, at (120, 540) (its top-left);
-  the counter at scale 0.55 at (120, 160), still ticking, at 60 % opacity; the ground `C.bg`; nothing else.
-- H1200 (A3 → A4): the heart tile centred at (960, 460), size 300, fully drawn and filled, tile 100 %; the label
-  "CÂY TÌNH YÊU · 12 bông hoa đã nở" (chip style, 18 px) centred at y 660, fully typed; the night-sky panel has receded
-  (gone); the two dots at (820, 150) rose and (1100, 150) lavender; the counter at (120, 160) × 0.55 at 60 %.
+  typed at `A1_CAPTION` (x 120, y 860, 64 px, weight 700); the lavender dot (r 14) landed at `COUNTER_DOT`; camera at
+  104 % (A2 eases back to 100 % over its first 60 f while the number steps back).
+- H720 (A2 → A3): everything has compressed into ONE navy cell, 28×28, radius 6, at (120, 540) (its top-left); the
+  counter at `CORNER` (x 120, y 92, scale 0.32, opacity 0.7 — its eyebrow, "NGÀY" and clock labels fade out by
+  themselves below scale 0.4), still ticking; the ground `C.bg`; nothing else.
+- H1200 (A3 → A4): the heart tile centred at (960, 460), size 300, filled; the label "CÂY TÌNH YÊU · 12 bông hoa đã nở"
+  (28 px, weight 600, line-height 36, box top 642, centred on x 960; "CÂY TÌNH YÊU" `C.ink2` +0.1em, the rest `C.ink`)
+  fully typed; the night sky gone; the two dots at (820, 150) rose and (1100, 150) lavender; the counter at `CORNER`.
 - A4 → A5: HARD CUT at 1920. Over A4's last 24 f (`A4.cover`, 1896–1920) a navy `C.ink` sheet rises from the bottom
   edge over the resting widgets (rounded top corners 28, motion-blurred while fast); on 1919 its top is at y ≈ 20, so
   A5's first frame of pure `C.ink` carries straight on. The music still cuts dead; nothing else crosses.
-- H2280 (A5 → A6): the ground is `C.ink` with A5's three headlines at rest (h1 at y 300, h2 at y 420, h3 at y 540 —
-  all at `colX(0)`, 96 / 96 / 96 px) on clean navy, and the facts as a fine-print strip below them: six labels, 22 px
-  white at 70 %, two rows at y 844 / 912 on the same three columns, 1 px rules at 830 / 898, `dearembeiu.com` at
-  y 984. A6's first 30 f: the light `C.bg` sheet rises from the bottom edge (radius 28 on its top corners) carrying the
-  chat panel (a white card x 560–1360, y 280–960: header chip "THẢO ♥ TUẤN", the seeded thread, the composer at its
-  bottom); by 2310 it covers the frame. The navy never fades; it is covered.
+- H2280 (A5 → A6): `C.ink` ground; the three headlines at rest at x 120, y 300 / 420 / 540, 96 px white: "Không bảng
+  tin. Không người lạ." · "Chỉ hai người." with the two dots resting just after it (28 px apart) · "Miễn phí. Không
+  quảng cáo." ("Không quảng cáo." rose); the fine-print line at y 980 (26 px, white 60 %). A6's first 30 f: the light
+  `C.bg` sheet rises from the bottom edge (radius 28 on its top corners) and covers the frame by 2310. The navy never
+  fades; it is covered.
 - H2640 (A6 → A7): only the two dots on `C.bg`, touching: rose centre (946, 540), lavender centre (974, 540), r 14.
-  A7 draws the heart around that point: tile centre (960, 430) size 280, so the dots end inside the heart.
+  A7 draws the heart around that point, so the dots end inside the heart.
 
 ## 6. Per-act notes (what is fixed; everything else is the builder's craft)
 
 - A1: the number is already alive at f0 — no entrance. Camera push 100 → 104 % over 0–240. The caption types with
-  `A1.caption` (`typed(A1.caption, f)`), a rose caret after the last letter, blinking from `A1.wait` to `A1.land`.
-  The dot falls from y −40 to `COUNTER_DOT.y` between `dropStart` and `land` with `settle` (zeta 0.75: the one
-  overshoot), motion-blurred.
-- A2: the notification card unfolds FROM the dot (the dot is its app-icon slot). The today sheet at `colX(5)`, width
-  `colW(7)`, top y 250; rows 84 px tall. Leader lines are 1 px `C.lavender` paths from the card's right edge to each
-  row's left edge, drawn with `pathLength` (8 f). The mood sheet's 8 moods fan in as 72 px tiles inside the mood row.
-  "Gửi" is a `<Pill>` pressed with `press(f, A2.press)`. The compress (690–720) scales the sheet into the cell at
-  (120, 540): translate + scale, not a fade.
+  `A1.caption` (letters 2–3 f apart, word ends every 12 f on 21…105), a rose caret after the last letter, blinking
+  from `A1.wait` to `A1.land`; complete at 105 and holding. The dot falls from y −40 to `COUNTER_DOT.y` between
+  `dropStart` and `land` with `settle` (zeta 0.75: the one overshoot), motion-blurred.
+- A2 (the daily question is the film's hero beat): the number steps back to `CORNER`; the dot swoops into the avatar
+  slot of a large notification card (x 120, y 330, w 780; title 40, body 36, "bây giờ" 28). The real Home phone rises at
+  x 1398, y 180, ≈ 840 px tall (counter card on photo 03), then scrolls to the question card. `A2.leave` the
+  notification leaves completely; `A2.lift` the question card lifts out of the phone into the left column: question
+  56 px on two lines (y 330–462), Tuấn's card (lavender edge, label 28 px; locked = his words redacted under "🔒 Tuấn đã
+  trả lời rồi đó 👀" 36 px) at y 494–690, your card (rose edge) at y 710–854, both x 120–1120. `A2.type` your answer
+  types at 40 px; the "Gửi" pill (112×56) unfolds and is pressed (`A2.press`); `A2.unlock` (540) both answers open at
+  the same instant (his line unmasks, both edges glow once); `A2.caption` "Cần cả hai." 64 px at y 900; the phone's
+  card mirrors both answers (`A2.mirror`). The compress (690–720) scales everything into the cell at (120, 540):
+  translate + scale, not a fade.
 - A3: the strip at y 540 from x 120, cells 28 px with 8 px gaps (31 cells end at x 1236); the count rolls in `Digits`
-  (48 px) right of the strip; the flame glyph (a 2-stroke navy flame, 40 px) draws above the last cell. The sky is a
-  complete card inside the frame (x 96–1824, y 600–1000, radius 28, the app's shadow) that rises into place at
-  `A3.sky`, the strip and its chip clear above it (y 498–582); inside it the branch (tapered 14 → 6 px, rose-brown)
-  sweeps from (200, 1000) to (1290, 650) in ruled steps, the 80 px moon sits top-right, the three checks stack at
-  x 1380, rows y 724 / 794 / 864 (white on the sky). At `A3.night` the card grows to the whole frame (the chip goes
-  under it); the act title ends at 1050 so it never sits navy-on-navy. Bloom: three 5-petal flowers
-  (`C.sunset[2]` petals, rose centre). The constellation: 6 four-point stars (3 rose left, 3 lavender right) joined by
-  1 px dashed white lines, resolving into `<Heart draw>` at (960, 460) 300. The sky recedes downward (not a fade) as
-  the tile fills.
-- A4: `hourAt(f)` drives the ruler: hour h sits at x = 1280 − (h − hourAt(f)) × 80 (so 1 h = 80 px; the ruler runs
-  right-to-left through the playhead at x 1280). Hour ticks every hour (1 px, `C.ink3`), labels every 6 h. An event
-  card (260×96, white, radius 20) drops onto the ruler at its hour with `settle` and stays attached (moving with the
-  ruler); its left edge carries a 4 px rose or lavender bar; its icon is a line glyph. Counters at y 760 under the
-  ruler in `Digits` 40 px with `roll`. The playhead stops with a 4 f overshoot (`settle` zeta 0.7 from `A4.stop`).
-  Caption at (700, 880) 56 px, two lines allowed. Delivery: the phone's screen switches (a mask wipe) to a rebuilt iOS
-  home screen (Dawn Blush wallpaper, a 4×6 grid of plain rounded squares, dock); the counter card lifts from the
-  phone's Home (translate + scale, blurred) and lands as the medium widget (338×158 pt: photo, "Thảo ♥ Tuấn", "1250
-  ngày", the lavender progress bar + "Cột mốc 1500 ngày · còn 250 ngày"); the small widget (158×158) snaps beside it;
-  the Android 2×2 widget (night-sky default with the heart constellation, "1250 ngày") beside that.
-- A5: `C.ink` ground. Facts typeset in a 3×2 grid: columns at `colX(0)`, `colX(4)`, `colX(8)`, rows at y 300 and
-  y 560; label 28 px white, detail 18 px `C.ink3`; each lands with a 2-frame letterpress "thump" (scale 1.02 → 1).
-  At `A5.dim` (2085, an 8th before h1) the grid slides down and shrinks into the fine-print strip of H2280 (the
-  detail lines tuck away as it moves), so every headline lands on clean navy. Headlines at `colX(0)` as in H2280.
-  "Không quảng cáo" in `C.rose`.
-- A6: the chat panel of H2280 (`a6/layout.ts` PANEL): header chip 18 px, the thread in 24 px bubbles (partner grey
-  #E9E9EB left, navy right, radius 20, 56 px rows 12 apart), the composer 48 px with its send disc. Typing with
-  `A6.typed`; the sent bubble, then the typing bubble (3 dots rising one after another + "đang soạn…"), rise from
-  behind the composer while the thread moves up one message — under 20 px/frame, so no `<Blur>`. The six quick picks
-  fan in as one centred row above the panel (CHIPS y 208, 48 px). Panel and chips slide up out of the frame at
-  `A6.chatOut` (2392–2416), clear before the second card lands. The 4×2 feature cards (CARDS): 400×220, radius 24,
-  at `colX(0/3/6/9)`, rows y 240 / 480, rose #FFF1F4 / lavender #F3EFFD alternating; a 64 px rose/lavender circle
-  with the 40 px glyph in white (60 f animation), the title 28 px 700 at +114, the benefit 20 px 500 at +155
-  (`T.a6.benefits`, one line each). Ticker at y 780, masked x 160–1760, one line 28 px `C.ink2`, the two dots at its
-  ends. Caption at `colX(0)`, y 880. Recede: everything scales toward the two dots (not a fade); dots travel to H2640.
-- A7: the end card is centred: tile (960, 430) 280 → wordmark 72 px 700 at y 560 → l1 44 px at y 660 → l2 44 px rose
-  at y 716 → offer 26 px `C.ink2` at y 820 → url `<Pill>` at y 870 → legal 18 px `C.ink2` at y 1000. The wordmark
-  slides out from behind the tile under a mask (clip-path), the lines wipe in, the pill rises with `settle`.
+  (48 px) right of the strip; the flame glyph draws above the last cell; the pill "31 ngày kết nối · hôm nay xong rồi"
+  at 32 px (row y 524, pill 482–566). The sky is a complete card inside the frame (x 96–1824, y 600–1000, radius 28,
+  the app's shadow) that rises into place at `A3.sky`; inside it the branch (tapered 14 → 6 px, rose-brown) climbs in
+  ruled steps (one node per 8th) to its tip at (1300, 700), the 80 px moon sits top-right, the three checks (36 px)
+  stack at x 1380, rows y 724 / 794 / 864. At `A3.collapse` the chip shrinks into the point where the dots are born; at
+  `A3.night` the card grows to the whole frame; the act title ends before it. Bloom: three 5-petal flowers. The
+  constellation: 6 four-point stars (3 rose left, 3 lavender right, labels 28 px) joined by 1 px dashed white lines,
+  resolving into `<Heart draw>` at (960, 460) 300. The sky recedes downward (not a fade) as the tile fills. Never more
+  than two elements move at once in this act (the cues were re-timed for it).
+- A4 (one day, 06:00 → 24:00): the heart tile and label hold while the phone rises at the left (hero scale), then
+  shrink away in place; the dots descend into the playhead — a short rose-over-lavender needle (y 232–290) standing on
+  the ruler, so it never crosses text; the ruler streams in with its label "HÔM NAY · 15/10/2026". The ruler's hour is
+  a monotone smooth curve through (frame, hour) knots (`hourAt`, `hourToFrame`): fast between moments, slow at them.
+  Six moments (`A4.events` hours, `A4.eventFrames` 1294 / 1359 / 1429 / 1494 / 1559 / 1624): one large card at a time
+  (≈ 640×170, title 40 px, body 30 px, 6 px rose/lavender edge, 36 px icon), dropped with `settle`, each readable
+  ≥ 0.9 s; the previous card leaves completely (slides up and scales into its dot on the ruler). The photo moment pops
+  `photos/11.jpg` as a print (≈ 440×540, 16 px white border, caption 30 px) that flies into the phone as Ảnh rolls
+  11 → 12 (`A4.photo`). Counters (Ảnh · Sao hôm nay · Chuỗi) in `Digits` 58 px, labels 26 px. The playhead stops with a
+  4 f overshoot at `A4.stop`; the caption (64 px, two lines) lands where the last card was. Delivery is its own beat:
+  the counter card lifts (`A4.lift`) while the phone's screen wipes to a rebuilt iOS home screen; the medium widget
+  (1790) and the small one (1810) land inside the phone; the Android 2×2 widget (1830) lands outside it, large
+  (300 px at (688, 560): night sky, the constellation tucked top-right clear of the "THẢO ♥ TUẤN" chip, "1250 ngày bên
+  nhau"). Then the navy cover (§5).
+- A5: `C.ink` ground; no grid, no footer. h1 1955, h2 2040, h3 2130, each typeset in place (96 px white at x 120,
+  y 300 / 420 / 540); `A5.dots` (2052–2086) the two dots arc in from the left and right frame edges under "Chỉ hai
+  người." without crossing a word and rest just after it, 28 px apart edge to edge; `A5.fine` (2170) the fine-print
+  line wipes in. "Không quảng cáo." in `C.rose`.
+- A6: cards only (no chat, chips, ticker or caption). The sheet rises 2280–2310 (`A6.composer`). The eight cards land
+  one per 8th from 2310 (`A6.glyphs`): 402×290, radius 28, x 120 / 546 / 972 / 1398, rows y 238 / 552, rose #FFF1F4 /
+  lavender #F3EFFD alternating; a 72 px rose/lavender circle with the white glyph (60 f animation), the title 40 px 700
+  at +124, the benefit 28 px 500 at +184 on two lines (`T.a6.benefits`). They hold to 2560; `A6.dots` the two dots
+  enter from the frame edges at y 960; `A6.recede` everything scales toward the dots (not a fade) while they travel to
+  H2640.
+- A7: the end card is centred: tile centre (960, 300) → wordmark 72 px 700 at y 483 → l1 56 px at y 602 → l2 56 px rose
+  at y 672 → offer 34 px `C.ink2` at y 778 → url `<Pill>` (68 px tall, text 26 px) at y 836 → legal 22 px `C.ink2` at
+  y 943 (the stack ends at y 970). The wordmark slides out from behind the tile under a mask (clip-path), the lines
+  wipe in, the pill rises with `settle`.
 
 ## 7. Audio contract
 
 - `audio/events.ts` → `EVENTS` (sorted) built from the cue sheet or from each act's `AN_EVENTS` export. Ids (keep
-  stable; add new ones with a comment in your act's `events.ts`): A1 `tick key word drop land` · A2 `unfold leader row
-  jump mood pick matched caption press unfoldRow check compress` · A3 `cell flame chip node treeCheck riser flower rise
-  star heartResolve sweep key ting` · A4 `phoneRise rulerIn key event(n, who, icon, hour) stop caption lift widget cut`
-  · A5 `fact dim headline` · A6 `composerIn key send typingDot chip glyph ticker caption recede` · A7 `touch heartDraw
-  heartFill wordmark lock line url`.
+  stable; add new ones with a comment in your act's `events.ts`): A1 `tick key word drop land` · A2 `swoop unfold
+  phoneRise scroll leave lift key sendIn press unlock caption unfoldRow compress` · A3 `cell flame chip node treeCheck
+  riser flower collapse rise star heartResolve fill sweep key ting` · A4 `phoneRise shrink playhead rulerIn key event(n,
+  who, icon, hour) eventOut(n) photoPop photoFly photoLand count(n) stop caption lift widget(n) cover cut` · A5
+  `headline(n) dotsIn fact` · A6 `composerIn glyph(n) dotsIn recede` · A7 `touch heartDraw heartFill wordmark lock line
+  url`.
 - `audio/core.ts` — `SR 48000`, `SPF 800`, `LEN`, `smp(f)`, `SILENCE` (1920–1950 and 2988–3000 must be digital zero:
   `enforceSilence` last), `place`, `placeStereo`, `writeWav24`, `readWav24`.
 - Music (`audio/music/score.ts` → `compose(): Stereo`): the instruments in `audio/music/instruments.ts` (feltPiano,
@@ -198,7 +208,9 @@ glyphs (never an icon font image). Match the captures' proportions by eye; they 
   grainCloud) and `dsp.ts` (notes, hz, db, ms, sec, reverb, tapeStop…). Key D (minor shadow in A1 → major from `A1.land`),
   120 BPM, one score; beds per BRIEF §6; the motif = the `word` events of A1 (one note per word), complete and
   harmonised at `A7.lock`; drums drop at `A4.stop` (tape-stop), cut dead at `A4.cut`; a D2 felt piano under A5; the
-  pad swell at `A5.h2`; the final chord gone by `A7.end`. Peak ≤ −1 dBFS before mastering.
+  pad swell at `A5.h2`; Act 2's suspended swell resolves on `A2.unlock`; Act 4 is a warm bed (marimba 8ths,
+  felt-piano chords, soft kick on 1 and 3, side-stick on 2 and 4 — never four-on-the-floor, 16th hats or a broadband
+  air layer) under a low-pass that follows the hour; the final chord gone by `A7.end`. Peak ≤ −1 dBFS before mastering.
 - SFX (`audio/sfx/build.ts` → `out/audio/sfx.wav`): the kit in `audio/sfx/kit.ts` (key, thock, scrape, paperSlide,
   paperClick, typeset, penStrike, stamp, hairTick, dome, glassDraw, ting, pour, clunk, swivel, sheen, microTick,
   settleAir, ping, paperZip, exhale, uiSlide, airPop, cardFlutter, gather, glyph, roomTone) + `synth.ts`. One sound

@@ -1,4 +1,4 @@
-// Act 6 · the eight feature icons: white 2 px line glyphs inside each card's 64 px circle, animating once (60 f).
+// Act 6 · the eight feature icons: white 2 px line glyphs inside each card's circle, animating once (60 f).
 // Designed in a 64-unit box, drawn at CARDS.icon px (so a 2 px stroke is SW units). `ground` is the circle's colour,
 // used where one shape must hide another (the front photo frame).
 import { Easing } from "remotion";
@@ -42,9 +42,9 @@ const Svg: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 const SEQ = ["1247", "1248", "1249", "1250"];
 const TICKS = [20, 32, 44];
 const Count: G = ({ t }) => {
-  const size = 17;
+  const size = Math.round(17 * (CARDS.icon / 40));
   const slot = size * DIGIT_EM;
-  const win = { x: -4, y: 8, w: CARDS.icon + 8, h: 24 };
+  const win = { x: -5, y: Math.round(CARDS.icon * 0.2), w: CARDS.icon + 10, h: Math.round(CARDS.icon * 0.6) };
   const x0 = (win.w - 4 * slot) / 2;
   return (
     <div style={{ position: "absolute", left: win.x, top: win.y, width: win.w, height: win.h, overflow: "hidden" }}>

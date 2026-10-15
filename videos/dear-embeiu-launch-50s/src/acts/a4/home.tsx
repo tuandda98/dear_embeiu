@@ -14,8 +14,8 @@ import { Digits } from "../../components/Digits.tsx";
 import { HEART_PATH } from "../../components/Heart.tsx";
 import { clockAt } from "../../story/Counter.tsx";
 import { G } from "./glyphs.tsx";
-import { EVENT_F } from "./events.ts";
-import { Roll, countAt, diag, inOut } from "./parts.tsx";
+import { COUNT_STEPS, EVENT_F } from "./events.ts";
+import { Roll, countAt, diag } from "./parts.tsx";
 
 const H = T.a4.home;
 const WHITE_INK = "0 1px 4px rgba(0, 0, 0, 0.30)"; // white on a photo: a soft dark shadow, never a halo (BRIEF §4)
@@ -32,18 +32,11 @@ export const HOME = {
   sleepH: 198,
 } as const;
 
-const Q_REVEAL = EVENT_F[5]; // "Bạn đã trả lời · mở cả hai" (15:30)
-const MATCH = EVENT_F[9]; // "Bạn: Nhớ 🥹" (22:45)
+// v3: the page stays at the top all day (the story is told large outside the phone); its cards still follow the day
+const Q_REVEAL = EVENT_F[3] + 24; // "Hôm nay cả hai đã trả lời 💞" (15:30), once that card has settled
+const MATCH = EVENT_F[4] + 24; // "Chúng mình cùng một tâm trạng 💞" (22:45)
 export const revealT = (f: number) => ease(f, Q_REVEAL, Q_REVEAL + 18);
 export const matchT = (f: number) => ease(f, MATCH, MATCH + 18);
-
-/** the page's scroll (pt): to the question card before 15:00, to the mood card before 22:00, back to the number */
-const SCROLL: [number, number, number, number][] = [
-  [1500, 1530, 0, 222], // on 8ths, like every other move
-  [1575, 1620, 222, 600],
-  [A4.caption + 5, A4.caption + 65, 600, 0], // back to the number while the caption says it is still there
-];
-export const scrollAt = (f: number) => SCROLL.reduce((y, [a, b, from, to]) => (f >= a ? lerp(from, to, inOut(f, a, b)) : y), 0);
 
 // ── small pieces ───────────────────────────────────────────────────────────────────────────────────────────────────
 const abs = (s: CSSProperties): CSSProperties => ({ position: "absolute", ...s });
@@ -202,14 +195,16 @@ const CounterCard: React.FC<{ f: number; y: number }> = ({ f, y }) => (
 // ── "Hôm nay của chúng mình" + the constellation pill (today_constellation.dart ConstellationPill) ───────────────────
 const OUTLINE: [number, number][] = [[130, 66], [70, 40], [30, 104], [82, 162], [130, 206], [178, 162], [230, 104], [190, 40]];
 const STAR_AT = { you: [[70, 40], [30, 104], [82, 162]], other: [[190, 40], [230, 104], [178, 162]] } as const;
-/** when each of the six stars is lit: [who, task (0 Câu hỏi · 1 Tâm trạng · 2 Nhắn tin), the event that lights it (-1 = before the day)] */
+/** when each of the six stars is lit: [who, task (0 Câu hỏi · 1 Tâm trạng · 2 Nhắn tin), the frame it lights (-1 =
+ *  before the day)]: the four steps of the Sao hôm nay counter (events 3–6) */
+const [S3, S4, S5, S6] = COUNT_STEPS[1];
 const LIGHTS: ["you" | "other", 0 | 1 | 2, number][] = [
   ["other", 0, -1],
   ["you", 2, -1],
-  ["you", 0, 5],
-  ["other", 2, 6],
-  ["other", 1, 8],
-  ["you", 1, 9],
+  ["other", 2, S3],
+  ["you", 0, S4],
+  ["other", 1, S5],
+  ["you", 1, S6],
 ];
 const MiniHeart: React.FC<{ f: number }> = ({ f }) => {
   const k = 260 / 24; // the app's 260×216 box drawn at 24×20
@@ -219,7 +214,7 @@ const MiniHeart: React.FC<{ f: number }> = ({ f }) => {
       {LIGHTS.map(([who, task, ev]) => {
         const [x, y] = STAR_AT[who][task];
         const col = who === "you" ? C.rose : C.lavenderDeep;
-        const lit = ev < 0 ? 1 : ease(f, EVENT_F[ev], EVENT_F[ev] + 8);
+        const lit = ev < 0 ? 1 : ease(f, ev, ev + 8);
         return (
           <g key={who + task}>
             {lit < 1 && <circle cx={x} cy={y} r={2.1 * k} fill="none" stroke={col} strokeWidth={k} opacity={1 - lit} />}
@@ -430,10 +425,12 @@ const Header: React.FC = () => (
 );
 
 const Nav: React.FC<{ f: number }> = ({ f }) => {
-  const dot = f >= EVENT_F[6] ? settle(f, EVENT_F[6], { stiffness: 420, zeta: 0.7 }) : 0;
+  // the Kỷ niệm tab takes event 2's photo: it swells once and blushes rose as the print lands
+  const took = f >= A4.photo.land ? 1 - settle(f, A4.photo.land, { stiffness: 300, zeta: 0.7 }) : 0;
   const tab = (x: number, name: "chat" | "gallery" | "profile") => (
-    <div style={abs({ left: x - 13, top: 769 })}>
+    <div style={abs({ left: x - 13, top: 769, transform: name === "gallery" ? `scale(${1 + 0.3 * took})` : undefined })}>
       <G name={name === "chat" ? "message" : name} size={26} color="#A79CB4" />
+      {name === "gallery" && took > 0.01 && <G name="gallery" size={26} color={C.rose} style={abs({ left: 0, top: 0, opacity: Math.min(1, took * 1.6) })} />}
     </div>
   );
   return (
@@ -457,7 +454,6 @@ const Nav: React.FC<{ f: number }> = ({ f }) => {
       {tab(156, "chat")}
       {tab(246, "gallery")}
       {tab(334, "profile")}
-      {dot > 0 && <div style={abs({ left: 163, top: 765, width: 9, height: 9, borderRadius: 5, background: C.rose, boxShadow: "0 0 0 1.5px #FFFFFF", transform: `scale(${dot})` })} />}
     </>
   );
 };
@@ -465,7 +461,7 @@ const Nav: React.FC<{ f: number }> = ({ f }) => {
 // ── the whole page ─────────────────────────────────────────────────────────────────────────────────────────────────
 /** the Home tab at frame f; `card` = false once the counter card has lifted off (it is drawn on its own then) */
 export const HomeApp: React.FC<{ f: number; card?: boolean }> = ({ f, card = true }) => {
-  const s = scrollAt(f);
+  const s = 0;
   const qH = lerp(HOME.qH[0], HOME.qH[1], revealT(f));
   const moodY = HOME.q + qH + 16;
   const sleepY = moodY + lerp(HOME.moodH[0], HOME.moodH[1], matchT(f)) + 16;

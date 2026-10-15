@@ -4,7 +4,7 @@
 // heart; the night recedes downward. The counter and the label are drawn twice, split at the sky's edge (navy on
 // paper, white on the night), so they stay readable while the sheet passes behind them. Reads the GLOBAL frame.
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { Counter } from "../story/Counter.tsx";
+import { CORNER, Counter } from "../story/Counter.tsx";
 import { Dot } from "../components/Dot.tsx";
 import { Blur } from "../components/Blur.tsx";
 import { C } from "../lib/tokens.ts";
@@ -12,16 +12,16 @@ import { lerp, settle } from "../lib/ease.ts";
 import { T } from "../copy/strings.ts";
 import { A3 } from "../timeline/cues.ts";
 import { typedCount } from "../timeline/typing.ts";
-import { CHIP_MID, Strip, chipCell, stripSpeed } from "./a3/Strip.tsx";
+import { CHIP_POINT, Strip, stripSpeed } from "./a3/Strip.tsx";
 import { Night, skyEdge } from "./a3/Night.tsx";
 import { Constellation, HeartLine, HeartTile } from "./a3/Stars.tsx";
 
-/** the two dots at H1200, born on chip cells 22 and 30 (today), the ones under their targets */
+/** the two dots at H1200, born where the chip collapses (between its cells 22 and 30) */
 const DOTS = [
-  { who: "you" as const, from: chipCell(22).x, x: 820, y: 150 },
-  { who: "other" as const, from: chipCell(30).x, x: 1100, y: 150 },
+  { who: "you" as const, x: 820, y: 150 },
+  { who: "other" as const, x: 1100, y: 150 },
 ];
-const RISE = A3.dotsRise[0] + 4;
+const RISE = A3.dotsRise[0] + 2;
 const rested = (v: number) => (Math.abs(1 - v) < 1e-4 ? 1 : v); // a settled spring lands exactly on H1200
 const rise = (f: number) => (f < RISE ? 0 : rested(settle(f, RISE, { stiffness: 70, zeta: 0.78 })));
 
@@ -33,12 +33,12 @@ const Dots: React.FC = () => {
   return (
     <>
       {DOTS.map((d) => (
-        <Dot key={d.who} who={d.who} r={r} x={lerp(d.from, d.x, t)} y={lerp(CHIP_MID, d.y, t)} />
+        <Dot key={d.who} who={d.who} r={r} x={lerp(CHIP_POINT.x, d.x, t)} y={lerp(CHIP_POINT.y, d.y, t)} />
       ))}
     </>
   );
 };
-const dotSpeed = (f: number) => Math.abs(rise(f + 0.5) - rise(f - 0.5)) * (CHIP_MID - 150);
+const dotSpeed = (f: number) => Math.abs(rise(f + 0.5) - rise(f - 0.5)) * Math.hypot(CHIP_POINT.y - 150, CHIP_POINT.x - 820);
 
 /** content above the sky's edge in its paper colours, below it in its night colours */
 const Split: React.FC<{ edge: number; paper: React.ReactNode; night: React.ReactNode }> = ({ edge, paper, night }) =>
@@ -53,7 +53,8 @@ const Split: React.FC<{ edge: number; paper: React.ReactNode; night: React.React
 
 const BADGE = T.a3.labelBadge;
 const REST = T.a3.labelFlowers;
-/** T.a3.labelBadge + T.a3.labelFlowers: the badge tracked uppercase in ink2, the count in ink; typed in place */
+/** H1200's label, T.a3.labelBadge + T.a3.labelFlowers: 28 px 600 on a 36 px line centred on (960, 660); the badge
+ *  tracked +0.1em in ink2, a space, the count in ink; typed in place (the untyped letters hold their room) */
 const Label: React.FC<{ n: number; night?: boolean }> = ({ n, night }) => {
   const shown = (s: string, from: number) => {
     const k = Math.max(0, Math.min(s.length, n - from));
@@ -65,7 +66,7 @@ const Label: React.FC<{ n: number; night?: boolean }> = ({ n, night }) => {
     );
   };
   return (
-    <div style={{ position: "absolute", left: 0, width: 1920, top: 660 - 12, height: 24, display: "flex", justifyContent: "center", alignItems: "baseline", fontSize: 18, lineHeight: "24px", fontWeight: 600, whiteSpace: "pre" }}>
+    <div style={{ position: "absolute", left: 0, width: 1920, top: 660 - 18, height: 36, display: "flex", justifyContent: "center", alignItems: "baseline", fontSize: 28, lineHeight: "36px", fontWeight: 600, whiteSpace: "pre" }}>
       <span style={{ color: night ? "rgba(255,255,255,0.72)" : C.ink2, letterSpacing: "0.1em" }}>{shown(BADGE, 0)}</span>
       <span style={{ color: night ? C.white : C.ink }}>{" "}{shown(REST, BADGE.length + 1)}</span>
     </div>
@@ -77,11 +78,11 @@ export const Act3: React.FC = () => {
   const edge = skyEdge(f);
   const typed = typedCount(A3.label, f);
   const counter = (night: boolean) => (
-    <Counter x={120} y={160} scale={0.55} f={f} opacity={0.6} color={night ? C.white : C.ink} dim={night ? "rgba(255,255,255,0.72)" : C.ink2} />
+    <Counter x={CORNER.x} y={CORNER.y} scale={CORNER.scale} f={f} opacity={CORNER.opacity} color={night ? C.white : C.ink} dim={night ? "rgba(255,255,255,0.72)" : C.ink2} />
   );
   return (
     <AbsoluteFill style={{ background: C.bg }}>
-      {f < A3.night[0] + 20 && (
+      {f < A3.collapse[1] && (
         <Blur on={stripSpeed(f) > 20}>
           <Strip />
         </Blur>

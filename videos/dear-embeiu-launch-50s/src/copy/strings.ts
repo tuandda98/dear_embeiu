@@ -59,19 +59,15 @@ const vi = {
   },
 
   a4: {
-    label: "HÔM NAY · 15/10/2026 · 00:00 → 24:00", // film (the date as captured)
-    /** the day's events in order; `who` = who it comes from (rose = you, lavender = the other); hour = decimal hours */
+    label: "HÔM NAY · 15/10/2026", // film (the date as captured); v3: the day runs 06:00 → 24:00
+    /** v3: the day's six moments in order (V3.md § A4; the 21:00 reminder dropped in review, it is on an Act 6 card);
+     *  `who` = who it comes from (rose = you, lavender = the other); hour = decimal hours (= A4.events) */
     events: [
-      { hour: 6.0, who: "other", icon: "moon", title: "Tuấn dậy · 6g 50p", body: "23:10 → 6:00" },
-      { hour: 7.133, who: "you", icon: "moon", title: "Bạn dậy · 7g 23p", body: "23:45 → 7:08" },
-      { hour: 8.2, who: "other", icon: "photo", title: "Tuấn vừa đăng ảnh mới 💞", body: "Ghế quen ở hồ Gươm" }, // PHOTO_NOTIFICATION_COPY · caption as captured
+      { hour: 6.0, who: "other", icon: "moon", title: "Tuấn dậy · 6g 50p", body: "23:10 → 6:00" }, // his night, seeded (6g 50p = its length)
+      { hour: 10.667, who: "other", icon: "photo", title: "Tuấn vừa đăng ảnh mới 💞", body: "Ghế quen ở hồ Gươm" }, // PHOTO_NOTIFICATION_COPY · caption as captured
       { hour: 12.5, who: "other", icon: "care", title: "Ăn cơm chưa? 🍚", body: "Nhớ ăn cơm đúng bữa, đừng bỏ bữa nha." }, // careQuick3Title/Body
-      { hour: 15.083, who: "other", icon: "question", title: "Tuấn đã trả lời câu hỏi hôm nay 💞", body: "Tới lượt bạn." }, // DAILY_QUESTION_COPY, first sentence (BRIEF §5)
-      { hour: 15.5, who: "you", icon: "question", title: "Bạn đã trả lời · mở cả hai 💞", body: "Hôm nay cả hai đã trả lời" }, // film + dailyBothAnsweredToday
-      { hour: 19.667, who: "other", icon: "chat", title: "Tin nhắn mới 💬", body: "Tuấn vừa nhắn cho bạn 💌" }, // CHAT_MESSAGE_COPY
-      { hour: 21.0, who: "other", icon: "bell", title: "Lời nhắc từ người ấy ⏰", body: "Tuấn đặt lời nhắc cho bạn lúc 21:00: Uống nước nha" }, // PARTNER_REMINDER_SET_COPY
-      { hour: 22.683, who: "other", icon: "mood", title: "Tâm trạng hôm nay 💗", body: "Tuấn đang thấy Nhớ" }, // PARTNER_MOOD_COPY
-      { hour: 22.75, who: "you", icon: "mood", title: "Bạn: Nhớ 🥹", body: "Chúng mình cùng một tâm trạng 💞" }, // film + moodMatched
+      { hour: 15.5, who: "you", icon: "question", title: "Hôm nay cả hai đã trả lời 💞", body: "31 ngày kết nối" }, // dailyBothAnsweredToday + streak
+      { hour: 22.75, who: "you", icon: "mood", title: "Chúng mình cùng một tâm trạng 💞", body: "Bạn và Tuấn đều thấy Nhớ 🥹" }, // moodMatched
       { hour: 23.167, who: "other", icon: "moon", title: "Tuấn đi ngủ", body: "23:10" },
     ] as const,
     counters: [
@@ -114,6 +110,7 @@ const vi = {
   },
 
   a5: {
+    /** v3: dead (no fact grid on screen), kept for audio/scripts */
     facts: [
       ["Miễn phí", "Không quảng cáo"], // dearembeiu.com: "Miễn phí. Không quảng cáo."
       ["Chỉ hai người", "ghép bằng mã mời 6 ký tự"], // invite code, 6 characters
@@ -122,14 +119,15 @@ const vi = {
       ["Xoá tài khoản", "ngay trong app"], // deleteAccountBtn · Settings → Tài khoản
       ["Tiếng Việt · English", "iOS 14+ · Android 6+"], // supportedLocales · dearembeiu.com
     ] as const,
-    footer: "dearembeiu.com",
-    h1: "Không bạn bè. Không mạng xã hội.", // dearembeiu.com, as two sentences
+    footer: "dearembeiu.com", // v3: dead (no footer), kept for audio/scripts
+    h1: "Không bảng tin. Không người lạ.", // V3 (BRIEF §1: no feed, only the two paired members) — "Không bạn bè" read as "having no friends"
     h2: "Chỉ hai người.",
     h3: ["Miễn phí.", "Không quảng cáo."], // the second sentence in rose
+    fine: "Ghép đôi bằng mã mời · Xoá tài khoản ngay trong app · Tiếng Việt · English", // V3 fine print (BRIEF §1)
   },
 
   a6: {
-    placeholder: "Nhắn gì đó cho người ấy…", // chatComposerHint
+    placeholder: "Nhắn gì đó cho người ấy…", // chatComposerHint — v3: dead (no chat on screen), kept for audio/scripts
     /** the seeded chat already on screen above the composer (dev-seed-widget-accounts.js CHAT; ref/ios/chat.png): who 0 = Tuấn (left, grey), 1 = Thảo (right, navy) */
     history: [
       [0, "Em ăn cơm chưa? 🍚"],
@@ -137,25 +135,26 @@ const vi = {
       [0, "Anh vừa xong, tối nay xem phim nha"],
       [1, "Okii, em chọn phim nhé 😚"],
     ] as const,
-    typed: "Tối nay xem phim nha", // film (the seeded chat: "Anh vừa xong, tối nay xem phim nha")
-    typing: "đang soạn…", // the typing indicator
-    chips: ["Nhớ quá 💕", "Uống nước nha 💧", "Ăn cơm chưa? 🍚", "Ngủ sớm nha 🌙", "Yêu nhiều lắm ❤️", "Cố lên nha 💪"], // careQuick1…6Title
+    typed: "Tối nay xem phim nha", // film — v3: dead, kept for audio/scripts
+    typing: "đang soạn…", // the typing indicator — v3: dead, kept for audio/scripts
+    chips: ["Nhớ quá 💕", "Uống nước nha 💧", "Ăn cơm chưa? 🍚", "Ngủ sớm nha 🌙", "Yêu nhiều lắm ❤️", "Cố lên nha 💪"], // careQuick1…6Title — v3: dead, kept for audio/scripts
     glyphs: ["Đếm ngày yêu", "Ảnh chung", "Câu hỏi mỗi ngày", "Tâm trạng", "Giấc ngủ", "Trò chuyện", "Lời nhắc", "Oẳn tù tì"], // the eight things (intro/guestCounterTitle, gallery, dailyQuestion, mood, sleep, navChat, reminders, rpsGameTitle)
-    /** film: one line per card, each a BRIEF §1 fact (live clock on the couple photo · both post, only the two see ·
-     * your answer unlocks theirs · "Chúng mình cùng một tâm trạng" · their bed time · private chat · "Cũng nhắc người
-     * ấy", in their time zone · both hands revealed together); ≤ 352 px at 20 px so each stays on one line */
+    /** film: two lines per card ("\n" = the break), each a BRIEF §1 fact (live clock on the couple photo · both post,
+     * only the two see · your answer unlocks theirs · "Chúng mình cùng một tâm trạng" · their bed time · private chat
+     * with "đang soạn…" · "Cũng nhắc người ấy", in their time zone · both hands revealed together); each line ≤ 338 px
+     * at 28 px (the card's inner width) */
     benefits: [
-      "tới từng giây, trên ảnh chúng mình",
-      "cả hai cùng đăng, chỉ hai người thấy",
-      "trả lời xong mới mở câu của người ấy",
-      "cùng tâm trạng là app báo ngay",
-      "đêm qua người ấy ngủ lúc mấy giờ",
-      "góc riêng của hai người",
-      "nhắc cả người ấy, đúng giờ bên ấy",
-      "một ván với người ấy, mở cùng lúc",
+      "tới từng giây,\ntrên ảnh chúng mình",
+      "cả hai cùng đăng,\nchỉ hai người thấy",
+      "trả lời xong mới mở\ncâu của người ấy",
+      "cùng một tâm trạng\nlà app báo ngay",
+      "đêm qua người ấy\nngủ lúc mấy giờ",
+      "chỉ hai người nhắn,\nthấy cả lúc đang soạn",
+      "nhắc cả người ấy,\nđúng giờ bên ấy",
+      "một ván với người ấy,\nhai tay mở cùng lúc",
     ],
-    ticker: ["Widget màn hình chính", "Cây tình yêu", "Lịch âm", "Nhật ký câu hỏi", "Gửi quan tâm", "Mã QR mời"], // home-widget · loveTree · lunarSectionTitle · journalBadge · careMessageEntryTitle · inviteQrBtn
-    caption: "Miễn phí trên App Store & Google Play", // dearembeiu.com
+    ticker: ["Widget màn hình chính", "Cây tình yêu", "Lịch âm", "Nhật ký câu hỏi", "Gửi quan tâm", "Mã QR mời"], // v3: dead (no ticker, G6), kept for audio/scripts
+    caption: "Miễn phí trên App Store & Google Play", // v3: dead ("Miễn phí" said once, G6), kept for audio/scripts
   },
 
   /** Spaceti-style act titles (2–3 words), drawn by src/story/Titles.tsx over the acts; none on Act 1 (its caption is the title) and Act 7 */
@@ -164,7 +163,7 @@ const vi = {
     { from: 740, to: 1050, text: "Chuỗi & cây tình yêu", dark: false }, // streak + loveTreeBadge; out before A3.night covers the corner
     { from: 1300, to: 1780, text: "Một ngày của chúng mình", dark: false }, // film
     { from: 1965, to: 2090, text: "Riêng tư", dark: true }, // film
-    { from: 2420, to: 2600, text: "Và còn nữa", dark: false }, // film
+    { from: 2325, to: 2580, text: "Và còn nữa", dark: false }, // film (v3: the cards are the whole act)
   ] as const,
 
   a7: {

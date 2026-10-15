@@ -9,7 +9,6 @@ import { group, pad2 } from "../src/lib/num.ts";
 const NAME = "dear-embeiu-launch-50s";
 const a1 = T.a1;
 const clock = `${group(a1.clock.hours)} : ${pad2(a1.clock.minutes)} : ${pad2(a1.clock.seconds)}`;
-const row = (r: { label: string; other: string }) => `${r.label} — ${T.couple.other}: ${r.other}`;
 const events = T.a4.events.map((e) => ({ f: hourToFrame(e.hour), text: `${pad2(Math.floor(e.hour))}:${pad2(Math.round((e.hour % 1) * 60))} ${e.title} · ${e.body}` }));
 const counters = (end: boolean) => T.a4.counters.map((c) => `${c.label} ${end ? c.to : c.from}`).join(" · ");
 /** a line longer than 48 characters breaks at the sentence boundary nearest its middle */
@@ -23,29 +22,22 @@ const wrap = (line: string) => {
 const CUES: [from: number, to: number, text: string][] = [
   [0, A1.caption.frames[0], `${a1.eyebrow}\n${a1.days} ${a1.unit} · ${clock}`],
   [A1.caption.frames[0], A1.land, `${a1.days} ${a1.unit} · ${clock}\n${a1.caption}`],
-  [A2.land, A2.rows[0], `${T.a2.push.title}\n${T.a2.push.body}`],
-  [A2.rows[0], A2.moodJump, [T.a2.header, ...T.a2.rows.map(row)].join("\n")],
-  [A2.moodJump, A2.matched, `${T.a2.sheetTitle}\n${T.a2.moods.map(([e, l]) => `${e} ${l}`).join(" · ")}`],
-  [A2.matched, A2.press, `${T.a2.matched}\n${T.a2.caption}`],
-  [A2.press, A2.answerOther, `${T.a2.send}\n${T.a2.answerYou.label}: ${T.a2.answerYou.text}\n${T.a2.caption}`],
-  [A2.answerOther, A2.compress[0], `${T.a2.answerOther.label}: ${T.a2.answerOther.text}\n${T.a2.both}\n${T.a2.caption}`],
+  [A2.card[0], A2.leave[0], `${T.a2.push.title}\n${T.a2.push.body}`],
+  [A2.lift[0], A2.unlock, `${T.a2.question}\n${T.a2.answerOther.label}: ${T.a2.rows[0].other}`],
+  [A2.unlock, A2.compress[0], `${T.a2.answerOther.label}: ${T.a2.answerOther.text}\n${T.a2.answerYou.label}: ${T.a2.answerYou.text}\n${T.a2.caption}`],
   [A3.chip, A3.checks[0], T.a3.chip],
-  ...T.a3.checks.map((c, k): [number, number, string] => [A3.checks[k], A3.checks[k + 1] ?? A3.flowers[0], T.a3.checks.slice(0, k + 1).map((x) => `✓ ${x}`).join("\n")]),
-  [A3.flowers[0], A3.label.frames[0], `${T.a3.stars.join(" · ")} · ${T.couple.youLabel} / ${T.couple.otherLabel}`],
-  [A3.label.frames[0], A4.ruler[1], `${T.a3.labelBadge} ${T.a3.labelFlowers}`],
-  [A4.ruler[1], events[0].f, `${T.a4.label}\n${counters(false)}`],
+  ...T.a3.checks.map((c, k): [number, number, string] => [A3.checks[k], A3.checks[k + 1] ?? A3.stars[0], T.a3.checks.slice(0, k + 1).map((x) => `✓ ${x}`).join("\n")]),
+  [A3.stars[0], A3.label.frames[0], `${T.a3.stars.join(" · ")} · ${T.couple.youLabel} / ${T.couple.otherLabel}`],
+  [A3.label.frames[0], A4.ruler[0], `${T.a3.labelBadge} ${T.a3.labelFlowers}`],
+  [A4.ruler[0], events[0].f, `${T.a4.label}\n${counters(false)}`],
   ...events.map((e, k): [number, number, string] => [e.f, events[k + 1]?.f ?? A4.caption, e.text]),
   [A4.caption, A4.lift[0], `${T.a4.caption.join(" ")}\n${counters(true)}`],
   [A4.lift[0], A4.cut, `${T.a4.widget.names} · ${T.a4.widget.days} ${T.a4.widget.caption}\n${T.a4.widget.milestone} · ${T.a4.widget.left}\n${T.a4.caption.join(" ")}`],
-  [A5.facts[0], A5.facts[3], T.a5.facts.slice(0, 3).map(([a, b]) => `${a} · ${b}`).join("\n")],
-  [A5.facts[3], A5.h1, [...T.a5.facts.slice(3).map(([a, b]) => `${a} · ${b}`), T.a5.footer].join("\n")],
   [A5.h1, A5.h2, T.a5.h1],
   [A5.h2, A5.h3, `${T.a5.h1}\n${T.a5.h2}`],
-  [A5.h3, A5.hold, `${T.a5.h1}\n${T.a5.h2}\n${T.a5.h3.join(" ")}`],
-  [A6.typed.frames[0], A6.send, `${T.a6.placeholder}\n${T.a6.typed}`],
-  [A6.send, A6.glyphs[0], `${T.a6.typed} · ${T.a6.typing}\n${T.a6.chips.join(" · ")}`],
-  [A6.glyphs[0], A6.ticker[0], `${T.a6.glyphs.slice(0, 4).join(" · ")}\n${T.a6.glyphs.slice(4).join(" · ")}`],
-  [A6.ticker[0], A6.recede[0], `${T.a6.ticker.join(" · ")}\n${T.a6.caption}`],
+  [A5.h3, A5.fine, `${T.a5.h1}\n${T.a5.h2}\n${T.a5.h3.join(" ")}`],
+  [A5.fine, A5.hold, `${T.a5.h1}\n${T.a5.h2}\n${T.a5.h3.join(" ")}\n${T.a5.fine}`],
+  [A6.glyphs[0], A6.recede[0], `${T.a6.glyphs.slice(0, 4).join(" · ")}\n${T.a6.glyphs.slice(4).join(" · ")}`],
   [A7.lock, A7.l2, `${T.a7.wordmark}\n${T.a7.l1}\n${T.a7.legal}`],
   [A7.l2, A7.offer, `${T.a7.wordmark}\n${T.a7.l1} ${T.a7.l2}\n${T.a7.legal}`],
   [A7.offer, 3000, `${T.a7.offer} · ${T.a7.url}\n${T.a7.legal}`],

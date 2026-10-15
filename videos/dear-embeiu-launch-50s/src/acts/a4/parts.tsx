@@ -6,7 +6,7 @@ import { DIGIT_EM } from "../../lib/tokens.ts";
 import { Digits } from "../../components/Digits.tsx";
 import { ease } from "../../lib/ease.ts";
 import { T } from "../../copy/strings.ts";
-import { COUNT_STEPS, EVENT_F, STEP_LEN } from "./events.ts";
+import { COUNT_STEPS, STEP_LEN } from "./events.ts";
 
 /** an S-curve 0 → 1 over [from, to] for travels that start and end at rest; a sine in-out peaks at π/2 × the average
  *  speed, which keeps the ruler's stream-in, the dots and the page scrolls under the 20 px/f blur threshold */
@@ -15,12 +15,8 @@ export const inOut = (f: number, from: number, to: number) => ease(f, from, to, 
 /** Flutter's LinearGradient(topLeft → bottomRight) on a w×h box, as a CSS angle */
 export const diag = (w: number, h: number) => 180 - (Math.atan(w / h) * 180) / Math.PI;
 
-/** counter n (T.a4.counters) at frame f, continuous: each step eases over STEP_LEN frames from its event */
-export const countAt = (n: number, f: number) =>
-  T.a4.counters[n].from + COUNT_STEPS[n].reduce((s, k) => s + ease(f, EVENT_F[k], EVENT_F[k] + STEP_LEN), 0);
-
-/** has event k (T.a4.events) landed by frame f? */
-export const landed = (k: number, f: number) => f >= EVENT_F[k];
+/** counter n (T.a4.counters) at frame f, continuous: each step eases over STEP_LEN frames from its frame */
+export const countAt = (n: number, f: number) => T.a4.counters[n].from + COUNT_STEPS[n].reduce((s, at) => s + ease(f, at, at + STEP_LEN), 0);
 
 /**
  * A number that rolls like an odometer, in <Digits> boxes (Quicksand has no tabular figures): a digit that changes

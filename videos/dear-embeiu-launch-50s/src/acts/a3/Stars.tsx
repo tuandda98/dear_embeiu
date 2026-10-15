@@ -15,8 +15,8 @@ const COLOR = { you: C.rose, other: C.lavender } as const;
 const SKY_INK = "#231F45"; // the label's knock-out outline, in the sky's colour (as the app does)
 const R = 28; // star radius: the four-point stars are 56 px tip to tip
 
-/** convergence of the constellation onto the icon's outline */
-const conv = (f: number) => ease(f, A3.heart[0] - 6, A3.heart[0] + 10);
+/** convergence of the constellation onto the icon's outline, done before the stroke starts (V3 G2) */
+const conv = (f: number) => ease(f, A3.heart[0] - 14, A3.heart[0]);
 /** the white stroke's progress along the heart path (0 = tip, up the left lobe first) */
 const drawAt = (f: number) => Easing.inOut(Easing.sin)(clamp01((f - A3.heart[0]) / (A3.heart[1] - A3.heart[0])));
 
@@ -43,7 +43,7 @@ const TIP_LIT = lit(Rs) + 13; // both halves have met at the tip
 /** a star's label opens out of its star (masked) and closes back into it as the heart begins */
 const Label: React.FC<{ s: (typeof STARS)[number]; p: P; f: number; k: number }> = ({ s, p, f, k }) => {
   const on = lit(s);
-  const out = A3.heart[0] - 10 + 0.6 * k; // all six are back in their stars before the stroke starts
+  const out = A3.heart[0] - 18 + 0.6 * k; // all six close into their stars as the constellation settles
   const show = f < out ? ease(f, on + 2, on + 10) : 1 - ease(f, out, out + 6);
   if (show <= 0) return null;
   const left = s.who === "you";
@@ -59,8 +59,8 @@ const Label: React.FC<{ s: (typeof STARS)[number]; p: P; f: number; k: number }>
         left: mood ? p.x : left ? p.x - R - 14 : p.x + R + 14,
         top: mood ? p.y + R + 6 : p.y,
         transform: mood ? "translateX(-50%)" : left ? "translate(-100%, -50%)" : "translateY(-50%)",
-        fontSize: 24,
-        lineHeight: "32px",
+        fontSize: 28,
+        lineHeight: "36px",
         fontWeight: 600,
         color: C.white,
         whiteSpace: "nowrap",
@@ -144,7 +144,7 @@ export const HeartLine: React.FC<{ f: number }> = ({ f }) => {
   if (f < A3.heart[0] || f >= A3.sweep[1]) return null;
   const tile = ease(f, A3.tile[0], A3.tile[1]);
   const D = drawAt(f);
-  const sw = 14 * (1 - ease(f, A3.fill[1], A3.fill[1] + 10));
+  const sw = 14 * (1 - ease(f, A3.fill[0] + 2, A3.fill[1])); // the outline thins into the fill as it pours
   const pour = ease(f, A3.fill[0], A3.fill[1]);
   const top = y - size / 2 + 166 * (size / 1024) - 2; // the lobes' top
   const bottom = y - size / 2 + 752 * (size / 1024) + 2; // the tip
