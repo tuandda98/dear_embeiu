@@ -490,3 +490,20 @@
 ---
 ## Phien moi - 2026-09-30 09:05:29 (source: startup)
 - [09:05] Hi
+
+
+---
+## Phien moi - 2026-09-30 09:33:04 (source: resume)
+
+
+---
+## Phien moi - 2026-10-01 12:19:38 (source: resume)
+
+
+---
+## Phien moi - 2026-10-15 04:58:53 (source: resume)
+
+
+---
+## Phien moi - 2026-10-15 04:58:55 (source: clear)
+- [04:59] Đang ở prj dear embe iu đúng ko
