@@ -1,0 +1,5 @@
+node_modules/
+out/
+# captures from the simulator/emulator (re-make with scripts/film-shots.sh)
+ref/ios/
+ref/android/
