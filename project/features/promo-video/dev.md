@@ -46,3 +46,8 @@ Thư mục `videos/dear-embeiu-launch-50s/` (có `.gitignore` riêng: `node_modu
 5. **Lệnh:** `npm run typecheck` · `node scripts/stills.ts <tên> <khung…> --scale=0.5` (contact sheet) ·
    `node audio/build.ts` · `bash scripts/loud.sh` · `bash scripts/render.sh` (ProRes + H.264 CBR 24 Mbps + stems +
    poster + SRT + `check-delivery.ts`).
+6. **Kết quả render 2026-10-15 17:28:** `out/deliver/dear-embeiu-launch-50s_prores422hq.mov` 734 MB · `_h264.mp4` 152 MB
+   (24 Mbps CBR; đường AAC qua `alimiter` −1,8 dBTP vì AAC vượt đỉnh PCM ~0,8 dB) · `_preview.mp4` 6,9 MB (bản xem nhanh,
+   không phải deliverable) · `stems/` 2×14,4 MB · `_poster.png` · `.vi.srt` 40 cue. `check-delivery.ts`: tất cả đạt
+   (3000 khung, 50,000 s, bt709, −14 LUFS / −1,2 dBTP). Soát: 17 still theo brief §9 + contact sheet mỗi 0,5 s.
+
