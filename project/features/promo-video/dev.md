@@ -50,4 +50,11 @@ Thư mục `videos/dear-embeiu-launch-50s/` (có `.gitignore` riêng: `node_modu
    (24 Mbps CBR; đường AAC qua `alimiter` −1,8 dBTP vì AAC vượt đỉnh PCM ~0,8 dB) · `_preview.mp4` 6,9 MB (bản xem nhanh,
    không phải deliverable) · `stems/` 2×14,4 MB · `_poster.png` · `.vi.srt` 40 cue. `check-delivery.ts`: tất cả đạt
    (3000 khung, 50,000 s, bt709, −14 LUFS / −1,2 dBTP). Soát: 17 still theo brief §9 + contact sheet mỗi 0,5 s.
+7. **Bản demo 45 s + lời đọc (2026-10-15 tối):** `scripts/film-record.sh <udid> <out.mp4>` quay simulator trong lúc robot
+   chạy (mốc `[shot] <tên> <epoch>`), `ref/rec/shots.json` → cắt clip 30 fps 1206×2622 vào `public/clips/` (index.json
+   có mốc trong clip). Giọng đọc: `scripts/vo.sh film|demo` (edge-tts `vi-VN-HoaiMyNeural`, venv ở scratchpad; dịch vụ
+   hay rớt → retry, mp3 hỏng < 1 KB tự xoá); `audio/vo.ts` trộn + duck −7 dB; mặc định `VO_SET=none` vì user bỏ lồng
+   tiếng. Demo: `src/demo/`, `audio/demo/build.ts`, `scripts/render-demo.sh`, `scripts/check-demo.ts`. Emoji trên
+   simulator vẽ thành ô "[?]" trong bản quay — builder đã che bằng chữ đúng của `app_vi.arb`; muốn sạch thì quay trên máy
+   thật.
 

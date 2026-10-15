@@ -4,6 +4,7 @@
 import { spawnSync } from "node:child_process";
 import { mkdirSync, rmSync } from "node:fs";
 import { LEN, SILENCE, SPF, SR, dbToGain, readWav24, stereo, writeWav24, type Stereo } from "./core.ts";
+import { voStem } from "./vo.ts";
 
 const NAME = "dear-embeiu-launch-50s";
 const TARGET = -14; // LUFS integrated
@@ -96,10 +97,13 @@ if (import.meta.main) {
   for (const [k, t] of [["music", music], ["sfx", sfx]] as const)
     if (t.L.length !== LEN) throw new Error(`${k}.wav has ${t.L.length} samples, the film needs ${LEN}`);
 
+  // the voice-over (public/vo/film, scripts/vo.sh): the beds duck 7 dB under it; VO_SET=none renders the film without it
+  const voSet = process.env.VO_SET ?? "none"; // the user chose no narration (15/10): VO_SET=film mixes the rendered lines back in
+  const { vo, env: duckEnv, lines } = voSet === "none" ? { vo: stereo(), env: new Float32Array(LEN).fill(1), lines: [] } : voStem(voSet);
   const sum = stereo();
   for (let i = 0; i < LEN; i++) {
-    sum.L[i] = music.L[i] + sfx.L[i];
-    sum.R[i] = music.R[i] + sfx.R[i];
+    sum.L[i] = (music.L[i] + sfx.L[i]) * duckEnv[i] + vo.L[i];
+    sum.R[i] = (music.R[i] + sfx.R[i]) * duckEnv[i] + vo.R[i];
   }
   const tp = truePeak(sum);
   const raw = measure(sum);
@@ -124,7 +128,16 @@ if (import.meta.main) {
     for (let i = a; i < b; i++) if (out.L[i] !== 0 || out.R[i] !== 0) throw new Error(`sample ${i} must be digital zero`);
 
   writeWav24("out/audio/master.wav", out);
-  const stems = { music: apply(music, dbToGain(gDb), env), sfx: apply(sfx, dbToGain(gDb), env) };
+  const ducked = (t: Stereo) => {
+    const o = stereo(t.L.length);
+    for (let i = 0; i < t.L.length; i++) {
+      o.L[i] = t.L[i] * duckEnv[i];
+      o.R[i] = t.R[i] * duckEnv[i];
+    }
+    return o;
+  };
+  const stems: Record<string, Stereo> = { music: apply(ducked(music), dbToGain(gDb), env), sfx: apply(ducked(sfx), dbToGain(gDb), env) };
+  if (lines.length) stems.vo = apply(vo, dbToGain(gDb), env);
   for (const [k, t] of Object.entries(stems)) writeWav24(`out/deliver/stems/${NAME}_${k}.wav`, t);
 
   let gr = 1;
@@ -149,7 +162,7 @@ if (import.meta.main) {
       `raw sum      I ${raw.I} LUFS · TP ${raw.TP} dBTP · LRA ${raw.LRA} LU`,
       `master       I ${m.I} LUFS · TP ${m.TP} dBTP · LRA ${m.LRA} LU · gain ${gDb.toFixed(2)} dB · ceiling ${ceilDb.toFixed(2)} dB`,
       `limiter      max ${(-20 * Math.log10(gr)).toFixed(2)} dB at f${Math.floor(grAt / SPF)} · > 1 dB: ${spans.join(", ") || "none"}`,
-      `stems        music peak ${peakDb(stems.music).toFixed(2)} dBFS · sfx peak ${peakDb(stems.sfx).toFixed(2)} dBFS`,
+      `stems        music peak ${peakDb(stems.music).toFixed(2)} dBFS · sfx peak ${peakDb(stems.sfx).toFixed(2)} dBFS${stems.vo ? ` · vo peak ${peakDb(stems.vo).toFixed(2)} dBFS (${lines.length} lines)` : ""}`,
     ].join("\n"),
   );
 }

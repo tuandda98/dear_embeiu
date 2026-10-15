@@ -33,7 +33,7 @@ Future<void> shot(WidgetTester tester, String name, {int settle = 400}) async {
   await tester.pump();
   await wait(settle);
   // ignore: avoid_print
-  print('[shot] $name');
+  print('[shot] $name ${DateTime.now().millisecondsSinceEpoch}');
   await wait(1300);
 }
 

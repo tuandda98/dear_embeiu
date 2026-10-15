@@ -27,6 +27,8 @@ const vi = {
       { label: "Đêm qua", other: "23:10 → 06:00", you: "" }, // sleepCardTitle · the seeded night
     ],
     sheetTitle: "Hôm nay bạn thế nào?", // moodSheetTitle
+    noteHint: "Thêm đôi lời (không bắt buộc)", // moodNoteHint
+    save: "Lưu tâm trạng", // moodSaveCta
     moods: [
       ["😄", "Vui"],
       ["🥰", "Hạnh phúc"],
@@ -142,6 +144,15 @@ const vi = {
     ticker: ["Widget màn hình chính", "Cây tình yêu", "Lịch âm", "Nhật ký câu hỏi", "Gửi quan tâm", "Mã QR mời"], // home-widget · loveTree · lunarSectionTitle · journalBadge · careMessageEntryTitle · inviteQrBtn
     caption: "Miễn phí trên App Store & Google Play", // dearembeiu.com
   },
+
+  /** Spaceti-style act titles (2–3 words), drawn by src/story/Titles.tsx over the acts; none on Act 1 (its caption is the title) and Act 7 */
+  titles: [
+    { from: 300, to: 700, text: "Hôm nay của chúng mình", dark: false }, // homeTodaySectionTitle
+    { from: 740, to: 1140, text: "Chuỗi & cây tình yêu", dark: false }, // streak + loveTreeBadge
+    { from: 1300, to: 1780, text: "Một ngày của chúng mình", dark: false }, // film
+    { from: 1965, to: 2090, text: "Riêng tư", dark: true }, // film
+    { from: 2420, to: 2600, text: "Và còn nữa", dark: false }, // film
+  ] as const,
 
   a7: {
     wordmark: "Dear Embeiu",

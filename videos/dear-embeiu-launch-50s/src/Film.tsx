@@ -9,6 +9,7 @@ import { Act4 } from "./acts/Act4.tsx";
 import { Act5 } from "./acts/Act5.tsx";
 import { Act6 } from "./acts/Act6.tsx";
 import { Act7 } from "./acts/Act7.tsx";
+import { Titles } from "./story/Titles.tsx";
 
 const ACT = [Act1, Act2, Act3, Act4, Act5, Act6, Act7];
 
@@ -20,6 +21,7 @@ export const Film: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: C.bg, color: C.ink, fontFamily: FONT, WebkitFontSmoothing: "antialiased" }}>
       {ready && <Act />}
+      {ready && <Titles />}
     </AbsoluteFill>
   );
 };

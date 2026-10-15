@@ -37,3 +37,19 @@ dựa vào source code mới nhất + data mock, mở máy ảo iOS/Android đ�
 - Giao hàng (`videos/dear-embeiu-launch-50s/out/deliver/`): `dear-embeiu-launch-50s_prores422hq.mov` (master),
   `_h264.mp4` (≥ 20 Mbps), `stems/` (nhạc + SFX), `_poster.png` (khung cuối), `.vi.srt`. Chưa commit `out/`.
 - Chờ user: xem thử, duyệt. Bản 9:16 cho Threads/TikTok và bản EN chưa làm (brief để sẵn: mọi chuỗi trong một file).
+
+### Hai bản để chọn (2026-10-15 tối, theo đánh giá 2 video tham chiếu Wellio / Spaceti)
+
+User xem phim 50 s rồi đưa 2 video YouTube (Wellio – Pixelblue 43 s; Spaceti 100 s) để đối chiếu. Nhận xét: cả hai cho
+xem app chạy liên tục có người kể, người xem hiểu app trong 10 s đầu; phim mình kể concept 20 s đầu mới thấy app. User
+chốt làm cả hai bản, **không lồng tiếng, chỉ nhạc + tiếng động** (lời đọc đã sinh sẵn bằng edge-tts, để lại trong
+`public/vo/`, bật lại bằng `VO_SET=film node audio/build.ts`).
+- **Bản 1** — phim 50 s sửa: Act 2 (giây 4–12) dùng điện thoại app thật (Home, sheet tâm trạng, sheet trả lời, mở cả
+  hai) thay cho bảng trừu tượng; tiêu đề 2–3 chữ mỗi act kiểu Spaceti (`src/story/Titles.tsx`). Giao hàng như cũ ở
+  `out/deliver/dear-embeiu-launch-50s_*`.
+- **Bản 2** — demo sản phẩm 45 s (`Demo` composition, `src/demo/`): điện thoại giữa khung chạy 9 clip quay thật từ
+  simulator (`public/clips/`, cắt từ `scripts/film-record.sh` + mốc `[shot]`), 8 phân đoạn: mở đầu · đếm ngày · câu hỏi
+  · tâm trạng · giấc ngủ · ảnh/chat/quan tâm · cây tình yêu · thẻ kết; tiêu đề + 1 chú thích mỗi đoạn; nhạc nền −18 LUFS
+  + tick/click/riffle; `scripts/render-demo.sh` → `out/deliver/dear-embeiu-demo-45s.mp4` (9,3 MB) + `_preview.mp4`.
+- Cả hai đã gửi Telegram (chat 6199499346). Chờ user chọn.
+

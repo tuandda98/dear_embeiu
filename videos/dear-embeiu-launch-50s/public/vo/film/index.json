@@ -1,0 +1,80 @@
+[
+ {
+  "id": "a1-number",
+  "at": 30,
+  "file": "vo/film/a1-number.wav",
+  "duration": 2.464
+ },
+ {
+  "id": "a2-arrive",
+  "at": 250,
+  "file": "vo/film/a2-arrive.wav",
+  "duration": 1.335
+ },
+ {
+  "id": "a2-mood",
+  "at": 530,
+  "file": "vo/film/a2-mood.wav",
+  "duration": 1.523
+ },
+ {
+  "id": "a2-answer2",
+  "at": 624,
+  "file": "vo/film/a2-answer2.wav",
+  "duration": 1.56
+ },
+ {
+  "id": "a3-streak2",
+  "at": 760,
+  "file": "vo/film/a3-streak2.wav",
+  "duration": 2.335
+ },
+ {
+  "id": "a3-tree2",
+  "at": 1000,
+  "file": "vo/film/a3-tree2.wav",
+  "duration": 2.485
+ },
+ {
+  "id": "a4-day",
+  "at": 1230,
+  "file": "vo/film/a4-day.wav",
+  "duration": 2.135
+ },
+ {
+  "id": "a4-events2",
+  "at": 1400,
+  "file": "vo/film/a4-events2.wav",
+  "duration": 5.045
+ },
+ {
+  "id": "a4-caption",
+  "at": 1706,
+  "file": "vo/film/a4-caption.wav",
+  "duration": 3.52
+ },
+ {
+  "id": "a5-facts2",
+  "at": 1960,
+  "file": "vo/film/a5-facts2.wav",
+  "duration": 4.639
+ },
+ {
+  "id": "a6-range2",
+  "at": 2300,
+  "file": "vo/film/a6-range2.wav",
+  "duration": 3.676
+ },
+ {
+  "id": "a6-free",
+  "at": 2525,
+  "file": "vo/film/a6-free.wav",
+  "duration": 2.736
+ },
+ {
+  "id": "a7-sign2",
+  "at": 2700,
+  "file": "vo/film/a7-sign2.wav",
+  "duration": 4.359
+ }
+]

@@ -21,20 +21,23 @@ export const A1 = {
 export const A2 = {
   land: 240,
   fly: [261, 285], // the number has stepped back (scale 1 → 0.55, 242–278); the dot swoops under it into the card's icon slot
-  card: [283, 300], // the dot unfolds into the notification card (its body opens rightward from the dot)
-  rows: [300, 360, 420], // leader line draws from the card (8 f), then the row unrolls from its tip and lands on the 8th
-  rowLand: [330, 390, 450], // (was 324/384/444: off the 8th grid)
-  carets: 450, // rose carets blink in the empty "Bạn" slots
-  moodJump: 480, // the caret jumps into the mood row (8.0 s)
-  moods: [480, 484, 488, 492, 496, 500, 504, 508], // the 8 moods fan in, 4 f apart
+  card: [283, 300], // the dot unfolds into the notification card; the phone (the real Home) rises into place meanwhile
+  scroll: [294, 440], // inside the phone the Home is flicked from the counter card down to today's three cards
+  rows: [300, 360, 420], // a lavender leader line draws (8 f) from the card into the phone: question, mood, sleep card
+  rowLand: [308, 368, 428], // …and pins that card's TUẤN side with a 10 px lavender dot
+  carets: 450, // rose carets blink on the empty BẠN sides
+  moodJump: 480, // the carets hop into the mood card's BẠN side; the leader lines let go
+  sheets: [484, 601], // a sheet rises inside the phone: the mood sheet, then the answer sheet
+  moods: [490, 494, 498, 502, 506, 510, 514, 518], // the sheet's 8 moods drop in, 4 f apart
   pick: 540, // "Nhớ" is picked: rose ring draws (9.0 s)
-  matched: 555, // the row flashes one rose hairline, reads "Chúng mình cùng một tâm trạng 💞" (was 552: off-grid)
+  matched: 555, // the sheet drops; the mood card reads "Chúng mình cùng một tâm trạng 💞"
   caption: 570, // "Cần cả hai." (bottom left)
-  press: 600, // the navy "Gửi" pill is pressed (10.0 s): 1 → 0.96 in 6 f, back in 10 f
-  answerYou: 615, // "Câu trả lời của bạn" unfolds (was 612; 615/645/675 sit on 8ths)
+  press: 600, // the question card's rose pill is pressed (10.0 s): 1 → 0.96 in 6 f, back in 10 f
+  send: 610, // "Gửi" is pressed on the answer sheet; the sheet drops
+  answerYou: 615, // "Câu trả lời của bạn" unfolds (in the card, and echoed large outside the phone)
   answerOther: 645, // "Câu trả lời của Tuấn" unfolds
   check: 675, // the check stroke draws under "Hôm nay cả hai đã trả lời"
-  compress: [690, 720], // the sheet compresses into the first streak cell (lands at 720 = A3's first frame)
+  compress: [690, 720], // phone + card + answers compress into the first streak cell (lands at 720 = A3's first frame)
 } as const;
 
 // ── A3 · Chuỗi · 720–1200 ─────────────────────────────────────────────────────────────────────────────────────────
