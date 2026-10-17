@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:Q;src:url(../../assets/fonts/Quicksand-Bold.ttf);font-weight:700}
+@font-face{font-family:Q;src:url(../../assets/fonts/Quicksand-Medium.ttf);font-weight:500}
+html,body{margin:0;overflow:hidden}
+#c{position:relative;overflow:hidden;font-family:Q}
+.light{background:radial-gradient(120% 60% at 20% 0%,#FFD6E0 0%,#E8B4D8 55%,#C8A8E9 100%);color:#1A1A2E}
+.dark{background:radial-gradient(110% 55% at 80% 0%,#3B2D6B 0%,#231B45 50%,#1A1A2E 100%);color:#fff}
+.dark .sub{color:#E4DCF5}.light .sub{color:#3A3350}
+h1{margin:0;font-weight:700;letter-spacing:-1px;line-height:1.12}
+.sub{font-weight:500;line-height:1.38;margin-top:28px}
+.eyebrow{display:inline-flex;align-items:center;gap:14px;font-weight:700;letter-spacing:4px;text-transform:uppercase;border-radius:999px;padding:14px 30px;margin-bottom:34px}
+.light .eyebrow{background:rgba(255,255,255,.7);color:#E63956}
+.dark .eyebrow{background:rgba(255,255,255,.12);color:#FFC1CC}
+.phone{position:absolute;left:50%;transform:translateX(-50%);background:#0E0E14;border-radius:150px;padding:26px;box-shadow:0 40px 120px rgba(26,26,46,.45),0 0 0 3px rgba(255,255,255,.18) inset}
+.phone img{display:block;border-radius:126px;width:100%}
+.stars i{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;opacity:.5}
+</style></head><body><div id="c"></div><script>
+const p=new URLSearchParams(location.search);const W=+p.get('w'),H=+p.get('h'),pw=+p.get('pw'),py=+p.get('py');
+const c=document.getElementById('c');c.style.width=W+'px';c.style.height=H+'px';c.className=p.get('bg');
+let stars='';if(p.get('bg')=='dark'){for(let i=0;i<40;i++){const x=(i*397)%W,y=(i*211)%(py+40);stars+='<i style="left:'+x+'px;top:'+y+'px;opacity:'+(.2+(i%5)*.12)+'"></i>'}}
+c.innerHTML='<div class="stars">'+stars+'</div><div style="position:absolute;left:96px;right:96px;top:'+p.get('ty')+'px">'+
+'<div class="eyebrow" style="font-size:34px">'+p.get('eb')+'</div>'+
+'<h1 style="font-size:'+p.get('fs')+'px">'+p.get('t')+'</h1><div class="sub" style="font-size:'+p.get('ss')+'px">'+p.get('s')+'</div></div>'+
+'<div class="phone" style="width:'+pw+'px;top:'+py+'px"><img src="'+p.get('img')+'"></div>';
+</script></body></html>
