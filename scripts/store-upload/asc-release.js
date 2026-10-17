@@ -7,6 +7,7 @@
 //   node scripts/store-upload/asc-release.js                 # upload IPA → chờ build xử lý → tạo version → What's New → gắn build → gửi duyệt
 //   node scripts/store-upload/asc-release.js --dry-run       # chỉ ĐỌC: in ra sẽ làm gì, không upload/ghi gì
 //   node scripts/store-upload/asc-release.js --skip-upload   # IPA đã upload rồi (vd qua Transporter), làm tiếp phần ASC
+//   node scripts/store-upload/asc-release.js --no-submit     # làm hết trừ bước gửi duyệt
 // Tuỳ chọn: --version X.Y.Z · --build N · --ipa <path> (mặc định .ipa mới nhất trong build/ios/ipa) · --notes <file>
 const fs = require('fs');
 const path = require('path');
@@ -28,6 +29,7 @@ const version = opt('version', pv);
 const build = opt('build', pb);
 const dryRun = args.includes('--dry-run');
 const skipUpload = args.includes('--skip-upload');
+const noSubmit = args.includes('--no-submit'); // dừng sau khi gắn build (vd để tải ảnh/video bằng asc-media.js rồi mới gửi)
 const notesFile = opt('notes', `RELEASE_NOTES_${version}.md`);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -111,6 +113,7 @@ function readNotes() {
   // 5. Gắn build
   await api('PATCH', `/appStoreVersions/${ver.id}/relationships/build`, { data: { type: 'builds', id: b.id } });
   console.log(`✓ gắn build ${build}`);
+  if (noSubmit) { console.log('→ --no-submit: dừng trước khi gửi duyệt'); return; }
 
   // 6. Gửi duyệt (dùng lại submission đang mở nếu có)
   let sub = (await api('GET', `/reviewSubmissions?filter[app]=${app.id}&filter[platform]=IOS&filter[state]=READY_FOR_REVIEW`)).data[0];
