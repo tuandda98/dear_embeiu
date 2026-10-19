@@ -6,7 +6,7 @@
 
 - **Feature:** decision-wheel
 - **Ưu tiên:** P0 (mục tiêu "mở app mỗi ngày", user chốt 2026-10-19)
-- **Trạng thái:** 📋 Spec (chờ user duyệt rồi chạy pipeline Designer → Dev → Tester)
+- **Trạng thái:** 🧪 Test — Dev xong + gộp `feature/daily-open` (2026-10-19), Tester vòng 1 FAIL (1 major cooldown + 7 minor, đang vá), chờ smoke 2 máy thật
 - **Tạo ngày:** 2026-10-19
 - **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · [dish-bank.md](dish-bank.md) · [activity-bank.md](activity-bank.md) · widget hiện kết quả ở [`../widget-today/`](../widget-today/overview.md) · bối cảnh dự án [`../../../CLAUDE.md`](../../../CLAUDE.md)
 

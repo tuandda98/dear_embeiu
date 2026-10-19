@@ -5,7 +5,7 @@
 
 - **Feature:** widget-today
 - **Ưu tiên:** P0 (mục tiêu "mở app mỗi ngày", user chốt 2026-10-19)
-- **Trạng thái:** 📋 Spec (chờ user duyệt rồi chạy pipeline Designer → Dev → Tester)
+- **Trạng thái:** 🧪 Test — Dev xong + gộp `feature/daily-open` (2026-10-19), Tester vòng 1 PASS code-level (7 minor, đang vá), chờ smoke máy thật
 - **Tạo ngày:** 2026-10-19
 - **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · nền tảng [`../home-widget/`](../home-widget/overview.md) · loại `decision_*` phụ thuộc [`../decision-wheel/`](../decision-wheel/overview.md) · bối cảnh dự án [`../../../CLAUDE.md`](../../../CLAUDE.md)
 
@@ -70,7 +70,7 @@
 
 - **D5 — Hai đường cập nhật, một nguồn chữ.** (a) App mở: `HomeWidgetBridge` lắng nghe thêm `DailyQuestionProvider` + `MoodProvider` + `ChatProvider` + `PhotoProvider` (+ `DecisionProvider`), tính `statusKind` y như `TodayConstellation`, dịch qua `AppLocalizations`, gọi `updateStatus`. (b) App ở nền: `firebaseMessagingBackgroundHandler` đọc `data.type` của push, dịch bằng `lookupAppLocalizations(Locale(data.lang))` (fallback `Platform.localeName`), gọi `updateStatus`. Native không có bảng dịch. *Lý do:* giữ D4 home-widget; copy chỉ nằm ở ARB, không trùng ở CF.
 
-- **D6 — Kênh thêm method `updateStatus(Map<String,String>)`, tách khỏi `update`.** Khoá: `todayDate`, `statusKind`, `statusText`, `statusTextShort` (bản nhỏ — D14), `statusAt` (epoch ms), `statusTarget` (`home` · `chat` · `gallery`), `statusFocus` (`daily_question` · `mood` · `meal` · rỗng). Native lưu riêng, `update` (ảnh chụp đếm ngày) **không** xoá trạng thái; `state=empty` (đăng xuất, rời couple) xoá cả hai. *Lý do:* handler nền không có couple/l10n đầy đủ, chỉ cần ghi 6 khoá này; không được đẩy `empty` đè ảnh chụp tốt (bài học bridge 1.9.1).
+- **D6 — Kênh thêm method `updateStatus(Map<String,String>)`, tách khỏi `update`.** Khoá: `todayDate`, `statusKind`, `statusText`, `statusTextShort` (bản nhỏ — D14), `statusAt` (epoch ms), `statusTarget` (`home` · `chat` · `gallery`), `statusFocus` (`daily_question` · `mood` · `decision` · rỗng — đổi từ `meal` khi gộp, khớp `NotificationTapRouter.focusDecision`). Native lưu riêng, `update` (ảnh chụp đếm ngày) **không** xoá trạng thái; `state=empty` (đăng xuất, rời couple) xoá cả hai. *Lý do:* handler nền không có couple/l10n đầy đủ, chỉ cần ghi 6 khoá này; không được đẩy `empty` đè ảnh chụp tốt (bài học bridge 1.9.1).
 
 - **D7 — Chạm widget vẫn là một vùng, đích = `statusTarget` của trạng thái đang hiện.** iOS: `widgetURL` thêm query `target` + `focus` cạnh `family`; `SceneDelegate` chỉ đọc 3 khoá này rồi ghi UserDefaults — **không** bật deep linking của Flutter (giữ D8 audit 2026-10-12). Android: extra `widget_target` + `widget_focus` cạnh `widget_family`. `consumeLaunch()` trả map; Flutter đặt `NotificationTapRouter.pendingHomeTab` (home 0 · chat 1 · gallery 2) + `pendingHomeFocus`. *Lý do:* tái dùng đúng đường đi của push tap, 0 route mới.
 
