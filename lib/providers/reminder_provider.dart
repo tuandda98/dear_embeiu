@@ -92,6 +92,10 @@ class ReminderProvider extends ChangeNotifier {
   // Multi-time daily-question reminder (2026-06-14): a list of minutes-since-
   // midnight. The legacy single hour/minute keys are read once for migration.
   static const String _dqTimesKey = 'dqReminderTimes';
+  // Meal-pick nudge (decision-wheel D10): per device, default ON at 16:30.
+  static const String _decisionEnabledKey = 'decisionReminderEnabled';
+  static const String _decisionMinuteKey = 'decisionReminderMinute';
+  static const int defaultDecisionReminderMinute = 16 * 60 + 30;
   static const String _dqLegacyHourKey = 'dqReminderHour';
   static const String _dqLegacyMinuteKey = 'dqReminderMinute';
 
@@ -190,6 +194,19 @@ class ReminderProvider extends ChangeNotifier {
   // NOT change the couple-shared on/off setting — the partner still gets them.
   bool _suppressSharedDqReminders = false;
 
+  // Meal-pick nudge (decision-wheel D10). Inputs cached from Home so a
+  // Settings change can re-arm without Home re-supplying them.
+  bool _decisionEnabled = true;
+  int _decisionMinute = defaultDecisionReminderMinute;
+  bool _decisionCoupleActive = false;
+  bool _decisionDecidedToday = true;
+  AppLocalizations? _decisionL10n;
+  String? _decisionSignature;
+
+  bool get decisionReminderEnabled => _decisionEnabled;
+  TimeOfDay get decisionReminderTime =>
+      TimeOfDay(hour: _decisionMinute ~/ 60, minute: _decisionMinute % 60);
+
   final HomePrefsService _homePrefs = HomePrefsService();
   String? _dqCoupleId;
   StreamSubscription<ReminderPrefs>? _dqPrefsSub;
@@ -265,6 +282,15 @@ class ReminderProvider extends ChangeNotifier {
       // Daily-question reminder: default on at 20:00. Migrate the old single
       // hour/minute keys into the new times list on first load after upgrade.
       _dqEnabled = box.get(_dqEnabledKey, defaultValue: true) as bool;
+      _decisionEnabled =
+          box.get(_decisionEnabledKey, defaultValue: true) as bool;
+      _decisionMinute =
+          (box.get(
+                    _decisionMinuteKey,
+                    defaultValue: defaultDecisionReminderMinute,
+                  )
+                  as int)
+              .clamp(0, 24 * 60 - 1);
       _lunarEnabled = box.get(_lunarEnabledKey, defaultValue: false) as bool;
       final storedLunarTimes = box.get(_lunarTimesKey);
       if (storedLunarTimes is List && storedLunarTimes.isNotEmpty) {
@@ -1550,6 +1576,95 @@ class ReminderProvider extends ChangeNotifier {
     await refreshLunar(l10n);
   }
 
+  /// Re-arm or drop today's meal-pick nudge (id 1200). Called by HomeScreen
+  /// whenever today's picks / the couple change. Only for an ACTIVE couple
+  /// that hasn't picked food today; debounced per day + inputs.
+  Future<void> refreshDecisionReminder({
+    required bool coupleActive,
+    required bool decidedToday,
+    required AppLocalizations l10n,
+  }) async {
+    _decisionCoupleActive = coupleActive;
+    _decisionDecidedToday = decidedToday;
+    _decisionL10n = l10n;
+    await _scheduleDecision();
+  }
+
+  Future<void> _scheduleDecision() async {
+    final l10n = _decisionL10n;
+    if (l10n == null) {
+      return;
+    }
+    final now = DateTime.now();
+    final arm =
+        _decisionEnabled && _decisionCoupleActive && !_decisionDecidedToday;
+    final signature = [
+      arm,
+      _decisionMinute,
+      l10n.localeName,
+      '${now.year}-${now.month}-${now.day}',
+    ].join('|');
+    if (signature == _decisionSignature) {
+      return;
+    }
+    _decisionSignature = signature;
+    if (!arm) {
+      await _service.cancelDecisionReminder();
+      return;
+    }
+    final bodies = [
+      l10n.decisionReminderBody1,
+      l10n.decisionReminderBody2,
+      l10n.decisionReminderBody3,
+      l10n.decisionReminderBody4,
+      l10n.decisionReminderBody5,
+    ];
+    final day = DateTime.utc(
+      now.year,
+      now.month,
+      now.day,
+    ).difference(DateTime.utc(2026)).inDays;
+    await _service.scheduleDecisionReminder(
+      hour: _decisionMinute ~/ 60,
+      minute: _decisionMinute % 60,
+      title: l10n.decisionReminderTitle,
+      body: bodies[day % bodies.length],
+    );
+  }
+
+  /// Settings switch. Turning it on asks for notification permission first;
+  /// returns false (and stays off) when denied.
+  Future<bool> setDecisionReminderEnabled(bool value) async {
+    if (value && !await _service.requestPermissions()) {
+      _decisionEnabled = false;
+      await _persistDecision();
+      notifyListeners();
+      return false;
+    }
+    _decisionEnabled = value;
+    await _persistDecision();
+    notifyListeners();
+    await _scheduleDecision();
+    return true;
+  }
+
+  Future<void> setDecisionReminderTime(TimeOfDay time) async {
+    _decisionMinute = time.hour * 60 + time.minute;
+    await _persistDecision();
+    notifyListeners();
+    await _scheduleDecision();
+  }
+
+  Future<void> _persistDecision() async {
+    try {
+      final box = await Hive.openBox<dynamic>(_boxName);
+      await box.put(_decisionEnabledKey, _decisionEnabled);
+      await box.put(_decisionMinuteKey, _decisionMinute);
+    } catch (_) {
+      // Best effort — the in-memory value still drives this session.
+    }
+  }
+
   /// Cancel the daily-question nudge — used when the couple goes inactive
   /// (sign-out / no couple). The user's on/off preference is kept so it re-arms
   /// on the next [sync] once a couple is active again.
@@ -1582,6 +1697,10 @@ class ReminderProvider extends ChangeNotifier {
     _inviteFollowUpSignature = null;
     _inviteFollowUpCleared = true;
     await _service.cancelInviteFollowUps();
+    // Meal-pick nudge 1200 (decision-wheel): no couple → nothing to pick.
+    _decisionSignature = null;
+    _decisionCoupleActive = false;
+    await _service.cancelDecisionReminder();
   }
 
   /// Forgets the "already armed" debounce for today's daily-question bands so
@@ -1593,6 +1712,8 @@ class ReminderProvider extends ChangeNotifier {
     _dqScheduleSignature = null;
     // Invite band too: a background `partner_joined` push may have cleared it.
     _inviteFollowUpSignature = null;
+    // Meal nudge too: a background `decision` push may have cleared 1200.
+    _decisionSignature = null;
   }
 
   @override

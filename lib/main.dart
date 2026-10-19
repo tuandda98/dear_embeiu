@@ -22,6 +22,7 @@ import 'providers/custom_reminders_provider.dart';
 import 'providers/daily_question_provider.dart';
 import 'services/ai_question_source.dart';
 import 'services/revisit_question_source.dart';
+import 'providers/decision_provider.dart';
 import 'providers/mood_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/notification_inbox_provider.dart';
@@ -310,6 +311,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           },
         ),
         ChangeNotifierProvider(create: (_) => MoodProvider()),
+        ChangeNotifierProvider(create: (_) => DecisionProvider()),
         ChangeNotifierProvider(create: (_) => StreakProvider()),
         ChangeNotifierProvider(create: (_) => NotificationInboxProvider()),
         ChangeNotifierProvider<LocaleProvider>.value(value: _localeProvider),

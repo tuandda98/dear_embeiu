@@ -508,6 +508,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // Daily-question nudge (b2): toggle + multi-time editor.
                   const _DailyQuestionReminderTile(),
                   _rowDivider(),
+                  // Meal-pick nudge (decision-wheel D10) — hidden while the
+                  // couple still waits for the partner (no nudge then).
+                  if (context.select<CoupleProvider, bool>(
+                    (p) => p.couple != null && !p.couple!.isWaitingForPartner,
+                  )) ...[
+                    const _DecisionReminderTile(),
+                    _rowDivider(),
+                  ],
                   // AI-personalised daily questions (endless-questions,
                   // 2026-09-05): couple-shared opt-in, hidden until paired.
                   if (kAiQuestionsFeatureEnabled) const _AiQuestionsTile(),
@@ -2139,6 +2147,94 @@ class _AiQuestionsTileState extends State<_AiQuestionsTile> {
 /// 2026-06-19): tap the row to change the time, tap ✕ to remove it (shown only
 /// when [onRemove] is non-null, i.e. more than one time remains). Soft rose
 /// surface so it groups with the switch above.
+/// "Nhắc chọn món" (feature decision-wheel, design E): same mold as the
+/// daily-question tile, ONE time (default 16:30), no ✕ / add row. Per device.
+class _DecisionReminderTile extends StatelessWidget {
+  const _DecisionReminderTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final provider = context.read<ReminderProvider>();
+    final enabled = context.select<ReminderProvider, bool>(
+      (p) => p.decisionReminderEnabled,
+    );
+    final time = context.select<ReminderProvider, TimeOfDay>(
+      (p) => p.decisionReminderTime,
+    );
+
+    Future<void> handleToggle(bool value) async {
+      HapticFeedback.selectionClick();
+      final messenger = ScaffoldMessenger.of(context);
+      final granted = await provider.setDecisionReminderEnabled(value);
+      if (value && !granted) {
+        messenger
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(content: Text(l10n.remindersPermissionDeniedMsg)),
+          );
+      }
+    }
+
+    Future<void> editTime() async {
+      final picked = await showAppTimePicker(context, initialTime: time);
+      if (picked == null || !context.mounted) {
+        return;
+      }
+      HapticFeedback.selectionClick();
+      await provider.setDecisionReminderTime(picked);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const IconBadge(IconsaxPlusLinear.reserve),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.decisionReminderSettingTitle,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.decisionReminderSettingSubtitle,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Switch.adaptive(
+                value: enabled,
+                activeThumbColor: AppColors.accentRose,
+                onChanged: handleToggle,
+              ),
+            ],
+          ),
+          if (enabled) ...[
+            const SizedBox(height: 12),
+            _DailyQuestionTimeRow(time: time, onTap: editTime),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _DailyQuestionTimeRow extends StatelessWidget {
   const _DailyQuestionTimeRow({
     required this.time,

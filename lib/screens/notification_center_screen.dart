@@ -4,11 +4,13 @@ import 'package:provider/provider.dart';
 
 import '../l10n/l10n.dart';
 import '../models/app_notification.dart';
+import '../models/decision.dart';
 import '../providers/daily_question_provider.dart';
 import '../providers/notification_inbox_provider.dart';
 import '../services/daily_question_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
+import '../utils/decision_suggester.dart';
 import '../widgets/content_card.dart';
 import '../widgets/header_icon_button.dart';
 import '../widgets/shimmer_skeleton.dart';
@@ -318,6 +320,9 @@ class _NotificationTile extends StatelessWidget {
               } else if (n.type == AppNotificationType.rpsResult) {
                 NotificationTapRouter.pendingHomeFocus.value =
                     NotificationTapRouter.focusRpsHistory;
+              } else if (n.type == AppNotificationType.decision) {
+                NotificationTapRouter.pendingHomeFocus.value =
+                    NotificationTapRouter.focusDecision;
               }
               NotificationTapRouter.pendingHomeTab.value = n.targetHomeTab;
               Navigator.of(context).maybePop();
@@ -476,8 +481,34 @@ class _NotificationTile extends StatelessWidget {
         );
       case AppNotificationType.rpsResult:
         return l10n.notifRpsResult(name);
+      case AppNotificationType.decision:
+        return _decisionTitle(n, l10n);
       case AppNotificationType.unknown:
         return l10n.notifGeneric;
+    }
+  }
+
+  /// Same sentences as the `notifyDecision` push (D5 + D18); a bank pick is
+  /// shown in the viewer's language.
+  String _decisionTitle(AppNotification n, AppLocalizations l10n) {
+    final name = n.actorName.isNotEmpty
+        ? n.actorName
+        : l10n.reactionPartnerFallback;
+    final kind = decisionKindFromString(n.decisionKind) ?? DecisionKind.custom;
+    final english = l10n.localeName.startsWith('en');
+    final item = DecisionSuggester.bankItem(kind, n.resultId ?? '');
+    // "let's grab coffee" keeps the bank's lower case (as the push does).
+    final result = item == null
+        ? (n.result ?? '')
+        : (english ? item.en : item.vi);
+    if (n.respin) return l10n.notifDecisionRespin(name, result);
+    switch (kind) {
+      case DecisionKind.eat:
+        return l10n.notifDecisionEat(name, result);
+      case DecisionKind.go:
+        return l10n.notifDecisionGo(name, result);
+      case DecisionKind.custom:
+        return l10n.notifDecisionCustom(name, n.question ?? '', result);
     }
   }
 
@@ -557,6 +588,8 @@ class _Avatar extends StatelessWidget {
       case AppNotificationType.rpsMoved:
       case AppNotificationType.rpsResult:
         return (IconsaxPlusLinear.game, AppColors.accentLavenderDeep);
+      case AppNotificationType.decision:
+        return (IconsaxPlusLinear.shuffle, AppColors.accentRose);
       case AppNotificationType.unknown:
         return (IconsaxPlusLinear.notification, AppColors.textSecondary);
     }

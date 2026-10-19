@@ -218,52 +218,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
-  Future<void> _pickAndAddPhoto() async {
-    final currentUser = context.read<AuthProvider>().currentUser;
-    if (currentUser == null) {
-      return;
-    }
-    if (!currentUser.hasCouple) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.galleryNeedsCoupleToUpload)),
-        );
-      }
-      return;
-    }
-
-    // Camera capture → COMPOSE (redesign 2026-06-14): snap one photo, then open
-    // the full-screen CreatePostScreen to preview + add a caption (and even add
-    // more photos from the library) before posting. No longer posts directly.
-    // The multi-add ("Thêm hình") flow opens the SAME compose screen.
-    //
-    // MUST be guarded: pickImage(camera) THROWS a PlatformException when the
-    // camera can't open — the iOS Simulator has no camera at all, and on real
-    // devices the permission can be denied / the camera busy. Unguarded, that
-    // exception crashed the app (bug 2026-06-14). Fail soft with a snackbar.
-    final XFile? pickedFile;
-    try {
-      pickedFile = await ImagePicker().pickImage(
-        source: ImageSource.camera,
-        preferredCameraDevice: CameraDevice.rear,
-        imageQuality: 85,
-        maxWidth: 1920,
-        maxHeight: 1920,
-      );
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(context.l10n.cameraUnavailable)));
-      }
-      return;
-    }
-    if (pickedFile == null || !mounted) {
-      return;
-    }
-
-    await _composeAndPost([pickedFile], currentUser);
-  }
+  Future<void> _pickAndAddPhoto() => captureAndPostPhoto(context);
 
   Future<void> _pickMultiplePhotos() async {
     final currentUser = context.read<AuthProvider>().currentUser;
@@ -288,60 +243,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       return;
     }
 
-    await _composeAndPost(pickedFiles, currentUser);
-  }
-
-  /// Shared post path for BOTH entries (camera 1 photo / library N photos,
-  /// redesign 2026-06-14): push the full-screen CreatePostScreen so the user
-  /// previews the photos + types one shared caption, then upload the kept files
-  /// through `addPhotosBatch` (single overlay + result snackbar). A null/empty
-  /// result = cancel (nothing posts).
-  Future<void> _composeAndPost(
-    List<XFile> initialFiles,
-    AppUser currentUser,
-  ) async {
-    // Normal push (slide from the right) — the compose screen now carries the
-    // standard SubScreenHeader back ←, so it behaves like every other pushed
-    // sub-screen, not an X-dismiss fullscreen dialog (header unify 2026-06-14).
-    final result = await Navigator.of(context).push<CreatePostResult>(
-      MaterialPageRoute<CreatePostResult>(
-        builder: (_) => CreatePostScreen(initialFiles: initialFiles),
-      ),
-    );
-    if (result == null || result.files.isEmpty || !mounted) {
-      return;
-    }
-
-    final l10n = context.l10n;
-    final total = result.files.length;
-
-    // Single overlay across the whole batch (no per-photo flicker); one failed
-    // upload is skipped and counted, never aborts the rest. The shared caption
-    // is applied to every photo. A single camera photo goes through the SAME
-    // batch path for a unified "Uploading x/N" overlay.
-    final successCount = await context.read<PhotoProvider>().addPhotosBatch(
-      result.files.map((f) => f.path).toList(),
-      currentUser: currentUser,
-      caption: result.caption,
-      progress: (current, totalCount) =>
-          l10n.uploadingPhotoProgress(current, totalCount),
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    HapticFeedback.mediumImpact();
-    final failed = total - successCount;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          failed == 0
-              ? l10n.multiplePhotosAdded(successCount)
-              : l10n.multiPhotosResultPartial(successCount, total, failed),
-        ),
-      ),
-    );
+    await composeAndPostPhotos(context, pickedFiles, currentUser);
   }
 
   Future<void> _editCaption(Photo photo) async {
@@ -2968,4 +2870,123 @@ class _PreviewReactionRow extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Camera → "Tạo kỷ niệm" compose → upload: the Gallery "Chụp hình" flow,
+/// shared with the decision wheel's "Chụp lại" (feature decision-wheel D8),
+/// which pre-fills the caption with [initialCaption]. [onPosting] runs once
+/// the user taps "Đăng", right before the upload starts.
+Future<void> captureAndPostPhoto(
+  BuildContext context, {
+  String? initialCaption,
+  VoidCallback? onPosting,
+}) async {
+  final currentUser = context.read<AuthProvider>().currentUser;
+  if (currentUser == null) {
+    return;
+  }
+  if (!currentUser.hasCouple) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.galleryNeedsCoupleToUpload)),
+    );
+    return;
+  }
+
+  // Camera capture → COMPOSE (redesign 2026-06-14): snap one photo, then open
+  // the full-screen CreatePostScreen to preview + add a caption (and even add
+  // more photos from the library) before posting. No longer posts directly.
+  // The multi-add ("Thêm hình") flow opens the SAME compose screen.
+  //
+  // MUST be guarded: pickImage(camera) THROWS a PlatformException when the
+  // camera can't open — the iOS Simulator has no camera at all, and on real
+  // devices the permission can be denied / the camera busy. Unguarded, that
+  // exception crashed the app (bug 2026-06-14). Fail soft with a snackbar.
+  final XFile? pickedFile;
+  try {
+    pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      preferredCameraDevice: CameraDevice.rear,
+      imageQuality: 85,
+      maxWidth: 1920,
+      maxHeight: 1920,
+    );
+  } catch (_) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.cameraUnavailable)));
+    }
+    return;
+  }
+  if (pickedFile == null || !context.mounted) {
+    return;
+  }
+
+  await composeAndPostPhotos(
+    context,
+    [pickedFile],
+    currentUser,
+    initialCaption: initialCaption,
+    onPosting: onPosting,
+  );
+}
+
+/// Shared post path for BOTH entries (camera 1 photo / library N photos,
+/// redesign 2026-06-14): push the full-screen CreatePostScreen so the user
+/// previews the photos + types one shared caption, then upload the kept files
+/// through `addPhotosBatch` (single overlay + result snackbar). A null/empty
+/// result = cancel (nothing posts).
+Future<void> composeAndPostPhotos(
+  BuildContext context,
+  List<XFile> initialFiles,
+  AppUser currentUser, {
+  String? initialCaption,
+  VoidCallback? onPosting,
+}) async {
+  // Normal push (slide from the right) — the compose screen now carries the
+  // standard SubScreenHeader back ←, so it behaves like every other pushed
+  // sub-screen, not an X-dismiss fullscreen dialog (header unify 2026-06-14).
+  final result = await Navigator.of(context).push<CreatePostResult>(
+    MaterialPageRoute<CreatePostResult>(
+      builder: (_) => CreatePostScreen(
+        initialFiles: initialFiles,
+        initialCaption: initialCaption,
+      ),
+    ),
+  );
+  if (result == null || result.files.isEmpty || !context.mounted) {
+    return;
+  }
+  onPosting?.call();
+
+  final l10n = context.l10n;
+  final total = result.files.length;
+
+  // Single overlay across the whole batch (no per-photo flicker); one failed
+  // upload is skipped and counted, never aborts the rest. The shared caption
+  // is applied to every photo. A single camera photo goes through the SAME
+  // batch path for a unified "Uploading x/N" overlay.
+  final successCount = await context.read<PhotoProvider>().addPhotosBatch(
+    result.files.map((f) => f.path).toList(),
+    currentUser: currentUser,
+    caption: result.caption,
+    progress: (current, totalCount) =>
+        l10n.uploadingPhotoProgress(current, totalCount),
+  );
+
+  if (!context.mounted) {
+    return;
+  }
+
+  HapticFeedback.mediumImpact();
+  final failed = total - successCount;
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        failed == 0
+            ? l10n.multiplePhotosAdded(successCount)
+            : l10n.multiPhotosResultPartial(successCount, total, failed),
+      ),
+    ),
+  );
 }
