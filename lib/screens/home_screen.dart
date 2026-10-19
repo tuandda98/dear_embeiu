@@ -31,6 +31,8 @@ import '../services/analytics_service.dart';
 import '../services/catchup_service.dart';
 import '../services/home_prefs_service.dart';
 import '../services/home_widget_bridge.dart';
+import '../services/daily_question_service.dart';
+import '../services/home_widget_status.dart';
 import '../services/love_tree_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
@@ -397,6 +399,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// notification can scroll it into view (deep-link within Home).
   final GlobalKey _dailyQuestionKey = GlobalKey();
 
+  /// Anchor for the mood card: a widget tap on "Thảo hôm nay: vui" scrolls it
+  /// into view (feature widget-today, D7).
+  final GlobalKey _moodCardKey = GlobalKey();
+
+  /// Providers the widget's "hôm nay" line is computed from (widget-today
+  /// D5a), captured so dispose can detach without a context.
+  PhotoProvider? _photoProvider;
+  CoupleProvider? _coupleProvider;
+
   // Streak milestone celebration (feature streak): listen for a freshly-reached
   // milestone and auto-show the StreakSheet in celebration mode, once. The
   // provider's per-couple Hive guard prevents re-firing across launches; this
@@ -508,6 +519,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _moodProvider = context.read<MoodProvider>();
     _moodProvider!.addListener(_refreshDqSafetyNet);
     WidgetsBinding.instance.addPostFrameCallback((_) => _refreshDqSafetyNet());
+    // Home-screen widget "hôm nay" line (widget-today D5a): recomputed from the
+    // same streams as the constellation whenever one of them changes.
+    _photoProvider = context.read<PhotoProvider>();
+    _coupleProvider = context.read<CoupleProvider>();
+    for (final p in <ChangeNotifier>[
+      _dqProvider!, _moodProvider!, _chatProvider!, _photoProvider!,
+      _coupleProvider!,
+    ]) {
+      p.addListener(_pushWidgetStatus);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _pushWidgetStatus());
     // "Có gì mới" tour (feature onboarding, 2026-09-05): once per build, after
     // the first frame settles and never on top of the catch-up gate.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -592,6 +614,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _streakProvider?.removeListener(_refreshDqSafetyNet);
     _dqProvider?.removeListener(_refreshDqSafetyNet);
     _moodProvider?.removeListener(_refreshDqSafetyNet);
+    for (final p in <ChangeNotifier?>[
+      _dqProvider, _moodProvider, _chatProvider, _photoProvider,
+      _coupleProvider,
+    ]) {
+      p?.removeListener(_pushWidgetStatus);
+    }
     _bgHintTimer?.cancel();
     _stopChatPresence();
     WidgetsBinding.instance.removeObserver(this);
@@ -656,6 +684,58 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _celebratingMilestone = false;
       }
     });
+  }
+
+  /// Sends the widget's "hôm nay" line from live state (widget-today D5a) —
+  /// the same inputs as the constellation, plus the partner's photos. Waits
+  /// while today's answers / moods are still loading, so a cold start never
+  /// wipes the line a background push just wrote. Signing out / leaving goes
+  /// through the snapshot's `empty`, which clears the line natively (D6).
+  // TODO(widget-today): pass `decision:` from DecisionProvider (decision-wheel).
+  void _pushWidgetStatus() {
+    if (!mounted) {
+      return;
+    }
+    final couple = _coupleProvider?.couple;
+    final dq = _dqProvider;
+    final mood = _moodProvider;
+    if (couple == null || dq == null || mood == null) {
+      return;
+    }
+    // Not watching yet (dateKey empty / no couple wired) or first snapshot
+    // still on its way: the data says nothing yet, keep what the widget shows.
+    if (dq.dateKey.isEmpty || dq.isLoading || !mood.isReady || mood.isLoading) {
+      return;
+    }
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    final now = DateTime.now();
+    final questionToday = dq.dateKey == DailyQuestionService.dateKey(now);
+    final today = TodayConstellation.from(
+      myUid: myUid,
+      now: now,
+      questionDay: dq.dateKey,
+      myAnswer: dq.myAnswer,
+      partnerAnswer: dq.partnerAnswer,
+      myMood: mood.myMood,
+      partnerMood: mood.partnerMood,
+      messages: _chatProvider?.messages ?? const [],
+    );
+    final iAmCreator = myUid != null && myUid == couple.createdByUserId;
+    HomeWidgetBridge.pushStatus(
+      HomeWidgetStatus.build(
+        today: today,
+        l10n: context.l10n,
+        now: now,
+        active: !couple.isWaitingForPartner,
+        partnerName: iAmCreator ? couple.person2Name : couple.person1Name,
+        questionReady: questionToday,
+        partnerPhotoAt: HomeWidgetStatus.latestPartnerPhotoAt(
+          _photoProvider?.photos ?? const [],
+          myUid,
+          now,
+        ),
+      ),
+    );
   }
 
   /// Re-arm the end-of-day daily-question nudges (21/22/23h) from the current
@@ -915,6 +995,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     switch (focus) {
       case 'daily_question':
         _scrollToCard(_dailyQuestionKey);
+      case 'mood':
+        _scrollToCard(_moodCardKey);
+      // 'meal' (widget tap on a decision line): the decision-wheel card is not
+      // on this branch yet — lands on Home. TODO(widget-today): scroll to it.
       case NotificationTapRouter.focusRpsGame:
         // gameId was published BEFORE the focus (push + notification center),
         // so it's readable here even on a cold start (initState).
@@ -1903,7 +1987,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // (a one-sided mood card has no "how is your person" payoff).
             if (!couple.isWaitingForPartner) ...[
               const SizedBox(height: 16),
-              _gutter(_entrance(4, MoodCard(couple: couple))),
+              _gutter(
+                _entrance(4, MoodCard(key: _moodCardKey, couple: couple)),
+              ),
             ],
             // Sleep "Đêm qua" (feature sleep) — under the mood card; shown
             // while still waiting too (my own nights, full width — state A0).

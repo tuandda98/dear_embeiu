@@ -1559,6 +1559,157 @@
   "@guestChangeDate": {
     "description": "Button to reopen the date picker once a date is set"
   },
+  "widgetStatusQuestionPartner": "{name} answered — your turn",
+  "@widgetStatusQuestionPartner": {
+    "description": "Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusQuestionBoth": "You both answered today",
+  "@widgetStatusQuestionBoth": {
+    "description": "Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji."
+  },
+  "widgetStatusQuestionMine": "Today's question is waiting for you",
+  "@widgetStatusQuestionMine": {
+    "description": "Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji."
+  },
+  "widgetStatusMood": "{name} today: {mood}",
+  "@widgetStatusMood": {
+    "description": "Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "mood": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusMessage": "{name} just messaged you",
+  "@widgetStatusMessage": {
+    "description": "Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusPhoto": "{name} just added a photo",
+  "@widgetStatusPhoto": {
+    "description": "Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusDecisionEat": "Today's meal: {result}",
+  "@widgetStatusDecisionEat": {
+    "description": "Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.",
+    "placeholders": {
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusDecisionGo": "Today's plan: {result}",
+  "@widgetStatusDecisionGo": {
+    "description": "Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.",
+    "placeholders": {
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusDecisionCustom": "{question}: {result}",
+  "@widgetStatusDecisionCustom": {
+    "description": "Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.",
+    "placeholders": {
+      "question": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusShortQuestionPartner": "{name} answered",
+  "@widgetStatusShortQuestionPartner": {
+    "description": "Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusShortQuestionBoth": "You both answered",
+  "@widgetStatusShortQuestionBoth": {
+    "description": "Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first."
+  },
+  "widgetStatusShortQuestionMine": "Your question is waiting",
+  "@widgetStatusShortQuestionMine": {
+    "description": "Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first."
+  },
+  "widgetStatusShortMood": "{name}: {mood}",
+  "@widgetStatusShortMood": {
+    "description": "Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "mood": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusShortMessage": "{name} messaged you",
+  "@widgetStatusShortMessage": {
+    "description": "Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusShortPhoto": "{name} added a photo",
+  "@widgetStatusShortPhoto": {
+    "description": "Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusShortDecisionEat": "Eat: {result}",
+  "@widgetStatusShortDecisionEat": {
+    "description": "Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.",
+    "placeholders": {
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusShortDecisionGo": "{result}",
+  "@widgetStatusShortDecisionGo": {
+    "description": "Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.",
+    "placeholders": {
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStatusShortDecisionCustom": "Spun: {result}",
+  "@widgetStatusShortDecisionCustom": {
+    "description": "Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.",
+    "placeholders": {
+      "result": {
+        "type": "String"
+      }
+    }
+  },
   "widgetEmptyTap": "Tap to start counting your days together",
   "@widgetEmptyTap": {
     "description": "Home-screen widget, empty state (guest / no couple / signed out). One line under the app-name chip; widget is 158pt wide, max 3 lines."

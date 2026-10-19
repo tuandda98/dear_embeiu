@@ -2243,6 +2243,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestChangeDate => 'Change anniversary date';
 
   @override
+  String widgetStatusQuestionPartner(String name) {
+    return '$name answered — your turn';
+  }
+
+  @override
+  String get widgetStatusQuestionBoth => 'You both answered today';
+
+  @override
+  String get widgetStatusQuestionMine => 'Today\'s question is waiting for you';
+
+  @override
+  String widgetStatusMood(String name, String mood) {
+    return '$name today: $mood';
+  }
+
+  @override
+  String widgetStatusMessage(String name) {
+    return '$name just messaged you';
+  }
+
+  @override
+  String widgetStatusPhoto(String name) {
+    return '$name just added a photo';
+  }
+
+  @override
+  String widgetStatusDecisionEat(String result) {
+    return 'Today\'s meal: $result';
+  }
+
+  @override
+  String widgetStatusDecisionGo(String result) {
+    return 'Today\'s plan: $result';
+  }
+
+  @override
+  String widgetStatusDecisionCustom(String question, String result) {
+    return '$question: $result';
+  }
+
+  @override
+  String widgetStatusShortQuestionPartner(String name) {
+    return '$name answered';
+  }
+
+  @override
+  String get widgetStatusShortQuestionBoth => 'You both answered';
+
+  @override
+  String get widgetStatusShortQuestionMine => 'Your question is waiting';
+
+  @override
+  String widgetStatusShortMood(String name, String mood) {
+    return '$name: $mood';
+  }
+
+  @override
+  String widgetStatusShortMessage(String name) {
+    return '$name messaged you';
+  }
+
+  @override
+  String widgetStatusShortPhoto(String name) {
+    return '$name added a photo';
+  }
+
+  @override
+  String widgetStatusShortDecisionEat(String result) {
+    return 'Eat: $result';
+  }
+
+  @override
+  String widgetStatusShortDecisionGo(String result) {
+    return '$result';
+  }
+
+  @override
+  String widgetStatusShortDecisionCustom(String result) {
+    return 'Spun: $result';
+  }
+
+  @override
   String get widgetEmptyTap => 'Tap to start counting your days together';
 
   @override

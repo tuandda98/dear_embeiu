@@ -82,6 +82,8 @@ class AnalyticsEvents {
   static const String pLocale = 'locale'; // language_changed
   static const String pRematch = 'rematch'; // rps_invite_sent (bool)
   static const String pFamily = 'family'; // widget_tap: small / medium
+  static const String pTarget = 'target'; // widget_tap: home / chat / gallery / none
+  static const String pStatusKind = 'status_kind'; // widget_tap: widget-today kind / none
   static const String pHasNote = 'has_note'; // mood_set (bool)
   static const String pQueued = 'queued'; // care_message_sent (bool, offline)
   static const String pMode = 'mode'; // sleep_enabled: auto / health / manual
@@ -371,10 +373,16 @@ class AnalyticsService {
   void logCounterBgSwiped() => logEvent(AnalyticsEvents.counterBgSwiped);
 
   /// The app was opened by tapping the home-screen widget (feature home-widget).
-  /// [family] is `small` or `medium`.
-  void logWidgetTap(String family) => logEvent(
+  /// [family] is `small` or `medium`; [target] (`home`/`chat`/`gallery`) and
+  /// [statusKind] (widget-today D2 kind) are `none` when no line was showing.
+  void logWidgetTap(String family, {String target = '', String statusKind = ''}) =>
+      logEvent(
         AnalyticsEvents.widgetTap,
-        params: {AnalyticsEvents.pFamily: family},
+        params: {
+          AnalyticsEvents.pFamily: family,
+          AnalyticsEvents.pTarget: target.isEmpty ? 'none' : target,
+          AnalyticsEvents.pStatusKind: statusKind.isEmpty ? 'none' : statusKind,
+        },
       );
 
   /// Opened the Memory Cinema viewer on Home (feature home).

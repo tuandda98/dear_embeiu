@@ -2156,6 +2156,88 @@ class AppLocalizationsVi extends AppLocalizations {
   String get guestChangeDate => 'Đổi ngày kỷ niệm';
 
   @override
+  String widgetStatusQuestionPartner(String name) {
+    return '$name đã trả lời, đến lượt mình';
+  }
+
+  @override
+  String get widgetStatusQuestionBoth => 'Cả hai đã trả lời hôm nay';
+
+  @override
+  String get widgetStatusQuestionMine => 'Câu hỏi hôm nay đang chờ mình';
+
+  @override
+  String widgetStatusMood(String name, String mood) {
+    return '$name hôm nay: $mood';
+  }
+
+  @override
+  String widgetStatusMessage(String name) {
+    return '$name vừa nhắn cho mình';
+  }
+
+  @override
+  String widgetStatusPhoto(String name) {
+    return '$name vừa đăng ảnh mới';
+  }
+
+  @override
+  String widgetStatusDecisionEat(String result) {
+    return 'Hôm nay ăn: $result';
+  }
+
+  @override
+  String widgetStatusDecisionGo(String result) {
+    return 'Hôm nay: $result';
+  }
+
+  @override
+  String widgetStatusDecisionCustom(String question, String result) {
+    return '$question: $result';
+  }
+
+  @override
+  String widgetStatusShortQuestionPartner(String name) {
+    return '$name đã trả lời';
+  }
+
+  @override
+  String get widgetStatusShortQuestionBoth => 'Cả hai đã trả lời';
+
+  @override
+  String get widgetStatusShortQuestionMine => 'Câu hỏi đang chờ mình';
+
+  @override
+  String widgetStatusShortMood(String name, String mood) {
+    return '$name: $mood';
+  }
+
+  @override
+  String widgetStatusShortMessage(String name) {
+    return '$name vừa nhắn';
+  }
+
+  @override
+  String widgetStatusShortPhoto(String name) {
+    return '$name đăng ảnh mới';
+  }
+
+  @override
+  String widgetStatusShortDecisionEat(String result) {
+    return 'Ăn: $result';
+  }
+
+  @override
+  String widgetStatusShortDecisionGo(String result) {
+    return '$result';
+  }
+
+  @override
+  String widgetStatusShortDecisionCustom(String result) {
+    return 'Quay ra: $result';
+  }
+
+  @override
   String get widgetEmptyTap => 'Chạm để bắt đầu đếm ngày yêu';
 
   @override

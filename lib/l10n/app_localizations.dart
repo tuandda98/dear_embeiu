@@ -3782,6 +3782,114 @@ abstract class AppLocalizations {
   /// **'Change anniversary date'**
   String get guestChangeDate;
 
+  /// Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} answered — your turn'**
+  String widgetStatusQuestionPartner(String name);
+
+  /// Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'You both answered today'**
+  String get widgetStatusQuestionBoth;
+
+  /// Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s question is waiting for you'**
+  String get widgetStatusQuestionMine;
+
+  /// Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} today: {mood}'**
+  String widgetStatusMood(String name, String mood);
+
+  /// Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} just messaged you'**
+  String widgetStatusMessage(String name);
+
+  /// Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} just added a photo'**
+  String widgetStatusPhoto(String name);
+
+  /// Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s meal: {result}'**
+  String widgetStatusDecisionEat(String result);
+
+  /// Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s plan: {result}'**
+  String widgetStatusDecisionGo(String result);
+
+  /// Home-screen widget 'hôm nay' line (feature widget-today, D2), medium widget: up to 2 lines of ~127pt at 14. name = partner's name, mood = mood label in lower case, result/question = decision-wheel. No emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'{question}: {result}'**
+  String widgetStatusDecisionCustom(String question, String result);
+
+  /// Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} answered'**
+  String widgetStatusShortQuestionPartner(String name);
+
+  /// Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.
+  ///
+  /// In en, this message translates to:
+  /// **'You both answered'**
+  String get widgetStatusShortQuestionBoth;
+
+  /// Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.
+  ///
+  /// In en, this message translates to:
+  /// **'Your question is waiting'**
+  String get widgetStatusShortQuestionMine;
+
+  /// Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {mood}'**
+  String widgetStatusShortMood(String name, String mood);
+
+  /// Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} messaged you'**
+  String widgetStatusShortMessage(String name);
+
+  /// Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added a photo'**
+  String widgetStatusShortPhoto(String name);
+
+  /// Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.
+  ///
+  /// In en, this message translates to:
+  /// **'Eat: {result}'**
+  String widgetStatusShortDecisionEat(String result);
+
+  /// Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.
+  ///
+  /// In en, this message translates to:
+  /// **'{result}'**
+  String widgetStatusShortDecisionGo(String result);
+
+  /// Home-screen widget 'hôm nay' line, SMALL widget (widget-today D14): one line of ~117pt at 12 → 10. Keep the key part first.
+  ///
+  /// In en, this message translates to:
+  /// **'Spun: {result}'**
+  String widgetStatusShortDecisionCustom(String result);
+
   /// Home-screen widget, empty state (guest / no couple / signed out). One line under the app-name chip; widget is 158pt wide, max 3 lines.
   ///
   /// In en, this message translates to:

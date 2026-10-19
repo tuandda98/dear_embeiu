@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:ui' show DartPluginRegistrant;
+import 'dart:ui' show DartPluginRegistrant, Locale;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -12,10 +12,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 
 import '../l10n/app_l10n.dart';
+import '../l10n/app_localizations.dart';
 import '../models/app_user.dart';
 import 'analytics_service.dart';
 import 'daily_question_service.dart';
 import 'firebase_bootstrap_service.dart';
+import 'home_widget_bridge.dart';
+import 'home_widget_status.dart';
 import 'notification_settings_service.dart';
 import 'reminder_service.dart';
 import 'user_service.dart';
@@ -35,6 +38,31 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
   await _cancelStaleDailyQuestionNudges(message);
   await _cancelInviteFollowUpsIfPartnerJoined(message);
+  await _updateWidgetStatus(message);
+}
+
+/// "Người ấy vừa…" on the home-screen widget while the app is not on screen
+/// (feature widget-today, D5b/D9). The four partner pushes (+ decision) carry
+/// `wakeClients`, so this runs with no UI: map the push's own data to a line,
+/// translated in the device's language, and hand it to native. No reads.
+///
+/// ⚠️ An iOS app the user force-quit gets no wake: the widget then keeps
+/// today's last line until the app opens (and drops it at 0:00, D4.1).
+Future<void> _updateWidgetStatus(RemoteMessage message) async {
+  try {
+    final lang = HomeWidgetStatus.pushLang(message.data, Platform.localeName);
+    final status = HomeWidgetStatus.fromPush(
+      message.data,
+      l10n: lookupAppLocalizations(Locale(lang)),
+      now: DateTime.now(),
+      sentAt: message.sentTime,
+    );
+    if (status != null) {
+      await HomeWidgetBridge.sendStatus(status);
+    }
+  } catch (e) {
+    debugPrint('widget status from push failed: $e');
+  }
 }
 
 /// Whether a push says the partner just joined (`type == 'partner_joined'`,

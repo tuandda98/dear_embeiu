@@ -14,23 +14,37 @@ import '../providers/couple_provider.dart';
 import '../providers/locale_provider.dart';
 import 'analytics_service.dart';
 import 'home_widget_snapshot.dart';
+import 'home_widget_status.dart';
+import 'push_notification_service.dart' show NotificationTapRouter;
 
 /// Keeps the native home-screen widget in sync (feature home-widget, D3/D8).
 ///
 /// Channel `dear_embeiu/widget` — iOS `HomeWidgetChannel` (AppDelegate.swift),
-/// Android `MainActivity.kt`:
+/// Android plugin `packages/dear_embeiu_widget_channel` (widget-today D13):
 ///  * `update(Map<String,String>)` — native stores the snapshot in the shared
-///    store and redraws every widget.
+///    store and redraws every widget. `state=empty` also drops the status.
+///  * `updateStatus(Map<String,String>)` — the "hôm nay" line
+///    ([HomeWidgetStatus], widget-today D6), stored apart from the snapshot so
+///    `update` never wipes it. With `onlyIfNewer=1` (background push) native
+///    keeps a newer line of the same day.
 ///  * `setPhoto(Uint8List? png)` — the CounterCard background photo, already
 ///    downscaled; native writes it next to the snapshot (null = remove, the
 ///    widget falls back to the brand gradient) and redraws.
-///  * `consumeLaunch()` → `'small' | 'medium' | null` — which widget opened the
-///    app since the last call; native clears the flag.
+///  * `consumeLaunch()` → `{family, target, focus, kind}` | null — which widget
+///    opened the app since the last call and where its line pointed (D7);
+///    native clears the flag. (1.9.x native returned the family string.)
 abstract final class HomeWidgetBridge {
   static const MethodChannel _channel = MethodChannel('dear_embeiu/widget');
   static Map<String, String>? _lastSent;
   static bool _bound = false;
   static String? _photoKey;
+  static Map<String, String>? _lastStatus;
+  static Map<String, String>? _pendingStatus;
+  static Timer? _statusTimer;
+
+  /// Providers fire in bursts (a snapshot lands on three streams at once);
+  /// only the last state of a burst is sent.
+  static const Duration statusDebounce = Duration(milliseconds: 400);
 
   /// Longest edge of the photo sent to the widget. The medium widget is
   /// 338×158pt (≈1014px @3x); 720px keeps the PNG under ~1MB on the channel.
@@ -60,6 +74,10 @@ abstract final class HomeWidgetBridge {
     _bound = false;
     _lastSent = null;
     _photoKey = null;
+    _lastStatus = null;
+    _pendingStatus = null;
+    _statusTimer?.cancel();
+    _statusTimer = null;
   }
 
   /// MaterialApp re-resolves the locale (AppL10n.setLocale) in the frame that
@@ -80,12 +98,44 @@ abstract final class HomeWidgetBridge {
       await _channel.invokeMethod<void>('update', snapshot);
       _lastSent = snapshot; // only a delivered snapshot counts as sent
       // Signed out / left the couple: the photo must not outlive the couple.
-      if (couple == null) unawaited(pushPhoto(key: null));
+      // Native dropped the status with `empty` too, so the next one is new.
+      if (couple == null) {
+        _lastStatus = null;
+        unawaited(pushPhoto(key: null));
+      }
     } on MissingPluginException {
       _lastSent = snapshot; // no native side (web, tests): nothing to retry
     } catch (e) {
       // Left unsent on purpose: the next change retries the same snapshot.
       debugPrint('HomeWidgetBridge.update failed: $e');
+    }
+  }
+
+  /// The app's own view of today (from HomeScreen's providers, D5a).
+  /// Debounced, and an unchanged line is not re-sent.
+  static void pushStatus(Map<String, String> status) {
+    if (kIsWeb) return;
+    _pendingStatus = status;
+    _statusTimer?.cancel();
+    _statusTimer = Timer(statusDebounce, () async {
+      final next = _pendingStatus;
+      _pendingStatus = null;
+      if (next == null || mapEquals(next, _lastStatus)) return;
+      if (await sendStatus(next)) _lastStatus = next;
+    });
+  }
+
+  /// Raw `updateStatus`, also used by the background push handler (its own
+  /// isolate has none of the state above). False = not delivered, retry later.
+  static Future<bool> sendStatus(Map<String, String> status) async {
+    try {
+      await _channel.invokeMethod<void>('updateStatus', status);
+      return true;
+    } on MissingPluginException {
+      return true; // no native side (web, tests): nothing to retry
+    } catch (e) {
+      debugPrint('HomeWidgetBridge.updateStatus failed: $e');
+      return false;
     }
   }
 
@@ -158,20 +208,77 @@ abstract final class HomeWidgetBridge {
     }
   }
 
-  /// Logs `widget_tap` when the app was opened from the widget.
+  /// When the app was opened from the widget: logs `widget_tap` and sends the
+  /// user where the line on screen pointed (D7) through the same router a
+  /// push tap uses.
   static Future<void> consumeLaunch() async {
     if (kIsWeb) return;
     try {
-      final family = await _channel.invokeMethod<String>('consumeLaunch');
-      if (family == null || family.isEmpty) return;
-      // URL/intent extra can come from another app — accept only the 2 real families.
-      if (family != 'small' && family != 'medium') return;
-      debugPrint('HomeWidgetBridge: opened from the $family widget');
-      AnalyticsService.instance.logWidgetTap(family);
+      final raw = await _channel.invokeMethod<Object>('consumeLaunch');
+      final launch = parseLaunch(raw);
+      if (launch == null) return;
+      debugPrint('HomeWidgetBridge: opened from the widget $launch');
+      AnalyticsService.instance.logWidgetTap(
+        launch.family,
+        target: launch.target,
+        statusKind: launch.kind,
+      );
+      final tab = HomeWidgetStatus.targetTabs[launch.target];
+      if (tab != null) {
+        NotificationTapRouter.pendingHomeTab.value = tab;
+        if (launch.focus.isNotEmpty) {
+          NotificationTapRouter.pendingHomeFocus.value = launch.focus;
+        }
+      }
     } on MissingPluginException {
       // No native side.
     } catch (e) {
       debugPrint('HomeWidgetBridge.consumeLaunch failed: $e');
     }
   }
+
+  /// What native recorded for a widget tap. The URL / intent extra can come
+  /// from another app, so only known values pass; anything else is dropped
+  /// (an unknown family = no tap, an unknown target = Home as before).
+  @visibleForTesting
+  static WidgetLaunch? parseLaunch(Object? raw) {
+    final map = raw is Map
+        ? raw.map((k, v) => MapEntry('$k', '${v ?? ''}'))
+        : {'family': '${raw ?? ''}'}; // 1.9.x native: just the family
+    final family = map['family'] ?? '';
+    if (family != 'small' && family != 'medium') return null;
+    final target = map['target'] ?? '';
+    if (!HomeWidgetStatus.targetTabs.containsKey(target)) {
+      return WidgetLaunch(family: family);
+    }
+    final focus = map['focus'] ?? '';
+    final kind = map['kind'] ?? '';
+    return WidgetLaunch(
+      family: family,
+      target: target,
+      focus: HomeWidgetStatus.focuses.contains(focus) ? focus : '',
+      kind: HomeWidgetStatus.kinds.contains(kind) ? kind : '',
+    );
+  }
+}
+
+/// A widget tap, as [HomeWidgetBridge.parseLaunch] accepted it.
+class WidgetLaunch {
+  const WidgetLaunch({
+    required this.family,
+    this.target = '',
+    this.focus = '',
+    this.kind = '',
+  });
+
+  final String family;
+
+  /// `home` · `chat` · `gallery`; empty = the widget showed no line.
+  final String target;
+  final String focus;
+  final String kind;
+
+  @override
+  String toString() => '$family → ${target.isEmpty ? '-' : target}'
+      '${focus.isEmpty ? '' : '/$focus'}';
 }
