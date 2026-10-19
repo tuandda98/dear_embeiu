@@ -2,9 +2,9 @@
 
 > Dev sở hữu. Đọc `overview.md` (D1–D15) + `design.md` trước. Nền tảng: [`../home-widget/dev.md`](../home-widget/dev.md).
 
-- **Trạng thái dev:** xong, chờ Tester. Nhánh `feature/widget-today` (worktree `dear_embeiu-widget-today`).
+- **Trạng thái dev:** đã vá bug Tester vòng 1 (B1–B3, B5–B7), chờ Tester vòng 2. Code đã gộp vào `feature/daily-open` (worktree `dear_embeiu-daily`).
 - **Người/role:** Dev
-- **Deploy:** 4 CF lên **DEV** 2026-10-19T16:23Z. PROD chưa (D11, chờ lệnh phát hành 1.11.0).
+- **Deploy:** DEV chạy code gộp từ 2026-10-19T16:57Z (HEAD `f0096a3`, xem Vết deploy). PROD chưa (D11, chờ lệnh phát hành 1.11.0).
 
 ## Cách làm từng phần
 
@@ -16,7 +16,7 @@
   - `active=false` (chờ người ấy) → `none()` = 7 khoá rỗng, widget trùng 1.9.1.
 - `fromPush(data, l10n, now, sentAt)`: map `daily_question` (`bothAnswered`), `partner_mood` (`mood`), `chat_message`, `photo_posted`, `decision` (`kind` eat/go/custom) → 9 loại trừ `question_mine` (chỉ app mới biết). Bỏ qua khi `data.date` ≠ hôm nay; push không có `date` (chat/ảnh) thì so `RemoteMessage.sentTime`. Gắn `onlyIfNewer=1`.
 - `pushLang(data, Platform.localeName)`: `data.lang` vi/en, thiếu thì theo máy. Tên rỗng → `reactionPartnerFallback` ("Người ấy"/"Your partner").
-- Khoá `updateStatus` (D6): `todayDate, statusKind, statusText, statusTextShort, statusAt, statusTarget (home|chat|gallery), statusFocus (daily_question|mood|meal|'')` (+ `onlyIfNewer` chỉ từ push nền, native gỡ trước khi lưu).
+- Khoá `updateStatus` (D6): `todayDate, statusKind, statusText, statusTextShort, statusAt, statusTarget (home|chat|gallery), statusFocus (daily_question|mood|decision|'')` (+ `onlyIfNewer` chỉ từ push nền, native gỡ trước khi lưu).
 - `decision_custom` mà thiếu câu hỏi → dùng câu của `decision_go` ("Hôm nay: …") thay vì ": Anh".
 
 ### 2. Đường app mở (D5a) — `lib/screens/home_screen.dart`
@@ -45,7 +45,7 @@
 
 ### 6. Chạm widget (D7) — `HomeWidgetBridge.consumeLaunch`
 - Native trả map (1.9.x trả chuỗi family → vẫn đọc được). `parseLaunch` whitelist: family small/medium, target home/chat/gallery, focus daily_question/mood/meal, kind 9 loại; sai → bỏ. Đặt `NotificationTapRouter.pendingHomeTab` (+ `pendingHomeFocus`) — cùng đường push tap.
-- `HomeScreen._applyPendingFocus`: thêm `'mood'` → cuộn `MoodCard` (GlobalKey mới `_moodCardKey`). `'meal'` chưa có thẻ ở nhánh này → về Home (TODO).
+- `HomeScreen._applyPendingFocus`: thêm `'mood'` → cuộn `MoodCard` (GlobalKey mới `_moodCardKey`); `'decision'` → cuộn thẻ "Phân vân gì không?" (`NotificationTapRouter.focusDecision`, nối lúc gộp).
 - Analytics `widget_tap{family, target, status_kind}` (`none` khi không có dòng) — `AnalyticsEvents.pTarget`, `pStatusKind`.
 
 ### 7. Cloud Functions (D8) — `functions/index.js`
@@ -78,11 +78,14 @@
 - ⚠️ Hook `trace-firebase-deploy.sh` ghi vết vào checkout chính (`20261019T162347Z`) với `head=f45f423 (feature/launch-film)` — sai HEAD vì hook đọc repo chính, không phải worktree. HEAD đúng là `988dacff`. Restore: `git checkout 83d18a0 -- functions` trong worktree rồi redeploy 4 hàm.
 - Cùng lúc (16:22:38Z) Dev decision-wheel deploy DEV `firestore:rules,notifyDecision,deleteAccount,leaveCoupleCleanup` từ worktree của họ — không trùng hàm với đợt này.
 
-## TODO tích hợp (khi gộp với decision-wheel)
-- [ ] `HomeScreen._pushWidgetStatus`: truyền `decision: WidgetDecision(kind, result, question, at)` từ `DecisionProvider` (chỉ quyết định hôm nay) + thêm provider đó vào danh sách lắng nghe/gỡ.
-- [ ] `HomeScreen._applyPendingFocus`: case `'meal'` → cuộn thẻ "Phân vân gì không?" (cần GlobalKey của thẻ đó).
-- [ ] CF `notifyDecision` phải gửi `type:'decision'`, `kind`, `result`, `question`, `date`, `actorName`, `wakeClients` (đã có test payload giả trong `home_widget_status_test.dart`).
-- [ ] `functions/index.js` cả 2 nhánh đều sửa → gộp tay; `sendToRecipientDevices` + `langData` ở nhánh này.
+## TODO tích hợp (khi gộp với decision-wheel) — đã xong ở merge `21c75ca`
+- [x] `HomeScreen._pushWidgetStatus`: truyền `decision: WidgetDecision(kind, result, question, at)` từ `DecisionProvider` (chỉ quyết định hôm nay) + thêm provider đó vào danh sách lắng nghe/gỡ.
+- [x] `HomeScreen._applyPendingFocus`: case `'meal'` → cuộn thẻ "Phân vân gì không?" (cần GlobalKey của thẻ đó).
+- [x] CF `notifyDecision` phải gửi `type:'decision'`, `kind`, `result`, `question`, `date`, `actorName`, `wakeClients` (đã có test payload giả trong `home_widget_status_test.dart`).
+- [x] `functions/index.js` cả 2 nhánh đều sửa → gộp tay; `sendToRecipientDevices` + `langData` ở nhánh này.
+
+### Vết deploy DEV — vá vòng 1 (B7)
+- 2026-10-19T16:55:53Z–16:57:28Z, worktree `dear_embeiu-daily`, HEAD **`f0096a3`** (`feature/daily-open`, code sạch). `deploy --project tonyembeiu-dev --only firestore:rules,functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft` → rules released + 6/6 "Successful update operation". Vết tay: `project/.firebase-deploy-log/20261019T165553Z-daily-open/` + dòng HISTORY. (Hook lại ghi nhầm ở checkout chính `20261019T165728Z`, HEAD sai — bỏ qua.)
 
 ## Điểm chưa kiểm / rủi ro (Tester soi)
 - iOS chưa chạy trên máy/simulator (chỉ biên dịch). Cần soi: timeline entry 0:00 tự mất dòng, tinted, AX5, URL `target/focus` qua SceneDelegate, push nền iOS thật (DEV thiếu APNs key → iOS DEV không nhận push, xem CLAUDE.md §5).
@@ -96,3 +99,13 @@
 
 ## Nhật ký implement
 - [2026-10-19] [Dev] Spike D13 (local plugin + broadcast) PASS trên emulator với app đã chết. Implement HomeWidgetStatus + bridge + handler nền + chạm widget + analytics; iOS/Android native; 4 CF (D8) + `data.lang`; 18 chuỗi ARB; test 17 mới. analyze 0 · test 609 pass · rules 358 pass · DayMath 32 · JUnit pass · apk + ios debug build ✓. Deploy DEV 4 CF (HEAD `988dacff`). Commit `2744fb6c`, `5ddfc630`, `988dacff` + commit docs này.
+- [2026-10-19] [Dev] Vá Tester vòng 1 (commit `f0096a3`, nhánh `feature/daily-open`):
+  - **B1** `home_screen.dart` `initState`/`dispose`: nghe `LocaleProvider` → `_onLocaleChangedForWidget` gửi lại dòng ở frame sau (lúc `context.l10n` đã sang ngôn ngữ mới).
+  - **B2** CF `notifyChatMessage` + `sendPartnerPhotoNotification` gửi `data.sentAt` (epoch ms, chuỗi). `HomeWidgetStatus.fromPush`: `data.sentAt` thắng `RemoteMessage.sentTime`; push không có `date` lẫn giờ gửi → bỏ qua (không chứng minh được là hôm nay). Push từ CF cũ (PROD trước 1.11.0) trên iOS không có `sentTime` ⇒ bị bỏ qua, widget đổi khi mở app.
+  - **B3** `fromPush` `decision`: có `resultId` → `decisionDisplayName` theo ngôn ngữ máy nhận. Hàm này chuyển từ `widgets/decision_parts.dart` sang `utils/decision_suggester.dart` (thuần, không kéo widget vào isolate nền); `decision_parts` re-export nên chỗ gọi cũ giữ nguyên. CF `notifyDecision` có `data.resultId` (commit decision-wheel).
+  - **B5** CF `notifyPartnerLeft` thêm `{wakeClients: true}`. `fromPush('partner_left')` trả `HomeWidgetStatus.none()` không kèm `onlyIfNewer` → `updateStatus` ghi đè dòng rỗng (native iOS/Android đều ẩn khi `statusText` rỗng), số ngày giữ nguyên. **Không thêm `clearStatus`**: `updateStatus` không `onlyIfNewer` đã là cách xoá riêng dòng ⇒ không đụng native/plugin.
+  - **B6** `_pushWidgetStatus` chờ thêm `ChatProvider.isLoading` + `DecisionProvider.isLoading`. Ảnh (PhotoProvider) không chờ — PO không yêu cầu.
+  - **B7** deploy DEV từ HEAD gộp (vết ở trên). **B4** (tài liệu) — sửa trạng thái, `statusFocus`, TODO tích hợp trong file này; `overview.md` là của PO.
+  - Test mới trong `test/home_widget_status_test.dart`: sentAt (B2), resultId 2 chiều ngôn ngữ (B3), partner_left (B5).
+  - Kết quả: `flutter analyze` 0 · `flutter test` 632 pass / 3 skip · `scripts/test-firebase-rules.sh` rules 392 passing + CF 19/19. Không đụng native ⇒ không build lại apk/ios.
+  - Tester soi: B1 trên máy thật (đổi ngôn ngữ ở Cài đặt khi Home đang mở); B5 trên máy Android thật (người ấy rời lúc app tắt → companion data-only `partner_left` → dòng biến mất, số ngày còn).

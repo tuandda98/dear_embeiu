@@ -2,7 +2,7 @@
 
 > Dev sở hữu. Đọc `overview.md` (D1–D20) + `design.md` trước.
 
-- **Trạng thái dev:** xong, chờ test
+- **Trạng thái dev:** đã vá bug Tester vòng 1 (BUG-1..8, NIT-9), chờ Tester vòng 2
 - **Người/role:** Dev
 - **Nhánh:** `feature/decision-wheel` (worktree `dear_embeiu-decision-wheel`, tách từ `feature/daily-open`)
 
@@ -64,7 +64,7 @@
 4. **Loại 7/14 ngày** so cả `resultId` lẫn tên chuẩn hoá (vi + en) → đổi ngôn ngữ vẫn không ra lại món vừa ăn.
 5. `result` lưu tên ngân hàng **theo ngôn ngữ người quay** (en hoạt động giữ chữ thường để push "let's grab coffee"); app hiển thị lại theo ngôn ngữ người xem nhờ `resultId`.
 6. Rules chặt hơn spec ở 3 chỗ: create `spins == 1`; custom `result in options` (cả create lẫn quay lại); `updatedAt == request.time`.
-7. Cooldown đếm từ lần push gần nhất, **kể cả create** (quay lại ngay sau khi chốt chỉ vào inbox).
+7. ~~Cooldown đếm từ lần push gần nhất, kể cả create~~ → **[vá BUG-1] cooldown theo người quay** (`lastPushBy`): chỉ chặn khi cùng một người quay lại trong 10' sau lần push về họ.
 8. Không fallback Hive khi chưa có Firebase (thẻ chỉ có ở Home, cần couple) — chốt báo lỗi.
 9. Đổi lựa chọn khi đang quay lại một custom cũ → chốt thành câu MỚI (rules ghim `options` khi update).
 10. Placeholder câu hỏi đổi chữ mỗi 3s nhưng không crossfade (TextField không animate hint).
@@ -87,3 +87,16 @@
 
 ## Nhật ký implement
 - [2026-10-19] [Dev] Ngân hàng + suggester + service/provider + thẻ/màn quay/sheet/lịch sử + nhắc 1200 + tile + push/inbox + analytics + ARB (`fea6737`). Rules + 32 test + CF `notifyDecision` + 6 unit test + D11 (`1794e09`). Deploy DEV rules + 3 CF. Smoke Android emulator, sửa SnackBar che nút + font link.
+- [2026-10-19] [Dev] Vá Tester vòng 1 (commit `41b2295`, nhánh `feature/daily-open`; deploy DEV từ HEAD `f0096a3`):
+  - **BUG-1** `functions/index.js` `processDecisionWrite`: transaction đọc `lastPushAt` + `lastPushBy`, chỉ chặn push khi `!isCreate && lastPushBy == byUserId && < 10'`; mỗi lần push ghi cả 2. Rules không đổi điều kiện (2 khoá này vốn không nằm trong `hasOnly` của create lẫn `affectedKeys().hasOnly` của update ⇒ client không ghi được; thêm vào `hasOnly` sẽ MỞ cho client nên không thêm), chỉ sửa comment + test. Test CF: bỏ case "bob quay lại trong cooldown chỉ inbox" (đóng khung hành vi cũ), thêm "alice chốt → bob quay lại trong 10' → push tới alice" + "bob quay lại lần 2 trong 10' → chỉ inbox". Doc cũ chỉ có `lastPushAt` (DEV) → coi như người khác, push.
+  - **BUG-2** `decision_card.dart:29`: bỏ `const` ở builder của `MidnightBuilder` (constructor giữ `const` vì lint `prefer_const_constructors_in_immutables`); body đã sẵn gọi `refreshDay()` post-frame mỗi lần build. Widget test `test/decision_card_midnight_test.dart` (pump 25h → `refreshDay` chạy lại); đã thử với code cũ → test FAIL.
+  - **BUG-3** `decision_wheel_screen.dart` `onChanged` của ô câu hỏi: câu khác câu gốc → `_existingCustomId = null` (thành câu mới, giống đổi lựa chọn). Gõ lại đúng câu cũ vẫn là câu mới (chấp nhận).
+  - **BUG-4** rules nhánh custom: `!decisionId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_(eat|go)$')` + test (id `{date}_eatx` vẫn được).
+  - **BUG-5** rules: hàm `isDecisionOption(opts, i)` = `opts.size() <= i || (string, 1..40)`, gọi cho i = 0..11 (rules không có vòng lặp; `||` ngắt trước khi đọc ngoài mảng). Kiểm cả vị trí cuối của 12 lựa chọn, chuỗi rỗng, không phải chuỗi. Test 480 tổng cũ bỏ (giờ không vượt được 480 nếu từng mục ≤ 40). Client: `_canSpin`/`_spin` dùng `validateCustomOptions`; `_addOption` đi qua `validateCustomOptions` (trùng → nháy, quá số/dài → bỏ); preset "Ai làm?" cắt tên còn 40 (`_clipOption`, không cắt đôi cặp surrogate); hai tên trùng nhau → hiện dòng "trùng".
+  - **BUG-6** `DecisionProvider.top` → `topOf` (static, thuần): khoá nhóm `id:<resultId>`, thiếu thì `name:<chuẩn hoá>`; dòng hiển thị vốn đã theo ngôn ngữ người xem (`decisionLine`). Push `decision` thêm `data.resultId`. Push lẫn tiếng: chấp nhận ở CF (PO chốt).
+  - **BUG-7** `DecisionService.commit` trả thêm `spins` thật (transaction trả `spins+1` hoặc `1`); provider dùng nó cho bản lạc quan + `decision_commit.spins`; `decision_respin` log khi `spins > 1` (thay vì `previous != null`).
+  - **BUG-8** chọn cách rẻ nhất không đụng rules: service giữ `_timedOut[docPath] = (result, Future)` khi transaction quá 10s. Lần chốt kế tiếp cùng doc chờ Future đó (thêm 10s): xong + cùng kết quả → trả luôn, không ghi lần 2; khác kết quả → ghi như quay lại; lỗi hẳn → ghi mới; vẫn treo → báo lỗi tiếp. Không dùng token vì phải thêm khoá vào rules + test. Giới hạn: lần chốt timeout rồi tự lọt, người dùng bỏ đó, lát sau quay lại ra ĐÚNG kết quả cũ → không ghi thêm (spins thiếu 1, không push) — hiếm, chấp nhận.
+  - **NIT-9** `settings_screen.dart`: doc comment `_DailyQuestionTimeRow` về đúng chỗ trên class.
+  - Kết quả: `flutter analyze` 0 · `flutter test` 632 pass / 3 skip (mới: midnight widget test, top 5 theo resultId) · `scripts/test-firebase-rules.sh` rules **392 passing** + CF **19/19**. Không đụng native ⇒ không build lại.
+  - Deploy DEV 2026-10-19T16:55:53Z–16:57:28Z, HEAD `f0096a3`: `firestore:rules` + `notifyDecision, notifyDailyAnswer, notifyPartnerMood, sendPartnerPhotoNotification, notifyChatMessage, notifyPartnerLeft` → thành công. Vết: `project/.firebase-deploy-log/20261019T165553Z-daily-open/`. PROD chưa.
+  - Tester soi: BUG-1 trên 2 máy (A chốt, B quay lại trong 2' → A có banner); BUG-8 khó tái hiện (tắt mạng lúc chốt, bật lại trong ~10–30s, bấm Thử lại → doc chỉ `spins` +1).

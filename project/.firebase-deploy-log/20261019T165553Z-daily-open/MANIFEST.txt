@@ -1,0 +1,6 @@
+time_utc=2026-10-19T16:55:53Z (xong 16:57:28Z)
+project=tonyembeiu-dev
+head=f0096a3 branch=feature/daily-open dirty=0 (code; chỉ docs PO đang sửa)
+cmd=NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project tonyembeiu-dev --only firestore:rules,functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft --non-interactive
+exit=0 (rules released, 6/6 functions "Successful update operation")
+restore: git checkout 0b92594 -- firestore.rules functions && redeploy cùng danh sách
