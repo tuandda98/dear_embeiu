@@ -2,7 +2,7 @@
 
 > Dev sở hữu. Đọc `overview.md` (D1–D15) + `design.md` trước. Nền tảng: [`../home-widget/dev.md`](../home-widget/dev.md).
 
-- **Trạng thái dev:** đã vá bug Tester vòng 1 (B1–B3, B5–B7), chờ Tester vòng 2. Code đã gộp vào `feature/daily-open` (worktree `dear_embeiu-daily`).
+- **Trạng thái dev:** đã vá minor Tester vòng 2 (WT-R2-1), chờ Tester soát lại. Code đã gộp vào `feature/daily-open` (worktree `dear_embeiu-daily`).
 - **Người/role:** Dev
 - **Deploy:** DEV chạy code gộp từ 2026-10-19T16:57Z (HEAD `f0096a3`, xem Vết deploy). PROD chưa (D11, chờ lệnh phát hành 1.11.0).
 
@@ -109,3 +109,9 @@
   - Test mới trong `test/home_widget_status_test.dart`: sentAt (B2), resultId 2 chiều ngôn ngữ (B3), partner_left (B5).
   - Kết quả: `flutter analyze` 0 · `flutter test` 632 pass / 3 skip · `scripts/test-firebase-rules.sh` rules 392 passing + CF 19/19. Không đụng native ⇒ không build lại apk/ios.
   - Tester soi: B1 trên máy thật (đổi ngôn ngữ ở Cài đặt khi Home đang mở); B5 trên máy Android thật (người ấy rời lúc app tắt → companion data-only `partner_left` → dòng biến mất, số ngày còn).
+- [2026-10-20] [Dev] Vá Tester vòng 2 (commit `1895098`, nhánh `feature/daily-open`):
+  - **WT-R2-1** CF `notifyPartnerLeft` gửi `data.sentAt` (epoch ms, chuỗi — `functions/index.js:504`). `HomeWidgetStatus.fromPush('partner_left')` (`lib/services/home_widget_status.dart:219–230`): mốc = `data.sentAt`, thiếu thì `RemoteMessage.sentTime`; có mốc → `none(now)` + `statusAt = mốc` + `clearIfOlder = '1'`; không có mốc nào → `none(now)` không cờ (xoá vô điều kiện như cũ).
+  - Native `updateStatus` (iOS `ios/Runner/AppDelegate.swift:329–352`, Android `WidgetChannelPlugin.java:77–100`): `clearIfOlder` → chỉ thay bằng dòng rỗng khi `statusAt` đang lưu < mốc, ngược lại giữ dòng; cả hai trường hợp ghi `clearedAt = max(clearedAt cũ, mốc)` vào chính map status (thêm khoá thừa, `WidgetStatus`/`WidgetStore.loadStatus` đọc theo tên khoá nên không ảnh hưởng). `onlyIfNewer` (push nền) bị bỏ khi `statusAt < clearedAt`, ngoài luật cũ cùng ngày. Ghi từ app mở (không cờ) vẫn ghi đè nhưng mang `clearedAt` theo. `update` `state=empty` xoá hết status kể cả `clearedAt`, như cũ.
+  - Test: `test/home_widget_status_test.dart` thay test B5 bằng test WT-R2-1 (sentAt thắng sentTime, chỉ sentTime, không mốc). Native: đọc lại + build apk/ios debug (không có test tự động cho kênh).
+  - Kết quả lệnh, deploy DEV: chung đợt với decision-wheel (xem `../decision-wheel/dev.md` 2026-10-20): analyze 0 · test 638/3 skip · rules 394 + CF 21/21 · apk + ios debug ✓ · DayMath 32 OK. Deploy DEV 2026-10-19T17:19:04Z–17:20:48Z HEAD `1895098`, 6 hàm gồm `notifyPartnerLeft`. Vết `project/.firebase-deploy-log/20261019T171904Z-daily-open/`. PROD chưa.
+  - Rủi ro (Tester soi): mốc rời lấy giờ server, còn `statusAt` của push có `date` mà thiếu `sentTime` (iOS) lấy giờ máy ⇒ máy chạy chậm vài phút so với server thì một push THẬT của người mới ghép trong vài phút sau mốc có thể bị chặn tới lúc mở app. Smoke: B rời rồi ghép người mới C ngay, C nhắn → widget A hiện C; push chat cũ của B tới trễ không hiện lại.

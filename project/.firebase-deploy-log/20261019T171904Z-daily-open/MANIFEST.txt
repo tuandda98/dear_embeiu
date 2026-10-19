@@ -1,0 +1,6 @@
+time_utc=2026-10-19T17:19:04Z (xong 17:20:48Z)
+project=tonyembeiu-dev
+head=1895098 branch=feature/daily-open dirty=0
+cmd=NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project tonyembeiu-dev --only functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft
+exit=0 (6/6 functions "Successful update operation"; rules không đổi, không deploy)
+restore: git checkout ddf55c7 -- functions && redeploy cùng danh sách
