@@ -335,3 +335,105 @@ test("N2 teardown: the couple's own code pointer is still removed", async () => 
   assert.ok(b.log.includes("delete couple_codes/MCODE1"));
   assert.ok(!b.store.has("couple_codes/MCODE1"));
 });
+
+// ---- notifyDecision (feature decision-wheel, 2026-10-19) ---------------------
+
+function fakeDecision({lastPushMs = 0} = {}) {
+  const inbox = [];
+  const pushes = [];
+  const stamps = [];
+  const ref = {path: "couples/C/decisions/D"};
+  const process = load("processDecisionWrite", [
+    "const DECISION_PUSH_COOLDOWN_MS",
+    "function buildDecisionText",
+    "async function processDecisionWrite",
+  ], {
+    db: {
+      runTransaction: async (fn) => fn({
+        get: async () => ({
+          exists: true,
+          get: (k) => (k === "lastPushAt" ? lastPushMs : undefined),
+        }),
+        update: (r, data) => stamps.push(Object.keys(data)),
+      }),
+    },
+    admin: {firestore: {FieldValue: {serverTimestamp: () => "SERVER_TS"}}},
+    logger: {warn: () => {}},
+    rpsLoadMemberIds: async () => ["alice", "bob"],
+    rpsLoadDisplayName: async (uid) => (uid === "alice" ? "Thảo" : "Tuấn"),
+    rpsToMillis: (v) => v || 0,
+    writeInboxNotifications: async (ids, payload) => inbox.push({ids, payload}),
+    sendToRecipientDevices: async (ids, buildText, data, options) => {
+      pushes.push({ids, vi: buildText("vi"), en: buildText("en"), data, options});
+      return {deviceCount: 1, failures: []};
+    },
+  });
+  return {process, inbox, pushes, stamps, ref};
+}
+
+const eatDoc = (over = {}) => ({
+  kind: "eat", date: "2026-10-21", question: "", result: "Bún chả",
+  resultId: "bun_cha", spins: 1, byUserId: "alice", ...over,
+});
+
+test("decision create: inbox + wake push to the partner only, slot stamped", async () => {
+  const f = fakeDecision();
+  await f.process("C", "2026-10-21_eat", null, eatDoc(), f.ref);
+  assert.deepStrictEqual(f.inbox.map((i) => i.ids), [["bob"]]);
+  assert.strictEqual(f.inbox[0].payload.type, "decision");
+  assert.strictEqual(f.inbox[0].payload.respin, false);
+  assert.strictEqual(f.pushes.length, 1);
+  assert.deepStrictEqual(f.pushes[0].ids, ["bob"]);
+  assert.deepStrictEqual(f.pushes[0].options, {wakeClients: true});
+  assert.strictEqual(f.pushes[0].vi.body, "Thảo quay ra: hôm nay ăn Bún chả");
+  assert.strictEqual(f.pushes[0].en.body, "Thảo spun: Bún chả today");
+  const d = f.pushes[0].data;
+  assert.deepStrictEqual(
+    [d.type, d.kind, d.result, d.date, d.decisionId, d.actorName],
+    ["decision", "eat", "Bún chả", "2026-10-21", "2026-10-21_eat", "Thảo"],
+  );
+  assert.deepStrictEqual(f.stamps, [["lastPushAt"]]);
+});
+
+test("decision create by bob goes to alice", async () => {
+  const f = fakeDecision();
+  await f.process("C", "x", null, eatDoc({byUserId: "bob"}), f.ref);
+  assert.deepStrictEqual(f.pushes[0].ids, ["alice"]);
+  assert.deepStrictEqual(f.inbox[0].ids, ["alice"]);
+});
+
+test("decision re-spin inside the 10-minute cooldown: inbox only", async () => {
+  const f = fakeDecision({lastPushMs: Date.now() - 2 * 60 * 1000});
+  await f.process("C", "D", eatDoc(), eatDoc({result: "Lẩu Thái", byUserId: "bob", spins: 2}), f.ref);
+  assert.strictEqual(f.inbox.length, 1);
+  assert.strictEqual(f.inbox[0].payload.respin, true);
+  assert.strictEqual(f.pushes.length, 0);
+  assert.deepStrictEqual(f.stamps, []);
+});
+
+test("decision re-spin after the cooldown pushes the re-spin copy", async () => {
+  const f = fakeDecision({lastPushMs: Date.now() - 11 * 60 * 1000});
+  await f.process("C", "D", eatDoc(), eatDoc({result: "Lẩu Thái", byUserId: "bob", spins: 2}), f.ref);
+  assert.strictEqual(f.pushes.length, 1);
+  assert.deepStrictEqual(f.pushes[0].ids, ["alice"]);
+  assert.strictEqual(f.pushes[0].vi.body, "Tuấn quay lại: Lẩu Thái");
+});
+
+test("decision update without a new result (e.g. our lastPushAt stamp) does nothing", async () => {
+  const f = fakeDecision();
+  await f.process("C", "D", eatDoc(), {...eatDoc(), lastPushAt: "SERVER_TS"}, f.ref);
+  assert.strictEqual(f.inbox.length, 0);
+  assert.strictEqual(f.pushes.length, 0);
+});
+
+test("decision copy: go drops the extra verb in vi, custom quotes the question", async () => {
+  const f = fakeDecision();
+  await f.process("C", "g", null, eatDoc({kind: "go", result: "Đi cà phê"}), f.ref);
+  assert.strictEqual(f.pushes[0].vi.body, "Thảo quay ra: Đi cà phê");
+  const g = fakeDecision();
+  await g.process("C", "g", null, eatDoc({kind: "go", result: "grab coffee"}), g.ref);
+  assert.strictEqual(g.pushes[0].en.body, "Thảo spun: let's grab coffee");
+  const c = fakeDecision();
+  await c.process("C", "c", null, eatDoc({kind: "custom", question: "Ai rửa bát?", result: "Tuấn"}), c.ref);
+  assert.strictEqual(c.pushes[0].vi.body, 'Thảo quay "Ai rửa bát?": Tuấn');
+});
