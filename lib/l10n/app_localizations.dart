@@ -6738,6 +6738,708 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Today\'s constellation: {lit} of 6 stars. Opens the Love Tree'**
   String homeConstellationSemantics(int lit);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t decide?'**
+  String get decisionCardTitle;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Past spins'**
+  String get decisionHistoryLink;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'What to eat?'**
+  String get decisionRowEatTitle;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Where to go?'**
+  String get decisionRowGoTitle;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get decisionRowCustomTitle;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'No one has spun yet today'**
+  String get decisionRowEmpty;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Dishes, movie night…'**
+  String get decisionRowCustomEmpty;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY WE EAT'**
+  String get decisionRowEatLabel;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY WE\'LL'**
+  String get decisionRowGoLabel;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Spin'**
+  String get decisionSpinCta;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Type & spin'**
+  String get decisionCustomCta;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'You spun · {time}'**
+  String decisionByMe(String time);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} spun · {time}'**
+  String decisionByPartner(String name, String time);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'×{count}'**
+  String decisionSpinsBadge(int count);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more'**
+  String decisionCustomMore(int count);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to spin'**
+  String get decisionRowHintSpin;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to view'**
+  String get decisionRowHintView;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'You spun at {time}'**
+  String decisionSheetByMe(String time);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} spun at {time}'**
+  String decisionSheetByPartner(String name, String time);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'spun {count} times'**
+  String decisionSheetSpins(int count);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get decisionPhotoCta;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Ask something else'**
+  String get decisionAskAnother;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'DECIDE FOR US'**
+  String get decisionBadge;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get decisionModeEat;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Plans'**
+  String get decisionModeGo;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get decisionModeCustom;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get decisionFilterAny;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Home-cooked'**
+  String get decisionFilterHomeCooked;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Eat out'**
+  String get decisionFilterEatOut;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Quick'**
+  String get decisionFilterQuick;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Stay in'**
+  String get decisionFilterStayIn;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Go out'**
+  String get decisionFilterGoOut;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get decisionFilterFree;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY WE EAT'**
+  String get decisionReelEatLabel;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY WE\'LL'**
+  String get decisionReelGoLabel;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap spin and we\'ll pick a dish'**
+  String get decisionIdleEat;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap spin and we\'ll pick a plan'**
+  String get decisionIdleGo;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least 2 options, then spin'**
+  String get decisionIdleCustom;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches this filter. Try another one'**
+  String get decisionPoolEmpty;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Home-cooked'**
+  String get decisionTagHomeCooked;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Eat out'**
+  String get decisionTagEatOut;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Cook or eat out'**
+  String get decisionTagEither;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'quick'**
+  String get decisionTagQuick;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'easy enough'**
+  String get decisionTagMedium;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'takes effort'**
+  String get decisionTagFancy;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Stay in'**
+  String get decisionTagStayIn;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Out'**
+  String get decisionTagGoOut;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'free'**
+  String get decisionTagFree;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'cheap'**
+  String get decisionTagCheap;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'pricey'**
+  String get decisionTagPricey;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'A dish we added'**
+  String get decisionTagManualEat;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'A plan we added'**
+  String get decisionTagManualGo;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'1 of {count} options'**
+  String decisionTagCustomOf(int count);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Current pick: {result}'**
+  String decisionCurrent(String result);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Spin'**
+  String get decisionSpin;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Spin for a dish'**
+  String get decisionSpinSemanticsEat;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Spin for a plan'**
+  String get decisionSpinSemanticsGo;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Spin to decide'**
+  String get decisionSpinSemanticsCustom;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Result: {result}. {tag}'**
+  String decisionResultSemantics(String result, String tag);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Lock it in'**
+  String get decisionCommit;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Spin again'**
+  String get decisionRespin;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Type my own'**
+  String get decisionManual;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m craving…'**
+  String get decisionManualTitleEat;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'I\'d rather…'**
+  String get decisionManualTitleGo;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Banh xeo'**
+  String get decisionManualHintEat;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Walk around West Lake'**
+  String get decisionManualHintGo;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'What are you stuck on?'**
+  String get decisionQuestionLabel;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Pho or bun?'**
+  String get decisionQuestionHint1;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Da Lat or Vung Tau?'**
+  String get decisionQuestionHint2;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Who does the dishes?'**
+  String get decisionQuestionHint3;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Quick fill'**
+  String get decisionPresetLabel;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Who does it?'**
+  String get decisionPresetWho;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Which one?'**
+  String get decisionPresetWhich;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced {count} options'**
+  String decisionPresetReplaced(int count);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get decisionOptionsLabel;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/12'**
+  String decisionOptionsCount(int count);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Add an option'**
+  String get decisionOptionAddHint;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Option {n}'**
+  String decisionOptionNumberHint(int n);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get decisionOptionAdd;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {option}'**
+  String decisionOptionRemove(String option);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least 2 options to spin'**
+  String get decisionOptionsNeedTwo;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s the max of 12'**
+  String get decisionOptionsMax;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'That one\'s already on the list'**
+  String get decisionOptionDuplicate;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s 10 picks for today. Spin more tomorrow'**
+  String get decisionCustomDailyCap;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick for us'**
+  String get decisionCustomDefaultQuestion;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get decisionMeFallback;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Locked in. {name} got it'**
+  String decisionCommittedPaired(String name);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Locked in and saved to our history'**
+  String get decisionCommittedSolo;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline. It\'ll send once you\'re back.'**
+  String get decisionCommittedQueued;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t lock it in. Check your connection and try again'**
+  String get decisionCommitFailed;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get decisionRetry;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'SPUN SO FAR'**
+  String get decisionHistoryBadge;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Our go-to food'**
+  String get decisionTopEat;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Our go-to plans'**
+  String get decisionTopGo;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 days'**
+  String get decisionTopCaption;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing yet'**
+  String get decisionTopEmpty;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'{count} times'**
+  String decisionTopCountSemantics(int count);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get decisionRecent;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get decisionDayToday;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get decisionDayYesterday;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'spun {count} times'**
+  String decisionSpinsSemantics(int count);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'No spins yet'**
+  String get decisionHistoryEmptyTitle;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Next time you can\'t agree on dinner, a plan, or who does the dishes, let the app pick. Your picks show up here.'**
+  String get decisionHistoryEmptyBody;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Try a spin'**
+  String get decisionHistoryEmptyCta;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your history'**
+  String get decisionHistoryLoadError;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner pick reminder'**
+  String get decisionReminderSettingTitle;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Nudges you if no one has picked food today'**
+  String get decisionReminderSettingSubtitle;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s for dinner?'**
+  String get decisionReminderTitle;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner plans? One spin and it\'s settled.'**
+  String get decisionReminderBody1;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'No one has picked dinner yet. Want to spin first?'**
+  String get decisionReminderBody2;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Skip the \"you pick\" back and forth. Let the app choose.'**
+  String get decisionReminderBody3;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Noodles, pho or a home-cooked meal? Spin and see.'**
+  String get decisionReminderBody4;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'Almost dinnertime. Spin a dish and let them know.'**
+  String get decisionReminderBody5;
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} spun: {result} today'**
+  String notifDecisionEat(String name, String result);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} spun: let\'s {result}'**
+  String notifDecisionGo(String name, String result);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} spun \"{question}\": {result}'**
+  String notifDecisionCustom(String name, String question, String result);
+
+  /// Decision wheel (feature decision-wheel)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} re-spun: {result}'**
+  String notifDecisionRespin(String name, String result);
 }
 
 class _AppLocalizationsDelegate

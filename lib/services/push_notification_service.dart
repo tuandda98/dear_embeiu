@@ -39,6 +39,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await _cancelStaleDailyQuestionNudges(message);
   await _cancelInviteFollowUpsIfPartnerJoined(message);
   await _updateWidgetStatus(message);
+  await _cancelMealReminderIfDecided(message);
 }
 
 /// "Người ấy vừa…" on the home-screen widget while the app is not on screen
@@ -63,6 +64,25 @@ Future<void> _updateWidgetStatus(RemoteMessage message) async {
   } catch (e) {
     debugPrint('widget status from push failed: $e');
   }
+}
+
+/// Whether a push says today's FOOD was just picked (`type == 'decision'`,
+/// `kind == 'eat'`, `date` == today — CF `notifyDecision`). A pick for another
+/// day (a push queued overnight) must not cancel today's nudge.
+@visibleForTesting
+bool isTodayMealDecisionPush(Map<String, dynamic> data, DateTime now) =>
+    data['type'] == 'decision' &&
+    data['kind'] == 'eat' &&
+    '${data['date'] ?? ''}'.trim() == DailyQuestionService.dateKey(now);
+
+/// Drops today's "Hôm nay ăn gì?" nudge (id 1200, decision-wheel D10) once the
+/// partner picked food — their phone sent a `wakeClients` push, so this runs
+/// with no UI alive. Same no-initialize cancel as the bands above.
+Future<void> _cancelMealReminderIfDecided(RemoteMessage message) async {
+  if (!isTodayMealDecisionPush(message.data, DateTime.now())) {
+    return;
+  }
+  await ReminderService.instance.cancelDecisionReminder();
 }
 
 /// Whether a push says the partner just joined (`type == 'partner_joined'`,
@@ -187,6 +207,10 @@ class NotificationTapRouter {
   /// [pendingHomeFocus] value for a tapped `rps_result` push: HomeScreen opens
   /// the rock-paper-scissors history.
   static const String focusRpsHistory = 'rps_history';
+
+  /// [pendingHomeFocus] value for a tapped `decision` push / inbox item:
+  /// HomeScreen scrolls the "Phân vân gì không?" card into view.
+  static const String focusDecision = 'decision';
 
   /// Game id that accompanies a [focusRpsGame] focus request. Set BEFORE the
   /// focus value (cold-start: both are set in `initialize()` before HomeScreen
@@ -622,6 +646,14 @@ class PushNotificationService {
         }
         NotificationTapRouter.pendingHomeFocus.value =
             NotificationTapRouter.focusRpsGame;
+        break;
+      case 'decision':
+        // The partner locked in a pick (feature decision-wheel) → Home,
+        // scrolled to the card. Keep in sync with AppNotification.targetHomeTab
+        // + the notification center tap.
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        NotificationTapRouter.pendingHomeFocus.value =
+            NotificationTapRouter.focusDecision;
         break;
       case 'rps_result':
         // Game settled while I was away → the history (score + that game).

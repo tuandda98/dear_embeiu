@@ -126,7 +126,7 @@ void main() {
       expect(d['statusKind'], 'decision_eat');
       expect(d['statusText'], 'Hôm nay ăn: Bún chả');
       expect(d['statusTextShort'], 'Ăn: Bún chả');
-      expect(d['statusFocus'], 'meal');
+      expect(d['statusFocus'], 'decision');
     });
 
     test('mood line: lower-case label, both languages, focus mood', () {

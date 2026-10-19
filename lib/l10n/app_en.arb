@@ -3894,5 +3894,602 @@
         "type": "int"
       }
     }
+  },
+  "decisionCardTitle": "Can't decide?",
+  "@decisionCardTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionHistoryLink": "Past spins",
+  "@decisionHistoryLink": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowEatTitle": "What to eat?",
+  "@decisionRowEatTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowGoTitle": "Where to go?",
+  "@decisionRowGoTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowCustomTitle": "Something else",
+  "@decisionRowCustomTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowEmpty": "No one has spun yet today",
+  "@decisionRowEmpty": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowCustomEmpty": "Dishes, movie night…",
+  "@decisionRowCustomEmpty": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowEatLabel": "TODAY WE EAT",
+  "@decisionRowEatLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowGoLabel": "TODAY WE'LL",
+  "@decisionRowGoLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSpinCta": "Spin",
+  "@decisionSpinCta": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCustomCta": "Type & spin",
+  "@decisionCustomCta": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionByMe": "You spun · {time}",
+  "@decisionByMe": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionByPartner": "{name} spun · {time}",
+  "@decisionByPartner": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionSpinsBadge": "×{count}",
+  "@decisionSpinsBadge": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionCustomMore": "+{count} more",
+  "@decisionCustomMore": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionRowHintSpin": "Tap to spin",
+  "@decisionRowHintSpin": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowHintView": "Tap to view",
+  "@decisionRowHintView": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSheetByMe": "You spun at {time}",
+  "@decisionSheetByMe": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionSheetByPartner": "{name} spun at {time}",
+  "@decisionSheetByPartner": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionSheetSpins": "spun {count} times",
+  "@decisionSheetSpins": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionPhotoCta": "Take a photo",
+  "@decisionPhotoCta": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionAskAnother": "Ask something else",
+  "@decisionAskAnother": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionBadge": "DECIDE FOR US",
+  "@decisionBadge": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionModeEat": "Food",
+  "@decisionModeEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionModeGo": "Plans",
+  "@decisionModeGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionModeCustom": "Custom",
+  "@decisionModeCustom": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterAny": "Any",
+  "@decisionFilterAny": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterHomeCooked": "Home-cooked",
+  "@decisionFilterHomeCooked": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterEatOut": "Eat out",
+  "@decisionFilterEatOut": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterQuick": "Quick",
+  "@decisionFilterQuick": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterStayIn": "Stay in",
+  "@decisionFilterStayIn": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterGoOut": "Go out",
+  "@decisionFilterGoOut": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterFree": "Free",
+  "@decisionFilterFree": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReelEatLabel": "TODAY WE EAT",
+  "@decisionReelEatLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReelGoLabel": "TODAY WE'LL",
+  "@decisionReelGoLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionIdleEat": "Tap spin and we'll pick a dish",
+  "@decisionIdleEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionIdleGo": "Tap spin and we'll pick a plan",
+  "@decisionIdleGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionIdleCustom": "Add at least 2 options, then spin",
+  "@decisionIdleCustom": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionPoolEmpty": "Nothing matches this filter. Try another one",
+  "@decisionPoolEmpty": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagHomeCooked": "Home-cooked",
+  "@decisionTagHomeCooked": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagEatOut": "Eat out",
+  "@decisionTagEatOut": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagEither": "Cook or eat out",
+  "@decisionTagEither": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagQuick": "quick",
+  "@decisionTagQuick": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagMedium": "easy enough",
+  "@decisionTagMedium": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagFancy": "takes effort",
+  "@decisionTagFancy": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagStayIn": "Stay in",
+  "@decisionTagStayIn": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagGoOut": "Out",
+  "@decisionTagGoOut": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagFree": "free",
+  "@decisionTagFree": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagCheap": "cheap",
+  "@decisionTagCheap": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagPricey": "pricey",
+  "@decisionTagPricey": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagManualEat": "A dish we added",
+  "@decisionTagManualEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagManualGo": "A plan we added",
+  "@decisionTagManualGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagCustomOf": "1 of {count} options",
+  "@decisionTagCustomOf": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionCurrent": "Current pick: {result}",
+  "@decisionCurrent": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionSpin": "Spin",
+  "@decisionSpin": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSpinSemanticsEat": "Spin for a dish",
+  "@decisionSpinSemanticsEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSpinSemanticsGo": "Spin for a plan",
+  "@decisionSpinSemanticsGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSpinSemanticsCustom": "Spin to decide",
+  "@decisionSpinSemanticsCustom": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionResultSemantics": "Result: {result}. {tag}",
+  "@decisionResultSemantics": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "result": {
+        "type": "String"
+      },
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionCommit": "Lock it in",
+  "@decisionCommit": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRespin": "Spin again",
+  "@decisionRespin": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionManual": "Type my own",
+  "@decisionManual": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionManualTitleEat": "I'm craving…",
+  "@decisionManualTitleEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionManualTitleGo": "I'd rather…",
+  "@decisionManualTitleGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionManualHintEat": "e.g. Banh xeo",
+  "@decisionManualHintEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionManualHintGo": "e.g. Walk around West Lake",
+  "@decisionManualHintGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionQuestionLabel": "What are you stuck on?",
+  "@decisionQuestionLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionQuestionHint1": "Pho or bun?",
+  "@decisionQuestionHint1": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionQuestionHint2": "Da Lat or Vung Tau?",
+  "@decisionQuestionHint2": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionQuestionHint3": "Who does the dishes?",
+  "@decisionQuestionHint3": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionPresetLabel": "Quick fill",
+  "@decisionPresetLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionPresetWho": "Who does it?",
+  "@decisionPresetWho": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionPresetWhich": "Which one?",
+  "@decisionPresetWhich": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionPresetReplaced": "Replaced {count} options",
+  "@decisionPresetReplaced": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionOptionsLabel": "Options",
+  "@decisionOptionsLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionOptionsCount": "{count}/12",
+  "@decisionOptionsCount": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionOptionAddHint": "Add an option",
+  "@decisionOptionAddHint": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionOptionNumberHint": "Option {n}",
+  "@decisionOptionNumberHint": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionOptionAdd": "Add",
+  "@decisionOptionAdd": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionOptionRemove": "Remove {option}",
+  "@decisionOptionRemove": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "option": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionOptionsNeedTwo": "Add at least 2 options to spin",
+  "@decisionOptionsNeedTwo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionOptionsMax": "That's the max of 12",
+  "@decisionOptionsMax": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionOptionDuplicate": "That one's already on the list",
+  "@decisionOptionDuplicate": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCustomDailyCap": "That's 10 picks for today. Spin more tomorrow",
+  "@decisionCustomDailyCap": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCustomDefaultQuestion": "Pick for us",
+  "@decisionCustomDefaultQuestion": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionMeFallback": "Me",
+  "@decisionMeFallback": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCommittedPaired": "Locked in. {name} got it",
+  "@decisionCommittedPaired": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionCommittedSolo": "Locked in and saved to our history",
+  "@decisionCommittedSolo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCommittedQueued": "You're offline. It'll send once you're back.",
+  "@decisionCommittedQueued": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCommitFailed": "Couldn't lock it in. Check your connection and try again",
+  "@decisionCommitFailed": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRetry": "Try again",
+  "@decisionRetry": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionHistoryBadge": "SPUN SO FAR",
+  "@decisionHistoryBadge": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTopEat": "Our go-to food",
+  "@decisionTopEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTopGo": "Our go-to plans",
+  "@decisionTopGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTopCaption": "Last 90 days",
+  "@decisionTopCaption": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTopEmpty": "Nothing yet",
+  "@decisionTopEmpty": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTopCountSemantics": "{count} times",
+  "@decisionTopCountSemantics": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionRecent": "Recent",
+  "@decisionRecent": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionDayToday": "Today",
+  "@decisionDayToday": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionDayYesterday": "Yesterday",
+  "@decisionDayYesterday": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSpinsSemantics": "spun {count} times",
+  "@decisionSpinsSemantics": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionHistoryEmptyTitle": "No spins yet",
+  "@decisionHistoryEmptyTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionHistoryEmptyBody": "Next time you can't agree on dinner, a plan, or who does the dishes, let the app pick. Your picks show up here.",
+  "@decisionHistoryEmptyBody": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionHistoryEmptyCta": "Try a spin",
+  "@decisionHistoryEmptyCta": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionHistoryLoadError": "Couldn't load your history",
+  "@decisionHistoryLoadError": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderSettingTitle": "Dinner pick reminder",
+  "@decisionReminderSettingTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderSettingSubtitle": "Nudges you if no one has picked food today",
+  "@decisionReminderSettingSubtitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderTitle": "What's for dinner?",
+  "@decisionReminderTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderBody1": "Dinner plans? One spin and it's settled.",
+  "@decisionReminderBody1": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderBody2": "No one has picked dinner yet. Want to spin first?",
+  "@decisionReminderBody2": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderBody3": "Skip the \"you pick\" back and forth. Let the app choose.",
+  "@decisionReminderBody3": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderBody4": "Noodles, pho or a home-cooked meal? Spin and see.",
+  "@decisionReminderBody4": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderBody5": "Almost dinnertime. Spin a dish and let them know.",
+  "@decisionReminderBody5": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "notifDecisionEat": "{name} spun: {result} today",
+  "@notifDecisionEat": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDecisionGo": "{name} spun: let's {result}",
+  "@notifDecisionGo": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDecisionCustom": "{name} spun \"{question}\": {result}",
+  "@notifDecisionCustom": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "question": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDecisionRespin": "{name} re-spun: {result}",
+  "@notifDecisionRespin": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
   }
 }

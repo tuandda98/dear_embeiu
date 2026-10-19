@@ -1638,6 +1638,147 @@ exports.notifyCareMessage = onDocumentCreated(
   },
 );
 
+// ── Chọn giúp chúng mình (feature decision-wheel, 2026-10-19) ─────────────
+// A member locked in (create) or re-spun (update, `result` changed) a pick in
+// couples/{coupleId}/decisions/{id}. Tell the OTHER member(s): inbox always,
+// push with `wakeClients` (the partner's app refreshes its widget and drops
+// today's 16:30 meal nudge when kind == eat). Pushes for one doc are spaced
+// by DECISION_PUSH_COOLDOWN_MS (claimed in a transaction on `lastPushAt`, an
+// Admin-only field) — a burst of re-spins becomes inbox items only. Our own
+// `lastPushAt` write re-triggers this function and stops at "result unchanged".
+const DECISION_PUSH_COOLDOWN_MS = 10 * 60 * 1000;
+
+const DECISION_COPY = {
+  vi: {
+    title: {eat: "Hôm nay ăn gì?", go: "Hôm nay đi đâu?", custom: "Chọn giúp chúng mình"},
+    eat: (n, r) => `${n} quay ra: hôm nay ăn ${r}`,
+    // D18: most plans already start with "Đi …", so no extra verb.
+    go: (n, r) => `${n} quay ra: ${r}`,
+    custom: (n, q, r) => `${n} quay "${q}": ${r}`,
+    respin: (n, r) => `${n} quay lại: ${r}`,
+    partnerFallback: "Người ấy",
+  },
+  en: {
+    title: {eat: "What to eat?", go: "Where to go?", custom: "Decide for us"},
+    eat: (n, r) => `${n} spun: ${r} today`,
+    go: (n, r) => `${n} spun: let's ${r}`,
+    custom: (n, q, r) => `${n} spun "${q}": ${r}`,
+    respin: (n, r) => `${n} re-spun: ${r}`,
+    partnerFallback: "Your person",
+  },
+};
+
+function buildDecisionText(languageCode, kind, actorName, question, result, respin) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = DECISION_COPY[code] || DECISION_COPY.vi;
+  const name = actorName || copy.partnerFallback;
+  const k = kind === "eat" || kind === "go" ? kind : "custom";
+  let body;
+  if (respin) {
+    body = copy.respin(name, result);
+  } else if (k === "custom") {
+    body = copy.custom(name, question, result);
+  } else {
+    body = copy[k](name, result);
+  }
+  return {title: copy.title[k], body};
+}
+
+// Core of notifyDecision, kept free of the trigger wrapper so the unit tests
+// (functions/test) can drive it with fakes. `before`/`after` = doc data or null.
+async function processDecisionWrite(coupleId, decisionId, before, after, ref) {
+  if (!after) {
+    return {skipped: "deleted"};
+  }
+  const result = `${after.result || ""}`.trim().slice(0, 40);
+  const isCreate = !before;
+  if (!isCreate && `${before.result || ""}`.trim() === result) {
+    return {skipped: "unchanged"}; // incl. our own lastPushAt stamp
+  }
+  const kind = `${after.kind || ""}`.trim();
+  const byUserId = `${after.byUserId || ""}`.trim();
+  const date = `${after.date || ""}`.trim();
+  const question = `${after.question || ""}`.trim().slice(0, 60);
+  const resultId = `${after.resultId || ""}`.trim().slice(0, 40);
+  if (!coupleId || !byUserId || !result || !["eat", "go", "custom"].includes(kind)) {
+    return {skipped: "invalid"};
+  }
+
+  const memberIds = await rpsLoadMemberIds(coupleId);
+  const recipientIds = (memberIds || []).filter((id) => id !== byUserId);
+  if (recipientIds.length === 0) {
+    return {skipped: "no_partner"};
+  }
+  const actorName = await rpsLoadDisplayName(byUserId);
+  const respin = !isCreate;
+
+  await writeInboxNotifications(recipientIds, {
+    type: "decision",
+    coupleId,
+    actorUserId: byUserId,
+    actorName,
+    decisionId,
+    kind,
+    question,
+    result,
+    resultId,
+    date,
+    respin,
+  });
+
+  // Claim the push slot (creates too, so a re-spin right after a create waits).
+  const claimed = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) {
+      return false;
+    }
+    const lastMs = rpsToMillis(snap.get("lastPushAt"));
+    if (!isCreate && lastMs && Date.now() - lastMs < DECISION_PUSH_COOLDOWN_MS) {
+      return false;
+    }
+    tx.update(ref, {lastPushAt: admin.firestore.FieldValue.serverTimestamp()});
+    return true;
+  });
+  if (!claimed) {
+    return {pushed: false, recipientIds};
+  }
+
+  const sent = await sendToRecipientDevices(
+    recipientIds,
+    (languageCode) => buildDecisionText(languageCode, kind, actorName, question, result, respin),
+    {
+      type: "decision",
+      coupleId,
+      decisionId,
+      kind,
+      result,
+      question,
+      date,
+      actorName,
+    },
+    {wakeClients: true},
+  );
+  if (sent.failures.length > 0) {
+    logger.warn("Decision push had delivery failures.", {coupleId, decisionId, failures: sent.failures});
+  }
+  return {pushed: true, recipientIds, deviceCount: sent.deviceCount};
+}
+
+exports.notifyDecision = onDocumentWritten(
+  {document: "couples/{coupleId}/decisions/{decisionId}", region: "us-central1"},
+  async (event) => {
+    const change = event.data;
+    const before = change && change.before && change.before.exists ? change.before.data() : null;
+    const after = change && change.after && change.after.exists ? change.after.data() : null;
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const decisionId = `${event.params.decisionId || ""}`.trim();
+    const outcome = await processDecisionWrite(
+      coupleId, decisionId, before, after, change && change.after && change.after.ref,
+    );
+    logger.info("Processed decision notification.", {coupleId, decisionId, ...outcome});
+  },
+);
+
 // ── Oẳn tù tì (feature rps-game, 2026-09-13) ───────────────────────────────
 // Realtime rock-paper-scissors between the two members. The client drives
 // `invited → playing` (both present) and writes its own `moves/{uid}`; the
@@ -3057,6 +3198,17 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
   tasks.push(
     db.recursiveDelete(coupleRef.collection("dailyAnswers")).catch((err) => {
       logger.warn("Failed to recursively delete dailyAnswers during couple teardown.", {
+        coupleId: coupleRef.id,
+        message: err && err.message,
+      });
+      return null;
+    }),
+  );
+
+  // Decision wheel (feature decision-wheel): every pick of the couple.
+  tasks.push(
+    db.recursiveDelete(coupleRef.collection("decisions")).catch((err) => {
+      logger.warn("Failed to recursively delete decisions during couple teardown.", {
         coupleId: coupleRef.id,
         message: err && err.message,
       });

@@ -3116,5 +3116,602 @@
         "type": "int"
       }
     }
+  },
+  "decisionCardTitle": "Phân vân gì không?",
+  "@decisionCardTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionHistoryLink": "Đã quay",
+  "@decisionHistoryLink": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowEatTitle": "Ăn gì?",
+  "@decisionRowEatTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowGoTitle": "Đi đâu?",
+  "@decisionRowGoTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowCustomTitle": "Phân vân khác",
+  "@decisionRowCustomTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowEmpty": "Chưa ai quay hôm nay",
+  "@decisionRowEmpty": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowCustomEmpty": "Ai rửa bát, xem phim gì…",
+  "@decisionRowCustomEmpty": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowEatLabel": "HÔM NAY ĂN",
+  "@decisionRowEatLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowGoLabel": "HÔM NAY MÌNH",
+  "@decisionRowGoLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSpinCta": "Quay",
+  "@decisionSpinCta": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCustomCta": "Nhập & quay",
+  "@decisionCustomCta": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionByMe": "Mình quay · {time}",
+  "@decisionByMe": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionByPartner": "{name} quay · {time}",
+  "@decisionByPartner": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionSpinsBadge": "×{count}",
+  "@decisionSpinsBadge": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionCustomMore": "+{count} câu khác",
+  "@decisionCustomMore": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionRowHintSpin": "Chạm để quay",
+  "@decisionRowHintSpin": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRowHintView": "Chạm để xem",
+  "@decisionRowHintView": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSheetByMe": "Mình quay lúc {time}",
+  "@decisionSheetByMe": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionSheetByPartner": "{name} quay lúc {time}",
+  "@decisionSheetByPartner": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionSheetSpins": "quay {count} lần",
+  "@decisionSheetSpins": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionPhotoCta": "Chụp lại",
+  "@decisionPhotoCta": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionAskAnother": "Phân vân câu khác",
+  "@decisionAskAnother": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionBadge": "CHỌN GIÚP",
+  "@decisionBadge": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionModeEat": "Ăn gì",
+  "@decisionModeEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionModeGo": "Đi đâu",
+  "@decisionModeGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionModeCustom": "Tự nhập",
+  "@decisionModeCustom": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterAny": "Tuỳ",
+  "@decisionFilterAny": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterHomeCooked": "Nhà nấu",
+  "@decisionFilterHomeCooked": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterEatOut": "Ăn ngoài",
+  "@decisionFilterEatOut": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterQuick": "Nhanh gọn",
+  "@decisionFilterQuick": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterStayIn": "Ở nhà",
+  "@decisionFilterStayIn": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterGoOut": "Ra ngoài",
+  "@decisionFilterGoOut": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionFilterFree": "Không tốn tiền",
+  "@decisionFilterFree": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReelEatLabel": "HÔM NAY ĂN",
+  "@decisionReelEatLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReelGoLabel": "HÔM NAY MÌNH",
+  "@decisionReelGoLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionIdleEat": "Bấm quay, app chọn món giúp",
+  "@decisionIdleEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionIdleGo": "Bấm quay, app chọn chỗ giúp",
+  "@decisionIdleGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionIdleCustom": "Thêm ít nhất 2 lựa chọn rồi quay",
+  "@decisionIdleCustom": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionPoolEmpty": "Hết món hợp bộ lọc này, thử chip khác nhé",
+  "@decisionPoolEmpty": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagHomeCooked": "Nhà nấu",
+  "@decisionTagHomeCooked": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagEatOut": "Ăn ngoài",
+  "@decisionTagEatOut": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagEither": "Nấu hay ăn ngoài đều được",
+  "@decisionTagEither": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagQuick": "nhanh gọn",
+  "@decisionTagQuick": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagMedium": "vừa sức",
+  "@decisionTagMedium": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagFancy": "cầu kỳ",
+  "@decisionTagFancy": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagStayIn": "Ở nhà",
+  "@decisionTagStayIn": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagGoOut": "Ra ngoài",
+  "@decisionTagGoOut": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagFree": "không tốn tiền",
+  "@decisionTagFree": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagCheap": "rẻ",
+  "@decisionTagCheap": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagPricey": "hơi tốn",
+  "@decisionTagPricey": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagManualEat": "Món chúng mình tự thêm",
+  "@decisionTagManualEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagManualGo": "Chỗ chúng mình tự thêm",
+  "@decisionTagManualGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTagCustomOf": "1 trong {count} lựa chọn",
+  "@decisionTagCustomOf": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionCurrent": "Đang chốt: {result}",
+  "@decisionCurrent": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionSpin": "Quay",
+  "@decisionSpin": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSpinSemanticsEat": "Quay chọn món",
+  "@decisionSpinSemanticsEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSpinSemanticsGo": "Quay chọn chỗ đi",
+  "@decisionSpinSemanticsGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSpinSemanticsCustom": "Quay chọn giúp",
+  "@decisionSpinSemanticsCustom": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionResultSemantics": "Kết quả: {result}. {tag}",
+  "@decisionResultSemantics": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "result": {
+        "type": "String"
+      },
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionCommit": "Chốt luôn",
+  "@decisionCommit": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRespin": "Quay lại",
+  "@decisionRespin": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionManual": "Nhập tay",
+  "@decisionManual": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionManualTitleEat": "Mình muốn ăn…",
+  "@decisionManualTitleEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionManualTitleGo": "Mình muốn đi…",
+  "@decisionManualTitleGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionManualHintEat": "Ví dụ: Bánh xèo",
+  "@decisionManualHintEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionManualHintGo": "Ví dụ: Đi dạo Hồ Tây",
+  "@decisionManualHintGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionQuestionLabel": "Phân vân chuyện gì?",
+  "@decisionQuestionLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionQuestionHint1": "Phở hay bún?",
+  "@decisionQuestionHint1": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionQuestionHint2": "Đà Lạt hay Vũng Tàu?",
+  "@decisionQuestionHint2": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionQuestionHint3": "Ai rửa bát?",
+  "@decisionQuestionHint3": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionPresetLabel": "Điền nhanh",
+  "@decisionPresetLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionPresetWho": "Ai làm?",
+  "@decisionPresetWho": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionPresetWhich": "Cái nào?",
+  "@decisionPresetWhich": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionPresetReplaced": "Đã thay {count} lựa chọn",
+  "@decisionPresetReplaced": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionOptionsLabel": "Các lựa chọn",
+  "@decisionOptionsLabel": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionOptionsCount": "{count}/12",
+  "@decisionOptionsCount": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionOptionAddHint": "Thêm lựa chọn",
+  "@decisionOptionAddHint": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionOptionNumberHint": "Lựa chọn {n}",
+  "@decisionOptionNumberHint": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionOptionAdd": "Thêm",
+  "@decisionOptionAdd": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionOptionRemove": "Xoá {option}",
+  "@decisionOptionRemove": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "option": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionOptionsNeedTwo": "Cần ít nhất 2 lựa chọn để quay",
+  "@decisionOptionsNeedTwo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionOptionsMax": "Đủ 12 lựa chọn rồi",
+  "@decisionOptionsMax": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionOptionDuplicate": "Lựa chọn này có rồi",
+  "@decisionOptionDuplicate": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCustomDailyCap": "Hôm nay chốt đủ 10 câu rồi, mai quay tiếp nhé",
+  "@decisionCustomDailyCap": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCustomDefaultQuestion": "Chọn giúp chúng mình",
+  "@decisionCustomDefaultQuestion": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionMeFallback": "Mình",
+  "@decisionMeFallback": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCommittedPaired": "Đã chốt, đã báo {name}",
+  "@decisionCommittedPaired": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionCommittedSolo": "Đã chốt, lưu vào lịch sử của chúng mình",
+  "@decisionCommittedSolo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCommittedQueued": "Đang mất mạng. Có mạng lại app gửi liền.",
+  "@decisionCommittedQueued": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionCommitFailed": "Chưa chốt được. Mạng chập chờn, thử lại nhé",
+  "@decisionCommitFailed": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionRetry": "Thử lại",
+  "@decisionRetry": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionHistoryBadge": "ĐÃ QUAY",
+  "@decisionHistoryBadge": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTopEat": "Hay ăn",
+  "@decisionTopEat": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTopGo": "Hay đi",
+  "@decisionTopGo": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTopCaption": "90 ngày qua",
+  "@decisionTopCaption": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTopEmpty": "Chưa có gì",
+  "@decisionTopEmpty": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionTopCountSemantics": "{count} lần",
+  "@decisionTopCountSemantics": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionRecent": "Gần đây",
+  "@decisionRecent": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionDayToday": "Hôm nay",
+  "@decisionDayToday": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionDayYesterday": "Hôm qua",
+  "@decisionDayYesterday": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionSpinsSemantics": "quay {count} lần",
+  "@decisionSpinsSemantics": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "decisionHistoryEmptyTitle": "Chưa quay lần nào",
+  "@decisionHistoryEmptyTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionHistoryEmptyBody": "Lần tới phân vân ăn gì, đi đâu, ai rửa bát, cứ để app chọn. Chốt xong sẽ hiện ở đây.",
+  "@decisionHistoryEmptyBody": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionHistoryEmptyCta": "Quay thử",
+  "@decisionHistoryEmptyCta": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionHistoryLoadError": "Chưa tải được lịch sử",
+  "@decisionHistoryLoadError": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderSettingTitle": "Nhắc chọn món",
+  "@decisionReminderSettingTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderSettingSubtitle": "Chưa ai chốt món hôm nay thì nhắc lúc này",
+  "@decisionReminderSettingSubtitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderTitle": "Hôm nay ăn gì?",
+  "@decisionReminderTitle": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderBody1": "Tối nay ăn gì? Quay một phát cho xong.",
+  "@decisionReminderBody1": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderBody2": "Chưa ai chốt món hôm nay, mình quay trước nhé.",
+  "@decisionReminderBody2": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderBody3": "Thôi \"tuỳ em\" với \"tuỳ anh\". Để app chọn giúp.",
+  "@decisionReminderBody3": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderBody4": "Bún, phở hay cơm nhà? Quay là biết.",
+  "@decisionReminderBody4": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "decisionReminderBody5": "Sắp tới giờ ăn rồi. Quay món rồi báo người ấy luôn.",
+  "@decisionReminderBody5": {
+    "description": "Decision wheel (feature decision-wheel)"
+  },
+  "notifDecisionEat": "{name} quay ra: hôm nay ăn {result}",
+  "@notifDecisionEat": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDecisionGo": "{name} quay ra: {result}",
+  "@notifDecisionGo": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDecisionCustom": "{name} quay \"{question}\": {result}",
+  "@notifDecisionCustom": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "question": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "notifDecisionRespin": "{name} quay lại: {result}",
+  "@notifDecisionRespin": {
+    "description": "Decision wheel (feature decision-wheel)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
   }
 }

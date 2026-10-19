@@ -41,27 +41,38 @@ abstract final class HomeWidgetStatus {
   static const String decisionCustom = 'decision_custom';
 
   /// `statusTarget` → Home tab index (mirrors HomeScreen's IndexedStack).
-  static const Map<String, int> targetTabs = {'home': 0, 'chat': 1, 'gallery': 2};
+  static const Map<String, int> targetTabs = {
+    'home': 0,
+    'chat': 1,
+    'gallery': 2,
+  };
 
   /// Valid `statusFocus` values (HomeScreen._applyPendingFocus).
-  static const Set<String> focuses = {'daily_question', 'mood', 'meal'};
+  static const Set<String> focuses = {'daily_question', 'mood', 'decision'};
 
   /// Every kind, for whitelisting what comes back from a widget tap.
   static const Set<String> kinds = {
-    questionPartner, questionBoth, questionMine, mood, message, photo,
-    decisionEat, decisionGo, decisionCustom,
+    questionPartner,
+    questionBoth,
+    questionMine,
+    mood,
+    message,
+    photo,
+    decisionEat,
+    decisionGo,
+    decisionCustom,
   };
 
   /// No line today: the widget looks exactly like 1.9.1 (D12).
   static Map<String, String> none(DateTime now) => {
-        'todayDate': DailyQuestionService.dateKey(now),
-        'statusKind': '',
-        'statusText': '',
-        'statusTextShort': '',
-        'statusAt': '0',
-        'statusTarget': '',
-        'statusFocus': '',
-      };
+    'todayDate': DailyQuestionService.dateKey(now),
+    'statusKind': '',
+    'statusText': '',
+    'statusTextShort': '',
+    'statusAt': '0',
+    'statusTarget': '',
+    'statusFocus': '',
+  };
 
   /// From the app's live state (D5a). Newest thing wins (D3); about the
   /// partner only what already happened, about me only "đang chờ mình" (D4).
@@ -101,12 +112,27 @@ abstract final class HomeWidgetStatus {
       add(_status(l10n, questionPartner, theirQ.at ?? now, now, name: name));
     } else if (!mineQ.lit && questionReady) {
       // Oldest possible time: any real event of today replaces it.
-      add(_status(l10n, questionMine, DateTime(now.year, now.month, now.day), now));
+      add(
+        _status(
+          l10n,
+          questionMine,
+          DateTime(now.year, now.month, now.day),
+          now,
+        ),
+      );
     }
     final theirMood = today.star(false, CareTask.mood);
     if (theirMood.lit && theirMood.moodKey != null) {
-      add(_status(l10n, mood, theirMood.at ?? now, now,
-          name: name, mood: theirMood.moodKey!));
+      add(
+        _status(
+          l10n,
+          mood,
+          theirMood.at ?? now,
+          now,
+          name: name,
+          mood: theirMood.moodKey!,
+        ),
+      );
     }
     final theirMsg = today.star(false, CareTask.message);
     if (theirMsg.lit) {
@@ -118,7 +144,16 @@ abstract final class HomeWidgetStatus {
     if (decision != null) {
       final at = decision.at ?? now;
       if (_sameDay(at, now)) {
-        add(_decision(l10n, decision.kind, decision.result, decision.question, at, now));
+        add(
+          _decision(
+            l10n,
+            decision.kind,
+            decision.result,
+            decision.question,
+            at,
+            now,
+          ),
+        );
       }
     }
     if (candidates.isEmpty) {
@@ -184,7 +219,9 @@ abstract final class HomeWidgetStatus {
       return null;
     }
     final at = sentAt?.toLocal() ?? now;
-    final name = v('actorName').isEmpty ? l10n.reactionPartnerFallback : v('actorName');
+    final name = v('actorName').isEmpty
+        ? l10n.reactionPartnerFallback
+        : v('actorName');
     Map<String, String>? s;
     switch (v('type')) {
       case 'daily_question':
@@ -213,9 +250,13 @@ abstract final class HomeWidgetStatus {
     DateTime at,
     DateTime now,
   ) {
-    if (result.trim().isEmpty) {
+    // Bank activities are stored as English verbs ("play pool") when the
+    // chooser used English; lead with a capital like the card does.
+    final trimmed = result.trim();
+    if (trimmed.isEmpty) {
       return null;
     }
+    result = '${trimmed[0].toUpperCase()}${trimmed.substring(1)}';
     switch (kind) {
       case 'eat':
         return _status(l10n, decisionEat, at, now, result: result.trim());
@@ -225,8 +266,14 @@ abstract final class HomeWidgetStatus {
         // No question to show → read like a plan ("Hôm nay: …").
         return question.trim().isEmpty
             ? _status(l10n, decisionGo, at, now, result: result.trim())
-            : _status(l10n, decisionCustom, at, now,
-                result: result.trim(), question: question.trim());
+            : _status(
+                l10n,
+                decisionCustom,
+                at,
+                now,
+                result: result.trim(),
+                question: question.trim(),
+              );
     }
     return null;
   }
@@ -242,61 +289,66 @@ abstract final class HomeWidgetStatus {
     String question = '',
   }) {
     final moodText = mood.isEmpty ? '' : moodLabel(l10n, mood).toLowerCase();
-    final (String text, String short, String target, String focus) = switch (kind) {
+    final (
+      String text,
+      String short,
+      String target,
+      String focus,
+    ) = switch (kind) {
       questionPartner => (
-          l10n.widgetStatusQuestionPartner(name),
-          l10n.widgetStatusShortQuestionPartner(name),
-          'home',
-          'daily_question',
-        ),
+        l10n.widgetStatusQuestionPartner(name),
+        l10n.widgetStatusShortQuestionPartner(name),
+        'home',
+        'daily_question',
+      ),
       questionBoth => (
-          l10n.widgetStatusQuestionBoth,
-          l10n.widgetStatusShortQuestionBoth,
-          'home',
-          'daily_question',
-        ),
+        l10n.widgetStatusQuestionBoth,
+        l10n.widgetStatusShortQuestionBoth,
+        'home',
+        'daily_question',
+      ),
       questionMine => (
-          l10n.widgetStatusQuestionMine,
-          l10n.widgetStatusShortQuestionMine,
-          'home',
-          'daily_question',
-        ),
+        l10n.widgetStatusQuestionMine,
+        l10n.widgetStatusShortQuestionMine,
+        'home',
+        'daily_question',
+      ),
       HomeWidgetStatus.mood => (
-          l10n.widgetStatusMood(name, moodText),
-          l10n.widgetStatusShortMood(name, moodText),
-          'home',
-          'mood',
-        ),
+        l10n.widgetStatusMood(name, moodText),
+        l10n.widgetStatusShortMood(name, moodText),
+        'home',
+        'mood',
+      ),
       message => (
-          l10n.widgetStatusMessage(name),
-          l10n.widgetStatusShortMessage(name),
-          'chat',
-          '',
-        ),
+        l10n.widgetStatusMessage(name),
+        l10n.widgetStatusShortMessage(name),
+        'chat',
+        '',
+      ),
       photo => (
-          l10n.widgetStatusPhoto(name),
-          l10n.widgetStatusShortPhoto(name),
-          'gallery',
-          '',
-        ),
+        l10n.widgetStatusPhoto(name),
+        l10n.widgetStatusShortPhoto(name),
+        'gallery',
+        '',
+      ),
       decisionEat => (
-          l10n.widgetStatusDecisionEat(result),
-          l10n.widgetStatusShortDecisionEat(result),
-          'home',
-          'meal',
-        ),
+        l10n.widgetStatusDecisionEat(result),
+        l10n.widgetStatusShortDecisionEat(result),
+        'home',
+        'decision',
+      ),
       decisionGo => (
-          l10n.widgetStatusDecisionGo(result),
-          l10n.widgetStatusShortDecisionGo(result),
-          'home',
-          'meal',
-        ),
+        l10n.widgetStatusDecisionGo(result),
+        l10n.widgetStatusShortDecisionGo(result),
+        'home',
+        'decision',
+      ),
       _ => (
-          l10n.widgetStatusDecisionCustom(question, result),
-          l10n.widgetStatusShortDecisionCustom(result),
-          'home',
-          'meal',
-        ),
+        l10n.widgetStatusDecisionCustom(question, result),
+        l10n.widgetStatusShortDecisionCustom(result),
+        'home',
+        'decision',
+      ),
     };
     return {
       'todayDate': DailyQuestionService.dateKey(now),

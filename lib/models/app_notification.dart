@@ -37,6 +37,11 @@ enum AppNotificationType {
   /// written today; parsed for forward-compat). Tap opens the history.
   rpsResult,
 
+  /// The partner locked in (or re-spun) a pick on the decision wheel (feature
+  /// decision-wheel). Carries [decisionKind]/[result]/[question]; tap → the
+  /// Home card.
+  decision,
+
   /// A type this app build doesn't recognise (forward-compat: a newer backend
   /// could send a new type). Rendered with a generic fallback, routes to Home.
   unknown,
@@ -68,6 +73,8 @@ AppNotificationType appNotificationTypeFromString(String? raw) {
       return AppNotificationType.rpsMoved;
     case 'rps_result':
       return AppNotificationType.rpsResult;
+    case 'decision':
+      return AppNotificationType.decision;
     default:
       return AppNotificationType.unknown;
   }
@@ -93,6 +100,11 @@ class AppNotification {
     this.body,
     this.careMessageId,
     this.gameId,
+    this.decisionKind,
+    this.result,
+    this.resultId,
+    this.question,
+    this.respin = false,
   });
 
   final String id;
@@ -132,6 +144,15 @@ class AppNotification {
   /// that exact game (feature rps-game, 2026-09-13).
   final String? gameId;
 
+  /// decision only: `eat` / `go` / `custom`, the pick as stored (+ bank id so
+  /// the center can show it in the viewer's language), the custom question,
+  /// and whether this was a re-spin of an earlier pick.
+  final String? decisionKind;
+  final String? result;
+  final String? resultId;
+  final String? question;
+  final bool respin;
+
   /// Which Home bottom-nav tab this notification should open when tapped.
   /// Photo-related → Gallery (2); chat → Chat (1); everything else → Home (0).
   /// ⚠️ Indices shifted when the chat tab landed at 1 (feature chat,
@@ -166,6 +187,8 @@ class AppNotification {
       case AppNotificationType.rpsInvite:
       case AppNotificationType.rpsMoved:
       case AppNotificationType.rpsResult:
+      // Decision wheel: the center publishes the `decision` Home-focus too.
+      case AppNotificationType.decision:
       case AppNotificationType.unknown:
         return 0; // Home
     }
@@ -191,6 +214,11 @@ class AppNotification {
       body: _nullableString(data['body']),
       careMessageId: _nullableString(data['careMessageId']),
       gameId: _nullableString(data['gameId']),
+      decisionKind: _nullableString(data['kind']),
+      result: _nullableString(data['result']),
+      resultId: _nullableString(data['resultId']),
+      question: _nullableString(data['question']),
+      respin: data['respin'] == true,
     );
   }
 
@@ -214,6 +242,11 @@ class AppNotification {
       body: body,
       careMessageId: careMessageId,
       gameId: gameId,
+      decisionKind: decisionKind,
+      result: result,
+      resultId: resultId,
+      question: question,
+      respin: respin,
     );
   }
 

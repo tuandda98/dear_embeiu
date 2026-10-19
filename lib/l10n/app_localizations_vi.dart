@@ -3978,4 +3978,405 @@ class AppLocalizationsVi extends AppLocalizations {
   String homeConstellationSemantics(int lit) {
     return 'Chòm sao hôm nay: $lit trên 6 sao. Mở Cây Tình Yêu';
   }
+
+  @override
+  String get decisionCardTitle => 'Phân vân gì không?';
+
+  @override
+  String get decisionHistoryLink => 'Đã quay';
+
+  @override
+  String get decisionRowEatTitle => 'Ăn gì?';
+
+  @override
+  String get decisionRowGoTitle => 'Đi đâu?';
+
+  @override
+  String get decisionRowCustomTitle => 'Phân vân khác';
+
+  @override
+  String get decisionRowEmpty => 'Chưa ai quay hôm nay';
+
+  @override
+  String get decisionRowCustomEmpty => 'Ai rửa bát, xem phim gì…';
+
+  @override
+  String get decisionRowEatLabel => 'HÔM NAY ĂN';
+
+  @override
+  String get decisionRowGoLabel => 'HÔM NAY MÌNH';
+
+  @override
+  String get decisionSpinCta => 'Quay';
+
+  @override
+  String get decisionCustomCta => 'Nhập & quay';
+
+  @override
+  String decisionByMe(String time) {
+    return 'Mình quay · $time';
+  }
+
+  @override
+  String decisionByPartner(String name, String time) {
+    return '$name quay · $time';
+  }
+
+  @override
+  String decisionSpinsBadge(int count) {
+    return '×$count';
+  }
+
+  @override
+  String decisionCustomMore(int count) {
+    return '+$count câu khác';
+  }
+
+  @override
+  String get decisionRowHintSpin => 'Chạm để quay';
+
+  @override
+  String get decisionRowHintView => 'Chạm để xem';
+
+  @override
+  String decisionSheetByMe(String time) {
+    return 'Mình quay lúc $time';
+  }
+
+  @override
+  String decisionSheetByPartner(String name, String time) {
+    return '$name quay lúc $time';
+  }
+
+  @override
+  String decisionSheetSpins(int count) {
+    return 'quay $count lần';
+  }
+
+  @override
+  String get decisionPhotoCta => 'Chụp lại';
+
+  @override
+  String get decisionAskAnother => 'Phân vân câu khác';
+
+  @override
+  String get decisionBadge => 'CHỌN GIÚP';
+
+  @override
+  String get decisionModeEat => 'Ăn gì';
+
+  @override
+  String get decisionModeGo => 'Đi đâu';
+
+  @override
+  String get decisionModeCustom => 'Tự nhập';
+
+  @override
+  String get decisionFilterAny => 'Tuỳ';
+
+  @override
+  String get decisionFilterHomeCooked => 'Nhà nấu';
+
+  @override
+  String get decisionFilterEatOut => 'Ăn ngoài';
+
+  @override
+  String get decisionFilterQuick => 'Nhanh gọn';
+
+  @override
+  String get decisionFilterStayIn => 'Ở nhà';
+
+  @override
+  String get decisionFilterGoOut => 'Ra ngoài';
+
+  @override
+  String get decisionFilterFree => 'Không tốn tiền';
+
+  @override
+  String get decisionReelEatLabel => 'HÔM NAY ĂN';
+
+  @override
+  String get decisionReelGoLabel => 'HÔM NAY MÌNH';
+
+  @override
+  String get decisionIdleEat => 'Bấm quay, app chọn món giúp';
+
+  @override
+  String get decisionIdleGo => 'Bấm quay, app chọn chỗ giúp';
+
+  @override
+  String get decisionIdleCustom => 'Thêm ít nhất 2 lựa chọn rồi quay';
+
+  @override
+  String get decisionPoolEmpty => 'Hết món hợp bộ lọc này, thử chip khác nhé';
+
+  @override
+  String get decisionTagHomeCooked => 'Nhà nấu';
+
+  @override
+  String get decisionTagEatOut => 'Ăn ngoài';
+
+  @override
+  String get decisionTagEither => 'Nấu hay ăn ngoài đều được';
+
+  @override
+  String get decisionTagQuick => 'nhanh gọn';
+
+  @override
+  String get decisionTagMedium => 'vừa sức';
+
+  @override
+  String get decisionTagFancy => 'cầu kỳ';
+
+  @override
+  String get decisionTagStayIn => 'Ở nhà';
+
+  @override
+  String get decisionTagGoOut => 'Ra ngoài';
+
+  @override
+  String get decisionTagFree => 'không tốn tiền';
+
+  @override
+  String get decisionTagCheap => 'rẻ';
+
+  @override
+  String get decisionTagPricey => 'hơi tốn';
+
+  @override
+  String get decisionTagManualEat => 'Món chúng mình tự thêm';
+
+  @override
+  String get decisionTagManualGo => 'Chỗ chúng mình tự thêm';
+
+  @override
+  String decisionTagCustomOf(int count) {
+    return '1 trong $count lựa chọn';
+  }
+
+  @override
+  String decisionCurrent(String result) {
+    return 'Đang chốt: $result';
+  }
+
+  @override
+  String get decisionSpin => 'Quay';
+
+  @override
+  String get decisionSpinSemanticsEat => 'Quay chọn món';
+
+  @override
+  String get decisionSpinSemanticsGo => 'Quay chọn chỗ đi';
+
+  @override
+  String get decisionSpinSemanticsCustom => 'Quay chọn giúp';
+
+  @override
+  String decisionResultSemantics(String result, String tag) {
+    return 'Kết quả: $result. $tag';
+  }
+
+  @override
+  String get decisionCommit => 'Chốt luôn';
+
+  @override
+  String get decisionRespin => 'Quay lại';
+
+  @override
+  String get decisionManual => 'Nhập tay';
+
+  @override
+  String get decisionManualTitleEat => 'Mình muốn ăn…';
+
+  @override
+  String get decisionManualTitleGo => 'Mình muốn đi…';
+
+  @override
+  String get decisionManualHintEat => 'Ví dụ: Bánh xèo';
+
+  @override
+  String get decisionManualHintGo => 'Ví dụ: Đi dạo Hồ Tây';
+
+  @override
+  String get decisionQuestionLabel => 'Phân vân chuyện gì?';
+
+  @override
+  String get decisionQuestionHint1 => 'Phở hay bún?';
+
+  @override
+  String get decisionQuestionHint2 => 'Đà Lạt hay Vũng Tàu?';
+
+  @override
+  String get decisionQuestionHint3 => 'Ai rửa bát?';
+
+  @override
+  String get decisionPresetLabel => 'Điền nhanh';
+
+  @override
+  String get decisionPresetWho => 'Ai làm?';
+
+  @override
+  String get decisionPresetWhich => 'Cái nào?';
+
+  @override
+  String decisionPresetReplaced(int count) {
+    return 'Đã thay $count lựa chọn';
+  }
+
+  @override
+  String get decisionOptionsLabel => 'Các lựa chọn';
+
+  @override
+  String decisionOptionsCount(int count) {
+    return '$count/12';
+  }
+
+  @override
+  String get decisionOptionAddHint => 'Thêm lựa chọn';
+
+  @override
+  String decisionOptionNumberHint(int n) {
+    return 'Lựa chọn $n';
+  }
+
+  @override
+  String get decisionOptionAdd => 'Thêm';
+
+  @override
+  String decisionOptionRemove(String option) {
+    return 'Xoá $option';
+  }
+
+  @override
+  String get decisionOptionsNeedTwo => 'Cần ít nhất 2 lựa chọn để quay';
+
+  @override
+  String get decisionOptionsMax => 'Đủ 12 lựa chọn rồi';
+
+  @override
+  String get decisionOptionDuplicate => 'Lựa chọn này có rồi';
+
+  @override
+  String get decisionCustomDailyCap =>
+      'Hôm nay chốt đủ 10 câu rồi, mai quay tiếp nhé';
+
+  @override
+  String get decisionCustomDefaultQuestion => 'Chọn giúp chúng mình';
+
+  @override
+  String get decisionMeFallback => 'Mình';
+
+  @override
+  String decisionCommittedPaired(String name) {
+    return 'Đã chốt, đã báo $name';
+  }
+
+  @override
+  String get decisionCommittedSolo => 'Đã chốt, lưu vào lịch sử của chúng mình';
+
+  @override
+  String get decisionCommittedQueued =>
+      'Đang mất mạng. Có mạng lại app gửi liền.';
+
+  @override
+  String get decisionCommitFailed =>
+      'Chưa chốt được. Mạng chập chờn, thử lại nhé';
+
+  @override
+  String get decisionRetry => 'Thử lại';
+
+  @override
+  String get decisionHistoryBadge => 'ĐÃ QUAY';
+
+  @override
+  String get decisionTopEat => 'Hay ăn';
+
+  @override
+  String get decisionTopGo => 'Hay đi';
+
+  @override
+  String get decisionTopCaption => '90 ngày qua';
+
+  @override
+  String get decisionTopEmpty => 'Chưa có gì';
+
+  @override
+  String decisionTopCountSemantics(int count) {
+    return '$count lần';
+  }
+
+  @override
+  String get decisionRecent => 'Gần đây';
+
+  @override
+  String get decisionDayToday => 'Hôm nay';
+
+  @override
+  String get decisionDayYesterday => 'Hôm qua';
+
+  @override
+  String decisionSpinsSemantics(int count) {
+    return 'quay $count lần';
+  }
+
+  @override
+  String get decisionHistoryEmptyTitle => 'Chưa quay lần nào';
+
+  @override
+  String get decisionHistoryEmptyBody =>
+      'Lần tới phân vân ăn gì, đi đâu, ai rửa bát, cứ để app chọn. Chốt xong sẽ hiện ở đây.';
+
+  @override
+  String get decisionHistoryEmptyCta => 'Quay thử';
+
+  @override
+  String get decisionHistoryLoadError => 'Chưa tải được lịch sử';
+
+  @override
+  String get decisionReminderSettingTitle => 'Nhắc chọn món';
+
+  @override
+  String get decisionReminderSettingSubtitle =>
+      'Chưa ai chốt món hôm nay thì nhắc lúc này';
+
+  @override
+  String get decisionReminderTitle => 'Hôm nay ăn gì?';
+
+  @override
+  String get decisionReminderBody1 => 'Tối nay ăn gì? Quay một phát cho xong.';
+
+  @override
+  String get decisionReminderBody2 =>
+      'Chưa ai chốt món hôm nay, mình quay trước nhé.';
+
+  @override
+  String get decisionReminderBody3 =>
+      'Thôi \"tuỳ em\" với \"tuỳ anh\". Để app chọn giúp.';
+
+  @override
+  String get decisionReminderBody4 => 'Bún, phở hay cơm nhà? Quay là biết.';
+
+  @override
+  String get decisionReminderBody5 =>
+      'Sắp tới giờ ăn rồi. Quay món rồi báo người ấy luôn.';
+
+  @override
+  String notifDecisionEat(String name, String result) {
+    return '$name quay ra: hôm nay ăn $result';
+  }
+
+  @override
+  String notifDecisionGo(String name, String result) {
+    return '$name quay ra: $result';
+  }
+
+  @override
+  String notifDecisionCustom(String name, String question, String result) {
+    return '$name quay \"$question\": $result';
+  }
+
+  @override
+  String notifDecisionRespin(String name, String result) {
+    return '$name quay lại: $result';
+  }
 }

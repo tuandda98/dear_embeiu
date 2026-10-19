@@ -71,6 +71,14 @@ class AnalyticsEvents {
   static const String coupleJoinFailed = 'couple_join_failed';
   static const String coupleCreateFailed = 'couple_create_failed';
 
+  // "Chọn giúp chúng mình" (feature decision-wheel, D12). Never the result or
+  // the question — only kind / filter / counts.
+  static const String decisionSpin = 'decision_spin';
+  static const String decisionCommit = 'decision_commit';
+  static const String decisionRespin = 'decision_respin';
+  static const String decisionPhotoCta = 'decision_photo_cta';
+  static const String decisionHistoryOpen = 'decision_history_open';
+
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
   static const String pResult = 'result'; // couple_join_attempt
@@ -92,6 +100,11 @@ class AnalyticsEvents {
   static const String pSkipped = 'skipped'; // intro_finished (bool)
   static const String pManual = 'manual'; // feature_tour_shown (bool)
   static const String pReason = 'reason'; // *_failed events
+  static const String pKind = 'kind'; // decision_*: eat / go / custom
+  static const String pFilter = 'filter'; // decision_spin: tuy/nha/ngoai/…
+  static const String pSpins = 'spins'; // decision_commit (count)
+  static const String pVia = 'via'; // decision_commit: spin / manual
+  static const String pPreset = 'preset'; // decision_commit: who / which
 
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
@@ -445,6 +458,40 @@ class AnalyticsService {
       );
 
   void logLoveTreeOpened() => logEvent(AnalyticsEvents.loveTreeOpened);
+
+  void logDecisionSpin({required String kind, required String filter}) =>
+      logEvent(
+        AnalyticsEvents.decisionSpin,
+        params: {AnalyticsEvents.pKind: kind, AnalyticsEvents.pFilter: filter},
+      );
+
+  void logDecisionCommit({
+    required String kind,
+    required int spins,
+    required String via,
+    String? preset,
+  }) => logEvent(
+    AnalyticsEvents.decisionCommit,
+    params: {
+      AnalyticsEvents.pKind: kind,
+      AnalyticsEvents.pSpins: spins,
+      AnalyticsEvents.pVia: via,
+      AnalyticsEvents.pPreset: preset,
+    },
+  );
+
+  void logDecisionRespin({required String kind}) => logEvent(
+    AnalyticsEvents.decisionRespin,
+    params: {AnalyticsEvents.pKind: kind},
+  );
+
+  void logDecisionPhotoCta({required String kind}) => logEvent(
+    AnalyticsEvents.decisionPhotoCta,
+    params: {AnalyticsEvents.pKind: kind},
+  );
+
+  void logDecisionHistoryOpen() =>
+      logEvent(AnalyticsEvents.decisionHistoryOpen);
 
   void logIntroFinished({required bool skipped}) => logEvent(
         AnalyticsEvents.introFinished,

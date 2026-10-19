@@ -4197,4 +4197,408 @@ class AppLocalizationsEn extends AppLocalizations {
   String homeConstellationSemantics(int lit) {
     return 'Today\'s constellation: $lit of 6 stars. Opens the Love Tree';
   }
+
+  @override
+  String get decisionCardTitle => 'Can\'t decide?';
+
+  @override
+  String get decisionHistoryLink => 'Past spins';
+
+  @override
+  String get decisionRowEatTitle => 'What to eat?';
+
+  @override
+  String get decisionRowGoTitle => 'Where to go?';
+
+  @override
+  String get decisionRowCustomTitle => 'Something else';
+
+  @override
+  String get decisionRowEmpty => 'No one has spun yet today';
+
+  @override
+  String get decisionRowCustomEmpty => 'Dishes, movie night…';
+
+  @override
+  String get decisionRowEatLabel => 'TODAY WE EAT';
+
+  @override
+  String get decisionRowGoLabel => 'TODAY WE\'LL';
+
+  @override
+  String get decisionSpinCta => 'Spin';
+
+  @override
+  String get decisionCustomCta => 'Type & spin';
+
+  @override
+  String decisionByMe(String time) {
+    return 'You spun · $time';
+  }
+
+  @override
+  String decisionByPartner(String name, String time) {
+    return '$name spun · $time';
+  }
+
+  @override
+  String decisionSpinsBadge(int count) {
+    return '×$count';
+  }
+
+  @override
+  String decisionCustomMore(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String get decisionRowHintSpin => 'Tap to spin';
+
+  @override
+  String get decisionRowHintView => 'Tap to view';
+
+  @override
+  String decisionSheetByMe(String time) {
+    return 'You spun at $time';
+  }
+
+  @override
+  String decisionSheetByPartner(String name, String time) {
+    return '$name spun at $time';
+  }
+
+  @override
+  String decisionSheetSpins(int count) {
+    return 'spun $count times';
+  }
+
+  @override
+  String get decisionPhotoCta => 'Take a photo';
+
+  @override
+  String get decisionAskAnother => 'Ask something else';
+
+  @override
+  String get decisionBadge => 'DECIDE FOR US';
+
+  @override
+  String get decisionModeEat => 'Food';
+
+  @override
+  String get decisionModeGo => 'Plans';
+
+  @override
+  String get decisionModeCustom => 'Custom';
+
+  @override
+  String get decisionFilterAny => 'Any';
+
+  @override
+  String get decisionFilterHomeCooked => 'Home-cooked';
+
+  @override
+  String get decisionFilterEatOut => 'Eat out';
+
+  @override
+  String get decisionFilterQuick => 'Quick';
+
+  @override
+  String get decisionFilterStayIn => 'Stay in';
+
+  @override
+  String get decisionFilterGoOut => 'Go out';
+
+  @override
+  String get decisionFilterFree => 'Free';
+
+  @override
+  String get decisionReelEatLabel => 'TODAY WE EAT';
+
+  @override
+  String get decisionReelGoLabel => 'TODAY WE\'LL';
+
+  @override
+  String get decisionIdleEat => 'Tap spin and we\'ll pick a dish';
+
+  @override
+  String get decisionIdleGo => 'Tap spin and we\'ll pick a plan';
+
+  @override
+  String get decisionIdleCustom => 'Add at least 2 options, then spin';
+
+  @override
+  String get decisionPoolEmpty =>
+      'Nothing matches this filter. Try another one';
+
+  @override
+  String get decisionTagHomeCooked => 'Home-cooked';
+
+  @override
+  String get decisionTagEatOut => 'Eat out';
+
+  @override
+  String get decisionTagEither => 'Cook or eat out';
+
+  @override
+  String get decisionTagQuick => 'quick';
+
+  @override
+  String get decisionTagMedium => 'easy enough';
+
+  @override
+  String get decisionTagFancy => 'takes effort';
+
+  @override
+  String get decisionTagStayIn => 'Stay in';
+
+  @override
+  String get decisionTagGoOut => 'Out';
+
+  @override
+  String get decisionTagFree => 'free';
+
+  @override
+  String get decisionTagCheap => 'cheap';
+
+  @override
+  String get decisionTagPricey => 'pricey';
+
+  @override
+  String get decisionTagManualEat => 'A dish we added';
+
+  @override
+  String get decisionTagManualGo => 'A plan we added';
+
+  @override
+  String decisionTagCustomOf(int count) {
+    return '1 of $count options';
+  }
+
+  @override
+  String decisionCurrent(String result) {
+    return 'Current pick: $result';
+  }
+
+  @override
+  String get decisionSpin => 'Spin';
+
+  @override
+  String get decisionSpinSemanticsEat => 'Spin for a dish';
+
+  @override
+  String get decisionSpinSemanticsGo => 'Spin for a plan';
+
+  @override
+  String get decisionSpinSemanticsCustom => 'Spin to decide';
+
+  @override
+  String decisionResultSemantics(String result, String tag) {
+    return 'Result: $result. $tag';
+  }
+
+  @override
+  String get decisionCommit => 'Lock it in';
+
+  @override
+  String get decisionRespin => 'Spin again';
+
+  @override
+  String get decisionManual => 'Type my own';
+
+  @override
+  String get decisionManualTitleEat => 'I\'m craving…';
+
+  @override
+  String get decisionManualTitleGo => 'I\'d rather…';
+
+  @override
+  String get decisionManualHintEat => 'e.g. Banh xeo';
+
+  @override
+  String get decisionManualHintGo => 'e.g. Walk around West Lake';
+
+  @override
+  String get decisionQuestionLabel => 'What are you stuck on?';
+
+  @override
+  String get decisionQuestionHint1 => 'Pho or bun?';
+
+  @override
+  String get decisionQuestionHint2 => 'Da Lat or Vung Tau?';
+
+  @override
+  String get decisionQuestionHint3 => 'Who does the dishes?';
+
+  @override
+  String get decisionPresetLabel => 'Quick fill';
+
+  @override
+  String get decisionPresetWho => 'Who does it?';
+
+  @override
+  String get decisionPresetWhich => 'Which one?';
+
+  @override
+  String decisionPresetReplaced(int count) {
+    return 'Replaced $count options';
+  }
+
+  @override
+  String get decisionOptionsLabel => 'Options';
+
+  @override
+  String decisionOptionsCount(int count) {
+    return '$count/12';
+  }
+
+  @override
+  String get decisionOptionAddHint => 'Add an option';
+
+  @override
+  String decisionOptionNumberHint(int n) {
+    return 'Option $n';
+  }
+
+  @override
+  String get decisionOptionAdd => 'Add';
+
+  @override
+  String decisionOptionRemove(String option) {
+    return 'Remove $option';
+  }
+
+  @override
+  String get decisionOptionsNeedTwo => 'Add at least 2 options to spin';
+
+  @override
+  String get decisionOptionsMax => 'That\'s the max of 12';
+
+  @override
+  String get decisionOptionDuplicate => 'That one\'s already on the list';
+
+  @override
+  String get decisionCustomDailyCap =>
+      'That\'s 10 picks for today. Spin more tomorrow';
+
+  @override
+  String get decisionCustomDefaultQuestion => 'Pick for us';
+
+  @override
+  String get decisionMeFallback => 'Me';
+
+  @override
+  String decisionCommittedPaired(String name) {
+    return 'Locked in. $name got it';
+  }
+
+  @override
+  String get decisionCommittedSolo => 'Locked in and saved to our history';
+
+  @override
+  String get decisionCommittedQueued =>
+      'You\'re offline. It\'ll send once you\'re back.';
+
+  @override
+  String get decisionCommitFailed =>
+      'Couldn\'t lock it in. Check your connection and try again';
+
+  @override
+  String get decisionRetry => 'Try again';
+
+  @override
+  String get decisionHistoryBadge => 'SPUN SO FAR';
+
+  @override
+  String get decisionTopEat => 'Our go-to food';
+
+  @override
+  String get decisionTopGo => 'Our go-to plans';
+
+  @override
+  String get decisionTopCaption => 'Last 90 days';
+
+  @override
+  String get decisionTopEmpty => 'Nothing yet';
+
+  @override
+  String decisionTopCountSemantics(int count) {
+    return '$count times';
+  }
+
+  @override
+  String get decisionRecent => 'Recent';
+
+  @override
+  String get decisionDayToday => 'Today';
+
+  @override
+  String get decisionDayYesterday => 'Yesterday';
+
+  @override
+  String decisionSpinsSemantics(int count) {
+    return 'spun $count times';
+  }
+
+  @override
+  String get decisionHistoryEmptyTitle => 'No spins yet';
+
+  @override
+  String get decisionHistoryEmptyBody =>
+      'Next time you can\'t agree on dinner, a plan, or who does the dishes, let the app pick. Your picks show up here.';
+
+  @override
+  String get decisionHistoryEmptyCta => 'Try a spin';
+
+  @override
+  String get decisionHistoryLoadError => 'Couldn\'t load your history';
+
+  @override
+  String get decisionReminderSettingTitle => 'Dinner pick reminder';
+
+  @override
+  String get decisionReminderSettingSubtitle =>
+      'Nudges you if no one has picked food today';
+
+  @override
+  String get decisionReminderTitle => 'What\'s for dinner?';
+
+  @override
+  String get decisionReminderBody1 =>
+      'Dinner plans? One spin and it\'s settled.';
+
+  @override
+  String get decisionReminderBody2 =>
+      'No one has picked dinner yet. Want to spin first?';
+
+  @override
+  String get decisionReminderBody3 =>
+      'Skip the \"you pick\" back and forth. Let the app choose.';
+
+  @override
+  String get decisionReminderBody4 =>
+      'Noodles, pho or a home-cooked meal? Spin and see.';
+
+  @override
+  String get decisionReminderBody5 =>
+      'Almost dinnertime. Spin a dish and let them know.';
+
+  @override
+  String notifDecisionEat(String name, String result) {
+    return '$name spun: $result today';
+  }
+
+  @override
+  String notifDecisionGo(String name, String result) {
+    return '$name spun: let\'s $result';
+  }
+
+  @override
+  String notifDecisionCustom(String name, String question, String result) {
+    return '$name spun \"$question\": $result';
+  }
+
+  @override
+  String notifDecisionRespin(String name, String result) {
+    return '$name re-spun: $result';
+  }
 }
