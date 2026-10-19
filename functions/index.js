@@ -122,6 +122,9 @@ exports.sendPartnerPhotoNotification = onDocumentCreated(
     const coupleId = `${photo.coupleId || event.params.coupleId || ""}`.trim();
     const photoId = `${event.params.photoId || snapshot.id || ""}`.trim();
     const authorUserId = `${photo.authorUserId || ""}`.trim();
+    // Raw (possibly "") for the widget line — the client localizes its own
+    // fallback (widget-today D8); the push copy keeps "Người ấy".
+    const rawAuthorName = `${photo.authorName || ""}`.trim();
     const authorName = normalizeActorName(photo.authorName);
     const caption = `${photo.caption || ""}`.trim();
 
@@ -178,7 +181,11 @@ exports.sendPartnerPhotoNotification = onDocumentCreated(
         coupleId,
         photoId,
         authorUserId,
+        actorName: rawAuthorName,
       },
+      // Wake the partner's app so the home-screen widget reads "<name> vừa
+      // đăng ảnh mới" while it is closed (feature widget-today, D8).
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
@@ -742,6 +749,7 @@ exports.notifyChatMessage = onDocumentCreated(
         message: err && err.message,
       });
     }
+    const rawAuthorName = authorName; // widget line (widget-today D8)
     authorName = normalizeActorName(authorName);
 
     // Inbox record: structured, content-free (no excerpt — privacy by design).
@@ -759,7 +767,11 @@ exports.notifyChatMessage = onDocumentCreated(
       {
         type: "chat_message",
         coupleId,
+        actorName: rawAuthorName,
       },
+      // Home-screen widget "<name> vừa nhắn cho mình" while the app is closed
+      // (widget-today D8). Recipients watching the chat were skipped above.
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
@@ -926,6 +938,7 @@ exports.notifyPartnerMood = onDocumentWritten(
         message: err && err.message,
       });
     }
+    const rawAuthorName = authorName; // widget line (widget-today D8)
     authorName = normalizeActorName(authorName);
 
     // Push only — no writeInboxNotifications (mood is ephemeral "today" state).
@@ -935,7 +948,13 @@ exports.notifyPartnerMood = onDocumentWritten(
       {
         type: "partner_mood",
         coupleId,
+        // Home-screen widget "<name> hôm nay: <mood>" (widget-today D8): the
+        // mood key (client translates it) and its day (stale pushes ignored).
+        mood,
+        date,
+        actorName: rawAuthorName,
       },
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
@@ -1218,11 +1237,13 @@ exports.notifyDailyAnswer = onDocumentCreated(
         // YESTERDAY that only arrives when the app wakes this morning must not
         // cancel TODAY's freshly armed nudges. Older clients ignore the key.
         date,
+        // Raw name for the home-screen widget line (widget-today D8).
+        actorName: authorName,
       },
-      // Only the pair-completing push needs to wake the recipient's app (iOS
-      // content-available + Android data-only companion); the "answer yours to
-      // unlock" one has nothing for the client to act on.
-      {wakeClients: bothAnswered},
+      // ALWAYS wake now (widget-today D8): the home-screen widget shows "<name>
+      // đã trả lời, đến lượt mình" / "Cả hai đã trả lời". The background
+      // handler still cancels today's nudges only when bothAnswered == "true".
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
@@ -2413,6 +2434,14 @@ const PUSH_TYPE_PREF_FIELD = {
   daily_question: "pushDailyQuestion",
 };
 
+// `data.lang` = the recipient device's app language (vi/en), so a handler with
+// no UI translates in the same language as the push (feature widget-today,
+// D5). Omitted when the device never registered one — the client falls back
+// to the phone's locale.
+function langData(device) {
+  return device.languageCode ? {lang: device.languageCode} : {};
+}
+
 async function sendToRecipientDevices(recipientIds, buildText, dataExtra, options = {}) {
   const muteField = PUSH_TYPE_PREF_FIELD[dataExtra && dataExtra.type];
   const deviceDocs = [];
@@ -2480,6 +2509,7 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
         notification: {title, body},
         data: {
           ...dataExtra,
+          ...langData(device),
           title,
           body,
         },
@@ -2523,7 +2553,7 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
         device,
         message: {
           token: device.token,
-          data: {...dataExtra},
+          data: {...dataExtra, ...langData(device)},
           android: {priority: "high"},
         },
       });
