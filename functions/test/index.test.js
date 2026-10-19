@@ -414,13 +414,22 @@ test("decision: alice locks in, bob re-spins within 10' → alice still gets a p
   assert.deepStrictEqual(f.stamps, [["lastPushAt", "lastPushBy"]]);
 });
 
-test("decision: bob re-spins a 2nd time within 10' of his own push → inbox only", async () => {
+test("decision: bob re-spins a 2nd time within 10' of his own push → inbox + silent wake, no banner", async () => {
   const f = fakeDecision({lastPushMs: Date.now() - 1 * 60 * 1000, lastPushBy: "bob"});
   const prev = eatDoc({result: "Lẩu Thái", byUserId: "bob", spins: 2});
   await f.process("C", "D", prev, eatDoc({result: "Phở", byUserId: "bob", spins: 3}), f.ref);
   assert.strictEqual(f.inbox.length, 1);
   assert.strictEqual(f.inbox[0].payload.respin, true);
-  assert.strictEqual(f.pushes.length, 0);
+  // DW-R2-2: no banner, but a silent data-only wake with the same contract so
+  // alice's widget shows "Phở" (stamp untouched: the cooldown keeps running).
+  assert.strictEqual(f.pushes.length, 1);
+  assert.deepStrictEqual(f.pushes[0].ids, ["alice"]);
+  assert.deepStrictEqual(f.pushes[0].options, {silent: true});
+  const d = f.pushes[0].data;
+  assert.deepStrictEqual(
+    [d.type, d.kind, d.result, d.resultId, d.date, d.decisionId, d.actorName],
+    ["decision", "eat", "Phở", "bun_cha", "2026-10-21", "D", "Tuấn"],
+  );
   assert.deepStrictEqual(f.stamps, []);
 });
 
@@ -449,4 +458,72 @@ test("decision copy: go drops the extra verb in vi, custom quotes the question",
   const c = fakeDecision();
   await c.process("C", "c", null, eatDoc({kind: "custom", question: "Ai rửa bát?", result: "Tuấn"}), c.ref);
   assert.strictEqual(c.pushes[0].vi.body, 'Thảo quay "Ai rửa bát?": Tuấn');
+});
+
+// ---- sendToRecipientDevices silent wake (DW-R2-2, 2026-10-20) ---------------
+
+function fakeSend(devices) {
+  const sent = [];
+  const send = load("sendToRecipientDevices", [
+    "const PUSH_TYPE_PREF_FIELD",
+    "function langData",
+    "async function sendToRecipientDevices",
+  ], {
+    db: {
+      collection: () => ({doc: () => ({collection: (name) => ({
+        where: () => (name === "notifications"
+          ? {count: () => ({get: async () => ({data: () => ({count: 3})})})}
+          : {get: async () => ({docs: devices.map((d) => ({
+            ref: {delete: async () => null},
+            get: (k) => d[k],
+          }))})}),
+      })})}),
+    },
+    admin: {messaging: () => ({sendEach: async (msgs) => {
+      sent.push(...msgs);
+      return {successCount: msgs.length, failureCount: 0, responses: msgs.map(() => ({success: true}))};
+    }})},
+  });
+  return {send, sent};
+}
+
+const DEVICES = [
+  {token: "ios1", platform: "ios", languageCode: "en", notificationsEnabled: true},
+  {token: "and1", platform: "android", languageCode: "vi", notificationsEnabled: true},
+];
+const DATA = {type: "decision", kind: "eat", result: "Phở", resultId: "pho", date: "2026-10-21"};
+
+test("silent: one data-only message per device, no title/body/alert/badge", async () => {
+  const f = fakeSend(DEVICES);
+  let built = 0;
+  await f.send(["alice"], () => { built++; return {title: "T", body: "B"}; }, DATA, {silent: true});
+  assert.strictEqual(built, 0);
+  assert.strictEqual(f.sent.length, 2);
+  for (const m of f.sent) {
+    assert.strictEqual(m.notification, undefined);
+    assert.strictEqual(m.data.title, undefined);
+    assert.strictEqual(m.data.body, undefined);
+    assert.strictEqual(m.data.result, "Phở");
+  }
+  const ios = f.sent.find((m) => m.token === "ios1");
+  assert.deepStrictEqual(ios.apns, {
+    headers: {"apns-priority": "5", "apns-push-type": "background"},
+    payload: {aps: {contentAvailable: true}},
+  });
+  assert.strictEqual(ios.data.lang, "en");
+  assert.strictEqual(f.sent.find((m) => m.token === "and1").data.lang, "vi");
+});
+
+test("default callers unchanged: alert per device + Android companion only with wakeClients", async () => {
+  const plain = fakeSend(DEVICES);
+  await plain.send(["alice"], () => ({title: "T", body: "B"}), DATA);
+  assert.strictEqual(plain.sent.length, 2);
+  assert.ok(plain.sent.every((m) => m.notification && m.notification.title === "T"));
+  assert.strictEqual(plain.sent[0].apns.headers["apns-push-type"], "alert");
+  assert.strictEqual(plain.sent[0].apns.payload.aps.contentAvailable, undefined);
+  const wake = fakeSend(DEVICES);
+  await wake.send(["alice"], () => ({title: "T", body: "B"}), DATA, {wakeClients: true});
+  assert.strictEqual(wake.sent.length, 3);
+  assert.strictEqual(wake.sent[2].token, "and1");
+  assert.strictEqual(wake.sent[2].notification, undefined);
 });

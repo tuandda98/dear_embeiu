@@ -248,10 +248,10 @@ CustomOptionsIssue? validateCustomOptions(List<String> options) {
   var total = 0;
   final seen = <String>{};
   for (final o in options) {
-    if (o.trim().isEmpty || o.length > kDecisionOptionMax) {
+    if (o.trim().isEmpty || decisionTextSize(o) > kDecisionOptionMax) {
       return CustomOptionsIssue.tooLong;
     }
-    total += o.length;
+    total += decisionTextSize(o);
     if (!seen.add(normalizeDecisionName(o))) {
       return CustomOptionsIssue.duplicate;
     }

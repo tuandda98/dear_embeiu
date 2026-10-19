@@ -4477,6 +4477,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get decisionOptionDuplicate => 'That one\'s already on the list';
 
   @override
+  String get decisionTextTooLong => 'Too long, try something shorter';
+
+  @override
   String get decisionCustomDailyCap =>
       'That\'s 10 picks for today. Spin more tomorrow';
 

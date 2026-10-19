@@ -27,6 +27,56 @@ export '../utils/decision_suggester.dart' show decisionDisplayName;
 // helpers, the two pill buttons, the result sheet and the open-… helpers used
 // by the Home card, the wheel and the history.
 
+/// Caps a decision text field at [max] in [decisionTextSize] units (what the
+/// rules count), cutting on a grapheme boundary so an emoji is never split.
+/// Replaces `TextField.maxLength`, which counts graphemes (🍜 = 1) and let
+/// 40 emoji through to a write the rules reject. Mirrors Flutter's
+/// LengthLimitingTextInputFormatter: full field → the edit is dropped; an IME
+/// composition in progress is left alone and cut once it ends.
+class DecisionLengthFormatter extends TextInputFormatter {
+  const DecisionLengthFormatter(this.max);
+
+  final int max;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (decisionTextSize(newValue.text) <= max) return newValue;
+    if (newValue.composing.isValid && !newValue.composing.isCollapsed) {
+      return newValue;
+    }
+    if (decisionTextSize(oldValue.text) == max &&
+        oldValue.selection.isCollapsed) {
+      return oldValue;
+    }
+    final kept = StringBuffer();
+    for (final c in newValue.text.characters) {
+      if (decisionTextSize(kept.toString()) + decisionTextSize(c) > max) break;
+      kept.write(c);
+    }
+    final text = kept.toString();
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(
+        offset: newValue.selection.extentOffset.clamp(0, text.length),
+      ),
+    );
+  }
+}
+
+/// "12/40" counter in [decisionTextSize] units, shown once [left] or fewer
+/// remain (null = no counter).
+Widget? decisionLengthCounter(String text, int max, {int left = 10}) {
+  final size = decisionTextSize(text);
+  if (max - size > left) return null;
+  return Text(
+    '$size/$max',
+    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+  );
+}
+
 IconData decisionKindIcon(DecisionKind kind, {bool bold = false}) {
   switch (kind) {
     case DecisionKind.eat:

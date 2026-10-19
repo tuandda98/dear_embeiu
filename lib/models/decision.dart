@@ -27,6 +27,14 @@ const int kDecisionOptionsMin = 2;
 const int kDecisionOptionsMaxCount = 12;
 const int kDecisionOptionsTotalMax = 480;
 
+/// THE length measure for every decision text (result, question, option):
+/// UTF-16 code units = Dart `String.length` = what rules `string.size()`
+/// counts (checked on the emulator 2026-10-20: 20× 🍜 = 40 → allowed, 21× →
+/// denied; 40 Vietnamese letters with diacritics → allowed). So one emoji is
+/// 2 and a ZWJ family 👨‍👩‍👧 is 8. Input formatters, counters, validators and
+/// the service all count with this — never with graphemes.
+int decisionTextSize(String value) => value.length;
+
 /// Client-side cap on custom picks per day (rules don't count docs — D5).
 const int kDecisionCustomDailyCap = 10;
 

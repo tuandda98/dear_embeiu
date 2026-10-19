@@ -1754,10 +1754,9 @@ async function processDecisionWrite(coupleId, decisionId, before, after, ref) {
     });
     return true;
   });
-  if (!claimed) {
-    return {pushed: false, recipientIds};
-  }
-
+  // Within the cooldown there is no banner, but the partner's app still gets
+  // a silent data-only wake with the same data, so their widget shows the new
+  // result and (eat) the 16:30 nudge stays cancelled (DW-R2-2).
   const sent = await sendToRecipientDevices(
     recipientIds,
     (languageCode) => buildDecisionText(languageCode, kind, actorName, question, result, respin),
@@ -1772,10 +1771,13 @@ async function processDecisionWrite(coupleId, decisionId, before, after, ref) {
       date,
       actorName,
     },
-    {wakeClients: true},
+    claimed ? {wakeClients: true} : {silent: true},
   );
   if (sent.failures.length > 0) {
     logger.warn("Decision push had delivery failures.", {coupleId, decisionId, failures: sent.failures});
+  }
+  if (!claimed) {
+    return {pushed: false, silent: true, recipientIds, deviceCount: sent.deviceCount};
   }
   return {pushed: true, recipientIds, deviceCount: sent.deviceCount};
 }
@@ -2582,6 +2584,12 @@ exports.nudgeRpsPlayer = onCall(
 //    the handler there. So each Android device additionally gets a data-only
 //    companion (high priority, same `dataExtra`, deliberately WITHOUT title/body
 //    so the foreground handler shows no second banner).
+// `options.silent` (decision-wheel DW-R2-2, 2026-10-20) sends ONLY a wake, no
+// banner anywhere: every device gets a data-only message (same `dataExtra`, no
+// title/body, `buildText` is not called). iOS: background push
+// (`apns-push-type: background`, priority 5, `content-available`, no alert /
+// sound / badge); Android: data-only, high priority. Off by default — callers
+// that pass no `silent` behave exactly as before.
 // Per-type mute prefs (D-notif-4): maps a push `type` to the device-doc field
 // the user can switch off. Types not listed (love_note, partner_joined/left)
 // are always-on and never filtered. Absent field on a device → not muted.
@@ -2657,7 +2665,18 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
   // Each outgoing entry keeps its device so delivery failures can be attributed
   // (and dead tokens pruned) even after companion messages are appended — a bare
   // `messages[index] → deviceDocs[index]` mapping would break then.
-  const outgoing = deviceDocs.map((device) => {
+  const outgoing = options.silent ? deviceDocs.map((device) => ({
+    device,
+    message: {
+      token: device.token,
+      data: {...dataExtra, ...langData(device)},
+      android: {priority: "high"},
+      apns: {
+        headers: {"apns-priority": "5", "apns-push-type": "background"},
+        payload: {aps: {contentAvailable: true}},
+      },
+    },
+  })) : deviceDocs.map((device) => {
     const {title, body} = buildText(device.languageCode);
     return {
       device,
@@ -2701,7 +2720,7 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
   // Android wake companion — see the wakeClients note above the function. The
   // data payload carries NO title/body on purpose: in the foreground the client's
   // onMessage handler acts on the data, then bails before showing a banner.
-  if (options.wakeClients) {
+  if (options.wakeClients && !options.silent) {
     for (const device of deviceDocs) {
       if (device.platform !== "android") {
         continue;

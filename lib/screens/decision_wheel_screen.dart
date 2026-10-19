@@ -80,7 +80,8 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
   final FocusNode _optionFocus = FocusNode();
   List<String> _options = <String>[];
   String? _preset; // 'who' | 'which'
-  bool _duplicateFlash = false;
+  // Brief "already there" / "too long" line under the options (2,5s).
+  CustomOptionsIssue? _flashIssue;
   Timer? _duplicateTimer;
   Timer? _hintTimer;
   int _hintIndex = 0;
@@ -304,6 +305,14 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
       } else {
         question = '';
       }
+      if (decisionTextSize(question) > kDecisionQuestionMax) {
+        // The formatter caps typing; this catches anything else (rules
+        // would reject it and the user would be stuck on "Thử lại").
+        setState(() => _committing = false);
+        _flash(CustomOptionsIssue.tooLong);
+        _questionFocus.requestFocus();
+        return;
+      }
       final written = await provider.commit(
         kind: _kind,
         result: pick.name,
@@ -370,24 +379,26 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
     final next = [..._options, text];
     // Same checks as the rules; a 1-option list is only "too few" so far.
     switch (validateCustomOptions(next)) {
-      case CustomOptionsIssue.duplicate:
-        _duplicateTimer?.cancel();
-        setState(() => _duplicateFlash = true);
-        _duplicateTimer = Timer(const Duration(milliseconds: 2500), () {
-          if (mounted) setState(() => _duplicateFlash = false);
-        });
+      case final CustomOptionsIssue issue
+          when issue != CustomOptionsIssue.tooFew:
+        // Never drop the option silently: say why, like the duplicate line.
+        _flash(issue);
         return;
-      case CustomOptionsIssue.tooMany:
-      case CustomOptionsIssue.tooLong:
-        return;
-      case CustomOptionsIssue.tooFew:
-      case null:
+      default:
         break;
     }
     HapticFeedback.selectionClick();
     _optionInput.clear();
     _optionsChanged(next);
     _optionFocus.requestFocus();
+  }
+
+  void _flash(CustomOptionsIssue issue) {
+    _duplicateTimer?.cancel();
+    setState(() => _flashIssue = issue);
+    _duplicateTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) setState(() => _flashIssue = null);
+    });
   }
 
   /// Clips a preset name to [kDecisionOptionMax] UTF-16 units (rules limit)
@@ -835,11 +846,13 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
     ];
     final full = _options.length >= kDecisionOptionsMaxCount;
     final String? helper;
-    if (_duplicateFlash ||
+    if (_flashIssue == CustomOptionsIssue.tooLong) {
+      helper = l10n.decisionTextTooLong;
+    } else if (_flashIssue == CustomOptionsIssue.duplicate ||
         validateCustomOptions(_options) == CustomOptionsIssue.duplicate) {
       // The flash, or a "Ai làm?" preset where both names are the same.
       helper = l10n.decisionOptionDuplicate;
-    } else if (full) {
+    } else if (full || _flashIssue == CustomOptionsIssue.tooMany) {
       helper = l10n.decisionOptionsMax;
     } else if (_options.length < kDecisionOptionsMin) {
       helper = l10n.decisionOptionsNeedTwo;
@@ -859,7 +872,9 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
           TextField(
             controller: _question,
             focusNode: _questionFocus,
-            maxLength: kDecisionQuestionMax,
+            inputFormatters: const [
+              DecisionLengthFormatter(kDecisionQuestionMax),
+            ],
             textCapitalization: TextCapitalization.sentences,
             textInputAction: TextInputAction.next,
             onChanged: (text) => setState(() {
@@ -872,15 +887,7 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
             onSubmitted: (_) => _optionFocus.requestFocus(),
             buildCounter:
                 (_, {required currentLength, required isFocused, maxLength}) =>
-                    (maxLength ?? 0) - currentLength <= 10
-                    ? Text(
-                        '$currentLength/$maxLength',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                        ),
-                      )
-                    : null,
+                    decisionLengthCounter(_question.text, kDecisionQuestionMax),
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -960,7 +967,9 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
                   child: TextField(
                     controller: _optionInput,
                     focusNode: _optionFocus,
-                    maxLength: kDecisionOptionMax,
+                    inputFormatters: const [
+                      DecisionLengthFormatter(kDecisionOptionMax),
+                    ],
                     textCapitalization: TextCapitalization.sentences,
                     textInputAction: TextInputAction.done,
                     onChanged: (_) => setState(() {}),
@@ -1446,7 +1455,7 @@ class _ManualSheetState extends State<_ManualSheet> {
 
   void _submit() {
     final value = _text.text.trim();
-    if (value.isEmpty) return;
+    if (value.isEmpty || decisionTextSize(value) > kDecisionResultMax) return;
     Navigator.of(context).pop(value);
   }
 
@@ -1492,7 +1501,16 @@ class _ManualSheetState extends State<_ManualSheet> {
             TextField(
               controller: _text,
               autofocus: true,
-              maxLength: kDecisionResultMax,
+              inputFormatters: const [
+                DecisionLengthFormatter(kDecisionResultMax),
+              ],
+              buildCounter:
+                  (_, {required currentLength, required isFocused, maxLength}) =>
+                      decisionLengthCounter(
+                        _text.text,
+                        kDecisionResultMax,
+                        left: kDecisionResultMax,
+                      ),
               textCapitalization: TextCapitalization.sentences,
               textInputAction: TextInputAction.done,
               onChanged: (_) => setState(() {}),

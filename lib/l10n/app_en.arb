@@ -4306,6 +4306,10 @@
   "@decisionOptionDuplicate": {
     "description": "Decision wheel (feature decision-wheel)"
   },
+  "decisionTextTooLong": "Too long, try something shorter",
+  "@decisionTextTooLong": {
+    "description": "Decision wheel: option or question longer than the rules allow (emoji count 2)"
+  },
   "decisionCustomDailyCap": "That's 10 picks for today. Spin more tomorrow",
   "@decisionCustomDailyCap": {
     "description": "Decision wheel (feature decision-wheel)"

@@ -4257,6 +4257,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get decisionOptionDuplicate => 'Lựa chọn này có rồi';
 
   @override
+  String get decisionTextTooLong => 'Dài quá rồi, viết gọn lại chút nhé';
+
+  @override
   String get decisionCustomDailyCap =>
       'Hôm nay chốt đủ 10 câu rồi, mai quay tiếp nhé';
 

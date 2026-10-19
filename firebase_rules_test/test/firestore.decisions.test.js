@@ -147,6 +147,32 @@ describe('firestore: decisions', () => {
     await assertSucceeds(setDoc(doc(db, EAT), eat('alice', {result: 'x'.repeat(40)})));
   });
 
+  // DW-R2-1: size() counts UTF-16 code units (not code points, not
+  // graphemes): 🍜 = 2, 👨‍👩‍👧 = 8, a Vietnamese letter = 1. The app counts
+  // the same way (`decisionTextSize` = Dart String.length).
+  it('size() counts UTF-16 units: 20 bowls fit in 40, 21 do not', async () => {
+    const db = authedDb('alice');
+    await assertSucceeds(setDoc(doc(db, EAT), eat('alice', {result: '🍜'.repeat(20)})));
+    await assertFails(setDoc(doc(db, GO), eat('alice', {
+      kind: 'go', resultId: '', result: '🍜'.repeat(21),
+    })));
+  });
+
+  it('size() on ZWJ emoji and Vietnamese diacritics', async () => {
+    const db = authedDb('alice');
+    // 5 families = 25 code points but 40 units → fits; one more letter → 41.
+    await assertFails(setDoc(doc(db, GO), eat('alice', {
+      kind: 'go', resultId: '', result: '👨‍👩‍👧'.repeat(5) + 'a',
+    })));
+    await assertSucceeds(setDoc(doc(db, GO), eat('alice', {
+      kind: 'go', resultId: '', result: '👨‍👩‍👧'.repeat(5),
+    })));
+    // 40 letters with diacritics (54 UTF-8 bytes) → fits.
+    await assertSucceeds(setDoc(doc(db, EAT), eat('alice', {
+      result: 'Bún chả Hà Nội ngon tuyệt đỉnh của chópx',
+    })));
+  });
+
   it('createdAt must be the server time', async () => {
     await assertFails(setDoc(doc(authedDb('alice'), EAT), eat('alice', {createdAt: TS})));
   });

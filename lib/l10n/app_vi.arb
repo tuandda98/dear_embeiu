@@ -3528,6 +3528,10 @@
   "@decisionOptionDuplicate": {
     "description": "Decision wheel (feature decision-wheel)"
   },
+  "decisionTextTooLong": "Dài quá rồi, viết gọn lại chút nhé",
+  "@decisionTextTooLong": {
+    "description": "Decision wheel: option or question longer than the rules allow (emoji count 2)"
+  },
   "decisionCustomDailyCap": "Hôm nay chốt đủ 10 câu rồi, mai quay tiếp nhé",
   "@decisionCustomDailyCap": {
     "description": "Decision wheel (feature decision-wheel)"

@@ -7237,6 +7237,12 @@ abstract class AppLocalizations {
   /// **'That one\'s already on the list'**
   String get decisionOptionDuplicate;
 
+  /// Decision wheel: option or question longer than the rules allow (emoji count 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Too long, try something shorter'**
+  String get decisionTextTooLong;
+
   /// Decision wheel (feature decision-wheel)
   ///
   /// In en, this message translates to:

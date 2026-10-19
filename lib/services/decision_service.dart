@@ -138,8 +138,12 @@ class DecisionService {
       throw StateError('decision-unavailable');
     }
     final cleanResult = result.trim();
-    if (cleanResult.isEmpty || cleanResult.length > kDecisionResultMax) {
+    if (cleanResult.isEmpty ||
+        decisionTextSize(cleanResult) > kDecisionResultMax) {
       throw ArgumentError.value(result, 'result');
+    }
+    if (decisionTextSize(question.trim()) > kDecisionQuestionMax) {
+      throw ArgumentError.value(question, 'question');
     }
 
     if (kind == DecisionKind.custom && existingId == null) {
