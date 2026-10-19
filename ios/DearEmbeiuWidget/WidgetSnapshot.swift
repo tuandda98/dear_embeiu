@@ -52,6 +52,33 @@ struct WidgetSnapshot {
   }
 }
 
+/// The "hôm nay" line (feature widget-today, D6), stored apart from the
+/// snapshot by HomeWidgetChannel `updateStatus`. Keys:
+/// lib/services/home_widget_status.dart.
+struct WidgetStatus {
+  static let storeKey = "widget_status"
+  let raw: [String: String]
+
+  subscript(_ key: String) -> String { raw[key] ?? "" }
+  /// Medium widget.
+  var text: String { self["statusText"] }
+  /// Small widget (D14); falls back to the full line.
+  var shortText: String { self["statusTextShort"].isEmpty ? text : self["statusTextShort"] }
+
+  static func load() -> WidgetStatus? {
+    guard let group = WidgetSnapshot.groupId,
+          let defaults = UserDefaults(suiteName: group),
+          let raw = defaults.dictionary(forKey: storeKey) as? [String: String] else { return nil }
+    return WidgetStatus(raw: raw)
+  }
+
+  /// Itself when it is the line of `day` and has text, else nil (D4.1): the
+  /// timeline entry of 0:00 onwards therefore draws no line by itself.
+  func shown(on day: Date) -> WidgetStatus? {
+    self["todayDate"] == DayMath.dateKey(day) && !text.isEmpty ? self : nil
+  }
+}
+
 /// Everything the view prints, computed once per timeline entry.
 struct DayModel {
   let name1: String

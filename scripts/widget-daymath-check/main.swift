@@ -58,5 +58,10 @@ check(label(730) == "2 years", "730 → 2 years")
 check(label(1500) == "1,500 days", "1500 → 1,500 days")
 check(label(50) == "50 days", "50 → 50 days")
 
+// widget-today D4.1: the status line's `todayDate` must match Dart's
+// DailyQuestionService.dateKey (local Gregorian), also under th_TH.
+check(DayMath.dateKey(today, calendar: hcm) == "2026-10-12", "dateKey 00:30 HCM = same local day")
+check(DayMath.dateKey(noon) == "2026-10-12", "dateKey default path is Gregorian under th_TH (not 2569)")
+
 if failures > 0 { print("\(failures) check(s) failed"); exit(1) }
-print("OK DayMath — \(table.count + 20) checks")
+print("OK DayMath — \(table.count + 22) checks")

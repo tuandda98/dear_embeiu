@@ -4,6 +4,8 @@ import WidgetKit
 struct DayEntry: TimelineEntry {
   let date: Date
   let snapshot: WidgetSnapshot?
+  /// Today's line for THIS entry's day only (nil in the gallery preview).
+  var status: WidgetStatus? = nil
 }
 
 /// One entry now + one per midnight for the next 7 days: the count ticks over
@@ -14,20 +16,31 @@ struct DayProvider: TimelineProvider {
   }
 
   func getSnapshot(in context: Context, completion: @escaping (DayEntry) -> Void) {
-    completion(DayEntry(date: Date(), snapshot: context.isPreview ? .preview : WidgetSnapshot.load()))
+    if context.isPreview {
+      completion(DayEntry(date: Date(), snapshot: .preview))
+      return
+    }
+    let snapshot = WidgetSnapshot.load()
+    completion(DayEntry(date: Date(), snapshot: snapshot, status: Self.status(snapshot, WidgetStatus.load(), Date())))
   }
 
   func getTimeline(in context: Context, completion: @escaping (Timeline<DayEntry>) -> Void) {
     let snapshot = WidgetSnapshot.load()
+    let status = WidgetStatus.load()
     let calendar = Calendar.current
-    var entries = [DayEntry(date: Date(), snapshot: snapshot)]
+    var entries = [DayEntry(date: Date(), snapshot: snapshot, status: Self.status(snapshot, status, Date()))]
     var day = calendar.startOfDay(for: Date())
     for _ in 0..<7 {
       guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
       day = next
-      entries.append(DayEntry(date: day, snapshot: snapshot))
+      entries.append(DayEntry(date: day, snapshot: snapshot, status: Self.status(snapshot, status, day)))
     }
     completion(Timeline(entries: entries, policy: .atEnd))
+  }
+
+  /// A line only on the counter, and only on its own day (widget-today D4.1).
+  private static func status(_ snapshot: WidgetSnapshot?, _ status: WidgetStatus?, _ day: Date) -> WidgetStatus? {
+    (snapshot?.isCounter ?? false) ? status?.shown(on: day) : nil
   }
 }
 

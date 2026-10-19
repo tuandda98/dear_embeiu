@@ -283,7 +283,11 @@ final class SleepHealthChannel {
 /// Dart asks (`consumeLaunch`) so Analytics gets one `widget_tap` per tap.
 final class HomeWidgetChannel {
   static let snapshotKey = "widget_snapshot"
-  static let launchKey = "widget_launch_family"
+  /// The "hôm nay" line (widget-today D6) — WidgetStatus.storeKey.
+  static let statusKey = "widget_status"
+  /// Widget tap → [family, target, focus, kind] (D7). 1.9.x stored a String
+  /// under the old key; it is ignored after updating.
+  static let launchKey = "widget_launch"
 
   private static var groupDefaults: UserDefaults? {
     guard let group = Bundle.main.object(forInfoDictionaryKey: "AppGroupId") as? String else { return nil }
@@ -307,6 +311,25 @@ final class HomeWidgetChannel {
           return
         }
         groupDefaults?.set(snapshot, forKey: snapshotKey)
+        // Signed out / left the couple: today's line must not outlive it (D6).
+        if snapshot["state"] == "empty" { groupDefaults?.removeObject(forKey: statusKey) }
+        if #available(iOS 14.0, *) { WidgetCenter.shared.reloadAllTimelines() }
+        result(nil)
+      case "updateStatus":
+        guard var status = call.arguments as? [String: String] else {
+          result(FlutterError(code: "bad_args", message: "expected Map<String,String>", details: nil))
+          return
+        }
+        // A push handled in the background only knows itself: keep a newer
+        // line of the same day (pushes can arrive out of order, D3).
+        let onlyIfNewer = status.removeValue(forKey: "onlyIfNewer") == "1"
+        if onlyIfNewer, let stored = groupDefaults?.dictionary(forKey: statusKey) as? [String: String],
+           stored["todayDate"] == status["todayDate"],
+           (Int64(stored["statusAt"] ?? "") ?? 0) > (Int64(status["statusAt"] ?? "") ?? 0) {
+          result(nil)
+          return
+        }
+        groupDefaults?.set(status, forKey: statusKey)
         if #available(iOS 14.0, *) { WidgetCenter.shared.reloadAllTimelines() }
         result(nil)
       case "setPhoto":
@@ -320,9 +343,9 @@ final class HomeWidgetChannel {
         if #available(iOS 14.0, *) { WidgetCenter.shared.reloadAllTimelines() }
         result(nil)
       case "consumeLaunch":
-        let family = UserDefaults.standard.string(forKey: launchKey)
+        let launch = UserDefaults.standard.dictionary(forKey: launchKey) as? [String: String]
         UserDefaults.standard.removeObject(forKey: launchKey)
-        result(family)
+        result(launch)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -332,8 +355,12 @@ final class HomeWidgetChannel {
   /// Called from SceneDelegate for every URL the app is opened with.
   static func recordLaunch(url: URL) {
     guard url.scheme == "dearembeiu", url.host == "widget" else { return }
-    let family = URLComponents(url: url, resolvingAgainstBaseURL: false)?
-      .queryItems?.first(where: { $0.name == "family" })?.value ?? "unknown"
-    UserDefaults.standard.set(family, forKey: launchKey)
+    let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+    func value(_ name: String) -> String { items.first(where: { $0.name == name })?.value ?? "" }
+    // Dart whitelists every value (HomeWidgetBridge.parseLaunch).
+    UserDefaults.standard.set([
+      "family": value("family"), "target": value("target"),
+      "focus": value("focus"), "kind": value("kind"),
+    ], forKey: launchKey)
   }
 }

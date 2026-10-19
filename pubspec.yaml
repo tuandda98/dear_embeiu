@@ -47,6 +47,10 @@ dependencies:
   cloud_functions: ^6.0.1
   firebase_storage: ^13.0.1
   firebase_messaging: ^16.0.2
+  # Android handler of the dear_embeiu/widget channel as a plugin, so the
+  # firebase_messaging background engine has it too (feature widget-today D13).
+  dear_embeiu_widget_channel:
+    path: packages/dear_embeiu_widget_channel
   firebase_crashlytics: ^5.2.2
 
   # Image handling
