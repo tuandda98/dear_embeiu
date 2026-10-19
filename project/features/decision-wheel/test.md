@@ -1,32 +1,45 @@
-# 🧪 Test — <Tên feature>
+# 🧪 Test — Chọn giúp chúng mình (decision-wheel)
 
-> Tester sở hữu. Đọc cả `overview.md` + `design.md` + `dev.md`. CHỈ test, KHÔNG sửa code. Output: PASS hoặc FAIL (kèm bug report).
+## Vòng 1 — 2026-10-19 (Tester, `feature/daily-open` @ `21c75ca`)
 
-- **Trạng thái test:** <chưa test | đang test | PASS | FAIL>
-- **Người/role:** Master Tester
+**Kết luận: FAIL code-level** — 1 major + 7 minor + 1 nit. analyze 0 · flutter test 627 pass / 3 skip · rules 390 passing (32 case `decisions`) + CF unit 18/18. Rules DEV = rules HEAD; PROD chưa deploy.
 
-## Phạm vi test
-<feature/case nào>
+### Bảng 14 tiêu chí §5
+| # | Kết quả |
+|---|---|
+| 1 Thẻ đúng vị trí, có khi chờ người ấy | PASS |
+| 2 Ăn gì: lọc 7 ngày, chip, giờ | PASS (unit) |
+| 3 Đi đâu: lọc 14 ngày, chip | PASS (unit) |
+| 4 Tự nhập: preset, 2–12 | PASS logic · push CẦN TEST |
+| 5 Chốt eat → push/inbox/widget/huỷ 1200/quay lại | PASS code · CẦN TEST · BUG-1 chiều ngược |
+| 6 Quay không chốt → không ghi | PASS |
+| 7 Chụp lại | PASS code · camera CẦN TEST |
+| 8 Lịch sử | PASS code (BUG-6) |
+| 9 Nhắc 1200 | PASS code · CẦN TEST pending |
+| 10 Qua 0:00 thẻ về trống | **FAIL** (BUG-2) |
+| 11 Rules ≥20 case | PASS (32) · hở BUG-4, BUG-5 |
+| 12 CF create/cooldown/không gửi byUserId/wake | PASS unit · BUG-1 |
+| 13 i18n + test | PASS |
+| 14 Không regression | PASS code · smoke CẦN TEST |
 
-## Test case
-| # | Loại | Mô tả | Kỳ vọng | Kết quả |
-|---|------|-------|---------|---------|
-| 1 | happy | <…> | <…> | ⬜ |
-| 2 | edge | <…> | <…> | ⬜ |
-| 3 | negative | <…> | <…> | ⬜ |
-| 4 | đa ngôn ngữ | <…> | <…> | ⬜ |
-| 5 | offline / 2 thiết bị couple | <…> | <…> | ⬜ |
-| 6 | cold start | <…> | <…> | ⬜ |
+### Bug
+- **BUG-1 (major)** — người ấy Quay lại trong 10' sau khi mình chốt → mình chỉ có inbox, không push/wake (`functions/index.js:1729-1745`, cooldown tính cả push của create). Trái D2 "báo ngược lại".
+- **BUG-2 (minor, fail #10)** — `decision_card.dart:27` `MidnightBuilder` trả `const _DecisionCardBody()` → không rebuild lúc 0:00.
+- **BUG-3** — Quay lại câu tự nhập rồi sửa câu hỏi → update doc cũ với câu cũ.
+- **BUG-4** — rules cho doc `custom` chiếm id `{date}_eat|_go` → kẹt cả ngày.
+- **BUG-5** — không kiểm mỗi lựa chọn ≤40 ở rules; preset tên dài không validate (`validateCustomOptions` không được dùng).
+- **BUG-6** — couple khác ngôn ngữ: top 5 tách đôi (nhóm theo tên thay vì `resultId`); push lẫn tiếng.
+- **BUG-7** — chốt khi listener chưa thấy doc người ấy → UI/analytics `spins` sai.
+- **BUG-8** — timeout 10s rồi "Thử lại" có thể ghi 2 lần (×2, log 2 lần).
+- **NIT-9** — doc comment `_DailyQuestionTimeRow` bị tách (`settings_screen.dart:2147`).
 
-*(Kết quả: ✅ pass · ❌ fail · ⬜ chưa chạy)*
-
-## Bug report (nếu FAIL)
-### BUG-1: <tiêu đề>
-- **Severity:** <critical | major | minor>
-- **File/màn hình:** <file:line>
-- **Expected:** <…>
-- **Actual:** <…>
-- **Steps to reproduce:** 1) … 2) … (ghi nhánh Firebase/local nếu liên quan)
-
-## Nhật ký test
-- [<YYYY-MM-DD>] [Tester] <đã test gì / kết quả>
+### Smoke tay (2 máy thật, DEV test3/test4, có push)
+1. A chốt Ăn gì → B banner + inbox ≤10s; thẻ B ≤3s; widget B "Hôm nay ăn: …".
+2. B mở app trước 16:30 → có id 1200; A chốt eat lúc app B đóng → 1200 của B biến mất.
+3. B Quay lại trong 2' → A (app đóng) có banner.
+4. Hai máy Chốt eat cùng lúc → 1 doc, `spins=2`, không crash.
+5. Máy bay: eat → dải lỗi + Thử lại; custom → "Đang mất mạng…", có mạng thì máy kia nhận push.
+6. Để Home mở qua 0:00 thật → thẻ về trống.
+7. Reduce Motion → hiện ngay; chạm khi quay → nhảy kết quả.
+8. Chụp lại bằng camera → caption "Bún chả 🍜", ảnh lên Gallery; nút Chụp hình Gallery vẫn chạy.
+9. Máy 1.10.x nhận push `decision` → tap về Home, inbox câu chung.
