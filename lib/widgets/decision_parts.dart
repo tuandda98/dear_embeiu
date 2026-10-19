@@ -20,6 +20,9 @@ import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../utils/decision_suggester.dart';
 
+// Moved to the pure utils file (the background push handler needs it too).
+export '../utils/decision_suggester.dart' show decisionDisplayName;
+
 // Shared bits of "Chọn giúp chúng mình" (feature decision-wheel): display
 // helpers, the two pill buttons, the result sheet and the open-… helpers used
 // by the Home card, the wheel and the history.
@@ -50,24 +53,6 @@ Color decisionKindTint(DecisionKind kind) {
 
 bool decisionIsEnglish(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'en';
-
-String _capitalizeFirst(String s) =>
-    s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
-
-/// The name to SHOW: a bank pick in the viewer's language (English activity
-/// names get a capital — design §10), anything else as stored.
-String decisionDisplayName(
-  DecisionKind kind,
-  String result,
-  String resultId, {
-  required bool english,
-}) {
-  final item = DecisionSuggester.bankItem(kind, resultId);
-  if (item == null) {
-    return result;
-  }
-  return english ? _capitalizeFirst(item.en) : item.vi;
-}
 
 String? decisionEmoji(DecisionKind kind, String resultId) =>
     DecisionSuggester.bankItem(kind, resultId)?.emoji;

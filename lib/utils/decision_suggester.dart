@@ -217,6 +217,25 @@ class DecisionSuggester {
   }
 }
 
+String _capitalizeFirst(String s) =>
+    s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
+
+/// The name to SHOW: a bank pick in the viewer's language (English activity
+/// names get a capital — design §10), anything else as stored. Pure — used by
+/// the widgets and by the background push handler (widget-today B3).
+String decisionDisplayName(
+  DecisionKind kind,
+  String result,
+  String resultId, {
+  required bool english,
+}) {
+  final item = DecisionSuggester.bankItem(kind, resultId);
+  if (item == null) {
+    return result;
+  }
+  return english ? _capitalizeFirst(item.en) : item.vi;
+}
+
 /// Why a custom option list can't be committed yet (null = OK). Mirrors the
 /// rules: 2..12 options, each 1..40 UTF-16 units, ≤480 in total, no duplicate.
 enum CustomOptionsIssue { tooFew, tooMany, tooLong, duplicate }

@@ -51,6 +51,7 @@ import '../widgets/shimmer_skeleton.dart';
 import '../widgets/streak_chip.dart';
 import '../models/decision.dart';
 import '../providers/decision_provider.dart';
+import '../providers/locale_provider.dart';
 import '../providers/mood_provider.dart';
 import '../widgets/decision_card.dart';
 import '../widgets/decision_parts.dart';
@@ -428,6 +429,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   DailyQuestionProvider? _dqProvider;
   MoodProvider? _moodProvider;
   DecisionProvider? _decisionProvider;
+  LocaleProvider? _localeProvider;
 
   /// Guards [FeatureTour.maybeShow] to one attempt per Home lifetime.
   bool _featureTourChecked = false;
@@ -545,6 +547,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ]) {
       p.addListener(_pushWidgetStatus);
     }
+    // In-app language switch: the line is localized, re-send it once the new
+    // locale reached this context (next frame) — widget-today B1.
+    _localeProvider = context.read<LocaleProvider>();
+    _localeProvider!.addListener(_onLocaleChangedForWidget);
     WidgetsBinding.instance.addPostFrameCallback((_) => _pushWidgetStatus());
     // "Có gì mới" tour (feature onboarding, 2026-09-05): once per build, after
     // the first frame settles and never on top of the catch-up gate.
@@ -640,6 +646,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ]) {
       p?.removeListener(_pushWidgetStatus);
     }
+    _localeProvider?.removeListener(_onLocaleChangedForWidget);
     _decisionProvider?.removeListener(_refreshDecisionReminder);
     _bgHintTimer?.cancel();
     _stopChatPresence();
@@ -709,11 +716,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
+  void _onLocaleChangedForWidget() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _pushWidgetStatus());
+  }
+
   /// Sends the widget's "hôm nay" line from live state (widget-today D5a) —
   /// the same inputs as the constellation, plus the partner's photos. Waits
-  /// while today's answers / moods are still loading, so a cold start never
-  /// wipes the line a background push just wrote. Signing out / leaving goes
-  /// through the snapshot's `empty`, which clears the line natively (D6).
+  /// while today's answers / moods / chat / picks are still loading, so a
+  /// cold start never wipes the line a background push just wrote. Signing
+  /// out / leaving goes through the snapshot's `empty`, which clears the line
+  /// natively (D6).
   void _pushWidgetStatus() {
     if (!mounted) {
       return;
@@ -727,6 +739,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // Not watching yet (dateKey empty / no couple wired) or first snapshot
     // still on its way: the data says nothing yet, keep what the widget shows.
     if (dq.dateKey.isEmpty || dq.isLoading || !mood.isReady || mood.isLoading) {
+      return;
+    }
+    // Same for chat / today's picks (B6): an empty list mid-load would flash
+    // an older line over the one a background push just wrote.
+    if ((_chatProvider?.isLoading ?? false) ||
+        (_decisionProvider?.isLoading ?? false)) {
       return;
     }
     final myUid = context.read<AuthProvider>().currentUser?.id;

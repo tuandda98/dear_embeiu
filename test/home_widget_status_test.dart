@@ -228,6 +228,43 @@ void main() {
       expect(push({'type': 'decision', 'kind': 'fly', 'result': 'x', 'date': '2026-10-19'}), isNull);
     });
 
+    test('data.sentAt (CF) wins over sentTime; no date + no send time → null (B2)', () {
+      Map<String, String>? raw(Map<String, dynamic> data, {DateTime? sentAt}) =>
+          HomeWidgetStatus.fromPush(data, l10n: vi, now: now, sentAt: sentAt);
+      final yesterday = DateTime(2026, 10, 18, 23, 50).millisecondsSinceEpoch;
+      // iOS: no RemoteMessage.sentTime, CF says it was sent yesterday.
+      expect(raw({'type': 'chat_message', 'sentAt': '$yesterday'}), isNull);
+      // data.sentAt beats a "today" sentTime.
+      expect(raw({'type': 'photo_posted', 'sentAt': '$yesterday'}, sentAt: at(14)), isNull);
+      // Neither a date nor any send time: can't prove it's today.
+      expect(raw({'type': 'chat_message'}), isNull);
+      final s = raw({'type': 'chat_message', 'sentAt': '${at(13, 5).millisecondsSinceEpoch}'})!;
+      expect(s['statusKind'], 'message');
+      expect(s['statusAt'], '${at(13, 5).millisecondsSinceEpoch}');
+      // Old CF without sentAt: Android sentTime still works.
+      expect(raw({'type': 'chat_message'}, sentAt: at(14))!['statusKind'], 'message');
+    });
+
+    test('decision with resultId reads in the receiver\'s language (B3)', () {
+      // Spun in English, received on a Vietnamese phone.
+      final eat = {'type': 'decision', 'kind': 'eat', 'result': 'Braised pork belly with eggs',
+          'resultId': 'thit_kho_tau', 'date': '2026-10-19'};
+      expect(push(eat)!['statusText'], 'Hôm nay ăn: Thịt kho tàu trứng');
+      // Spun in Vietnamese, received in English (capitalised like the card).
+      final go = {'type': 'decision', 'kind': 'go', 'result': 'Đi cà phê',
+          'resultId': 'ca_phe', 'date': '2026-10-19'};
+      expect(push(go, l10n: en)!['statusTextShort'], 'Grab coffee');
+      // Typed-in pick (no bank id): as written.
+      expect(push({...go, 'resultId': '', 'result': 'Đi bơi'})!['statusText'], 'Hôm nay: Đi bơi');
+    });
+
+    test('partner_left clears the line, unconditionally (B5)', () {
+      final s = push({'type': 'partner_left', 'coupleId': 'c'}, sentAt: DateTime(2026, 10, 1))!;
+      expect(s, HomeWidgetStatus.none(now));
+      expect(s.containsKey('onlyIfNewer'), isFalse);
+      expect(s.containsKey('state'), isFalse); // the day count stays
+    });
+
     test('name fallback + language from data.lang, else the phone', () {
       final data = {'type': 'chat_message', 'actorName': '', 'lang': 'en'};
       final lang = HomeWidgetStatus.pushLang(data, 'vi_VN');

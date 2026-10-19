@@ -182,6 +182,7 @@ exports.sendPartnerPhotoNotification = onDocumentCreated(
         photoId,
         authorUserId,
         actorName: rawAuthorName,
+        sentAt: String(Date.now()), // widget "today?" check (widget-today B2)
       },
       // Wake the partner's app so the home-screen widget reads "<name> vừa
       // đăng ảnh mới" while it is closed (feature widget-today, D8).
@@ -499,6 +500,9 @@ exports.notifyPartnerLeft = onDocumentUpdated(
         coupleId,
         leaverUserId: leaverUid,
       },
+      // Wake the app so it clears the widget's "người ấy vừa…" line right away
+      // (widget-today B5), even when it is closed.
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
@@ -768,6 +772,9 @@ exports.notifyChatMessage = onDocumentCreated(
         type: "chat_message",
         coupleId,
         actorName: rawAuthorName,
+        // Send time for the widget's "today?" check: chat pushes carry no
+        // `date`, and iOS often has no RemoteMessage.sentTime (widget-today B2).
+        sentAt: String(Date.now()),
       },
       // Home-screen widget "<name> vừa nhắn cho mình" while the app is closed
       // (widget-today D8). Recipients watching the chat were skipped above.

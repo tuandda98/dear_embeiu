@@ -1,5 +1,7 @@
 import '../l10n/app_localizations.dart';
+import '../models/decision.dart';
 import '../models/photo.dart';
+import '../utils/decision_suggester.dart' show decisionDisplayName;
 import '../widgets/mood_card.dart' show moodLabel;
 import '../widgets/today_constellation.dart';
 import 'daily_question_service.dart';
@@ -202,7 +204,11 @@ abstract final class HomeWidgetStatus {
 
   /// From a push handled in the background (D5b, D9: only the push's own
   /// data, no reads). Null = not a widget event, or not about today. Carries
-  /// `onlyIfNewer` so native keeps a newer line of the same day (D3).
+  /// `onlyIfNewer` so native keeps a newer line of the same day (D3), except
+  /// `partner_left`, which clears the line ([none]).
+  /// [sentAt] = `RemoteMessage.sentTime` (often null on iOS); the CF's
+  /// `data.sentAt` (epoch ms) wins over it. A push with no `date` and no send
+  /// time can't be proven to be today's → ignored (B2).
   static Map<String, String>? fromPush(
     Map<String, dynamic> data, {
     required AppLocalizations l10n,
@@ -210,15 +216,27 @@ abstract final class HomeWidgetStatus {
     DateTime? sentAt,
   }) {
     String v(String key) => '${data[key] ?? ''}'.trim();
+    if (v('type') == 'partner_left') {
+      // The partner left (CF notifyPartnerLeft, wakeClients): drop the line
+      // now, unconditionally (no onlyIfNewer). Not `state=empty`, which would
+      // also wipe the day count (B5).
+      return none(now);
+    }
+    final sentMs = int.tryParse(v('sentAt'));
+    final sent =
+        (sentMs != null && sentMs > 0
+                ? DateTime.fromMillisecondsSinceEpoch(sentMs)
+                : sentAt)
+            ?.toLocal();
     final date = v('date');
     if (date.isNotEmpty) {
       if (date != DailyQuestionService.dateKey(now)) {
         return null; // a push about another day (queued while offline, D9)
       }
-    } else if (sentAt != null && !_sameDay(sentAt.toLocal(), now)) {
+    } else if (sent == null || !_sameDay(sent, now)) {
       return null;
     }
-    final at = sentAt?.toLocal() ?? now;
+    final at = sent ?? now;
     final name = v('actorName').isEmpty
         ? l10n.reactionPartnerFallback
         : v('actorName');
@@ -237,7 +255,17 @@ abstract final class HomeWidgetStatus {
       case 'photo_posted':
         s = _status(l10n, photo, at, now, name: name);
       case 'decision':
-        s = _decision(l10n, v('kind'), v('result'), v('question'), at, now);
+        // A bank pick reads in THIS phone's language (B3), not the spinner's.
+        final kind = decisionKindFromString(v('kind'));
+        final result = kind == null
+            ? v('result')
+            : decisionDisplayName(
+                kind,
+                v('result'),
+                v('resultId'),
+                english: l10n.localeName.startsWith('en'),
+              );
+        s = _decision(l10n, v('kind'), result, v('question'), at, now);
     }
     return s == null ? null : {...s, 'onlyIfNewer': '1'};
   }
