@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dear Embeiu · widget-today · mockup bấm thử</title>
+<!-- Feature widget-today (design.md 2026-10-19). Tự chứa: không CDN, không font ngoài.
+     1 CSS px = 1pt (iOS) / 1dp (Android); nút "2×" phóng cả khung để soi chi tiết. -->
+<style>
+  :root { --navy:#1A1A2E; --blush:#FF8FA3; --rose:#FF6B9D; --lav:#A78BFA; --deep:#E63956; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:#f4eef3; color:var(--navy); }
+  header { padding:16px 20px 4px; }
+  header h1 { font-size:20px; margin:0 0 4px; }
+  header p { margin:2px 0; font-size:13px; color:#555; max-width:900px; }
+  #controls { display:flex; flex-wrap:wrap; gap:10px 18px; padding:10px 20px; position:sticky; top:0; background:#f4eef3ee; z-index:5; border-bottom:1px solid #e3d6df; }
+  .group { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+  .group > span { font-size:12px; font-weight:600; color:#6b5a66; margin-right:2px; }
+  .group button { font:inherit; font-size:12px; border:1px solid #d9c6d3; background:#fff; color:var(--navy); padding:5px 9px; border-radius:999px; cursor:pointer; }
+  .group button.on { background:var(--navy); color:#fff; border-color:var(--navy); }
+  #stageWrap { padding:18px 20px; overflow:auto; }
+  #stage { transform-origin: top left; display:flex; gap:28px; align-items:flex-start; width:max-content; }
+  .phone { border-radius:44px; padding:10px; background:#111; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+  .phone .label { color:#bbb; font-size:11px; text-align:center; padding:2px 0 6px; font-family:system-ui,sans-serif; }
+  .screen { border-radius:36px; padding:52px 18px 28px; display:flex; flex-direction:column; gap:22px; align-items:flex-start; position:relative; overflow:hidden;
+    background: radial-gradient(circle at 20% 15%, #f7b9c8 0, transparent 45%), radial-gradient(circle at 85% 70%, #b9a6f3 0, transparent 50%), linear-gradient(170deg,#e9a6bf,#a98ad6 60%,#6f6fb8); }
+  .screen.ios { width:393px; padding-left:27px; padding-right:27px; }
+  .screen.and { width:412px; border-radius:28px; }
+  .icons { display:flex; gap:26px; }
+  .icon { width:60px; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.4); }
+  .icon i { display:block; width:60px; height:60px; border-radius:14px; background:rgba(255,255,255,.55); }
+  .and .icon i { border-radius:50%; width:52px; height:52px; }
+
+  /* ---------- widget ---------- */
+  .w { position:relative; overflow:hidden; color:#fff; flex:none; }
+  .w.ios { border-radius:22px; font-family: ui-rounded, "SF Pro Rounded", "Quicksand", system-ui, sans-serif; }
+  .w.and { border-radius:28px; font-family: Roboto, "Helvetica Neue", Arial, sans-serif; }
+  .layer { position:absolute; inset:0; }
+  .night { background: linear-gradient(160deg,#1A1A2E 0%,#241F45 55%,#352A5E 100%); }
+  .glow { position:absolute; border-radius:50%; filter:blur(30px); }
+  .star { position:absolute; border-radius:50%; background:#fff; }
+  .photoDark { background: radial-gradient(circle at 30% 35%, #f6c89f 0, transparent 38%), radial-gradient(circle at 75% 30%, #9fd0e8 0, transparent 30%), linear-gradient(170deg,#7a4b6b,#c77d6e 50%,#3b2a3f); }
+  .photoBright { background: radial-gradient(circle at 70% 30%, #fff 0, transparent 50%), linear-gradient(170deg,#ffffff,#f9f3ec 60%,#f1e8df); }
+  .scrim { background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.60)); }
+  .tintBg { background: rgba(38,28,22,.62); backdrop-filter: blur(20px); }
+  .clearBg { background: rgba(255,255,255,.12); backdrop-filter: blur(16px); }
+  .content { position:absolute; inset:0; }
+  .col { display:flex; flex-direction:column; height:100%; min-width:0; }
+  .row { display:flex; height:100%; }
+  .spacer { flex:1 1 auto; min-height:4px; }
+  .spacer0 { flex:1 1 auto; min-height:0; }
+  .chip { display:inline-flex; align-items:center; gap:5px; height:20px; padding:0 8px; border-radius:999px; font-weight:700; font-size:10px; letter-spacing:1px; text-transform:uppercase; white-space:nowrap; max-width:100%; overflow:hidden; align-self:flex-start; flex:none; }
+  .chip .nm { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .chip svg { flex:none; }
+  .num { font-weight:700; letter-spacing:-1px; white-space:nowrap; overflow:hidden; flex:none; text-shadow:0 1px 8px rgba(0,0,0,.30); }
+  .cap { font-weight:600; opacity:.92; margin-top:6px; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; text-shadow:0 1px 6px rgba(0,0,0,.28); flex:none; }
+  .and .cap { font-weight:500; }
+  .ms { font-weight:700; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; text-shadow:0 1px 6px rgba(0,0,0,.28); flex:none; }
+  .bar { height:6px; border-radius:999px; margin-top:8px; position:relative; flex:none; }
+  .bar b { position:absolute; left:0; top:0; bottom:0; border-radius:999px; }
+  .left { font-weight:600; opacity:.92; margin-top:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 6px rgba(0,0,0,.28); flex:none; }
+  .since { font-weight:500; opacity:.84; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; text-shadow:0 1px 6px rgba(0,0,0,.28); flex:none; }
+  .divider { width:1px; margin:2px 14px; flex:none; }
+  /* status line */
+  .st { font-weight:700; color:#fff; text-shadow:0 1px 8px rgba(0,0,0,.30); flex:none; overflow:hidden; }
+  .st.one { white-space:nowrap; text-overflow:ellipsis; }
+  .st.multi { display:-webkit-box; -webkit-box-orient:vertical; }
+  .dot { display:inline-block; width:6px; height:6px; border-radius:50%; vertical-align:middle; margin-right:4px; position:relative; top:-1px; }
+  .empty-text { font-weight:700; font-size:14px; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; text-shadow:0 1px 8px rgba(0,0,0,.3); }
+
+  #readout { padding:4px 20px 30px; font-size:12px; }
+  #readout table { border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }
+  #readout td, #readout th { padding:6px 10px; border-bottom:1px solid #f0e6ec; text-align:left; vertical-align:top; }
+  #readout th { background:#faf4f8; font-weight:600; }
+  .warn { color:#b3261e; font-weight:600; }
+  .ok { color:#1b7a3c; font-weight:600; }
+  .note { color:#6b5a66; font-size:12px; margin-top:8px; max-width:960px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Widget "Hôm nay" · dòng trạng thái "người ấy vừa…"</h1>
+  <p>Mockup của <code>project/features/widget-today/design.md</code>. Bấm các nút để đổi. 1 px = 1 pt (iOS) / 1 dp (Android), bật "2×" để soi.</p>
+  <p>Chữ ở đây dùng font hệ thống: iOS mô phỏng Quicksand bằng font tròn của máy (ui-rounded), Android dùng Roboto/Arial. Vì vậy điểm cắt "…" có thể lệch 1–2 ký tự so với máy thật. Số đo chuẩn ở design.md §5.7.</p>
+</header>
+<section id="controls"></section>
+<div id="stageWrap"><div id="stage"></div></div>
+<section id="readout"></section>
+
+<script>
+const S = { size:'both', bg:'night', lang:'vi', name:'short', session:'couple', kind:'question_partner', mood:'stressed', tint:'full', ax:'1', copy:'d2', zoom:'1' };
+// Preset qua query, vd ?bg=photoBright&kind=mood&name=long — để PO gửi link đúng cảnh.
+new URLSearchParams(location.search).forEach((v, k) => { if (k in S) S[k] = v; });
+
+const GROUPS = [
+  ['size','Cỡ',[['both','Cả hai'],['small','Nhỏ'],['medium','Vừa']]],
+  ['bg','Nền',[['night','Trời đêm (M2)'],['photoDark','Ảnh (P3)'],['photoBright','Ảnh trắng tinh (xấu nhất)']]],
+  ['lang','Ngôn ngữ',[['vi','VI'],['en','EN']]],
+  ['name','Tên / nội dung',[['short','Ngắn (Thảo)'],['long','Dài (Nguyễn Hoàng, kết quả 40 ký tự)']]],
+  ['session','Phiên',[['couple','Có couple'],['waiting','Chờ người ấy'],['empty','Trống']]],
+  ['kind','Trạng thái',[['none','Không có'],['question_partner','question_partner'],['question_both','question_both'],['question_mine','question_mine'],['mood','mood'],['message','message'],['photo','photo'],['decision_eat','decision_eat'],['decision_go','decision_go'],['decision_custom','decision_custom']]],
+  ['mood','Tâm trạng',[['happy','vui'],['loved','hạnh phúc'],['missing','nhớ'],['calm','bình yên'],['meh','bình thường'],['tired','mệt'],['sad','buồn'],['stressed','căng thẳng']]],
+  ['tint','iOS hiển thị',[['full','Màu đầy đủ'],['tinted','Tinted (iOS 18/26)'],['clear','Clear (iOS 26)']]],
+  ['ax','Cỡ chữ',[['1','Mặc định'],['xxxl','Lớn (iOS xxxLarge · Android 130%)'],['ax5','Lớn nhất (iOS AX5 · Android 200%)']]],
+  ['copy','Copy bản nhỏ',[['d2','D2 (đã chốt)'],['short','Rút gọn (đề xuất, câu hỏi 1)']]],
+  ['zoom','Thu phóng',[['1','1×'],['2','2×']]],
+];
+
+const MOODS = {
+  vi:{happy:'vui',loved:'hạnh phúc',missing:'nhớ',calm:'bình yên',meh:'bình thường',tired:'mệt',sad:'buồn',stressed:'căng thẳng'},
+  en:{happy:'happy',loved:'loved',missing:'missing you',calm:'calm',meh:'meh',tired:'tired',sad:'sad',stressed:'stressed'},
+};
+const T = {
+  vi:{ me:'Tuấn', days:'1.247', cap:'ngày bên nhau', ms:'Cột mốc 1.500 ngày', left:'còn 253 ngày', since:'Bắt đầu từ 14 thg 5, 2023', emptyChip:'DEAR EMBEIU', emptyText:'Chạm để bắt đầu đếm ngày yêu',
+    st:{ question_partner:v=>`${v.n} đã trả lời, đến lượt mình`, question_both:()=>'Cả hai đã trả lời hôm nay', question_mine:()=>'Câu hỏi hôm nay đang chờ mình', mood:v=>`${v.n} hôm nay: ${v.m}`, message:v=>`${v.n} vừa nhắn cho mình`, photo:v=>`${v.n} vừa đăng ảnh mới`, decision_eat:v=>`Hôm nay ăn: ${v.eat}`, decision_go:v=>`Hôm nay đi: ${v.go}`, decision_custom:v=>`${v.q}: ${v.r}` },
+    sh:{ question_partner:v=>`${v.n} đã trả lời`, question_both:()=>'Cả hai đã trả lời', question_mine:()=>'Câu hỏi đang chờ mình', mood:v=>`${v.n}: ${v.m}`, message:v=>`${v.n} vừa nhắn`, photo:v=>`${v.n} đăng ảnh mới`, decision_eat:v=>`Ăn: ${v.eat}`, decision_go:v=>`Đi: ${v.go}`, decision_custom:v=>`${v.q}: ${v.r}` } },
+  en:{ me:'Tuấn', days:'1,247', cap:'days together', ms:'Milestone: 1,500 days', left:'253 days left', since:'Started on May 14, 2023', emptyChip:'DEAR EMBEIU', emptyText:'Tap to start counting your days together',
+    st:{ question_partner:v=>`${v.n} answered — your turn`, question_both:()=>'You both answered today', question_mine:()=>"Today's question is waiting for you", mood:v=>`${v.n} today: ${v.m}`, message:v=>`${v.n} just messaged you`, photo:v=>`${v.n} just added a photo`, decision_eat:v=>`Today's meal: ${v.eat}`, decision_go:v=>`Today's plan: ${v.go}`, decision_custom:v=>`${v.q}: ${v.r}` },
+    sh:{ question_partner:v=>`${v.n} answered`, question_both:()=>'You both answered', question_mine:()=>'Your question is waiting', mood:v=>`${v.n}: ${v.m}`, message:v=>`${v.n} messaged you`, photo:v=>`${v.n} added a photo`, decision_eat:v=>`Eat: ${v.eat}`, decision_go:v=>`Go: ${v.go}`, decision_custom:v=>`${v.q}: ${v.r}` } },
+};
+
+function vars(){
+  const long = S.name === 'long';
+  return { n: long ? 'Nguyễn Hoàng' : 'Thảo', m: MOODS[S.lang][S.mood],
+    eat: long ? 'Bún chả Hàng Mành ngõ 32 phố Hàng Bạc' : 'Bún chả',
+    go: long ? 'Hồ Tây đạp vịt rồi ăn kem Tràng Tiền' : 'Hồ Tây',
+    q: long ? 'Tối nay ai rửa bát và đổ rác?' : 'Ai rửa bát?', r: long ? 'Anh' : 'Anh' };
+}
+function statusText(small){
+  if (S.session !== 'couple' || S.kind === 'none') return '';
+  const t = T[S.lang]; const set = (small && S.copy === 'short') ? t.sh : t.st;
+  return set[S.kind](vars());
+}
+function partnerName(){ return S.name === 'long' ? 'Nguyễn Hoàng' : 'Thảo'; }
+
+// iOS Dynamic Type factor for 12pt-ish text; Android fontScale.
+function scale(plat){ return S.ax === '1' ? 1 : S.ax === 'xxxl' ? (plat === 'ios' ? 1.35 : 1.3) : (plat === 'ios' ? 3.1 : 2.0); }
+
+const heart = c => `<svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true"><path fill="${c}" d="M12 21s-7.5-4.6-10-9.2C.3 8.5 2.2 4.5 6 4.5c2.1 0 3.4 1.1 4.2 2.3h.1l.4-.5c.8-1 2-1.8 3.8-1.8 3.8 0 5.7 4 4 7.3C19.5 16.4 12 21 12 21z"/></svg>`;
+const constellation = `<svg width="52" height="48" viewBox="0 0 52 48" aria-hidden="true" style="position:absolute;top:12px;right:14px">
+  <path d="M26 44 L8 26 L10 10 L26 16 L42 10 L44 26 Z" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
+  <circle cx="26" cy="44" r="2.6" fill="#fff"/><circle cx="8" cy="26" r="2.2" fill="#fff"/><circle cx="10" cy="10" r="2.6" fill="#A78BFA"/>
+  <circle cx="26" cy="16" r="2" fill="#fff"/><circle cx="42" cy="10" r="2.6" fill="#FF8FA3"/><circle cx="44" cy="26" r="2.2" fill="#fff"/></svg>`;
+
+function background(plat, medium, w, h){
+  const tinted = plat === 'ios' && S.tint !== 'full';
+  if (tinted) return `<div class="layer ${S.tint === 'tinted' ? 'tintBg' : 'clearBg'}"></div>`;
+  if (S.session === 'empty' || S.bg === 'night') {
+    const stars = [[.19,.38,2,.7],[.41,.22,1.5,.6],[.79,.47,1.5,.6],[.13,.63,1.5,.6],[.55,.72,1.5,.5]]
+      .map(([x,y,r,a]) => `<i class="star" style="left:${x*w-r}px;top:${y*h-r}px;width:${2*r}px;height:${2*r}px;opacity:${a}"></i>`).join('');
+    const g1 = medium ? 190 : 140, g2 = medium ? 170 : 130;
+    return `<div class="layer night"></div>
+      <i class="glow" style="width:${g1}px;height:${g1}px;right:-50px;top:-60px;background:rgba(167,139,250,.35)"></i>
+      <i class="glow" style="width:${g2}px;height:${g2}px;left:-50px;bottom:-55px;background:rgba(255,107,157,.28)"></i>
+      ${stars}${constellation}`;
+  }
+  return `<div class="layer ${S.bg}"></div><div class="layer scrim"></div>`;
+}
+
+// Colours per mode: dark = night sky, light = over photo, tint = tinted/clear.
+function palette(plat){
+  if (plat === 'ios' && S.tint === 'tinted') return { mode:'tint', ink:'#F4C27A', chipBg:'rgba(244,194,122,.22)', chipInk:'#F4C27A', heart:'#F4C27A', dot:'#F4C27A', bar:'rgba(244,194,122,.22)', fill:'#F4C27A', div:'rgba(244,194,122,.25)' };
+  if (plat === 'ios' && S.tint === 'clear') return { mode:'tint', ink:'rgba(255,255,255,.92)', chipBg:'rgba(255,255,255,.22)', chipInk:'#fff', heart:'#fff', dot:'#fff', bar:'rgba(255,255,255,.22)', fill:'#fff', div:'rgba(255,255,255,.25)' };
+  if (S.session === 'empty' || S.bg === 'night') return { mode:'dark', ink:'#fff', chipBg:'rgba(255,255,255,.14)', chipBorder:'rgba(255,255,255,.22)', chipInk:'#fff', heart:'#FF8FA3', dot:'#FF8FA3', bar:'rgba(255,255,255,.16)', fill:'#A78BFA', div:'rgba(255,255,255,.14)' };
+  return { mode:'light', ink:'#fff', chipBg:'rgba(255,255,255,.84)', chipInk:'#1A1A2E', heart:'#E63956', dot:'#fff', bar:'rgba(255,255,255,.26)', fill:'rgba(255,255,255,.96)', div:'rgba(255,255,255,.28)' };
+}
+
+function chip(plat, medium, P, emptyChip){
+  const style = `background:${P.chipBg};color:${P.chipInk};${P.chipBorder ? `box-shadow:inset 0 0 0 1px ${P.chipBorder};` : ''}`;
+  if (emptyChip) return `<div class="chip" style="${style}">${heart(P.mode === 'light' ? '#FF8FA3' : P.heart)}<span class="nm">${emptyChip}</span></div>`;
+  const mw = plat === 'and' ? `max-width:${medium ? 64 : 48}px` : '';
+  return `<div class="chip" style="${style}"><span class="nm" style="${mw}">${T[S.lang].me}</span>${heart(P.heart)}<span class="nm" style="${mw}">${partnerName()}</span></div>`;
+}
+
+const ROWS = [];
+function widget(plat, medium){
+  const W = plat === 'ios' ? (medium ? 338 : 158) : (medium ? 328 : 152);
+  const H = plat === 'ios' ? 158 : 152;
+  const pad = 16;
+  const P = palette(plat);
+  const s = scale(plat);
+  const t = T[S.lang];
+  const id = `${plat}-${medium ? 'm' : 's'}`;
+  let inner;
+  if (S.session === 'empty') {
+    inner = `<div class="col">${chip(plat, medium, P, t.emptyChip)}<div class="spacer"></div><div class="empty-text" style="color:${P.ink};font-size:${Math.min(14*s, 14*1.35)}px;line-height:1.25">${t.emptyText}</div></div>`;
+  } else {
+    const st = statusText(!medium);
+    const has = !!st;
+    // Text scale caps (design §7.2): with a status the caption + status stop at xxxLarge (iOS);
+    // Android small status sits in a fixed 16dp box (autosize), so it cannot grow.
+    const capS = (has && plat === 'ios') ? Math.min(s, 1.35) : Math.min(s, plat === 'ios' ? 1.35 : s);
+    const capLines = has && !medium ? 1 : 2;
+    const numH = plat === 'ios' ? 50 : 46;
+    const left = `<div class="col" ${medium ? `style="${plat === 'ios' ? 'width:150px;flex:none' : 'flex:1 1 0'}"` : ''}>
+        ${chip(plat, medium, P)}
+        <div class="spacer"></div>
+        <div class="num" data-fit="num" style="color:${P.ink};font-size:40px;line-height:${numH}px;height:${numH}px">${t.days}</div>
+        <div class="cap" style="color:${P.ink};font-size:${12*capS}px;line-height:1.25;-webkit-line-clamp:${capLines}">${t.cap}</div>
+        ${has && !medium ? statusEl(plat, false, st, P, s) : ''}
+      </div>`;
+    if (!medium) inner = left;
+    else {
+      const darkPad = (P.mode === 'dark') ? 48 : 0;
+      inner = `<div class="row">${left}
+        <div class="divider" style="background:${P.div}"></div>
+        <div class="col" style="flex:1 1 0">
+          <div class="ms" style="color:${P.ink};font-size:${12*Math.min(s,1.35)}px;line-height:1.25;padding-right:${darkPad}px">${t.ms}</div>
+          <div class="bar" style="background:${P.bar}"><b style="width:83%;background:${P.fill}"></b></div>
+          <div class="left" style="color:${P.ink};font-size:${12*Math.min(s,1.35)}px;line-height:1.25">${t.left}</div>
+          <div class="spacer0"></div>
+          ${has ? statusEl(plat, true, st, P, s) : `<div class="since" style="color:${P.ink};font-size:${11*Math.min(s,1.35)}px;line-height:1.25">${t.since}</div>`}
+        </div></div>`;
+    }
+  }
+  return `<div class="w ${plat}" id="${id}" style="width:${W}px;height:${H}px" role="img" aria-label="${id}">
+      ${background(plat, medium, W, H)}
+      <div class="content" style="padding:${pad}px">${inner}</div></div>`;
+}
+
+function statusEl(plat, medium, text, P, s){
+  // Spec: iOS small 12 → 10 (minimumScaleFactor .84), iOS medium 14 → 12, 2 lines;
+  // Android small autosize 10–12sp in a 16dp box; Android medium 14sp fixed, 2 lines (1 at ≥130%).
+  let max, min, lines, box = '';
+  if (plat === 'ios') {
+    const c = Math.min(s, 1.35);
+    if (medium) { max = 14*c; min = 12*c; lines = 2; } else { max = 12*c; min = 10*c; lines = 1; }
+  } else {
+    if (medium) { max = 14*s; min = 14*s; lines = s >= 1.3 ? 1 : 2; }
+    else { max = 12*Math.min(s, 1.1); min = 10; lines = 1; box = 'height:16px;line-height:16px;'; }
+  }
+  const cls = lines === 1 ? 'one' : 'multi';
+  const lh = box ? '' : 'line-height:1.25;';
+  return `<div class="st ${cls}" data-fit="st" data-max="${max}" data-min="${min}" data-lines="${lines}" style="${box}${lh}color:${P.ink};font-size:${max}px;margin-top:${medium ? 0 : 6}px;${lines > 1 ? `-webkit-line-clamp:${lines};` : ''}" title="${text}"><span class="dot" style="background:${P.dot}"></span>${text}</div>`;
+}
+
+function fitAll(){
+  ROWS.length = 0;
+  document.querySelectorAll('.w').forEach(w => {
+    const num = w.querySelector('[data-fit=num]');
+    if (num) { let f = 40; num.style.fontSize = f + 'px'; while (num.scrollWidth > num.clientWidth + .5 && f > 24) { f -= .5; num.style.fontSize = f + 'px'; } }
+    const st = w.querySelector('[data-fit=st]');
+    const name = { 'ios-s':'iOS nhỏ', 'ios-m':'iOS vừa', 'and-s':'Android 2×2', 'and-m':'Android 4×2' }[w.id];
+    if (!st) { ROWS.push([name, '—', 'không có dòng trạng thái (trùng 1.9.1)', '']); return; }
+    const max = +st.dataset.max, min = +st.dataset.min, lines = +st.dataset.lines;
+    const over = () => lines === 1 ? st.scrollWidth > st.clientWidth + .5 : st.scrollHeight > st.clientHeight + 1;
+    let f = max; st.style.fontSize = f + 'px';
+    while (over() && f > min) { f = Math.max(min, f - .5); st.style.fontSize = f + 'px'; }
+    ROWS.push([name, `${f.toFixed(1)} px`, over() ? '<span class="warn">cắt "…"</span>' : '<span class="ok">đủ chữ</span>', st.title]);
+  });
+}
+
+function render(){
+  const ios = [], and = [];
+  if (S.size !== 'medium') { ios.push(widget('ios', false)); and.push(widget('and', false)); }
+  if (S.size !== 'small') { ios.push(widget('ios', true)); and.push(widget('and', true)); }
+  const icons = `<div class="icons">${['Ảnh','Lịch','Nhạc','Bản đồ'].map(n => `<div class="icon"><i></i>${n}</div>`).join('')}</div>`;
+  const stage = document.getElementById('stage');
+  stage.innerHTML = `
+    <div class="phone"><div class="label">iPhone 393pt · ${S.tint === 'full' ? 'màu đầy đủ' : S.tint}</div><div class="screen ios">${ios.join('')}${icons}</div></div>
+    <div class="phone" style="border-radius:34px"><div class="label">Android 412dp${S.tint !== 'full' ? ' · (Android không có tinted)' : ''}</div><div class="screen and">${and.join('')}${icons}</div></div>`;
+  fitAll();
+  const z = +S.zoom;
+  stage.style.transform = `scale(${z})`;
+  const wrap = document.getElementById('stageWrap');
+  wrap.style.height = (stage.offsetHeight * z + 36) + 'px';
+  document.getElementById('readout').innerHTML = `
+    <table><tr><th>Bố cục</th><th>Cỡ chữ trạng thái thực dùng</th><th>Kết quả</th><th>Câu đầy đủ (VoiceOver/TalkBack đọc)</th></tr>
+    ${ROWS.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</table>
+    <p class="note">Luật: nhỏ 1 dòng (iOS 12→10, Android autosize 10–12 trong ô 16dp) · vừa ≤2 dòng ở đáy cột phải, thay "Bắt đầu từ…" (iOS 14→12, Android 14 cố định, 1 dòng khi chữ ≥130%). Có trạng thái thì iOS chặn chú thích + trạng thái ở xxxLarge. Mock không mô phỏng AX5 của phần 1.9.1 (chú thích khi không có trạng thái), phần đó đã smoke PASS trên máy thật. Màu tint trong mock là một tint giả (#F4C27A).</p>`;
+  document.querySelectorAll('#controls button').forEach(b => b.classList.toggle('on', S[b.dataset.k] === b.dataset.v));
+}
+
+document.getElementById('controls').innerHTML = GROUPS.map(([k, label, opts]) =>
+  `<div class="group"><span>${label}</span>${opts.map(([v, l]) => `<button data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`).join('');
+document.getElementById('controls').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S[b.dataset.k] = b.dataset.v;
+  if (b.dataset.k === 'mood' && S.kind !== 'mood') S.kind = 'mood';
+  render();
+});
+window.addEventListener('load', render);
+render();
+</script>
+</body>
+</html>
