@@ -52,3 +52,12 @@
 9. Tinted + AX5 (iOS), cỡ chữ 200% (Android), tên 12 ký tự + "hôm nay: căng thẳng".
 10. Android không có dòng: so pixel với 1.9.1.
 11. Máy cài 1.10.1 nhận đủ 5 loại push: không crash, không banner thừa.
+
+## Vòng 2 — 2026-10-20 (Tester, `c7f2a01`, vá ở `f0096a3`) + review toàn nhánh
+
+**Kết luận: PASS code-level** — 0 critical · 0 major · 1 minor mới. analyze 0 · flutter test 632 / 3 skip · rules 392 + CF 19/19 · DayMath 32 · JUnit ✓ · apk debug ✓ (plugin local build được).
+
+- B1, B2, B3, B5, B6, B7: **FIXED**. B2 xác nhận: bỏ push iOS thiếu `sentAt` chỉ ảnh hưởng trước khi PROD deploy CF (CF chat/ảnh trên PROD chưa wake nên iOS vốn không chạy handler nền). B4: phần Dev xong, phần PO xong ở vòng này.
+- **WT-R2-1 (minor)** — `partner_left` không mang mốc thời gian: push tới trễ/đảo thứ tự có thể xoá dòng của couple mới, hoặc để push chat cũ của người đã rời hiện lại. Gợi ý: CF gửi `sentAt`, client xoá chỉ khi dòng đang lưu cũ hơn mốc đó.
+- Review toàn nhánh: không regression; kênh widget Android trong plugin đăng ký cả engine chính lẫn engine nền, đủ 4 method, prefs khớp `WidgetStore`.
+- Smoke thêm: (12) đổi ngôn ngữ khi Home mở → dòng đổi ≤1s; (13) B rời lúc app A tắt → dòng mất, số ngày còn; (14) iOS push chat CF mới → ghi `sentTime` có null không.

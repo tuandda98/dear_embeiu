@@ -6,7 +6,7 @@
 
 - **Feature:** decision-wheel
 - **Ưu tiên:** P0 (mục tiêu "mở app mỗi ngày", user chốt 2026-10-19)
-- **Trạng thái:** 🧪 Test — Dev xong + gộp `feature/daily-open` (2026-10-19), Tester vòng 1 FAIL (1 major cooldown + 7 minor, đang vá), chờ smoke 2 máy thật
+- **Trạng thái:** 🧪 Test — Dev xong + gộp `feature/daily-open` (2026-10-19), Tester vòng 2 PASS code-level (2026-10-20), chờ smoke 2 máy thật
 - **Tạo ngày:** 2026-10-19
 - **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · [dish-bank.md](dish-bank.md) · [activity-bank.md](activity-bank.md) · widget hiện kết quả ở [`../widget-today/`](../widget-today/overview.md) · bối cảnh dự án [`../../../CLAUDE.md`](../../../CLAUDE.md)
 
@@ -73,7 +73,7 @@ couples/{coupleId}/decisions/{id}
   - **Tự nhập:** pool = đúng các lựa chọn đã gõ; không lọc, không trọng số.
   - Ngẫu nhiên thật (`Random()`), trong một phiên quay không lặp lại mục vừa ra cho tới khi hết pool.
 
-- **D5 — Push + inbox qua 1 CF `notifyDecision`** (onWrite `decisions/{id}`), copy localize vi/en theo `languageCode` thiết bị, gửi cho người **không phải** `byUserId`:
+- **D5 — Push + inbox qua 1 CF `notifyDecision`** (⟪cooldown đổi 2026-10-20 sau BUG-1: theo NGƯỜI QUAY — chỉ chặn push khi cùng người quay lại trong 10'; CF ghi `lastPushAt` + `lastPushBy`⟫) (onWrite `decisions/{id}`), copy localize vi/en theo `languageCode` thiết bị, gửi cho người **không phải** `byUserId`:
   - Create: eat *"{name} quay ra: hôm nay ăn {result}"* / *"{name} spun: {result} today"* · go *"{name} quay ra: {result}"* / *"{name} spun: let's {result}"* (D18) · custom *"{name} quay \"{question}\": {result}"* / *"{name} spun \"{question}\": {result}"*.
   - Update có `result` đổi: *"{name} quay lại: {result}"* / *"{name} re-spun: {result}"*.
   - Inbox `type: 'decision'` `{kind, question, result, actorName, date}`; tap → Home cuộn thẻ. Push kèm **`wakeClients: true`** + `data.kind`, `data.result`, `data.date` để app nền cập nhật widget (widget-today) và huỷ nhắc 16:30 khi `kind == eat`.

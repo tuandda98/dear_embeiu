@@ -43,3 +43,13 @@
 7. Reduce Motion → hiện ngay; chạm khi quay → nhảy kết quả.
 8. Chụp lại bằng camera → caption "Bún chả 🍜", ảnh lên Gallery; nút Chụp hình Gallery vẫn chạy.
 9. Máy 1.10.x nhận push `decision` → tap về Home, inbox câu chung.
+
+## Vòng 2 — 2026-10-20 (Tester, `c7f2a01`, vá ở `41b2295`) + review toàn nhánh
+
+**Kết luận: PASS code-level** — 0 critical · 0 major · 2 minor mới. analyze 0 · flutter test 632 / 3 skip · rules 392 + CF 19/19 · apk debug ✓.
+
+- BUG-1…8 + NIT-9: **FIXED** (verify từng cái). BUG-1: không vòng lặp onWrite; một người quay một mình ≤1 push/10'/doc, hai người thay phiên thì mỗi lần đổi người = 1 push tới đúng người vừa bấm Chốt (chấp nhận). BUG-5: `isDecisionOption(opts, i)` i=0..11 đúng với 2..12, rỗng, không phải string. BUG-8: "Thử lại" có thể chờ ~20s mới báo lỗi (chấp nhận).
+- **DW-R2-1 (minor)** — ô nhập đếm grapheme (emoji = 1), service/rules đếm khác → Nhập tay có emoji dài 40 kẹt "Thử lại"; ô lựa chọn bỏ im lặng.
+- **DW-R2-2 (minor)** — quay lại trong cooldown không gửi gì kể cả wake → widget người ấy giữ kết quả cũ.
+- Review toàn nhánh: không regression (session_resolver, listener, Gallery tách hàm, MainActivity/plugin, SceneDelegate, ARB, văn phong, không thêm quyền).
+- Smoke thêm: (10) B quay lại sau 1' → A có banner; (11) B quay thêm trong 10' → A chỉ inbox; (12) tắt mạng lúc chốt rồi Thử lại → `spins` +1; (13) Nhập tay có emoji dài 40.

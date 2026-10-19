@@ -5,7 +5,7 @@
 
 - **Feature:** widget-today
 - **Ưu tiên:** P0 (mục tiêu "mở app mỗi ngày", user chốt 2026-10-19)
-- **Trạng thái:** 🧪 Test — Dev xong + gộp `feature/daily-open` (2026-10-19), Tester vòng 1 PASS code-level (7 minor, đang vá), chờ smoke máy thật
+- **Trạng thái:** 🧪 Test — Dev xong + gộp `feature/daily-open` (2026-10-19), Tester vòng 2 PASS code-level (2026-10-20), chờ smoke máy thật
 - **Tạo ngày:** 2026-10-19
 - **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · nền tảng [`../home-widget/`](../home-widget/overview.md) · loại `decision_*` phụ thuộc [`../decision-wheel/`](../decision-wheel/overview.md) · bối cảnh dự án [`../../../CLAUDE.md`](../../../CLAUDE.md)
 
