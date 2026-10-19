@@ -712,9 +712,19 @@ service cloud.firestore {
       // re-spinning bumps `spins`), custom questions an auto id. Members read;
       // the creator writes the whole doc once, then any member may re-spin it
       // (only result/resultId/spins/byUserId/updatedAt move, spins + 1 exactly).
-      // `lastPushAt` (push cooldown) is written by CF notifyDecision only — no
-      // client path lists it. Optional keys go through `.get(..)` (backward
-      // compat). Brand-new collection ⇒ fully ADDITIVE. No delete.
+      // `lastPushAt` + `lastPushBy` (push cooldown per spinner) are written by
+      // CF notifyDecision only — no client path lists them (create `hasOnly`
+      // and update `affectedKeys().hasOnly` both leave them out). Optional
+      // keys go through `.get(..)` (backward compat). Brand-new collection ⇒
+      // fully ADDITIVE. No delete.
+      // One custom option: a 1..40-char string. Rules have no loops, so the
+      // create rule calls this for index 0..11 (past the end ⇒ true, `||`
+      // short-circuits before the out-of-range read).
+      function isDecisionOption(opts, i) {
+        return opts.size() <= i
+          || (opts[i] is string && opts[i].size() > 0 && opts[i].size() <= 40);
+      }
+
       function isValidDecisionCreate(decisionId) {
         let d = request.resource.data;
         return d.keys().hasOnly(['kind', 'date', 'question', 'options',
@@ -744,7 +754,21 @@ service cloud.firestore {
             ? (d.get('options', []).size() >= 2
               && d.get('options', []).size() <= 12
               && d.get('options', []).join('').size() <= 480
-              && d.result in d.get('options', []))
+              && isDecisionOption(d.get('options', []), 0)
+              && isDecisionOption(d.get('options', []), 1)
+              && isDecisionOption(d.get('options', []), 2)
+              && isDecisionOption(d.get('options', []), 3)
+              && isDecisionOption(d.get('options', []), 4)
+              && isDecisionOption(d.get('options', []), 5)
+              && isDecisionOption(d.get('options', []), 6)
+              && isDecisionOption(d.get('options', []), 7)
+              && isDecisionOption(d.get('options', []), 8)
+              && isDecisionOption(d.get('options', []), 9)
+              && isDecisionOption(d.get('options', []), 10)
+              && isDecisionOption(d.get('options', []), 11)
+              && d.result in d.get('options', [])
+              // A custom doc must not squat today's food / plan id.
+              && !decisionId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_(eat|go)$'))
             : (decisionId == d.date + '_' + d.kind
               && d.get('options', []).size() == 0));
       }

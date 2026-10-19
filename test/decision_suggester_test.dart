@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:dear_embeiu/data/activity_bank.dart';
 import 'package:dear_embeiu/data/dish_bank.dart';
 import 'package:dear_embeiu/models/decision.dart';
+import 'package:dear_embeiu/providers/decision_provider.dart';
 import 'package:dear_embeiu/services/push_notification_service.dart';
 import 'package:dear_embeiu/utils/decision_suggester.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -343,5 +344,17 @@ void main() {
       }, now),
       isFalse,
     );
+  });
+
+  test('top 5 groups a bank pick by resultId across languages (BUG-6)', () {
+    final rows = DecisionProvider.topOf([
+      pick(DecisionKind.eat, '2026-10-01', 'Thịt kho tàu trứng', resultId: 'thit_kho_tau'),
+      pick(DecisionKind.eat, '2026-10-02', 'Braised pork belly with eggs', resultId: 'thit_kho_tau'),
+      pick(DecisionKind.eat, '2026-10-03', 'Bún bò mẹ nấu'),
+      pick(DecisionKind.eat, '2026-10-04', 'bún bò  mẹ nấu'),
+      pick(DecisionKind.go, '2026-10-04', 'Đi cà phê', resultId: 'ca_phe'),
+    ], DecisionKind.eat);
+    expect(rows.map((r) => r.$2), [2, 2]);
+    expect(rows.map((r) => r.$1.resultId).toSet(), {'thit_kho_tau', ''});
   });
 }

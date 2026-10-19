@@ -2143,10 +2143,6 @@ class _AiQuestionsTileState extends State<_AiQuestionsTile> {
   }
 }
 
-/// One editable fire-time row for the daily-question nudge (multi-time,
-/// 2026-06-19): tap the row to change the time, tap ✕ to remove it (shown only
-/// when [onRemove] is non-null, i.e. more than one time remains). Soft rose
-/// surface so it groups with the switch above.
 /// "Nhắc chọn món" (feature decision-wheel, design E): same mold as the
 /// daily-question tile, ONE time (default 16:30), no ✕ / add row. Per device.
 class _DecisionReminderTile extends StatelessWidget {
@@ -2235,6 +2231,10 @@ class _DecisionReminderTile extends StatelessWidget {
   }
 }
 
+/// One editable fire-time row for the daily-question nudge (multi-time,
+/// 2026-06-19): tap the row to change the time, tap ✕ to remove it (shown only
+/// when [onRemove] is non-null, i.e. more than one time remains). Soft rose
+/// surface so it groups with the switch above.
 class _DailyQuestionTimeRow extends StatelessWidget {
   const _DailyQuestionTimeRow({
     required this.time,

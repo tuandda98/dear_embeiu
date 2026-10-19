@@ -338,7 +338,7 @@ test("N2 teardown: the couple's own code pointer is still removed", async () => 
 
 // ---- notifyDecision (feature decision-wheel, 2026-10-19) ---------------------
 
-function fakeDecision({lastPushMs = 0} = {}) {
+function fakeDecision({lastPushMs = 0, lastPushBy = ""} = {}) {
   const inbox = [];
   const pushes = [];
   const stamps = [];
@@ -352,7 +352,7 @@ function fakeDecision({lastPushMs = 0} = {}) {
       runTransaction: async (fn) => fn({
         get: async () => ({
           exists: true,
-          get: (k) => (k === "lastPushAt" ? lastPushMs : undefined),
+          get: (k) => ({lastPushAt: lastPushMs, lastPushBy})[k],
         }),
         update: (r, data) => stamps.push(Object.keys(data)),
       }),
@@ -389,10 +389,10 @@ test("decision create: inbox + wake push to the partner only, slot stamped", asy
   assert.strictEqual(f.pushes[0].en.body, "Thảo spun: Bún chả today");
   const d = f.pushes[0].data;
   assert.deepStrictEqual(
-    [d.type, d.kind, d.result, d.date, d.decisionId, d.actorName],
-    ["decision", "eat", "Bún chả", "2026-10-21", "2026-10-21_eat", "Thảo"],
+    [d.type, d.kind, d.result, d.resultId, d.date, d.decisionId, d.actorName],
+    ["decision", "eat", "Bún chả", "bun_cha", "2026-10-21", "2026-10-21_eat", "Thảo"],
   );
-  assert.deepStrictEqual(f.stamps, [["lastPushAt"]]);
+  assert.deepStrictEqual(f.stamps, [["lastPushAt", "lastPushBy"]]);
 });
 
 test("decision create by bob goes to alice", async () => {
@@ -402,9 +402,22 @@ test("decision create by bob goes to alice", async () => {
   assert.deepStrictEqual(f.inbox[0].ids, ["alice"]);
 });
 
-test("decision re-spin inside the 10-minute cooldown: inbox only", async () => {
-  const f = fakeDecision({lastPushMs: Date.now() - 2 * 60 * 1000});
+test("decision: alice locks in, bob re-spins within 10' → alice still gets a push", async () => {
+  const f = fakeDecision({lastPushMs: Date.now() - 2 * 60 * 1000, lastPushBy: "alice"});
   await f.process("C", "D", eatDoc(), eatDoc({result: "Lẩu Thái", byUserId: "bob", spins: 2}), f.ref);
+  assert.strictEqual(f.inbox.length, 1);
+  assert.strictEqual(f.inbox[0].payload.respin, true);
+  assert.strictEqual(f.pushes.length, 1);
+  assert.deepStrictEqual(f.pushes[0].ids, ["alice"]);
+  assert.deepStrictEqual(f.pushes[0].options, {wakeClients: true});
+  assert.strictEqual(f.pushes[0].vi.body, "Tuấn quay lại: Lẩu Thái");
+  assert.deepStrictEqual(f.stamps, [["lastPushAt", "lastPushBy"]]);
+});
+
+test("decision: bob re-spins a 2nd time within 10' of his own push → inbox only", async () => {
+  const f = fakeDecision({lastPushMs: Date.now() - 1 * 60 * 1000, lastPushBy: "bob"});
+  const prev = eatDoc({result: "Lẩu Thái", byUserId: "bob", spins: 2});
+  await f.process("C", "D", prev, eatDoc({result: "Phở", byUserId: "bob", spins: 3}), f.ref);
   assert.strictEqual(f.inbox.length, 1);
   assert.strictEqual(f.inbox[0].payload.respin, true);
   assert.strictEqual(f.pushes.length, 0);
@@ -412,7 +425,7 @@ test("decision re-spin inside the 10-minute cooldown: inbox only", async () => {
 });
 
 test("decision re-spin after the cooldown pushes the re-spin copy", async () => {
-  const f = fakeDecision({lastPushMs: Date.now() - 11 * 60 * 1000});
+  const f = fakeDecision({lastPushMs: Date.now() - 11 * 60 * 1000, lastPushBy: "bob"});
   await f.process("C", "D", eatDoc(), eatDoc({result: "Lẩu Thái", byUserId: "bob", spins: 2}), f.ref);
   assert.strictEqual(f.pushes.length, 1);
   assert.deepStrictEqual(f.pushes[0].ids, ["alice"]);

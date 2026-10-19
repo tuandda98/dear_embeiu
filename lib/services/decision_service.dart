@@ -46,6 +46,12 @@ class DecisionService {
 
   FirebaseFirestore get _db => _firestore ?? FirebaseFirestore.instance;
 
+  /// Transactions whose caller already got a timeout (doc path → result +
+  /// the still-running Future). `.timeout` does not cancel a transaction, so
+  /// it may still land once the network is back; the next commit of the same
+  /// doc ("Thử lại") waits for it instead of bumping `spins` a second time.
+  final Map<String, ({String result, Future<int> spins})> _timedOut = {};
+
   CollectionReference<Map<String, dynamic>> _collection(String coupleId) =>
       _db.collection('couples').doc(coupleId).collection('decisions');
 
@@ -114,8 +120,9 @@ class DecisionService {
   /// - a new custom pick: a plain `set` on an auto id, which Firestore queues
   ///   offline → [DecisionCommitOutcome.queued].
   ///
-  /// Returns the doc id written. Throws on failure.
-  Future<(String, DecisionCommitOutcome)> commit({
+  /// Returns the doc id written and the `spins` it now holds (> 1 = the
+  /// transaction bumped an existing doc). Throws on failure.
+  Future<(String, DecisionCommitOutcome, int)> commit({
     required String coupleId,
     required String uid,
     required DecisionKind kind,
@@ -153,47 +160,70 @@ class DecisionService {
       });
       try {
         await write.timeout(commitTimeout);
-        return (ref.id, DecisionCommitOutcome.saved);
+        return (ref.id, DecisionCommitOutcome.saved, 1);
       } on TimeoutException {
         // Offline: the write is in Firestore's queue and goes out later.
         unawaited(write.catchError((_) {}));
-        return (ref.id, DecisionCommitOutcome.queued);
+        return (ref.id, DecisionCommitOutcome.queued, 1);
       }
     }
 
     final ref = _collection(
       coupleId,
     ).doc(existingId ?? decisionDocId(kind, dateKey));
-    await _db
-        .runTransaction<void>((tx) async {
-          final snap = await tx.get(ref);
-          if (snap.exists) {
-            final spins = (snap.data()?['spins'] as num?)?.toInt() ?? 1;
-            tx.update(ref, <String, dynamic>{
-              'result': cleanResult,
-              'resultId': resultId,
-              'spins': spins + 1,
-              'byUserId': uid,
-              'updatedAt': FieldValue.serverTimestamp(),
-            });
-          } else {
-            tx.set(ref, <String, dynamic>{
-              'kind': kind.name,
-              'date': dateKey,
-              'question': question.trim(),
-              'options': options,
-              'filter': filter,
-              'result': cleanResult,
-              'resultId': resultId,
-              'spins': 1,
-              'byUserId': uid,
-              'createdBy': uid,
-              'createdAt': FieldValue.serverTimestamp(),
-              'updatedAt': FieldValue.serverTimestamp(),
-            });
-          }
-        })
-        .timeout(commitTimeout);
-    return (ref.id, DecisionCommitOutcome.saved);
+    final earlier = _timedOut.remove(ref.path);
+    if (earlier != null) {
+      try {
+        final spins = await earlier.spins.timeout(commitTimeout);
+        // It landed: same pick → done, no second write. Another pick → a
+        // real re-spin, written below.
+        if (earlier.result == cleanResult) {
+          return (ref.id, DecisionCommitOutcome.saved, spins);
+        }
+      } on TimeoutException {
+        _timedOut[ref.path] = earlier; // still offline, keep waiting on it
+        rethrow;
+      } catch (_) {
+        // The earlier one failed for good → write afresh.
+      }
+    }
+    final transaction = _db.runTransaction<int>((tx) async {
+      final snap = await tx.get(ref);
+      if (snap.exists) {
+        final spins = (snap.data()?['spins'] as num?)?.toInt() ?? 1;
+        tx.update(ref, <String, dynamic>{
+          'result': cleanResult,
+          'resultId': resultId,
+          'spins': spins + 1,
+          'byUserId': uid,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        return spins + 1;
+      } else {
+        tx.set(ref, <String, dynamic>{
+          'kind': kind.name,
+          'date': dateKey,
+          'question': question.trim(),
+          'options': options,
+          'filter': filter,
+          'result': cleanResult,
+          'resultId': resultId,
+          'spins': 1,
+          'byUserId': uid,
+          'createdBy': uid,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        return 1;
+      }
+    });
+    try {
+      final spins = await transaction.timeout(commitTimeout);
+      return (ref.id, DecisionCommitOutcome.saved, spins);
+    } on TimeoutException {
+      unawaited(transaction.then((_) {}, onError: (_) {}));
+      _timedOut[ref.path] = (result: cleanResult, spins: transaction);
+      rethrow;
+    }
   }
 }

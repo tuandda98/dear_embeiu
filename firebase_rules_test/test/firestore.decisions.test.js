@@ -3,7 +3,8 @@
 //
 // Food / plans: id '{date}_eat' / '{date}_go', one per day, re-spin bumps
 // `spins` by exactly 1. Custom: auto id, 2..12 options, result must be one of
-// them. Members read; creator pinned; `lastPushAt` is CF-only; no delete.
+// them. Members read; creator pinned; `lastPushAt`/`lastPushBy` are CF-only;
+// no delete.
 
 const {
   doc,
@@ -205,12 +206,33 @@ describe('firestore: decisions', () => {
     await assertSucceeds(setDoc(doc(db, CUSTOM), custom('alice', {options: twelve, result: 'o0'})));
   });
 
-  it('custom options over 480 characters in total are rejected', async () => {
-    // 11 × 44 + 'A' = 485 > 480; 'A' is a valid result, only the total fails.
-    const long = [...Array.from({length: 11}, (_, i) => `${'x'.repeat(42)}${String(i).padStart(2, '0')}`), 'A'];
-    await assertFails(
-      setDoc(doc(authedDb('alice'), CUSTOM), custom('alice', {options: long, result: 'A'})),
+  it('each custom option is 1..40 characters, at any position', async () => {
+    const db = authedDb('alice');
+    const forty = 'x'.repeat(40);
+    await assertSucceeds(
+      setDoc(doc(db, CUSTOM), custom('alice', {options: ['A', forty], result: 'A'})),
     );
+    await assertFails(
+      setDoc(doc(db, CUSTOM), custom('alice', {options: ['A', 'x'.repeat(41)], result: 'A'})),
+    );
+    // Long one in the last slot of 12 (total stays under 480).
+    const twelve = [...Array.from({length: 11}, (_, i) => `o${i}`), 'y'.repeat(41)];
+    await assertFails(
+      setDoc(doc(db, CUSTOM), custom('alice', {options: twelve, result: 'o0'})),
+    );
+    await assertFails(
+      setDoc(doc(db, CUSTOM), custom('alice', {options: ['A', ''], result: 'A'})),
+    );
+    await assertFails(
+      setDoc(doc(db, CUSTOM), custom('alice', {options: ['A', 7], result: 'A'})),
+    );
+  });
+
+  it('a custom pick cannot take the {date}_eat / {date}_go id', async () => {
+    const db = authedDb('alice');
+    await assertFails(setDoc(doc(db, EAT), custom('alice')));
+    await assertFails(setDoc(doc(db, GO), custom('alice')));
+    await assertSucceeds(setDoc(doc(db, `couples/c1/decisions/${DATE}_eatx`), custom('alice')));
   });
 
   it('custom result must be one of the options', async () => {
@@ -252,8 +274,18 @@ describe('firestore: decisions', () => {
   });
 
   it('a re-spin still works after the CF stamped lastPushAt', async () => {
-    await seedDoc(EAT, {...stored(eat('alice')), lastPushAt: TS});
+    await seedDoc(EAT, {...stored(eat('alice')), lastPushAt: TS, lastPushBy: 'alice'});
     await assertSucceeds(updateDoc(doc(authedDb('bob'), EAT), respin('bob')));
+  });
+
+  it('client cannot write lastPushBy (create or update)', async () => {
+    await assertFails(
+      setDoc(doc(authedDb('alice'), GO), {...eat('alice', {kind: 'go'}), lastPushBy: 'alice'}),
+    );
+    await seedDoc(EAT, {...stored(eat('alice')), lastPushAt: TS, lastPushBy: 'alice'});
+    await assertFails(
+      updateDoc(doc(authedDb('bob'), EAT), {...respin('bob'), lastPushBy: 'bob'}),
+    );
   });
 
   it('re-spin result keeps the 1..40 bound and needs server updatedAt', async () => {

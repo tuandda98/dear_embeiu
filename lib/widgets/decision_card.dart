@@ -24,7 +24,9 @@ class DecisionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MidnightBuilder(builder: (context) => const _DecisionCardBody());
+    // Not const: MidnightBuilder's 0:00 setState must rebuild the body so it
+    // runs refreshDay() for the new date (a const child would be skipped).
+    return MidnightBuilder(builder: (context) => _DecisionCardBody());
   }
 }
 

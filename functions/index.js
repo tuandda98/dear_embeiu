@@ -1643,9 +1643,11 @@ exports.notifyCareMessage = onDocumentCreated(
 // couples/{coupleId}/decisions/{id}. Tell the OTHER member(s): inbox always,
 // push with `wakeClients` (the partner's app refreshes its widget and drops
 // today's 16:30 meal nudge when kind == eat). Pushes for one doc are spaced
-// by DECISION_PUSH_COOLDOWN_MS (claimed in a transaction on `lastPushAt`, an
-// Admin-only field) — a burst of re-spins becomes inbox items only. Our own
-// `lastPushAt` write re-triggers this function and stops at "result unchanged".
+// by DECISION_PUSH_COOLDOWN_MS PER SPINNER (claimed in a transaction on
+// `lastPushAt` + `lastPushBy`, Admin-only fields): a burst of re-spins by the
+// same person becomes inbox items only, but the first re-spin by the OTHER
+// person always pushes (D2 "báo ngược lại", test BUG-1). Our own stamp write
+// re-triggers this function and stops at "result unchanged".
 const DECISION_PUSH_COOLDOWN_MS = 10 * 60 * 1000;
 
 const DECISION_COPY = {
@@ -1726,17 +1728,23 @@ async function processDecisionWrite(coupleId, decisionId, before, after, ref) {
     respin,
   });
 
-  // Claim the push slot (creates too, so a re-spin right after a create waits).
+  // Claim the push slot. Only blocked when the same person was pushed about
+  // within the cooldown (creates always push and stamp).
   const claimed = await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists) {
       return false;
     }
     const lastMs = rpsToMillis(snap.get("lastPushAt"));
-    if (!isCreate && lastMs && Date.now() - lastMs < DECISION_PUSH_COOLDOWN_MS) {
+    const lastBy = `${snap.get("lastPushBy") || ""}`;
+    if (!isCreate && lastBy === byUserId && lastMs &&
+        Date.now() - lastMs < DECISION_PUSH_COOLDOWN_MS) {
       return false;
     }
-    tx.update(ref, {lastPushAt: admin.firestore.FieldValue.serverTimestamp()});
+    tx.update(ref, {
+      lastPushAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastPushBy: byUserId,
+    });
     return true;
   });
   if (!claimed) {
@@ -1752,6 +1760,7 @@ async function processDecisionWrite(coupleId, decisionId, before, after, ref) {
       decisionId,
       kind,
       result,
+      resultId,
       question,
       date,
       actorName,

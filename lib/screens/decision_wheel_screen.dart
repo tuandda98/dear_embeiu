@@ -151,7 +151,7 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
   bool get _canSpin {
     if (_committing) return false;
     if (_kind == DecisionKind.custom) {
-      return _options.length >= kDecisionOptionsMin;
+      return validateCustomOptions(_options) == null;
     }
     return !_poolEmpty;
   }
@@ -169,7 +169,8 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
       _reel.value = 1; // tap while running → jump to the result
       return;
     }
-    if (_kind == DecisionKind.custom && _options.length < kDecisionOptionsMin) {
+    if (_kind == DecisionKind.custom &&
+        validateCustomOptions(_options) != null) {
       return;
     }
     HapticFeedback.selectionClick();
@@ -365,24 +366,38 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
 
   void _addOption() {
     final text = _optionInput.text.trim();
-    if (text.isEmpty || _options.length >= kDecisionOptionsMaxCount) return;
-    if (_options.any(
-      (o) => normalizeDecisionName(o) == normalizeDecisionName(text),
-    )) {
-      _duplicateTimer?.cancel();
-      setState(() => _duplicateFlash = true);
-      _duplicateTimer = Timer(const Duration(milliseconds: 2500), () {
-        if (mounted) setState(() => _duplicateFlash = false);
-      });
-      return;
-    }
-    if (_options.join().length + text.length > kDecisionOptionsTotalMax) {
-      return;
+    if (text.isEmpty) return;
+    final next = [..._options, text];
+    // Same checks as the rules; a 1-option list is only "too few" so far.
+    switch (validateCustomOptions(next)) {
+      case CustomOptionsIssue.duplicate:
+        _duplicateTimer?.cancel();
+        setState(() => _duplicateFlash = true);
+        _duplicateTimer = Timer(const Duration(milliseconds: 2500), () {
+          if (mounted) setState(() => _duplicateFlash = false);
+        });
+        return;
+      case CustomOptionsIssue.tooMany:
+      case CustomOptionsIssue.tooLong:
+        return;
+      case CustomOptionsIssue.tooFew:
+      case null:
+        break;
     }
     HapticFeedback.selectionClick();
     _optionInput.clear();
-    _optionsChanged([..._options, text]);
+    _optionsChanged(next);
     _optionFocus.requestFocus();
+  }
+
+  /// Clips a preset name to [kDecisionOptionMax] UTF-16 units (rules limit)
+  /// without leaving half a surrogate pair at the end.
+  static String _clipOption(String name) {
+    if (name.length <= kDecisionOptionMax) return name;
+    var cut = kDecisionOptionMax;
+    final last = name.codeUnitAt(cut - 1);
+    if (last >= 0xD800 && last <= 0xDBFF) cut--;
+    return name.substring(0, cut).trim();
   }
 
   void _applyPreset(String preset) {
@@ -393,8 +408,8 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
     final couple = context.read<CoupleProvider>().couple;
     final next = preset == 'who'
         ? <String>[
-            decisionMyName(context, couple),
-            decisionPartnerName(context, couple),
+            _clipOption(decisionMyName(context, couple)),
+            _clipOption(decisionPartnerName(context, couple)),
           ]
         : <String>[];
     _preset = preset;
@@ -820,7 +835,9 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
     ];
     final full = _options.length >= kDecisionOptionsMaxCount;
     final String? helper;
-    if (_duplicateFlash) {
+    if (_duplicateFlash ||
+        validateCustomOptions(_options) == CustomOptionsIssue.duplicate) {
+      // The flash, or a "Ai làm?" preset where both names are the same.
       helper = l10n.decisionOptionDuplicate;
     } else if (full) {
       helper = l10n.decisionOptionsMax;
@@ -845,7 +862,13 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
             maxLength: kDecisionQuestionMax,
             textCapitalization: TextCapitalization.sentences,
             textInputAction: TextInputAction.next,
-            onChanged: (_) => setState(() {}),
+            onChanged: (text) => setState(() {
+              // A re-spin can't rewrite the question (rules pin it), so an
+              // edited question becomes a NEW pick, like edited options.
+              if (text.trim() != widget.respinOf?.question.trim()) {
+                _existingCustomId = null;
+              }
+            }),
             onSubmitted: (_) => _optionFocus.requestFocus(),
             buildCounter:
                 (_, {required currentLength, required isFocused, maxLength}) =>

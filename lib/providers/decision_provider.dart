@@ -171,7 +171,7 @@ class DecisionProvider extends ChangeNotifier {
     final previous = existingId != null
         ? _today.where((d) => d.id == existingId).firstOrNull
         : (kind == DecisionKind.custom ? null : _ofKind(kind));
-    final (id, outcome) = await _service.commit(
+    final (id, outcome, spins) = await _service.commit(
       coupleId: coupleId,
       uid: uid,
       kind: kind,
@@ -185,13 +185,14 @@ class DecisionProvider extends ChangeNotifier {
     );
 
     // Show it at once (the listener confirms; a queued custom pick only exists
-    // locally until it syncs).
+    // locally until it syncs). `spins` comes from the transaction: the
+    // partner's doc may exist before our listener saw it (BUG-7).
     final now = DateTime.now();
     final written =
         previous?.copyWith(
           result: result.trim(),
           resultId: resultId,
-          spins: previous.spins + 1,
+          spins: spins,
           byUserId: uid,
           updatedAt: now,
         ) ??
@@ -204,6 +205,7 @@ class DecisionProvider extends ChangeNotifier {
           filter: filter,
           result: result.trim(),
           resultId: resultId,
+          spins: spins,
           byUserId: uid,
           createdBy: uid,
           createdAt: now,
@@ -224,7 +226,7 @@ class DecisionProvider extends ChangeNotifier {
     }
     notifyListeners();
 
-    if (previous != null) {
+    if (spins > 1) {
       AnalyticsService.instance.logDecisionRespin(kind: kind.name);
     }
     AnalyticsService.instance.logDecisionCommit(
@@ -237,12 +239,25 @@ class DecisionProvider extends ChangeNotifier {
   }
 
   /// Top [n] results of [kind] in the 90-day window: (latest doc, count),
-  /// counted on the normalised name (D9).
-  List<(Decision, int)> top(DecisionKind kind, {int n = 5}) {
+  /// counted on the bank `resultId` when there is one (a vi and an en spin of
+  /// the same dish are one row), else on the normalised name (D9).
+  List<(Decision, int)> top(DecisionKind kind, {int n = 5}) =>
+      topOf(history, kind, n: n);
+
+  /// Pure core of [top] (unit-tested).
+  static List<(Decision, int)> topOf(
+    Iterable<Decision> history,
+    DecisionKind kind, {
+    int n = 5,
+  }) {
     final groups = <String, List<Decision>>{};
     for (final d in history) {
       if (d.kind != kind) continue;
-      groups.putIfAbsent(normalizeDecisionName(d.result), () => []).add(d);
+      final id = d.resultId.trim();
+      final key = id.isNotEmpty
+          ? 'id:$id'
+          : 'name:${normalizeDecisionName(d.result)}';
+      groups.putIfAbsent(key, () => []).add(d);
     }
     final rows = groups.values.map((list) {
       list.sort(
