@@ -17,6 +17,7 @@ import '../services/analytics_service.dart';
 import '../services/decision_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
 import '../utils/decision_suggester.dart';
 
 // Shared bits of "Chọn giúp chúng mình" (feature decision-wheel): display
@@ -301,7 +302,11 @@ class DecisionLinkButton extends StatelessWidget {
         minimumSize: const Size(44, 44),
         foregroundColor: AppColors.textPrimary,
         padding: const EdgeInsets.symmetric(horizontal: 10),
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+        textStyle: const TextStyle(
+          fontFamily: AppTheme.fontFamily,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+        ),
       ),
       icon: Icon(icon, size: 16),
       label: Text(label),
@@ -321,6 +326,8 @@ Future<void> openDecisionWheel(
 }) async {
   final messenger = ScaffoldMessenger.of(context);
   final l10n = context.l10n;
+  // A leftover "Đã chốt" bar would cover the wheel's buttons.
+  messenger.hideCurrentSnackBar();
   final written = await Navigator.of(context)
       .push<(Decision, DecisionCommitOutcome)>(
         MaterialPageRoute(
@@ -350,6 +357,9 @@ Future<void> openDecisionWheel(
     ..showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 4),
+        // With an action Flutter keeps the bar until dismissed; this one is
+        // a 4s confirmation (design §7).
+        persist: false,
         content: Text(text),
         action: SnackBarAction(
           label: l10n.decisionPhotoCta,

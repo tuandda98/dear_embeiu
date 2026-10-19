@@ -192,6 +192,7 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
           const _TopBlocks(),
           const SizedBox(height: 24),
           SectionHeader(title: l10n.decisionRecent),
+          const SizedBox(height: 12),
           for (var i = 0; i < dates.length; i++) ...[
             Padding(
               padding: EdgeInsets.only(top: i == 0 ? 0 : 18, bottom: 10),

@@ -8,6 +8,7 @@ import '../models/decision.dart';
 import '../providers/decision_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
+import '../theme/app_theme.dart';
 import 'content_card.dart';
 import 'decision_parts.dart';
 import 'icon_badge.dart';
@@ -70,6 +71,7 @@ class _DecisionCardBody extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     foregroundColor: AppColors.textPrimary,
                     textStyle: const TextStyle(
+                      fontFamily: AppTheme.fontFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),

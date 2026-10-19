@@ -405,6 +405,7 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
         ..clearSnackBars()
         ..showSnackBar(
           SnackBar(
+            persist: false,
             content: Text(l10n.decisionPresetReplaced(previous.length)),
             action: SnackBarAction(
               label: l10n.customRemindersUndoLabel,
