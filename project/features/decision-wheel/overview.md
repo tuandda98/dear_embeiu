@@ -30,7 +30,7 @@
 ## 3. Phạm vi (scope)
 
 - **Trong phạm vi (bản đầu):**
-  - **Ba chế độ quay:** 🍜 **Ăn gì** (ngân hàng 117 món + lọc) · 📍 **Đi đâu / làm gì** (ngân hàng ≈60 hoạt động + lọc) · 🎲 **Tự nhập** (gõ câu hỏi + 2–12 lựa chọn, có preset "Ai làm?" điền sẵn tên hai người).
+  - **Ba chế độ quay:** 🍜 **Ăn gì** (ngân hàng 117 món + lọc) · 📍 **Đi đâu / làm gì** (ngân hàng 64 hoạt động + lọc) · 🎲 **Tự nhập** (gõ câu hỏi + 2–12 lựa chọn, có preset "Ai làm?" điền sẵn tên hai người).
   - **Quay = ngẫu nhiên, local, miễn phí.** Chỉ khi bấm **Chốt** mới ghi và báo người ấy. Người ấy có thể **Quay lại** (ghi đè kết quả, báo ngược lại).
   - **Thẻ Home "Phân vân gì không?"** 3 dòng (ăn · đi · khác) hiện kết quả hôm nay hoặc nút Quay.
   - **"Chụp lại"** từ kết quả → màn đăng ảnh, caption điền sẵn.
@@ -69,12 +69,12 @@ couples/{coupleId}/decisions/{id}
 
 - **D4 — Pool và lọc (`DecisionSuggester`, hàm thuần có test):**
   - **Ăn gì:** `dish-bank.md` (117 món) + món nhập tay trong `decisions` 90 ngày (`kind: eat`, `resultId == ''`, trọng số ×2). Loại món có `result` chuẩn hoá (bỏ dấu cách thừa, không phân biệt hoa thường) trùng kết quả eat 7 ngày gần nhất. Chip: **Tuỳ** · **Nhà nấu** (`nha`) · **Ăn ngoài** (`ngoai`) · **Nhanh gọn** (`nhanh`). Giờ máy < 10:00 thêm món `sang`; ≥ 14:00 món `toi` trọng số ×2.
-  - **Đi đâu / làm gì:** `activity-bank.md` (≈60 mục) + mục nhập tay 90 ngày (×2). Loại mục đã chốt 14 ngày gần nhất. Chip: **Tuỳ** · **Ở nhà** (`nha`) · **Ra ngoài** (`ngoai`) · **Không tốn tiền** (`free`). Thứ 7/CN hoặc sau 17:00 ngày thường: mục `cuoi_tuan`/`toi` trọng số ×2.
+  - **Đi đâu / làm gì:** `activity-bank.md` (64 mục) + mục nhập tay 90 ngày (×2). Loại mục đã chốt 14 ngày gần nhất. Chip: **Tuỳ** · **Ở nhà** (`nha`) · **Ra ngoài** (`ngoai`) · **Không tốn tiền** (`free`). Thứ 7/CN hoặc sau 17:00 ngày thường: mục `cuoi_tuan`/`toi` trọng số ×2.
   - **Tự nhập:** pool = đúng các lựa chọn đã gõ; không lọc, không trọng số.
   - Ngẫu nhiên thật (`Random()`), trong một phiên quay không lặp lại mục vừa ra cho tới khi hết pool.
 
 - **D5 — Push + inbox qua 1 CF `notifyDecision`** (onWrite `decisions/{id}`), copy localize vi/en theo `languageCode` thiết bị, gửi cho người **không phải** `byUserId`:
-  - Create: eat *"{name} quay ra: hôm nay ăn {result}"* / *"{name} spun: {result} today"* · go *"{name} quay ra: đi {result}"* / *"{name} spun: let's {result}"* · custom *"{name} quay \"{question}\": {result}"* / *"{name} spun \"{question}\": {result}"*.
+  - Create: eat *"{name} quay ra: hôm nay ăn {result}"* / *"{name} spun: {result} today"* · go *"{name} quay ra: {result}"* / *"{name} spun: let's {result}"* (D18) · custom *"{name} quay \"{question}\": {result}"* / *"{name} spun \"{question}\": {result}"*.
   - Update có `result` đổi: *"{name} quay lại: {result}"* / *"{name} re-spun: {result}"*.
   - Inbox `type: 'decision'` `{kind, question, result, actorName, date}`; tap → Home cuộn thẻ. Push kèm **`wakeClients: true`** + `data.kind`, `data.result`, `data.date` để app nền cập nhật widget (widget-today) và huỷ nhắc 16:30 khi `kind == eat`.
   - **Cooldown 10 phút/tài liệu** cho update (CF ghi `lastPushAt`): quay lại liên tục chỉ ghi inbox. Create không cooldown (1 doc/ngày/chế độ; custom tối đa 10/ngày chặn ở client).
@@ -103,6 +103,12 @@ couples/{coupleId}/decisions/{id}
 - **D14 — Phát hành 1.11.0 cùng widget-today.** DEV: `scripts/test-firebase-rules.sh` rồi deploy rules + CF. PROD: `deploy --project prod --only firestore:rules,functions:notifyDecision` khi phát hành, **chờ lệnh user**; rules PROD phải lên trước khi 1.11.0 live.
 
 - **D15 — Thiết kế qua UI UX Pro Max** (luật 8): `ContentCard` + `SectionHeader` + `InkTile`, nút pill h52 cho nút chính; emoji là nội dung; animation quay ≤1 giây; Designer chốt thẻ Home, màn quay 3 chế độ, sheet kết quả, màn lịch sử, tile nhắc.
+
+- **D16 — Câu hỏi custom được để trống** (PO duyệt câu hỏi 1 của Designer, 2026-10-19): vẫn cho quay và chốt; lúc chốt `question` = tên preset vừa dùng ("Ai làm?" / "Cái nào?") hoặc "Chọn giúp chúng mình" / "Decide for us". Giữ đúng "2 chạm".
+- **D17 — Dòng lịch sử chỉ để xem** (PO duyệt câu hỏi 2): không mở sheet, không quay lại ngày cũ (sẽ ghi đè lịch sử).
+- **D18 — Push `go` bỏ chữ "đi"** (PO duyệt câu hỏi 3): 35/64 mục ngân hàng bắt đầu bằng "Đi" → mẫu vi *"{name} quay ra: {result}"*. en giữ *"let's {result}"*.
+- **D19 — Chốt khi mất mạng = nhánh (b) của design** (PO chốt thay Dev): giữ transaction cho eat/go; lỗi/offline → ở lại màn, giữ kết quả, dải lỗi + nút "Thử lại". *Lý do:* chốt cần push tới người ấy mới có nghĩa; ghi xếp hàng offline dễ thành create đè create khi hai máy cùng chốt lúc mất mạng (rules từ chối âm thầm). Custom (autoId, không transaction) vẫn ghi xếp hàng bình thường → dùng state "Đang mất mạng…".
+- **D20 — Tự quay khi mở màn từ nút Quay / Quay lại** (Designer tự chốt, PO giữ): sau 250ms; mở bằng tay hoặc đổi chế độ thì không.
 
 ## 5. Acceptance criteria (xong khi…)
 
@@ -137,4 +143,4 @@ couples/{coupleId}/decisions/{id}
 - 🟢 Riêng tư: push lộ kết quả + câu hỏi tự nhập (hai người tự gõ cho nhau); inbox không lưu gì thêm.
 
 ## 8. Changelog feature
-- [2026-10-19] [PO] Sáng: tạo "Hôm nay ăn gì?" (đề xuất → chốt, 2 subcollection). Chiều: user mở rộng "ăn gì, đi đâu, phân vân gì cũng quay random" → đổi tên `decision-wheel`, generalize D1–D15: 3 chế độ, quay local chốt mới ghi, 1 collection `decisions` id theo ngày cho eat/go, 1 CF `notifyDecision`, thêm `activity-bank.md`. Giữ 117 món. D10 (nhắc mặc định bật 16:30) PO tự chốt, user lật được. Chờ user duyệt.
+- [2026-10-19] [PO] Sáng: tạo "Hôm nay ăn gì?" (đề xuất → chốt, 2 subcollection). Chiều: user mở rộng "ăn gì, đi đâu, phân vân gì cũng quay random" → đổi tên `decision-wheel`, generalize D1–D15: 3 chế độ, quay local chốt mới ghi, 1 collection `decisions` id theo ngày cho eat/go, 1 CF `notifyDecision`, thêm `activity-bank.md`. Giữ 117 món. D10 (nhắc mặc định bật 16:30) PO tự chốt, user lật được. User duyệt spec + yêu cầu thiết kế bằng UI UX Pro Max. Designer xong (`design.md`, `docs/design/decision-wheel-mockup.html`, slot chữ chạy dọc 900ms); PO trả lời 3 câu hỏi → D16–D19, giữ D20.

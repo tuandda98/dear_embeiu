@@ -1,6 +1,6 @@
 # Ngân hàng "Đi đâu / làm gì" — nguồn cho `lib/data/activity_bank.dart`
 
-> PO sở hữu nội dung. Dev sinh hằng Dart từ bảng này (giữ `id`; thêm mục = sửa file này trước). 62 mục, 5 nhóm.
+> PO sở hữu nội dung. Dev sinh hằng Dart từ bảng này (giữ `id`; thêm mục = sửa file này trước). 64 mục, 5 nhóm.
 >
 > Cột: **Nơi** `nha` · `ngoai` · **Tiền** `free` (không tốn) · `re` (dưới ~200k cho 2 người) · `ton` · **Lúc** `ngay` (làm được bất kỳ lúc nào) · `toi` · `cuoi_tuan` (cần nửa ngày trở lên). Emoji là nội dung hiển thị. Tên `en` là động từ ("Grab coffee") để ghép câu push *"let's {result}"*.
 
