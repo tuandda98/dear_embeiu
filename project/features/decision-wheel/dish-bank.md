@@ -156,8 +156,8 @@
 | smoothie_bowl | Smoothie bowl | Smoothie bowl | sang | nha | nhanh | 🥤 |
 | chao_yen_mach | Cháo yến mạch thịt băm | Oat congee with minced pork | sang | nha | nhanh | 🥣 |
 
-## Luật dùng trong `DishSuggester` (W3)
-- Pool = bảng này + món `source: custom` trong 90 ngày (trọng số ×2).
+## Luật dùng trong `DecisionSuggester` (overview D4)
+- Pool = bảng này + món nhập tay (`kind: eat`, `resultId == ''`) trong 90 ngày, trọng số ×2.
 - Loại món có tên chuẩn hoá (bỏ dấu cách thừa, không phân biệt hoa thường) trùng món đã chốt trong 7 ngày.
 - Chip lọc: Tuỳ = tất cả · Nhà nấu = `nha` · Ăn ngoài = `ngoai` · Nhanh gọn = `nhanh`.
 - Giờ máy < 10:00 → thêm món `sang`; ≥ 14:00 → món `toi` trọng số ×2. Ngoài hai khung đó không cộng gì.

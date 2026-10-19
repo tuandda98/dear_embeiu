@@ -7,7 +7,7 @@
 - **Ưu tiên:** P0 (mục tiêu "mở app mỗi ngày", user chốt 2026-10-19)
 - **Trạng thái:** 📋 Spec (chờ user duyệt rồi chạy pipeline Designer → Dev → Tester)
 - **Tạo ngày:** 2026-10-19
-- **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · nền tảng [`../home-widget/`](../home-widget/overview.md) · loại trạng thái `meal` phụ thuộc [`../what-to-eat/`](../what-to-eat/overview.md) · bối cảnh dự án [`../../../CLAUDE.md`](../../../CLAUDE.md)
+- **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · nền tảng [`../home-widget/`](../home-widget/overview.md) · loại `decision_*` phụ thuộc [`../decision-wheel/`](../decision-wheel/overview.md) · bối cảnh dự án [`../../../CLAUDE.md`](../../../CLAUDE.md)
 
 ## 1. Vấn đề & giá trị
 
@@ -45,7 +45,7 @@
 
 - **D1 — Giữ ảnh nền, chỉ thêm dòng trạng thái** (user chọn 2026-10-19 trong 3 hướng: ảnh người ấy vừa đăng · ảnh mới nhất của cặp · giữ ảnh nền + dòng trạng thái). *Lý do:* ảnh nền là lựa chọn có chủ đích của user ở 1.9.x; dòng chữ đã đủ kéo người ta vào.
 
-- **D2 — Bảy loại trạng thái, copy chốt tại đây** (Designer/Dev không tự đổi lời; `{name}` = tên người ấy, `{mood}` = nhãn tâm trạng viết thường từ `moodLabel`, `{dish}` = tên món):
+- **D2 — Chín loại trạng thái, copy chốt tại đây** (Designer/Dev không tự đổi lời; `{name}` = tên người ấy, `{mood}` = nhãn tâm trạng viết thường từ `moodLabel`, `{result}`/`{question}` = kết quả và câu hỏi của decision-wheel):
 
 | `statusKind` | Khi nào | vi | en | Chạm mở |
 |---|---|---|---|---|
@@ -55,9 +55,11 @@
 | `mood` | người ấy chọn tâm trạng hôm nay | `{name} hôm nay: {mood}` | `{name} today: {mood}` | Home, cuộn thẻ tâm trạng |
 | `message` | người ấy vừa nhắn | `{name} vừa nhắn cho mình` | `{name} just messaged you` | Chat |
 | `photo` | người ấy vừa đăng ảnh | `{name} vừa đăng ảnh mới` | `{name} just added a photo` | Gallery |
-| `meal` | cặp vừa chốt món hôm nay (feature what-to-eat) | `Hôm nay ăn: {dish}` | `Today's meal: {dish}` | Home, cuộn thẻ "Hôm nay ăn gì" |
+| `decision_eat` | cặp vừa chốt món hôm nay (feature decision-wheel) | `Hôm nay ăn: {result}` | `Today's meal: {result}` | Home, cuộn thẻ "Phân vân gì không?" |
+| `decision_go` | cặp vừa chốt đi đâu / làm gì | `Hôm nay đi: {result}` | `Today's plan: {result}` | Home, cuộn thẻ "Phân vân gì không?" |
+| `decision_custom` | cặp vừa quay một câu tự nhập | `{question}: {result}` | `{question}: {result}` | Home, cuộn thẻ "Phân vân gì không?" |
 
-  *Lý do chọn 7 loại này:* đúng 3 việc của chòm sao "Hôm nay của chúng mình" (câu hỏi · tâm trạng · nhắn tin) cộng 2 việc trùng North Star (ảnh, món ăn). Lời quan tâm bỏ vì riêng tư.
+  *Lý do chọn 9 loại này:* đúng 3 việc của chòm sao "Hôm nay của chúng mình" (câu hỏi · tâm trạng · nhắn tin) cộng ảnh (North Star) và 3 kết quả quay của decision-wheel (lý do mở app mỗi ngày). Lời quan tâm bỏ vì riêng tư.
 
 - **D3 — Mới nhất thắng.** Chỉ hiện MỘT câu. Khi nhiều việc trong ngày, câu có `statusAt` lớn nhất đè câu cũ. Không xếp hạng ưu tiên giữa các loại. *Lý do:* đúng tinh thần "người ấy vừa…"; handler nền chỉ biết push vừa tới, không biết lịch sử, nên luật "mới nhất" là luật duy nhất cả hai đường cập nhật cùng thực hiện được.
 
@@ -66,7 +68,7 @@
   2. Về người ấy chỉ nói **việc đã xảy ra** (đã trả lời, vừa nhắn, vừa đăng). Không bao giờ nói "người ấy chưa…" vì app tắt thì không biết họ đã làm chưa.
   3. Về mình chỉ nói "đang chờ mình" (`question_mine`, `question_partner`) khi app vừa tính xong lúc mở; trả lời xong thì Home đẩy lại trạng thái ngay. Trả lời trên máy khác là trường hợp hiếm, chấp nhận.
 
-- **D5 — Hai đường cập nhật, một nguồn chữ.** (a) App mở: `HomeWidgetBridge` lắng nghe thêm `DailyQuestionProvider` + `MoodProvider` + `ChatProvider` + `PhotoProvider` (+ `MealProvider`), tính `statusKind` y như `TodayConstellation`, dịch qua `AppLocalizations`, gọi `updateStatus`. (b) App ở nền: `firebaseMessagingBackgroundHandler` đọc `data.type` của push, dịch bằng `lookupAppLocalizations(Locale(data.lang))` (fallback `Platform.localeName`), gọi `updateStatus`. Native không có bảng dịch. *Lý do:* giữ D4 home-widget; copy chỉ nằm ở ARB, không trùng ở CF.
+- **D5 — Hai đường cập nhật, một nguồn chữ.** (a) App mở: `HomeWidgetBridge` lắng nghe thêm `DailyQuestionProvider` + `MoodProvider` + `ChatProvider` + `PhotoProvider` (+ `DecisionProvider`), tính `statusKind` y như `TodayConstellation`, dịch qua `AppLocalizations`, gọi `updateStatus`. (b) App ở nền: `firebaseMessagingBackgroundHandler` đọc `data.type` của push, dịch bằng `lookupAppLocalizations(Locale(data.lang))` (fallback `Platform.localeName`), gọi `updateStatus`. Native không có bảng dịch. *Lý do:* giữ D4 home-widget; copy chỉ nằm ở ARB, không trùng ở CF.
 
 - **D6 — Kênh thêm method `updateStatus(Map<String,String>)`, tách khỏi `update`.** Khoá: `todayDate`, `statusKind`, `statusText`, `statusAt` (epoch ms), `statusTarget` (`home` · `chat` · `gallery`), `statusFocus` (`daily_question` · `mood` · `meal` · rỗng). Native lưu riêng, `update` (ảnh chụp đếm ngày) **không** xoá trạng thái; `state=empty` (đăng xuất, rời couple) xoá cả hai. *Lý do:* handler nền không có couple/l10n đầy đủ, chỉ cần ghi 6 khoá này; không được đẩy `empty` đè ảnh chụp tốt (bài học bridge 1.9.1).
 
@@ -78,14 +80,14 @@
   - `sendPartnerPhotoNotification`: thêm `wakeClients` + tên.
   - `notifyChatMessage`: thêm `wakeClients` + tên (vẫn bỏ qua khi người nhận đang mở chat — lúc đó app đang chạy, đường (a) lo).
   - `sendToRecipientDevices`: ghi `data.lang` = `languageCode` của từng thiết bị (một chỗ, mọi push được hưởng).
-  - `notifyMealChosen` (what-to-eat) sinh ra đã có `wakeClients`.
+  - `notifyDecision` (decision-wheel) sinh ra đã có `wakeClients` + `data.kind`, `data.result`, `data.question`, `data.date`.
   *Lý do:* push nền iOS bị hệ thống hạn mức "vài lần/giờ", 4 loại này mỗi ngày vài lần là vừa. Chat có thể nhiều hơn, chấp nhận ở bản đầu, theo dõi log `messaging` rồi mới thêm ngưỡng.
 
 - **D9 — Handler nền chỉ ghi, không đọc Firestore.** Mọi thứ cần có đều nằm trong `data` của push (`type`, tên, `mood`, `date`, `lang`). Push mang `data.date` khác hôm nay thì bỏ qua (cùng guard với `_cancelStaleDailyQuestionNudges`). *Lý do:* thời gian nền iOS ~30 giây; đọc mạng làm hỏng tỉ lệ thành công và tốn pin.
 
 - **D10 — Bản cũ không vỡ.** App 1.9.1/1.10.x nhận push có khoá `data` thừa → bỏ qua. CF cũ (chưa deploy) + app mới → widget chỉ đổi khi mở app. Widget 1.9.1 không đọc khoá trạng thái → vẫn vẽ số ngày.
 
-- **D11 — Phát hành chung bản 1.11.0 với what-to-eat** (MINOR). DEV deploy CF trong lúc dev; PROD deploy đích danh `functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyMealProposal,functions:notifyMealChosen` khi phát hành, **chờ lệnh user**.
+- **D11 — Phát hành chung bản 1.11.0 với decision-wheel** (MINOR). DEV deploy CF trong lúc dev; PROD deploy đích danh `functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyDecision` khi phát hành, **chờ lệnh user**.
 
 - **D12 — Bố cục do Designer chốt, với 4 ràng buộc:** dòng trạng thái là phần tử phụ nổi nhất sau số ngày (cỡ chữ trong bộ 10/11/12/14 của home-widget); bản nhỏ 1 dòng, bản vừa tối đa 2 dòng, cắt "…" khi tràn; không emoji (tâm trạng hiện bằng chữ `{mood}`); không có trạng thái thì bố cục **trùng pixel** với 1.9.1 (không để khoảng trống). Soát với UI UX Pro Max trước khi chốt (luật 8 CLAUDE.md), gồm cả chế độ tinted iOS 18 và cỡ chữ AX.
 
@@ -99,7 +101,7 @@
 - [ ] Cặp còn chờ người ấy, đăng xuất, rời couple, xoá tài khoản → không có dòng trạng thái; đăng nhập lại → tính lại từ hôm nay.
 - [ ] iOS 18 tinted, cỡ chữ AX lớn nhất, tên người ấy 12 ký tự, câu dài nhất ("{name} hôm nay: căng thẳng") không tràn, không đẩy lệch số ngày.
 - [ ] App 1.10.1 (chưa cập nhật) nhận push mới → không crash, không hiện gì lạ. App mới + CF cũ → widget vẫn đổi khi mở app.
-- [ ] `flutter analyze` 0; test Dart cho hàm map push → trạng thái (7 loại + bỏ qua ngày cũ + fallback tên/ngôn ngữ) và cho hàm tính trạng thái từ provider (so với `TodayConstellation`); `scripts/check-widget-daymath.sh` vẫn OK; JUnit Android vẫn PASS; `scripts/test-firebase-rules.sh` PASS (functions đổi).
+- [ ] `flutter analyze` 0; test Dart cho hàm map push → trạng thái (9 loại + bỏ qua ngày cũ + fallback tên/ngôn ngữ) và cho hàm tính trạng thái từ provider (so với `TodayConstellation`); `scripts/check-widget-daymath.sh` vẫn OK; JUnit Android vẫn PASS; `scripts/test-firebase-rules.sh` PASS (functions đổi).
 - [ ] CF deploy DEV có vết; PROD chưa deploy cho tới lệnh phát hành.
 - [ ] `project/features/widget-today/` + `ROADMAP.md` + CLAUDE.md mục 2/4/5 cập nhật.
 
@@ -119,4 +121,4 @@
 - 🟢 Riêng tư: màn hình chính chỉ lộ "đã trả lời / vừa nhắn / tâm trạng", không lộ nội dung.
 
 ## 8. Changelog feature
-- [2026-10-19] [PO] Tạo feature từ phân tích retention PROD (28 cặp active, 7–16 cặp mở/ngày, 3–5 cặp cả hai trả lời). User chọn hướng "widget sống theo người ấy" (trong 3 hướng: widget · "Hôm nay" không cần người ấy · chọc 1 chạm) rồi chốt giữ ảnh nền, chỉ thêm trạng thái (D1). Chốt D2–D12. Chờ user duyệt spec.
+- [2026-10-19] [PO] Tạo feature từ phân tích retention PROD (28 cặp active, 7–16 cặp mở/ngày, 3–5 cặp cả hai trả lời). User chọn hướng "widget sống theo người ấy" (trong 3 hướng: widget · "Hôm nay" không cần người ấy · chọc 1 chạm) rồi chốt giữ ảnh nền, chỉ thêm trạng thái (D1). Chốt D2–D12. Chiều cùng ngày: what-to-eat generalize thành decision-wheel → loại `meal` thành 3 loại `decision_*`. Chờ user duyệt spec.
