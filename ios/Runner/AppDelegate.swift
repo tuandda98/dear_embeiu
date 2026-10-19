@@ -323,12 +323,30 @@ final class HomeWidgetChannel {
         // A push handled in the background only knows itself: keep a newer
         // line of the same day (pushes can arrive out of order, D3).
         let onlyIfNewer = status.removeValue(forKey: "onlyIfNewer") == "1"
-        if onlyIfNewer, let stored = groupDefaults?.dictionary(forKey: statusKey) as? [String: String],
-           stored["todayDate"] == status["todayDate"],
-           (Int64(stored["statusAt"] ?? "") ?? 0) > (Int64(status["statusAt"] ?? "") ?? 0) {
+        // partner_left (WT-R2-1): clear only a line older than the leave,
+        // and remember the leave as `clearedAt` so a late push from before it
+        // can't bring the old partner's line back.
+        let clearIfOlder = status.removeValue(forKey: "clearIfOlder") == "1"
+        let stored = groupDefaults?.dictionary(forKey: statusKey) as? [String: String] ?? [:]
+        let storedAt = Int64(stored["statusAt"] ?? "") ?? 0
+        let incomingAt = Int64(status["statusAt"] ?? "") ?? 0
+        let clearedAt = Int64(stored["clearedAt"] ?? "") ?? 0
+        if clearIfOlder {
+          let mark = max(clearedAt, incomingAt)
+          var next = storedAt < incomingAt ? status : stored
+          next["clearedAt"] = String(mark)
+          groupDefaults?.set(next, forKey: statusKey)
+          if #available(iOS 14.0, *) { WidgetCenter.shared.reloadAllTimelines() }
           result(nil)
           return
         }
+        if onlyIfNewer,
+           incomingAt < clearedAt
+            || (stored["todayDate"] == status["todayDate"] && storedAt > incomingAt) {
+          result(nil)
+          return
+        }
+        if clearedAt > 0 { status["clearedAt"] = String(clearedAt) }
         groupDefaults?.set(status, forKey: statusKey)
         if #available(iOS 14.0, *) { WidgetCenter.shared.reloadAllTimelines() }
         result(nil)

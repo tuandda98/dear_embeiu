@@ -499,6 +499,9 @@ exports.notifyPartnerLeft = onDocumentUpdated(
         type: "partner_left",
         coupleId,
         leaverUserId: leaverUid,
+        // When they left: the widget clears only a line older than this
+        // (widget-today WT-R2-1, pushes can arrive late / out of order).
+        sentAt: String(Date.now()),
       },
       // Wake the app so it clears the widget's "người ấy vừa…" line right away
       // (widget-today B5), even when it is closed.

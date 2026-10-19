@@ -205,7 +205,7 @@ abstract final class HomeWidgetStatus {
   /// From a push handled in the background (D5b, D9: only the push's own
   /// data, no reads). Null = not a widget event, or not about today. Carries
   /// `onlyIfNewer` so native keeps a newer line of the same day (D3), except
-  /// `partner_left`, which clears the line ([none]).
+  /// `partner_left`, which clears an older line ([none] + `clearIfOlder`).
   /// [sentAt] = `RemoteMessage.sentTime` (often null on iOS); the CF's
   /// `data.sentAt` (epoch ms) wins over it. A push with no `date` and no send
   /// time can't be proven to be today's → ignored (B2).
@@ -217,10 +217,17 @@ abstract final class HomeWidgetStatus {
   }) {
     String v(String key) => '${data[key] ?? ''}'.trim();
     if (v('type') == 'partner_left') {
-      // The partner left (CF notifyPartnerLeft, wakeClients): drop the line
-      // now, unconditionally (no onlyIfNewer). Not `state=empty`, which would
-      // also wipe the day count (B5).
-      return none(now);
+      // The partner left (CF notifyPartnerLeft, wakeClients): drop the line.
+      // Not `state=empty`, which would also wipe the day count (B5). With a
+      // send time (CF `sentAt`, else FCM sentTime) native clears only a line
+      // OLDER than the leave and blocks later pushes from before it
+      // (`clearIfOlder`, WT-R2-1) — a late push must not wipe the new
+      // couple's line, nor the old partner's chat reappear. No time at all →
+      // clear unconditionally, as before.
+      final leftMs =
+          int.tryParse(v('sentAt')) ?? sentAt?.millisecondsSinceEpoch ?? 0;
+      if (leftMs <= 0) return none(now);
+      return {...none(now), 'statusAt': '$leftMs', 'clearIfOlder': '1'};
     }
     final sentMs = int.tryParse(v('sentAt'));
     final sent =

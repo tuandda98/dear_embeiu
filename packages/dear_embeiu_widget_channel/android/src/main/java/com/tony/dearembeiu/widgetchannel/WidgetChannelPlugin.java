@@ -71,7 +71,28 @@ public class WidgetChannelPlugin implements FlutterPlugin, MethodChannel.MethodC
                 // A push handled in the background only knows itself: keep a
                 // newer line of the same day (pushes can arrive out of order, D3).
                 boolean onlyIfNewer = "1".equals(status.remove("onlyIfNewer"));
-                if (!onlyIfNewer || isNewer(status)) {
+                // partner_left (WT-R2-1): clear only a line older than the
+                // leave, and remember the leave as `clearedAt` so a late push
+                // from before it can't bring the old partner's line back.
+                boolean clearIfOlder = "1".equals(status.remove("clearIfOlder"));
+                SharedPreferences prefs = context.getSharedPreferences(STATUS_PREFS, Context.MODE_PRIVATE);
+                long storedAt = parse(prefs.getString("statusAt", "0"));
+                long incomingAt = parse(status.get("statusAt"));
+                long clearedAt = parse(prefs.getString("clearedAt", "0"));
+                if (clearIfOlder) {
+                    Map<String, String> next = new HashMap<>();
+                    if (storedAt < incomingAt) {
+                        next.putAll(status);
+                    } else {
+                        for (Map.Entry<String, ?> e : prefs.getAll().entrySet()) {
+                            if (e.getValue() instanceof String) next.put(e.getKey(), (String) e.getValue());
+                        }
+                    }
+                    next.put("clearedAt", Long.toString(Math.max(clearedAt, incomingAt)));
+                    put(STATUS_PREFS, next);
+                    refresh();
+                } else if (!onlyIfNewer || (incomingAt >= clearedAt && isNewer(status))) {
+                    if (clearedAt > 0) status.put("clearedAt", Long.toString(clearedAt));
                     put(STATUS_PREFS, status);
                     refresh();
                 }

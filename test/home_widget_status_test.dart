@@ -258,11 +258,22 @@ void main() {
       expect(push({...go, 'resultId': '', 'result': 'Đi bơi'})!['statusText'], 'Hôm nay: Đi bơi');
     });
 
-    test('partner_left clears the line, unconditionally (B5)', () {
-      final s = push({'type': 'partner_left', 'coupleId': 'c'}, sentAt: DateTime(2026, 10, 1))!;
-      expect(s, HomeWidgetStatus.none(now));
+    test('partner_left: empty line stamped with the leave time, clearIfOlder (B5, WT-R2-1)', () {
+      Map<String, String>? raw(Map<String, dynamic> data, {DateTime? sentAt}) =>
+          HomeWidgetStatus.fromPush(data, l10n: vi, now: now, sentAt: sentAt);
+      final left = at(13, 5).millisecondsSinceEpoch;
+      // CF sentAt wins over FCM sentTime.
+      final s = raw({'type': 'partner_left', 'coupleId': 'c', 'sentAt': '$left'},
+          sentAt: at(14))!;
+      expect(s, {...HomeWidgetStatus.none(now), 'statusAt': '$left', 'clearIfOlder': '1'});
+      expect(s['statusText'], '');
       expect(s.containsKey('onlyIfNewer'), isFalse);
       expect(s.containsKey('state'), isFalse); // the day count stays
+      // Old CF (no sentAt): FCM sentTime is the mark.
+      expect(raw({'type': 'partner_left'}, sentAt: at(14))!['statusAt'],
+          '${at(14).millisecondsSinceEpoch}');
+      // No time at all (old CF on iOS): clear unconditionally, as before.
+      expect(raw({'type': 'partner_left', 'sentAt': 'x'}), HomeWidgetStatus.none(now));
     });
 
     test('name fallback + language from data.lang, else the phone', () {
