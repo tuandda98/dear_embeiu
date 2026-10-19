@@ -61,3 +61,10 @@
 - **WT-R2-1 (minor)** — `partner_left` không mang mốc thời gian: push tới trễ/đảo thứ tự có thể xoá dòng của couple mới, hoặc để push chat cũ của người đã rời hiện lại. Gợi ý: CF gửi `sentAt`, client xoá chỉ khi dòng đang lưu cũ hơn mốc đó.
 - Review toàn nhánh: không regression; kênh widget Android trong plugin đăng ký cả engine chính lẫn engine nền, đủ 4 method, prefs khớp `WidgetStore`.
 - Smoke thêm: (12) đổi ngôn ngữ khi Home mở → dòng đổi ≤1s; (13) B rời lúc app A tắt → dòng mất, số ngày còn; (14) iOS push chat CF mới → ghi `sentTime` có null không.
+
+### Vòng 3 — re-review 3 bản vá (2026-10-20, HEAD `c4d91de`) — **PASS**
+- flutter analyze 0 · flutter test 638 pass / 3 skip · rules 394 passing + CF 21/21. Không deploy.
+- DW-R2-1 FIXED: `decisionTextSize` (UTF-16) khớp rules `size()` (đo trên emulator: `size()` đếm đơn vị UTF-16); formatter cắt theo grapheme, không phá IME; `_addOption` báo lỗi; câu hỏi kiểm trước khi chốt.
+- DW-R2-2 FIXED: cooldown gửi push im lặng (`silent`: data-only, iOS background priority 5), không ghi `lastPushAt`; caller khác không đổi. CẦN TEST iOS thật nhận background wake.
+- WT-R2-1 FIXED: `clearIfOlder` + `clearedAt` nhất quán Dart / iOS / Android; `state=empty` xoá cả hai. Rủi ro minor chấp nhận: lệch đồng hồ máy có thể chặn nhầm 1 push thật vài phút, tự hết khi mở app. CẦN TEST: B rời → ghép C → C nhắn → widget A hiện C.
+- Bug mới: không. **Kết luận chung: PASS code-level, chờ smoke máy thật.**

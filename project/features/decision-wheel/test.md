@@ -53,3 +53,10 @@
 - **DW-R2-2 (minor)** — quay lại trong cooldown không gửi gì kể cả wake → widget người ấy giữ kết quả cũ.
 - Review toàn nhánh: không regression (session_resolver, listener, Gallery tách hàm, MainActivity/plugin, SceneDelegate, ARB, văn phong, không thêm quyền).
 - Smoke thêm: (10) B quay lại sau 1' → A có banner; (11) B quay thêm trong 10' → A chỉ inbox; (12) tắt mạng lúc chốt rồi Thử lại → `spins` +1; (13) Nhập tay có emoji dài 40.
+
+### Vòng 3 — re-review 3 bản vá (2026-10-20, HEAD `c4d91de`) — **PASS**
+- flutter analyze 0 · flutter test 638 pass / 3 skip · rules 394 passing + CF 21/21. Không deploy.
+- DW-R2-1 FIXED: `decisionTextSize` (UTF-16) khớp rules `size()` (đo trên emulator: `size()` đếm đơn vị UTF-16); formatter cắt theo grapheme, không phá IME; `_addOption` báo lỗi; câu hỏi kiểm trước khi chốt.
+- DW-R2-2 FIXED: cooldown gửi push im lặng (`silent`: data-only, iOS background priority 5), không ghi `lastPushAt`; caller khác không đổi. CẦN TEST iOS thật nhận background wake.
+- WT-R2-1 FIXED: `clearIfOlder` + `clearedAt` nhất quán Dart / iOS / Android; `state=empty` xoá cả hai. Rủi ro minor chấp nhận: lệch đồng hồ máy có thể chặn nhầm 1 push thật vài phút, tự hết khi mở app. CẦN TEST: B rời → ghép C → C nhắn → widget A hiện C.
+- Bug mới: không. **Kết luận chung: PASS code-level, chờ smoke máy thật.**
