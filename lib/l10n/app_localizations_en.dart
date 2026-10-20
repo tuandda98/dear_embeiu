@@ -4621,4 +4621,680 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifDecisionRespin(String name, String result) {
     return '$name re-spun: $result';
   }
+
+  @override
+  String get arrivalCardTitle => 'Home yet?';
+
+  @override
+  String get arrivalOpenManageA11y => 'Open arrival settings';
+
+  @override
+  String arrivalPitch(String name) {
+    return 'When you get home, your phone tells $name. No texting from the road.';
+  }
+
+  @override
+  String get arrivalEnableCta => 'Turn on arrivals';
+
+  @override
+  String get arrivalManualHome => 'I\'m home';
+
+  @override
+  String get arrivalManualOther => 'I\'ve arrived';
+
+  @override
+  String get arrivalHomeName => 'Home';
+
+  @override
+  String get arrivalEnterHome => 'Got home';
+
+  @override
+  String get arrivalExitHome => 'Left home';
+
+  @override
+  String arrivalEnterPlace(String place) {
+    return 'Arrived at $place';
+  }
+
+  @override
+  String arrivalExitPlace(String place) {
+    return 'Left $place';
+  }
+
+  @override
+  String arrivalYesterdayAt(String time) {
+    return 'yesterday $time';
+  }
+
+  @override
+  String arrivalBattery(int pct) {
+    return '$pct%';
+  }
+
+  @override
+  String arrivalBatteryLow(int pct) {
+    return 'Battery at $pct%';
+  }
+
+  @override
+  String get arrivalManualTag => 'manual';
+
+  @override
+  String get arrivalPartnerOn => 'Arrivals are on';
+
+  @override
+  String arrivalPartnerOnSub(String name) {
+    return 'You\'ll see it here when $name arrives.';
+  }
+
+  @override
+  String get arrivalPartnerOff => 'Arrivals are off';
+
+  @override
+  String get arrivalCareCta => 'Say hi';
+
+  @override
+  String arrivalCareA11y(String name) {
+    return 'Say hi to $name';
+  }
+
+  @override
+  String get arrivalCareSuggestion => 'You made it. Get some rest';
+
+  @override
+  String get arrivalNoEventToday => 'Nothing yet today';
+
+  @override
+  String arrivalMineAuto(String places) {
+    return 'Auto: $places';
+  }
+
+  @override
+  String arrivalPlacesMany(int n) {
+    return 'Home and $n more';
+  }
+
+  @override
+  String get arrivalMineNeedAlways =>
+      'Can\'t send on its own yet: needs Always location';
+
+  @override
+  String get arrivalMineRemoteOff => 'Manual only for now';
+
+  @override
+  String get arrivalMineManual => 'Only when you tap';
+
+  @override
+  String get arrivalMineNoAddress => 'Home address not set';
+
+  @override
+  String get arrivalSetAddress => 'Set address';
+
+  @override
+  String get arrivalOpenSettings => 'Open Settings';
+
+  @override
+  String arrivalFirstDetected(String place) {
+    return 'The app recognized $place';
+  }
+
+  @override
+  String arrivalSent(String name) {
+    return 'Sent to $name';
+  }
+
+  @override
+  String arrivalQueued(String name) {
+    return 'Sends when you\'re back online. After 30 minutes, $name only sees it on the card, with no notification.';
+  }
+
+  @override
+  String arrivalSendFailed(String what) {
+    return 'Couldn\'t send “$what”.';
+  }
+
+  @override
+  String get arrivalRetry => 'Try again';
+
+  @override
+  String get arrivalPickTitle => 'Where did you just arrive?';
+
+  @override
+  String arrivalPickNote(String name, String me) {
+    return 'Tap and $name gets “$me arrived at …” right away. No location access needed.';
+  }
+
+  @override
+  String get arrivalAddPlace => 'Add a place';
+
+  @override
+  String arrivalSlotsLeft(int n) {
+    return '$n left';
+  }
+
+  @override
+  String get arrivalBadge => 'ARRIVALS';
+
+  @override
+  String get arrivalNewPlaceTitle => 'New place';
+
+  @override
+  String get arrivalNameLabel => 'Place name';
+
+  @override
+  String get arrivalNameHint => 'e.g. Work, Mom and Dad\'s';
+
+  @override
+  String get arrivalNameNote => 'Your partner sees this name when you arrive.';
+
+  @override
+  String get arrivalNameEmpty =>
+      'Type a name to continue. Up to 24 characters.';
+
+  @override
+  String get arrivalChipWork => 'Work';
+
+  @override
+  String get arrivalChipSchool => 'School';
+
+  @override
+  String get arrivalChipFamily => 'Mom and Dad\'s';
+
+  @override
+  String get arrivalChipGym => 'Gym';
+
+  @override
+  String get arrivalChipCafe => 'Usual spot';
+
+  @override
+  String get arrivalIconLabel => 'Icon';
+
+  @override
+  String get arrivalIconAuto =>
+      'Picking a suggestion picks its icon too. You can change it.';
+
+  @override
+  String get arrivalIconWork => 'Work';
+
+  @override
+  String get arrivalIconSchool => 'School';
+
+  @override
+  String get arrivalIconFamily => 'Family';
+
+  @override
+  String get arrivalIconGym => 'Workout';
+
+  @override
+  String get arrivalIconCafe => 'Café';
+
+  @override
+  String get arrivalIconShop => 'Shopping';
+
+  @override
+  String get arrivalIconPin => 'Other';
+
+  @override
+  String arrivalPreviewLead(String name) {
+    return '$name will see:';
+  }
+
+  @override
+  String get arrivalContinue => 'Continue';
+
+  @override
+  String arrivalWhereTitle(String place) {
+    return 'Where is $place?';
+  }
+
+  @override
+  String get arrivalWhereSub =>
+      'Include the house number, street and ward for the best match.';
+
+  @override
+  String get arrivalSearchHint => 'e.g. 12 Nguyen Trai, Thanh Xuan, Ha Noi';
+
+  @override
+  String get arrivalSearching => 'Searching…';
+
+  @override
+  String get arrivalSearchTip =>
+      'Tap Search on the keyboard if nothing shows up.';
+
+  @override
+  String get arrivalClearSearch => 'Clear';
+
+  @override
+  String get arrivalUseCurrentRow => 'Can\'t find it? Use current location';
+
+  @override
+  String get arrivalUseCurrentRowSub => 'Tap this while you\'re there';
+
+  @override
+  String get arrivalNoResults =>
+      'Couldn\'t find that address. Try adding the ward or province, or use your current location while you\'re there.';
+
+  @override
+  String get arrivalSearchOffline =>
+      'Finding an address needs internet. Try again when you\'re online, or use your current location while you\'re there.';
+
+  @override
+  String get arrivalSearchError =>
+      'Couldn\'t search right now. Try again in a bit, or use your current location while you\'re there.';
+
+  @override
+  String get arrivalNoGeocoder =>
+      'This phone can\'t look up addresses. Save the place with your current location while you\'re there.';
+
+  @override
+  String get arrivalUseCurrent => 'Use current location';
+
+  @override
+  String get arrivalNameOnly => 'Save the name, tap manually';
+
+  @override
+  String arrivalCurrentTitle(String place) {
+    return 'Are you at $place now?';
+  }
+
+  @override
+  String get arrivalCurrentBody =>
+      'The app reads your location once to save this spot. Coordinates stay on your phone.';
+
+  @override
+  String get arrivalCurrentHint =>
+      'The first time, your phone asks for location access. Choose “While Using the App” and keep Precise Location on.';
+
+  @override
+  String get arrivalReadLocation => 'Read location';
+
+  @override
+  String get arrivalReading => 'Reading location…';
+
+  @override
+  String get arrivalBackToSearch => 'Back to search';
+
+  @override
+  String get arrivalReadTimeout =>
+      'Couldn\'t get your location. Move somewhere more open and try again.';
+
+  @override
+  String get arrivalPreciseTitle => 'Turn on Precise Location';
+
+  @override
+  String get arrivalPreciseBody =>
+      'With approximate location, the app can\'t tell your door from a few streets away.';
+
+  @override
+  String get arrivalConfirmTitle => 'Is this the right spot?';
+
+  @override
+  String get arrivalFromAddress => 'From the address';
+
+  @override
+  String arrivalFromCurrent(int m) {
+    return 'Your current location, within about $m m';
+  }
+
+  @override
+  String arrivalRadiusLine(int m) {
+    return 'The app lets them know when you\'re within about $m m of here.';
+  }
+
+  @override
+  String get arrivalNoHouseNumber =>
+      'This address has no house number, so the alert may come a little early or late.';
+
+  @override
+  String get arrivalConfirmAlleyWarn =>
+      'Alley addresses usually only resolve to the alley entrance, so the alert may come a little early or late.';
+
+  @override
+  String get arrivalSave => 'Save';
+
+  @override
+  String get arrivalWrongSpot =>
+      'Wrong spot? Use your current location while you\'re there';
+
+  @override
+  String get arrivalReread => 'Read location again';
+
+  @override
+  String arrivalSaved(String place) {
+    return '$place saved';
+  }
+
+  @override
+  String arrivalEditTitle(String place) {
+    return 'Edit $place';
+  }
+
+  @override
+  String get arrivalRenameNote => 'A new name applies from your next arrival.';
+
+  @override
+  String get arrivalLocationLabel => 'Location';
+
+  @override
+  String arrivalSavedFromAddress(String date) {
+    return 'Saved from address · $date';
+  }
+
+  @override
+  String arrivalSavedFromCurrent(String date) {
+    return 'Saved from current location · $date';
+  }
+
+  @override
+  String get arrivalNoAddressManual => 'No address yet, manual only';
+
+  @override
+  String get arrivalPaused => 'Paused';
+
+  @override
+  String get arrivalDeletePlace => 'Delete this place';
+
+  @override
+  String get arrivalDeletePlaceSub => 'You\'ll be asked to confirm.';
+
+  @override
+  String arrivalDeletePlaceTitle(String place) {
+    return 'Delete $place?';
+  }
+
+  @override
+  String get arrivalDeletePlaceBody =>
+      'You\'ll stop sending arrivals for it. Updates already sent keep the old name.';
+
+  @override
+  String get arrivalHomeEditBody =>
+      'Home always stays on the card. You can only change where it is.';
+
+  @override
+  String get arrivalDeleteHomeAddress => 'Remove address';
+
+  @override
+  String get arrivalDeleteHomeAddressSub =>
+      'Home goes back to tapping “I\'m home”.';
+
+  @override
+  String get arrivalDeleteHomeAddressTitle => 'Remove Home\'s address?';
+
+  @override
+  String get arrivalDeleteHomeAddressBody =>
+      'Home stays on the card. Tap “I\'m home” each time you get back.';
+
+  @override
+  String get arrivalDelete => 'Delete';
+
+  @override
+  String get arrivalCancel => 'Cancel';
+
+  @override
+  String arrivalDeleted(String place) {
+    return '$place deleted';
+  }
+
+  @override
+  String get arrivalHomeAddressDeleted => 'Home\'s address removed';
+
+  @override
+  String get arrivalUndo => 'Undo';
+
+  @override
+  String get arrivalNeedPlaceTitle => 'First, where\'s home?';
+
+  @override
+  String get arrivalNeedPlaceBody =>
+      'Your phone needs to know where Home is to send on its own. Typing the address is enough, no permissions yet.';
+
+  @override
+  String get arrivalNoAddressYet => 'No address yet';
+
+  @override
+  String get arrivalSetHomeAddress => 'Set Home address';
+
+  @override
+  String get arrivalLater => 'Not now';
+
+  @override
+  String arrivalDisclosureTitle(String name) {
+    return '$name knows when you arrive';
+  }
+
+  @override
+  String get arrivalDisclosureBody =>
+      'Dear Embeiu uses your location to let your partner know when you get Home or reach a place you saved, even when the app is closed or not in use. Addresses and coordinates stay on your phone. Your partner only sees the place name, the time and your battery level. You can turn this off anytime.';
+
+  @override
+  String arrivalPreviewLabel(String name) {
+    return '$name will get';
+  }
+
+  @override
+  String get arrivalPushBody => 'Send a quick hello';
+
+  @override
+  String get arrivalAgree => 'Agree and continue';
+
+  @override
+  String get arrivalPrivacyLink => 'Privacy policy';
+
+  @override
+  String arrivalAlwaysTitle(String label) {
+    return 'Choose “$label”';
+  }
+
+  @override
+  String arrivalAlwaysBody(String label) {
+    return 'To send it even when the app is closed, choose “$label” on the next screen.';
+  }
+
+  @override
+  String get arrivalAlwaysLabelIos => 'Always';
+
+  @override
+  String get arrivalAlwaysLabelAndroid => 'Allow all the time';
+
+  @override
+  String get arrivalNextLooksLike => 'The next screen looks like this';
+
+  @override
+  String get arrivalOsNever => 'Never';
+
+  @override
+  String get arrivalOsAskNext => 'Ask Next Time';
+
+  @override
+  String get arrivalOsWhileUsing => 'While Using the App';
+
+  @override
+  String get arrivalOsAndroidWhileUsing => 'Allow only while using the app';
+
+  @override
+  String get arrivalOsAndroidAsk => 'Ask every time';
+
+  @override
+  String get arrivalOsAndroidDeny => 'Don\'t allow';
+
+  @override
+  String get arrivalSwipeHint =>
+      'Don\'t swipe Dear Embeiu away in the app switcher, or your iPhone may not send arrivals.';
+
+  @override
+  String get arrivalAutostartHint =>
+      'On Xiaomi, Oppo or Vivo, also turn on Autostart for Dear Embeiu so arrivals aren\'t blocked.';
+
+  @override
+  String get arrivalOpenPermission => 'Open permissions';
+
+  @override
+  String get arrivalLaterManual => 'Later, I\'ll tap manually';
+
+  @override
+  String get arrivalDoneTitle => 'Arrivals are on';
+
+  @override
+  String arrivalDoneBody(String name) {
+    return 'From now on, $name knows when you get home. To turn it off, go to Settings → Arrivals. Turning it off deletes your latest update, and $name gets no notification.';
+  }
+
+  @override
+  String get arrivalDoneRow => 'Sends when you reach Home';
+
+  @override
+  String get arrivalDoneRowSub => 'Add work, the gym… to cover those too';
+
+  @override
+  String get arrivalPartialTitle => 'You\'ll send it manually for now';
+
+  @override
+  String arrivalPartialBody(String name) {
+    return 'Each time you get home, tap “I\'m home” on the Home card. $name gets the same message. Your saved places stay.';
+  }
+
+  @override
+  String get arrivalBackHome => 'Back to Home';
+
+  @override
+  String arrivalSeesLabel(String name) {
+    return 'What $name sees';
+  }
+
+  @override
+  String arrivalShareTitle(String name) {
+    return 'Share with $name';
+  }
+
+  @override
+  String arrivalShareSub(String name) {
+    return 'Turning this off deletes your latest update from the server. $name gets no notification.';
+  }
+
+  @override
+  String arrivalShareOffSub(String name) {
+    return 'Turn it back on to let $name know when you arrive.';
+  }
+
+  @override
+  String get arrivalAutoTitle => 'Send automatically';
+
+  @override
+  String arrivalAutoSub(String places) {
+    return 'Your phone sends it when you reach $places.';
+  }
+
+  @override
+  String get arrivalAutoNeedPlace =>
+      'Set an address for Home or another place first.';
+
+  @override
+  String get arrivalAutoNeedAlways =>
+      'Can\'t send on its own yet: needs Always location.';
+
+  @override
+  String get arrivalAutoRemoteOff =>
+      'Manual only for now. You can still tap “I\'m home” on the Home card.';
+
+  @override
+  String get arrivalPlacesTitle => 'Places';
+
+  @override
+  String get arrivalPlacesSub =>
+      'Home is always there. Add up to 4 more. Addresses stay on this phone.';
+
+  @override
+  String get arrivalPermTitle => 'Location access';
+
+  @override
+  String get arrivalPermAlways => 'Location: Always';
+
+  @override
+  String get arrivalPermAlwaysSub =>
+      'Enough to send even when the app is closed.';
+
+  @override
+  String get arrivalPermWhileUsing => 'Location: While Using';
+
+  @override
+  String get arrivalPermWhileUsingSub =>
+      'Needs “Always” to send while the app is closed.';
+
+  @override
+  String get arrivalPermNone => 'Location: Not allowed';
+
+  @override
+  String get arrivalPermPreciseOn => 'Precise Location: On';
+
+  @override
+  String get arrivalPermPreciseOff => 'Precise Location: Off';
+
+  @override
+  String get arrivalPermPreciseSub =>
+      'So it knows you\'re at the door, not the end of the street.';
+
+  @override
+  String get arrivalPermOpenSettings => 'Open phone Settings';
+
+  @override
+  String get arrivalTurnOffTitle => 'Turn off arrivals?';
+
+  @override
+  String arrivalTurnOffBody(String name, String me) {
+    return 'Your latest update is deleted from the server right away. $name will see that $me\'s arrivals are off and won\'t get a notification.';
+  }
+
+  @override
+  String arrivalTurnOffAlsoPlaces(int n) {
+    return 'Also delete the saved addresses of $n places on this phone';
+  }
+
+  @override
+  String get arrivalTurnOff => 'Turn off';
+
+  @override
+  String get arrivalSettingsPushTitle => 'When your partner arrives';
+
+  @override
+  String arrivalSettingsPushSub(String name) {
+    return 'Get notified when $name gets home or reaches a saved place. The Home card still shows it when this is off.';
+  }
+
+  @override
+  String get arrivalSettingsTitle => 'Arrivals';
+
+  @override
+  String arrivalSettingsSharing(String name, String places) {
+    return 'Sharing with $name: $places';
+  }
+
+  @override
+  String get arrivalSettingsOff => 'Off';
+
+  @override
+  String arrivalWidgetHome(String name) {
+    return '$name got home';
+  }
+
+  @override
+  String arrivalWidgetHomeShort(String name) {
+    return '$name is home';
+  }
+
+  @override
+  String arrivalWidgetPlace(String name, String place) {
+    return '$name arrived at $place';
+  }
+
+  @override
+  String arrivalWidgetPlaceShort(String name, String place) {
+    return '$name at $place';
+  }
+
+  @override
+  String get arrivalTourTitle => 'Home yet?';
+
+  @override
+  String get arrivalTourBody =>
+      'Got home? Tap “I\'m home” on the Home tab and your partner knows, no texting. You can also let your phone send it when you reach a saved place.';
 }

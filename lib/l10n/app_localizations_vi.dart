@@ -4399,4 +4399,679 @@ class AppLocalizationsVi extends AppLocalizations {
   String notifDecisionRespin(String name, String result) {
     return '$name quay lại: $result';
   }
+
+  @override
+  String get arrivalCardTitle => 'Về đến nhà chưa?';
+
+  @override
+  String get arrivalOpenManageA11y => 'Mở cài đặt Về đến nhà';
+
+  @override
+  String arrivalPitch(String name) {
+    return 'Về đến nhà là máy tự báo cho $name. Đang chạy xe thì khỏi phải nhắn.';
+  }
+
+  @override
+  String get arrivalEnableCta => 'Bật báo về nhà';
+
+  @override
+  String get arrivalManualHome => 'Về nhà rồi';
+
+  @override
+  String get arrivalManualOther => 'Đến nơi rồi';
+
+  @override
+  String get arrivalHomeName => 'Nhà';
+
+  @override
+  String get arrivalEnterHome => 'Đã về đến nhà';
+
+  @override
+  String get arrivalExitHome => 'Đã rời nhà';
+
+  @override
+  String arrivalEnterPlace(String place) {
+    return 'Đã đến $place';
+  }
+
+  @override
+  String arrivalExitPlace(String place) {
+    return 'Đã rời $place';
+  }
+
+  @override
+  String arrivalYesterdayAt(String time) {
+    return 'hôm qua $time';
+  }
+
+  @override
+  String arrivalBattery(int pct) {
+    return '$pct%';
+  }
+
+  @override
+  String arrivalBatteryLow(int pct) {
+    return 'Pin còn $pct%';
+  }
+
+  @override
+  String get arrivalManualTag => 'bấm tay';
+
+  @override
+  String get arrivalPartnerOn => 'Đang bật báo về nhà';
+
+  @override
+  String arrivalPartnerOnSub(String name) {
+    return 'Khi $name đến nơi, tin sẽ hiện ở đây.';
+  }
+
+  @override
+  String get arrivalPartnerOff => 'Chưa bật báo về nhà';
+
+  @override
+  String get arrivalCareCta => 'Hỏi thăm';
+
+  @override
+  String arrivalCareA11y(String name) {
+    return 'Hỏi thăm $name';
+  }
+
+  @override
+  String get arrivalCareSuggestion => 'Về tới nơi rồi thì nghỉ ngơi nhé';
+
+  @override
+  String get arrivalNoEventToday => 'Chưa có tin hôm nay';
+
+  @override
+  String arrivalMineAuto(String places) {
+    return 'Tự báo: $places';
+  }
+
+  @override
+  String arrivalPlacesMany(int n) {
+    return 'Nhà và $n nơi khác';
+  }
+
+  @override
+  String get arrivalMineNeedAlways =>
+      'Chưa tự báo được: cần quyền vị trí Luôn luôn';
+
+  @override
+  String get arrivalMineRemoteOff => 'Tạm thời chỉ báo bằng tay';
+
+  @override
+  String get arrivalMineManual => 'Chỉ báo khi bạn bấm';
+
+  @override
+  String get arrivalMineNoAddress => 'Chưa đặt địa chỉ Nhà';
+
+  @override
+  String get arrivalSetAddress => 'Đặt địa chỉ';
+
+  @override
+  String get arrivalOpenSettings => 'Mở Cài đặt';
+
+  @override
+  String arrivalFirstDetected(String place) {
+    return 'App đã nhận ra $place';
+  }
+
+  @override
+  String arrivalSent(String name) {
+    return 'Đã báo $name';
+  }
+
+  @override
+  String arrivalQueued(String name) {
+    return 'Sẽ báo khi có mạng. Quá 30 phút thì $name chỉ thấy trên thẻ, không nhận thông báo.';
+  }
+
+  @override
+  String arrivalSendFailed(String what) {
+    return 'Chưa gửi được tin “$what”.';
+  }
+
+  @override
+  String get arrivalRetry => 'Thử lại';
+
+  @override
+  String get arrivalPickTitle => 'Bạn vừa đến đâu?';
+
+  @override
+  String arrivalPickNote(String name, String me) {
+    return 'Bấm là $name nhận “$me đã đến …” ngay, không cần quyền vị trí.';
+  }
+
+  @override
+  String get arrivalAddPlace => 'Thêm nơi';
+
+  @override
+  String arrivalSlotsLeft(int n) {
+    return 'Còn $n chỗ';
+  }
+
+  @override
+  String get arrivalBadge => 'VỀ ĐẾN NHÀ';
+
+  @override
+  String get arrivalNewPlaceTitle => 'Nơi mới';
+
+  @override
+  String get arrivalNameLabel => 'Tên nơi';
+
+  @override
+  String get arrivalNameHint => 'Vd: Công ty, Nhà bố mẹ';
+
+  @override
+  String get arrivalNameNote => 'Người ấy sẽ thấy tên này khi bạn đến.';
+
+  @override
+  String get arrivalNameEmpty => 'Gõ tên để tiếp tục. Tối đa 24 ký tự.';
+
+  @override
+  String get arrivalChipWork => 'Công ty';
+
+  @override
+  String get arrivalChipSchool => 'Trường';
+
+  @override
+  String get arrivalChipFamily => 'Nhà bố mẹ';
+
+  @override
+  String get arrivalChipGym => 'Phòng gym';
+
+  @override
+  String get arrivalChipCafe => 'Quán quen';
+
+  @override
+  String get arrivalIconLabel => 'Biểu tượng';
+
+  @override
+  String get arrivalIconAuto =>
+      'Chọn chip gợi ý thì biểu tượng tự chọn theo, đổi được.';
+
+  @override
+  String get arrivalIconWork => 'Công việc';
+
+  @override
+  String get arrivalIconSchool => 'Trường';
+
+  @override
+  String get arrivalIconFamily => 'Gia đình';
+
+  @override
+  String get arrivalIconGym => 'Tập luyện';
+
+  @override
+  String get arrivalIconCafe => 'Quán';
+
+  @override
+  String get arrivalIconShop => 'Mua sắm';
+
+  @override
+  String get arrivalIconPin => 'Chỗ khác';
+
+  @override
+  String arrivalPreviewLead(String name) {
+    return '$name sẽ thấy:';
+  }
+
+  @override
+  String get arrivalContinue => 'Tiếp tục';
+
+  @override
+  String arrivalWhereTitle(String place) {
+    return '$place ở đâu?';
+  }
+
+  @override
+  String get arrivalWhereSub =>
+      'Gõ số nhà, tên đường và phường cho chuẩn nhất.';
+
+  @override
+  String get arrivalSearchHint => 'Vd: 12 Nguyễn Trãi, Thanh Xuân, Hà Nội';
+
+  @override
+  String get arrivalSearching => 'Đang tìm…';
+
+  @override
+  String get arrivalSearchTip =>
+      'Gõ xong bấm Tìm trên bàn phím nếu chưa thấy kết quả.';
+
+  @override
+  String get arrivalClearSearch => 'Xoá chữ đã gõ';
+
+  @override
+  String get arrivalUseCurrentRow => 'Không thấy địa chỉ? Dùng vị trí hiện tại';
+
+  @override
+  String get arrivalUseCurrentRowSub => 'Hãy bấm khi bạn đang đứng ở đó';
+
+  @override
+  String get arrivalNoResults =>
+      'Không tìm thấy địa chỉ này. Thử thêm tên phường hoặc tỉnh, hoặc dùng vị trí hiện tại khi bạn đang ở đó.';
+
+  @override
+  String get arrivalSearchOffline =>
+      'Cần mạng để tìm địa chỉ. Có mạng lại thì gõ tiếp, hoặc dùng vị trí hiện tại khi bạn đang ở đó.';
+
+  @override
+  String get arrivalSearchError =>
+      'Chưa tìm được lúc này. Thử lại sau chút nữa, hoặc dùng vị trí hiện tại khi bạn đang ở đó.';
+
+  @override
+  String get arrivalNoGeocoder =>
+      'Máy này không tìm được địa chỉ. Bạn lưu bằng vị trí hiện tại lúc đang đứng ở đó.';
+
+  @override
+  String get arrivalUseCurrent => 'Dùng vị trí hiện tại';
+
+  @override
+  String get arrivalNameOnly => 'Lưu tên, chỉ bấm tay';
+
+  @override
+  String arrivalCurrentTitle(String place) {
+    return 'Bạn đang ở $place?';
+  }
+
+  @override
+  String get arrivalCurrentBody =>
+      'App đọc vị trí một lần để lưu chỗ này. Toạ độ chỉ nằm trên máy bạn.';
+
+  @override
+  String get arrivalCurrentHint =>
+      'Lần đầu, máy sẽ hỏi quyền vị trí. Chọn “Cho phép khi dùng ứng dụng” và để Vị trí chính xác bật.';
+
+  @override
+  String get arrivalReadLocation => 'Đọc vị trí';
+
+  @override
+  String get arrivalReading => 'Đang đọc vị trí…';
+
+  @override
+  String get arrivalBackToSearch => 'Quay lại tìm địa chỉ';
+
+  @override
+  String get arrivalReadTimeout =>
+      'Chưa đọc được vị trí. Ra chỗ thoáng hơn rồi thử lại nhé.';
+
+  @override
+  String get arrivalPreciseTitle => 'Cần bật Vị trí chính xác';
+
+  @override
+  String get arrivalPreciseBody =>
+      'Với vị trí gần đúng, app không biết bạn đã về tới cửa hay mới ở cách nhà vài con phố.';
+
+  @override
+  String get arrivalConfirmTitle => 'Đúng chỗ này chưa?';
+
+  @override
+  String get arrivalFromAddress => 'Từ địa chỉ';
+
+  @override
+  String arrivalFromCurrent(int m) {
+    return 'Vị trí hiện tại của bạn, lệch khoảng $m m';
+  }
+
+  @override
+  String arrivalRadiusLine(int m) {
+    return 'App báo khi bạn vào trong khoảng $m m quanh đây.';
+  }
+
+  @override
+  String get arrivalNoHouseNumber =>
+      'Địa chỉ này chưa có số nhà, app có thể báo hơi sớm hoặc hơi muộn.';
+
+  @override
+  String get arrivalConfirmAlleyWarn =>
+      'Số nhà trong hẻm thường chỉ tìm được tới đầu hẻm, app có thể báo hơi sớm hoặc hơi muộn.';
+
+  @override
+  String get arrivalSave => 'Lưu';
+
+  @override
+  String get arrivalWrongSpot =>
+      'Không đúng chỗ? Dùng vị trí hiện tại khi bạn đang ở đó';
+
+  @override
+  String get arrivalReread => 'Đọc lại vị trí';
+
+  @override
+  String arrivalSaved(String place) {
+    return 'Đã lưu $place';
+  }
+
+  @override
+  String arrivalEditTitle(String place) {
+    return 'Sửa $place';
+  }
+
+  @override
+  String get arrivalRenameNote => 'Đổi tên chỉ áp cho lần đến sau.';
+
+  @override
+  String get arrivalLocationLabel => 'Vị trí';
+
+  @override
+  String arrivalSavedFromAddress(String date) {
+    return 'Lưu từ địa chỉ · $date';
+  }
+
+  @override
+  String arrivalSavedFromCurrent(String date) {
+    return 'Lưu bằng vị trí hiện tại · $date';
+  }
+
+  @override
+  String get arrivalNoAddressManual => 'Chưa đặt địa chỉ, chỉ bấm tay';
+
+  @override
+  String get arrivalPaused => 'Đang tạm dừng';
+
+  @override
+  String get arrivalDeletePlace => 'Xoá nơi này';
+
+  @override
+  String get arrivalDeletePlaceSub => 'App hỏi lại trước khi xoá.';
+
+  @override
+  String arrivalDeletePlaceTitle(String place) {
+    return 'Xoá $place?';
+  }
+
+  @override
+  String get arrivalDeletePlaceBody =>
+      'App thôi báo khi bạn đến đây. Tin đã gửi trước đó vẫn giữ tên cũ.';
+
+  @override
+  String get arrivalHomeEditBody =>
+      'Nhà luôn có trên thẻ. Bạn chỉ đổi được chỗ của nó.';
+
+  @override
+  String get arrivalDeleteHomeAddress => 'Xoá địa chỉ';
+
+  @override
+  String get arrivalDeleteHomeAddressSub => 'Nhà chỉ còn bấm tay “Về nhà rồi”.';
+
+  @override
+  String get arrivalDeleteHomeAddressTitle => 'Xoá địa chỉ Nhà?';
+
+  @override
+  String get arrivalDeleteHomeAddressBody =>
+      'Nhà vẫn còn trên thẻ, bạn bấm “Về nhà rồi” mỗi lần về.';
+
+  @override
+  String get arrivalDelete => 'Xoá';
+
+  @override
+  String get arrivalCancel => 'Huỷ';
+
+  @override
+  String arrivalDeleted(String place) {
+    return 'Đã xoá $place';
+  }
+
+  @override
+  String get arrivalHomeAddressDeleted => 'Đã xoá địa chỉ Nhà';
+
+  @override
+  String get arrivalUndo => 'Hoàn tác';
+
+  @override
+  String get arrivalNeedPlaceTitle => 'Trước hết, nhà bạn ở đâu?';
+
+  @override
+  String get arrivalNeedPlaceBody =>
+      'Máy cần biết Nhà ở đâu thì mới tự báo được. Gõ địa chỉ là xong, chưa cần cấp quyền gì.';
+
+  @override
+  String get arrivalNoAddressYet => 'Chưa đặt địa chỉ';
+
+  @override
+  String get arrivalSetHomeAddress => 'Đặt địa chỉ Nhà';
+
+  @override
+  String get arrivalLater => 'Để sau';
+
+  @override
+  String arrivalDisclosureTitle(String name) {
+    return 'Về đến nơi, $name biết ngay';
+  }
+
+  @override
+  String get arrivalDisclosureBody =>
+      'Dear Embeiu dùng vị trí để báo người ấy khi bạn về Nhà hoặc đến những nơi bạn đã lưu, kể cả khi app đã đóng hoặc không dùng. Địa chỉ và toạ độ chỉ lưu trên máy bạn. Người ấy chỉ thấy tên nơi đến, giờ và mức pin lúc đó. Bạn tắt lúc nào cũng được.';
+
+  @override
+  String arrivalPreviewLabel(String name) {
+    return '$name sẽ nhận được';
+  }
+
+  @override
+  String get arrivalPushBody => 'Nhắn một câu hỏi thăm nhé';
+
+  @override
+  String get arrivalAgree => 'Đồng ý, tiếp tục';
+
+  @override
+  String get arrivalPrivacyLink => 'Chính sách bảo mật';
+
+  @override
+  String arrivalAlwaysTitle(String label) {
+    return 'Chọn “$label”';
+  }
+
+  @override
+  String arrivalAlwaysBody(String label) {
+    return 'Để tự báo cả lúc app đang đóng, chọn “$label” ở trang tiếp theo.';
+  }
+
+  @override
+  String get arrivalAlwaysLabelIos => 'Luôn luôn';
+
+  @override
+  String get arrivalAlwaysLabelAndroid => 'Cho phép mọi lúc';
+
+  @override
+  String get arrivalNextLooksLike => 'Trang tiếp theo trông như thế này';
+
+  @override
+  String get arrivalOsNever => 'Không bao giờ';
+
+  @override
+  String get arrivalOsAskNext => 'Hỏi lần sau';
+
+  @override
+  String get arrivalOsWhileUsing => 'Khi dùng ứng dụng';
+
+  @override
+  String get arrivalOsAndroidWhileUsing =>
+      'Chỉ cho phép khi đang dùng ứng dụng';
+
+  @override
+  String get arrivalOsAndroidAsk => 'Luôn hỏi';
+
+  @override
+  String get arrivalOsAndroidDeny => 'Không cho phép';
+
+  @override
+  String get arrivalSwipeHint =>
+      'Đừng vuốt tắt Dear Embeiu trong đa nhiệm. App bị vuốt tắt thì iPhone có thể không báo được.';
+
+  @override
+  String get arrivalAutostartHint =>
+      'Máy Xiaomi, Oppo, Vivo: bật thêm Tự khởi động cho Dear Embeiu để tin báo không bị chặn.';
+
+  @override
+  String get arrivalOpenPermission => 'Mở trang quyền';
+
+  @override
+  String get arrivalLaterManual => 'Để sau, mình bấm tay';
+
+  @override
+  String get arrivalDoneTitle => 'Đã bật báo về nhà';
+
+  @override
+  String arrivalDoneBody(String name) {
+    return 'Từ giờ về đến Nhà là $name biết. Muốn tắt thì vào Cài đặt → Về đến nhà. Tắt là tin gần nhất bị xoá, $name không nhận thông báo nào.';
+  }
+
+  @override
+  String get arrivalDoneRow => 'Tự báo khi đến Nhà';
+
+  @override
+  String get arrivalDoneRowSub =>
+      'Thêm Công ty, phòng gym… để báo cả những chỗ đó';
+
+  @override
+  String get arrivalPartialTitle => 'Tạm thời bạn báo bằng tay';
+
+  @override
+  String arrivalPartialBody(String name) {
+    return 'Mỗi lần về, bấm “Về nhà rồi” trên thẻ Home. $name nhận tin y như lúc máy tự báo. Các nơi đã lưu vẫn giữ nguyên.';
+  }
+
+  @override
+  String get arrivalBackHome => 'Về trang chủ';
+
+  @override
+  String arrivalSeesLabel(String name) {
+    return '$name đang thấy';
+  }
+
+  @override
+  String arrivalShareTitle(String name) {
+    return 'Báo cho $name';
+  }
+
+  @override
+  String arrivalShareSub(String name) {
+    return 'Tắt là xoá tin gần nhất trên máy chủ. $name không nhận thông báo nào.';
+  }
+
+  @override
+  String arrivalShareOffSub(String name) {
+    return 'Bật lại để báo cho $name mỗi khi bạn đến nơi.';
+  }
+
+  @override
+  String get arrivalAutoTitle => 'Tự báo khi mình đến nơi';
+
+  @override
+  String arrivalAutoSub(String places) {
+    return 'Máy tự báo khi bạn đến $places.';
+  }
+
+  @override
+  String get arrivalAutoNeedPlace =>
+      'Đặt địa chỉ Nhà hoặc một nơi khác trước, rồi bật.';
+
+  @override
+  String get arrivalAutoNeedAlways =>
+      'Chưa tự báo được: cần quyền vị trí Luôn luôn.';
+
+  @override
+  String get arrivalAutoRemoteOff =>
+      'Tạm thời chỉ báo bằng tay. Bạn vẫn bấm “Về nhà rồi” trên thẻ Home.';
+
+  @override
+  String get arrivalPlacesTitle => 'Nơi báo';
+
+  @override
+  String get arrivalPlacesSub =>
+      'Nhà luôn có. Thêm tối đa 4 nơi nữa. Địa chỉ chỉ nằm trên máy này.';
+
+  @override
+  String get arrivalPermTitle => 'Quyền vị trí';
+
+  @override
+  String get arrivalPermAlways => 'Vị trí: Luôn luôn';
+
+  @override
+  String get arrivalPermAlwaysSub => 'Đủ để tự báo cả lúc app đang đóng.';
+
+  @override
+  String get arrivalPermWhileUsing => 'Vị trí: Khi dùng ứng dụng';
+
+  @override
+  String get arrivalPermWhileUsingSub =>
+      'Cần “Luôn luôn” thì máy mới tự báo lúc app đang đóng.';
+
+  @override
+  String get arrivalPermNone => 'Vị trí: Chưa cho phép';
+
+  @override
+  String get arrivalPermPreciseOn => 'Vị trí chính xác: Bật';
+
+  @override
+  String get arrivalPermPreciseOff => 'Vị trí chính xác: Tắt';
+
+  @override
+  String get arrivalPermPreciseSub =>
+      'Để biết bạn đã tới cửa, không phải đầu ngõ.';
+
+  @override
+  String get arrivalPermOpenSettings => 'Mở Cài đặt của máy';
+
+  @override
+  String get arrivalTurnOffTitle => 'Tắt báo về nhà?';
+
+  @override
+  String arrivalTurnOffBody(String name, String me) {
+    return 'Tin gần nhất của bạn bị xoá khỏi máy chủ ngay. $name sẽ thấy “$me chưa bật báo về nhà” và không nhận thông báo nào.';
+  }
+
+  @override
+  String arrivalTurnOffAlsoPlaces(int n) {
+    return 'Xoá luôn địa chỉ đã lưu của $n nơi trên máy này';
+  }
+
+  @override
+  String get arrivalTurnOff => 'Tắt';
+
+  @override
+  String get arrivalSettingsPushTitle => 'Khi người ấy đến nơi';
+
+  @override
+  String arrivalSettingsPushSub(String name) {
+    return 'Báo khi $name về nhà hoặc đến một nơi đã lưu. Tắt thì thẻ Home vẫn hiện tin.';
+  }
+
+  @override
+  String get arrivalSettingsTitle => 'Về đến nhà';
+
+  @override
+  String arrivalSettingsSharing(String name, String places) {
+    return 'Đang báo cho $name: $places';
+  }
+
+  @override
+  String get arrivalSettingsOff => 'Đang tắt';
+
+  @override
+  String arrivalWidgetHome(String name) {
+    return '$name đã về đến nhà';
+  }
+
+  @override
+  String arrivalWidgetHomeShort(String name) {
+    return '$name về nhà rồi';
+  }
+
+  @override
+  String arrivalWidgetPlace(String name, String place) {
+    return '$name đã đến $place';
+  }
+
+  @override
+  String arrivalWidgetPlaceShort(String name, String place) {
+    return '$name tới $place';
+  }
+
+  @override
+  String get arrivalTourTitle => 'Về đến nhà chưa?';
+
+  @override
+  String get arrivalTourBody =>
+      'Về tới nhà, bấm “Về nhà rồi” trên trang chủ là người ấy biết, khỏi phải nhắn. Muốn thì cho máy tự báo khi bạn đến những nơi đã lưu.';
 }

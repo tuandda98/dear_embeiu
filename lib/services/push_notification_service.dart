@@ -212,6 +212,11 @@ class NotificationTapRouter {
   /// HomeScreen scrolls the "Phân vân gì không?" card into view.
   static const String focusDecision = 'decision';
 
+  // ── arrival (đợt 2) ──
+  /// [pendingHomeFocus] value for a tapped `arrival` push: HomeScreen scrolls
+  /// "Về đến nhà chưa?" into view. No inbox item exists for it (D15).
+  static const String focusArrival = 'arrival';
+
   /// Game id that accompanies a [focusRpsGame] focus request. Set BEFORE the
   /// focus value (cold-start: both are set in `initialize()` before HomeScreen
   /// mounts, so its initState can read them together). null = none.
@@ -654,6 +659,14 @@ class PushNotificationService {
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         NotificationTapRouter.pendingHomeFocus.value =
             NotificationTapRouter.focusDecision;
+        break;
+      // ── arrival (đợt 2) ──
+      case 'arrival':
+        // The partner got home / reached a place (CF notifyArrival) → Home,
+        // scrolled to the card. Push only, no inbox (D15).
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        NotificationTapRouter.pendingHomeFocus.value =
+            NotificationTapRouter.focusArrival;
         break;
       case 'rps_result':
         // Game settled while I was away → the history (score + that game).

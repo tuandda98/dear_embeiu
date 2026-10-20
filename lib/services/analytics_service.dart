@@ -106,6 +106,26 @@ class AnalyticsEvents {
   static const String pVia = 'via'; // decision_commit: spin / manual
   static const String pPreset = 'preset'; // decision_commit: who / which
 
+  // ── arrival (đợt 2) ──
+  // "Về đến nhà chưa?" (overview §9). Never coordinates, addresses, search
+  // text, names or a battery %.
+  static const String arrivalSetupOpen = 'arrival_setup_open';
+  static const String arrivalPermission = 'arrival_permission';
+  static const String arrivalPlaceSaved = 'arrival_place_saved';
+  static const String arrivalAddressSearch = 'arrival_address_search';
+  static const String arrivalPlaceDeleted = 'arrival_place_deleted';
+  static const String arrivalShareToggled = 'arrival_share_toggled';
+  static const String arrivalManual = 'arrival_manual';
+  static const String arrivalCardAction = 'arrival_card_action';
+  static const String pFrom = 'from';
+  static const String pStep = 'step';
+  static const String pSlot = 'slot';
+  static const String pIcon = 'icon';
+  static const String pHasHouseNumber = 'has_house_number';
+  static const String pPlatform = 'platform';
+  static const String pOn = 'on';
+  static const String pAuto = 'auto';
+
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
   static const String upHasPostedPhoto = 'has_posted_photo';
@@ -550,6 +570,72 @@ class AnalyticsService {
         AnalyticsEvents.coupleCreateFailed,
         params: {AnalyticsEvents.pReason: reason},
       );
+
+  // ── arrival (đợt 2) ──
+  /// [from] `home_card` · `settings`.
+  void logArrivalSetupOpen(String from) => logEvent(
+    AnalyticsEvents.arrivalSetupOpen,
+    params: {AnalyticsEvents.pFrom: from},
+  );
+
+  /// [step] `when_in_use` · `always`; [result] `granted` · `denied` ·
+  /// `approximate`.
+  void logArrivalPermission({required String step, required String result}) =>
+      logEvent(
+        AnalyticsEvents.arrivalPermission,
+        params: {AnalyticsEvents.pStep: step, AnalyticsEvents.pResult: result},
+      );
+
+  void logArrivalPlaceSaved({
+    required String slot,
+    required String source,
+    required String icon,
+    required bool hasHouseNumber,
+  }) => logEvent(
+    AnalyticsEvents.arrivalPlaceSaved,
+    params: {
+      AnalyticsEvents.pSlot: slot,
+      AnalyticsEvents.pSource: source,
+      AnalyticsEvents.pIcon: icon,
+      AnalyticsEvents.pHasHouseNumber: hasHouseNumber,
+    },
+  );
+
+  /// [result] `picked` · `not_found` · `offline` · `unavailable` · `error`.
+  void logArrivalAddressSearch({
+    required String result,
+    required String platform,
+  }) => logEvent(
+    AnalyticsEvents.arrivalAddressSearch,
+    params: {
+      AnalyticsEvents.pResult: result,
+      AnalyticsEvents.pPlatform: platform,
+    },
+  );
+
+  /// [slot] `custom` · `home_address`.
+  void logArrivalPlaceDeleted(String slot) => logEvent(
+    AnalyticsEvents.arrivalPlaceDeleted,
+    params: {AnalyticsEvents.pSlot: slot},
+  );
+
+  void logArrivalShareToggled({required bool on, required bool auto}) =>
+      logEvent(
+        AnalyticsEvents.arrivalShareToggled,
+        params: {AnalyticsEvents.pOn: on, AnalyticsEvents.pAuto: auto},
+      );
+
+  /// [slot] `home` · `custom`.
+  void logArrivalManual(String slot) => logEvent(
+    AnalyticsEvents.arrivalManual,
+    params: {AnalyticsEvents.pSlot: slot},
+  );
+
+  /// [action] `care_message` · `open_settings`.
+  void logArrivalCardAction(String action) => logEvent(
+    AnalyticsEvents.arrivalCardAction,
+    params: {AnalyticsEvents.pAction: action},
+  );
 
   // ---------------------------------------------------------------------------
   // User id + properties. D2 — user_id = Firebase uid while authed (an id, not
