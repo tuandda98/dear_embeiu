@@ -2,7 +2,7 @@
 
 > Dev sở hữu. Đọc `overview.md` + `design.md` trước. Implement đúng logic + đúng design. Bám kiến trúc Provider + service (`../../../CLAUDE.md` mục 2).
 
-- **Trạng thái dev:** mốc A — stage 1/3 xong (lõi tính + lớp dữ liệu + backend). Stage 2 (UI lõi) và stage 3 (phần còn lại) chưa làm.
+- **Trạng thái dev:** mốc A — stage 1/3 + 2/3 xong (lõi tính, dữ liệu, backend, UI lõi). Stage 3 (ngân sách, báo cáo, tìm, quỹ, thanh toán, nhắc tối, analytics, push tap) chưa làm.
 - **Người/role:** Dev
 - **Nhánh:** `feature/expenses` (worktree `dear_embeiu-money`). Chưa deploy gì: rules, index, CF đều chờ Lead deploy DEV từ nhánh gộp.
 
@@ -11,7 +11,7 @@
 | Stage | Nội dung | Trạng thái |
 |---|---|---|
 | 1 | Hàm thuần + test · model · `MoneyService` · `MoneyProvider` · wire `main` + `session_resolver` · rules + index + test · CF `notifyMoney` + dọn khi xoá | ✅ 2026-10-20 |
-| 2 | UI lõi: lối vào Home, `MoneyScreen` 2 sổ, sheet ghi khoản, lần đầu mở, ví (danh sách, chi tiết, tạo, sửa số dư, chuyển), danh mục | ⏳ |
+| 2 | UI lõi: lối vào Home, `MoneyScreen` 2 sổ, sheet ghi khoản, lần đầu mở, ví (danh sách, chi tiết, tạo, sửa số dư, chuyển), danh mục | ✅ 2026-10-20 |
 | 3 | Ngân sách, báo cáo, tìm kiếm, quỹ, thanh toán, nút decision-wheel, nhắc tối 1210–1211, analytics, push tap 2 chỗ | ⏳ |
 
 ### File stage 1
@@ -31,6 +31,58 @@
 | `firestore.indexes.json` | 5 index `moneyTx` (cuối mảng `indexes`) |
 | `functions/index.js` | khối cuối file: `notifyMoney` + helper; 2 chỗ chèn có đánh dấu trong `deleteAccount` (bước 2c) và `deleteCoupleCompletely` |
 | Test | `test/money_test.dart` (51) · `firebase_rules_test/test/firestore.money.test.js` (47) · `functions/test/index.test.js` khối `notifyMoney` (8) |
+
+### File stage 2
+
+| File | Có gì |
+|---|---|
+| `lib/widgets/segmented_pill.dart` | `SegmentedPill<T>` h48 r20 (thumb 260ms easeInOutCubic, Reduce Motion nhảy thẳng; `onSurface` cho nền trắng của sheet). Chỉ Sổ tiền dùng. **Đề xuất Lead:** cho `setup_screen` + `decision_wheel_screen` dùng lại (đang tự vẽ bản giống hệt) |
+| `lib/widgets/money/money_ui.dart` | Mảnh dùng chung: `vnd` / `vndSpoken` ("120.000 đồng" cho trình đọc màn hình), nhãn tháng / ngày ("Hôm nay, 20/10", thứ tiếng Việt viết như mockup), `MoneyPeople` (tên từ couple, màu từ `SleepProvider.myColorId/partnerColorId`; `MoneyPeopleScope` để test), `MoneyAvatar`, `MoneyAmountText` (₫ nhỏ xám), `MoneyCardHeader`, `MoneyLink`, `MoneyPlanBar` (vạch "Hôm nay"), `MoneyPill`, `MoneyChip` (h40, vùng chạm 48), `MoneyChipRow`, `MoneyRowContext` + `MoneyTxRow` + `MoneyDayGroups`, `MoneyWalletRow`, `MoneyGoalBar`, `showMoneySheet`, `MoneySheetTitle`, `MoneyPrimaryButton` (tắt = nền `surfaceLight` + chữ lý do), `MoneyOutlineButton`, `showMoneySnack`, `showMoneyConfirm`, `MoneyNumberField` (bàn phím số hệ thống + parser), `pickMoneyEmoji` (lưới 32 emoji) |
+| `lib/widgets/money/money_home_entry.dart` | `MoneyHomeEntry(waiting, onRetry)` + `kindOf()` thuần cho 9 trạng thái `home-entry.html`. Không Firebase → không hiện gì. Tự gọi `refreshDay()` qua `MidnightBuilder` (0:00 + resume) |
+| `lib/widgets/money/add_transaction_sheet.dart` | `MoneyAmountInput` (bàn phím riêng: 1 đơn vị ngay sau số, bỏ số 0 đầu, chip cộng dồn, phím số sau chip = gõ lại, ⌫ xoá cả đơn vị) · `AddTransactionSheet.show(book, editing, type, walletId, categoryId)` · `MoneyCategoryPicker` (2 cấp, tìm không dấu, "Sửa" → Danh mục) |
+| `lib/screens/money/money_screen.dart` | `openMoneyScreen(context, book)` + `MoneyScreen`: segmented 2 sổ (nhớ tab trong Hive `app_settings/money_last_tab`), notice mất mạng, thẻ tháng (‹ › đổi tháng, sổ riêng tháng cũ qua `viewMonth`), ba làn + cân bằng, Gần đây (+ dải "Thảo đã đổi khoản chung thành … · Cập nhật"), Tiêu vào đâu, Ví, thẻ D5 cặp chờ (Gửi lời mời = share sheet như Home), trạng thái người mới, FAB ẩn khi cuộn xuống, menu ⋯ (Ví · Danh mục), snackbar `lastWriteError` |
+| `lib/screens/money/money_first_run.dart` | `MoneyFirstRun` (5 hàng ví, Tiền mặt khoá bật, thẻ tín dụng nhập số dương lưu âm, tổng cập nhật ngay, Xong / Bỏ qua → `ensureDefaultWallet(own, extra, starterBalance)`) |
+| `lib/screens/money/money_wallets_screen.dart` | `MoneyWalletsScreen` (Tổng tiền đang có · Đang dùng · Mục tiêu · Đã lưu trữ · Thêm ví), `MoneyWalletScreen` (số dư, Vào/Ra tháng, Chuyển tiền, Sửa số dư, cảnh báo ví thường âm, khoản tháng bỏ tên ví), `MoneyWalletSheet` (tạo / sửa, 5 loại, mục tiêu có đích + hạn → `perMonthNeeded`, lưu trữ có hỏi, ví mặc định không lưu trữ được), `MoneyFixBalanceSheet` (khoản `adjust` chênh lệch) |
+| `lib/screens/money/money_categories_screen.dart` | `MoneyCategoriesScreen(book, kind)`: 2 sổ · Chi/Thu, nhóm mở/đóng, sửa tên/emoji (`overrides`, đổi về tên gốc thì ghi rỗng), ẩn/hiện (`hiddenCategoryIds`), thêm nhóm / mục con (`customCategories`, id `c_<auto>`), xoá danh mục tự thêm (có hỏi), trần 80 |
+| `lib/providers/money_provider.dart` (thêm) | `retry(kind)` (nút "Thử lại"), `ensureDefaultWallet(..., starterBalance)` (số dư Tiền mặt ở lần đầu), `debugSetBooks` (`@visibleForTesting`) |
+| `lib/screens/home_screen.dart` (3 khối `// ── expenses (đợt 2) ──`) | import · `MoneyHomeEntry` ngay sau "Chơi cùng nhau", trước "Phân vân gì không?" (hiện cả khi chờ) · re-arm `watchOwn` + `watchShared` (người ấy vào giữa phiên) / `clearShared` trong post-frame cạnh Sleep/RPS · `refreshDay()` khi resume |
+| ARB vi/en | +263 key `money…` một khối liền cuối file (đã có 55 key stage 1). Ngoài copy deck: `moneyHomeSpentOnly/OverPart` (tô đỏ riêng chữ "vượt"), `moneyHomeLoading`, `moneySettle`, `moneyNotSpending`, biến thể sổ riêng + ngân sách tổng cho dòng snackbar (`moneyOverBudgetToastMine`, `moneyNearTotalToast`…), `moneyWalletCapHit`, `moneySaveNeedWallet`, `moneyDiscardBody`, `moneyDeleteBoth*` (§15 #8), `moneyFix*` (§15 #6), `moneyFindingOver`, `moneyRecentEmpty`, `moneyFirstEntry*` (money-new), nhãn a11y phím |
+| Test | `test/money_ui_test.dart` 17 test (dưới) |
+
+**Test stage 2** (`flutter test` 706 pass, 3 skip có sẵn): `MoneyAmountInput` 2 · sheet: gợi ý trống / "Bạn gõ “1tr2”" + "Lưu 1.200.000 ₫" / "Chưa hiểu số này" / "Tối đa 10 tỷ", chip 50k+100k = 150.000, khoản quen 2 chạm (chip + Lưu, đúng số / danh mục / ví / ghi chú + snackbar), mặc định danh mục 14 ngày + ví theo danh mục, sổ chung mình trả 75.001 → mình chịu 37.501 + trừ ví riêng, khoản liên kết người ấy tạo khoá số tiền + ẩn Xoá, xoá → ẩn ngay + "Hoàn tác" trả lại · Home: `kindOf` 8 trạng thái + render bình thường / cặp chờ (không ₫) / vượt · lần đầu: thẻ tín dụng 2.458.000 → `openingBalance −2.458.000` · render MoneyScreen 2 sổ, Ví, Danh mục không tràn. Fake Firestore chỉ để dựng `MoneyService` (không đọc/ghi thật) → stream, ghi thật vẫn cần smoke 2 máy DEV.
+
+### Tra UI UX Pro Max (stage 2, chỗ spec chưa vẽ)
+- `"emoji icon picker grid selection" --domain ux` → 0; thử lại `"selection collection grid"` → *Chip Collection Reflow* (quấn dòng, không ép 1 hàng cắt) → bộ chọn emoji ví / danh mục là lưới quấn dòng 52×52 r16 trong sheet.
+- `"bottom sheet dismiss unsaved changes" --domain ux` → *Cancellable State Transitions* (đặt trạng thái cuối ngay) → segmented đặt `selected` trước, thumb chạy theo; hỏi "Bỏ khoản đang ghi?" qua `PopScope`.
+- `"inline error validation limit" --domain ux` → *Inline Validation* + *Error Placement* → lỗi "vượt 100 tỷ một ví" hiện ngay dưới số tiền (cùng chỗ với các lỗi số khác), nút Lưu đổi chữ "Sửa số tiền để lưu".
+- `"expandable list section" --stack flutter` → 0; thử lại `"lists"` → *ListView.builder* → bộ chọn danh mục dùng `ListView.builder`; danh sách tháng còn ngắn (≤120 dòng / 3–4 ngày ở tổng quan) nên `ListView` thường, đo khi stage 3 có màn "Tất cả".
+- Soát chung các thành phần đứng cạnh: hàng đầu sheet (Đóng 44 · segmented h44 · nút sổ h40/vùng chạm 48), cả họ chip (`MoneyChip` một kiểu cho 50k, khoản quen, danh mục, ví, cách chia), nút chính navy h52 + nút viền h44 ở chi tiết ví, FAB hồng chỉ trong màn tiền, nút + navy ở Home.
+
+### Chỗ lệch thiết kế stage 2 (có lý do)
+1. **Lối vào stage 3 đang ẩn** (không làm màn "Sắp có"): ⌕, "Báo cáo ›", "Ngân sách ›", "Tất cả ›", "Đặt ›" (thẻ tháng khi chưa có ngân sách chỉ ghi "Chưa đặt ngân sách"), nút "Thanh toán" + dòng "Đã trừ … ngày" ở thẻ ba làn, link "Góp vào quỹ" (thẻ ví sổ chung đang là "Quản lý ví"). Menu ⋯ mới có Ví · Danh mục. Hàng ví mục tiêu mở chi tiết ví thường (chưa có `MoneyGoalScreen`).
+2. **Sheet ghi khoản tắt kéo xuống để đóng** (`enableDrag: false`, thanh handle chỉ để nhìn): Flutter đóng sheet khi kéo bằng `Navigator.pop`, bỏ qua `PopScope` → câu hỏi "Bỏ khoản đang ghi?" sẽ không bao giờ hiện. Chạm nền mờ / nút Đóng / back hệ thống vẫn đóng (có hỏi khi đang có số).
+3. **Chuyển giữa ví**: 2 hàng chip "Từ ví" · "Sang ví" ngay dưới chip số tiền (cùng chỗ hàng ví của Chi/Thu, theo §15 #1) thay cho 2 dòng trong phần chi tiết của mockup. Đỡ 2 chạm.
+4. **Sửa khoản liên kết**: hỏi "Sửa luôn bên sổ của mình?" chỉ khi đổi số tiền ở sổ chung; đổi ngày / ghi chú / danh mục thì sửa luôn cả hai không hỏi. Sửa từ phía sổ riêng không bao giờ ghi sang sổ chung (dải "Cập nhật" lo chiều ngược lại).
+5. **Xoá khoản liên kết từ sổ riêng** chỉ xoá bên sổ riêng, không hỏi (dialog "Xoá ở cả hai sổ?" chỉ có khi xoá từ sổ chung, đúng mockup).
+6. **Snackbar sau Lưu có "Hoàn tác"** (§15 #8) thay cho "Xem" (§3.3). Hoàn tác = `scheduleDelete` khoản vừa ghi (+ nửa kia), ẩn ngay, lệnh xoá đi sau 5 giây.
+7. **"Mình mời" / "Tuỳ" không thành mặc định lần sau** (ai trả + chia đôi / trả hộ thì nhớ, Hive `money_last_payer` / `money_last_split`): một lần mời không nên làm mọi khoản sau thành mời.
+8. **Trạng thái người mới** (`money-new.html`) = sổ riêng không có khoản nào trong cửa sổ 45 ngày và chưa đặt ngân sách. Người từng ghi rồi bỏ > 45 ngày cũng thấy thẻ này. Segmented vẫn hiện nếu đã có sổ chung (mockup ẩn vì là cặp chờ).
+9. **Ví sổ chung, dòng phụ "Mỗi người góp X tháng này"** chỉ hiện khi hai người góp bằng nhau; khác nhau thì để loại ví (câu "mỗi người góp X" sẽ sai).
+10. **"Nằm trong" (đổi nhóm cha)** chỉ cho mục con tự thêm: `overrides` chỉ có tên + emoji, danh mục mặc định không dời nhóm được.
+11. **Sửa ví** dùng chung sheet tạo ví (không đổi loại); "Lưu trữ ví" có hỏi; ví mặc định (Tiền mặt / Ví chung) không có nút lưu trữ.
+12. **Ngày của khoản** chọn được tới 1 năm sau hôm nay (ghi trước khoản hẹn trả).
+
+### Việc bàn giao stage 3 (thêm vào kế hoạch dưới)
+- Mở lại các lối ở mục lệch 1: ⌕ trong `trailing` của header (`HeaderIconButton(search_normal_1)` trước ⋯), link "Báo cáo ›" ở hàng tháng (`_MonthCard`), "Ngân sách ›" ở `_WhereCard`, "Tất cả ›" ở `_RecentCard` (→ tìm kiếm), "Đặt ›" khi `status == null`, nút "Thanh toán" (outline h44) cạnh số cân bằng ở `_LanesCard`, "Góp vào quỹ" ở `_WalletsCard` sổ chung, mục Ngân sách · Báo cáo · Nhắc tối trong `_openMenu`, hàng ví mục tiêu → `MoneyGoalScreen`.
+- Sheet ghi khoản đã nhận `categoryId` + `walletId` (dùng cho decision-wheel D20: thêm `note` + `source: 'decision'` khi mở từ kết quả).
+- Dòng ngân sách trong snackbar (`_budgetLine`) đã chạy — chỉ cần có ngân sách (stage 3 tạo).
+
+### Rủi ro / cần Tester soi (stage 2)
+- 🟡 Chưa chạy trên máy: bàn phím hệ thống bật lên trong sheet (ô ghi chú / tuỳ) thì bàn phím số ẩn; cần soát iPhone SE + Android 360dp, chữ to 1.3.
+- 🟡 Màu người lấy từ `SleepProvider` (màu đã chọn ở Giấc ngủ); người chưa từng mở Giấc ngủ thấy màu mặc định của provider đó.
+- 🟡 Khoản thu / chuyển ở sổ chung ghi `payer = mình`, `splitMode none` (rules bắt buộc có payer); không ảnh hưởng cân bằng (chỉ tính chi + thanh toán).
+- 🟡 Lỗi ghi đến muộn (`lastWriteError`) chỉ hiện khi đang mở `MoneyScreen`; ghi từ Home "+" rồi bị từ chối lúc đang ở Home thì lỗi hiện lần tới mở Sổ tiền.
+- 🟢 Backend stage 1 không đổi ở stage 2 (không đụng rules / index / functions).
 
 ### API `MoneyProvider` (cho stage 2–3)
 
@@ -112,12 +164,13 @@
 - [x] `parseVndInput`, formatter, `MoneyMath`, danh mục mặc định + test
 - [x] `MoneyService` + `MoneyProvider` 2 sổ, wire `main` + `session_resolver`, clear khi đăng xuất / hết couple
 - [x] Rules + index + test rules + CF `notifyMoney` + dọn `deleteAccount` / `deleteCoupleCompletely`
-- [ ] UI stage 2
+- [x] UI stage 2 (lối stage 3 ẩn)
 - [ ] UI stage 3 + decision-wheel + nhắc tối + analytics + push tap
-- [x] `flutter analyze` sạch (stage 1)
+- [x] `flutter analyze` sạch (stage 1, stage 2)
 - [ ] Deploy DEV (Lead)
 
 ## Nhật ký implement
 - [2026-10-20] [Dev] Stage 1: hàm thuần `parseVndInput` / `formatVnd` / `formatVndShort` / `MoneyMath` + 53 danh mục vi/en (ARB `moneyCat…`) + model; `test/money_test.dart` 51 test (số mẫu `data.js`: cân bằng 359.000, ví chung 948.000, ba làn cộng đúng chi tháng, chia đôi 75.001 → 37.501, tìm "bun cha" ra 3 khoản). Commit `c4d2fdb`.
 - [2026-10-20] [Dev] Rules sổ riêng + sổ chung (additive), 5 index `moneyTx`, CF `notifyMoney` (góp quỹ %, đủ quỹ 1 lần, ngân sách 80/100% 1 lần/mốc/tháng, không số tiền, không wakeClients), dọn 6 + 5 collection khi xoá tài khoản / couple. Rules-test 441 pass (47 mới), CF 29 pass (8 mới). Commit `7f74106`.
 - [2026-10-20] [Dev] `MoneyService` + `MoneyProvider`, wire `main.dart` + `session_resolver.dart` (khối đánh dấu). `flutter analyze` 0, `flutter test` 689 pass. Commit `91b00a6`. Chưa deploy.
+- [2026-10-20] [Dev] Stage 2 UI lõi: `SegmentedPill`, mảnh UI chung, lối vào Home (9 trạng thái), sheet ghi khoản theo §15 (bàn phím riêng, chip cộng dồn, khoản quen 2 chạm, chip ví, Lưu ghim đáy, hoàn tác, khoá khoản liên kết, hỏi sửa/xoá cả hai sổ), `MoneyScreen` 2 sổ + người mới + cặp chờ, lần đầu mở, Ví (danh sách / chi tiết / tạo / sửa số dư), Danh mục; Home wire `watchShared` giữa phiên + `refreshDay`. +263 key ARB. `flutter analyze` 0, `flutter test` 706 pass (17 mới). Commit `5dc1514`, `d084166`, `c9e7561`. Chưa deploy, chưa chạy máy.
