@@ -106,12 +106,14 @@ MoneyBookState _own({
   List<MoneyTx> txs = const [],
   List<MoneyWallet> wallets = _wallets,
   bool fromServer = true,
+  bool? everLogged,
 }) {
   final s = MoneyBookState(MoneyService.own('me', firestore: _db));
   s.wallets = wallets;
   s.walletsFromServer = fromServer;
   s.txs = txs;
   s.txLoaded = true;
+  s.everLogged = everLogged ?? txs.isNotEmpty;
   s.windowFrom = _daysAgo(60);
   s.netSumsAt = DateTime.now();
   return s;
@@ -121,6 +123,7 @@ MoneyBookState _shared({
   List<MoneyTx> txs = const [],
   List<MoneyBudget> budgets = const [],
   bool loaded = true,
+  int coupleNet = 0,
 }) {
   final s = MoneyBookState(
     MoneyService.shared('c1', const ['her', 'me'], firestore: _db),
@@ -137,7 +140,13 @@ MoneyBookState _shared({
   s.walletsFromServer = true;
   s.txs = txs;
   s.txLoaded = loaded;
+  s.everLogged = loaded ? txs.isNotEmpty : null;
   s.budgets = budgets;
+  // Balances come from the server aggregates now (review #4), not from txs.
+  s.windowFrom = _daysAgo(60);
+  s.netSums = const {'joint': 0};
+  s.coupleNet = coupleNet;
+  s.netSumsAt = loaded ? DateTime.now() : null;
   return s;
 }
 
@@ -628,6 +637,7 @@ void main() {
               _sharedExp('s1', 480000),
               _sharedExp('s2', 70000, payer: 'her'),
             ],
+            coupleNet: 205000,
           ),
         );
       await tester.pumpWidget(
@@ -638,6 +648,73 @@ void main() {
       expect(find.text('Ai trả tháng này'), findsOneWidget);
       // 480k split → she owes 240k; 70k she paid → I owe 35k.
       expect(find.text('Mình đang ứng nhiều hơn'), findsOneWidget);
+    });
+
+    testWidgets('newcomer card only when the own book never had an entry', (
+      tester,
+    ) async {
+      big(tester);
+      final fresh = _Money()
+        ..debugSetBooks(uid: 'me', own: _own(everLogged: false));
+      await tester.pumpWidget(
+        _app(fresh, const MoneyScreen(initialBook: MoneyBookKind.own)),
+      );
+      await tester.pump();
+      expect(find.text('Ghi khoản đầu tiên'), findsOneWidget);
+      // Stopped logging long ago: nothing in the 45-day window, but not new.
+      final stopped = _Money()
+        ..debugSetBooks(uid: 'me', own: _own(everLogged: true));
+      await tester.pumpWidget(
+        _app(stopped, const MoneyScreen(initialBook: MoneyBookKind.own)),
+      );
+      await tester.pump();
+      expect(find.text('Ghi khoản đầu tiên'), findsNothing);
+      expect(find.text('Gần đây'), findsOneWidget);
+    });
+
+    testWidgets('shared transfer is paid by the wallet', (tester) async {
+      final shared = _shared();
+      shared.wallets = [
+        ...shared.wallets,
+        const MoneyWallet(
+          id: 'fund',
+          name: 'Quỹ Đà Lạt',
+          type: MoneyWalletType.goal,
+          emoji: '🏔️',
+          goalTarget: 5000000,
+          memberUids: ['her', 'me'],
+        ),
+      ];
+      final money = _Money()
+        ..debugSetBooks(uid: 'me', own: _own(), shared: shared);
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _app(
+          money,
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => AddTransactionSheet.show(
+                context,
+                book: MoneyBookKind.shared,
+                type: MoneyTxType.transfer,
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await _keys(tester, ['5', '0', '0', 'k']);
+      await tester.tap(find.text('Lưu 500.000 ₫'));
+      await tester.pumpAndSettle();
+      final tx = money.added.single.tx;
+      expect(tx.payer, kMoneyPayerWallet);
+      expect(tx.outWalletId, 'joint');
+      expect(tx.inWalletId, 'fund');
+      expect(tx.isWellFormed, isTrue);
     });
 
     testWidgets('wallets + categories screens build', (tester) async {

@@ -48,7 +48,8 @@ class MoneyHomeEntry extends StatelessWidget {
   }) {
     final own = money.own;
     final shared = money.shared;
-    bool never(MoneyBookState? b) => b != null && b.txLoaded && b.txs.isEmpty;
+    // Never had an entry, any date (one limit(1) read per session).
+    bool never(MoneyBookState? b) => b != null && b.everLogged == false;
     if (waiting) {
       return never(own)
           ? MoneyHomeEntryKind.neverLogged
@@ -60,7 +61,7 @@ class MoneyHomeEntry extends StatelessWidget {
           ? MoneyHomeEntryKind.error
           : MoneyHomeEntryKind.loading;
     }
-    if (shared.txs.isEmpty && never(own)) return MoneyHomeEntryKind.neverLogged;
+    if (never(shared) && never(own)) return MoneyHomeEntryKind.neverLogged;
     if (shared.loadError != null || shared.txs.any((t) => t.pending)) {
       return MoneyHomeEntryKind.stale;
     }

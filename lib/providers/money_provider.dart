@@ -29,6 +29,11 @@ class MoneyBookState {
   List<MoneyTx> txs = const <MoneyTx>[];
   bool txLoaded = false;
 
+  /// The book has had at least one entry, any date (one `limit(1)` read per
+  /// session): false = a newcomer ("Ghi khoản đầu tiên"); null = not known
+  /// yet (offline) → the normal month view.
+  bool? everLogged;
+
   /// First date of the live window.
   String? windowFrom;
   List<MoneyBudget> budgets = const <MoneyBudget>[];
@@ -367,6 +372,18 @@ class MoneyProvider extends ChangeNotifier {
       }, onError: fail),
     );
     _listenTx(s);
+    if (s.everLogged == null) unawaited(_checkEverLogged(s));
+  }
+
+  Future<void> _checkEverLogged(MoneyBookState s) async {
+    try {
+      final any = await s.service.hasAnyTx();
+      if (s.everLogged == true) return;
+      s.everLogged = any;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('money: first-entry check failed: $e');
+    }
   }
 
   void _listenTx(MoneyBookState s) {
@@ -378,6 +395,7 @@ class MoneyProvider extends ChangeNotifier {
           (r) {
             s.txs = r.txs;
             s.txLoaded = true;
+            if (r.txs.isNotEmpty) s.everLogged = true;
             if (r.fromServer) {
               s.lastSyncAt = _clock();
               s.loadError = null;

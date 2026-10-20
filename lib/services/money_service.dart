@@ -142,6 +142,10 @@ class MoneyService {
     return _parseTx(s);
   }
 
+  /// Has this book (this pair) ever had an entry, any date? One doc read.
+  Future<bool> hasAnyTx() async =>
+      (await _pair(_txs).limit(1).get()).docs.isNotEmpty;
+
   /// The other half of a linked pair when it is not in memory. Both halves
   /// are written by the same person ([createdBy]); a partner's shared entry
   /// carrying the same linkId is not it.

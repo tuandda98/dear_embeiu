@@ -445,8 +445,13 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       case MoneyTxType.transfer:
         if (_fromId == null || _toId == null || _fromId == _toId) return null;
         tx = base.copyWith(outWalletId: _fromId, inWalletId: _toId);
+        // Money leaves a shared wallet ⇒ the wallet paid, not a person
+        // (rules: a person payer never has an outWalletId).
         if (_shared) {
-          tx = tx.copyWith(payer: uid, splitMode: MoneySplitMode.none);
+          tx = tx.copyWith(
+            payer: kMoneyPayerWallet,
+            splitMode: MoneySplitMode.none,
+          );
         }
       case MoneyTxType.income:
         final into = _shared ? _sharedWalletId : _walletId;

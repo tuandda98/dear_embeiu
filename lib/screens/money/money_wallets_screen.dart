@@ -1044,7 +1044,10 @@ class _MoneyFixBalanceSheetState extends State<MoneyFixBalanceSheet> {
           date: money.today,
           inWalletId: diff > 0 ? w.id : '',
           outWalletId: diff < 0 ? w.id : '',
-          payer: widget.book == MoneyBookKind.shared ? money.uid : null,
+          // Shared: out of a wallet ⇒ the wallet pays; into it ⇒ me.
+          payer: widget.book == MoneyBookKind.shared
+              ? (diff < 0 ? kMoneyPayerWallet : money.uid)
+              : null,
           splitMode: widget.book == MoneyBookKind.shared
               ? MoneySplitMode.none
               : null,

@@ -200,9 +200,7 @@ class _MoneyScreenState extends State<MoneyScreen> {
         !firstRun &&
         _book == MoneyBookKind.own &&
         state != null &&
-        state.txLoaded &&
-        state.txs.isEmpty &&
-        state.budgets.isEmpty;
+        state.everLogged == false;
     final showFab = !firstRun && !fresh && state != null;
 
     return Scaffold(
@@ -377,10 +375,7 @@ class _MoneyScreenState extends State<MoneyScreen> {
         txs: txs,
         onShift: (d) => _shiftMonth(d, money),
       ),
-      if (shared && txs != null) ...[
-        gap,
-        _LanesCard(txs: money.visibleTxs(MoneyBookKind.shared), month: _month),
-      ],
+      if (shared && txs != null) ...[gap, _LanesCard(txs: txs, month: _month)],
       gap,
       _RecentCard(
         book: _book,
@@ -834,7 +829,9 @@ class _LanesCard extends StatelessWidget {
     final a = paid[partner] ?? 0, b = paid[kMoneyPayerWallet] ?? 0;
     final c = paid[uid] ?? 0;
     final total = a + b + c;
-    final balance = MoneyMath.coupleBalance(txs, uid);
+    // All-time, from the server aggregate + this phone's writes (null =
+    // not known yet → skeleton), never re-added from the 45-day window.
+    final balance = money.coupleBalance();
 
     Widget lane(
       Widget avatar,
@@ -875,7 +872,10 @@ class _LanesCard extends StatelessWidget {
 
     final String balanceLabel;
     final String? balanceSub;
-    if (balance > 0) {
+    if (balance == null) {
+      balanceLabel = '';
+      balanceSub = null;
+    } else if (balance > 0) {
       balanceLabel = l10n.moneyBalanceMeAhead;
       balanceSub = l10n.moneyBalanceMeAheadSub(people.partnerName);
     } else if (balance < 0) {
@@ -963,16 +963,22 @@ class _LanesCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Text(
-            balanceLabel,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+          if (balance == null) ...[
+            const ShimmerSkeleton(width: 150, height: 13),
+            const SizedBox(height: 6),
+            const ShimmerSkeleton(width: 120, height: 20),
+          ] else ...[
+            Text(
+              balanceLabel,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          MoneyAmountText(balance.abs(), size: 20),
+            const SizedBox(height: 2),
+            MoneyAmountText(balance.abs(), size: 20),
+          ],
           if (balanceSub != null) ...[
             const SizedBox(height: 2),
             Text(
