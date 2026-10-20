@@ -399,12 +399,13 @@ final class HomeWidgetChannel {
 
 // ── arrival (đợt 2) ──
 /// Feature arrival: location permission (D8), one fix for "Dùng vị trí hiện
-/// tại" and address search (D20: `MKLocalSearchCompleter` while typing, each
-/// suggestion resolved with `MKLocalSearch`; never CLGeocoder — spike §6.8).
+/// tại" and address search (D20: ONE `MKLocalSearch` per debounced query —
+/// map items come with coordinates, so no per-suggestion lookups that Apple
+/// throttles; never CLGeocoder — spike §6.8).
 /// Launch engine only: geofence events run in native_geofence's headless
 /// engine and never call this. Coordinates go back to Dart and stay on the
 /// phone (D2); the typed text goes to Apple's map service (D22).
-final class ArrivalChannel: NSObject, CLLocationManagerDelegate, MKLocalSearchCompleterDelegate {
+final class ArrivalChannel: NSObject, CLLocationManagerDelegate {
   private static var shared: ArrivalChannel?
 
   static func register(messenger: FlutterBinaryMessenger) {
@@ -423,10 +424,10 @@ final class ArrivalChannel: NSObject, CLLocationManagerDelegate, MKLocalSearchCo
   private var fixWaiters: [FlutterResult] = []
   private var fixToken = 0
 
-  private let completer = MKLocalSearchCompleter()
   private var searchToken = 0
   private var searchResult: FlutterResult?
-  private var resolved: [String: [String: Any]] = [:]
+  private var activeSearch: MKLocalSearch?
+  private var cache: [String: [[String: Any]]] = [:]
   // Vietnam box (overview D20): 8.18–23.39 N, 102.14–109.46 E.
   private let vietnam = MKCoordinateRegion(
     center: CLLocationCoordinate2D(latitude: 15.785, longitude: 105.8),
@@ -436,9 +437,6 @@ final class ArrivalChannel: NSObject, CLLocationManagerDelegate, MKLocalSearchCo
     super.init()
     manager.delegate = self
     manager.desiredAccuracy = kCLLocationAccuracyBest
-    completer.delegate = self
-    completer.region = vietnam
-    completer.resultTypes = [.address, .pointOfInterest]
     let center = NotificationCenter.default
     center.addObserver(
       self, selector: #selector(willResign),
@@ -575,103 +573,64 @@ final class ArrivalChannel: NSObject, CLLocationManagerDelegate, MKLocalSearchCo
 
   // ── Address search ────────────────────────────────────────────────────────
 
-  /// Dart debounces (300 ms) and already sent the shortened text. A newer
-  /// query answers the older one with [].
+  /// Dart sends the shortened text. Waits 500 ms for typing to settle; a newer
+  /// query answers the older one with [] and cancels its search. Results are
+  /// cached per text. `loadingThrottled` → "unavailable" (the UI then offers
+  /// "Dùng vị trí hiện tại").
   private func search(_ query: String, _ result: @escaping FlutterResult) {
     searchToken += 1
     let token = searchToken
     searchResult?([])
     searchResult = result
-    if completer.queryFragment == query && !completer.isSearching {
-      // Same text again: the completer won't call back.
-      resolve(completer.results, query: query, token: token)
-    } else {
-      // Main thread (method channel handlers run there) — set from another
-      // queue and the delegate never fires (spike §6.9).
-      completer.queryFragment = query
-    }
-    DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
-      guard let self, self.searchToken == token, let r = self.searchResult else { return }
-      self.searchResult = nil
-      r(FlutterError(code: "offline", message: "timeout", details: nil))
-    }
-  }
-
-  func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
-    guard searchResult != nil else { return }
-    resolve(completer.results, query: completer.queryFragment, token: searchToken)
-  }
-
-  func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
-    guard let r = searchResult else { return }
-    let ns = error as NSError
-    if ns.domain == MKErrorDomain && ns.code == Int(MKError.placemarkNotFound.rawValue) {
-      resolve([], query: completer.queryFragment, token: searchToken)
+    activeSearch?.cancel()
+    activeSearch = nil
+    if let hit = cache[query] {
+      searchResult = nil
+      result(hit)
       return
     }
-    searchResult = nil
-    r(Self.isOffline(error)
-      ? FlutterError(code: "offline", message: ns.localizedDescription, details: nil)
-      : FlutterError(code: "failed", message: ns.localizedDescription, details: nil))
-  }
-
-  /// Top 5 suggestions → coordinates. No suggestion at all → one plain
-  /// `MKLocalSearch` on the text (the form measured in the spike).
-  private func resolve(_ completions: [MKLocalSearchCompletion], query: String, token: Int) {
-    let top = Array(completions.prefix(5))
-    if top.isEmpty {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+      guard let self, self.searchToken == token else { return }
       let request = MKLocalSearch.Request()
       request.naturalLanguageQuery = query
-      request.region = vietnam
-      MKLocalSearch(request: request).start { [weak self] response, error in
-        guard let self else { return }
+      request.region = self.vietnam
+      request.resultTypes = [.address, .pointOfInterest]
+      let search = MKLocalSearch(request: request)
+      self.activeSearch = search
+      search.start { [weak self] response, error in
+        guard let self, self.searchToken == token, let r = self.searchResult else { return }
+        self.searchResult = nil
+        self.activeSearch = nil
+        if let error, (response?.mapItems ?? []).isEmpty {
+          let ns = error as NSError
+          if ns.domain == MKErrorDomain && ns.code == Int(MKError.placemarkNotFound.rawValue) {
+            r([])
+          } else if ns.domain == MKErrorDomain && ns.code == Int(MKError.loadingThrottled.rawValue) {
+            r(FlutterError(code: "unavailable", message: "throttled", details: nil))
+          } else {
+            r(FlutterError(
+              code: Self.isOffline(error) ? "offline" : "failed",
+              message: ns.localizedDescription, details: nil))
+          }
+          return
+        }
         let items = (response?.mapItems ?? []).prefix(5).map {
           self.map($0, title: $0.name ?? "", subtitle: nil)
         }
-        self.reply(items, error: items.isEmpty ? error : nil, token: token)
+        if self.cache.count > 100 { self.cache.removeAll() }
+        self.cache[query] = items
+        r(items)
       }
-      return
-    }
-    if resolved.count > 200 { resolved.removeAll() }
-    var out = [[String: Any]?](repeating: nil, count: top.count)
-    var firstError: Error?
-    let group = DispatchGroup()
-    for (i, c) in top.enumerated() {
-      let key = c.title + "\n" + c.subtitle
-      if let hit = resolved[key] {
-        out[i] = hit
-        continue
-      }
-      group.enter()
-      MKLocalSearch(request: MKLocalSearch.Request(completion: c)).start { [weak self] response, error in
-        if let self, let item = response?.mapItems.first {
-          let m = self.map(item, title: c.title, subtitle: c.subtitle)
-          self.resolved[key] = m
-          out[i] = m
-        }
-        if firstError == nil { firstError = error }
-        group.leave()
-      }
-    }
-    group.notify(queue: .main) { [weak self] in
-      let found = out.compactMap { $0 }
-      self?.reply(found, error: found.isEmpty ? firstError : nil, token: token)
-    }
-  }
-
-  private func reply(_ items: [[String: Any]], error: Error?, token: Int) {
-    guard searchToken == token, let r = searchResult else { return }
-    searchResult = nil
-    if let error, Self.isOffline(error) {
-      r(FlutterError(code: "offline", message: (error as NSError).localizedDescription, details: nil))
-    } else {
-      r(items)
     }
   }
 
   private func map(_ item: MKMapItem, title: String, subtitle: String?) -> [String: Any] {
     let p = item.placemark
-    let full = p.title ?? ""
+    var full = p.title ?? ""
+    for suffix in [", Việt Nam", ", Vietnam"] where full.hasSuffix(suffix) {
+      full = String(full.dropLast(suffix.count))
+    }
+    let title = title.isEmpty ? (full.components(separatedBy: ",").first ?? "") : title
     var sub = subtitle ?? full
     if subtitle == nil, sub.hasPrefix(title) {
       sub = String(sub.dropFirst(title.count)).trimmingCharacters(in: CharacterSet(charactersIn: ", "))

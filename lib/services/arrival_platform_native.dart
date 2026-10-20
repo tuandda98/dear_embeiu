@@ -110,10 +110,11 @@ class NativeCurrentLocationReader implements CurrentLocationReader {
   }
 }
 
-/// iOS: `MKLocalSearchCompleter` while typing, each suggestion resolved with
-/// `MKLocalSearch`. Android: `Geocoder.getFromLocationName` (≤5, Vietnam
-/// box). Both get the shortened query and lose results in another province
-/// (D20 as re-decided after the spike).
+/// iOS: ONE `MKLocalSearch` per query (native waits 500 ms, cancels the
+/// previous one, caches per text; Apple throttling → [PlaceSearchUnavailable]).
+/// Android: `Geocoder.getFromLocationName` (≤5, Vietnam box). Both get the
+/// shortened query and lose results in another province (D20 as re-decided
+/// after the spike).
 class NativePlaceSearch implements PlaceSearch {
   const NativePlaceSearch();
 
