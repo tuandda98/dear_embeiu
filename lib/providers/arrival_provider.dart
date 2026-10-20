@@ -46,6 +46,9 @@ class ArrivalProvider extends ChangeNotifier {
   bool _loaded = false;
   List<ArrivalPlace> _places = const [ArrivalPlace.home()];
   bool _wantsAuto = false;
+
+  /// Partner "Tự báo" was switched on for (Hive). Null = unknown / off.
+  String? _autoPartner;
   bool _remoteAuto = true;
   bool _hasAlways = false;
 
@@ -161,10 +164,24 @@ class ArrivalProvider extends ChangeNotifier {
       notifyListeners();
       final places = await _service.loadPlaces(myUid);
       final wants = await _service.loadWantsAuto(myUid);
+      final autoPartner = await _service.loadAutoPartner(myUid);
       if (_uid != myUid) return; // switched account while loading
       _places = places;
       _wantsAuto = wants;
+      _autoPartner = autoPartner;
       _loaded = true;
+    }
+    // Review native #1 (D10): "Tự báo" was switched on for someone else —
+    // the new partner gets nothing until the user turns it on again.
+    if (_wantsAuto && partnerUid.isNotEmpty && _autoPartner != partnerUid) {
+      if (_autoPartner == null) {
+        _autoPartner = partnerUid; // saved before partners were recorded
+        await _service.saveWantsAuto(myUid, true, partnerUid: partnerUid);
+      } else {
+        _wantsAuto = false;
+        _autoPartner = null;
+        await _service.saveWantsAuto(myUid, false);
+      }
     }
     if (!visible) {
       // Waiting for a partner: nobody to tell. Nothing runs.
@@ -203,6 +220,7 @@ class ArrivalProvider extends ChangeNotifier {
     _loaded = false;
     _places = const [ArrivalPlace.home()];
     _wantsAuto = false;
+    _autoPartner = null;
     _mine = null;
     _partner = null;
     _sending = false;
@@ -323,7 +341,8 @@ class ArrivalProvider extends ChangeNotifier {
     final uid = _uid;
     if (uid == null) return;
     _wantsAuto = value;
-    await _service.saveWantsAuto(uid, value);
+    _autoPartner = value && _partnerUid.isNotEmpty ? _partnerUid : null;
+    await _service.saveWantsAuto(uid, value, partnerUid: _autoPartner);
     notifyListeners();
     await onResume();
   }

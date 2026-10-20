@@ -66,8 +66,14 @@ class _Service extends FakeArrivalService {
   Future<bool> loadWantsAuto(String uid) async => wants[uid] ?? false;
 
   @override
-  Future<void> saveWantsAuto(String uid, bool value) async =>
-      wants[uid] = value;
+  Future<void> saveWantsAuto(
+    String uid,
+    bool value, {
+    String? partnerUid,
+  }) async => wants[uid] = value;
+
+  @override
+  Future<String?> loadAutoPartner(String uid) async => null;
 
   @override
   Future<void> saveSession(String uid, String? coupleId) async {}

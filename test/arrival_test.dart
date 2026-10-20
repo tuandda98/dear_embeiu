@@ -477,6 +477,25 @@ void main() {
       },
     );
 
+    test('a new partner must opt in to "Tự báo" again (D10)', () async {
+      final p = make();
+      await p.watchForCouple('c', 'me', 'her');
+      await p.setWantsAuto(true);
+      expect(p.wantsAuto, isTrue);
+      // She left, someone else joined with my code before I opened the app.
+      await p.watchForCouple('c', 'me', 'him');
+      expect(p.wantsAuto, isFalse);
+      // A fresh provider (app restart) reads the reset from Hive too.
+      final again = make();
+      await again.watchForCouple('c', 'me', 'him');
+      expect(again.wantsAuto, isFalse);
+      // Same partner after a restart keeps it.
+      await again.setWantsAuto(true);
+      final third = make();
+      await third.watchForCouple('c', 'me', 'him');
+      expect(third.wantsAuto, isTrue);
+    });
+
     test(
       'sharing off: one write, geofences stop, locations optional (D11)',
       () async {

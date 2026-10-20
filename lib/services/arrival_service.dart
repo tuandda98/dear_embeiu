@@ -154,8 +154,23 @@ class ArrivalService {
     return raw is Map && raw['auto'] == true;
   }
 
-  Future<void> saveWantsAuto(String uid, bool value) async {
-    await (await _box()).put('settings:$uid', {'auto': value});
+  /// [partnerUid]: who "Tự báo" was switched on for. A new partner must opt
+  /// in again (review native #1, D10), so the provider compares it.
+  Future<void> saveWantsAuto(
+    String uid,
+    bool value, {
+    String? partnerUid,
+  }) async {
+    await (await _box()).put('settings:$uid', {
+      'auto': value,
+      'partner': ?partnerUid,
+    });
+  }
+
+  Future<String?> loadAutoPartner(String uid) async {
+    final raw = (await _box()).get('settings:$uid');
+    final partner = raw is Map ? raw['partner'] : null;
+    return partner is String && partner.isNotEmpty ? partner : null;
   }
 
   /// Who is signed in + their couple, for the geofence background callback
