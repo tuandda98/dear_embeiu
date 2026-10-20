@@ -527,3 +527,215 @@ test("default callers unchanged: alert per device + Android companion only with 
   assert.strictEqual(wake.sent[2].token, "and1");
   assert.strictEqual(wake.sent[2].notification, undefined);
 });
+
+// ---- notifyMoney (feature expenses, 2026-10-20) ------------------------------
+
+class MoneyFieldPath {
+  constructor(...segments) {
+    this.segments = segments;
+  }
+}
+
+// In-memory couple C = [alice, bob] with whatever money docs the test needs.
+function fakeMoney(docs) {
+  const store = new Map(Object.entries({"couples/C": {memberIds: ["alice", "bob"]}, ...docs}));
+  const inbox = [];
+  const pushes = [];
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const snap = (p) => ({exists: store.has(p), data: () => store.get(p), get: (f) => (store.get(p) || {})[f]});
+  const query = (p, filters = [], lim = Infinity) => ({
+    where: (f, op, v) => query(p, [...filters, [f, op, v]], lim),
+    limit: (n) => query(p, filters, n),
+    rows() {
+      return [...store.entries()]
+        .filter(([k]) => k.startsWith(`${p}/`) && !k.slice(p.length + 1).includes("/"))
+        .filter(([, d]) => filters.every(([f, op, v]) =>
+          op === "==" ? same(d[f], v) : op === ">=" ? d[f] >= v : d[f] <= v))
+        .slice(0, lim);
+    },
+    async get() {
+      const docs = this.rows().map(([k]) => ({...snap(k), ref: ref(k)}));
+      return {empty: docs.length === 0, docs};
+    },
+    aggregate() {
+      const rows = this.rows();
+      return {get: async () => ({data: () => ({total: rows.reduce((s, [, d]) => s + d.amount, 0)})})};
+    },
+  });
+  const ref = (p) => ({
+    path: p,
+    id: p.split("/").pop(),
+    get: async () => snap(p),
+    collection: (name) => ({...query(`${p}/${name}`), doc: (id) => ref(`${p}/${name}/${id}`)}),
+  });
+  const db = {
+    collection: (name) => ({doc: (id) => ref(`${name}/${id}`)}),
+    runTransaction: async (fn) => fn({
+      get: (r) => r.get(),
+      update: (r, a, b) => {
+        const d = {...store.get(r.path)};
+        if (a instanceof MoneyFieldPath) {
+          d[a.segments[0]] = {...(d[a.segments[0]] || {}), [a.segments[1]]: b};
+        } else {
+          Object.assign(d, a);
+        }
+        store.set(r.path, d);
+      },
+    }),
+  };
+  const process = load("processMoneyTxWrite", [
+    "function isDocId",
+    "const MONEY_COPY",
+    "function buildMoneyText",
+    "function moneyBudgetLevel",
+    "function moneyMonthNow",
+    "async function moneySum",
+    "async function moneyGoalUpdate",
+    "async function moneyBudgetUpdate",
+    "async function processMoneyTxWrite",
+  ], {
+    db,
+    admin: {firestore: {
+      FieldValue: {serverTimestamp: () => "SERVER_TS"},
+      AggregateField: {sum: (f) => ({sum: f})},
+      FieldPath: MoneyFieldPath,
+    }},
+    rpsLoadMemberIds: async (id) => (store.get(`couples/${id}`) || {}).memberIds || null,
+    rpsLoadDisplayName: async (uid) => ({alice: "Tuấn", bob: "Thảo"})[uid] || "",
+    writeInboxNotifications: async (ids, payload) => inbox.push({ids, ...payload}),
+    sendToRecipientDevices: async (ids, buildText, data) => {
+      pushes.push({ids, vi: buildText("vi"), en: buildText("en"), data});
+      return {deviceCount: ids.length, failures: []};
+    },
+  });
+  // Writes the entry, then runs the trigger the way Firestore would.
+  const write = async (id, data, nowMs = MONEY_OCT_20) => {
+    const p = `couples/C/moneyTx/${id}`;
+    const before = store.get(p) || null;
+    store.set(p, data);
+    return process("C", before, data, nowMs);
+  };
+  return {store, inbox, pushes, write, process};
+}
+
+const MONEY_OCT_20 = Date.UTC(2026, 9, 20, 5); // 12:00 in Vietnam
+const MONEY_PAIR = ["alice", "bob"];
+const moneyContribution = (payer, amount, extra = {}) => ({
+  type: "contribution", amount, inWalletId: "dalat", outWalletId: "", payer, memberUids: MONEY_PAIR,
+  date: "2026-10-20", createdBy: payer, ...extra,
+});
+const moneySpend = (by, amount, extra = {}) => ({
+  type: "expense", amount, inWalletId: "", outWalletId: "", payer: by, memberUids: MONEY_PAIR,
+  date: "2026-10-20", createdBy: by, splitMode: "equal", payerShare: Math.ceil(amount / 2), ...extra,
+});
+const MONEY_DALAT = {"couples/C/moneyWallets/dalat": {
+  type: "goal", name: "Quỹ Đà Lạt", emoji: "🏔️", goalTarget: 5000000, openingBalance: 0, memberUids: MONEY_PAIR,
+}};
+
+test("money: a contribution pushes the other one the fund %, never the amount", async () => {
+  const f = fakeMoney(MONEY_DALAT);
+  const out = await f.write("c1", moneyContribution("alice", 2000000));
+  assert.deepStrictEqual(out.goal, {pushed: "goal", recipientIds: ["bob"], percent: 40});
+  assert.strictEqual(f.pushes.length, 1);
+  assert.deepStrictEqual(f.pushes[0].vi, {title: "🏔️ Quỹ Đà Lạt", body: "Tuấn vừa góp vào quỹ, giờ được 40%"});
+  assert.deepStrictEqual(f.pushes[0].en, {title: "🏔️ Quỹ Đà Lạt", body: "Tuấn just chipped in, the fund is at 40%"});
+  assert.doesNotMatch(JSON.stringify(f.pushes), /2[.,]?000[.,]?000|2tr|2M/);
+  assert.strictEqual(f.inbox[0].type, "money_goal");
+  assert.deepStrictEqual(f.inbox[0].ids, ["bob"]);
+  assert.strictEqual(f.pushes[0].data.type, "money_goal");
+});
+
+test("money: reaching 100 % tells both, exactly once", async () => {
+  const f = fakeMoney(MONEY_DALAT);
+  await f.write("c1", moneyContribution("alice", 2000000));
+  const out = await f.write("c2", moneyContribution("bob", 3000000));
+  assert.deepStrictEqual(out.goal, {pushed: "reached", recipientIds: MONEY_PAIR});
+  assert.strictEqual(f.store.get("couples/C/moneyWallets/dalat").goalReachedAt, "SERVER_TS");
+  assert.deepStrictEqual(f.pushes[1].vi, {title: "🏔️ Quỹ Đà Lạt đủ rồi!", body: "Chúng mình góp đủ mục tiêu rồi. Lên lịch đi thôi."});
+  assert.strictEqual(f.inbox[1].type, "money_goal_reached");
+  // Later top-ups are plain contribution pushes again, no second "đủ rồi".
+  const again = await f.write("c3", moneyContribution("alice", 100000));
+  assert.strictEqual(again.goal.pushed, "goal");
+  assert.strictEqual(f.pushes.filter((p) => p.data.type === "money_goal_reached").length, 1);
+});
+
+test("money: plain entries never push (no budget, not a goal, edits of a contribution)", async () => {
+  const f = fakeMoney({...MONEY_DALAT, "couples/C/moneyWallets/joint": {type: "cash", name: "Ví chung", memberUids: MONEY_PAIR}});
+  await f.write("e1", moneySpend("alice", 480000));
+  await f.write("j1", moneyContribution("bob", 1000000, {inWalletId: "joint"}));
+  await f.write("c1", moneyContribution("alice", 1000000));
+  await f.write("c1", moneyContribution("alice", 1500000)); // edit
+  assert.strictEqual(f.pushes.length, 1); // only the create of c1
+  assert.deepStrictEqual(await f.process("C", moneySpend("alice", 1), null, MONEY_OCT_20), {skipped: "deleted"});
+});
+
+test("money: budget 80 % then 100 %, once each per month, never to the one who logged it", async () => {
+  const f = fakeMoney({"couples/C/moneyBudgets/b": {categoryId: "", amount: 5000000}});
+  assert.deepStrictEqual((await f.write("e1", moneySpend("alice", 3900000))).budget, {skipped: "under_80"});
+  const at80 = await f.write("e2", moneySpend("alice", 100000));
+  assert.deepStrictEqual(at80.budget, {pushed: "budget", level: 80, recipientIds: ["bob"]});
+  assert.deepStrictEqual(f.pushes[0].vi, {title: "Tháng này chúng mình đã tiêu 80% ngân sách", body: "Mở sổ chung xem còn lại bao nhiêu nhé."});
+  assert.deepStrictEqual((await f.write("e3", moneySpend("bob", 500000))).budget, {skipped: "already_alerted", level: 80});
+  const at100 = await f.write("e4", moneySpend("bob", 500000));
+  assert.deepStrictEqual(at100.budget, {pushed: "budget", level: 100, recipientIds: ["alice"]});
+  assert.deepStrictEqual(f.pushes[1].vi, {title: "Tháng này chúng mình tiêu hết ngân sách rồi", body: "Chậm lại chút nhé, còn 11 ngày nữa mới sang tháng."});
+  assert.strictEqual(f.pushes[1].en.body, "Let's slow down a little. 11 days to go this month.");
+  assert.deepStrictEqual((await f.write("e5", moneySpend("bob", 1))).budget, {skipped: "already_alerted", level: 100});
+  assert.deepStrictEqual(f.store.get("couples/C/moneyBudgets/b").alerted, {"2026-10": 100});
+  assert.strictEqual(f.inbox.filter((i) => i.type === "money_budget").length, 2);
+  assert.doesNotMatch(JSON.stringify(f.pushes), /5[.,]?000[.,]?000|5tr/);
+  // An edit by bob that pushes it over counts bob as the actor.
+  const g = fakeMoney({"couples/C/moneyBudgets/b": {categoryId: "", amount: 1000000}});
+  await g.write("e1", moneySpend("alice", 100000));
+  const edited = await g.write("e1", moneySpend("alice", 900000, {updatedBy: "bob"}));
+  assert.deepStrictEqual(edited.budget.recipientIds, ["alice"]);
+});
+
+test("money: a new month starts over; old months and category budgets stay quiet", async () => {
+  const f = fakeMoney({
+    "couples/C/moneyBudgets/b": {categoryId: "", amount: 1000000, alerted: {"2026-09": 100}},
+    "couples/C/moneyBudgets/food": {categoryId: "food", amount: 1},
+  });
+  assert.deepStrictEqual((await f.write("old", moneySpend("alice", 2000000, {date: "2026-09-30"}))).budget, {skipped: "other_month"});
+  assert.strictEqual((await f.write("new", moneySpend("alice", 900000))).budget.level, 80);
+});
+
+test("money: an old pair's entry (partner left, someone new joined) notifies nobody", async () => {
+  const f = fakeMoney({...MONEY_DALAT, "couples/C": {memberIds: ["alice", "dave"]}});
+  assert.deepStrictEqual(await f.write("c1", moneyContribution("alice", 5000000)), {skipped: "not_current_pair"});
+  const g = fakeMoney({"couples/C": {memberIds: ["alice"]}});
+  assert.deepStrictEqual(await g.write("c1", moneyContribution("alice", 1)), {skipped: "not_current_pair"});
+  assert.strictEqual(f.pushes.length + g.pushes.length, 0);
+});
+
+test("money: month / days left follow Vietnam time", () => {
+  const monthNow = load("moneyMonthNow", ["function moneyMonthNow"]);
+  assert.deepStrictEqual(monthNow(Date.UTC(2026, 9, 31, 18)), {month: "2026-11", daysLeft: 29});
+  assert.deepStrictEqual(monthNow(Date.UTC(2026, 1, 1, 0)), {month: "2026-02", daysLeft: 27});
+  const level = load("moneyBudgetLevel", ["function moneyBudgetLevel"]);
+  assert.deepStrictEqual([level(3999999, 5e6), level(4e6, 5e6), level(5e6, 5e6), level(1, 0)], [0, 80, 100, 0]);
+});
+
+test("money cleanup: account deletion erases the own book, couple teardown the shared one", async () => {
+  const b = fakeBackend({"users/u": {}, "couples/M": {memberIds: ["u"], memberCount: 1}});
+  const chain = teardownChain(b);
+  const deleteAccount = callable("deleteAccount", {
+    db: b.db,
+    admin: b.admin,
+    isDocId: chain.isDocId,
+    handleCoupleOnAccountDeletion: chain.handleCoupleOnAccountDeletion,
+    callableErrorCopy: load("callableErrorCopy", ["const CALLABLE_ERROR_COPY", "function callableErrorCopy"]),
+  });
+  await deleteAccount({auth: {uid: "u"}, data: {}});
+  for (const c of ["moneyWallets", "moneyTx", "moneyBudgets", "moneyMeta", "moneyRecurring", "moneyDebts"]) {
+    assert.ok(b.log.includes(`recursiveDelete users/u/${c}`), c);
+  }
+  await chain.deleteCoupleCompletely(b.db.collection("couples").doc("M"), b.store.get("couples/M"));
+  for (const c of ["moneyWallets", "moneyTx", "moneyBudgets", "moneyMeta", "moneyRecurring"]) {
+    assert.ok(b.log.includes(`recursiveDelete couples/M/${c}`), c);
+  }
+  // A member leaving a 2-person couple leaves the shared book for the partner.
+  const k = fakeBackend({"couples/K": {memberIds: ["u", "p"], memberCount: 2}});
+  await teardownChain(k).handleCoupleOnAccountDeletion("K", "u");
+  assert.deepStrictEqual(k.log.filter((l) => /money/.test(l)), []);
+});

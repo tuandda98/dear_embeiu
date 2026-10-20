@@ -2945,6 +2945,21 @@ exports.deleteAccount = onCall(
       return null;
     });
 
+    // ── expenses (đợt 2) ──
+    // 2c) Own money book (Sổ tiền D4): the user's alone, gone with the
+    //     account (mốc B collections included, so nothing written later can
+    //     outlive it). Shared-book entries stay for the partner.
+    await Promise.all([
+      "moneyWallets", "moneyTx", "moneyBudgets", "moneyMeta", "moneyRecurring", "moneyDebts",
+    ].map((name) => db.recursiveDelete(userRef.collection(name)).catch((err) => {
+      logger.warn("Failed to delete own money book during account deletion.", {
+        uid,
+        name,
+        message: err && err.message,
+      });
+      return null;
+    })));
+
     // 3) The invite_code pointer — only if it still points at this user, so we
     //    never clobber a code that has since been reassigned.
     if (isDocId(inviteCode)) {
@@ -3273,6 +3288,21 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
       return null;
     }),
   );
+
+  // ── expenses (đợt 2) ──
+  // Shared money book (Sổ tiền D4): the couple is gone, so is its book.
+  for (const name of ["moneyWallets", "moneyTx", "moneyBudgets", "moneyMeta", "moneyRecurring"]) {
+    tasks.push(
+      db.recursiveDelete(coupleRef.collection(name)).catch((err) => {
+        logger.warn("Failed to recursively delete the money book during couple teardown.", {
+          coupleId: coupleRef.id,
+          name,
+          message: err && err.message,
+        });
+        return null;
+      }),
+    );
+  }
 
   // Couple entry code (feature couple-code): the couple_codes/{code} pointer is
   // a TOP-LEVEL doc, not a subcollection, so recursiveDelete on the couple won't
@@ -4079,3 +4109,224 @@ exports.generateDailyQuestion = onCall(
     }
   },
 );
+
+// ── expenses (đợt 2) ──
+// Sổ tiền (feature expenses, 2026-10-20). Only the SHARED book ever pushes,
+// and never an amount (overview D17, §5): a contribution into a shared goal
+// wallet ("Tuấn vừa góp vào quỹ, giờ được 40%"), that goal reaching 100 %
+// (both, once — `goalReachedAt`), and this month's shared spending crossing
+// 80 % / 100 % of the whole-book budget (the one who did NOT log the entry,
+// once per level per month — `alerted.{YYYY-MM}`). No wakeClients, nothing for
+// the widget. Only entries of the couple's CURRENT pair count: an old pair's
+// entry edited after a split notifies nobody.
+const MONEY_COPY = {
+  vi: {
+    goalTitle: (emoji, name) => `${emoji} ${name}`.trim(),
+    goalBody: (actor, percent) => `${actor} vừa góp vào quỹ, giờ được ${percent}%`,
+    reachedTitle: (emoji, name) => `${emoji} ${name} đủ rồi!`.trim(),
+    reachedBody: () => "Chúng mình góp đủ mục tiêu rồi. Lên lịch đi thôi.",
+    budget80Title: () => "Tháng này chúng mình đã tiêu 80% ngân sách",
+    budget80Body: () => "Mở sổ chung xem còn lại bao nhiêu nhé.",
+    budget100Title: () => "Tháng này chúng mình tiêu hết ngân sách rồi",
+    budget100Body: (days) => `Chậm lại chút nhé, còn ${days} ngày nữa mới sang tháng.`,
+    partnerFallback: "Người ấy",
+  },
+  en: {
+    goalTitle: (emoji, name) => `${emoji} ${name}`.trim(),
+    goalBody: (actor, percent) => `${actor} just chipped in, the fund is at ${percent}%`,
+    reachedTitle: (emoji, name) => `${emoji} ${name} is full!`.trim(),
+    reachedBody: () => "We hit the goal together. Time to plan it.",
+    budget80Title: () => "We've used 80% of this month's budget",
+    budget80Body: () => "Open our shared book to see what's left.",
+    budget100Title: () => "We've used up this month's budget",
+    budget100Body: (days) => `Let's slow down a little. ${days} days to go this month.`,
+    partnerFallback: "Your person",
+  },
+};
+
+// kind: 'goal' {emoji, walletName, actorName, percent} · 'reached' {emoji,
+// walletName} · 'budget' {level, daysLeft}.
+function buildMoneyText(languageCode, kind, args) {
+  const code = `${languageCode || ""}`.trim().toLowerCase().slice(0, 2);
+  const copy = MONEY_COPY[code === "en" ? "en" : "vi"];
+  const a = args || {};
+  if (kind === "goal") {
+    return {
+      title: copy.goalTitle(a.emoji || "", a.walletName || ""),
+      body: copy.goalBody(a.actorName || copy.partnerFallback, a.percent),
+    };
+  }
+  if (kind === "reached") {
+    return {title: copy.reachedTitle(a.emoji || "", a.walletName || ""), body: copy.reachedBody()};
+  }
+  return a.level >= 100 ?
+    {title: copy.budget100Title(), body: copy.budget100Body(a.daysLeft)} :
+    {title: copy.budget80Title(), body: copy.budget80Body()};
+}
+
+// 0, 80 or 100 — same thresholds as the app's MoneyMath.budgetStatus.
+function moneyBudgetLevel(spent, budget) {
+  if (!(budget > 0)) {
+    return 0;
+  }
+  if (spent >= budget) {
+    return 100;
+  }
+  return spent * 100 >= budget * 80 ? 80 : 0;
+}
+
+// Today in Vietnam (the app's users), as {month: 'YYYY-MM', daysLeft}.
+function moneyMonthNow(nowMs) {
+  const d = new Date(nowMs + 7 * 60 * 60 * 1000);
+  const y = d.getUTCFullYear();
+  const m = d.getUTCMonth();
+  const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  return {month: `${y}-${`${m + 1}`.padStart(2, "0")}`, daysLeft: last - d.getUTCDate()};
+}
+
+async function moneySum(query) {
+  const snap = await query.aggregate({total: admin.firestore.AggregateField.sum("amount")}).get();
+  return Number(snap.data().total) || 0;
+}
+
+async function moneyGoalUpdate(coupleRef, walletId, memberIds, tx, isCreate) {
+  const walletRef = coupleRef.collection("moneyWallets").doc(walletId);
+  const walletSnap = await walletRef.get();
+  const wallet = walletSnap.exists ? walletSnap.data() || {} : null;
+  const target = wallet && Number(wallet.goalTarget);
+  if (!wallet || wallet.type !== "goal" || !(target > 0)) {
+    return {skipped: "not_goal"};
+  }
+  const txs = coupleRef.collection("moneyTx").where("memberUids", "==", memberIds);
+  const [sumIn, sumOut] = await Promise.all([
+    moneySum(txs.where("inWalletId", "==", walletId)),
+    moneySum(txs.where("outWalletId", "==", walletId)),
+  ]);
+  const balance = (Number(wallet.openingBalance) || 0) + sumIn - sumOut;
+  const percent = Math.max(0, Math.floor((balance * 100) / target));
+  const text = {emoji: `${wallet.emoji || ""}`, walletName: `${wallet.name || ""}`.slice(0, 30)};
+  const coupleId = coupleRef.id;
+
+  if (balance >= target && !wallet.goalReachedAt) {
+    const claimed = await db.runTransaction(async (t) => {
+      const fresh = await t.get(walletRef);
+      if (!fresh.exists || fresh.get("goalReachedAt")) {
+        return false;
+      }
+      t.update(walletRef, {goalReachedAt: admin.firestore.FieldValue.serverTimestamp()});
+      return true;
+    });
+    if (claimed) {
+      await writeInboxNotifications(memberIds, {
+        type: "money_goal_reached", coupleId, walletId, walletName: text.walletName, walletEmoji: text.emoji,
+      });
+      await sendToRecipientDevices(
+        memberIds,
+        (lang) => buildMoneyText(lang, "reached", text),
+        {type: "money_goal_reached", coupleId, walletId},
+      );
+      return {pushed: "reached", recipientIds: memberIds};
+    }
+  }
+
+  const payer = `${tx.payer || ""}`;
+  if (!isCreate || tx.type !== "contribution" || !memberIds.includes(payer)) {
+    return {skipped: "no_contribution_push"};
+  }
+  const recipientIds = memberIds.filter((id) => id !== payer);
+  const actorName = await rpsLoadDisplayName(payer);
+  await writeInboxNotifications(recipientIds, {
+    type: "money_goal", coupleId, walletId, actorName, percent,
+    walletName: text.walletName, walletEmoji: text.emoji,
+  });
+  await sendToRecipientDevices(
+    recipientIds,
+    (lang) => buildMoneyText(lang, "goal", {...text, actorName, percent}),
+    {type: "money_goal", coupleId, walletId},
+  );
+  return {pushed: "goal", recipientIds, percent};
+}
+
+async function moneyBudgetUpdate(coupleRef, memberIds, tx, nowMs) {
+  const {month, daysLeft} = moneyMonthNow(nowMs);
+  if (`${tx.date || ""}`.slice(0, 7) !== month) {
+    return {skipped: "other_month"};
+  }
+  const budgets = await coupleRef.collection("moneyBudgets").where("categoryId", "==", "").limit(1).get();
+  if (budgets.empty) {
+    return {skipped: "no_budget"};
+  }
+  const budgetRef = budgets.docs[0].ref;
+  const spent = await moneySum(coupleRef.collection("moneyTx")
+    .where("memberUids", "==", memberIds)
+    .where("type", "==", "expense")
+    .where("date", ">=", `${month}-01`)
+    .where("date", "<=", `${month}-31`));
+  const level = moneyBudgetLevel(spent, Number(budgets.docs[0].get("amount")) || 0);
+  if (level === 0) {
+    return {skipped: "under_80"};
+  }
+  const claimed = await db.runTransaction(async (t) => {
+    const fresh = await t.get(budgetRef);
+    const alerted = (fresh.exists && fresh.get("alerted")) || {};
+    if (!fresh.exists || (Number(alerted[month]) || 0) >= level) {
+      return false;
+    }
+    t.update(budgetRef, new admin.firestore.FieldPath("alerted", month), level);
+    return true;
+  });
+  if (!claimed) {
+    return {skipped: "already_alerted", level};
+  }
+  const actor = `${tx.updatedBy || tx.createdBy || ""}`;
+  const recipientIds = memberIds.filter((id) => id !== actor);
+  const coupleId = coupleRef.id;
+  await writeInboxNotifications(recipientIds, {type: "money_budget", coupleId, month, level});
+  await sendToRecipientDevices(
+    recipientIds,
+    (lang) => buildMoneyText(lang, "budget", {level, daysLeft}),
+    {type: "money_budget", coupleId, month, level: `${level}`},
+  );
+  return {pushed: "budget", level, recipientIds};
+}
+
+// Core of notifyMoney, free of the trigger wrapper so functions/test can
+// drive it with fakes. `before`/`after` = doc data or null.
+async function processMoneyTxWrite(coupleId, before, after, nowMs) {
+  if (!after) {
+    return {skipped: "deleted"};
+  }
+  if (!isDocId(coupleId)) {
+    return {skipped: "invalid"};
+  }
+  const memberIds = await rpsLoadMemberIds(coupleId);
+  const pair = Array.isArray(after.memberUids) ? after.memberUids : [];
+  if (!memberIds || memberIds.length !== 2 || pair.length !== 2 ||
+      pair[0] !== memberIds[0] || pair[1] !== memberIds[1]) {
+    return {skipped: "not_current_pair"};
+  }
+  const coupleRef = db.collection("couples").doc(coupleId);
+  const out = {};
+  const walletId = `${after.inWalletId || ""}`;
+  if (after.type === "contribution" && isDocId(walletId)) {
+    out.goal = await moneyGoalUpdate(coupleRef, walletId, memberIds, after, !before);
+  }
+  if (after.type === "expense") {
+    out.budget = await moneyBudgetUpdate(coupleRef, memberIds, after, nowMs);
+  }
+  return out;
+}
+
+exports.notifyMoney = onDocumentWritten(
+  {document: "couples/{coupleId}/moneyTx/{txId}", region: "us-central1"},
+  async (event) => {
+    const change = event.data;
+    const before = change && change.before && change.before.exists ? change.before.data() : null;
+    const after = change && change.after && change.after.exists ? change.after.data() : null;
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const outcome = await processMoneyTxWrite(coupleId, before, after, Date.now());
+    logger.info("Processed money notification.", {coupleId, txId: event.params.txId, ...outcome});
+  },
+);
+
+// ── hết expenses (đợt 2) ──
