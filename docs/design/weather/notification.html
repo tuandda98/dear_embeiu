@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thời tiết hai nơi, thông báo sáng 07:30 · Dear Embeiu</title>
+<link rel="stylesheet" href="weather.css">
+<style>
+  body { background: #1C1C1E; color: #fff; }               /* màn khoá: nền máy của người dùng, vẽ phẳng */
+  .doc h1 { color: #fff; }
+  .doc .lead, .state { color: #fff; }
+  .clock { text-align: center; margin: 12px 0 20px; }
+  .clock .d { font-size: 15px; font-weight: 600; }
+  .clock .h { font-size: 56px; font-weight: 600; letter-spacing: -1px; line-height: 1.05; }
+  .notif, .android { font-family: -apple-system, 'SF Pro Text', Roboto, system-ui, sans-serif; } /* hệ thống vẽ thông báo bằng phông máy, không phải Quicksand */
+  .notif { background: #F2F2F5; color: var(--ink); border-radius: 20px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+  .notif + .notif { margin-top: 8px; }
+  .appic { width: 38px; height: 38px; border-radius: 9px; background: #FF6B9D; display: grid; place-items: center; flex: none; }
+  .appic .ic { color: #fff; font-size: 20px; }
+  .nt { flex: 1; min-width: 0; }
+  .nt .t { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 700; }
+  .nt .t span { font-size: 13px; font-weight: 500; color: var(--ink2); flex: none; }
+  .nt .b { font-size: 15px; margin-top: 2px; }
+  .android { background: #F2F2F5; color: var(--ink); border-radius: 20px; padding: 14px 16px; }
+  .android .hd { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink2); font-weight: 600; }
+  .android .hd .ic { font-size: 16px; color: var(--rose-deep); }
+  .android .t { font-size: 15px; font-weight: 700; margin-top: 8px; }
+  .android .b { font-size: 14px; margin-top: 2px; }
+</style>
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<main class="screen doc" id="app"></main>
+<script>
+const { ic } = UI, X = WX.places, name = WX.people.partner.name;
+const items = [['rain', X.hcm], ['hot', X.bh], ['cold', X.sp]].map(([k, p]) => WX.morning(k, p, name));
+const ios = (n, en) => `<div class="notif" role="img" aria-label="${en ? n.titleEn : n.title}. ${en ? n.bodyEn : n.body}"><span class="appic">${ic(0xea9c, true)}</span>
+  <div class="nt"><div class="t">${en ? n.titleEn : n.title}<span>07:30</span></div><div class="b">${en ? n.bodyEn : n.body}</div></div></div>`;
+for (const n of items) console.assert(n.title.length <= 40, 'Tiêu đề thông báo ngắn, không bị cắt trên màn khoá');
+document.getElementById('app').innerHTML = `
+  <h1>Thông báo sáng, 3 loại</h1>
+  <p class="lead">Chỉ nổ khi chỗ ${name} có mưa, nắng gắt hoặc lạnh. Tối đa 3 lần trong 7 ngày, không cùng một loại hai ngày liền. Chạm vào thì mở Home và cuộn tới thẻ thời tiết.</p>
+  <div class="clock" aria-hidden="true"><div class="d">Thứ Ba, 20 tháng 10</div><div class="h">07:30</div></div>
+  ${items.map((n) => ios(n)).join('')}
+  <p class="state">Tiếng Anh (máy để ngôn ngữ app tiếng Anh)</p>
+  ${items.map((n) => ios(n, true)).join('')}
+  <p class="state">Android, trong khay thông báo</p>
+  <div class="android" role="img" aria-label="${items[0].title}. ${items[0].body}"><div class="hd">${ic(0xea9c, true)}Dear Embeiu · 07:30</div>
+    <div class="t">${items[0].title}</div><div class="b">${items[0].body}</div></div>`;
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ tiền · tìm khoản · Dear Embeiu mockup</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="sheet.css">
+</head>
+<body>
+<div class="app" id="app"></div>
+<script src="icons.js"></script><script src="data.js"></script><script src="ui.js"></script>
+<script>
+const { fmt } = D; const q = 'bun cha';
+const all = [...D.own.tx, ...D.own.older];
+const res = D.search(all, q).sort((a, b) => b.date.localeCompare(a.date));
+const sum = res.reduce((s, r) => s + r.amount, 0);
+console.assert(res.length === 3 && sum === 410000, 'kết quả mẫu: 3 khoản, 410.000 ₫');
+const hl = (t) => { const f = D.fold(t); const i = f.indexOf(D.fold(q)); return i < 0 ? UI.esc(t) : UI.esc(t.slice(0, i)) + '<mark>' + UI.esc(t.slice(i, i + q.length)) + '</mark>' + UI.esc(t.slice(i + q.length)); };
+const DM = (iso) => `${+iso.slice(8)}/${+iso.slice(5, 7)}`;
+document.getElementById('app').innerHTML = `
+  ${UI.header('Tìm khoản', 'search_normal_1', '')}
+  ${UI.seg(['Của mình', 'Chung'], 0)}
+  <main>
+  <div class="search"><label class="sr" for="q">Tìm trong ghi chú và danh mục</label>${icon('search_normal_1', 20)}<input id="q" class="field" value="${q}" autocomplete="off"><button class="ibtn" aria-label="Xoá chữ">${icon('close_circle', 20)}</button></div>
+  <div class="chips scroll filters" aria-label="Bộ lọc">
+    <button class="chip" aria-pressed="true">3 tháng gần đây${icon('arrow_right_3', 14).replace('class="ic"', 'class="ic" style="transform:rotate(90deg)"')}</button>
+    <button class="chip">Ví</button><button class="chip">Danh mục</button><button class="chip">Khoảng tiền</button>
+  </div>
+  <section class="card" aria-labelledby="h-r">
+    <div class="card-h"><h2 id="h-r">${res.length} khoản</h2><span class="fig fig-m num">${fmt(sum)}</span></div>
+    <p class="meta" style="margin-top:4px">Gõ không dấu vẫn ra, vd “bun cha” ra “Bún chả”.</p>
+    <div class="rows">${res.map((r) => UI.txRow(r, 'own').replace(/<div class="t">([^<]*)<\/div>/, (m, t) => `<div class="t">${hl(t)}</div>`).replace('<div class="s">', `<div class="s"><span class="num">${DM(r.date)}</span> · `)).join('')}</div>
+  </section>
+  <h2 class="state-label">Không có kết quả</h2>
+  <section class="card" aria-label="Không có kết quả">
+    <div class="card-h"><h3>0 khoản</h3><span class="fig fig-m num">${fmt(0)}</span></div>
+    <p class="empty">Không có khoản nào khớp “lau de” trong 3 tháng gần đây.</p>
+    <button class="btn sm outline" style="margin-top:12px">Tìm trong 12 tháng</button>
+  </section>
+  </main>`;
+</script>
+</body>
+</html>

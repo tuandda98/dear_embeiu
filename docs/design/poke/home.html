@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chạm tim trên thẻ đếm ngày — Dear Embeiu</title>
+<link rel="stylesheet" href="poke.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<main class="doc" id="app"></main>
+<script>
+const { C, partner, mine, theirs, offline } = D;
+const nav = (cur) => `<nav class="pages" aria-label="Các màn của feature">${[['home.html', 'Home'], ['widget.html', 'Widget'], ['push.html', 'Thông báo'], ['settings.html', 'Cài đặt']]
+  .map(([h, t]) => `<a href="${h}"${h === cur ? ' aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
+const card = (o) => UI.counter(o);
+const state = (title, desc, body) => `<section class="state"><h2>${title}</h2><p>${desc}</p>${body}</section>`;
+const P = partner.name;
+
+document.getElementById('app').innerHTML = `
+<header>
+  <h1>Chạm tim nằm giữa tên hai người</h1>
+  <p>Trái tim vẫn đập giữa tên Tuấn và Thảo trên thẻ đếm ngày, giờ là cái nút. Chạm một cái, ${P} biết mình đang nhớ. Đồng hồ vẫn chạy như cũ.</p>
+  ${nav('home.html')}
+</header>
+
+${state('Chiều nay, 14:32', `Thảo đã chạm <b>${theirs}</b> lần, mình <b>${mine}</b> lần. Tim đặc vì hôm nay mình đã chạm.`, `
+<div class="phone">
+  <div class="home-head"><span class="eyechip">${UI.I.sun}${C.greeting}</span><button class="bell" type="button" aria-label="Thông báo">${UI.I.bell}</button></div>
+  ${card({ m: mine, p: theirs, cap: C.caption(mine, theirs, P) })}
+  <div class="section-title">${C.todayTitle}</div>
+  <div class="ghost-card" aria-hidden="true"></div>
+</div>`)}
+
+${state('Sáng sớm, chưa ai chạm', 'Tim rỗng. Câu dưới tên mời chạm, không in số 0.', card({ m: 0, p: 0, cap: C.caption(0, 0, P) }))}
+
+${state('Thảo nhớ mình trước', 'Mình chưa chạm, tim vẫn rỗng. Câu nói đúng con số của Thảo.', card({ m: 0, p: 3, cap: C.caption(0, 3, P) }))}
+
+${state('Vừa chạm', 'Khung hình giữa nhịp nảy: tim to 1,18 lần, máy rung nhẹ, số của mình tăng ngay, chưa cần mạng.', card({ m: 1, p: 0, cap: C.caption(1, 0, P), state: 'pop' }))}
+
+${state('Đang mở app thì Thảo chạm', 'Ba tim nhỏ bay lên từ nút, máy rung, câu đổi thành “Thảo vừa nhớ mình” trong 4 giây rồi về câu tổng. Không có banner.', card({ m: mine, p: theirs, cap: C.justNow(P), state: 'recv', live: true }))}
+
+${state('Mất mạng', `Vẫn chạm được. Số tăng ngay, câu báo ${offline.queued} lần đang chờ sóng.`, card({ m: offline.queued, p: 0, cap: C.queued(offline.queued) }))}
+
+${state('Đang tải số hôm nay', 'Tim bấm được ngay. Chỗ câu là một thanh phẳng đúng cỡ dòng chữ, không nhấp nháy.', card({ m: 0, p: 0, cap: '<span class="bar" aria-label="Đang tải"></span>' }))}
+
+${state('Không đọc được số', 'Lỗi nằm ngay trong dòng câu, có nút thử lại. Tim vẫn gửi được, lần chạm xếp hàng như lúc mất mạng.', card({ m: 0, p: 0, cap: `${C.loadError} <button class="retry" type="button">${C.retry}</button>` }))}
+
+${state('Chạm quá trần trong ngày', 'Endpoint trả 429 sau 300 lần gửi. Tim mờ không bấm được tới 0:00.', card({ m: 300, p: 41, cap: C.limit }).replace('class="heart-btn"', 'class="heart-btn" disabled style="opacity:.55"'))}
+
+${state('Nền ảnh thẻ đếm', 'Đĩa trắng .92 đứng được trên mọi ảnh, chữ trắng có bóng tối như số ngày.', card({ m: mine, p: theirs, cap: C.caption(mine, theirs, P), photo: 'img/p6.jpg' }))}
+
+${state('Cặp đang chờ người ấy', 'Không có tim (chưa có ai để nhận). Hàng tên giữ đúng như hiện tại.', card({ waiting: true }))}
+`;
+</script>
+</body>
+</html>

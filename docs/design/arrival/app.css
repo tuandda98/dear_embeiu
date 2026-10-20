@@ -1,0 +1,164 @@
+/* Mock arrival — token lấy từ code thật (lib/theme/app_colors.dart, app_theme.dart, lib/widgets/*).
+   1 CSS px = 1 dp/pt. Chỉ khung 390 (app chỉ có trên điện thoại). */
+@font-face { font-family: 'Quicksand'; src: url('../../../assets/fonts/Quicksand-Regular.ttf') format('truetype'); font-weight: 400; }
+@font-face { font-family: 'Quicksand'; src: url('../../../assets/fonts/Quicksand-Medium.ttf') format('truetype'); font-weight: 500; }
+@font-face { font-family: 'Quicksand'; src: url('../../../assets/fonts/Quicksand-SemiBold.ttf') format('truetype'); font-weight: 600; }
+@font-face { font-family: 'Quicksand'; src: url('../../../assets/fonts/Quicksand-Bold.ttf') format('truetype'); font-weight: 700; }
+
+:root {
+  --navy: #1A1A2E;          /* AppColors.textPrimary — chữ chính, nút chính, công tắc bật */
+  --muted: #6B6B7B;         /* textSecondary — chỉ dùng trên nền trắng/tint nhạt (5.2:1) */
+  --tertiary: #A0A0B0;      /* textTertiary — chỉ cho icon trang trí (chevron) */
+  --rose: #FF4D6D;          /* accentLove — tim, IconBadge */
+  --rose-deep: #E63956;     /* accentLoveDeep — icon chip */
+  --surface: #FFFFFF;       /* cardSurface */
+  --surface-light: #F5F0F5; /* surfaceLight */
+  --hair: #F0F0F2;   /* = textSecondary α .10 trên trắng (vạch ngăn SleepCard) */
+  --control: rgba(26, 26, 46, .18);   /* viền nút chỉ-có-viền (AuthPillButton Email) */
+  --warn-bg: rgba(255, 167, 38, .18); /* AppColors.warning α .18 */
+  --warn-ink: #8A4B00;      /* ĐỀ XUẤT token mới AppColors.warningInk — 6.0:1 trên warn-bg */
+  --error: #EF5350;         /* chỉ cho icon; chữ lỗi dùng navy */
+  --thao: #0E9384;          /* personPalette teal (Thảo chọn) */
+  --thao-10: #E7F4F3;       /* teal α .10 trên trắng */
+  --tuan: #FF4D6D;          /* personPalette rose (Tuấn chọn) */
+  --tuan-10: #FFEDF0;
+  font-family: 'Quicksand', sans-serif;
+  color: var(--navy);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100svh;
+  background: linear-gradient(135deg, #FFC1CC, #E8B4D8, #C8A8E9); /* taste-skill-ignore: dawnBlush — nền bắt buộc của mọi màn (design-system) */
+  background-attachment: fixed;
+  font-size: 14px; line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+.num { font-variant-numeric: tabular-nums; }
+button { font: inherit; color: inherit; cursor: pointer; }
+h1, h2, h3, p { margin: 0; }
+
+/* Lời dẫn của file mock (không phải UI app) */
+.doc { padding: 24px 16px 8px; }
+.doc h1 { font-size: 20px; font-weight: 700; line-height: 1.25; }
+.doc p { margin-top: 6px; font-size: 14px; font-weight: 500; max-width: 60ch; }
+.state { padding: 16px; }
+.state > h2 { font-size: 14px; font-weight: 700; margin: 8px 0 12px; }
+.state > p.note { font-size: 12px; font-weight: 600; margin: 10px 4px 0; color: rgba(26,26,46,.78); }
+
+/* ContentCard: trắng đặc r24, bóng black .06 blur 16 y10 */
+.card { background: var(--surface); border-radius: 24px; padding: 16px; box-shadow: 0 10px 16px rgba(0,0,0,.06); } /* taste-skill-ignore: bóng chuẩn ContentCard của app */
+.card.pad20 { padding: 20px; }
+.card-h { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.card-h .t { flex: 1; font-size: 16px; font-weight: 700; }
+.card-h .chev { color: var(--tertiary); display: flex; }
+.tap { border-radius: 16px; }
+/* IconBadge: squircle 44 r16, nền tint α .12, icon 20 */
+.badge { width: 44px; height: 44px; border-radius: 16px; display: grid; place-items: center; flex: none; background: rgba(255, 77, 109, .12); color: var(--rose); }
+.badge.navy { background: rgba(26,26,46,.06); color: var(--navy); }
+
+/* Nhãn người: chấm 8 màu người + tên micro-caps 11 w700 (PersonLabel có sẵn) */
+.who { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); min-width: 0; }
+.who i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+/* Làn người ấy: khối tint màu người α .10, r16 */
+.lane { border-radius: 16px; padding: 12px 14px; background: var(--thao-10); }
+.lane.neutral { background: var(--surface-light); }
+.lane-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.lane-row .txt { flex: 1; min-width: 0; }
+.lead { font-size: 20px; font-weight: 700; line-height: 1.3; }
+.lead.s { font-size: 15px; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 2px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.meta .time { font-size: 14px; font-weight: 700; color: var(--navy); }
+.bat { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.bat.low { height: 24px; padding: 0 8px; border-radius: 999px; background: var(--warn-bg); color: var(--warn-ink); font-size: 12px; font-weight: 700; }
+.sub { font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 2px; }
+
+/* Làn của mình */
+.mine { margin-top: 14px; }
+.mine .status { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 2px; border-radius: 12px; }
+.mine .status .ic { display: flex; color: var(--navy); }
+.mine .status .s { flex: 1; font-size: 14px; font-weight: 600; color: var(--navy); }
+.mine .status .chev { display: flex; color: var(--tertiary); }
+.row-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+
+/* Nút: pill. Trong card cao 44, toàn màn cao 52 (theme). Nhãn 15 w600 */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 999px; border: 0; font-size: 15px; font-weight: 600; white-space: nowrap; transition: transform .2s cubic-bezier(.33,1,.68,1), background-color .2s; }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--navy); color: #fff; }
+.btn.outline { background: transparent; border: 1.5px solid var(--control); color: var(--navy); }
+.btn.white { background: #fff; color: var(--navy); }
+.btn.text { background: transparent; color: var(--navy); padding: 0 12px; font-weight: 700; font-size: 14px; }
+.btn.text.muted { color: rgba(26,26,46,.78); font-weight: 600; } /* trên dawnBlush: textSecondary chỉ 2.5–3.4:1 → navy .78 */
+.btn.lg { height: 52px; width: 100%; }
+.btn.sent { background: rgba(26,26,46,.06); }
+.btn[disabled] { opacity: 1; color: var(--muted); }
+.btn svg { flex: none; }
+.btn:focus-visible, .tap:focus-visible, .switch:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+
+/* Dải trạng thái trong card (offline / lỗi) */
+.strip { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px 12px; border-radius: 16px; background: var(--surface-light); font-size: 13px; font-weight: 600; }
+.strip .s { flex: 1; }
+.strip .ic-err { color: var(--error); display: flex; }
+
+/* Khung màn con: SubScreenHeader (← · chip giữa) */
+.screen { padding: 16px 16px 24px; }
+.ssh { position: relative; height: 44px; display: flex; align-items: center; margin-bottom: 20px; }
+.ssh .back { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: none; border-radius: 16px; margin-left: -10px; }
+.ssh .chip { position: absolute; left: 50%; transform: translateX(-50%); }
+/* EyebrowChip: white .72 + viền white .65 + bóng rose .14; chữ 11 w700 ls1.4 navy .70 */
+.chip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; background: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.65); box-shadow: 0 4px 10px rgba(255,77,109,.14); /* taste-skill-ignore: EyebrowChip của app */ font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: rgba(26,26,46,.70); white-space: nowrap; }
+.chip svg { color: var(--rose-deep); }
+
+/* Tiêu đề nhóm (SectionHeader 22 w700 — dùng 20 cho màn con gọn hơn) */
+.sec { font-size: 20px; font-weight: 700; margin: 24px 4px 12px; }
+.sec + .secsub { font-size: 13px; font-weight: 600; margin: -6px 4px 12px; }
+
+/* Hàng trong card cài đặt (navRow / SwitchListTile) */
+.srow { display: flex; align-items: center; gap: 14px; padding: 12px 0; }
+.srow + .srow { border-top: 1px solid var(--hair); }
+.srow .tx { flex: 1; min-width: 0; }
+.srow .tt { font-size: 15px; font-weight: 700; }
+.srow .ts { font-size: 12px; font-weight: 500; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+.switch { width: 51px; height: 31px; border-radius: 999px; border: 0; background: #E3E3E8; position: relative; flex: none; padding: 0; }
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.18); /* taste-skill-ignore: núm công tắc hệ thống */ transition: transform .2s cubic-bezier(.33,1,.68,1); }
+.switch[aria-checked="true"] { background: var(--navy); }
+.switch[aria-checked="true"]::after { transform: translateX(20px); }
+.switch[disabled] { background: #EDEDF0; }
+
+/* Sheet / dialog (nổi → được có bóng) */
+.sheet { background: #fff; border-radius: 28px 28px 0 0; padding: 12px 24px 24px; box-shadow: 0 -8px 24px rgba(0,0,0,.10); } /* taste-skill-ignore: bề mặt nổi (sheet/dialog/hộp hệ thống) */
+.sheet .handle { width: 36px; height: 4px; border-radius: 999px; background: rgba(160,160,176,.4); margin: 0 auto 16px; }
+.dialog { background: #fff; border-radius: 28px; padding: 24px; box-shadow: 0 16px 40px rgba(0,0,0,.16); } /* taste-skill-ignore: bề mặt nổi (sheet/dialog/hộp hệ thống) */
+.dialog h3, .sheet h3 { font-size: 20px; font-weight: 700; line-height: 1.3; }
+.dialog p, .sheet p { font-size: 14px; font-weight: 500; line-height: 1.5; margin-top: 8px; }
+.check { display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; font-size: 14px; font-weight: 600; min-height: 44px; }
+.check .box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--navy); flex: none; margin-top: 1px; }
+.actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+/* Bước (sleep setup: đang ở 16×6 rose, còn lại 6×6) */
+.steps { display: flex; gap: 6px; justify-content: center; margin-bottom: 20px; }
+.steps i { width: 6px; height: 6px; border-radius: 999px; background: rgba(160,160,176,.5); }
+.steps i.on { width: 16px; background: var(--rose); }
+
+.hero-title { font-size: 26px; font-weight: 700; line-height: 1.25; letter-spacing: -.01em; }
+.body { font-size: 14px; font-weight: 500; line-height: 1.5; }
+.body.ink { font-size: 15px; }
+.fine { font-size: 12px; font-weight: 600; color: rgba(26,26,46,.78); line-height: 1.45; }
+.hint { display: flex; gap: 10px; padding: 10px 12px; border-radius: 16px; background: var(--surface-light); font-size: 12px; font-weight: 600; color: var(--muted); line-height: 1.45; margin-top: 12px; }
+.hint svg { flex: none; color: var(--navy); margin-top: 1px; }
+.stack > * + * { margin-top: 12px; }
+
+/* Hộp hệ thống (iOS/Android tự vẽ, mình không vẽ trong app) */
+.os { border-radius: 14px; background: rgba(242,242,247,.96); color: #000; font-family: -apple-system, system-ui, sans-serif; text-align: center; width: 270px; margin: 0 auto; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,.18); } /* taste-skill-ignore: bề mặt nổi (sheet/dialog/hộp hệ thống) */
+.os .b { padding: 18px 16px 14px; font-size: 13px; line-height: 1.35; }
+.os .b b { display: block; font-size: 16px; margin-bottom: 4px; }
+.os .o { border-top: 1px solid rgba(60,60,67,.29); padding: 11px; font-size: 16px; color: #007AFF; }
+.osand { background: #fff; color: #1f1f1f; border-radius: 28px; padding: 24px; width: 300px; margin: 0 auto; font-family: Roboto, system-ui, sans-serif; box-shadow: 0 12px 30px rgba(0,0,0,.18); } /* taste-skill-ignore: bề mặt nổi (sheet/dialog/hộp hệ thống) */
+.osand b { display: block; font-size: 18px; font-weight: 500; margin-bottom: 16px; }
+.osand .opt { display: flex; align-items: center; gap: 14px; padding: 10px 0; font-size: 15px; }
+.osand .opt i { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #444; flex: none; }
+.osand .opt.on i { border: 6px solid #0B57D0; }
+.oslabel { text-align: center; font-size: 12px; font-weight: 700; margin-top: 10px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

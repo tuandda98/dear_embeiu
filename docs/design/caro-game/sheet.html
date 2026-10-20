@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cờ caro: rủ ván mới</title>
+<link rel="stylesheet" href="caro.css">
+<style>
+  .scrim { position: fixed; inset: 0; background: rgba(26, 26, 46, .40); }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 28px 28px 0 0; padding: 8px 16px 24px; display: grid; gap: 12px; box-shadow: 0 -8px 24px rgba(0, 0, 0, .12); } /* sheet nổi thật. taste-skill-ignore */
+  .handle { width: 36px; height: 4px; border-radius: 999px; background: #D9D3DB; justify-self: center; margin-bottom: 4px; }
+  .sheet h1 { font-size: 20px; font-weight: 700; }
+  .sheet .sub { font-size: 14px; color: var(--muted); margin-top: -8px; }
+  .opt { display: grid; grid-template-columns: 24px 1fr; gap: 4px 12px; padding: 14px 16px; border-radius: 16px; background: var(--raised); border: 1.5px solid transparent; cursor: pointer; text-align: left; }
+  .opt[aria-checked="true"] { background: #fff; border-color: var(--text); }
+  .radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text); display: grid; place-items: center; margin-top: 1px; }
+  .opt[aria-checked="true"] .radio::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--text); }
+  .opt .t { font-size: 15px; font-weight: 700; display: flex; gap: 8px; align-items: center; }
+  .opt .t small { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .opt p { grid-column: 2; font-size: 13px; color: var(--text); }
+  .ex { grid-column: 2; display: flex; align-items: center; gap: 10px; margin-top: 6px; font-size: 13px; font-weight: 600; }
+  .ex svg { flex: none; }
+  .who-first { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+  .who-first svg { width: 16px; height: 16px; }
+</style>
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="under"></div>
+<div class="scrim"></div>
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="t">
+  <span class="handle" aria-hidden="true"></span>
+  <h1 id="t">Rủ Thảo chơi caro</h1>
+  <p class="sub">Chọn luật cho ván này. Đổi được ở ván sau.</p>
+  <div role="radiogroup" aria-label="Luật" style="display:grid;gap:12px" id="opts"></div>
+  <p class="who-first" id="first"></p>
+  <button class="btn">Chọn ô đầu tiên</button>
+</section>
+<script>
+const G = { ...D.openGame, cells: [] }, P = UI.P;
+document.getElementById('under').innerHTML = `${UI.header('Cờ caro', { icon: 'more', label: 'Thêm' })}<main><section class="card board" style="margin-top:12px"><div class="viewport">${UI.board(G, { noLast: true })}</div></section></main>`;
+// Hình minh hoạ 7 ô: O X X X X X O (người kia chặn hai đầu).
+function strip() {
+  const S = 20; let s = '';
+  for (let i = 0; i < 7; i++) {
+    s += `<rect x="${i * S}" y="0" width="${S}" height="${S}" fill="#fff" stroke="#1A1A2E" stroke-opacity=".14"/>`;
+    s += UI.mark(i === 0 || i === 6 ? 'o' : 'x', i * S + S / 2, S / 2, S, i === 0 || i === 6 ? P.thao.hue : P.tuan.hue);
+  }
+  return `<svg width="140" height="20" viewBox="0 0 140 20" aria-hidden="true">${s}</svg>`;
+}
+const opts = [
+  { id: 'vn', t: 'Chặn hai đầu', p: 'Năm quân liền nhau là thắng, trừ khi cả hai đầu đều bị quân người kia chặn.', ex: 'Thế này chưa thắng' },
+  { id: 'free', t: 'Tự do', p: 'Cứ năm quân liền nhau là thắng, bị chặn hai đầu vẫn tính.', ex: 'Thế này là thắng' },
+];
+let pick = 'vn'; // nhớ lựa chọn lần trước trên máy (Hive); lần đầu là Chặn hai đầu
+function render() {
+  document.getElementById('opts').innerHTML = opts.map((o) => `<button class="opt" role="radio" aria-checked="${o.id === pick}" data-id="${o.id}">
+    <span class="radio" aria-hidden="true"></span><span class="t">${o.t}${o.id === 'vn' ? '<small>lần trước</small>' : ''}</span>
+    <p>${o.p}</p><span class="ex">${strip()}${o.ex}</span></button>`).join('');
+  document.querySelectorAll('.opt').forEach((b) => (b.onclick = () => { pick = b.dataset.id; render(); }));
+}
+render();
+document.getElementById('first').innerHTML = `${UI.glyph('x', P.tuan.hue)}Bạn cầm X và đi trước. Thảo nhận lời rủ khi bạn đặt quân đầu.`;
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cờ caro: thông báo, hộp thư, widget</title>
+<link rel="stylesheet" href="caro.css">
+<style>
+  .push { display: grid; grid-template-columns: 38px 1fr auto; gap: 4px 10px; background: rgba(255, 255, 255, .88); border-radius: 20px; padding: 12px 14px; }
+  .push .app { width: 38px; height: 38px; border-radius: 10px; background: #FF6B9D; grid-row: span 2; display: grid; place-items: center; color: #fff; }
+  .push .app svg { width: 20px; height: 20px; }
+  .push b { font-size: 14px; }
+  .push time { font-size: 12px; color: var(--muted); }
+  .push p { grid-column: 2 / 4; font-size: 14px; }
+  .inbox { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; }
+  .inbox .t { font-size: 15px; font-weight: 700; }
+  .inbox .s { font-size: 13px; color: var(--muted); }
+  .badge { width: 44px; height: 44px; border-radius: 16px; background: #F5F0F5; display: grid; place-items: center; }
+  .badge svg { width: 26px; height: 26px; }
+  .w { font-size: 14px; display: grid; gap: 8px; }
+  .w code { font: 600 14px Quicksand, sans-serif; }
+</style>
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<h1 class="page-h1">Thông báo của cờ caro</h1>
+<p class="page-sub">Mỗi ván chỉ giữ một thông báo trên khay: thông báo mới thay thông báo cũ của cùng ván.</p>
+<main id="app"></main>
+<script>
+const P = UI.P, heart = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.6 2.6 5 6.2 5c2.1 0 3.3 1.2 3.8 2 .5-.8 1.7-2 3.8-2 3.6 0 5.3 3.6 3.8 6.8C19.5 16.4 12 21 12 21z" transform="translate(1 0)"/></svg>';
+const push = (t, b, at) => `<div class="push"><span class="app" aria-hidden="true">${heart}</span><b>${t}</b><time>${at}</time><p>${b}</p></div>`;
+const badge = `<span class="badge" aria-hidden="true"><svg viewBox="0 0 26 26"><path d="M13 3v20M3 13h20" stroke="#1A1A2E" stroke-opacity=".18" stroke-width="1.2"/>${UI.mark('x', 7.5, 7.5, 13, P.tuan.hue)}${UI.mark('o', 18.5, 18.5, 13, P.thao.hue)}</svg></span>`;
+document.getElementById('app').innerHTML = `
+  <h2 class="state-h">Trên khay máy Thảo, cả ngày 20/10 chỉ còn một dòng của ván này</h2>
+  ${push('Tuấn vừa đi một nước', 'Đến lượt bạn. Ván đang ở nước 15.', '10:20')}
+  <p class="state-p" style="margin-top:0">Thông báo lúc 08:02 (“Tuấn rủ chơi cờ caro”) đã được thay, không chồng lên.</p>
+  <h2 class="state-h">Bốn loại, đúng chữ trong spec PO</h2>
+  ${push('Tuấn rủ chơi cờ caro', 'Nước đầu đã đi rồi, giờ đến lượt bạn.', '08:02')}
+  ${push('Tuấn đang đợi bạn đi', 'Ván caro dừng ở nước 15. Vào đi một nước nhé.', '10:51')}
+  ${push('Thảo thắng ván caro', 'Năm quân liền một hàng ở nước 31. Phục thù không?', '21:40')}
+  ${push('Thảo xin thua ván caro', 'Ván này bạn thắng. Thêm ván nữa không?', '17/10')}
+  <h2 class="state-h">Trong Trung tâm thông báo (chỉ lời rủ)</h2>
+  <section class="card inbox">${badge}<span><span class="t">Tuấn rủ chơi cờ caro</span><br><span class="s">Nước đầu đã đi rồi, giờ đến lượt bạn.</span></span><span class="s num">08:02</span></section>
+  <h2 class="state-h">Dòng trạng thái widget-today trên máy Tuấn (<code>caro_turn</code>)</h2>
+  <section class="card w"><span><b>Bản vừa:</b> Thảo đã đi caro, đến lượt mình</span><span><b>Bản nhỏ:</b> Lượt mình đi caro</span>
+  <span class="s" style="color:var(--muted)">Hình dòng theo design của widget-today. Chạm mở Home rồi mở thẳng ván.</span></section>`;
+</script>
+</body>
+</html>

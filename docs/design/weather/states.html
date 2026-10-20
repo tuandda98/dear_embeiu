@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thời tiết hai nơi, mọi trạng thái của thẻ · Dear Embeiu</title>
+<link rel="stylesheet" href="weather.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<main class="screen doc" id="app"></main>
+<script>
+const { card } = UI, X = WX.places;
+const S = (label, html) => `<p class="state">${label}</p>${html}`;
+const parts = [
+  `<h1>Thẻ thời tiết, mọi trạng thái</h1><p class="lead">Cùng một khung ở Home. Sáng 20/10, 08:10, dữ liệu lấy lúc 07:12. Thảo ở TP.HCM, Tuấn ở Hà Nội.</p>`,
+  S('<b>1.</b> Cả hai đã chọn, chỗ Thảo chiều nay mưa: nút gợi ý thay cho câu chênh lệch', card.both(X.hcm, X.hn)),
+  S('<b>2.</b> Chỗ Thảo nắng gắt (Biên Hoà 36°)', card.both(X.bh, X.hn)),
+  S('<b>3.</b> Chỗ Thảo lạnh (Sa Pa 13°)', card.both(X.sp, X.hn)),
+  S('<b>4.</b> Trời bình thường, hai nơi lệch từ 5° trở lên: câu chênh lệch', card.both(X.dl, X.hn)),
+  S('<b>5.</b> Trời bình thường, lệch dưới 5°: không có hàng dưới', card.both(X.hp, X.hn)),
+  S('<b>6.</b> Cùng một thành phố: một làn, hai chấm, nút vẫn hiện', card.same(X.hnRain)),
+  S('<b>7.</b> Đã ghép, Thảo chưa chọn: chọn giúp được', card.partnerUnset(X.hn)),
+  S('<b>8.</b> Đã ghép, mình chưa chọn, Thảo đã chọn', card.meUnset(X.hcm)),
+  S('<b>9.</b> Chưa ai chọn: thẻ thu thành một dòng mời, có nút Ẩn', card.none(false)),
+  S('<b>10.</b> Đang chờ người ấy, mình đã chọn: chỉ làn của mình', card.waiting(X.hn)),
+  S('<b>11.</b> Đang chờ người ấy, chưa chọn', card.none(true)),
+  S('<b>12.</b> Đang tải lần đầu: khung xương đúng cỡ', card.loading()),
+  S('<b>13.</b> Số liệu cũ 6 đến 24 giờ (lấy lúc 21:40 hôm qua): số chuyển xám, ẩn nút gợi ý', card.stale(X.hcm, X.hn)),
+  S('<b>14.</b> Lỗi, offline quá 24 giờ hoặc chưa từng tải: chạm thẻ hoặc Thử lại', card.error(X.hcm, X.hn)),
+  S('<b>15.</b> Mã thời tiết lạ, tên thành phố dài nhất: chỉ hiện nhiệt độ', card.both(X.bmt, X.hn)),
+  S('<b>16.</b> Chữ lớn 130%, tên dài nhất', `<div style="--ts:1.3">${card.both(X.bmt, X.hn)}</div>`),
+];
+UI.en(true);
+parts.push(S('<b>17.</b> Bản tiếng Anh của trạng thái 1', card.both(X.hcm, X.hn)));
+parts.push(S('<b>18.</b> Bản tiếng Anh, Thảo chưa chọn', card.partnerUnset(X.hn)));
+UI.en(false);
+parts.push(`<p class="state">Offline mà số liệu còn dưới 6 giờ: giống hệt trạng thái 1, chỉ có dòng “Cập nhật 07:12”. Đã bấm Ẩn ở trạng thái 9: Home không còn thẻ, lối vào chỉ còn ở Cài đặt.</p>`);
+document.getElementById('app').innerHTML = parts.join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cờ caro: lịch sử ván</title>
+<link rel="stylesheet" href="caro.css">
+<style>
+  .group h2 { font-size: 14px; font-weight: 700; margin: 4px 4px 8px; }
+  .rows { padding: 4px 16px; }
+  .row { color: inherit; text-decoration: none; display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--rule); min-height: 68px; cursor: pointer; }
+  .row:last-child { border-bottom: 0; }
+  .row .t { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .row .t svg { width: 14px; height: 14px; }
+  .row .s { font-size: 13px; color: var(--muted); }
+  .row .d { font-size: 13px; color: var(--muted); text-align: right; }
+  .empty { text-align: left; }
+</style>
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const P = UI.P, H = D.history;
+const how = (g) => (g.reason === 'resign' ? `${P[g.loser].name} xin thua ở nước ${g.moves}` : `Năm quân liền, ${g.moves} nước`);
+const rel = (d) => (d === '19/10' ? 'Hôm qua' : d);
+const lead = D.wins.tuan - D.wins.thao;
+const months = [['Tháng 10', H.filter((g) => g.date.endsWith('/10'))], ['Tháng 9', H.filter((g) => g.date.endsWith('/09'))]];
+console.assert(months[0][1].length + months[1][1].length === H.length, 'nhóm tháng đủ ván');
+const row = (g) => `<a class="row" href="result.html" aria-label="${rel(g.date)}: ${P[g.winner].name} thắng. ${how(g)}. Luật ${g.rule === 'free' ? 'tự do' : 'chặn hai đầu'}.">
+  ${UI.thumb(g)}<span><span class="t">${UI.glyph(g.players.x === g.winner ? 'x' : 'o', P[g.winner].hue)}${P[g.winner].name} thắng</span>
+  <span class="s">${how(g)}${g.rule === 'free' ? '. Tự do' : ''}</span></span><span class="d num">${rel(g.date)}</span></a>`;
+const skel = `<div class="row" aria-hidden="true"><span class="bar" style="width:44px;height:44px"></span><span><span class="bar" style="width:110px;height:18px"></span><span class="bar" style="width:170px;height:14px;margin-top:6px"></span></span><span class="bar" style="width:40px;height:14px"></span></div>`;
+document.getElementById('app').innerHTML = `
+  ${UI.header('Lịch sử caro', null)}
+  <main>
+    <section class="card status">
+      <h1>Tuấn dẫn trước ${lead} ván</h1>
+      <p class="sub">${H.length} ván từ ${H.at(-1).date}. Ván gần nhất Thảo thắng hôm qua.</p>
+      ${UI.lanes(D.openGame, { midText: H.length + ' ván' })}
+    </section>
+    ${months.map(([m, gs]) => `<section class="group"><h2>${m}</h2><div class="card rows">${gs.map(row).join('')}</div></section>`).join('')}
+    <h2 class="state-h">Chưa có ván nào xong (đang có ván chơi dở)</h2>
+    <section class="card status empty"><h2 style="font-size:20px;font-weight:700">Chưa có ván nào xong</h2><p class="sub">Ván đầu tiên đang chờ đó. Tỉ số bắt đầu từ 0 – 0.</p>
+      ${UI.lanes(D.openGame, { wins: { tuan: 0, thao: 0 }, midText: '0 ván' })}</section>
+    <div class="dock"><button class="btn">Mở ván đang chơi</button></div>
+    <h2 class="state-h">Chưa có ván nào, cũng chưa ai rủ</h2>
+    <section class="card status empty"><h2 style="font-size:20px;font-weight:700">Chưa có ván nào xong</h2><p class="sub">Ván đầu tiên đang chờ đó. Bạn đi trước nếu bạn rủ.</p></section>
+    <div class="dock"><button class="btn">Rủ Thảo một ván</button></div>
+    <h2 class="state-h">Đang tải</h2>
+    <section class="group"><h2>Tháng 10</h2><div class="card rows">${skel}${skel}${skel}</div></section>
+    <h2 class="state-h">Lỗi tải trang sau (đang kéo xuống)</h2>
+    <section class="card"><p style="display:flex;gap:8px;align-items:center;font-size:14px"><span style="width:18px;height:18px;color:#C4242A">${UI.ICON.warn}</span>Chưa tải thêm được ván cũ.</p><button class="text-btn" style="padding-left:0">Thử lại</button></section>
+  </main>`;
+</script>
+</body>
+</html>

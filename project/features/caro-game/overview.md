@@ -53,7 +53,7 @@
   - Tỉ số tổng "Tuấn 12 – 9 Thảo" + lịch sử ván + xem bàn cuối của ván cũ.
   - Trạng thái `caro_turn` trên widget-today.
   - 1 callable `caroAction`, rules additive (presence + đọc `caroState`), option `collapseId` cho `sendToRecipientDevices`. vi + en.
-- **Ngoài phạm vi (ghi roadmap):** tua lại từng nước của ván cũ · chơi với máy · bàn mở rộng vô hạn · luật tự do / bật-tắt luật · nhiều ván song song · đồng hồ mỗi nước · xin hoà · đi lại nước (undo) · chat trong ván · sticker/âm thanh · bảng xếp hạng.
+- **Ngoài phạm vi (ghi roadmap):** tua lại từng nước của ván cũ · chơi với máy · bàn mở rộng vô hạn · nhiều ván song song · đồng hồ mỗi nước · xin hoà · đi lại nước (undo) · chat trong ván · sticker/âm thanh · bảng xếp hạng.
 
 ## 4. Quyết định đã chốt (decision log)
 > Đừng lật lại trừ khi user/PO đổi ý. Các mục PO tự chốt user lật được trước khi Dev bắt đầu.
@@ -124,7 +124,7 @@
 | field | kiểu | ghi chú |
 |---|---|---|
 | `type` | `'caro'` | bất biến |
-| `rule` | `'vn'` | bất biến (D3) |
+| `rule` | `'vn'` \| `'free'` | người rủ chọn khi tạo ván, bất biến (D3) |
 | `size` | `15` | bất biến |
 | `createdBy` | uid | người rủ = người đi trước |
 | `createdAt` | timestamp | server |
@@ -189,7 +189,7 @@ Hai guard `type` chỉ khoá loại doc chưa từng tồn tại, không ảnh h
 
 Trả về: `{ok:true, gameId, status, cellsLength}` hoặc `{ok:false, reason: 'not_playing'|'not_your_turn'|'stale'|'occupied'|'out_of_range'|'already_open'|'cooldown'|'too_early'|'not_player'|'no_partner'}`.
 
-- Hàm thuần `caroWinner(cells, size, rule) → {winner:'x'|'o'|null, line, full}` tách riêng, test bằng node (không cần emulator): 5 ngang/dọc/chéo xuôi/chéo ngược · 4 quân không thắng · 5 bị chặn 2 đầu không thắng · 5 bị chặn 1 đầu thắng · 5 sát mép (mép không tính chặn) thắng · 6 quân không bị chặn thắng · 6 quân bị chặn 2 đầu không thắng · kín bàn = hoà · chỉ xét đường qua nước vừa đi.
+- Hàm thuần `caroWinner(cells, size, rule) → {winner:'x'|'o'|null, line, full}` tách riêng, test bằng node (không cần emulator): 5 ngang/dọc/chéo xuôi/chéo ngược · 4 quân không thắng · 5 bị chặn 2 đầu không thắng · 5 bị chặn 1 đầu thắng · 5 sát mép (mép không tính chặn) thắng · 6 quân không bị chặn thắng · 6 quân bị chặn 2 đầu không thắng · kín bàn = hoà · luật `free`: 5 bị chặn 2 đầu vẫn thắng · chỉ xét đường qua nước vừa đi.
 - **Ghép option vào `sendToRecipientDevices`:** `options.collapseId` → `android.notification.tag` + `apns.headers['apns-collapse-id']` (≤64 byte). Không truyền thì payload y như cũ.
 - **Ngưỡng `wakeClients` (D9):** trong transaction của `start`/`move`, nếu `now − lastWakeAt[recipient] ≥ 30'` thì ghi `lastWakeAt.{recipient} = now` và gửi với `wakeClients: true`; không thì gửi push thường.
 - Push `data`: `{type, coupleId, gameId, moveNo, actorName}`. Không gửi `date`: handler nền lấy ngày theo giờ máy lúc nhận (múi giờ CF không phải múi giờ người dùng). Tên để thô, fallback "Người ấy" / "Your partner" theo ngôn ngữ thiết bị như `rps`.
@@ -264,7 +264,7 @@ Không log ô đã đi, tên, uid, gameId.
 - [ ] Widget-today: Thảo để app ở nền, Tuấn đi → widget Thảo hiện "Tuấn đã đi caro, đến lượt mình" (ghi số giây thực đo); đi nước thứ 2 trong vòng 30 phút → push vẫn tới nhưng không có cờ đánh thức (log CF); chạm widget mở đúng ván.
 - [ ] Rời couple khi đang có ván → người ở lại không thấy ván cũ trên Home; `caroState/main` đã bị xoá.
 - [ ] App 1.11.0 cài song song nhận push `caro_*` không crash; inbox hiện "Bạn có thông báo mới"; tỉ số + lịch sử oẳn tù tì không đổi.
-- [ ] Rules: `scripts/test-firebase-rules.sh` PASS, đủ ≥15 case §6.1, suite rps cũ không đổi kết quả. Test node cho `caroWinner` đủ 10 case §6.2.
+- [ ] Rules: `scripts/test-firebase-rules.sh` PASS, đủ ≥15 case §6.1, suite rps cũ không đổi kết quả. Test node cho `caroWinner` đủ 11 case §6.2 (gồm luật `free`).
 - [ ] `flutter analyze` 0; test Dart cho `CaroBoard` + map push → trạng thái widget; VoiceOver/TalkBack đọc được ô; Reduce Motion tắt hiệu ứng đặt quân.
 - [ ] Không gửi nội dung riêng tư vào analytics (Tester grep param).
 - [ ] CF deploy DEV có vết; PROD chưa deploy cho tới lệnh phát hành.
@@ -293,3 +293,4 @@ Không log ô đã đi, tên, uid, gameId.
 ## 14. Changelog feature
 - [2026-10-20] [PO] Tạo feature trong đợt "mở app mỗi ngày" 2 (user chọn 5 hướng cùng lúc). Đọc code rps, kết luận app 1.10.x/1.11.0 bỏ qua doc `type:'caro'` an toàn, chỗ hở duy nhất là trigger `resolveRpsGame` theo đường `moves` (§2.1) ⇒ D1 không dùng `moves`. Chốt D1–D20: bàn 15×15, luật VN chặn hai đầu, lời mời = nước đầu, 1 callable `caroAction`, `caroState/main` giữ con trỏ + tỉ số, push gộp theo ván, `wakeClients` ≤1 lần/30'/người/ván, nhắc 30', presence 20 s/45 s, trạng thái widget `caro_turn`. 1 câu hỏi cho user (luật chặn hai đầu).
 - [2026-10-20] [Lead] User chọn có công tắc luật mỗi ván → D3 viết lại (`rule: vn|free` bất biến, CF tính theo luật của ván), thêm acceptance luật tự do. Analytics `caro_game_started` thêm param `rule`.
+- [2026-10-20] [Lead] Sửa 2 chỗ còn ghi một luật (§3 Ngoài phạm vi, §5.1 bảng field) cho khớp D3. Chốt câu hỏi Designer: gộp oẳn tù tì + caro thành 1 ô "Chơi cùng nhau" ở lưới huy hiệu Profile (giữ 6 ô); bỏ nút gradient hồng ở dòng oẳn tù tì (chữ trắng ~1,7:1) → nút navy theo design system; nhận token `errorInk #C4242A`.

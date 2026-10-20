@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cờ caro: kết thúc ván</title>
+<link rel="stylesheet" href="caro.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// Máy Tuấn, 21:41 ngày 19/10: Thảo vừa thắng nước 31. Đường thắng tô trên cả hai máy.
+const Y = D.yesterday, P = UI.P, I = UI.ICON;
+const rule = (g) => (g.rule === 'free' ? 'Tự do' : 'Chặn hai đầu');
+const variants = [
+  { title: 'Máy Thảo: bạn thắng', h1: 'Bạn thắng ván này', sub: `Năm quân liền nhau ở nước 31, lúc ${Y.finishedAt}.`, me: 'thao', plus: 'me', cta: 'Ván mới' },
+  { title: 'Người kia xin thua (máy Tuấn, ván 17/10)', h1: 'Thảo xin thua', sub: 'Ván này bạn thắng, ở nước 22.', plus: 'me', cta: 'Ván mới', g: D.history[2] },
+  { title: 'Mình xin thua (máy Thảo, ván 17/10)', h1: 'Bạn đã xin thua', sub: 'Tuấn được tính thắng ván này.', me: 'thao', plus: 'partner', cta: 'Phục thù', g: D.history[2] },
+  { title: 'Hoà (kín bàn, hiếm)', h1: 'Ván này hoà', sub: 'Kín cả 225 ô mà chưa ai thắng. Tỉ số thêm 1 ván hoà.', cta: 'Ván mới', draw: true },
+];
+const lanesFor = (g, v) => UI.lanes(g, { me: v.me || 'tuan', plus: v.plus, move: g.moves, wins: v.plus ? D.wins : D.wins });
+document.getElementById('app').innerHTML = `
+  ${UI.header('Cờ caro', { icon: 'more', label: 'Thêm: lịch sử ván' })}
+  <main>
+    <section class="card status" aria-live="polite">
+      <h1>Thảo thắng ván này</h1>
+      <p class="sub">Năm quân liền nhau ở nước 31, lúc ${Y.finishedAt}. Ván kéo dài ${Y.spanHours} giờ.</p>
+      ${UI.lanes(Y, { plus: 'partner', turn: 'partner', move: 31 })}
+    </section>
+    <section class="card board" aria-label="Bàn cuối"><div class="viewport">${UI.board(Y, { line: Y.line, label: 'Bàn cuối, năm quân O của Thảo thành một đường' })}</div></section>
+    <div class="dock"><button class="btn">Phục thù</button></div>
+    <button class="text-btn" style="justify-self:center">Xem lịch sử ván</button>
+    <h2 class="state-h">Các kết quả khác</h2>
+    ${variants.map((v) => { const g = v.g || Y; return `<h3 class="state-h" style="font-weight:600">${v.title}</h3>
+      <section class="card status"><h2 style="font-size:20px;font-weight:700">${v.h1}</h2><p class="sub">${v.sub}</p>
+      ${UI.lanes(g, { me: v.me || 'tuan', plus: v.plus, turn: v.plus, move: v.draw ? 225 : g.moves })}${v.draw ? '<p class="sub" style="margin-top:8px">Tỉ số: Tuấn 12 – 9 Thảo, 1 ván hoà.</p>' : ''}</section>
+      <div class="dock"><button class="btn">${v.cta}</button></div>`; }).join('')}
+  </main>`;
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ tiền · thanh toán giữa hai người · Dear Embeiu mockup</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="sheet.css">
+</head>
+<body>
+<div class="app" id="app"></div>
+<script src="icons.js"></script><script src="data.js"></script><script src="ui.js"></script>
+<script>
+const { fmt } = D; const S = D.shared;
+const parts = S.tx.filter((r) => (r.type === 'expense' || r.type === 'settle') && r.payer !== 'wallet')
+  .map((r) => ({ r, v: (r.payer === D.ME ? 1 : -1) * (r.amount - r.payerShare) })).filter((x) => x.v !== 0).reverse();
+const sum = parts.reduce((s, x) => s + x.v, 0);
+console.assert(sum === S.balance, 'chi tiết cộng lại = số cần thanh toán');
+const treats = S.tx.filter((r) => r.type === 'expense' && r.splitMode === 'treat').length;
+const DM = (iso) => `${+iso.slice(8)}/${+iso.slice(5, 7)}`;
+const line = ({ r, v }) => `<div class="row"><span class="av ${r.payer === D.ME ? 'me' : 'pa'}" aria-hidden="true">T</span><div class="mid"><div class="t">${UI.esc(r.note)}</div><div class="s"><span class="num">${DM(r.date)}</span> · ${r.type === 'settle' ? 'Thảo đã trả lại' : `${UI.who(r.payer)} trả · ${UI.SPLIT[r.splitMode]}`}</div></div><div class="amt num">${v > 0 ? '+' : '−'}${fmt(Math.abs(v))}</div></div>`;
+document.getElementById('app').innerHTML = `
+  <div class="sheet" role="dialog" aria-labelledby="t">
+    <div class="handle" aria-hidden="true"></div>
+    <div class="sh-top"><button class="ibtn l" aria-label="Đóng">${icon('close_circle', 24)}</button><h1 id="t">Thanh toán</h1><span></span></div>
+    <p class="payline">${UI.av('thao')}<b>Thảo</b> trả lại cho <b>mình</b>${UI.av('tuan')}</p>
+    <div class="amount"><p class="v num">${fmt(S.balance).split(' ')[0]}<span class="u">₫</span></p><p class="h">Sửa được nếu trả một phần</p></div>
+    <div class="chips" style="justify-content:center"><button class="chip" aria-pressed="true">Trả hết</button><button class="chip">Một nửa · ${fmt(Math.ceil(S.balance / 2))}</button></div>
+    <p class="empty" style="margin-top:16px">Chỉ ghi lại là đã trả, app không chuyển tiền. Khoản này cân lại sổ chung và không tính vào chi tiêu tháng.</p>
+    <button class="btn primary save">Đánh dấu đã thanh toán</button>
+  </div>
+  <section class="card" aria-labelledby="h-why">
+    <div class="card-h"><h2 id="h-why">Vì sao là ${fmt(S.balance)}</h2></div>
+    <p class="meta" style="margin-top:4px">Dấu cộng: mình ứng cho Thảo. Dấu trừ: Thảo ứng cho mình. ${treats} khoản “mời” và các khoản trả từ Ví chung không tính.</p>
+    <div class="rows">${parts.map(line).join('')}</div>
+    <div class="total"><span>Cộng lại</span><span class="num">+${fmt(sum)}</span></div>
+  </section>`;
+</script>
+</body>
+</html>

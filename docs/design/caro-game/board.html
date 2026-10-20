@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cờ caro: ván đang chơi</title>
+<link rel="stylesheet" href="caro.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// Màn CaroGameScreen, máy Tuấn, 10:14 ngày 20/10. Chạm ô để chọn, chạm lại ô đó hoặc bấm nút để đi.
+const G = D.openGame, P = UI.P;
+const S = { selected: D.selected, zoom: 1.6, phase: 'mine', cells: G.cells.slice(), at: 0 };
+const fmtMove = (n) => n;
+function render() {
+  const mine = S.phase === 'mine' || S.phase === 'sending' || S.phase === 'error';
+  const n = S.cells.length;
+  const lastBy = n % 2 ? P[G.players.x] : P[G.players.o];
+  const h1 = mine ? 'Đến lượt bạn' : 'Đang chờ Thảo';
+  const sub = mine
+    ? `<b>Thảo</b> vừa đi nước ${n} lúc ${G.times[n - 1]}.`
+    : `Bạn đi nước ${n} lúc ${D.nudge.myMoveAt}. Thảo sẽ nhận thông báo.`;
+  const dock = {
+    mine: S.selected == null
+      ? `<button class="btn off" disabled>Chạm một ô để chọn</button>`
+      : `<button class="btn" id="go">Đi nước này</button>`,
+    sending: `<button class="btn" disabled style="background:#1A1A2E;color:#fff"><span class="spin"></span>Đang đi…</button>`,
+    error: `<button class="btn" id="go">Thử lại</button>`,
+    waiting: `<button class="btn ghost off" disabled>Nhắc được sau 30 phút</button>`,
+  }[S.phase];
+  document.getElementById('app').innerHTML = `
+  ${UI.header('Cờ caro', { icon: 'more', label: 'Thêm: lịch sử ván, xin thua' })}
+  <main>
+    <section class="card status" aria-live="polite">
+      <h1>${h1}</h1>
+      <p class="sub">${sub}</p>
+      ${UI.lanes(G, { turn: mine ? 'me' : 'partner', move: n })}
+    </section>
+    <section class="card board" aria-label="Bàn cờ">
+      <div class="viewport" id="vp">${UI.board({ ...G, cells: S.cells }, { zoom: S.zoom, selected: mine ? S.selected : null, pending: S.phase === 'sending', drop: S.phase === 'waiting', label: 'Bàn cờ 15 x 15, ' + n + ' quân' })}</div>
+    </section>
+    ${S.phase === 'error' ? `<p class="alert" role="alert">${UI.ICON.warn}Chưa đi được. Mạng đang chập chờn, ô bạn chọn vẫn giữ nguyên.</p>` : ''}
+    <div class="dock">
+      <button class="round" id="zoom" aria-label="${S.zoom > 1 ? 'Xem toàn bàn' : 'Phóng to quanh nước cuối'}">${S.zoom > 1 ? UI.ICON.zoomOut : UI.ICON.zoomIn}</button>
+      ${dock}
+    </div>
+    ${S.phase === 'mine' && S.selected != null ? '<p class="hint">Chạm lại ô đang chọn cũng là đi. Chạm ô khác để đổi.</p>' : ''}
+  </main>`;
+  const vp = document.getElementById('vp');
+  if (S.zoom > 1) { const [r, c] = D.rc(S.selected ?? S.cells[S.cells.length - 1]); const cell = vp.firstElementChild.width.baseVal.value / 15; vp.scrollLeft = c * cell - vp.clientWidth / 2 + cell / 2; vp.scrollTop = r * cell - vp.clientHeight / 2 + cell / 2; }
+  vp.firstElementChild.addEventListener('click', (e) => {
+    if (S.phase !== 'mine' && S.phase !== 'error') return;
+    const box = e.currentTarget.getBoundingClientRect(); const cell = box.width / 15;
+    const i = D.at(Math.floor((e.clientY - box.top) / cell), Math.floor((e.clientX - box.left) / cell));
+    if (S.cells.includes(i)) return;
+    if (i === S.selected && Date.now() - S.at > 400) return go();
+    S.selected = i; S.at = Date.now(); S.phase = 'mine'; render();
+  });
+  document.getElementById('zoom').onclick = () => { S.zoom = S.zoom > 1 ? 1 : 1.6; render(); };
+  const b = document.getElementById('go'); if (b) b.onclick = go;
+}
+function go() {
+  S.phase = 'sending'; render();
+  setTimeout(() => {
+    if (location.hash === '#loi') { S.phase = 'error'; location.hash = ''; return render(); }
+    S.cells.push(S.selected); S.selected = null; S.phase = 'waiting'; render();
+  }, 700);
+}
+render();
+</script>
+</body>
+</html>

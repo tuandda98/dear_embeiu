@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ tiền · Ví · Dear Embeiu mockup</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="sheet.css">
+</head>
+<body>
+<div class="app" id="app"></div>
+<script src="icons.js"></script><script src="data.js"></script><script src="ui.js"></script>
+<script>
+const { fmt } = D; const B = D.own;
+const ZALO = '💙'; // taste-skill-ignore: emoji ví do người dùng chọn (dữ liệu)
+const active = B.wallets.filter((w) => w.type !== 'goal');
+const goal = B.wallets.find((w) => w.type === 'goal');
+const gBal = B.balances[goal.id]; const gLeft = goal.goalTarget - gBal; const gMonths = D.monthsLeft(D.TODAY, goal.goalDeadline);
+document.getElementById('app').innerHTML = `
+  ${UI.header('Ví', 'wallet_2', UI.ibtn('add', 'Thêm ví'))}
+  ${UI.seg(['Của mình', 'Chung'], 0)}
+  <main>
+  <section class="card" aria-labelledby="h-total">
+    <h2 id="h-total" class="label">Tổng tài sản</h2>
+    <p>${UI.money(B.assets, 'fig-xl')}</p>
+    <p class="finding">Cộng ${active.length} ví đang dùng, kể cả dư nợ thẻ VIB. Ví mục tiêu để riêng bên dưới.</p>
+  </section>
+  <section class="card" aria-labelledby="h-act">
+    <div class="card-h"><h2 id="h-act">Đang dùng</h2><span class="meta">${active.length} ví</span></div>
+    <div class="rows">${active.map((w) => UI.walletRow(w, B.balances[w.id], w.type === 'credit' ? ' · dư nợ' : '').replace('<button class="row">', '<a class="row" href="wallet.html">').replace(/<\/button>$/, '</a>')).join('')}</div>
+  </section>
+  <section class="card" aria-labelledby="h-goal">
+    <div class="card-h"><h2 id="h-goal">Mục tiêu</h2><span class="meta">không tính vào tổng</span></div>
+    <a class="row goal" href="goal.html"><span class="emo" aria-hidden="true">${goal.emoji}</span><div class="mid"><div class="t">${goal.name}</div>
+      <div class="gbar" role="img" aria-label="${Math.round(gBal / goal.goalTarget * 100)}%"><span style="width:${gBal / goal.goalTarget * 100}%"></span></div>
+      <div class="s num">Cần ~${fmt(Math.ceil(gLeft / gMonths / 1000) * 1000)} mỗi tháng</div></div><div class="amt num">${fmt(gBal)}<div class="s" style="justify-content:flex-end">của ${fmt(goal.goalTarget)}</div></div></a>
+  </section>
+  <section class="card" aria-labelledby="h-arc">
+    <div class="card-h"><h2 id="h-arc">Đã lưu trữ</h2><span class="meta">1 ví</span></div>
+    <div class="rows"><button class="row" style="opacity:.72"><span class="emo" aria-hidden="true">${ZALO}</span><div class="mid"><div class="t">ZaloPay</div><div class="s">Lưu trữ từ 02/08, giữ nguyên lịch sử</div></div><div class="amt num">${fmt(0)}</div></button></div>
+  </section>
+  <button class="btn primary" style="margin-top:24px">${icon('wallet_add', 20)}Thêm ví</button>
+  </main>`;
+</script>
+</body>
+</html>

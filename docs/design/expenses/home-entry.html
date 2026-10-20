@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ tiền · lối vào ở Home (mọi trạng thái) · Dear Embeiu mockup</title>
+<link rel="stylesheet" href="app.css">
+<style>
+  .sheet-h1 { font-size: 22px; font-weight: 700; letter-spacing: -.2px; line-height: 1.2; margin-top: 24px; }
+  .sheet-sub { font-size: 14px; font-weight: 500; color: rgba(26,26,46,.80); margin-top: 6px; line-height: 1.5; }
+  /* MoneyHomeEntry: ContentCard r24 padding 16, hàng 76 */
+  .entry { margin-top: 10px; background: #fff; border-radius: 24px; box-shadow: var(--shadow-card); display: flex; align-items: center; gap: 12px; padding: 16px; position: relative; } /* taste-skill-ignore: ContentCard */
+  .entry .hit { position: absolute; inset: 0; border-radius: 24px; }
+  .entry .hit:hover { background: rgba(255,77,109,.06); }
+  .lead-ic { width: 28px; display: grid; place-items: center; color: var(--rose-deep); flex: none; }
+  .entry .mid { flex: 1; min-width: 0; }
+  .entry .t { font-size: 15px; font-weight: 700; line-height: 1.3; }
+  .entry .s { font-size: 13px; font-weight: 500; color: var(--sec); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .entry .s b { color: var(--navy); font-weight: 600; }
+  .add { width: 44px; height: 44px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; flex: none; position: relative; z-index: 1; }
+  .add:active { transform: scale(.96); }
+  .retry { min-height: 44px; padding: 0 12px; border-radius: 12px; font-size: 14px; font-weight: 700; position: relative; z-index: 1; flex: none; }
+  .ctx { margin-top: 10px; font-size: 13px; font-weight: 500; color: rgba(26,26,46,.80); line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<script src="icons.js"></script><script src="data.js"></script><script src="ui.js"></script>
+<script>
+const { fmt, fmtShort } = D; const S = D.shared; const budget = S.budgets.find((b) => !b.categoryId).amount;
+const sk = (w, h = 14) => `<span class="sk" style="width:${w}px;height:${h}px"></span>`;
+const entry = ({ title, sub, trail = 'add', label }) => `
+  <div class="entry">
+    <a class="hit" href="${title.includes('chung') ? 'money-shared.html' : 'money-own.html'}" aria-label="${label}"></a>
+    <span class="lead-ic">${icon('wallet_2', 24)}</span>
+    <div class="mid"><p class="t">${title}</p><p class="s">${sub}</p></div>
+    ${trail === 'add' ? `<button class="add" aria-label="Ghi khoản">${icon('add', 22)}</button>` : trail}
+  </div>`;
+const pct = Math.round(S.totals.expense / budget * 100);
+const states = [
+  ['Bình thường (cặp đã ghép, có ngân sách)', entry({ title: 'Sổ chung tháng 10', sub: `Đã chi <b class="num">${fmt(S.totals.expense)}</b> · ${pct}% ngân sách`, label: `Sổ chung tháng 10, đã chi ${fmt(S.totals.expense)}, ${pct}% ngân sách` })],
+  ['Chưa đặt ngân sách', entry({ title: 'Sổ chung tháng 10', sub: `Đã chi <b class="num">${fmt(S.totals.expense)}</b> tháng này`, label: 'Sổ chung tháng 10' })],
+  ['Vượt ngân sách (cùng hình, chỉ đổi chữ phụ)', entry({ title: 'Sổ chung tháng 10', sub: `Đã chi <b class="num">${fmt(5240000)}</b> · <span class="neg">vượt ${fmt(240000)}</span>`, label: 'Sổ chung tháng 10, vượt ngân sách' })],
+  ['Đầu tháng, chưa có khoản nào (0 ₫ in ra là 0)', entry({ title: 'Sổ chung tháng 11', sub: `Đã chi <b class="num">${fmt(0)}</b> · chưa có khoản nào`, label: 'Sổ chung tháng 11, chưa có khoản nào' })],
+  ['Đang tải (thanh xám đúng cỡ, tiêu đề hiện ngay)', entry({ title: 'Sổ chung tháng 10', sub: sk(170), label: 'Sổ chung, đang tải' })],
+  ['Mất mạng (giữ số cũ, ghi giờ)', entry({ title: 'Sổ chung tháng 10', sub: `<b class="num">${fmt(S.totals.expense)}</b> · số lúc 11:58`, label: 'Sổ chung, đang mất mạng' })],
+  ['Lỗi, không có số cũ', entry({ title: 'Sổ chung tháng 10', sub: 'Chưa tải được sổ chung', trail: '<button class="retry">Thử lại</button>', label: 'Sổ chung, chưa tải được' })],
+  ['Cặp đang chờ người ấy: dẫn vào sổ của mình, không hiện số tiền', entry({ title: 'Sổ tiền của mình', sub: 'Hôm nay đã ghi 3 khoản', label: 'Sổ tiền của mình, hôm nay đã ghi 3 khoản' })],
+  ['Chưa ghi khoản nào bao giờ', entry({ title: 'Sổ tiền', sub: 'Gõ 50k, chọn danh mục là xong', label: 'Sổ tiền, ghi khoản đầu tiên' })],
+];
+document.getElementById('app').innerHTML = `
+  <h1 class="sheet-h1">Lối vào Sổ tiền ở Home</h1>
+  <p class="sheet-sub">Một hàng cao 76: chạm cả hàng mở Sổ tiền, chạm nút tròn mở sheet ghi khoản. Chỉ hiện số của sổ chung, không bao giờ hiện số dư hay sổ riêng.</p>
+  <main>${states.map(([l, h]) => `<h2 class="state-label">${l}</h2>${h}`).join('')}
+  <h2 class="state-label">Vị trí đề xuất</h2>
+  <p class="ctx">Trong nhóm "Hôm nay của chúng mình", ngay dưới thẻ "Đêm qua". Cặp đang chờ: dưới thẻ checklist mời. Designer ghép Home chốt thứ tự chung cho 5 lối vào.</p></main>`;
+</script>
+</body>
+</html>

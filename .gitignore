@@ -84,3 +84,5 @@ figma_screenshots/
 
 # tasteskill: bảng hướng + ảnh chụp soát giao diện
 .taste-skill/
+# ảnh chụp soát giao diện của Designer (tasteskill inspect) — không commit
+docs/design/*/shots/
