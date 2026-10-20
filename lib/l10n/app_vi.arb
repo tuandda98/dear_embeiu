@@ -464,6 +464,7 @@
   "moodMatched": "Chúng mình cùng một tâm trạng 💞",
   "moodShareCta": "Chia sẻ tâm trạng",
   "moodUpdateCta": "Đổi tâm trạng",
+  "moodChangeShort": "Đổi",
   "moodNotSharedYou": "Chạm để chia sẻ",
   "moodPartnerEmpty": "{name} chưa chia sẻ hôm nay",
   "@moodPartnerEmpty": {

@@ -732,4 +732,47 @@ test("arrival: partner left → leaver's doc deleted, the one who stays stops sh
   assert.match(chunk, /lastPushAt: admin\.firestore\.FieldValue\.delete\(\)/);
   const teardown = declaration("async function deleteCoupleCompletely");
   assert.match(teardown, /recursiveDelete\(coupleRef\.collection\("arrival"\)\)/);
+// ---- sendToRecipientDevices: collapseId + muted devices (đợt 2, 2026-10-20) ---
+
+test("collapseId: alert replaces the previous one (Android tag, iOS apns-collapse-id)", async () => {
+  const f = fakeSend(DEVICES);
+  await f.send(["alice"], () => ({title: "T", body: "B"}), DATA, {collapseId: "caro_G1"});
+  const ios = f.sent.find((m) => m.token === "ios1");
+  const and = f.sent.find((m) => m.token === "and1");
+  assert.strictEqual(ios.apns.headers["apns-collapse-id"], "caro_G1");
+  assert.strictEqual(and.android.notification.tag, "caro_G1");
+  const plain = fakeSend(DEVICES);
+  await plain.send(["alice"], () => ({title: "T", body: "B"}), DATA);
+  assert.strictEqual(plain.sent[0].apns.headers["apns-collapse-id"], undefined);
+  assert.strictEqual(plain.sent[1].android.notification.tag, undefined);
+});
+
+const MUTED = [
+  {token: "ios1", platform: "ios", languageCode: "en", pushPhoto: false},
+  {token: "and1", platform: "android", languageCode: "vi", pushPhoto: false},
+  {token: "and2", platform: "android", languageCode: "vi"},
+];
+const PHOTO = {type: "photo_posted", photoId: "p1"};
+
+test("muted type: no push at all without wakeClients", async () => {
+  const f = fakeSend(MUTED);
+  await f.send(["alice"], () => ({title: "T", body: "B"}), PHOTO);
+  assert.deepStrictEqual(f.sent.map((m) => m.token), ["and2"]);
+});
+
+test("muted type + wakeClients: silent wake only (no banner), others unchanged", async () => {
+  const f = fakeSend(MUTED);
+  await f.send(["alice"], () => ({title: "T", body: "B"}), PHOTO, {wakeClients: true});
+  const by = (t) => f.sent.filter((m) => m.token === t);
+  for (const t of ["ios1", "and1"]) {
+    assert.strictEqual(by(t).length, 1, t); // no second Android companion
+    assert.strictEqual(by(t)[0].notification, undefined, t);
+    assert.strictEqual(by(t)[0].data.title, undefined, t);
+    assert.strictEqual(by(t)[0].data.photoId, "p1", t);
+  }
+  assert.strictEqual(by("ios1")[0].apns.headers["apns-push-type"], "background");
+  // The unmuted Android phone: alert + data-only companion, as before.
+  assert.strictEqual(by("and2").length, 2);
+  assert.strictEqual(by("and2")[0].notification.title, "T");
+  assert.strictEqual(by("and2")[1].notification, undefined);
 });

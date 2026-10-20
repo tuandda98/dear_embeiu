@@ -2898,8 +2898,11 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
 
       // Skip this device when the user muted this push type on it. Only the
       // PUSH is suppressed — the durable inbox record is still written, so the
-      // notification center stays a complete history.
-      if (muteField && doc.get(muteField) === false) {
+      // notification center stays a complete history. With `wakeClients` a
+      // muted device still gets the silent wake (no banner): its widget and
+      // local reminders must follow the event even when the banner is off.
+      const muted = Boolean(muteField && doc.get(muteField) === false);
+      if (muted && !options.wakeClients) {
         continue;
       }
 
@@ -2910,6 +2913,7 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
         platform: `${doc.get("platform") || "unknown"}`.trim().toLowerCase(),
         // Gap B — language of the recipient device, used to localize the push.
         languageCode: `${doc.get("languageCode") || ""}`.trim().toLowerCase(),
+        muted,
       });
     }
   }
@@ -2921,18 +2925,21 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
   // Each outgoing entry keeps its device so delivery failures can be attributed
   // (and dead tokens pruned) even after companion messages are appended — a bare
   // `messages[index] → deviceDocs[index]` mapping would break then.
-  const outgoing = options.silent ? deviceDocs.map((device) => ({
-    device,
-    message: {
-      token: device.token,
-      data: {...dataExtra, ...langData(device)},
-      android: {priority: "high"},
-      apns: {
-        headers: {"apns-priority": "5", "apns-push-type": "background"},
-        payload: {aps: {contentAvailable: true}},
-      },
-    },
-  })) : deviceDocs.map((device) => {
+  const outgoing = deviceDocs.map((device) => {
+    if (options.silent || device.muted) {
+      return {
+        device,
+        message: {
+          token: device.token,
+          data: {...dataExtra, ...langData(device)},
+          android: {priority: "high"},
+          apns: {
+            headers: {"apns-priority": "5", "apns-push-type": "background"},
+            payload: {aps: {contentAvailable: true}},
+          },
+        },
+      };
+    }
     const {title, body} = buildText(device.languageCode);
     return {
       device,
@@ -2980,7 +2987,8 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
   // onMessage handler acts on the data, then bails before showing a banner.
   if (options.wakeClients && !options.silent) {
     for (const device of deviceDocs) {
-      if (device.platform !== "android") {
+      // A muted device already got the data-only wake above.
+      if (device.platform !== "android" || device.muted) {
         continue;
       }
       outgoing.push({

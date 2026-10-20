@@ -4,14 +4,23 @@ import '../theme/app_colors.dart';
 
 /// Coloured dot + micro-caps name (names never take the person colour).
 class PersonLabel extends StatelessWidget {
-  const PersonLabel({super.key, required this.name, required this.color});
+  const PersonLabel({
+    super.key,
+    required this.name,
+    required this.color,
+    this.alignment = MainAxisAlignment.start,
+  });
 
   final String name;
   final Color color;
 
+  /// Where the label sits in its lane (the mood card centres it).
+  final MainAxisAlignment alignment;
+
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: alignment,
       children: [
         Container(
           width: 8,

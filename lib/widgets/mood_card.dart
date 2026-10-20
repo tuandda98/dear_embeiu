@@ -11,12 +11,16 @@ import '../models/couple.dart';
 import '../models/mood.dart';
 import '../providers/auth_provider.dart';
 import '../providers/mood_provider.dart';
+import '../providers/sleep_provider.dart';
 import '../services/mood_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../theme/person_palette.dart';
 import 'animated_couple_name.dart';
 import 'content_card.dart';
+import 'icon_badge.dart';
 import 'mood_glyph.dart';
+import 'person_label.dart';
 
 /// Localized label for a mood [key].
 String moodLabel(AppLocalizations l10n, String key) {
@@ -67,37 +71,35 @@ class MoodCard extends StatelessWidget {
 
     final myMood = mood.myMood;
     final partnerMood = mood.partnerMood;
+    // Person colours come from the sleep palette (defaults when sleep is off),
+    // so the dot matches the other partner cards.
+    final sleep = context.watch<SleepProvider>();
 
     return ContentCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Home C (home/design.md §15): same header as the other partner
+          // cards; once shared, "Đổi" lives here instead of a 48 px button.
           Row(
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.accentLove.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  IconsaxPlusBold.emoji_happy,
-                  size: 20,
-                  color: AppColors.accentLove,
-                ),
-              ),
+              const IconBadge(IconsaxPlusBold.emoji_happy),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   l10n.moodCardTitle,
-                  style: AppTheme.sectionTitleStyle(),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
+              if (myMood != null)
+                _ChangeButton(onTap: () => _openPicker(context, myMood)),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           // When BOTH shared the SAME mood today, celebrate the sync with one big
           // glyph instead of two side-by-side (user 2026-06-19).
           if (myMood != null &&
@@ -117,6 +119,7 @@ class MoodCard extends StatelessWidget {
                   Expanded(
                     child: _MoodSide(
                       label: l10n.reactionYouLabel,
+                      color: PersonPalette.colorOf(sleep.myColorId),
                       mood: myMood,
                       emptyText: l10n.moodNotSharedYou,
                       isMe: true,
@@ -131,6 +134,7 @@ class MoodCard extends StatelessWidget {
                   Expanded(
                     child: _MoodSide(
                       label: partnerName,
+                      color: PersonPalette.colorOf(sleep.partnerColorId),
                       mood: partnerMood,
                       emptyText: l10n.moodPartnerEmpty(partnerName),
                       isMe: false,
@@ -140,15 +144,18 @@ class MoodCard extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(height: 16),
-          _buildCta(context, l10n, myMood),
+          if (myMood == null) ...[
+            const SizedBox(height: 16),
+            _buildCta(context, l10n, myMood),
+          ],
         ],
       ),
     );
   }
 
+  /// Big "Chia sẻ tâm trạng" button — only before today's mood is shared
+  /// (after that the header's "Đổi" takes over, Home C).
   Widget _buildCta(BuildContext context, AppLocalizations l10n, Mood? myMood) {
-    final shared = myMood != null;
     return SizedBox(
       width: double.infinity,
       child: Material(
@@ -158,8 +165,7 @@ class MoodCard extends StatelessWidget {
           onTap: () => _openPicker(context, myMood),
           child: Ink(
             decoration: BoxDecoration(
-              gradient: shared ? null : AppColors.sunsetRomance,
-              color: shared ? AppColors.surfaceLight : null,
+              gradient: AppColors.sunsetRomance,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Container(
@@ -168,16 +174,16 @@ class MoodCard extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    shared ? IconsaxPlusLinear.edit_2 : IconsaxPlusBold.heart,
+                  const Icon(
+                    IconsaxPlusBold.heart,
                     size: 18,
-                    color: shared ? AppColors.textSecondary : AppColors.white,
+                    color: AppColors.white,
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    shared ? l10n.moodUpdateCta : l10n.moodShareCta,
-                    style: TextStyle(
-                      color: shared ? AppColors.textSecondary : AppColors.white,
+                    l10n.moodShareCta,
+                    style: const TextStyle(
+                      color: AppColors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                     ),
@@ -193,6 +199,56 @@ class MoodCard extends StatelessWidget {
 
   void _openPicker(BuildContext context, Mood? current) =>
       showMoodPicker(context);
+}
+
+/// "✎ Đổi" text button on the header row once today's mood is shared (44 px
+/// tall, thumb side). Screen readers hear the full "Đổi tâm trạng".
+class _ChangeButton extends StatelessWidget {
+  const _ChangeButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Semantics(
+      button: true,
+      label: l10n.moodUpdateCta,
+      excludeSemantics: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    IconsaxPlusLinear.edit_2,
+                    size: 16,
+                    color: AppColors.textPrimary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    l10n.moodChangeShort,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Opens today's mood picker from anywhere (this card, the Love Tree's "Chia sẻ
@@ -219,6 +275,7 @@ void showMoodPicker(BuildContext context) {
 class _MoodSide extends StatelessWidget {
   const _MoodSide({
     required this.label,
+    required this.color,
     required this.mood,
     required this.emptyText,
     required this.isMe,
@@ -226,6 +283,7 @@ class _MoodSide extends StatelessWidget {
   });
 
   final String label;
+  final Color color;
   final Mood? mood;
   final String emptyText;
   final bool isMe;
@@ -240,16 +298,10 @@ class _MoodSide extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          label.toUpperCase(),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: AppColors.textTertiary,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.4,
-          ),
+        PersonLabel(
+          name: label,
+          color: color,
+          alignment: MainAxisAlignment.center,
         ),
         const SizedBox(height: 10),
         if (option != null) ...[
@@ -328,8 +380,9 @@ class _MoodSide extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
+        // Same inset as the partner lane so both labels sit on one line.
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           child: content,
         ),
       ),
