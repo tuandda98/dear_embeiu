@@ -4709,6 +4709,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get caroCtaRetry => 'Try again';
 
   @override
+  String get caroActionError => 'That didn\'t go through. Try again.';
+
+  @override
+  String get caroEntryError => 'Couldn\'t load the game. Tap to try again.';
+
+  @override
   String caroNewTitle(String name) {
     return 'Start a caro game with $name';
   }
@@ -4780,8 +4786,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String caroWaitedMin(String n, String time, String m) {
-    return 'You played move $n at $time, $m minutes ago.';
+  String caroWaitedMin(String n, String time, int m) {
+    String _temp0 = intl.Intl.pluralLogic(
+      m,
+      locale: localeName,
+      other: '$m minutes',
+      one: '1 minute',
+    );
+    return 'You played move $n at $time, $_temp0 ago.';
   }
 
   @override
@@ -4844,8 +4856,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String caroNudgeIn(String m) {
-    return 'You can nudge in $m min';
+  String caroNudgeIn(int m) {
+    String _temp0 = intl.Intl.pluralLogic(
+      m,
+      locale: localeName,
+      other: '$m minutes',
+      one: '1 minute',
+    );
+    return 'You can nudge in $_temp0';
   }
 
   @override
@@ -4898,8 +4916,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get caroEndGame => 'End game';
 
   @override
-  String caroInvitedYesterday(String name, String time) {
-    return 'You invited $name yesterday at $time.';
+  String caroInvitedYesterday(String name, String when, String time) {
+    return 'You invited $name $when at $time.';
   }
 
   @override
@@ -4999,13 +5017,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String caroSpanHours(String h) {
-    return '$h hours';
+  String caroSpanHours(int h) {
+    String _temp0 = intl.Intl.pluralLogic(
+      h,
+      locale: localeName,
+      other: '$h hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
   }
 
   @override
-  String caroSpanMinutes(String m) {
-    return '$m minutes';
+  String caroSpanMinutes(int m) {
+    String _temp0 = intl.Intl.pluralLogic(
+      m,
+      locale: localeName,
+      other: '$m minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -5051,6 +5081,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String caroHistorySub(String n, String date, String name, String when) {
     return '$n games since $date. $name won the last one $when.';
+  }
+
+  @override
+  String caroHistorySubNoSince(String n, String name, String when) {
+    return '$n games. $name won the last one $when.';
+  }
+
+  @override
+  String caroHistorySubDrawNoSince(String n, String when) {
+    return '$n games. The last one was a draw $when.';
   }
 
   @override

@@ -94,7 +94,9 @@ class _CaroHistoryScreenState extends State<CaroHistoryScreen> {
     final people = CaroPeople.of(context, l10n);
     final now = DateTime.now();
     final games = provider.history;
-    final loading = !provider.isHistoryLoaded && games.isEmpty;
+    // A failed first page shows only the error card (review UI #11).
+    final loading =
+        !provider.isHistoryLoaded && games.isEmpty && !provider.historyFailed;
 
     final items = <Widget>[
       Padding(
@@ -128,12 +130,15 @@ class _CaroHistoryScreenState extends State<CaroHistoryScreen> {
         ..add(
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-            child: Text(
-              month,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+            child: Semantics(
+              header: true,
+              child: Text(
+                month,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
           ),
@@ -155,7 +160,10 @@ class _CaroHistoryScreenState extends State<CaroHistoryScreen> {
       final m = at == null
           ? ''
           : toBeginningOfSentenceCase(
-              DateFormat.MMMM(_locale(context)).format(at),
+              (at.year == now.year
+                      ? DateFormat.MMMM(_locale(context))
+                      : DateFormat.yMMMM(_locale(context)))
+                  .format(at),
             );
       if (m != month) {
         flush();
@@ -260,7 +268,8 @@ class _CaroHistoryScreenState extends State<CaroHistoryScreen> {
     final mine = provider.myWins;
     final theirs = provider.partnerWins;
     final total = provider.state.totalFor(people.myUid, people.partnerUid);
-    final empty = !loading && games.isEmpty && total == 0;
+    final empty =
+        !loading && !provider.historyFailed && games.isEmpty && total == 0;
     late final String h1;
     late final String sub;
     if (empty) {
@@ -276,16 +285,31 @@ class _CaroHistoryScreenState extends State<CaroHistoryScreen> {
       if (games.isEmpty) {
         sub = '';
       } else {
-        final oldest = games.last.finishedAt;
+        // "từ {date}" only once every page is in: the oldest LOADED game
+        // isn't the first one while more pages remain (review UI #10).
+        final oldest = provider.hasMoreHistory ? null : games.last.finishedAt;
         final last = games.first;
-        final since = oldest == null
-            ? ''
-            : DateFormat('dd/MM', _locale(context)).format(oldest);
         final when = _when(l10n, last.finishedAt, now);
         final winner = last.result?.winnerUid;
-        sub = winner == null
-            ? l10n.caroHistorySubDraw('$total', since, when)
-            : l10n.caroHistorySub('$total', since, people.nameOf(winner), when);
+        if (oldest == null) {
+          sub = winner == null
+              ? l10n.caroHistorySubDrawNoSince('$total', when)
+              : l10n.caroHistorySubNoSince(
+                  '$total',
+                  people.nameOf(winner),
+                  when,
+                );
+        } else {
+          final since = DateFormat('dd/MM', _locale(context)).format(oldest);
+          sub = winner == null
+              ? l10n.caroHistorySubDraw('$total', since, when)
+              : l10n.caroHistorySub(
+                  '$total',
+                  since,
+                  people.nameOf(winner),
+                  when,
+                );
+        }
       }
     }
     final open = provider.openGame;
@@ -398,15 +422,29 @@ class _CaroHistoryScreenState extends State<CaroHistoryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
+                      Row(
+                        children: [
+                          if (winner != null) ...[
+                            // Design §3.5: the winner's stone in their colour.
+                            CaroStone(
+                              side: g.sideOf(winner) ?? CaroSide.x,
+                              color: people.colorOfUid(winner),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          Flexible(
+                            child: Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Text(

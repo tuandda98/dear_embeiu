@@ -59,7 +59,7 @@ import '../widgets/mood_card.dart';
 // ── caro-game (đợt 2) ──
 import '../providers/caro_game_provider.dart';
 import '../widgets/play_together_card.dart';
-import 'caro_game_screen.dart' show openCaroGame;
+import 'caro_game_screen.dart' show CaroGameScreen, openCaroGame;
 import '../widgets/sleep/sleep_card.dart';
 import '../widgets/today_constellation.dart';
 import '../widgets/today_ritual_card.dart';
@@ -565,6 +565,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       Future<void>.delayed(const Duration(milliseconds: 900), _tryFeatureTour);
     });
     RpsGameScreen.mountedCount.addListener(_onRpsScreensChanged);
+    // ── caro-game (đợt 2) ── same hold for a caro game screen.
+    CaroGameScreen.mountedCount.addListener(_onRpsScreensChanged);
   }
 
   /// One "Có gì mới" attempt — held (not recorded as seen) while a
@@ -597,6 +599,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         NotificationTapRouter.pendingRpsGameId.value != null ||
         NotificationTapRouter.pendingHomeFocus.value ==
             NotificationTapRouter.focusRpsGame) {
+      return true;
+    }
+    // ── caro-game (đợt 2) ── a caro game open or about to open.
+    if (CaroGameScreen.isOpen ||
+        NotificationTapRouter.pendingCaroGameId.value != null ||
+        NotificationTapRouter.pendingHomeFocus.value ==
+            NotificationTapRouter.focusCaroGame) {
       return true;
     }
     final requested = _rpsRouteRequestedAt;
@@ -639,6 +648,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _onNotificationFocusRequest,
     );
     RpsGameScreen.mountedCount.removeListener(_onRpsScreensChanged);
+    // ── caro-game (đợt 2) ──
+    CaroGameScreen.mountedCount.removeListener(_onRpsScreensChanged);
     _streakProvider?.removeListener(_onStreakChanged);
     _streakProvider?.removeListener(_refreshDqSafetyNet);
     _dqProvider?.removeListener(_refreshDqSafetyNet);

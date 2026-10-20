@@ -105,6 +105,7 @@ class CaroBoardPainter extends CustomPainter {
     this.lineWidth = 1,
     this.semanticsLabelOf,
     this.semanticsTapOf,
+    this.semanticsCanPlace = false,
     super.repaint,
   });
 
@@ -125,6 +126,11 @@ class CaroBoardPainter extends CustomPainter {
 
   final String Function(int index)? semanticsLabelOf;
   final VoidCallback? Function(int index)? semanticsTapOf;
+
+  /// Whether empty squares are tappable now — compared instead of the
+  /// [semanticsTapOf] closure (new every build), so the 225 nodes rebuild
+  /// only when something they say changed (review UI #8).
+  final bool semanticsCanPlace;
 
   Color _colorOf(CaroSide side) => side == CaroSide.x ? colorX : colorO;
 
@@ -243,7 +249,8 @@ class CaroBoardPainter extends CustomPainter {
       oldDelegate.board.cells.length != board.cells.length ||
       oldDelegate.selected != selected ||
       oldDelegate.winLine.length != winLine.length ||
-      oldDelegate.semanticsTapOf != semanticsTapOf;
+      oldDelegate.semanticsCanPlace != semanticsCanPlace ||
+      oldDelegate.semanticsLabelOf == null && semanticsLabelOf != null;
 
   @override
   bool shouldRepaint(CaroBoardPainter oldDelegate) =>
@@ -257,6 +264,48 @@ class CaroBoardPainter extends CustomPainter {
       oldDelegate.colorO != colorO ||
       oldDelegate.lineWidth != lineWidth ||
       oldDelegate.winLine.length != winLine.length;
+}
+
+/// One stone as a small inline glyph (lane names, history rows).
+class CaroStone extends StatelessWidget {
+  const CaroStone({
+    super.key,
+    required this.side,
+    required this.color,
+    this.size = 14,
+  });
+
+  final CaroSide side;
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: CustomPaint(
+      size: Size.square(size),
+      painter: _InlineStonePainter(side, color),
+    ),
+  );
+}
+
+class _InlineStonePainter extends CustomPainter {
+  _InlineStonePainter(this.side, this.color);
+
+  final CaroSide side;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) => paintCaroStone(
+    canvas,
+    size.center(Offset.zero),
+    size.width * 1.2,
+    side,
+    color,
+  );
+
+  @override
+  bool shouldRepaint(_InlineStonePainter oldDelegate) =>
+      oldDelegate.side != side || oldDelegate.color != color;
 }
 
 /// 26px caro badge (design §0): a faint cross, my X and the partner's O in

@@ -228,10 +228,7 @@ class CaroLane extends StatelessWidget {
   Widget build(BuildContext context) {
     final glyph = side == null
         ? const SizedBox.shrink()
-        : CustomPaint(
-            size: const Size.square(14),
-            painter: _StonePainter(side!, color),
-          );
+        : CaroStone(side: side!, color: color);
     final nameText = Flexible(
       child: Text(
         name,
@@ -307,26 +304,6 @@ class CaroLane extends StatelessWidget {
       ),
     );
   }
-}
-
-class _StonePainter extends CustomPainter {
-  _StonePainter(this.side, this.color);
-
-  final CaroSide side;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) => paintCaroStone(
-    canvas,
-    size.center(Offset.zero),
-    size.width * 1.2,
-    side,
-    color,
-  );
-
-  @override
-  bool shouldRepaint(_StonePainter oldDelegate) =>
-      oldDelegate.side != side || oldDelegate.color != color;
 }
 
 /// The three lanes: me · middle · partner (design C1, §3.3).

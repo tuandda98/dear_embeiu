@@ -442,7 +442,8 @@ class AnalyticsService {
       );
 
   // ── caro-game (đợt 2) ──
-  /// Caro game screen opened. [source]: home · profile · push · inbox · widget.
+  /// Caro game screen opened. [source]: home · profile · push · inbox · widget
+  /// · tour.
   void logCaroOpen(String source) => logEvent(
         AnalyticsEvents.caroOpen,
         params: {AnalyticsEvents.pSource: source},

@@ -113,6 +113,20 @@ Chi tiết từng op:
 - Làn giữa giới hạn 84–96, tên luật xuống dòng: ở 360dp chữ ×1,3 làn tên bị ép còn 4,6px.
 - Dòng lịch sử không thêm quân màu cạnh tên người thắng (bàn thu nhỏ đã mang màu).
 
+**Vá theo review UI (Lead chuyển 2026-10-20, cea74ec..5c2031b)**
+- #1 `dispose` gọi `CaroGameProvider.detach()` (mới): `_leaveInternal` + notify ở microtask như rps. Test mở rồi pop màn (bản cũ `leave()` làm test đỏ "widget tree was locked").
+- #2 Sheet rủ ván bọc `SingleChildScrollView`. #3 Thẻ trạng thái màn ván giới hạn 40% chiều cao màn, cuộn riêng (màn vẫn không cuộn, C3); test 360×640 chữ ×1,3 cho `invited` (trước tràn 58px), `stale` lượt mình, `finished`, `waiting`.
+- #4 `_resign`/`_cancel`/`_end`/`_nudge` đi qua `_report`: mạng → `caroOffline`; `stale`/`not_your_turn`/`not_playing` → `caroStaleBoard`; `cooldown`/`too_early` → "Nhắc được sau N phút" theo `retryAfter`; còn lại `caroActionError` (key mới). Ghi chú cũ tự tắt khi bàn có nước mới.
+- #5 `caroInvitedYesterday` nhận `{when}` = "hôm qua" / "ngày dd/MM". #9 Bản en dùng ICU plural cho `caroSpanHours`/`caroSpanMinutes`/`caroWaitedMin`/`caroNudgeIn` (placeholder `int`).
+- #6 Service chuyển lỗi stream `caroState` lên (không nuốt), provider `stateFailed` + `retryState()`; thẻ Home trạng thái `error` (`caroEntryError` + "Thử lại").
+- #7 `enter()` khi couple chưa wire (push lạnh) ghi nhớ `_pendingEnter`, vào ngay khi `watchForCouple` chạy.
+- #8 Painter so `semanticsCanPlace` (bool) thay closure. #13 Mất mạng khi đi nước → `caroOffline`.
+- #10 Lịch sử: chỉ ghi "từ {date}" khi đã tải hết trang (key `caroHistorySub(Draw)NoSince`); tiêu đề tháng `Semantics(header)` + năm khi khác năm nay. #11 Lỗi trang đầu chỉ hiện thẻ lỗi. #12 Tour log `source: tour`.
+- #14 Profile không ai chờ → sheet "Chơi cùng nhau" 2 dòng (Cờ caro · Oẳn tù tì → lịch sử từng trò), dùng lại `CaroEntryRow` (cao 68, cách nhau bằng divider). Design §3.6 chỉ vẽ ô riêng cho caro nên tự quyết; tra UI UX Pro Max `"bottom sheet action list choose destination"` (0 kết quả), `"touch target"`/`"actions"` → 44/48dp, cách ≥8px.
+- Việc dở đã làm: màn caro hoãn sheet "Có gì mới"/catch-up như rps (`CaroGameScreen.mountedCount` + `_rpsGameActive` cộng điều kiện caro); dòng lịch sử có quân màu người thắng cạnh tên (`CaroStone`, design §3.5).
+- Chưa có test riêng: #10 (năm ở tiêu đề tháng), #12, #14 (sheet Profile cần `RpsGameProvider` thật).
+
 ## Nhật ký implement
 - [2026-10-20] [Dev] Stage 1: backend `caroWinner` + `caroAction` + guard rps + dọn khi rời/xoá couple; rules additive; client model/service/provider + wire. Test: node 39 pass (18 caro mới), rules 413 passing (19 caro mới), Flutter 658 pass (20 caro mới), analyze 0. Chưa deploy. Commit `283bc13` (backend).
 - [2026-10-20] [Dev] Stage 2: UI caro (thẻ Home, sheet, màn ván, kết quả, lịch sử, xem lại) + push tap/inbox + widget `caro_turn` + 6 event + tour build 33 + Profile gộp; vá 7 finding review backend. Test: Flutter 683 pass (+25 ở `test/caro_ui_test.dart`), node 49 pass (+10 `caroRunOp`/`sendCaroPush`), rules 413 passing, analyze 0. Chưa deploy.
+- [2026-10-20] [Dev] Vá 14 finding review UI + 2 việc dở (hoãn tour khi đang ở màn caro, quân màu ở dòng lịch sử). Flutter 697 pass (+14), analyze 0. Không đụng CF/rules đợt này.

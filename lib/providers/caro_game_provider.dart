@@ -35,6 +35,13 @@ class CaroGameProvider extends ChangeNotifier {
   CaroState _state = CaroState.empty;
   bool _stateLoaded = false;
 
+  /// The `caroState` stream failed and no snapshot arrived (Home "Thử lại").
+  bool _stateFailed = false;
+
+  /// A game screen asked for this game before the couple was wired (cold
+  /// start from a push) — entered as soon as [watchForCouple] runs.
+  String? _pendingEnter;
+
   // Couple-wide open game (Home/Profile/widget).
   String? _openId;
   StreamSubscription<CaroGame?>? _openSub;
@@ -77,6 +84,9 @@ class CaroGameProvider extends ChangeNotifier {
   bool get hasPartner => _partnerUid != null;
 
   bool get isStateLoaded => _stateLoaded;
+
+  /// Couldn't load the score / open game and nothing is cached.
+  bool get stateFailed => _stateFailed && !_stateLoaded;
   CaroState get state => _state;
   int get myWins => _state.winsOf(_myUid);
   int get partnerWins => _state.winsOf(_partnerUid);
@@ -153,17 +163,44 @@ class CaroGameProvider extends ChangeNotifier {
       }
       return;
     }
+    final pending = _pendingEnter;
     clear(notify: false);
     _coupleId = coupleId;
     _myUid = myUid;
     _partnerUid = partner;
-    _stateSub = _service.watchState(coupleId).listen(_onState, onError: (_) {});
+    _subscribeState(coupleId);
+    notifyListeners();
+    if (pending != null) {
+      enter(pending);
+    }
+  }
+
+  void _subscribeState(String coupleId) {
+    _stateSub?.cancel();
+    _stateFailed = false;
+    _stateSub = _service
+        .watchState(coupleId)
+        .listen(
+          _onState,
+          onError: (Object _) {
+            _stateFailed = true;
+            if (!_disposed) notifyListeners();
+          },
+        );
+  }
+
+  /// Home "Thử lại" after [stateFailed].
+  void retryState() {
+    final coupleId = _coupleId;
+    if (coupleId == null) return;
+    _subscribeState(coupleId);
     notifyListeners();
   }
 
   void _onState(CaroState next) {
     _state = next;
     _stateLoaded = true;
+    _stateFailed = false;
     _followOpen(next.openGameId);
     _refreshLastFinished();
     notifyListeners();
@@ -244,6 +281,8 @@ class CaroGameProvider extends ChangeNotifier {
     _openGame = null;
     _state = CaroState.empty;
     _stateLoaded = false;
+    _stateFailed = false;
+    _pendingEnter = null;
     _lastFinished = null;
     _lastFinishedFor = -1;
     _coupleId = null;
@@ -262,9 +301,14 @@ class CaroGameProvider extends ChangeNotifier {
   void enter(String gameId) {
     final coupleId = _coupleId;
     final me = _myUid;
-    if (coupleId == null || me == null || gameId.trim().isEmpty) {
+    if (gameId.trim().isEmpty) {
       return;
     }
+    if (coupleId == null || me == null) {
+      _pendingEnter = gameId; // cold start: the couple isn't wired yet
+      return;
+    }
+    _pendingEnter = null;
     if (_currentId == gameId && _currentSub != null) {
       return;
     }
@@ -305,8 +349,19 @@ class CaroGameProvider extends ChangeNotifier {
 
   /// The game screen went away.
   void leave() {
+    _pendingEnter = null;
     _leaveInternal(clearPresence: true);
     notifyListeners();
+  }
+
+  /// [leave] from `State.dispose`: the tree is locked there, so the notify
+  /// waits for the next microtask (same as rps `detach`).
+  void detach() {
+    _pendingEnter = null;
+    _leaveInternal(clearPresence: true);
+    scheduleMicrotask(() {
+      if (!_disposed) notifyListeners();
+    });
   }
 
   void _leaveInternal({required bool clearPresence}) {

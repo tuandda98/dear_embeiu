@@ -9,6 +9,8 @@ import '../models/caro_game.dart';
 import '../providers/caro_game_provider.dart';
 import '../providers/rps_game_provider.dart';
 import '../screens/caro_game_screen.dart';
+import '../screens/caro_history_screen.dart';
+import '../screens/rps_history_screen.dart';
 import '../screens/rps_game_screen.dart';
 import '../theme/app_colors.dart';
 import 'caro/caro_board.dart';
@@ -23,6 +25,7 @@ import 'shimmer_skeleton.dart';
 /// move first).
 enum CaroEntryKind {
   loading,
+  error,
   invited,
   myTurn,
   stale,
@@ -40,6 +43,7 @@ enum CaroEntryKind {
 /// score.
 CaroEntryKind caroEntryKindFor({
   required bool loaded,
+  bool failed = false,
   required CaroGame? open,
   required CaroGame? last,
   required String myUid,
@@ -47,7 +51,7 @@ CaroEntryKind caroEntryKindFor({
   required int total,
   required DateTime now,
 }) {
-  if (!loaded) return CaroEntryKind.loading;
+  if (!loaded) return failed ? CaroEntryKind.error : CaroEntryKind.loading;
   if (open != null) {
     if (open.isMyTurn(myUid)) {
       return open.isFreshInvite && open.createdBy != myUid
@@ -124,6 +128,7 @@ class _CaroLine extends StatelessWidget {
     final last = caro.lastFinished;
     final kind = caroEntryKindFor(
       loaded: caro.isStateLoaded,
+      failed: caro.stateFailed,
       open: open,
       last: last,
       myUid: people.myUid,
@@ -145,6 +150,10 @@ class _CaroLine extends StatelessWidget {
     );
     void onTap() {
       HapticFeedback.selectionClick();
+      if (kind == CaroEntryKind.error) {
+        context.read<CaroGameProvider>().retryState();
+        return;
+      }
       if (open != null) {
         openCaroGame(context, gameId: open.id, source: 'home');
       } else {
@@ -208,6 +217,8 @@ CaroEntryView caroEntryView(
         urgent: false,
         loading: true,
       );
+    case CaroEntryKind.error:
+      return v(l10n.caroEntryError, l10n.caroCtaRetry);
     case CaroEntryKind.invited:
       return v(
         l10n.caroEntryInvited(partnerName),
@@ -440,4 +451,89 @@ class _RpsLine extends StatelessWidget {
       },
     );
   }
+}
+
+/// Profile "Chơi cùng nhau" with nobody waiting (review UI #14): one badge
+/// for two games, so a sheet with one row per game, each opening that
+/// game's history. Rows reuse [CaroEntryRow] (68 tall, ≥48 tap target, 8+
+/// apart — UI UX Pro Max `touch-target` / `touch-spacing`).
+Future<void> showPlayTogetherHistorySheet(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: AppColors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+    ),
+    builder: (sheet) {
+      final l10n = sheet.l10n;
+      final caro = sheet.watch<CaroGameProvider>();
+      final rps = sheet.watch<RpsGameProvider>();
+      final people = CaroPeople.of(sheet, l10n);
+      final week = rps.weekScore;
+      void go(void Function(BuildContext) open) {
+        Navigator.of(sheet).pop();
+        if (context.mounted) open(context);
+      }
+
+      return SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Center(child: CaroSheetHandle()),
+              const SizedBox(height: 16),
+              Text(
+                l10n.caroPlayTogetherTitle,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              CaroEntryRow(
+                view: CaroEntryView(
+                  title: l10n.caroGameTitle,
+                  subtitle: people.score(l10n, caro.myWins, caro.partnerWins),
+                  cta: l10n.rpsHistoryCta,
+                  urgent: false,
+                ),
+                badge: CaroGlyph(
+                  mine: people.myColor,
+                  partner: people.partnerColor,
+                ),
+                onTap: () => go(openCaroHistory),
+              ),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: AppColors.textPrimary.withValues(alpha: 0.08),
+              ),
+              CaroEntryRow(
+                view: CaroEntryView(
+                  title: l10n.rpsGameTitle,
+                  subtitle: week.total == 0
+                      ? ''
+                      : l10n.rpsEntryWeekScore(
+                          '${week.wins}',
+                          '${week.draws}',
+                          '${week.losses}',
+                        ),
+                  cta: l10n.rpsHistoryCta,
+                  urgent: false,
+                ),
+                badge: const IconBadge(
+                  IconsaxPlusBold.game,
+                  tint: rpsMedalAccent,
+                ),
+                onTap: () => go(openRpsHistory),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }

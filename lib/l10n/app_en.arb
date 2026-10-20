@@ -4691,6 +4691,14 @@
   "@caroCtaRetry": {
     "description": "caro-game (đợt 2)"
   },
+  "caroActionError": "That didn't go through. Try again.",
+  "@caroActionError": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroEntryError": "Couldn't load the game. Tap to try again.",
+  "@caroEntryError": {
+    "description": "caro-game (đợt 2)"
+  },
   "caroNewTitle": "Start a caro game with {name}",
   "@caroNewTitle": {
     "description": "caro-game (đợt 2)",
@@ -4816,7 +4824,7 @@
       }
     }
   },
-  "caroWaitedMin": "You played move {n} at {time}, {m} minutes ago.",
+  "caroWaitedMin": "You played move {n} at {time}, {m, plural, =1{1 minute} other{{m} minutes}} ago.",
   "@caroWaitedMin": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
@@ -4827,7 +4835,7 @@
         "type": "String"
       },
       "m": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -4918,12 +4926,12 @@
       }
     }
   },
-  "caroNudgeIn": "You can nudge in {m} min",
+  "caroNudgeIn": "You can nudge in {m, plural, =1{1 minute} other{{m} minutes}}",
   "@caroNudgeIn": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
       "m": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -5014,11 +5022,14 @@
   "@caroEndGame": {
     "description": "caro-game (đợt 2)"
   },
-  "caroInvitedYesterday": "You invited {name} yesterday at {time}.",
+  "caroInvitedYesterday": "You invited {name} {when} at {time}.",
   "@caroInvitedYesterday": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
       "name": {
+        "type": "String"
+      },
+      "when": {
         "type": "String"
       },
       "time": {
@@ -5182,21 +5193,21 @@
       }
     }
   },
-  "caroSpanHours": "{h} hours",
+  "caroSpanHours": "{h, plural, =1{1 hour} other{{h} hours}}",
   "@caroSpanHours": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
       "h": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
-  "caroSpanMinutes": "{m} minutes",
+  "caroSpanMinutes": "{m, plural, =1{1 minute} other{{m} minutes}}",
   "@caroSpanMinutes": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
       "m": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -5279,6 +5290,33 @@
         "type": "String"
       },
       "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySubNoSince": "{n} games. {name} won the last one {when}.",
+  "@caroHistorySubNoSince": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySubDrawNoSince": "{n} games. The last one was a draw {when}.",
+  "@caroHistorySubDrawNoSince": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
         "type": "String"
       },
       "when": {
