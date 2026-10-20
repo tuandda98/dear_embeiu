@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trang chủ v2 — Dear Embeiu</title>
+<link rel="stylesheet" href="v2.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const { I } = UI; const T = D.today; const P = D.people.partner;
+const bell = `<button class="icon-btn" aria-label="Thông báo, ${D.unread} chưa đọc">${I.bell}<span class="count num">${D.unread}</span></button>`;
+const prevM = D.TRAIL.filter((m) => m <= D.daysTogether).pop(); // 1000
+const pct = ((D.daysTogether - prevM) / (D.nextMilestone - prevM) * 100).toFixed(1);
+
+const board = `
+<section class="panel" aria-labelledby="h-today" id="today">
+  <header><h2 id="h-today">Hôm nay</h2><a class="link" href="#love-tree">${D.stars.lit}/6 sao · Cây tình yêu</a></header>
+  <div class="lanes">
+    <div class="who"><span class="av thao">${P.initial}</span>${P.name} <span class="stars num">${D.stars.partner.filter(Boolean).length} sao</span></div>
+    <div></div>
+    <div class="who me"><span class="stars num">${D.stars.me.filter(Boolean).length} sao</span> Mình <span class="av tuan">${D.people.me.initial}</span></div>
+
+    <div class="q"><span class="lbl">Câu hỏi hôm nay</span><p>${T.question.text}</p></div>
+    <div class="row after-q">
+      <div class="cell"><span class="v">Đã trả lời</span><span class="s">${T.question.partnerAt}</span></div>
+      <div class="cell mid"></div>
+      <div class="cell me"><button class="btn primary sm">Trả lời</button></div>
+    </div>
+
+    <div class="row">
+      <div class="cell"><span class="v">${T.mood.partner.word}</span><span class="s">${T.mood.partner.note}</span></div>
+      <div class="cell mid"><span class="lbl">Tâm trạng</span></div>
+      <div class="cell me"><button class="btn sm">Chọn</button></div>
+    </div>
+
+    <div class="row">
+      <div class="cell"><span class="v fig">${T.chat.partner.count} tin</span><span class="s">gần nhất ${T.chat.partner.lastAt}</span></div>
+      <div class="cell mid"><span class="lbl">Nhắn tin</span></div>
+      <div class="cell me"><span class="v fig">${T.chat.me.count} tin</span><span class="s">gần nhất ${T.chat.me.lastAt}</span></div>
+    </div>
+
+    <div class="row">
+      <div class="cell"><span class="v fig">${T.poke.partner} lần</span><span class="s">nhớ mình</span></div>
+      <div class="cell mid"><button class="heart" aria-label="Chạm tim: báo ${P.name} là mình đang nhớ">${I.heart}</button><span class="s num">${T.poke.total} lần hôm nay</span></div>
+      <div class="cell me"><span class="v fig">${T.poke.me} lần</span><span class="s">mình nhớ ${P.name}</span></div>
+    </div>
+
+    <div class="row">
+      <div class="cell"><span class="v fig">${D.fmtDur(T.sleep.partner.min)}</span><span class="s">${T.sleep.partner.bed}–${T.sleep.partner.wake}</span></div>
+      <div class="cell mid"><span class="lbl">Đêm qua</span></div>
+      <div class="cell me"><span class="v fig">${D.fmtDur(T.sleep.me.min)}</span><span class="s">${T.sleep.me.bed}–${T.sleep.me.wake}</span></div>
+    </div>
+
+    <div class="row">
+      <div class="cell"><span class="v">${T.arrival.partner.place}</span><span class="s">${T.arrival.partner.at} · pin ${T.arrival.partner.battery}%</span></div>
+      <div class="cell mid"><span class="lbl">Ở đâu</span></div>
+      <div class="cell me"><span class="v">${T.arrival.me.place}</span><button class="link">Báo đã đến</button></div>
+    </div>
+
+    <div class="row">
+      <div class="cell"><span class="v fig">${T.weather.partner.temp}°</span><span class="s">${T.weather.partner.city}</span><span class="s">${T.weather.partner.sky}</span></div>
+      <div class="cell mid"><span class="lbl">Thời tiết</span><button class="link accent">Nhắc mang ô</button></div>
+      <div class="cell me"><span class="v fig">${T.weather.me.temp}°</span><span class="s">${T.weather.me.city}</span><span class="s">${T.weather.me.sky}</span></div>
+    </div>
+  </div>
+  <div class="board-foot"><span class="meta">Muốn nói gì đó dài hơn?</span><a class="link" href="#care">Gửi lời quan tâm</a></div>
+</section>`;
+
+const games = `
+<section class="panel" aria-labelledby="h-games">
+  <header><h2 id="h-games">Chơi cùng nhau</h2><span class="meta num">${D.gamesWaiting} ván chờ mình</span></header>
+  <ul class="list">${D.games.map((g) => `
+    <li><div><div class="t">${g.name}</div><div class="s">${g.needsMe ? '<span class="dot" aria-hidden="true"></span>' : ''}${g.line} · ${g.at}</div></div>
+    <button class="btn sm">${g.action}</button></li>`).join('')}
+  </ul>
+</section>`;
+
+const decide = `
+<section class="panel" aria-labelledby="h-decide">
+  <header><h2 id="h-decide">Phân vân gì không?</h2><a class="link" href="#history">Đã quay</a></header>
+  <ul class="list">${D.decisions.map((d) => d.result ? `
+    <li><div><div class="s">${d.label}</div><div class="t">${d.result}</div><div class="s">${d.by} chốt lúc ${d.at}</div></div><button class="btn sm">Ghi chi</button></li>` : `
+    <li><div><div class="t">${d.label}</div><div class="s">Chưa quay hôm nay</div></div><button class="btn sm">Quay</button></li>`).join('')}
+  </ul>
+</section>`;
+
+const money = `
+<section class="panel" aria-labelledby="h-money">
+  <ul class="list"><li>
+    <div><h2 id="h-money" class="s" style="font-weight:400">Sổ chung tháng này</h2><div class="amount">${D.fmtMoney(D.money.monthSpent)}</div><div class="s num">hôm nay ${D.fmtMoney(D.money.todaySpent)}</div></div>
+    <button class="btn sm">${I.plus}Ghi khoản</button>
+  </li></ul>
+</section>`;
+
+const memories = `
+<section class="panel" aria-labelledby="h-mem">
+  <header><h2 id="h-mem">Kỷ niệm gần đây</h2><a class="link" href="#gallery">Xem cả ${D.fmtInt(D.photoTotal)} ảnh</a></header>
+  <div class="thumbs">${D.photos.slice(1, 4).map((p) => `<img src="${p.src}" alt="${p.caption}, ${p.by} đăng ${p.ago}">`).join('')}</div>
+  <ul class="list" style="margin-top:4px"><li><div><div class="t">Thêm kỷ niệm</div><div class="s">Chụp hoặc chọn ảnh, viết chung một dòng</div></div><button class="btn sm">${I.plus}Thêm</button></li></ul>
+</section>`;
+
+document.getElementById('app').innerHTML = `
+${UI.topbar({ scope: 'Dear Embeiu', actions: bell })}
+<main class="canvas">
+  <section class="title">
+    <h1>Tuấn và Thảo,<br><span class="num">${D.fmtInt(D.daysTogether)}</span> ngày bên nhau</h1>
+    <p class="sub">${D.todayText} · từ ${D.anniversaryText} · chuỗi ${D.streak} ngày</p>
+    <p class="finding">${P.name} trả lời câu hỏi hôm nay từ ${T.question.partnerAt}, đang chờ mình.</p>
+  </section>
+  <figure class="cover">
+    <img src="${D.photos[0].src}" alt="${D.photos[0].caption}, ảnh nền do ${D.photos[0].by} chọn">
+    <div><div class="track" role="img" aria-label="Đi được ${pct}% từ mốc ${D.fmtInt(prevM)} tới mốc ${D.fmtInt(D.nextMilestone)} ngày"><i style="width:${pct}%"></i></div>
+    <div class="track-ends num"><span>mốc ${D.fmtInt(prevM)}</span><span>còn ${D.toMilestone} ngày tới mốc ${D.fmtInt(D.nextMilestone)}</span></div></div>
+  </figure>
+  ${board}
+  ${games}
+  ${decide}
+  ${money}
+  ${memories}
+</main>
+${UI.tabbar('home', T.chat.partner.unread)}`;
+</script>
+</body>
+</html>
