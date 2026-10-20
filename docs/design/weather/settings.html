@@ -49,14 +49,13 @@ document.getElementById('app').innerHTML = `
     <div class="row">${badge(I.location)}<span class="rt"><span class="t">Chỗ ${name}</span><span class="s">TP.HCM · ${name} tự chọn</span></span></div>
     <div class="row">${badge(0xeb4d)}<span class="rt"><span class="t" id="sw-l">Thời tiết chỗ người ấy</span><span class="s">${sub}</span></span>
       <button class="switch" role="switch" aria-checked="true" aria-labelledby="sw-l" type="button"></button></div>
-    <button class="row" type="button" id="time-row">${badge(I.clock)}<span class="rt"><span class="t">Giờ báo</span></span><span class="timechip">07:30</span></button>
   </section>
   <p class="preview-cap">Hôm nào chỗ ${name} có mưa, thông báo sẽ như thế này:</p>
   <div class="notif" role="img" aria-label="Xem trước thông báo: ${n.title}. ${n.body}"><span class="appic">${ic(0xea9c, true)}</span>
     <div class="nt"><div class="t">${n.title}<span>07:30</span></div><div class="b">${n.body}</div></div></div>
   <p class="source">Dữ liệu thời tiết: <a href="https://api.met.no/doc/License">MET Norway</a></p>
 
-  <p class="state"><b>Khi tắt thông báo:</b> hàng Giờ báo ẩn, phần xem trước ẩn.</p>
+  <p class="state"><b>Khi tắt thông báo:</b> phần xem trước ẩn.</p>
   <section class="card group" aria-label="Thời tiết hai nơi, khi tắt thông báo">
     <a class="row" href="picker.html">${badge(I.location)}<span class="rt"><span class="t">Chỗ mình</span><span class="s">Hà Nội</span></span><span class="chev">${ic(I.chev)}</span></a>
     <a class="row" href="picker-partner.html">${badge(I.location)}<span class="rt"><span class="t">Chỗ ${name}</span><span class="s">Đà Lạt · mình chọn giúp</span></span><span class="chev">${ic(I.chev)}</span></a>
