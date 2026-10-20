@@ -2593,6 +2593,11 @@ exports.nudgeRpsPlayer = onCall(
 // (`apns-push-type: background`, priority 5, `content-available`, no alert /
 // sound / badge); Android: data-only, high priority. Off by default — callers
 // that pass no `silent` behave exactly as before.
+// `options.collapseId` (đợt 2, 2026-10-20) makes a new alert REPLACE the
+// previous one with the same id in the tray instead of stacking (caro: one
+// notification per game, not 15 "vừa đi một nước"). Android: `notification.tag`;
+// iOS: `apns-collapse-id` header (Apple caps it at 64 bytes, so it is cut).
+// Callers that pass no `collapseId` get exactly the old payload.
 // Per-type mute prefs (D-notif-4): maps a push `type` to the device-doc field
 // the user can switch off. Types not listed (love_note, partner_joined/left)
 // are always-on and never filtered. Absent field on a device → not muted.
@@ -2612,6 +2617,8 @@ function langData(device) {
 
 async function sendToRecipientDevices(recipientIds, buildText, dataExtra, options = {}) {
   const muteField = PUSH_TYPE_PREF_FIELD[dataExtra && dataExtra.type];
+  // Ids are ASCII (`caro_<gameId>`…), so 64 chars = Apple's 64-byte cap.
+  const collapseId = options.collapseId ? `${options.collapseId}`.slice(0, 64) : "";
   const deviceDocs = [];
   // Real iOS app-icon badge (D-notif-2): per recipient, how many unread inbox
   // notifications they have right now. The inbox doc for THIS event was already
@@ -2696,12 +2703,14 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
           priority: "high",
           notification: {
             channelId: "partner_photo_updates",
+            ...(collapseId ? {tag: collapseId} : {}),
           },
         },
         apns: {
           headers: {
             "apns-priority": "10",
             "apns-push-type": "alert",
+            ...(collapseId ? {"apns-collapse-id": collapseId} : {}),
           },
           payload: {
             aps: {

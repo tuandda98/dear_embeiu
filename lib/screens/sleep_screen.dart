@@ -23,8 +23,9 @@ import '../widgets/icon_badge.dart';
 import '../widgets/section_header.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/sleep/moon_glyph.dart';
+import '../widgets/person_label.dart';
 import '../widgets/sleep/sleep_card.dart'
-    show DurationText, PersonLabel, SourcePill, TheirClockPill;
+    show DurationText, SourcePill, TheirClockPill;
 import '../widgets/sleep/sleep_format.dart';
 import '../widgets/sleep/sleep_sheets.dart';
 import '../widgets/sub_screen_header.dart';
