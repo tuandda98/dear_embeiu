@@ -578,6 +578,11 @@ class PushNotificationService {
     }
   }
 
+  // ── arrival (đợt 2) ──
+  /// Test seam for the tap routing below (no Firebase needed).
+  @visibleForTesting
+  void applyRouteForTest(String? type) => _applyRoute(type, null);
+
   /// Routes a notification (push tap OR a foreground banner tap) to the home tab
   /// / deep-link target for its [type]. Unknown/absent types are ignored (no tab
   /// change, no malformed analytics event).
