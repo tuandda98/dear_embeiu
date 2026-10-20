@@ -1496,6 +1496,12 @@ abstract class AppLocalizations {
   /// **'Update mood'**
   String get moodUpdateCta;
 
+  /// No description provided for @moodChangeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get moodChangeShort;
+
   /// No description provided for @moodNotSharedYou.
   ///
   /// In en, this message translates to:
