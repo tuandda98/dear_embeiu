@@ -6,5 +6,7 @@
 <full-backup-content>
     <exclude domain="root" path="app_flutter/sleep_nobackup/" />
     <exclude domain="root" path="app_flutter/sleep_local.hive" />
+    <!-- ── arrival (đợt 2) ── places + coordinates stay on this phone (D2). -->
+    <exclude domain="root" path="app_flutter/arrival_nobackup/" />
     <exclude domain="sharedpref" path="dear_embeiu_motion.xml" />
 </full-backup-content>

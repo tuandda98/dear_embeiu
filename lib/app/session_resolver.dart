@@ -20,6 +20,8 @@ import '../providers/reminder_provider.dart';
 import '../providers/rps_game_provider.dart';
 import '../providers/sleep_provider.dart';
 import '../providers/streak_provider.dart';
+// ── arrival (đợt 2) ──
+import '../providers/arrival_provider.dart';
 import '../services/app_update_service.dart';
 import '../services/storage_service.dart';
 import 'app_routes.dart';
@@ -59,6 +61,8 @@ class SessionResolver {
     final customRemindersProvider = context.read<CustomRemindersProvider>();
     final rpsGameProvider = context.read<RpsGameProvider>();
     final sleepProvider = context.read<SleepProvider>();
+    // ── arrival (đợt 2) ──
+    final arrivalProvider = context.read<ArrivalProvider>();
 
     try {
       return await _resolve(
@@ -78,6 +82,8 @@ class SessionResolver {
         customRemindersProvider: customRemindersProvider,
         rpsGameProvider: rpsGameProvider,
         sleepProvider: sleepProvider,
+        // ── arrival (đợt 2) ──
+        arrivalProvider: arrivalProvider,
       ).timeout(_globalResolveTimeout);
     } catch (_) {
       // Global backstop: never hang on the splash. Pick a safe route from
@@ -126,6 +132,8 @@ class SessionResolver {
     required CustomRemindersProvider customRemindersProvider,
     required RpsGameProvider rpsGameProvider,
     required SleepProvider sleepProvider,
+    // ── arrival (đợt 2) ──
+    required ArrivalProvider arrivalProvider,
   }) async {
     // Force-update gate (feature force-update): a build older than the server's
     // minimum is sealed off behind the update screen BEFORE any auth/couple
@@ -163,6 +171,8 @@ class SessionResolver {
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
       sleepProvider.clear(signedOut: true);
+      // ── arrival (đợt 2) ──
+      arrivalProvider.clear(signedOut: true);
       // Signed out / account deleted: forget the couple too — the home-screen
       // widget bridge listens to CoupleProvider and pushes its empty state.
       await coupleProvider.loadCoupleForUser(null);
@@ -191,6 +201,8 @@ class SessionResolver {
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
       sleepProvider.clear(signedOut: true);
+      // ── arrival (đợt 2) ──
+      arrivalProvider.clear(signedOut: true);
       await coupleProvider.loadCoupleForUser(
         null,
       ); // same reason as the guest branch
@@ -290,6 +302,14 @@ class SessionResolver {
           rpsPartnerUid,
         ),
       );
+      // ── arrival (đợt 2) ── hidden while waiting (partner uid '', D9).
+      unawaited(
+        arrivalProvider.watchForCouple(
+          currentUser.coupleId!,
+          currentUser.id,
+          rpsPartnerUid,
+        ),
+      );
     } else {
       await photoProvider.clearForSignOut();
       chatProvider.clear();
@@ -304,6 +324,8 @@ class SessionResolver {
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
       sleepProvider.clear();
+      // ── arrival (đợt 2) ──
+      arrivalProvider.clear();
       // Authenticated but no couple yet — cancel the daily-question nudge (b2)
       // until a partner joins; the preference persists for re-arming via sync.
       await reminderProvider.cancelDailyQuestionSchedule();

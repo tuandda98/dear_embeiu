@@ -18,6 +18,8 @@ import '../models/app_user.dart';
 import '../models/couple.dart';
 import 'firebase_bootstrap_service.dart';
 import 'sleep_service.dart';
+// ── arrival (đợt 2) ──
+import 'arrival_service.dart';
 import 'storage_service.dart';
 import 'user_service.dart';
 
@@ -936,7 +938,11 @@ class AuthService {
 
   /// Drops what this user keeps only on this phone after a deletion: sleep
   /// nights live in Hive, never in the account (AU8). Tests stub it.
-  Future<void> wipeLocalUserData(String uid) => SleepService.wipeLocalData(uid);
+  Future<void> wipeLocalUserData(String uid) async {
+    await SleepService.wipeLocalData(uid);
+    // ── arrival (đợt 2) ── places + coordinates are phone-only too (D2).
+    await ArrivalService.wipeLocalData(uid);
+  }
 
   /// PF5 — an account with Apple confirms deletion in the Apple sheet: on iOS
   /// whenever Apple is linked, a password too (AU3), when [appleSheet] — the
