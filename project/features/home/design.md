@@ -539,3 +539,4 @@ C dài hơn B 62 px (bỏ tim −42, tách hai hàng bảng thành hai thẻ +28
 
 - [2026-10-20] [Designer] Soát dễ dùng bản C theo UI UX Pro Max: nút trả lời lên màn đầu (1 chạm), một mẫu nhãn làn cho 4 thẻ người ấy, Thời tiết tự thu 1 hàng khi không có gì đáng nhắc, Tâm trạng thu nút "Đổi" lên tiêu đề, đồng bộ thẻ Về đến nhà bản 2 của Designer arrival. C 2.720 → 2.507 px mock (≈2.430 theo app, hiện tại 1.933). Lint 0/0, inspect 390 0 FAIL.
 - [2026-10-20] [Lead] Trên Home, nút "Về nhà rồi" của thẻ Về đến nhà dùng dạng viền (đã sửa `ui.js` bản C) để Home chỉ còn nút đặc cho trả lời câu hỏi và lượt caro.
+- [2026-10-20] [Lead] User chọn **giữ nguyên thẻ Câu hỏi đang chạy** (không đưa nút "Trả lời" lên trên, không thay ba thanh mờ). Bản C đã đổi lại dùng `ritual()` như app; `ritualC()` để lại trong mock chỉ làm tham khảo, Dev KHÔNG làm. User chưa duyệt đợt thiết kế, đang xem kỹ.

@@ -306,9 +306,9 @@
     const W = !!o.waiting;
     const blocks = W
       ? [counter(s, { waiting: true }), `<div style="margin-top:16px">${waitBanner()}</div>`, sectionToday(s, true),
-         `<div class="stack">${ritualC(s, { waiting: true })}${weatherCardC(s, { waiting: true })}${sleepCard(s, { waiting: true })}${money(s, { waiting: true })}${decide(s)}</div>`, memories(s)]
+         `<div class="stack">${ritual(s, { waiting: true })}${weatherCardC(s, { waiting: true })}${sleepCard(s, { waiting: true })}${money(s, { waiting: true })}${decide(s)}</div>`, memories(s)]
       : [counter(s, { plain: true }), sectionToday(s),
-         `<div class="stack">${ritualC(s)}${moodCardC(s)}${arrivalCardC(s, o)}${weatherCardC(s)}${sleepCard(s)}${play(s)}${money(s)}${decide(s)}</div>`, memories(s)];
+         `<div class="stack">${ritual(s)}${moodCardC(s)}${arrivalCardC(s, o)}${weatherCardC(s)}${sleepCard(s)}${play(s)}${money(s)}${decide(s)}</div>`, memories(s)];
     return `<div class="home c">${header(s, o.h1 === false ? 'p' : 'h1')}<main class="scroll">${blocks.join('')}${o.after || ''}</main>${nav()}</div>`;
   }
 
