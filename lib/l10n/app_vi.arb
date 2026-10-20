@@ -2078,6 +2078,22 @@
   "@featureTourSleepMotionBody": {
     "description": "Feature tour entry (build 28)."
   },
+  "featureTourDecisionTitle": "Chọn giúp chúng mình",
+  "@featureTourDecisionTitle": {
+    "description": "Feature tour entry (build 32): decision wheel."
+  },
+  "featureTourDecisionBody": "Ăn gì, đi đâu, ai rửa bát? Quay một vòng rồi chốt, người ấy biết ngay kết quả.",
+  "@featureTourDecisionBody": {
+    "description": "Feature tour entry (build 32)."
+  },
+  "featureTourWidgetTodayTitle": "Widget có tin của người ấy",
+  "@featureTourWidgetTodayTitle": {
+    "description": "Feature tour entry (build 32): widget status line."
+  },
+  "featureTourWidgetTodayBody": "Widget ngoài màn hình chính thêm một dòng: người ấy vừa trả lời câu hỏi, đổi tâm trạng hay chốt món hôm nay.",
+  "@featureTourWidgetTodayBody": {
+    "description": "Feature tour entry (build 32)."
+  },
   "featureTourSkyTitle": "Chòm sao hôm nay",
   "@featureTourSkyTitle": {
     "description": "Feature tour entry (build 25)."

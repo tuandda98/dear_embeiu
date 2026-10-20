@@ -3270,6 +3270,20 @@ class AppLocalizationsVi extends AppLocalizations {
       'Để điện thoại cạnh giường là đủ: app đoán giờ ngủ, giờ dậy từ lúc máy nằm yên. Đêm nào lệch thì chạm vào sửa lại.';
 
   @override
+  String get featureTourDecisionTitle => 'Chọn giúp chúng mình';
+
+  @override
+  String get featureTourDecisionBody =>
+      'Ăn gì, đi đâu, ai rửa bát? Quay một vòng rồi chốt, người ấy biết ngay kết quả.';
+
+  @override
+  String get featureTourWidgetTodayTitle => 'Widget có tin của người ấy';
+
+  @override
+  String get featureTourWidgetTodayBody =>
+      'Widget ngoài màn hình chính thêm một dòng: người ấy vừa trả lời câu hỏi, đổi tâm trạng hay chốt món hôm nay.';
+
+  @override
   String get featureTourSkyTitle => 'Chòm sao hôm nay';
 
   @override

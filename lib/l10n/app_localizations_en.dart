@@ -3478,6 +3478,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Just leave your phone by the bed: the app guesses when you fell asleep and woke up from when it lay still. If a night looks off, tap it to fix.';
 
   @override
+  String get featureTourDecisionTitle => 'Decide for us';
+
+  @override
+  String get featureTourDecisionBody =>
+      'Dinner, a plan, who does the dishes? Spin once, lock it in, and your partner sees the pick right away.';
+
+  @override
+  String get featureTourWidgetTodayTitle => 'Your widget, now with news';
+
+  @override
+  String get featureTourWidgetTodayBody =>
+      'The home screen widget adds one line about your partner\'s day: they answered the question, shared a mood, or picked dinner.';
+
+  @override
   String get featureTourSkyTitle => 'Today\'s constellation';
 
   @override

@@ -5581,6 +5581,30 @@ abstract class AppLocalizations {
   /// **'Just leave your phone by the bed: the app guesses when you fell asleep and woke up from when it lay still. If a night looks off, tap it to fix.'**
   String get featureTourSleepMotionBody;
 
+  /// Feature tour entry (build 32): decision wheel.
+  ///
+  /// In en, this message translates to:
+  /// **'Decide for us'**
+  String get featureTourDecisionTitle;
+
+  /// Feature tour entry (build 32).
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner, a plan, who does the dishes? Spin once, lock it in, and your partner sees the pick right away.'**
+  String get featureTourDecisionBody;
+
+  /// Feature tour entry (build 32): widget status line.
+  ///
+  /// In en, this message translates to:
+  /// **'Your widget, now with news'**
+  String get featureTourWidgetTodayTitle;
+
+  /// Feature tour entry (build 32).
+  ///
+  /// In en, this message translates to:
+  /// **'The home screen widget adds one line about your partner\'s day: they answered the question, shared a mood, or picked dinner.'**
+  String get featureTourWidgetTodayBody;
+
   /// Feature tour entry (build 25).
   ///
   /// In en, this message translates to:
