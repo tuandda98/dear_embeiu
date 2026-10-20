@@ -7257,7 +7257,7 @@
   "@moneyHomeError": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyHomeLoading": "Shared book, loading",
+  "moneyHomeLoading": "Loading the shared book",
   "@moneyHomeLoading": {
     "description": "Sổ tiền (feature expenses)"
   },
@@ -7348,7 +7348,7 @@
       }
     }
   },
-  "moneyFindingPerDay": "The month is {passed}/{total} days in and {percent}% of the budget is used, so about {perDay} a day from now to month end.",
+  "moneyFindingPerDay": "The month is {passed}/{total} days in and {percent}% of the budget is gone. That leaves about {perDay} a day until month end.",
   "@moneyFindingPerDay": {
     "description": "Sổ tiền (feature expenses)",
     "placeholders": {
@@ -7682,7 +7682,7 @@
   "@moneyLoadErrorNoTime": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyWaitingCard": "When they join, we'll get a shared book too: who paid, splitting, a trip fund.",
+  "moneyWaitingCard": "When they join, we also get a shared book for who paid, splitting costs and a trip fund.",
   "@moneyWaitingCard": {
     "description": "Sổ tiền (feature expenses)"
   },
@@ -7816,7 +7816,7 @@
       }
     }
   },
-  "moneyAmountInvalid": "That number didn't parse. Try 120k or 120000.",
+  "moneyAmountInvalid": "Can't read that number. Try 120k or 120000.",
   "@moneyAmountInvalid": {
     "description": "Sổ tiền (feature expenses)"
   },
@@ -8002,7 +8002,7 @@
   "@moneySavedEdit": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneySavedOffline": "Waiting for signal, it'll sync to the shared book",
+  "moneySavedOffline": "Waiting for signal. It'll sync to the shared book once you're online.",
   "@moneySavedOffline": {
     "description": "Sổ tiền (feature expenses)"
   },
@@ -8085,7 +8085,7 @@
       }
     }
   },
-  "moneyConflictBody": "Showing the latest version, edit again if needed",
+  "moneyConflictBody": "Showing the latest version. Edit again if needed.",
   "@moneyConflictBody": {
     "description": "Sổ tiền (feature expenses)"
   },
@@ -8159,7 +8159,7 @@
   "@moneyLinkedUpdate": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyLinkedLocked": "Only {name} can change the amount, it's also in their own book",
+  "moneyLinkedLocked": "Only {name} can change the amount because it's also in their own book",
   "@moneyLinkedLocked": {
     "description": "Sổ tiền (feature expenses)",
     "placeholders": {
@@ -8263,7 +8263,7 @@
   "@moneyFirstRunTitle": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyFirstRunBody": "Turn on the wallets you use and enter today's balance. You can skip this, a Cash wallet is already set up.",
+  "moneyFirstRunBody": "Turn on the wallets you use and enter today's balance. You can skip this: a Cash wallet is already set up.",
   "@moneyFirstRunBody": {
     "description": "Sổ tiền (feature expenses)"
   },
@@ -8465,7 +8465,7 @@
   "@moneyHintEwallet": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyHintCredit": "Owing on the card shows as negative, that's right",
+  "moneyHintCredit": "Card debt shows as a negative balance. That's expected.",
   "@moneyHintCredit": {
     "description": "Sổ tiền (feature expenses)"
   },
@@ -9268,7 +9268,7 @@
       }
     }
   },
-  "moneyGoalReached": "Done. Time to plan {trip}, and log trip costs straight from this fund.",
+  "moneyGoalReached": "Goal reached. Time to plan {trip}. Log trip costs straight from this fund.",
   "@moneyGoalReached": {
     "description": "Sổ tiền (feature expenses), stage 3B",
     "placeholders": {
@@ -9316,7 +9316,7 @@
   "@moneyGoalHistoryEmpty": {
     "description": "Sổ tiền (feature expenses), stage 3B"
   },
-  "moneyGoalHistoryPartial": "Couldn't load older history, showing recent contributions.",
+  "moneyGoalHistoryPartial": "Couldn't load older history. Showing recent contributions.",
   "@moneyGoalHistoryPartial": {
     "description": "Sổ tiền (feature expenses), stage 3B"
   },
@@ -9604,7 +9604,7 @@
   "@moneyReminderBody1": {
     "description": "Sổ tiền (feature expenses), stage 3B"
   },
-  "moneyReminderBody2": "Log the rest of today's spending, it takes under a minute",
+  "moneyReminderBody2": "Log the rest of today's spending. It takes under a minute.",
   "@moneyReminderBody2": {
     "description": "Sổ tiền (feature expenses), stage 3B"
   },
@@ -9628,7 +9628,7 @@
   "@moneyProfileSub": {
     "description": "Sổ tiền (feature expenses), stage 3B"
   },
-  "moneyNotifGoal": "{name} just chipped in, the fund is at {percent}%",
+  "moneyNotifGoal": "{name} just chipped in. The fund is at {percent}%",
   "@moneyNotifGoal": {
     "description": "Sổ tiền (feature expenses), stage 3B",
     "placeholders": {
@@ -9649,7 +9649,7 @@
       }
     }
   },
-  "moneyNotifGoalReachedSub": "We hit the goal together. Time to plan it.",
+  "moneyNotifGoalReachedSub": "We hit the goal together. Time to make plans.",
   "@moneyNotifGoalReachedSub": {
     "description": "Sổ tiền (feature expenses), stage 3B"
   },

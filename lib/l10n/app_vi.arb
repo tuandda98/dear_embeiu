@@ -5967,7 +5967,7 @@
   "moneyCatHomePower": "Điện",
   "moneyCatHomeWater": "Nước",
   "moneyCatHomeNet": "Internet",
-  "moneyCatHomeGoods": "Đồ dùng nhà",
+  "moneyCatHomeGoods": "Đồ gia dụng",
   "moneyCatBill": "Hoá đơn & gói",
   "moneyCatBillPhone": "Điện thoại",
   "moneyCatBillStream": "Xem phim, nghe nhạc",
@@ -6076,7 +6076,7 @@
       }
     }
   },
-  "moneyHomeStale": "{amount} · số lúc {time}",
+  "moneyHomeStale": "{amount} · số liệu lúc {time}",
   "@moneyHomeStale": {
     "description": "Sổ tiền (feature expenses)",
     "placeholders": {
@@ -6092,7 +6092,7 @@
   "@moneyHomeError": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyHomeLoading": "Sổ chung, đang tải",
+  "moneyHomeLoading": "Đang tải sổ chung",
   "@moneyHomeLoading": {
     "description": "Sổ tiền (feature expenses)"
   },
@@ -6183,7 +6183,7 @@
       }
     }
   },
-  "moneyFindingPerDay": "Tháng mới qua {passed}/{total} ngày mà đã dùng {percent}% ngân sách, tức khoảng {perDay} mỗi ngày từ giờ tới cuối tháng.",
+  "moneyFindingPerDay": "Tháng mới qua {passed}/{total} ngày mà đã dùng {percent}% ngân sách. Từ giờ tới cuối tháng, mỗi ngày chỉ còn khoảng {perDay}.",
   "@moneyFindingPerDay": {
     "description": "Sổ tiền (feature expenses)",
     "placeholders": {
@@ -6322,7 +6322,7 @@
       }
     }
   },
-  "moneyEmptyMonth": "Tháng {month} chưa có khoản nào. Nút hồng ở góc dưới để ghi khoản đầu tiên.",
+  "moneyEmptyMonth": "Tháng {month} chưa có khoản nào. Bấm nút hồng ở góc dưới để ghi khoản đầu tiên.",
   "@moneyEmptyMonth": {
     "description": "Sổ tiền (feature expenses)",
     "placeholders": {
@@ -6483,7 +6483,7 @@
   "@moneyPending": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyOffline": "Đang mất mạng. Số dư tính tạm từ lúc {time} cộng {n} khoản chờ gửi.",
+  "moneyOffline": "Đang mất mạng. Số dư là số lúc {time}, cộng thêm {n} khoản đang chờ gửi.",
   "@moneyOffline": {
     "description": "Sổ tiền (feature expenses)",
     "placeholders": {
@@ -6517,7 +6517,7 @@
   "@moneyLoadErrorNoTime": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyWaitingCard": "Khi người ấy vào, chúng mình sẽ có thêm sổ chung: ai trả, chia đôi, quỹ đi chơi.",
+  "moneyWaitingCard": "Khi người ấy vào app, chúng mình có thêm sổ chung để ghi ai trả, chia đôi và góp quỹ đi chơi.",
   "@moneyWaitingCard": {
     "description": "Sổ tiền (feature expenses)"
   },
@@ -6845,7 +6845,7 @@
   "@moneySavedOfflineMine": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyOverBudgetToast": "{category} chung vượt ngân sách tháng {amount}",
+  "moneyOverBudgetToast": "{category} chung đã vượt ngân sách {amount}",
   "@moneyOverBudgetToast": {
     "description": "Sổ tiền (feature expenses)",
     "placeholders": {
@@ -6869,7 +6869,7 @@
       }
     }
   },
-  "moneyOverBudgetToastMine": "{category} vượt ngân sách tháng {amount}",
+  "moneyOverBudgetToastMine": "{category} đã vượt ngân sách {amount}",
   "@moneyOverBudgetToastMine": {
     "description": "Sổ tiền (feature expenses)",
     "placeholders": {
@@ -6994,7 +6994,7 @@
   "@moneyLinkedUpdate": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyLinkedLocked": "Chỉ {name} sửa được số tiền vì khoản này có ở sổ của {name}",
+  "moneyLinkedLocked": "Chỉ {name} sửa được số tiền, vì khoản này nằm trong sổ riêng của {name}",
   "@moneyLinkedLocked": {
     "description": "Sổ tiền (feature expenses)",
     "placeholders": {
@@ -7007,7 +7007,7 @@
   "@moneyDeleteBothTitle": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyDeleteBothBody": "“{note}” {amount} có ở sổ chung và đang trừ {wallet} của mình. Xoá cả hai thì số dư {wallet} cộng lại {amount}.",
+  "moneyDeleteBothBody": "“{note}” {amount} có ở sổ chung và đang trừ {wallet} của mình. Xoá cả hai thì {wallet} được cộng lại {amount}.",
   "@moneyDeleteBothBody": {
     "description": "Sổ tiền (feature expenses)",
     "placeholders": {
@@ -7692,7 +7692,7 @@
   "@moneySetBudget": {
     "description": "Sổ tiền (feature expenses) · stage 3A"
   },
-  "moneyBudgetPushNote": "Chạm 80% và 100% ngân sách tổng: người không ghi khoản đó nhận thông báo chỉ có phần trăm, không có số tiền.",
+  "moneyBudgetPushNote": "Khi chi tới 80% và 100% ngân sách tổng, người không ghi khoản đó sẽ nhận thông báo. Thông báo chỉ có phần trăm, không có số tiền.",
   "@moneyBudgetPushNote": {
     "description": "Sổ tiền (feature expenses) · stage 3A"
   },
@@ -7968,7 +7968,7 @@
   "@moneySearch12": {
     "description": "Sổ tiền (feature expenses) · stage 3A"
   },
-  "moneySearchCap": "Chỉ tìm trong 2.000 khoản gần nhất của khoảng này. Thu hẹp ngày để chắc không sót.",
+  "moneySearchCap": "Chỉ tìm trong 2.000 khoản gần nhất. Chọn khoảng ngày hẹp hơn để không sót khoản nào.",
   "@moneySearchCap": {
     "description": "Sổ tiền (feature expenses) · stage 3A"
   },
@@ -8103,7 +8103,7 @@
       }
     }
   },
-  "moneyGoalReached": "Đủ rồi. Lên lịch đi {trip} thôi, tiền chi chuyến đi ghi thẳng từ quỹ này.",
+  "moneyGoalReached": "Đủ rồi! Lên lịch đi {trip} thôi. Tiêu gì trong chuyến đi thì ghi thẳng từ quỹ này.",
   "@moneyGoalReached": {
     "description": "Sổ tiền (feature expenses), stage 3B",
     "placeholders": {
@@ -8147,7 +8147,7 @@
       }
     }
   },
-  "moneyGoalHistoryEmpty": "Chưa có lần góp nào. Góp lần đầu, dù chỉ 50k.",
+  "moneyGoalHistoryEmpty": "Chưa có lần góp nào. Góp lần đầu đi, 50k cũng được.",
   "@moneyGoalHistoryEmpty": {
     "description": "Sổ tiền (feature expenses), stage 3B"
   },
@@ -8240,7 +8240,7 @@
       }
     }
   },
-  "moneySettlePartial": "Sửa được nếu trả một phần",
+  "moneySettlePartial": "Trả một phần thì sửa lại số này",
   "@moneySettlePartial": {
     "description": "Sổ tiền (feature expenses), stage 3B"
   },
@@ -8269,7 +8269,7 @@
   "@moneySettleFromOwnSub": {
     "description": "Sổ tiền (feature expenses), stage 3B"
   },
-  "moneySettleNoteThem": "App không chuyển tiền giúp. Bấm nút dưới sau khi {name} đã chuyển khoản hoặc đưa tiền mặt. Khoản này cân lại sổ chung, không tính là chi tiêu.",
+  "moneySettleNoteThem": "App không chuyển tiền hộ. {name} chuyển khoản hoặc đưa tiền mặt xong thì bấm nút bên dưới. Khoản này chỉ để cân lại sổ chung, không tính vào chi tiêu.",
   "@moneySettleNoteThem": {
     "description": "Sổ tiền (feature expenses), stage 3B",
     "placeholders": {
@@ -8278,7 +8278,7 @@
       }
     }
   },
-  "moneySettleNoteMe": "App không chuyển tiền giúp. Bấm nút dưới sau khi mình đã chuyển khoản hoặc đưa tiền mặt cho {name}. Khoản này cân lại sổ chung, không tính là chi tiêu.",
+  "moneySettleNoteMe": "App không chuyển tiền hộ. Mình chuyển khoản hoặc đưa tiền mặt cho {name} xong thì bấm nút bên dưới. Khoản này chỉ để cân lại sổ chung, không tính vào chi tiêu.",
   "@moneySettleNoteMe": {
     "description": "Sổ tiền (feature expenses), stage 3B",
     "placeholders": {

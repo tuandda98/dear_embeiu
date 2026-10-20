@@ -970,7 +970,7 @@ test("money: a contribution pushes the other one the fund %, never the amount", 
   assert.deepStrictEqual(out.goal, {pushed: "goal", recipientIds: ["bob"], percent: 40});
   assert.strictEqual(f.pushes.length, 1);
   assert.deepStrictEqual(f.pushes[0].vi, {title: "🏔️ Quỹ Đà Lạt", body: "Tuấn vừa góp vào quỹ, giờ được 40%"});
-  assert.deepStrictEqual(f.pushes[0].en, {title: "🏔️ Quỹ Đà Lạt", body: "Tuấn just chipped in, the fund is at 40%"});
+  assert.deepStrictEqual(f.pushes[0].en, {title: "🏔️ Quỹ Đà Lạt", body: "Tuấn just chipped in. The fund is at 40%"});
   assert.doesNotMatch(JSON.stringify(f.pushes), /2[.,]?000[.,]?000|2tr|2M/);
   assert.strictEqual(f.inbox[0].type, "money_goal");
   assert.deepStrictEqual(f.inbox[0].ids, ["bob"]);

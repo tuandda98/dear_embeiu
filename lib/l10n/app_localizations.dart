@@ -10396,7 +10396,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Shared book, loading'**
+  /// **'Loading the shared book'**
   String get moneyHomeLoading;
 
   /// Sổ tiền (feature expenses)
@@ -10498,7 +10498,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'The month is {passed}/{total} days in and {percent}% of the budget is used, so about {perDay} a day from now to month end.'**
+  /// **'The month is {passed}/{total} days in and {percent}% of the budget is gone. That leaves about {perDay} a day until month end.'**
   String moneyFindingPerDay(
     String passed,
     String total,
@@ -10766,7 +10766,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'When they join, we\'ll get a shared book too: who paid, splitting, a trip fund.'**
+  /// **'When they join, we also get a shared book for who paid, splitting costs and a trip fund.'**
   String get moneyWaitingCard;
 
   /// Sổ tiền (feature expenses)
@@ -10910,7 +10910,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'That number didn\'t parse. Try 120k or 120000.'**
+  /// **'Can\'t read that number. Try 120k or 120000.'**
   String get moneyAmountInvalid;
 
   /// Sổ tiền (feature expenses)
@@ -11126,7 +11126,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Waiting for signal, it\'ll sync to the shared book'**
+  /// **'Waiting for signal. It\'ll sync to the shared book once you\'re online.'**
   String get moneySavedOffline;
 
   /// Sổ tiền (feature expenses)
@@ -11180,7 +11180,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Showing the latest version, edit again if needed'**
+  /// **'Showing the latest version. Edit again if needed.'**
   String get moneyConflictBody;
 
   /// Sổ tiền (feature expenses)
@@ -11251,7 +11251,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Only {name} can change the amount, it\'s also in their own book'**
+  /// **'Only {name} can change the amount because it\'s also in their own book'**
   String moneyLinkedLocked(String name);
 
   /// Sổ tiền (feature expenses)
@@ -11371,7 +11371,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Turn on the wallets you use and enter today\'s balance. You can skip this, a Cash wallet is already set up.'**
+  /// **'Turn on the wallets you use and enter today\'s balance. You can skip this: a Cash wallet is already set up.'**
   String get moneyFirstRunBody;
 
   /// Sổ tiền (feature expenses)
@@ -11599,7 +11599,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Owing on the card shows as negative, that\'s right'**
+  /// **'Card debt shows as a negative balance. That\'s expected.'**
   String get moneyHintCredit;
 
   /// Sổ tiền (feature expenses)
@@ -12391,7 +12391,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses), stage 3B
   ///
   /// In en, this message translates to:
-  /// **'Done. Time to plan {trip}, and log trip costs straight from this fund.'**
+  /// **'Goal reached. Time to plan {trip}. Log trip costs straight from this fund.'**
   String moneyGoalReached(String trip);
 
   /// Sổ tiền (feature expenses), stage 3B
@@ -12427,7 +12427,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses), stage 3B
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t load older history, showing recent contributions.'**
+  /// **'Couldn\'t load older history. Showing recent contributions.'**
   String get moneyGoalHistoryPartial;
 
   /// Sổ tiền (feature expenses), stage 3B
@@ -12661,7 +12661,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses), stage 3B
   ///
   /// In en, this message translates to:
-  /// **'Log the rest of today\'s spending, it takes under a minute'**
+  /// **'Log the rest of today\'s spending. It takes under a minute.'**
   String get moneyReminderBody2;
 
   /// Sổ tiền (feature expenses), stage 3B
@@ -12697,7 +12697,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses), stage 3B
   ///
   /// In en, this message translates to:
-  /// **'{name} just chipped in, the fund is at {percent}%'**
+  /// **'{name} just chipped in. The fund is at {percent}%'**
   String moneyNotifGoal(String name, String percent);
 
   /// Sổ tiền (feature expenses), stage 3B
@@ -12709,7 +12709,7 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses), stage 3B
   ///
   /// In en, this message translates to:
-  /// **'We hit the goal together. Time to plan it.'**
+  /// **'We hit the goal together. Time to make plans.'**
   String get moneyNotifGoalReachedSub;
 
   /// Sổ tiền (feature expenses), stage 3B

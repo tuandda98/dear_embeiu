@@ -407,7 +407,7 @@ void main() {
         );
       await _open(tester, money, book: MoneyBookKind.shared, editing: tx);
       expect(
-        find.text('Chỉ Thảo sửa được số tiền vì khoản này có ở sổ của Thảo'),
+        find.text('Chỉ Thảo sửa được số tiền, vì khoản này nằm trong sổ riêng của Thảo'),
         findsOneWidget,
       );
       expect(find.bySemanticsLabel('Xoá một ký tự'), findsNothing);
