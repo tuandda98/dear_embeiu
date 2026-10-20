@@ -7,7 +7,8 @@ import 'package:timezone/timezone.dart' as tz;
 import '../models/custom_reminder.dart';
 import '../models/milestone_reminder.dart';
 // ── weather (đợt 2) ──
-import 'push_notification_service.dart' show NotificationTapRouter;
+import 'push_notification_service.dart'
+    show NotificationTapRouter, PushNotificationService;
 
 /// One end-of-day daily-question nudge: a fixed [hour]:[minute] for TODAY with
 /// its own localized [title]/[body]. The provider picks the copy from the
@@ -242,15 +243,17 @@ class ReminderService {
       );
       await _plugin.initialize(
         settings,
-        // ── weather (đợt 2) ── tap on the morning notice (id 1160).
-        onDidReceiveNotificationResponse: (r) => _routeWeatherTap(r.payload),
+        // ── weather (đợt 2) ── tap on the morning notice (id 1160). Same
+        // callback as the push service: the plugin keeps only the last one.
+        onDidReceiveNotificationResponse:
+            PushNotificationService.handleLocalNotificationTap,
       );
       _initialized = true;
       // ── weather (đợt 2) ── cold start from a tapped morning notice.
       try {
         final launch = await _plugin.getNotificationAppLaunchDetails();
         if (launch?.didNotificationLaunchApp ?? false) {
-          _routeWeatherTap(launch!.notificationResponse?.payload);
+          routeWeatherTap(launch!.notificationResponse?.payload);
         }
       } catch (_) {
         // No launch details on this platform.
@@ -1282,12 +1285,14 @@ class ReminderService {
 
   // ── weather (đợt 2) ──
 
-  static void _routeWeatherTap(String? payload) {
+  /// True when [payload] is the morning notice (then it's routed here).
+  static bool routeWeatherTap(String? payload) {
     if (payload == null || !payload.contains('"$weatherMorningType"')) {
-      return;
+      return false;
     }
     NotificationTapRouter.pendingHomeTab.value = 0; // Home
     pendingWeatherTap.value = payload;
+    return true;
   }
 
   /// Arm the morning notice at [fireAt] (phone-local) — replaces any earlier

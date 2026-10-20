@@ -341,7 +341,7 @@ class PushNotificationService {
         ),
         // Tap on a banner we showed ourselves in the foreground → deep-link the
         // same way a real push tap does (reuses the type/photoId routing).
-        onDidReceiveNotificationResponse: _handleLocalNotificationResponse,
+        onDidReceiveNotificationResponse: handleLocalNotificationTap,
       );
 
       final androidPlugin =
@@ -596,6 +596,18 @@ class PushNotificationService {
     (data['photoId'] as String?)?.trim(),
     gameId: (data['gameId'] as String?)?.trim(),
   );
+
+  /// The ONE tap callback for every local notification. The plugin keeps only
+  /// the callback of the LAST `initialize`, and [ReminderService] initialises
+  /// after us — before đợt 2 that silently dropped every tap on a foreground
+  /// push banner. Both services now pass this: the weather morning notice
+  /// routes itself, anything else is a push banner we showed.
+  static void handleLocalNotificationTap(NotificationResponse response) {
+    if (ReminderService.routeWeatherTap(response.payload)) {
+      return;
+    }
+    instance._handleLocalNotificationResponse(response);
+  }
 
   /// Tap handler for a banner WE showed in the foreground via
   /// [_localNotifications] (see [_handleForegroundMessage]). Its payload is the
