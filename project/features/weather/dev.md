@@ -2,7 +2,7 @@
 
 > Dev sở hữu. Đọc `overview.md` + `design.md` trước (mục 14b "Soát dễ dùng" của design thắng các mục cũ khi lệch). Bám kiến trúc Provider + service (`../../../CLAUDE.md` mục 2).
 
-- **Trạng thái dev:** stage 1/2 xong (backend + lớp dữ liệu, chưa có UI). Stage 2 (UI + thông báo + analytics) chưa bắt đầu.
+- **Trạng thái dev:** stage 1 + stage 2 xong (backend, lớp dữ liệu, thẻ Home, 2 sheet, Cài đặt, thông báo 07:30, analytics) + đã vá 8 finding review backend. Chờ Lead smoke 2 máy + Tester. Spike D3 chưa chạy (không chặn, Lead chốt).
 - **Người/role:** Dev
 - **Nhánh / worktree:** `feature/weather` ở `/Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-weather`
 - **Deploy:** chưa deploy gì (Lead deploy DEV từ nhánh gộp). PROD chờ lệnh user: `firestore:rules,functions:getCityWeather,functions:notifyPartnerLeft` — rules phải lên PROD trước khi bản có feature live.
@@ -34,6 +34,31 @@
 
 Theo phác §5.2, thêm một điều: `cityId` phải khớp `^[a-z]{2}-[a-z0-9-]{1,37}$` (dạng slug, tối đa 40 ký tự). Rules không giữ danh sách 116 id (ba bản phải đồng bộ thì dễ lệch hơn); id đúng dạng mà không có trong danh sách thì app coi như chưa chọn, CF từ chối. Đọc: thành viên. Ghi: thành viên, `hasOnly(cityId, setBy, updatedAt)`, `setBy == auth.uid`, `updatedAt == request.time`, và (doc của mình) hoặc (uid là thành viên VÀ doc chưa có hoặc `setBy != uid`). Xoá: chỉ doc của mình. `weatherCache` không có match ⇒ client bị chặn.
 
+### Stage 2 (đã làm)
+
+| Lớp | File | Ghi chú |
+|---|---|---|
+| Copy | `lib/l10n/app_{en,vi}.arb` (khối `weather*` cuối file, 89 key) | Theo design §10 + §14b. Nhãn làn "Bạn" dùng lại `sleepYou`. Tên "MET Norway" không dịch. |
+| Thẻ Home | `lib/widgets/weather/weather_card.dart` (`WeatherCard`, `WeatherNudgeButton`, `WeatherStatusRow`, `WeatherPeople`, hàm chữ/icon `weatherConditionText` / `weatherSkyIcon` / `weatherCarePrefill` / `weatherCtaLabel`, `openWeatherCare`, `WeatherEvents`) | Thứ tự nhánh: chưa có snapshot → khung xương · chưa ai chọn → thẻ mời (khuôn Đêm qua, "Chọn thành phố" mở chuỗi 3 chạm khi đã ghép, "Ẩn") · đang tải lần đầu → khung xương · lỗi (>24 giờ / không có số) → nhãn + tên thành phố + "Chưa tải được thời tiết · Thử lại", chạm cả thẻ = thử lại · số cũ → chữ xám, header "Chưa cập nhật được", hàng dưới "⏱ Số liệu lúc hh:mm · Thử lại" · `compact` → 1 hàng (Home C §15) · còn lại hai làn Bạn trái / người ấy phải (`PersonLabel`, màu `PersonPalette` lấy từ `SleepProvider` như Đêm qua), dòng "TP.HCM · Chiều nay mưa", hàng chung nút (căn phải) / câu chênh / không. Cùng thành phố → 1 làn "Cả hai cùng ở …" (2 chấm chồng). `MidnightBuilder` tính lại câu lúc 0:00. `AnimatedSwitcher`/`AnimatedSize` 200 ms, Reduce Motion = 0. EN dùng `shortName` (HCMC). |
+| Sheet | `lib/widgets/weather/weather_sheets.dart` (`showWeatherDetailSheet`, `showCityPickerSheet`, `CityPicker`, `MetCredit`, `WeatherSettingsSection`) | Chi tiết: khối Bạn trước, thước nhiệt chung hai nơi, "bây giờ hh:mm" khi múi giờ thành phố khác máy, nút gợi ý dưới thước ở khối người ấy (chỉ khi số tươi), 5 mốc 3 giờ theo giờ thành phố, Đổi thành phố / Đổi giúp / "Thảo tự chọn". Chọn: `DraggableScrollableSheet` 0.92, `ListView.builder`, nhóm Đang chọn / Việt Nam / Nước ngoài, "Tỉnh cũ: …", không tự bật bàn phím, nút xoá chữ chỉ khi đã gõ; chạm = haptic + ghi (không chờ) + đóng; chuỗi lần đầu chọn xong của mình thì hỏi "Còn Thảo đang ở đâu?" + "Để sau"; bị rules chặn → SnackBar "Thảo vừa tự chọn…". |
+| Cài đặt | `settings_screen.dart` chèn 1 khối `WeatherSettingsSection` ngay sau nhóm Thông báo | Chỗ của bạn · Chỗ {tên} (bấm được khi còn chọn giúp được) · công tắc "Thời tiết chỗ người ấy" (07:30 cố định, không có hàng Giờ báo; chờ người ấy → khoá + "Ghép đôi xong mới báo được.") · xem trước thông báo mưa · dòng MET. Bật công tắc xin quyền thông báo như thẻ nhắc ăn gì. |
+| Thông báo 07:30 | `reminder_service.dart` khối weather: id **1160**, `scheduleWeatherMorning` / `cancelWeatherMorning`, payload JSON; `initialize` thêm `onDidReceiveNotificationResponse` + `getNotificationAppLaunchDetails` (chạm khi app tắt) → `pendingWeatherTap` | Lập lịch ở `WeatherProvider._syncNotice` (sau mỗi lượt tải, snapshot, đổi tên/công tắc); luật thuần `weatherMorningPlan` + `weatherMorningLogAfter` trong `weather_logic.dart`: 07:30 kế tiếp giờ máy, dự báo ≤18 giờ tuổi lúc nổ, cửa sổ 07:30 → +14 giờ ở chỗ người ấy (giờ thành phố, DST từng giờ), trần 3 lần trong 7 ngày (6 ngày trước + hôm đó), không trùng loại hôm trước. Nhật ký ở Hive `app_settings/weather_notice_log` (ghi lúc arm; arm rồi bỏ thì xoá mục sáng sắp tới; mục đã qua giữ = đã nổ; tự dọn >14 ngày). Huỷ khi tắt, khi `clear()` (đăng xuất / không couple / rời), khi người ấy bỏ thành phố. Chạm → Home mở thẳng màn Quan tâm điền sẵn từ payload (quyết định 2 của Lead). |
+| Home | `home_screen.dart` | Thẻ ở dòng đánh dấu (Selector `cardVisible`, `KeyedSubtree(_weatherKey)`, hiện cả khi chờ) · re-arm `watchForCouple` + `setPartnerName` + `refresh()` (đã chặn 30 phút) · `onResume()` · `pendingHomeFocus == 'weather'` cuộn tới thẻ · nghe `ReminderService.pendingWeatherTap`. |
+| Prefs | `WeatherService.loadPrefs/savePref/saveNoticeLog` (Hive `app_settings`: `weather_card_hidden`, `weather_notice_enabled`, `weather_notice_log`) | Chọn thành phố thành công thì xoá cờ ẩn. |
+| Analytics | gọi thẳng `AnalyticsService.logEvent` (không sửa `analytics_service.dart`) | `weather_city_set{who, region, entry}`, `weather_card_tap{state}`, `weather_cta_tap{condition, entry: card|notification}`, `weather_notif_toggle{enabled}`, `care_message_sent{source: weather}` (tham số sẵn có). |
+| Phụ | `shimmer_skeleton.dart` | `enabled: !reduceMotion` (design §6 yêu cầu khung xương đứng yên khi Reduce Motion; áp cho mọi chỗ dùng). |
+
+### Vá review backend stage 1 (Lead chuyển, 2026-10-20)
+
+1. `deleteCoupleCompletely` thêm `recursiveDelete(couples/{id}/weather)` + test. **D18 trong spec giả định sai**: `notifyPartnerLeft` thoát sớm khi không còn ai nên thành phố người cuối không bao giờ bị xoá; Lead sửa spec.
+2. `setCity` không giữ sheet: chờ tối đa 4 giây rồi coi là đã lưu (offline thì Firestore xếp hàng; rules từ chối sau đó thì snapshot đưa giá trị cũ về). Lỗi trả về trong 4 giây vẫn hoàn tác + `false` (SnackBar). Sheet vốn không `await`.
+3. Lỗi callable → không tự gọi lại trong 3 phút (`retryAfterError`); "Thử lại" vẫn ép.
+4. `refresh(force: true)` lúc đang chạy → ghi `_pendingForce`, chạy lại khi lượt hiện tại xong.
+5. CF khoá mềm: lượt đầu sau hết hạn ghi `lockUntil = now + 60 s` trong transaction rồi mới gọi MET; lượt đến sau trong lúc khoá nhận bản cũ (`stale: false`, vì mới hết hạn chưa tới 1 phút).
+6. `weatherConditionFor` nhận `offsetAt` (độ lệch theo từng giờ) — đêm đổi giờ London/Sydney không lệch 1 tiếng; provider truyền `cityUtcOffset(city, t)`; test DST London.
+7. Cửa sổ nới sang 09:59 sáng mai khi còn **dưới 3 tiếng tính tới phút** (21:30 nới, 21:00 chưa); sửa test.
+8. Test thêm: `getCityWeather` (chưa đăng nhập, id sai, 1 thành phố có số + 1 không, cả hai không → `unavailable`), `retryAt` hết tác dụng sau 1 lần thành công, MET 403/429, khoá mềm, dữ liệu chỉ bước 6 giờ; provider: 1/2 thành phố có số → `lastRefreshFailed`, lùi 3 phút sau lỗi, Thử lại lúc đang chạy.
+
 ## Edge case kỹ thuật đã xử lý
 
 - Chọn giúp người ấy trong lúc người ấy vừa tự chọn: rules chặn → provider rollback, trả `false`.
@@ -47,6 +72,17 @@ Theo phác §5.2, thêm một điều: `cityId` phải khớp `^[a-z]{2}-[a-z0-9
 
 ## Lệch spec / brief (có chủ ý)
 
+Stage 2 (UI tự quyết khi spec chưa vẽ, có tra UI UX Pro Max `"partial data error state retry" --domain ux`):
+
+- **Lỗi/số cũ tính theo nơi tệ nhất**: một trong hai thành phố không có số thì cả thẻ vào trạng thái lỗi (nhãn + tên thành phố + Thử lại). Skill gợi ý báo lỗi ngay chỗ hỏng (Error Placement); chưa làm vì trường hợp chỉ xảy ra khi một thành phố mới chưa từng tải được — báo Tester soi, sửa thành lỗi theo làn nếu thấy khó hiểu.
+- **Nhãn làn**: theo Home C §15 (`PersonLabel` IN HOA 11) thay cho `_LaneLabel` chữ thường của weather §4.1; tên thành phố chuyển xuống dòng câu tình trạng ("TP.HCM · Chiều nay mưa") như mock `weatherCardC`.
+- **Thẻ ẩn ("Ẩn") ẩn hẳn** cho tới khi chọn thành phố thành công (kể cả từ Cài đặt). Người ấy chọn giúp mình thì cờ ẩn của máy mình không đổi.
+- **Thẻ không hiện khi không có Firebase** (chế độ local không có thành phố / dự báo).
+- **`weather_cta_tap.entry`**: nút trong sheet chi tiết ghi `card` (spec chỉ có `card|notification`).
+- **Bỏ qua khi chạm thông báo mà payload hỏng / thành phố lạ** → cuộn tới thẻ thay vì mở Quan tâm.
+
+Stage 1:
+
 1. **CF không kiểm thành viên couple** (brief ghi "kiểm auth + thành viên"; overview §5.3 ghi rõ "không cần là thành viên couple vì chỉ trả dữ liệu công khai theo thành phố"). Theo spec; đầu vào cũng không có `coupleId`.
 2. **`retryAt` 10 phút** sau khi MET lỗi (spec không có): chống gọi MET liên tục khi MET sập.
 3. **Một thành phố lỗi không có cache** → bỏ khỏi `cities` thay vì làm hỏng cả lượt; chỉ khi cả hai đều không có mới `unavailable`.
@@ -57,7 +93,9 @@ Theo phác §5.2, thêm một điều: `cityId` phải khớp `^[a-z]{2}-[a-z0-9
 ## Việc mở
 
 - **Spike D3 (độ đúng MET 5 ngày, Hà Nội / TP.HCM / Đà Nẵng) CHƯA LÀM** — cần 5 ngày liên tiếp so "chiều nay mưa?" với thực tế. Theo overview §9 phải có kết quả và PO duyệt trước khi làm UI. Gợi ý cách chạy: mỗi sáng 08:00 gọi `/compact` cho 3 toạ độ trong `weather_cities.json`, ghi `weatherConditionFor` ra bảng, tối đối chiếu bản tin. Không đạt → đổi phần `fetch` trong `getWeatherForCity` sang WeatherKit REST (giữ nguyên hợp đồng callable).
-- Home chưa re-arm `WeatherProvider.watchForCouple` khi người ấy ghép vào giữa phiên (khối re-arm ở `home_screen.dart` ~dòng 1880) — làm ở stage 2 cùng thẻ.
+- Chưa test trên máy: chữ 200% thật, VoiceOver/TalkBack, thông báo 07:30 thật nổ + chạm khi app tắt (iOS/Android), offline chọn thành phố (4 giây).
+- Có sẵn từ trước (không thuộc feature): `ReminderService.initialize` chạy SAU `PushNotificationService.initialize` và plugin chỉ giữ callback của lần `initialize` cuối ⇒ chạm banner push hiện lúc app đang mở chưa từng điều hướng. Nay callback là của weather (chỉ xử lý payload `weather_morning`), hành vi push cũ không đổi. Muốn sửa: gộp hai callback.
+- Chưa thêm thẻ "Có gì mới" (`feature_tour_entries.dart`) — chờ Lead/PO chốt copy.
 
 ## Kế hoạch stage 2 (UI + thông báo + analytics)
 
@@ -81,10 +119,12 @@ Theo phác §5.2, thêm một điều: `cityId` phải khớp `^[a-z]{2}-[a-z0-9
 - [x] `WeatherService` + `WeatherProvider` + wire `main.dart` / `session_resolver.dart` + test
 - [x] Hàm thuần tình trạng / độ tươi / hàng chung / thẻ gọn + test
 - [ ] Spike D3
-- [ ] Stage 2 (mục trên)
+- [x] Stage 2 (mục trên)
 - [x] `flutter analyze` sạch
-- [ ] Không hardcode chuỗi (stage 2 — stage 1 không có chuỗi hiển thị phía client)
+- [x] Không hardcode chuỗi (trừ "MET Norway" — tên riêng — và giờ "07:30" trong xem trước)
 
 ## Nhật ký implement
 
 - [2026-10-20] [Dev] Stage 1: danh sách 116 thành phố (`lib/data/weather_cities.dart` + `functions/weather_cities.json`), model `lib/models/weather.dart`, logic thuần `lib/utils/weather_logic.dart`, `WeatherService` (callable + Hive `weather_cache`), `WeatherProvider` (wire `main.dart` + `session_resolver.dart`), CF `getCityWeather` + xoá trong `notifyPartnerLeft`, rules `weather/{uid}`. Test: Dart +46 (`weather_logic_test.dart` 38, `weather_provider_test.dart` 8) → `flutter test` 684 pass; functions `npm test` 36 pass (`weather.test.js` 15 mới); rules-test 411 pass (`firestore.weather.test.js` 17 mới). `flutter analyze` 0. Chưa deploy. Spike D3 chưa làm.
+- [2026-10-20] [Dev] Vá 8 finding review backend (xem mục "Vá review backend stage 1"). functions `npm test` 46 pass; rules-test 411 pass.
+- [2026-10-20] [Dev] Stage 2: ARB 89 key `weather*`, `weather_card.dart` + `weather_sheets.dart`, thẻ ở Home (+ re-arm, resume, focus `weather`, chạm thông báo → Quan tâm điền sẵn), mục Cài đặt, thông báo 07:30 id 1160 (trần 3/7, không trùng loại 2 ngày liền), analytics 4 event. Test mới: `weather_card_test.dart` 11 (thẻ 8 trạng thái + 320 dp chữ 200% + picker tìm không dấu + chuỗi 3 chạm), `weather_morning_test.dart` 10 (lịch + trần + nhật ký + lời điền sẵn), provider +3 (thông báo, ẩn thẻ). `flutter test` 714 pass, `flutter analyze` 0. Chưa deploy.

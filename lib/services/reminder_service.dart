@@ -6,6 +6,8 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../models/custom_reminder.dart';
 import '../models/milestone_reminder.dart';
+// ── weather (đợt 2) ──
+import 'push_notification_service.dart' show NotificationTapRouter;
 
 /// One end-of-day daily-question nudge: a fixed [hour]:[minute] for TODAY with
 /// its own localized [title]/[body]. The provider picks the copy from the
@@ -167,6 +169,20 @@ class ReminderService {
   // partner's `decision` push (kind eat) cancels it from the background.
   static const int _idDecision = 1200;
 
+  // ── weather (đợt 2) ──
+  // Weather morning notice (feature weather D13), band 1160–1179, only 1160
+  // used: ONE-SHOT at the next 07:30 when the partner's city has rain / heat
+  // / cold ahead. Owned by WeatherProvider (cap 3 per 7 days, no same kind
+  // two days running); cancelled on switch-off / sign-out / leaving.
+  static const int _idWeatherMorning = 1160;
+  static const String weatherMorningType = 'weather_morning';
+
+  /// JSON payload of a tapped morning notice (`type`, `cta`, `city`, `min`,
+  /// `max`). HomeScreen opens the care screen prefilled from it, then clears
+  /// it.
+  static final ValueNotifier<String?> pendingWeatherTap =
+      ValueNotifier<String?>(null);
+
   // Partner reminders (feature partner-nudge, 2026-06-29): scheduled reminders
   // one partner set FOR the other, synced via Firestore and armed LOCALLY on the
   // recipient's device (so they fire in the recipient's own timezone). Reserved
@@ -224,8 +240,21 @@ class ReminderService {
         iOS: darwinSettings,
         macOS: darwinSettings,
       );
-      await _plugin.initialize(settings);
+      await _plugin.initialize(
+        settings,
+        // ── weather (đợt 2) ── tap on the morning notice (id 1160).
+        onDidReceiveNotificationResponse: (r) => _routeWeatherTap(r.payload),
+      );
       _initialized = true;
+      // ── weather (đợt 2) ── cold start from a tapped morning notice.
+      try {
+        final launch = await _plugin.getNotificationAppLaunchDetails();
+        if (launch?.didNotificationLaunchApp ?? false) {
+          _routeWeatherTap(launch!.notificationResponse?.payload);
+        }
+      } catch (_) {
+        // No launch details on this platform.
+      }
     } catch (error, stack) {
       // Don't let a misconfigured device crash launch; reminders simply stay
       // unavailable until the next run.
@@ -1249,5 +1278,57 @@ class ReminderService {
       hour,
       minute,
     );
+  }
+
+  // ── weather (đợt 2) ──
+
+  static void _routeWeatherTap(String? payload) {
+    if (payload == null || !payload.contains('"$weatherMorningType"')) {
+      return;
+    }
+    NotificationTapRouter.pendingHomeTab.value = 0; // Home
+    pendingWeatherTap.value = payload;
+  }
+
+  /// Arm the morning notice at [fireAt] (phone-local) — replaces any earlier
+  /// one; skipped when that moment has passed.
+  Future<void> scheduleWeatherMorning({
+    required DateTime fireAt,
+    required String title,
+    required String body,
+    required String payload,
+  }) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelWeatherMorning();
+    final when = tz.TZDateTime.from(fireAt, tz.local);
+    if (!when.isAfter(tz.TZDateTime.now(tz.local))) {
+      return;
+    }
+    try {
+      await _plugin.zonedSchedule(
+        _idWeatherMorning,
+        title,
+        body,
+        when,
+        _details,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: payload,
+      );
+    } catch (error) {
+      debugPrint('ReminderService schedule($_idWeatherMorning) failed: $error');
+    }
+  }
+
+  /// Works without [initialize] (plain platform call), like
+  /// [cancelDecisionReminder].
+  Future<void> cancelWeatherMorning() async {
+    try {
+      await _plugin.cancel(_idWeatherMorning);
+    } catch (_) {
+      // Already in the desired state.
+    }
   }
 }

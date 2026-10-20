@@ -156,4 +156,57 @@ class WeatherService {
       // Best-effort.
     }
   }
+
+  // ── Per-device prefs (Hive `app_settings`, a Box<String>) ─────────────────
+
+  static const String _settingsBox = 'app_settings';
+  static const String keyCardHidden = 'weather_card_hidden';
+  static const String keyNoticeEnabled = 'weather_notice_enabled';
+  static const String keyNoticeLog = 'weather_notice_log';
+
+  Future<Box<String>> _openSettings() async => Hive.isBoxOpen(_settingsBox)
+      ? Hive.box<String>(_settingsBox)
+      : await Hive.openBox<String>(_settingsBox);
+
+  /// The card's "Ẩn" flag, the morning-notice switch (default on, D13) and
+  /// the notice log (date key → kind). Defaults when Hive isn't there.
+  Future<({bool cardHidden, bool noticeEnabled, Map<String, String> log})>
+  loadPrefs() async {
+    try {
+      final box = await _openSettings();
+      final raw = box.get(keyNoticeLog);
+      final decoded = raw == null ? null : jsonDecode(raw);
+      return (
+        cardHidden: box.get(keyCardHidden) == 'true',
+        noticeEnabled: box.get(keyNoticeEnabled) != 'false',
+        log: <String, String>{
+          if (decoded is Map)
+            for (final e in decoded.entries)
+              if (e.value is String) '${e.key}': e.value as String,
+        },
+      );
+    } catch (_) {
+      return (
+        cardHidden: false,
+        noticeEnabled: true,
+        log: const <String, String>{},
+      );
+    }
+  }
+
+  Future<void> savePref(String key, String? value) async {
+    try {
+      final box = await _openSettings();
+      if (value == null) {
+        await box.delete(key);
+      } else {
+        await box.put(key, value);
+      }
+    } catch (_) {
+      // Best-effort: the in-memory value holds for this run.
+    }
+  }
+
+  Future<void> saveNoticeLog(Map<String, String> log) =>
+      savePref(keyNoticeLog, jsonEncode(log));
 }

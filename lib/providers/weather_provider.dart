@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -6,6 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../l10n/app_l10n.dart';
 import '../models/weather.dart';
+import '../services/reminder_service.dart';
 import '../services/weather_service.dart';
 import '../utils/weather_logic.dart';
 
@@ -21,12 +23,35 @@ import '../utils/weather_logic.dart';
 /// [onResume]; a city is asked again only when this phone's copy is older
 /// than 30 minutes (D7), unless [refresh] is forced (the "Thử lại" button).
 class WeatherProvider extends ChangeNotifier {
-  WeatherProvider({WeatherService? service, DateTime Function()? clock})
-    : _service = service ?? WeatherService(),
-      _clock = clock ?? DateTime.now;
+  WeatherProvider({
+    WeatherService? service,
+    DateTime Function()? clock,
+    WeatherNoticeScheduler? scheduleNotice,
+    Future<void> Function()? cancelNotice,
+  }) : _service = service ?? WeatherService(),
+       _clock = clock ?? DateTime.now,
+       _scheduleNotice = scheduleNotice ?? _scheduleWithReminders,
+       _cancelNotice =
+           cancelNotice ?? ReminderService.instance.cancelWeatherMorning {
+    unawaited(_loadPrefs());
+  }
 
   final WeatherService _service;
   final DateTime Function() _clock;
+  final WeatherNoticeScheduler _scheduleNotice;
+  final Future<void> Function() _cancelNotice;
+
+  static Future<void> _scheduleWithReminders(
+    WeatherMorningPlan plan,
+    String title,
+    String body,
+    String payload,
+  ) => ReminderService.instance.scheduleWeatherMorning(
+    fireAt: plan.fireAt,
+    title: title,
+    body: body,
+    payload: payload,
+  );
 
   static const Duration refreshEvery = Duration(minutes: 30);
 
@@ -51,11 +76,29 @@ class WeatherProvider extends ChangeNotifier {
   DateTime? _retryNotBefore;
   bool _pendingForce = false;
 
+  // Per-device prefs (Hive `app_settings`).
+  bool _prefsLoaded = false;
+  bool _cardHidden = false;
+  bool _noticeEnabled = true;
+  Map<String, String> _noticeLog = const <String, String>{};
+  String _partnerName = '';
+
+  /// What the armed morning notice was built from (null = re-evaluate).
+  String? _noticeSignature;
+
   /// Bumped on every couple / account change so a late answer of the old
   /// session never lands in the new one.
   int _session = 0;
 
   // ── Read side ─────────────────────────────────────────────────────────────
+
+  /// The Home card shows: Firebase on, a couple watched, not hidden ("Ẩn").
+  bool get cardVisible => isUsingFirebase && _myUid != null && !_cardHidden;
+
+  bool get cardHidden => _cardHidden;
+
+  /// The 07:30 notice switch (Cài đặt, default on — D13).
+  bool get noticeEnabled => _noticeEnabled;
 
   bool get isUsingFirebase => _service.isUsingFirebase;
 
@@ -167,6 +210,7 @@ class WeatherProvider extends ChangeNotifier {
     _partnerUid = partnerUid;
     if (sameStream) {
       notifyListeners();
+      unawaited(_syncNotice());
       unawaited(refresh());
       return;
     }
@@ -196,6 +240,7 @@ class WeatherProvider extends ChangeNotifier {
               return;
             }
             notifyListeners();
+            unawaited(_syncNotice());
             unawaited(refresh());
           },
           onError: (_) {
@@ -228,6 +273,9 @@ class WeatherProvider extends ChangeNotifier {
     if (signedOut) {
       unawaited(_service.clearCache());
     }
+    // Signed out / no couple / left: no notice about a partner any more.
+    _noticeSignature = null;
+    unawaited(_cancelNotice());
     notifyListeners();
   }
 
@@ -281,6 +329,7 @@ class WeatherProvider extends ChangeNotifier {
         _lastRefreshFailed = failed;
         _retryNotBefore = failed ? _clock().add(retryAfterError) : null;
         notifyListeners();
+        unawaited(_syncNotice());
       }
     }
     if (session == _session && _pendingForce) {
@@ -348,6 +397,12 @@ class WeatherProvider extends ChangeNotifier {
           ); // refused later → the stream reverts it
         },
       );
+      if (_cardHidden) {
+        // Picking a city (e.g. from Cài đặt) brings the card back.
+        _cardHidden = false;
+        unawaited(_service.savePref(WeatherService.keyCardHidden, null));
+      }
+      unawaited(_syncNotice());
       return true;
     } catch (_) {
       // Undo unless the stream already brought the server's copy back.
@@ -361,6 +416,114 @@ class WeatherProvider extends ChangeNotifier {
       }
       return false;
     }
+  }
+
+  // ── Prefs + morning notice ────────────────────────────────────────────────
+
+  /// "Ẩn" on the invite card (Cài đặt still has the way in).
+  Future<void> hideCard() async {
+    _cardHidden = true;
+    notifyListeners();
+    await _service.savePref(WeatherService.keyCardHidden, 'true');
+  }
+
+  Future<void> setNoticeEnabled(bool value) async {
+    _noticeEnabled = value;
+    notifyListeners();
+    await _service.savePref(
+      WeatherService.keyNoticeEnabled,
+      value ? 'true' : 'false',
+    );
+    await _syncNotice();
+  }
+
+  /// The partner's display name for the notice body (HomeScreen re-arm).
+  void setPartnerName(String name) {
+    if (name == _partnerName) {
+      return;
+    }
+    _partnerName = name;
+    unawaited(_syncNotice());
+  }
+
+  Future<void> _loadPrefs() async {
+    final prefs = await _service.loadPrefs();
+    _cardHidden = prefs.cardHidden;
+    _noticeEnabled = prefs.noticeEnabled;
+    _noticeLog = prefs.log;
+    _prefsLoaded = true;
+    notifyListeners();
+    await _syncNotice();
+  }
+
+  /// Re-plans the 07:30 notice (id 1160) from what is known now and arms or
+  /// drops it. Cheap when nothing changed (signature).
+  Future<void> _syncNotice() async {
+    if (!_prefsLoaded || _myUid == null) {
+      return;
+    }
+    final city = partnerCity;
+    final nowLocal = _clock().toLocal();
+    final plan = _noticeEnabled && isPaired && city != null
+        ? weatherMorningPlan(
+            nowLocal: nowLocal,
+            forecast: _forecasts[city.id],
+            cityOffsetAt: (t) => cityUtcOffset(city, t),
+            log: _noticeLog,
+          )
+        : null;
+    final l10n = AppL10n.strings;
+    final name = _partnerName.isNotEmpty
+        ? _partnerName
+        : l10n.reactionPartnerFallback;
+    final signature = plan == null
+        ? 'none|${weatherDateKey(weatherMorningFireAt(nowLocal))}'
+        : '${plan.dateKey}|${plan.cta.name}|${plan.min}|${plan.max}|'
+              '${city!.id}|$name|${l10n.localeName}';
+    if (signature == _noticeSignature) {
+      return;
+    }
+    _noticeSignature = signature;
+    final log = weatherMorningLogAfter(
+      _noticeLog,
+      nowLocal: nowLocal,
+      plan: plan,
+    );
+    if (!mapEquals(log, _noticeLog)) {
+      _noticeLog = log;
+      unawaited(_service.saveNoticeLog(log));
+    }
+    if (plan == null) {
+      await _cancelNotice();
+      return;
+    }
+    final cityName = city!.name(l10n.localeName);
+    final (title, body) = switch (plan.cta) {
+      WeatherCta.umbrella => (
+        l10n.weatherMorningRainTitle(cityName),
+        l10n.weatherMorningRainBody(name),
+      ),
+      WeatherCta.water => (
+        l10n.weatherMorningHotTitle(cityName, plan.max),
+        l10n.weatherMorningHotBody(name),
+      ),
+      WeatherCta.warm => (
+        l10n.weatherMorningColdTitle(cityName, plan.min),
+        l10n.weatherMorningColdBody(name),
+      ),
+    };
+    await _scheduleNotice(
+      plan,
+      title,
+      body,
+      jsonEncode(<String, Object>{
+        'type': ReminderService.weatherMorningType,
+        'cta': plan.cta.name,
+        'city': city.id,
+        'min': plan.min,
+        'max': plan.max,
+      }),
+    );
   }
 
   // ── Internals ─────────────────────────────────────────────────────────────
@@ -398,3 +561,12 @@ class WeatherProvider extends ChangeNotifier {
     super.dispose();
   }
 }
+
+/// Arms the 07:30 notice (tests pass a fake; the app uses [ReminderService]).
+typedef WeatherNoticeScheduler =
+    Future<void> Function(
+      WeatherMorningPlan plan,
+      String title,
+      String body,
+      String payload,
+    );

@@ -7,72 +7,7 @@ import 'package:dear_embeiu/providers/weather_provider.dart';
 import 'package:dear_embeiu/services/weather_service.dart';
 import 'package:dear_embeiu/utils/weather_logic.dart';
 
-/// In-memory stand-in: choices come from [choices], forecasts from [server]
-/// (null = the callable throws, offline), the Hive copy from [hive].
-class FakeWeatherService extends WeatherService {
-  final StreamController<Map<String, WeatherChoice>> choices =
-      StreamController<Map<String, WeatherChoice>>.broadcast();
-  Map<String, CityForecast>? server = <String, CityForecast>{};
-  final Map<String, CityForecast> hive = <String, CityForecast>{};
-  final List<List<String>> calls = <List<String>>[];
-  final List<String> writes = <String>[];
-  bool refuseWrites = false;
-  bool cacheCleared = false;
-
-  @override
-  bool get isUsingFirebase => true;
-
-  @override
-  Stream<Map<String, WeatherChoice>> watchChoices(String coupleId) =>
-      choices.stream;
-
-  @override
-  Future<void> setCity({
-    required String coupleId,
-    required String ownerUid,
-    required String myUid,
-    required String cityId,
-  }) async {
-    if (refuseWrites) {
-      throw Exception('permission-denied');
-    }
-    writes.add('$ownerUid=$cityId by $myUid');
-  }
-
-  @override
-  Future<Map<String, CityForecast>> fetchForecasts(
-    List<String> cityIds, {
-    required String languageCode,
-    DateTime? now,
-  }) async {
-    calls.add(List<String>.of(cityIds));
-    final s = server;
-    if (s == null) {
-      throw Exception('unavailable');
-    }
-    return {
-      for (final id in cityIds)
-        if (s[id] case final f?)
-          id: CityForecast(
-            fetchedAt: f.fetchedAt,
-            checkedAt: now!,
-            hours: f.hours,
-          ),
-    };
-  }
-
-  @override
-  Future<Map<String, CityForecast>> loadCached(
-    Iterable<String> cityIds,
-  ) async => {for (final id in cityIds) id: ?hive[id]};
-
-  @override
-  Future<void> saveCached(Map<String, CityForecast> forecasts) async =>
-      hive.addAll(forecasts);
-
-  @override
-  Future<void> clearCache() async => cacheCleared = true;
-}
+import 'weather_fakes.dart';
 
 // 08:10 Vietnam time on 20/10/2026.
 final DateTime t0 = DateTime.utc(2026, 10, 20, 1, 10);
@@ -105,11 +40,21 @@ void main() {
   late FakeWeatherService svc;
   late DateTime now;
   late WeatherProvider p;
+  final armed = <String>[];
+  var cancels = 0;
 
   setUp(() {
+    armed.clear();
+    cancels = 0;
     svc = FakeWeatherService();
     now = t0;
-    p = WeatherProvider(service: svc, clock: () => now);
+    p = WeatherProvider(
+      service: svc,
+      clock: () => now,
+      scheduleNotice: (plan, title, body, payload) async =>
+          armed.add('$title|$body'),
+      cancelNotice: () async => cancels++,
+    );
   });
 
   tearDown(() => p.dispose());
@@ -273,7 +218,12 @@ void main() {
   test('"Thử lại" while a call is running runs once more afterwards', () async {
     final gate = Completer<void>();
     final slow = _SlowService(gate)..server = {'vn-ha-noi': forecast(t0)};
-    final q = WeatherProvider(service: slow, clock: () => now);
+    final q = WeatherProvider(
+      service: slow,
+      clock: () => now,
+      scheduleNotice: (_, _, _, _) async {},
+      cancelNotice: () async {},
+    );
     q.watchForCouple('c1', 'me', '');
     slow.choices.add({'me': choice('me', 'vn-ha-noi')});
     await settle();
@@ -286,6 +236,74 @@ void main() {
     await settle();
     expect(slow.calls.length, 2);
     q.dispose();
+  });
+
+  // ── Morning notice (D13) ────────────────────────────────────────────────
+
+  CityForecast rainAtFire({String symbol = 'rain'}) {
+    final fire = weatherMorningFireAt(now.toLocal()).toUtc();
+    return CityForecast(
+      fetchedAt: now,
+      checkedAt: now,
+      hours: [
+        for (var i = 0; i < 36; i++)
+          WeatherHour(
+            t: DateTime.utc(2026, 10, 20, 1 + i),
+            temp: 27,
+            symbol:
+                DateTime.utc(2026, 10, 20, 1 + i) ==
+                    DateTime.utc(fire.year, fire.month, fire.day, fire.hour + 2)
+                ? symbol
+                : 'cloudy',
+            rain: 0,
+          ),
+      ],
+    );
+  }
+
+  test('rain ahead at the partner\'s place → one notice armed', () async {
+    // 20:10 in Vietnam: tomorrow's 07:30 is ~11 h away (≤ 18 h, D13).
+    now = DateTime.utc(2026, 10, 20, 13, 10);
+    svc.server = {'vn-ha-noi': forecast(now), 'vn-tp-hcm': rainAtFire()};
+    p.watchForCouple('c1', 'me', 'her');
+    p.setPartnerName('Thảo');
+    svc.choices.add({
+      'me': choice('me', 'vn-ha-noi'),
+      'her': choice('her', 'vn-tp-hcm'),
+    });
+    await settle();
+    await settle();
+    expect(armed, hasLength(1));
+    expect(armed.single, contains('Thảo'));
+    expect(svc.noticeLog.values, ['umbrella']);
+
+    await p.setNoticeEnabled(false);
+    expect(cancels, greaterThan(0));
+    expect(armed, hasLength(1));
+    expect(svc.noticeLog, isEmpty, reason: 'the coming morning is forgotten');
+    expect(svc.prefs[WeatherService.keyNoticeEnabled], 'false');
+  });
+
+  test('waiting couple or no partner city → nothing armed', () async {
+    svc.server = {'vn-ha-noi': rainAtFire()};
+    p.watchForCouple('c1', 'me', '');
+    svc.choices.add({'me': choice('me', 'vn-ha-noi')});
+    await settle();
+    await settle();
+    expect(armed, isEmpty);
+  });
+
+  test('hide the card; picking a city brings it back', () async {
+    p.watchForCouple('c1', 'me', 'her');
+    svc.choices.add({});
+    await settle();
+    expect(p.cardVisible, isTrue);
+    await p.hideCard();
+    expect(p.cardVisible, isFalse);
+    expect(svc.prefs[WeatherService.keyCardHidden], 'true');
+    await p.setMyCity('vn-hue');
+    expect(p.cardVisible, isTrue);
+    expect(svc.prefs[WeatherService.keyCardHidden], isNull);
   });
 }
 

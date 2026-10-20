@@ -34,6 +34,8 @@ import 'chat_bg_screen.dart';
 import 'counter_bg_screen.dart';
 import 'lunar_calendar_screen.dart';
 import 'reminders_screen.dart';
+// ── weather (đợt 2) ──
+import '../widgets/weather/weather_sheets.dart' show WeatherSettingsSection;
 
 /// The app-wide Settings screen (feature: settings — v2 redesign 2026-06-11).
 ///
@@ -208,6 +210,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             EntranceReveal(
                               order: 1,
                               child: _buildNotificationsSection(context),
+                            ),
+                            // ── weather (đợt 2) ──
+                            const SizedBox(height: 24),
+                            EntranceReveal(
+                              order: 1,
+                              child: WeatherSettingsSection(
+                                couple: coupleProvider.couple!,
+                              ),
                             ),
                             if (showLunar) ...[
                               const SizedBox(height: 24),

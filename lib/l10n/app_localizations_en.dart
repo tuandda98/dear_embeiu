@@ -4621,4 +4621,341 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifDecisionRespin(String name, String result) {
     return '$name re-spun: $result';
   }
+
+  @override
+  String get weatherCardTitle => 'Weather here and there';
+
+  @override
+  String weatherUpdatedAt(String time) {
+    return 'Updated $time';
+  }
+
+  @override
+  String weatherStaleAt(String time) {
+    return 'As of $time';
+  }
+
+  @override
+  String get weatherStaleHeader => 'Couldn\'t update';
+
+  @override
+  String get weatherLoadFailed => 'Couldn\'t load the weather';
+
+  @override
+  String get weatherRetry => 'Try again';
+
+  @override
+  String get weatherWhereAmI => 'Where are you?';
+
+  @override
+  String weatherWhereIsPartner(String name) {
+    return 'Where is $name?';
+  }
+
+  @override
+  String weatherWhereIsPartnerNext(String name) {
+    return 'And where is $name?';
+  }
+
+  @override
+  String get weatherChoose => 'Choose';
+
+  @override
+  String get weatherChooseForPartner => 'Choose for them';
+
+  @override
+  String weatherSetupBody(String name) {
+    return 'Pick your city and $name\'s. Their weather shows up here every morning.';
+  }
+
+  @override
+  String get weatherSetupBodySolo =>
+      'Pick your city. Today\'s weather shows up here every morning.';
+
+  @override
+  String get weatherSetupCta => 'Choose a city';
+
+  @override
+  String get weatherHide => 'Hide';
+
+  @override
+  String get weatherHideA11y => 'Hide the weather card';
+
+  @override
+  String weatherSameCity(String city) {
+    return 'You\'re both in $city';
+  }
+
+  @override
+  String weatherColder(String name, int n) {
+    return '$n° colder where $name is';
+  }
+
+  @override
+  String weatherWarmer(String name, int n) {
+    return '$n° warmer where $name is';
+  }
+
+  @override
+  String weatherCtaUmbrella(String name) {
+    return 'Remind $name: umbrella';
+  }
+
+  @override
+  String weatherCtaWater(String name) {
+    return 'Remind $name: water';
+  }
+
+  @override
+  String weatherCtaWarm(String name) {
+    return 'Remind $name: dress warm';
+  }
+
+  @override
+  String weatherCtaA11yUmbrella(String name) {
+    return 'Remind $name to take an umbrella';
+  }
+
+  @override
+  String weatherCtaA11yWater(String name) {
+    return 'Remind $name to drink water';
+  }
+
+  @override
+  String weatherCtaA11yWarm(String name) {
+    return 'Remind $name to dress warm';
+  }
+
+  @override
+  String get weatherCtaHint => 'Opens a care note, already written';
+
+  @override
+  String get weatherCardHint => 'Opens the weather details';
+
+  @override
+  String weatherDegrees(int n) {
+    return '$n degrees';
+  }
+
+  @override
+  String get weatherCondRainNow => 'Raining now';
+
+  @override
+  String get weatherCondRainMorning => 'Rain this morning';
+
+  @override
+  String get weatherCondRainAfternoon => 'Rain this afternoon';
+
+  @override
+  String get weatherCondRainTonight => 'Rain tonight';
+
+  @override
+  String get weatherCondRainTomorrow => 'Rain tomorrow morning';
+
+  @override
+  String weatherCondHot(int max) {
+    return 'Hot, up to $max°';
+  }
+
+  @override
+  String weatherCondCold(int min) {
+    return 'Cold, down to $min°';
+  }
+
+  @override
+  String get weatherSkyClear => 'Clear';
+
+  @override
+  String get weatherSkyPartlyCloudy => 'Partly cloudy';
+
+  @override
+  String get weatherSkyCloudy => 'Cloudy';
+
+  @override
+  String get weatherSkyFog => 'Foggy';
+
+  @override
+  String get weatherSkyLightRain => 'Light rain';
+
+  @override
+  String get weatherSkyRain => 'Rain';
+
+  @override
+  String get weatherSkyHeavyRain => 'Heavy rain';
+
+  @override
+  String get weatherSkyThunder => 'Thunderstorms';
+
+  @override
+  String get weatherSkySnow => 'Snow';
+
+  @override
+  String weatherRestOfDay(int min, int max) {
+    return 'Rest of today $min° to $max°';
+  }
+
+  @override
+  String weatherScaleA11y(int min, int max, int now) {
+    return 'Rest of today $min to $max degrees, now $now degrees';
+  }
+
+  @override
+  String weatherSlotA11y(String time, int n) {
+    return '$time, $n degrees';
+  }
+
+  @override
+  String weatherSlotRainA11y(String time, int n) {
+    return '$time, $n degrees, rain';
+  }
+
+  @override
+  String weatherPartnerSelfSet(String name) {
+    return '$name picked this';
+  }
+
+  @override
+  String get weatherSetByMe => 'you picked this';
+
+  @override
+  String get weatherChangeCity => 'Change city';
+
+  @override
+  String get weatherChangeForPartner => 'Change for them';
+
+  @override
+  String weatherTheirTimeNow(String time) {
+    return 'it\'s $time there';
+  }
+
+  @override
+  String get weatherPickerSubSelf =>
+      'Just the city. The app never asks for your location.';
+
+  @override
+  String weatherPickerSubPartner(String name) {
+    return '$name can still change it later.';
+  }
+
+  @override
+  String get weatherSearchHint => 'Search a city or province';
+
+  @override
+  String get weatherSearchLabel => 'Search cities';
+
+  @override
+  String get weatherClearSearch => 'Clear search';
+
+  @override
+  String get weatherGroupCurrent => 'Current';
+
+  @override
+  String get weatherGroupVn => 'Vietnam';
+
+  @override
+  String get weatherGroupIntl => 'Abroad';
+
+  @override
+  String weatherOldProvince(String name) {
+    return 'Formerly $name';
+  }
+
+  @override
+  String get weatherNoMatch =>
+      'That city isn\'t on the list yet. Pick the closest one.';
+
+  @override
+  String weatherPartnerJustSet(String name) {
+    return '$name just picked their own city.';
+  }
+
+  @override
+  String get weatherLater => 'Later';
+
+  @override
+  String get weatherSourcePrefix => 'Weather data: ';
+
+  @override
+  String get weatherSettingsSection => 'Weather here and there';
+
+  @override
+  String get weatherSettingsMine => 'Your city';
+
+  @override
+  String weatherSettingsPartner(String name) {
+    return '$name\'s city';
+  }
+
+  @override
+  String get weatherNotSet => 'Not set';
+
+  @override
+  String get weatherNotifToggle => 'Weather where your love is';
+
+  @override
+  String weatherNotifToggleSub(String time, String name) {
+    return 'At $time, only when it rains, gets very hot or turns cold where $name is. Up to 3 times a week.';
+  }
+
+  @override
+  String get weatherNotifNeedsCouple => 'Available once you\'re paired.';
+
+  @override
+  String weatherNotifPreviewCaption(String name) {
+    return 'On a rainy day where $name is, you\'ll get this:';
+  }
+
+  @override
+  String get weatherCareUmbrellaTitle => 'Take an umbrella';
+
+  @override
+  String weatherCareUmbrellaBody(String city) {
+    return 'Looks like rain in $city. Grab an umbrella if you head out.';
+  }
+
+  @override
+  String get weatherCareWaterTitle => 'Stay hydrated';
+
+  @override
+  String weatherCareWaterBody(String city, int max) {
+    return '$city is hitting $max° today. Cover up in the sun and keep drinking water.';
+  }
+
+  @override
+  String get weatherCareWarmTitle => 'Dress warm';
+
+  @override
+  String weatherCareWarmBody(String city, int min) {
+    return '$city is dropping to $min°. Bring an extra layer when you go out.';
+  }
+
+  @override
+  String weatherMorningRainTitle(String city) {
+    return 'Rain in $city today';
+  }
+
+  @override
+  String weatherMorningRainBody(String name) {
+    return 'Remind $name to take an umbrella?';
+  }
+
+  @override
+  String weatherMorningHotTitle(String city, int max) {
+    return '$city hits $max° today';
+  }
+
+  @override
+  String weatherMorningHotBody(String name) {
+    return 'Remind $name to drink enough water?';
+  }
+
+  @override
+  String weatherMorningColdTitle(String city, int min) {
+    return '$city drops to $min° today';
+  }
+
+  @override
+  String weatherMorningColdBody(String name) {
+    return 'Remind $name to dress warm?';
+  }
 }

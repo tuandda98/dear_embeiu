@@ -418,3 +418,136 @@ List<WeatherCityHit> searchWeatherCities(
   }
   return out;
 }
+
+// ── Morning notice (overview §6.7, D13) ─────────────────────────────────────
+
+/// The morning notice fires at 07:30 on the phone's clock.
+const int kWeatherMorningHour = 7;
+const int kWeatherMorningMinute = 30;
+
+/// At most this many notices in any 7 days (D13).
+const int kWeatherMorningPerWeek = 3;
+
+/// The forecast must be at most this old when the notice fires (D13).
+const Duration kWeatherMorningMaxAge = Duration(hours: 18);
+
+/// How far ahead of 07:30 the notice looks at the partner's place (D13).
+const Duration kWeatherMorningWindow = Duration(hours: 14);
+
+/// 'YYYY-MM-DD' of a phone-local date (keys of the notice log).
+String weatherDateKey(DateTime local) =>
+    '${local.year.toString().padLeft(4, '0')}-'
+    '${local.month.toString().padLeft(2, '0')}-'
+    '${local.day.toString().padLeft(2, '0')}';
+
+/// The next 07:30 on the phone's clock strictly after [nowLocal].
+DateTime weatherMorningFireAt(DateTime nowLocal) {
+  final today = DateTime(
+    nowLocal.year,
+    nowLocal.month,
+    nowLocal.day,
+    kWeatherMorningHour,
+    kWeatherMorningMinute,
+  );
+  return today.isAfter(nowLocal)
+      ? today
+      : DateTime(
+          nowLocal.year,
+          nowLocal.month,
+          nowLocal.day + 1,
+          kWeatherMorningHour,
+          kWeatherMorningMinute,
+        );
+}
+
+/// What the next morning notice says, when it should go out at all.
+class WeatherMorningPlan {
+  const WeatherMorningPlan({
+    required this.fireAt,
+    required this.cta,
+    required this.min,
+    required this.max,
+  });
+
+  /// Phone-local 07:30.
+  final DateTime fireAt;
+  final WeatherCta cta;
+  final int min;
+  final int max;
+
+  String get dateKey => weatherDateKey(fireAt);
+}
+
+/// The next 07:30 notice about the partner's place, or null when none is
+/// due: no forecast, forecast older than 18 h at fire time, nothing worth a
+/// nudge from 07:30 to +14 h on their clock, already 3 notices in the 7 days
+/// ending that morning, or the same kind of notice the day before. [log] =
+/// date key → [WeatherCta.name] of notices already armed / sent.
+WeatherMorningPlan? weatherMorningPlan({
+  required DateTime nowLocal,
+  required CityForecast? forecast,
+  required Duration Function(DateTime utc) cityOffsetAt,
+  required Map<String, String> log,
+}) {
+  if (forecast == null) {
+    return null;
+  }
+  final fireAt = weatherMorningFireAt(nowLocal);
+  final fireUtc = fireAt.toUtc();
+  if (fireUtc.difference(forecast.fetchedAt) > kWeatherMorningMaxAge) {
+    return null;
+  }
+  final until = fireUtc.add(kWeatherMorningWindow);
+  final hours = [
+    for (final h in forecast.hours)
+      if (h.t.isBefore(until)) h,
+  ];
+  final c = weatherConditionFor(
+    hours,
+    fireUtc,
+    cityOffsetAt(fireUtc),
+    offsetAt: cityOffsetAt,
+  );
+  final cta = c?.cta;
+  if (c == null || cta == null) {
+    return null;
+  }
+  var recent = 0;
+  for (var d = 1; d <= 6; d++) {
+    if (log.containsKey(
+      weatherDateKey(DateTime(fireAt.year, fireAt.month, fireAt.day - d)),
+    )) {
+      recent++;
+    }
+  }
+  if (recent >= kWeatherMorningPerWeek) {
+    return null;
+  }
+  final yesterday = weatherDateKey(
+    DateTime(fireAt.year, fireAt.month, fireAt.day - 1),
+  );
+  if (log[yesterday] == cta.name) {
+    return null;
+  }
+  return WeatherMorningPlan(fireAt: fireAt, cta: cta, min: c.min, max: c.max);
+}
+
+/// The log after re-planning at [nowLocal]: entries older than 14 days drop;
+/// the coming 07:30 is recorded with [plan]'s kind, or forgotten when no
+/// notice is armed for it any more (it never went out). Past mornings stay —
+/// they did go out.
+Map<String, String> weatherMorningLogAfter(
+  Map<String, String> log, {
+  required DateTime nowLocal,
+  required WeatherMorningPlan? plan,
+}) {
+  final oldest = weatherDateKey(
+    DateTime(nowLocal.year, nowLocal.month, nowLocal.day - 14),
+  );
+  final next = weatherDateKey(weatherMorningFireAt(nowLocal));
+  return <String, String>{
+    for (final e in log.entries)
+      if (e.key.compareTo(oldest) >= 0 && e.key != next) e.key: e.value,
+    if (plan != null) plan.dateKey: plan.cta.name,
+  };
+}
