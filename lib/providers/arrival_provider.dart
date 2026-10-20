@@ -19,6 +19,9 @@ class ArrivalProvider extends ChangeNotifier {
     ArrivalService? service,
     ArrivalGeofence geofence = const NoopArrivalGeofence(),
     BatteryReader battery = const NoopBatteryReader(),
+    this.placeSearch = const NoopPlaceSearch(),
+    this.permissions = const NoopArrivalPermissions(),
+    this.location = const NoopCurrentLocationReader(),
     bool? autoBuildAllowed,
   }) : _service = service ?? ArrivalService(),
        _geofence = geofence,
@@ -29,6 +32,12 @@ class ArrivalProvider extends ChangeNotifier {
   final ArrivalGeofence _geofence;
   final BatteryReader _battery;
   final bool? _autoBuildAllowed;
+
+  /// OS pieces the place / setup screens call directly (contract in
+  /// `arrival_platform.dart`); `main.dart` passes the real ones.
+  final PlaceSearch placeSearch;
+  final ArrivalPermissions permissions;
+  final CurrentLocationReader location;
 
   String? _uid;
   String? _coupleId;

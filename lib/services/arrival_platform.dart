@@ -119,3 +119,105 @@ class NoopBatteryReader implements BatteryReader {
   @override
   Future<int?> level() async => null;
 }
+
+// ── Contract stage 2 (native) ↔ stage 3 (UI) — Lead 2026-10-20 ────────────
+// Stage 2 implements these with the OS; stage 3 screens reach them through
+// `ArrivalProvider.permissions` / `.location` / `.placeSearch` and test with
+// fakes. Don't change a signature without telling the other stage.
+
+/// Location permission level the arrival screens care about (D8).
+enum ArrivalPermissionLevel {
+  /// Never asked on this phone.
+  notDetermined,
+
+  /// Refused or restricted — only system Settings can change it now.
+  denied,
+
+  /// "Khi dùng ứng dụng": enough for "Dùng vị trí hiện tại", not for auto.
+  whenInUse,
+
+  /// "Luôn luôn" / "Cho phép mọi lúc".
+  always,
+}
+
+class ArrivalPermissionState {
+  const ArrivalPermissionState(this.level, {this.precise = true});
+
+  final ArrivalPermissionLevel level;
+
+  /// iOS "Vị trí chính xác" / Android fine location. Off → 150–250 m regions
+  /// fire late or never, so the screens ask to turn it on.
+  final bool precise;
+
+  bool get canReadOnce =>
+      level == ArrivalPermissionLevel.whenInUse ||
+      level == ArrivalPermissionLevel.always;
+
+  bool get canAuto => level == ArrivalPermissionLevel.always && precise;
+}
+
+/// Reads and asks location permission (D8).
+abstract class ArrivalPermissions {
+  Future<ArrivalPermissionState> status();
+
+  /// System dialog "khi dùng ứng dụng" (+ precise). Returns the state once
+  /// the dialog closes; no dialog when the user already decided.
+  Future<ArrivalPermissionState> requestWhenInUse();
+
+  /// D8 step 2: iOS asks for "Luôn luôn", Android opens the "Cho phép mọi
+  /// lúc" page. The answer may only land on resume, so callers re-read
+  /// [status] (the provider's `onResume`).
+  Future<ArrivalPermissionState> requestAlways();
+
+  /// The app's page in system Settings.
+  Future<void> openSettings();
+}
+
+class NoopArrivalPermissions implements ArrivalPermissions {
+  const NoopArrivalPermissions();
+
+  static const _none = ArrivalPermissionState(
+    ArrivalPermissionLevel.notDetermined,
+  );
+
+  @override
+  Future<ArrivalPermissionState> status() async => _none;
+
+  @override
+  Future<ArrivalPermissionState> requestWhenInUse() async => _none;
+
+  @override
+  Future<ArrivalPermissionState> requestAlways() async => _none;
+
+  @override
+  Future<void> openSettings() async {}
+}
+
+/// One reading for "Dùng vị trí hiện tại" (design §4.4).
+class CurrentFix {
+  const CurrentFix({
+    required this.lat,
+    required this.lng,
+    required this.accuracyM,
+  });
+
+  final double lat;
+  final double lng;
+
+  /// Horizontal accuracy in metres ("lệch khoảng 12 m", §4.5).
+  final double accuracyM;
+}
+
+abstract class CurrentLocationReader {
+  /// Null on timeout or no fix. Needs [ArrivalPermissionState.canReadOnce].
+  Future<CurrentFix?> current({Duration timeout = const Duration(seconds: 15)});
+}
+
+class NoopCurrentLocationReader implements CurrentLocationReader {
+  const NoopCurrentLocationReader();
+
+  @override
+  Future<CurrentFix?> current({
+    Duration timeout = const Duration(seconds: 15),
+  }) async => null;
+}
