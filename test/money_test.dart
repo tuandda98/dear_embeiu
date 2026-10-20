@@ -1106,6 +1106,20 @@ void main() {
       for (final t in sharedTx) {
         expect(t.isWellFormed, isTrue, reason: t.id);
       }
+      // Review stage 1, #3: a person paid AND the shared wallet paid.
+      expect(
+        tx(
+          '1',
+          '2026-10-20',
+          e,
+          120000,
+          out: 'joint',
+          payer: me,
+          share: 60000,
+          shared: true,
+        ).isWellFormed,
+        isFalse,
+      );
       expect(
         tx(
           '1',

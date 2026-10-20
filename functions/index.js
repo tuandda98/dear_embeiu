@@ -4128,7 +4128,9 @@ const MONEY_COPY = {
     budget80Title: () => "Tháng này chúng mình đã tiêu 80% ngân sách",
     budget80Body: () => "Mở sổ chung xem còn lại bao nhiêu nhé.",
     budget100Title: () => "Tháng này chúng mình tiêu hết ngân sách rồi",
-    budget100Body: (days) => `Chậm lại chút nhé, còn ${days} ngày nữa mới sang tháng.`,
+    budget100Body: (days) => days > 0 ?
+      `Chậm lại chút nhé, còn ${days} ngày nữa mới sang tháng.` :
+      "Chậm lại chút nhé, hôm nay là ngày cuối tháng rồi.",
     partnerFallback: "Người ấy",
   },
   en: {
@@ -4139,7 +4141,11 @@ const MONEY_COPY = {
     budget80Title: () => "We've used 80% of this month's budget",
     budget80Body: () => "Open our shared book to see what's left.",
     budget100Title: () => "We've used up this month's budget",
-    budget100Body: (days) => `Let's slow down a little. ${days} days to go this month.`,
+    budget100Body: (days) => days > 1 ?
+      `Let's slow down a little. ${days} days to go this month.` :
+      days === 1 ?
+        "Let's slow down a little. One more day to go this month." :
+        "Let's slow down a little. Today is the last day of the month.",
     partnerFallback: "Your person",
   },
 };
@@ -4252,17 +4258,18 @@ async function moneyBudgetUpdate(coupleRef, memberIds, tx, nowMs) {
   if (`${tx.date || ""}`.slice(0, 7) !== month) {
     return {skipped: "other_month"};
   }
-  const budgets = await coupleRef.collection("moneyBudgets").where("categoryId", "==", "").limit(1).get();
-  if (budgets.empty) {
+  // The whole-book budget has the fixed id 'total' (rules), one per couple.
+  const budgetRef = coupleRef.collection("moneyBudgets").doc("total");
+  const budget = await budgetRef.get();
+  if (!budget.exists) {
     return {skipped: "no_budget"};
   }
-  const budgetRef = budgets.docs[0].ref;
   const spent = await moneySum(coupleRef.collection("moneyTx")
     .where("memberUids", "==", memberIds)
     .where("type", "==", "expense")
     .where("date", ">=", `${month}-01`)
     .where("date", "<=", `${month}-31`));
-  const level = moneyBudgetLevel(spent, Number(budgets.docs[0].get("amount")) || 0);
+  const level = moneyBudgetLevel(spent, Number(budget.get("amount")) || 0);
   if (level === 0) {
     return {skipped: "under_80"};
   }
@@ -4307,8 +4314,11 @@ async function processMoneyTxWrite(coupleId, before, after, nowMs) {
   }
   const coupleRef = db.collection("couples").doc(coupleId);
   const out = {};
+  // Anything that brings money INTO a wallet may fill a goal: a contribution,
+  // a transfer from Ví chung into "Quỹ Đà Lạt", an adjustment. moneyGoalUpdate
+  // skips non-goal wallets and only pushes "vừa góp" for a new contribution.
   const walletId = `${after.inWalletId || ""}`;
-  if (after.type === "contribution" && isDocId(walletId)) {
+  if (isDocId(walletId)) {
     out.goal = await moneyGoalUpdate(coupleRef, walletId, memberIds, after, !before);
   }
   if (after.type === "expense") {

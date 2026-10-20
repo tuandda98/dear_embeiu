@@ -264,15 +264,30 @@ describe('firestore: money — own book', () => {
 
   it('budgets: 1..10 tỷ, no client `alerted`', async () => {
     const db = authedDb('alice');
-    const B = OWN('alice', 'moneyBudgets', 'b1');
+    const B = OWN('alice', 'moneyBudgets', 'food');
     await assertSucceeds(setDoc(doc(db, B), budget('alice', {categoryId: 'food', amount: 2000000})));
-    await assertFails(setDoc(doc(db, OWN('alice', 'moneyBudgets', 'b2')), budget('alice', {amount: 0})));
-    await assertFails(setDoc(doc(db, OWN('alice', 'moneyBudgets', 'b3')), budget('alice', {alerted: {'2026-10': 80}})));
+    await assertFails(setDoc(doc(db, OWN('alice', 'moneyBudgets', 'total')), budget('alice', {amount: 0})));
+    await assertFails(setDoc(doc(db, OWN('alice', 'moneyBudgets', 'total')), budget('alice', {alerted: {'2026-10': 80}})));
     await assertFails(getDoc(doc(authedDb('bob'), B)));
   });
 
+  it('budget id is fixed: `total` for the whole book, else the category id', async () => {
+    const db = authedDb('alice');
+    await assertSucceeds(setDoc(doc(db, OWN('alice', 'moneyBudgets', 'total')), budget('alice')));
+    await assertFails(setDoc(doc(db, OWN('alice', 'moneyBudgets', 'auto1')), budget('alice')));
+    await assertFails(setDoc(doc(db, OWN('alice', 'moneyBudgets', 'total')),
+      budget('alice', {categoryId: 'food'})));
+    await assertFails(setDoc(doc(db, OWN('alice', 'moneyBudgets', 'auto2')),
+      budget('alice', {categoryId: 'food'})));
+    // An existing budget cannot be moved to another category.
+    const F = OWN('alice', 'moneyBudgets', 'food');
+    await seedDoc(F, stored(budget('alice', {categoryId: 'food'})));
+    await assertFails(updateDoc(doc(db, F), {categoryId: 'edu', updatedAt: serverTimestamp()}));
+    await assertSucceeds(updateDoc(doc(db, F), {amount: 3000000, updatedAt: serverTimestamp()}));
+  });
+
   it('own budget: `alerted` cannot be added later; default wallet id ≤40', async () => {
-    const B = OWN('alice', 'moneyBudgets', 'b1');
+    const B = OWN('alice', 'moneyBudgets', 'total');
     await seedDoc(B, stored(budget('alice')));
     await assertFails(updateDoc(doc(authedDb('alice'), B), {alerted: {'2026-10': 80}, updatedAt: serverTimestamp()}));
     await assertFails(setDoc(doc(authedDb('alice'), OWN('alice', 'moneyMeta', 'main')),
@@ -358,6 +373,23 @@ describe('firestore: money — shared book', () => {
       sharedExpense('alice', {payer: 'wallet', splitMode: 'none', payerShare: 0})));
     await assertSucceeds(setDoc(doc(db, SH('moneyTx', 'c')),
       sharedExpense('alice', {payer: 'wallet', outWalletId: 'joint', splitMode: 'none', payerShare: 0})));
+  });
+
+  it('a person paid ⇒ no shared wallet pays too (no double count)', async () => {
+    const db = authedDb('alice');
+    // alice paid AND the shared wallet paid: wallet −120k + couple balance +60k.
+    await assertFails(setDoc(doc(db, SH('moneyTx', 'd1')), sharedExpense('alice', {outWalletId: 'joint'})));
+    await assertFails(setDoc(doc(db, SH('moneyTx', 'd2')), sharedExpense('alice', {payer: 'bob', outWalletId: 'joint'})));
+    await assertFails(setDoc(doc(db, SH('moneyTx', 'd3')), sharedExpense('alice',
+      {type: 'transfer', categoryId: '', outWalletId: 'joint', inWalletId: 'dalat', splitMode: 'none', payerShare: 0})));
+    await assertSucceeds(setDoc(doc(db, SH('moneyTx', 'd4')), sharedExpense('alice',
+      {type: 'transfer', categoryId: '', payer: 'wallet', outWalletId: 'joint', inWalletId: 'dalat', splitMode: 'none', payerShare: 0})));
+    // Editing a person-paid entry onto the shared wallet must switch the payer.
+    const T2 = SH('moneyTx', 'd5');
+    await seedDoc(T2, stored(sharedExpense('alice')));
+    await assertFails(updateDoc(doc(db, T2), edit('alice', {outWalletId: 'joint'})));
+    await assertSucceeds(updateDoc(doc(db, T2),
+      edit('alice', {outWalletId: 'joint', payer: 'wallet', splitMode: 'none', payerShare: 0})));
   });
 
   it('payerShare negative or above amount is refused; bad splitMode too', async () => {
@@ -455,6 +487,8 @@ describe('firestore: money — shared book', () => {
     await assertSucceeds(getDoc(doc(authedDb('bob'), B)));
     await assertFails(getDoc(doc(authedDb('dave'), B)));
     await assertFails(setDoc(doc(authedDb('alice'), SH('moneyBudgets', 'x')), budget('alice', {alerted: {}})));
+    await assertFails(setDoc(doc(authedDb('alice'), SH('moneyBudgets', 'auto')), budget('alice')));
+    await assertSucceeds(setDoc(doc(authedDb('bob'), SH('moneyBudgets', 'food')), budget('bob', {categoryId: 'food'})));
     await seedDoc(B, stored(budget('alice', {alerted: {'2026-10': 80}})));
     await assertFails(updateDoc(doc(authedDb('bob'), B), {'alerted.2026-10': 100, updatedAt: serverTimestamp()}));
     await assertSucceeds(updateDoc(doc(authedDb('bob'), B), {amount: 6000000, updatedAt: serverTimestamp()}));

@@ -270,7 +270,8 @@ class MoneyService {
     }),
   ], docId: id);
 
-  /// One budget per category ('' = total) — [id] given = edit.
+  /// One budget per category ('' = total), doc id [MoneyBudget.idFor] —
+  /// [id] given (the budget already exists) = edit.
   Future<MoneyWriteOutcome> setBudget({
     String? id,
     required String categoryId,
@@ -280,7 +281,7 @@ class MoneyService {
     if (amount < 1 || amount > 10000000000) {
       throw ArgumentError.value(amount, 'amount');
     }
-    final ref = id == null ? _budgets.doc() : _budgets.doc(id);
+    final ref = _budgets.doc(id ?? MoneyBudget.idFor(categoryId));
     return commit([
       (b) => id == null
           ? b.set(ref, <String, dynamic>{

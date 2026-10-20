@@ -366,6 +366,9 @@ class MoneyTx {
       if (memberUids.length != 2) return false;
       if (!payerIsPerson && payer != kMoneyPayerWallet) return false;
       if (payer == kMoneyPayerWallet && outWalletId.isEmpty) return false;
+      // A person paid → out of their pocket, never a shared wallet as well
+      // (the wallet would drop AND the couple balance count it).
+      if (payerIsPerson && outWalletId.isNotEmpty) return false;
       if (payerShare < 0 || payerShare > amount) return false;
     } else if (payer != null || splitMode != null || payerShare != 0) {
       return false;
@@ -408,6 +411,11 @@ class MoneyBudget {
   final Map<String, int> alerted;
 
   bool get isTotal => categoryId.isEmpty;
+
+  /// Doc id of a budget: 'total' for the whole book, else the category id —
+  /// fixed so two phones setting the same budget hit one doc (rules check).
+  static String idFor(String categoryId) =>
+      categoryId.isEmpty ? 'total' : categoryId;
 
   static MoneyBudget? fromDoc(String id, Map<String, dynamic>? d) {
     if (d == null || d['amount'] is! num) return null;

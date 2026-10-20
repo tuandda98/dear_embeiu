@@ -1268,7 +1268,9 @@ service cloud.firestore {
         && d.get('updatedBy', '') is string
         && (!shared || (d.memberUids is list
           && d.memberUids.size() == 2
-          && (person || (d.payer == 'wallet' && hasOut))
+          // A person paid ⇒ from their own pocket, never also out of a shared
+          // wallet (else the wallet drops AND the couple balance counts it).
+          && ((person && !hasOut) || (d.payer == 'wallet' && hasOut))
           && d.splitMode in ['equal', 'treat', 'for_partner', 'custom', 'none']
           && d.payerShare is int
           && d.payerShare >= 0
@@ -1327,6 +1329,12 @@ service cloud.firestore {
     }
 
     // ---- budgets (monthly, '' = whole book) ----
+    // One doc per category, id = 'total' or the category id, so two phones
+    // setting the same budget write the same doc.
+    function moneyBudgetIdOk(budgetId, d) {
+      return budgetId == (d.categoryId == '' ? 'total' : d.categoryId);
+    }
+
     function moneyBudgetOk(d) {
       return d.keys().hasAll(['categoryId', 'amount', 'createdBy', 'createdAt'])
         && d.keys().hasOnly(['categoryId', 'amount', 'createdBy', 'createdAt', 'updatedAt', 'alerted'])
@@ -1338,11 +1346,12 @@ service cloud.firestore {
       allow read, delete: if moneyIsOwner(userId);
       allow create: if moneyIsOwner(userId)
         && moneyBudgetOk(request.resource.data)
+        && moneyBudgetIdOk(budgetId, request.resource.data)
         && !('alerted' in request.resource.data)
         && moneyCreateStamp(request.resource.data);
       allow update: if moneyIsOwner(userId)
         && moneyBudgetOk(request.resource.data)
-        && moneyUnchanged(['createdBy', 'createdAt', 'alerted'])
+        && moneyUnchanged(['categoryId', 'createdBy', 'createdAt', 'alerted'])
         && request.resource.data.updatedAt == request.time;
     }
 
@@ -1351,11 +1360,12 @@ service cloud.firestore {
       allow delete: if moneyCoupleFull(coupleId);
       allow create: if moneyCoupleFull(coupleId)
         && moneyBudgetOk(request.resource.data)
+        && moneyBudgetIdOk(budgetId, request.resource.data)
         && !('alerted' in request.resource.data)
         && moneyCreateStamp(request.resource.data);
       allow update: if moneyCoupleFull(coupleId)
         && moneyBudgetOk(request.resource.data)
-        && moneyUnchanged(['createdBy', 'createdAt', 'alerted'])
+        && moneyUnchanged(['categoryId', 'createdBy', 'createdAt', 'alerted'])
         && request.resource.data.updatedAt == request.time;
     }
 
