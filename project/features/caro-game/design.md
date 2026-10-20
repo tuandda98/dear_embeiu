@@ -22,7 +22,7 @@
 | C5 | **Chạm 2 bước:** chạm ô trống → viền navy + quân mờ α .45, nút "Đi nước này" sáng; chạm lại đúng ô **sau ≥400ms** hoặc bấm nút → đi. Chạm ô khác thì đổi chỗ. **Không có chạm-đúp-để-phóng-to.** | Đi nhầm không có đường lui. Chặn 400ms để hai cú chạm nhanh vô tình không thành một nước. |
 | C6 | **Nút đặc navy chỉ dùng cho việc người ấy đang chờ mình** (đi tiếp, vào chơi, đi nước này, rủ chơi ở bước cuối). Các nút còn lại viền navy. Thẻ Home **bỏ CTA gradient hồng** của `RpsInviteCard`. | Chữ trắng trên `sunsetRomance` chỉ ~1,7:1 ở đầu nhạt; navy 15,9:1. Một nút đặc mỗi khối nên mắt biết bấm đâu trước. |
 | C7 | **Home: một thẻ "Chơi cùng nhau" thay `RpsInviteCard`**, hai dòng cố định: Cờ caro trên, Oẳn tù tì dưới. | Không thêm thẻ thứ hai vào Home (D15). Thứ tự cố định để tay quen chỗ. |
-| C8 | **Xin thua / lịch sử / luật** nằm trong menu ⋯ ở header, không đặt cạnh nút "Đi". "Để sau" (huỷ khi bàn 1 quân) là nút chữ dưới thanh hành động. | Xin thua hiếm dùng và không lấy lại được; để xa nút chính, có hộp hỏi lại. |
+| C8 | ⟪sửa ở vòng soát dễ dùng⟫ **Header phải = icon đồng hồ → Lịch sử** (y như Oẳn tù tì). **Luật:** chạm tên luật ở làn giữa (có icon ⓘ). **Xin thua:** nút chữ đỏ `errorInk` dưới thanh hành động, luôn hỏi lại. "Để sau" (huỷ khi bàn 1 quân) là nút chữ cùng chỗ. Bỏ menu ⋯. | Cùng header với rps; mỗi việc hiếm có đúng một chỗ nhìn thấy được, 2 chạm. |
 | C9 | Kết quả **không có pháo giấy**; chỉ vẽ dải thắng 320ms và rung. | Một hiệu ứng có nghĩa là đủ (UI UX Pro Max "Excessive Motion"); pháo giấy để riêng cho oẳn tù tì. |
 
 **Đề xuất bổ sung design system (PO duyệt, không tự thêm vào code ngoài các mục này):**
@@ -78,11 +78,12 @@ Thành phần đứng cạnh nhau đã soát chung: (1) hai dòng trong thẻ Ho
 
 ```
 Home ─ thẻ "Chơi cùng nhau" ─┬─ dòng Cờ caro ── có ván ──────────────► Màn ván (1,6×)
-                             │                └ không có ván ─► Sheet chọn luật ─► Màn ván trống (1×) ─► chọn ô ─► "Rủ Thảo chơi"
+                             │                └ không có ván ─► Sheet chọn luật ─► "Rủ Thảo chơi" (quân đầu ở giữa bàn, xong)
+                             │                                                └ "Tự chọn ô đầu tiên" ─► Màn ván trống ─► chọn ô ─► "Rủ Thảo chơi"
                              └─ dòng Oẳn tù tì ─► RpsGameScreen (như cũ)
 Push caro_invite/turn/nudge · Inbox caro_invite · Widget caro_turn ─► Màn ván của đúng gameId
 Push caro_result ─► Màn ván ở trạng thái kết quả
-Màn ván ── ⋯ ─► menu: Lịch sử ván · Luật của ván này · Xin thua (· Huỷ ván khi ≤1 quân)
+Màn ván ── 🕓 ─► Lịch sử · chạm tên luật ─► sheet luật · "Xin thua"/"Để sau"/"Kết thúc ván" ─► hộp hỏi lại
 Kết quả ─► "Phục thù"/"Ván mới" ─► Sheet chọn luật ─► ...      Kết quả ─► "Xem lịch sử ván" ─► Lịch sử ─► chạm dòng ─► Xem lại (bàn cuối)
 Profile ─ huy hiệu Cờ caro ─► (đến lượt mình/được rủ) Màn ván | (còn lại) Lịch sử
 ```
@@ -132,9 +133,9 @@ Màn mới: `CaroGameScreen(gameId?)` (gồm cả trạng thái kết quả), `C
 |---|---|---|---|
 | 1 | được rủ: `playing`, `cells.length == 1`, tôi không phải `createdBy` | `caroEntryInvited` | Vào chơi · đặc · chấm |
 | 2 | tới lượt mình | `caroEntryMyTurn` | Đi tiếp · đặc · chấm |
-| 3 | ván treo ≥7 ngày | `caroEntryStale` | Xem · viền |
-| 4 | chờ người ấy, presence người ấy <45s | `caroEntryWatching` | Xem · viền |
-| 5 | chờ người ấy | `caroEntryWaiting` | Xem · viền |
+| 3 | ván treo ≥7 ngày | `caroEntryStale` | Mở · viền |
+| 4 | chờ người ấy, presence người ấy <45s | `caroEntryWatching` | Mở · viền |
+| 5 | chờ người ấy | `caroEntryWaiting` | Mở · viền |
 | 6 | không ván mở, ván xong gần nhất <24 giờ | `caroEntryJustLost` / `JustWon` / `JustDraw` | Phục thù (thua) / Ván mới · viền |
 | 7 | không ván mở, đã có ván xong | `caroEntryIdle` | Rủ chơi · viền |
 | 8 | chưa từng chơi | `caroEntryFirst` | Rủ chơi · viền |
@@ -167,12 +168,12 @@ Dòng rps giữ logic 6 trạng thái hiện có, chỉ đổi: dòng 1 = `rpsGa
 - Radio 22, viền navy 2, chấm 10. Toàn ô là `RadioListTile`-tương đương (vùng chạm cả khối), `Semantics(inMutuallyExclusiveGroup, checked)`.
 - Hình 7 ô: 140×20, ô 20, viền navy .14, quân vẽ bằng `CaroBoard` painter (đúng màu hai người). Cùng một hình ở cả hai lựa chọn, chỉ khác câu kết luận: thấy ngay khác biệt của luật.
 - "lần trước" 12 w600 textSecondary, chỉ trên lựa chọn đang lưu ở Hive (`caro_last_rule`); lần đầu không hiện chữ này, chọn sẵn "Chặn hai đầu".
-- Bấm "Chọn ô đầu tiên" → đóng sheet, màn ván trống ở 1×, h1 "Đặt quân đầu tiên".
+- ⟪sửa vòng soát⟫ Nút chính **"Rủ Thảo chơi"** gọi `start` với ô giữa (7,7) rồi mở màn ván ở trạng thái chờ: **2 chạm từ Home**. Nút chữ "Tự chọn ô đầu tiên" (h48) → màn ván trống ở 1×, h1 "Đặt quân đầu tiên".
 - Mở từ: Home (không có ván), kết quả "Phục thù"/"Ván mới", lịch sử rỗng "Rủ Thảo một ván".
 
 ### 3.3 Màn ván — `CaroGameScreen`
 ```
-←               [🎮 CỜ CARO]               ⋯        SubScreenHeader(badge caroBadge, icon IconsaxPlusBold.game, trailing: HeaderIconButton(IconsaxPlusLinear.more))
+←               [🎮 CỜ CARO]               🕓        SubScreenHeader(badge caroBadge, icon IconsaxPlusBold.game, trailing: HeaderIconButton(IconsaxPlusLinear.clock) → lịch sử, như rps)
 ┌ ContentCard pad 16 ─────────────────────────────┐
 │ Đến lượt bạn                          h1 20 w700│  Semantics(header, liveRegion)
 │ Thảo vừa đi nước 14 lúc 10:12.        14        │  tên = textPrimary w600, còn lại textSecondary
@@ -212,7 +213,7 @@ Dòng rps giữ logic 6 trạng thái hiện có, chỉ đổi: dòng 1 = `rpsGa
 | Ván đã huỷ / hết hạn (mở từ push cũ) | `caroCancelledTitle` / `caroExpiredTitle` | `caroCancelledSub` / `caroExpiredSub` | không | "Rủ Thảo ván mới" (đặc), không kính lúp |
 | Đã kết thúc | xem 3.4 | | | |
 
-**Menu ⋯** (sheet trắng r28, các dòng cao 52, chữ 14 w700): Lịch sử ván · Luật của ván này (mở sheet đọc-thôi: tên luật + câu + hình 7 ô) · Xin thua (chữ `errorInk`) · Huỷ ván (chỉ khi `cells.length ≤ 1`). **Hỏi lại xin thua:** `AlertDialog` trắng r24: "Xin thua ván này?" + "Thảo được tính thắng. Tỉ số thành Tuấn 12 – 10 Thảo." + [Chơi tiếp (viền)] [Xin thua (đặc `errorInk`)].
+⟪Menu ⋯ đã bỏ ở vòng soát dễ dùng — xem mục 13.⟫ **Sheet luật** (chạm tên luật ở làn giữa, vùng chạm ≥44): tên luật 20 w700 + câu + "Mép bàn không tính là chặn." + hình 7 ô. **Hỏi lại xin thua:** `AlertDialog` trắng r24: "Xin thua ván này?" + "Thảo được tính thắng. Tỉ số thành Tuấn 12 – 10 Thảo." + [Chơi tiếp (viền)] [Xin thua (đặc `errorInk`)].
 
 **Bố cục chiều cao (C3):** `Column[SubScreenHeader, Padding(16,0,16,0): status card, 12, Expanded(Center(AspectRatio(1, board))), 12, dock, hint?, SizedBox(16 + bottom inset)]`. Trên máy 360×640 bàn tự co còn khoảng 250–280px, vẫn phóng được 2,5×. Không đặt trong `SingleChildScrollView`.
 
@@ -308,7 +309,7 @@ Xưng "bạn" với người dùng, gọi người ấy bằng tên (fallback `r
 | `caroEntryError` | Chưa tải được ván. Chạm để thử lại. | Couldn't load the game. Tap to try again. |
 | `caroScore` | {me} {a} – {b} {partner} | {me} {a}–{b} {partner} |
 | `caroScoreDraws` | {score}, {n} ván hoà | {score}, {n} draws |
-| `caroCtaJoin` / `caroCtaPlayOn` / `caroCtaOpen` | Vào chơi / Đi tiếp / Xem | Play / Your move / Open |
+| `caroCtaJoin` / `caroCtaPlayOn` / `caroCtaOpen` | Vào chơi / Đi tiếp / Mở (dùng lại `rpsEntryCtaOpen`) | Play / Your move / Open |
 | `caroCtaRematch` / `caroCtaNewGame` / `caroCtaInvite` / `caroCtaRetry` | Phục thù / Ván mới / Rủ chơi / Thử lại | Rematch / New game / Start / Try again |
 
 **Sheet rủ ván**
@@ -322,8 +323,9 @@ Xưng "bạn" với người dùng, gọi người ấy bằng tên (fallback `r
 | `caroRuleFreeDesc` | Cứ năm quân liền nhau là thắng, bị chặn hai đầu vẫn tính. | Any five in a row wins, even with both ends blocked. |
 | `caroRuleExampleNoWin` / `caroRuleExampleWin` | Thế này chưa thắng / Thế này là thắng | This doesn't win / This wins |
 | `caroRuleLastUsed` | lần trước | last time |
-| `caroNewFirstNote` | Bạn cầm X và đi trước. {name} nhận lời rủ khi bạn đặt quân đầu. | You play X and go first. {name} gets the invite when you place your first piece. |
-| `caroNewCta` | Chọn ô đầu tiên | Choose your first square |
+| `caroNewFirstNote` | Bạn cầm X, quân đầu đặt ở giữa bàn. {name} nhận lời rủ ngay. | You play X and your first piece goes in the centre. {name} gets the invite right away. |
+| `caroNewCta` | Rủ {name} chơi | Invite {name} |
+| `caroNewPickFirst` | Tự chọn ô đầu tiên | Choose your own first square |
 
 **Màn ván**
 | Key | VI | EN |
@@ -332,7 +334,7 @@ Xưng "bạn" với người dùng, gọi người ấy bằng tên (fallback `r
 | `caroMyTurn` | Đến lượt bạn | Your turn |
 | `caroLastMove` | {name} vừa đi nước {n} lúc {time}. | {name} played move {n} at {time}. |
 | `caroWaiting` | Đang chờ {name} | Waiting for {name} |
-| `caroYouMoved` | Bạn đi nước {n} lúc {time}. Đã báo cho {name}. | You played move {n} at {time}. {name} has been notified. |
+| `caroYouMoved` | Bạn đi nước {n} lúc {time}. Cứ thoát app, {name} đi xong sẽ báo bạn. | You played move {n} at {time}. You can close the app, we'll tell you when {name} moves. |
 | `caroPartnerWatching` | Bạn đi nước {n} lúc {time}. {name} đang xem ván. | You played move {n} at {time}. {name} is looking at the board. |
 | `caroWaitedMin` | Bạn đi nước {n} lúc {time}. Đã {m} phút rồi. | You played move {n} at {time}, {m} minutes ago. |
 | `caroNudged` | Đã nhắc {name} lúc {time}. | You nudged {name} at {time}. |
@@ -365,7 +367,9 @@ Xưng "bạn" với người dùng, gọi người ấy bằng tên (fallback `r
 | `caroCancelledTitle` / `caroCancelledSub` | Ván này đã huỷ / {name} bấm Để sau lúc {time}. Ván huỷ không tính vào tỉ số. | This game was cancelled / {name} chose Not now at {time}. Cancelled games don't count. |
 | `caroExpiredTitle` / `caroExpiredSub` | Ván này đã kết thúc vì để lâu / 7 ngày không ai đi nên ván dừng ở đây, không tính tỉ số. | This game has ended / Nobody moved for 7 days, so it stopped here. It doesn't count. |
 | `caroNewInviteCta` | Rủ {name} ván mới | New game with {name} |
-| `caroMenuHistory` / `caroMenuRules` / `caroMenuResign` / `caroMenuCancel` | Lịch sử ván / Luật của ván này / Xin thua / Huỷ ván | Game history / Rules for this game / Resign / Cancel game |
+| `caroHistoryTooltip` / `caroRuleTapHint` (Semantics) / `caroResign` | Lịch sử ván / Luật {rule}, chạm để xem giải thích / Xin thua | Game history / {rule} rules, tap for details / Resign |
+| `caroRuleEdgeNote` | Mép bàn không tính là chặn. | The edge of the board doesn't count as a block. |
+| `caroEndKeep` / `caroEndConfirm` | Để đó / Kết thúc | Leave it / End it |
 | `caroResignTitle` / `caroResignBody` | Xin thua ván này? / {name} được tính thắng. Tỉ số thành {score}. | Resign this game? / {name} gets the win. The score becomes {score}. |
 | `caroKeepPlaying` | Chơi tiếp | Keep playing |
 | `caroCancelTitle` / `caroCancelBody` / `caroCancelConfirm` | Bỏ ván này? / Ván huỷ không tính tỉ số. {name} sẽ thấy ván đã huỷ. / Bỏ ván | Skip this game? / It won't count. {name} will see it was cancelled. / Skip |
@@ -412,7 +416,7 @@ Xưng "bạn" với người dùng, gọi người ấy bằng tên (fallback `r
 | Phần | Dùng lại | Mới |
 |---|---|---|
 | Nền | `Container(gradient: AppColors.dawnBlush)` ngoài Scaffold trong suốt | — |
-| Header | `SubScreenHeader` + `EyebrowChip` + `HeaderIconButton(IconsaxPlusLinear.more)` | — |
+| Header | `SubScreenHeader` + `EyebrowChip` + `HeaderIconButton(IconsaxPlusLinear.clock)` (như `rps_game_screen.dart`) | — |
 | Thẻ | `ContentCard` | — |
 | Ba làn | — | `CaroLanes` (stateless: me/partner, palette, wins, turnSide, mid, watching, plusOne) |
 | Bàn | `InteractiveViewer` + `TransformationController` | `CaroBoard` (CustomPainter + semanticsBuilder) dùng chung chơi/kết quả/xem lại/hình 7 ô |
@@ -422,7 +426,7 @@ Xưng "bạn" với người dùng, gọi người ấy bằng tên (fallback `r
 | Thẻ Home | logic trạng thái của `RpsInviteCard` | `PlayTogetherCard` (gộp; `RpsInviteCard` thành dòng con) |
 | Nút | `FilledButton` theme (pill h52) · `OutlinedButton` viền navy | — |
 | Đang tải | `ShimmerSkeleton` | — |
-| Sheet/menu | `showModalBottomSheet` r28 | `CaroNewGameSheet`, `CaroMenuSheet` |
+| Sheet | `showModalBottomSheet` r28, kéo xuống / chạm nền để đóng | `CaroNewGameSheet`, `CaroRuleSheet` (chỉ xem) |
 | Hỏi lại | `AlertDialog` r24 | — |
 | Lịch sử | khung phân trang như `care_timeline_screen.dart` / `rps_history_screen.dart` | `CaroHistoryScreen` |
 | Icon | `IconsaxPlusBold.game` (chip), `IconsaxPlusLinear.more`, `search_zoom_in`/`search_zoom_out`, `danger`/`info_circle` (lỗi), `wifi_square` (mất mạng như rps) | — |
@@ -500,6 +504,39 @@ Tất cả trong `docs/design/caro-game/data.js`: ván hôm nay 14 nước (07:5
 
 ---
 
+## 13. Soát dễ dùng (UI UX Pro Max) — 2026-10-20
+
+User yêu cầu: "thiết kế phù hợp với người dùng và UI tiện lợi dễ sử dụng". Thước đo chính là UI UX Pro Max 2.13.0.
+
+**Truy vấn đã chạy** (`search.py`, không `-I`):
+- `--domain ux`: `"thumb zone one handed reach"`, `"accidental tap undo prevention"`, `"list item tap target swipe"`, `"empty state call to action"`, `"error message recovery action"`, `"progressive disclosure onboarding hint"`, `"modal dialog"`, `"loading indicator"`, `"button placement mobile"`, `"default values"`.
+- Trả **0 kết quả**, đã thử lại bản ngắn rồi đọc thẳng `references/quick-reference.md`: `"bottom sheet option selection"`/`"bottom sheet"`, `"default selection smart defaults"`, `"notification grouping"`/`"notification"`, `"consistency patterns"`/`"consistency"`, `"primary action"`, `"undo"`.
+- `--stack flutter`: `"accessibility"` (Semantics, thử với trình đọc màn hình), `"ListView builder"` (ListView.builder + `itemExtent` khi dòng cao đều), `"theme"` (lấy theme qua context). `"gesture"`, `"list"`, `"dialog"`, `"InteractiveViewer"`, `"showModalBottomSheet"`, `"HapticFeedback"`, `"SafeArea"` → 0 kết quả.
+
+**Quy tắc rút ra** (mã quy tắc của skill): `touch-target` 44pt/48dp + `touch-spacing` ≥8 · `primary-action` mỗi màn một nút chính · `confirmation-dialogs` + `destructive-emphasis` (đỏ, tách khỏi nút chính) · `error-recovery` + `error-clarity` (nói lý do + cách sửa) · `empty-states` có câu + hành động · `redundant-entry` (lấy sẵn giá trị lần trước) · `progressive-disclosure` · `modal-escape` (sheet kéo xuống đóng được) · `consistency` · `success-feedback` · `toast-dismiss` 3–5s · `disabled-states` có thuộc tính ngữ nghĩa · `opacity-threshold` (không mờ dưới .2) · `gesture-feedback` (phóng to theo ngón) · `deep-linking` (push mở đúng ván) · `state-preservation` · ListView.builder + itemExtent.
+
+**Soát theo 8 câu, vấn đề + cách sửa:**
+| # | Câu | Phát hiện | Mức | Đã sửa (mock + spec) |
+|---|---|---|---|---|
+| U1 | Rủ một ván mấy chạm từ Home? | Home "Rủ chơi" → sheet "Chọn ô đầu tiên" → chạm ô → "Rủ Thảo chơi" = **4 chạm** (5 nếu chạm lại ô) | **Nặng** | Nút chính của sheet thành **"Rủ Thảo chơi"**, quân đầu tự đặt ở giữa bàn (nước mở đầu phổ biến nhất của caro): **2 chạm**. Ai muốn tự chọn: nút chữ "Tự chọn ô đầu tiên". Phục thù từ màn kết quả cũng 2 chạm. |
+| U2 | Nhất quán với Oẳn tù tì? | Header caro dùng ⋯, rps dùng icon đồng hồ → lịch sử. CTA "Xem" ở Home, rps dùng "Mở" cho cùng việc. | **Vừa** | Header phải = đồng hồ → lịch sử, như rps. Đổi "Xem" → "Mở" (dùng lại `rpsEntryCtaOpen`). |
+| U3 | Việc hiếm có dễ tìm? | Luật và Xin thua giấu trong ⋯: người mới không biết có, mất 3 chạm. | **Vừa** | Tên luật ở làn giữa có icon ⓘ, chạm mở sheet luật. "Xin thua" là nút chữ đỏ dưới dock, 2 chạm kể cả hỏi lại. Bỏ menu ⋯. |
+| U4 | Trạng thái chờ nói rõ việc tiếp theo? | "Đang chờ Thảo… Thảo sẽ nhận thông báo." chỉ có nút tắt; người dùng không biết nên ngồi chờ hay thoát. | **Vừa** | Câu phụ: "Cứ thoát app, Thảo đi xong sẽ báo bạn." Nút tắt vẫn nói khi nào nhắc được. |
+| U5 | Xin thua / huỷ có hỏi lại? | Spec có, nhưng mock chỉ dựng hộp xin thua. | Vừa | Dựng đủ 3 hộp: Xin thua · Bỏ ván (Để sau) · Kết thúc ván treo. Nút phá huỷ đặc `errorInk`, nút giữ là viền, bên trái. |
+| U6 | Nút chính ở vùng ngón cái, ≥44–48? | Dock h52 ở đáy ✓. Nút chữ ("Để sau", "Kết thúc ván", "Xin thua") 44, dưới mức 48 của Android. | Nhẹ | Nút chữ min-h **48**, đệm ngang 16. CTA Home h40 giữ vì cả dòng 68 bấm được. |
+| U7 | Đi một nước trên 360dp, một tay? | Ô 1,6× trên 360 ≈ 35dp (<44). | — (đã có) | Giữ chạm 2 bước + chặn 400ms + nút kính lúp; nút "Đi nước này" nằm đáy, ngón cái với tới. Đã kiểm `board.html` ở 360: 0 FAIL, làn không tràn. |
+| U8 | Luật giải thích bằng lời đời thường? | "Chặn hai đầu"/"Tự do" là tên dân gian; câu + hình 7 ô đủ hiểu. Thiếu câu về mép bàn (hay bị hỏi). | Nhẹ | Sheet luật thêm "Mép bàn không tính là chặn." |
+| U9 | Lỗi / mất mạng / hết hạn có một việc tiếp theo? | Lỗi: "Thử lại" + lý do ✓. Mất mạng: nút "Chờ có mạng" tự sáng lại khi có mạng ✓. Huỷ/hết hạn: "Rủ Thảo ván mới" ✓. Treo 7 ngày có 2 việc (Nhắc + Kết thúc) — giữ, vì người dùng thật sự phải chọn. | — | Không đổi. |
+| U10 | Lướt nhanh? | Câu Home 1–2 dòng, việc gấp có chấm + nút đặc ✓. | — | Không đổi. |
+
+**Đánh đổi (ghi để PO/user biết):**
+- Quân đầu ở giữa bàn mặc định: nhanh hơn 2 chạm nhưng bớt quyền chọn. Giữ đường "Tự chọn ô đầu tiên".
+- "Xin thua" lộ ra dưới dock thì dễ thấy, nhưng gần vùng ngón cái hơn menu ⋯. Bù lại: chữ đỏ, cách nút chính 8 + chiều cao gợi ý, luôn có hộp hỏi lại. Skill khuyên `undo-support`; ở đây không làm "Hoàn tác" được vì CF ghi tỉ số ngay, nên hỏi lại là đủ.
+- Nút tắt dùng nền trắng .55 + chữ navy .70 thay vì mờ .38–.5 như `disabled-states` gợi ý: ưu tiên đọc được câu giải thích (tasteskill §8.1). Vẫn gắn `enabled: false` cho trình đọc màn hình.
+- Mock 360 chỉ chạy inspector khung đầu; chưa dựng máy thấp 360×640 đủ chiều cao.
+
+**Kiểm lại sau sửa:** `lint.mjs --app` 0 FAIL 0 WARN · `inspect.mjs --app --widths 390` 0 FAIL 0 WARN cả 7 trang (allow như mục 9) · `board.html` ở 360: 0 FAIL. Ảnh chụp mới ở `docs/design/caro-game/shots/`.
+
 ## Acceptance (design)
 - [x] Mọi trạng thái có hình (mock) + mô tả: Home 10 + ẩn, sheet, màn ván 13 + menu + hỏi lại, kết quả 5, lịch sử 4
 - [x] Copy đủ VI + EN
@@ -508,3 +545,4 @@ Tất cả trong `docs/design/caro-game/data.js`: ván hôm nay 14 nước (07:5
 
 ## Nhật ký design
 - [2026-10-20] [Designer] Thiết kế caro-game theo tasteskill (app run đủ §2.1–2.8, sheet đợt 2 editorial-greeting seed 1822703143 `--keep palette,type`) + UI UX Pro Max, bám design system hiện tại. Mặt "ba làn" (mình · luật · người ấy) + bàn hai màu người chơi + bàn thu nhỏ ở lịch sử. Quyết C1–C9: mở ván 1,6× + nút kính lúp, chạm 2 bước chặn 400ms, màn không cuộn, nút đặc navy chỉ khi người ấy chờ mình, thẻ Home "Chơi cùng nhau" thay `RpsInviteCard`. Mock 7 trang + `data.js` có assert + ảnh 390 ở `docs/design/caro-game/`. lint 0/0, inspect 0 FAIL 0 WARN cả 7 trang (allow heavy-shadow, micro-label, colour-sprawl, icon-chips — thiết bị brand). Đề xuất token `errorInk #C4242A`. 3 câu hỏi PO/user.
+- [2026-10-20] [Designer] Vòng soát dễ dùng theo UI UX Pro Max (mục 13): rủ ván 4 → 2 chạm (quân đầu ở giữa bàn, vẫn có đường tự chọn); header đồng hồ → lịch sử như Oẳn tù tì, "Xem" → "Mở"; bỏ menu ⋯, luật chạm ở làn giữa, "Xin thua" nút chữ đỏ + hỏi lại; câu chờ bảo người dùng cứ thoát app; dựng đủ 3 hộp hỏi lại; nút chữ cao 48. lint/inspect 0 FAIL.

@@ -48,25 +48,25 @@
 <main id="m"></main>
 <script>
 const { I } = UI; const pn = D.people.partner.name, me = D.people.me.name;
-const p = D.push, pe = D.pushEn, alt = D.pushCopy(D.thaoToday[1], pn, 'vi');
+const p = D.push, pe = D.pushEn, alt = D.pushGym, W = D.widget(D.docs.u_thao.last, pn), WG = D.widget(D.gym, pn);
 const heart = (c) => `<span style="color:${c};display:flex">${I.heart(10)}</span>`;
 const small = (bg, txt) => `<div class="w ${bg}" style="width:158px;height:158px" role="img" aria-label="Widget nhỏ: ${D.daysTogether} ngày bên nhau. ${txt}"><span class="chipw">${me}${heart(bg === 'night' ? '#FF8FA3' : '#E63956')}${pn}</span><span class="n num">${D.daysTogether.toLocaleString('vi-VN')}</span><span class="c">ngày bên nhau</span><span class="st"><i></i>${txt}</span></div>`;
-const medium = (bg) => `<div class="w ${bg} wm" style="width:338px;height:158px" role="img" aria-label="Widget vừa: ${D.daysTogether} ngày bên nhau. ${p.title}"><div style="display:flex;flex-direction:column"><span class="chipw">${me}${heart('#FF8FA3')}${pn}</span><span class="n num">${D.daysTogether.toLocaleString('vi-VN')}</span><span class="c">ngày bên nhau</span></div><span class="div"></span><div class="rt"><span class="c">Còn 45 ngày tới mốc 1.300</span><span class="st"><i></i>${D.widgetCopy[D.widgetKind].vi(pn)}</span></div></div>`;
+const medium = (bg) => `<div class="w ${bg} wm" style="width:338px;height:158px" role="img" aria-label="Widget vừa: ${D.daysTogether} ngày bên nhau. ${p.title}"><div style="display:flex;flex-direction:column"><span class="chipw">${me}${heart('#FF8FA3')}${pn}</span><span class="n num">${D.daysTogether.toLocaleString('vi-VN')}</span><span class="c">ngày bên nhau</span></div><span class="div"></span><div class="rt"><span class="c">Còn 45 ngày tới mốc 1.300</span><span class="st"><i></i>${W.vi}</span></div></div>`;
 const F = [
   ['Thông báo đẩy trên iPhone (tiếng Việt và tiếng Anh)', `<div class="stack">
     <div class="ios-n"><span class="ic">${I.heart(18)}</span><div><p class="t">${p.title}</p><p class="b">${p.body}</p></div><span class="w">18:42</span></div>
-    <div class="ios-n"><span class="ic">${I.heart(18)}</span><div><p class="t">${alt.title}</p><p class="b">${alt.body}</p></div><span class="w">07:58</span></div>
+    <div class="ios-n"><span class="ic">${I.heart(18)}</span><div><p class="t">${alt.title}</p><p class="b">${alt.body}</p></div><span class="w">17:50</span></div>
     <div class="ios-n"><span class="ic">${I.heart(18)}</span><div><p class="t">${pe.title}</p><p class="b">${pe.body}</p></div><span class="w">18:42</span></div></div>
     <p class="note fine" style="margin-top:10px">Dòng pin chỉ có khi pin từ 20% trở xuống. Giờ do hệ thống hiện, không nằm trong chữ. Chạm → Home, cuộn tới thẻ “Về đến nhà chưa?”.</p>`],
   ['Thông báo đẩy trên Android', `<div class="and-n"><div class="top"><span class="dot">${I.heart(10)}</span>Dear Embeiu · 18:42</div><p class="t">${p.title}</p><p class="b">${p.body}</p></div>`],
-  ['Widget nhỏ: Trời đêm và có ảnh (bản rút gọn)', `<div class="row2">${small('night', D.widgetCopy[D.widgetKind].viShort(pn))}${small('photo', D.widgetCopy[D.widgetKind].viShort(pn))}</div><p class="note fine" style="margin-top:10px">Không có pin, không có tin “đã rời”. Chỉ tin đến nơi của hôm nay.</p>`],
+  ['Widget nhỏ: về nhà (Trời đêm) và đến nơi tự đặt (có ảnh), bản rút gọn', `<div class="row2">${small('night', W.viShort)}${small('photo', WG.viShort)}</div><p class="note fine" style="margin-top:10px">Không có pin, không có tin “đã rời”. Chỉ tin đến nơi của hôm nay. Tên nơi dài hơn khoảng 9 ký tự sẽ bị cắt “…” ở widget nhỏ.</p>`],
   ['Widget vừa: Trời đêm và có ảnh (bản đầy đủ)', `<div class="stack">${medium('night')}${medium('photo')}</div>`],
   ['Cài đặt → Thông báo: dòng mới', `<div class="card rows">
     <div class="srow"><span class="badge">${I.bell(20)}</span><div class="tx"><p class="tt">Nhắc trả lời câu hỏi</p><p class="ts">20:30 mỗi ngày</p></div><button class="switch" role="switch" aria-checked="true" aria-label="Nhắc trả lời câu hỏi"></button></div>
-    <div class="srow"><span class="badge">${I.home(20)}</span><div class="tx"><p class="tt">Khi người ấy đến nơi</p><p class="ts">Báo khi ${pn} về đến nhà, chỗ làm, trường. Tắt thì thẻ Home vẫn hiện tin.</p></div><button class="switch" role="switch" aria-checked="true" aria-label="Khi người ấy đến nơi"></button></div></div>
+    <div class="srow"><span class="badge">${I.home(20)}</span><div class="tx"><p class="tt">Khi người ấy đến nơi</p><p class="ts">Báo khi ${pn} về nhà hoặc đến một nơi đã lưu. Tắt thì thẻ Home vẫn hiện tin.</p></div><button class="switch" role="switch" aria-checked="true" aria-label="Khi người ấy đến nơi"></button></div></div>
     <p class="note fine" style="margin-top:10px">Chỉ hiện khi đã ghép đôi. Dòng “Nhắc trả lời câu hỏi” là dòng có sẵn, vẽ lại để thấy vị trí.</p>`],
   ['Cài đặt → Chung: lối vào màn quản lý', `<div class="card rows">
-    <div class="srow" role="button" tabindex="0"><span class="badge">${I.loc(20)}</span><div class="tx"><p class="tt">Về đến nhà</p><p class="ts">Đang báo cho ${pn}: Nhà · Chỗ làm</p></div><span style="color:var(--tertiary);display:flex">${I.chev()}</span></div></div>
+    <div class="srow" role="button" tabindex="0"><span class="badge">${I.loc(20)}</span><div class="tx"><p class="tt">Về đến nhà</p><p class="ts">Đang báo cho ${pn}: Nhà và 2 nơi khác</p></div><span style="color:var(--tertiary);display:flex">${I.chev()}</span></div></div>
     <p class="note fine" style="margin-top:10px">Đang tắt: “Đang tắt”. Tắt từ xa: “Tạm thời chỉ báo bằng tay”.</p>`],
 ];
 document.getElementById('m').innerHTML = F.map(([h, html]) => `<section class="frame"><h2 class="lbl" style="margin-bottom:14px">${h}</h2>${html}</section>`).join('');

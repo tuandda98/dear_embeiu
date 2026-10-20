@@ -456,6 +456,85 @@ Chạy `python3 …/ui-ux-pro-max/scripts/search.py "<truy vấn>" --domain|--st
 
 Soát chung các thành phần đứng cạnh nhau: (a) nút gợi ý trên thẻ dùng đúng khuôn nút "Bật" của thẻ Đêm qua (navy h44, nhãn 15 w600) nên hai thẻ cạnh nhau không lệch cỡ; (b) nút viền "Chọn giúp" và nút navy "Nhắc mang ô" không bao giờ cùng xuất hiện trên một thẻ ở cùng cột; (c) ba nút gợi ý dùng chung một khuôn, chỉ đổi icon/nhãn; (d) dòng nguồn giống hệt ở 3 chỗ. Type scale chỉ dùng 11/12/13/14/15/16/20/22/30 (không cỡ lẻ).
 
+## 14b. Soát dễ dùng (UI UX Pro Max), vòng 2026-10-20
+
+User yêu cầu: "thiết kế phù hợp với người dùng và UI tiện lợi dễ sử dụng". Vòng này lấy UI UX Pro Max làm thước đo chính, giữ design system và sheet chung. Áp hai quyết định của Lead: **bạn bên trái, người ấy bên phải, nhãn "Bạn"**; **bỏ hàng "Giờ báo"** (07:30 cố định). Home chốt bản C (thẻ thời tiết đứng riêng, `docs/design/home-daily-open-2/home-c.html`).
+
+**Mục này thắng các mục trên khi mâu thuẫn** (wireframe §3, bảng §4–§5, copy §10, câu hỏi §13 viết trước vòng này).
+
+### Truy vấn đã chạy (`search.py`, không `-I`)
+
+| Truy vấn | Quy tắc lấy được |
+|---|---|
+| "search typo tolerance suggestions" `--domain ux` | Autocomplete: lọc ngay khi gõ, không bắt Enter · No Results: có câu gợi ý, không để trống |
+| "icon meaning label" `--domain ux` | Compact Label Overflow: nhãn nút/chip giữ một dòng, cắt thì vẫn đọc được đủ (Semantics) · Input Labels: ô nhập cần nhãn thấy được, không chỉ placeholder |
+| "stale content refresh" / "pull to refresh" `--domain ux` | Truncation: cắt có dấu "…" và có chỗ xem đủ · Pull to Refresh: chỉ bật khi cần |
+| "touch target size spacing" `--domain ux` | 44pt iOS / 48dp Android, cách nhau ≥ 8 |
+| "empty state first action" `--domain ux` | Rỗng = câu giải thích + một hành động |
+| "offline network error retry" `--domain ux` | Lỗi phải được đọc ra, không chỉ bằng màu |
+| "loading indicator feedback" `--domain ux` | Skeleton ổn định, báo bận cho trình đọc màn hình |
+| "consistent component behavior" `--domain ux` | Font Size Scale nhất quán · Consistent Help: thứ lặp lại giữ cùng vị trí |
+| "settings toggle immediate" `--domain ux` | Active States: phản hồi ngay khi bấm |
+| "deep linking notification" `--domain ux` | Deep Linking: mở đúng trạng thái (bản web, áp ý cho thông báo) |
+| "text scaling" `--stack flutter` | `MediaQuery.textScalerOf`, không khoá cỡ chữ |
+| "Semantics accessibility label" `--stack flutter` | `Semantics(label:)`, thử TalkBack/VoiceOver |
+| "list performance ListView builder" `--stack flutter` | `ListView.builder` cho danh sách dài |
+| Rỗng hoặc lạc đề, đã thử lại 1 lần: "card glanceable summary", "bottom sheet dismiss", "modal dialog escape close", "progressive disclosure", "content density mobile" (`ux`); "bottom sheet", "modal sheet", "touch target", "minimum tap size InkWell", "gesture tap feedback", "TextField autofocus keyboard" (`flutter`) | không có luật khớp; theo khuôn sheet sẵn có của app + bảng ưu tiên của skill |
+
+### Soát từng câu
+
+| Câu hỏi | Trước | Kết luận / sửa |
+|---|---|---|
+| Đọc được trời chỗ người ấy trong 2 giây? | Có: nhãn "Thảo · TP.HCM", số 30, "Chiều nay mưa" 14 w700. Nhưng làn người ấy đổi sang phải nên nút gợi ý (đang căn trái) nằm dưới cột *của bạn* | **Sửa:** nút căn **phải**, nằm ngay dưới cột người ấy (cũng là chỗ ngón cái phải) |
+| Nút gợi ý có rõ là mở màn Quan tâm? | "☂ Nhắc mang ô", icon mây mưa: đọc như một nút báo thời tiết, không rõ là gửi tin cho ai | **Sửa:** nhãn gọi tên **"Nhắc Thảo mang ô" / "Nhắc Thảo uống nước" / "Nhắc Thảo mặc ấm"** + icon **`message_favorite`**, cùng icon với nút Quan tâm ở header Home. Semantics thêm "Mở màn Quan tâm với lời soạn sẵn". Nhãn 1 dòng, tên quá dài thì cắt "…", Semantics đọc đủ |
+| Chọn thành phố mấy chạm? Gõ không dấu? | 6 thành phố lớn: 2 chạm (Chọn → dòng). Còn lại: 2 chạm + gõ vài chữ. Lần đầu chọn cả hai: 2 + 2 = 4 chạm qua hai lần mở sheet. "ha noi" ra, nhưng "hanoi", "dalat", "hcm", "tphcm" KHÔNG ra | **Sửa 1:** so thêm bản bỏ khoảng trắng ("dalat", "hanoi", "tphcm" đều ra) và thêm alias HCM / HCMC / SG cho TP.HCM (assert trong `data.js`). **Sửa 2:** lần đầu (thẻ mời, chưa ai chọn): chọn xong chỗ bạn thì **cùng sheet hỏi luôn "Còn Thảo đang ở đâu?"** kèm "Để sau" ⇒ 3 chạm cho cả hai (`picker-chain.html`) |
+| Vùng chạm ≥ 44–48, chữ đủ to, không thuật ngữ khó? | Nút 44, dòng 52, "Ẩn" 44×44. Android cần 48dp | **Ghi cho Dev:** nút theme giữ `MaterialTapTargetSize.padded` mặc định (vùng chạm 48 dù hình nút cao 44), **không** đặt `shrinkWrap`. Chữ nhỏ nhất 12 (giờ, "Tỉnh cũ"), chữ đọc chính ≥ 14. Không có thuật ngữ; "MET Norway" chỉ ở dòng nguồn |
+| Rỗng có nói rõ một việc? | Thẻ thu gọn chỉ có chữ + "Ẩn"; phải đoán là chạm vào chữ | **Sửa:** dùng đúng khuôn `_SetupPitch` của thẻ Đêm qua: tiêu đề "Thời tiết hai nơi" · câu "Chọn chỗ bạn và chỗ Thảo, sáng nào mở app cũng thấy trời bên đó." · **[⌖ Chọn thành phố]** (nút navy h44) · "Ẩn" |
+| Lỗi có một việc? | "Chưa tải được thời tiết · Thử lại" | Giữ |
+| Số cũ có một việc? | Chỉ có "Số liệu lúc 21:40" ở header, không có gì để bấm | **Sửa:** header phụ "Chưa cập nhật được"; hàng dưới "⏱ Số liệu lúc 21:40" + **Thử lại** (cùng khuôn trạng thái lỗi) |
+| Thẻ có cao quá khi không có gì đáng nói? | ≈ 190 (không hàng dưới) | **Không tự thu gọn thêm.** Đã bỏ hàng dưới khi không có gì (từ 246 xuống 190, bằng thẻ Đêm qua). Thu nhỏ số hay gộp một dòng thì thẻ đổi hình theo ngày, sáng nào cũng phải tìm lại chỗ đọc (Consistent Help). Đánh đổi: tốn ≈ 50dp so với một dòng tóm tắt |
+| Nhất quán với thẻ Đêm qua? | Nhãn "Mình", người ấy trái | **Sửa:** nhãn **"Bạn"** (= `sleepYou`), **bạn trái · người ấy phải**, cả trên thẻ, sheet chi tiết (khối bạn trước) và Cài đặt ("Chỗ của bạn", "bạn chọn giúp"). Thẻ mời dùng khuôn của Đêm qua. Nhãn làn viết thường như Home C |
+| Ô tìm không có nhãn thấy được | Tiêu đề sheet "Bạn đang ở đâu?" là câu hỏi ngay trên ô | **Đánh đổi, giữ:** tiêu đề đóng vai nhãn; Dev đặt `Semantics(label: "Tìm thành phố")` / `InputDecoration.labelText` ẩn cho trình đọc màn hình |
+| Thông báo sáng → hành động | Chạm → Home → cuộn tới thẻ → bấm nút: 2 chạm | **Đề xuất cho PO (chưa vẽ):** chạm thông báo mở thẳng màn Quan tâm đã điền sẵn, Back về Home ⇒ 1 chạm. Khác D13 nên chờ PO |
+
+### Copy thay đổi (thay các dòng tương ứng ở §10)
+
+| Key | vi | en |
+|---|---|---|
+| weatherMe | **Bạn** | You |
+| weatherWhereAmI / weatherPickerTitleSelf | **Bạn đang ở đâu?** | Where are you? |
+| weatherPickerTitlePartnerNext(name) | Còn {name} đang ở đâu? | And where is {name}? |
+| weatherLater | Để sau | Later |
+| weatherCtaUmbrella(name) | Nhắc {name} mang ô | Remind {name}: umbrella |
+| weatherCtaWater(name) | Nhắc {name} uống nước | Remind {name}: water |
+| weatherCtaWarm(name) | Nhắc {name} mặc ấm | Remind {name}: dress warm |
+| weatherCtaHint | Mở màn Quan tâm với lời soạn sẵn | Opens a care note, already written |
+| weatherSetupBody(name) | Chọn chỗ bạn và chỗ {name}, sáng nào mở app cũng thấy trời bên đó. | Pick your city and {name}'s. Their weather shows up here every morning. |
+| weatherSetupBodySolo | Chọn thành phố của bạn, sáng nào mở app cũng thấy trời hôm nay. | Pick your city. Today's weather shows up here every morning. |
+| weatherSetupCta | Chọn thành phố | Choose a city |
+| weatherStaleHeader | Chưa cập nhật được | Couldn't update |
+| weatherSettingsMine | Chỗ của bạn | Your city |
+| weatherSetByMe | bạn chọn giúp | you picked this |
+
+Nhãn nút trên thẻ ("Nhắc mang ô"…) là copy của spec §4 D12; đổi sang có tên người ấy là **đề xuất**, PO gạch thì quay về nhãn cũ nhưng giữ icon `message_favorite` + Semantics hint. Câu "Xem thời tiết chỗ người ấy/chỗ mình" của spec không còn dùng (thẻ mời đổi sang khuôn Đêm qua).
+
+### Đánh đổi
+
+- Thẻ mời cao hơn (≈ 92 → ≈ 188) vì có nút thật; chỉ hiện tới khi chọn xong hoặc bấm Ẩn.
+- Nút căn phải khác các nút căn trái của thẻ khác trên Home; lý do là nút thuộc về cột người ấy, mà cột đó giờ ở bên phải.
+- Không tự động mở bàn phím ở sheet chọn: 6 thành phố lớn thấy ngay và chạm được; ai ở nơi khác thì chạm ô tìm (thêm 1 chạm).
+- `regionVi` của 6 thành phố trực thuộc TW vẫn rỗng; tìm theo tên tỉnh vẫn ra thành phố đó.
+
+### Đo lại
+
+Lint 0 FAIL / 11 WARN (như cũ). Inspect 390 trên 10 trang (thêm `picker-chain.html`): **0 FAIL**; WARN duy nhất `colour-sprawl` ở home/states/care/settings (nền dawnBlush). Ảnh `.taste-skill/weather/u1-*`, chép vào `docs/design/weather/shots/`. `data.js`: 28 assert PASS.
+
+### Còn lại
+
+- PO chốt: nhãn nút có tên (D12), chạm thông báo mở thẳng Quan tâm (D13).
+- EN "Ho Chi Minh …" vẫn bị cắt trên làn (sheet chi tiết hiện đủ).
+- Hàng "Chỗ Thảo · Thảo tự chọn" ở Cài đặt không bấm được nhưng trông như các hàng khác; chấp nhận vì không có chevron và câu phụ nói rõ.
+
 ## 15. Acceptance (design)
 
 - [x] Mọi trạng thái có hình (`states.html`, 18 thẻ + 3 ghi chú) và mô tả (§5)
@@ -464,8 +543,10 @@ Soát chung các thành phần đứng cạnh nhau: (a) nút gợi ý trên th�
 - [x] Token có nguồn trong `lib/theme/` + primitives (§4)
 - [x] a11y: Semantics, vùng chạm ≥44, Reduce Motion (§6, §8)
 - [x] lint + inspect 0 FAIL ở 390, 3 vòng critique (§12)
-- [ ] PO trả lời 3 câu §13
+- [x] Câu 1–3 §13 đã có quyết định của Lead (bỏ Giờ báo · bạn trái · nhãn "Bạn")
+- [ ] PO chốt 2 đề xuất ở §14b (nhãn nút có tên, chạm thông báo mở thẳng Quan tâm)
 
 ## Nhật ký design
 - [2026-10-20] [Designer] Thiết kế bản 1 feature weather theo tasteskill (app run §2.1–2.8, sheet chung editorial-greeting seed 1822703143, `--keep palette,type`) + UI UX Pro Max. Face "ba làn": người ấy · mình · làn chung; signature "hai nơi trên một thước nhiệt độ". Mockup bấm thử 9 trang ở `docs/design/weather/` (thẻ Home 21 trạng thái, sheet chi tiết, sheet chọn có tìm không dấu chạy thật, màn Quan tâm điền sẵn, Cài đặt, thông báo), dữ liệu cặp Tuấn ♥ Thảo với 25 assert PASS. Lint 0 FAIL; inspect 0 FAIL trên 9 trang ở 390, allow 7 rule cho thiết bị của design system. 3 vòng critique, sửa: hàng Cài đặt tràn, icon Bold sai mã, ô tìm, dòng trùng, phông xem trước, thêm nút gợi ý trong sheet chi tiết. 3 câu hỏi cho PO.
 - [2026-10-20] [Lead] Bỏ hàng "Giờ báo" trong mục Cài đặt (mockup `settings.html` đã sửa): giờ báo cố định 07:30 theo D13. Thẻ hai người trên Home đổi thứ tự thành bạn bên trái, người ấy bên phải, nhãn "Bạn" — Designer ghép Home áp dụng.
+- [2026-10-20] [Designer] Vòng soát dễ dùng theo UI UX Pro Max (§14b): đảo làn bạn trái · người ấy phải, nhãn "Bạn"; nút gợi ý gọi tên người ấy + icon Quan tâm, căn phải dưới cột người ấy; thẻ mời theo khuôn Đêm qua có nút "Chọn thành phố"; số cũ có Thử lại; tìm không cần khoảng trắng + alias HCM; lần đầu chọn hai thành phố trong một sheet (3 chạm, `picker-chain.html`). Lint 0 FAIL, inspect 0 FAIL 10 trang ở 390.

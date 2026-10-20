@@ -13,7 +13,7 @@
 <script>
 const { fmt } = D; const B = D.own;
 const E = { mountain: '🏔️', phone: '📱' }; // taste-skill-ignore: emoji ví (dữ liệu)
-const TYPES = [['cash', 'Tiền mặt', 'Tiền trong túi'], ['bank', 'Ngân hàng', 'Techcombank, VCB…'], ['ewallet', 'Ví điện tử', 'MoMo, ZaloPay…'], ['credit', 'Thẻ tín dụng', 'Số dư âm là bình thường'], ['goal', 'Mục tiêu', 'Để dành cho một việc, có hạn']];
+const TYPES = [['cash', 'Tiền mặt', 'Tiền trong túi'], ['bank', 'Ngân hàng', 'Techcombank, VCB…'], ['ewallet', 'Ví điện tử', 'MoMo, ZaloPay…'], ['credit', 'Thẻ tín dụng', 'Đang nợ thẻ thì số dư âm, vậy là đúng'], ['goal', 'Mục tiêu', 'Để dành cho một việc, có hạn']];
 const typeList = (sel) => `<div role="radiogroup" aria-label="Loại ví">${TYPES.map(([id, n, d]) => `<button class="kv" role="radio" aria-checked="${id === sel}"><span class="k">${n}<span class="meta" style="display:block;font-weight:500">${d}</span></span><span class="radio" aria-hidden="true"></span></button>`).join('')}</div>`;
 const newWallet = (sel, goal) => `<div class="sheet"><div class="handle" aria-hidden="true"></div>
   <div class="sh-top"><button class="ibtn l" aria-label="Đóng">${icon('close_circle', 24)}</button><h3>${goal ? 'Mục tiêu mới' : 'Ví mới'}</h3><span></span></div>
@@ -23,22 +23,22 @@ const newWallet = (sel, goal) => `<div class="sheet"><div class="handle" aria-hi
   <label class="flabel" for="gd">Hạn (không bắt buộc)</label><input id="gd" class="field" value="31/01/2027">
   <p class="share">Cần để dành ~<b class="num">${fmt(1000000)}</b> mỗi tháng trong 3 tháng tới.</p>` :
   `<label class="flabel" for="ob">Số dư lúc này</label><input id="ob" class="field num" value="1.500.000 ₫">
-  <div class="kv" style="margin-top:8px"><span class="k">Tính vào tổng tài sản<span class="meta" style="display:block;font-weight:500">Tắt cho ví giữ hộ người khác</span></span><button class="switch" role="switch" aria-checked="true" aria-label="Tính vào tổng tài sản"></button></div>`}
+  <div class="kv" style="margin-top:8px"><span class="k">Tính vào tổng tiền đang có<span class="meta" style="display:block;font-weight:500">Tắt cho ví giữ hộ người khác</span></span><button class="switch" role="switch" aria-checked="true" aria-label="Tính vào tổng tiền đang có"></button></div>`}
   <button class="btn primary save">${goal ? 'Tạo mục tiêu' : 'Tạo ví'}</button></div>`;
 const cur = B.balances.w_cash;
 const adjust = `<div class="sheet"><div class="handle" aria-hidden="true"></div>
-  <div class="sh-top"><button class="ibtn l" aria-label="Đóng">${icon('close_circle', 24)}</button><h3>Điều chỉnh số dư</h3><span></span></div>
+  <div class="sh-top"><button class="ibtn l" aria-label="Đóng">${icon('close_circle', 24)}</button><h3>Sửa số dư cho khớp</h3><span></span></div>
   <p class="meta" style="text-align:center">Tiền mặt · trong sổ đang là ${fmt(cur)}</p>
   <div class="amount"><p class="v num">452.000<span class="u">₫</span></p><p class="h">Số tiền thật đang có</p></div>
-  <p class="empty">Sẽ ghi 1 khoản điều chỉnh <b class="num">−${fmt(cur - 452000)}</b>. Khoản này đổi số dư, không tính vào chi tiêu tháng.</p>
+  <p class="empty">Trong app đang nhiều hơn tiền thật <b class="num">${fmt(cur - 452000)}</b>. App ghi 1 dòng “sửa số dư” để khớp, dòng này không tính là chi tiêu.</p>
   <button class="btn primary save">Cập nhật số dư</button></div>`;
 document.getElementById('app').innerHTML = `
-  <h1 class="sheet-h1">Ví: tạo, điều chỉnh, chuyển</h1>
+  <h1 class="sheet-h1">Ví: tạo, sửa số dư, chuyển</h1>
   <p class="sheet-sub">Ba sheet mở từ màn Ví và chi tiết ví. Chuyển giữa hai ví dùng chính sheet Ghi khoản ở tab Chuyển.</p>
   <main>
   <h2 class="state-label">Tạo ví (5 loại, số dư đầu kỳ)</h2><div class="frame">${newWallet('ewallet', false)}</div>
   <h2 class="state-label">Tạo mục tiêu tiết kiệm (ví loại Mục tiêu)</h2><div class="frame">${newWallet('goal', true)}</div>
-  <h2 class="state-label">Điều chỉnh số dư</h2><div class="frame">${adjust}</div>
+  <h2 class="state-label">Sửa số dư cho khớp tiền thật (trước đây: “Điều chỉnh số dư”)</h2><div class="frame">${adjust}</div>
   <h2 class="state-label">Chuyển giữa ví</h2><div class="frame">${''}<p class="empty" style="margin:0">Dùng sheet Ghi khoản, tab Chuyển: chọn Từ ví, Sang ví, số tiền. Xem trang “Ghi khoản: các trạng thái”.</p></div>
   </main>`;
 </script>

@@ -1,125 +1,108 @@
-// Dữ liệu mẫu cho mock arrival (Designer 2026-10-20). Cặp DEV Tuấn ♥ Thảo (test3/test4),
-// ngày yêu 14/05/2023, "bây giờ" = thứ Ba 20/10/2026 19:05 giờ VN.
-// Máy chủ chỉ giữ MỘT sự kiện mới nhất mỗi người (D3). Nhật ký trong ngày bên dưới chỉ có trên
-// máy từng người (bộ lọc D6) — mock dùng nó để mọi con số trên thẻ, push, widget suy ra từ một nguồn.
+// Dữ liệu mẫu cho mock arrival (Designer 2026-10-20, bản 2: nơi tự đặt + tìm địa chỉ).
+// Cặp DEV Tuấn và Thảo (test3/test4), ngày yêu 14/05/2023, "bây giờ" = thứ Ba 20/10/2026 19:05 giờ VN.
+// Địa chỉ theo địa giới 34 tỉnh (bỏ cấp quận/huyện, phường mới) — địa chỉ mẫu, Dev đo lại khi spike geocoder (§6.8 PO).
+// Máy chủ chỉ giữ MỘT sự kiện mới nhất mỗi người, mang tên + biểu tượng chụp lúc xảy ra (D3, D23).
 (function () {
   const NOW = '2026-10-20T19:05';
   const ANNIVERSARY = '2023-05-14';
-
   const PALETTE = { rose: '#FF4D6D', purple: '#7C5CD6', blue: '#1C7ED6', teal: '#0E9384', orange: '#E8590C', green: '#2F9E44', magenta: '#C2255C', amber: '#B7791F' };
   const BLOCKED = { rose: ['orange', 'magenta'], orange: ['rose', 'amber'], magenta: ['rose'], purple: ['blue'], blue: ['purple'], teal: ['green'], green: ['teal', 'amber'], amber: ['orange', 'green'] };
+  const people = { me: { uid: 'u_tuan', name: 'Tuấn', color: 'rose' }, partner: { uid: 'u_thao', name: 'Thảo', color: 'teal' } };
 
-  const people = {
-    me: { uid: 'u_tuan', name: 'Tuấn', color: 'rose' },
-    partner: { uid: 'u_thao', name: 'Thảo', color: 'teal' },
+  const ICONS = ['work', 'school', 'family', 'gym', 'cafe', 'shop', 'pin'];
+  const NAME_CHIPS = ['Công ty', 'Trường', 'Nhà bố mẹ', 'Phòng gym', 'Quán quen'];
+  const MAX_PLACES = 5, NAME_MAX = 24, R_ADDRESS = 250, R_CURRENT = 150, LOW_BATTERY = 20, BOUNCE_MIN = 10, PUSH_MAX_PER_DAY = 6;
+
+  // Danh sách nơi CHỈ trên máy (Hive arrival_nobackup).
+  const places = {
+    u_tuan: [
+      { slot: 'home', source: 'address', radius: R_ADDRESS, address: 'Ngõ 72 Nguyễn Trãi, Phường Thanh Xuân, Hà Nội', short: 'Ngõ 72 Nguyễn Trãi, P. Thanh Xuân', hasNumber: true, savedAt: '2026-10-12' },
+      { slot: 'p1', name: 'Công ty', icon: 'work', source: 'address', radius: R_ADDRESS, address: '54 Liễu Giai, Phường Ngọc Hà, Hà Nội', short: '54 Liễu Giai, P. Ngọc Hà', hasNumber: true, savedAt: '2026-10-13' },
+      { slot: 'p2', name: 'Phòng gym', icon: 'gym', source: 'current', radius: R_CURRENT, address: null, short: null, savedAt: '2026-10-18' },
+    ],
+    u_thao: [
+      { slot: 'home', source: 'address', radius: R_ADDRESS, address: 'Ngõ 72 Nguyễn Trãi, Phường Thanh Xuân, Hà Nội', hasNumber: true, savedAt: '2026-10-12' },
+      { slot: 'p1', name: 'Công ty', icon: 'work', source: 'address', radius: R_ADDRESS, address: '89 Láng Hạ, Phường Láng, Hà Nội', hasNumber: true, savedAt: '2026-10-14' },
+      { slot: 'p2', name: 'Phòng gym', icon: 'gym', source: 'current', radius: R_CURRENT, address: null, savedAt: '2026-10-15' },
+    ],
   };
 
-  const PLACE = {
-    home: { vi: 'Nhà', en: 'Home', enter: { vi: 'Đã về đến nhà', en: 'Got home' }, exit: { vi: 'Đã rời nhà', en: 'Left home' }, manual: { vi: 'Về nhà rồi', en: "I'm home" } },
-    work: { vi: 'Chỗ làm', en: 'Work', enter: { vi: 'Đã đến chỗ làm', en: 'Got to work' }, exit: { vi: 'Đã rời chỗ làm', en: 'Left work' }, manual: { vi: 'Đến chỗ làm rồi', en: 'At work' } },
-    school: { vi: 'Trường', en: 'School', enter: { vi: 'Đã đến trường', en: 'Got to school' }, exit: { vi: 'Đã rời trường', en: 'Left school' }, manual: { vi: 'Đến trường rồi', en: 'At school' } },
+  // Nhật ký hôm nay trên máy Thảo; sự kiện nơi tự đặt chụp sẵn name + icon (D23).
+  const ev = (slot, type, at, battery, source = 'auto') => {
+    const p = places.u_thao.find((x) => x.slot === slot);
+    return { place: slot, ...(slot === 'home' ? {} : { name: p.name, icon: p.icon }), type, at: `2026-10-20T${at}`, battery, source };
   };
-
-  // Nhật ký hôm nay trên từng máy (giờ VN). Pin giảm dần vì cả ngày không sạc.
-  const thaoToday = [
-    { place: 'home', type: 'exit', at: '2026-10-20T07:20', battery: 96, source: 'auto' },
-    { place: 'work', type: 'enter', at: '2026-10-20T07:58', battery: 91, source: 'auto' },
-    { place: 'work', type: 'exit', at: '2026-10-20T17:32', battery: 19, source: 'auto' },
-    { place: 'home', type: 'enter', at: '2026-10-20T18:42', battery: 12, source: 'auto' },
-  ];
+  const thaoToday = [ev('home', 'exit', '07:20', 96), ev('p1', 'enter', '07:58', 91), ev('p1', 'exit', '17:32', 24), ev('p2', 'enter', '17:50', 22), ev('p2', 'exit', '18:30', 15), ev('home', 'enter', '18:42', 12)];
   const tuanToday = [
     { place: 'home', type: 'exit', at: '2026-10-20T07:35', battery: 88, source: 'auto' },
-    { place: 'work', type: 'enter', at: '2026-10-20T08:05', battery: 64, source: 'auto' },
+    { place: 'p1', name: 'Công ty', icon: 'work', type: 'enter', at: '2026-10-20T08:05', battery: 64, source: 'auto' },
   ];
-
-  // Địa điểm đã lưu (toạ độ chỉ trên máy; mock chỉ cần loại + ngày lưu).
-  const savedPlaces = {
-    u_tuan: [{ place: 'home', savedAt: '2026-10-12' }, { place: 'work', savedAt: '2026-10-13' }],
-    u_thao: [{ place: 'home', savedAt: '2026-10-12' }, { place: 'work', savedAt: '2026-10-14' }],
-  };
-
-  // Doc Firestore couples/{c}/arrival/{uid} — đúng hình §5 overview.
   const docs = {
-    u_thao: { share: true, auto: true, places: savedPlaces.u_thao.map((p) => p.place), last: thaoToday[thaoToday.length - 1] },
-    u_tuan: { share: true, auto: true, places: savedPlaces.u_tuan.map((p) => p.place), last: tuanToday[tuanToday.length - 1] },
+    u_thao: { share: true, auto: true, last: thaoToday[thaoToday.length - 1] },
+    u_tuan: { share: true, auto: true, last: tuanToday[tuanToday.length - 1] },
   };
-
-  const RADIUS_M = 150;
-  const LOW_BATTERY = 20;
-  const BOUNCE_MIN = 10;
-  const PUSH_MAX_PER_DAY = 6;
 
   const hm = (iso) => iso.slice(11, 16);
   const mins = (iso) => { const [h, m] = hm(iso).split(':').map(Number); return h * 60 + m; };
-  const dayOf = (iso) => iso.slice(0, 10);
-
-  // Bộ lọc D6 trên máy người gửi + quy tắc CF §7: trả về sự kiện nào thành push.
+  const placeName = (e, lang = 'vi') => (e.place === 'home' ? { vi: 'nhà', en: 'home' }[lang] : e.name);
+  const sentence = (e, lang = 'vi') => {
+    if (lang === 'en') return e.place === 'home' ? (e.type === 'enter' ? 'Got home' : 'Left home') : (e.type === 'enter' ? `Arrived at ${e.name}` : `Left ${e.name}`);
+    return e.place === 'home' ? (e.type === 'enter' ? 'Đã về đến nhà' : 'Đã rời nhà') : (e.type === 'enter' ? `Đã đến ${e.name}` : `Đã rời ${e.name}`);
+  };
   function pushesFrom(log) {
-    const out = [];
-    let lastPushAt = {};
+    const out = []; const lastPushAt = {};
     log.forEach((e, i) => {
       if (e.type !== 'enter') return;
       const prevExit = log.slice(0, i).reverse().find((x) => x.place === e.place && x.type === 'exit');
-      const bounce = prevExit && mins(e.at) - mins(prevExit.at) < BOUNCE_MIN;
-      if (bounce) return;
+      if (prevExit && mins(e.at) - mins(prevExit.at) < BOUNCE_MIN) return;
       if (lastPushAt[e.place] != null && mins(e.at) - lastPushAt[e.place] < 30) return;
       if (out.length >= PUSH_MAX_PER_DAY) return;
-      lastPushAt[e.place] = mins(e.at);
-      out.push(e);
+      lastPushAt[e.place] = mins(e.at); out.push(e);
     });
     return out;
   }
-
-  function pushCopy(e, name, lang) {
-    const t = { home: { vi: `${name} đã về đến nhà`, en: `${name} got home` }, work: { vi: `${name} đã đến chỗ làm`, en: `${name} got to work` }, school: { vi: `${name} đã đến trường`, en: `${name} got to school` } }[e.place][lang];
+  function pushCopy(e, who, lang) {
+    const title = e.place === 'home' ? { vi: `${who} đã về đến nhà`, en: `${who} got home` }[lang] : { vi: `${who} đã đến ${e.name}`, en: `${who} arrived at ${e.name}` }[lang];
     const low = e.battery != null && e.battery <= LOW_BATTERY;
-    const b = low ? { vi: `Pin còn ${e.battery}%`, en: `Battery at ${e.battery}%` }[lang] : { vi: 'Nhắn một câu hỏi thăm nhé', en: 'Send a quick hello' }[lang];
-    return { title: t, body: b };
+    const body = low ? { vi: `Pin còn ${e.battery}%`, en: `Battery at ${e.battery}%` }[lang] : { vi: 'Nhắn một câu hỏi thăm nhé', en: 'Send a quick hello' }[lang];
+    return { title, body };
   }
+  const widget = (e, who) => (e.place === 'home'
+    ? { kind: 'arrival_home', vi: `${who} đã về đến nhà`, viShort: `${who} về nhà rồi`, en: `${who} got home`, enShort: `${who} is home` }
+    : { kind: 'arrival_place', vi: `${who} đã đến ${e.name}`, viShort: `${who} tới ${e.name}`, en: `${who} arrived at ${e.name}`, enShort: `${who} at ${e.name}` });
+  const daysBetween = (a, b) => Math.round((Date.parse(b + 'T00:00Z') - Date.parse(a + 'T00:00Z')) / 86400000);
+  const daysTogether = daysBetween(ANNIVERSARY, NOW.slice(0, 10));
 
-  const widgetCopy = {
-    arrival_home: { vi: (n) => `${n} đã về đến nhà`, en: (n) => `${n} got home`, viShort: (n) => `${n} về nhà rồi`, enShort: (n) => `${n} is home` },
-    arrival_work: { vi: (n) => `${n} đã đến chỗ làm`, en: (n) => `${n} got to work`, viShort: (n) => `${n} tới chỗ làm`, enShort: (n) => `${n} at work` },
-    arrival_school: { vi: (n) => `${n} đã đến trường`, en: (n) => `${n} got to school`, viShort: (n) => `${n} tới trường`, enShort: (n) => `${n} at school` },
-  };
-
-  // Ngày bên nhau (đếm theo ngày lịch, khớp CounterCard: ngày yêu là ngày 1 thì +1 — ở đây hiện số ngày đã qua).
-  const daysBetween = (a, b) => Math.round((Date.UTC(...b.split('-').map((v, i) => (i === 1 ? v - 1 : +v))) - Date.UTC(...a.split('-').map((v, i) => (i === 1 ? v - 1 : +v)))) / 86400000);
-  const daysTogether = daysBetween(ANNIVERSARY, dayOf(NOW));
-
-  const thaoPushes = pushesFrom(thaoToday);
-  const tuanPushes = pushesFrom(tuanToday);
   const lastThao = docs.u_thao.last;
-  const push = pushCopy(lastThao, people.partner.name, 'vi');
-  const pushEn = pushCopy(lastThao, people.partner.name, 'en');
-  const widgetKind = lastThao.type === 'enter' ? `arrival_${lastThao.place}` : null;
+  const gym = thaoToday[3];
+  const push = pushCopy(lastThao, 'Thảo', 'vi'), pushEn = pushCopy(lastThao, 'Thảo', 'en'), pushGym = pushCopy(gym, 'Thảo', 'vi');
+  const thaoPushes = pushesFrom(thaoToday);
 
-  // Kiểm chéo: mọi chỗ hiện cùng một sự thật phải khớp.
-  console.assert(daysTogether === 1255, 'ngày bên nhau 14/05/2023 → 20/10/2026 = 1255', daysTogether);
-  console.assert(lastThao === thaoToday[thaoToday.length - 1], 'doc.last = sự kiện cuối của nhật ký');
-  console.assert(thaoToday.every((e, i) => i === 0 || mins(e.at) > mins(thaoToday[i - 1].at)), 'giờ tăng dần');
-  console.assert(thaoToday.every((e, i) => i === 0 || e.battery <= thaoToday[i - 1].battery), 'pin không tăng khi không sạc');
-  console.assert(thaoPushes.length === 2 && thaoPushes.length <= PUSH_MAX_PER_DAY, 'Thảo: 2 lần đến = 2 push', thaoPushes.length);
-  console.assert(thaoPushes[1].at === lastThao.at, 'push mới nhất là 18:42');
-  console.assert(push.title === 'Thảo đã về đến nhà' && push.body === 'Pin còn 12%', 'push 18:42 có dòng pin vì 12 ≤ 20');
-  console.assert(pushCopy(thaoToday[1], 'Thảo', 'vi').body === 'Nhắn một câu hỏi thăm nhé', 'pin 91% thì body hỏi thăm');
+  console.assert(daysTogether === 1255, 'ngày bên nhau = 1255', daysTogether);
+  console.assert(lastThao === thaoToday[thaoToday.length - 1], 'doc.last = sự kiện cuối');
+  console.assert(thaoToday.every((e, i) => !i || mins(e.at) > mins(thaoToday[i - 1].at)), 'giờ tăng dần');
+  console.assert(thaoToday.every((e, i) => !i || e.battery <= thaoToday[i - 1].battery), 'pin không tăng khi không sạc');
+  console.assert(thaoPushes.map((e) => hm(e.at)).join() === '07:58,17:50,18:42', '3 lần đến = 3 push (Công ty, Phòng gym, Nhà)');
+  console.assert(thaoPushes.length <= PUSH_MAX_PER_DAY, '≤ 6 push/ngày');
+  console.assert(push.title === 'Thảo đã về đến nhà' && push.body === 'Pin còn 12%', 'push Nhà 18:42, pin 12 ≤ 20');
+  console.assert(pushGym.title === 'Thảo đã đến Phòng gym' && pushGym.body === 'Nhắn một câu hỏi thăm nhé', 'push gym 17:50, pin 22 > 20');
   console.assert(pushEn.title === 'Thảo got home' && pushEn.body === 'Battery at 12%', 'bản EN');
-  console.assert(widgetKind === 'arrival_home' && widgetCopy[widgetKind].vi('Thảo') === push.title, 'widget = tiêu đề push');
-  console.assert(widgetCopy.arrival_home.viShort('Thảo').length <= 17, 'bản rút gọn vừa widget nhỏ (≤17 ký tự)');
-  console.assert(mins(thaoToday[3].at) - mins(thaoToday[2].at) === 70, 'rời chỗ làm 17:32 → về nhà 18:42 = 70 phút, không phải bounce');
-  console.assert(tuanPushes.length === 1 && docs.u_tuan.last.place === 'work', 'Tuấn: đến chỗ làm 08:05');
-  console.assert(!BLOCKED[people.me.color].includes(people.partner.color) && people.me.color !== people.partner.color, 'màu 2 người không trùng/khoá');
-  console.assert(docs.u_thao.places.length <= 3 && docs.u_thao.places.includes('home'), '≤3 địa điểm, có Nhà khi bật tự động');
-  console.assert(mins(NOW) > mins(lastThao.at), 'sự kiện xảy ra trước "bây giờ"');
-  // Trường hợp rìa vùng: ra đổ rác 20:10, vào lại 20:16 → bounce, không push.
-  const bounceLog = [...thaoToday, { place: 'home', type: 'exit', at: '2026-10-20T20:10', battery: 11, source: 'auto' }, { place: 'home', type: 'enter', at: '2026-10-20T20:16', battery: 11, source: 'auto' }];
-  console.assert(pushesFrom(bounceLog).length === 2, 'đi đổ rác 6 phút không sinh push thứ 3');
+  console.assert(widget(lastThao, 'Thảo').vi === push.title && widget(gym, 'Thảo').vi === pushGym.title, 'widget = tiêu đề push');
+  console.assert(widget(gym, 'Thảo').viShort.length <= 20, 'rút gọn vừa widget nhỏ (≈17–20 ký tự, tên dài hơn thì cắt …)');
+  console.assert(Object.values(places).every((l) => l.length <= MAX_PLACES && l[0].slot === 'home'), '≤ 5 nơi, Nhà luôn đầu');
+  console.assert(Object.values(places).flat().every((p) => p.slot === 'home' || (p.name.trim().length >= 1 && p.name.length <= NAME_MAX && ICONS.includes(p.icon))), 'tên 1–24, icon hợp lệ');
+  console.assert(Object.values(places).flat().every((p) => p.radius === (p.source === 'current' ? R_CURRENT : R_ADDRESS)), 'bán kính theo nguồn 150/250');
+  console.assert('Nhà ngoại ở Thanh Xuân'.length <= NAME_MAX, 'tên dài mẫu vẫn ≤ 24');
+  console.assert(!BLOCKED[people.me.color].includes(people.partner.color), 'màu 2 người không khoá');
+  const bounce = [...thaoToday, ev('home', 'exit', '20:10', 11), ev('home', 'enter', '20:16', 11)];
+  console.assert(pushesFrom(bounce).length === 3, 'đi đổ rác 6 phút không sinh push');
 
   window.D = {
-    NOW, ANNIVERSARY, daysTogether, people, PALETTE, PLACE, docs, savedPlaces, thaoToday, tuanToday,
-    RADIUS_M, LOW_BATTERY, push, pushEn, widgetKind, widgetCopy, pushCopy, hm,
+    NOW, daysTogether, people, PALETTE, places, docs, thaoToday, tuanToday, ICONS, NAME_CHIPS, MAX_PLACES, NAME_MAX, R_ADDRESS, R_CURRENT,
+    push, pushEn, pushGym, pushCopy, widget, hm, sentence, placeName,
     low: (e) => e.battery != null && e.battery <= LOW_BATTERY,
-    color: (who) => PALETTE[people[who].color],
+    gym, exitWork: thaoToday[2],
     yesterday: { place: 'home', type: 'enter', at: '2026-10-19T22:58', battery: 40, source: 'manual' },
+    longName: { place: 'p3', name: 'Nhà ngoại ở Thanh Xuân', icon: 'family', type: 'enter', at: '2026-10-20T18:20', battery: 57, source: 'auto' },
   };
 })();

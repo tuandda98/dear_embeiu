@@ -22,7 +22,7 @@ const variants = [
 ];
 const lanesFor = (g, v) => UI.lanes(g, { me: v.me || 'tuan', plus: v.plus, move: g.moves, wins: v.plus ? D.wins : D.wins });
 document.getElementById('app').innerHTML = `
-  ${UI.header('Cờ caro', { icon: 'more', label: 'Thêm: lịch sử ván' })}
+  ${UI.header('Cờ caro', { icon: 'clock', label: 'Lịch sử ván' })}
   <main>
     <section class="card status" aria-live="polite">
       <h1>Thảo thắng ván này</h1>

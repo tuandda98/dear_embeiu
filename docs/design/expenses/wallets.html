@@ -21,13 +21,13 @@ document.getElementById('app').innerHTML = `
   ${UI.seg(['Của mình', 'Chung'], 0)}
   <main>
   <section class="card" aria-labelledby="h-total">
-    <h2 id="h-total" class="label">Tổng tài sản</h2>
+    <h2 id="h-total" class="label">Tổng tiền đang có</h2>
     <p>${UI.money(B.assets, 'fig-xl')}</p>
-    <p class="finding">Cộng ${active.length} ví đang dùng, kể cả dư nợ thẻ VIB. Ví mục tiêu để riêng bên dưới.</p>
+    <p class="finding">Cộng ${active.length} ví đang dùng, đã trừ tiền đang nợ thẻ VIB. Tiền để dành cho mục tiêu tính riêng bên dưới.</p>
   </section>
   <section class="card" aria-labelledby="h-act">
     <div class="card-h"><h2 id="h-act">Đang dùng</h2><span class="meta">${active.length} ví</span></div>
-    <div class="rows">${active.map((w) => UI.walletRow(w, B.balances[w.id], w.type === 'credit' ? ' · dư nợ' : '').replace('<button class="row">', '<a class="row" href="wallet.html">').replace(/<\/button>$/, '</a>')).join('')}</div>
+    <div class="rows">${active.map((w) => UI.walletRow(w, B.balances[w.id], w.type === 'credit' ? ' · đang nợ thẻ' : '').replace('<button class="row">', '<a class="row" href="wallet.html">').replace(/<\/button>$/, '</a>')).join('')}</div>
   </section>
   <section class="card" aria-labelledby="h-goal">
     <div class="card-h"><h2 id="h-goal">Mục tiêu</h2><span class="meta">không tính vào tổng</span></div>

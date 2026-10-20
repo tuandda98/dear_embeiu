@@ -9,14 +9,14 @@
   const nowMin = NOW.h * 60 + NOW.m;
 
   const people = {
-    me: { uid: 'u_tuan', name: 'Tuấn', label: 'Mình', labelEn: 'You', color: '#FF4D6D' }, // rose
+    me: { uid: 'u_tuan', name: 'Tuấn', label: 'Bạn', labelEn: 'You', color: '#FF4D6D' }, // rose
     partner: { uid: 'u_thao', name: 'Thảo', color: '#7C5CD6' }, // purple (PersonPalette.resolve mặc định)
   };
 
   // ---- Danh sách thành phố (Phụ lục A). region '' = thành phố trực thuộc TW, chỉ hiện tên.
   // id|tên vi|tên en|vùng vi|vùng en|aliases (tỉnh cũ, tên khác) cách nhau bởi /
   const VN = `vn-ha-noi|Hà Nội|Hanoi|||
-vn-tp-hcm|TP.HCM|Ho Chi Minh City|||Sài Gòn/Saigon/Hồ Chí Minh
+vn-tp-hcm|TP.HCM|Ho Chi Minh City|||Sài Gòn/Saigon/Hồ Chí Minh/HCM/HCMC/SG
 vn-thu-dau-mot|Thủ Dầu Một|Thu Dau Mot|TP. Hồ Chí Minh|Ho Chi Minh City|Bình Dương
 vn-vung-tau|Vũng Tàu|Vung Tau|TP. Hồ Chí Minh|Ho Chi Minh City|Bà Rịa–Vũng Tàu/Bà Rịa
 vn-hai-phong|Hải Phòng|Hai Phong|||
@@ -144,10 +144,13 @@ ae-dubai|Dubai|Dubai|UAE|UAE|`;
   function search(q) {
     const k = fold(q);
     if (!k) return cities.map((c) => ({ city: c, via: null }));
+    // So cả bản bỏ khoảng trắng: "dalat", "hanoi", "tphcm" vẫn ra.
+    const k2 = k.replace(/ /g, '');
+    const hit = (n) => { const f = fold(n); return f.includes(k) || f.replace(/ /g, '').includes(k2); };
     const out = [];
     for (const c of cities) {
-      if ([c.nameVi, c.nameEn, c.regionVi, c.regionEn].some((n) => n && fold(n).includes(k))) { out.push({ city: c, via: null }); continue; }
-      const a = c.aliases.find((x) => fold(x).includes(k));
+      if ([c.nameVi, c.nameEn, c.regionVi, c.regionEn].some((n) => n && hit(n))) { out.push({ city: c, via: null }); continue; }
+      const a = c.aliases.find(hit);
       if (a) out.push({ city: c, via: a });
     }
     return out;
@@ -241,10 +244,11 @@ ae-dubai|Dubai|Dubai|UAE|UAE|`;
       slots: [9, 12, 15, 18, 21].map((h) => { const x = hours.find((y) => y.h === h); return { h, temp: x.temp, icon: skyOf(x.sym)[2], rain: isRain(x) }; }),
     };
   }
+  // Nhãn nút gọi tên người ấy (nút nằm dưới cột người ấy, bên phải) + icon message_favorite của lối vào Quan tâm ở header Home.
   const CTA = {
-    rain: { vi: 'Nhắc mang ô', en: 'Remind: umbrella', icon: 0xe9cf },
-    hot: { vi: 'Nhắc uống nước', en: 'Remind: water', icon: 0xea28 },
-    cold: { vi: 'Nhắc mặc ấm', en: 'Remind: dress warm', icon: 0xec7d },
+    rain: { vi: 'Nhắc mang ô', en: 'Remind: umbrella', full: (n) => `Nhắc ${n} mang ô`, fullEn: (n) => `Remind ${n}: umbrella`, icon: 0xeafe },
+    hot: { vi: 'Nhắc uống nước', en: 'Remind: water', full: (n) => `Nhắc ${n} uống nước`, fullEn: (n) => `Remind ${n}: water`, icon: 0xeafe },
+    cold: { vi: 'Nhắc mặc ấm', en: 'Remind: dress warm', full: (n) => `Nhắc ${n} mặc ấm`, fullEn: (n) => `Remind ${n}: dress warm`, icon: 0xeafe },
   };
   // D11: chênh ≥ 5° mới nói; câu luôn nói về chỗ người ấy.
   function gap(me, partner, name) {
@@ -320,5 +324,8 @@ ae-dubai|Dubai|Dubai|UAE|UAE|`;
   console.assert(search('sai gon').some((r) => r.city.id === 'vn-tp-hcm'), '"sai gon" ra TP.HCM');
   console.assert(gap(hn, hp, P) === null && hp.cond.kind === 'sky', 'Hải Phòng 22° với Hà Nội 23°: lệch 1°, không có hàng chung');
   console.assert(bmt.cond.vi === null && bmt.cond.kind === 'sky', 'Mã MET lạ → ẩn mô tả');
+  console.assert(search('dalat')[0].city.id === 'vn-da-lat' && search('hanoi')[0].city.id === 'vn-ha-noi', 'gõ liền không cách vẫn ra');
+  console.assert(search('tphcm').some((r) => r.city.id === 'vn-tp-hcm') && search('hcm').some((r) => r.city.id === 'vn-tp-hcm'), '"hcm", "tphcm" ra TP.HCM');
+  console.assert(CTA.rain.full('Thảo') === 'Nhắc Thảo mang ô', 'Nút gọi tên người ấy');
   console.assert(new Set(cities.map((c) => c.id)).size === cities.length, 'id thành phố không trùng');
 })();

@@ -31,63 +31,40 @@
 <body>
 <header class="doc">
   <h1>Bật “Về đến nhà” lần đầu</h1>
-  <p>Ba bước, dừng ở bước nào app vẫn dùng được: hộp giải thích (Play bắt buộc) → lưu Nhà → quyền Luôn luôn. Bấm nút chính để đi tiếp.</p>
+  <p>Chỉ hỏi quyền lúc bật tự báo: hộp giải thích (Play bắt buộc) → quyền khi dùng app → Luôn luôn. Lưu nơi bằng địa chỉ không cần quyền (xem place.html). Bấm nút chính để đi tiếp.</p>
 </header>
 <main id="m"></main>
 <script>
 const { I } = UI; const me = D.people.me.name, pn = D.people.partner.name, R = D.RADIUS_M;
 const head = `<div class="ssh"><button class="back" aria-label="Quay lại">${I.back()}</button><span class="chip">${I.home(13)}Về đến nhà</span></div>`;
-const steps = (n) => `<div class="steps" role="img" aria-label="Bước ${n} trên 3">${[1,2,3].map((i) => `<i class="${i === n ? 'on' : ''}"></i>`).join('')}</div>`;
+const steps = (n) => `<div class="steps" role="img" aria-label="Bước ${n} trên 2">${[1,2].map((i) => `<i class="${i === n ? 'on' : ''}"></i>`).join('')}</div>`;
 const push = (t, b) => `<div class="push"><span class="appic">${I.heart(14)}</span><div><p class="t">${t}</p><p class="b">${b}</p></div><span class="w">bây giờ</span></div>`;
 const ring = (state) => `<div class="ring"><svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="44" fill="${state === 'saved' ? 'rgba(255,77,109,.10)' : 'rgba(26,26,46,.05)'}" stroke="${state === 'saved' ? 'rgba(255,77,109,.45)' : 'rgba(26,26,46,.18)'}" stroke-width="1.5"/><circle cx="48" cy="48" r="18" fill="#fff"/><g transform="translate(38 38)" color="${state === 'saved' ? '#FF4D6D' : '#1A1A2E'}">${I.home(20)}</g></svg><div><p class="tt" style="font-size:15px;font-weight:700">Nhà${state === 'saved' ? ' · đã lưu' : ''}</p><p class="fine" style="margin-top:2px">Vòng tròn ${R} m quanh chỗ bạn đứng. Vào vòng này là tính “đã về”.</p></div></div>`;
 
 const F = [];
-F.push(['disclosure', 'Giải thích quyền (hộp nổi bật, hiện TRƯỚC hộp xin quyền)', `${head}${steps(1)}
+F.push(['need-place', 'Bật tự báo khi chưa có nơi nào có vị trí', `${head}
+  <h2 class="hero-title">Trước hết, nhà bạn ở đâu?</h2>
+  <p class="body" style="margin-top:12px">Máy cần biết Nhà ở đâu thì mới tự báo được. Gõ địa chỉ là xong, chưa cần cấp quyền gì.</p>
+  <div class="card" style="margin-top:20px"><div class="ring"><svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="26" fill="rgba(26,26,46,.05)"/><g transform="translate(18 18)" color="#1A1A2E">${I.home(20)}</g></svg><div><p style="font-size:15px;font-weight:700">Nhà</p><p class="fine" style="margin-top:2px">Chưa đặt địa chỉ</p></div></div></div>
+  <div class="cta"><button class="btn primary lg">${I.search(18)}Đặt địa chỉ Nhà</button><button class="btn text muted">Để sau</button></div>`]);
+F.push(['disclosure', 'Giải thích quyền (hộp nổi bật Play bắt buộc, hiện TRƯỚC hộp xin quyền)', `${head}${steps(1)}
   <h2 class="hero-title">Về đến nơi, ${pn} biết ngay</h2>
-  <p class="body ink" style="margin-top:12px">Dear Embeiu dùng vị trí để báo người ấy khi bạn đến Nhà, Chỗ làm hoặc Trường, kể cả khi app đã đóng hoặc không dùng. Toạ độ chỉ lưu trên máy bạn. Người ấy chỉ thấy tên nơi đến, giờ và mức pin lúc đó. Bạn tắt lúc nào cũng được.</p>
-  <p class="lbl" style="margin-top:20px">${pn} sẽ nhận được</p>${push(`${me} đã về đến nhà`, 'Pin còn 12%')}
+  <p class="body ink" style="margin-top:12px">Dear Embeiu dùng vị trí để báo người ấy khi bạn về Nhà hoặc đến những nơi bạn đã lưu, kể cả khi app đã đóng hoặc không dùng. Địa chỉ và toạ độ chỉ lưu trên máy bạn. Người ấy chỉ thấy tên nơi đến, giờ và mức pin lúc đó. Bạn tắt lúc nào cũng được.</p>
+  <p class="lbl" style="margin-top:20px">${pn} sẽ nhận được</p>${push(`${me} đã đến Công ty`, 'Nhắn một câu hỏi thăm nhé')}
   <p style="margin-top:12px"><a href="#" style="color:var(--navy);font-size:14px;font-weight:700">Chính sách bảo mật</a></p>
   <div class="cta"><button class="btn primary lg" data-go="os1">Đồng ý, tiếp tục</button><button class="btn text muted">Để sau</button></div>`]);
-F.push(['os1', 'Hộp của hệ thống: xin vị trí khi dùng app + chính xác (không tự vẽ)', `
-  <div class="os"><div class="b"><b>Cho phép “Dear Embeiu” sử dụng vị trí của bạn?</b>Dear Embeiu đọc vị trí lúc bạn đang ở nhà, chỗ làm hoặc trường để lưu nơi đó. Toạ độ chỉ nằm trên máy bạn.</div><div class="o">Cho phép một lần</div><div class="o" style="font-weight:600">Cho phép khi dùng ứng dụng</div><div class="o">Không cho phép</div></div><p class="oslabel">iOS · câu lấy từ NSLocationWhenInUseUsageDescription</p>
+F.push(['os1', 'Hộp của hệ thống: vị trí khi dùng app + chính xác (chỉ khi chưa có)', `
+  <div class="os"><div class="b"><b>Cho phép “Dear Embeiu” sử dụng vị trí của bạn?</b>Dear Embeiu đọc vị trí khi bạn chọn “Dùng vị trí hiện tại” để lưu một nơi, và để nhận ra khi bạn đến nơi đó. Toạ độ chỉ nằm trên máy bạn.</div><div class="o">Cho phép một lần</div><div class="o" style="font-weight:600">Cho phép khi dùng ứng dụng</div><div class="o">Không cho phép</div></div><p class="oslabel">iOS · NSLocationWhenInUseUsageDescription</p>
   <div class="osand" style="margin-top:20px"><b>Cho phép Dear Embeiu truy cập vị trí của thiết bị này?</b><div class="opt on"><i></i>Chính xác</div><div class="opt"><i></i>Gần đúng</div><div class="opt" style="color:#0B57D0;font-weight:500">Trong khi dùng ứng dụng</div><div class="opt" style="color:#0B57D0;font-weight:500">Chỉ lần này</div><div class="opt" style="color:#0B57D0;font-weight:500">Không cho phép</div></div><p class="oslabel">Android 12+</p>
-  <div class="cta"><button class="btn primary lg" data-go="save">Giả lập: đã cho phép</button></div>`]);
-F.push(['save', 'Lưu Nhà từ vị trí hiện tại', `${head}${steps(2)}
-  <h2 class="hero-title">Bạn đang ở nhà chứ?</h2>
-  <p class="body" style="margin-top:12px">App lấy chỗ bạn đang đứng làm Nhà. Toạ độ chỉ nằm trên máy này, đổi máy thì lưu lại.</p>
-  <div class="card" style="margin-top:20px">${ring('idle')}</div>
-  <div class="cta"><button class="btn primary lg" data-go="saving">${I.home(18)}Mình đang ở nhà, lưu chỗ này</button><button class="btn text muted" data-go="partial">Mình chưa ở nhà</button></div>`]);
-F.push(['saving', 'Đang lấy vị trí', `${head}${steps(2)}
-  <h2 class="hero-title">Bạn đang ở nhà chứ?</h2>
-  <div class="card" style="margin-top:20px">${ring('idle')}</div>
-  <div class="cta"><button class="btn primary lg" aria-busy="true" disabled style="color:#fff"><span class="spin"></span>Đang lấy vị trí…</button></div>`]);
-F.push(['coarse', 'Vị trí còn lệch nhiều (sai số trên 100 m)', `${head}${steps(2)}
-  <h2 class="hero-title">Vị trí chưa đủ chuẩn</h2>
-  <div class="card" style="margin-top:20px"><div class="place"><span class="badge navy">${I.loc(20)}</span><div class="tx"><p class="tt">Lệch khoảng 180 m</p><p class="ts">Lưu bây giờ thì có thể báo “đã về” khi bạn mới tới đầu ngõ.</p></div></div></div>
-  <div class="cta"><button class="btn primary lg" data-go="saved">Thử lại</button><button class="btn text">Vẫn lưu</button></div>
-  <p class="fine" style="margin:8px 4px 0">Ra gần cửa sổ hoặc ban công rồi thử lại.</p>`]);
-F.push(['approx', 'Chỉ cấp vị trí gần đúng', `${head}${steps(2)}
-  <h2 class="hero-title">Cần bật Vị trí chính xác</h2>
-  <p class="body" style="margin-top:12px">Với vị trí gần đúng, app không biết bạn đã về tới cửa hay mới ở cách nhà vài con phố.</p>
-  <div class="cta"><button class="btn primary lg">Mở Cài đặt</button><button class="btn text muted">Dùng bấm tay</button></div>`]);
-F.push(['denied', 'Từ chối quyền vị trí / định vị đang tắt', `${head}${steps(2)}
-  <h2 class="hero-title">Chưa có quyền vị trí</h2>
-  <p class="body" style="margin-top:12px">Không có vị trí thì máy chưa tự báo được. Bạn vẫn bấm “Về nhà rồi” trên thẻ Home mỗi lần về, ${pn} nhận tin như nhau.</p>
-  <div class="hint">${I.info(16)}<span>Định vị của máy đang tắt thì bật trong Cài đặt → Quyền riêng tư → Dịch vụ định vị.</span></div>
-  <div class="cta"><button class="btn primary lg">Mở Cài đặt</button><button class="btn text muted">Dùng bấm tay</button></div>`]);
-F.push(['saved', 'Đã lưu Nhà', `${head}${steps(2)}
-  <h2 class="hero-title">Đã lưu Nhà</h2>
-  <div class="card" style="margin-top:20px">${ring('saved')}</div>
-  <p class="fine" style="margin:12px 4px 0">Chỗ làm và Trường thêm sau, lúc bạn đang ở đó, trong Cài đặt → Về đến nhà.</p>
-  <div class="cta"><button class="btn primary lg" data-go="always">Tiếp tục</button></div>`]);
-F.push(['always', 'Giải thích trước khi xin “Luôn luôn”', `${head}${steps(3)}
+  <div class="cta"><button class="btn primary lg" data-go="always">Giả lập: đã cho phép</button></div>`]);
+F.push(['always', 'Trước khi xin “Luôn luôn” (iOS)', `${head}${steps(2)}
   <h2 class="hero-title">Chọn “Luôn luôn”</h2>
   <p class="body ink" style="margin-top:12px">Để tự báo cả lúc app đang đóng, chọn “Luôn luôn” ở trang tiếp theo.</p>
   <p class="lbl" style="margin-top:20px">Trang tiếp theo trông như thế này</p>
   <div class="optlist" role="img" aria-label="Danh sách quyền vị trí, mục Luôn luôn được chọn"><div>Không bao giờ</div><div>Hỏi lần sau</div><div>Khi dùng ứng dụng</div><div class="on">Luôn luôn ${I.tick(18)}</div></div>
   <div class="hint">${I.info(16)}<span>Đừng vuốt tắt Dear Embeiu trong đa nhiệm. App bị vuốt tắt thì iPhone có thể không báo được.</span></div>
   <div class="cta"><button class="btn primary lg" data-go="done">Tiếp tục</button><button class="btn text muted" data-go="partial">Để sau, mình bấm tay</button></div>`]);
-F.push(['always-android', 'Bản Android của bước “Luôn luôn”', `${head}${steps(3)}
+F.push(['always-android', 'Trước khi xin “Cho phép mọi lúc” (Android)', `${head}${steps(2)}
   <h2 class="hero-title">Chọn “Cho phép mọi lúc”</h2>
   <p class="body ink" style="margin-top:12px">Để tự báo cả lúc app đang đóng, chọn “Cho phép mọi lúc” ở trang tiếp theo.</p>
   <p class="lbl" style="margin-top:20px">Trang tiếp theo trông như thế này</p>
@@ -97,14 +74,14 @@ F.push(['always-android', 'Bản Android của bước “Luôn luôn”', `${he
 F.push(['done', 'Xong (đã có Luôn luôn)', `${head}
   <h2 class="hero-title">Đã bật báo về nhà</h2>
   <p class="body" style="margin-top:12px">Từ giờ về đến Nhà là ${pn} biết. Muốn tắt thì vào Cài đặt → Về đến nhà. Tắt là tin gần nhất bị xoá, ${pn} không nhận thông báo nào.</p>
-  <div class="card" style="margin-top:20px"><div class="place"><span class="badge">${I.loc(20)}</span><div class="tx"><p class="tt">Tự báo khi đến Nhà</p><p class="ts">Thêm Chỗ làm, Trường lúc bạn đang ở đó</p></div><span style="color:var(--tertiary);display:flex">${I.chev()}</span></div></div>
+  <div class="card" style="margin-top:20px"><div class="place"><span class="badge">${I.loc(20)}</span><div class="tx"><p class="tt">Tự báo khi đến Nhà</p><p class="ts">Thêm Công ty, phòng gym… để báo cả những chỗ đó</p></div><span style="color:var(--tertiary);display:flex">${I.chev()}</span></div></div>
   <div class="cta"><button class="btn primary lg">Về trang chủ</button></div>`]);
-F.push(['partial', 'Dừng giữa chừng (chưa lưu Nhà hoặc chưa có Luôn luôn)', `${head}
+F.push(['partial', 'Dừng giữa chừng (từ chối hoặc chưa có Luôn luôn)', `${head}
   <h2 class="hero-title">Tạm thời bạn báo bằng tay</h2>
-  <p class="body" style="margin-top:12px">Mỗi lần về, bấm “Về nhà rồi” trên thẻ Home. ${pn} nhận tin y như lúc máy tự báo. Thẻ Home sẽ có nút để bật tiếp khi bạn sẵn sàng.</p>
+  <p class="body" style="margin-top:12px">Mỗi lần về, bấm “Về nhà rồi” trên thẻ Home. ${pn} nhận tin y như lúc máy tự báo. Các nơi đã lưu vẫn giữ nguyên.</p>
   <div class="cta"><button class="btn primary lg">Về trang chủ</button></div>`]);
 
-document.getElementById('m').innerHTML = F.map(([id, h, html]) => `<section class="frame" id="${id}"><h2 class="lbl" style="margin-bottom:14px">${h}</h2>${html}</section>`).join('');
+document.getElementById('m').innerHTML = F.map(([id, h, html]) => `<section class="frame${html.includes('class="cta"') && id !== 'os1' ? ' ph' : ''}" id="${id}"><h2 class="lbl" style="margin-bottom:14px">${h}</h2>${html}</section>`).join('');
 document.addEventListener('click', (ev) => { const b = ev.target.closest('[data-go]'); if (b) document.getElementById(b.dataset.go).scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); });
 </script>
 </body>

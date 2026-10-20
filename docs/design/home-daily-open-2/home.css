@@ -232,6 +232,45 @@ p, h1, h2, h3 { margin: 0; }
 .wlane .cond { margin-top: 2px; font-size: 14px; line-height: 19px; font-weight: 700; }
 .wshared { display: flex; align-items: center; min-height: 44px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 14px; font-weight: 600; }
 
+/* ---------- Bản C, vòng soát dễ dùng ---------- */
+.home.c .counter { padding: 24px 24px 22px; } /* sát số đo app 362 hơn (mock A/B 400+) */
+.home.c .counter .big { margin-top: 14px; }
+.home.c .clock { margin-top: 12px; }
+.home.c .ms { margin-top: 14px; }
+.lockline { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; line-height: 18px; font-weight: 700; }
+.lockline .ic { font-size: 15px; color: var(--rose-deep); }
+.mside.c { padding: 0; align-content: start; }
+.mside.c .person { justify-content: center; }
+.mood .chead + .mcols { margin-top: 14px; }
+.mood .chead .textlink .ic { font-size: 16px; }
+.alanes2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.alane2 { display: flex; flex-direction: column; min-width: 0; padding: 12px; border-radius: 16px; }
+.alane2.m { background: rgba(255,77,109,.10); } .alane2.p { background: rgba(14,147,132,.10); } .alane2.neutral { background: var(--soft); }
+.alane2 .aline { margin-top: 6px; font-size: 18px; line-height: 23px; font-weight: 700; }
+.alane2 .aline.s { font-size: 15px; }
+.ameta2 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--ink2); }
+.ameta2 > .ic { font-size: 16px; color: var(--ink); }
+.ameta2 b { font-size: 14px; font-weight: 700; color: var(--ink); }
+.ameta2 .bat { display: inline-flex; align-items: center; gap: 4px; }
+.ameta2 .bat .ic { font-size: 14px; }
+.ameta2 .batt { margin-top: 0; }
+.mstat { display: flex; gap: 6px; align-items: flex-start; margin-top: auto; padding-top: 8px; min-height: 44px; font-size: 12px; line-height: 16px; font-weight: 600; }
+.mstat .ic { font-size: 14px; margin-top: 1px; }
+.alane2 .care { margin-top: auto; align-self: flex-start; margin-left: -8px; }
+.alane2 .care .ic { font-size: 16px; color: var(--rose-deep); }
+.abtns2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; } /* hai nút luôn một hàng, kể cả khổ 360 (2×144) */
+.abtns2 .btn { padding: 0 10px; font-size: 14px; font-weight: 700; gap: 6px; }
+.abtns2 .btn .ic + .ic { margin-left: -2px; font-size: 16px; }
+.weather.compact { padding: 16px; }
+.wrow { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.wtxt { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.wtxt .t { font-size: 16px; line-height: 20px; font-weight: 800; }
+.wline { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--ink2); }
+.wchip { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.wchip i { width: 8px; height: 8px; border-radius: 50%; }
+.wchip b { font-weight: 700; color: var(--ink); }
+.wcond { white-space: nowrap; }
+
 /* ---------- So sánh A/B (compare.html) ---------- */
 .cmp { display: grid; grid-template-columns: repeat(var(--cols, 2), 390px); gap: 32px; justify-content: center; padding: 0 16px 48px; }
 .cmp .col { min-width: 0; }

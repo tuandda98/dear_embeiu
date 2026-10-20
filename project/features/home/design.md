@@ -498,3 +498,44 @@ C dài hơn B 62 px (bỏ tim −42, tách hai hàng bảng thành hai thẻ +28
 **Nhìn lại (1 vòng, theo ảnh 390):** design 7,5 · usability 7,5 · creativity 7 · content 8 → 7,45. Còn yếu: bốn thẻ người ấy liền nhau, mỗi thẻ một kiểu hai làn hơi khác (mặt to, câu, nhiệt độ, trăng) nên mắt phải đọc lại nhãn Bạn/Thảo bốn lần; Home dài nhất trong ba bản; lúc 19:05 thẻ Thời tiết ít thông tin mà vẫn chiếm 167 px.
 
 - [2026-10-20] [Designer] Bản C (bản chọn): bỏ poke, mỗi thứ một thẻ. Thêm `home-c.html`, `home-c-waiting.html`, cập nhật `compare.html` (C đầu, "Bản chọn"). Thêm nút phụ "Đến nơi rồi" vào làn Bạn theo D7 mới. C 2.720 px mock (A 2.251, B 2.658; ≈2.610 so với 1.933 hiện tại theo kích thước app). Lint 0/0, inspect 390 0 FAIL.
+
+### 15. Soát dễ dùng (UI UX Pro Max) — bản C sau soát
+
+> User 2026-10-20: "dùng UI-UX promax thiết kế, tôi yêu cầu thiết kế phù hợp với người dùng và UI tiện lợi dễ sử dụng". Giữ design system, mỗi thứ một thẻ, không poke, đồng hồ chạy giây. Mục này thắng mục 14 ở chỗ lệch. Đã sửa thẳng `home-c.html` / `home-c-waiting.html` (qua `ui.js`: `ritualC`, `moodCardC`, `arrivalCardC`, `weatherCardC`). Người dùng mẫu: cặp đôi trẻ, mở app lướt 5–10 giây, một tay.
+
+**Truy vấn (search.py 2.13.0, không `-I`):** `"touch target size"`, `"touch target spacing adjacent buttons"`, `"color only information"`, `"fixed bottom navigation content overlap"`, `"gesture alternative visible control"` `--domain ux` → *Touch Target Size* 44pt/48dp (High), *Touch Spacing* ≥ 8, *Color Only* (High), *Fixed Positioning*: chừa chỗ cho phần tử cố định. Các truy vấn `"thumb zone reachability mobile"`, `"cognitive load too many choices"`, `"content priority mobile above fold"`, `"consistent component pattern repeated cards"`, `"affordance hidden tap gesture discoverability"`, `"primary action one per card"`, `"glanceable summary collapse empty"` (ux) và `"long scroll home many cards"`, `"inkwell tap target size"`, `"expandable card collapse"`, `"touch target"`, `"gesture"` (flutter) không khớp chủ đề (trả về keyboard, motion, slivers…) ⇒ đối chiếu thẳng `references/quick-reference.md` của skill: **`content-priority`** (nội dung chính trước, gập phần phụ), **`gesture-alternative`** (không để hành động chỉ có cử chỉ, luôn có nút thấy được), **`primary-action`** (một CTA chính, phần phụ lùi xuống), **`consistency`**, **`progressive-disclosure`**, **`safe-area-awareness`**.
+
+| Câu soát | Trước (mục 14) | Sửa |
+|---|---|---|
+| Việc hằng ngày số 1 có trong màn đầu, mấy chạm? | Câu hỏi lộ ở màn đầu nhưng nút trả lời nằm dưới 3 thanh mờ khoá (114 px) ⇒ rơi dưới thanh nav nổi: cuộn + chạm. | **Nút "Trả lời để mở khoá…" đưa lên ngay dưới câu hỏi**, dòng khoá thành 1 dòng dưới nút: "🔒 Thảo đã trả lời lúc 12:31, đang chờ bạn" (giữ lý do, thêm giờ). Theo kích thước app: nút ở y≈645–697, trên nav (≈710) ⇒ **1 chạm từ màn đầu** (`content-priority`, `safe-area-awareness`). Đổi `TodayRitualCard` trạng thái B (người ấy trả lời trước); A/C/D giữ nguyên. Thẻ cao 285 → ≈190. |
+| 4 thẻ người ấy liền nhau có rối không? | Mỗi thẻ một kiểu nhãn: Tâm trạng chữ xám in hoa giữa cột, Thời tiết "● Bạn · Hà Nội" 13, Về nhà và Đêm qua `PersonLabel`. | **Một mẫu nhãn cho cả 4:** `PersonLabel` (chấm màu người 8 + tên IN HOA 11 w700) ở đầu mỗi làn, **Bạn luôn trái, người ấy luôn phải**, khe tiêu đề → làn 14. Màu chấm không đổi giữa các thẻ nên sau thẻ đầu mắt đọc theo màu + vị trí (`consistency`); vẫn có chữ nên không chỉ dựa vào màu (`Color Only`). Không gộp thẻ (user chốt). |
+| Thẻ không có gì đáng nói có tự gọn? | Thời tiết luôn 167–190 px kể cả lúc chỉ "Nhiều mây". | **Chọn: Thời tiết tự thu thành 1 hàng 76 px** khi chỗ người ấy không mưa / nắng gắt / lạnh, chỗ mình cũng chỉ "trời", và chênh < 5°: `IconBadge` + "Thời tiết hai nơi" + "● Hà Nội 23° ● TP.HCM 27° · Nhiều mây" (thứ tự Bạn · người ấy, chạm mở sheet chi tiết). Có chuyện đáng nhắc thì tự mở đủ hai làn + nút gợi ý (`progressive-disclosure`). Cặp chờ: "● Hà Nội 23° · Nhiều mây". |
+| | MoodCard có nút to 48 "Đổi tâm trạng" chiếm 64 px mỗi ngày sau khi đã chọn. | **Không chọn "chạm mặt để đổi" làm đường duy nhất** (cử chỉ ẩn, vi phạm `gesture-alternative`). **Chọn: đã chia sẻ thì nút to thu thành nút chữ "✎ Đổi" ở hàng tiêu đề** (vùng chạm 44, góc phải, gần ngón cái); mặt của bạn vẫn chạm được như đường tắt. Chưa chia sẻ thì giữ nút to "Chia sẻ tâm trạng" vì đó là việc chính của thẻ. Tiêu đề đổi sang khuôn chung `IconBadge` 44 + 16 w800 (trước là ô 36 r12 + `sectionTitleStyle`) cho cùng hàng với 3 thẻ kia. 265 → ≈200 px. |
+| Mỗi thẻ một hành động chính, vùng chạm ≥ 44? | "Về nhà rồi" h40; hai nút xuống 2 hàng ở khổ 360. | Về đến nhà: **đồng bộ mock arrival bản 2** (19:30): hai làn nền màu người α.10, "Hỏi thăm" (nút chữ 44) trong làn Thảo, chân thẻ **nút chính "Về nhà rồi" + nút phụ viền "Đến nơi rồi ⌄"**, lưới 2 cột bằng nhau (2×144 ở khổ 360) nên luôn một hàng, cao 44. Các nút khác đã ≥ 44: pill "Quay" 36 nằm trong hàng 64 bấm cả hàng, CTA caro h40 trong hàng 68 bấm cả hàng, nút "+" Sổ tiền 44, "Đổi" 44. |
+| Nhất quán với thẻ đang chạy? | | Đêm qua giữ nguyên (đã là mẫu gốc). Tâm trạng chỉ đổi hàng tiêu đề, nhãn làn và nút đổi; mặt 56, chữ, ghi chú giữ. Chơi cùng nhau, Sổ tiền, Phân vân, Kỷ niệm giữ khuôn. |
+
+**Thứ tự không đổi:** thẻ đếm → câu hỏi → Tâm trạng → Về đến nhà chưa? → Thời tiết → Đêm qua → Chơi cùng nhau → Sổ tiền → Phân vân gì không? → Kỷ niệm. (Mock thẻ đếm bản C chỉnh đệm cho sát số đo app: 380 so với 362 thật.)
+
+**Chiều dài mới (đỉnh vùng cuộn → hết Kỷ niệm, 390, 19:05):**
+
+| | Đo mock (`compare.html`) | Theo kích thước app |
+|---|---|---|
+| Home hiện tại | — | 1.933 px |
+| **C sau soát** | **2.507 px** (trước soát 2.720, −213) | ≈2.430 px (+26%) |
+| A · gộp | 2.251 px | 2.165 px |
+| B · không gộp | 2.658 px | ≈2.546 px |
+| C · cặp đang chờ | — | ≈2.060 px (hiện tại 1.873) |
+
+Đo từng thẻ C (mock 390): câu hỏi 188 · Tâm trạng 224 · Về đến nhà 309 · Thời tiết 92 (gọn) · Đêm qua 202 · Chơi 209 · Sổ tiền 76 · Phân vân 278 · Kỷ niệm 240.
+
+**Gate:** lint 0/0; inspect 390 `home-c.html` 0 FAIL (WARN colour-sprawl, kpi-size), `home-c-waiting.html` 0 FAIL (+ contrast nút banner chờ, nợ cũ), `compare.html` 0 FAIL. Soát thêm khổ 360 (`?w=360`): sửa mặt tâm trạng hai cột lệch dọc khi một bên có ghi chú (căn đầu cột), sửa hai nút thẻ Về nhà rớt 2 hàng.
+
+**Cho Dev:** icon "⌄" của "Đến nơi rồi" là `IconsaxPlusLinear.arrow_down` (chevron); `arrow_down_1` là mũi tên có thân (mock arrival ghi chú `chevDown = arrow_down_1` là nhầm). Mood picker gọi `showMoodPicker(context)` có sẵn.
+
+**Còn cần user / PO quyết:**
+1. Thẻ Về đến nhà bản 2 dùng nút **đặc navy** cho "Về nhà rồi". Home khi đó có 3 nút đặc navy cùng lúc (trả lời câu hỏi, "Đi tiếp" caro, "Về nhà rồi") — lệch quy tắc `primary-action` và quy ước caro C6 "đặc = người ấy đang chờ bạn". Đề xuất: trên Home để "Về nhà rồi" dạng viền, chỉ đặc trong màn Quản lý. Cần Designer arrival + PO chốt.
+2. Thẻ Về đến nhà là thẻ cao nhất trong cụm (309) vì làn có nền màu + nút trong làn + hai nút chân. Nếu muốn ngắn: bỏ nền màu làn (dùng vạch giữa như Đêm qua) hoặc dời dòng "Tự báo: Nhà và 2 nơi khác" vào màn Quản lý (nhưng D11 cần người chia sẻ thấy mình đang chia sẻ).
+3. Đổi thứ tự trạng thái B của thẻ câu hỏi (nút lên trên, bỏ 3 thanh mờ) là đổi một feature đang chạy: user duyệt?
+
+- [2026-10-20] [Designer] Soát dễ dùng bản C theo UI UX Pro Max: nút trả lời lên màn đầu (1 chạm), một mẫu nhãn làn cho 4 thẻ người ấy, Thời tiết tự thu 1 hàng khi không có gì đáng nhắc, Tâm trạng thu nút "Đổi" lên tiêu đề, đồng bộ thẻ Về đến nhà bản 2 của Designer arrival. C 2.720 → 2.507 px mock (≈2.430 theo app, hiện tại 1.933). Lint 0/0, inspect 390 0 FAIL.
+- [2026-10-20] [Lead] Trên Home, nút "Về nhà rồi" của thẻ Về đến nhà dùng dạng viền (đã sửa `ui.js` bản C) để Home chỉ còn nút đặc cho trả lời câu hỏi và lượt caro.

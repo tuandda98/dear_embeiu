@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="caro.css">
 <style>
   .scrim { position: fixed; inset: 0; background: rgba(26, 26, 46, .40); }
-  .sheet { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 28px 28px 0 0; padding: 8px 16px 24px; display: grid; gap: 12px; box-shadow: 0 -8px 24px rgba(0, 0, 0, .12); } /* sheet nổi thật. taste-skill-ignore */
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 28px 28px 0 0; padding: 8px 16px 16px; display: grid; gap: 12px; box-shadow: 0 -8px 24px rgba(0, 0, 0, .12); } /* sheet nổi thật. taste-skill-ignore */
   .handle { width: 36px; height: 4px; border-radius: 999px; background: #D9D3DB; justify-self: center; margin-bottom: 4px; }
   .sheet h1 { font-size: 20px; font-weight: 700; }
   .sheet .sub { font-size: 14px; color: var(--muted); margin-top: -8px; }
@@ -35,11 +35,12 @@
   <p class="sub">Chọn luật cho ván này. Đổi được ở ván sau.</p>
   <div role="radiogroup" aria-label="Luật" style="display:grid;gap:12px" id="opts"></div>
   <p class="who-first" id="first"></p>
-  <button class="btn">Chọn ô đầu tiên</button>
+  <button class="btn">Rủ Thảo chơi</button>
+  <button class="text-btn" style="justify-self:center;margin-top:-8px">Tự chọn ô đầu tiên</button>
 </section>
 <script>
 const G = { ...D.openGame, cells: [] }, P = UI.P;
-document.getElementById('under').innerHTML = `${UI.header('Cờ caro', { icon: 'more', label: 'Thêm' })}<main><section class="card board" style="margin-top:12px"><div class="viewport">${UI.board(G, { noLast: true })}</div></section></main>`;
+document.getElementById('under').innerHTML = `${UI.header('Cờ caro', { icon: 'clock', label: 'Lịch sử ván' })}<main><section class="card board" style="margin-top:12px"><div class="viewport">${UI.board(G, { noLast: true })}</div></section></main>`;
 // Hình minh hoạ 7 ô: O X X X X X O (người kia chặn hai đầu).
 function strip() {
   const S = 20; let s = '';
@@ -61,7 +62,7 @@ function render() {
   document.querySelectorAll('.opt').forEach((b) => (b.onclick = () => { pick = b.dataset.id; render(); }));
 }
 render();
-document.getElementById('first').innerHTML = `${UI.glyph('x', P.tuan.hue)}Bạn cầm X và đi trước. Thảo nhận lời rủ khi bạn đặt quân đầu.`;
+document.getElementById('first').innerHTML = `${UI.glyph('x', P.tuan.hue)}Bạn cầm X, quân đầu đặt ở giữa bàn. Thảo nhận lời rủ ngay.`;
 </script>
 </body>
 </html>

@@ -201,3 +201,8 @@ button.row:hover, a.row:hover { background: rgba(255,77,109,.06); }
 .bl-bar { grid-column: 1 / -1; height: 3px; border-radius: 999px; background: rgba(26,26,46,.22); margin-top: 6px; }
 .bl-bar.top { background: var(--navy); }
 .bl-bar.over { background: var(--neg); }
+
+/* Vòng soát dễ dùng: hai số trả lời ngay "đã chi bao nhiêu, còn bao nhiêu" */
+.hero2 { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-top: 12px; }
+.hero2 .r { text-align: right; }
+.hero2 .r .link { margin: -10px -4px -10px 0; }

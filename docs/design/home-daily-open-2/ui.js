@@ -231,50 +231,85 @@
     return `<div class="home">${header(s, o.h1 === false ? 'p' : 'h1')}<main class="scroll">${blocks.join('')}${o.after || ''}</main>${nav()}</div>`;
   }
 
-  // ======== BẢN C (bản chọn, 2026-10-20): không poke, mỗi thứ một thẻ ========
-  // Thẻ "Về đến nhà chưa?" (arrival/home-card.html) đảo thành hai làn như SleepCard: Bạn trái · người ấy phải.
-  // Spec arrival D7 mới: nút chính "Về nhà rồi" + nút phụ "Đến nơi rồi" (mở sheet chọn nơi tự đặt tên), cả hai ở làn Bạn.
+  // ======== BẢN C (bản chọn, 2026-10-20) + vòng soát dễ dùng ========
+  // Một mẫu nhãn làn cho cả 4 thẻ người ấy: PersonLabel (chấm màu người + tên IN HOA 11) ở góc trên-trái mỗi làn,
+  // Bạn luôn trái, người ấy luôn phải. Sau thẻ đầu tiên mắt đọc theo màu chấm + vị trí, không phải đọc lại chữ.
+  const plabel = (who) => `<span class="person"><i style="background:${who === 'm' ? ME.color : PARTNER.color}"></i>${who === 'm' ? 'Bạn' : P}</span>`;
+
+  // Câu hỏi: ở trạng thái "người ấy trả lời trước", nút trả lời đưa lên ngay dưới câu hỏi, dòng khoá xuống dưới nút
+  // (bản app: 3 thanh mờ 114 px nằm trên nút ⇒ nút rơi dưới thanh nav ở màn đầu).
+  function ritualC(s, o = {}) {
+    if (o.waiting || !(s.answered.p && !s.answered.m)) return ritual(s, o);
+    return `<article class="card ritual" aria-label="Câu hỏi hôm nay"><p class="q">${s.question}</p>
+      <button class="compose em" type="button" style="margin-top:14px">${ic(I.edit)}Trả lời để mở khoá câu trả lời của người ấy</button>
+      <p class="lockline">${ic(I.lock)}${P} đã trả lời lúc ${s.answered.p}, đang chờ bạn</p></article>`;
+  }
+
+  // Tâm trạng: giữ hai mặt to như app. Đã chia sẻ thì nút to 48 "Đổi tâm trạng" thu thành nút chữ "Đổi" ở hàng tiêu đề
+  // (vẫn là nút thấy được, vùng chạm 44; mặt của bạn cũng chạm được). Chưa chia sẻ thì giữ nút to "Chia sẻ tâm trạng".
+  function moodSideC(s, who) {
+    const v = s.moods[who];
+    if (!v) return `<div class="mside c">${plabel(who)}<span class="mface empty">${ic(who === 'm' ? I.add : I.mood)}</span><p class="mempty">${who === 'm' ? 'Chạm để chia sẻ' : `${P} chưa chia sẻ hôm nay`}</p></div>`;
+    const [glyph, word] = MOODS[v.key];
+    return `<div class="mside c">${plabel(who)}<span class="mface" aria-hidden="true">${glyph}</span><p class="mw">${word}</p>${v.note ? `<p class="mn">“${v.note}”</p>` : ''}</div>`;
+  }
+  function moodCardC(s) {
+    const shared = !!s.moods.m;
+    return `<article class="card mood" aria-labelledby="mdc-t"><div class="chead"><span class="badge">${ic(0xea36, true)}</span><h2 id="mdc-t">Tâm trạng hôm nay</h2>${shared ? `<button class="textlink" type="button">${ic(I.edit)}&nbsp;Đổi</button>` : ''}</div>
+      <div class="mcols">${moodSideC(s, 'm')}<span class="mvr"></span>${moodSideC(s, 'p')}</div>
+      ${shared ? '' : `<button class="mbtn first" type="button">${ic(I.heartB, true)}Chia sẻ tâm trạng</button>`}</article>`;
+  }
+
+  // Về đến nhà chưa? — đồng bộ docs/design/arrival bản 2 (19:30): hai làn có nền màu người α.10, "Hỏi thăm" trong làn người ấy,
+  // chân thẻ: nút chính "Về nhà rồi" + nút phụ "Đến nơi rồi ⌄" (sheet chọn nơi tự đặt tên).
+  const placeIcon = (e) => (e.place === 'home' ? I.home : 0xe977 /* briefcase */);
   function arrivalLane(s, who) {
     const e = s.arrival[who];
-    const color = who === 'm' ? ME.color : PARTNER.color;
-    const label = `<span class="person"><i style="background:${color}"></i>${who === 'm' ? 'Bạn' : P}</span>`;
-    if (!e) return `<div class="alane">${label}<p class="aline muted">Chưa bật báo về nhà</p></div>`;
-    const low = who === 'p' && e.battery != null && e.battery <= LOW_BATTERY;
-    let meta = `<span class="num">${when(s, e)}</span>`;
-    if (who === 'p' && !low && e.battery != null) meta += ` · pin ${e.battery}%`;
-    if (who === 'm') meta += e.pending ? ' · chờ mạng' : e.source === 'manual' ? ' · bấm tay' : ' · tự báo';
-    return `<div class="alane">${label}<p class="aline">${D.placeLine(who, e)}</p><p class="ameta">${meta}</p>${low ? `<span class="batt">${ic(I.batLow)}Pin còn ${e.battery}%</span>` : ''}
-      ${who === 'm' ? `<div class="abtns"><button class="btn outline h40" type="button">${ic(I.home)}Về nhà rồi</button><button class="textlink abtn2" type="button" aria-haspopup="dialog">${ic(I.go)}Đến nơi rồi</button></div>` : ''}</div>`;
+    if (!e) return `<div class="alane2 neutral">${plabel(who)}<p class="aline s">Chưa bật báo về nhà</p></div>`;
+    const low = e.battery != null && e.battery <= LOW_BATTERY;
+    const bat = e.battery == null ? '' : low ? `<span class="batt">${ic(I.batLow)}Pin còn ${e.battery}%</span>` : `<span class="bat">${ic(0xe957)}${e.battery}%</span>`;
+    const meta = `<p class="ameta2">${ic(placeIcon(e))}<b class="num">${when(s, e)}</b>${bat}</p>`;
+    const extra = who === 'm'
+      ? `<p class="mstat">${ic(I.go)}<span>${e.pending ? 'Đang chờ mạng để báo' : e.source === 'manual' ? 'Báo bằng tay' : 'Tự báo: Nhà và 2 nơi khác'}</span></p>`
+      : `<button class="textlink care" type="button">${ic(I.care)}&nbsp;Hỏi thăm</button>`;
+    return `<div class="alane2 ${who}">${plabel(who)}<p class="aline">${D.placeLine(who, e)}</p>${meta}${extra}</div>`;
   }
-  function arrivalCardC(s) {
+  function arrivalCardC(s, o = {}) {
+    const q = o.sentHome === 'queued';
     return `<article class="card arrive" aria-labelledby="ar-t"><div class="chead"><span class="badge">${ic(I.home)}</span><h2 id="ar-t">Về đến nhà chưa?</h2><span class="chev">${ic(I.chev)}</span></div>
-      <div class="alanes">${arrivalLane(s, 'm')}<span class="svr"></span>${arrivalLane(s, 'p')}</div></article>`;
+      <div class="alanes2">${arrivalLane(s, 'm')}${arrivalLane(s, 'p')}</div>
+      <div class="abtns2"><button class="btn outline${q ? ' sent' : ''}" type="button">${ic(q ? I.offline : I.home)}Về nhà rồi</button><button class="btn outline" type="button" aria-haspopup="dialog">${ic(I.go)}Đến nơi rồi${ic(0xe92c /* arrow_down = chevron; arrow_down_1 là mũi tên */)}</button></div></article>`;
   }
-  // Thẻ "Thời tiết hai nơi" (weather/home.html) đảo làn: Bạn trái · người ấy phải. Hàng chung chỉ khi có nút gợi ý hoặc chênh ≥ 5°.
-  function wxLane(s, who) {
-    const w = s.weather[who];
-    const color = who === 'm' ? ME.color : PARTNER.color;
-    return `<div class="wlane"><p class="who"><i class="dot" style="background:${color}"></i><span class="name">${who === 'm' ? 'Bạn' : P}</span><span class="city">· ${w.city}</span></p>
-      <div class="now"><span class="temp num">${w.temp}°</span>${ic(w.icon)}</div><p class="cond">${w.cond.text}</p></div>`;
-  }
+
+  // Thời tiết hai nơi: không có gì đáng nhắc (không mưa / nắng gắt / lạnh, chênh < 5°) ⇒ thẻ tự thu còn 1 hàng 76 px
+  // (nhiệt độ hai nơi theo đúng thứ tự Bạn · người ấy, chấm màu người). Có chuyện đáng nhắc ⇒ mở đủ hai làn + nút gợi ý.
   function weatherCardC(s, o = {}) {
     const k = s.weather.p.cond.kind;
     const gap = Math.abs(s.weather.p.temp - s.weather.m.temp);
-    const shared = o.waiting ? '' : D.CARE[k] ? `<div class="wshared"><button class="btn" type="button">${ic(0xe9cf)}${D.CARE[k]}</button></div>`
+    const notable = !o.waiting && (D.CARE[k] || gap >= 5 || s.weather.m.cond.kind !== 'sky');
+    const dotT = (who) => { const w = s.weather[who]; return `<span class="wchip"><i style="background:${who === 'm' ? ME.color : PARTNER.color}"></i>${w.city} <b class="num">${w.temp}°</b></span>`; };
+    if (!notable) {
+      const same = o.waiting || s.weather.m.cond.text === s.weather.p.cond.text;
+      return `<article class="card weather compact" aria-labelledby="wx-t"><a class="wrow" href="#" aria-label="Thời tiết hai nơi. ${o.waiting ? '' : 'Bạn: '}${s.weather.m.city} ${s.weather.m.temp} độ${o.waiting ? '' : `. ${P}: ${s.weather.p.city} ${s.weather.p.temp} độ`}. ${s.weather.m.cond.text}">
+        <span class="badge">${ic(I.weather)}</span><span class="wtxt"><span class="t" id="wx-t">Thời tiết hai nơi</span>
+        <span class="wline">${dotT('m')}${o.waiting ? '' : dotT('p')}${same ? `<span class="wcond">${s.weather.m.cond.text}</span>` : ''}</span></span><span class="chev">${ic(I.chev)}</span></a></article>`;
+    }
+    const lane = (who) => { const w = s.weather[who]; return `<div class="wlane">${plabel(who)}<div class="now"><span class="temp num">${w.temp}°</span>${ic(w.icon)}</div><p class="cond">${w.city} · ${w.cond.text}</p></div>`; };
+    const shared = D.CARE[k] ? `<div class="wshared"><button class="btn" type="button">${ic(0xe9cf)}${D.CARE[k]}</button></div>`
       : gap >= 5 ? `<div class="wshared"><span>Chỗ ${P} ${s.weather.p.temp < s.weather.m.temp ? 'lạnh' : 'nóng'} hơn ${gap}°</span></div>` : '';
-    const stamp = `<span class="sub">${s.offline ? `Số lúc ${s.weather.fetchedAt}` : `Cập nhật ${s.weather.fetchedAt}`}</span>`;
-    return `<article class="card weather" aria-labelledby="wx-t"><div class="chead"><span class="badge">${ic(I.weather)}</span><div style="flex:1;min-width:0"><h2 id="wx-t">Thời tiết hai nơi</h2>${stamp}</div><span class="chev">${ic(I.chev)}</span></div>
-      <div class="wlanes${o.waiting ? ' one' : ''}">${wxLane(s, 'm')}${o.waiting ? '' : `<span class="svr"></span>${wxLane(s, 'p')}`}</div>${shared}</article>`;
+    return `<article class="card weather" aria-labelledby="wx-t"><div class="chead"><span class="badge">${ic(I.weather)}</span><div style="flex:1;min-width:0"><h2 id="wx-t">Thời tiết hai nơi</h2><span class="sub">Cập nhật ${s.weather.fetchedAt}</span></div><span class="chev">${ic(I.chev)}</span></div>
+      <div class="wlanes">${lane('m')}<span class="svr"></span>${lane('p')}</div>${shared}</article>`;
   }
+
   // Thứ tự C: thẻ đếm → câu hỏi → Tâm trạng → Về đến nhà chưa? → Thời tiết → Đêm qua → Chơi → Sổ tiền → Phân vân → Kỷ niệm.
   function homeC(s, o = {}) {
     const W = !!o.waiting;
     const blocks = W
       ? [counter(s, { waiting: true }), `<div style="margin-top:16px">${waitBanner()}</div>`, sectionToday(s, true),
-         `<div class="stack">${ritual(s, { waiting: true })}${weatherCardC(s, { waiting: true })}${sleepCard(s, { waiting: true })}${money(s, { waiting: true })}${decide(s)}</div>`, memories(s)]
+         `<div class="stack">${ritualC(s, { waiting: true })}${weatherCardC(s, { waiting: true })}${sleepCard(s, { waiting: true })}${money(s, { waiting: true })}${decide(s)}</div>`, memories(s)]
       : [counter(s, { plain: true }), sectionToday(s),
-         `<div class="stack">${ritual(s)}${moodCard(s)}${arrivalCardC(s)}${weatherCardC(s)}${sleepCard(s)}${play(s)}${money(s)}${decide(s)}</div>`, memories(s)];
-    return `<div class="home">${header(s, o.h1 === false ? 'p' : 'h1')}<main class="scroll">${blocks.join('')}${o.after || ''}</main>${nav()}</div>`;
+         `<div class="stack">${ritualC(s)}${moodCardC(s)}${arrivalCardC(s, o)}${weatherCardC(s)}${sleepCard(s)}${play(s)}${money(s)}${decide(s)}</div>`, memories(s)];
+    return `<div class="home c">${header(s, o.h1 === false ? 'p' : 'h1')}<main class="scroll">${blocks.join('')}${o.after || ''}</main>${nav()}</div>`;
   }
 
   const nav = () => `<nav class="nav" aria-label="Điều hướng chính"><a href="#" aria-current="page">${ic(I.heartB, true)}<span>Trang chủ</span></a><a href="#">${ic(I.chat)}<span>Trò chuyện</span></a><a href="#">${ic(I.gallery)}<span>Thư viện</span></a><a href="#">${ic(I.user)}<span>Hồ sơ</span></a></nav>`;

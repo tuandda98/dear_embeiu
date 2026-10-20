@@ -17,7 +17,7 @@ const PICKS = [ // taste-skill-ignore: emoji ví gợi ý (dữ liệu, người
   { id: 'bank', name: 'Ngân hàng', type: 'Ngân hàng', emoji: '🏦', on: false, raw: '' }, // taste-skill-ignore
   { id: 'momo', name: 'MoMo', type: 'Ví điện tử', emoji: '📱', on: true, raw: '1.500.000' }, // taste-skill-ignore
   { id: 'zalo', name: 'ZaloPay', type: 'Ví điện tử', emoji: '💙', on: false, raw: '' }, // taste-skill-ignore
-  { id: 'credit', name: 'Thẻ tín dụng', type: 'Dư nợ hiện tại', emoji: '💳', on: false, raw: '' }, // taste-skill-ignore
+  { id: 'credit', name: 'Thẻ tín dụng', type: 'Đang nợ thẻ bao nhiêu', emoji: '💳', on: false, raw: '' }, // taste-skill-ignore
 ];
 const total = () => PICKS.filter((p) => p.on).reduce((s, p) => { const r = parseVndInput(p.raw); return s + (r.ok ? (p.id === 'credit' ? -r.value : r.value) : 0); }, 0);
 console.assert(total() === 1500000, 'AC: thêm MoMo 1.500.000 → tổng 1.500.000');
@@ -31,11 +31,11 @@ function render() {
     ${PICKS.map((p, i) => `<div class="pick">
       <div class="kv"><span class="emo" aria-hidden="true">${p.emoji}</span><span class="k">${p.name}<span class="meta" style="display:block;font-weight:500">${p.fixed ? 'Có sẵn' : p.type}</span></span>
         <button class="switch" role="switch" aria-checked="${p.on}" aria-label="Dùng ví ${p.name}" data-i="${i}" ${p.fixed ? 'disabled' : ''}></button></div>
-      ${p.on ? `<label class="sr" for="b${i}">Số dư ${p.name}</label><div class="amt-in"><input id="b${i}" class="field num" inputmode="decimal" placeholder="${p.id === 'credit' ? 'Dư nợ, vd 2tr' : 'Số dư, vd 500k'}" value="${p.raw}" data-raw="${i}"><span class="meta">₫</span></div>` : ''}
+      ${p.on ? `<label class="sr" for="b${i}">Số dư ${p.name}</label><div class="amt-in"><input id="b${i}" class="field num" inputmode="decimal" placeholder="${p.id === 'credit' ? 'Số đang nợ, vd 2tr' : 'Số dư, vd 500k'}" value="${p.raw}" data-raw="${i}"><span class="meta">₫</span></div>` : ''}
     </div>`).join('')}
   </section>
   <section class="card" aria-labelledby="h-sum" style="display:flex;justify-content:space-between;align-items:baseline">
-    <h2 id="h-sum" class="label">Tổng tài sản</h2><p>${UI.money(total(), 'fig-l')}</p>
+    <h2 id="h-sum" class="label">Tổng tiền đang có</h2><p>${UI.money(total(), 'fig-l')}</p>
   </section>
   <button class="btn primary" style="margin-top:24px">Xong, vào sổ</button>
   <button class="btn" style="margin-top:8px">Bỏ qua</button>

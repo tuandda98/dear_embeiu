@@ -106,6 +106,12 @@ a { color: inherit; }
 
 /* Hàng chung (làn "chung"): vạch + nút gợi ý / câu chênh lệch */
 .shared { border-top: 1px solid var(--rule); margin-top: 14px; padding-top: 12px; display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.shared.end { justify-content: flex-end; }
+.btn .bl { overflow: hidden; text-overflow: ellipsis; }
+.btn { max-width: 100%; }
+.pitch { font-size: calc(14px * var(--ts, 1)); font-weight: 500; color: var(--ink2); line-height: 1.4; margin: 14px 0 0; }
+.pitch-btns { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.shared .gap .ic { font-size: 16px; }
 .shared .gap { font-size: calc(14px * var(--ts, 1)); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
 .shared .gap .ic { font-size: 18px; color: var(--ink2); }
 

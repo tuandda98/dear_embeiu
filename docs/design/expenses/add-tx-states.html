@@ -28,15 +28,19 @@ const picker = `
 const linkedAsk = `<div class="dialog" role="alertdialog" aria-labelledby="la"><h3 id="la">Sửa luôn bên sổ của mình?</h3>
   <p>Khoản “Lẩu Thái Phố Huế” cũng đang trừ 480.000 ₫ ở Techcombank. Đổi thành 520.000 ₫ ở cả hai sổ?</p>
   <button class="btn primary">Sửa cả hai</button><button class="btn outline" style="margin-top:8px">Chỉ sổ chung</button></div>`;
+const closeAsk = `<div class="dialog" role="alertdialog" aria-labelledby="ca"><h3 id="ca">Bỏ khoản đang ghi?</h3><p>Khoản ${fmt(35000)} · Cà phê, trà sữa chưa lưu.</p><button class="btn primary">Tiếp tục ghi</button><button class="btn" style="margin-top:8px;color:var(--neg)">Bỏ khoản này</button></div>`;
+const deleteLinked = `<div class="dialog" role="alertdialog" aria-labelledby="dl"><h3 id="dl">Xoá ở cả hai sổ?</h3><p>“Lẩu Thái Phố Huế” ${fmt(480000)} có ở sổ chung và đang trừ Techcombank của mình. Xoá cả hai thì số dư Techcombank cộng lại ${fmt(480000)}.</p><button class="btn" style="background:var(--neg);color:#fff">Xoá cả hai</button><button class="btn outline" style="margin-top:8px">Chỉ xoá ở sổ chung</button><button class="btn" style="margin-top:8px">Huỷ</button></div>`;
 const linkedChanged = `<div class="card" style="margin-top:10px"><button class="row"><span class="emo" aria-hidden="true">${D.cat('food_out').emoji}</span><div class="mid"><div class="t">Lẩu Thái Phố Huế</div><div class="s">${icon('people', 14)}<span>Ăn ngoài · Techcombank</span></div></div><div class="amt num">−${fmt(480000)}</div></button>
   <div class="notice warnbox">${icon('info_circle', 18)}<span class="grow">Thảo đã đổi khoản chung thành <b class="num">${fmt(520000)}</b></span><button class="btn sm outline">Cập nhật</button></div></div>`;
 document.getElementById('app').innerHTML = `
   <h1 class="sheet-h1">Ghi khoản: các trạng thái</h1>
-  <p class="sheet-sub">Cùng một sheet. Bàn phím số luôn mở trước; chạm hàng tóm tắt để mở chi tiết, chạm lại số tiền để quay về bàn phím.</p>
+  <p class="sheet-sub">Cùng một sheet. Bàn phím số luôn mở trước. Danh mục chọn sẵn cái dùng gần nhất, ví chọn sẵn ví dùng lần trước với danh mục đó. Chạm hàng tóm tắt để mở ngày, ghi chú, cách chia.</p>
   <main>
+  ${frame('Sổ của mình: “cà phê 35k, ví MoMo” = gõ 3,5,k → Cà phê → MoMo → Lưu', { book: 'own', raw: '35k', cat: 'food_coffee', wallet: 'w_momo' })}
+  ${frame('Ghi lại khoản quen: chạm “Cơm trưa với team · 120k” là đủ số, danh mục, ví; chỉ còn Lưu', { book: 'own', raw: '120000', chipMode: true, cat: 'food_out', wallet: 'w_momo', note: 'Cơm trưa với team' })}
   ${frame('Đã gõ “1tr2”: hiểu thành 1.200.000 ₫, nút Lưu ghi rõ số', { raw: '1tr2' })}
   ${frame('Chi tiết khoản chung: ai trả, chia thế nào, trừ vào ví của mình', { raw: '480000', open: true })}
-  ${frame('Chia tuỳ: mình chịu 50.000 ₫ của 110.000 ₫', { raw: '110000', open: true, split: 'custom', customShare: 50000, link: false })}
+  ${frame('Chia tuỳ: mình chịu 50.000 ₫ của 110.000 ₫', { raw: '110000', open: true, split: 'custom', customShare: 50000, wallet: '' })}
   ${frame('Thảo trả hộ mình', { raw: '70000', open: true, payer: 'thao', split: 'for_partner' })}
   ${frame('Sổ của mình · Thu', { book: 'own', type: 'income', cat: 'salary', raw: '18tr5' })}
   ${frame('Chuyển giữa hai ví (không tính vào thu chi)', { book: 'own', type: 'transfer', cat: '', raw: '500k', open: true })}
@@ -46,6 +50,8 @@ document.getElementById('app').innerHTML = `
   <h2 class="state-label">Lưu xong, chạm mốc ngân sách (cảnh báo trong app, không push)</h2>${snack(`Đã ghi 120.000 ₫ · Ăn ngoài<p class="s2">Ăn uống chung vượt ngân sách tháng ${fmt(62000)}</p>`, 'Xem')}
   <h2 class="state-label">Bị từ chối vì người ấy vừa sửa cùng khoản</h2>${snack('Chưa lưu được: Thảo vừa sửa khoản này<p class="s2">Đã hiện bản mới nhất, sửa lại nếu cần</p>', 'Xem')}
   <h2 class="state-label">Xoá có hoàn tác 5 giây (chưa gửi lệnh xoá trong 5 giây này)</h2>${snack(`Đã xoá Lẩu Thái Phố Huế · ${fmt(480000)}`, 'Hoàn tác')}
+  <h2 class="state-label">Đóng sheet khi đang ghi dở</h2>${closeAsk}
+  <h2 class="state-label">Xoá khoản có ở cả hai sổ (hỏi trước, vì đụng sổ của mình)</h2>${deleteLinked}
   <h2 class="state-label">Sửa số tiền khoản có ở cả hai sổ</h2>${linkedAsk}
   <h2 class="state-label">Người ấy đổi khoản chung đang nối với sổ của mình</h2>${linkedChanged}
   </main>`;

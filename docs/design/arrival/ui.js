@@ -16,6 +16,16 @@
     err: (z) => s('<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.1"/>', z), // info_circle (đỏ)
     tick: (z) => s('<circle cx="12" cy="12" r="9"/><path d="m8 12.2 2.7 2.7L16 9.5"/>', z), // tick_circle
     info: (z) => s('<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.1"/>', z), // info_circle
+    gym: (z) => s('<path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>', z), // weight_1
+    cafe: (z) => s('<path d="M4 9h12v5.5A4.5 4.5 0 0 1 11.5 19h-3A4.5 4.5 0 0 1 4 14.5zM16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M7 3.5v2M10 3.5v2M13 3.5v2"/>', z), // coffee
+    shop: (z) => s('<path d="M4 9.5 5.5 4h13L20 9.5M4 9.5v10h16v-10M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0M10 19.5v-4h4v4"/>', z), // shop
+    family: (z) => s('<circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M17.5 14.2A5.5 5.5 0 0 1 20.5 19"/>', z), // people
+    search: (z) => s('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>', z), // search_normal
+    plus: (z) => s('<path d="M12 5v14M5 12h14"/>', z), // add
+    edit: (z) => s('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>', z), // edit_2
+    close: (z) => s('<circle cx="12" cy="12" r="9"/><path d="m9.2 9.2 5.6 5.6M14.8 9.2l-5.6 5.6"/>', z), // close_circle
+    chevDown: (z = 18) => s('<path d="m5 9 7 7 7-7"/>', z), // arrow_down_1
+    gps: (z) => s('<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>', z), // gps
     trash: (z) => s('<path d="M4 6.5h16M9.5 6.5V4.8c0-.7.6-1.3 1.3-1.3h2.4c.7 0 1.3.6 1.3 1.3v1.7M6.5 6.5l.9 12.6a2 2 0 0 0 2 1.9h5.2a2 2 0 0 0 2-1.9l.9-12.6"/>', z), // trash
     lock: (z) => s('<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>', z), // lock
     more: (z) => s('<circle cx="5.5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="18.5" cy="12" r="1" fill="currentColor"/>', z), // more
@@ -23,6 +33,7 @@
     bell: (z) => s('<path d="M6 10a6 6 0 0 1 12 0c0 4.5 2 6 2 6H4s2-1.5 2-6M10 20a2 2 0 0 0 4 0"/>', z), // notification_bing
     heart: (z = 12) => `<svg width="${z}" height="${z}" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.5-4.6-10-9.2C.3 8.5 2.2 4.5 6 4.5c2.1 0 3.4 1.1 4.2 2.3h.1c.8-1.2 2-2.3 4.1-2.3 3.8 0 5.7 4 4 7.3C19.5 16.4 12 21 12 21z"/></svg>`,
   };
-  const placeIcon = { home: I.home, work: I.work, school: I.school };
-  window.UI = { I, placeIcon };
+  const placeIcon = { home: I.home, work: I.work, school: I.school, family: I.family, gym: I.gym, cafe: I.cafe, shop: I.shop, pin: I.loc };
+  const iconOf = (e) => (e.place === 'home' ? I.home : placeIcon[e.icon || 'pin']);
+  window.UI = { I, placeIcon, iconOf };
 })();

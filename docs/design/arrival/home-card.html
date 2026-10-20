@@ -12,40 +12,44 @@
 <body>
 <header class="doc">
   <h1>Thẻ Home “Về đến nhà chưa?”</h1>
-  <p>Một thẻ, mọi trạng thái. Tuấn và Thảo, thứ Ba 20/10/2026, 19:05. Bấm “Về nhà rồi” hoặc “Hỏi thăm” để thử.</p>
+  <p>Thẻ đứng riêng. Bạn bên trái, Thảo bên phải. Tuấn và Thảo, thứ Ba 20/10/2026, 19:05. Bấm “Về nhà rồi”, “Đến nơi rồi”, “Hỏi thăm” để thử.</p>
 </header>
 <main id="m"></main>
 <script>
-const { I } = UI; const C = ArrivalCard.card; const e = D.docs.u_thao.last;
-const sleep = `<article class="card" aria-label="Thẻ Đêm qua có sẵn">
-  <div class="card-h"><span class="badge" style="background:rgba(124,92,214,.12);color:#7C5CD6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span><span class="t">Đêm qua</span><span class="chev">${I.chev()}</span></div>
-  <div style="display:grid;grid-template-columns:1fr 1px 1fr;gap:0 14px;margin-top:14px">
-    <div><div class="who"><i style="background:var(--tuan)"></i>Bạn</div><p style="margin-top:8px"><b style="font-size:22px">6</b><b style="font-size:13px;color:var(--muted)">g </b><b style="font-size:22px">50</b><b style="font-size:13px;color:var(--muted)">p</b></p><p class="fine num">00:15–07:05</p></div>
-    <div style="background:var(--hair)"></div>
-    <div><div class="who"><i style="background:var(--thao)"></i>Thảo</div><p style="margin-top:8px"><b style="font-size:22px">7</b><b style="font-size:13px;color:var(--muted)">g </b><b style="font-size:22px">20</b><b style="font-size:13px;color:var(--muted)">p</b></p><p class="fine num">23:40–07:00</p></div>
-  </div></article>`;
+const { I, iconOf } = UI; const C = ArrivalCard.card, A = ArrivalCard.auto; const e = D.docs.u_thao.last;
+const others = D.places.u_tuan.filter((p) => p.slot !== 'home');
+const sheet = `<div class="sheet" role="dialog" aria-label="Bạn vừa đến đâu?"><div class="handle"></div><h3>Bạn vừa đến đâu?</h3>
+  <div class="card rows" style="margin-top:12px;box-shadow:none;background:var(--surface-light)">${others.map((p) => `<button class="srow pick" data-act="pick"><span class="badge navy">${iconOf({ place: p.slot, icon: p.icon })(20)}</span><span class="tx"><span class="tt">${p.name}</span></span></button>`).join('')}</div>
+  <button class="btn text" style="margin-top:8px;height:44px">${I.plus(16)}Thêm nơi</button>
+  <p class="fine" style="margin-top:4px">Bấm là Thảo nhận “Tuấn đã đến …” ngay, không cần quyền vị trí.</p></div>`;
 const S = [
-  ['Vị trí đề xuất: ngay dưới “Đêm qua”, cùng cụm người ấy hôm nay', sleep + '<div style="height:12px"></div>' + C({ partner: 'event', event: e, mine: 'auto' }) + '', 'Hai thẻ cùng ngôn ngữ: chấm màu người, tên viết hoa nhỏ, khoảng cách 12 giữa hai thẻ. Bấm thử hai nút.', 'live'],
+  ['Mặc định: cả hai đang bật, Thảo vừa về nhà', C({ me: A, partner: 'event', event: e }), 'Thẻ đứng riêng trên Home (user chốt “mọi thứ một thẻ riêng”). Bấm thử ba nút.', 'live'],
+  ['Thảo đến một nơi tự đặt', C({ me: A, partner: 'event', event: D.gym })],
+  ['Tên nơi dài nhất (24 ký tự): câu tối đa 3 dòng', C({ me: A, partner: 'event', event: D.longName })],
+  ['Thảo vừa rời Công ty (không có thông báo đẩy)', C({ me: A, partner: 'event', event: D.exitWork })],
+  ['Tin hôm qua, Thảo bấm tay', C({ me: A, partner: 'event', event: D.yesterday }), 'Tin cũ hơn 3 ngày thì ẩn, làn Thảo chuyển sang “Đang bật báo về nhà”.'],
+  ['Thảo đang bật, 3 ngày chưa có tin', C({ me: A, partner: 'quiet' })],
+  ['Thảo chưa bật hoặc đã tắt (trung tính, không nút giục)', C({ me: A, partner: 'off' })],
   ['Lần đầu, cả hai chưa bật', C({ pitch: true })],
-  ['Thảo vừa rời chỗ làm (không có thông báo đẩy)', C({ partner: 'event', event: D.thaoToday[2], mine: 'auto' })],
-  ['Tin từ hôm qua, Thảo bấm tay', C({ partner: 'event', event: D.yesterday, mine: 'auto' }), 'Tin cũ hơn 3 ngày thì ẩn, thẻ chuyển sang trạng thái “đang bật” bên dưới.'],
-  ['Thảo đang bật, 3 ngày chưa có tin', C({ partner: 'quiet', mine: 'auto' })],
-  ['Thảo chưa bật hoặc đã tắt (trung tính, không nút giục)', C({ partner: 'off', mine: 'auto' })],
-  ['Bạn chưa bật, Thảo đã bật', C({ partner: 'event', event: e, mine: 'off' })],
-  ['Thiếu quyền vị trí Luôn luôn', C({ partner: 'event', event: e, mine: 'needAlways' })],
-  ['Tắt từ xa (config/app.arrivalAutoEnabled = false)', C({ partner: 'event', event: e, mine: 'remoteOff' })],
-  ['Đã bật nhưng chưa lưu Nhà', C({ partner: 'event', event: e, mine: 'noHome', places: [] })],
-  ['Vừa bấm “Về nhà rồi”', C({ partner: 'event', event: e, mine: 'auto', sent: 'home' }), 'Dòng trạng thái đổi thành lời xác nhận trong 4 giây; nút giữ nguyên nhãn và bề rộng, chỉ đổi icon.'],
-  ['Mất mạng lúc bấm', C({ partner: 'event', event: e, mine: 'offline' })],
-  ['Ghi lỗi', C({ partner: 'event', event: e, mine: 'error' })],
+  ['Bạn chưa bật, Thảo đã bật', C({ me: { off: true }, partner: 'event', event: e, footer: 'enable' })],
+  ['Vừa lưu nơi bằng địa chỉ: tin đến đầu tiên', C({ me: { last: { place: 'p2', name: 'Phòng gym', icon: 'gym', type: 'enter', at: '2026-10-20T18:05', battery: 70, source: 'auto' }, confirm: 'App đã nhận ra Phòng gym', status: A.status }, partner: 'event', event: e }), 'D21: làn của bạn hiện lần đến đầu tiên để bạn tự thấy app nhận đúng chỗ.'],
+  ['Thiếu quyền vị trí Luôn luôn', C({ me: { last: A.last, status: 'Chưa tự báo được: cần quyền vị trí Luôn luôn', statusIcon: I.locOff(14), statusTap: false, link: 'Mở Cài đặt' }, partner: 'event', event: e })],
+  ['Chưa đặt địa chỉ nơi nào (chỉ bấm tay)', C({ me: { status: 'Chưa đặt địa chỉ Nhà', statusIcon: I.locOff(14), statusTap: false, link: 'Đặt địa chỉ' }, partner: 'event', event: e, noOther: true })],
+  ['Tắt từ xa (config/app.arrivalAutoEnabled = false)', C({ me: { last: A.last, status: 'Tạm thời chỉ báo bằng tay', statusIcon: I.locOff(14) }, partner: 'event', event: e })],
+  ['Vừa bấm “Về nhà rồi”', C({ me: { last: { place: 'home', type: 'enter', at: '2026-10-20T19:05', battery: 51, source: 'manual' }, confirm: 'Đã báo Thảo', status: A.status }, partner: 'event', event: e, sent: true }), 'Nút giữ nhãn và bề rộng, chỉ đổi icon trong 4 giây.'],
+  ['Mất mạng lúc bấm', C({ me: { last: A.last, status: A.status }, partner: 'event', event: e, queued: true, strip: 'offline' })],
+  ['Ghi lỗi', C({ me: { last: A.last, status: A.status }, partner: 'event', event: e, strip: 'error' })],
   ['Đang tải', C({ loading: true })],
+  ['Sheet “Đến nơi rồi”', sheet, 'Chỉ có nút này khi đã có ≥1 nơi ngoài Nhà. Nơi chưa có vị trí vẫn bấm tay được.', 'sheet'],
 ];
 document.getElementById('m').innerHTML = S.map(([h, html, note, id]) => `<section class="state"${id ? ` id="${id}"` : ''}><h2>${h}</h2>${html}${note ? `<p class="note">${note}</p>` : ''}</section>`).join('');
 const live = document.getElementById('live');
 live.addEventListener('click', (ev) => {
   const b = ev.target.closest('button'); if (!b) return;
-  if (b.dataset.act === 'manual') { const art = b.closest('article'); const place = b.dataset.place; art.outerHTML = C({ partner: 'event', event: e, mine: 'auto', sent: place }); setTimeout(() => { const a2 = live.querySelectorAll('article')[1]; a2.outerHTML = C({ partner: 'event', event: e, mine: 'auto' }); }, 4000); }
-  if (b.dataset.act === 'care') { b.closest('.lane').insertAdjacentHTML('afterend', `<div class="strip" role="status">${I.care(18)}<span class="s">Mở “Gửi quan tâm”, gợi ý sẵn: Về tới nơi rồi thì nghỉ ngơi nhé</span></div>`); b.disabled = true; }
+  const art = live.querySelector('article');
+  if (b.dataset.act === 'home') { art.outerHTML = C({ me: { last: { place: 'home', type: 'enter', at: '2026-10-20T19:05', battery: 51, source: 'manual' }, confirm: 'Đã báo Thảo', status: A.status }, partner: 'event', event: e, sent: true }); }
+  if (b.dataset.act === 'other') document.getElementById('sheet').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  if (b.dataset.act === 'care') { b.insertAdjacentHTML('afterend', `<p class="okline" role="status">Mở “Gửi quan tâm”</p>`); b.disabled = true; }
 });
 </script>
 </body>

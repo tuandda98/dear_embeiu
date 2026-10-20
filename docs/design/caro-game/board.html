@@ -22,7 +22,7 @@ function render() {
   const h1 = mine ? 'Đến lượt bạn' : 'Đang chờ Thảo';
   const sub = mine
     ? `<b>Thảo</b> vừa đi nước ${n} lúc ${G.times[n - 1]}.`
-    : `Bạn đi nước ${n} lúc ${D.nudge.myMoveAt}. Thảo sẽ nhận thông báo.`;
+    : `Bạn đi nước ${n} lúc ${D.nudge.myMoveAt}. Cứ thoát app, Thảo đi xong sẽ báo bạn.`;
   const dock = {
     mine: S.selected == null
       ? `<button class="btn off" disabled>Chạm một ô để chọn</button>`
@@ -32,12 +32,12 @@ function render() {
     waiting: `<button class="btn ghost off" disabled>Nhắc được sau 30 phút</button>`,
   }[S.phase];
   document.getElementById('app').innerHTML = `
-  ${UI.header('Cờ caro', { icon: 'more', label: 'Thêm: lịch sử ván, xin thua' })}
+  ${UI.header('Cờ caro', { icon: 'clock', label: 'Lịch sử ván' })}
   <main>
     <section class="card status" aria-live="polite">
       <h1>${h1}</h1>
       <p class="sub">${sub}</p>
-      ${UI.lanes(G, { turn: mine ? 'me' : 'partner', move: n })}
+      ${UI.lanes(G, { turn: mine ? 'me' : 'partner', move: n, ruleTap: true })}
     </section>
     <section class="card board" aria-label="Bàn cờ">
       <div class="viewport" id="vp">${UI.board({ ...G, cells: S.cells }, { zoom: S.zoom, selected: mine ? S.selected : null, pending: S.phase === 'sending', drop: S.phase === 'waiting', label: 'Bàn cờ 15 x 15, ' + n + ' quân' })}</div>
@@ -48,6 +48,7 @@ function render() {
       ${dock}
     </div>
     ${S.phase === 'mine' && S.selected != null ? '<p class="hint">Chạm lại ô đang chọn cũng là đi. Chạm ô khác để đổi.</p>' : ''}
+    <button class="text-btn danger" style="justify-self:center;margin-top:8px">Xin thua</button>
   </main>`;
   const vp = document.getElementById('vp');
   if (S.zoom > 1) { const [r, c] = D.rc(S.selected ?? S.cells[S.cells.length - 1]); const cell = vp.firstElementChild.width.baseVal.value / 15; vp.scrollLeft = c * cell - vp.clientWidth / 2 + cell / 2; vp.scrollTop = r * cell - vp.clientHeight / 2 + cell / 2; }

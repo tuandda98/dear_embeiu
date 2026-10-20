@@ -37,13 +37,13 @@ const card = (caro) => `<section class="card play"><h2>Chơi cùng nhau</h2>${ca
 const skel = `<div class="game-row" aria-hidden="true"><span class="bar" style="width:44px;height:44px;border-radius:16px"></span><span><span class="bar" style="width:70px;height:18px"></span><span class="bar" style="width:190px;height:14px;margin-top:6px"></span></span><span class="bar" style="width:72px;height:40px;border-radius:999px"></span></div>`;
 const states = [
   ['Đến lượt bạn (máy Tuấn, 10:14)', rowCaro(`Đến lượt bạn. Thảo vừa đi nước ${G.cells.length}.`, 'Đi tiếp', false, true, true)],
-  ['Đang chờ người ấy', rowCaro(`Đang chờ Thảo. Bạn đi nước 15 lúc ${D.nudge.myMoveAt}.`, 'Xem', true)],
-  ['Đang chờ, người ấy đang mở ván', rowCaro('Đang chờ Thảo. Thảo đang xem ván.', 'Xem', true)],
+  ['Đang chờ người ấy', rowCaro(`Đang chờ Thảo. Bạn đi nước 15 lúc ${D.nudge.myMoveAt}.`, 'Mở', true)],
+  ['Đang chờ, người ấy đang mở ván', rowCaro('Đang chờ Thảo. Thảo đang xem ván.', 'Mở', true)],
   ['Được rủ (máy Thảo, 08:02)', rowCaro('Tuấn rủ bạn một ván, Tuấn đã đi nước đầu.', 'Vào chơi', false, true, true)],
   ['Vừa xong ván, mình thua (trong 24 giờ)', rowCaro(`Thảo thắng ván vừa rồi. Tuấn ${W.tuan} – ${W.thao} Thảo.`, 'Phục thù')],
   ['Không có ván, đã có tỉ số', rowCaro(`Tuấn ${W.tuan} – ${W.thao} Thảo. Rủ Thảo một ván?`, 'Rủ chơi')],
   ['Không có ván, chưa chơi lần nào', rowCaro('Rủ Thảo một ván, bạn đi trước.', 'Rủ chơi')],
-  ['Ván dừng 7 ngày trở lên', rowCaro(`Ván dừng ${D.stale.days} ngày rồi. Vào kết thúc để rủ ván mới.`, 'Xem', true)],
+  ['Ván dừng 7 ngày trở lên', rowCaro(`Ván dừng ${D.stale.days} ngày rồi. Vào kết thúc để rủ ván mới.`, 'Mở', true)],
   ['Đang tải', skel],
   ['Chưa tải được, không có bản lưu', rowCaro('Chưa tải được ván. Chạm để thử lại.', 'Thử lại', true)],
 ];

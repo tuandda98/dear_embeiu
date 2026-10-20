@@ -24,11 +24,11 @@
 <body>
 <header class="doc">
   <h1>Cài đặt “Về đến nhà”</h1>
-  <p>Vào từ chữ “Tự báo khi đến…” trên thẻ Home hoặc Cài đặt → Chung → Về đến nhà. Mỗi công tắc tự lưu ngay.</p>
+  <p>Vào từ thẻ Home hoặc Cài đặt → Chung → Về đến nhà. Chạm một nơi để sửa (place.html). Mỗi công tắc tự lưu ngay.</p>
 </header>
 <main id="m"></main>
 <script>
-const { I, placeIcon } = UI; const me = D.people.me.name, pn = D.people.partner.name, P = D.PLACE, R = D.RADIUS_M;
+const { I, iconOf } = UI; const me = D.people.me.name, pn = D.people.partner.name;
 const mine = D.docs.u_tuan.last;
 const dmy = (iso) => `${+iso.slice(8, 10)}/${+iso.slice(5, 7)}`;
 const head = `<div class="ssh"><button class="back" aria-label="Quay lại">${I.back()}</button><span class="chip">${I.home(13)}Về đến nhà</span></div>`;
@@ -36,35 +36,31 @@ const sw = (on, label, dis = false) => `<button class="switch" role="switch" ari
 const preview = (state) => {
   const label = `<div class="who"><i style="background:var(--tuan)"></i>${me}</div>`;
   if (state === 'off') return `<p class="lbl">${pn} đang thấy</p><div class="lane neutral">${label}<p class="lead s" style="margin-top:6px">Chưa bật báo về nhà</p></div>`;
-  return `<p class="lbl">${pn} đang thấy</p><div class="lane me" role="group" aria-label="${pn} đang thấy: ${me} đã đến chỗ làm lúc ${D.hm(mine.at)}, pin ${mine.battery}%">${label}<p class="lead" style="margin-top:4px">${P[mine.place].enter.vi}</p><p class="meta"><span class="time num">${D.hm(mine.at)}</span><span class="bat">${I.bat(14)}pin ${mine.battery}%</span></p></div>`;
+  return `<p class="lbl">${pn} đang thấy</p><div class="lane me" role="group" aria-label="${pn} đang thấy: ${me} đã đến ${mine.name} lúc ${D.hm(mine.at)}, pin ${mine.battery}%">${label}<p class="lead" style="margin-top:4px">${D.sentence(mine)}</p><p class="meta"><span class="pic">${iconOf(mine)(16)}</span><span class="time num">${D.hm(mine.at)}</span><span class="bat">${I.bat(14)}${mine.battery}%</span></p></div>`;
 };
 const switches = (o) => `<div class="card rows" style="margin-top:16px">
   <div class="srow"><span class="badge">${I.heart(20)}</span><div class="tx"><p class="tt">Báo cho ${pn}</p><p class="ts">${o.share ? `Tắt là xoá tin gần nhất trên máy chủ. ${pn} không nhận thông báo nào.` : `Bật lại để báo cho ${pn} mỗi khi bạn đến nơi.`}</p></div>${sw(o.share, `Báo cho ${pn}`)}</div>
-  ${o.share ? `<div class="srow"><span class="badge">${I.loc(20)}</span><div class="tx"><p class="tt">Tự báo khi đến nơi</p><p class="ts">${o.autoSub}</p>${o.autoCta || ''}</div>${sw(o.auto, 'Tự báo khi đến nơi', o.autoDisabled)}</div>` : ''}
+  ${o.share ? `<div class="srow"><span class="badge">${I.loc(20)}</span><div class="tx"><p class="tt">Tự báo khi mình đến nơi</p><p class="ts">${o.autoSub}</p>${o.autoCta || ''}</div>${sw(o.auto, 'Tự báo khi mình đến nơi', o.autoDisabled)}</div>` : ''}
 </div>`;
-const placeRow = (p, saved, paused) => saved
-  ? `<div class="srow"><span class="badge navy">${placeIcon[p](20)}</span><div class="tx"><p class="tt">${P[p].vi}</p><p class="ts">${paused ? 'Đang tạm dừng' : `Bán kính ${R} m · lưu ${dmy(saved.savedAt)}`}</p></div><button class="iconbtn" aria-label="Tuỳ chọn cho ${P[p].vi}" data-menu="${p}">${I.more(20)}</button></div>`
-  : `<div class="srow"><span class="badge navy">${placeIcon[p](20)}</span><div class="tx"><p class="tt">${P[p].vi}</p><p class="ts">Chưa lưu</p></div><button class="btn outline sm" data-act="save" data-place="${p}">Lưu chỗ này</button></div>`;
-const places = (paused = false) => {
-  const saved = Object.fromEntries(D.savedPlaces.u_tuan.map((x) => [x.place, x]));
-  return `<h2 class="sec">Địa điểm</h2><p class="secsub fine">Tối đa 3. Toạ độ chỉ nằm trên máy này, đổi máy thì lưu lại.</p>
-  <div class="card rows">${['home', 'work', 'school'].map((p) => placeRow(p, saved[p], paused)).join('')}</div>`;
-};
+const sub = (p, paused) => paused ? 'Đang tạm dừng' : p.source === 'address' ? p.short : p.source === 'current' ? `Lưu bằng vị trí hiện tại · ${dmy(p.savedAt)}` : 'Chưa đặt địa chỉ, chỉ bấm tay';
+const placeRow = (p, paused) => `<div class="srow" role="button" tabindex="0" aria-label="Sửa ${p.slot === 'home' ? 'Nhà' : p.name}"><span class="badge navy">${iconOf({ place: p.slot, icon: p.icon })(20)}</span><div class="tx"><p class="tt">${p.slot === 'home' ? 'Nhà' : p.name}</p><p class="ts">${sub(p, paused)}</p></div><span style="color:var(--tertiary);display:flex">${I.chev()}</span></div>`;
+const places = (list, paused = false) => `<h2 class="sec">Nơi báo</h2><p class="secsub fine">Nhà luôn có. Thêm tối đa 4 nơi nữa. Địa chỉ chỉ nằm trên máy này.</p>
+  <div class="card rows">${list.map((p) => placeRow(p, paused)).join('')}
+  ${list.length < D.MAX_PLACES ? `<div class="srow" role="button" tabindex="0"><span class="badge">${I.plus(20)}</span><div class="tx"><p class="tt">Thêm nơi</p><p class="ts">Còn ${D.MAX_PLACES - list.length} chỗ</p></div></div>` : ''}</div>`;
 const perms = (o) => `<h2 class="sec">Quyền vị trí</h2><div class="card rows">
   <div class="srow"><span class="badge navy">${o.always ? I.tick(20) : I.locOff(20)}</span><div class="tx"><p class="tt">${o.always ? 'Vị trí: Luôn luôn' : 'Vị trí: Khi dùng ứng dụng'}</p><p class="ts">${o.always ? 'Đủ để tự báo cả lúc app đang đóng.' : 'Cần “Luôn luôn” thì máy mới tự báo lúc app đang đóng.'}</p></div></div>
   <div class="srow"><span class="badge navy">${I.tick(20)}</span><div class="tx"><p class="tt">Vị trí chính xác: Bật</p><p class="ts">Để biết bạn đã tới cửa, không phải đầu ngõ.</p></div></div>
   <div class="srow" role="button" tabindex="0"><span class="badge navy">${I.setting(20)}</span><div class="tx"><p class="tt">Mở Cài đặt của máy</p></div><span style="color:var(--tertiary);display:flex">${I.chev()}</span></div>
 </div><div class="hint">${I.info(16)}<span>Đừng vuốt tắt Dear Embeiu trong đa nhiệm. App bị vuốt tắt thì iPhone có thể không báo được.</span></div>`;
-
-const ok = { share: true, auto: true, autoSub: 'Máy tự báo khi bạn đến Nhà · Chỗ làm.' };
+const L = D.places.u_tuan;
+const ok = { share: true, auto: true, autoSub: 'Máy tự báo khi bạn đến Nhà, Công ty, Phòng gym.' };
 const F = [
-  ['main', 'Mặc định: đang báo, đủ quyền', `${head}${preview()}${switches(ok)}${places()}${perms({ always: true })}`],
-  ['menu', 'Menu “⋯” của một địa điểm', `<div class="card rows">${placeRow('home', D.savedPlaces.u_tuan[0])}</div><div class="menu" role="menu"><button role="menuitem">${I.loc(20)}Lưu lại bằng chỗ đang đứng</button><button role="menuitem">${I.trash(20)}Xoá Nhà</button></div><p class="note fine" style="margin-top:10px">Xoá Nhà khi đang tự báo thì công tắc “Tự báo” tắt theo (Nhà là bắt buộc).</p>`],
-  ['confirm-save', 'Xác nhận trước khi lưu (tránh lưu nhầm chỗ)', `<div class="sheet" role="dialog" aria-label="Lưu Trường"><div class="handle"></div><h3>Lưu chỗ đang đứng là Trường?</h3><p>Vào vòng ${R} m quanh đây là ${pn} nhận “${me} đã đến trường”.</p><div class="actions" style="justify-content:stretch;flex-direction:column"><button class="btn primary lg">Lưu là Trường</button><button class="btn text muted" style="height:44px">Huỷ</button></div></div>`],
+  ['main', 'Mặc định: đang báo, đủ quyền, Nhà + 2 nơi', `${head}${preview()}${switches(ok)}${places(L)}${perms({ always: true })}`],
+  ['first', 'Mới bật, Nhà chưa có địa chỉ', `${head}${switches({ share: true, auto: false, autoSub: 'Đặt địa chỉ Nhà hoặc một nơi khác trước, rồi bật.', autoCta: '<button class="btn outline sm" style="margin-top:10px">Đặt địa chỉ Nhà</button>', autoDisabled: true })}${places([{ slot: 'home' }])}`],
   ['need-always', 'Chỉ có quyền “Khi dùng ứng dụng”', `${head}${switches({ share: true, auto: false, autoSub: 'Chưa tự báo được: cần quyền vị trí Luôn luôn.', autoCta: '<button class="btn outline sm" style="margin-top:10px">Mở Cài đặt</button>', autoDisabled: true })}${perms({ always: false })}`],
-  ['remote-off', 'Tắt từ xa', `${head}${switches({ share: true, auto: false, autoSub: 'Tạm thời chỉ báo bằng tay. Bạn vẫn bấm “Về nhà rồi” trên thẻ Home.', autoDisabled: true })}${places(true)}`],
-  ['turn-off', 'Tắt “Báo cho Thảo” → hỏi lại', `<div class="dim"><div class="dialog" role="alertdialog" aria-labelledby="t-off"><h3 id="t-off">Tắt báo về nhà?</h3><p>Tin gần nhất của bạn bị xoá khỏi máy chủ ngay. ${pn} sẽ thấy “${me} chưa bật báo về nhà” và không nhận thông báo nào.</p><label class="check"><span class="box" role="checkbox" aria-checked="false" tabindex="0"></span><span>Xoá luôn 2 địa điểm đã lưu trên máy này</span></label><div class="actions"><button class="btn text">Huỷ</button><button class="btn primary" style="min-width:96px">Tắt</button></div></div></div>`],
-  ['off', 'Sau khi tắt (địa điểm vẫn giữ)', `${head}${preview('off')}${switches({ share: false })}${places(true)}`],
+  ['remote-off', 'Tắt từ xa', `${head}${switches({ share: true, auto: false, autoSub: 'Tạm thời chỉ báo bằng tay. Bạn vẫn bấm “Về nhà rồi” trên thẻ Home.', autoDisabled: true })}${places(L, true)}`],
+  ['turn-off', 'Tắt “Báo cho Thảo” → hỏi lại', `<div class="dim"><div class="dialog" role="alertdialog" aria-labelledby="t-off"><h3 id="t-off">Tắt báo về nhà?</h3><p>Tin gần nhất của bạn bị xoá khỏi máy chủ ngay. ${pn} sẽ thấy “${me} chưa bật báo về nhà” và không nhận thông báo nào.</p><label class="check"><span class="box" role="checkbox" aria-checked="false" tabindex="0"></span><span>Xoá luôn địa chỉ đã lưu của 3 nơi trên máy này</span></label><div class="actions"><button class="btn text">Huỷ</button><button class="btn primary" style="min-width:96px">Tắt</button></div></div></div>`],
+  ['off', 'Sau khi tắt (các nơi vẫn giữ)', `${head}${preview('off')}${switches({ share: false })}${places(L, true)}`],
 ];
 document.getElementById('m').innerHTML = F.map(([id, h, html]) => `<section class="frame" id="${id}"><h2 class="lbl" style="margin-bottom:14px">${h}</h2>${html}</section>`).join('');
 document.addEventListener('click', (ev) => { const s = ev.target.closest('.switch'); if (s && !s.disabled) s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true'); });

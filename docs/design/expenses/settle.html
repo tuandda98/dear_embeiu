@@ -26,7 +26,9 @@ document.getElementById('app').innerHTML = `
     <p class="payline">${UI.av('thao')}<b>Thảo</b> trả lại cho <b>mình</b>${UI.av('tuan')}</p>
     <div class="amount"><p class="v num">${fmt(S.balance).split(' ')[0]}<span class="u">₫</span></p><p class="h">Sửa được nếu trả một phần</p></div>
     <div class="chips" style="justify-content:center"><button class="chip" aria-pressed="true">Trả hết</button><button class="chip">Một nửa · ${fmt(Math.ceil(S.balance / 2))}</button></div>
-    <p class="empty" style="margin-top:16px">Chỉ ghi lại là đã trả, app không chuyển tiền. Khoản này cân lại sổ chung và không tính vào chi tiêu tháng.</p>
+    <div class="kv" style="margin-top:12px"><span class="k">Ghi tiền về ví của mình<span class="meta" style="display:block;font-weight:500">Thêm 1 dòng ở sổ của mình, không tính là thu nhập</span></span><button class="switch" role="switch" aria-checked="true" aria-label="Ghi tiền về ví của mình"></button></div>
+    <div class="chips scroll" role="radiogroup" aria-label="Ví nhận tiền" style="margin-top:4px">${D.own.wallets.filter((w) => w.type !== 'goal').map((w) => `<button class="chip" role="radio" aria-checked="${w.id === 'w_tcb'}"><span class="emo" aria-hidden="true">${w.emoji}</span>${w.name}</button>`).join('')}</div>
+    <p class="empty" style="margin-top:16px">App không chuyển tiền giúp. Bấm nút dưới sau khi Thảo đã chuyển khoản hoặc đưa tiền mặt. Khoản này cân lại sổ chung, không tính là chi tiêu.</p>
     <button class="btn primary save">Đánh dấu đã thanh toán</button>
   </div>
   <section class="card" aria-labelledby="h-why">
@@ -34,7 +36,9 @@ document.getElementById('app').innerHTML = `
     <p class="meta" style="margin-top:4px">Dấu cộng: mình ứng cho Thảo. Dấu trừ: Thảo ứng cho mình. ${treats} khoản “mời” và các khoản trả từ Ví chung không tính.</p>
     <div class="rows">${parts.map(line).join('')}</div>
     <div class="total"><span>Cộng lại</span><span class="num">+${fmt(sum)}</span></div>
-  </section>`;
+  </section>
+  <h2 class="state-label">Sau khi bấm (hoàn tác 5 giây)</h2>
+  <div class="snack static"><div class="grow">Đã ghi Thảo trả lại ${fmt(S.balance)}<p class="s2">Techcombank cộng ${fmt(S.balance)} · hai bên đang ngang nhau</p></div><button>Hoàn tác</button></div>`;
 </script>
 </body>
 </html>

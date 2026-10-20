@@ -84,13 +84,14 @@ MoneyScreen ─┬─ ⌕ ─▶ Tìm khoản
 Chung cho mọi màn con: nền dawnBlush (shell vẽ, màn trong suốt) · `SubScreenHeader(badge, badgeIcon, trailing)` · gutter 16 · thẻ `ContentCard` padding 20, cách nhau 16 · tiêu đề thẻ 16 w700 · link phải thẻ 14 w700 navy + chevron `arrow_right_3` 16 `textSecondary`, vùng chạm 44.
 
 ### 3.1 Lối vào Home (`MoneyHomeEntry`, widget mới `lib/widgets/money/money_home_entry.dart`)
-- `ContentCard(padding: 16)`, cao 76. Hàng: icon `IconsaxPlusLinear.wallet_2` 24 `accentLoveDeep` (ô 28) · cột [tiêu đề 15 w700 · dòng phụ 13 w500 `textSecondary`, số tiền trong dòng phụ 13 w600 navy] · nút tròn 44 navy, icon `add` 22 trắng (Semantics "Ghi khoản").
+- `ContentCard(padding: 16)`, cao 76. Hàng: `IconBadge(IconsaxPlusLinear.wallet_2)` 44 r16 rose tint .12 (Lead chốt 2026-10-20, khớp Home bản C `docs/design/home-daily-open-2/home-c.html`) · cột [tiêu đề 15 w700 · dòng phụ 13 w500 `textSecondary`, số tiền trong dòng phụ 13 w600 navy] · nút tròn 44 navy, icon `add` 22 trắng (Semantics "Ghi khoản").
 - Chạm cả hàng (InkWell r24, ripple rose .06) → `MoneyScreen` tab Chung. Chạm nút → sheet ghi khoản, sổ chung. Hai vùng chạm cách nhau ≥8.
 - **Chỉ hiện số của sổ chung.** Không bao giờ số dư, không sổ riêng. Cặp đang chờ: dẫn vào sổ riêng và chỉ hiện số khoản đã ghi hôm nay (không số tiền).
 - Trạng thái (đủ hình trong `home-entry.html`): bình thường "Đã chi 3.574.000 ₫ · 71% ngân sách" · chưa đặt ngân sách "Đã chi … tháng này" · vượt "Đã chi 5.240.000 ₫ · vượt 240.000 ₫" (chữ "vượt …" `moneyNegative`) · đầu tháng "Đã chi 0 ₫ · chưa có khoản nào" · đang tải (tiêu đề hiện, dòng phụ là thanh xám 170×14) · mất mạng "3.574.000 ₫ · số lúc 11:58" · lỗi không có số cũ "Chưa tải được sổ chung" + nút chữ "Thử lại" thay nút + · cặp chờ "Sổ tiền của mình / Hôm nay đã ghi 3 khoản" · chưa ghi bao giờ "Sổ tiền / Gõ 50k, chọn danh mục là xong".
-- **Vị trí đề xuất:** nhóm "Hôm nay của chúng mình", ngay dưới thẻ "Đêm qua" (`SleepCard`). Cặp chờ: dưới checklist mời. Designer ghép Home chốt thứ tự 5 lối vào. Nếu bước ghép Home giữ `IconBadge` cho mọi thẻ Home (như `SleepCard`), thay icon trần bằng `IconBadge(IconsaxPlusLinear.wallet_2)`; mockup dùng icon trần theo tasteskill.
+- **Vị trí đề xuất:** nhóm "Hôm nay của chúng mình", ngay dưới thẻ "Đêm qua" (`SleepCard`). Cặp chờ: dưới checklist mời. Designer ghép Home chốt thứ tự 5 lối vào. Home bản C đã ghép thẻ này giữa "Chơi" và "Phân vân".
 
 ### 3.2 Sổ tiền · tổng quan (`MoneyScreen`, mới `lib/screens/money_screen.dart`)
+> **Cập nhật §15:** hàng đầu thẻ tháng có 2 số (Đã chi 30 · Còn trong ngân sách 20 căn phải); dải dưới là "Thu | Thu trừ chi"; thứ tự khối: tháng → (Chung: ba làn) → Gần đây → Tiêu vào đâu → Ví; "Tổng tài sản" → "Tổng tiền đang có"; người mới: `money-new.html`.
 ```
  ←        [▣ SỔ TIỀN]        ⌕  ⋯
  [ Của mình |  Chung  ]                      segmented h48 (ẩn khi cặp đang chờ)
@@ -132,6 +133,7 @@ Chung cho mọi màn con: nền dawnBlush (shell vẽ, màn trong suốt) · `Su
 - Cặp đang chờ (D5): không segmented; cuối trang 1 thẻ "Khi người ấy vào, chúng mình sẽ có thêm sổ chung: ai trả, chia đôi, quỹ đi chơi." + link "Gửi lời mời ›" (mở luồng mời có sẵn).
 
 ### 3.3 Sheet ghi khoản (`AddTransactionSheet`, mới `lib/widgets/money/add_transaction_sheet.dart`)
+> **Cập nhật sau vòng soát dễ dùng (§15), bản này thắng các dòng dưới nếu khác:** hàng đầu = Đóng · segmented Chi/Thu/Chuyển · nút sổ (tiêu đề "Ghi khoản" chỉ còn cho trình đọc màn hình) → số tiền → chip 50k… → hàng "Ghi lại khoản quen" (chỉ khi ô số trống) → Danh mục → hàng chip Ví (thay công tắc "Trừ vào ví của mình"; sổ chung có thêm chip "Không trừ") → hàng tóm tắt (sổ chung: ai trả · cách chia · ngày; sổ riêng: ngày · ghi chú) → bàn phím phím 48 → Lưu ghim đáy. Snackbar sau Lưu có "Hoàn tác".
 - Modal bottom sheet trắng, bo trên 28, gần full chiều cao, handle 40×4. Hàng đầu h48: `close_circle` 24 (Đóng) · tiêu đề "Ghi khoản" 18 w700 · nút sổ "Sổ chung ⌄" (pill h36 `surfaceLight`, 13 w700) bật qua lại Của mình/Chung (cặp chờ: ẩn nút).
 - Segmented Chi | Thu | Chuyển (radiogroup) h44 nền `surfaceLight`.
 - Số tiền: 40 w600 căn giữa, "₫" 20 xám; số 0 navy .35; dòng gợi ý 13: trống "Gõ 50k, 1tr2 hay 1 củ đều được" · đã gõ chữ đơn vị "Bạn gõ “1tr2”" · không hiểu "Chưa hiểu số này. Thử 120k hoặc 120000." (`moneyNegative` w600) · quá 10 tỷ: số hiện 30 `moneyNegative` + "Tối đa 10 tỷ một khoản. Kiểm tra lại số 0 nhé."
@@ -363,7 +365,7 @@ Nhắc tối (D18), push `notifyMoney` (§5 PO): giữ nguyên copy PO.
 | `heavy-shadow` | bóng `ContentCard` (y10 ≥ ngưỡng 8) | card chuẩn duy nhất của app |
 | `micro-label`, `small-title` | `EyebrowChip` làm tên màn (11px hoa, tracked) | header màn con của app là chip-only (`SubScreenHeader`) |
 | `emoji` | emoji danh mục và ví | là dữ liệu người dùng chọn (D6/D9), không phải trang trí; không dùng emoji ở tiêu đề, nút, trạng thái rỗng |
-| `icon-chips` (WARN, chỉ trang lối vào) | nút tròn + lặp 8 lần ở trang trạng thái | Home thật chỉ có 1 |
+| `icon-chips` (chỉ trang lối vào) | `IconBadge` + nút tròn, lặp 9 lần ở trang trạng thái | Lead chốt `IconBadge` cho thẻ Home; Home thật chỉ có 1 thẻ |
 | `colour-sprawl` (WARN) | dawnBlush lộ ra giữa các thẻ | như trên |
 - Đã thay theo luật nhà: bỏ `IconBadge` ở mọi hàng (icon trần hoặc emoji trong ô 28 không nền); thanh tiến độ không gradient; FAB và nút không bóng; vạch ngăn là 1px border, không bóng inset; số tiền căn phải.
 - Ghi chú đo được: **Quicksand không có tabular figures** (GSUB chỉ có `ccmp dnom frac liga locl numr`; chữ "1" rộng 370 so với ~550 các số khác; Be Vietnam Pro cũng không có `tnum`). `FontFeature.tabularFigures()` không có tác dụng. Bù lại: mọi cột số căn phải, đơn vị "₫" cố định cuối, nên chữ số hàng đơn vị luôn thẳng cột; trong ô nhập số tăng từ phải. Muốn số thẳng tuyệt đối thì cần một phông số riêng, ngoài phạm vi (câu hỏi Q3).
@@ -430,10 +432,53 @@ Scores: design 7.5 · usability 8 · creativity 7.5 · content 8 → 7.7
 - Số "đã chi" trong offline cộng khoản `hasPendingWrites`; cân bằng/ba làn cũng vậy.
 - Tháng hiện tại: "Hôm nay" là vạch ở `ngày/ngày trong tháng`; tháng cũ không có vạch.
 
+## 15. Soát dễ dùng (UI UX Pro Max)
+User 2026-10-20: "thiết kế phù hợp với người dùng và UI tiện lợi dễ sử dụng". Thước đo chính là UI UX Pro Max 2.13.0. Design system và sheet chung giữ nguyên.
+
+**Truy vấn đã chạy** (`search.py`, không `-I`):
+- `--domain ux`: "smart defaults form" · "multi step form progressive disclosure" · "numeric input keyboard mobile" · "list item swipe actions" · "onboarding first time user" · "tabs navigation mobile" · "chart labels data legibility mobile" · "delete confirmation undo" · "form validation inline error" · "thumb zone primary action bottom" (0 kết quả) → thử lại "reachable bottom action mobile" · "plain language jargon" (0) → thử lại "clear labels simple wording" · "cognitive load too much information" · "default value remember last".
+- `--stack flutter`: "keyboard input form" · "touch target button" (0) → thử lại "accessibility tap target" · "listview builder" · "tab bar" · "form validation".
+- Thêm: đọc `references/quick-reference.md` cho các mã quy tắc bên dưới. Hai chủ đề không có trong cơ sở dữ liệu là vùng ngón cái và từ ngữ đời thường. Hai chỗ này dùng mặc định của Apple HIG / Material, ghi rõ là mặc định, không phải kết quả tra.
+
+**Quy tắc rút ra:**
+`primary-action` (mỗi màn một nút chính) · `progressive-disclosure` (giấu tuỳ chọn khó tới khi cần) · `input-type-keyboard` / Mobile Keyboards (bàn phím đúng loại) · Input Labels (nhãn luôn hiện) · `error-placement` + Inline Validation (lỗi ngay dưới ô, báo sớm) · `touch-target-size` 44pt/48dp + `touch-spacing` 8 · `confirmation-dialogs` + `undo-support` (xác nhận trước việc không đảo được, hoàn tác cho việc đảo được) · `sheet-dismiss-confirm` (hỏi trước khi đóng sheet đang ghi dở) · `empty-states` (lời + hành động) · User Freedom (có Bỏ qua) · Submit Feedback / Success Feedback (báo đã lưu) · `destructive-emphasis` (nút xoá màu nguy hiểm, tách khỏi nút chính) · ListView.builder + itemExtent (danh sách dài) · Form + validate (Flutter).
+
+**Ghi một khoản thường ngày, "cà phê 35k, ví MoMo"** (đếm chạm sau khi mở sheet; gõ 3, 5, k tính là 3 phím):
+| | Trước | Sau |
+|---|---|---|
+| Khoản mới, ví đã đúng mặc định | 3 phím + danh mục + Lưu = **5** | 3 phím + danh mục + Lưu = **5**; nếu danh mục cũng đã đúng mặc định: **4** |
+| Khoản mới, phải đổi ví sang MoMo | 3 phím + danh mục + mở chi tiết + hàng Ví + chọn MoMo + Lưu = **8** | 3 phím + danh mục + chip MoMo + Lưu = **6** |
+| Lặp lại khoản quen (cà phê sáng, cơm trưa, gửi xe) | như khoản mới: **5–8** | chip "Ghi lại khoản quen" + Lưu = **2** |
+Mục tiêu ≤3 chạm đạt cho khoản lặp lại. Với khoản mới, gõ số là bắt buộc. Phần còn lại ≤3 chạm: danh mục, ví (nếu cần) và Lưu. Đúng cách PO đếm "120k → Ăn ngoài → Lưu".
+
+**Vấn đề và cách sửa (đã sửa thẳng trên mockup):**
+1. *(nặng)* **Đổi ví mất 3 chạm** vì ví nằm trong phần chi tiết bị giấu. → Hàng chip ví hiện luôn dưới danh mục (`Ví` / `Vào ví` / sổ chung khi mình trả: `Trừ vào ví của mình` + chip "Không trừ"). Công tắc trừ ví cũ bị bỏ vì hàng chip đã làm việc đó. (`add-tx.html`)
+2. *(nặng)* **Mặc định chưa thông minh**: danh mục mặc định là khoản gần nhất, nên vừa ghi tiền nước thì khoản sau mặc định "Nước". → Danh mục = dùng nhiều nhất 14 ngày qua, hoà thì cái gần nhất (đề xuất cho PO, lệch D9). Ví = **ví dùng lần trước với chính danh mục đó** (cà phê → Tiền mặt, ăn ngoài → MoMo). Sổ, người trả và cách chia nhớ theo lần trước (D12). Đổi danh mục thì ví tự đổi theo.
+3. *(nặng)* **Khoản lặp lại phải gõ lại từ đầu.** → Hàng "Ghi lại khoản quen": khoản gần nhất của 3 danh mục chi dùng nhiều nhất trong sổ. Chạm là điền đủ số, danh mục, ví, ghi chú; chỉ còn Lưu. Hàng này chỉ hiện khi ô số đang trống, gõ số thì hàng ẩn.
+4. *(vừa)* **Mở Sổ tiền chưa trả lời ngay "còn bao nhiêu"**: số "còn" nằm trong câu chữ. Thêm nữa, "Còn lại (thu − chi)" 10.948.000 ₫ đứng cạnh "còn 1.448.000 ₫" nên hai chữ "còn" dễ nhầm. → Hàng đầu thẻ tháng có hai số: **Đã chi 9.552.000 ₫** (30) và **Còn trong ngân sách 1.448.000 ₫** (20, căn phải). Ô dưới đổi tên thành "Thu trừ chi". Câu finding đổi sang thứ chưa có trên màn: "… tức khoảng 131.000 ₫ mỗi ngày từ giờ tới cuối tháng". Chưa đặt ngân sách thì vị trí số "còn" hiện "Chưa đặt ngân sách · Đặt ›". (`money-own.html`, `money-shared.html`)
+5. *(vừa)* **Thứ tự khối**: ghi xong người ta muốn thấy khoản vừa ghi. → "Gần đây" lên ngay dưới thẻ tháng (sổ chung: dưới ba làn). "Tiêu vào đâu" và "Ví" xuống dưới.
+6. *(vừa)* **Thuật ngữ tài chính**: "Điều chỉnh số dư" → "Sửa số dư" (sheet "Sửa số dư cho khớp", giải thích "Trong app đang nhiều hơn tiền thật 23.000 ₫. App ghi 1 dòng “sửa số dư” để khớp…"). "Dư nợ" → "đang nợ thẻ". "Tổng tài sản" → "Tổng tiền đang có". "Số dư âm là bình thường" → "Đang nợ thẻ thì số dư âm, vậy là đúng". "Ứng" giữ (PO D12), nhưng thêm dòng đời thường dưới số: "Thảo trả lại mình chừng này là hai bên ngang nhau". "Trả từ Ví chung nên không ai phải trả lại ai."
+7. *(vừa)* **Người mới (52 cặp đang chờ) xong màn chọn ví thì gặp sổ trống**, không biết làm gì. → Trạng thái mới `money-new.html`: thẻ "Ghi khoản đầu tiên" có 4 chip danh mục hay dùng, nút chính "Ghi khoản" và câu "Ghi vài hôm, mình sẽ thấy tiền đi đâu nhiều nhất và đặt ngân sách cho tháng sau". Không bắt đặt ngân sách ngay. Ẩn FAB để chỉ còn một nút chính.
+8. *(vừa)* **Xoá / đóng ngang:** đã có hoàn tác 5 giây cho xoá. → Thêm: hoàn tác ngay sau khi Lưu (snackbar "Đã ghi … · Hoàn tác") · hỏi "Bỏ khoản đang ghi?" khi đóng sheet đang có số · xoá khoản có ở cả hai sổ thì hỏi trước ("Xoá ở cả hai sổ?" nút đỏ tách riêng + "Chỉ xoá ở sổ chung" + "Huỷ") vì nó đụng số dư ví riêng · thanh toán xong có hoàn tác. (`add-tx-states.html`, `settle.html`)
+9. *(vừa)* **Vùng ngón cái**: nút Lưu trước nằm cuối nội dung, có máy phải cuộn mới thấy. → Lưu ghim đáy sheet. Chi/Thu/Chuyển lên hàng đầu thay tiêu đề "Ghi khoản" (tiêu đề còn cho trình đọc màn hình), lấy lại 52px cho bàn phím. Phím 48. FAB, Lưu, Góp vào quỹ, Đánh dấu đã thanh toán đều ở 1/3 dưới màn.
+10. *(nhẹ)* **Vùng chạm**: chip h40 có vùng chạm 48 (`materialTapTargetSize.padded`); nút đổi sổ h40 có vùng chạm 48; segmented 6/12 tháng ở báo cáo 38 → 44.
+11. *(nhẹ)* **Thanh toán (Lead chốt):** công tắc "Ghi tiền về ví của mình" (mặc định bật) + chip ví nhận (mặc định ví mình hay dùng cho khoản chung, mẫu Techcombank), "Thêm 1 dòng ở sổ của mình, không tính là thu nhập". Câu giải thích đổi thành "App không chuyển tiền giúp. Bấm nút dưới sau khi Thảo đã chuyển khoản hoặc đưa tiền mặt."
+
+**Mỗi màn một mục tiêu**, soát lại sau sửa: tổng quan = xem tháng + ghi khoản (FAB) · sheet = ghi 1 khoản · ví = xem tiền đang có · ngân sách = biết nhóm nào sắp vượt · báo cáo = tiền đi đâu · tìm = thấy lại 1 khoản · quỹ = góp · thanh toán = đánh dấu đã trả. Màn đông nhất vẫn là sheet sổ chung. Ở đó "Ai trả / Chia thế nào / Ngày / Ghi chú" ở sau hàng tóm tắt (`progressive-disclosure`); mặc định nhớ lần trước nên đa số khoản không cần mở.
+
+**Đánh đổi:**
+- Không đạt ≤3 chạm cho khoản mới, vì không có cách nào bỏ được bước gõ số. Đoán số theo giờ trong ngày thì sai nhiều hơn đúng.
+- Bỏ hộp xác nhận cho xoá khoản thường, chỉ dùng hoàn tác. Hộp xác nhận chỉ dùng cho việc đụng hai sổ hoặc không đảo được (lưu trữ ví, xoá danh mục tự thêm). UI UX Pro Max có cả `confirmation-dialogs` lẫn `undo-support`; xoá khoản thường đảo được nên chọn `undo-support`, đỡ một chạm cho việc làm hằng ngày.
+- Hàng "Ghi lại khoản quen" và hàng ví làm sheet cao thêm khoảng 90px. Bù lại bằng cách đưa Chi/Thu/Chuyển lên hàng đầu, thu gọn khoảng cách và dùng phím 48. Sheet vẫn vừa 390×844, không phải cuộn.
+- Chip cuối hàng cuộn ngang bị cắt ở mép phải: inspect báo WARN `edge-text`. Giữ có chủ đích để người dùng thấy hàng còn cuộn tiếp.
+- "Ứng" vẫn còn (copy PO chốt), chỉ thêm câu giải thích. Muốn bỏ hẳn thì PO đổi D12.
+
+**Gate sau vòng này:** lint `--app docs/design/expenses` 0 FAIL 0 WARN (32 file). Inspect 390, 24 trang, 0 FAIL. WARN còn lại: `colour-sprawl` (nền blush) và `edge-text` (chip cuộn ngang) ở `add-tx`, `settle`. `home-entry` chạy thêm `--allow icon-chips` vì đã dùng `IconBadge` theo Lead.
+
 ## 14. Câu hỏi cho PO / user
-1. **Khoản chung trả bằng ví mình (D11) vào chi tiêu riêng nguyên số** (lẩu 480k ghi −480k ở sổ riêng, dù Thảo chịu 240k). Khi Thảo thanh toán, tiền về ví mình nhưng sổ riêng không có dòng thu nào, nên "đã chi" của mình bị đội và số dư ví lệch. Đề xuất: khi bấm "Đánh dấu đã thanh toán" có công tắc "Ghi tiền về ví của mình: Techcombank" (tạo dòng `settle` ở sổ riêng, không tính thu). PO chốt?
-2. **Lối vào Home dùng `IconBadge` hay icon trần?** `SleepCard` đang dùng `IconBadge`; tasteskill cấm. Designer ghép Home nên chốt một kiểu cho cả 5 lối vào.
-3. **Số không thẳng cột tuyệt đối** vì Quicksand không có tabular figures (§9). Chấp nhận căn phải như mockup, hay thêm một phông số riêng cho tiền (thêm asset, lệch nhận diện)? Designer đề xuất chấp nhận.
+- ✅ [2026-10-20] Lead chốt: sheet Thanh toán có công tắc "Ghi tiền về ví của mình", mặc định bật (§15). Lối vào Home dùng `IconBadge`. Số chỉ căn phải (không thêm phông số).
+- ❓ Mới: danh mục mặc định đổi từ "dùng gần nhất" (D9) sang "dùng nhiều nhất 14 ngày qua, hoà thì gần nhất" (§15, vấn đề 2). PO duyệt?
 
 ## Nhật ký design
 - [2026-10-20] [Designer] Thiết kế mốc A Sổ tiền theo tasteskill (sheet chung đợt, face "ba làn Thảo · Ví chung · Mình") + UI UX Pro Max, bám design system hiện tại (dawnBlush, SubScreenHeader/EyebrowChip, ContentCard, nút navy, Quicksand). 23 trang mockup trong `docs/design/expenses/` (lối vào Home 9 trạng thái, tổng quan 2 sổ + 5 trạng thái, sheet ghi khoản bấm thử được + 14 trạng thái, ví/chi tiết/tạo/điều chỉnh, danh mục, ngân sách, báo cáo 2 sổ, tìm kiếm, quỹ, thanh toán, trạng thái màn phụ) dựng từ `data.js` có phép kiểm. Lint 0/0, inspect 390 0 FAIL mọi trang, 3 vòng critique (7.0 → 7.6 → 7.7). Đề xuất token tiền mới, widget `segmented_pill`, đổi emoji Gia đình. 3 câu hỏi cho PO.
+- [2026-10-20] [Designer] Vòng soát dễ dùng theo UI UX Pro Max (§15): ghi khoản lặp lại 5–8 → 2 chạm (chip "Ghi lại khoản quen"), đổi ví 3 chạm → 1 (hàng chip ví), mặc định danh mục/ví thông minh hơn, thẻ tháng hiện cả "Đã chi" lẫn "Còn trong ngân sách", bỏ thuật ngữ khó, thêm trạng thái người mới `money-new.html`, hoàn tác sau Lưu + hỏi khi đóng sheet dở / xoá khoản hai sổ, Lưu ghim đáy. Áp quyết định Lead: IconBadge ở lối vào Home, công tắc "Ghi tiền về ví của mình" ở Thanh toán.

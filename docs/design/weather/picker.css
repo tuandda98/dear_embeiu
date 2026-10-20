@@ -1,4 +1,6 @@
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.ptop { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ptop h1 { flex: 1; }
 .grp { font-size: 13px; font-weight: 700; color: var(--ink2); margin: 20px 0 4px; }
 .sheet ul { list-style: none; margin: 0; padding: 0; }
 .sheet li + li .crow { border-top: 1px solid var(--rule); }

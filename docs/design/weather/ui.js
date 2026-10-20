@@ -15,7 +15,7 @@
     const name = who === 'me' ? t(ME.label, ME.labelEn) : P.name;
     const head = `<div class="who"><span class="dot ${dotCls}"></span><span class="name">${name}</span>${p ? `<span class="city">· ${cityLabel(p.city)}</span>` : ''}</div>`;
     if (o.unset) {
-      const q = who === 'me' ? t('Mình đang ở đâu?', 'Where are you?') : t(`${P.name} đang ở đâu?`, `Where is ${P.name}?`);
+      const q = who === 'me' ? t('Bạn đang ở đâu?', 'Where are you?') : t(`${P.name} đang ở đâu?`, `Where is ${P.name}?`);
       const b = who === 'me' ? t('Chọn', 'Choose') : t('Chọn giúp', 'Choose for them');
       const href = who === 'me' ? 'picker.html' : 'picker.html?for=partner';
       return `<div class="lane"><p class="who ask-who"><span class="dot ${dotCls}"></span><span class="ask">${q}</span></p><a class="btn outline sm" href="${href}" data-stop>${ic(I.location)}${b}</a></div>`;
@@ -44,7 +44,8 @@
 
   function ctaRow(kind) {
     const c = W.CTA[kind];
-    return `<div class="shared"><a class="btn" href="care.html?c=${kind}" data-stop>${ic(c.icon)}${t(c.vi, c.en)}</a></div>`;
+    const label = t(c.full(P.name), c.fullEn(P.name));
+    return `<div class="shared end"><a class="btn" href="care.html?c=${kind}" data-stop aria-label="${label}. Mở màn Quan tâm với lời soạn sẵn">${ic(c.icon)}<span class="bl">${label}</span></a></div>`;
   }
   function gapRow(me, partner) {
     const g = W.gap(me, partner, P.name);
@@ -58,7 +59,7 @@
       const k = partner.cond.kind;
       const foot = k === 'rain' || k === 'hot' || k === 'cold' ? ctaRow(k) : gapRow(me, partner);
       return `<article class="card tap" data-href="detail.html" aria-labelledby="wx-title">${header(stampFresh())}
-        <div class="lanes">${lane('partner', partner)}<div class="vr"></div>${lane('me', me)}</div>${foot}</article>`;
+        <div class="lanes">${lane('me', me)}<div class="vr"></div>${lane('partner', partner)}</div>${foot}</article>`;
     },
     // B: cùng thành phố: một làn, hai chấm.
     same: (p = W.places.hnRain) => {
@@ -71,28 +72,28 @@
     },
     // C: đã ghép, người ấy chưa có thành phố.
     partnerUnset: (me = W.places.hn) => `<article class="card" aria-labelledby="wx-title">${header(stampFresh())}
-        <div class="lanes">${lane('partner', null, { unset: true })}<div class="vr"></div>${lane('me', me)}</div></article>`,
+        <div class="lanes">${lane('me', me)}<div class="vr"></div>${lane('partner', null, { unset: true })}</div></article>`,
     // D: đã ghép, mình chưa có thành phố (người ấy đã chọn).
     meUnset: (partner = W.places.hcm) => `<article class="card" aria-labelledby="wx-title">${header(stampFresh())}
-        <div class="lanes">${lane('partner', partner)}<div class="vr"></div>${lane('me', null, { unset: true })}</div>${ctaRow(partner.cond.kind)}</article>`,
+        <div class="lanes">${lane('me', null, { unset: true })}<div class="vr"></div>${lane('partner', partner)}</div>${ctaRow(partner.cond.kind)}</article>`,
     // E: chưa ai chọn: thẻ thu thành một dòng mời + nút Ẩn.
-    none: (waiting = false) => `<article class="card" aria-labelledby="wx-title-inv"><div class="invite">
-        <span class="badge">${ic(I.cloudSunny)}</span>
-        <a class="txt" href="picker.html" style="text-decoration:none"><h2 id="wx-title-inv" class="t" style="margin:0">${waiting ? 'Xem thời tiết chỗ mình' : 'Xem thời tiết chỗ người ấy'}</h2>
-          <p class="s" style="margin:0">${waiting ? 'Chọn thành phố, sáng nào mở app cũng thấy.' : `Chọn chỗ mình và chỗ ${P.name}, sáng nào mở app cũng thấy.`}</p></a>
+    none: (waiting = false) => `<article class="card" aria-labelledby="wx-title">${header('', false)}
+        <p class="pitch">${waiting ? 'Chọn thành phố của bạn, sáng nào mở app cũng thấy trời hôm nay.' : `Chọn chỗ bạn và chỗ ${P.name}, sáng nào mở app cũng thấy trời bên đó.`}</p>
+        <div class="pitch-btns"><a class="btn" href="${waiting ? 'picker.html' : 'picker.html?chain=1'}">${ic(I.location)}Chọn thành phố</a>
         <button class="textbtn quiet" type="button" aria-label="Ẩn thẻ thời tiết">Ẩn</button></div></article>`,
     // F: cặp đang chờ người ấy: chỉ làn của mình, không câu chênh lệch, không nút gợi ý.
     waiting: (me = W.places.hn) => `<article class="card tap" data-href="detail.html" aria-labelledby="wx-title">${header(stampFresh())}
         <div class="lanes one">${lane('me', me)}</div></article>`,
     // G: đang tải lần đầu: khung xương đúng cỡ, nhãn hiện ngay.
     loading: () => `<article class="card" aria-busy="true" aria-labelledby="wx-title">${header('<span class="sk" style="width:84px;height:14px"></span>', false)}
-        <div class="lanes">${lane('partner', W.places.hcm, { loading: true })}<div class="vr"></div>${lane('me', W.places.hn, { loading: true })}</div></article>`,
+        <div class="lanes">${lane('me', W.places.hn, { loading: true })}<div class="vr"></div>${lane('partner', W.places.hcm, { loading: true })}</div></article>`,
     // H: số cũ 6–24 giờ: số chuyển xám, giờ lấy số có icon đồng hồ, ẩn nút gợi ý.
-    stale: (partner = W.places.hcm, me = W.places.hn) => `<article class="card tap" data-href="detail.html" aria-labelledby="wx-title">${header(stampStale())}
-        <div class="lanes">${lane('partner', partner, { stale: true })}<div class="vr"></div>${lane('me', me, { stale: true })}</div></article>`,
+    stale: (partner = W.places.hcm, me = W.places.hn) => `<article class="card tap" data-href="detail.html" aria-labelledby="wx-title">${header(t('<span class="stamp">Chưa cập nhật được</span>', '<span class="stamp">Couldn’t update</span>'))}
+        <div class="lanes">${lane('me', me, { stale: true })}<div class="vr"></div>${lane('partner', partner, { stale: true })}</div>
+        <div class="shared"><span class="gap muted-line" role="status">${ic(I.clock)}${t('Số liệu lúc', 'As of')} ${W.hhmm(W.fetched.stale)}</span><button class="textbtn" type="button" data-stop style="margin-left:auto">${ic(I.refresh)}${t('Thử lại', 'Try again')}</button></div></article>`,
     // I: lỗi / > 24 giờ / chưa từng tải: tên thành phố + câu báo + Thử lại.
     error: (partner = W.places.hcm, me = W.places.hn) => `<article class="card tap" data-retry aria-labelledby="wx-title">${header('', false)}
-        <div class="lanes">${lane('partner', partner, { error: true })}<div class="vr"></div>${lane('me', me, { error: true })}</div>
+        <div class="lanes">${lane('me', me, { error: true })}<div class="vr"></div>${lane('partner', partner, { error: true })}</div>
         <div class="shared"><span class="gap muted-line" role="status">${t('Chưa tải được thời tiết', 'Couldn’t load the weather')}</span><button class="textbtn" type="button" data-stop style="margin-left:auto">${ic(I.refresh)}${t('Thử lại', 'Try again')}</button></div></article>`,
   };
 

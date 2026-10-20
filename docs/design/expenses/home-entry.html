@@ -12,7 +12,7 @@
   .entry { margin-top: 10px; background: #fff; border-radius: 24px; box-shadow: var(--shadow-card); display: flex; align-items: center; gap: 12px; padding: 16px; position: relative; } /* taste-skill-ignore: ContentCard */
   .entry .hit { position: absolute; inset: 0; border-radius: 24px; }
   .entry .hit:hover { background: rgba(255,77,109,.06); }
-  .lead-ic { width: 28px; display: grid; place-items: center; color: var(--rose-deep); flex: none; }
+  .badge { width: 44px; height: 44px; border-radius: 16px; background: rgba(255,77,109,.12); color: var(--rose); display: grid; place-items: center; flex: none; } /* IconBadge (brand, Lead chốt 2026-10-20) */
   .entry .mid { flex: 1; min-width: 0; }
   .entry .t { font-size: 15px; font-weight: 700; line-height: 1.3; }
   .entry .s { font-size: 13px; font-weight: 500; color: var(--sec); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -32,7 +32,7 @@ const sk = (w, h = 14) => `<span class="sk" style="width:${w}px;height:${h}px"><
 const entry = ({ title, sub, trail = 'add', label }) => `
   <div class="entry">
     <a class="hit" href="${title.includes('chung') ? 'money-shared.html' : 'money-own.html'}" aria-label="${label}"></a>
-    <span class="lead-ic">${icon('wallet_2', 24)}</span>
+    <span class="badge">${icon('wallet_2', 20)}</span>
     <div class="mid"><p class="t">${title}</p><p class="s">${sub}</p></div>
     ${trail === 'add' ? `<button class="add" aria-label="Ghi khoản">${icon('add', 22)}</button>` : trail}
   </div>`;

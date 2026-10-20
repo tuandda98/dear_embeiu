@@ -53,7 +53,7 @@
     let emoji = c ? c.emoji : '';
     let sub = '';
     if (r.type === 'transfer') { emoji = '↔'; sub = `${wname(book, r.outWalletId)} → ${wname(book, r.inWalletId)}`; }
-    else if (r.type === 'adjust') { emoji = '±'; sub = `${wname(book, r.outWalletId || r.inWalletId)} · không tính vào chi`; }
+    else if (r.type === 'adjust') { emoji = '±'; r = { ...r, note: r.note === 'Điều chỉnh số dư' ? 'Sửa số dư cho khớp' : r.note }; sub = `${wname(book, r.outWalletId || r.inWalletId)} · không tính là chi`; }
     else if (r.type === 'contribution') { emoji = '→'; sub = book === 'shared' ? `${av(r.payer)}<span>${who(r.payer)} góp</span>` : `${wname(book, r.outWalletId)} → sổ chung`; }
     else if (r.type === 'settle') { emoji = '='; sub = `${who(r.payer)} thanh toán · không tính vào chi`; }
     else if (book === 'shared') {

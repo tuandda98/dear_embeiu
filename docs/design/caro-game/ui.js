@@ -9,6 +9,7 @@
     zoomIn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M8 11h6M11 8v6"/></svg>',
     zoomOut: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M8 11h6"/></svg>',
     warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>',
     wifi: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 8.5a15 15 0 0120 0M5 12a10 10 0 0114 0M8.5 15.5a5 5 0 017 0M12 19h.01M3 3l18 18"/></svg>',
     game: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 6h10a5 5 0 015 5v2a5 5 0 01-8.6 3.5L12 15l-1.4 1.5A5 5 0 012 13v-2a5 5 0 015-5zm1 4v1.5H6.5v1.5H8v1.5h1.5V13H11v-1.5H9.5V10H8zm7.5.5a1 1 0 100 2 1 1 0 000-2zm2 2a1 1 0 100 2 1 1 0 000-2z"/></svg>',
   };
@@ -63,7 +64,7 @@
   }
 
   // Ba làn: mình (trái) · luật + nước (giữa) · người ấy (phải). turn: 'me'|'partner'|null.
-  function lanes(game, { turn = null, watching = false, wins = D.wins, plus = null, move, me = D.me, skeleton = false, midText } = {}) {
+  function lanes(game, { turn = null, watching = false, wins = D.wins, plus = null, move, me = D.me, skeleton = false, midText, ruleTap = false } = {}) {
     const pa = me === 'tuan' ? 'thao' : 'tuan';
     if (skeleton) return `<div class="lanes" aria-hidden="true"><div class="lane"><span class="bar" style="width:64px;height:20px"></span><span class="bar" style="width:28px;height:26px;margin-top:2px"></span><span class="bar" style="width:40px;height:14px"></span></div><div class="mid"><span class="bar" style="width:84px;height:16px"></span></div><div class="lane" style="justify-items:end"><span class="bar" style="width:64px;height:20px"></span><span class="bar" style="width:28px;height:26px;margin-top:2px"></span><span class="bar" style="width:40px;height:14px"></span></div></div>`;
     const capMe = plus === 'me' ? `<span class="cap on">+1 ván này</span>` : `<span class="cap">thắng</span>`;
@@ -71,7 +72,7 @@
     const rule = game.rule === 'free' ? 'Tự do' : 'Chặn hai đầu';
     return `<div class="lanes">
       <div class="lane me"${turn === 'me' ? ` style="background:${P[me].tint}"` : ''}><span class="who">${glyph(sideOf(game, me), P[me].hue)}${P[me].name}</span><span class="score num">${wins[me]}</span>${capMe}</div>
-      <div class="mid"><span class="rule">${midText || rule}</span><span class="move num">${move == null ? '' : move === 0 ? 'ván mới' : 'nước ' + move}</span></div>
+      <div class="mid">${ruleTap ? `<button class="rule-btn" aria-label="Luật ${rule}, chạm để xem giải thích"><span class="rule">${rule}</span>${ICON.info}</button>` : `<span class="rule">${midText || rule}</span>`}<span class="move num">${move == null ? '' : move === 0 ? 'ván mới' : 'nước ' + move}</span></div>
       <div class="lane partner"${turn === 'partner' ? ` style="background:${P[pa].tint}"` : ''}><span class="who">${P[pa].name}${glyph(sideOf(game, pa), P[pa].hue)}</span><span class="score num">${wins[pa]}</span>${capPa}</div>
     </div>`;
   }

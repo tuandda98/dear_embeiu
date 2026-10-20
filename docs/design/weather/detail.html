@@ -42,7 +42,7 @@ const pct = (v) => ((v - lo) / (hi - lo)) * 100;
 console.assert(lo === 22 && hi === 33, 'Thước chung 22°–33°');
 function block(who, p, action) {
   const color = who === 'me' ? P.me.color : P.partner.color;
-  const name = who === 'me' ? 'Mình' : P.partner.name;
+  const name = who === 'me' ? 'Bạn' : P.partner.name;
   const region = p.city.regionVi ? ` <span>· ${p.city.regionVi}</span>` : '';
   return `<section class="place" aria-labelledby="p-${who}">
     <div class="who"><span class="dot ${who === 'me' ? 'me' : 'partner'}"></span><span class="name">${name}</span></div>
@@ -54,7 +54,7 @@ function block(who, p, action) {
         <span class="knob" style="left:${pct(p.temp)}%;border-color:${color}"></span></div>
       <div class="ends" aria-hidden="true"><span>${lo}°</span><span>${hi}°</span></div>
     </div>
-    ${who === 'partner' && WX.CTA[p.cond.kind] ? `<a class="btn" style="margin-top:16px" href="care.html?c=${p.cond.kind}">${ic(WX.CTA[p.cond.kind].icon)}${WX.CTA[p.cond.kind].vi}</a>` : ''}
+    ${who === 'partner' && WX.CTA[p.cond.kind] ? `<a class="btn" style="margin-top:16px" href="care.html?c=${p.cond.kind}">${ic(WX.CTA[p.cond.kind].icon)}${WX.CTA[p.cond.kind].full(P.partner.name)}</a>` : ''}
     <div class="hours">${p.slots.map((s) => `<div class="${s.rain ? 'wet' : ''}" aria-label="${String(s.h).padStart(2, '0')}:00, ${s.temp} độ${s.rain ? ', có mưa' : ''}"><span class="h">${String(s.h).padStart(2, '0')}:00</span>${ic(s.icon)}<span class="v">${s.temp}°</span></div>`).join('')}</div>
   </section>`;
 }
@@ -62,8 +62,8 @@ document.getElementById('app').innerHTML = `
   <div class="handle"></div>
   <h1 id="d-title">Thời tiết hai nơi</h1>
   <p class="sub">Cập nhật ${WX.hhmm(WX.fetched.fresh)}</p>
-  ${block('partner', X.hcm, `<span class="lock">${ic(I.tick)}Thảo tự chọn</span>`)}
   ${block('me', X.hn, `<a class="textbtn" href="picker.html">${ic(I.location)}Đổi thành phố</a>`)}
+  ${block('partner', X.hcm, `<span class="lock">${ic(I.tick)}Thảo tự chọn</span>`)}
   <p class="source">Dữ liệu thời tiết: <a href="https://api.met.no/doc/License">MET Norway</a></p>`;
 </script>
 </body>
