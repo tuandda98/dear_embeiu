@@ -21,7 +21,7 @@
    - Câu ngắn và dài đan xen; tránh câu nhồi nhiều mệnh đề. Mỗi đoạn 1–2 ý, tối đa 3–4 dòng.
    - Ưu tiên câu chủ động. **Show, don't tell:** đưa ví dụ, con số, tình huống thật thay cho nói chung chung (vd thay "tăng trải nghiệm" bằng "mở app là thấy đêm qua người ấy ngủ 6g 50p").
    - Copy trong app vẫn giữ luật xưng hô "chúng mình" (không "hai đứa").
-8. **Thiết kế UI = luôn tra skill UI UX Pro Max** (user chốt 2026-10-12, "luôn luôn sài skill ui promax để thiết kế"). Áp cho Designer ra spec lẫn Dev/Lead tự chỉnh nhỏ (thêm nút, đổi cỡ chữ, màu, khoảng cách). Tra skill trước khi chốt, rồi đối chiếu `project/design-system.md` (type scale cấm cỡ lẻ, vd 17). Thành phần đứng cạnh nhau phải soát chung một lượt; nút của bên thứ ba (Apple, Google…) đối chiếu thêm guideline chính thức. Lệnh Skill không nạp được skill này → đọc `SKILL.md` + chạy `scripts/search.py` của plugin (đường dẫn ở `~/.claude/CLAUDE.md` mục "Thiết kế UI"). Bài học: nút Google đợt 2 pairing-funnel do Dev thêm thẳng, không qua skill → chữ 17 lệch nút Apple 22 và lệch luôn type scale.
+8. **Thiết kế UI = luôn tra skill UI UX Pro Max + tasteskill** (user chốt 2026-10-12, "luôn luôn sài skill ui promax để thiết kế"; 2026-10-20 thêm tasteskill `~/.claude/skills/design-taste-frontend/`, dùng TRỌN skill — không rút gọn kiểu repo zoey: màn app đi đủ run trong `references/app-screens.md` (inventory → câu hỏi của màn → `draw.mjs --app` → face + signature → shell → data → states → `lint.mjs --app` + `inspect.mjs --app` 0 FAIL → critique 3 vòng → report); `.taste-skill/` đã gitignore. **Cùng ngày user chốt làm lại CẢ bảng màu lẫn phông theo tasteskill** (bỏ Sunset Romance/Quicksand, draw không `--keep`) — design system v2 đang thiết kế, phông mới phải đủ dấu tiếng Việt). Áp cho Designer ra spec lẫn Dev/Lead tự chỉnh nhỏ (thêm nút, đổi cỡ chữ, màu, khoảng cách). Tra skill trước khi chốt, rồi đối chiếu `project/design-system.md` (type scale cấm cỡ lẻ, vd 17). Thành phần đứng cạnh nhau phải soát chung một lượt; nút của bên thứ ba (Apple, Google…) đối chiếu thêm guideline chính thức. Lệnh Skill không nạp được skill này → đọc `SKILL.md` + chạy `scripts/search.py` của plugin (đường dẫn ở `~/.claude/CLAUDE.md` mục "Thiết kế UI"). Bài học: nút Google đợt 2 pairing-funnel do Dev thêm thẳng, không qua skill → chữ 17 lệch nút Apple 22 và lệch luôn type scale.
 
 ---
 
@@ -216,6 +216,8 @@ Hai loại notification, đừng nhầm:
 ---
 
 ## 8. Design system
+
+> ⚠️ **2026-10-20 user chốt ĐỔI NHẬN DIỆN theo tasteskill** (bảng màu + phông mới, bỏ hồng #FF6B9D/Quicksand và các mẫu tasteskill cấm: gradient, kính mờ, chip trên tiêu đề, icon trong ô màu, emoji trong nhãn). Bản v2 đang thiết kế ở `project/design-system-v2.md` + `docs/design/brand-v2/`; duyệt xong mới thay mục này.
 
 > ➡️ **Chi tiết đầy đủ (token màu/hex, typography, layout từng screen, components):** [`project/design-system.md`](project/design-system.md). Dưới đây chỉ là tóm tắt.
 
