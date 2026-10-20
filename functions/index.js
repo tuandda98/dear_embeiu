@@ -5280,9 +5280,9 @@ const MONEY_COPY = {
   },
   en: {
     goalTitle: (emoji, name) => `${emoji} ${name}`.trim(),
-    goalBody: (actor, percent) => `${actor} just chipped in, the fund is at ${percent}%`,
+    goalBody: (actor, percent) => `${actor} just chipped in. The fund is at ${percent}%`,
     reachedTitle: (emoji, name) => `${emoji} ${name} is full!`.trim(),
-    reachedBody: () => "We hit the goal together. Time to plan it.",
+    reachedBody: () => "We hit the goal together. Time to make plans.",
     budget80Title: () => "We've used 80% of this month's budget",
     budget80Body: () => "Open our shared book to see what's left.",
     budget100Title: () => "We've used up this month's budget",

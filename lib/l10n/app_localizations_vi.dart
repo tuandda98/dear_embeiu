@@ -6059,7 +6059,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get moneyCatHomeNet => 'Internet';
 
   @override
-  String get moneyCatHomeGoods => 'Đồ dùng nhà';
+  String get moneyCatHomeGoods => 'Đồ gia dụng';
 
   @override
   String get moneyCatBill => 'Hoá đơn & gói';
@@ -6210,14 +6210,14 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String moneyHomeStale(String amount, String time) {
-    return '$amount · số lúc $time';
+    return '$amount · số liệu lúc $time';
   }
 
   @override
   String get moneyHomeError => 'Chưa tải được sổ chung';
 
   @override
-  String get moneyHomeLoading => 'Sổ chung, đang tải';
+  String get moneyHomeLoading => 'Đang tải sổ chung';
 
   @override
   String get moneyHomeMine => 'Sổ tiền của mình';
@@ -6288,7 +6288,7 @@ class AppLocalizationsVi extends AppLocalizations {
     String percent,
     String perDay,
   ) {
-    return 'Tháng mới qua $passed/$total ngày mà đã dùng $percent% ngân sách, tức khoảng $perDay mỗi ngày từ giờ tới cuối tháng.';
+    return 'Tháng mới qua $passed/$total ngày mà đã dùng $percent% ngân sách. Từ giờ tới cuối tháng, mỗi ngày chỉ còn khoảng $perDay.';
   }
 
   @override
@@ -6359,7 +6359,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String moneyEmptyMonth(String month) {
-    return 'Tháng $month chưa có khoản nào. Nút hồng ở góc dưới để ghi khoản đầu tiên.';
+    return 'Tháng $month chưa có khoản nào. Bấm nút hồng ở góc dưới để ghi khoản đầu tiên.';
   }
 
   @override
@@ -6452,7 +6452,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String moneyOffline(String time, int n) {
-    return 'Đang mất mạng. Số dư tính tạm từ lúc $time cộng $n khoản chờ gửi.';
+    return 'Đang mất mạng. Số dư là số lúc $time, cộng thêm $n khoản đang chờ gửi.';
   }
 
   @override
@@ -6470,7 +6470,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get moneyWaitingCard =>
-      'Khi người ấy vào, chúng mình sẽ có thêm sổ chung: ai trả, chia đôi, quỹ đi chơi.';
+      'Khi người ấy vào app, chúng mình có thêm sổ chung để ghi ai trả, chia đôi và góp quỹ đi chơi.';
 
   @override
   String get moneySendInvite => 'Gửi lời mời';
@@ -6689,7 +6689,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String moneyOverBudgetToast(String category, String amount) {
-    return '$category chung vượt ngân sách tháng $amount';
+    return '$category chung đã vượt ngân sách $amount';
   }
 
   @override
@@ -6699,7 +6699,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String moneyOverBudgetToastMine(String category, String amount) {
-    return '$category vượt ngân sách tháng $amount';
+    return '$category đã vượt ngân sách $amount';
   }
 
   @override
@@ -6768,7 +6768,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String moneyLinkedLocked(String name) {
-    return 'Chỉ $name sửa được số tiền vì khoản này có ở sổ của $name';
+    return 'Chỉ $name sửa được số tiền, vì khoản này nằm trong sổ riêng của $name';
   }
 
   @override
@@ -6776,7 +6776,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String moneyDeleteBothBody(String note, String amount, String wallet) {
-    return '“$note” $amount có ở sổ chung và đang trừ $wallet của mình. Xoá cả hai thì số dư $wallet cộng lại $amount.';
+    return '“$note” $amount có ở sổ chung và đang trừ $wallet của mình. Xoá cả hai thì $wallet được cộng lại $amount.';
   }
 
   @override
@@ -7227,7 +7227,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get moneyBudgetPushNote =>
-      'Chạm 80% và 100% ngân sách tổng: người không ghi khoản đó nhận thông báo chỉ có phần trăm, không có số tiền.';
+      'Khi chi tới 80% và 100% ngân sách tổng, người không ghi khoản đó sẽ nhận thông báo. Thông báo chỉ có phần trăm, không có số tiền.';
 
   @override
   String get moneyBudgetSheetTitle => 'Ngân sách tháng';
@@ -7383,7 +7383,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get moneySearchCap =>
-      'Chỉ tìm trong 2.000 khoản gần nhất của khoảng này. Thu hẹp ngày để chắc không sót.';
+      'Chỉ tìm trong 2.000 khoản gần nhất. Chọn khoảng ngày hẹp hơn để không sót khoản nào.';
 
   @override
   String get moneySearchError => 'Chưa tìm được. Kiểm tra mạng rồi thử lại.';
@@ -7461,7 +7461,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String moneyGoalReached(String trip) {
-    return 'Đủ rồi. Lên lịch đi $trip thôi, tiền chi chuyến đi ghi thẳng từ quỹ này.';
+    return 'Đủ rồi! Lên lịch đi $trip thôi. Tiêu gì trong chuyến đi thì ghi thẳng từ quỹ này.';
   }
 
   @override
@@ -7482,7 +7482,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get moneyGoalHistoryEmpty =>
-      'Chưa có lần góp nào. Góp lần đầu, dù chỉ 50k.';
+      'Chưa có lần góp nào. Góp lần đầu đi, 50k cũng được.';
 
   @override
   String get moneyGoalHistoryPartial =>
@@ -7541,7 +7541,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get moneySettlePartial => 'Sửa được nếu trả một phần';
+  String get moneySettlePartial => 'Trả một phần thì sửa lại số này';
 
   @override
   String get moneySettleAll => 'Trả hết';
@@ -7564,12 +7564,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String moneySettleNoteThem(String name) {
-    return 'App không chuyển tiền giúp. Bấm nút dưới sau khi $name đã chuyển khoản hoặc đưa tiền mặt. Khoản này cân lại sổ chung, không tính là chi tiêu.';
+    return 'App không chuyển tiền hộ. $name chuyển khoản hoặc đưa tiền mặt xong thì bấm nút bên dưới. Khoản này chỉ để cân lại sổ chung, không tính vào chi tiêu.';
   }
 
   @override
   String moneySettleNoteMe(String name) {
-    return 'App không chuyển tiền giúp. Bấm nút dưới sau khi mình đã chuyển khoản hoặc đưa tiền mặt cho $name. Khoản này cân lại sổ chung, không tính là chi tiêu.';
+    return 'App không chuyển tiền hộ. Mình chuyển khoản hoặc đưa tiền mặt cho $name xong thì bấm nút bên dưới. Khoản này chỉ để cân lại sổ chung, không tính vào chi tiêu.';
   }
 
   @override

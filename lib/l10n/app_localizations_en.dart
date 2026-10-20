@@ -6467,7 +6467,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moneyHomeError => 'Couldn\'t load the shared book';
 
   @override
-  String get moneyHomeLoading => 'Shared book, loading';
+  String get moneyHomeLoading => 'Loading the shared book';
 
   @override
   String get moneyHomeMine => 'My money book';
@@ -6539,7 +6539,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String percent,
     String perDay,
   ) {
-    return 'The month is $passed/$total days in and $percent% of the budget is used, so about $perDay a day from now to month end.';
+    return 'The month is $passed/$total days in and $percent% of the budget is gone. That leaves about $perDay a day until month end.';
   }
 
   @override
@@ -6721,7 +6721,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyWaitingCard =>
-      'When they join, we\'ll get a shared book too: who paid, splitting, a trip fund.';
+      'When they join, we also get a shared book for who paid, splitting costs and a trip fund.';
 
   @override
   String get moneySendInvite => 'Send invite';
@@ -6811,7 +6811,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyAmountInvalid =>
-      'That number didn\'t parse. Try 120k or 120000.';
+      'Can\'t read that number. Try 120k or 120000.';
 
   @override
   String get moneyAmountTooBig => '10 billion max per entry. Check the zeros.';
@@ -6934,7 +6934,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneySavedOffline =>
-      'Waiting for signal, it\'ll sync to the shared book';
+      'Waiting for signal. It\'ll sync to the shared book once you\'re online.';
 
   @override
   String get moneySavedOfflineMine =>
@@ -6977,7 +6977,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyConflictBody =>
-      'Showing the latest version, edit again if needed';
+      'Showing the latest version. Edit again if needed.';
 
   @override
   String get moneyWriteFailed => 'Couldn\'t save this. Try again.';
@@ -7022,7 +7022,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String moneyLinkedLocked(String name) {
-    return 'Only $name can change the amount, it\'s also in their own book';
+    return 'Only $name can change the amount because it\'s also in their own book';
   }
 
   @override
@@ -7088,7 +7088,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyFirstRunBody =>
-      'Turn on the wallets you use and enter today\'s balance. You can skip this, a Cash wallet is already set up.';
+      'Turn on the wallets you use and enter today\'s balance. You can skip this: a Cash wallet is already set up.';
 
   @override
   String get moneyFirstRunDone => 'Done, open my book';
@@ -7235,7 +7235,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyHintCredit =>
-      'Owing on the card shows as negative, that\'s right';
+      'Card debt shows as a negative balance. That\'s expected.';
 
   @override
   String get moneyHintGoal => 'Saving for one thing, with a deadline';
@@ -7736,7 +7736,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String moneyGoalReached(String trip) {
-    return 'Done. Time to plan $trip, and log trip costs straight from this fund.';
+    return 'Goal reached. Time to plan $trip. Log trip costs straight from this fund.';
   }
 
   @override
@@ -7767,7 +7767,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyGoalHistoryPartial =>
-      'Couldn\'t load older history, showing recent contributions.';
+      'Couldn\'t load older history. Showing recent contributions.';
 
   @override
   String get moneyContribute => 'Add to fund';
@@ -7930,7 +7930,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyReminderBody2 =>
-      'Log the rest of today\'s spending, it takes under a minute';
+      'Log the rest of today\'s spending. It takes under a minute.';
 
   @override
   String get moneyReminderBody3 =>
@@ -7951,7 +7951,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String moneyNotifGoal(String name, String percent) {
-    return '$name just chipped in, the fund is at $percent%';
+    return '$name just chipped in. The fund is at $percent%';
   }
 
   @override
@@ -7961,7 +7961,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyNotifGoalReachedSub =>
-      'We hit the goal together. Time to plan it.';
+      'We hit the goal together. Time to make plans.';
 
   @override
   String get moneyNotifBudget80 => 'We\'ve used 80% of this month\'s budget';
