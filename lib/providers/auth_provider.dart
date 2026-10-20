@@ -8,6 +8,7 @@ import '../models/auth_status.dart';
 import '../services/analytics_service.dart';
 import '../services/auth_service.dart';
 import '../services/push_notification_service.dart';
+import 'money_provider.dart';
 
 /// Social sign-in providers (pairing-funnel PF1 Apple, PF14 Google). `name` is
 /// also the analytics `method`.
@@ -410,6 +411,9 @@ class AuthProvider extends ChangeNotifier {
     } catch (_) {
       // Best-effort cleanup — never block the sign-out on it.
     }
+    // Sổ tiền: deletes still in their 5 s undo window go out while the
+    // account can still write (bounded, best effort).
+    await MoneyProvider.flushPendingDeletes();
 
     // We're intentionally ending the session — swallow the resulting `false`
     // emit on the liveness stream so it isn't read as an external revocation

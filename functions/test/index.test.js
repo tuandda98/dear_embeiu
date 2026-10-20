@@ -670,7 +670,7 @@ test("money: plain entries never push (no budget, not a goal, edits of a contrib
 });
 
 test("money: budget 80 % then 100 %, once each per month, never to the one who logged it", async () => {
-  const f = fakeMoney({"couples/C/moneyBudgets/b": {categoryId: "", amount: 5000000}});
+  const f = fakeMoney({"couples/C/moneyBudgets/total": {categoryId: "", amount: 5000000}});
   assert.deepStrictEqual((await f.write("e1", moneySpend("alice", 3900000))).budget, {skipped: "under_80"});
   const at80 = await f.write("e2", moneySpend("alice", 100000));
   assert.deepStrictEqual(at80.budget, {pushed: "budget", level: 80, recipientIds: ["bob"]});
@@ -681,11 +681,11 @@ test("money: budget 80 % then 100 %, once each per month, never to the one who l
   assert.deepStrictEqual(f.pushes[1].vi, {title: "Tháng này chúng mình tiêu hết ngân sách rồi", body: "Chậm lại chút nhé, còn 11 ngày nữa mới sang tháng."});
   assert.strictEqual(f.pushes[1].en.body, "Let's slow down a little. 11 days to go this month.");
   assert.deepStrictEqual((await f.write("e5", moneySpend("bob", 1))).budget, {skipped: "already_alerted", level: 100});
-  assert.deepStrictEqual(f.store.get("couples/C/moneyBudgets/b").alerted, {"2026-10": 100});
+  assert.deepStrictEqual(f.store.get("couples/C/moneyBudgets/total").alerted, {"2026-10": 100});
   assert.strictEqual(f.inbox.filter((i) => i.type === "money_budget").length, 2);
   assert.doesNotMatch(JSON.stringify(f.pushes), /5[.,]?000[.,]?000|5tr/);
   // An edit by bob that pushes it over counts bob as the actor.
-  const g = fakeMoney({"couples/C/moneyBudgets/b": {categoryId: "", amount: 1000000}});
+  const g = fakeMoney({"couples/C/moneyBudgets/total": {categoryId: "", amount: 1000000}});
   await g.write("e1", moneySpend("alice", 100000));
   const edited = await g.write("e1", moneySpend("alice", 900000, {updatedBy: "bob"}));
   assert.deepStrictEqual(edited.budget.recipientIds, ["alice"]);
@@ -693,7 +693,7 @@ test("money: budget 80 % then 100 %, once each per month, never to the one who l
 
 test("money: a new month starts over; old months and category budgets stay quiet", async () => {
   const f = fakeMoney({
-    "couples/C/moneyBudgets/b": {categoryId: "", amount: 1000000, alerted: {"2026-09": 100}},
+    "couples/C/moneyBudgets/total": {categoryId: "", amount: 1000000, alerted: {"2026-09": 100}},
     "couples/C/moneyBudgets/food": {categoryId: "food", amount: 1},
   });
   assert.deepStrictEqual((await f.write("old", moneySpend("alice", 2000000, {date: "2026-09-30"}))).budget, {skipped: "other_month"});
@@ -706,6 +706,38 @@ test("money: an old pair's entry (partner left, someone new joined) notifies nob
   const g = fakeMoney({"couples/C": {memberIds: ["alice"]}});
   assert.deepStrictEqual(await g.write("c1", moneyContribution("alice", 1)), {skipped: "not_current_pair"});
   assert.strictEqual(f.pushes.length + g.pushes.length, 0);
+});
+
+test("money: a transfer or adjustment that fills a goal tells both once; only contributions push \"vừa góp\"", async () => {
+  const f = fakeMoney({...MONEY_DALAT, "couples/C/moneyWallets/joint": {type: "cash", name: "Ví chung", memberUids: MONEY_PAIR}});
+  const transfer = (amount, extra = {}) => ({
+    type: "transfer", amount, outWalletId: "joint", inWalletId: "dalat", payer: "wallet", memberUids: MONEY_PAIR,
+    date: "2026-10-20", createdBy: "alice", splitMode: "none", payerShare: 0, ...extra,
+  });
+  assert.deepStrictEqual((await f.write("t1", transfer(2000000))).goal, {skipped: "no_contribution_push"});
+  assert.strictEqual(f.pushes.length, 0);
+  const full = await f.write("t2", transfer(3000000));
+  assert.deepStrictEqual(full.goal, {pushed: "reached", recipientIds: MONEY_PAIR});
+  assert.strictEqual(f.store.get("couples/C/moneyWallets/dalat").goalReachedAt, "SERVER_TS");
+  // An adjustment into a goal reaches it too (another fund).
+  const g = fakeMoney(MONEY_DALAT);
+  const adjust = {type: "adjust", amount: 5000000, outWalletId: "", inWalletId: "dalat", payer: "bob",
+    memberUids: MONEY_PAIR, date: "2026-10-20", createdBy: "bob", splitMode: "none", payerShare: 0};
+  assert.strictEqual((await g.write("a1", adjust)).goal.pushed, "reached");
+  assert.deepStrictEqual(g.pushes.map((p) => p.data.type), ["money_goal_reached"]);
+});
+
+test("money: a budget not at the fixed id `total` is not the whole-book budget", async () => {
+  const f = fakeMoney({"couples/C/moneyBudgets/auto": {categoryId: "", amount: 1}});
+  assert.deepStrictEqual((await f.write("e1", moneySpend("alice", 900000))).budget, {skipped: "no_budget"});
+});
+
+test("money: the last day of the month gets its own line, not \"còn 0 ngày\"", () => {
+  const text = load("buildMoneyText", ["const MONEY_COPY", "function buildMoneyText"]);
+  assert.strictEqual(text("vi", "budget", {level: 100, daysLeft: 0}).body, "Chậm lại chút nhé, hôm nay là ngày cuối tháng rồi.");
+  assert.strictEqual(text("en", "budget", {level: 100, daysLeft: 0}).body, "Let's slow down a little. Today is the last day of the month.");
+  assert.strictEqual(text("en", "budget", {level: 100, daysLeft: 1}).body, "Let's slow down a little. One more day to go this month.");
+  assert.strictEqual(text("vi", "budget", {level: 100, daysLeft: 1}).body, "Chậm lại chút nhé, còn 1 ngày nữa mới sang tháng.");
 });
 
 test("money: month / days left follow Vietnam time", () => {
