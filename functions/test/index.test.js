@@ -66,6 +66,7 @@ test("account deletion: an outsider pointing at a couple only loses their own sl
   assert.deepStrictEqual(f.calls, [
     "recursiveDelete couples/C/sleep/mallory",
     "recursiveDelete couples/C/arrival/mallory",
+    "recursiveDelete couples/C/arrivalPush/mallory",
   ]);
 });
 
@@ -81,6 +82,7 @@ test("account deletion: one of two members leaves → partner waits, leaver's sl
   assert.deepStrictEqual(f.calls, [
     "recursiveDelete couples/C/sleep/alice",
     "recursiveDelete couples/C/arrival/alice",
+    "recursiveDelete couples/C/arrivalPush/alice",
     "set couples/C",
   ]);
 });
@@ -91,6 +93,7 @@ test("account deletion: the only member leaves → the couple is torn down", asy
   assert.deepStrictEqual(f.calls, [
     "recursiveDelete couples/C/sleep/alice",
     "recursiveDelete couples/C/arrival/alice",
+    "recursiveDelete couples/C/arrivalPush/alice",
     "deleteCoupleCompletely couples/C",
   ]);
 });
@@ -550,17 +553,16 @@ const ARRIVAL_HEADS = [
   "function rpsToMillis",
 ];
 
-// `doc` = the stored arrival doc the transaction reads (bookkeeping);
+// `book` = the arrivalPush doc (cooldown / daily cap); `live` = the arrival
+// doc as the transaction re-reads it (default: the `after` being processed);
 // `couple` = the couple doc.
-function fakeArrival({doc = {}, couple = {memberIds: ["alice", "bob"], status: "active"}} = {}) {
+function fakeArrival({book = {}, live, couple = {memberIds: ["alice", "bob"], status: "active"}} = {}) {
   const pushes = [];
   const stamps = [];
-  const updates = [];
-  const ref = {
-    path: "couples/C/arrival/alice",
-    update: async (data) => updates.push(data),
-  };
-  const process = load("processArrivalWrite", [
+  const ref = {path: "couples/C/arrival/alice"};
+  const pushRef = {path: "couples/C/arrivalPush/alice"};
+  let current = null;
+  const run = load("processArrivalWrite", [
     ...ARRIVAL_HEADS,
     "async function processArrivalWrite",
   ], {
@@ -570,8 +572,15 @@ function fakeArrival({doc = {}, couple = {memberIds: ["alice", "bob"], status: "
         get: (k) => couple[k],
       })})}),
       runTransaction: async (fn) => fn({
-        get: async () => ({exists: true, data: () => doc}),
-        update: (r, data) => stamps.push(data),
+        get: async (r) => {
+          const data = r === pushRef ? book : current;
+          return {exists: data !== null && data !== undefined, data: () => data};
+        },
+        set: (r, data, opts) => {
+          assert.strictEqual(r, pushRef); // never the doc the partner reads
+          assert.deepStrictEqual(opts, {merge: true});
+          stamps.push(data);
+        },
       }),
     },
     admin: {firestore: {FieldValue: {serverTimestamp: () => "SERVER_TS", delete: () => "DELETE"}}},
@@ -582,7 +591,11 @@ function fakeArrival({doc = {}, couple = {memberIds: ["alice", "bob"], status: "
       return {deviceCount: 1, failures: []};
     },
   });
-  return {process, pushes, stamps, updates, ref};
+  const process = (c, u, before, after) => {
+    current = live === undefined ? after : live;
+    return run(c, u, before, after, ref, pushRef);
+  };
+  return {process, pushes, stamps, ref};
 }
 
 const MINUTE = 60 * 1000;
@@ -610,7 +623,7 @@ test("arrival: Home enter → one wake push to the partner, slot stamped, no inb
   assert.match(p.data.date, /^\d{4}-\d{2}-\d{2}$/);
   assert.strictEqual(p.data.placeName, undefined);
   assert.strictEqual(f.stamps.length, 1);
-  assert.strictEqual(f.stamps[0]["lastPushAt.home"], "SERVER_TS");
+  assert.deepStrictEqual(f.stamps[0].lastPushAt, {home: "SERVER_TS"});
   assert.strictEqual(f.stamps[0].pushCount, 1);
 });
 
@@ -655,33 +668,33 @@ test("arrival: exit, bounce, stale, not shared, unchanged → no push", async ()
     assert.strictEqual(out.skipped, reason, reason);
     assert.strictEqual(f.pushes.length, 0, reason);
   }
-  // Our own bookkeeping write re-triggers with the same `last`.
+  // A write that leaves `last` alone (e.g. flipping `auto`).
   const doc = arrivalDoc();
   const f = fakeArrival();
-  const out = await f.process("C", "alice", doc, {...doc, pushCount: 1}, f.ref);
+  const out = await f.process("C", "alice", doc, {...doc, auto: false}, f.ref);
   assert.strictEqual(out.skipped, "unchanged");
 });
 
 test("arrival: same place within 30' → cooldown; another place still pushes", async () => {
-  const doc = {lastPushAt: {home: Date.now() - 29 * MINUTE}};
-  const f = fakeArrival({doc});
+  const book = {lastPushAt: {home: Date.now() - 29 * MINUTE}};
+  const f = fakeArrival({book});
   assert.strictEqual((await f.process("C", "alice", null, arrivalDoc(), f.ref)).skipped, "cooldown");
-  const g = fakeArrival({doc});
+  const g = fakeArrival({book});
   await g.process("C", "alice", null, arrivalDoc({place: "p1", name: "Công ty", icon: "work"}), g.ref);
   assert.strictEqual(g.pushes.length, 1);
-  const later = fakeArrival({doc: {lastPushAt: {home: Date.now() - 31 * MINUTE}}});
+  const later = fakeArrival({book: {lastPushAt: {home: Date.now() - 31 * MINUTE}}});
   await later.process("C", "alice", null, arrivalDoc(), later.ref);
   assert.strictEqual(later.pushes.length, 1);
 });
 
 test("arrival: at most 6 pushes a day; the count resets on a new day", async () => {
   const today = load("arrivalVnDateKey", ARRIVAL_HEADS)(Date.now());
-  const full = fakeArrival({doc: {pushDay: today, pushCount: 6}});
+  const full = fakeArrival({book: {pushDay: today, pushCount: 6}});
   assert.strictEqual((await full.process("C", "alice", null, arrivalDoc(), full.ref)).skipped, "daily_cap");
-  const fifth = fakeArrival({doc: {pushDay: today, pushCount: 5}});
+  const fifth = fakeArrival({book: {pushDay: today, pushCount: 5}});
   await fifth.process("C", "alice", null, arrivalDoc(), fifth.ref);
   assert.strictEqual(fifth.stamps[0].pushCount, 6);
-  const yesterday = fakeArrival({doc: {pushDay: "2000-01-01", pushCount: 6}});
+  const yesterday = fakeArrival({book: {pushDay: "2000-01-01", pushCount: 6}});
   await yesterday.process("C", "alice", null, arrivalDoc(), yesterday.ref);
   assert.strictEqual(yesterday.stamps[0].pushCount, 1);
   assert.strictEqual(yesterday.stamps[0].pushDay, today);
@@ -701,12 +714,24 @@ test("arrival: waiting couple / ex-member / never to the sender", async () => {
   assert.strictEqual(waiting.pushes.length + left.pushes.length, 0);
 });
 
-test("arrival: sharing off drops the push times the partner could read", async () => {
-  const f = fakeArrival();
-  const out = await f.process("C", "alice", arrivalDoc(), {share: false, lastPushAt: {home: 1}}, f.ref);
-  assert.strictEqual(out.skipped, "not_shared");
-  assert.deepStrictEqual(f.updates, [{lastPushAt: "DELETE"}]);
-  assert.strictEqual(f.pushes.length, 0);
+test("arrival: switched off or superseded before the claim → no push, no stamp", async () => {
+  // Sharing off = the owner deletes the doc between the trigger and the claim.
+  const off = fakeArrival({live: null});
+  assert.strictEqual((await off.process("C", "alice", null, arrivalDoc(), off.ref)).skipped, "superseded");
+  const shareFalse = fakeArrival({live: {share: false}});
+  assert.strictEqual(
+    (await shareFalse.process("C", "alice", null, arrivalDoc(), shareFalse.ref)).skipped, "superseded");
+  // A newer event already replaced this one.
+  const newer = fakeArrival({live: arrivalDoc({at: Date.now()})});
+  assert.strictEqual(
+    (await newer.process("C", "alice", null, arrivalDoc({at: Date.now() - 2 * MINUTE}), newer.ref)).skipped,
+    "superseded");
+  const elsewhere = fakeArrival({live: arrivalDoc({place: "p1", name: "Công ty"})});
+  assert.strictEqual(
+    (await elsewhere.process("C", "alice", null, arrivalDoc(), elsewhere.ref)).skipped, "superseded");
+  for (const f of [off, shareFalse, newer, elsewhere]) {
+    assert.strictEqual(f.pushes.length + f.stamps.length, 0);
+  }
 });
 
 test("arrival: pushArrival mutes only arrival pushes on that device", async () => {
@@ -722,16 +747,46 @@ test("arrival: pushArrival mutes only arrival pushes on that device", async () =
   assert.deepStrictEqual(g.sent.map((m) => m.token), ["a", "b"]);
 });
 
-test("arrival: partner left → leaver's doc deleted, the one who stays stops sharing", () => {
-  const start = SRC.indexOf("// ── arrival (đợt 2) ── the leaver's doc goes");
-  assert.notStrictEqual(start, -1);
-  const chunk = SRC.slice(start, SRC.indexOf("// Leaver display name", start));
-  assert.match(chunk, /recursiveDelete\(arrivalRef\.doc\(leaverUid\)\)/);
-  assert.match(chunk, /share: false/);
-  assert.match(chunk, /last: admin\.firestore\.FieldValue\.delete\(\)/);
-  assert.match(chunk, /lastPushAt: admin\.firestore\.FieldValue\.delete\(\)/);
+function fakeLeaveCleanup(failOn = "") {
+  const calls = [];
+  const ref = (p) => ({
+    path: p,
+    collection: (name) => ({doc: (id) => ref(`${p}/${name}/${id}`)}),
+  });
+  const cleanup = load("arrivalCleanupOnLeave", ["async function arrivalCleanupOnLeave"], {
+    db: {
+      collection: (name) => ({doc: (id) => ref(`${name}/${id}`)}),
+      // Like Admin recursiveDelete: a missing doc is not an error.
+      recursiveDelete: async (r) => {
+        calls.push(r.path);
+        if (r.path === failOn) throw new Error("boom");
+      },
+    },
+    logger: {warn: () => {}},
+  });
+  return {cleanup, calls};
+}
+
+test("arrival: partner left → arrival doc + push bookkeeping of leaver AND stayer go", async () => {
+  const f = fakeLeaveCleanup();
+  await f.cleanup("C", ["alice", "bob"]);
+  assert.deepStrictEqual(f.calls.sort(), [
+    "couples/C/arrival/alice",
+    "couples/C/arrival/bob",
+    "couples/C/arrivalPush/alice",
+    "couples/C/arrivalPush/bob",
+  ]);
+  // Run twice (retried trigger) / stayer never had a doc: no throw.
+  await f.cleanup("C", ["alice", "bob"]);
+  // One failing delete is logged; the others still run.
+  const g = fakeLeaveCleanup("couples/C/arrival/alice");
+  await g.cleanup("C", ["alice", "bob"]);
+  assert.strictEqual(g.calls.length, 4);
+  const left = SRC.slice(SRC.indexOf("exports.notifyPartnerLeft"));
+  assert.match(left.slice(0, left.indexOf("\nexports.")),
+    /arrivalCleanupOnLeave\(coupleId, \[leaverUid, \.\.\.recipientIds\]\)/);
   const teardown = declaration("async function deleteCoupleCompletely");
-  assert.match(teardown, /recursiveDelete\(coupleRef\.collection\("arrival"\)\)/);
+  assert.match(teardown, /for \(const name of \["arrival", "arrivalPush"\]\)/);
 });
 
 // ---- sendToRecipientDevices: collapseId + muted devices (đợt 2, 2026-10-20) ---

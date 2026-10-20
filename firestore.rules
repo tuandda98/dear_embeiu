@@ -691,12 +691,12 @@ service cloud.firestore {
       // ── arrival (đợt 2) ── "Về đến nhà chưa?" (overview §5, D2/D3/D11/D14/D23).
       // One doc per member (id == uid): `share`, `auto`, `last` (the ONE latest
       // event — no history, no address, no coordinates, no list of places).
-      // Both members read (share off ⇒ no `last`, the partner just sees "chưa
-      // bật"); only the owner writes. CF notifyArrival keeps its push
-      // bookkeeping (`lastPushAt`, `pushDay`, `pushCount`) on the same doc via
-      // Admin: no client path may list them, and an update leaving them alone
-      // passes. Brand-new collection ⇒ fully ADDITIVE. No client delete:
-      // sharing off = `share:false` + `last` removed; CF cleans up on leave.
+      // Both members read; only the owner writes. Sharing off = the owner
+      // DELETES the doc, so it looks exactly like "never turned on" (no
+      // `share:false`, no time of switching off — D11). CF notifyArrival keeps
+      // its push bookkeeping in `arrivalPush/{uid}` (below), which no client
+      // reads: on this doc it would show the partner when each place was last
+      // reached (D3). Brand-new collections ⇒ fully ADDITIVE.
       function isValidArrivalEvent(e) {
         return e is map
           && e.keys().hasOnly(['place', 'name', 'icon', 'type', 'at', 'battery', 'source', 'bounce'])
@@ -758,7 +758,14 @@ service cloud.firestore {
           && (request.resource.data.get('share', false) != true
               || resource.data.get('share', false) == true
               || get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.size() == 2);
-        allow delete: if false;
+        allow delete: if isCoupleMember(coupleId) && uid == request.auth.uid;
+      }
+
+      // ── arrival (đợt 2) ── CF-only push bookkeeping (lastPushAt.{slot},
+      // pushDay, pushCount: 30' cooldown + 6/day). Admin SDK only; it outlives
+      // a switch-off so turning sharing off/on doesn't reset the daily cap.
+      match /arrivalPush/{uid} {
+        allow read, write: if false;
       }
 
       // Care message (feature care-message): a one-shot "quan tâm" note one

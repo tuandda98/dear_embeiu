@@ -249,13 +249,11 @@ class ArrivalService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-  /// Sharing off = the latest event goes in the same write (D11). No push.
-  Future<void> turnOff(String coupleId, String uid) => _doc(coupleId, uid).set({
-    'share': false,
-    'auto': false,
-    'last': FieldValue.delete(),
-    'updatedAt': FieldValue.serverTimestamp(),
-  }, SetOptions(merge: true));
+  /// Sharing off = my doc goes, latest event included, in one write (D11).
+  /// No `share:false` and no time stamp left behind: the partner can't tell
+  /// "switched off at 21:14" from "never turned on". No push.
+  Future<void> turnOff(String coupleId, String uid) =>
+      _doc(coupleId, uid).delete();
 
   /// The one path every event takes — manual taps (provider) and geofence
   /// callbacks (stage 2, also from the background engine). Auto events go
@@ -280,11 +278,12 @@ class ArrivalService {
     if (place == null) return ArrivalSendResult.dropped;
 
     var bounce = false;
+    ArrivalEdgeState? next;
     if (source == ArrivalEventSource.auto) {
       final decision = filterArrivalEdge(await loadEdge(uid, slot), type, when);
-      await saveEdge(uid, slot, decision.next);
       if (!decision.send) return ArrivalSendResult.dropped;
       bounce = decision.bounce;
+      next = decision.next;
     }
 
     final event = ArrivalEvent.at(
@@ -295,7 +294,16 @@ class ArrivalService {
       battery: battery,
       bounce: bounce,
     );
-    return send(() => putEvent(coupleId, uid, event, auto: auto));
+    final result = await send(() => putEvent(coupleId, uid, event, auto: auto));
+    // Only an event that is (or will be) on the server moves the in/out
+    // state; a failed / denied one must not make the next one look like a
+    // duplicate.
+    if (next != null &&
+        (result == ArrivalSendResult.sent ||
+            result == ArrivalSendResult.queued)) {
+      await saveEdge(uid, slot, next);
+    }
+    return result;
   }
 
   /// Runs one write and classifies the outcome.

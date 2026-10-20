@@ -471,34 +471,8 @@ exports.notifyPartnerLeft = onDocumentUpdated(
     );
 
     // ── arrival (đợt 2) ── the leaver's doc goes; whoever stays stops sharing
-    // (no `last`, no push times), so a partner joining later sees nothing old.
-    const arrivalRef = db.collection("couples").doc(coupleId).collection("arrival");
-    await Promise.all(
-      [
-        db.recursiveDelete(arrivalRef.doc(leaverUid)),
-        ...recipientIds.map((uid) =>
-          arrivalRef.doc(uid).get().then((snap) => (snap.exists ? snap.ref.set(
-            {
-              share: false,
-              auto: false,
-              last: admin.firestore.FieldValue.delete(),
-              lastPushAt: admin.firestore.FieldValue.delete(),
-              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            },
-            {merge: true},
-          ) : null)),
-        ),
-      ].map((p) =>
-        p.catch((err) => {
-          logger.warn("Could not clean up arrival data on partner left.", {
-            coupleId,
-            leaverUid,
-            message: err && err.message,
-          });
-          return null;
-        }),
-      ),
-    );
+    // too, so a partner joining later sees nothing old.
+    await arrivalCleanupOnLeave(coupleId, [leaverUid, ...recipientIds]);
 
     // Leaver display name: prefer their user profile (still exists — they only
     // left the couple), fall back to "Người ấy" via normalizeActorName.
@@ -1025,8 +999,9 @@ exports.notifyPartnerMood = onDocumentWritten(
 // queue), the same place pushed within 30', more than 6 pushes a day per
 // sender. Push only, no inbox (D15); muted per device by `pushArrival` (D16);
 // no time in the text (D17). The bookkeeping (lastPushAt.{slot}, pushDay,
-// pushCount) lives on the same doc, written by Admin only (rules) — that write
-// re-triggers this function and stops at "unchanged".
+// pushCount) lives in couples/{c}/arrivalPush/{uid}, which no client reads
+// (rules): on the arrival doc the partner would see when each place was last
+// reached (D3/D11). It survives a switch-off so off/on can't reset the cap.
 const ARRIVAL_SLOTS = ["home", "p1", "p2", "p3", "p4"];
 const ARRIVAL_ICONS = ["work", "school", "family", "gym", "cafe", "shop", "pin"];
 const ARRIVAL_PUSH_COOLDOWN_MS = 30 * 60 * 1000;
@@ -1143,14 +1118,9 @@ function buildArrivalText(languageCode, actorName, event) {
 }
 
 // Core of notifyArrival, kept out of the trigger so functions/test can drive
-// it with fakes. `before`/`after` = doc data or null.
-async function processArrivalWrite(coupleId, uid, before, after, ref) {
-  // Sharing went off: drop the per-place push times too — the partner can
-  // read this doc, and they would show when the last arrivals were (D11).
-  if (after && after.share !== true && after.lastPushAt !== undefined) {
-    await ref.update({lastPushAt: admin.firestore.FieldValue.delete()}).catch(() => null);
-    return {skipped: "not_shared"};
-  }
+// it with fakes. `before`/`after` = doc data or null; `ref` = the arrival doc,
+// `pushRef` = its bookkeeping doc in arrivalPush.
+async function processArrivalWrite(coupleId, uid, before, after, ref, pushRef) {
   const plan = arrivalPushPlan(before, after, Date.now());
   if (plan.skip) {
     return {skipped: plan.skip};
@@ -1173,16 +1143,21 @@ async function processArrivalWrite(coupleId, uid, before, after, ref) {
 
   const claim = await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
-    if (!snap.exists) {
-      return {ok: false, reason: "deleted"};
+    const book = await tx.get(pushRef);
+    // Re-read inside the transaction: sharing switched off (doc deleted) or a
+    // newer event since this trigger fired ⇒ this event no longer stands.
+    const now = snap.exists ? snap.data() : null;
+    const live = now && now.share === true ? arrivalEvent(now.last) : null;
+    if (!live || live.place !== event.place || live.atMs !== event.atMs) {
+      return {ok: false, reason: "superseded"};
     }
-    const c = arrivalClaim(snap.data(), event.place, Date.now());
+    const c = arrivalClaim(book.exists ? book.data() : null, event.place, Date.now());
     if (c.ok) {
-      tx.update(ref, {
-        [`lastPushAt.${event.place}`]: admin.firestore.FieldValue.serverTimestamp(),
+      tx.set(pushRef, {
+        lastPushAt: {[event.place]: admin.firestore.FieldValue.serverTimestamp()},
         pushDay: c.day,
         pushCount: c.count,
-      });
+      }, {merge: true});
     }
     return c;
   });
@@ -1225,11 +1200,34 @@ exports.notifyArrival = onDocumentWritten(
     const uid = `${event.params.uid || ""}`.trim();
     const outcome = await processArrivalWrite(
       coupleId, uid, before, after, change && change.after && change.after.ref,
+      db.collection("couples").doc(coupleId).collection("arrivalPush").doc(uid),
     );
     // Sent / skipped counts per reason = the auto-event metric (§9, §13).
     logger.info("Processed arrival notification.", {coupleId, ...outcome});
   },
 );
+
+// Someone left the couple: every listed member's arrival doc + push
+// bookkeeping goes (the one who stays then looks like "never turned on", and a
+// new partner sees nothing old). Missing docs are fine; errors are logged.
+async function arrivalCleanupOnLeave(coupleId, uids) {
+  const coupleRef = db.collection("couples").doc(coupleId);
+  await Promise.all(
+    uids.flatMap((uid) => [
+      coupleRef.collection("arrival").doc(uid),
+      coupleRef.collection("arrivalPush").doc(uid),
+    ]).map((ref) =>
+      db.recursiveDelete(ref).catch((err) => {
+        logger.warn("Could not clean up arrival data on partner left.", {
+          coupleId,
+          path: ref.path,
+          message: err && err.message,
+        });
+        return null;
+      }),
+    ),
+  );
+}
 
 // ── Love Note → Chat auto-migration (2026-06-14) ───────────────────────────
 // The couple chat replaces the old two-way love notes. Users still on an older
@@ -3417,16 +3415,18 @@ async function handleCoupleOnAccountDeletion(coupleId, uid) {
     });
     return null;
   });
-  // ── arrival (đợt 2) ── same reasoning: the leaver's arrival doc (the CF
-  // notifyPartnerLeft then switches off whoever stays).
-  await db.recursiveDelete(coupleRef.collection("arrival").doc(uid)).catch((err) => {
-    logger.warn("Failed to delete the leaving member's arrival data.", {
-      coupleId,
-      uid,
-      message: err && err.message,
+  // ── arrival (đợt 2) ── same reasoning: the leaver's arrival doc + push
+  // bookkeeping (the CF notifyPartnerLeft then switches off whoever stays).
+  for (const name of ["arrival", "arrivalPush"]) {
+    await db.recursiveDelete(coupleRef.collection(name).doc(uid)).catch((err) => {
+      logger.warn("Failed to delete the leaving member's arrival data.", {
+        coupleId,
+        uid,
+        message: err && err.message,
+      });
+      return null;
     });
-    return null;
-  });
+  }
 
   // SECURITY (audit 2026-10-12): deleteAccount takes coupleId from
   // users/{uid}, which the client writes itself, and couple/invite codes are
@@ -3538,16 +3538,18 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
     }),
   );
 
-  // ── arrival (đợt 2) ── every member's arrival doc.
-  tasks.push(
-    db.recursiveDelete(coupleRef.collection("arrival")).catch((err) => {
-      logger.warn("Failed to recursively delete arrival during couple teardown.", {
-        coupleId: coupleRef.id,
-        message: err && err.message,
-      });
-      return null;
-    }),
-  );
+  // ── arrival (đợt 2) ── every member's arrival doc + push bookkeeping.
+  for (const name of ["arrival", "arrivalPush"]) {
+    tasks.push(
+      db.recursiveDelete(coupleRef.collection(name)).catch((err) => {
+        logger.warn("Failed to recursively delete arrival during couple teardown.", {
+          coupleId: coupleRef.id,
+          message: err && err.message,
+        });
+        return null;
+      }),
+    );
+  }
 
   // Couple entry code (feature couple-code): the couple_codes/{code} pointer is
   // a TOP-LEVEL doc, not a subcollection, so recursiveDelete on the couple won't

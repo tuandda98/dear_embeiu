@@ -1,8 +1,8 @@
 // Arrival rules (feature arrival, đợt 2 — overview §5).
 //   couples/{coupleId}/arrival/{uid} — share flag, auto flag, ONE latest event.
 // No address, coordinates or list of places ever reach the server (D2); no
-// history (D3); sharing off = no `last` in the same write (D11); the CF push
-// bookkeeping (lastPushAt/pushDay/pushCount) is Admin-only.
+// history (D3); sharing off = the owner deletes the doc (D11); the CF push
+// bookkeeping (couples/{c}/arrivalPush/{uid}) is Admin-only, nobody reads it.
 
 const {
   doc,
@@ -184,20 +184,17 @@ describe('firestore: arrival', () => {
   });
 
   // ---- update ----------------------------------------------------------------
-  describe('update (CF keys already on the doc)', () => {
+  describe('update', () => {
     beforeEach(async () => {
       await seedDoc(PATH('alice'), {
         share: true,
         auto: true,
         last: event({}, 13 * 60), // older than 12 h
         updatedAt: TS,
-        lastPushAt: { home: TS },
-        pushDay: '2026-10-20',
-        pushCount: 2,
       });
     });
 
-    it('a new event passes and leaves the CF keys alone', async () => {
+    it('a new event passes', async () => {
       await assertSucceeds(
         setDoc(
           doc(authedDb('alice'), PATH('alice')),
@@ -243,10 +240,24 @@ describe('firestore: arrival', () => {
       );
     });
 
-    it('nobody deletes it (cleanup is the CF)', async () => {
-      await assertFails(deleteDoc(doc(authedDb('alice'), PATH('alice'))));
+    it('sharing off = the owner deletes the doc; the partner then reads nothing', async () => {
       await assertFails(deleteDoc(doc(authedDb('bob'), PATH('alice'))));
+      await assertFails(deleteDoc(doc(authedDb('dave'), PATH('alice'))));
+      await assertSucceeds(deleteDoc(doc(authedDb('alice'), PATH('alice'))));
+      const snap = await getDoc(doc(authedDb('bob'), PATH('alice')));
+      if (snap.exists()) throw new Error('doc still there');
     });
+  });
+
+  // ---- push bookkeeping (CF only, D3/D11) --------------------------------------
+  it('arrivalPush: nobody reads or writes it — not the partner, not the owner', async () => {
+    const BOOK = (uid) => `couples/c1/arrivalPush/${uid}`;
+    await seedDoc(BOOK('alice'), { lastPushAt: { home: TS, p1: TS }, pushDay: '2026-10-20', pushCount: 2 });
+    await assertFails(getDoc(doc(authedDb('bob'), BOOK('alice'))));
+    await assertFails(getDoc(doc(authedDb('alice'), BOOK('alice'))));
+    await assertFails(getDoc(doc(authedDb('dave'), BOOK('alice'))));
+    await assertFails(setDoc(doc(authedDb('alice'), BOOK('alice')), { pushCount: 0 }));
+    await assertFails(deleteDoc(doc(authedDb('alice'), BOOK('alice'))));
   });
 
   it('a member who left can no longer write', async () => {
