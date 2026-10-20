@@ -1,4 +1,6 @@
 import '../l10n/app_localizations.dart';
+// ── caro-game (đợt 2) ──
+import '../models/caro_game.dart';
 import '../models/decision.dart';
 import '../models/photo.dart';
 import '../utils/decision_suggester.dart' show decisionDisplayName;
@@ -41,6 +43,8 @@ abstract final class HomeWidgetStatus {
   static const String decisionEat = 'decision_eat';
   static const String decisionGo = 'decision_go';
   static const String decisionCustom = 'decision_custom';
+  // ── caro-game (đợt 2) ──
+  static const String caroTurn = 'caro_turn';
 
   /// `statusTarget` → Home tab index (mirrors HomeScreen's IndexedStack).
   static const Map<String, int> targetTabs = {
@@ -50,7 +54,13 @@ abstract final class HomeWidgetStatus {
   };
 
   /// Valid `statusFocus` values (HomeScreen._applyPendingFocus).
-  static const Set<String> focuses = {'daily_question', 'mood', 'decision'};
+  static const Set<String> focuses = {
+    'daily_question',
+    'mood',
+    'decision',
+    // ── caro-game (đợt 2) ──
+    'caro',
+  };
 
   /// Every kind, for whitelisting what comes back from a widget tap.
   static const Set<String> kinds = {
@@ -63,6 +73,8 @@ abstract final class HomeWidgetStatus {
     decisionEat,
     decisionGo,
     decisionCustom,
+    // ── caro-game (đợt 2) ──
+    caroTurn,
   };
 
   /// No line today: the widget looks exactly like 1.9.1 (D12).
@@ -90,6 +102,8 @@ abstract final class HomeWidgetStatus {
     required bool questionReady,
     DateTime? partnerPhotoAt,
     WidgetDecision? decision,
+    // ── caro-game (đợt 2) ──
+    DateTime? caroTurnAt,
   }) {
     if (!active) {
       return none(now);
@@ -158,6 +172,10 @@ abstract final class HomeWidgetStatus {
         );
       }
     }
+    // ── caro-game (đợt 2) ──
+    if (caroTurnAt != null && _sameDay(caroTurnAt, now)) {
+      add(_status(l10n, caroTurn, caroTurnAt, now, name: name));
+    }
     if (candidates.isEmpty) {
       return none(now);
     }
@@ -169,6 +187,20 @@ abstract final class HomeWidgetStatus {
       }
     }
     return best;
+  }
+
+  // ── caro-game (đợt 2) ──
+  /// When the partner's move made it my turn in [open] (overview §7.1,
+  /// `statusAt = lastMoveAt`); null when it isn't my turn.
+  static DateTime? caroTurnAt(CaroGame? open, String? myUid) {
+    if (open == null || myUid == null || !open.isMyTurn(myUid)) {
+      return null;
+    }
+    final by = open.lastMoveBy;
+    if (by != null && by == myUid) {
+      return null;
+    }
+    return open.lastMoveAt;
   }
 
   /// The partner's newest photo of today ([photos] newest-first or not).
@@ -241,7 +273,13 @@ abstract final class HomeWidgetStatus {
         return null; // a push about another day (queued while offline, D9)
       }
     } else if (sent == null || !_sameDay(sent, now)) {
-      return null;
+      // ── caro-game (đợt 2) ──
+      // Caro pushes carry no date on purpose (the CF's time zone isn't the
+      // user's): a wake push is handled as it arrives, so "now" is today.
+      final caro = v('type') == 'caro_turn' || v('type') == 'caro_invite';
+      if (!caro || (sent != null && !_sameDay(sent, now))) {
+        return null;
+      }
     }
     final at = sent ?? now;
     final name = v('actorName').isEmpty
@@ -273,6 +311,10 @@ abstract final class HomeWidgetStatus {
                 english: l10n.localeName.startsWith('en'),
               );
         s = _decision(l10n, v('kind'), result, v('question'), at, now);
+      // ── caro-game (đợt 2) ──
+      case 'caro_turn':
+      case 'caro_invite':
+        s = _status(l10n, caroTurn, at, now, name: name);
     }
     return s == null ? null : {...s, 'onlyIfNewer': '1'};
   }
@@ -377,6 +419,13 @@ abstract final class HomeWidgetStatus {
         l10n.widgetStatusShortDecisionGo(result),
         'home',
         'decision',
+      ),
+      // ── caro-game (đợt 2) ──
+      caroTurn => (
+        l10n.caroWidgetTurn(name),
+        l10n.caroWidgetTurnShort,
+        'home',
+        'caro',
       ),
       _ => (
         l10n.widgetStatusDecisionCustom(question, result),

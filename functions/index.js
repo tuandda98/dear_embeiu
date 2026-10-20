@@ -470,6 +470,15 @@ exports.notifyPartnerLeft = onDocumentUpdated(
       ),
     );
 
+    // ── caro-game (đợt 2) ──
+    // D20: the old pair's open caro game ends, the score starts over.
+    await caroCleanupOnLeave(coupleId).catch((err) => {
+      logger.warn("Could not clean up caro state on partner left.", {
+        coupleId,
+        message: err && err.message,
+      });
+    });
+
     // Leaver display name: prefer their user profile (still exists — they only
     // left the couple), fall back to "Người ấy" via normalizeActorName.
     let leaverName = "";
@@ -1999,6 +2008,10 @@ async function rpsRecordMoveInTransaction(gameRef, memberIds) {
       return {ok: false, reason: "not_found"};
     }
     const game = gameSnap.data() || {};
+    // caro-game (đợt 2): only rps games (caro has no `moves`, belt and braces).
+    if ((game.type || "rps") !== "rps") {
+      return {ok: false, reason: "not_playing"};
+    }
     if (game.status === "finished") {
       return {ok: true, already: true, result: game.result || null};
     }
@@ -2487,6 +2500,10 @@ exports.nudgeRpsPlayer = onCall(
           return {ok: false, reason: "not_playing"};
         }
         const game = gameSnap.data() || {};
+        // caro-game (đợt 2): a caro game id is not an rps round to nudge.
+        if ((game.type || "rps") !== "rps") {
+          return {ok: false, reason: "not_playing"};
+        }
         if (game.status !== "playing") {
           return {ok: false, reason: "not_playing"};
         }
@@ -2568,6 +2585,587 @@ exports.nudgeRpsPlayer = onCall(
     return outcome;
   },
 );
+
+// ── caro-game (đợt 2) ──
+// Cờ caro theo lượt (feature caro-game, overview §5–§6). A game is ONE doc in
+// the same `games` collection as rps, `type: 'caro'`, holding the whole board
+// (`cells` = squares `row * 15 + col` in play order, even index = X). No
+// `moves` subcollection, so resolveRpsGame never fires for it. Every change
+// goes through the `caroAction` callable — clients may only write their own
+// `presence` key (rules) — and `caroState/main` (CF-only) holds the open-game
+// pointer + all-time score, so two phones starting at once meet on that one
+// doc inside a transaction (a query can't lock "no open game yet").
+const CARO_SIZE = 15;
+const CARO_RULES = ["vn", "free"];
+const CARO_OPS = ["start", "move", "resign", "cancel", "expire", "nudge"];
+// The other player "is looking at the board" (client beats every 20s, D11):
+// no push, they see the move live.
+const CARO_PRESENCE_FRESH_MS = 45 * 1000;
+// D10: "Nhắc" only 30' after the later of my last move and the last nudge.
+const CARO_NUDGE_COOLDOWN_MS = 30 * 60 * 1000;
+// D9: at most one background wake per recipient per game per 30'.
+const CARO_WAKE_EVERY_MS = 30 * 60 * 1000;
+// D7: nobody moved for 7 days → either player may end the game.
+const CARO_STALE_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Copy = overview §6.3. `name` is the sender's RAW display name; empty → the
+// fallback in the RECIPIENT's language. `n` = moves on the board.
+const CARO_COPY = {
+  vi: {
+    partnerFallback: "Người ấy",
+    invite: {
+      title: (name) => `${name} rủ chơi cờ caro`,
+      body: () => "Nước đầu đã đi rồi, giờ đến lượt bạn.",
+    },
+    turn: {
+      title: (name) => `${name} vừa đi một nước`,
+      body: (n) => `Đến lượt bạn. Ván đang ở nước ${n}.`,
+    },
+    nudge: {
+      title: (name) => `${name} đang đợi bạn đi`,
+      body: (n) => `Ván caro dừng ở nước ${n}. Vào đi một nước nhé.`,
+    },
+    won: {
+      title: (name) => `${name} thắng ván caro`,
+      body: (n) => `Năm quân liền một hàng ở nước ${n}. Phục thù không?`,
+    },
+    resigned: {
+      title: (name) => `${name} xin thua ván caro`,
+      body: () => "Ván này bạn thắng. Thêm ván nữa không?",
+    },
+    draw: {
+      title: () => "Ván caro hoà",
+      body: () => "Kín cả bàn mà chưa ai thắng.",
+    },
+  },
+  en: {
+    partnerFallback: "Your partner",
+    invite: {
+      title: (name) => `${name} started a game of caro`,
+      body: () => "They made the first move. Your turn.",
+    },
+    turn: {
+      title: (name) => `${name} made a move`,
+      body: (n) => `Your turn. The game is on move ${n}.`,
+    },
+    nudge: {
+      title: (name) => `${name} is waiting for your move`,
+      body: (n) => `Your caro game is paused at move ${n}.`,
+    },
+    won: {
+      title: (name) => `${name} won the caro game`,
+      body: (n) => `Five in a row on move ${n}. Rematch?`,
+    },
+    resigned: {
+      title: (name) => `${name} resigned`,
+      body: () => "You win this one. Another game?",
+    },
+    draw: {
+      title: () => "The caro game is a draw",
+      body: () => "The board filled up and nobody won.",
+    },
+  },
+};
+
+// kind: invite | turn | nudge | won | resigned | draw (recipient's view).
+function buildCaroText(languageCode, kind, actorName, moveNo) {
+  const code = `${languageCode || ""}`.trim().toLowerCase().split(/[-_]/)[0];
+  const copy = Object.prototype.hasOwnProperty.call(CARO_COPY, code) ?
+    CARO_COPY[code] : CARO_COPY.vi;
+  const name = `${actorName || ""}`.trim() || copy.partnerFallback;
+  return {title: copy[kind].title(name), body: copy[kind].body(moveNo)};
+}
+
+// HttpsError copy (shown as-is by the app), language like callableErrorCopy.
+const CARO_ERROR_COPY = {
+  vi: {
+    signIn: "Bạn cần đăng nhập để chơi cờ caro.",
+    badRequest: "Yêu cầu chưa đúng. Bạn thử lại nhé.",
+    noCouple: "Không tìm thấy cặp đôi của bạn.",
+    notMember: "Bạn không ở trong cặp đôi này.",
+    failed: "Chưa xong được. Bạn thử lại nhé.",
+  },
+  en: {
+    signIn: "Please sign in to play caro.",
+    badRequest: "Something was off with that request. Please try again.",
+    noCouple: "Couldn't find your couple.",
+    notMember: "You're not part of this couple.",
+    failed: "That didn't go through. Please try again.",
+  },
+};
+
+// Winner of the line(s) through the LAST move only (every earlier move was
+// already checked when it was played). Rule 'vn' ("Chặn hai đầu"): 5+ in a
+// row wins unless BOTH ends are the opponent's stones — the board edge is not
+// a block; 'free': any 5+ wins. 6+ wins too. Kín bàn without a winner = full.
+// cells: valid, distinct squares in play order (even index = X).
+// → {winner: 'x'|'o'|null, line: [squares of the winning run], full}
+function caroWinner(cells, size, rule) {
+  const n = Array.isArray(cells) ? cells.length : 0;
+  if (n === 0) {
+    return {winner: null, line: [], full: false};
+  }
+  const sideOf = new Map(cells.map((cell, i) => [cell, i % 2]));
+  const last = cells[n - 1];
+  const me = (n - 1) % 2;
+  const r0 = Math.floor(last / size);
+  const c0 = last % size;
+  const inside = (r, c) => r >= 0 && r < size && c >= 0 && c < size;
+  for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+    const line = [last];
+    let r = r0 + dr;
+    let c = c0 + dc;
+    while (inside(r, c) && sideOf.get(r * size + c) === me) {
+      line.push(r * size + c);
+      r += dr;
+      c += dc;
+    }
+    const blockedA = inside(r, c) && sideOf.get(r * size + c) === 1 - me;
+    r = r0 - dr;
+    c = c0 - dc;
+    while (inside(r, c) && sideOf.get(r * size + c) === me) {
+      line.unshift(r * size + c);
+      r -= dr;
+      c -= dc;
+    }
+    const blockedB = inside(r, c) && sideOf.get(r * size + c) === 1 - me;
+    if (line.length >= 5 && (rule === "free" || !(blockedA && blockedB))) {
+      return {winner: me === 0 ? "x" : "o", line, full: false};
+    }
+  }
+  return {winner: null, line: [], full: n >= size * size};
+}
+
+// A square index as sent by the client, or null (not an int / off the board).
+function caroCell(value) {
+  return Number.isInteger(value) && value >= 0 && value < CARO_SIZE * CARO_SIZE ?
+    value : null;
+}
+
+// Plain copies of the game's maps / list (missing or malformed → empty).
+function caroGameParts(game) {
+  const g = game || {};
+  const map = (v) => (v && typeof v === "object" && !Array.isArray(v)) ? {...v} : {};
+  return {
+    players: map(g.players),
+    cells: Array.isArray(g.cells) ? g.cells.slice() : [],
+    lastWakeAt: map(g.lastWakeAt),
+  };
+}
+
+// Why `uid` may NOT play `cell` as move number `moveNo` (= cells already on
+// the board, so a double tap or a stale screen is refused), or null when the
+// move is legal. memberIds = the couple's current members: a game whose
+// players aren't both still in the couple is dead (D7).
+function caroMoveError(game, memberIds, uid, cell, moveNo) {
+  if (!game || game.type !== "caro" || game.status !== "playing") {
+    return "not_playing";
+  }
+  const {players, cells} = caroGameParts(game);
+  if (!memberIds.includes(players.x) || !memberIds.includes(players.o)) {
+    return "not_playing";
+  }
+  if (uid !== players.x && uid !== players.o) {
+    return "not_player";
+  }
+  if (game.turnUid !== uid) {
+    return "not_your_turn";
+  }
+  if (moveNo !== cells.length) {
+    return "stale";
+  }
+  if (cell === null) {
+    return "out_of_range";
+  }
+  if (cells.includes(cell)) {
+    return "occupied";
+  }
+  return null;
+}
+
+// ms left before `uid` may nudge (0 = now). The waiting player's last move is
+// `lastMoveAt` (it is the partner's turn), so the clock starts from the later
+// of that and the previous nudge (D10).
+function caroNudgeWaitMs(game, nowMs) {
+  const since = Math.max(rpsToMillis(game.lastMoveAt) || 0, rpsToMillis(game.lastNudgeAt) || 0);
+  return Math.max(0, CARO_NUDGE_COOLDOWN_MS - (nowMs - since));
+}
+
+// D9: wake the recipient's app (widget line) unless it was woken for this
+// game < 30' ago.
+function caroShouldWake(lastWakeAt, recipientId, nowMs) {
+  const at = rpsToMillis(lastWakeAt && lastWakeAt[recipientId]);
+  return at === null || nowMs - at >= CARO_WAKE_EVERY_MS;
+}
+
+function caroPresenceFresh(presence, uid, nowMs) {
+  const at = rpsPresenceMillis(presence, uid);
+  return at !== null && nowMs - at < CARO_PRESENCE_FRESH_MS;
+}
+
+function caroGamesRef(coupleId) {
+  return db.collection("couples").doc(coupleId).collection("games");
+}
+
+function caroStateRef(coupleId) {
+  return db.collection("couples").doc(coupleId).collection("caroState").doc("main");
+}
+
+// One push (+ inbox for `caro_invite`) to the other player. All pushes of a
+// game share the tray slot `caro_{gameId}` (D8). Never throws.
+async function sendCaroPush(coupleId, gameId, push) {
+  const {type, kind, actorUid, recipientId, moveNo, wake, inboxOnly} = push;
+  try {
+    const actorName = await rpsLoadDisplayName(actorUid);
+    if (type === "caro_invite") {
+      const inboxPayload = {type, coupleId, gameId, actorUserId: actorUid};
+      if (actorName) {
+        inboxPayload.actorName = actorName;
+      }
+      await writeInboxNotifications([recipientId], inboxPayload);
+    }
+    if (inboxOnly === true) {
+      // The partner is looking at the game already: the inbox keeps the
+      // invite, the phone stays quiet (review 2026-10-20 #1).
+      return;
+    }
+    const result = await sendToRecipientDevices(
+      [recipientId],
+      (languageCode) => buildCaroText(languageCode, kind, actorName, moveNo),
+      {type, coupleId, gameId, moveNo: String(moveNo), actorName},
+      {collapseId: `caro_${gameId}`, wakeClients: wake === true},
+    );
+    if (result.failures.length > 0) {
+      logger.warn("Caro push had delivery failures.", {coupleId, gameId, type, failures: result.failures});
+    }
+    logger.info("Processed caro push.", {
+      coupleId,
+      gameId,
+      type,
+      wake: wake === true,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+    });
+  } catch (err) {
+    logger.error("Caro push failed.", {coupleId, gameId, type, message: err && err.message});
+  }
+}
+
+// The transaction of one `caroAction` op. Resolves to
+// {reply: <what the client gets>, push?: <sendCaroPush args>}.
+async function caroRunOp(op, ctx) {
+  const {coupleId, uid, gameId, cell, moveNo, rule, rematchOf} = ctx;
+  const FieldValue = admin.firestore.FieldValue;
+  const stateRef = caroStateRef(coupleId);
+  const coupleRef = db.collection("couples").doc(coupleId);
+  return db.runTransaction(async (tx) => {
+    const nowMs = Date.now();
+    // Members read inside the transaction (review #5): a partner leaving
+    // between the caller's check and this op can't slip a move through.
+    const coupleSnap = await tx.get(coupleRef);
+    const rawMembers = coupleSnap.exists && Array.isArray(coupleSnap.get("memberIds")) ?
+      coupleSnap.get("memberIds") : [];
+    const memberIds = rawMembers.filter((id) => typeof id === "string" && id.trim());
+    const partnerUid = memberIds.find((id) => id !== uid);
+    if (!memberIds.includes(uid) || memberIds.length !== 2 || !partnerUid) {
+      return {reply: {ok: false, reason: "no_partner"}};
+    }
+    const stateSnap = await tx.get(stateRef);
+    const openGameId = stateSnap.exists ? stateSnap.get("openGameId") : null;
+
+    if (op === "start") {
+      if (cell === null) {
+        return {reply: {ok: false, reason: "out_of_range"}};
+      }
+      const prevRef = isDocId(rematchOf) ? caroGamesRef(coupleId).doc(rematchOf) : null;
+      const openRef = isDocId(openGameId) ? caroGamesRef(coupleId).doc(openGameId) : null;
+      const [openSnap, prevSnap] = await Promise.all([
+        openRef ? tx.get(openRef) : null,
+        prevRef ? tx.get(prevRef) : null,
+      ]);
+      const open = openSnap && openSnap.exists ? openSnap.data() : null;
+      if (open && open.type === "caro" && open.status === "playing") {
+        const {players} = caroGameParts(open);
+        if (memberIds.includes(players.x) && memberIds.includes(players.o)) {
+          return {reply: {ok: false, reason: "already_open", gameId: openRef.id}};
+        }
+        // A player left the couple since (D7): that game is over.
+        tx.update(openRef, {status: "expired", updatedAt: FieldValue.serverTimestamp()});
+      }
+      // Rematch while the partner still looks at the previous result: their
+      // screen follows the new game by itself, no push (D8).
+      const partnerOnPrev = !!prevSnap && prevSnap.exists &&
+        caroPresenceFresh(prevSnap.get("presence"), partnerUid, nowMs);
+      const newRef = caroGamesRef(coupleId).doc();
+      const game = {
+        type: "caro",
+        rule,
+        size: CARO_SIZE,
+        createdBy: uid,
+        createdAt: FieldValue.serverTimestamp(),
+        players: {x: uid, o: partnerUid},
+        status: "playing",
+        cells: [cell],
+        turnUid: partnerUid,
+        lastMoveAt: FieldValue.serverTimestamp(),
+        lastMoveBy: uid,
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      if (!partnerOnPrev) {
+        game.lastWakeAt = {[partnerUid]: FieldValue.serverTimestamp()};
+      }
+      if (prevRef) {
+        game.rematchOf = prevRef.id;
+      }
+      tx.set(newRef, game);
+      const state = {openGameId: newRef.id, updatedAt: FieldValue.serverTimestamp()};
+      if (!stateSnap.exists) {
+        state.wins = {};
+        state.draws = 0;
+      }
+      tx.set(stateRef, state, {merge: true});
+      return {
+        reply: {ok: true, gameId: newRef.id, status: "playing", cellsLength: 1},
+        // Partner on the previous result: their screen follows the new game,
+        // so no push — but the inbox still records the invite (review #1).
+        push: {
+          type: "caro_invite", kind: "invite", actorUid: uid, recipientId: partnerUid, moveNo: 1,
+          wake: !partnerOnPrev, inboxOnly: partnerOnPrev,
+        },
+      };
+    }
+
+    // Every other op works on an existing game.
+    const gameRef = caroGamesRef(coupleId).doc(gameId);
+    const gameSnap = await tx.get(gameRef);
+    const game = gameSnap.exists ? (gameSnap.data() || {}) : null;
+    if (!game || game.type !== "caro" || game.status !== "playing") {
+      return {reply: {ok: false, reason: "not_playing"}};
+    }
+    const {players, cells, lastWakeAt} = caroGameParts(game);
+    if (uid !== players.x && uid !== players.o) {
+      return {reply: {ok: false, reason: "not_player"}};
+    }
+    // A game of an earlier pair is dead for every op, not only `move`
+    // (review #3): no nudge to an ex, no win counted on the new score.
+    if (!memberIds.includes(players.x) || !memberIds.includes(players.o)) {
+      return {reply: {ok: false, reason: "not_playing"}};
+    }
+    const other = uid === players.x ? players.o : players.x;
+    const clearOpen = openGameId === gameId ?
+      {openGameId: null, updatedAt: FieldValue.serverTimestamp()} : {updatedAt: FieldValue.serverTimestamp()};
+    const otherWatching = caroPresenceFresh(game.presence, other, nowMs);
+    const done = (status, extra) => ({ok: true, gameId, status, cellsLength: extra});
+
+    if (op === "move") {
+      const reason = caroMoveError(game, memberIds, uid, cell, moveNo);
+      if (reason) {
+        return {reply: {ok: false, reason}};
+      }
+      const next = [...cells, cell];
+      const outcome = caroWinner(next, CARO_SIZE, game.rule === "free" ? "free" : "vn");
+      const update = {
+        cells: next,
+        lastMoveAt: FieldValue.serverTimestamp(),
+        lastMoveBy: uid,
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      if (outcome.winner || outcome.full) {
+        update.status = "finished";
+        update.finishedAt = FieldValue.serverTimestamp();
+        update.result = outcome.winner ?
+          {winnerUid: uid, reason: "five", line: outcome.line} :
+          {winnerUid: null, reason: "full", line: []};
+        tx.update(gameRef, update);
+        tx.set(stateRef, {
+          ...clearOpen,
+          ...(outcome.winner ? {wins: {[uid]: FieldValue.increment(1)}} : {draws: FieldValue.increment(1)}),
+        }, {merge: true});
+        return {
+          reply: done("finished", next.length),
+          push: otherWatching ? null : {
+            type: "caro_result", kind: outcome.winner ? "won" : "draw", actorUid: uid,
+            recipientId: other, moveNo: next.length, wake: false,
+          },
+        };
+      }
+      update.turnUid = other;
+      const wake = !otherWatching && caroShouldWake(lastWakeAt, other, nowMs);
+      if (wake) {
+        update.lastWakeAt = {...lastWakeAt, [other]: FieldValue.serverTimestamp()};
+      }
+      tx.update(gameRef, update);
+      return {
+        reply: done("playing", next.length),
+        push: otherWatching ? null : {
+          type: "caro_turn", kind: "turn", actorUid: uid, recipientId: other, moveNo: next.length, wake,
+        },
+      };
+    }
+
+    if (op === "resign") {
+      tx.update(gameRef, {
+        status: "finished",
+        result: {winnerUid: other, reason: "resign", line: []},
+        endedBy: uid,
+        finishedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      tx.set(stateRef, {...clearOpen, wins: {[other]: FieldValue.increment(1)}}, {merge: true});
+      return {
+        reply: done("finished", cells.length),
+        push: otherWatching ? null : {
+          type: "caro_result", kind: "resigned", actorUid: uid, recipientId: other, moveNo: cells.length, wake: false,
+        },
+      };
+    }
+
+    if (op === "cancel") {
+      // "Để sau": only before the invited player has moved. A second stone
+      // means the caller's screen is behind.
+      if (cells.length > 1) {
+        return {reply: {ok: false, reason: "stale"}};
+      }
+      tx.update(gameRef, {status: "cancelled", endedBy: uid, updatedAt: FieldValue.serverTimestamp()});
+      tx.set(stateRef, clearOpen, {merge: true});
+      return {reply: done("cancelled", cells.length)};
+    }
+
+    if (op === "expire") {
+      // Same fallback as the client's isStale (review #4): no lastMoveAt →
+      // createdAt; neither → very old, so it can end.
+      const idleMs = nowMs - (rpsToMillis(game.lastMoveAt) || rpsToMillis(game.createdAt) || 0);
+      if (idleMs < CARO_STALE_MS) {
+        return {reply: {ok: false, reason: "too_early", retryAfterMs: CARO_STALE_MS - idleMs}};
+      }
+      tx.update(gameRef, {status: "expired", endedBy: uid, updatedAt: FieldValue.serverTimestamp()});
+      tx.set(stateRef, clearOpen, {merge: true});
+      return {reply: done("expired", cells.length)};
+    }
+
+    // nudge — only the player who is waiting (it is the other one's turn).
+    if (game.turnUid === uid) {
+      return {reply: {ok: false, reason: "stale"}};
+    }
+    const waitMs = caroNudgeWaitMs(game, nowMs);
+    if (waitMs > 0) {
+      return {reply: {ok: false, reason: "cooldown", retryAfterMs: waitMs}};
+    }
+    tx.update(gameRef, {lastNudgeAt: FieldValue.serverTimestamp()});
+    return {
+      reply: done("playing", cells.length),
+      push: {type: "caro_nudge", kind: "nudge", actorUid: uid, recipientId: other, moveNo: cells.length, wake: false},
+    };
+  });
+}
+
+// caroAction({coupleId, op, gameId?, cell?, moveNo?, rule?, rematchOf?, lang?})
+// → {ok:true, gameId, status, cellsLength} | {ok:false, reason, gameId?, retryAfterMs?}
+// reasons: not_playing · not_your_turn · stale · occupied · out_of_range ·
+// already_open · cooldown · too_early · not_player · no_partner. Business
+// outcomes are RETURNED (like nudgeRpsPlayer); only auth / bad input / system
+// failures throw, in the caller's language.
+exports.caroAction = onCall(
+  {region: "us-central1", timeoutSeconds: 30, memory: "256MiB"},
+  async (request) => {
+    const copy = callableErrorCopy(request) === CALLABLE_ERROR_COPY.en ?
+      CARO_ERROR_COPY.en : CARO_ERROR_COPY.vi;
+    const uid = request.auth && request.auth.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", copy.signIn);
+    }
+    const data = request.data || {};
+    const coupleId = `${data.coupleId || ""}`.trim();
+    const op = `${data.op || ""}`.trim();
+    const gameId = `${data.gameId || ""}`.trim();
+    if (!isDocId(coupleId) || !CARO_OPS.includes(op) || (op !== "start" && !isDocId(gameId))) {
+      throw new HttpsError("invalid-argument", copy.badRequest);
+    }
+
+    const memberIds = await rpsLoadMemberIds(coupleId);
+    if (!memberIds) {
+      throw new HttpsError("not-found", copy.noCouple);
+    }
+    if (!memberIds.includes(uid)) {
+      throw new HttpsError("permission-denied", copy.notMember);
+    }
+    const partnerUid = memberIds.find((id) => id !== uid);
+    if (memberIds.length !== 2 || !partnerUid) {
+      return {ok: false, reason: "no_partner"};
+    }
+
+    const ctx = {
+      coupleId,
+      uid,
+      gameId,
+      cell: caroCell(data.cell),
+      moveNo: Number.isInteger(data.moveNo) ? data.moveNo : -1,
+      rule: CARO_RULES.includes(data.rule) ? data.rule : "vn",
+      rematchOf: `${data.rematchOf || ""}`.trim(),
+    };
+    let outcome;
+    try {
+      outcome = await caroRunOp(op, ctx);
+    } catch (err) {
+      logger.error("caroAction failed.", {coupleId, op, gameId, message: err && err.message});
+      throw new HttpsError("internal", copy.failed);
+    }
+    const reply = outcome.reply;
+    logger.info("caroAction processed.", {
+      coupleId,
+      op,
+      gameId: reply.gameId || gameId,
+      ok: reply.ok,
+      reason: reply.reason || null,
+    });
+
+    let push = outcome.push;
+    if (push && op === "start") {
+      // The partner may already have opened the new game (a phone following
+      // the open-game pointer): they see it, no push + inbox.
+      try {
+        const fresh = await caroGamesRef(coupleId).doc(reply.gameId).get();
+        if (caroPresenceFresh(fresh.get("presence"), partnerUid, Date.now())) {
+          push = {...push, wake: false, inboxOnly: true};
+        }
+      } catch (err) {
+        logger.warn("caroAction: could not re-read the new game.", {coupleId, message: err && err.message});
+      }
+    }
+    if (push) {
+      // Awaited: gen2 CPU is throttled once the response is sent.
+      await sendCaroPush(coupleId, reply.gameId || gameId, push);
+    }
+    return reply;
+  },
+);
+
+// D20: when a partner leaves, the old pair's open game ends and the score
+// starts over for whoever joins next. Best-effort (the caller logs failures).
+async function caroCleanupOnLeave(coupleId) {
+  const stateRef = caroStateRef(coupleId);
+  const stateSnap = await stateRef.get();
+  if (!stateSnap.exists) {
+    return;
+  }
+  const openGameId = stateSnap.get("openGameId");
+  if (isDocId(openGameId)) {
+    // A failed expire must not keep the old score for the next pair
+    // (review #6): log it and still drop the state doc.
+    try {
+      const gameRef = caroGamesRef(coupleId).doc(openGameId);
+      const gameSnap = await gameRef.get();
+      if (gameSnap.exists && gameSnap.get("type") === "caro" && gameSnap.get("status") === "playing") {
+        await gameRef.update({status: "expired", updatedAt: admin.firestore.FieldValue.serverTimestamp()});
+      }
+    } catch (err) {
+      logger.warn("caroCleanupOnLeave: could not expire the open game.", {coupleId, message: err && err.message});
+    }
+  }
+  await stateRef.delete();
+}
+
+// ── /caro-game ──
 
 // Shared device-fan-out used by the partner-photo and partner-joined pushes.
 // Collects every notifications-enabled device token for the recipients, builds
@@ -3281,6 +3879,21 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
       return null;
     }),
   );
+
+  // ── caro-game (đợt 2) ──
+  // Games (caro + rps — rps rounds used to stay behind as orphans) and the
+  // caro pointer/score doc.
+  for (const name of ["games", "caroState"]) {
+    tasks.push(
+      db.recursiveDelete(coupleRef.collection(name)).catch((err) => {
+        logger.warn(`Failed to recursively delete ${name} during couple teardown.`, {
+          coupleId: coupleRef.id,
+          message: err && err.message,
+        });
+        return null;
+      }),
+    );
+  }
 
   // Couple entry code (feature couple-code): the couple_codes/{code} pointer is
   // a TOP-LEVEL doc, not a subcollection, so recursiveDelete on the couple won't

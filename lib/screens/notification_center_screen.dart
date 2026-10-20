@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
+// ── caro-game (đợt 2) ──
+import '../l10n/app_l10n.dart';
 import '../l10n/l10n.dart';
 import '../models/app_notification.dart';
 import '../models/decision.dart';
@@ -324,6 +326,16 @@ class _NotificationTile extends StatelessWidget {
                 NotificationTapRouter.pendingHomeFocus.value =
                     NotificationTapRouter.focusDecision;
               }
+              // ── caro-game (đợt 2) ── same plumbing as the push tap.
+              if (n.type == AppNotificationType.caroInvite) {
+                final gameId = n.gameId;
+                NotificationTapRouter.pendingCaroSource = 'inbox';
+                if (gameId != null && gameId.isNotEmpty) {
+                  NotificationTapRouter.pendingCaroGameId.value = gameId;
+                }
+                NotificationTapRouter.pendingHomeFocus.value =
+                    NotificationTapRouter.focusCaroGame;
+              }
               NotificationTapRouter.pendingHomeTab.value = n.targetHomeTab;
               Navigator.of(context).maybePop();
             },
@@ -483,6 +495,11 @@ class _NotificationTile extends StatelessWidget {
         return l10n.notifRpsResult(name);
       case AppNotificationType.decision:
         return _decisionTitle(n, l10n);
+      // ── caro-game (đợt 2) ──
+      case AppNotificationType.caroInvite:
+        return l10n.caroNotifInvite(
+          n.actorName.isNotEmpty ? n.actorName : l10n.reactionPartnerFallback,
+        );
       case AppNotificationType.unknown:
         return l10n.notifGeneric;
     }
@@ -520,6 +537,9 @@ class _NotificationTile extends StatelessWidget {
         return n.caption;
       case AppNotificationType.careMessage:
         return n.body;
+      // ── caro-game (đợt 2) ──
+      case AppNotificationType.caroInvite:
+        return AppL10n.strings.caroNotifInviteBody;
       default:
         return null;
     }
@@ -590,6 +610,9 @@ class _Avatar extends StatelessWidget {
         return (IconsaxPlusLinear.game, AppColors.accentLavenderDeep);
       case AppNotificationType.decision:
         return (IconsaxPlusLinear.shuffle, AppColors.accentRose);
+      // ── caro-game (đợt 2) ──
+      case AppNotificationType.caroInvite:
+        return (IconsaxPlusLinear.grid_5, AppColors.accentLavenderDeep);
       case AppNotificationType.unknown:
         return (IconsaxPlusLinear.notification, AppColors.textSecondary);
     }

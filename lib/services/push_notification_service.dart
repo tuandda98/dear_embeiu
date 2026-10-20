@@ -85,6 +85,17 @@ Future<void> _cancelMealReminderIfDecided(RemoteMessage message) async {
   await ReminderService.instance.cancelDecisionReminder();
 }
 
+// ── caro-game (đợt 2) ──
+/// A `caro_*` push about the game that is on screen right now.
+@visibleForTesting
+bool isCaroPushForVisibleGame(Map<String, dynamic> data) {
+  final type = '${data['type'] ?? ''}';
+  final gameId = '${data['gameId'] ?? ''}'.trim();
+  return type.startsWith('caro_') &&
+      gameId.isNotEmpty &&
+      gameId == NotificationTapRouter.caroGameOnScreen;
+}
+
 /// Whether a push says the partner just joined (`type == 'partner_joined'`,
 /// from the `notifyPartnerJoined` CF). Both the alert push and its Android
 /// data-only wake companion carry it.
@@ -224,6 +235,31 @@ class NotificationTapRouter {
       pendingRpsGameId.value = null;
     }
   }
+
+  // ── caro-game (đợt 2) ──
+  /// [pendingHomeFocus] value for a tapped `caro_*` push / `caro_invite` inbox
+  /// item / `caro_turn` widget line: HomeScreen opens the caro game whose id
+  /// is in [pendingCaroGameId] (null = the couple's open game).
+  static const String focusCaroGame = 'caro';
+
+  /// Game id for a [focusCaroGame] request, set BEFORE the focus value.
+  static final ValueNotifier<String?> pendingCaroGameId =
+      ValueNotifier<String?>(null);
+
+  /// Where a [focusCaroGame] request came from (`push` / `inbox`); null =
+  /// the home-screen widget (analytics `caro_open.source`).
+  static String? pendingCaroSource;
+
+  static void consumeCaroGameRequest() {
+    pendingCaroSource = null;
+    if (pendingCaroGameId.value != null) {
+      pendingCaroGameId.value = null;
+    }
+  }
+
+  /// The caro game visible right now (app in front, screen uncovered) — a
+  /// foreground push about it shows no in-app banner. Set by CaroGameScreen.
+  static String? caroGameOnScreen;
 
   /// A request to open the Gallery's add-photo composer (the Love Tree
   /// "Thêm một kỷ niệm" shortcut, 2026-06-17). true = open the multi-image
@@ -552,6 +588,15 @@ class PushNotificationService {
     );
   }
 
+  // ── caro-game (đợt 2) ──
+  /// Test hook: routes a tapped push's `data` exactly like a real tap.
+  @visibleForTesting
+  void routeTapForTest(Map<String, dynamic> data) => _applyRoute(
+    data['type'] as String?,
+    (data['photoId'] as String?)?.trim(),
+    gameId: (data['gameId'] as String?)?.trim(),
+  );
+
   /// Tap handler for a banner WE showed in the foreground via
   /// [_localNotifications] (see [_handleForegroundMessage]). Its payload is the
   /// JSON-encoded FCM `data` map, so we route by the same type/photoId as a real
@@ -655,6 +700,22 @@ class PushNotificationService {
         NotificationTapRouter.pendingHomeFocus.value =
             NotificationTapRouter.focusDecision;
         break;
+      // ── caro-game (đợt 2) ──
+      case 'caro_invite':
+      case 'caro_turn':
+      case 'caro_nudge':
+      case 'caro_result':
+        // Caro (feature caro-game): open that game — a result shows on the
+        // same screen. Keep in sync with AppNotification.targetHomeTab + the
+        // notification center tap.
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        NotificationTapRouter.pendingCaroSource = 'push';
+        if (gameId != null && gameId.isNotEmpty) {
+          NotificationTapRouter.pendingCaroGameId.value = gameId;
+        }
+        NotificationTapRouter.pendingHomeFocus.value =
+            NotificationTapRouter.focusCaroGame;
+        break;
       case 'rps_result':
         // Game settled while I was away → the history (score + that game).
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
@@ -694,6 +755,13 @@ class PushNotificationService {
     // (it's the listener that would otherwise re-evaluate the schedule).
     await _cancelStaleDailyQuestionNudges(message);
     await _cancelInviteFollowUpsIfPartnerJoined(message);
+
+    // ── caro-game (đợt 2) ──
+    // The caro game this push is about is on screen: the board already shows
+    // the move, no banner.
+    if (isCaroPushForVisibleGame(message.data)) {
+      return;
+    }
 
     final notification = message.notification;
     final title = notification?.title ?? message.data['title'] as String?;

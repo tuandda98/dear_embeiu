@@ -56,7 +56,10 @@ import '../providers/mood_provider.dart';
 import '../widgets/decision_card.dart';
 import '../widgets/decision_parts.dart';
 import '../widgets/mood_card.dart';
-import '../widgets/rps_invite_card.dart';
+// ── caro-game (đợt 2) ──
+import '../providers/caro_game_provider.dart';
+import '../widgets/play_together_card.dart';
+import 'caro_game_screen.dart' show openCaroGame;
 import '../widgets/sleep/sleep_card.dart';
 import '../widgets/today_constellation.dart';
 import '../widgets/today_ritual_card.dart';
@@ -430,6 +433,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   MoodProvider? _moodProvider;
   DecisionProvider? _decisionProvider;
   LocaleProvider? _localeProvider;
+  // ── caro-game (đợt 2) ──
+  CaroGameProvider? _caroProvider;
 
   /// Guards [FeatureTour.maybeShow] to one attempt per Home lifetime.
   bool _featureTourChecked = false;
@@ -544,6 +549,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _photoProvider!,
       _coupleProvider!,
       _decisionProvider!,
+      // ── caro-game (đợt 2) ──
+      _caroProvider = context.read<CaroGameProvider>(),
     ]) {
       p.addListener(_pushWidgetStatus);
     }
@@ -643,6 +650,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _photoProvider,
       _coupleProvider,
       _decisionProvider,
+      // ── caro-game (đợt 2) ──
+      _caroProvider,
     ]) {
       p?.removeListener(_pushWidgetStatus);
     }
@@ -775,6 +784,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           now,
         ),
         decision: _latestWidgetDecision(),
+        // ── caro-game (đợt 2) ──
+        caroTurnAt: HomeWidgetStatus.caroTurnAt(_caroProvider?.openGame, myUid),
       ),
     );
   }
@@ -1098,6 +1109,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _openRpsGameRoute(gameId);
       case NotificationTapRouter.focusRpsHistory:
         _openRpsHistoryRoute();
+      // ── caro-game (đợt 2) ──
+      case NotificationTapRouter.focusCaroGame:
+        // Push / inbox publish the game id first; a widget tap has none and
+        // opens the couple's open game.
+        final caroGameId = NotificationTapRouter.pendingCaroGameId.value;
+        final caroSource = NotificationTapRouter.pendingCaroSource ?? 'widget';
+        NotificationTapRouter.consumeCaroGameRequest();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            openCaroGame(context, gameId: caroGameId, source: caroSource);
+          }
+        });
       default:
         break;
     }
@@ -1875,6 +1898,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             myUid,
             partnerUid,
           );
+          // ── caro-game (đợt 2) ──
+          // Same partner rule: a partner joining mid-session unlocks caro.
+          context.read<CaroGameProvider>().watchForCouple(
+            couple.id,
+            myUid,
+            partnerUid,
+          );
           // Sleep (feature sleep) — same partner rule; a partner joining
           // mid-session starts streaming their shared nights.
           context.read<SleepProvider>().watchForCouple(
@@ -2101,10 +2131,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
             ),
             if (!couple.isWaitingForPartner) ...[
-              // Rock-paper-scissors entry (feature rps-game, design D1): a
-              // small card that also carries the "người ấy đang rủ" badge.
+              // ── caro-game (đợt 2) ──
+              // "Chơi cùng nhau" (design §3.1): caro + rock-paper-scissors in
+              // one card, replacing the old RpsInviteCard at the same spot.
               const SizedBox(height: 16),
-              _gutter(_entrance(7, const RpsInviteCard())),
+              _gutter(_entrance(7, const PlayTogetherCard())),
             ],
 
             // ── Đợt 2 (Home C): MoneyHomeEntry (feature expenses) chèn ở đây.

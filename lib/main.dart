@@ -32,6 +32,8 @@ import 'providers/answer_reaction_provider.dart';
 import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/rps_game_provider.dart';
+// ── caro-game (đợt 2) ──
+import 'providers/caro_game_provider.dart';
 import 'providers/sleep_provider.dart';
 import 'providers/streak_provider.dart';
 import 'screens/force_update_screen.dart';
@@ -323,6 +325,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         // Rock-paper-scissors (feature rps-game, 2026-09-13) — watch wired in
         // SessionResolver like mood/chat.
         ChangeNotifierProvider(create: (_) => RpsGameProvider()),
+        // ── caro-game (đợt 2) ──
+        // Turn-based caro — watch wired in SessionResolver like rps.
+        ChangeNotifierProvider(create: (_) => CaroGameProvider()),
         // Sleep (feature sleep, 2026-10-10) — watch wired in SessionResolver.
         ChangeNotifierProvider(create: (_) => SleepProvider()),
       ],

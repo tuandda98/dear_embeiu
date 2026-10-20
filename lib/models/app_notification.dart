@@ -42,6 +42,11 @@ enum AppNotificationType {
   /// Home card.
   decision,
 
+  // ── caro-game (đợt 2) ──
+  /// The partner started a caro game and played the first stone (CF
+  /// `caroAction` start). Carries [AppNotification.gameId]; tap opens it.
+  caroInvite,
+
   /// A type this app build doesn't recognise (forward-compat: a newer backend
   /// could send a new type). Rendered with a generic fallback, routes to Home.
   unknown,
@@ -75,6 +80,9 @@ AppNotificationType appNotificationTypeFromString(String? raw) {
       return AppNotificationType.rpsResult;
     case 'decision':
       return AppNotificationType.decision;
+    // ── caro-game (đợt 2) ──
+    case 'caro_invite':
+      return AppNotificationType.caroInvite;
     default:
       return AppNotificationType.unknown;
   }
@@ -189,6 +197,8 @@ class AppNotification {
       case AppNotificationType.rpsResult:
       // Decision wheel: the center publishes the `decision` Home-focus too.
       case AppNotificationType.decision:
+      // ── caro-game (đợt 2) ── the center publishes the `caro` focus + id.
+      case AppNotificationType.caroInvite:
       case AppNotificationType.unknown:
         return 0; // Home
     }

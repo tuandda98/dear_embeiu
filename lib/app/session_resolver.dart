@@ -18,6 +18,8 @@ import '../providers/answer_reaction_provider.dart';
 import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/rps_game_provider.dart';
+// ── caro-game (đợt 2) ──
+import '../providers/caro_game_provider.dart';
 import '../providers/sleep_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/app_update_service.dart';
@@ -58,6 +60,8 @@ class SessionResolver {
     final partnerReminderProvider = context.read<PartnerReminderProvider>();
     final customRemindersProvider = context.read<CustomRemindersProvider>();
     final rpsGameProvider = context.read<RpsGameProvider>();
+    // ── caro-game (đợt 2) ──
+    final caroGameProvider = context.read<CaroGameProvider>();
     final sleepProvider = context.read<SleepProvider>();
 
     try {
@@ -77,6 +81,8 @@ class SessionResolver {
         partnerReminderProvider: partnerReminderProvider,
         customRemindersProvider: customRemindersProvider,
         rpsGameProvider: rpsGameProvider,
+        // ── caro-game (đợt 2) ──
+        caroGameProvider: caroGameProvider,
         sleepProvider: sleepProvider,
       ).timeout(_globalResolveTimeout);
     } catch (_) {
@@ -125,6 +131,8 @@ class SessionResolver {
     required PartnerReminderProvider partnerReminderProvider,
     required CustomRemindersProvider customRemindersProvider,
     required RpsGameProvider rpsGameProvider,
+    // ── caro-game (đợt 2) ──
+    required CaroGameProvider caroGameProvider,
     required SleepProvider sleepProvider,
   }) async {
     // Force-update gate (feature force-update): a build older than the server's
@@ -162,6 +170,8 @@ class SessionResolver {
       partnerReminderProvider.clear();
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
+      // ── caro-game (đợt 2) ──
+      caroGameProvider.clear();
       sleepProvider.clear(signedOut: true);
       // Signed out / account deleted: forget the couple too — the home-screen
       // widget bridge listens to CoupleProvider and pushes its empty state.
@@ -190,6 +200,8 @@ class SessionResolver {
       partnerReminderProvider.clear();
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
+      // ── caro-game (đợt 2) ──
+      caroGameProvider.clear();
       sleepProvider.clear(signedOut: true);
       await coupleProvider.loadCoupleForUser(
         null,
@@ -281,6 +293,14 @@ class SessionResolver {
         currentUser.id,
         rpsPartnerUid,
       );
+      // ── caro-game (đợt 2) ──
+      // Caro (feature caro-game): score + open game for Home/Profile/widget.
+      // Same partner uid rule as rps ('' while waiting ⇒ no entry point).
+      caroGameProvider.watchForCouple(
+        currentUser.coupleId!,
+        currentUser.id,
+        rpsPartnerUid,
+      );
       // Sleep (feature sleep): my nights + (when shared) my partner's. Same
       // partner uid rule as rps ('' while waiting).
       unawaited(
@@ -303,6 +323,8 @@ class SessionResolver {
       partnerReminderProvider.clear();
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
+      // ── caro-game (đợt 2) ──
+      caroGameProvider.clear();
       sleepProvider.clear();
       // Authenticated but no couple yet — cancel the daily-question nudge (b2)
       // until a partner joins; the preference persists for re-arming via sync.

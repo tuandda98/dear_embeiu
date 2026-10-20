@@ -79,6 +79,20 @@ class AnalyticsEvents {
   static const String decisionPhotoCta = 'decision_photo_cta';
   static const String decisionHistoryOpen = 'decision_history_open';
 
+  // ── caro-game (đợt 2) ──
+  // Turn-based caro (overview §8). Never a square, a name, a uid or a game id.
+  static const String caroOpen = 'caro_open';
+  static const String caroGameStarted = 'caro_game_started';
+  static const String caroMove = 'caro_move';
+  static const String caroGameEnded = 'caro_game_ended';
+  static const String caroNudgeSent = 'caro_nudge_sent';
+  static const String caroHistoryOpen = 'caro_history_open';
+  static const String pCaroRule = 'rule'; // caro_game_started: vn / free
+  static const String pMoveNo = 'move_no'; // caro_move (int)
+  static const String pPartnerWatching = 'partner_watching'; // caro_move (bool)
+  static const String pMoves = 'moves'; // caro_game_ended (int)
+  static const String pSpanHours = 'span_hours'; // caro_game_ended (int)
+
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
   static const String pResult = 'result'; // couple_join_attempt
@@ -426,6 +440,50 @@ class AnalyticsService {
         AnalyticsEvents.rpsGameFinished,
         params: {AnalyticsEvents.pResult: result},
       );
+
+  // ── caro-game (đợt 2) ──
+  /// Caro game screen opened. [source]: home · profile · push · inbox · widget.
+  void logCaroOpen(String source) => logEvent(
+        AnalyticsEvents.caroOpen,
+        params: {AnalyticsEvents.pSource: source},
+      );
+
+  void logCaroGameStarted({required bool rematch, required String rule}) =>
+      logEvent(
+        AnalyticsEvents.caroGameStarted,
+        params: {
+          AnalyticsEvents.pRematch: rematch,
+          AnalyticsEvents.pCaroRule: rule,
+        },
+      );
+
+  void logCaroMove({required int moveNo, required bool partnerWatching}) =>
+      logEvent(
+        AnalyticsEvents.caroMove,
+        params: {
+          AnalyticsEvents.pMoveNo: moveNo,
+          AnalyticsEvents.pPartnerWatching: partnerWatching,
+        },
+      );
+
+  /// [result]: win · lose · draw · resign_me · resign_partner · cancel ·
+  /// expired (from THIS user's side).
+  void logCaroGameEnded({
+    required String result,
+    required int moves,
+    required int spanHours,
+  }) => logEvent(
+        AnalyticsEvents.caroGameEnded,
+        params: {
+          AnalyticsEvents.pResult: result,
+          AnalyticsEvents.pMoves: moves,
+          AnalyticsEvents.pSpanHours: spanHours,
+        },
+      );
+
+  void logCaroNudgeSent() => logEvent(AnalyticsEvents.caroNudgeSent);
+
+  void logCaroHistoryOpen() => logEvent(AnalyticsEvents.caroHistoryOpen);
 
   void logChatMessageSent() => logEvent(AnalyticsEvents.chatMessageSent);
 
