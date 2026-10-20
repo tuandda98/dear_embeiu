@@ -1,3 +1,5 @@
+> ⛔ **ĐÃ HUỶ 2026-10-20.** User xem mockup rồi chốt: "Đổi quyết định, không làm lại app, follow theo system design hiện tại của app". Nguồn sự thật vẫn là `project/design-system.md`. File này chỉ giữ để tham khảo bố cục (bảng "Hôm nay" ba làn, trạng thái khối).
+
 # Design system v2 — Dear Embeiu ("Ba làn")
 
 > Designer, 2026-10-20. **Trạng thái: 📋 chờ user duyệt.** Tới khi user chốt, [`design-system.md`](design-system.md) (v1 "Sunset Romance") vẫn là nguồn sự thật; Dev KHÔNG đổi `lib/theme/` theo file này trước khi có lệnh.
