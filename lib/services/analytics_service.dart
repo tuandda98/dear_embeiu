@@ -435,9 +435,15 @@ class AnalyticsService {
         params: {AnalyticsEvents.pHasNote: hasNote},
       );
 
-  void logCareMessageSent({required bool queued}) => logEvent(
+  /// [source]: where the composer was opened from (`manual` · `weather` ·
+  /// `arrival`), never the text.
+  void logCareMessageSent({required bool queued, String source = 'manual'}) =>
+      logEvent(
         AnalyticsEvents.careMessageSent,
-        params: {AnalyticsEvents.pQueued: queued},
+        params: {
+          AnalyticsEvents.pQueued: queued,
+          AnalyticsEvents.pSource: source,
+        },
       );
 
   /// [mode] is the [SleepMode] name.
