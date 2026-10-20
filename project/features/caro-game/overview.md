@@ -45,7 +45,7 @@
 ## 3. Phạm vi (scope)
 
 - **Trong phạm vi (bản đầu):**
-  - Bàn 15×15, luật Việt Nam (5 liên tiếp, chặn hai đầu không tính), người rủ đi trước cầm X.
+  - Bàn 15×15, người rủ chọn luật mỗi ván: "Chặn hai đầu" (mặc định) hoặc "Tự do" (D3); người rủ đi trước cầm X.
   - Rủ ván = đi luôn nước đầu. Người kia đi tiếp hoặc từ chối.
   - Đi theo lượt, không giới hạn thời gian mỗi nước. Chơi realtime khi cả hai cùng mở; chơi rải rác cả ngày khi không.
   - Push "đến lượt bạn", bỏ qua khi người ấy đang xem ván, gộp 1 thông báo/ván trên khay.
@@ -62,7 +62,11 @@
 
 - **D2 — Bàn 15×15 cố định.** *Lý do:* chuẩn gomoku, đủ chỗ cho 5 liên tiếp và các thế chặn. Bàn mở rộng khiến toạ độ, lưu trữ, xem lại và kiểm hợp lệ đều phức tạp, trong khi ván cặp đôi hiếm khi tràn bàn. Màn điện thoại 360 dp chia 15 ô còn ~22 dp/ô, nhỏ hơn vùng chạm 44 pt, nên giải bằng phóng to + chạm 2 bước (D19).
 
-- **D3 — Luật Việt Nam, một luật duy nhất ở bản đầu:** 5 quân trở lên liền nhau theo hàng ngang, dọc hoặc chéo thì thắng, **trừ khi hai đầu dãy đều là quân đối phương**. Mép bàn không tính là chặn. 6 quân trở lên vẫn thắng nếu không bị chặn hai đầu. Kín 225 ô mà chưa ai thắng thì hoà. Doc ghi `rule: 'vn'` để sau này thêm luật khác mà không phải đoán ván cũ chơi luật gì. *Lý do:* người Việt quen luật này từ giấy ô ly; nó cũng giảm lợi thế của người đi trước. Không làm công tắc bật/tắt vì mỗi lựa chọn thêm là một câu phải giải thích, và hai người phải thống nhất trước khi chơi. *(PO tự chốt — xem câu hỏi §11.)*
+- **D3 — Có công tắc chọn luật mỗi ván** (user chốt 2026-10-20: "Có công tắc chọn luật"). Người rủ chọn khi tạo ván, hai lựa chọn:
+  - **"Chặn hai đầu"** (mặc định lần đầu): 5 quân trở lên liền nhau theo hàng ngang, dọc hoặc chéo thì thắng, **trừ khi hai đầu dãy đều là quân đối phương**. Mép bàn không tính là chặn. 6 quân trở lên vẫn thắng nếu không bị chặn hai đầu.
+  - **"Tự do"**: cứ 5 quân trở lên liền nhau là thắng, không xét chặn.
+  - Kín 225 ô mà chưa ai thắng thì hoà (cả hai luật). Doc ghi `rule: 'vn' | 'free'`, **bất biến** sau khi tạo; `caroAction` tính thắng theo `rule` của chính ván. Lời mời (push + thẻ) và đầu bàn cờ ghi rõ luật đang chơi. App nhớ lựa chọn lần trước trên máy (Hive), lần đầu là "Chặn hai đầu".
+  *Lý do:* user muốn mỗi cặp tự chọn; ghi luật vào doc để ván cũ xem lại vẫn đúng luật.
 
 - **D4 — Người rủ đi trước, cầm X. Lời mời chính là nước đầu.** Không có bước "chấp nhận". Người được rủ thấy bàn có sẵn 1 quân và đi luôn, hoặc bấm "Để sau" (huỷ, D7). Ván sau ai bấm "Ván mới" thì người đó đi trước. *Lý do:* chơi bất đồng bộ thì mỗi vòng chờ là nửa ngày; bỏ bước chấp nhận cắt một vòng. Người thua thường là người muốn phục thù, nên tự nhiên được đi trước.
 
@@ -252,7 +256,7 @@ Không log ô đã đi, tên, uid, gameId.
 - [ ] Đi không đúng lượt, đặt ô đã có quân, gửi `moveNo` cũ (bấm 2 lần nhanh) → CF từ chối, bàn không đổi, client rút quân mờ và báo lỗi bằng câu l10n.
 - [ ] Cả hai cùng mở ván: nước của người này hiện trên máy người kia ≤2 giây; không có push nào được gửi (kiểm log CF); dòng "đang xem ván" hiện đúng.
 - [ ] Thảo thoát app, Tuấn đi → Thảo nhận `caro_turn`; Tuấn đi tiếp được KHÔNG (không phải lượt); Thảo đi 3 nước rải rác trong ngày → khay thông báo của mỗi máy chỉ còn **1** thông báo cho ván đó (Android + iOS).
-- [ ] Thắng 5 ngang, 5 dọc, 5 chéo đều kết thúc đúng; 5 quân bị chặn hai đầu **không** kết thúc; 5 quân sát mép kết thúc. Đường thắng được tô trên cả 2 máy; tỉ số tăng đúng người.
+- [ ] Thắng 5 ngang, 5 dọc, 5 chéo đều kết thúc đúng; 5 quân bị chặn hai đầu **không** kết thúc; 5 quân sát mép kết thúc. Ván luật "Tự do": 5 quân bị chặn hai đầu **vẫn** thắng. Đầu bàn và lời mời ghi đúng luật. Đường thắng được tô trên cả 2 máy; tỉ số tăng đúng người.
 - [ ] Xin thua → người kia thắng, tỉ số tăng; huỷ khi bàn 1 quân → không tính tỉ số, không vào lịch sử; huỷ khi bàn 2 quân bị từ chối.
 - [ ] Ván không ai đi 7 ngày (seed `lastMoveAt` cũ) → nút "Kết thúc ván" hiện, bấm → `expired`, rủ được ván mới.
 - [ ] Nhắc người ấy: ngay sau khi đi bị khoá và hiện thời gian còn lại; sau 30 phút gửi được 1 push; bấm lần 2 trả `cooldown` (kiểm cả client lẫn server).
@@ -267,9 +271,7 @@ Không log ô đã đi, tên, uid, gameId.
 
 ## 11. Câu hỏi cho user
 
-1. **Luật "chặn hai đầu" mặc định BẬT, không có công tắc** (D3). Nếu hai bạn quen chơi luật tự do (cứ 5 quân là thắng), nói để PO đổi trước khi Dev bắt đầu; đổi chỉ là một hằng trong CF.
-
-Mọi điểm khác PO đã tự chốt kèm lý do ở §4.
+- ✅ [2026-10-20] Luật: user chọn **có công tắc chọn luật** mỗi ván (D3: "Chặn hai đầu" mặc định / "Tự do").
 
 ## 12. Giao việc 3 vai (tóm tắt — chi tiết ở file mỗi role)
 
@@ -290,3 +292,4 @@ Mọi điểm khác PO đã tự chốt kèm lý do ở §4.
 
 ## 14. Changelog feature
 - [2026-10-20] [PO] Tạo feature trong đợt "mở app mỗi ngày" 2 (user chọn 5 hướng cùng lúc). Đọc code rps, kết luận app 1.10.x/1.11.0 bỏ qua doc `type:'caro'` an toàn, chỗ hở duy nhất là trigger `resolveRpsGame` theo đường `moves` (§2.1) ⇒ D1 không dùng `moves`. Chốt D1–D20: bàn 15×15, luật VN chặn hai đầu, lời mời = nước đầu, 1 callable `caroAction`, `caroState/main` giữ con trỏ + tỉ số, push gộp theo ván, `wakeClients` ≤1 lần/30'/người/ván, nhắc 30', presence 20 s/45 s, trạng thái widget `caro_turn`. 1 câu hỏi cho user (luật chặn hai đầu).
+- [2026-10-20] [Lead] User chọn có công tắc luật mỗi ván → D3 viết lại (`rule: vn|free` bất biến, CF tính theo luật của ván), thêm acceptance luật tự do. Analytics `caro_game_started` thêm param `rule`.

@@ -4,7 +4,7 @@
 > Đợt "mở app mỗi ngày" lần 2 (user chọn 2026-10-20, làm cùng `poke`, `caro-game`, `weather`, `expenses`). Widget hiện trạng thái qua [widget-today](../widget-today/overview.md). Mô hình chia sẻ học theo [sleep](../sleep/dev.md) (cờ `share`, rules chặn đọc khi tắt, dọn khi rời couple).
 
 - **Feature:** arrival
-- **Ưu tiên:** P1 (đợt 2; rủi ro duyệt store cao nhất đợt nên tách đường phát hành, xem D13)
+- **Ưu tiên:** P1 (đợt 2; rủi ro duyệt store cao nhất đợt — phát hành chung một bản theo lựa chọn của user, kế hoạch B ở D13)
 - **Trạng thái:** 📋 Spec — chờ user duyệt + trả lời §11
 - **Tạo ngày:** 2026-10-20
 - **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · [`../widget-today/`](../widget-today/overview.md) · [`../sleep/`](../sleep/dev.md) · [`../care-message/`](../care-message/overview.md) · bối cảnh dự án [`../../../CLAUDE.md`](../../../CLAUDE.md)
@@ -111,13 +111,14 @@
   - Màn giải thích 2 (trước "Luôn luôn"): vi *"Để tự báo cả lúc app đang đóng, chọn \"{label}\" ở trang tiếp theo."* · en *"To send it even when the app is closed, choose \"{label}\" on the next screen."* (`{label}` = "Luôn luôn"/"Always" trên iOS, chữ hệ thống trả về trên Android).
   *Lý do:* Play bắt nội dung tối thiểu; Apple bắt câu xin quyền nói đủ cách dùng. Viết một lần để store, privacy policy và app nói cùng một câu.
 
-- **D13 — Phát hành tách đôi, không để arrival chặn cả đợt.**
-  - **Bản đợt 2 (cả 2 store, cùng version theo luật parity):** chế độ bấm tay chạy cả 2 nền tảng. Chế độ tự động chỉ bật trên **iOS**. Bản Android **không có** `ACCESS_BACKGROUND_LOCATION` trong manifest (Dev chặn quyền plugin tự thêm bằng `tools:node="remove"` nếu cần, kiểm bằng `aapt2 dump permissions`) nên không cần form khai báo, không có gì để Play từ chối.
-  - **Bản Android-auto (patch ngay sau):** thêm quyền + form + video ≤30 giây + Data safety. Theo luật parity, bản này lên cả 2 store cùng version (iOS không đổi gì ngoài số).
-  - **Play từ chối:** gỡ quyền khỏi manifest, nộp lại cùng nội dung; Android ở lại chế độ tay; PO viết lại khai báo và thử lần 2 tối đa 1 lần. Lần 2 vẫn bị từ chối → Android chỉ có chế độ tay, ghi roadmap.
-  - **Apple từ chối vì arrival:** hằng `kArrivalAutoEnabled = false` (như `kAiQuestionsFeatureEnabled`) ẩn chế độ tự động, bỏ 2 khoá `NSLocationAlways…`/`UIBackgroundModes location` (nếu có) rồi nộp lại. Mất 1 vòng duyệt, 4 feature kia đi tiếp.
+- **D13 — Phát hành CHUNG một bản, cả 2 nền tảng tự động** (user chốt 2026-10-20: "Dồn chung một bản"; thay đề xuất tách đôi của PO).
+  - **Bản đợt 2 (cả 2 store, cùng version theo luật parity):** chế độ tự động bật trên **cả iOS lẫn Android**. Android có `ACCESS_BACKGROUND_LOCATION` ⇒ nộp form khai báo vị trí nền + video ≤30 giây + Data safety ngay trong lần gửi duyệt này. Nút bấm tay chạy cả 2 nền tảng.
+  - **Rủi ro chấp nhận:** Play từ chối quyền vị trí nền thì **cả bản đợt 2 trên Android bị chặn** (user đã biết khi chọn).
+  - **Kế hoạch B khi Play từ chối:** build lại cùng version, build +1: gỡ quyền khỏi manifest (`tools:node="remove"`, kiểm `aapt2 dump permissions`), hằng `kArrivalAutoAndroid = false` ẩn chế độ tự động trên Android, nộp lại để 4 feature kia lên store. Theo luật parity, iOS cũng nhận build mới cùng số (không đổi tính năng). PO viết lại khai báo, thử lại tối đa 1 lần ở bản sau.
+  - **Apple từ chối vì arrival:** hằng `kArrivalAutoEnabled = false` (như `kAiQuestionsFeatureEnabled`) ẩn chế độ tự động, bỏ `NSLocationAlways…`/`UIBackgroundModes location` (nếu có) rồi nộp lại. Mất 1 vòng duyệt, 4 feature kia đi tiếp.
   - **Cờ tắt từ xa:** `config/app.arrivalAutoEnabled` (bool, không bắt buộc; **thiếu = bật**). Đặt `false` → lần mở app kế, app huỷ mọi geofence và ẩn chế độ tự động; bấm tay vẫn chạy. Dùng khi có khiếu nại pin, cảnh báo chính sách, hoặc bug báo sai hàng loạt. Rules `config` đã public read, không sửa rules.
-  *Lý do:* trong 5 feature đợt 2, chỉ arrival dính quyền nhạy cảm. Tách đường thì rủi ro chỉ rơi vào chính nó.
+  - **Video khai báo Play:** Claude quay trên emulator Android (giả lập vị trí) trước; nếu Play đòi máy thật thì user quay. Nội dung khai báo Claude soạn, user bấm gửi trên Console. Privacy policy + Data safety + App Privacy: user đồng ý sửa trước khi gửi duyệt (2026-10-20).
+  *Lý do:* user muốn tính năng đủ trên cả 2 nền tảng ngay đợt này; rủi ro chặn cả đợt Android được chặn bởi kế hoạch B (nộp lại không có quyền nền trong 1 vòng).
 
 - **D14 — Mô hình dữ liệu, một doc mỗi người** (chi tiết §5). Không subcollection, không toạ độ, không lịch sử. *Lý do:* D2 + D3.
 
@@ -273,7 +274,7 @@ Sự kiện tự động xảy ra ở nền, không log analytics (engine nền 
 - [ ] Cặp `waiting_partner` (`test1`): không có thẻ, không có mục Cài đặt arrival.
 - [ ] **Bấm tay, không cấp quyền vị trí nào:** B bấm "Về nhà rồi" → A nhận push "Tuấn đã về đến nhà" ≤10 giây (máy có push), thẻ A đổi realtime ≤3 giây, widget A hiện "Tuấn đã về đến nhà"; không có dòng mới trong inbox A.
 - [ ] **Tự động, iOS máy thật:** B lưu Nhà, cấp "Luôn luôn", đưa app về nền rồi rời nhà >300 m và quay lại → A nhận push ≤5 phút sau khi B vào vùng (ghi số đo thật vào `test.md`). Lần rời: thẻ A ghi "đã rời nhà", không push.
-- [ ] **Tự động, Android** (chỉ bản Android-auto, D13): như trên, app B đã bị tắt khỏi đa nhiệm.
+- [ ] **Tự động, Android** (D13): như trên, app B đã bị tắt khỏi đa nhiệm.
 - [ ] **Rìa vùng:** đi ra rồi vào lại trong 5 phút → A chỉ nhận đúng 1 push. Đến Nhà 7 lần trong ngày → tối đa 6 push.
 - [ ] **Pin:** pin B 15% khi đến → push có "Pin còn 15%"; pin 60% → body "Nhắn một câu hỏi thăm nhé"; thẻ luôn hiện %.
 - [ ] **Từ chối quyền:** chỉ cấp "Khi dùng app" hoặc vị trí gần đúng → thẻ B ghi "Chưa tự báo được…", nút "Mở Cài đặt" mở đúng trang; bấm tay vẫn chạy. Hạ quyền trong Cài đặt rồi mở lại app → geofence bị huỷ (kiểm log).
@@ -293,14 +294,15 @@ Sự kiện tự động xảy ra ở nền, không log analytics (engine nền 
 
 ## 11. Câu hỏi cho user
 
-1. **Phát hành tách đôi (D13):** bản đợt 2 Android chỉ có nút "Về nhà rồi"; chế độ tự động Android ra ở bản patch kế tiếp sau khi Play duyệt khai báo vị trí nền. Theo luật parity, bản patch đó lên cả 2 store (thêm 1 lần gửi duyệt). Đồng ý không? Nếu muốn dồn hết vào một bản thì phải chấp nhận khả năng Play chặn **cả đợt 2** trên Android.
-2. **Video khai báo Play** (≤30 giây, quay app Android thật cho thấy tính năng chạy khi app đóng) và **khai báo Data safety / App Privacy** thêm mục vị trí: anh quay video bằng máy Android của anh, hay để Claude quay trên emulator (giả lập vị trí)? Nội dung khai báo cần anh bấm gửi trên Console.
+- ✅ [2026-10-20] Phát hành: user chọn **dồn chung một bản** (D13).
+- ✅ [2026-10-20] Privacy policy + Data safety + App Privacy: user **đồng ý** sửa trước khi gửi duyệt.
+- ✅ [2026-10-20] Video khai báo Play: Lead chốt Claude quay trên emulator (giả lập vị trí) trước, Play đòi máy thật thì user quay.
 
 Các điểm còn lại PO tự chốt (user lật được): chỉ push khi ĐẾN (D4) · không push pin riêng (D5) · không có qua có lại (D10) · không lịch sử (D3) · ẩn với cặp đang chờ (D9).
 
 ## 12. Rủi ro / nợ (Tester soi)
 
-- 🔴 **Play từ chối vị trí nền** (app cặp đôi, vị trí không phải chức năng chính). Đã cô lập bằng D13.
+- 🔴 **Play từ chối vị trí nền** (app cặp đôi, vị trí không phải chức năng chính). User chọn phát hành chung nên KHÔNG cô lập; kế hoạch B (nộp lại không có quyền nền) ở D13.
 - 🔴 **iOS vuốt tắt app → có thể không được đánh thức** (nặng hơn trên iOS 26 theo báo cáo dev). Người dùng hay vuốt tắt sẽ thấy "lúc báo lúc không". Viết câu giải thích trong màn thiết lập: "Đừng vuốt tắt app để báo về nhà chạy đều".
 - 🟡 Xiaomi/Oppo/Vivo chặn tự khởi động, Huawei không có Google Play services → chỉ bấm tay. Màn thiết lập Android hiện link hướng dẫn bật "Tự khởi động" khi phát hiện hãng (Dev quyết có làm ở v1 không).
 - 🟡 iOS định kỳ hỏi lại "tiếp tục cho phép Luôn luôn?" → một phần người dùng sẽ hạ quyền. Đo bằng `arrival_permission` + tỉ lệ người `auto:true`.
@@ -326,3 +328,4 @@ Các điểm còn lại PO tự chốt (user lật được): chỉ push khi Đ�
 
 ## 15. Nhật ký
 - [2026-10-20] [PO] Tạo feature từ lựa chọn của user (đợt "mở app mỗi ngày" lần 2: poke · caro-game · weather · arrival · expenses). User chọn bản TỰ ĐỘNG kiểu Zenly. Nghiên cứu chính sách Play (vị trí nền, prominent disclosure, Data safety), App Store (5.1.1, 5.1.2, 5.1.5, 2.5.14), plugin `native_geofence` (MIT). Chốt D1–D18: geofence 3 địa điểm, toạ độ chỉ trên máy, không lịch sử, push chỉ khi đến, pin kèm sự kiện, không inbox, chia sẻ độc lập, tắt = xoá + không báo người kia, ẩn với cặp chờ, phát hành tách đôi (Android-auto sau) + cờ `config/app.arrivalAutoEnabled`. 2 câu hỏi cho user ở §11.
+- [2026-10-20] [Lead] User trả lời: dồn chung một bản (D13 viết lại + kế hoạch B), đồng ý sửa privacy policy/khai báo store; Lead chốt video Play quay trên emulator trước.

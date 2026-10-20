@@ -226,8 +226,9 @@
 
 ## 11. Câu hỏi cho user
 
-- **Q1 — Công tắc tắt thông báo tim (D11).** Ngày 2026-06-14 app đã bỏ hết công tắc tắt từng loại thông báo ("cặp đôi luôn nhận mọi push"). PO đề xuất thêm lại MỘT công tắc riêng cho tim, mặc định bật, vì tim là loại duy nhất mà số lượng do người kia quyết (có thể 30 cái/ngày, cả ban đêm). Đồng ý thêm, hay giữ nguyên "không công tắc"?
-- **Q2 — iOS 15–16 không có nút tim trên widget (D12).** PO bỏ vì widget nhỏ iOS dưới 17 chỉ có một vùng chạm và "mở app rồi gửi" không còn là 1 chạm. Những máy này vẫn chạm tim được trong app. Chấp nhận không?
+- ✅ [2026-10-20] Q1 công tắc: Lead chốt **có** công tắc "Báo khi người ấy chạm tim", mặc định bật (cùng nhóm với công tắc `pushArrival` của feature arrival). User lật được.
+- ✅ [2026-10-20] Q2 iOS 15–16: Lead chốt **chấp nhận** không có nút tim trên widget (giới hạn hệ điều hành), những máy này chạm tim trong app.
 
 ## 12. Changelog feature
 - [2026-10-20] [PO] Tạo feature `poke` trong đợt "mở app mỗi ngày" lần 2 (user chọn 5 hướng: poke · caro-game · weather · arrival · expenses). User chốt D1 (gửi từ Home + widget, không mở app) và D2 (đêm vẫn báo). PO chốt D3–D17: doc đếm theo ngày + endpoint HTTPS duy nhất bằng token thiết bị lưu hash; push gộp `collapse-id`/`tag`; đánh thức ≤1 lần/15 phút/người nhận; loại trạng thái widget `poke` theo luật "mới nhất thắng"; inbox 1 mục/ngày/người gửi; iOS 15–16 không có tim trên widget. Mở 2 câu hỏi Q1 (công tắc) + Q2 (iOS < 17). Chờ user duyệt spec.
+- [2026-10-20] [Lead] Chốt Q1 (có công tắc, mặc định bật) + Q2 (iOS 15–16 chỉ chạm trong app); đã báo user.

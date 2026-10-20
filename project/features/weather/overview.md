@@ -299,7 +299,7 @@ Không thêm loại trạng thái ở v1 (D15). Không đụng kênh `dear_embei
 
 ## 13. Câu hỏi cho user
 
-1. **Riêng tư / store (cần user làm):** feature lưu thành phố của từng người → phải cập nhật privacy policy + khai "Coarse Location" trên App Store Connect + "Vị trí gần đúng" trên Play trước khi phát hành. Đồng ý không?
+1. ✅ [2026-10-20] **Riêng tư / store:** user **đồng ý** cập nhật privacy policy + khai "Coarse Location" (App Store Connect) + "Vị trí gần đúng" (Play) trước khi phát hành.
 2. **Chỉ khi spike D3 thất bại:** chuyển sang Apple WeatherKit (miễn phí tới 500.000 lượt/tháng, phải hiện thương hiệu Apple Weather). Cần chủ tài khoản Apple Developer tạo khoá WeatherKit; Claude không tự tạo khoá được.
 
 Còn lại PO tự chốt (đổi được trước khi Dev bắt đầu): D10 ngưỡng 35°/15°, D13 thông báo sáng mặc định bật + trần 3 lần/tuần.
@@ -347,3 +347,4 @@ Thêm/bớt thành phố = sửa 2 file danh sách + test khớp; `id` đã phá
 
 ## 14. Changelog feature
 - [2026-10-20] [PO] Tạo feature trong đợt "mở app mỗi ngày" lần 2 (user chọn cùng poke · caro-game · arrival · expenses). Tra điều khoản 4 nguồn: chọn MET Norway qua CF (thương mại miễn phí, app phải đi qua proxy), Open-Meteo loại vì gói miễn phí cấm thương mại, WeatherKit làm dự phòng. Kiểm 34 tỉnh thành sau sáp nhập → chọn theo điểm thành phố (63 thủ phủ cũ + điểm du lịch + ~45 thành phố nước ngoài). Chốt D1–D19: lưu `couples/{id}/weather/{uid}`, chọn giúp người ấy nhưng không đè, cache theo thành phố, client tính câu chữ, nút gợi ý đi qua care-message, thông báo sáng local id 1160 trần 3 lần/tuần, không push nền, widget để sau. Chờ user duyệt + 2 câu hỏi §13.
+- [2026-10-20] [Lead] User đồng ý sửa privacy policy + khai báo vị trí gần đúng. Câu 2 (WeatherKit) chỉ hỏi lại nếu spike MET thất bại.
