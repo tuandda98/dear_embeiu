@@ -72,6 +72,13 @@ import 'care_message_screen.dart';
 import 'notification_center_screen.dart';
 import 'rps_game_screen.dart' show RpsGameScreen, openRpsGame;
 import 'rps_history_screen.dart' show openRpsHistory;
+// ── weather (đợt 2) ──
+import 'dart:convert' as weather_json;
+import '../providers/weather_provider.dart';
+import '../services/reminder_service.dart' as weather_notice;
+import '../utils/weather_logic.dart' show WeatherCta, weatherCityById;
+import '../widgets/sleep/sleep_format.dart' as weather_names;
+import '../widgets/weather/weather_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -419,6 +426,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Anchor for the decision card (a tapped `decision` push scrolls to it).
   final GlobalKey _decisionKey = GlobalKey();
 
+  // ── weather (đợt 2) ──
+  /// Anchor for the weather card (`pendingHomeFocus == 'weather'`).
+  final GlobalKey _weatherKey = GlobalKey();
+
   // Streak milestone celebration (feature streak): listen for a freshly-reached
   // milestone and auto-show the StreakSheet in celebration mode, once. The
   // provider's per-couple Hive guard prevents re-firing across launches; this
@@ -567,6 +578,43 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     RpsGameScreen.mountedCount.addListener(_onRpsScreensChanged);
     // ── caro-game (đợt 2) ── same hold for a caro game screen.
     CaroGameScreen.mountedCount.addListener(_onRpsScreensChanged);
+    // ── weather (đợt 2) ── tapped 07:30 notice → prefilled care screen.
+    weather_notice.ReminderService.pendingWeatherTap.addListener(
+      _onWeatherNoticeTap,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onWeatherNoticeTap());
+  }
+
+  // ── weather (đợt 2) ──
+  /// The morning notice was tapped (Lead: open the care screen straight
+  /// away, prefilled from what the notice said; Back returns to Home).
+  void _onWeatherNoticeTap() {
+    final raw = weather_notice.ReminderService.pendingWeatherTap.value;
+    if (raw == null || !mounted) {
+      return;
+    }
+    weather_notice.ReminderService.pendingWeatherTap.value = null;
+    try {
+      final data = weather_json.jsonDecode(raw) as Map<String, dynamic>;
+      final city = weatherCityById('${data['city']}');
+      final cta = WeatherCta.values
+          .where((c) => c.name == data['cta'])
+          .firstOrNull;
+      if (city == null || cta == null) {
+        _scrollToCard(_weatherKey);
+        return;
+      }
+      openWeatherCare(
+        context,
+        cta: cta,
+        city: city,
+        min: (data['min'] as num?)?.toInt() ?? 0,
+        max: (data['max'] as num?)?.toInt() ?? 0,
+        entry: 'notification',
+      );
+    } catch (_) {
+      _scrollToCard(_weatherKey);
+    }
   }
 
   /// One "Có gì mới" attempt — held (not recorded as seen) while a
@@ -650,6 +698,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     RpsGameScreen.mountedCount.removeListener(_onRpsScreensChanged);
     // ── caro-game (đợt 2) ──
     CaroGameScreen.mountedCount.removeListener(_onRpsScreensChanged);
+    // ── weather (đợt 2) ──
+    weather_notice.ReminderService.pendingWeatherTap.removeListener(
+      _onWeatherNoticeTap,
+    );
     _streakProvider?.removeListener(_onStreakChanged);
     _streakProvider?.removeListener(_refreshDqSafetyNet);
     _dqProvider?.removeListener(_refreshDqSafetyNet);
@@ -695,6 +747,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _refreshDqSafetyNet();
       context.read<DecisionProvider>().refreshDay();
       _refreshDecisionReminder();
+      // ── weather (đợt 2) ── refresh if this phone's copy is ≥ 30 min old.
+      context.read<WeatherProvider>().onResume();
     }
     // Chat presence (presence-suppress 2026-06-19): only meaningful while the
     // chat tab is the active screen. Backgrounding clears presence so the
@@ -1112,6 +1166,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _scrollToCard(_moodCardKey);
       case NotificationTapRouter.focusDecision:
         _scrollToCard(_decisionKey);
+      // ── weather (đợt 2) ──
+      case 'weather':
+        _scrollToCard(_weatherKey);
       case NotificationTapRouter.focusRpsGame:
         // gameId was published BEFORE the focus (push + notification center),
         // so it's readable here even on a cold start (initState).
@@ -1923,6 +1980,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             myUid,
             partnerUid,
           );
+          // ── weather (đợt 2) ── same partner rule; the name feeds the 07:30
+          // notice; refresh() is throttled (30 min) so entering Home is cheap.
+          final weather = context.read<WeatherProvider>()
+            ..watchForCouple(couple.id, myUid, partnerUid)
+            ..setPartnerName(
+              weather_names.SleepFormat.partnerName(context, couple, myUid),
+            );
+          weather.refresh();
           // Chat stream (feature chat) — must run from Home so the unread dot
           // works on every tab. watchForCouple no-ops when unchanged.
           context.read<ChatProvider>().watchForCouple(couple.id, myUid);
@@ -2129,6 +2194,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // ── Đợt 2 (Home C): ArrivalCard (feature arrival) chèn ở đây, chỉ khi đã ghép.
 
             // ── Đợt 2 (Home C): WeatherCard (feature weather) chèn ở đây, hiện cả khi đang chờ.
+            // ── weather (đợt 2) ──
+            Selector<WeatherProvider, bool>(
+              selector: (_, w) => w.cardVisible,
+              builder: (_, visible, _) => !visible
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: KeyedSubtree(
+                        key: _weatherKey,
+                        child: _gutter(
+                          _entrance(5, WeatherCard(couple: couple)),
+                        ),
+                      ),
+                    ),
+            ),
 
             // Sleep "Đêm qua" (feature sleep) — under the mood card; shown
             // while still waiting too (my own nights, full width — state A0).

@@ -8328,6 +8328,546 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Take turns whenever you have a minute, all day if you like. Every win adds to your shared score.'**
   String get caroTourBody;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Weather here and there'**
+  String get weatherCardTitle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {time}'**
+  String weatherUpdatedAt(String time);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'As of {time}'**
+  String weatherStaleAt(String time);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update'**
+  String get weatherStaleHeader;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the weather'**
+  String get weatherLoadFailed;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get weatherRetry;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Where are you?'**
+  String get weatherWhereAmI;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Where is {name}?'**
+  String weatherWhereIsPartner(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'And where is {name}?'**
+  String weatherWhereIsPartnerNext(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get weatherChoose;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Choose for them'**
+  String get weatherChooseForPartner;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your city and {name}\'s. Their weather shows up here every morning.'**
+  String weatherSetupBody(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your city. Today\'s weather shows up here every morning.'**
+  String get weatherSetupBodySolo;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a city'**
+  String get weatherSetupCta;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get weatherHide;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Hide the weather card'**
+  String get weatherHideA11y;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re both in {city}'**
+  String weatherSameCity(String city);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{n}° colder where {name} is'**
+  String weatherColder(String name, int n);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{n}° warmer where {name} is'**
+  String weatherWarmer(String name, int n);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name}: umbrella'**
+  String weatherCtaUmbrella(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name}: water'**
+  String weatherCtaWater(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name}: dress warm'**
+  String weatherCtaWarm(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to take an umbrella'**
+  String weatherCtaA11yUmbrella(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to drink water'**
+  String weatherCtaA11yWater(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to dress warm'**
+  String weatherCtaA11yWarm(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Opens a care note, already written'**
+  String get weatherCtaHint;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Opens the weather details'**
+  String get weatherCardHint;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} degrees'**
+  String weatherDegrees(int n);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Raining now'**
+  String get weatherCondRainNow;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain this morning'**
+  String get weatherCondRainMorning;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain this afternoon'**
+  String get weatherCondRainAfternoon;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain tonight'**
+  String get weatherCondRainTonight;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain tomorrow morning'**
+  String get weatherCondRainTomorrow;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Hot, up to {max}°'**
+  String weatherCondHot(int max);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Cold, down to {min}°'**
+  String weatherCondCold(int min);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get weatherSkyClear;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Partly cloudy'**
+  String get weatherSkyPartlyCloudy;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Cloudy'**
+  String get weatherSkyCloudy;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Foggy'**
+  String get weatherSkyFog;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Light rain'**
+  String get weatherSkyLightRain;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain'**
+  String get weatherSkyRain;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy rain'**
+  String get weatherSkyHeavyRain;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Thunderstorms'**
+  String get weatherSkyThunder;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Snow'**
+  String get weatherSkySnow;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rest of today {min}° to {max}°'**
+  String weatherRestOfDay(int min, int max);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rest of today {min} to {max} degrees, now {now} degrees'**
+  String weatherScaleA11y(int min, int max, int now);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{time}, {n} degrees'**
+  String weatherSlotA11y(String time, int n);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{time}, {n} degrees, rain'**
+  String weatherSlotRainA11y(String time, int n);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} picked this'**
+  String weatherPartnerSelfSet(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'you picked this'**
+  String get weatherSetByMe;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Change city'**
+  String get weatherChangeCity;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Change for them'**
+  String get weatherChangeForPartner;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'it\'s {time} there'**
+  String weatherTheirTimeNow(String time);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Just the city. The app never asks for your location.'**
+  String get weatherPickerSubSelf;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} can still change it later.'**
+  String weatherPickerSubPartner(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Search a city or province'**
+  String get weatherSearchHint;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Search cities'**
+  String get weatherSearchLabel;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get weatherClearSearch;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get weatherGroupCurrent;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Vietnam'**
+  String get weatherGroupVn;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Abroad'**
+  String get weatherGroupIntl;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Formerly {name}'**
+  String weatherOldProvince(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'That city isn\'t on the list yet. Pick the closest one.'**
+  String get weatherNoMatch;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} just picked their own city.'**
+  String weatherPartnerJustSet(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get weatherLater;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Weather data: '**
+  String get weatherSourcePrefix;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Weather here and there'**
+  String get weatherSettingsSection;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Your city'**
+  String get weatherSettingsMine;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s city'**
+  String weatherSettingsPartner(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get weatherNotSet;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Weather where your love is'**
+  String get weatherNotifToggle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'At {time}, only when it rains, gets very hot or turns cold where {name} is. Up to 3 times a week.'**
+  String weatherNotifToggleSub(String time, String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Available once you\'re paired.'**
+  String get weatherNotifNeedsCouple;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'On a rainy day where {name} is, you\'ll get this:'**
+  String weatherNotifPreviewCaption(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Take an umbrella'**
+  String get weatherCareUmbrellaTitle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Looks like rain in {city}. Grab an umbrella if you head out.'**
+  String weatherCareUmbrellaBody(String city);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Stay hydrated'**
+  String get weatherCareWaterTitle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{city} is hitting {max}° today. Cover up in the sun and keep drinking water.'**
+  String weatherCareWaterBody(String city, int max);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Dress warm'**
+  String get weatherCareWarmTitle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{city} is dropping to {min}°. Bring an extra layer when you go out.'**
+  String weatherCareWarmBody(String city, int min);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain in {city} today'**
+  String weatherMorningRainTitle(String city);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to take an umbrella?'**
+  String weatherMorningRainBody(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{city} hits {max}° today'**
+  String weatherMorningHotTitle(String city, int max);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to drink enough water?'**
+  String weatherMorningHotBody(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{city} drops to {min}° today'**
+  String weatherMorningColdTitle(String city, int min);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to dress warm?'**
+  String weatherMorningColdBody(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save that. Please try again.'**
+  String get weatherSaveFailed;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load'**
+  String get weatherLaneFailed;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Weather in both places'**
+  String get weatherFeatureTourTitle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'See if it\'s about to rain where your partner is. One tap reminds them to bring an umbrella.'**
+  String get weatherFeatureTourBody;
 }
 
 class _AppLocalizationsDelegate

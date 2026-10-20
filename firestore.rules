@@ -684,6 +684,28 @@ service cloud.firestore {
           && (sleepEditable(resource.data.wakeAt) || !sleepShared(coupleId, uid));
       }
 
+      // ── weather (đợt 2) ──
+      // Weather city (feature weather, 2026-10-20): one doc per member (id ==
+      // uid) = { cityId, setBy, updatedAt }. Both members read. The owner
+      // always writes their own; the partner may pick one FOR them only while
+      // the owner hasn't picked it themselves (stored setBy != owner) — D6.
+      // cityId = a slug of the bundled city list (the app ignores ids it
+      // doesn't know). Brand-new collection ⇒ fully ADDITIVE. The CF cache
+      // weatherCache/{cityId} deliberately has no rule: Admin SDK only.
+      match /weather/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow create, update: if isCoupleMember(coupleId)
+          && request.resource.data.keys().hasOnly(['cityId', 'setBy', 'updatedAt'])
+          && request.resource.data.cityId is string
+          && request.resource.data.cityId.matches('^[a-z]{2}-[a-z0-9-]{1,37}$')
+          && request.resource.data.setBy == request.auth.uid
+          && request.resource.data.updatedAt == request.time
+          && (uid == request.auth.uid
+              || (uid in get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds
+                  && (resource == null || resource.data.get('setBy', '') != uid)));
+        allow delete: if isCoupleMember(coupleId) && uid == request.auth.uid;
+      }
+
       // Care message (feature care-message): a one-shot "quan tâm" note one
       // member sends to the other. The message text IS the push content (CF
       // notifyCareMessage sends title/body verbatim), so the payload is pinned

@@ -6,6 +6,8 @@ import '../widgets/decision_parts.dart';
 import '../screens/love_tree_screen.dart';
 import '../screens/rps_game_screen.dart';
 import '../screens/sleep_screen.dart';
+// ── weather (đợt 2) ──
+import '../widgets/weather/weather_sheets.dart' show openWeatherFromTour;
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../l10n/app_localizations.dart';
@@ -128,5 +130,14 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
     title: (l10n) => l10n.caroTourTitle,
     body: (l10n) => l10n.caroTourBody,
     onOpen: (context) => openCaroGame(context, source: 'tour'),
+  ),
+  // ── weather (đợt 2) ──
+  // ---- Build 33 ------------------------------------------------------------
+  FeatureTourEntry(
+    sinceBuild: 33,
+    icon: IconsaxPlusLinear.cloud_sunny,
+    title: (l10n) => l10n.weatherFeatureTourTitle,
+    body: (l10n) => l10n.weatherFeatureTourBody,
+    onOpen: openWeatherFromTour,
   ),
 ];

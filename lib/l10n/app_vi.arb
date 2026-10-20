@@ -4519,5 +4519,435 @@
   },
   "caroWidgetTurnShort": "Lượt mình đi caro",
   "caroTourTitle": "Cờ caro theo lượt",
-  "caroTourBody": "Mỗi người đi một nước khi rảnh, rải cả ngày cũng được. Thắng thua cộng vào tỉ số chung của chúng mình."
+  "caroTourBody": "Mỗi người đi một nước khi rảnh, rải cả ngày cũng được. Thắng thua cộng vào tỉ số chung của chúng mình.",
+  "weatherCardTitle": "Thời tiết hai nơi",
+  "weatherUpdatedAt": "Cập nhật {time}",
+  "@weatherUpdatedAt": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherStaleAt": "Số liệu lúc {time}",
+  "@weatherStaleAt": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherStaleHeader": "Chưa cập nhật được",
+  "weatherLoadFailed": "Chưa tải được thời tiết",
+  "weatherRetry": "Thử lại",
+  "weatherWhereAmI": "Bạn đang ở đâu?",
+  "weatherWhereIsPartner": "{name} đang ở đâu?",
+  "@weatherWhereIsPartner": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherWhereIsPartnerNext": "Còn {name} đang ở đâu?",
+  "@weatherWhereIsPartnerNext": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherChoose": "Chọn",
+  "weatherChooseForPartner": "Chọn giúp",
+  "weatherSetupBody": "Chọn chỗ bạn và chỗ {name}, sáng nào mở app cũng thấy trời bên đó.",
+  "@weatherSetupBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherSetupBodySolo": "Chọn thành phố của bạn, sáng nào mở app cũng thấy trời hôm nay.",
+  "weatherSetupCta": "Chọn thành phố",
+  "weatherHide": "Ẩn",
+  "weatherHideA11y": "Ẩn thẻ thời tiết",
+  "weatherSameCity": "Cả hai cùng ở {city}",
+  "@weatherSameCity": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherColder": "Chỗ {name} lạnh hơn {n}°",
+  "@weatherColder": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherWarmer": "Chỗ {name} nóng hơn {n}°",
+  "@weatherWarmer": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherCtaUmbrella": "Nhắc {name} mang ô",
+  "@weatherCtaUmbrella": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaWater": "Nhắc {name} uống nước",
+  "@weatherCtaWater": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaWarm": "Nhắc {name} mặc ấm",
+  "@weatherCtaWarm": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaA11yUmbrella": "Nhắc {name} mang ô",
+  "@weatherCtaA11yUmbrella": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaA11yWater": "Nhắc {name} uống nước",
+  "@weatherCtaA11yWater": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaA11yWarm": "Nhắc {name} mặc ấm",
+  "@weatherCtaA11yWarm": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaHint": "Mở màn Quan tâm với lời soạn sẵn",
+  "weatherCardHint": "Mở chi tiết thời tiết",
+  "weatherDegrees": "{n} độ",
+  "@weatherDegrees": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherCondRainNow": "Đang mưa",
+  "weatherCondRainMorning": "Sáng nay mưa",
+  "weatherCondRainAfternoon": "Chiều nay mưa",
+  "weatherCondRainTonight": "Tối nay mưa",
+  "weatherCondRainTomorrow": "Sáng mai mưa",
+  "weatherCondHot": "Nắng gắt, lên {max}°",
+  "@weatherCondHot": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherCondCold": "Lạnh, xuống {min}°",
+  "@weatherCondCold": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherSkyClear": "Trời quang",
+  "weatherSkyPartlyCloudy": "Ít mây",
+  "weatherSkyCloudy": "Nhiều mây",
+  "weatherSkyFog": "Có sương mù",
+  "weatherSkyLightRain": "Mưa nhỏ",
+  "weatherSkyRain": "Có mưa",
+  "weatherSkyHeavyRain": "Mưa to",
+  "weatherSkyThunder": "Có dông",
+  "weatherSkySnow": "Có tuyết",
+  "weatherRestOfDay": "Từ giờ tới khuya {min}° – {max}°",
+  "@weatherRestOfDay": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherScaleA11y": "Từ giờ tới khuya {min} đến {max} độ, bây giờ {now} độ",
+  "@weatherScaleA11y": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      },
+      "now": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherSlotA11y": "{time}, {n} độ",
+  "@weatherSlotA11y": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherSlotRainA11y": "{time}, {n} độ, có mưa",
+  "@weatherSlotRainA11y": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherPartnerSelfSet": "{name} tự chọn",
+  "@weatherPartnerSelfSet": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherSetByMe": "bạn chọn giúp",
+  "weatherChangeCity": "Đổi thành phố",
+  "weatherChangeForPartner": "Đổi giúp",
+  "weatherTheirTimeNow": "bây giờ {time}",
+  "@weatherTheirTimeNow": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherPickerSubSelf": "Chỉ cần tên thành phố, app không xin vị trí.",
+  "weatherPickerSubPartner": "{name} vẫn tự đổi được sau.",
+  "@weatherPickerSubPartner": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherSearchHint": "Tìm thành phố hoặc tỉnh",
+  "weatherSearchLabel": "Tìm thành phố",
+  "weatherClearSearch": "Xoá chữ đã gõ",
+  "weatherGroupCurrent": "Đang chọn",
+  "weatherGroupVn": "Việt Nam",
+  "weatherGroupIntl": "Nước ngoài",
+  "weatherOldProvince": "Tỉnh cũ: {name}",
+  "@weatherOldProvince": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherNoMatch": "Chưa có thành phố này. Chọn nơi gần nhất nhé.",
+  "weatherPartnerJustSet": "{name} vừa tự chọn chỗ của mình rồi.",
+  "@weatherPartnerJustSet": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherLater": "Để sau",
+  "weatherSourcePrefix": "Dữ liệu thời tiết: ",
+  "weatherSettingsSection": "Thời tiết hai nơi",
+  "weatherSettingsMine": "Chỗ của bạn",
+  "weatherSettingsPartner": "Chỗ {name}",
+  "@weatherSettingsPartner": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherNotSet": "Chưa chọn",
+  "weatherNotifToggle": "Thời tiết chỗ người ấy",
+  "weatherNotifToggleSub": "Báo lúc {time} khi chỗ {name} mưa, nắng gắt hoặc lạnh. Tối đa 3 lần một tuần.",
+  "@weatherNotifToggleSub": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherNotifNeedsCouple": "Ghép đôi xong mới báo được.",
+  "weatherNotifPreviewCaption": "Hôm nào chỗ {name} có mưa, thông báo sẽ như thế này:",
+  "@weatherNotifPreviewCaption": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCareUmbrellaTitle": "Nhớ mang ô nhé",
+  "weatherCareUmbrellaBody": "{city} sắp mưa đó. Ra ngoài nhớ mang ô theo nha.",
+  "@weatherCareUmbrellaBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCareWaterTitle": "Uống nước nhiều nha",
+  "weatherCareWaterBody": "{city} hôm nay lên tới {max}°. Ra đường nhớ che nắng, uống đủ nước nhé.",
+  "@weatherCareWaterBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherCareWarmTitle": "Mặc ấm vào nhé",
+  "weatherCareWarmBody": "{city} xuống còn {min}° đó. Ra ngoài nhớ mặc thêm áo.",
+  "@weatherCareWarmBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherMorningRainTitle": "Hôm nay {city} có mưa",
+  "@weatherMorningRainTitle": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherMorningRainBody": "Nhắc {name} mang ô nhé?",
+  "@weatherMorningRainBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherMorningHotTitle": "Hôm nay {city} lên {max}°",
+  "@weatherMorningHotTitle": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherMorningHotBody": "Nhắc {name} uống đủ nước nhé?",
+  "@weatherMorningHotBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherMorningColdTitle": "{city} xuống {min}° hôm nay",
+  "@weatherMorningColdTitle": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherMorningColdBody": "Nhắc {name} mặc ấm nhé?",
+  "@weatherMorningColdBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherSaveFailed": "Chưa lưu được, thử lại nhé.",
+  "weatherLaneFailed": "Chưa tải được",
+  "weatherFeatureTourTitle": "Thời tiết hai nơi",
+  "weatherFeatureTourBody": "Mở app là biết chỗ người ấy có mưa không. Trời sắp mưa thì một chạm nhắc người ấy mang ô."
 }

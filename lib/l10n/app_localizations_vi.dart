@@ -4962,4 +4962,353 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get caroTourBody =>
       'Mỗi người đi một nước khi rảnh, rải cả ngày cũng được. Thắng thua cộng vào tỉ số chung của chúng mình.';
+
+  @override
+  String get weatherCardTitle => 'Thời tiết hai nơi';
+
+  @override
+  String weatherUpdatedAt(String time) {
+    return 'Cập nhật $time';
+  }
+
+  @override
+  String weatherStaleAt(String time) {
+    return 'Số liệu lúc $time';
+  }
+
+  @override
+  String get weatherStaleHeader => 'Chưa cập nhật được';
+
+  @override
+  String get weatherLoadFailed => 'Chưa tải được thời tiết';
+
+  @override
+  String get weatherRetry => 'Thử lại';
+
+  @override
+  String get weatherWhereAmI => 'Bạn đang ở đâu?';
+
+  @override
+  String weatherWhereIsPartner(String name) {
+    return '$name đang ở đâu?';
+  }
+
+  @override
+  String weatherWhereIsPartnerNext(String name) {
+    return 'Còn $name đang ở đâu?';
+  }
+
+  @override
+  String get weatherChoose => 'Chọn';
+
+  @override
+  String get weatherChooseForPartner => 'Chọn giúp';
+
+  @override
+  String weatherSetupBody(String name) {
+    return 'Chọn chỗ bạn và chỗ $name, sáng nào mở app cũng thấy trời bên đó.';
+  }
+
+  @override
+  String get weatherSetupBodySolo =>
+      'Chọn thành phố của bạn, sáng nào mở app cũng thấy trời hôm nay.';
+
+  @override
+  String get weatherSetupCta => 'Chọn thành phố';
+
+  @override
+  String get weatherHide => 'Ẩn';
+
+  @override
+  String get weatherHideA11y => 'Ẩn thẻ thời tiết';
+
+  @override
+  String weatherSameCity(String city) {
+    return 'Cả hai cùng ở $city';
+  }
+
+  @override
+  String weatherColder(String name, int n) {
+    return 'Chỗ $name lạnh hơn $n°';
+  }
+
+  @override
+  String weatherWarmer(String name, int n) {
+    return 'Chỗ $name nóng hơn $n°';
+  }
+
+  @override
+  String weatherCtaUmbrella(String name) {
+    return 'Nhắc $name mang ô';
+  }
+
+  @override
+  String weatherCtaWater(String name) {
+    return 'Nhắc $name uống nước';
+  }
+
+  @override
+  String weatherCtaWarm(String name) {
+    return 'Nhắc $name mặc ấm';
+  }
+
+  @override
+  String weatherCtaA11yUmbrella(String name) {
+    return 'Nhắc $name mang ô';
+  }
+
+  @override
+  String weatherCtaA11yWater(String name) {
+    return 'Nhắc $name uống nước';
+  }
+
+  @override
+  String weatherCtaA11yWarm(String name) {
+    return 'Nhắc $name mặc ấm';
+  }
+
+  @override
+  String get weatherCtaHint => 'Mở màn Quan tâm với lời soạn sẵn';
+
+  @override
+  String get weatherCardHint => 'Mở chi tiết thời tiết';
+
+  @override
+  String weatherDegrees(int n) {
+    return '$n độ';
+  }
+
+  @override
+  String get weatherCondRainNow => 'Đang mưa';
+
+  @override
+  String get weatherCondRainMorning => 'Sáng nay mưa';
+
+  @override
+  String get weatherCondRainAfternoon => 'Chiều nay mưa';
+
+  @override
+  String get weatherCondRainTonight => 'Tối nay mưa';
+
+  @override
+  String get weatherCondRainTomorrow => 'Sáng mai mưa';
+
+  @override
+  String weatherCondHot(int max) {
+    return 'Nắng gắt, lên $max°';
+  }
+
+  @override
+  String weatherCondCold(int min) {
+    return 'Lạnh, xuống $min°';
+  }
+
+  @override
+  String get weatherSkyClear => 'Trời quang';
+
+  @override
+  String get weatherSkyPartlyCloudy => 'Ít mây';
+
+  @override
+  String get weatherSkyCloudy => 'Nhiều mây';
+
+  @override
+  String get weatherSkyFog => 'Có sương mù';
+
+  @override
+  String get weatherSkyLightRain => 'Mưa nhỏ';
+
+  @override
+  String get weatherSkyRain => 'Có mưa';
+
+  @override
+  String get weatherSkyHeavyRain => 'Mưa to';
+
+  @override
+  String get weatherSkyThunder => 'Có dông';
+
+  @override
+  String get weatherSkySnow => 'Có tuyết';
+
+  @override
+  String weatherRestOfDay(int min, int max) {
+    return 'Từ giờ tới khuya $min° – $max°';
+  }
+
+  @override
+  String weatherScaleA11y(int min, int max, int now) {
+    return 'Từ giờ tới khuya $min đến $max độ, bây giờ $now độ';
+  }
+
+  @override
+  String weatherSlotA11y(String time, int n) {
+    return '$time, $n độ';
+  }
+
+  @override
+  String weatherSlotRainA11y(String time, int n) {
+    return '$time, $n độ, có mưa';
+  }
+
+  @override
+  String weatherPartnerSelfSet(String name) {
+    return '$name tự chọn';
+  }
+
+  @override
+  String get weatherSetByMe => 'bạn chọn giúp';
+
+  @override
+  String get weatherChangeCity => 'Đổi thành phố';
+
+  @override
+  String get weatherChangeForPartner => 'Đổi giúp';
+
+  @override
+  String weatherTheirTimeNow(String time) {
+    return 'bây giờ $time';
+  }
+
+  @override
+  String get weatherPickerSubSelf =>
+      'Chỉ cần tên thành phố, app không xin vị trí.';
+
+  @override
+  String weatherPickerSubPartner(String name) {
+    return '$name vẫn tự đổi được sau.';
+  }
+
+  @override
+  String get weatherSearchHint => 'Tìm thành phố hoặc tỉnh';
+
+  @override
+  String get weatherSearchLabel => 'Tìm thành phố';
+
+  @override
+  String get weatherClearSearch => 'Xoá chữ đã gõ';
+
+  @override
+  String get weatherGroupCurrent => 'Đang chọn';
+
+  @override
+  String get weatherGroupVn => 'Việt Nam';
+
+  @override
+  String get weatherGroupIntl => 'Nước ngoài';
+
+  @override
+  String weatherOldProvince(String name) {
+    return 'Tỉnh cũ: $name';
+  }
+
+  @override
+  String get weatherNoMatch => 'Chưa có thành phố này. Chọn nơi gần nhất nhé.';
+
+  @override
+  String weatherPartnerJustSet(String name) {
+    return '$name vừa tự chọn chỗ của mình rồi.';
+  }
+
+  @override
+  String get weatherLater => 'Để sau';
+
+  @override
+  String get weatherSourcePrefix => 'Dữ liệu thời tiết: ';
+
+  @override
+  String get weatherSettingsSection => 'Thời tiết hai nơi';
+
+  @override
+  String get weatherSettingsMine => 'Chỗ của bạn';
+
+  @override
+  String weatherSettingsPartner(String name) {
+    return 'Chỗ $name';
+  }
+
+  @override
+  String get weatherNotSet => 'Chưa chọn';
+
+  @override
+  String get weatherNotifToggle => 'Thời tiết chỗ người ấy';
+
+  @override
+  String weatherNotifToggleSub(String time, String name) {
+    return 'Báo lúc $time khi chỗ $name mưa, nắng gắt hoặc lạnh. Tối đa 3 lần một tuần.';
+  }
+
+  @override
+  String get weatherNotifNeedsCouple => 'Ghép đôi xong mới báo được.';
+
+  @override
+  String weatherNotifPreviewCaption(String name) {
+    return 'Hôm nào chỗ $name có mưa, thông báo sẽ như thế này:';
+  }
+
+  @override
+  String get weatherCareUmbrellaTitle => 'Nhớ mang ô nhé';
+
+  @override
+  String weatherCareUmbrellaBody(String city) {
+    return '$city sắp mưa đó. Ra ngoài nhớ mang ô theo nha.';
+  }
+
+  @override
+  String get weatherCareWaterTitle => 'Uống nước nhiều nha';
+
+  @override
+  String weatherCareWaterBody(String city, int max) {
+    return '$city hôm nay lên tới $max°. Ra đường nhớ che nắng, uống đủ nước nhé.';
+  }
+
+  @override
+  String get weatherCareWarmTitle => 'Mặc ấm vào nhé';
+
+  @override
+  String weatherCareWarmBody(String city, int min) {
+    return '$city xuống còn $min° đó. Ra ngoài nhớ mặc thêm áo.';
+  }
+
+  @override
+  String weatherMorningRainTitle(String city) {
+    return 'Hôm nay $city có mưa';
+  }
+
+  @override
+  String weatherMorningRainBody(String name) {
+    return 'Nhắc $name mang ô nhé?';
+  }
+
+  @override
+  String weatherMorningHotTitle(String city, int max) {
+    return 'Hôm nay $city lên $max°';
+  }
+
+  @override
+  String weatherMorningHotBody(String name) {
+    return 'Nhắc $name uống đủ nước nhé?';
+  }
+
+  @override
+  String weatherMorningColdTitle(String city, int min) {
+    return '$city xuống $min° hôm nay';
+  }
+
+  @override
+  String weatherMorningColdBody(String name) {
+    return 'Nhắc $name mặc ấm nhé?';
+  }
+
+  @override
+  String get weatherSaveFailed => 'Chưa lưu được, thử lại nhé.';
+
+  @override
+  String get weatherLaneFailed => 'Chưa tải được';
+
+  @override
+  String get weatherFeatureTourTitle => 'Thời tiết hai nơi';
+
+  @override
+  String get weatherFeatureTourBody =>
+      'Mở app là biết chỗ người ấy có mưa không. Trời sắp mưa thì một chạm nhắc người ấy mang ô.';
 }
