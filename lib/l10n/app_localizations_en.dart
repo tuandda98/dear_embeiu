@@ -823,6 +823,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moodUpdateCta => 'Update mood';
 
   @override
+  String get moodChangeShort => 'Change';
+
+  @override
   String get moodNotSharedYou => 'Tap to share';
 
   @override

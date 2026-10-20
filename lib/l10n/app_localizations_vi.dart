@@ -805,6 +805,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get moodUpdateCta => 'Đổi tâm trạng';
 
   @override
+  String get moodChangeShort => 'Đổi';
+
+  @override
   String get moodNotSharedYou => 'Chạm để chia sẻ';
 
   @override

@@ -1,0 +1,49 @@
+id	grp	era	api	n	lat	lon	dist_m	label
+1	HN	cũ	CL	1	20.4292425	106.1606634	71759	78 Giải Phóng | Giải Phóng | P. Đông A
+1	HN	cũ	MK	1	20.4292425	106.1606634	71759	78 Giải Phóng | 78 Giải Phóng, P. Đông A, Ninh Bình, Việt Nam | best5=71759
+2	HN	mới	CL	1	21.0075077	105.8427374	128	1 Đại Cồ Việt | Đại Cồ Việt | P. Bạch Mai
+2	HN	mới	MK	1	21.0075077	105.8427374	128	1 Đại Cồ Việt | 1 Đại Cồ Việt, P. Bạch Mai, Thành Phố Hà Nội, Việt Nam | best5=128
+3	HN	cũ	CL	1	21.0249	105.8595273	199	1 Tràng Tiền | Tràng Tiền | P. Hoàn Kiếm
+3	HN	cũ	MK	1	21.0249	105.8595273	199	1 Tràng Tiền | 1 Tràng Tiền, P. Hoàn Kiếm, Thành Phố Hà Nội, Việt Nam | best5=199
+4	HN	mới	CL	1	21.02697275486351	105.83616754840291	192	Quốc Tử Giám | Quốc Tử Giám | P. Văn Miếu - Quốc Tử Giám
+4	HN	mới	MK	1	21.02697275486351	105.83616754840291	192	Quốc Tử Giám | Quốc Tử Giám, P. Văn Miếu - Quốc Tử Giám, Thành Phố Hà Nội, Việt Nam | best5=192
+5	HN	cũ	CL	1	21.0275187	105.846336	119	40 Tràng Thi | Tràng Thi | P. Hoàn Kiếm
+5	HN	cũ	MK	1	21.0275187	105.846336	119	40 Tràng Thi | 40 Tràng Thi, P. Hoàn Kiếm, Thành Phố Hà Nội, Việt Nam | best5=119
+6	HN	mới	CL	1	21.036786	105.7823835	395	144 Xuân Thủy | Xuân Thủy | P. Cầu Giấy
+6	HN	mới	MK	1	21.036786	105.7823835	395	144 Xuân Thủy | 144 Xuân Thủy, P. Cầu Giấy, Thành Phố Hà Nội, Việt Nam | best5=395
+7	HN	cũ	CL	1	21.03466486574585	105.81439925972376	318	Liễu Giai | Liễu Giai | P. Ngọc Hà
+7	HN	cũ	MK	1	21.03466486574585	105.81439925972376	318	Liễu Giai | Liễu Giai, P. Ngọc Hà, Thành Phố Hà Nội, Việt Nam | best5=318
+8	HN	mới	CL	1	21.0243552	105.8413498	28	120 Lê Duẩn | Lê Duẩn | P. Văn Miếu - Quốc Tử Giám
+8	HN	mới	MK	1	21.0243552	105.8413498	28	120 Lê Duẩn | 120 Lê Duẩn, P. Văn Miếu - Quốc Tử Giám, Thành Phố Hà Nội, Việt Nam | best5=28
+9	HCM	cũ	CL	1	10.347343	107.0846041	63977	135 Nam Kỳ Khởi Nghĩa | Nam Kỳ Khởi Nghĩa | P. Vũng Tàu
+9	HCM	cũ	MK	1	10.347343	107.0846041	63977	135 Nam Kỳ Khởi Nghĩa | 135 Nam Kỳ Khởi Nghĩa, P. Vũng Tàu, Thành Phố Hồ Chí Minh, Việt Nam | best5=63977
+10	HCM	cũ	CL	0			NA	ERR kCLErrorDomain 8
+10	HCM	cũ	MK	1	10.765164881725996	106.6815986307947	2510	Ngã Sáu Cộng Hòa | Ngã Sáu Cộng Hòa, P. Chợ Quán, Thành Phố Hồ Chí Minh, Việt Nam | best5=2510
+11	HCM	mới	CL	1	10.7796436	106.6997321	35	2 Công Trường Công Xã Paris | Công Trường Công Xã Paris | P. Sài Gòn
+11	HCM	mới	MK	1	10.7796436	106.6997321	35	2 Công Trường Công Xã Paris | 2 Công Trường Công Xã Paris, P. Sài Gòn, Thành Phố Hồ Chí Minh, Việt Nam | best5=35
+12	HCM	mới	CL	0			NA	ERR kCLErrorDomain 8
+12	HCM	mới	MK	1	10.770482	106.694301	465	Cho thuê văn phòng phường Bến Thành - Office Saigon | 76A Lê Lai, P. Bến Thành, Thành Phố Hồ Chí Minh, Việt Nam | best5=465
+13	HCM	cũ	CL	1	10.7579277	106.6596187	88	201B Nguyễn Chí Thanh | Nguyễn Chí Thanh | P. Chợ Lớn
+13	HCM	cũ	MK	1	10.7579277	106.6596187	88	201B Nguyễn Chí Thanh | 201B Nguyễn Chí Thanh, P. Chợ Lớn, Thành Phố Hồ Chí Minh, Việt Nam | best5=88
+14	HCM	cũ	CL	1	10.7724062	106.6576442	230	268 Lý Thường Kiệt | Lý Thường Kiệt | P. Hòa Hưng
+14	HCM	cũ	MK	1	10.7724062	106.6576442	230	268 Lý Thường Kiệt | 268 Lý Thường Kiệt, P. Hòa Hưng, Thành Phố Hồ Chí Minh, Việt Nam | best5=230
+15	HCM	mới	CL	0			NA	ERR kCLErrorDomain 8
+15	HCM	mới	MK	2	10.801111	106.715839	948	LAVA Fitness Studio x 25 FIT - Hot Yoga - Điện Biên Phủ HCM | 527 Điện Biên Phủ, P. Thạnh Mỹ Tây, Thành Phố Hồ Chí Minh, Việt Nam | best5=487
+16	HCM	mới	CL	1	10.7771134	106.7039271	89	7 Công Trường Lam Sơn | Công Trường Lam Sơn | P. Sài Gòn
+16	HCM	mới	MK	1	10.7771134	106.7039271	89	7 Công Trường Lam Sơn | 7 Công Trường Lam Sơn, P. Sài Gòn, Thành Phố Hồ Chí Minh, Việt Nam | best5=89
+17	DN	mới	CL	1	16.0720678	108.2156373	72	124 Hải Phòng | Hải Phòng | P. Hải Châu
+17	DN	mới	MK	1	16.0720678	108.2156373	72	124 Hải Phòng | 124 Hải Phòng, P. Hải Châu, Thành Phố Đà Nẵng, Việt Nam | best5=72
+18	Huế	cũ	CL	1	16.4622498	107.5849177	130	16 Lê Lợi | Lê Lợi | P. Thuận Hóa
+18	Huế	cũ	MK	1	16.4622498	107.5849177	130	16 Lê Lợi | 16 Lê Lợi, P. Thuận Hóa, Thành Phố Huế, Việt Nam | best5=130
+19	CT	mới	CL	1	10.0440759	105.7812457	1937	P. Ninh Kiều | P. Ninh Kiều
+19	CT	mới	MK	1	10.0440759	105.7812457	1937	P. Ninh Kiều | P. Ninh Kiều, Thành Phố Cần Thơ, Việt Nam | best5=1937
+20	HP	cũ	CL	1	20.8563221	106.6868155	79	75 Lương Khánh Thiện | Lương Khánh Thiện | P. Gia Viên
+20	HP	cũ	MK	1	20.8563221	106.6868155	79	75 Lương Khánh Thiện | 75 Lương Khánh Thiện, P. Gia Viên, Thành Phố Hải Phòng, Việt Nam | best5=79
+P1	HCM	cũ	CL	0			NA	ERR kCLErrorDomain 8
+P1	HCM	cũ	MK	9	10.7867587	106.6808993	NA	Trường Đại học Sư phạm Thành phố Hồ Chí Minh | 222 Lê Văn Sỹ, Phường 14, Quận 3, Thành Phố Hồ Chí Minh, Việt Nam | best5=NA
+P2	HCM	mới	CL	0			NA	ERR kCLErrorDomain 8
+P2	HCM	mới	MK	1	10.78772821176202	106.67806821152622	NA	Lê Văn Sỹ | Lê Văn Sỹ, P. Nhiêu Lộc, Thành Phố Hồ Chí Minh, Việt Nam | best5=NA
+P3	HN	cũ	CL	1	21.0041195	105.846366	NA	8 Hẻm 40/2/5 Tạ Quang Bửu | Hẻm 40/2/5 Tạ Quang Bửu | P. Bạch Mai
+P3	HN	cũ	MK	1	21.00338	105.847862	NA	Tạ Quang Bửu | Tạ Quang Bửu, P. Bạch Mai, Thành Phố Hà Nội, Việt Nam | best5=NA
+P4	HN	mới	CL	1	21.020476007210707	105.80438099639464	NA	Hẻm 102/44/49 Pháo Đài Láng | Hẻm 102/44/49 Pháo Đài Láng | P. Láng
+P4	HN	mới	MK	1	21.0165247	105.8057191	NA	102 Nguyễn Chí Thanh | 102 Nguyễn Chí Thanh, P. Láng, Thành Phố Hà Nội, Việt Nam | best5=NA
