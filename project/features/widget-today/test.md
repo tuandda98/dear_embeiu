@@ -68,3 +68,13 @@
 - DW-R2-2 FIXED: cooldown gửi push im lặng (`silent`: data-only, iOS background priority 5), không ghi `lastPushAt`; caller khác không đổi. CẦN TEST iOS thật nhận background wake.
 - WT-R2-1 FIXED: `clearIfOlder` + `clearedAt` nhất quán Dart / iOS / Android; `state=empty` xoá cả hai. Rủi ro minor chấp nhận: lệch đồng hồ máy có thể chặn nhầm 1 push thật vài phút, tự hết khi mở app. CẦN TEST: B rời → ghép C → C nhắn → widget A hiện C.
 - Bug mới: không. **Kết luận chung: PASS code-level, chờ smoke máy thật.**
+
+## Smoke runtime 2026-10-20 (Lead, tự động · DEV · Android Pixel 10 = test3 A · iOS sim = test4 B)
+- ✅ Picker Android: mô tả mới D15 "Your days together, and what your partner just did today." cho cả 2×2 và 4×2.
+- ✅ (1)(2) App A kill, B làm → widget A đổi trong ~10s: trả lời câu hỏi "Thảo answered — your turn" · nhắn "Thảo just messaged…" · tâm trạng "Thảo today: stressed" · chốt món "Today's meal: …" · tự nhập "<câu>: <kết quả>". Bản ngắn 2×2 đúng D14 ("Thảo answered", "Thảo: stressed", "Eat: …", "Spun: Tuấn"). Mới nhất thắng.
+- ✅ (5)(12) Đổi ngôn ngữ app A sang vi → widget "Thảo hôm nay: căng thẳng", "1.255 ngày bên nhau".
+- ✅ (6) Chạm widget dòng tâm trạng → Home cuộn tới thẻ tâm trạng; dòng chốt món → thẻ Phân vân.
+- ✅ (8) Đăng xuất A → widget về trống "Chạm để bắt đầu đếm ngày yêu", không còn dòng.
+- ✅ iOS: App Group của B có `widget_status` đúng (`statusText`/`statusTextShort`/`todayDate`/focus `decision`).
+- ⏭️ Chưa chạy: (3) push iOS (DEV thiếu APNs) · (7) qua 0:00 · (9) tinted/AX5 · (13) B rời couple · ảnh widget iOS (SpringBoard tự động không ổn định — user kiểm tay 1').
+- **Kết luận: PASS runtime trên Android + dữ liệu iOS.**

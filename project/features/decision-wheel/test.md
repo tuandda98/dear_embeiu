@@ -60,3 +60,20 @@
 - DW-R2-2 FIXED: cooldown gửi push im lặng (`silent`: data-only, iOS background priority 5), không ghi `lastPushAt`; caller khác không đổi. CẦN TEST iOS thật nhận background wake.
 - WT-R2-1 FIXED: `clearIfOlder` + `clearedAt` nhất quán Dart / iOS / Android; `state=empty` xoá cả hai. Rủi ro minor chấp nhận: lệch đồng hồ máy có thể chặn nhầm 1 push thật vài phút, tự hết khi mở app. CẦN TEST: B rời → ghép C → C nhắn → widget A hiện C.
 - Bug mới: không. **Kết luận chung: PASS code-level, chờ smoke máy thật.**
+
+## Smoke runtime 2026-10-20 (Lead, tự động Maestro + adb · DEV · Android Pixel 10 = test3 Tuấn en→vi · iPhone 17 Pro sim iOS 26.3 = test4 Thảo vi)
+- ✅ (1) B chốt Ăn gì lúc app A đã kill → A nhận banner "Thảo spun: Bánh khọt today" + widget A "Today's meal: Mini savory pancakes" (tên theo ngôn ngữ người xem) ≤10s.
+- ✅ Chạm widget → Home cuộn đúng thẻ "Can't decide?" (focus `decision`).
+- ✅ A Quay lại → thẻ B cập nhật realtime ≤3s ("Miến gà, Tuấn quay · ×2").
+- ✅ (10) B quay lại sau lượt push của A → A có banner "Thảo re-spun: …" (vá BUG-1 chạy thật).
+- ✅ (11) B quay thêm trong 10' → A KHÔNG có banner mới, widget vẫn đổi "Hotpot at home" (silent wake DW-R2-2).
+- ✅ Tự nhập trên iOS: câu có emoji "Tối nay ai rửa bát 🍽️🧽" + preset "Ai làm?" → A push `Thảo spun "…": Tuấn`, widget 4×2 hiện câu + kết quả, 2×2 "Spun: Tuấn".
+- ✅ Đi đâu (A) → thẻ B + inbox B "Tuấn quay ra: Chơi game cùng nhau"; inbox "Tuấn quay lại: Miến gà".
+- ✅ (5)(12) Máy bay: chốt eat → dải lỗi "Couldn't lock it in…" + Try again; bật mạng → Thử lại → chốt, `spins` 4→5.
+- ✅ (2) Reminder 1200: xoá doc eat hôm nay → mở A có id 1200; B chốt lúc A kill → 1200 biến mất (handler nền). Push tiếng Việt theo `languageCode` mới.
+- ✅ (8) Chụp lại (camera emulator) → CreatePost caption "Thịt rang cháy cạnh 🥓" → đăng lên Gallery; nút Chụp hình của Gallery vẫn chạy.
+- ✅ (7) Reduce Motion (animator scale 0) → kết quả hiện ngay.
+- ✅ Lịch sử: 2 khối Hay ăn/Hay đi + nhóm Hôm nay. Cài đặt có tile "Nhắc chọn món 16:30".
+- ⏭️ Không chạy được: (3)(9) push tới iOS (DEV thiếu APNs) · (4) 2 máy chốt cùng lúc (đã có test transaction) · (6) qua 0:00 thật (có `decision_card_midnight_test`).
+- ℹ️ Simulator iOS 26.3 vẽ MỌI emoji Text thành ô "?" (cả chat cũ) — lỗi môi trường đã biết từ 1.10.2, không phải code.
+- **Kết luận: PASS runtime trên các ca chạy được.**
