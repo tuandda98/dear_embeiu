@@ -115,7 +115,7 @@
     if (o.waiting) {
       const row = (label, icon, fn) => `<div class="brow tap" role="button" tabindex="0">${mid(icon, label)}${lane('m', fn(s, 'm'))}</div>`;
       return `<article class="card board solo" aria-labelledby="bd-t"><div class="chead"><span class="badge">${ic(I.people)}</span><h2 id="bd-t">Hôm nay của bạn</h2></div>
-        <div style="margin-top:8px">${row('Thời tiết', I.weather, weatherCell)}${row('Đêm qua', I.moon, sleepCell)}</div></article>`;
+        <div style="margin-top:8px">${row('Thời tiết', I.weather, weatherCell)}${(o.rows || ['weather', 'sleep']).includes('sleep') ? row('Đêm qua', I.moon, sleepCell) : ''}</div></article>`;
     }
     const matched = s.moods.m && s.moods.p && s.moods.m.key === s.moods.p.key;
     const stamp = s.offline ? `<span class="stamp">${ic(I.offline)}Mất mạng · số lúc ${s.weather.fetchedAt}</span>` : '';
@@ -128,10 +128,12 @@
     return `<article class="card board" id="board" aria-labelledby="bd-t">
       <div class="chead"><span class="badge">${ic(I.people)}</span><div style="flex:1;min-width:0"><h2 id="bd-t">${P} hôm nay thế nào?</h2>${stamp}</div></div>
       <div class="lanes-h" aria-hidden="true"><span class="person"><i style="background:${ME.color}"></i>Bạn</span><span></span><span class="person r">${P}<i style="background:${PARTNER.color}"></i></span></div>
-      ${brow(s, matched ? 'Giống nhau' : 'Tâm trạng', matched ? I.heartB : I.mood, moodCell, { cls: matched ? 'match' : '' })}
-      ${brow(s, 'Đến nơi', I.home, arrivalCell)}
-      ${brow(s, 'Thời tiết', I.weather, weatherCell)}
-      ${brow(s, 'Đêm qua', I.moon, sleepCell)}
+      ${(o.rows || ['mood', 'arrival', 'weather', 'sleep']).map((r) => ({
+        mood: () => brow(s, matched ? 'Giống nhau' : 'Tâm trạng', matched ? I.heartB : I.mood, moodCell, { cls: matched ? 'match' : '' }),
+        arrival: () => brow(s, 'Đến nơi', I.home, arrivalCell),
+        weather: () => brow(s, 'Thời tiết', I.weather, weatherCell),
+        sleep: () => brow(s, 'Đêm qua', I.moon, sleepCell),
+      })[r]()).join('')}
       <div class="bfoot">${homeBtn}${careBtn}</div>${note}
     </article>`;
   }
@@ -185,6 +187,50 @@
     <div class="step"><span class="n">2</span><div><p class="t">Người ấy tải app và đăng ký</p><p class="d">Người ấy cần cài Dear Embeiu (iOS/Android), đăng ký rồi chọn &lt;Tham gia bằng mã&gt;.</p></div></div>
     <div class="step"><span class="n">3</span><div><p class="t">Nhập mã là xong</p><p class="d">Ghép xong app tự chuyển, bạn sẽ nhận thông báo.</p></div></div></article>`;
 
+
+  // ======== BẢN B (không gộp): MoodCard + SleepCard đúng khuôn app ========
+  // mood_card.dart: ContentCard pad 20 · ô 36 r12 rose .12 + emoji_happy Bold 20 · tiêu đề sectionTitleStyle
+  // · 16 · hai cột (nhãn 11 w700 textTertiary IN HOA · 10 · mặt 56 nền rose .10 · 8 · chữ 14 w700 · 4 · ghi chú 12)
+  // · vạch dọc surfaceLight · 16 · nút pill h48 surfaceLight "Đổi tâm trạng" (chưa chia sẻ: sunsetRomance "Chia sẻ tâm trạng").
+  function moodSide(s, who) {
+    const v = s.moods[who];
+    const label = who === 'm' ? 'Bạn' : P;
+    if (!v) return `<div class="mside"><p class="ml">${label}</p><span class="mface empty">${ic(who === 'm' ? I.add : I.mood)}</span><p class="mempty">${who === 'm' ? 'Chạm để chia sẻ' : `${P} chưa chia sẻ hôm nay`}</p></div>`;
+    const [glyph, word] = MOODS[v.key];
+    return `<div class="mside"><p class="ml">${label}</p><span class="mface" aria-hidden="true">${glyph}</span><p class="mw">${word}</p>${v.note ? `<p class="mn">“${v.note}”</p>` : ''}</div>`;
+  }
+  function moodCard(s) {
+    const shared = !!s.moods.m;
+    return `<article class="card mood" aria-labelledby="md-t"><div class="mhead"><span class="msq">${ic(0xea36, true)}</span><h2 id="md-t">Tâm trạng hôm nay</h2></div>
+      <div class="mcols">${moodSide(s, 'm')}<span class="mvr"></span>${moodSide(s, 'p')}</div>
+      <button class="mbtn${shared ? '' : ' first'}" type="button">${shared ? ic(I.edit) + 'Đổi tâm trạng' : ic(I.heartB, true) + 'Chia sẻ tâm trạng'}</button></article>`;
+  }
+  // sleep_card.dart: ContentCard pad 16 · IconBadge moon lavenderDeep + "Đêm qua" 16 w800 + chevron · 14
+  // · hai cột (PersonLabel · 8 · MoonGlyph 30 + DurationText 22 w800 / giờ 12) · vạch α.10 · 14 · vạch ngang · 12 · tim 12 + "Ngủ cùng lúc …".
+  const moon = (color) => `<svg class="moon" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="${color}" fill-opacity=".16"/><path d="M19 4.5a11 11 0 1 0 6.5 15A9 9 0 0 1 19 4.5z" fill="${color}"/></svg>`;
+  function sleepCol(s, who) {
+    const n = s.sleep[who];
+    const [h, m] = [Math.floor(n.min / 60), n.min % 60];
+    const color = who === 'm' ? ME.color : PARTNER.color;
+    return `<div class="scol"><span class="person"><i style="background:${color}"></i>${who === 'm' ? 'Bạn' : P}</span>
+      <div class="srow">${moon(color)}<div><p class="sdur num">${h}<small>g</small> ${m}<small>p</small></p><p class="srange num">${n.bed}–${n.wake}</p></div></div></div>`;
+  }
+  function sleepCard(s, o = {}) {
+    const ov = Math.min(D.mins(s.sleep.m.wake), D.mins(s.sleep.p.wake)) - Math.max(D.mins(s.sleep.m.bed) + (D.mins(s.sleep.m.bed) > 720 ? -1440 : 0), D.mins(s.sleep.p.bed) + (D.mins(s.sleep.p.bed) > 720 ? -1440 : 0));
+    const gap = (D.mins(s.sleep.m.bed) + (D.mins(s.sleep.m.bed) > 720 ? -1440 : 0)) - (D.mins(s.sleep.p.bed) + (D.mins(s.sleep.p.bed) > 720 ? -1440 : 0));
+    const first = Math.abs(gap) >= 10 ? ` · ${gap > 0 ? P : 'Bạn'} ngủ trước ${Math.abs(gap)}p` : '';
+    const together = `Ngủ cùng lúc ${D.fmtDur(ov)}${first}`;
+    if (o.waiting) return `<article class="card sleep"><div class="chead"><span class="badge lav">${ic(I.moon)}</span><h2>Đêm qua</h2><span class="chev">${ic(I.chev)}</span></div><div class="scols one">${sleepCol(s, 'm')}</div></article>`;
+    return `<article class="card sleep" aria-labelledby="sl-t"><div class="chead"><span class="badge lav">${ic(I.moon)}</span><h2 id="sl-t">Đêm qua</h2><span class="chev">${ic(I.chev)}</span></div>
+      <div class="scols">${sleepCol(s, 'm')}<span class="svr"></span>${sleepCol(s, 'p')}</div>
+      <div class="sfoot">${ic(I.heartB, true)}<span>${together}</span></div></article>`;
+  }
+  // Thứ tự B: thẻ đếm → câu hỏi → Tâm trạng → bảng (Đến nơi + Thời tiết) → Đêm qua → Chơi → Sổ tiền → Phân vân → Kỷ niệm.
+  function homeB(s, o = {}) {
+    const blocks = [counter(s), sectionToday(s), `<div class="stack">${ritual(s)}${moodCard(s)}${board(s, { ...o, rows: ['arrival', 'weather'] })}${sleepCard(s)}${play(s)}${money(s)}${decide(s)}</div>`, memories(s)];
+    return `<div class="home">${header(s, o.h1 === false ? 'p' : 'h1')}<main class="scroll">${blocks.join('')}${o.after || ''}</main>${nav()}</div>`;
+  }
+
   const nav = () => `<nav class="nav" aria-label="Điều hướng chính"><a href="#" aria-current="page">${ic(I.heartB, true)}<span>Trang chủ</span></a><a href="#">${ic(I.chat)}<span>Trò chuyện</span></a><a href="#">${ic(I.gallery)}<span>Thư viện</span></a><a href="#">${ic(I.user)}<span>Hồ sơ</span></a></nav>`;
 
   // ---------- Cả màn Home theo thứ tự đã chốt ----------
@@ -200,10 +246,10 @@
   if (new URLSearchParams(location.search).get('measure')) {
     addEventListener('load', () => document.fonts.ready.then(() => {
       const q = (sel) => [...document.querySelectorAll(sel)].map((el) => Math.round(el.getBoundingClientRect().height));
-      const out = { counter: q('.counter'), ritual: q('.ritual'), board: q('.board'), play: q('.play'), money: q('.money'), decide: q('.decide'), cinema: q('.cinema'), wait: q('.wait'), scroll: q('.scroll') };
+      const out = { counter: q('.counter'), ritual: q('.ritual'), board: q('.board'), play: q('.play'), money: q('.money'), decide: q('.decide'), cinema: q('.cinema'), mood: q('.mood'), sleep: q('.sleep'), wait: q('.wait'), scroll: q('.scroll') };
       const pre = document.createElement('pre'); pre.id = 'measure'; pre.textContent = JSON.stringify(out); document.body.append(pre);
     }));
   }
 
-  window.UI = { ic, I, home, header, counter, ritual, board, play, money, decide, memories, nav };
+  window.UI = { ic, I, homeB, moodCard, sleepCard, home, header, counter, ritual, board, play, money, decide, memories, nav };
 })();

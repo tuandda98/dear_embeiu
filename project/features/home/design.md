@@ -319,7 +319,7 @@ Màn đầu (vùng thấy được 111 → 710): thẻ đếm hết ở 424, câ
 | `lib/screens/home_screen.dart` `_buildHomeScrollBody` | (1) `headerExtra`: `AnimatedCoupleName` → `PokeCoupleRow` khi `!couple.isWaitingForPartner`. (2) Bỏ `MoodCard(key: _moodCardKey…)` và khối `Selector<SleepProvider…> SleepCard`; chèn `TodayBoard(key: _todayBoardKey, couple)` ngay sau `_buildTodayRitualCard`, cách 16, `_entrance(4, …)`; hiện cả khi đang chờ (bản một làn), tự ẩn khi mọi hàng bị ẩn. (3) `RpsInviteCard` → `PlayTogetherCard`, đặt ngay sau bảng (`_entrance(5)`), chỉ khi active. (4) Chèn `MoneyHomeEntry` sau đó (`_entrance(6)`), hiện cả khi chờ. (5) Dời `KeyedSubtree(key: _decisionKey, DecisionCard)` xuống sau Sổ tiền (`_entrance(7)`). (6) Skeleton `_buildHomeLoadingSkeleton`: counter 404 → 2 thẻ 140/455 → 209 → 76. |
 | `lib/widgets/today_board.dart` (mới) | `TodayBoard` + 4 hàng `_MoodRow` `_ArrivalRow` `_WeatherRow` `_SleepRow`, đọc `MoodProvider`, `ArrivalProvider`, `WeatherProvider`, `SleepProvider`; bọc `MidnightBuilder` để qua 0:00 tâm trạng về trống. |
 | `lib/widgets/person_label.dart` (mới, tách từ `sleep_card.dart`) | arrival design đã đề xuất; board dùng chung. |
-| `lib/widgets/mood_card.dart` | mở `showMoodPicker(context, couple)` (đang là `_MoodPickerSheet` riêng) cho pill "Chọn" và chạm hàng. `MoodCard` để lại trong code, Home không dùng. |
+| `lib/widgets/mood_card.dart` | dùng `showMoodPicker(context)` có sẵn (đã public) cho pill "Chọn" và chạm hàng. `MoodCard` để lại trong code, Home bản A không dùng. |
 | `lib/widgets/sleep/sleep_card.dart` | Home không dùng; `SleepCard` còn dùng được nơi khác. Dời `PersonLabel` ra file chung. |
 | Điều hướng tới khối | `_moodCardKey` → `_todayBoardKey`; `pendingHomeFocus` `'weather'` / `'arrival'` / thông báo tâm trạng → cuộn tới bảng (280 ms easeOutCubic, Reduce Motion nhảy thẳng) rồi nhấp sáng hàng tương ứng 600 ms (nền rose α.06). `'caro'` → `PlayTogetherCard`. |
 | Semantics | Mỗi hàng: `Semantics(button, label: "<nhãn>. Bạn: <ô trái>. <tên>: <ô phải>")`, như `aria-label` trong mock. Tim poke giữ spec poke §8. |
@@ -419,3 +419,32 @@ Còn yếu (chưa sửa, nói thẳng): bảng chỉ thấy ở màn thứ hai; 
 
 - [2026-10-20] [Designer] Ghép lối vào 5 feature đợt 2 vào Home theo tasteskill (sheet chung editorial-greeting, không draw lại) + UI UX Pro Max. Chốt thứ tự: thẻ đếm có tim poke (nhận +42 px) → câu hỏi → bảng mới "Thảo hôm nay thế nào?" (gộp tâm trạng, đến nơi, thời tiết, đêm qua; bạn trái, người ấy phải; chân bảng "Về nhà rồi" + một việc cho người ấy) → Chơi cùng nhau → Sổ tiền → Phân vân gì không? → Kỷ niệm. Home 1.933 → 2.165 px (+12%) thay vì 2.778 px nếu mỗi feature một thẻ. Mock 3 trang + `data.js` 22 assert ở `docs/design/home-daily-open-2/`; lint 0/0, inspect 390 0 FAIL cả 3 trang; 3 vòng nhìn lại 7,0 → 7,3 → 7,6. Phát hiện spec poke đặt người tạo couple bên trái, trái với code `AnimatedCoupleName` và luật Lead. 3 câu hỏi PO/user.
 - [2026-10-20] [Lead] Chốt câu hỏi Designer ghép Home: (2) trên Home chỉ để nút "Về nhà rồi", "Đến chỗ làm rồi"/"Đến trường rồi" vào màn Quản lý (biến thể gọn của arrival); (3) màu mỗi người = màu đã chọn ở Giấc ngủ, chưa chọn thì `PersonPalette.resolve` mặc định — áp chung cả 5 feature, màu trong mock chỉ là mẫu. Câu (1) gộp MoodCard + SleepCard vào bảng: hỏi user. Copy vi/en mới phải qua humanizer + avoid-ai-writing trước khi vào ARB. Link duyệt: https://claude.ai/artifact/9eFpE9nuR3tbEBWdWHGrbJ
+
+### 13. So sánh A/B: gộp hay không gộp tâm trạng + đêm qua (user muốn xem tận mắt)
+
+Mock: `docs/design/home-daily-open-2/home.html` (**A · Gộp**, giữ nguyên) · `home-b.html` (**B · Không gộp**) · `compare.html` (hai khung 390 cạnh nhau cùng 19:05, nhãn + chiều dài đo thật; điện thoại thì xếp dọc). Bản B dùng chung `data.js`/`ui.js`/`home.css`: thêm `UI.homeB`, `UI.moodCard`, `UI.sleepCard`, tham số `rows` cho `board()` (mặc định 4 hàng nên bản A không đổi).
+
+**Bản B:** MoodCard và SleepCard dựng theo khuôn thật `mood_card.dart` (ô 36 r12, tiêu đề `sectionTitleStyle`, hai cột mặt 56, nút pill h48 "Đổi tâm trạng") và `sleep_card.dart` (`IconBadge` trăng tím, `PersonLabel`, trăng 30 + `DurationText` 22, dòng "Ngủ cùng lúc 6g 45p · Thảo ngủ trước 35p"). Bảng còn 2 hàng Đến nơi + Thời tiết, chân bảng y bản A.
+
+**Vị trí trong B:** câu hỏi → **Tâm trạng** → bảng (Đến nơi + Thời tiết) → **Đêm qua** → Chơi cùng nhau → Sổ tiền → Phân vân → Kỷ niệm.
+- Tâm trạng đứng ngay sau câu hỏi như app đang chạy: là việc hằng ngày thứ hai (một sao trong chòm sao), người dùng đã quen chỗ, đổi chỗ thì mất phản xạ.
+- Đêm qua đứng ngay sau bảng để ba khối về người ấy liền nhau, và để cuối cụm vì là chuyện đã qua + ẩn được 30 ngày (ẩn đi không làm khối khác nhảy chỗ). Cùng logic thứ tự hàng của bản A.
+
+**Chiều dài (từ đỉnh vùng cuộn tới hết Kỷ niệm, 390):**
+
+| | Đo DOM trên mock (`compare.html`) | Ước tính theo kích thước app thật |
+|---|---|---|
+| Home hiện tại | — | 1.933 px |
+| **A · Gộp** | **2.251 px** | 2.165 px (+12%) |
+| **B · Không gộp** | **2.658 px** (+407 so với A) | ≈2.546 px (+32%) |
+
+(Mock cao hơn app ≈80 px vì thẻ đếm mock 444 so với 404 thật, MoodCard mock 298 so với 265 đo trên máy.)
+
+| | A · Gộp | B · Không gộp |
+|---|---|---|
+| Được | Ngắn hơn ≈400 px. Một lần liếc trả lời cả 4 câu về người ấy, cùng một khuôn ba làn. Tâm trạng nằm cạnh "Đến nơi" nên đọc thành một câu chuyện ("Nhớ, về nhà 18:42, pin 12%"). | Giữ nguyên hai thẻ người dùng đã quen: mặt tâm trạng to 56 dễ thương, nút "Đổi tâm trạng" rõ, dòng "Ngủ cùng lúc", khoảnh khắc trùng tâm trạng giữ hình to. Dev ít việc hơn (không đụng mood, sleep). |
+| Mất | Mặt tâm trạng thu còn 24, mất nút "Đổi tâm trạng" (chạm hàng để đổi), dòng "Ngủ cùng lúc" chỉ còn trong màn Giấc ngủ, khoảnh khắc trùng tâm trạng thành tim nhỏ ở cột giữa. | Dài thêm ≈400 px (thêm gần nửa màn cuộn). Ba khối liền nhau hỏi cùng một câu "người ấy hôm nay" bằng ba kiểu vẽ khác nhau (mặt to · ba làn · trăng). Tiêu đề bảng "Thảo hôm nay thế nào?" đứng ngay dưới thẻ Tâm trạng nên hơi lặp; nếu chọn B nên đổi tiêu đề bảng thành "Hai bên đang ở đâu?". |
+
+Gate bản B: `lint.mjs --app` 0 FAIL / 0 WARN; `inspect.mjs --app --widths 390` `home-b.html` 0 FAIL (cùng `--allow` brand như A; WARN `heavy-borders`, `colour-sprawl`, `kpi-size` như A), `compare.html` 0 FAIL (thêm WARN `radius-mix` vì khung tài liệu bo 24). Nhìn ảnh: thẻ Tâm trạng/Đêm qua khớp ảnh chụp app (`docs/screenshots/home-today.jpg`); vòng sửa: trang so sánh có chữ dính mép trái ở khổ điện thoại (inspect FAIL `edge-text`) → đưa vào khung lề 16. Còn lại: nhãn "BẠN/THẢO" của MoodCard trong mock dùng `textSecondary` thay `textTertiary` của app (app đang thiếu tương phản, ngoài phạm vi).
+
+- [2026-10-20] [Designer] Thêm bản B (không gộp) + trang so sánh theo yêu cầu user "mock 2 bản để tôi xem". A 2.251 px, B 2.658 px (đo mock). Chờ user chọn.

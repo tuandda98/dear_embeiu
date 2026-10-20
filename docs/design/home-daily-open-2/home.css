@@ -174,6 +174,51 @@ p, h1, h2, h3 { margin: 0; }
 .board.solo .brow { grid-template-columns: 96px minmax(0,1fr); }
 .board.solo .mid { justify-items: start; grid-auto-flow: column; justify-content: start; align-items: center; gap: 8px; text-align: left; }
 
+/* ---------- Bản B: MoodCard + SleepCard đúng khuôn app ---------- */
+.mood { padding: 20px; }
+.mhead { display: flex; align-items: center; gap: 12px; }
+.msq { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: rgba(255,77,109,.12); color: var(--rose); }
+.msq .ic { font-size: 20px; }
+.mhead h2 { font-size: 20px; line-height: 24px; font-weight: 700; } /* sectionTitleStyle */
+.mcols { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 12px; margin-top: 16px; }
+.mvr { background: var(--soft); }
+.mside { display: grid; justify-items: center; text-align: center; padding: 8px 0; }
+.ml { font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 1px; color: #6B6B7B; text-transform: uppercase; } /* app: textTertiary; mock nâng lên textSecondary cho đủ tương phản */
+.mface { width: 56px; height: 56px; margin-top: 10px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,77,109,.10); font-size: 34px; line-height: 1; }
+.mface.empty { background: var(--soft); color: var(--ink2); }
+.mface.empty .ic { font-size: 24px; }
+.mw { margin-top: 8px; font-size: 14px; line-height: 18px; font-weight: 700; }
+.mn { margin-top: 4px; font-size: 12px; line-height: 16px; color: var(--ink2); font-style: italic; }
+.mempty { margin-top: 8px; font-size: 12px; line-height: 16px; color: var(--ink2); }
+.mbtn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 48px; margin-top: 16px; border-radius: 999px; background: var(--soft); color: var(--ink2); font-size: 15px; font-weight: 700; }
+.mbtn .ic { font-size: 18px; }
+.mbtn.first { background: var(--sunset); color: #fff; }
+.sleep .scols { display: grid; grid-template-columns: 1fr 1px 1fr; margin-top: 14px; }
+.sleep .scols.one { grid-template-columns: 1fr; }
+.sleep .svr { background: var(--rule); }
+.scol:first-child { padding-right: 14px; } .scol:last-child { padding-left: 14px; }
+.scols.one .scol { padding: 0; }
+.srow { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.moon { flex: none; width: 30px; height: 30px; }
+.sdur { font-size: 22px; line-height: 26px; font-weight: 800; }
+.sdur small { font-size: 13px; font-weight: 700; color: var(--ink2); }
+.srange { margin-top: 2px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink2); }
+.sfoot { display: flex; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); }
+.sfoot .ic { font-size: 12px; color: var(--rose); margin-top: 2px; }
+
+/* ---------- So sánh A/B (compare.html) ---------- */
+.cmp { display: grid; grid-template-columns: repeat(2, 390px); gap: 32px; justify-content: center; padding: 0 16px 48px; }
+.cmp .col { min-width: 0; }
+.cmp .lab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 10px; padding: 0 4px; }
+.cmp .lab h2 { font-size: 20px; line-height: 24px; font-weight: 700; }
+.cmp .lab .len { font-size: 14px; font-weight: 700; }
+.cmp .lab .len span { font-weight: 500; color: var(--ink); }
+.cmp .frame { border-radius: 24px; overflow: hidden; border: 0; }
+.cmp .frame .tabhead { position: static; }
+.cmp .frame .nav { display: none; }
+.cmp .frame .scroll { padding-bottom: 24px; }
+@media (max-width: 860px) { .cmp { grid-template-columns: minmax(0, 390px); } }
+
 /* ---------- Chơi cùng nhau (PlayTogetherCard, spec caro) ---------- */
 .play h2.ttl { font-size: 16px; line-height: 20px; font-weight: 700; margin-bottom: 4px; }
 .game-row { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; min-height: 68px; padding: 12px 0; }

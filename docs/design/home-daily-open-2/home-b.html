@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Home đợt 2, bản B không gộp, 20/10 19:05 · Dear Embeiu</title>
+<link rel="stylesheet" href="home.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const note = `<aside class="doc-note" aria-label="Ghi chú mock">
+  <p><b>Bản B · không gộp.</b> Cùng máy Tuấn lúc 19:05. Thẻ “Tâm trạng hôm nay” và “Đêm qua” giữ y như app đang chạy; bảng “${D.PARTNER.name} hôm nay thế nào?” chỉ còn Đến nơi và Thời tiết.</p>
+  <nav aria-label="Các trang mock"><a href="home.html">Bản A · Gộp</a><a href="home-b.html" aria-current="page">Bản B · Không gộp</a><a href="compare.html">Đặt cạnh nhau</a></nav></aside>`;
+document.getElementById('app').innerHTML = UI.homeB(D.S, { after: note });
+</script>
+</body>
+</html>
