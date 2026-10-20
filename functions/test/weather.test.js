@@ -143,7 +143,7 @@ test("weather errors speak the caller's language", () => {
 // ---- getWeatherForCity: cache, 304, failures ---------------------------------
 
 // weatherCache in memory + a scripted fetch. `fetches` records each MET call.
-function harness(cache, replies) {
+function harness(cache, replies, extraDeps = {}) {
   const store = new Map(cache ? [["HN", cache]] : []);
   const fetches = [];
   const ref = (id) => ({
@@ -184,6 +184,7 @@ function harness(cache, replies) {
     },
     fetch: fetchFake,
     logger: {warn: () => {}},
+    ...extraDeps,
   });
   return {get: (now = NOW) => get({id: "HN", lat: 21.03, lon: 105.85}, now), store, fetches, replies};
 }
@@ -358,4 +359,35 @@ test("getCityWeather: one city with data + one without → only the one", async 
     callableWith({})({auth: {uid: "a"}, data: {cityIds: ["vn-ha-noi", "vn-tp-hcm"]}}),
     {code: "unavailable"},
   );
+});
+
+test("first fetch running elsewhere (no cache yet): wait for it, never empty", async () => {
+  // Both phones asked for a new city at once; the other call holds the lock.
+  let polls = 0;
+  let h;
+  h = harness({lockUntil: Date.now() + 30000}, [], {
+    weatherSleep: async () => {
+      polls++;
+      if (polls === 2) {
+        h.store.set("HN", {...h.store.get("HN"), ...oldCache(), fetchedAt: NOW, expiresAt: NOW + 3600000});
+      }
+    },
+  });
+  const out = await h.get();
+  assert.strictEqual(polls, 2);
+  assert.deepStrictEqual([out.stale, out.fetchedAt, out.hours.length], [false, NOW, 1]);
+  assert.strictEqual(h.fetches.length, 0);
+});
+
+test("first fetch elsewhere failed (retryAt set): stop waiting, null", async () => {
+  let polls = 0;
+  let h;
+  h = harness({lockUntil: Date.now() + 30000}, [], {
+    weatherSleep: async () => {
+      polls++;
+      h.store.set("HN", {...h.store.get("HN"), retryAt: Date.now() + 600000});
+    },
+  });
+  assert.strictEqual(await h.get(), null);
+  assert.strictEqual(polls, 1);
 });

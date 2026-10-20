@@ -5023,6 +5023,11 @@ const WEATHER_CONFIG = {
   retryMs: 10 * 60 * 1000,
   // How long one caller holds the refresh of a city (see getWeatherForCity).
   lockMs: 60 * 1000,
+  // A city's FIRST fetch is running in another call (both partners open the
+  // app at once): poll its result this often, this many times (MET answers in
+  // ~1–3 s; 10 × 800 ms stays well inside the callable timeout).
+  waitPollMs: 800,
+  waitPolls: 10,
   timeoutMs: 8000,
   hours: 36,
 };
@@ -5106,6 +5111,10 @@ function weatherExpiresAt(expiresHeader, nowMs) {
   return Math.max(Number.isFinite(expires) ? expires : 0, nowMs + WEATHER_CONFIG.minTtlMs);
 }
 
+function weatherSleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // One city: cache hit, or ask MET (If-Modified-Since), or fall back to the old
 // cache marked stale. Returns {fetchedAt, stale, hours} or null (no data at
 // all). weatherCache/{cityId} is Admin-SDK only — no rule matches it.
@@ -5124,16 +5133,34 @@ async function getWeatherForCity(city, nowMs) {
   // Soft lock: the first caller after expiry claims the refresh for
   // lockMs; callers arriving meanwhile get the old copy instead of N MET
   // calls + N writes for the same city.
-  const claimed = await db.runTransaction(async (tx) => {
+  const claim = await db.runTransaction(async (tx) => {
     const cur = (await tx.get(ref)).data() || {};
     if (cur.lockUntil > nowMs || (Array.isArray(cur.hours) && cur.expiresAt > nowMs)) {
-      return false;
+      return {claimed: false, cur};
     }
     tx.set(ref, {lockUntil: nowMs + WEATHER_CONFIG.lockMs}, {merge: true});
-    return true;
-  }).catch(() => true);
-  if (!claimed) {
-    return cached ? fromCache(false) : null;
+    return {claimed: true, cur};
+  }).catch(() => ({claimed: true, cur: doc}));
+  if (!claim.claimed) {
+    // The doc read inside the transaction is the newest copy (another call
+    // may have just refreshed it).
+    if (Array.isArray(claim.cur.hours)) {
+      return {fetchedAt: claim.cur.fetchedAt, stale: false, hours: claim.cur.hours};
+    }
+    // No copy yet: this city's first fetch is running in another call
+    // (smoke 2026-10-20: both phones asked at once and one card said "Chưa
+    // tải được"). Wait for it instead of answering empty.
+    for (let i = 0; i < WEATHER_CONFIG.waitPolls; i++) {
+      await weatherSleep(WEATHER_CONFIG.waitPollMs);
+      const d = (await ref.get()).data() || {};
+      if (Array.isArray(d.hours)) {
+        return {fetchedAt: d.fetchedAt, stale: false, hours: d.hours};
+      }
+      if (!(d.lockUntil > Date.now()) || d.retryAt > Date.now()) {
+        break; // the other call gave up (MET failed) or its lock ran out
+      }
+    }
+    return null;
   }
 
   const headers = {"User-Agent": WEATHER_CONFIG.userAgent, "Accept": "application/json"};
