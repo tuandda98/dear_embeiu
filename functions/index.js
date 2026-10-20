@@ -4120,7 +4120,7 @@ const WEATHER_CITIES = new Map(require("./weather_cities.json").map((c) => [c.id
 
 const WEATHER_CONFIG = {
   // MET terms: identify the app + a contact, or get 403.
-  userAgent: "DearEmbeiu/1.0 (https://dearembeiu.com; thesavior9820@gmail.com)",
+  userAgent: "DearEmbeiu/1.0 (https://dearembeiu.com)",
   baseUrl: "https://api.met.no/weatherapi/locationforecast/2.0/compact",
   // Never refresh more often than this, whatever MET's Expires says (D7).
   minTtlMs: 30 * 60 * 1000,

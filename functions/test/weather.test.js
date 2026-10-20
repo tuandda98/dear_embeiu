@@ -210,7 +210,7 @@ test("expired → MET with User-Agent + If-Modified-Since → cache rewritten", 
   assert.strictEqual(h.fetches.length, 1);
   assert.strictEqual(h.fetches[0].url,
     "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=21.03&lon=105.85");
-  assert.match(h.fetches[0].headers["User-Agent"], /^DearEmbeiu\/\S+ \(https:\/\/dearembeiu\.com; /);
+  assert.match(h.fetches[0].headers["User-Agent"], /^DearEmbeiu\/\S+ \(https:\/\/dearembeiu\.com\)$/);
   assert.strictEqual(h.fetches[0].headers["If-Modified-Since"], "Tue, 20 Oct 2026 00:00:00 GMT");
   assert.deepStrictEqual([out.stale, out.fetchedAt, out.hours.length], [false, NOW, 36]);
   const saved = h.store.get("HN");

@@ -25,7 +25,7 @@
 ### Cloud Function `getCityWeather` (callable v2, us-central1, 30 s, 256 MiB)
 
 - Vào `{cityIds: string[1..2], lang?}`; id phải có trong `weather_cities.json` (Map `.has`, nên `__proto__` / `constructor` bị chặn), trùng thì gộp. Sai → `invalid-argument`; chưa đăng nhập → `unauthenticated`; cả 2 thành phố đều không có dữ liệu → `unavailable`. Câu lỗi vi/en theo đúng luật ngôn ngữ của `CALLABLE_ERROR_COPY` (`weatherErrorCopy` gọi lại `callableErrorCopy`, không sửa bảng dùng chung).
-- Mỗi id: đọc `weatherCache/{id}`; còn `expiresAt` → trả luôn. Hết hạn → `fetch` MET `/compact?lat&lon` với `User-Agent: DearEmbeiu/1.0 (https://dearembeiu.com; <email hỗ trợ trong privacy policy>)` + `If-Modified-Since: lastModified`, timeout 8 s (`AbortSignal.timeout`). 200 → `normalizeMetForecast` (36 giờ từ giờ hiện tại, `{t, temp (1 số lẻ), symbol, rain (mm/giờ)}`; khi MET sang bước 6 giờ thì giữ mã 6 giờ, chia đều lượng mưa) → ghi cache `{cityId, fetchedAt, expiresAt, lastModified, hours}`. 304 → chỉ dời `expiresAt`. `expiresAt = max(Expires, now + 30 phút)`.
+- Mỗi id: đọc `weatherCache/{id}`; còn `expiresAt` → trả luôn. Hết hạn → `fetch` MET `/compact?lat&lon` với `User-Agent: DearEmbeiu/1.0 (https://dearembeiu.com)` + `If-Modified-Since: lastModified`, timeout 8 s (`AbortSignal.timeout`). 200 → `normalizeMetForecast` (36 giờ từ giờ hiện tại, `{t, temp (1 số lẻ), symbol, rain (mm/giờ)}`; khi MET sang bước 6 giờ thì giữ mã 6 giờ, chia đều lượng mưa) → ghi cache `{cityId, fetchedAt, expiresAt, lastModified, hours}`. 304 → chỉ dời `expiresAt`. `expiresAt = max(Expires, now + 30 phút)`.
 - Lỗi / timeout / 5xx / body rỗng → trả cache cũ `stale: true` (không có cache → bỏ thành phố đó khỏi kết quả) và ghi `retryAt = now + 10 phút`: trong 10 phút đó không gọi MET lại (MET sập thì mỗi lần mở app không thành một request). **Thêm so với spec**, chống dội MET.
 - Ra `{ok: true, cities: {[id]: {fetchedAt, stale, hours}}}`. Không inbox, không push, không `wakeClients`.
 - Đo thật 2026-10-20 (1 lượt gọi Hà Nội): 200, `Expires` ≈ 30 phút sau, 36 giờ chuẩn hoá ≈ 2,3 KB/doc cache.
@@ -52,7 +52,7 @@ Theo phác §5.2, thêm một điều: `cityId` phải khớp `^[a-z]{2}-[a-z0-9
 3. **Một thành phố lỗi không có cache** → bỏ khỏi `cities` thay vì làm hỏng cả lượt; chỉ khi cả hai đều không có mới `unavailable`.
 4. **Rules chặn `cityId` sai dạng** (thêm vào phác §5.2), không chặn id đúng dạng mà không có trong danh sách.
 5. **304 không đổi `fetchedAt`** (đúng chữ spec "chỉ dời `expiresAt`"). Hệ quả: dòng "Cập nhật hh:mm" là giờ MET đổi số gần nhất. Thực tế MET đổi `Last-Modified` gần như mỗi giờ nên không chạm mốc 6 giờ.
-6. **User-Agent có email hỗ trợ** của privacy policy, đúng chữ spec §5.3. Lead muốn bỏ email (MET chấp nhận chỉ website) thì sửa `WEATHER_CONFIG.userAgent`.
+6. **User-Agent chỉ có website** (Lead 2026-10-20: MET chấp nhận website làm thông tin liên hệ, không gửi email ra ngoài).
 
 ## Việc mở
 
