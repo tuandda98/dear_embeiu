@@ -305,6 +305,53 @@ void main() {
     expect(p.cardVisible, isTrue);
     expect(svc.prefs[WeatherService.keyCardHidden], isNull);
   });
+
+  test(
+    'cardVisible waits for the Hive prefs (no flash of a hidden card)',
+    () async {
+      svc.prefs[WeatherService.keyCardHidden] = 'true';
+      final q = WeatherProvider(
+        service: svc,
+        clock: () => now,
+        scheduleNotice: (_, _, _, _) async {},
+        cancelNotice: () async {},
+      )..watchForCouple('c1', 'me', 'her');
+      expect(q.cardVisible, isFalse, reason: 'prefs not read yet');
+      await settle();
+      expect(q.cardVisible, isFalse, reason: 'hidden');
+      q.dispose();
+    },
+  );
+
+  test(
+    'notice syncs run in order: a slow arm never lands after a cancel',
+    () async {
+      final events = <String>[];
+      final q = WeatherProvider(
+        service: svc,
+        clock: () => now,
+        scheduleNotice: (_, _, _, _) async {
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          events.add('arm');
+        },
+        cancelNotice: () async => events.add('cancel'),
+      );
+      now = DateTime.utc(2026, 10, 20, 13, 10);
+      svc.server = {'vn-ha-noi': forecast(now), 'vn-tp-hcm': rainAtFire()};
+      q.watchForCouple('c1', 'me', 'her');
+      svc.choices.add({
+        'me': choice('me', 'vn-ha-noi'),
+        'her': choice('her', 'vn-tp-hcm'),
+      });
+      await settle();
+      await settle();
+      await q.setNoticeEnabled(false);
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(events.last, 'cancel');
+      expect(events.indexOf('arm'), lessThan(events.lastIndexOf('cancel')));
+      q.dispose();
+    },
+  );
 }
 
 class _SlowService extends FakeWeatherService {

@@ -4684,5 +4684,13 @@
   "weatherMorningColdTitle": "{city} drops to {min}° today",
   "@weatherMorningColdTitle": {"description": "Weather here and there (feature weather)", "placeholders": {"city": {"type": "String"}, "min": {"type": "int"}}},
   "weatherMorningColdBody": "Remind {name} to dress warm?",
-  "@weatherMorningColdBody": {"description": "Weather here and there (feature weather)", "placeholders": {"name": {"type": "String"}}}
+  "@weatherMorningColdBody": {"description": "Weather here and there (feature weather)", "placeholders": {"name": {"type": "String"}}},
+  "weatherSaveFailed": "Couldn't save that. Please try again.",
+  "@weatherSaveFailed": {"description": "Weather here and there (feature weather)"},
+  "weatherLaneFailed": "Couldn't load",
+  "@weatherLaneFailed": {"description": "Weather here and there (feature weather)"},
+  "weatherFeatureTourTitle": "Weather in both places",
+  "@weatherFeatureTourTitle": {"description": "Weather here and there (feature weather)"},
+  "weatherFeatureTourBody": "See if it's about to rain where your partner is. One tap reminds them to bring an umbrella.",
+  "@weatherFeatureTourBody": {"description": "Weather here and there (feature weather)"}
 }

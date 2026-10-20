@@ -266,6 +266,39 @@ void main() {
     expect(find.text('Nhắc Thảo mang ô'), findsOneWidget);
   });
 
+  testWidgets('one city without numbers fails in its own lane only', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      choices: {'me': ch('me', 'vn-ha-noi'), 'other': ch('other', 'vn-tp-hcm')},
+      server: {'vn-ha-noi': fc(temp: 23)},
+    );
+    expect(find.text('Chưa tải được'), findsOneWidget);
+    expect(find.text('Chưa tải được thời tiết'), findsNothing);
+    expect(find.text('23°'), findsOneWidget);
+    expect(find.text('TP.HCM'), findsOneWidget);
+    expect(find.textContaining('Cập nhật'), findsOneWidget);
+    expect(find.byType(PersonLabel), findsNWidgets(2), reason: 'not compact');
+  });
+
+  testWidgets('tap the card → detail sheet opens', (tester) async {
+    await pump(
+      tester,
+      choices: {'me': ch('me', 'vn-ha-noi'), 'other': ch('other', 'vn-tp-hcm')},
+      server: {
+        'vn-ha-noi': fc(temp: 23),
+        'vn-tp-hcm': fc(symbol: 'rain', temp: 29),
+      },
+    );
+    await tester.tap(find.text('Thời tiết hai nơi'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(tester.takeException(), isNull);
+    expect(find.text('Đổi thành phố'), findsOneWidget);
+    expect(find.textContaining('MET Norway'), findsOneWidget);
+  });
+
   group('city picker', () {
     Future<WeatherProvider> openPicker(WidgetTester tester) async {
       final (_, w) = await pump(
@@ -303,6 +336,28 @@ void main() {
         find.text('Chưa có thành phố này. Chọn nơi gần nhất nhé.'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('my own city refused → "Chưa lưu được" SnackBar', (
+      tester,
+    ) async {
+      final (svc, _) = await pump(
+        tester,
+        choices: {},
+        child: const SizedBox(
+          height: 700,
+          child: CityPicker(
+            forPartner: false,
+            partnerName: 'Thảo',
+            entry: 'card',
+          ),
+        ),
+      );
+      svc.refuseWrites = true;
+      await tester.tap(find.text('Hà Nội'));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Chưa lưu được, thử lại nhé.'), findsOneWidget);
     });
 
     testWidgets('first time: my city, then "Còn Thảo đang ở đâu?" (3 taps)', (

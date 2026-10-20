@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:dear_embeiu/data/feature_tour_entries.dart';
 import 'package:dear_embeiu/l10n/app_localizations.dart';
 import 'package:dear_embeiu/models/weather.dart';
 import 'package:dear_embeiu/utils/weather_logic.dart';
@@ -219,5 +220,40 @@ void main() {
       );
       expect(weatherCtaLabel(vi, WeatherCta.warm, 'Thảo'), 'Nhắc Thảo mặc ấm');
     });
+  });
+
+  test('feature tour: one weather row for build 33 that opens the feature', () {
+    final rows = featureTourEntries.where((e) => e.sinceBuild == 33).toList();
+    expect(rows, hasLength(1));
+    final vi = lookupAppLocalizations(const Locale('vi'));
+    expect(rows.single.title(vi), 'Thời tiết hai nơi');
+    expect(rows.single.body(vi), contains('mang ô'));
+    expect(rows.single.onOpen, isNotNull);
+  });
+
+  testWidgets('notice time follows the locale format', (tester) async {
+    late String vi;
+    late String en;
+    for (final (locale, set) in [
+      (const Locale('vi'), (String v) => vi = v),
+      (const Locale('en'), (String v) => en = v),
+    ]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) {
+              set(weatherMorningTimeText(context));
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+    }
+    expect(vi, contains('7'));
+    expect(vi, contains('30'));
+    expect(en, '7:30 AM');
   });
 }

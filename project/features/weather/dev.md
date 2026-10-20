@@ -59,6 +59,17 @@ Theo phác §5.2, thêm một điều: `cityId` phải khớp `^[a-z]{2}-[a-z0-9
 7. Cửa sổ nới sang 09:59 sáng mai khi còn **dưới 3 tiếng tính tới phút** (21:30 nới, 21:00 chưa); sửa test.
 8. Test thêm: `getCityWeather` (chưa đăng nhập, id sai, 1 thành phố có số + 1 không, cả hai không → `unavailable`), `retryAt` hết tác dụng sau 1 lần thành công, MET 403/429, khoá mềm, dữ liệu chỉ bước 6 giờ; provider: 1/2 thành phố có số → `lastRefreshFailed`, lùi 3 phút sau lỗi, Thử lại lúc đang chạy.
 
+### Vá review UI (Lead chuyển, 2026-10-20)
+
+1. `cardVisible` chờ `_prefsLoaded` — người đã bấm "Ẩn" không thấy thẻ nháy 1 nhịp.
+2. Chọn thành phố của mình mà ghi lỗi → SnackBar `weatherSaveFailed` ("Chưa lưu được, thử lại nhé."), không hoàn tác im lặng.
+3. `_syncNotice` chạy tuần tự (chuỗi Future): lệnh đặt lịch chậm không thể tới sau lệnh huỷ mới hơn.
+4. Giờ 07:30 ở Cài đặt (câu phụ + xem trước) dựng từ `kWeatherMorningHour/Minute`, định dạng theo locale (`weatherMorningTimeText`; en "7:30 AM").
+5. **Chấp nhận (Lead):** thông báo sáng mặc định bật (D13) nhưng chỉ xin quyền khi gạt công tắc; người chưa cấp quyền thông báo không nhận gì mà nhật ký trần 3/7 vẫn đếm. Đa số đã cấp quyền push lúc onboarding.
+6. Lỗi theo từng làn (Lead chốt A, xem "Lệch spec").
+7. Feature tour build 33 (Lead chốt B): mục "Thời tiết hai nơi" trong `feature_tour_entries.dart`, chạm → `openWeatherFromTour` (chưa chọn gì thì mở sheet chọn — chuỗi 3 chạm nếu đã ghép; đã chọn thì mở sheet chi tiết).
+8. Tự phát hiện khi viết test: `WeatherPeople.of` dùng `context.select` nhưng được gọi cả trong tap handler (mở sheet) → assert "select chỉ dùng trong build". Đổi sang `read`, thẻ tự `select` màu trong build. Có test chạm thẻ mở sheet.
+
 ## Edge case kỹ thuật đã xử lý
 
 - Chọn giúp người ấy trong lúc người ấy vừa tự chọn: rules chặn → provider rollback, trả `false`.
@@ -74,7 +85,7 @@ Theo phác §5.2, thêm một điều: `cityId` phải khớp `^[a-z]{2}-[a-z0-9
 
 Stage 2 (UI tự quyết khi spec chưa vẽ, có tra UI UX Pro Max `"partial data error state retry" --domain ux`):
 
-- **Lỗi/số cũ tính theo nơi tệ nhất**: một trong hai thành phố không có số thì cả thẻ vào trạng thái lỗi (nhãn + tên thành phố + Thử lại). Skill gợi ý báo lỗi ngay chỗ hỏng (Error Placement); chưa làm vì trường hợp chỉ xảy ra khi một thành phố mới chưa từng tải được — báo Tester soi, sửa thành lỗi theo làn nếu thấy khó hiểu.
+- **Lỗi theo từng làn** (Lead chốt 2026-10-20, thay bản "nơi tệ nhất"): làn không có số hiện tên thành phố + "Chưa tải được" + Thử lại, làn kia vẫn hiện số, dòng "Cập nhật" lấy theo làn còn số; chỉ khi mọi nơi đều hỏng mới vào trạng thái lỗi cả thẻ. Có làn lỗi thì không thu 1 hàng. Hợp luật UI UX Pro Max "Error Placement" (báo lỗi ngay chỗ hỏng) + "Error Messages" (câu lỗi `liveRegion`).
 - **Nhãn làn**: theo Home C §15 (`PersonLabel` IN HOA 11) thay cho `_LaneLabel` chữ thường của weather §4.1; tên thành phố chuyển xuống dòng câu tình trạng ("TP.HCM · Chiều nay mưa") như mock `weatherCardC`.
 - **Thẻ ẩn ("Ẩn") ẩn hẳn** cho tới khi chọn thành phố thành công (kể cả từ Cài đặt). Người ấy chọn giúp mình thì cờ ẩn của máy mình không đổi.
 - **Thẻ không hiện khi không có Firebase** (chế độ local không có thành phố / dự báo).
@@ -128,3 +139,4 @@ Stage 1:
 - [2026-10-20] [Dev] Stage 1: danh sách 116 thành phố (`lib/data/weather_cities.dart` + `functions/weather_cities.json`), model `lib/models/weather.dart`, logic thuần `lib/utils/weather_logic.dart`, `WeatherService` (callable + Hive `weather_cache`), `WeatherProvider` (wire `main.dart` + `session_resolver.dart`), CF `getCityWeather` + xoá trong `notifyPartnerLeft`, rules `weather/{uid}`. Test: Dart +46 (`weather_logic_test.dart` 38, `weather_provider_test.dart` 8) → `flutter test` 684 pass; functions `npm test` 36 pass (`weather.test.js` 15 mới); rules-test 411 pass (`firestore.weather.test.js` 17 mới). `flutter analyze` 0. Chưa deploy. Spike D3 chưa làm.
 - [2026-10-20] [Dev] Vá 8 finding review backend (xem mục "Vá review backend stage 1"). functions `npm test` 46 pass; rules-test 411 pass.
 - [2026-10-20] [Dev] Stage 2: ARB 86 key `weather*`, `weather_card.dart` + `weather_sheets.dart`, thẻ ở Home (+ re-arm, resume, focus `weather`, chạm thông báo → Quan tâm điền sẵn), mục Cài đặt, thông báo 07:30 id 1160 (trần 3/7, không trùng loại 2 ngày liền), analytics 4 event. Test mới: `weather_card_test.dart` 11 (thẻ 8 trạng thái + 320 dp chữ 200% + picker tìm không dấu + chuỗi 3 chạm), `weather_morning_test.dart` 10 (lịch + trần + nhật ký + lời điền sẵn), provider +3 (thông báo, ẩn thẻ). `flutter test` 714 pass, `flutter analyze` 0. Chưa deploy.
+- [2026-10-20] [Dev] Vá review UI 1–5 + Lead chốt A (lỗi theo làn) + B (feature tour build 33, key `weatherFeatureTourTitle/Body`), key mới `weatherSaveFailed`, `weatherLaneFailed`; sửa `select` ngoài build. Test +7 (làn lỗi, chạm mở sheet, SnackBar tự chọn lỗi, prefs chưa nạp, thứ tự huỷ/đặt lịch, giờ theo locale, mục tour). `flutter test` 721 pass, analyze 0.

@@ -7992,6 +7992,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remind {name} to dress warm?'**
   String weatherMorningColdBody(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save that. Please try again.'**
+  String get weatherSaveFailed;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load'**
+  String get weatherLaneFailed;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Weather in both places'**
+  String get weatherFeatureTourTitle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'See if it\'s about to rain where your partner is. One tap reminds them to bring an umbrella.'**
+  String get weatherFeatureTourBody;
 }
 
 class _AppLocalizationsDelegate

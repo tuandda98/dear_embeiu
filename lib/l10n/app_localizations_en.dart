@@ -4958,4 +4958,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String weatherMorningColdBody(String name) {
     return 'Remind $name to dress warm?';
   }
+
+  @override
+  String get weatherSaveFailed => 'Couldn\'t save that. Please try again.';
+
+  @override
+  String get weatherLaneFailed => 'Couldn\'t load';
+
+  @override
+  String get weatherFeatureTourTitle => 'Weather in both places';
+
+  @override
+  String get weatherFeatureTourBody =>
+      'See if it\'s about to rain where your partner is. One tap reminds them to bring an umbrella.';
 }

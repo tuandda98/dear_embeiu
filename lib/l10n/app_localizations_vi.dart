@@ -4735,4 +4735,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String weatherMorningColdBody(String name) {
     return 'Nhắc $name mặc ấm nhé?';
   }
+
+  @override
+  String get weatherSaveFailed => 'Chưa lưu được, thử lại nhé.';
+
+  @override
+  String get weatherLaneFailed => 'Chưa tải được';
+
+  @override
+  String get weatherFeatureTourTitle => 'Thời tiết hai nơi';
+
+  @override
+  String get weatherFeatureTourBody =>
+      'Mở app là biết chỗ người ấy có mưa không. Trời sắp mưa thì một chạm nhắc người ấy mang ô.';
 }

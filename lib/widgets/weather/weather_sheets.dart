@@ -8,6 +8,7 @@ import '../../data/weather_cities.dart';
 import '../../l10n/l10n.dart';
 import '../../models/couple.dart';
 import '../../models/weather.dart';
+import '../../providers/couple_provider.dart';
 import '../../providers/weather_provider.dart';
 import '../../services/reminder_service.dart';
 import '../../theme/app_colors.dart';
@@ -82,6 +83,29 @@ Divider _rule() => Divider(
   thickness: 1,
   color: AppColors.textSecondary.withValues(alpha: 0.10),
 );
+
+// ── Feature tour ("Có gì mới", build 33) ────────────────────────────────────
+
+/// The tour row opens the feature: the city picker when nothing is picked
+/// yet (first-time chain when paired), else the detail sheet.
+void openWeatherFromTour(BuildContext context) {
+  final couple = context.read<CoupleProvider>().couple;
+  final w = context.read<WeatherProvider>();
+  if (couple == null || !w.isUsingFirebase) {
+    return;
+  }
+  if (w.nothingPicked) {
+    showCityPickerSheet(
+      context,
+      forPartner: false,
+      chain: w.isPaired,
+      partnerName: WeatherPeople.of(context, couple).partner,
+      entry: 'card',
+    );
+  } else {
+    showWeatherDetailSheet(context, couple: couple);
+  }
+}
 
 // ── Detail sheet (design §3.3 / §4.2) ────────────────────────────────────────
 
@@ -760,16 +784,23 @@ class _CityPickerState extends State<CityPicker> {
     final l10n = context.l10n;
     final forPartner = _forPartner;
     final write = forPartner ? w.setPartnerCity(city.id) : w.setMyCity(city.id);
-    final messenger = widget.messenger;
+    final messenger = widget.messenger ?? ScaffoldMessenger.maybeOf(context);
     final name = widget.partnerName;
     write.then((ok) {
-      if (!ok && forPartner) {
-        messenger
-          ?..clearSnackBars()
-          ..showSnackBar(
-            SnackBar(content: Text(l10n.weatherPartnerJustSet(name))),
-          );
+      if (ok) {
+        return;
       }
+      messenger
+        ?..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              forPartner
+                  ? l10n.weatherPartnerJustSet(name)
+                  : l10n.weatherSaveFailed,
+            ),
+          ),
+        );
     });
     logWeatherEvent(WeatherEvents.citySet, {
       'who': forPartner ? 'partner' : 'self',
@@ -1134,7 +1165,7 @@ class WeatherSettingsSection extends StatelessWidget {
                         title: l10n.weatherNotifToggle,
                         subtitle: paired
                             ? l10n.weatherNotifToggleSub(
-                                '07:30',
+                                weatherMorningTimeText(context),
                                 people.partner,
                               )
                             : l10n.weatherNotifNeedsCouple,
@@ -1325,9 +1356,9 @@ class _NoticePreview extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Text(
-                      '07:30',
-                      style: TextStyle(
+                    Text(
+                      weatherMorningTimeText(context),
+                      style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 13,
                       ),

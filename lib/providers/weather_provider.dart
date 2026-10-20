@@ -93,7 +93,9 @@ class WeatherProvider extends ChangeNotifier {
   // ── Read side ─────────────────────────────────────────────────────────────
 
   /// The Home card shows: Firebase on, a couple watched, not hidden ("Ẩn").
-  bool get cardVisible => isUsingFirebase && _myUid != null && !_cardHidden;
+  /// Waits for the Hive prefs so a hidden card never flashes in for a frame.
+  bool get cardVisible =>
+      isUsingFirebase && _myUid != null && _prefsLoaded && !_cardHidden;
 
   bool get cardHidden => _cardHidden;
 
@@ -458,7 +460,15 @@ class WeatherProvider extends ChangeNotifier {
 
   /// Re-plans the 07:30 notice (id 1160) from what is known now and arms or
   /// drops it. Cheap when nothing changed (signature).
-  Future<void> _syncNotice() async {
+  /// Runs [_syncNoticeNow] one at a time, in call order, so an older
+  /// schedule can never land after a newer cancel (and vice versa).
+  Future<void> _syncNotice() => _noticeChain = _noticeChain
+      .then((_) => _syncNoticeNow())
+      .catchError((_) {});
+
+  Future<void> _noticeChain = Future<void>.value();
+
+  Future<void> _syncNoticeNow() async {
     if (!_prefsLoaded || _myUid == null) {
       return;
     }

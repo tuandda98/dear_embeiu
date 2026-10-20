@@ -3858,5 +3858,9 @@
   "weatherMorningColdTitle": "{city} xuống {min}° hôm nay",
   "@weatherMorningColdTitle": {"description": "Weather here and there (feature weather)", "placeholders": {"city": {"type": "String"}, "min": {"type": "int"}}},
   "weatherMorningColdBody": "Nhắc {name} mặc ấm nhé?",
-  "@weatherMorningColdBody": {"description": "Weather here and there (feature weather)", "placeholders": {"name": {"type": "String"}}}
+  "@weatherMorningColdBody": {"description": "Weather here and there (feature weather)", "placeholders": {"name": {"type": "String"}}},
+  "weatherSaveFailed": "Chưa lưu được, thử lại nhé.",
+  "weatherLaneFailed": "Chưa tải được",
+  "weatherFeatureTourTitle": "Thời tiết hai nơi",
+  "weatherFeatureTourBody": "Mở app là biết chỗ người ấy có mưa không. Trời sắp mưa thì một chạm nhắc người ấy mang ô."
 }

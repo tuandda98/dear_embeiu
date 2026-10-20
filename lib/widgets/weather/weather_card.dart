@@ -70,6 +70,11 @@ String weatherConditionText(AppLocalizations l10n, WeatherCondition c) =>
       WeatherConditionKind.sky => weatherSkyText(l10n, c.sky),
     };
 
+/// No numbers to show for [p]: never loaded, > 24 h old, or no hour left
+/// in today's window.
+bool weatherPlaceFailed(WeatherPlace p) =>
+    p.condition == null || p.freshness == WeatherFreshness.none;
+
 /// Design §7.
 IconData weatherSkyIcon(WeatherSky sky, {bool night = false}) => switch (sky) {
   WeatherSky.clear => night ? IconsaxPlusLinear.moon : IconsaxPlusLinear.sun_1,
@@ -150,6 +155,13 @@ void openWeatherCare(
   );
 }
 
+/// The fixed 07:30 of the morning notice, in the locale's time format.
+String weatherMorningTimeText(BuildContext context) =>
+    MaterialLocalizations.of(context).formatTimeOfDay(
+      const TimeOfDay(hour: kWeatherMorningHour, minute: kWeatherMorningMinute),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+
 /// "07:12" on the phone's clock.
 String weatherHhmm(DateTime t) {
   final l = t.toLocal();
@@ -174,14 +186,14 @@ class WeatherPeople {
 
   static WeatherPeople of(BuildContext context, Couple couple) {
     final myUid = context.read<AuthProvider>().currentUser?.id;
-    final colors = context.select<SleepProvider, (String, String)>(
-      (s) => (s.myColorId, s.partnerColorId),
-    );
+    // `read`, not `select`: also called from tap handlers (sheets). The card
+    // subscribes to colour changes itself in build.
+    final sleep = context.read<SleepProvider>();
     return WeatherPeople(
       me: context.l10n.sleepYou,
       partner: SleepFormat.partnerName(context, couple, myUid),
-      myColor: PersonPalette.colorOf(colors.$1),
-      partnerColor: PersonPalette.colorOf(colors.$2),
+      myColor: PersonPalette.colorOf(sleep.myColorId),
+      partnerColor: PersonPalette.colorOf(sleep.partnerColorId),
     );
   }
 }
@@ -208,6 +220,9 @@ class WeatherCard extends StatelessWidget {
     if (!w.cardVisible) {
       return const SizedBox.shrink();
     }
+    context.select<SleepProvider, (String, String)>(
+      (s) => (s.myColorId, s.partnerColorId),
+    );
     final people = WeatherPeople.of(context, couple);
     final l10n = context.l10n;
 
@@ -231,17 +246,16 @@ class WeatherCard extends StatelessWidget {
     }
 
     final places = [?w.myPlace, if (w.isPaired) ?w.partnerPlace];
-    final worst = places.fold<WeatherFreshness>(
-      WeatherFreshness.fresh,
-      (a, p) => p.freshness.index > a.index ? p.freshness : a,
-    );
-    final error =
-        worst == WeatherFreshness.none ||
-        places.any((p) => p.condition == null);
-    final stale = !error && worst == WeatherFreshness.stale;
-    final fetched = [
-      for (final p in places) ?w.forecastFor(p.cityId)?.fetchedAt,
-    ]..sort();
+    // Lead 2026-10-20: a place without numbers fails in its own lane; the
+    // whole card goes to the error state only when every place failed.
+    final good = [
+      for (final p in places)
+        if (!weatherPlaceFailed(p)) p,
+    ];
+    final error = good.isEmpty;
+    final stale = good.any((p) => p.freshness == WeatherFreshness.stale);
+    final fetched = [for (final p in good) ?w.forecastFor(p.cityId)?.fetchedAt]
+      ..sort();
     final oldest = fetched.isEmpty ? null : fetched.first;
 
     void retry() {
@@ -960,7 +974,8 @@ class _Lane extends StatelessWidget {
     final lang = l10n.localeName;
     final c = place?.condition;
     final cityName = city?.shortName(lang);
-    if (labelsOnly || c == null) {
+    final failed = place == null || weatherPlaceFailed(place!);
+    if (labelsOnly || failed || c == null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -975,6 +990,40 @@ class _Lane extends StatelessWidget {
                 color: AppColors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+          // This lane alone failed (the other one still has numbers).
+          if (!labelsOnly) ...[
+            const SizedBox(height: 2),
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                l10n.weatherLaneFailed,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                context.read<WeatherProvider>().refresh(force: true);
+              },
+              icon: const Icon(IconsaxPlusLinear.refresh, size: 16),
+              label: Text(
+                l10n.weatherRetry,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(44, 44),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                foregroundColor: AppColors.textPrimary,
               ),
             ),
           ],
