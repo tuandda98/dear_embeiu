@@ -4423,7 +4423,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String caroEntryWatching(String name) {
-    return 'Đang chờ $name. $name đang xem ván.';
+    return '$name đang mở ván, chờ chút nhé.';
   }
 
   @override
@@ -4528,7 +4528,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String caroNewFirstNote(String name) {
-    return 'Bạn cầm X, quân đầu đặt ở giữa bàn. $name nhận lời rủ ngay.';
+    return 'Bạn cầm X, quân đầu đặt ở giữa bàn. $name nhận được lời rủ ngay.';
   }
 
   @override
@@ -4557,7 +4557,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String caroYouMoved(String n, String time, String name) {
-    return 'Bạn đi nước $n lúc $time. Cứ thoát app, $name đi xong sẽ báo bạn.';
+    return 'Bạn đi nước $n lúc $time. Cứ thoát app, $name đi xong là có thông báo.';
   }
 
   @override
@@ -4661,7 +4661,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String caroFirstSub(String name) {
-    return 'Bạn cầm X và đi trước. $name nhận lời rủ khi bạn đi xong.';
+    return 'Bạn cầm X và đi trước. Đi xong là $name nhận được lời rủ.';
   }
 
   @override
@@ -4761,7 +4761,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get caroEndTitle => 'Kết thúc ván này?';
 
   @override
-  String get caroEndBody => 'Ván không tính tỉ số. Xong là rủ ván mới được.';
+  String get caroEndBody =>
+      'Ván này không tính tỉ số. Kết thúc rồi là rủ được ván mới.';
 
   @override
   String get caroZoomIn => 'Phóng to quanh nước cuối';
@@ -4942,7 +4943,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String caroNotifInvite(String name) {
-    return '$name rủ chơi cờ caro';
+    return '$name rủ bạn chơi cờ caro';
   }
 
   @override
@@ -5006,7 +5007,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String weatherSetupBody(String name) {
-    return 'Chọn chỗ bạn và chỗ $name, sáng nào mở app cũng thấy trời bên đó.';
+    return 'Chọn chỗ của bạn và của $name. Sáng nào mở app cũng thấy trời hai nơi.';
   }
 
   @override
@@ -5068,7 +5069,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get weatherCtaHint => 'Mở màn Quan tâm với lời soạn sẵn';
+  String get weatherCtaHint => 'Mở màn Quan tâm, lời nhắn đã soạn sẵn';
 
   @override
   String get weatherCardHint => 'Mở chi tiết thời tiết';
@@ -5291,7 +5292,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String weatherMorningColdTitle(String city, int min) {
-    return '$city xuống $min° hôm nay';
+    return 'Hôm nay $city xuống $min°';
   }
 
   @override
@@ -5310,7 +5311,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get weatherFeatureTourBody =>
-      'Mở app là biết chỗ người ấy có mưa không. Trời sắp mưa thì một chạm nhắc người ấy mang ô.';
+      'Mở app là biết chỗ người ấy có mưa không. Trời sắp mưa thì chạm một cái là nhắc được người ấy mang ô.';
 
   @override
   String get arrivalCardTitle => 'Về đến nhà chưa?';
@@ -5500,7 +5501,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get arrivalIconAuto =>
-      'Chọn chip gợi ý thì biểu tượng tự chọn theo, đổi được.';
+      'Chọn tên gợi ý thì biểu tượng tự đổi theo, bạn vẫn đổi lại được.';
 
   @override
   String get arrivalIconWork => 'Công việc';
@@ -5538,7 +5539,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get arrivalWhereSub =>
-      'Gõ số nhà, tên đường và phường cho chuẩn nhất.';
+      'Gõ đủ số nhà, tên đường và phường để tìm cho đúng.';
 
   @override
   String get arrivalSearchHint => 'Vd: 12 Nguyễn Trãi, Thanh Xuân, Hà Nội';
@@ -5557,7 +5558,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get arrivalUseCurrentRow => 'Không thấy địa chỉ? Dùng vị trí hiện tại';
 
   @override
-  String get arrivalUseCurrentRowSub => 'Hãy bấm khi bạn đang đứng ở đó';
+  String get arrivalUseCurrentRowSub => 'Bấm khi bạn đang đứng ở đó';
 
   @override
   String get arrivalNoResults =>
@@ -5573,7 +5574,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get arrivalNoGeocoder =>
-      'Máy này không tìm được địa chỉ. Bạn lưu bằng vị trí hiện tại lúc đang đứng ở đó.';
+      'Máy này không tra được địa chỉ. Lúc đứng ở đó, bạn lưu bằng vị trí hiện tại nhé.';
 
   @override
   String get arrivalUseCurrent => 'Dùng vị trí hiện tại';
@@ -5612,7 +5613,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get arrivalPreciseBody =>
-      'Với vị trí gần đúng, app không biết bạn đã về tới cửa hay mới ở cách nhà vài con phố.';
+      'Nếu chỉ có vị trí gần đúng, app không phân biệt được bạn đã tới cửa hay còn cách nhà vài con phố.';
 
   @override
   String get arrivalConfirmTitle => 'Đúng chỗ này chưa?';
@@ -5703,7 +5704,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get arrivalDeleteHomeAddress => 'Xoá địa chỉ';
 
   @override
-  String get arrivalDeleteHomeAddressSub => 'Nhà chỉ còn bấm tay “Về nhà rồi”.';
+  String get arrivalDeleteHomeAddressSub =>
+      'Về Nhà thì bạn bấm tay “Về nhà rồi”.';
 
   @override
   String get arrivalDeleteHomeAddressTitle => 'Xoá địa chỉ Nhà?';
@@ -5840,7 +5842,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String arrivalPartialBody(String name) {
-    return 'Mỗi lần về, bấm “Về nhà rồi” trên thẻ Home. $name nhận tin y như lúc máy tự báo. Các nơi đã lưu vẫn giữ nguyên.';
+    return 'Mỗi lần về, bấm “Về nhà rồi” ở trang chủ. $name nhận tin y như lúc máy tự báo. Các nơi đã lưu vẫn giữ nguyên.';
   }
 
   @override
@@ -5867,7 +5869,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get arrivalAutoTitle => 'Tự báo khi mình đến nơi';
+  String get arrivalAutoTitle => 'Tự báo khi đến nơi';
 
   @override
   String arrivalAutoSub(String places) {
@@ -5884,7 +5886,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get arrivalAutoRemoteOff =>
-      'Tạm thời chỉ báo bằng tay. Bạn vẫn bấm “Về nhà rồi” trên thẻ Home.';
+      'Tạm thời chỉ báo bằng tay. Bạn vẫn bấm “Về nhà rồi” ở trang chủ.';
 
   @override
   String get arrivalPlacesTitle => 'Nơi báo';
@@ -5946,7 +5948,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String arrivalSettingsPushSub(String name) {
-    return 'Báo khi $name về nhà hoặc đến một nơi đã lưu. Tắt thì thẻ Home vẫn hiện tin.';
+    return 'Báo khi $name về nhà hoặc đến một nơi đã lưu. Tắt thì trang chủ vẫn hiện tin.';
   }
 
   @override

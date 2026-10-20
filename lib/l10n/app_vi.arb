@@ -3773,7 +3773,7 @@
       }
     }
   },
-  "caroEntryWatching": "Đang chờ {name}. {name} đang xem ván.",
+  "caroEntryWatching": "{name} đang mở ván, chờ chút nhé.",
   "@caroEntryWatching": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
@@ -3909,7 +3909,7 @@
   "caroRuleExampleNoWin": "Thế này chưa thắng",
   "caroRuleExampleWin": "Thế này là thắng",
   "caroRuleLastUsed": "lần trước",
-  "caroNewFirstNote": "Bạn cầm X, quân đầu đặt ở giữa bàn. {name} nhận lời rủ ngay.",
+  "caroNewFirstNote": "Bạn cầm X, quân đầu đặt ở giữa bàn. {name} nhận được lời rủ ngay.",
   "@caroNewFirstNote": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
@@ -3954,7 +3954,7 @@
       }
     }
   },
-  "caroYouMoved": "Bạn đi nước {n} lúc {time}. Cứ thoát app, {name} đi xong sẽ báo bạn.",
+  "caroYouMoved": "Bạn đi nước {n} lúc {time}. Cứ thoát app, {name} đi xong là có thông báo.",
   "@caroYouMoved": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
@@ -4097,7 +4097,7 @@
   },
   "caroLater": "Để sau",
   "caroFirstTitle": "Đặt quân đầu tiên",
-  "caroFirstSub": "Bạn cầm X và đi trước. {name} nhận lời rủ khi bạn đi xong.",
+  "caroFirstSub": "Bạn cầm X và đi trước. Đi xong là {name} nhận được lời rủ.",
   "@caroFirstSub": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
@@ -4226,7 +4226,7 @@
   },
   "caroCancelConfirm": "Bỏ ván",
   "caroEndTitle": "Kết thúc ván này?",
-  "caroEndBody": "Ván không tính tỉ số. Xong là rủ ván mới được.",
+  "caroEndBody": "Ván này không tính tỉ số. Kết thúc rồi là rủ được ván mới.",
   "caroZoomIn": "Phóng to quanh nước cuối",
   "caroZoomOut": "Xem toàn bàn",
   "caroYouWon": "Bạn thắng ván này",
@@ -4498,7 +4498,7 @@
   "caroCellLast": ", nước vừa đi",
   "caroCellSelected": ", đang chọn",
   "caroCellWinning": ", trong đường thắng",
-  "caroNotifInvite": "{name} rủ chơi cờ caro",
+  "caroNotifInvite": "{name} rủ bạn chơi cờ caro",
   "@caroNotifInvite": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
@@ -4563,7 +4563,7 @@
   },
   "weatherChoose": "Chọn",
   "weatherChooseForPartner": "Chọn giúp",
-  "weatherSetupBody": "Chọn chỗ bạn và chỗ {name}, sáng nào mở app cũng thấy trời bên đó.",
+  "weatherSetupBody": "Chọn chỗ của bạn và của {name}. Sáng nào mở app cũng thấy trời hai nơi.",
   "@weatherSetupBody": {
     "description": "Weather here and there (feature weather)",
     "placeholders": {
@@ -4663,7 +4663,7 @@
       }
     }
   },
-  "weatherCtaHint": "Mở màn Quan tâm với lời soạn sẵn",
+  "weatherCtaHint": "Mở màn Quan tâm, lời nhắn đã soạn sẵn",
   "weatherCardHint": "Mở chi tiết thời tiết",
   "weatherDegrees": "{n} độ",
   "@weatherDegrees": {
@@ -4925,7 +4925,7 @@
       }
     }
   },
-  "weatherMorningColdTitle": "{city} xuống {min}° hôm nay",
+  "weatherMorningColdTitle": "Hôm nay {city} xuống {min}°",
   "@weatherMorningColdTitle": {
     "description": "Weather here and there (feature weather)",
     "placeholders": {
@@ -4949,7 +4949,7 @@
   "weatherSaveFailed": "Chưa lưu được, thử lại nhé.",
   "weatherLaneFailed": "Chưa tải được",
   "weatherFeatureTourTitle": "Thời tiết hai nơi",
-  "weatherFeatureTourBody": "Mở app là biết chỗ người ấy có mưa không. Trời sắp mưa thì một chạm nhắc người ấy mang ô.",
+  "weatherFeatureTourBody": "Mở app là biết chỗ người ấy có mưa không. Trời sắp mưa thì chạm một cái là nhắc được người ấy mang ô.",
   "arrivalCardTitle": "Về đến nhà chưa?",
   "@arrivalCardTitle": {
     "description": "Feature arrival (đợt 2)"
@@ -5237,7 +5237,7 @@
   "@arrivalIconLabel": {
     "description": "Feature arrival (đợt 2)"
   },
-  "arrivalIconAuto": "Chọn chip gợi ý thì biểu tượng tự chọn theo, đổi được.",
+  "arrivalIconAuto": "Chọn tên gợi ý thì biểu tượng tự đổi theo, bạn vẫn đổi lại được.",
   "@arrivalIconAuto": {
     "description": "Feature arrival (đợt 2)"
   },
@@ -5291,7 +5291,7 @@
       }
     }
   },
-  "arrivalWhereSub": "Gõ số nhà, tên đường và phường cho chuẩn nhất.",
+  "arrivalWhereSub": "Gõ đủ số nhà, tên đường và phường để tìm cho đúng.",
   "@arrivalWhereSub": {
     "description": "Feature arrival (đợt 2)"
   },
@@ -5315,7 +5315,7 @@
   "@arrivalUseCurrentRow": {
     "description": "Feature arrival (đợt 2)"
   },
-  "arrivalUseCurrentRowSub": "Hãy bấm khi bạn đang đứng ở đó",
+  "arrivalUseCurrentRowSub": "Bấm khi bạn đang đứng ở đó",
   "@arrivalUseCurrentRowSub": {
     "description": "Feature arrival (đợt 2)"
   },
@@ -5331,7 +5331,7 @@
   "@arrivalSearchError": {
     "description": "Feature arrival (đợt 2)"
   },
-  "arrivalNoGeocoder": "Máy này không tìm được địa chỉ. Bạn lưu bằng vị trí hiện tại lúc đang đứng ở đó.",
+  "arrivalNoGeocoder": "Máy này không tra được địa chỉ. Lúc đứng ở đó, bạn lưu bằng vị trí hiện tại nhé.",
   "@arrivalNoGeocoder": {
     "description": "Feature arrival (đợt 2)"
   },
@@ -5380,7 +5380,7 @@
   "@arrivalPreciseTitle": {
     "description": "Feature arrival (đợt 2)"
   },
-  "arrivalPreciseBody": "Với vị trí gần đúng, app không biết bạn đã về tới cửa hay mới ở cách nhà vài con phố.",
+  "arrivalPreciseBody": "Nếu chỉ có vị trí gần đúng, app không phân biệt được bạn đã tới cửa hay còn cách nhà vài con phố.",
   "@arrivalPreciseBody": {
     "description": "Feature arrival (đợt 2)"
   },
@@ -5511,7 +5511,7 @@
   "@arrivalDeleteHomeAddress": {
     "description": "Feature arrival (đợt 2)"
   },
-  "arrivalDeleteHomeAddressSub": "Nhà chỉ còn bấm tay “Về nhà rồi”.",
+  "arrivalDeleteHomeAddressSub": "Về Nhà thì bạn bấm tay “Về nhà rồi”.",
   "@arrivalDeleteHomeAddressSub": {
     "description": "Feature arrival (đợt 2)"
   },
@@ -5697,7 +5697,7 @@
   "@arrivalPartialTitle": {
     "description": "Feature arrival (đợt 2)"
   },
-  "arrivalPartialBody": "Mỗi lần về, bấm “Về nhà rồi” trên thẻ Home. {name} nhận tin y như lúc máy tự báo. Các nơi đã lưu vẫn giữ nguyên.",
+  "arrivalPartialBody": "Mỗi lần về, bấm “Về nhà rồi” ở trang chủ. {name} nhận tin y như lúc máy tự báo. Các nơi đã lưu vẫn giữ nguyên.",
   "@arrivalPartialBody": {
     "description": "Feature arrival (đợt 2)",
     "placeholders": {
@@ -5746,7 +5746,7 @@
       }
     }
   },
-  "arrivalAutoTitle": "Tự báo khi mình đến nơi",
+  "arrivalAutoTitle": "Tự báo khi đến nơi",
   "@arrivalAutoTitle": {
     "description": "Feature arrival (đợt 2)"
   },
@@ -5767,7 +5767,7 @@
   "@arrivalAutoNeedAlways": {
     "description": "Feature arrival (đợt 2)"
   },
-  "arrivalAutoRemoteOff": "Tạm thời chỉ báo bằng tay. Bạn vẫn bấm “Về nhà rồi” trên thẻ Home.",
+  "arrivalAutoRemoteOff": "Tạm thời chỉ báo bằng tay. Bạn vẫn bấm “Về nhà rồi” ở trang chủ.",
   "@arrivalAutoRemoteOff": {
     "description": "Feature arrival (đợt 2)"
   },
@@ -5852,7 +5852,7 @@
   "@arrivalSettingsPushTitle": {
     "description": "Feature arrival (đợt 2)"
   },
-  "arrivalSettingsPushSub": "Báo khi {name} về nhà hoặc đến một nơi đã lưu. Tắt thì thẻ Home vẫn hiện tin.",
+  "arrivalSettingsPushSub": "Báo khi {name} về nhà hoặc đến một nơi đã lưu. Tắt thì trang chủ vẫn hiện tin.",
   "@arrivalSettingsPushSub": {
     "description": "Feature arrival (đợt 2)",
     "placeholders": {
