@@ -36,6 +36,8 @@ import 'providers/sleep_provider.dart';
 import 'providers/streak_provider.dart';
 // ── arrival (đợt 2) ──
 import 'providers/arrival_provider.dart';
+// ── arrival (đợt 2) ──
+import 'services/arrival_platform_native.dart';
 import 'screens/force_update_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/guest_counter_screen.dart';
@@ -328,7 +330,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         // Sleep (feature sleep, 2026-10-10) — watch wired in SessionResolver.
         ChangeNotifierProvider(create: (_) => SleepProvider()),
         // ── arrival (đợt 2) ── watch wired in SessionResolver.
-        ChangeNotifierProvider(create: (_) => ArrivalProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ArrivalProvider(
+            geofence: NativeArrivalGeofence(),
+            battery: const PluginBatteryReader(),
+            placeSearch: const NativePlaceSearch(),
+            permissions: const NativeArrivalPermissions(),
+            location: const NativeCurrentLocationReader(),
+          ),
+        ),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {

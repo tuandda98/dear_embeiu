@@ -119,6 +119,11 @@ dependencies:
   # Đăng nhập với Google (feature pairing-funnel, PF14): Android dùng Credential
   # Manager, iOS dùng GoogleSignIn SDK; ID token → Firebase signInWithCredential.
   google_sign_in: ^7.2.0
+  # ── arrival (đợt 2) ── OS geofences (MIT; spike §6.1) + battery % at an
+  # event (BSD-3). Location permission / one-shot fix / address search use the
+  # app channel `dear_embeiu/arrival` (no extra plugin).
+  native_geofence: ^1.3.1
+  battery_plus: ^7.1.2
 
 dev_dependencies:
   flutter_test:

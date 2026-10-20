@@ -6,6 +6,10 @@ import HealthKit
 import UIKit
 import UserNotifications
 import WidgetKit
+// ── arrival (đợt 2) ──
+import CoreLocation
+import MapKit
+import native_geofence
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -15,6 +19,12 @@ import WidgetKit
   ) -> Bool {
     if FirebaseApp.app() == nil {
       FirebaseApp.configure()
+    }
+    // ── arrival (đợt 2) ── geofence events run in a headless engine that needs
+    // the plugins too (spike §6.4). Must come before the registrant below,
+    // or native_geofence stops the app with fatalError at launch.
+    NativeGeofencePlugin.setPluginRegistrantCallback { registry in
+      GeneratedPluginRegistrant.register(with: registry)
     }
     GeneratedPluginRegistrant.register(with: self)
 
@@ -28,6 +38,10 @@ import WidgetKit
       InviteClipboardChannel.register(messenger: registrar.messenger())
       AppleIdStateChannel.register(messenger: registrar.messenger())
       HomeWidgetChannel.register(messenger: registrar.messenger())
+    }
+    // ── arrival (đợt 2) ── location permission, one fix, address search.
+    if let registrar = self.registrar(forPlugin: "ArrivalChannel") {
+      ArrivalChannel.register(messenger: registrar.messenger())
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -380,5 +394,301 @@ final class HomeWidgetChannel {
       "family": value("family"), "target": value("target"),
       "focus": value("focus"), "kind": value("kind"),
     ], forKey: launchKey)
+  }
+}
+
+// ── arrival (đợt 2) ──
+/// Feature arrival: location permission (D8), one fix for "Dùng vị trí hiện
+/// tại" and address search (D20: `MKLocalSearchCompleter` while typing, each
+/// suggestion resolved with `MKLocalSearch`; never CLGeocoder — spike §6.8).
+/// Launch engine only: geofence events run in native_geofence's headless
+/// engine and never call this. Coordinates go back to Dart and stay on the
+/// phone (D2); the typed text goes to Apple's map service (D22).
+final class ArrivalChannel: NSObject, CLLocationManagerDelegate, MKLocalSearchCompleterDelegate {
+  private static var shared: ArrivalChannel?
+
+  static func register(messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "dear_embeiu/arrival", binaryMessenger: messenger)
+    let me = ArrivalChannel()
+    shared = me
+    channel.setMethodCallHandler { call, result in me.handle(call, result) }
+  }
+
+  private let manager = CLLocationManager()
+  private var permissionWaiters: [FlutterResult] = []
+  private var askedStatus: CLAuthorizationStatus = .notDetermined
+  private var askToken = 0
+  private var resignedSinceAsk = false
+
+  private var fixWaiters: [FlutterResult] = []
+  private var fixToken = 0
+
+  private let completer = MKLocalSearchCompleter()
+  private var searchToken = 0
+  private var searchResult: FlutterResult?
+  private var resolved: [String: [String: Any]] = [:]
+  // Vietnam box (overview D20): 8.18–23.39 N, 102.14–109.46 E.
+  private let vietnam = MKCoordinateRegion(
+    center: CLLocationCoordinate2D(latitude: 15.785, longitude: 105.8),
+    span: MKCoordinateSpan(latitudeDelta: 15.21, longitudeDelta: 7.32))
+
+  override init() {
+    super.init()
+    manager.delegate = self
+    manager.desiredAccuracy = kCLLocationAccuracyBest
+    completer.delegate = self
+    completer.region = vietnam
+    completer.resultTypes = [.address, .pointOfInterest]
+    let center = NotificationCenter.default
+    center.addObserver(
+      self, selector: #selector(willResign),
+      name: UIApplication.willResignActiveNotification, object: nil)
+    center.addObserver(
+      self, selector: #selector(didBecomeActive),
+      name: UIApplication.didBecomeActiveNotification, object: nil)
+  }
+
+  private func handle(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+    let args = call.arguments as? [String: Any]
+    switch call.method {
+    case "permission": result(state())
+    case "requestWhenInUse": request(always: false, result)
+    case "requestAlways": request(always: true, result)
+    case "openSettings":
+      if let url = URL(string: UIApplication.openSettingsURLString) {
+        UIApplication.shared.open(url)
+      }
+      result(nil)
+    case "backgroundLabel": result(nil)
+    case "currentFix": currentFix(timeoutMs: (args?["timeoutMs"] as? Int) ?? 15000, result)
+    case "searchAvailable": result(true)
+    case "search": search((args?["query"] as? String) ?? "", result)
+    default: result(FlutterMethodNotImplemented)
+    }
+  }
+
+  // ── Permission ────────────────────────────────────────────────────────────
+
+  private func state() -> [String: Any] {
+    let level: String
+    switch manager.authorizationStatus {
+    case .notDetermined: level = "notDetermined"
+    case .authorizedAlways: level = "always"
+    case .authorizedWhenInUse: level = "whenInUse"
+    default: level = "denied"
+    }
+    return ["level": level, "precise": manager.accuracyAuthorization == .fullAccuracy]
+  }
+
+  private func request(always: Bool, _ result: @escaping FlutterResult) {
+    let status = manager.authorizationStatus
+    let canAsk = always
+      ? (status == .notDetermined || status == .authorizedWhenInUse)
+      : status == .notDetermined
+    guard canAsk else {
+      result(state())
+      return
+    }
+    permissionWaiters.append(result)
+    askedStatus = status
+    resignedSinceAsk = false
+    askToken += 1
+    let token = askToken
+    if always {
+      manager.requestAlwaysAuthorization()
+      // iOS asks for "Luôn luôn" once per install; after that nothing shows and
+      // no callback comes. No sheet within 1 s = nothing to wait for.
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+        guard let self, self.askToken == token, !self.resignedSinceAsk else { return }
+        self.finishPermission()
+      }
+    } else {
+      manager.requestWhenInUseAuthorization()
+    }
+  }
+
+  private func finishPermission() {
+    guard !permissionWaiters.isEmpty else { return }
+    askToken += 1
+    let s = state()
+    permissionWaiters.forEach { $0(s) }
+    permissionWaiters.removeAll()
+  }
+
+  @objc private func willResign() { resignedSinceAsk = true }
+
+  /// The system sheet closed without changing anything ("Giữ khi dùng ứng dụng").
+  @objc private func didBecomeActive() {
+    guard !permissionWaiters.isEmpty, resignedSinceAsk else { return }
+    let token = askToken
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+      guard let self, self.askToken == token else { return }
+      self.finishPermission()
+    }
+  }
+
+  func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+    // Also fires once when the manager is created: only a change counts.
+    if !permissionWaiters.isEmpty, manager.authorizationStatus != askedStatus {
+      finishPermission()
+    }
+  }
+
+  // ── One fix ───────────────────────────────────────────────────────────────
+
+  private func currentFix(timeoutMs: Int, _ result: @escaping FlutterResult) {
+    let status = manager.authorizationStatus
+    guard status == .authorizedAlways || status == .authorizedWhenInUse else {
+      result(nil)
+      return
+    }
+    fixWaiters.append(result)
+    guard fixWaiters.count == 1 else { return }
+    fixToken += 1
+    let token = fixToken
+    manager.requestLocation()
+    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(timeoutMs)) { [weak self] in
+      guard let self, self.fixToken == token else { return }
+      self.manager.stopUpdatingLocation()
+      self.finishFix(nil)
+    }
+  }
+
+  private func finishFix(_ location: CLLocation?) {
+    guard !fixWaiters.isEmpty else { return }
+    fixToken += 1
+    let payload: Any? = location.map {
+      ["lat": $0.coordinate.latitude, "lng": $0.coordinate.longitude,
+       "accuracy": max(0, $0.horizontalAccuracy)]
+    }
+    fixWaiters.forEach { $0(payload) }
+    fixWaiters.removeAll()
+  }
+
+  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    finishFix(locations.last)
+  }
+
+  func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+    finishFix(nil)
+  }
+
+  // ── Address search ────────────────────────────────────────────────────────
+
+  /// Dart debounces (300 ms) and already sent the shortened text. A newer
+  /// query answers the older one with [].
+  private func search(_ query: String, _ result: @escaping FlutterResult) {
+    searchToken += 1
+    let token = searchToken
+    searchResult?([])
+    searchResult = result
+    if completer.queryFragment == query && !completer.isSearching {
+      // Same text again: the completer won't call back.
+      resolve(completer.results, query: query, token: token)
+    } else {
+      // Main thread (method channel handlers run there) — set from another
+      // queue and the delegate never fires (spike §6.9).
+      completer.queryFragment = query
+    }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+      guard let self, self.searchToken == token, let r = self.searchResult else { return }
+      self.searchResult = nil
+      r(FlutterError(code: "offline", message: "timeout", details: nil))
+    }
+  }
+
+  func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
+    guard searchResult != nil else { return }
+    resolve(completer.results, query: completer.queryFragment, token: searchToken)
+  }
+
+  func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
+    guard let r = searchResult else { return }
+    let ns = error as NSError
+    if ns.domain == MKErrorDomain && ns.code == Int(MKError.placemarkNotFound.rawValue) {
+      resolve([], query: completer.queryFragment, token: searchToken)
+      return
+    }
+    searchResult = nil
+    r(Self.isOffline(error)
+      ? FlutterError(code: "offline", message: ns.localizedDescription, details: nil)
+      : FlutterError(code: "failed", message: ns.localizedDescription, details: nil))
+  }
+
+  /// Top 5 suggestions → coordinates. No suggestion at all → one plain
+  /// `MKLocalSearch` on the text (the form measured in the spike).
+  private func resolve(_ completions: [MKLocalSearchCompletion], query: String, token: Int) {
+    let top = Array(completions.prefix(5))
+    if top.isEmpty {
+      let request = MKLocalSearch.Request()
+      request.naturalLanguageQuery = query
+      request.region = vietnam
+      MKLocalSearch(request: request).start { [weak self] response, error in
+        guard let self else { return }
+        let items = (response?.mapItems ?? []).prefix(5).map {
+          self.map($0, title: $0.name ?? "", subtitle: nil)
+        }
+        self.reply(items, error: items.isEmpty ? error : nil, token: token)
+      }
+      return
+    }
+    if resolved.count > 200 { resolved.removeAll() }
+    var out = [[String: Any]?](repeating: nil, count: top.count)
+    var firstError: Error?
+    let group = DispatchGroup()
+    for (i, c) in top.enumerated() {
+      let key = c.title + "\n" + c.subtitle
+      if let hit = resolved[key] {
+        out[i] = hit
+        continue
+      }
+      group.enter()
+      MKLocalSearch(request: MKLocalSearch.Request(completion: c)).start { [weak self] response, error in
+        if let self, let item = response?.mapItems.first {
+          let m = self.map(item, title: c.title, subtitle: c.subtitle)
+          self.resolved[key] = m
+          out[i] = m
+        }
+        if firstError == nil { firstError = error }
+        group.leave()
+      }
+    }
+    group.notify(queue: .main) { [weak self] in
+      let found = out.compactMap { $0 }
+      self?.reply(found, error: found.isEmpty ? firstError : nil, token: token)
+    }
+  }
+
+  private func reply(_ items: [[String: Any]], error: Error?, token: Int) {
+    guard searchToken == token, let r = searchResult else { return }
+    searchResult = nil
+    if let error, Self.isOffline(error) {
+      r(FlutterError(code: "offline", message: (error as NSError).localizedDescription, details: nil))
+    } else {
+      r(items)
+    }
+  }
+
+  private func map(_ item: MKMapItem, title: String, subtitle: String?) -> [String: Any] {
+    let p = item.placemark
+    let full = p.title ?? ""
+    var sub = subtitle ?? full
+    if subtitle == nil, sub.hasPrefix(title) {
+      sub = String(sub.dropFirst(title.count)).trimmingCharacters(in: CharacterSet(charactersIn: ", "))
+    }
+    return [
+      "title": title,
+      "subtitle": sub,
+      "lat": p.coordinate.latitude,
+      "lng": p.coordinate.longitude,
+      "hasNumber": !(p.subThoroughfare ?? "").isEmpty,
+      "address": [full, p.administrativeArea ?? ""].joined(separator: ", "),
+    ]
+  }
+
+  private static func isOffline(_ error: Error) -> Bool {
+    let ns = error as NSError
+    return ns.domain == NSURLErrorDomain
+      || (ns.domain == MKErrorDomain && ns.code == Int(MKError.serverFailure.rawValue))
   }
 }
