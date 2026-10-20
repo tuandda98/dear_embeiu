@@ -34,6 +34,8 @@ import 'providers/reminder_provider.dart';
 import 'providers/rps_game_provider.dart';
 import 'providers/sleep_provider.dart';
 import 'providers/streak_provider.dart';
+// ── expenses (đợt 2) ──
+import 'providers/money_provider.dart';
 import 'screens/force_update_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/guest_counter_screen.dart';
@@ -325,6 +327,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(create: (_) => RpsGameProvider()),
         // Sleep (feature sleep, 2026-10-10) — watch wired in SessionResolver.
         ChangeNotifierProvider(create: (_) => SleepProvider()),
+        // ── expenses (đợt 2) ──
+        // Sổ tiền — own book wired at sign-in, shared book while the couple
+        // is active (SessionResolver).
+        ChangeNotifierProvider(create: (_) => MoneyProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
