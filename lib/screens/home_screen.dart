@@ -69,6 +69,10 @@ import 'care_message_screen.dart';
 import 'notification_center_screen.dart';
 import 'rps_game_screen.dart' show RpsGameScreen, openRpsGame;
 import 'rps_history_screen.dart' show openRpsHistory;
+// ── expenses (đợt 2) ──
+import '../models/money.dart';
+import '../providers/money_provider.dart';
+import '../widgets/money/money_home_entry.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -675,6 +679,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _refreshDqSafetyNet();
       context.read<DecisionProvider>().refreshDay();
       _refreshDecisionReminder();
+      // ── expenses (đợt 2) ──
+      context.read<MoneyProvider>().refreshDay();
     }
     // Chat presence (presence-suppress 2026-06-19): only meaningful while the
     // chat tab is the active screen. Backgrounding clears presence so the
@@ -1882,6 +1888,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             myUid,
             partnerUid,
           );
+          // ── expenses (đợt 2) ──
+          // Sổ tiền: open the shared book the moment the partner joins
+          // mid-session (both calls no-op when unchanged).
+          final money = context.read<MoneyProvider>();
+          money.watchOwn(myUid);
+          if (!couple.isWaitingForPartner) {
+            money.watchShared(couple.id, couple.memberIds, myUid);
+          } else if (money.hasShared) {
+            money.clearShared();
+          }
           // Chat stream (feature chat) — must run from Home so the unread dot
           // works on every tab. watchForCouple no-ops when unchanged.
           context.read<ChatProvider>().watchForCouple(couple.id, myUid);
@@ -2108,6 +2124,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ],
 
             // ── Đợt 2 (Home C): MoneyHomeEntry (feature expenses) chèn ở đây.
+            // ── expenses (đợt 2) ──
+            // Sổ tiền: shared book's month spending (own book while waiting).
+            // Brings its own 16 top gap (nothing at all without Firebase).
+            _gutter(
+              _entrance(
+                7,
+                MoneyHomeEntry(
+                  waiting: couple.isWaitingForPartner,
+                  onRetry: () =>
+                      context.read<MoneyProvider>().retry(MoneyBookKind.shared),
+                ),
+              ),
+            ),
 
             // "Phân vân gì không?" (feature decision-wheel D6) — ăn gì · đi
             // đâu · phân vân khác. Shown while waiting too (solo picks keep).
