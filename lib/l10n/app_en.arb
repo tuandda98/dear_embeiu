@@ -6131,5 +6131,471 @@
   "moneyNotSpending": "not spending",
   "@moneyNotSpending": {
     "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgets": "Budgets",
+  "@moneyBudgets": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetsBadge": "BUDGETS",
+  "@moneyBudgetsBadge": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReport": "Report",
+  "@moneyReport": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportBadge": "REPORT",
+  "@moneyReportBadge": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchBadge": "FIND ENTRIES",
+  "@moneySearchBadge": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchLabel": "Find entries",
+  "@moneySearchLabel": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySeeAll": "All",
+  "@moneySeeAll": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetSetLink": "Set",
+  "@moneyBudgetSetLink": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyAddBudget": "Set a budget",
+  "@moneyAddBudget": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetScopeShared": "{month} · whole shared book",
+  "@moneyBudgetScopeShared": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetScopeMine": "{month} · my whole book",
+  "@moneyBudgetScopeMine": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetDaysLeft": "{n} days left",
+  "@moneyBudgetDaysLeft": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetDailyLeft": "{left} left, about {perDay} a day until month end.",
+  "@moneyBudgetDailyLeft": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "perDay": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetUsedOf": "of {budget}",
+  "@moneyBudgetUsedOf": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetByCategory": "By category",
+  "@moneyBudgetByCategory": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetOverOf": "{amount} over {budget}",
+  "@moneyBudgetOverOf": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetLeftOf": "{amount} left of {budget}",
+  "@moneyBudgetLeftOf": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetNoCategory": "No category has its own budget yet. Set one for a group you spend a lot on and we'll tell you at 80% and 100%.",
+  "@moneyBudgetNoCategory": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetUnset": "No budget yet. Set one number for the month and we'll tell you at 80% and 100%.",
+  "@moneyBudgetUnset": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySetBudget": "Set monthly budget",
+  "@moneySetBudget": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetPushNote": "At 80% and 100% of the total budget, the other person gets a notice with the percentage only, no amounts.",
+  "@moneyBudgetPushNote": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetSheetTitle": "Monthly budget",
+  "@moneyBudgetSheetTitle": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetWholeBook": "Whole book",
+  "@moneyBudgetWholeBook": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetAmountLabel": "Monthly limit",
+  "@moneyBudgetAmountLabel": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetResets": "It starts again from 0 every month.",
+  "@moneyBudgetResets": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetSave": "Save budget",
+  "@moneyBudgetSave": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetRemove": "Remove this budget",
+  "@moneyBudgetRemove": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetSaved": "Budget set for {name}: {amount}",
+  "@moneyBudgetSaved": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetRemoved": "Removed the {name} budget",
+  "@moneyBudgetRemoved": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportUpTo": "up to {date}",
+  "@moneyReportUpTo": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportLeft": "Left",
+  "@moneyReportLeft": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportTopCategory": "{category} was the biggest spend, {percent}% of the month.",
+  "@moneyReportTopCategory": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportTopShared": "{category} is {percent}% of shared spending.",
+  "@moneyReportTopShared": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportTopChild": "Most of it was {sub}, {amount}.",
+  "@moneyReportTopChild": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "sub": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportByPerson": "By person",
+  "@moneyReportByPerson": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportContrib": "Put into the shared wallet and funds this month: {partner} {a}, me {b}.",
+  "@moneyReportContrib": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "partner": {
+        "type": "String"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportByCategory": "By category",
+  "@moneyReportByCategory": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportTapHint": "tap for subcategories",
+  "@moneyReportTapHint": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportByMonth": "Spending per month",
+  "@moneyReportByMonth": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReport6": "6 months",
+  "@moneyReport6": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReport12": "12 months",
+  "@moneyReport12": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportBudgetLine": "Budget {amount}",
+  "@moneyReportBudgetLine": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportPartial": "{month} counts up to {date}. The dashed line is the current total budget.",
+  "@moneyReportPartial": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportPartialNoBudget": "{month} counts up to {date}.",
+  "@moneyReportPartialNoBudget": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportNewBook": "The shared book started in {month}, so earlier months are empty.",
+  "@moneyReportNewBook": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportNewBookMine": "My book started in {month}, so earlier months are empty.",
+  "@moneyReportNewBookMine": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportMissing": "Some months didn't load, so their bars are empty. They'll come back once you're online.",
+  "@moneyReportMissing": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportTet": "Tết",
+  "@moneyReportTet": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportChartLabel": "Spending per month, last {n} months: {values}",
+  "@moneyReportChartLabel": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "values": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportByWallet": "By wallet",
+  "@moneyReportByWallet": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportNoSpend": "No spending in {month} yet.",
+  "@moneyReportNoSpend": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchHint": "Search notes and categories",
+  "@moneySearchHint": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchClear": "Clear text",
+  "@moneySearchClear": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchAccent": "Accents optional: “bun cha” finds “Bún chả”.",
+  "@moneySearchAccent": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchCount": "{n} entries",
+  "@moneySearchCount": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchRange": "Last {n} months",
+  "@moneySearchRange": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchEmpty": "Nothing matches “{q}” in the last {n} months.",
+  "@moneySearchEmpty": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "q": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchEmptyAll": "No entries in the last {n} months with these filters.",
+  "@moneySearchEmptyAll": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearch12": "Search 12 months",
+  "@moneySearch12": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchCap": "Only the latest 2,000 entries in this range are searched. Narrow the dates to be sure.",
+  "@moneySearchCap": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchError": "Couldn't search. Check your connection and try again.",
+  "@moneySearchError": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchAmount": "Amount",
+  "@moneySearchAmount": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchPerson": "Person",
+  "@moneySearchPerson": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchFrom": "From",
+  "@moneySearchFrom": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchTo": "To",
+  "@moneySearchTo": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchFromOnly": "From {amount}",
+  "@moneySearchFromOnly": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchToOnly": "Up to {amount}",
+  "@moneySearchToOnly": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchApply": "Apply",
+  "@moneySearchApply": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchClearFilter": "Clear filter",
+  "@moneySearchClearFilter": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchPickedCount": "{label} · {n}",
+  "@moneySearchPickedCount": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchPeriod": "Date range",
+  "@moneySearchPeriod": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
   }
 }

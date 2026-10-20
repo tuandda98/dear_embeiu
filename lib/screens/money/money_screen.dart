@@ -21,9 +21,16 @@ import '../../widgets/segmented_pill.dart';
 import '../../widgets/shimmer_skeleton.dart';
 import '../../widgets/sub_screen_header.dart';
 import '../../widgets/today_constellation.dart' show MidnightBuilder;
+import 'money_budgets_screen.dart';
 import 'money_categories_screen.dart';
 import 'money_first_run.dart';
+import 'money_report_screen.dart';
+import 'money_search_screen.dart';
 import 'money_wallets_screen.dart';
+
+// ── expenses (đợt 2) · stage 3A: budgets / report / search entry points ──
+void _openSub(BuildContext context, Widget screen) =>
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
 
 /// Opens Sổ tiền ([book] null = the tab used last on this phone).
 Future<void> openMoneyScreen(BuildContext context, {MoneyBookKind? book}) =>
@@ -171,6 +178,25 @@ class _MoneyScreenState extends State<MoneyScreen> {
                 _push(MoneyCategoriesScreen(book: _book));
               },
             ),
+            // ── expenses (đợt 2) · stage 3A ──
+            ListTile(
+              leading: const Icon(IconsaxPlusLinear.chart_2),
+              title: Text(l10n.moneyBudgets),
+              minTileHeight: 52,
+              onTap: () {
+                Navigator.of(sheet).pop();
+                _push(MoneyBudgetsScreen(book: _book));
+              },
+            ),
+            ListTile(
+              leading: const Icon(IconsaxPlusLinear.chart_1),
+              title: Text(l10n.moneyReport),
+              minTileHeight: 52,
+              onTap: () {
+                Navigator.of(sheet).pop();
+                _push(MoneyReportScreen(book: _book, month: _month));
+              },
+            ),
           ],
         ),
       ),
@@ -230,10 +256,22 @@ class _MoneyScreenState extends State<MoneyScreen> {
                   badgeIcon: IconsaxPlusLinear.wallet_2,
                   trailing: firstRun || state == null
                       ? null
-                      : HeaderIconButton(
-                          icon: IconsaxPlusLinear.more,
-                          semanticsLabel: l10n.moneyMoreLabel,
-                          onTap: _openMenu,
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // ── expenses (đợt 2) · stage 3A ──
+                            HeaderIconButton(
+                              icon: IconsaxPlusLinear.search_normal_1,
+                              semanticsLabel: l10n.moneySearchLabel,
+                              onTap: () =>
+                                  _push(MoneySearchScreen(book: _book)),
+                            ),
+                            HeaderIconButton(
+                              icon: IconsaxPlusLinear.more,
+                              semanticsLabel: l10n.moneyMoreLabel,
+                              onTap: _openMenu,
+                            ),
+                          ],
                         ),
                 ),
               ),
@@ -529,36 +567,58 @@ class _MonthCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              IconButton(
-                tooltip: l10n.moneyPrevMonth,
-                onPressed: () => onShift(-1),
-                icon: const Icon(IconsaxPlusLinear.arrow_left_2, size: 18),
-                color: AppColors.textPrimary,
-                visualDensity: VisualDensity.compact,
-              ),
-              Flexible(
-                child: Semantics(
-                  header: true,
-                  child: Text(
-                    moneyMonthLabel(context, month),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+              Expanded(
+                child: Row(
+                  children: [
+                    IconButton(
+                      tooltip: l10n.moneyPrevMonth,
+                      onPressed: () => onShift(-1),
+                      icon: const Icon(
+                        IconsaxPlusLinear.arrow_left_2,
+                        size: 18,
+                      ),
                       color: AppColors.textPrimary,
+                      visualDensity: VisualDensity.compact,
                     ),
-                  ),
+                    Flexible(
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          moneyMonthLabel(context, month),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: l10n.moneyNextMonth,
+                      onPressed: current ? null : () => onShift(1),
+                      icon: const Icon(
+                        IconsaxPlusLinear.arrow_right_3,
+                        size: 18,
+                      ),
+                      color: AppColors.textPrimary,
+                      disabledColor: AppColors.textTertiary,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 ),
               ),
-              IconButton(
-                tooltip: l10n.moneyNextMonth,
-                onPressed: current ? null : () => onShift(1),
-                icon: const Icon(IconsaxPlusLinear.arrow_right_3, size: 18),
-                color: AppColors.textPrimary,
-                disabledColor: AppColors.textTertiary,
-                visualDensity: VisualDensity.compact,
-              ),
+              // ── expenses (đợt 2) · stage 3A ──
+              if (!fresh) ...[
+                MoneyLink(
+                  label: l10n.moneyReport,
+                  onTap: () => _openSub(
+                    context,
+                    MoneyReportScreen(book: book, month: month),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 4),
@@ -598,6 +658,16 @@ class _MonthCard extends StatelessWidget {
                         : l10n.moneyBudgetLeftLabel,
                     style: _labelStyle,
                   ),
+                  // ── expenses (đợt 2) · stage 3A: "Đặt ›" ──
+                  if (status == null && !fresh)
+                    MoneyLink(
+                      label: l10n.moneyBudgetSetLink,
+                      onTap: () => MoneyBudgetSheet.show(
+                        context,
+                        book: book,
+                        categoryId: '',
+                      ),
+                    ),
                   if (status != null) ...[
                     const SizedBox(height: 2),
                     figure(MoneyAmountText(status.left, size: 20), 100, 20),
@@ -1054,7 +1124,17 @@ class _RecentCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          MoneyCardHeader(title: l10n.moneyRecent),
+          MoneyCardHeader(
+            title: l10n.moneyRecent,
+            // ── expenses (đợt 2) · stage 3A: "Tất cả ›" = search, 3 months ──
+            trailing: list == null || list.isEmpty
+                ? null
+                : MoneyLink(
+                    label: l10n.moneySeeAll,
+                    onTap: () =>
+                        _openSub(context, MoneySearchScreen(book: book)),
+                  ),
+          ),
           body,
         ],
       ),
@@ -1134,7 +1214,14 @@ class _WhereCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          MoneyCardHeader(title: l10n.moneyWhere),
+          MoneyCardHeader(
+            title: l10n.moneyWhere,
+            // ── expenses (đợt 2) · stage 3A ──
+            trailing: MoneyLink(
+              label: l10n.moneyBudgets,
+              onTap: () => _openSub(context, MoneyBudgetsScreen(book: book)),
+            ),
+          ),
           const SizedBox(height: 8),
           for (var i = 0; i < rows.length; i++)
             Builder(

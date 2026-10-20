@@ -15,7 +15,10 @@ import '../../theme/app_colors.dart';
 import '../../theme/person_palette.dart';
 import '../../utils/money_input.dart';
 import '../../utils/money_math.dart';
+import '../../utils/money_views.dart';
 import '../content_card.dart';
+import '../segmented_pill.dart';
+import '../sub_screen_header.dart';
 
 /// Shared pieces of the Sổ tiền screens (feature expenses, design §3, §5):
 /// formatting helpers, the person names/colours, the entry row, day groups,
@@ -696,6 +699,8 @@ class MoneyTxRow extends StatelessWidget {
     required this.ctx,
     this.onTap,
     this.trailingNote,
+    this.highlight,
+    this.subPrefix,
   });
 
   final MoneyTx tx;
@@ -704,6 +709,13 @@ class MoneyTxRow extends StatelessWidget {
 
   /// Extra line under the row (linked entry changed by the partner).
   final Widget? trailingNote;
+
+  // ── expenses (đợt 2) · stage 3A: search results ──
+  /// Search text: the matching part of the title is tinted rose .16.
+  final String? highlight;
+
+  /// Put before the sub line ("20/10" in search results).
+  final String? subPrefix;
 
   @override
   Widget build(BuildContext context) {
@@ -797,6 +809,7 @@ class MoneyTxRow extends StatelessWidget {
         moneyTime(context, tx.updatedAt!),
       );
     }
+    if (subPrefix != null) sub = '$subPrefix · $sub';
     final semantics = [
       title,
       sub,
@@ -804,6 +817,9 @@ class MoneyTxRow extends StatelessWidget {
       '$prefix${vndSpoken(context, amount)}',
       ?underAmount,
     ].join(', ');
+    final hit = highlight == null
+        ? null
+        : MoneyViews.matchRange(title, highlight!);
 
     final row = Semantics(
       button: onTap != null,
@@ -836,8 +852,22 @@ class MoneyTxRow extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
+                      Text.rich(
+                        hit == null
+                            ? TextSpan(text: title)
+                            : TextSpan(
+                                children: [
+                                  TextSpan(text: title.substring(0, hit.$1)),
+                                  TextSpan(
+                                    text: title.substring(hit.$1, hit.$2),
+                                    style: TextStyle(
+                                      backgroundColor: AppColors.accentLove
+                                          .withValues(alpha: 0.16),
+                                    ),
+                                  ),
+                                  TextSpan(text: title.substring(hit.$2)),
+                                ],
+                              ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -1604,3 +1634,87 @@ Future<String?> pickMoneyEmoji(BuildContext context, String current) {
     ),
   );
 }
+
+// ── expenses (đợt 2) · stage 3A ──────────────────────────────────────────
+
+/// Scaffold of the stage-3 money sub-screens: dawnBlush, the chip header
+/// and, when the pair has a shared book, the Của mình · Chung switch.
+/// [slivers] scroll under the pinned header.
+class MoneyPage extends StatelessWidget {
+  const MoneyPage({
+    super.key,
+    required this.badge,
+    required this.icon,
+    required this.book,
+    required this.onBook,
+    required this.slivers,
+    this.trailing,
+  });
+
+  final String badge;
+  final IconData icon;
+  final MoneyBookKind book;
+  final ValueChanged<MoneyBookKind> onBook;
+  final List<Widget> slivers;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final hasShared = context.select<MoneyProvider, bool>((m) => m.hasShared);
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppColors.dawnBlush),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: SubScreenHeader(
+                  badge: badge,
+                  badgeIcon: icon,
+                  trailing: trailing,
+                ),
+              ),
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    if (hasShared)
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: SegmentedPill<MoneyBookKind>(
+                            values: MoneyBookKind.values,
+                            selected: book,
+                            labelOf: (b) => b == MoneyBookKind.own
+                                ? l10n.moneyTabMine
+                                : l10n.moneyTabShared,
+                            onChanged: onBook,
+                          ),
+                        ),
+                      ),
+                    ...slivers,
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 32 + MediaQuery.of(context).padding.bottom,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Item of a [MoneyPage] list: gutter 16, 16 above.
+Widget moneyBlock(Widget child, {double top = 16}) => SliverPadding(
+  padding: EdgeInsets.fromLTRB(16, top, 16, 0),
+  sliver: SliverToBoxAdapter(child: child),
+);
+

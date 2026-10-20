@@ -58,6 +58,11 @@ class MoneyBookState {
   List<MoneyTx>? viewTxs;
 
   final Map<String, MoneyMonthTotals> trendCache = {};
+
+  // ── expenses (đợt 2) · stage 3A ──
+  /// Search: rows fetched per 'from|to' (typing filters them again here
+  /// instead of re-reading up to 2.000 docs per keystroke).
+  final Map<String, ({DateTime at, List<MoneyTx> rows})> searchCache = {};
   final List<StreamSubscription<Object?>> subs = [];
   StreamSubscription<Object?>? txSub;
   StreamSubscription<Object?>? viewSub;
@@ -1104,10 +1109,27 @@ class MoneyProvider extends ChangeNotifier {
   }) async {
     final s = book(kind);
     if (s == null) return (rows: const <MoneyTx>[], capped: false);
-    final fetched = await s.service.fetchTx(from: from, to: to);
+    // ── expenses (đợt 2) · stage 3A: fetch once per range for 2 minutes;
+    // the live window replaces its part of it so an entry just edited or
+    // deleted on this phone shows right away.
+    final key = '$from|$to';
+    final hit = s.searchCache[key];
+    final List<MoneyTx> fetched;
+    if (hit != null && _clock().difference(hit.at).inMinutes < 2) {
+      fetched = hit.rows;
+    } else {
+      fetched = await s.service.fetchTx(from: from, to: to);
+      s.searchCache[key] = (at: _clock(), rows: fetched);
+    }
+    final win = s.windowFrom;
     final source = [
       for (final t in fetched)
-        if (!_pendingDeletes.containsKey(t.id)) t,
+        if ((win == null || t.date.compareTo(win) < 0) &&
+            !_pendingDeletes.containsKey(t.id))
+          t,
+      if (win != null)
+        for (final t in visibleTxs(kind))
+          if (t.date.compareTo(from) >= 0 && t.date.compareTo(to) <= 0) t,
     ];
     final idx = s.categories;
     final rows = MoneyMath.search(

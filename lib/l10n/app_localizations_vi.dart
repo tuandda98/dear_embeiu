@@ -5544,4 +5544,279 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get moneyNotSpending => 'không tính là chi';
+
+  @override
+  String get moneyBudgets => 'Ngân sách';
+
+  @override
+  String get moneyBudgetsBadge => 'NGÂN SÁCH';
+
+  @override
+  String get moneyReport => 'Báo cáo';
+
+  @override
+  String get moneyReportBadge => 'BÁO CÁO';
+
+  @override
+  String get moneySearchBadge => 'TÌM KHOẢN';
+
+  @override
+  String get moneySearchLabel => 'Tìm khoản';
+
+  @override
+  String get moneySeeAll => 'Tất cả';
+
+  @override
+  String get moneyBudgetSetLink => 'Đặt';
+
+  @override
+  String get moneyAddBudget => 'Đặt ngân sách';
+
+  @override
+  String moneyBudgetScopeShared(String month) {
+    return 'Tháng $month · cả sổ chung';
+  }
+
+  @override
+  String moneyBudgetScopeMine(String month) {
+    return 'Tháng $month · cả sổ của mình';
+  }
+
+  @override
+  String moneyBudgetDaysLeft(String n) {
+    return 'còn $n ngày';
+  }
+
+  @override
+  String moneyBudgetDailyLeft(String left, String perDay) {
+    return 'Còn $left, tức khoảng $perDay mỗi ngày tới hết tháng.';
+  }
+
+  @override
+  String moneyBudgetUsedOf(String budget) {
+    return 'của $budget';
+  }
+
+  @override
+  String get moneyBudgetByCategory => 'Theo danh mục';
+
+  @override
+  String moneyBudgetOverOf(String amount, String budget) {
+    return 'Vượt $amount của $budget';
+  }
+
+  @override
+  String moneyBudgetLeftOf(String amount, String budget) {
+    return 'Còn $amount của $budget';
+  }
+
+  @override
+  String get moneyBudgetNoCategory =>
+      'Chưa nhóm nào có ngân sách riêng. Đặt cho nhóm hay tiêu nhiều, app sẽ báo khi dùng tới 80% và 100%.';
+
+  @override
+  String get moneyBudgetUnset =>
+      'Chưa đặt ngân sách. Đặt một con số cho cả tháng, app sẽ báo khi dùng tới 80% và 100%.';
+
+  @override
+  String get moneySetBudget => 'Đặt ngân sách tháng';
+
+  @override
+  String get moneyBudgetPushNote =>
+      'Chạm 80% và 100% ngân sách tổng: người không ghi khoản đó nhận thông báo chỉ có phần trăm, không có số tiền.';
+
+  @override
+  String get moneyBudgetSheetTitle => 'Ngân sách tháng';
+
+  @override
+  String get moneyBudgetWholeBook => 'Cả sổ';
+
+  @override
+  String get moneyBudgetAmountLabel => 'Mỗi tháng tối đa';
+
+  @override
+  String get moneyBudgetResets => 'Đầu tháng nào cũng tính lại từ 0.';
+
+  @override
+  String get moneyBudgetSave => 'Lưu ngân sách';
+
+  @override
+  String get moneyBudgetRemove => 'Bỏ ngân sách này';
+
+  @override
+  String moneyBudgetSaved(String name, String amount) {
+    return 'Đã đặt ngân sách $name: $amount';
+  }
+
+  @override
+  String moneyBudgetRemoved(String name) {
+    return 'Đã bỏ ngân sách $name';
+  }
+
+  @override
+  String moneyReportUpTo(String date) {
+    return 'tới $date';
+  }
+
+  @override
+  String get moneyReportLeft => 'Còn lại';
+
+  @override
+  String moneyReportTopCategory(String category, String percent) {
+    return 'Chi nhiều nhất là $category, chiếm $percent% cả tháng.';
+  }
+
+  @override
+  String moneyReportTopShared(String category, String percent) {
+    return '$category chiếm $percent% chi chung.';
+  }
+
+  @override
+  String moneyReportTopChild(String sub, String amount) {
+    return 'Phần lớn là $sub, $amount.';
+  }
+
+  @override
+  String get moneyReportByPerson => 'Theo người';
+
+  @override
+  String moneyReportContrib(String partner, String a, String b) {
+    return 'Góp vào ví chung và quỹ tháng này: $partner $a, mình $b.';
+  }
+
+  @override
+  String get moneyReportByCategory => 'Chi theo danh mục';
+
+  @override
+  String get moneyReportTapHint => 'chạm để xem mục con';
+
+  @override
+  String get moneyReportByMonth => 'Chi mỗi tháng';
+
+  @override
+  String get moneyReport6 => '6 tháng';
+
+  @override
+  String get moneyReport12 => '12 tháng';
+
+  @override
+  String moneyReportBudgetLine(String amount) {
+    return 'Ngân sách $amount';
+  }
+
+  @override
+  String moneyReportPartial(String month, String date) {
+    return 'Tháng $month mới tính tới $date. Đường đứt là ngân sách tổng hiện tại.';
+  }
+
+  @override
+  String moneyReportPartialNoBudget(String month, String date) {
+    return 'Tháng $month mới tính tới $date.';
+  }
+
+  @override
+  String moneyReportNewBook(String month) {
+    return 'Sổ chung mới có từ tháng $month, nên các tháng trước để trống.';
+  }
+
+  @override
+  String moneyReportNewBookMine(String month) {
+    return 'Sổ của mình mới có từ tháng $month, nên các tháng trước để trống.';
+  }
+
+  @override
+  String get moneyReportMissing =>
+      'Chưa tải được vài tháng nên các cột đó để trống. Có mạng sẽ hiện lại.';
+
+  @override
+  String get moneyReportTet => 'Tết';
+
+  @override
+  String moneyReportChartLabel(String n, String values) {
+    return 'Chi mỗi tháng, $n tháng gần đây: $values';
+  }
+
+  @override
+  String get moneyReportByWallet => 'Chi theo ví';
+
+  @override
+  String moneyReportNoSpend(String month) {
+    return 'Tháng $month chưa có khoản chi nào.';
+  }
+
+  @override
+  String get moneySearchHint => 'Tìm trong ghi chú và danh mục';
+
+  @override
+  String get moneySearchClear => 'Xoá chữ';
+
+  @override
+  String get moneySearchAccent =>
+      'Gõ không dấu vẫn ra, vd “bun cha” ra “Bún chả”.';
+
+  @override
+  String moneySearchCount(String n) {
+    return '$n khoản';
+  }
+
+  @override
+  String moneySearchRange(String n) {
+    return '$n tháng gần đây';
+  }
+
+  @override
+  String moneySearchEmpty(String q, String n) {
+    return 'Không có khoản nào khớp “$q” trong $n tháng gần đây.';
+  }
+
+  @override
+  String moneySearchEmptyAll(String n) {
+    return 'Không có khoản nào trong $n tháng gần đây với bộ lọc này.';
+  }
+
+  @override
+  String get moneySearch12 => 'Tìm trong 12 tháng';
+
+  @override
+  String get moneySearchCap =>
+      'Chỉ tìm trong 2.000 khoản gần nhất của khoảng này. Thu hẹp ngày để chắc không sót.';
+
+  @override
+  String get moneySearchError => 'Chưa tìm được. Kiểm tra mạng rồi thử lại.';
+
+  @override
+  String get moneySearchAmount => 'Khoảng tiền';
+
+  @override
+  String get moneySearchPerson => 'Người';
+
+  @override
+  String get moneySearchFrom => 'Từ';
+
+  @override
+  String get moneySearchTo => 'Đến';
+
+  @override
+  String moneySearchFromOnly(String amount) {
+    return 'Từ $amount';
+  }
+
+  @override
+  String moneySearchToOnly(String amount) {
+    return 'Tới $amount';
+  }
+
+  @override
+  String get moneySearchApply => 'Áp dụng';
+
+  @override
+  String get moneySearchClearFilter => 'Bỏ lọc';
+
+  @override
+  String moneySearchPickedCount(String label, String n) {
+    return '$label · $n';
+  }
+
+  @override
+  String get moneySearchPeriod => 'Khoảng ngày';
 }

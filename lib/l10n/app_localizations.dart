@@ -9393,6 +9393,432 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'not spending'**
   String get moneyNotSpending;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get moneyBudgets;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'BUDGETS'**
+  String get moneyBudgetsBadge;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get moneyReport;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'REPORT'**
+  String get moneyReportBadge;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'FIND ENTRIES'**
+  String get moneySearchBadge;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Find entries'**
+  String get moneySearchLabel;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get moneySeeAll;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get moneyBudgetSetLink;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Set a budget'**
+  String get moneyAddBudget;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{month} · whole shared book'**
+  String moneyBudgetScopeShared(String month);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{month} · my whole book'**
+  String moneyBudgetScopeMine(String month);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days left'**
+  String moneyBudgetDaysLeft(String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{left} left, about {perDay} a day until month end.'**
+  String moneyBudgetDailyLeft(String left, String perDay);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'of {budget}'**
+  String moneyBudgetUsedOf(String budget);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'By category'**
+  String get moneyBudgetByCategory;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} over {budget}'**
+  String moneyBudgetOverOf(String amount, String budget);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left of {budget}'**
+  String moneyBudgetLeftOf(String amount, String budget);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'No category has its own budget yet. Set one for a group you spend a lot on and we\'ll tell you at 80% and 100%.'**
+  String get moneyBudgetNoCategory;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'No budget yet. Set one number for the month and we\'ll tell you at 80% and 100%.'**
+  String get moneyBudgetUnset;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Set monthly budget'**
+  String get moneySetBudget;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'At 80% and 100% of the total budget, the other person gets a notice with the percentage only, no amounts.'**
+  String get moneyBudgetPushNote;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly budget'**
+  String get moneyBudgetSheetTitle;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Whole book'**
+  String get moneyBudgetWholeBook;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly limit'**
+  String get moneyBudgetAmountLabel;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'It starts again from 0 every month.'**
+  String get moneyBudgetResets;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Save budget'**
+  String get moneyBudgetSave;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this budget'**
+  String get moneyBudgetRemove;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Budget set for {name}: {amount}'**
+  String moneyBudgetSaved(String name, String amount);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Removed the {name} budget'**
+  String moneyBudgetRemoved(String name);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'up to {date}'**
+  String moneyReportUpTo(String date);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get moneyReportLeft;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{category} was the biggest spend, {percent}% of the month.'**
+  String moneyReportTopCategory(String category, String percent);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{category} is {percent}% of shared spending.'**
+  String moneyReportTopShared(String category, String percent);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Most of it was {sub}, {amount}.'**
+  String moneyReportTopChild(String sub, String amount);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'By person'**
+  String get moneyReportByPerson;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Put into the shared wallet and funds this month: {partner} {a}, me {b}.'**
+  String moneyReportContrib(String partner, String a, String b);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'By category'**
+  String get moneyReportByCategory;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'tap for subcategories'**
+  String get moneyReportTapHint;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Spending per month'**
+  String get moneyReportByMonth;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'6 months'**
+  String get moneyReport6;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'12 months'**
+  String get moneyReport12;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Budget {amount}'**
+  String moneyReportBudgetLine(String amount);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{month} counts up to {date}. The dashed line is the current total budget.'**
+  String moneyReportPartial(String month, String date);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{month} counts up to {date}.'**
+  String moneyReportPartialNoBudget(String month, String date);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'The shared book started in {month}, so earlier months are empty.'**
+  String moneyReportNewBook(String month);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'My book started in {month}, so earlier months are empty.'**
+  String moneyReportNewBookMine(String month);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Some months didn\'t load, so their bars are empty. They\'ll come back once you\'re online.'**
+  String get moneyReportMissing;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Tết'**
+  String get moneyReportTet;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Spending per month, last {n} months: {values}'**
+  String moneyReportChartLabel(String n, String values);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'By wallet'**
+  String get moneyReportByWallet;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'No spending in {month} yet.'**
+  String moneyReportNoSpend(String month);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Search notes and categories'**
+  String get moneySearchHint;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Clear text'**
+  String get moneySearchClear;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Accents optional: “bun cha” finds “Bún chả”.'**
+  String get moneySearchAccent;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{n} entries'**
+  String moneySearchCount(String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Last {n} months'**
+  String moneySearchRange(String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{q}” in the last {n} months.'**
+  String moneySearchEmpty(String q, String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'No entries in the last {n} months with these filters.'**
+  String moneySearchEmptyAll(String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Search 12 months'**
+  String get moneySearch12;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Only the latest 2,000 entries in this range are searched. Narrow the dates to be sure.'**
+  String get moneySearchCap;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t search. Check your connection and try again.'**
+  String get moneySearchError;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get moneySearchAmount;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get moneySearchPerson;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get moneySearchFrom;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get moneySearchTo;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'From {amount}'**
+  String moneySearchFromOnly(String amount);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {amount}'**
+  String moneySearchToOnly(String amount);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get moneySearchApply;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filter'**
+  String get moneySearchClearFilter;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{label} · {n}'**
+  String moneySearchPickedCount(String label, String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get moneySearchPeriod;
 }
 
 class _AppLocalizationsDelegate

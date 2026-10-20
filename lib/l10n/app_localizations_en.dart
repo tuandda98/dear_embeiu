@@ -5790,4 +5790,280 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyNotSpending => 'not spending';
+
+  @override
+  String get moneyBudgets => 'Budgets';
+
+  @override
+  String get moneyBudgetsBadge => 'BUDGETS';
+
+  @override
+  String get moneyReport => 'Report';
+
+  @override
+  String get moneyReportBadge => 'REPORT';
+
+  @override
+  String get moneySearchBadge => 'FIND ENTRIES';
+
+  @override
+  String get moneySearchLabel => 'Find entries';
+
+  @override
+  String get moneySeeAll => 'All';
+
+  @override
+  String get moneyBudgetSetLink => 'Set';
+
+  @override
+  String get moneyAddBudget => 'Set a budget';
+
+  @override
+  String moneyBudgetScopeShared(String month) {
+    return '$month · whole shared book';
+  }
+
+  @override
+  String moneyBudgetScopeMine(String month) {
+    return '$month · my whole book';
+  }
+
+  @override
+  String moneyBudgetDaysLeft(String n) {
+    return '$n days left';
+  }
+
+  @override
+  String moneyBudgetDailyLeft(String left, String perDay) {
+    return '$left left, about $perDay a day until month end.';
+  }
+
+  @override
+  String moneyBudgetUsedOf(String budget) {
+    return 'of $budget';
+  }
+
+  @override
+  String get moneyBudgetByCategory => 'By category';
+
+  @override
+  String moneyBudgetOverOf(String amount, String budget) {
+    return '$amount over $budget';
+  }
+
+  @override
+  String moneyBudgetLeftOf(String amount, String budget) {
+    return '$amount left of $budget';
+  }
+
+  @override
+  String get moneyBudgetNoCategory =>
+      'No category has its own budget yet. Set one for a group you spend a lot on and we\'ll tell you at 80% and 100%.';
+
+  @override
+  String get moneyBudgetUnset =>
+      'No budget yet. Set one number for the month and we\'ll tell you at 80% and 100%.';
+
+  @override
+  String get moneySetBudget => 'Set monthly budget';
+
+  @override
+  String get moneyBudgetPushNote =>
+      'At 80% and 100% of the total budget, the other person gets a notice with the percentage only, no amounts.';
+
+  @override
+  String get moneyBudgetSheetTitle => 'Monthly budget';
+
+  @override
+  String get moneyBudgetWholeBook => 'Whole book';
+
+  @override
+  String get moneyBudgetAmountLabel => 'Monthly limit';
+
+  @override
+  String get moneyBudgetResets => 'It starts again from 0 every month.';
+
+  @override
+  String get moneyBudgetSave => 'Save budget';
+
+  @override
+  String get moneyBudgetRemove => 'Remove this budget';
+
+  @override
+  String moneyBudgetSaved(String name, String amount) {
+    return 'Budget set for $name: $amount';
+  }
+
+  @override
+  String moneyBudgetRemoved(String name) {
+    return 'Removed the $name budget';
+  }
+
+  @override
+  String moneyReportUpTo(String date) {
+    return 'up to $date';
+  }
+
+  @override
+  String get moneyReportLeft => 'Left';
+
+  @override
+  String moneyReportTopCategory(String category, String percent) {
+    return '$category was the biggest spend, $percent% of the month.';
+  }
+
+  @override
+  String moneyReportTopShared(String category, String percent) {
+    return '$category is $percent% of shared spending.';
+  }
+
+  @override
+  String moneyReportTopChild(String sub, String amount) {
+    return 'Most of it was $sub, $amount.';
+  }
+
+  @override
+  String get moneyReportByPerson => 'By person';
+
+  @override
+  String moneyReportContrib(String partner, String a, String b) {
+    return 'Put into the shared wallet and funds this month: $partner $a, me $b.';
+  }
+
+  @override
+  String get moneyReportByCategory => 'By category';
+
+  @override
+  String get moneyReportTapHint => 'tap for subcategories';
+
+  @override
+  String get moneyReportByMonth => 'Spending per month';
+
+  @override
+  String get moneyReport6 => '6 months';
+
+  @override
+  String get moneyReport12 => '12 months';
+
+  @override
+  String moneyReportBudgetLine(String amount) {
+    return 'Budget $amount';
+  }
+
+  @override
+  String moneyReportPartial(String month, String date) {
+    return '$month counts up to $date. The dashed line is the current total budget.';
+  }
+
+  @override
+  String moneyReportPartialNoBudget(String month, String date) {
+    return '$month counts up to $date.';
+  }
+
+  @override
+  String moneyReportNewBook(String month) {
+    return 'The shared book started in $month, so earlier months are empty.';
+  }
+
+  @override
+  String moneyReportNewBookMine(String month) {
+    return 'My book started in $month, so earlier months are empty.';
+  }
+
+  @override
+  String get moneyReportMissing =>
+      'Some months didn\'t load, so their bars are empty. They\'ll come back once you\'re online.';
+
+  @override
+  String get moneyReportTet => 'Tết';
+
+  @override
+  String moneyReportChartLabel(String n, String values) {
+    return 'Spending per month, last $n months: $values';
+  }
+
+  @override
+  String get moneyReportByWallet => 'By wallet';
+
+  @override
+  String moneyReportNoSpend(String month) {
+    return 'No spending in $month yet.';
+  }
+
+  @override
+  String get moneySearchHint => 'Search notes and categories';
+
+  @override
+  String get moneySearchClear => 'Clear text';
+
+  @override
+  String get moneySearchAccent =>
+      'Accents optional: “bun cha” finds “Bún chả”.';
+
+  @override
+  String moneySearchCount(String n) {
+    return '$n entries';
+  }
+
+  @override
+  String moneySearchRange(String n) {
+    return 'Last $n months';
+  }
+
+  @override
+  String moneySearchEmpty(String q, String n) {
+    return 'Nothing matches “$q” in the last $n months.';
+  }
+
+  @override
+  String moneySearchEmptyAll(String n) {
+    return 'No entries in the last $n months with these filters.';
+  }
+
+  @override
+  String get moneySearch12 => 'Search 12 months';
+
+  @override
+  String get moneySearchCap =>
+      'Only the latest 2,000 entries in this range are searched. Narrow the dates to be sure.';
+
+  @override
+  String get moneySearchError =>
+      'Couldn\'t search. Check your connection and try again.';
+
+  @override
+  String get moneySearchAmount => 'Amount';
+
+  @override
+  String get moneySearchPerson => 'Person';
+
+  @override
+  String get moneySearchFrom => 'From';
+
+  @override
+  String get moneySearchTo => 'To';
+
+  @override
+  String moneySearchFromOnly(String amount) {
+    return 'From $amount';
+  }
+
+  @override
+  String moneySearchToOnly(String amount) {
+    return 'Up to $amount';
+  }
+
+  @override
+  String get moneySearchApply => 'Apply';
+
+  @override
+  String get moneySearchClearFilter => 'Clear filter';
+
+  @override
+  String moneySearchPickedCount(String label, String n) {
+    return '$label · $n';
+  }
+
+  @override
+  String get moneySearchPeriod => 'Date range';
 }

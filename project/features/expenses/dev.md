@@ -2,7 +2,7 @@
 
 > Dev sở hữu. Đọc `overview.md` + `design.md` trước. Implement đúng logic + đúng design. Bám kiến trúc Provider + service (`../../../CLAUDE.md` mục 2).
 
-- **Trạng thái dev:** mốc A — stage 1/3 + 2/3 xong (lõi tính, dữ liệu, backend, UI lõi). Stage 3 (ngân sách, báo cáo, tìm, quỹ, thanh toán, nhắc tối, analytics, push tap) chưa làm.
+- **Trạng thái dev:** mốc A — stage 1/3 + 2/3 xong (lõi tính, dữ liệu, backend, UI lõi). Stage 3A (ngân sách, báo cáo, tìm kiếm) xong; stage 3B (quỹ, thanh toán, nhắc tối, push tap, decision-wheel, Profile) ở nhánh B.
 - **Người/role:** Dev
 - **Nhánh:** `feature/expenses` (worktree `dear_embeiu-money`). Chưa deploy gì: rules, index, CF đều chờ Lead deploy DEV từ nhánh gộp.
 
@@ -161,13 +161,60 @@
 9. **Push tap** `money_goal`, `money_goal_reached`, `money_budget` → `MoneyScreen` sổ chung (`money_goal*` kèm `focusWalletId`): sửa CẢ `push_notification_service._handleNotificationTap` lẫn `AppNotification.targetHomeTab` + render inbox 3 type mới trong `notification_center_screen` (inbox có sẵn `percent`, `walletName`, `walletEmoji`, `month`, `level`). Kiểm bản 1.11.0 gặp type lạ (D28).
 10. Mục nhập Profile + lối "Sổ tiền" trong menu; khai báo store + privacy policy (D30) là việc của Lead/PO trước khi gửi duyệt.
 
+## Stage 3A — Ngân sách, Báo cáo, Tìm kiếm (nhánh A, 2026-10-20)
+
+Làm mục 1, 2, 3 của kế hoạch stage 3 + analytics D27 cho 3 màn này. Nhánh B (quỹ, thanh toán, decision-wheel, nhắc tối, push tap, Profile) làm song song ở `dear_embeiu-moneyb`.
+
+| File | Có gì |
+|---|---|
+| `lib/utils/money_views.dart` (mới) | Hàm thuần cho 3 màn: `categoryBudgets` (ngân sách nhóm, nhóm gần chạm trần lên trước), `unbudgetedGroups` (nhóm có chi mà chưa có ngân sách), `perDayLeft` (số ngày còn lại sau hôm nay, tiền mỗi ngày làm tròn xuống nghìn), `childrenOf` (mục con của 1 nhóm), `chartScale` (bước 1/2/4/5×10ⁿ, tối đa 4 khoảng: 13,26tr → bước 4tr, đỉnh 16tr), `firstActiveMonth`, `hasTet` (qua `LunarCalendar`), `searchRange` (mùng 1 của tháng thứ n−1 trước tới 12 tháng sau hôm nay), `resultTotal`, `matchRange` (vị trí khớp không dấu tính theo chỉ số chuỗi gốc, giữ cả dấu tổ hợp NFD), `percentOf` |
+| `lib/screens/money/money_budgets_screen.dart` (mới) | `MoneyBudgetsScreen(book)`: thẻ tổng (số 30, thanh có vạch hôm nay, "Còn … tức khoảng … mỗi ngày", vượt thì `moneyFindingOver`; chưa đặt thì câu + nút "Đặt ngân sách tháng"), "Theo danh mục" (pill warn ≥80, pill neg "Vượt n%" ≥100, dưới 80 chữ xám), "Chưa đặt ngân sách" + nút "Đặt", chú thích push (sổ chung). `MoneyBudgetSheet.show(book, categoryId)` (null = chọn trong sheet; '' = cả sổ): ô số dùng `parseVndInput(max: 10 tỷ)`, Lưu → `setBudget`, "Bỏ ngân sách này" → `deleteBudget` + snackbar "Hoàn tác" (đặt lại số cũ). `moneyBudgetBadge()` dùng chung |
+| `lib/screens/money/money_report_screen.dart` (mới) | `MoneyReportScreen(book, month)`: thẻ tháng (sổ riêng Thu · Chi · Còn lại; sổ chung số 30) + câu "chi nhiều nhất" (thêm "Phần lớn là …" khi 1 mục con ≥ 50% nhóm), "Theo người" (3 làn + %, câu góp ví chung/quỹ), "Chi theo danh mục" (thanh ngang giảm dần, nhóm lớn nhất mở sẵn, chạm mở/đóng mục con, `AnimatedSize` 280ms, Reduce Motion nhảy thẳng), "Chi mỗi tháng" 6/12 (`MoneyTrendPainter`, `CustomPaint`), "Chi theo ví". Tháng cũ hơn cửa sổ 45 ngày → `viewMonth` (1 listener); xu hướng → `provider.trend` (aggregate từng tháng) |
+| `lib/screens/money/money_search_screen.dart` (mới) | `MoneySearchScreen(book)`: ô tìm h52 r20 + nút xoá 44, debounce 300ms, chip lọc cuộn ngang (khoảng ngày 1/3/6/12 tháng · Ví · Danh mục (nhóm Chi + Thu) · Khoảng tiền · Người ở sổ chung), thẻ kết quả = `DecoratedSliver` + `SliverList.builder` (tới 2.000 dòng không dựng hết một lúc), tô phần khớp, ngày đầu dòng phụ, notice khi `capped`, trạng thái rỗng + "Tìm trong 12 tháng", lỗi mạng + "Thử lại". Chạm khoản → sheet sửa, đóng sheet thì tìm lại. Không gõ gì = mọi khoản của khoảng (dùng cho "Tất cả ›") |
+| `lib/widgets/money/money_ui.dart` (thêm, khối `stage 3A`) | `MoneyPage` (khung màn con: dawnBlush, `SubScreenHeader`, segmented sổ khi có sổ chung, `CustomScrollView`) + `moneyBlock()`; `MoneyTxRow` thêm `highlight` (tô rose .16) và `subPrefix` (ngày) |
+| `lib/providers/money_provider.dart` (thêm, khối `stage 3A`) | `MoneyBookState.searchCache`; `search()` đọc server 1 lần mỗi khoảng ngày trong 2 phút (gõ thêm chữ chỉ lọc lại ở máy), phần nằm trong cửa sổ 45 ngày lấy từ `visibleTxs` nên khoản vừa sửa/xoá trên máy hiện đúng ngay |
+| `lib/screens/money/money_screen.dart` (thêm, khối `stage 3A`) | Mở lại lối: ⌕ (trước ⋯) → Tìm · "Báo cáo ›" ở hàng tháng (truyền tháng đang xem) · "Đặt ›" dưới "Chưa đặt ngân sách" · "Tất cả ›" ở Gần đây → Tìm 3 tháng · "Ngân sách ›" ở Tiêu vào đâu · menu ⋯ thêm Ngân sách, Báo cáo. Hàng tháng đổi thành `[‹ tháng ›]` co giãn + link bên phải (để tên tháng không bị cắt) |
+| `lib/services/analytics_service.dart` (khối `// ── expenses (đợt 2) ──`) | `money_budget_set{book, scope: total|category}` · `money_report_open{book, view: month|trend}` (mở màn = month, bấm 6/12 = trend) · `money_search{filter_count}` (mỗi lần tìm thật sự chạy sau khi ngừng gõ). Không số tiền, không tên ví, không chữ tìm, không tên danh mục |
+| ARB vi/en | +71 key `money…` một khối liền cuối file (description "Sổ tiền (feature expenses) · stage 3A"). Copy deck §6 + vài câu mới: `moneyBudgetNoCategory`, `moneyBudgetResets`, `moneyBudgetSaved/Removed`, `moneyReportTopShared/TopChild/NewBookMine/Missing/PartialNoBudget/ChartLabel/NoSpend`, `moneySearchEmptyAll/Error/Range/Period/…` |
+| Test | `test/money_stage3a_test.dart` 19 test (dưới) |
+
+**Test stage 3A** (`flutter test` 737 pass, 3 skip có sẵn; `flutter analyze` 0): ngưỡng ngân sách 799/800/999/1000/1031 trên 1000 · data.js sổ chung: Ăn uống 1.942.000 = 97% (warn), còn 58.000, nhóm chưa đặt Nhà cửa 1.276.000 · Hẹn hò 200.000 · Đi lại 156.000, cả sổ 3.574.000 → còn 11 ngày, 129.000 ₫/ngày · nhóm gần trần lên trước · màn Ngân sách (97%, "Còn 58.000 ₫ của 2.000.000 ₫", chú thích push; vượt "Vượt 3%" + "Vượt 62.000 ₫ của 1.880.000 ₫", dưới 80% "25%") · đặt từ "Đặt" (gõ "1tr5" → `setBudget(shared, home, 1.500.000)`), bỏ + Hoàn tác · báo cáo data.js sổ riêng 9.552.000 / +20.500.000 / 10.948.000, Nhà cửa 59% phần lớn Tiền nhà 4.500.000, tổng các nhóm = chi tháng · sổ chung Ăn uống 54% phần lớn Đi chợ 1.052.000, ba làn Tuấn 2.120.000 / Thảo 402.000 / Ví chung 1.052.000, góp Thảo 1.800.000 mình 2.200.000 · trục 13,26tr → 4tr/16tr, 5tr → 2tr/6tr, tháng đầu có tiền, tháng null không tính, Tết 2026-02 và 2028-01 · màn Báo cáo 2 sổ (câu "Sổ chung mới có từ tháng 10…") · `matchRange` (NFD, hoa thường) · khoảng 3/12 tháng · "bun cha" = 3 khoản 410.000 ₫ mới nhất trước · lọc ví + nhóm + khoảng tiền · 2.000 dòng = capped · màn Tìm (27 khoản khi không gõ, tô 3 chỗ "Bún chả", rỗng "lau de" → "Tìm trong 12 tháng" ra "Lẩu dê Valentine", notice capped) · 6 màn ở 360dp không tràn + bấm 12 tháng.
+
+### Tra UI UX Pro Max (stage 3A, chỗ spec chưa vẽ)
+- `"filter chips bottom sheet multi select" --domain ux` → *Chip Collection Reflow* → sheet chọn ví / danh mục / nhóm ngân sách là `Wrap` (không ép 1 hàng). Hàng chip lọc ở màn Tìm vẫn cuộn ngang như mockup (§15 đánh đổi đã chốt).
+- `"search highlight results debounce" --domain ux` → *Autocomplete* ("Debounced fetch") + *No Results* ("gợi ý thay vì chỉ 0 kết quả") → tìm khi ngừng gõ 300ms; rỗng có câu nêu khoảng ngày + nút "Tìm trong 12 tháng" (rỗng mà không gõ chữ thì câu "với bộ lọc này").
+- `"bar chart trend over time" --domain chart` → biểu đồ thời gian nên có *A11y fallback: data table + trend summary* → biểu đồ đọc được bằng trình đọc màn hình: một nhãn liệt kê từng tháng + số tiền. Giữ cột (Designer đã chọn, mỗi tháng là 1 khoảng rời).
+- `"expand collapse accordion" --domain ux`, `"date range picker" --domain ux`, `"custompaint chart" --stack flutter`, `"sheet form" --stack flutter` → không ra quy tắc dùng được; dùng mặc định Material (`Semantics(expanded:)` cho hàng mở mục con, chọn khoảng ngày bằng chip 1/3/6/12 tháng thay vì date picker vì spec giới hạn 12 tháng).
+- `"delete destructive confirm" --domain ux` → *Confirmation Dialogs* vs §15 *undo-support* → bỏ ngân sách không hỏi, có Hoàn tác (đặt lại được, giống xoá khoản thường); nút chữ đỏ tách khỏi nút chính.
+- Soát chung các thành phần đứng cạnh: ⌕ + ⋯ cùng `HeaderIconButton` 44; link "Báo cáo ›"/"Ngân sách ›"/"Tất cả ›"/"Đặt ›" cùng `MoneyLink` 14 w700; nút "Đặt" (surfaceLight h44) giống "Hiện lại" ở Danh mục; segmented 6/12 tháng dùng lại `SegmentedPill` h44 `onSurface`; chip lọc dùng `MoneyChip` `onBlush` (trắng .86, chọn navy).
+
+### Chỗ lệch thiết kế stage 3A (có lý do)
+1. **Chip khoảng ngày luôn ở trạng thái chọn** (navy), có icon lịch đứng trước thay cho mũi tên ⌄ đứng sau: `MoneyChip` chỉ có icon trước chữ; chip này luôn mang 1 giá trị nên mockup cũng vẽ nó đang chọn.
+2. **Khoảng ngày: 1 / 3 / 6 / 12 tháng** (spec chỉ nói mặc định 3, tối đa 12). "3 tháng gần đây" = từ mùng 1 của tháng cách đây 2 tháng (20/10 → 01/08), tới 1 năm sau hôm nay (khoản ghi trước).
+3. **Tổng tiền ở thẻ kết quả = tổng chi**; không có khoản chi thì tổng thu. Chuyển ví, sửa số dư, góp quỹ, thanh toán không cộng.
+4. **"Sổ … mới có từ tháng X" dùng cho cả sổ riêng** (copy mới `moneyReportNewBookMine`): tháng trước tháng đầu tiên có tiền không vẽ cột. Tháng không tải được (mất mạng) cũng không vẽ, thêm câu `moneyReportMissing`.
+5. **Không có ngân sách tổng** thì không vẽ đường đứt, câu phụ chú bỏ vế "Đường đứt là…".
+6. **Tô phần khớp dùng `backgroundColor` của chữ** (không bo góc 4 như mockup — `TextSpan` không bo được; muốn bo phải dùng `WidgetSpan`, làm vỡ ellipsis).
+7. **Hàng ngân sách nhóm: pill xuống dòng dưới tên khi hẹp** (`Wrap`), không đè lên số tiền.
+8. **Báo cáo không có nút đổi tháng** (spec không vẽ); mở từ "Báo cáo ›" thì lấy tháng đang xem ở Sổ tiền, từ menu ⋯ cũng vậy.
+9. **`MoneyPage` mới trong `money_ui.dart`** thay vì dùng `_MoneyPage` (private) của `money_wallets_screen.dart`: không dời code có sẵn để khỏi đụng nhánh B. Lead gộp xong có thể cho màn Ví dùng `MoneyPage` rồi xoá bản private.
+
+### Rủi ro / cần Tester soi (stage 3A)
+- 🟡 Chưa chạy trên máy. Test widget dùng font Ahem (rộng gấp ~2 Quicksand) nên chữ to 1.3 chưa soát được bằng test: cần soát 360dp + chữ 1.3 cho hàng ngân sách, 3 ô Thu/Chi/Còn lại, biểu đồ 12 tháng (nhãn T1–T12 cách 1).
+- 🟡 Tìm kiếm cache 2 phút theo khoảng ngày: khoản NGOÀI cửa sổ 45 ngày mà người ấy sửa trong 2 phút đó chưa hiện bản mới tới khi hết 2 phút / mở lại màn.
+- 🟡 Xu hướng tải 1 lần khi mở màn (aggregate mỗi tháng 2 truy vấn, tháng đã qua cache trong phiên); ghi khoản mới khi đang mở Báo cáo thì cột tháng này chưa đổi tới lần mở sau.
+- 🟡 Index: xu hướng dùng `(type, date)` / `(memberUids, type, date)`, tìm dùng `(memberUids, date↓)` / `date` — đã có ở stage 1, cần chạy thật sau khi Lead deploy DEV.
+- 🟡 Tháng cũ ở Báo cáo dùng chung 1 khe `viewMonth` với Sổ tiền (mở báo cáo tháng 8 rồi quay lại vẫn đúng tháng 8).
+- 🟢 Không đụng rules / index / functions.
+
 ## Checklist implement (mốc A)
 
 - [x] `parseVndInput`, formatter, `MoneyMath`, danh mục mặc định + test
 - [x] `MoneyService` + `MoneyProvider` 2 sổ, wire `main` + `session_resolver`, clear khi đăng xuất / hết couple
 - [x] Rules + index + test rules + CF `notifyMoney` + dọn `deleteAccount` / `deleteCoupleCompletely`
 - [x] UI stage 2 (lối stage 3 ẩn)
-- [ ] UI stage 3 + decision-wheel + nhắc tối + analytics + push tap
+- [x] UI stage 3A: ngân sách, báo cáo, tìm kiếm + analytics 3 màn này
+- [ ] UI stage 3B (nhánh B): quỹ, thanh toán, decision-wheel, nhắc tối, push tap, Profile
 - [x] `flutter analyze` sạch (stage 1, stage 2)
 - [ ] Deploy DEV (Lead)
 
@@ -198,3 +245,4 @@
 - [2026-10-20] [Dev] Stage 2 UI lõi: `SegmentedPill`, mảnh UI chung, lối vào Home (9 trạng thái), sheet ghi khoản theo §15 (bàn phím riêng, chip cộng dồn, khoản quen 2 chạm, chip ví, Lưu ghim đáy, hoàn tác, khoá khoản liên kết, hỏi sửa/xoá cả hai sổ), `MoneyScreen` 2 sổ + người mới + cặp chờ, lần đầu mở, Ví (danh sách / chi tiết / tạo / sửa số dư), Danh mục; Home wire `watchShared` giữa phiên + `refreshDay`. +263 key ARB. `flutter analyze` 0, `flutter test` 706 pass (17 mới). Commit `5dc1514`, `d084166`, `c9e7561`. Chưa deploy, chưa chạy máy.
 - [2026-10-20] [Dev] Sửa 9 finding review stage 1 trên `feature/expenses-fix` (bảng trên). `flutter analyze` 0, `flutter test` 699 pass, rules-test 444 pass, functions 32 pass. Chưa deploy.
 - [2026-10-20] [Dev] Khớp UI với bản vá review stage 1 (`16a2c3c`): cân bằng ở thẻ ba làn lấy `coupleBalance()` (null = skeleton), ba làn tính trên khoản của tháng; sổ chung chuyển ví / sửa số dư trừ ví đặt `payer: 'wallet'`; thẻ "Ghi khoản đầu tiên" theo cờ `everLogged` (`hasAnyTx` limit(1)). Test đặt `netSums` / `coupleNet` / `netSumsAt` / `windowFrom`; +2 test (người mới vs ngừng ghi lâu, chuyển ở sổ chung = ví trả). `flutter analyze` 0, `flutter test` 718 pass.
+- [2026-10-20] [Dev] Stage 3A: `MoneyBudgetsScreen` + sheet đặt/bỏ ngân sách, `MoneyReportScreen` (biểu đồ tự vẽ `CustomPaint`, tháng cũ qua `viewMonth`, xu hướng qua aggregate), `MoneySearchScreen` (không dấu, lọc, 12 tháng, capped, tô phần khớp), mở lại lối ⌕ / Báo cáo › / Ngân sách › / Đặt › / Tất cả › + menu; analytics `money_budget_set` / `money_report_open` / `money_search`; +71 key ARB. `flutter analyze` 0, `flutter test` 737 pass (19 mới). Chưa deploy, chưa chạy máy.
