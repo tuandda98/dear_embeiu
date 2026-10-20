@@ -33,8 +33,8 @@
     return `Hôm nay nhớ nhau ${m + p} lần: mình ${m}, ${P} ${p}`;
   }
   function counter(s, o = {}) {
-    const head = o.waiting
-      ? `<div class="names-plain">${ME.name} ${ic(I.heartB, true)} ${P}</div>`
+    const head = o.waiting || o.plain
+      ? `<div class="names-plain">${ME.name} <svg viewBox="0 0 24 24" aria-label="và" role="img"><path fill="currentColor" d="M12 21s-7.5-4.6-10-9.2C.3 8.5 2.2 4.5 6 4.5c2.1 0 3.4 1.1 4.2 2.3h.1c.8-1.2 2-2.3 4.1-2.3 3.8 0 5.7 4 4 7.3C19.5 16.4 12 21 12 21z"/></svg> ${P}</div>`
       : `<div class="poke-row"><span class="nm l">${ME.name}</span>
           <button class="heart-btn" type="button" aria-label="Gửi nhớ thương tới ${P}. ${pokeCaption(s)}">${s.poke.m ? ic(I.heartB, true) : ic(I.heart)}</button>
           <span class="nm r">${P}</span></div>
@@ -231,6 +231,52 @@
     return `<div class="home">${header(s, o.h1 === false ? 'p' : 'h1')}<main class="scroll">${blocks.join('')}${o.after || ''}</main>${nav()}</div>`;
   }
 
+  // ======== BẢN C (bản chọn, 2026-10-20): không poke, mỗi thứ một thẻ ========
+  // Thẻ "Về đến nhà chưa?" (arrival/home-card.html) đảo thành hai làn như SleepCard: Bạn trái · người ấy phải.
+  // Spec arrival D7 mới: nút chính "Về nhà rồi" + nút phụ "Đến nơi rồi" (mở sheet chọn nơi tự đặt tên), cả hai ở làn Bạn.
+  function arrivalLane(s, who) {
+    const e = s.arrival[who];
+    const color = who === 'm' ? ME.color : PARTNER.color;
+    const label = `<span class="person"><i style="background:${color}"></i>${who === 'm' ? 'Bạn' : P}</span>`;
+    if (!e) return `<div class="alane">${label}<p class="aline muted">Chưa bật báo về nhà</p></div>`;
+    const low = who === 'p' && e.battery != null && e.battery <= LOW_BATTERY;
+    let meta = `<span class="num">${when(s, e)}</span>`;
+    if (who === 'p' && !low && e.battery != null) meta += ` · pin ${e.battery}%`;
+    if (who === 'm') meta += e.pending ? ' · chờ mạng' : e.source === 'manual' ? ' · bấm tay' : ' · tự báo';
+    return `<div class="alane">${label}<p class="aline">${D.placeLine(who, e)}</p><p class="ameta">${meta}</p>${low ? `<span class="batt">${ic(I.batLow)}Pin còn ${e.battery}%</span>` : ''}
+      ${who === 'm' ? `<div class="abtns"><button class="btn outline h40" type="button">${ic(I.home)}Về nhà rồi</button><button class="textlink abtn2" type="button" aria-haspopup="dialog">${ic(I.go)}Đến nơi rồi</button></div>` : ''}</div>`;
+  }
+  function arrivalCardC(s) {
+    return `<article class="card arrive" aria-labelledby="ar-t"><div class="chead"><span class="badge">${ic(I.home)}</span><h2 id="ar-t">Về đến nhà chưa?</h2><span class="chev">${ic(I.chev)}</span></div>
+      <div class="alanes">${arrivalLane(s, 'm')}<span class="svr"></span>${arrivalLane(s, 'p')}</div></article>`;
+  }
+  // Thẻ "Thời tiết hai nơi" (weather/home.html) đảo làn: Bạn trái · người ấy phải. Hàng chung chỉ khi có nút gợi ý hoặc chênh ≥ 5°.
+  function wxLane(s, who) {
+    const w = s.weather[who];
+    const color = who === 'm' ? ME.color : PARTNER.color;
+    return `<div class="wlane"><p class="who"><i class="dot" style="background:${color}"></i><span class="name">${who === 'm' ? 'Bạn' : P}</span><span class="city">· ${w.city}</span></p>
+      <div class="now"><span class="temp num">${w.temp}°</span>${ic(w.icon)}</div><p class="cond">${w.cond.text}</p></div>`;
+  }
+  function weatherCardC(s, o = {}) {
+    const k = s.weather.p.cond.kind;
+    const gap = Math.abs(s.weather.p.temp - s.weather.m.temp);
+    const shared = o.waiting ? '' : D.CARE[k] ? `<div class="wshared"><button class="btn" type="button">${ic(0xe9cf)}${D.CARE[k]}</button></div>`
+      : gap >= 5 ? `<div class="wshared"><span>Chỗ ${P} ${s.weather.p.temp < s.weather.m.temp ? 'lạnh' : 'nóng'} hơn ${gap}°</span></div>` : '';
+    const stamp = `<span class="sub">${s.offline ? `Số lúc ${s.weather.fetchedAt}` : `Cập nhật ${s.weather.fetchedAt}`}</span>`;
+    return `<article class="card weather" aria-labelledby="wx-t"><div class="chead"><span class="badge">${ic(I.weather)}</span><div style="flex:1;min-width:0"><h2 id="wx-t">Thời tiết hai nơi</h2>${stamp}</div><span class="chev">${ic(I.chev)}</span></div>
+      <div class="wlanes${o.waiting ? ' one' : ''}">${wxLane(s, 'm')}${o.waiting ? '' : `<span class="svr"></span>${wxLane(s, 'p')}`}</div>${shared}</article>`;
+  }
+  // Thứ tự C: thẻ đếm → câu hỏi → Tâm trạng → Về đến nhà chưa? → Thời tiết → Đêm qua → Chơi → Sổ tiền → Phân vân → Kỷ niệm.
+  function homeC(s, o = {}) {
+    const W = !!o.waiting;
+    const blocks = W
+      ? [counter(s, { waiting: true }), `<div style="margin-top:16px">${waitBanner()}</div>`, sectionToday(s, true),
+         `<div class="stack">${ritual(s, { waiting: true })}${weatherCardC(s, { waiting: true })}${sleepCard(s, { waiting: true })}${money(s, { waiting: true })}${decide(s)}</div>`, memories(s)]
+      : [counter(s, { plain: true }), sectionToday(s),
+         `<div class="stack">${ritual(s)}${moodCard(s)}${arrivalCardC(s)}${weatherCardC(s)}${sleepCard(s)}${play(s)}${money(s)}${decide(s)}</div>`, memories(s)];
+    return `<div class="home">${header(s, o.h1 === false ? 'p' : 'h1')}<main class="scroll">${blocks.join('')}${o.after || ''}</main>${nav()}</div>`;
+  }
+
   const nav = () => `<nav class="nav" aria-label="Điều hướng chính"><a href="#" aria-current="page">${ic(I.heartB, true)}<span>Trang chủ</span></a><a href="#">${ic(I.chat)}<span>Trò chuyện</span></a><a href="#">${ic(I.gallery)}<span>Thư viện</span></a><a href="#">${ic(I.user)}<span>Hồ sơ</span></a></nav>`;
 
   // ---------- Cả màn Home theo thứ tự đã chốt ----------
@@ -246,10 +292,10 @@
   if (new URLSearchParams(location.search).get('measure')) {
     addEventListener('load', () => document.fonts.ready.then(() => {
       const q = (sel) => [...document.querySelectorAll(sel)].map((el) => Math.round(el.getBoundingClientRect().height));
-      const out = { counter: q('.counter'), ritual: q('.ritual'), board: q('.board'), play: q('.play'), money: q('.money'), decide: q('.decide'), cinema: q('.cinema'), mood: q('.mood'), sleep: q('.sleep'), wait: q('.wait'), scroll: q('.scroll') };
+      const out = { counter: q('.counter'), ritual: q('.ritual'), board: q('.board'), play: q('.play'), money: q('.money'), decide: q('.decide'), cinema: q('.cinema'), mood: q('.mood'), sleep: q('.sleep'), arrive: q('.arrive'), weather: q('.weather'), wait: q('.wait'), scroll: q('.scroll') };
       const pre = document.createElement('pre'); pre.id = 'measure'; pre.textContent = JSON.stringify(out); document.body.append(pre);
     }));
   }
 
-  window.UI = { ic, I, homeB, moodCard, sleepCard, home, header, counter, ritual, board, play, money, decide, memories, nav };
+  window.UI = { ic, I, homeC, homeB, moodCard, sleepCard, home, header, counter, ritual, board, play, money, decide, memories, nav };
 })();

@@ -187,6 +187,8 @@ Không cần asset mới. (Bell Lottie `assets/lottie/notification_bell.json` v�
 
 ## Đợt 2 — ghép 5 lối vào (poke · caro-game · weather · arrival · expenses)
 
+> ⚠️ **[2026-10-20] Bản chọn là bản C (mục 14).** User bỏ hẳn poke ("xoá cái chạm, không phù hợp") và chốt mỗi thứ một thẻ riêng ("để riêng, tôi không muốn gộp chung"). Mục 1–13 dưới đây (bản A gộp có tim, bản B) giữ làm lịch sử; chỗ nào lệch mục 14 thì mục 14 thắng.
+
 > Designer, 2026-10-20. Nhánh `feature/daily-open-2`. Mock bấm thử: `docs/design/home-daily-open-2/` — `home.html` (cặp đã ghép, 20/10 19:05), `home-waiting.html` (cặp đang chờ), `home-states.html` (00:05 ngày mới + mất mạng). Dữ liệu `data.js` (22 `console.assert`, 0 lỗi). Style: sheet chung đợt 2 `docs/design/daily-open-2/sheet.raw.md` (editorial-greeting, seed 1822703143, `--keep palette,type`), không draw lại. Màu, phông, bo góc, bóng lấy từ app như user chốt; thẻ đếm giữ đồng hồ chạy giây.
 
 ### 1. Câu hỏi của Home, phát hiện, việc chính
@@ -448,3 +450,51 @@ Mock: `docs/design/home-daily-open-2/home.html` (**A · Gộp**, giữ nguyên) 
 Gate bản B: `lint.mjs --app` 0 FAIL / 0 WARN; `inspect.mjs --app --widths 390` `home-b.html` 0 FAIL (cùng `--allow` brand như A; WARN `heavy-borders`, `colour-sprawl`, `kpi-size` như A), `compare.html` 0 FAIL (thêm WARN `radius-mix` vì khung tài liệu bo 24). Nhìn ảnh: thẻ Tâm trạng/Đêm qua khớp ảnh chụp app (`docs/screenshots/home-today.jpg`); vòng sửa: trang so sánh có chữ dính mép trái ở khổ điện thoại (inspect FAIL `edge-text`) → đưa vào khung lề 16. Còn lại: nhãn "BẠN/THẢO" của MoodCard trong mock dùng `textSecondary` thay `textTertiary` của app (app đang thiếu tương phản, ngoài phạm vi).
 
 - [2026-10-20] [Designer] Thêm bản B (không gộp) + trang so sánh theo yêu cầu user "mock 2 bản để tôi xem". A 2.251 px, B 2.658 px (đo mock). Chờ user chọn.
+
+### 14. Bản C — bản chọn (user chốt 2026-10-20)
+
+Mock: `docs/design/home-daily-open-2/home-c.html` (cặp đã ghép, 19:05) · `home-c-waiting.html` (cặp đang chờ) · `compare.html` (C · A · B cạnh nhau, C đầu, nhãn "C · Bản chọn", chiều dài đo thật). A/B giữ nguyên làm lịch sử. Hàm mới trong `ui.js`: `homeC`, `arrivalCardC`, `weatherCardC` (dùng lại `moodCard`/`sleepCard` của B); `data.js` thêm `PLACE_NAMES` + `placeLine`.
+
+**Hai quyết định của user:** (1) **bỏ poke**: không tim ở thẻ đếm, widget, thông báo; thẻ đếm trả về đúng app đang chạy (`AnimatedCoupleName`, đồng hồ chạy giây, chuỗi). Mục 4 (nhận 42 px) và ghi chú sửa spec poke hết hiệu lực. (2) **không bảng chung**: không có `TodayBoard`; Tâm trạng, Về đến nhà, Thời tiết, Đêm qua mỗi thứ một thẻ.
+
+**Thứ tự (cặp đã ghép):**
+
+| # | Khối | Cao mock (px) | Lý do |
+|---|---|---|---|
+| 1 | CounterCard như app (không tim) | 400 | giữ nguyên |
+| 2 | "Hôm nay của chúng mình" + pill chòm sao | 26 | |
+| 3 | Câu hỏi hôm nay | 287 | việc hằng ngày số 1, giữ chuỗi |
+| 4 | **Tâm trạng hôm nay** (MoodCard như app) | 298 | việc hằng ngày số 2, một sao trong chòm sao; đúng chỗ đang chạy nên không mất phản xạ |
+| 5 | **Về đến nhà chưa?** (gọn) | 253 | tin "bây giờ" của người ấy, đọc nhiều nhất buổi chiều tối |
+| 6 | **Thời tiết hai nơi** (gọn) | 167 | bối cảnh trong ngày; hàng chung chỉ hiện khi có nút gợi ý hoặc chênh ≥ 5° |
+| 7 | **Đêm qua** (SleepCard như app) | 202 | chuyện đã qua, ẩn được 30 ngày; để cuối cụm nên ẩn đi không làm thẻ khác nhảy chỗ |
+| 8 | Chơi cùng nhau (thay RpsInviteCard) | 209 | việc người ấy đang chờ (tới lượt mình) |
+| 9 | Sổ chung tháng 10 | 76 | ghi khoản một mình, thẻ rẻ |
+| 10 | Phân vân gì không? | 278 | theo bữa ăn |
+| 11 | Kỷ niệm gần đây | 26 + 240 | xem lại |
+
+Khoảng cách giữa thẻ 16, giữa nhóm 28 như code. **Cặp đang chờ:** thẻ đếm (không chuỗi) → banner chờ → câu hỏi (trạng thái chờ) → Thời tiết (một làn của bạn) → Đêm qua (một làn) → Sổ tiền của mình → Phân vân → Kỷ niệm; ẩn Tâm trạng, Về đến nhà, Chơi cùng nhau.
+
+**Thẻ "Về đến nhà chưa?" bản gọn** (từ `arrival/home-card.html`, đảo làn): `ContentCard` pad 16 · hàng tiêu đề `IconBadge(home_2)` + "Về đến nhà chưa?" 16 w800 + chevron (→ màn Quản lý) · 14 · hai làn như SleepCard, vạch dọc α.10: **Bạn trái** (`PersonLabel` · câu 16 w700 · "08:05 · tự báo" 13 w600 xám · nút chính viền h40 **"Về nhà rồi"** · dưới nó nút phụ chữ h40 **"Đến nơi rồi"** (icon `location`, 14 w700 navy) mở sheet chọn nơi đã đặt tên) | **người ấy phải** (`PersonLabel` · câu · giờ (· pin x%) · pill "Pin còn x%" khi ≤ 20). Theo spec arrival D7 mới (PO chốt 2026-10-20): nút chính "Về nhà rồi" + nút phụ "Đến nơi rồi", cả hai nằm trong làn Bạn, xếp dọc (làn chỉ ≈133 px ở khổ 360 nên không đặt cạnh nhau). "Hỏi thăm" và bật/tắt tự báo ở màn Quản lý. Dòng "· tự báo" / "· bấm tay" giữ yêu cầu D11 (người chia sẻ thấy mình đang chia sẻ). **Tên nơi tự đặt** (mặc định "Nhà"): câu là "Đã về đến nhà" / "Đã rời nhà" cho nơi mặc định, "Đã đến {tên}" / "Đã rời {tên}" cho nơi tự đặt (push kiểu "Thảo đã đến Phòng gym") (mẫu: Thảo có "Công ty", Tuấn có "Văn phòng"; assert trong `data.js`). Trạng thái chưa bật / thiếu quyền / chờ mạng / lỗi lấy theo bảng §3.3 của arrival, đặt vào làn tương ứng.
+
+**Thẻ "Thời tiết hai nơi"** (từ `weather/home.html`, đảo làn): Bạn trái · người ấy phải, nhãn làn "Bạn" (`sleepYou`) thay "Mình"; còn lại giữ spec weather §3.1 (30/600 + icon 24, câu tình trạng 14 w700, "Cập nhật hh:mm"). Lúc 19:05 không có nút gợi ý và chênh 4° nên thẻ thu còn 167 px (không hàng chung).
+
+**Chiều dài (từ đỉnh vùng cuộn tới hết Kỷ niệm, 390, 19:05):**
+
+| | Đo DOM mock (`compare.html`) | Theo kích thước app thật |
+|---|---|---|
+| Home hiện tại | — | 1.933 px |
+| **C · bản chọn** | **2.720 px** | ≈2.610 px (+677, +35%) |
+| A · gộp (có tim) | 2.251 px (−469 so với C) | 2.165 px |
+| B · không gộp | 2.658 px (−62 so với C) | ≈2.546 px |
+| C · cặp đang chờ | — | ≈2.148 px (hiện tại 1.873) |
+
+C dài hơn B 62 px (bỏ tim −42, tách hai hàng bảng thành hai thẻ +28, nút phụ "Đến nơi rồi" +48). Muốn ngắn hơn mà vẫn giữ "mỗi thứ một thẻ" thì còn hai cách: thẻ Thời tiết tự thu thành một dòng khi không có gì đáng nhắc, hoặc MoodCard bỏ nút "Đổi tâm trạng" (chạm mặt để đổi) — đều chưa làm, chờ user.
+
+**Chỗ Dev sửa (thay §7):** `headerExtra` giữ `AnimatedCoupleName` (không `PokeCoupleRow`) · giữ `MoodCard` + `SleepCard` ở chỗ cũ · chèn `ArrivalCard` (bản gọn hai làn) và `WeatherCard` (đảo làn) giữa MoodCard và SleepCard, cách 16 · `RpsInviteCard` → `PlayTogetherCard` ngay sau SleepCard · `MoneyHomeEntry` sau đó · dời `DecisionCard` xuống sau Sổ tiền · skeleton cập nhật cùng thứ tự. Không có `TodayBoard`. Deep-link `pendingHomeFocus` `'arrival'` / `'weather'` cuộn tới đúng thẻ. Copy §8 của bảng không dùng nữa, trừ chuỗi trạng thái nơi tự đặt (PO viết theo spec arrival mới).
+
+**Gate:** `lint.mjs --app` 0 FAIL / 0 WARN. `inspect.mjs --app --widths 390`: `home-c.html` 0 FAIL, `home-c-waiting.html` 0 FAIL, `compare.html` 0 FAIL (cùng `--allow` brand). WARN có lý do: `mixed-font-headline` (inspector coi "27° ☁" là tiêu đề trộn phông vì icon thời tiết là glyph Iconsax, đúng như app) · `colour-sprawl` · `kpi-size` · `contrast` nút banner chờ (nợ cũ) · `radius-mix`/`edge-text` ở trang so sánh (khung tài liệu). Vòng sửa: tim giữa hai tên ở thẻ đếm bị tính là phông icon trong tiêu đề → vẽ bằng SVG.
+
+**Nhìn lại (1 vòng, theo ảnh 390):** design 7,5 · usability 7,5 · creativity 7 · content 8 → 7,45. Còn yếu: bốn thẻ người ấy liền nhau, mỗi thẻ một kiểu hai làn hơi khác (mặt to, câu, nhiệt độ, trăng) nên mắt phải đọc lại nhãn Bạn/Thảo bốn lần; Home dài nhất trong ba bản; lúc 19:05 thẻ Thời tiết ít thông tin mà vẫn chiếm 167 px.
+
+- [2026-10-20] [Designer] Bản C (bản chọn): bỏ poke, mỗi thứ một thẻ. Thêm `home-c.html`, `home-c-waiting.html`, cập nhật `compare.html` (C đầu, "Bản chọn"). Thêm nút phụ "Đến nơi rồi" vào làn Bạn theo D7 mới. C 2.720 px mock (A 2.251, B 2.658; ≈2.610 so với 1.933 hiện tại theo kích thước app). Lint 0/0, inspect 390 0 FAIL.

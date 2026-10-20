@@ -45,6 +45,11 @@
     work: { enter: 'Đã đến chỗ làm', exit: 'Đã rời chỗ làm', manual: 'Đến chỗ làm rồi' },
   };
   const LOW_BATTERY = 20;
+  // Bản C: địa điểm do người dùng tự đặt tên (PO đang sửa spec arrival), mặc định "Nhà".
+  const PLACE_NAMES = { m: { home: 'Nhà', work: 'Văn phòng' }, p: { home: 'Nhà', work: 'Công ty' } };
+  // Câu trên thẻ: nơi mặc định "Nhà" → "Đã về đến nhà" / "Đã rời nhà"; nơi tự đặt → "Đã đến {tên}" / "Đã rời {tên}".
+  const placeLine = (who, e) => { const n = PLACE_NAMES[who][e.place]; const isHome = e.place === 'home' && n === 'Nhà';
+    return e.type === 'enter' ? (isHome ? 'Đã về đến nhà' : `Đã đến ${n}`) : (isHome ? 'Đã rời nhà' : `Đã rời ${n}`); };
 
   // ---- Weather: dự báo theo giờ 20/10 08:00 → 21/10 09:00 (weather/data.js, nguyên văn).
   const HOURS = [...Array(16).keys()].map((i) => 8 + i).concat([...Array(10).keys()].map((i) => 24 + i));
@@ -179,8 +184,9 @@
   console.assert(Math.floor(money.spent * 100 / money.budget) === 71, 'sổ chung 3.574.000 / 5.000.000 = 71%');
   console.assert(S.lit === 5 && N.lit === 0, 'chòm sao 19:05: 5/6 (thiếu câu hỏi của Tuấn) · 00:05: 0/6');
   console.assert(!S.streak.doneToday && N.streak.n === S.streak.n + 1, '19:05 chuỗi 92 chờ hôm nay · 20/10 xong lúc 21:30 nên 00:05 là 93');
+  console.assert(placeLine('p', arrivals.p[1]) === 'Đã đến Công ty' && placeLine('m', S.arrival.m) === 'Đã đến Văn phòng' && placeLine('p', S.arrival.p) === 'Đã về đến nhà', 'bản C: tên nơi tự đặt (Thảo: Công ty, Tuấn: Văn phòng), Nhà mặc định');
   console.assert(caro.moves % 2 === 0 && caro.lastBy === 'p', 'nước 14 là của Thảo ⇒ tới lượt Tuấn');
   console.assert(!BLOCKED.some(([a, b]) => (a === ME.color && b === PARTNER.color) || (b === ME.color && a === PARTNER.color)), 'màu hai người không thuộc cặp khoá');
 
-  window.D = { ME, PARTNER, PLACE, MOODS, LOW_BATTERY, CARE, fmtInt, fmtDur, pad, mins, at, S, N, O, noon };
+  window.D = { ME, PARTNER, PLACE, PLACE_NAMES, placeLine, MOODS, LOW_BATTERY, CARE, fmtInt, fmtDur, pad, mins, at, S, N, O, noon };
 })();

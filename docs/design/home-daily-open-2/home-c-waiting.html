@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Home đợt 2, bản C, cặp đang chờ người ấy · Dear Embeiu</title>
+<link rel="stylesheet" href="home.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const s = D.at('2026-10-20T19:05');
+s.unread = 0;
+// Thảo chưa vào: mọi thứ do Tuấn làm một mình.
+s.decisions = { eat: { ...s.decisions.eat, by: 'm' } };
+s.photos = s.photos.map((p) => ({ ...p, by: 'Tuấn' }));
+const note = `<aside class="doc-note" aria-label="Ghi chú mock">
+  <p><b>Bản C · Tuấn tạo cặp, Thảo chưa nhập mã.</b> Ẩn Tâm trạng, Về đến nhà chưa? và Chơi cùng nhau. Còn thời tiết chỗ mình, đêm qua của mình, sổ tiền riêng và “Phân vân gì không?”.</p>
+  <nav aria-label="Các trang mock"><a href="home-c.html">Bản C</a><a href="home-c-waiting.html" aria-current="page">C · cặp đang chờ</a><a href="compare.html">So sánh A · B · C</a></nav></aside>`;
+document.getElementById('app').innerHTML = UI.homeC(s, { waiting: true, after: note });
+</script>
+</body>
+</html>

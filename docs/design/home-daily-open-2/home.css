@@ -68,6 +68,7 @@ p, h1, h2, h3 { margin: 0; }
 .poke-cap { margin-top: 8px; min-height: 18px; font-size: 13px; line-height: 18px; font-weight: 700; text-shadow: 0 1px 8px rgba(0,0,0,.28); } /* taste-skill-ignore: brand: chữ trắng trên nền sáng = bóng tối */
 .names-plain { display: inline-flex; align-items: center; gap: 6px; font-size: 20px; line-height: 26px; font-weight: 700; text-shadow: 0 1px 8px rgba(0,0,0,.18); } /* taste-skill-ignore: brand: chữ trắng trên nền sáng = bóng tối */
 .names-plain .ic { font-size: 18px; }
+.names-plain svg { width: 18px; height: 18px; flex: none; }
 .counter .eb { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 14px; font-size: 12px; line-height: 15px; font-weight: 600; letter-spacing: 2.2px; color: rgba(255,255,255,.92); }
 .counter .eb i { width: 28px; height: 1px; background: rgba(255,255,255,.55); }
 .counter .big { margin-top: 18px; font-size: 76px; line-height: 76px; font-weight: 700; letter-spacing: -1.6px; text-shadow: 0 0 28px rgba(255,255,255,.45); } /* taste-skill-ignore: brand: số hero có halo */
@@ -206,8 +207,33 @@ p, h1, h2, h3 { margin: 0; }
 .sfoot { display: flex; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); }
 .sfoot .ic { font-size: 12px; color: var(--rose); margin-top: 2px; }
 
+/* ---------- Bản C: thẻ Về đến nhà + Thời tiết hai làn ---------- */
+.alanes, .wlanes { display: grid; grid-template-columns: minmax(0,1fr) 1px minmax(0,1fr); margin-top: 14px; }
+.wlanes.one { grid-template-columns: 1fr; }
+.alanes > .svr, .wlanes > .svr { background: var(--rule); }
+.alane, .wlane { min-width: 0; }
+.alanes > :first-child, .wlanes > :first-child { padding-right: 14px; }
+.alanes > :last-child, .wlanes > :last-child { padding-left: 14px; }
+.wlanes.one > :first-child { padding: 0; }
+.aline { margin-top: 8px; font-size: 16px; line-height: 21px; font-weight: 700; }
+.aline.muted { font-size: 14px; font-weight: 600; color: var(--ink2); }
+.ameta { margin-top: 2px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--ink2); }
+.alane .batt { margin-top: 6px; }
+.abtns { display: grid; justify-items: start; gap: 4px; margin-top: 12px; }
+.abtns .btn { padding: 0 14px; }
+.abtn2 { gap: 6px; padding: 0 4px; font-size: 14px; font-weight: 700; }
+.abtn2 .ic { font-size: 16px; }
+.wlane .who { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 17px; font-weight: 700; color: var(--ink2); min-width: 0; }
+.wlane .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.wlane .city { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wlane .now { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.wlane .temp { font-size: 30px; line-height: 33px; font-weight: 600; letter-spacing: -0.5px; }
+.wlane .now .ic { font-size: 24px; color: var(--ink2); }
+.wlane .cond { margin-top: 2px; font-size: 14px; line-height: 19px; font-weight: 700; }
+.wshared { display: flex; align-items: center; min-height: 44px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 14px; font-weight: 600; }
+
 /* ---------- So sánh A/B (compare.html) ---------- */
-.cmp { display: grid; grid-template-columns: repeat(2, 390px); gap: 32px; justify-content: center; padding: 0 16px 48px; }
+.cmp { display: grid; grid-template-columns: repeat(var(--cols, 2), 390px); gap: 32px; justify-content: center; padding: 0 16px 48px; }
 .cmp .col { min-width: 0; }
 .cmp .lab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 10px; padding: 0 4px; }
 .cmp .lab h2 { font-size: 20px; line-height: 24px; font-weight: 700; }
@@ -217,7 +243,7 @@ p, h1, h2, h3 { margin: 0; }
 .cmp .frame .tabhead { position: static; }
 .cmp .frame .nav { display: none; }
 .cmp .frame .scroll { padding-bottom: 24px; }
-@media (max-width: 860px) { .cmp { grid-template-columns: minmax(0, 390px); } }
+@media (max-width: 1280px) { .cmp { grid-template-columns: minmax(0, 390px); } }
 
 /* ---------- Chơi cùng nhau (PlayTogetherCard, spec caro) ---------- */
 .play h2.ttl { font-size: 16px; line-height: 20px; font-weight: 700; margin-bottom: 4px; }

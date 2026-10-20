@@ -3,20 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>So sánh Home bản A và B · Dear Embeiu</title>
+<title>So sánh Home bản A, B, C · Dear Embeiu</title>
 <link rel="stylesheet" href="home.css">
 <script src="data.js"></script>
 <script src="ui.js"></script>
 </head>
 <body>
 <main>
-<div style="max-width:844px;margin:0 auto;padding:24px 16px 0"><h1 style="font-size:22px;line-height:28px;font-weight:700;margin:0 0 4px">Gộp hay không gộp tâm trạng và đêm qua</h1>
-<p style="font-size:14px;line-height:20px;margin:0 0 20px">Cùng máy Tuấn, thứ Ba 20/10/2026 lúc 19:05. Bản A gộp bốn thứ về Thảo vào một bảng. Bản B giữ hai thẻ đang chạy, bảng chỉ còn Đến nơi và Thời tiết. Thanh điều hướng nổi ẩn đi để đọc trọn chiều dài.</p></div>
-<div class="cmp" id="cmp"></div>
+<div style="max-width:844px;margin:0 auto;padding:24px 16px 0"><h1 style="font-size:22px;line-height:28px;font-weight:700;margin:0 0 4px">Ba bản Home đặt cạnh nhau, bản C là bản chọn</h1>
+<p style="font-size:14px;line-height:20px;margin:0 0 20px">Cùng máy Tuấn, thứ Ba 20/10/2026 lúc 19:05. C: mỗi thứ một thẻ, không tim chạm (user chốt 20/10). A: gộp bốn thứ về Thảo vào một bảng, có tim chạm. B: giữ thẻ Tâm trạng và Đêm qua, bảng còn Đến nơi và Thời tiết. A và B giữ làm lịch sử. Thanh điều hướng nổi ẩn đi để đọc trọn chiều dài.</p></div>
+<div class="cmp" id="cmp" style="--cols:3"></div>
 </main>
 <script>
 const col = (id, title, html) => `<section class="col" aria-labelledby="${id}"><div class="lab"><h2 id="${id}">${title}</h2><p class="len num" data-len="${id}">… px</p></div><div class="frame" data-frame="${id}">${html}</div></section>`;
 document.getElementById('cmp').innerHTML =
+  col('c', 'C · Bản chọn', UI.homeC(D.S, { h1: false })) +
   col('a', 'A · Gộp', UI.home(D.S, { h1: false })) +
   col('b', 'B · Không gộp', UI.homeB(D.S, { h1: false }));
 // Chiều dài đo thật: từ đỉnh vùng cuộn (sau header ghim) tới hết khung Kỷ niệm, bỏ đệm đáy chừa cho nav.
@@ -27,8 +28,7 @@ function measure() {
     out[f.dataset.frame] = Math.round(last.getBoundingClientRect().bottom - sc.getBoundingClientRect().top);
   });
   for (const [k, v] of Object.entries(out)) document.querySelector(`[data-len="${k}"]`).innerHTML = `${v.toLocaleString('vi-VN')} px <span>cuộn</span>`;
-  const d = out.b - out.a;
-  document.querySelector('[data-len="b"]').innerHTML += ` <span>(${d >= 0 ? '+' : ''}${d.toLocaleString('vi-VN')} so với A)</span>`;
+  for (const k of ['a', 'b']) { const d = out[k] - out.c; document.querySelector(`[data-len="${k}"]`).innerHTML += ` <span>(${d >= 0 ? '+' : ''}${d.toLocaleString('vi-VN')} so với C)</span>`; }
   window.LENGTHS = out;
 }
 (document.fonts ? document.fonts.ready : Promise.resolve()).then(measure);
