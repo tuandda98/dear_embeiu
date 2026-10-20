@@ -92,6 +92,15 @@ class AnalyticsEvents {
   static const String pPartnerWatching = 'partner_watching'; // caro_move (bool)
   static const String pMoves = 'moves'; // caro_game_ended (int)
   static const String pSpanHours = 'span_hours'; // caro_game_ended (int)
+  // ── expenses (đợt 2) ── Sổ tiền D27, stage 3A (budgets / report / search).
+  // Never an amount, a wallet name, a note or a custom category name.
+  static const String moneyBudgetSet = 'money_budget_set';
+  static const String moneyReportOpen = 'money_report_open';
+  static const String moneySearch = 'money_search';
+  static const String pBook = 'book'; // money_*: own / shared
+  static const String pScope = 'scope'; // money_budget_set: total / category
+  static const String pView = 'view'; // money_report_open: month / trend
+  static const String pFilterCount = 'filter_count'; // money_search (count)
 
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
@@ -695,6 +704,30 @@ class AnalyticsService {
     AnalyticsEvents.arrivalCardAction,
     params: {AnalyticsEvents.pAction: action},
   );
+
+  // ── expenses (đợt 2) ── Sổ tiền stage 3A. [book] = 'own' / 'shared'.
+  void logMoneyBudgetSet({required String book, required bool total}) =>
+      logEvent(
+        AnalyticsEvents.moneyBudgetSet,
+        params: {
+          AnalyticsEvents.pBook: book,
+          AnalyticsEvents.pScope: total ? 'total' : 'category',
+        },
+      );
+
+  /// [view]: 'month' when the report opens, 'trend' on the 6/12 switch.
+  void logMoneyReportOpen({required String book, required String view}) =>
+      logEvent(
+        AnalyticsEvents.moneyReportOpen,
+        params: {AnalyticsEvents.pBook: book, AnalyticsEvents.pView: view},
+      );
+
+  /// One per search actually run (after the typing pause); the query text
+  /// itself is never sent.
+  void logMoneySearch(int filterCount) => logEvent(
+        AnalyticsEvents.moneySearch,
+        params: {AnalyticsEvents.pFilterCount: filterCount},
+      );
 
   // ---------------------------------------------------------------------------
   // User id + properties. D2 — user_id = Firebase uid while authed (an id, not

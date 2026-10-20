@@ -40,6 +40,9 @@ import '../widgets/weather/weather_sheets.dart' show WeatherSettingsSection;
 import '../providers/arrival_provider.dart';
 import '../widgets/arrival/arrival_settings_tiles.dart';
 import 'arrival_manage_screen.dart';
+// ── expenses (đợt 2) ──
+import '../services/money_service.dart';
+import '../widgets/money/money_reminder_tile.dart';
 
 /// The app-wide Settings screen (feature: settings — v2 redesign 2026-06-11).
 ///
@@ -535,6 +538,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     (a) => a.visible,
                   )) ...[
                     const ArrivalPushTile(),
+                    _rowDivider(),
+                  ],
+                  // ── expenses (đợt 2) ── Sổ tiền evening reminder (D18):
+                  // solo couples too; hidden without Firebase (no book).
+                  if (MoneyService.isAvailable) ...[
+                    const MoneyReminderTile(),
                     _rowDivider(),
                   ],
                   // AI-personalised daily questions (endless-questions,

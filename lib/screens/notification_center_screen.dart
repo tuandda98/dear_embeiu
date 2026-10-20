@@ -19,6 +19,8 @@ import '../widgets/shimmer_skeleton.dart';
 import '../widgets/sub_screen_header.dart';
 import 'care_timeline_screen.dart';
 import 'journal_screen.dart';
+// ── expenses (đợt 2) ──
+import '../widgets/money/money_notification_text.dart';
 
 /// In-app notification center (feature notifications). Lists the current
 /// couple's notifications newest-first, grouped into "Today" / "Earlier", lets
@@ -239,7 +241,10 @@ class _NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final n = notification;
-    final subtitle = _subtitleFor(n);
+    final subtitle =
+        _subtitleFor(n) ??
+        // ── expenses (đợt 2) ──
+        moneyInboxText(n, context.l10n)?.subtitle;
     final unread = !n.read;
 
     // Solid white reading surface (B4, r22 tile variant) — glass is banned in
@@ -297,6 +302,17 @@ class _NotificationTile extends StatelessWidget {
                         CareTimelineScreen(focusMessageId: n.careMessageId),
                   ),
                 );
+                return;
+              }
+
+              // ── expenses (đợt 2) ── Sổ tiền types: same route as the push
+              // tap (Home + the `money` focus + the fund id).
+              if (NotificationTapRouter.routeMoney(
+                n.rawType,
+                walletId: n.walletId,
+                from: 'inbox',
+              )) {
+                Navigator.of(context).maybePop();
                 return;
               }
 
@@ -500,6 +516,11 @@ class _NotificationTile extends StatelessWidget {
         return l10n.caroNotifInvite(
           n.actorName.isNotEmpty ? n.actorName : l10n.reactionPartnerFallback,
         );
+      // ── expenses (đợt 2) ──
+      case AppNotificationType.moneyGoal:
+      case AppNotificationType.moneyGoalReached:
+      case AppNotificationType.moneyBudget:
+        return moneyInboxText(n, l10n)!.title;
       case AppNotificationType.unknown:
         return l10n.notifGeneric;
     }
@@ -613,6 +634,12 @@ class _Avatar extends StatelessWidget {
       // ── caro-game (đợt 2) ──
       case AppNotificationType.caroInvite:
         return (IconsaxPlusLinear.grid_5, AppColors.accentLavenderDeep);
+      // ── expenses (đợt 2) ──
+      case AppNotificationType.moneyGoal:
+      case AppNotificationType.moneyGoalReached:
+        return (IconsaxPlusLinear.flag, AppColors.accentLavenderDeep);
+      case AppNotificationType.moneyBudget:
+        return (IconsaxPlusLinear.wallet_2, AppColors.accentLoveDeep);
       case AppNotificationType.unknown:
         return (IconsaxPlusLinear.notification, AppColors.textSecondary);
     }

@@ -46,6 +46,13 @@ enum AppNotificationType {
   /// The partner started a caro game and played the first stone (CF
   /// `caroAction` start). Carries [AppNotification.gameId]; tap opens it.
   caroInvite,
+  // ── expenses (đợt 2) ── Sổ tiền (CF notifyMoney): someone put money into a
+  // shared fund (`percent`, `walletName`, `walletEmoji`) · a fund reached
+  // its goal · the shared month crossed 80/100% of the total budget
+  // (`month`, `level`). Never an amount. Tap → Sổ tiền, shared book.
+  moneyGoal,
+  moneyGoalReached,
+  moneyBudget,
 
   /// A type this app build doesn't recognise (forward-compat: a newer backend
   /// could send a new type). Rendered with a generic fallback, routes to Home.
@@ -83,6 +90,13 @@ AppNotificationType appNotificationTypeFromString(String? raw) {
     // ── caro-game (đợt 2) ──
     case 'caro_invite':
       return AppNotificationType.caroInvite;
+    // ── expenses (đợt 2) ──
+    case 'money_goal':
+      return AppNotificationType.moneyGoal;
+    case 'money_goal_reached':
+      return AppNotificationType.moneyGoalReached;
+    case 'money_budget':
+      return AppNotificationType.moneyBudget;
     default:
       return AppNotificationType.unknown;
   }
@@ -113,6 +127,12 @@ class AppNotification {
     this.resultId,
     this.question,
     this.respin = false,
+    this.walletId,
+    this.percent,
+    this.walletName,
+    this.walletEmoji,
+    this.month,
+    this.level,
   });
 
   final String id;
@@ -161,6 +181,14 @@ class AppNotification {
   final String? question;
   final bool respin;
 
+  // ── expenses (đợt 2) ── money_* only.
+  final String? walletId; // money_goal, money_goal_reached
+  final int? percent; // money_goal
+  final String? walletName; // money_goal, money_goal_reached
+  final String? walletEmoji; // money_goal, money_goal_reached
+  final String? month; // money_budget ('YYYY-MM')
+  final int? level; // money_budget (80 / 100)
+
   /// Which Home bottom-nav tab this notification should open when tapped.
   /// Photo-related → Gallery (2); chat → Chat (1); everything else → Home (0).
   /// ⚠️ Indices shifted when the chat tab landed at 1 (feature chat,
@@ -199,6 +227,12 @@ class AppNotification {
       case AppNotificationType.decision:
       // ── caro-game (đợt 2) ── the center publishes the `caro` focus + id.
       case AppNotificationType.caroInvite:
+      // ── expenses (đợt 2) ── Sổ tiền is pushed on top of Home; the center
+      // publishes the `money` Home-focus via NotificationTapRouter.routeMoney
+      // — same helper as the 'money_*' push branch.
+      case AppNotificationType.moneyGoal:
+      case AppNotificationType.moneyGoalReached:
+      case AppNotificationType.moneyBudget:
       case AppNotificationType.unknown:
         return 0; // Home
     }
@@ -229,6 +263,14 @@ class AppNotification {
       resultId: _nullableString(data['resultId']),
       question: _nullableString(data['question']),
       respin: data['respin'] == true,
+      walletId: _nullableString(data['walletId']),
+      percent: data['percent'] is num ? (data['percent'] as num).toInt() : null,
+      walletName: _nullableString(data['walletName']),
+      walletEmoji: _nullableString(data['walletEmoji']),
+      month: _nullableString(data['month']),
+      level: data['level'] is num
+          ? (data['level'] as num).toInt()
+          : int.tryParse('${data['level'] ?? ''}'),
     );
   }
 
@@ -257,6 +299,12 @@ class AppNotification {
       resultId: resultId,
       question: question,
       respin: respin,
+      walletId: walletId,
+      percent: percent,
+      walletName: walletName,
+      walletEmoji: walletEmoji,
+      month: month,
+      level: level,
     );
   }
 

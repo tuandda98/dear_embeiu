@@ -1266,6 +1266,277 @@ service cloud.firestore {
       allow read: if isCoupleMember(resource.data.coupleId);
     }
 
+    // ── expenses (đợt 2) ──
+    // Sổ tiền (feature expenses, 2026-10-20). Two books, one schema
+    // (overview D1/D6, §5):
+    // - own book    users/{uid}/money*      — only the owner, no shared keys;
+    // - shared book couples/{id}/money*     — every wallet / entry pins
+    //   `memberUids` = the couple's memberIds when written (exactly 2). Read
+    //   needs membership AND a name in it, so whoever joins the couple later
+    //   never reads the previous pair's money (D3) while the one who stayed
+    //   still does (D4). Budgets + category meta: any member reads.
+    // Money is an int of đồng: entries 1..10 tỷ, wallets −10..100 tỷ. Wallets
+    // are never deleted (archived instead). `alerted` (budget) and
+    // `goalReachedAt` (shared wallet) are written only by CF notifyMoney.
+    // Brand-new collections ⇒ fully ADDITIVE; old app versions never touch
+    // them. moneyRecurring / moneyDebts (mốc B) get their rules then.
+    function moneyIsId(v) {
+      return v is string && v.size() <= 40;
+    }
+
+    function moneyIsDate(v) {
+      return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function moneyIsAmount(v) {
+      return v is int && v >= 1 && v <= 10000000000;
+    }
+
+    function moneyUnchanged(keys) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(keys);
+    }
+
+    function moneyIsOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function moneyCoupleIds(coupleId) {
+      return get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds;
+    }
+
+    // A shared doc's pair = the couple's current two members, in order.
+    function moneyPairOk(coupleId, d) {
+      return d.memberUids == moneyCoupleIds(coupleId)
+        && d.memberUids.size() == 2;
+    }
+
+    // Read / edit an existing shared doc: still a member and in its pair.
+    function moneyInPair(coupleId) {
+      return isCoupleMember(coupleId)
+        && request.auth.uid in resource.data.memberUids;
+    }
+
+    // Writes to the shared book's budgets / meta: an active (2-member) couple.
+    function moneyCoupleFull(coupleId) {
+      return isCoupleMember(coupleId) && moneyCoupleIds(coupleId).size() == 2;
+    }
+
+    function moneyCreateStamp(d) {
+      return d.createdBy == request.auth.uid
+        && d.createdAt == request.time
+        && d.get('updatedAt', request.time) == request.time;
+    }
+
+    // ---- wallets ----
+    function moneyWalletOk(d, shared) {
+      let base = ['name', 'type', 'emoji', 'color', 'openingBalance',
+        'includeInTotal', 'archived', 'order', 'createdBy', 'createdAt'];
+      let keys = shared ? base.concat(['memberUids']) : base;
+      return d.keys().hasAll(keys)
+        && d.keys().hasOnly(keys.concat(['currency', 'goalTarget',
+          'goalDeadline', 'goalReachedAt', 'updatedAt']))
+        && d.name is string && d.name.size() >= 1 && d.name.size() <= 30
+        && d.type in ['cash', 'bank', 'ewallet', 'credit', 'goal']
+        && d.emoji is string && d.emoji.size() <= 8
+        && d.color is string && d.color.size() <= 12
+        && d.get('currency', 'VND') == 'VND'
+        && d.openingBalance is int
+        && d.openingBalance >= -10000000000
+        && d.openingBalance <= 100000000000
+        && d.includeInTotal is bool
+        && d.archived is bool
+        && d.order is int
+        && (!('goalTarget' in d) || (d.type == 'goal'
+          && d.goalTarget is int
+          && d.goalTarget >= 1
+          && d.goalTarget <= 100000000000))
+        && (!('goalDeadline' in d) || (d.type == 'goal' && moneyIsDate(d.goalDeadline)))
+        && (!('goalReachedAt' in d) || d.goalReachedAt is timestamp);
+    }
+
+    match /users/{userId}/moneyWallets/{walletId} {
+      allow read: if moneyIsOwner(userId);
+      allow create: if moneyIsOwner(userId)
+        && walletId.size() <= 40
+        && moneyWalletOk(request.resource.data, false)
+        && moneyCreateStamp(request.resource.data);
+      allow update: if moneyIsOwner(userId)
+        && moneyWalletOk(request.resource.data, false)
+        && moneyUnchanged(['type', 'createdBy', 'createdAt'])
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /couples/{coupleId}/moneyWallets/{walletId} {
+      allow read: if moneyInPair(coupleId);
+      allow create: if isCoupleMember(coupleId)
+        && walletId.size() <= 40
+        && moneyWalletOk(request.resource.data, true)
+        && moneyCreateStamp(request.resource.data)
+        && moneyPairOk(coupleId, request.resource.data)
+        && !('goalReachedAt' in request.resource.data);
+      allow update: if moneyInPair(coupleId)
+        && moneyWalletOk(request.resource.data, true)
+        && moneyUnchanged(['type', 'memberUids', 'createdBy', 'createdAt', 'goalReachedAt'])
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    // ---- entries ----
+    function moneyTxOk(d, shared) {
+      let base = ['type', 'amount', 'outWalletId', 'inWalletId', 'date',
+        'categoryId', 'note', 'createdBy', 'createdAt'];
+      let keys = shared ? base.concat(['payer', 'splitMode', 'payerShare', 'memberUids']) : base;
+      let hasOut = d.outWalletId != '';
+      let hasIn = d.inWalletId != '';
+      let person = shared && d.payer in d.memberUids;
+      return d.keys().hasAll(keys)
+        && d.keys().hasOnly(keys.concat(['linkId', 'recurringId', 'source',
+          'updatedBy', 'updatedAt', 'editCount']))
+        && d.type in ['expense', 'income', 'transfer', 'adjust', 'contribution', 'settle']
+        && moneyIsAmount(d.amount)
+        && moneyIsId(d.outWalletId)
+        && moneyIsId(d.inWalletId)
+        && moneyIsId(d.categoryId)
+        && moneyIsDate(d.date)
+        && d.note is string && d.note.size() <= 200
+        && (!('linkId' in d) || (d.linkId is string && d.linkId.size() >= 1 && d.linkId.size() <= 40))
+        && (!('recurringId' in d) || (d.recurringId is string && d.recurringId.size() >= 1 && d.recurringId.size() <= 40))
+        && d.get('source', 'manual') in ['manual', 'decision', 'recurring']
+        && d.get('editCount', 0) is int
+        && d.get('updatedBy', '') is string
+        && (!shared || (d.memberUids is list
+          && d.memberUids.size() == 2
+          // A person paid ⇒ from their own pocket, never also out of a shared
+          // wallet (else the wallet drops AND the couple balance counts it).
+          && ((person && !hasOut) || (d.payer == 'wallet' && hasOut))
+          && d.splitMode in ['equal', 'treat', 'for_partner', 'custom', 'none']
+          && d.payerShare is int
+          && d.payerShare >= 0
+          && d.payerShare <= d.amount))
+        && ((d.type == 'expense' && !hasIn && (hasOut || person))
+          || (d.type == 'income' && hasIn && !hasOut)
+          || (d.type == 'transfer' && hasIn && hasOut && d.inWalletId != d.outWalletId)
+          || (d.type == 'adjust' && hasIn != hasOut)
+          || (d.type == 'contribution'
+            && (shared ? (hasIn && !hasOut && person) : (hasOut && !hasIn)))
+          || (d.type == 'settle' && shared && person && !hasIn && !hasOut && d.payerShare == 0));
+    }
+
+    function moneyTxCreateOk(d) {
+      return moneyCreateStamp(d)
+        && d.get('editCount', 0) == 0
+        && d.get('updatedBy', request.auth.uid) == request.auth.uid;
+    }
+
+    // Every edit names its author and bumps editCount by exactly one, so the
+    // second of two concurrent edits is refused (overview §8).
+    function moneyTxEditOk() {
+      let d = request.resource.data;
+      return moneyUnchanged(['type', 'memberUids', 'createdBy', 'createdAt', 'linkId'])
+        && d.updatedBy == request.auth.uid
+        && d.updatedAt == request.time
+        && d.get('editCount', 0) == resource.data.get('editCount', 0) + 1;
+    }
+
+    match /users/{userId}/moneyTx/{txId} {
+      allow read, delete: if moneyIsOwner(userId);
+      allow create: if moneyIsOwner(userId)
+        && moneyTxOk(request.resource.data, false)
+        && moneyTxCreateOk(request.resource.data);
+      allow update: if moneyIsOwner(userId)
+        && moneyTxOk(request.resource.data, false)
+        && moneyTxEditOk();
+    }
+
+    match /couples/{coupleId}/moneyTx/{txId} {
+      allow read: if moneyInPair(coupleId);
+      allow create: if isCoupleMember(coupleId)
+        && moneyTxOk(request.resource.data, true)
+        && moneyTxCreateOk(request.resource.data)
+        && moneyPairOk(coupleId, request.resource.data);
+      // A shared entry that also sits in its creator's own book (linkId):
+      // only the creator may change the money side or delete it (D13).
+      allow update: if moneyInPair(coupleId)
+        && moneyTxOk(request.resource.data, true)
+        && moneyTxEditOk()
+        && (!('linkId' in resource.data)
+          || resource.data.createdBy == request.auth.uid
+          || moneyUnchanged(['amount', 'outWalletId', 'inWalletId', 'payer', 'payerShare', 'splitMode']));
+      allow delete: if moneyInPair(coupleId)
+        && (!('linkId' in resource.data) || resource.data.createdBy == request.auth.uid);
+    }
+
+    // ---- budgets (monthly, '' = whole book) ----
+    // One doc per category, id = 'total' or the category id, so two phones
+    // setting the same budget write the same doc.
+    function moneyBudgetIdOk(budgetId, d) {
+      return budgetId == (d.categoryId == '' ? 'total' : d.categoryId);
+    }
+
+    function moneyBudgetOk(d) {
+      return d.keys().hasAll(['categoryId', 'amount', 'createdBy', 'createdAt'])
+        && d.keys().hasOnly(['categoryId', 'amount', 'createdBy', 'createdAt', 'updatedAt', 'alerted'])
+        && moneyIsId(d.categoryId)
+        && moneyIsAmount(d.amount);
+    }
+
+    match /users/{userId}/moneyBudgets/{budgetId} {
+      allow read, delete: if moneyIsOwner(userId);
+      allow create: if moneyIsOwner(userId)
+        && moneyBudgetOk(request.resource.data)
+        && moneyBudgetIdOk(budgetId, request.resource.data)
+        && !('alerted' in request.resource.data)
+        && moneyCreateStamp(request.resource.data);
+      allow update: if moneyIsOwner(userId)
+        && moneyBudgetOk(request.resource.data)
+        && moneyUnchanged(['categoryId', 'createdBy', 'createdAt', 'alerted'])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    match /couples/{coupleId}/moneyBudgets/{budgetId} {
+      allow read: if isCoupleMember(coupleId);
+      allow delete: if moneyCoupleFull(coupleId);
+      allow create: if moneyCoupleFull(coupleId)
+        && moneyBudgetOk(request.resource.data)
+        && moneyBudgetIdOk(budgetId, request.resource.data)
+        && !('alerted' in request.resource.data)
+        && moneyCreateStamp(request.resource.data);
+      allow update: if moneyCoupleFull(coupleId)
+        && moneyBudgetOk(request.resource.data)
+        && moneyUnchanged(['categoryId', 'createdBy', 'createdAt', 'alerted'])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // ---- category tweaks + default wallet: one doc `main` per book ----
+    function moneyMetaOk(metaId) {
+      let d = request.resource.data;
+      return metaId == 'main'
+        && d.keys().hasOnly(['customCategories', 'overrides', 'hiddenCategoryIds',
+          'defaultWalletId', 'updatedAt'])
+        && d.get('customCategories', []) is list
+        && d.get('customCategories', []).size() <= 80
+        && d.get('overrides', {}) is map
+        && d.get('overrides', {}).size() <= 140
+        && d.get('hiddenCategoryIds', []) is list
+        && d.get('hiddenCategoryIds', []).size() <= 120
+        && moneyIsId(d.get('defaultWalletId', ''))
+        && d.updatedAt == request.time;
+    }
+
+    match /users/{userId}/moneyMeta/{metaId} {
+      allow read: if moneyIsOwner(userId);
+      allow create, update: if moneyIsOwner(userId) && moneyMetaOk(metaId);
+      allow delete: if false;
+    }
+
+    match /couples/{coupleId}/moneyMeta/{metaId} {
+      allow read: if isCoupleMember(coupleId);
+      allow create, update: if moneyCoupleFull(coupleId) && moneyMetaOk(metaId);
+      allow delete: if false;
+    }
+    // ── hết expenses (đợt 2) ──
+
     // UGC moderation reports (Apple Guideline 1.2). Create-only for any
     // signed-in user; admins review via the Firebase Console. Clients can
     // never read, edit, or delete reports.

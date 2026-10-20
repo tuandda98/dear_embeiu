@@ -42,6 +42,8 @@ import 'providers/streak_provider.dart';
 import 'providers/arrival_provider.dart';
 // ── arrival (đợt 2) ──
 import 'services/arrival_platform_native.dart';
+// ── expenses (đợt 2) ──
+import 'providers/money_provider.dart';
 import 'screens/force_update_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/guest_counter_screen.dart';
@@ -349,6 +351,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             location: const NativeCurrentLocationReader(),
           ),
         ),
+        // ── expenses (đợt 2) ──
+        // Sổ tiền — own book wired at sign-in, shared book while the couple
+        // is active (SessionResolver).
+        ChangeNotifierProvider(create: (_) => MoneyProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
