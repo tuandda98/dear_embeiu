@@ -7606,6 +7606,18 @@ abstract class AppLocalizations {
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
+  /// **'That didn\'t go through. Try again.'**
+  String get caroActionError;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the game. Tap to try again.'**
+  String get caroEntryError;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
   /// **'Start a caro game with {name}'**
   String caroNewTitle(String name);
 
@@ -7714,8 +7726,8 @@ abstract class AppLocalizations {
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'You played move {n} at {time}, {m} minutes ago.'**
-  String caroWaitedMin(String n, String time, String m);
+  /// **'You played move {n} at {time}, {m, plural, =1{1 minute} other{{m} minutes}} ago.'**
+  String caroWaitedMin(String n, String time, int m);
 
   /// caro-game (đợt 2)
   ///
@@ -7816,8 +7828,8 @@ abstract class AppLocalizations {
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'You can nudge in {m} min'**
-  String caroNudgeIn(String m);
+  /// **'You can nudge in {m, plural, =1{1 minute} other{{m} minutes}}'**
+  String caroNudgeIn(int m);
 
   /// caro-game (đợt 2)
   ///
@@ -7888,8 +7900,8 @@ abstract class AppLocalizations {
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'You invited {name} yesterday at {time}.'**
-  String caroInvitedYesterday(String name, String time);
+  /// **'You invited {name} {when} at {time}.'**
+  String caroInvitedYesterday(String name, String when, String time);
 
   /// caro-game (đợt 2)
   ///
@@ -8050,14 +8062,14 @@ abstract class AppLocalizations {
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'{h} hours'**
-  String caroSpanHours(String h);
+  /// **'{h, plural, =1{1 hour} other{{h} hours}}'**
+  String caroSpanHours(int h);
 
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'{m} minutes'**
-  String caroSpanMinutes(String m);
+  /// **'{m, plural, =1{1 minute} other{{m} minutes}}'**
+  String caroSpanMinutes(int m);
 
   /// caro-game (đợt 2)
   ///
@@ -8124,6 +8136,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{n} games since {date}. {name} won the last one {when}.'**
   String caroHistorySub(String n, String date, String name, String when);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} games. {name} won the last one {when}.'**
+  String caroHistorySubNoSince(String n, String name, String when);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} games. The last one was a draw {when}.'**
+  String caroHistorySubDrawNoSince(String n, String when);
 
   /// caro-game (đợt 2)
   ///

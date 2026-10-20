@@ -166,11 +166,17 @@ class CaroGameScreen extends StatefulWidget {
 
   static const String routeName = 'CaroGame';
 
+  /// Live game screens mounted (Home holds the "Có gì mới" sheet / catch-up
+  /// gate while one is open, like rps RPS-7). May fire mid-build/dispose.
+  static final ValueNotifier<int> mountedCount = ValueNotifier<int>(0);
+
+  static bool get isOpen => mountedCount.value > 0;
+
   @override
   State<CaroGameScreen> createState() => _CaroGameScreenState();
 }
 
-enum _Problem { none, send, stale, network }
+enum _Problem { none, send, stale, network, action, cooldown }
 
 class _CaroGameScreenState extends State<CaroGameScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin, RouteAware {
@@ -199,6 +205,9 @@ class _CaroGameScreenState extends State<CaroGameScreen>
   bool _replayLoaded = false;
 
   _Problem _problem = _Problem.none;
+
+  /// Minutes left for [_Problem.cooldown] (nudge refused by the server).
+  int _cooldownMin = 0;
   bool _offline = false;
   bool _zoomed = false;
   double _boardSide = 0;
@@ -227,6 +236,7 @@ class _CaroGameScreenState extends State<CaroGameScreen>
     _draftRematchOf = widget.rematchOf;
     if (!widget.readOnly) {
       _mounted.add(this);
+      CaroGameScreen.mountedCount.value = _mounted.length;
     }
     _zoomAnim = AnimationController(vsync: this, duration: AppMotion.base)
       ..addListener(() {
@@ -290,12 +300,15 @@ class _CaroGameScreenState extends State<CaroGameScreen>
 
   @override
   void dispose() {
-    _mounted.remove(this);
+    if (_mounted.remove(this)) {
+      CaroGameScreen.mountedCount.value = _mounted.length;
+    }
     appPageRouteObserver.unsubscribe(this);
     _provider.removeListener(_onProvider);
     WidgetsBinding.instance.removeObserver(this);
-    if (!widget.readOnly && _provider.currentGameId != null) {
-      _provider.leave();
+    if (!widget.readOnly) {
+      // Not leave(): the tree is locked in dispose (review UI #1).
+      _provider.detach();
     }
     if (NotificationTapRouter.caroGameOnScreen != null && _mounted.isEmpty) {
       NotificationTapRouter.caroGameOnScreen = null;
@@ -394,6 +407,10 @@ class _CaroGameScreenState extends State<CaroGameScreen>
     final reduce = AppMotion.reduceMotion(context);
     if (game.cells.length > _seenCells && _seenCells >= 0) {
       _dropCell = game.cells.last;
+      // The board moved on: an old "bàn vừa đổi" / cooldown note is stale.
+      if (_problem == _Problem.stale || _problem == _Problem.cooldown) {
+        setState(() => _problem = _Problem.none);
+      }
       if (reduce) {
         _drop.value = 1;
       } else {
@@ -546,9 +563,36 @@ class _CaroGameScreenState extends State<CaroGameScreen>
     } else if (result.isStaleBoard) {
       _selector.clear();
       setState(() => _problem = _Problem.stale);
+    } else if (result.status == CaroActionStatus.network) {
+      setState(() => _problem = _Problem.network);
     } else {
       setState(() => _problem = _Problem.send);
     }
+  }
+
+  /// Every refused / failed action says why and what next (§13 U9).
+  void _report(CaroActionResult result) {
+    if (!mounted || result.isOk) return;
+    setState(() {
+      switch (result.status) {
+        case CaroActionStatus.network:
+          _problem = _Problem.network;
+        case CaroActionStatus.cooldown:
+        case CaroActionStatus.tooEarly:
+          _problem = _Problem.cooldown;
+          _cooldownMin = math.max(
+            1,
+            ((result.retryAfter ?? Duration.zero).inSeconds / 60).ceil(),
+          );
+        case CaroActionStatus.stale:
+        case CaroActionStatus.notYourTurn:
+        case CaroActionStatus.occupied:
+        case CaroActionStatus.notPlaying:
+          _problem = _Problem.stale;
+        default:
+          _problem = _Problem.action;
+      }
+    });
   }
 
   Future<void> _nudge(String partnerName) async {
@@ -565,8 +609,8 @@ class _CaroGameScreenState extends State<CaroGameScreen>
           duration: const Duration(seconds: 3),
         ),
       );
-    } else if (result.status == CaroActionStatus.network) {
-      setState(() => _problem = _Problem.network);
+    } else {
+      _report(result);
     }
   }
 
@@ -631,7 +675,7 @@ class _CaroGameScreenState extends State<CaroGameScreen>
       keep: l10n.caroKeepPlaying,
       confirm: l10n.caroResign,
     );
-    if (ok) await _provider.resign();
+    if (ok) _report(await _provider.resign());
   }
 
   Future<void> _cancel(CaroPeople people) async {
@@ -642,7 +686,7 @@ class _CaroGameScreenState extends State<CaroGameScreen>
       keep: l10n.caroKeepPlaying,
       confirm: l10n.caroCancelConfirm,
     );
-    if (ok) await _provider.cancel();
+    if (ok) _report(await _provider.cancel());
   }
 
   Future<void> _end() async {
@@ -653,7 +697,7 @@ class _CaroGameScreenState extends State<CaroGameScreen>
       keep: l10n.caroEndKeep,
       confirm: l10n.caroEndConfirm,
     );
-    if (ok) await _provider.expire();
+    if (ok) _report(await _provider.expire());
   }
 
   // ------------------------------------------------------------- build
@@ -708,9 +752,17 @@ class _CaroGameScreenState extends State<CaroGameScreen>
                 ),
               ),
               const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _statusCard(l10n, people, game, mode, now),
+              // No page scroll (C3), so on a short phone with large text the
+              // card is capped at 40% of the screen and scrolls on its own
+              // (review UI #3) — the board keeps the rest.
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * 0.4,
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _statusCard(l10n, people, game, mode, now),
+                ),
               ),
               const SizedBox(height: 12),
               // The note floats over the board's lower edge instead of pushing
@@ -744,11 +796,11 @@ class _CaroGameScreenState extends State<CaroGameScreen>
   String _span(AppLocalizations l10n, CaroGame game) {
     final from = game.createdAt;
     final to = game.finishedAt ?? game.lastMoveAt;
-    if (from == null || to == null) return l10n.caroSpanMinutes('0');
+    if (from == null || to == null) return l10n.caroSpanMinutes(0);
     final minutes = to.difference(from).inMinutes;
     return minutes < 60
-        ? l10n.caroSpanMinutes('$minutes')
-        : l10n.caroSpanHours('${(minutes / 60).round()}');
+        ? l10n.caroSpanMinutes(minutes)
+        : l10n.caroSpanHours((minutes / 60).round());
   }
 
   Widget _statusCard(
@@ -817,13 +869,17 @@ class _CaroGameScreenState extends State<CaroGameScreen>
         final waited = moved == null ? 0 : now.difference(moved).inMinutes;
         final nudged = g.lastNudgeAt;
         if (_oldAppHint(g, now)) {
-          sub = l10n.caroInvitedYesterday(partner, t(g.createdAt));
+          sub = l10n.caroInvitedYesterday(
+            partner,
+            _whenDay(l10n, g.createdAt!, now),
+            t(g.createdAt),
+          );
         } else if (partnerWatching) {
           sub = l10n.caroPartnerWatching(n, t(moved), partner);
         } else if (nudged != null && (moved == null || nudged.isAfter(moved))) {
           sub = l10n.caroNudged(partner, t(nudged));
         } else if (waited >= 30) {
-          sub = l10n.caroWaitedMin(n, t(moved), '$waited');
+          sub = l10n.caroWaitedMin(n, t(moved), waited);
         } else {
           sub = l10n.caroYouMoved(n, t(moved), partner);
         }
@@ -935,6 +991,21 @@ class _CaroGameScreenState extends State<CaroGameScreen>
     );
   }
 
+  /// "hôm qua" / "ngày 17/10" for the invite time (review UI #5: ≥24 h
+  /// isn't always yesterday).
+  String _whenDay(AppLocalizations l10n, DateTime at, DateTime now) {
+    final y = now.subtract(const Duration(days: 1));
+    if (at.year == y.year && at.month == y.month && at.day == y.day) {
+      return l10n.caroWhenYesterday;
+    }
+    return l10n.caroWhenOn(
+      DateFormat(
+        'dd/MM',
+        Localizations.localeOf(context).toString(),
+      ).format(at),
+    );
+  }
+
   bool _oldAppHint(CaroGame g, DateTime now) {
     final created = g.createdAt;
     return g.isFreshInvite &&
@@ -1034,6 +1105,7 @@ class _CaroGameScreenState extends State<CaroGameScreen>
                             semanticsLabelOf: mode == CaroScreenMode.loading
                                 ? null
                                 : label,
+                            semanticsCanPlace: canPlace,
                             semanticsTapOf: (i) => canPlace && board.isEmpty(i)
                                 ? () => _onCellTap(i, game)
                                 : null,
@@ -1109,9 +1181,7 @@ class _CaroGameScreenState extends State<CaroGameScreen>
                 l10n.caroNudge(partner),
                 onTap: _provider.isBusy ? null : () => _nudge(partner),
               )
-            : _Pill.disabled(
-                l10n.caroNudgeIn('${(wait.inSeconds / 60).ceil()}'),
-              );
+            : _Pill.disabled(l10n.caroNudgeIn((wait.inSeconds / 60).ceil()));
         textAction = _textActionFor(l10n, people, game, mode);
       case CaroScreenMode.finished:
         showZoom = true;
@@ -1194,6 +1264,8 @@ class _CaroGameScreenState extends State<CaroGameScreen>
         text: switch (_problem) {
           _Problem.stale => l10n.caroStaleBoard,
           _Problem.network => l10n.caroOffline,
+          _Problem.action => l10n.caroActionError,
+          _Problem.cooldown => l10n.caroNudgeIn(_cooldownMin),
           _ => l10n.caroSendError,
         },
       );

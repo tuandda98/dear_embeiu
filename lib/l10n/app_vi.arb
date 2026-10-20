@@ -3890,6 +3890,8 @@
   "caroCtaNewGame": "Ván mới",
   "caroCtaInvite": "Rủ chơi",
   "caroCtaRetry": "Thử lại",
+  "caroActionError": "Chưa làm được, thử lại nhé.",
+  "caroEntryError": "Chưa tải được ván. Chạm để thử lại.",
   "caroNewTitle": "Rủ {name} chơi caro",
   "@caroNewTitle": {
     "description": "caro-game (đợt 2)",
@@ -3993,7 +3995,7 @@
         "type": "String"
       },
       "m": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -4053,7 +4055,7 @@
     "description": "caro-game (đợt 2)",
     "placeholders": {
       "m": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -4135,11 +4137,14 @@
     }
   },
   "caroEndGame": "Kết thúc ván",
-  "caroInvitedYesterday": "Bạn rủ {name} lúc {time} hôm qua.",
+  "caroInvitedYesterday": "Bạn rủ {name} {when}, lúc {time}.",
   "@caroInvitedYesterday": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
       "name": {
+        "type": "String"
+      },
+      "when": {
         "type": "String"
       },
       "time": {
@@ -4254,7 +4259,7 @@
     "description": "caro-game (đợt 2)",
     "placeholders": {
       "h": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -4263,7 +4268,7 @@
     "description": "caro-game (đợt 2)",
     "placeholders": {
       "m": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -4331,6 +4336,33 @@
         "type": "String"
       },
       "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySubNoSince": "{n} ván. Ván gần nhất {name} thắng {when}.",
+  "@caroHistorySubNoSince": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySubDrawNoSince": "{n} ván. Ván gần nhất hoà {when}.",
+  "@caroHistorySubDrawNoSince": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
         "type": "String"
       },
       "when": {

@@ -14,6 +14,8 @@ import 'package:dear_embeiu/providers/caro_game_provider.dart';
 import 'package:dear_embeiu/providers/couple_provider.dart';
 import 'package:dear_embeiu/providers/sleep_provider.dart';
 import 'package:dear_embeiu/screens/caro_game_screen.dart';
+import 'package:dear_embeiu/screens/caro_history_screen.dart';
+import 'package:dear_embeiu/widgets/shimmer_skeleton.dart';
 import 'package:dear_embeiu/services/caro_game_service.dart';
 import 'package:dear_embeiu/services/home_widget_status.dart';
 import 'package:dear_embeiu/services/push_notification_service.dart';
@@ -65,6 +67,8 @@ class _FakeService extends CaroGameService {
   final state = StreamController<CaroState>.broadcast();
   final games = <String, StreamController<CaroGame?>>{};
   final calls = <Map<String, Object?>>[];
+  CaroActionResult reply = const CaroActionResult(CaroActionStatus.failed);
+  CaroHistoryPage page = const CaroHistoryPage.empty();
 
   StreamController<CaroGame?> stream(String id) =>
       games.putIfAbsent(id, () => StreamController<CaroGame?>.broadcast());
@@ -97,7 +101,7 @@ class _FakeService extends CaroGameService {
     String? rematchOf,
   }) async {
     calls.add({'op': op, 'rule': rule?.key, 'cell': cell});
-    return const CaroActionResult(CaroActionStatus.failed);
+    return reply;
   }
 
   @override
@@ -105,7 +109,7 @@ class _FakeService extends CaroGameService {
     required String coupleId,
     int limit = 30,
     dynamic startAfter,
-  }) async => const CaroHistoryPage.empty();
+  }) async => page;
 }
 
 Future<void> tick() => Future<void>.delayed(Duration.zero);
@@ -623,9 +627,17 @@ void main() {
       ..watchForCouple('c', 'me', 'bob');
     await tester.pumpWidget(app(caro, const CaroGameScreen(gameId: 'g1')));
     await tester.pump();
-    service.stream('g1').add(
-      g(turn: 'bob', cells: [112, 113], x: 'bob', o: 'me', lastMoveBy: 'me'),
-    );
+    service
+        .stream('g1')
+        .add(
+          g(
+            turn: 'bob',
+            cells: [112, 113],
+            x: 'bob',
+            o: 'me',
+            lastMoveBy: 'me',
+          ),
+        );
     await tester.pump();
     await tester.pump();
     expect(tester.takeException(), isNull);
@@ -647,21 +659,23 @@ void main() {
       ..watchForCouple('c', 'me', 'bob');
     await tester.pumpWidget(app(caro, const CaroGameScreen(gameId: 'g1')));
     await tester.pump();
-    service.stream('g1').add(
-      g(
-        status: 'finished',
-        cells: [112, 0, 113, 1, 114, 2, 115, 3, 116],
-        x: 'me',
-        o: 'bob',
-        createdBy: 'me',
-        finishedAt: now,
-        result: {
-          'winnerUid': 'me',
-          'reason': 'five',
-          'line': [112, 113, 114, 115, 116],
-        },
-      ),
-    );
+    service
+        .stream('g1')
+        .add(
+          g(
+            status: 'finished',
+            cells: [112, 0, 113, 1, 114, 2, 115, 3, 116],
+            x: 'me',
+            o: 'bob',
+            createdBy: 'me',
+            finishedAt: now,
+            result: {
+              'winnerUid': 'me',
+              'reason': 'five',
+              'line': [112, 113, 114, 115, 116],
+            },
+          ),
+        );
     await tester.pump();
     await tester.pump();
     expect(find.text(vi.caroYouWon), findsOneWidget);
@@ -674,6 +688,292 @@ void main() {
     expect(find.text(vi.caroStartWith('Người ấy')), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     caro.dispose();
+  });
+
+  // ---- review UI 2026-10-20 ------------------------------------------------
+
+  void mockNet(WidgetTester tester) =>
+      tester.binding.defaultBinaryMessenger.setMockStreamHandler(
+        const EventChannel('dev.fluttercommunity.plus/connectivity_status'),
+        MockStreamHandler.inline(onListen: (_, _) {}),
+      );
+
+  void small(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 3;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+  }
+
+  Future<(CaroGameProvider, _FakeService)> openGame(
+    WidgetTester tester,
+    CaroGame game, {
+    bool smallScreen = false,
+  }) async {
+    mockNet(tester);
+    if (smallScreen) small(tester);
+    final service = _FakeService();
+    final caro = CaroGameProvider(service: service)
+      ..watchForCouple('c', 'me', 'bob');
+    await tester.pumpWidget(app(caro, CaroGameScreen(gameId: game.id)));
+    await tester.pump();
+    service.stream(game.id).add(game);
+    await tester.pump();
+    await tester.pump();
+    return (caro, service);
+  }
+
+  testWidgets('#1 open then pop the game screen: no locked-tree notify', (
+    tester,
+  ) async {
+    mockNet(tester);
+    final service = _FakeService();
+    final caro = CaroGameProvider(service: service)
+      ..watchForCouple('c', 'me', 'bob');
+    await tester.pumpWidget(
+      app(
+        caro,
+        Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const CaroGameScreen(gameId: 'g1'),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400)); // route in
+    service.stream('g1').add(g());
+    await tester.pump();
+    expect(caro.currentGameId, 'g1');
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1)); // route out + dispose
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(caro.currentGameId, isNull);
+    caro.dispose();
+  });
+
+  testWidgets('#2 new-game sheet scrolls on 360×640 ×1.3', (tester) async {
+    small(tester);
+    final caro = CaroGameProvider(service: _FakeService())
+      ..watchForCouple('c', 'me', 'bob');
+    await tester.pumpWidget(
+      app(
+        caro,
+        Builder(
+          builder: (context) => Scaffold(
+            body: CaroNewGameSheet(lastRule: null, hostContext: context),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SingleChildScrollView), findsWidgets);
+    await tester.pumpWidget(const SizedBox());
+    caro.dispose();
+  });
+
+  for (final (name, game) in <(String, CaroGame)>[
+    ('invited', g()),
+    (
+      'stale, my turn',
+      g(
+        cells: [112, 113],
+        turn: 'me',
+        lastMoveAt: now.subtract(const Duration(days: 9)),
+      ),
+    ),
+    (
+      'finished',
+      g(
+        status: 'finished',
+        cells: [112, 0, 113, 1, 114, 2, 115, 3, 116],
+        finishedAt: now,
+        result: {
+          'winnerUid': 'bob',
+          'reason': 'five',
+          'line': [112, 113, 114, 115, 116],
+        },
+      ),
+    ),
+  ]) {
+    testWidgets('#3 360×640 ×1.3 $name: no overflow', (tester) async {
+      final (caro, _) = await openGame(tester, game, smallScreen: true);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      caro.dispose();
+    });
+  }
+
+  testWidgets('#4 a refused resign says why instead of closing silently', (
+    tester,
+  ) async {
+    final (caro, service) = await openGame(
+      tester,
+      g(cells: [112, 113, 114], turn: 'bob'),
+    );
+    await tester.tap(find.text(vi.caroResign));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, vi.caroResign));
+    await tester.pumpAndSettle();
+    expect(service.calls.last['op'], 'resign');
+    expect(find.text(vi.caroActionError), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    caro.dispose();
+  });
+
+  testWidgets('#4 nudge cooldown from the server shows the wait', (
+    tester,
+  ) async {
+    final (caro, service) = await openGame(
+      tester,
+      g(
+        cells: [112, 113, 114],
+        turn: 'bob',
+        lastMoveAt: now.subtract(const Duration(hours: 2)),
+      ),
+    );
+    service.reply = const CaroActionResult(
+      CaroActionStatus.cooldown,
+      retryAfter: Duration(minutes: 12),
+    );
+    await tester.tap(find.text(vi.caroNudge('Người ấy')));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(vi.caroNudgeIn(12)), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    caro.dispose();
+  });
+
+  testWidgets('#13 offline while moving → offline note, not the send error', (
+    tester,
+  ) async {
+    final (caro, service) = await openGame(
+      tester,
+      g(lastMoveAt: DateTime.now()),
+    );
+    service.reply = const CaroActionResult(CaroActionStatus.network);
+    final rect = tester.getRect(find.byType(InteractiveViewer));
+    final target = rect.center + Offset(rect.width / CaroBoard.size * 1.6, 0);
+    await tester.tapAt(target);
+    await tester.pump();
+    await tester.tap(find.text(vi.caroPlayHere));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(vi.caroOffline), findsOneWidget);
+    expect(find.text(vi.caroSendError), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    caro.dispose();
+  });
+
+  testWidgets('#5 an invite 3 days old says its date, not "hôm qua"', (
+    tester,
+  ) async {
+    final created = DateTime.now().subtract(const Duration(days: 3));
+    final (caro, _) = await openGame(
+      tester,
+      g(
+        createdBy: 'me',
+        x: 'me',
+        o: 'bob',
+        turn: 'bob',
+        createdAt: created,
+        lastMoveAt: created,
+      ),
+    );
+    final day =
+        '${created.day.toString().padLeft(2, '0')}/${created.month.toString().padLeft(2, '0')}';
+    expect(find.textContaining('ngày $day'), findsOneWidget);
+    expect(find.textContaining('hôm qua'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    caro.dispose();
+  });
+
+  test('#8 semantics rebuild only when tappability changes', () {
+    CaroBoardPainter p(bool canPlace) => CaroBoardPainter(
+      board: CaroBoard(const [112]),
+      colorX: Colors.pink,
+      colorO: Colors.teal,
+      semanticsLabelOf: (i) => '$i',
+      semanticsTapOf: (i) => canPlace ? () {} : null,
+      semanticsCanPlace: canPlace,
+    );
+    expect(p(true).shouldRebuildSemantics(p(true)), false);
+    expect(p(true).shouldRebuildSemantics(p(false)), true);
+  });
+
+  test('#9 English plurals for hours / minutes', () {
+    final en = lookupAppLocalizations(const Locale('en'));
+    expect(en.caroSpanHours(1), '1 hour');
+    expect(en.caroSpanHours(3), '3 hours');
+    expect(en.caroSpanMinutes(1), '1 minute');
+    expect(en.caroNudgeIn(1), 'You can nudge in 1 minute');
+    expect(en.caroWaitedMin('4', '10:00', 2), contains('2 minutes ago'));
+    expect(vi.caroSpanHours(1), '1 giờ');
+  });
+
+  testWidgets('#11 first page fails → only the error card', (tester) async {
+    mockNet(tester);
+    final service = _FakeService()
+      ..page = const CaroHistoryPage.empty(failed: true);
+    final caro = CaroGameProvider(service: service)
+      ..watchForCouple('c', 'me', 'bob');
+    await tester.pumpWidget(app(caro, const CaroHistoryScreen()));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(vi.caroHistoryPageError), findsOneWidget);
+    expect(find.text(vi.caroHistoryEmpty), findsNothing);
+    expect(find.byType(ShimmerSkeleton), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    caro.dispose();
+  });
+
+  test('#6 state stream error → Home "Thử lại", retry re-subscribes', () async {
+    final service = _FakeService();
+    final p = CaroGameProvider(service: service)
+      ..watchForCouple('c', 'me', 'bob');
+    service.state.addError(Exception('permission-denied'));
+    await tick();
+    expect(p.stateFailed, true);
+    expect(
+      caroEntryKindFor(
+        loaded: p.isStateLoaded,
+        failed: p.stateFailed,
+        open: null,
+        last: null,
+        myUid: 'me',
+        partnerUid: 'bob',
+        total: 0,
+        now: now,
+      ),
+      CaroEntryKind.error,
+    );
+    p.retryState();
+    expect(p.stateFailed, false);
+    service.state.add(CaroState.empty);
+    await tick();
+    expect(p.isStateLoaded, true);
+    p.dispose();
+  });
+
+  test('#7 enter() before the couple is wired waits, then enters', () async {
+    final p = CaroGameProvider(service: _FakeService());
+    p.enter('g9');
+    expect(p.currentGameId, isNull);
+    p.watchForCouple('c', 'me', 'bob');
+    expect(p.currentGameId, 'g9');
+    p.dispose();
   });
 
   group('provider follow-ups (review 2026-10-20)', () {

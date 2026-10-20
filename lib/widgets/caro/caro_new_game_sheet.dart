@@ -121,8 +121,10 @@ class _CaroNewGameSheetState extends State<CaroNewGameSheet> {
       colorO: people.partnerColor,
       onTap: _busy ? null : () => setState(() => _rule = rule),
     );
+    // Scrolls when taller than the screen (360×640, large text — review
+    // UI #2).
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -4490,6 +4490,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get caroCtaRetry => 'Thử lại';
 
   @override
+  String get caroActionError => 'Chưa làm được, thử lại nhé.';
+
+  @override
+  String get caroEntryError => 'Chưa tải được ván. Chạm để thử lại.';
+
+  @override
   String caroNewTitle(String name) {
     return 'Rủ $name chơi caro';
   }
@@ -4560,7 +4566,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String caroWaitedMin(String n, String time, String m) {
+  String caroWaitedMin(String n, String time, int m) {
     return 'Bạn đi nước $n lúc $time. Đã $m phút rồi.';
   }
 
@@ -4623,7 +4629,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String caroNudgeIn(String m) {
+  String caroNudgeIn(int m) {
     return 'Nhắc được sau $m phút';
   }
 
@@ -4677,8 +4683,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get caroEndGame => 'Kết thúc ván';
 
   @override
-  String caroInvitedYesterday(String name, String time) {
-    return 'Bạn rủ $name lúc $time hôm qua.';
+  String caroInvitedYesterday(String name, String when, String time) {
+    return 'Bạn rủ $name $when, lúc $time.';
   }
 
   @override
@@ -4777,12 +4783,12 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String caroSpanHours(String h) {
+  String caroSpanHours(int h) {
     return '$h giờ';
   }
 
   @override
-  String caroSpanMinutes(String m) {
+  String caroSpanMinutes(int m) {
     return '$m phút';
   }
 
@@ -4829,6 +4835,16 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String caroHistorySub(String n, String date, String name, String when) {
     return '$n ván từ $date. Ván gần nhất $name thắng $when.';
+  }
+
+  @override
+  String caroHistorySubNoSince(String n, String name, String when) {
+    return '$n ván. Ván gần nhất $name thắng $when.';
+  }
+
+  @override
+  String caroHistorySubDrawNoSince(String n, String when) {
+    return '$n ván. Ván gần nhất hoà $when.';
   }
 
   @override

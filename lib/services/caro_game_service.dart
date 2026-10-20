@@ -186,9 +186,15 @@ class CaroGameService {
               ? CaroState.fromFirestore(data)
               : CaroState.empty;
         })
-        .handleError((Object e) {
-          debugPrint('CaroGameService.watchState error: $e');
-        });
+        // Logged AND passed on: Home shows "Thử lại" when nothing loaded.
+        .transform(
+          StreamTransformer<CaroState, CaroState>.fromHandlers(
+            handleError: (e, st, sink) {
+              debugPrint('CaroGameService.watchState error: $e');
+              sink.addError(e, st);
+            },
+          ),
+        );
   }
 
   /// Streams one caro game (null when missing / not caro / unreadable).

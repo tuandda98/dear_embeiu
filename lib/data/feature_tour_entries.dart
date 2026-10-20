@@ -127,6 +127,6 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
     icon: IconsaxPlusLinear.grid_5,
     title: (l10n) => l10n.caroTourTitle,
     body: (l10n) => l10n.caroTourBody,
-    onOpen: (context) => openCaroGame(context, source: 'home'),
+    onOpen: (context) => openCaroGame(context, source: 'tour'),
   ),
 ];
