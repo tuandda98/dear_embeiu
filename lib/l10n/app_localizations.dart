@@ -8580,6 +8580,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got home? Tap “I\'m home” on the Home tab and your partner knows, no texting. You can also let your phone send it when you reach a saved place.'**
   String get arrivalTourBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save {place}. Please try again.'**
+  String arrivalSaveFailed(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You already have 4 places. Delete one, then add this again.'**
+  String get arrivalPlacesFull;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo: that spot was just used for another place.'**
+  String get arrivalUndoFailed;
 }
 
 class _AppLocalizationsDelegate

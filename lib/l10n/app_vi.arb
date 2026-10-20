@@ -4102,5 +4102,11 @@
   "arrivalTourTitle": "Về đến nhà chưa?",
   "@arrivalTourTitle": {"description": "Feature arrival (đợt 2)"},
   "arrivalTourBody": "Về tới nhà, bấm “Về nhà rồi” trên trang chủ là người ấy biết, khỏi phải nhắn. Muốn thì cho máy tự báo khi bạn đến những nơi đã lưu.",
-  "@arrivalTourBody": {"description": "Feature arrival (đợt 2)"}
+  "@arrivalTourBody": {"description": "Feature arrival (đợt 2)"},
+  "arrivalSaveFailed": "Chưa lưu được {place}. Thử lại sau nhé.",
+  "@arrivalSaveFailed": {"description": "Feature arrival (đợt 2)", "placeholders": {"place": {"type": "String"}}},
+  "arrivalPlacesFull": "Đã đủ 4 nơi. Xoá bớt một nơi rồi thêm lại.",
+  "@arrivalPlacesFull": {"description": "Feature arrival (đợt 2)"},
+  "arrivalUndoFailed": "Chưa hoàn tác được: chỗ này vừa được dùng cho nơi khác.",
+  "@arrivalUndoFailed": {"description": "Feature arrival (đợt 2)"}
 }

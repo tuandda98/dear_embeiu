@@ -13,6 +13,7 @@ import '../providers/couple_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/arrival_platform.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 import '../widgets/arrival/arrival_format.dart';
 import '../widgets/arrival/arrival_scaffold.dart';
 import '../widgets/content_card.dart';
@@ -271,7 +272,7 @@ class _Chip extends StatelessWidget {
           customBorder: const StadiumBorder(),
           onTap: onTap,
           child: Container(
-            constraints: const BoxConstraints(minHeight: 36),
+            constraints: const BoxConstraints(minHeight: 44),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             child: Text(
               label,
@@ -611,7 +612,9 @@ class _ArrivalSearchScreenState extends State<ArrivalSearchScreen> {
           )
         else
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
+            duration: AppMotion.reduceMotion(context)
+                ? Duration.zero
+                : const Duration(milliseconds: 200),
             child: ContentCard(
               key: ValueKey(_state),
               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -639,6 +642,7 @@ class _ArrivalSearchScreenState extends State<ArrivalSearchScreen> {
                         ),
                         title: r.title,
                         subtitle: r.subtitle,
+                        match: _search.suggestsWhileTyping ? _query.text : '',
                         onTap: () => _pick(r),
                       ),
                   _ResultRow(
@@ -673,6 +677,15 @@ class _ArrivalSearchScreenState extends State<ArrivalSearchScreen> {
   }
 }
 
+/// Where [match] sits in [title], case-insensitive; null when absent.
+@visibleForTesting
+(int, int)? arrivalMatchRange(String title, String match) {
+  final m = match.trim().toLowerCase();
+  if (m.isEmpty) return null;
+  final i = title.toLowerCase().indexOf(m);
+  return i < 0 ? null : (i, i + m.length);
+}
+
 class _ResultRow extends StatelessWidget {
   const _ResultRow({
     super.key,
@@ -681,13 +694,35 @@ class _ResultRow extends StatelessWidget {
     this.subtitle,
     this.onTap,
     this.underline = false,
+    this.match = '',
   });
+
+  /// iOS (suggestions while typing, §4.3): this part of [title] is underlined.
+  final String match;
 
   final Widget leading;
   final String title;
   final String? subtitle;
   final VoidCallback? onTap;
   final bool underline;
+
+  TextSpan _titleSpans() {
+    final r = arrivalMatchRange(title, match);
+    if (r == null) return TextSpan(text: title);
+    return TextSpan(
+      children: [
+        TextSpan(text: title.substring(0, r.$1)),
+        TextSpan(
+          text: title.substring(r.$1, r.$2),
+          style: const TextStyle(
+            decoration: TextDecoration.underline,
+            decorationThickness: 2,
+          ),
+        ),
+        TextSpan(text: title.substring(r.$2)),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -706,8 +741,8 @@ class _ResultRow extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
+                      Text.rich(
+                        _titleSpans(),
                         style: TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 15,
@@ -860,7 +895,7 @@ class _ArrivalCurrentScreenState extends State<ArrivalCurrentScreen> {
 
 // ── Confirm (D21) ───────────────────────────────────────────────────────────
 
-class ArrivalConfirmScreen extends StatelessWidget {
+class ArrivalConfirmScreen extends StatefulWidget {
   const ArrivalConfirmScreen({
     super.key,
     required this.draft,
@@ -878,20 +913,56 @@ class ArrivalConfirmScreen extends StatelessWidget {
   /// Only for "current location": "lệch khoảng 12 m".
   final int? accuracyM;
 
+  @override
+  State<ArrivalConfirmScreen> createState() => _ArrivalConfirmScreenState();
+}
+
+class _ArrivalConfirmScreenState extends State<ArrivalConfirmScreen> {
+  bool _saving = false;
+
+  ArrivalPlace get draft => widget.draft;
+  ArrivalLocation get location => widget.location;
+  bool get hasHouseNumber => widget.hasHouseNumber;
+  bool get approximate => widget.approximate;
+  int? get accuracyM => widget.accuracyM;
+
   Future<void> _save(BuildContext context) async {
+    if (_saving) return; // double tap
+    setState(() => _saving = true);
     final arrival = context.read<ArrivalProvider>();
     final place = draft.withLocation(location);
-    final ok = await arrival.savePlace(place);
+    final full =
+        !place.isHome &&
+        !arrival.places.any((p) => p.slot == place.slot) &&
+        !arrival.canAddPlace;
+    final ok = !full && await arrival.savePlace(place);
     if (!context.mounted) return;
-    if (ok) {
-      AnalyticsService.instance.logArrivalPlaceSaved(
-        slot: place.isHome ? 'home' : 'custom',
-        source: location.source.name,
-        icon: place.isHome ? 'home' : (place.icon ?? ArrivalIcon.pin).name,
-        hasHouseNumber: hasHouseNumber && !approximate,
-      );
-      _savedSnack(context, place);
+    if (!ok) {
+      // Stay here: the place is not saved (4 places already, signed out).
+      final l10n = AppLocalizations.of(context);
+      setState(() => _saving = false);
+      ScaffoldMessenger.maybeOf(context)
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              full
+                  ? l10n.arrivalPlacesFull
+                  : l10n.arrivalSaveFailed(
+                      ArrivalFormat.placeName(l10n, place),
+                    ),
+            ),
+          ),
+        );
+      return;
     }
+    AnalyticsService.instance.logArrivalPlaceSaved(
+      slot: place.isHome ? 'home' : 'custom',
+      source: location.source.name,
+      icon: place.isHome ? 'home' : (place.icon ?? ArrivalIcon.pin).name,
+      hasHouseNumber: hasHouseNumber && !approximate,
+    );
+    _savedSnack(context, place);
     _popFlow(context);
   }
 
@@ -906,6 +977,7 @@ class ArrivalConfirmScreen extends StatelessWidget {
         ArrivalPrimaryButton(
           key: const ValueKey('arrival-save'),
           label: l10n.arrivalSave,
+          busy: _saving,
           onPressed: () => _save(context),
         ),
         ArrivalTextButton(
@@ -1176,8 +1248,12 @@ class _LocationRow extends StatelessWidget {
     final sub = loc == null
         ? l10n.arrivalNoAddressManual
         : loc.source == ArrivalLocationSource.current
-        ? l10n.arrivalSavedFromCurrent(ArrivalFormat.shortDate(loc.savedAt))
-        : l10n.arrivalSavedFromAddress(ArrivalFormat.shortDate(loc.savedAt));
+        ? l10n.arrivalSavedFromCurrent(
+            ArrivalFormat.shortDate(context, loc.savedAt),
+          )
+        : l10n.arrivalSavedFromAddress(
+            ArrivalFormat.shortDate(context, loc.savedAt),
+          );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1348,6 +1424,8 @@ Future<void> deleteArrivalPlaceWithUndo(
   );
   final autoDropped = hadAuto && arrival.placesWithLocation.isEmpty;
   if (autoDropped) await arrival.setWantsAuto(false);
+  // Nobody else may take this slot while "Hoàn tác" is on screen.
+  arrival.holdSlot(slot, const Duration(seconds: 6));
   messenger
     ?..hideCurrentSnackBar()
     ..showSnackBar(
@@ -1361,7 +1439,18 @@ Future<void> deleteArrivalPlaceWithUndo(
         action: SnackBarAction(
           label: l10n.arrivalUndo,
           onPressed: () async {
-            await arrival.savePlace(removed);
+            arrival.releaseSlot(slot);
+            // Never overwrite what took the slot meanwhile (a new place, a
+            // new Home address set within the window).
+            final now = arrival.places.where((p) => p.slot == slot).firstOrNull;
+            final taken = removed.isHome ? now?.location != null : now != null;
+            final ok = !taken && await arrival.savePlace(removed);
+            if (!ok) {
+              messenger
+                ..hideCurrentSnackBar()
+                ..showSnackBar(SnackBar(content: Text(l10n.arrivalUndoFailed)));
+              return;
+            }
             if (autoDropped) await arrival.setWantsAuto(true);
           },
         ),

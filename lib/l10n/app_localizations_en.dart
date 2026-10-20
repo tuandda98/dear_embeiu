@@ -5297,4 +5297,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get arrivalTourBody =>
       'Got home? Tap “I\'m home” on the Home tab and your partner knows, no texting. You can also let your phone send it when you reach a saved place.';
+
+  @override
+  String arrivalSaveFailed(String place) {
+    return 'Couldn\'t save $place. Please try again.';
+  }
+
+  @override
+  String get arrivalPlacesFull =>
+      'You already have 4 places. Delete one, then add this again.';
+
+  @override
+  String get arrivalUndoFailed =>
+      'Couldn\'t undo: that spot was just used for another place.';
 }

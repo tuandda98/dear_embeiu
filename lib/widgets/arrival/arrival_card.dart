@@ -18,6 +18,7 @@ import '../../screens/care_message_screen.dart';
 import '../../services/analytics_service.dart';
 import '../../services/arrival_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_motion.dart';
 import '../../theme/person_palette.dart';
 import '../content_card.dart';
 import '../icon_badge.dart';
@@ -71,12 +72,34 @@ class _ArrivalCardState extends State<ArrivalCard> {
   }
 
   void _flash(ArrivalSendResult result) {
-    if (!mounted || result != ArrivalSendResult.sent) return;
+    if (!mounted) return;
+    if (result == ArrivalSendResult.dropped) {
+      // Nothing was written (place gone, send already running, couple not
+      // active any more): say so instead of a silent button.
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.maybeOf(context)
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(l10n.arrivalSendFailed(_what(l10n)))),
+        );
+      return;
+    }
+    if (result != ArrivalSendResult.sent) return;
     _sentTimer?.cancel();
     setState(() => _justSent = true);
     _sentTimer = Timer(const Duration(seconds: 4), () {
       if (mounted) setState(() => _justSent = false);
     });
+  }
+
+  /// "Về nhà rồi" / "Đã đến Phòng gym" — what the last send was.
+  String _what(AppLocalizations l10n) {
+    if (_lastSlot == kArrivalHome) return l10n.arrivalManualHome;
+    final arrival = context.read<ArrivalProvider>();
+    final place = arrival.places.where((p) => p.slot == _lastSlot).firstOrNull;
+    return place == null
+        ? l10n.arrivalManualOther
+        : l10n.arrivalEnterPlace(ArrivalFormat.placeName(l10n, place));
   }
 
   Future<void> _pickPlace() async {
@@ -377,7 +400,10 @@ class _ArrivalCardState extends State<ArrivalCard> {
       label: label,
       body: [
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 280),
+          // Reduce Motion: fade 200 ms (§13).
+          duration: AppMotion.reduceMotion(context)
+              ? const Duration(milliseconds: 200)
+              : const Duration(milliseconds: 280),
           child: _EventBlock(
             key: ValueKey(last.at.millisecondsSinceEpoch),
             event: last,
@@ -513,18 +539,11 @@ class _ArrivalCardState extends State<ArrivalCard> {
           ),
           text: l10n.arrivalQueued(partnerName),
         );
+      // `denied` = no longer allowed to write (left the couple): same strip,
+      // "Thử lại" re-checks.
       case ArrivalSendResult.failed:
-        final what = _lastSlot == kArrivalHome
-            ? l10n.arrivalManualHome
-            : l10n.arrivalEnterPlace(
-                ArrivalFormat.placeName(
-                  l10n,
-                  arrival.places
-                          .where((p) => p.slot == _lastSlot)
-                          .firstOrNull ??
-                      arrival.home,
-                ),
-              );
+      case ArrivalSendResult.denied:
+        final what = _what(l10n);
         child = _InlineStrip(
           key: const ValueKey('arrival-failed'),
           alert: true,
@@ -550,7 +569,9 @@ class _ArrivalCardState extends State<ArrivalCard> {
         child = const SizedBox.shrink();
     }
     return AnimatedSize(
-      duration: const Duration(milliseconds: 240),
+      duration: AppMotion.reduceMotion(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 240),
       curve: Curves.easeOutCubic,
       alignment: Alignment.topCenter,
       child: child,
@@ -897,7 +918,9 @@ class _OutlineAction extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
+            duration: AppMotion.reduceMotion(context)
+                ? Duration.zero
+                : const Duration(milliseconds: 200),
             child: Icon(icon, key: ValueKey(icon), size: 16),
           ),
           const SizedBox(width: 6),

@@ -404,12 +404,15 @@ class _SwitchRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final change = onChanged;
+    // The whole row toggles (touch target), read as one control (§12).
+    final row = MergeSemantics(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: change == null ? null : () => change(!value),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               IconBadge(icon),
@@ -438,23 +441,26 @@ class _SwitchRow extends StatelessWidget {
                   ],
                 ),
               ),
-              Semantics(
-                label: title,
-                child: Switch.adaptive(
-                  value: value,
-                  onChanged: onChanged,
-                  activeThumbColor: AppColors.accentRose,
-                ),
+              Switch.adaptive(
+                value: value,
+                onChanged: onChanged,
+                activeThumbColor: AppColors.accentRose,
               ),
             ],
           ),
-          if (cta != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 58, top: 8),
-              child: cta,
-            ),
-        ],
+        ),
       ),
+    );
+    if (cta == null) return row;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        row,
+        Padding(
+          padding: const EdgeInsets.only(left: 58, bottom: 10),
+          child: cta,
+        ),
+      ],
     );
   }
 }
@@ -526,7 +532,9 @@ class _PlaceRow extends StatelessWidget {
           : paused
           ? l10n.arrivalPaused
           : loc.source == ArrivalLocationSource.current
-          ? l10n.arrivalSavedFromCurrent(ArrivalFormat.shortDate(loc.savedAt))
+          ? l10n.arrivalSavedFromCurrent(
+              ArrivalFormat.shortDate(context, loc.savedAt),
+            )
           : ArrivalFormat.shortAddress(loc.address ?? '');
       badge = IconBadge(
         ArrivalFormat.placeIcon(p),

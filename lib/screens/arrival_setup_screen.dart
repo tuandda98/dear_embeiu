@@ -12,7 +12,10 @@ import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/arrival_platform.dart';
+import '../services/arrival_platform_native.dart'
+    show arrivalBackgroundOptionLabel;
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 import '../widgets/arrival/arrival_format.dart';
 import '../widgets/arrival/arrival_scaffold.dart';
 import '../widgets/content_card.dart';
@@ -50,6 +53,12 @@ enum _Step { needPlace, disclosure, always, done, partial }
 class ArrivalSetupScreen extends StatefulWidget {
   const ArrivalSetupScreen({super.key});
 
+  /// Android's own words for "Cho phép mọi lúc" (D12), null elsewhere / on
+  /// error → l10n fallback. Swappable in tests.
+  @visibleForTesting
+  static Future<String?> Function() backgroundLabel =
+      arrivalBackgroundOptionLabel;
+
   @override
   State<ArrivalSetupScreen> createState() => _ArrivalSetupScreenState();
 }
@@ -60,11 +69,15 @@ class _ArrivalSetupScreenState extends State<ArrivalSetupScreen>
       ? _Step.needPlace
       : _Step.disclosure;
   bool _busy = false;
+  String? _osLabel;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ArrivalSetupScreen.backgroundLabel().then((label) {
+      if (mounted && label != null) setState(() => _osLabel = label);
+    }, onError: (_) {});
   }
 
   @override
@@ -109,52 +122,68 @@ class _ArrivalSetupScreenState extends State<ArrivalSetupScreen>
 
   Future<void> _agree() async {
     setState(() => _busy = true);
-    final arrival = context.read<ArrivalProvider>();
-    if (!arrival.myShare) {
-      AnalyticsService.instance.logArrivalShareToggled(on: true, auto: true);
-      await arrival.setShare(true);
+    try {
+      final arrival = context.read<ArrivalProvider>();
+      if (!arrival.myShare) {
+        AnalyticsService.instance.logArrivalShareToggled(on: true, auto: true);
+        await arrival.setShare(true);
+      }
+      await arrival.setWantsAuto(true);
+      var s = await _perms.status();
+      if (!s.canReadOnce || !s.precise) {
+        s = await _perms.requestWhenInUse();
+        AnalyticsService.instance.logArrivalPermission(
+          step: 'when_in_use',
+          result: _result(s, always: false),
+        );
+      }
+      if (!mounted) return;
+      setState(() {
+        _step = s.canAuto
+            ? _Step.done
+            : s.canReadOnce
+            ? _Step.always
+            : _Step.partial;
+      });
+      if (s.canAuto) await arrival.onResume();
+    } catch (e) {
+      // Permission plugin failed: manual still works (D7).
+      debugPrint('arrival setup: $e');
+      if (mounted) setState(() => _step = _Step.partial);
+    } finally {
+      // A plugin error must not leave the button spinning.
+      if (mounted) setState(() => _busy = false);
     }
-    await arrival.setWantsAuto(true);
-    var s = await _perms.status();
-    if (!s.canReadOnce || !s.precise) {
-      s = await _perms.requestWhenInUse();
-      AnalyticsService.instance.logArrivalPermission(
-        step: 'when_in_use',
-        result: _result(s, always: false),
-      );
-    }
-    if (!mounted) return;
-    setState(() {
-      _busy = false;
-      _step = s.canAuto
-          ? _Step.done
-          : s.canReadOnce
-          ? _Step.always
-          : _Step.partial;
-    });
-    if (s.canAuto) await arrival.onResume();
   }
 
+  /// iOS answers in the sheet (or after 1 s when it shows nothing). Android
+  /// answers when the user comes back from the "Cho phép mọi lúc" page
+  /// (`onRequestPermissionsResult`); not granted → stay on step 2 (retry or
+  /// "Để sau"), and a later resume re-reads [ArrivalPermissions.status].
   Future<void> _askAlways() async {
     setState(() => _busy = true);
-    final arrival = context.read<ArrivalProvider>();
-    var s = await _perms.requestAlways();
-    if (!s.canAuto) s = await _perms.status();
-    AnalyticsService.instance.logArrivalPermission(
-      step: 'always',
-      result: _result(s, always: true),
-    );
-    await arrival.onResume();
-    if (!mounted) return;
-    setState(() {
-      _busy = false;
-      // Android: the page is still open in front of us; resume decides.
-      if (s.canAuto) {
-        _step = _Step.done;
-      } else if (Platform.isIOS) {
-        _step = _Step.partial;
-      }
-    });
+    try {
+      final arrival = context.read<ArrivalProvider>();
+      var s = await _perms.requestAlways();
+      if (!s.canAuto) s = await _perms.status();
+      AnalyticsService.instance.logArrivalPermission(
+        step: 'always',
+        result: _result(s, always: true),
+      );
+      await arrival.onResume();
+      if (!mounted) return;
+      setState(() {
+        if (s.canAuto) {
+          _step = _Step.done;
+        } else if (Platform.isIOS) {
+          _step = _Step.partial;
+        }
+      });
+    } catch (e) {
+      debugPrint('arrival setup: $e'); // stay on step 2, buttons usable
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _manual() async {
@@ -252,7 +281,7 @@ class _ArrivalSetupScreenState extends State<ArrivalSetupScreen>
         final ios = Platform.isIOS;
         final label = ios
             ? l10n.arrivalAlwaysLabelIos
-            : l10n.arrivalAlwaysLabelAndroid;
+            : (_osLabel ?? l10n.arrivalAlwaysLabelAndroid);
         final rows = ios
             ? [
                 (l10n.arrivalOsNever, false),
@@ -402,7 +431,9 @@ class _Dots extends StatelessWidget {
         for (var i = 1; i <= 2; i++) ...[
           if (i > 1) const SizedBox(width: 6),
           AnimatedContainer(
-            duration: const Duration(milliseconds: 240),
+            duration: AppMotion.reduceMotion(context)
+                ? Duration.zero
+                : const Duration(milliseconds: 240),
             width: i == step ? 20 : 8,
             height: 8,
             decoration: BoxDecoration(

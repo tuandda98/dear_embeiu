@@ -5074,4 +5074,16 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get arrivalTourBody =>
       'Về tới nhà, bấm “Về nhà rồi” trên trang chủ là người ấy biết, khỏi phải nhắn. Muốn thì cho máy tự báo khi bạn đến những nơi đã lưu.';
+
+  @override
+  String arrivalSaveFailed(String place) {
+    return 'Chưa lưu được $place. Thử lại sau nhé.';
+  }
+
+  @override
+  String get arrivalPlacesFull => 'Đã đủ 4 nơi. Xoá bớt một nơi rồi thêm lại.';
+
+  @override
+  String get arrivalUndoFailed =>
+      'Chưa hoàn tác được: chỗ này vừa được dùng cho nơi khác.';
 }

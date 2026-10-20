@@ -56,6 +56,14 @@ class ArrivalProvider extends ChangeNotifier {
   ArrivalSendResult? _lastResult;
   String? _lastSlot;
 
+  /// When the last manual send started — a server-acked `last` at or after
+  /// it ends the "queued" state.
+  DateTime? _sentAt;
+
+  /// Custom slots kept free while their delete can still be undone (5 s),
+  /// so a new place can't take the slot (or the last free one) meanwhile.
+  final Map<String, Timer> _heldSlots = {};
+
   StreamSubscription<ArrivalShare?>? _mineSub;
   StreamSubscription<ArrivalShare?>? _partnerSub;
 
@@ -72,13 +80,14 @@ class ArrivalProvider extends ChangeNotifier {
   List<ArrivalPlace> get placesWithLocation =>
       _places.where((p) => p.location != null).toList();
 
-  bool get canAddPlace => customPlaces.length < kArrivalMaxCustom;
+  bool get canAddPlace =>
+      customPlaces.length + _heldSlots.length < kArrivalMaxCustom;
 
   /// Free slot for a new custom place; null when all 4 are taken.
   String? get nextFreeSlot {
     final used = {for (final p in _places) p.slot};
     for (final slot in kArrivalSlots.skip(1)) {
-      if (!used.contains(slot)) return slot;
+      if (!used.contains(slot) && !_heldSlots.containsKey(slot)) return slot;
     }
     return null;
   }
@@ -169,6 +178,7 @@ class ArrivalProvider extends ChangeNotifier {
       s,
     ) {
       _mine = s;
+      _clearQueuedIfAcked(s);
       notifyListeners();
       unawaited(_syncAuto());
     });
@@ -198,6 +208,8 @@ class ArrivalProvider extends ChangeNotifier {
     _sending = false;
     _lastResult = null;
     _lastSlot = null;
+    _sentAt = null;
+    _releaseAllSlots();
     if (hadSession) {
       unawaited(_geofence.stopAll());
       unawaited(_service.clearSession().catchError((_) {}));
@@ -328,6 +340,7 @@ class ArrivalProvider extends ChangeNotifier {
     }
     _sending = true;
     _lastSlot = slot;
+    _sentAt = DateTime.now();
     notifyListeners();
     final battery = await _readBattery();
     final result = await _service.reportEvent(
@@ -342,11 +355,51 @@ class ArrivalProvider extends ChangeNotifier {
     if (_uid != uid) return result; // signed out meanwhile
     _sending = false;
     _lastResult = result;
+    // The ack may have landed while we waited for the timeout.
+    if (result == ArrivalSendResult.queued) _clearQueuedIfAcked(_mine);
     if (result == ArrivalSendResult.denied) {
       await _geofence.stopAll();
     }
     notifyListeners();
     return result;
+  }
+
+  /// Keeps [slot] free for [duration] (undo window of a deleted place).
+  void holdSlot(String slot, Duration duration) {
+    if (slot == kArrivalHome) return;
+    _heldSlots.remove(slot)?.cancel();
+    _heldSlots[slot] = Timer(duration, () => releaseSlot(slot));
+    notifyListeners();
+  }
+
+  void releaseSlot(String slot) {
+    final timer = _heldSlots.remove(slot);
+    if (timer == null) return;
+    timer.cancel();
+    notifyListeners();
+  }
+
+  void _releaseAllSlots() {
+    for (final t in _heldSlots.values) {
+      t.cancel();
+    }
+    _heldSlots.clear();
+  }
+
+  void _clearQueuedIfAcked(ArrivalShare? s) {
+    final sentAt = _sentAt;
+    final last = s?.last;
+    if (_lastResult != ArrivalSendResult.queued ||
+        s == null ||
+        s.pending ||
+        last == null ||
+        sentAt == null) {
+      return;
+    }
+    // 1 s slack: `at` is taken a moment after [_sentAt] on this clock.
+    if (!last.at.isBefore(sentAt.subtract(const Duration(seconds: 1)))) {
+      _lastResult = null;
+    }
   }
 
   /// "Thử lại" after a failed send.
@@ -402,6 +455,7 @@ class ArrivalProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _releaseAllSlots();
     _cancelSubs();
     super.dispose();
   }

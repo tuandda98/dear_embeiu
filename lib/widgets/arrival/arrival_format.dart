@@ -53,7 +53,8 @@ abstract final class ArrivalFormat {
   static bool isStale(ArrivalEvent e, DateTime now) =>
       _days(e.at.toLocal(), now) > 3;
 
-  /// Today `HH:mm` · yesterday `hôm qua HH:mm` · 2–3 days `d/M HH:mm`.
+  /// Today `HH:mm` · yesterday `hôm qua HH:mm` · 2–3 days day+month `HH:mm`
+  /// (day/month order from the locale).
   static String when(BuildContext context, DateTime at, DateTime now) {
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toString();
@@ -62,11 +63,12 @@ abstract final class ArrivalFormat {
     final days = _days(local, now);
     if (days <= 0) return time;
     if (days == 1) return l10n.arrivalYesterdayAt(time);
-    return '${local.day}/${local.month} $time';
+    return '${DateFormat.Md(locale).format(local)} $time';
   }
 
-  /// `d/M` for "Lưu từ địa chỉ · 13/10".
-  static String shortDate(DateTime d) => '${d.day}/${d.month}';
+  /// Day + month in the app's locale ("13/10" vi, "10/13" en — D3 i18n).
+  static String shortDate(BuildContext context, DateTime d) =>
+      DateFormat.Md(Localizations.localeOf(context).toString()).format(d);
 
   /// 1–2 names joined by " · ", 3+ → "Nhà và N nơi khác" (Lead Q1).
   static String places(AppLocalizations l10n, List<ArrivalPlace> list) {

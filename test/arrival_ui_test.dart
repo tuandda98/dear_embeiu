@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart' show FirebaseException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
@@ -12,7 +13,12 @@ import 'package:dear_embeiu/providers/arrival_provider.dart';
 import 'package:dear_embeiu/providers/auth_provider.dart';
 import 'package:dear_embeiu/providers/couple_provider.dart';
 import 'package:dear_embeiu/providers/sleep_provider.dart';
+import 'package:dear_embeiu/screens/arrival_manage_screen.dart';
 import 'package:dear_embeiu/screens/arrival_place_screen.dart';
+import 'package:dear_embeiu/screens/arrival_setup_screen.dart';
+import 'package:dear_embeiu/services/arrival_service.dart';
+import 'package:dear_embeiu/widgets/arrival/arrival_format.dart';
+import 'package:dear_embeiu/widgets/arrival/arrival_settings_tiles.dart';
 import 'package:dear_embeiu/services/arrival_platform.dart';
 import 'package:dear_embeiu/services/auth_service.dart';
 import 'package:dear_embeiu/services/home_widget_bridge.dart';
@@ -72,18 +78,22 @@ class _Service extends FakeArrivalService {
 
 class _Search implements PlaceSearch {
   _Search(this.results);
-  final List<PlaceSearchResult> results;
+  List<PlaceSearchResult> results;
   final queries = <String>[];
+  bool typing = true;
+  bool available = true;
+  Object? error;
 
   @override
-  bool get suggestsWhileTyping => true;
+  bool get suggestsWhileTyping => typing;
 
   @override
-  Future<bool> isAvailable() async => true;
+  Future<bool> isAvailable() async => available;
 
   @override
   Future<List<PlaceSearchResult>> search(String query) async {
     queries.add(query);
+    if (error != null) throw error!;
     return results;
   }
 }
@@ -92,6 +102,7 @@ class _Perms implements ArrivalPermissions {
   _Perms(this.state);
   ArrivalPermissionState state;
   int asked = 0;
+  bool throwOnRequest = false;
 
   @override
   Future<ArrivalPermissionState> status() async => state;
@@ -99,6 +110,7 @@ class _Perms implements ArrivalPermissions {
   @override
   Future<ArrivalPermissionState> requestWhenInUse() async {
     asked++;
+    if (throwOnRequest) throw StateError('plugin');
     return state;
   }
 
@@ -197,6 +209,9 @@ class _Rig {
   final _Location location;
   late final ArrivalProvider provider;
 
+  double textScale = 1;
+  bool reduceMotion = false;
+
   Widget app(Widget home) => MultiProvider(
     providers: [
       ChangeNotifierProvider<AuthProvider>(create: (_) => _Auth()),
@@ -211,6 +226,13 @@ class _Rig {
       locale: const Locale('vi'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: TextScaler.linear(textScale),
+          disableAnimations: reduceMotion,
+        ),
+        child: child!,
+      ),
       home: home,
     ),
   );
@@ -589,6 +611,7 @@ void main() {
     final back = rig.provider.customPlaces.single;
     expect(back.name, 'Phòng gym');
     expect(back.location, isNotNull);
+    await tester.pump(const Duration(seconds: 7)); // hold timer ends
   });
 
   group('push + widget', () {
@@ -671,5 +694,485 @@ void main() {
       expect(launch.focus, 'arrival');
       expect(launch.kind, 'arrival_place');
     });
+  });
+
+  // ── Review round (Lead 2026-10-20) ────────────────────────────────────────
+
+  group('card feedback', () {
+    testWidgets('queued strip goes once the server acks the event', (
+      tester,
+    ) async {
+      final rig = _Rig();
+      await rig.start(tester, _card());
+      rig.share('me', const ArrivalShare(share: true));
+      await tester.pump();
+      await tester.pump();
+      rig.service.holdWrite = Completer<void>();
+      await tester.tap(find.text('Về nhà rồi'));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump();
+      expect(find.textContaining('Sẽ báo khi có mạng'), findsOneWidget);
+
+      final mine = _event(
+        at: DateTime.now(),
+        source: ArrivalEventSource.manual,
+      );
+      // Local echo, not acked yet → still queued.
+      rig.share('me', ArrivalShare(share: true, last: mine, pending: true));
+      await tester.pump();
+      await tester.pump();
+      expect(find.textContaining('Sẽ báo khi có mạng'), findsOneWidget);
+      rig.share('me', ArrivalShare(share: true, last: mine));
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Sẽ báo khi có mạng'), findsNothing);
+      expect(rig.provider.lastResult, isNull);
+      rig.service.holdWrite!.complete();
+    });
+
+    testWidgets('permission-denied → error strip + "Thử lại"', (tester) async {
+      final rig = _Rig();
+      await rig.start(tester, _card());
+      rig.share('me', const ArrivalShare(share: true));
+      await tester.pump();
+      await tester.pump();
+      rig.service.writeError = FirebaseException(
+        plugin: 'cloud_firestore',
+        code: 'permission-denied',
+      );
+      await tester.tap(find.text('Về nhà rồi'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(rig.provider.lastResult, ArrivalSendResult.denied);
+      expect(find.text('Chưa gửi được tin “Về nhà rồi”.'), findsOneWidget);
+      expect(find.text('Thử lại'), findsOneWidget);
+    });
+
+    testWidgets('dropped (place gone) → SnackBar, never silent', (
+      tester,
+    ) async {
+      final rig = _Rig(places: [const ArrivalPlace.home(), _gym]);
+      await rig.start(tester, _card());
+      rig.share('me', const ArrivalShare(share: true));
+      await tester.pump();
+      await tester.pump();
+      rig.service.places['me'] = const [ArrivalPlace.home()];
+      await tester.tap(find.text('Đến nơi rồi'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Phòng gym'));
+      await tester.pumpAndSettle();
+      expect(rig.service.events, isEmpty);
+      expect(
+        find.text('Chưa gửi được tin “Đã đến Phòng gym”.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Reduce Motion: no size animation on the strip', (
+      tester,
+    ) async {
+      final rig = _Rig()..reduceMotion = true;
+      await rig.start(tester, _card());
+      rig.share('me', const ArrivalShare(share: true));
+      await tester.pump();
+      await tester.pump();
+      final size = tester.widget<AnimatedSize>(find.byType(AnimatedSize));
+      expect(size.duration, Duration.zero);
+    });
+
+    testWidgets('text ×1.3: lanes and buttons stack', (tester) async {
+      final rig = _Rig(places: [const ArrivalPlace.home(), _gym])
+        ..textScale = 1.3;
+      await rig.start(tester, _card());
+      rig.share('me', const ArrivalShare(share: true));
+      rig.share('her', const ArrivalShare(share: true));
+      await tester.pump();
+      await tester.pump();
+      final you = tester.getTopLeft(find.text('BẠN'));
+      final her = tester.getTopLeft(find.text('THẢO'));
+      expect(her.dy, greaterThan(you.dy));
+      expect(her.dx, you.dx);
+      final home = tester.getTopLeft(find.text('Về nhà rồi'));
+      final other = tester.getTopLeft(find.text('Đến nơi rồi'));
+      expect(other.dy, greaterThan(home.dy));
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('setup', () {
+    testWidgets('no place with a location → "Trước hết, nhà bạn ở đâu?"', (
+      tester,
+    ) async {
+      final rig = _Rig();
+      await rig.start(
+        tester,
+        _launcher((c) => openArrivalSetup(c, from: 'home_card')),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      expect(find.text('Trước hết, nhà bạn ở đâu?'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('arrival-set-home')));
+      await tester.pumpAndSettle();
+      expect(find.text('Nhà ở đâu?'), findsOneWidget);
+    });
+
+    testWidgets(
+      'Android: disclosure → OS label step → back from the page → done',
+      (tester) async {
+        ArrivalSetupScreen.backgroundLabel = () async => 'Luôn cho phép';
+        addTearDown(
+          () => ArrivalSetupScreen.backgroundLabel = () async => null,
+        );
+        final rig = _Rig(
+          places: [ArrivalPlace.home(location: _homeAt)],
+          perm: const ArrivalPermissionState(ArrivalPermissionLevel.whenInUse),
+        );
+        await rig.start(
+          tester,
+          _launcher((c) => openArrivalSetup(c, from: 'home_card')),
+        );
+        await tester.tap(find.text('go'));
+        await tester.pumpAndSettle();
+        expect(find.text('Về đến nơi, Thảo biết ngay'), findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey('arrival-agree')));
+        await tester.pumpAndSettle();
+        expect(rig.service.calls, contains('on auto=false'));
+        expect(rig.provider.wantsAuto, isTrue);
+
+        // The machine's own words for "Cho phép mọi lúc" (D12).
+        expect(find.text('Chọn “Luôn cho phép”'), findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey('arrival-ask-always')));
+        await tester.pumpAndSettle();
+        // Not granted yet: stays on step 2 (no spinner left behind).
+        expect(find.text('Chọn “Luôn cho phép”'), findsOneWidget);
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+
+        rig.perms.state = const ArrivalPermissionState(
+          ArrivalPermissionLevel.always,
+        );
+        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Đã bật báo về nhà'), findsOneWidget);
+      },
+    );
+
+    testWidgets('a plugin error never leaves the button spinning', (
+      tester,
+    ) async {
+      final rig = _Rig(places: [ArrivalPlace.home(location: _homeAt)]);
+      rig.perms.throwOnRequest = true;
+      await rig.start(
+        tester,
+        _launcher((c) => openArrivalSetup(c, from: 'home_card')),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      rig.perms.state = const ArrivalPermissionState(
+        ArrivalPermissionLevel.notDetermined,
+      );
+      await tester.tap(find.byKey(const ValueKey('arrival-agree')));
+      await tester.pumpAndSettle();
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('Tạm thời bạn báo bằng tay'), findsOneWidget);
+    });
+  });
+
+  group('manage', () {
+    testWidgets('turn off → dialog with "xoá luôn địa chỉ" → off + wiped', (
+      tester,
+    ) async {
+      final rig = _Rig(places: [ArrivalPlace.home(location: _homeAt)]);
+      await rig.start(tester, const ArrivalManageScreen());
+      rig.share('me', const ArrivalShare(share: true));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Thảo đang thấy'), findsOneWidget);
+      // The whole row toggles, not only the switch.
+      await tester.tap(find.text('Báo cho Thảo'));
+      await tester.pumpAndSettle();
+      expect(find.text('Tắt báo về nhà?'), findsOneWidget);
+      await tester.tap(
+        find.text('Xoá luôn địa chỉ đã lưu của 1 nơi trên máy này'),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('arrival-turnoff-confirm')));
+      await tester.pumpAndSettle();
+      expect(rig.service.calls.last, 'off');
+      expect(rig.provider.home.location, isNull);
+    });
+
+    testWidgets('4 custom places → no "Thêm nơi"; 3 → "Còn 1 chỗ"', (
+      tester,
+    ) async {
+      List<ArrivalPlace> customs(int n) => [
+        const ArrivalPlace.home(),
+        for (var i = 1; i <= n; i++)
+          ArrivalPlace(slot: 'p$i', name: 'Nơi $i', icon: ArrivalIcon.pin),
+      ];
+      final full = _Rig(places: customs(4));
+      await full.start(tester, const ArrivalManageScreen());
+      expect(find.text('Nơi 4'), findsOneWidget);
+      expect(find.text('Thêm nơi'), findsNothing);
+      expect(full.provider.nextFreeSlot, isNull);
+
+      final three = _Rig(places: customs(3));
+      await three.start(tester, const ArrivalManageScreen());
+      await tester.pumpAndSettle();
+      expect(find.text('Thêm nơi'), findsOneWidget);
+      expect(find.text('Còn 1 chỗ'), findsOneWidget);
+    });
+  });
+
+  group('search', () {
+    Future<_Rig> open(WidgetTester tester, _Rig rig) async {
+      await rig.start(
+        tester,
+        _launcher((c) => openArrivalPlaceSearch(c, _gym)),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      return rig;
+    }
+
+    testWidgets('Android: waits 800 ms, then results + "bấm Tìm" tip', (
+      tester,
+    ) async {
+      final rig = _Rig(
+        results: const [
+          PlaceSearchResult(
+            title: '54 Liễu Giai',
+            subtitle: 'Hà Nội',
+            lat: 1,
+            lng: 1,
+          ),
+        ],
+      );
+      rig.search.typing = false;
+      await open(tester, rig);
+      await tester.enterText(
+        find.byKey(const ValueKey('arrival-search')),
+        '54 Liễu Giai',
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(rig.search.queries, isEmpty);
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      expect(rig.search.queries, ['54 Liễu Giai']);
+      expect(find.text('54 Liễu Giai', findRichText: true), findsWidgets);
+      expect(
+        find.text('Gõ xong bấm Tìm trên bàn phím nếu chưa thấy kết quả.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('not found / offline → message + "Dùng vị trí hiện tại"', (
+      tester,
+    ) async {
+      final rig = await open(tester, _Rig());
+      await tester.enterText(find.byKey(const ValueKey('arrival-search')), 'x');
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Không tìm thấy địa chỉ này.'),
+        findsOneWidget,
+      );
+      expect(find.text('Dùng vị trí hiện tại'), findsOneWidget);
+
+      rig.search.error = const PlaceSearchOffline();
+      await tester.enterText(
+        find.byKey(const ValueKey('arrival-search')),
+        'xy',
+      );
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Cần mạng để tìm địa chỉ.'), findsOneWidget);
+    });
+
+    testWidgets('no geocoder → "Lưu tên, chỉ bấm tay" saves without address', (
+      tester,
+    ) async {
+      final rig = _Rig()..search.available = false;
+      await open(tester, rig);
+      expect(
+        find.textContaining('Máy này không tìm được địa chỉ.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Lưu tên, chỉ bấm tay'));
+      await tester.pumpAndSettle();
+      final p = rig.provider.customPlaces.single;
+      expect(p.name, 'Phòng gym');
+      expect(p.location, isNull);
+    });
+
+    test('match range for the iOS underline', () {
+      expect(arrivalMatchRange('54 Liễu Giai', '54 liễu gi'), (0, 10));
+      expect(arrivalMatchRange('54 Liễu Giai', 'Nguyễn'), isNull);
+      expect(arrivalMatchRange('54 Liễu Giai', '  '), isNull);
+    });
+  });
+
+  group('edit', () {
+    testWidgets('rename a place → saved, Save locked until a change', (
+      tester,
+    ) async {
+      final rig = _Rig(places: [const ArrivalPlace.home(), _gym]);
+      await rig.start(tester, _launcher((c) => openArrivalEditPlace(c, _gym)));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      ElevatedButton save() => tester.widget<ElevatedButton>(
+        find.descendant(
+          of: find.byKey(const ValueKey('arrival-edit-save')),
+          matching: find.byType(ElevatedButton),
+        ),
+      );
+      expect(save().onPressed, isNull);
+      await tester.enterText(find.byKey(const ValueKey('arrival-name')), 'Gym');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('arrival-edit-save')));
+      await tester.pumpAndSettle();
+      expect(rig.provider.customPlaces.single.name, 'Gym');
+    });
+
+    testWidgets('Home: no rename, "Xoá địa chỉ" only once it has one', (
+      tester,
+    ) async {
+      final rig = _Rig(places: [ArrivalPlace.home(location: _homeAt)]);
+      await rig.start(
+        tester,
+        _launcher((c) => openArrivalEditPlace(c, rig.provider.home)),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('arrival-name')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('arrival-delete')));
+      await tester.pumpAndSettle();
+      expect(find.text('Xoá địa chỉ Nhà?'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('arrival-delete-confirm')));
+      await tester.pumpAndSettle();
+      expect(rig.provider.home.location, isNull);
+      expect(find.text('Đã xoá địa chỉ Nhà'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 7));
+    });
+
+    testWidgets('undo: slot held 5 s; taken anyway → says it can\'t', (
+      tester,
+    ) async {
+      final rig = _Rig(places: [const ArrivalPlace.home(), _gym]);
+      await rig.start(tester, _launcher((c) => openArrivalEditPlace(c, _gym)));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('arrival-delete')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('arrival-delete-confirm')));
+      await tester.pumpAndSettle();
+      // A new place never gets the slot being undone.
+      expect(rig.provider.nextFreeSlot, 'p2');
+      await rig.provider.savePlace(
+        const ArrivalPlace(slot: 'p1', name: 'Mới', icon: ArrivalIcon.pin),
+      );
+      await tester.tap(find.text('Hoàn tác'));
+      await tester.pumpAndSettle();
+      expect(rig.provider.customPlaces.single.name, 'Mới');
+      expect(
+        find.text('Chưa hoàn tác được: chỗ này vừa được dùng cho nơi khác.'),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 7));
+      expect(rig.provider.nextFreeSlot, 'p2'); // p1 is "Mới" now
+    });
+
+    testWidgets('confirm: save fails → stays + says so', (tester) async {
+      final rig = _Rig();
+      await rig.start(
+        tester,
+        _launcher(
+          (c) => Navigator.of(c).push(
+            MaterialPageRoute<void>(
+              settings: const RouteSettings(name: 'ArrivalPlace/Confirm'),
+              builder: (_) =>
+                  ArrivalConfirmScreen(draft: _gym, location: _homeAt),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      rig.provider.clear(); // uid gone → savePlace false
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('arrival-save')));
+      await tester.pumpAndSettle();
+      expect(find.text('Đúng chỗ này chưa?'), findsOneWidget);
+      expect(find.text('Chưa lưu được Phòng gym. Thử lại sau nhé.'), findsOne);
+    });
+  });
+
+  group('settings rows', () {
+    testWidgets('"Khi người ấy đến nơi" reads + saves pushArrival', (
+      tester,
+    ) async {
+      final saved = <bool>[];
+      final rig = _Rig();
+      await rig.start(
+        tester,
+        Scaffold(
+          body: ArrivalPushTile(
+            load: () async => false,
+            save: (v) async => saved.add(v),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Khi người ấy đến nơi'), findsOneWidget);
+      expect(
+        tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+        isFalse,
+      );
+      await tester.tap(find.byType(SwitchListTile));
+      await tester.pump();
+      expect(saved, [true]);
+    });
+
+    testWidgets('"Về đến nhà" subtitle: off / sharing places', (tester) async {
+      final rig = _Rig(places: [const ArrivalPlace.home(), _gym]);
+      late BuildContext ctx;
+      await rig.start(
+        tester,
+        Builder(
+          builder: (c) {
+            ctx = c;
+            return const SizedBox();
+          },
+        ),
+      );
+      expect(arrivalSettingsSubtitle(ctx), 'Đang tắt');
+      rig.share('me', const ArrivalShare(share: true));
+      await tester.pump();
+      await tester.pump();
+      expect(
+        arrivalSettingsSubtitle(ctx),
+        'Đang báo cho Thảo: Nhà · Phòng gym',
+      );
+    });
+  });
+
+  testWidgets('dates follow the locale (D3 i18n)', (tester) async {
+    late BuildContext ctx;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (c) {
+            ctx = c;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    expect(ArrivalFormat.shortDate(ctx, DateTime(2026, 10, 13)), '10/13');
   });
 }

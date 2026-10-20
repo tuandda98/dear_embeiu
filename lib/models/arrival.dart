@@ -240,7 +240,12 @@ class ArrivalEvent {
 
 /// A member's doc `couples/{c}/arrival/{uid}` as the app sees it.
 class ArrivalShare {
-  const ArrivalShare({required this.share, this.auto = false, this.last});
+  const ArrivalShare({
+    required this.share,
+    this.auto = false,
+    this.last,
+    this.pending = false,
+  });
 
   final bool share;
 
@@ -249,4 +254,8 @@ class ArrivalShare {
 
   /// Null while sharing is off (rules forbid `last` then, D11).
   final ArrivalEvent? last;
+
+  /// The snapshot still holds a local write the server hasn't acked (only
+  /// meaningful on my own doc): "Sẽ báo khi có mạng" stays while true.
+  final bool pending;
 }

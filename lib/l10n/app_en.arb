@@ -4880,5 +4880,11 @@
   "arrivalTourTitle": "Home yet?",
   "@arrivalTourTitle": {"description": "Feature arrival (đợt 2)"},
   "arrivalTourBody": "Got home? Tap “I'm home” on the Home tab and your partner knows, no texting. You can also let your phone send it when you reach a saved place.",
-  "@arrivalTourBody": {"description": "Feature arrival (đợt 2)"}
+  "@arrivalTourBody": {"description": "Feature arrival (đợt 2)"},
+  "arrivalSaveFailed": "Couldn't save {place}. Please try again.",
+  "@arrivalSaveFailed": {"description": "Feature arrival (đợt 2)", "placeholders": {"place": {"type": "String"}}},
+  "arrivalPlacesFull": "You already have 4 places. Delete one, then add this again.",
+  "@arrivalPlacesFull": {"description": "Feature arrival (đợt 2)"},
+  "arrivalUndoFailed": "Couldn't undo: that spot was just used for another place.",
+  "@arrivalUndoFailed": {"description": "Feature arrival (đợt 2)"}
 }

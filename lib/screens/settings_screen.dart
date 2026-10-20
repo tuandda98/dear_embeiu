@@ -36,9 +36,7 @@ import 'lunar_calendar_screen.dart';
 import 'reminders_screen.dart';
 // ── arrival (đợt 2) ──
 import '../providers/arrival_provider.dart';
-import '../services/notification_settings_service.dart';
-import '../services/push_notification_service.dart';
-import '../widgets/arrival/arrival_format.dart';
+import '../widgets/arrival/arrival_settings_tiles.dart';
 import 'arrival_manage_screen.dart';
 
 /// The app-wide Settings screen (feature: settings — v2 redesign 2026-06-11).
@@ -523,8 +521,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _rowDivider(),
                   ],
                   // ── arrival (đợt 2) ── "Khi người ấy đến nơi" (D16), paired only.
-                  if (context.select<ArrivalProvider, bool>((a) => a.visible))
-                    ...[const _ArrivalPushTile(), _rowDivider()],
+                  if (context.select<ArrivalProvider, bool>(
+                    (a) => a.visible,
+                  )) ...[
+                    const ArrivalPushTile(),
+                    _rowDivider(),
+                  ],
                   // AI-personalised daily questions (endless-questions,
                   // 2026-09-05): couple-shared opt-in, hidden until paired.
                   if (kAiQuestionsFeatureEnabled) const _AiQuestionsTile(),
@@ -773,7 +775,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _navRow(
                   icon: IconsaxPlusLinear.home_2,
                   title: l10n.arrivalSettingsTitle,
-                  subtitle: _arrivalSettingsSub(context),
+                  subtitle: arrivalSettingsSubtitle(context),
                   onTap: () => openArrivalManage(context, from: 'settings'),
                 ),
                 _rowDivider(),
@@ -2373,99 +2375,6 @@ class _DailyQuestionAddTimeRow extends StatelessWidget {
 /// The usage-analytics opt-out switch (feature: analytics, D1c). Reads/writes
 /// [AnalyticsService] directly — analytics state lives in the service (Hive),
 /// not a provider, so a small local `setState` mirrors the toggle. Default ON.
-// ── arrival (đợt 2) ──
-/// "Đang báo cho Thảo: Nhà và 2 nơi khác" · "Đang tắt" · "Tạm thời chỉ báo
-/// bằng tay" (design §7).
-String _arrivalSettingsSub(BuildContext context) {
-  final l10n = context.l10n;
-  final arrival = context.read<ArrivalProvider>();
-  if (!arrival.myShare) return l10n.arrivalSettingsOff;
-  if (arrival.autoRemoteOff) return l10n.arrivalMineRemoteOff;
-  final couple = context.read<CoupleProvider>().couple;
-  final partner = couple == null
-      ? l10n.reactionPartnerFallback
-      : ArrivalFormat.partnerName(
-          l10n,
-          couple,
-          context.read<AuthProvider>().currentUser?.id,
-        );
-  return l10n.arrivalSettingsSharing(
-    partner,
-    ArrivalFormat.places(l10n, arrival.places),
-  );
-}
-
-/// "Khi người ấy đến nơi" — `pushArrival` on this device's doc (D16). Mute
-/// only stops the push; the Home card still updates.
-class _ArrivalPushTile extends StatefulWidget {
-  const _ArrivalPushTile();
-
-  @override
-  State<_ArrivalPushTile> createState() => _ArrivalPushTileState();
-}
-
-class _ArrivalPushTileState extends State<_ArrivalPushTile> {
-  bool _enabled = true;
-
-  @override
-  void initState() {
-    super.initState();
-    NotificationSettingsService.instance.arrivalPushEnabled().then((v) {
-      if (mounted) setState(() => _enabled = v);
-    });
-  }
-
-  Future<void> _onChanged(bool value) async {
-    HapticFeedback.selectionClick();
-    setState(() => _enabled = value);
-    await NotificationSettingsService.instance.set(
-      NotificationSettingsService.keyArrival,
-      value,
-    );
-    await PushNotificationService.instance.refreshDeviceRegistration();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final couple = context.watch<CoupleProvider>().couple;
-    final partner = couple == null
-        ? l10n.reactionPartnerFallback
-        : ArrivalFormat.partnerName(
-            l10n,
-            couple,
-            context.read<AuthProvider>().currentUser?.id,
-          );
-    return SwitchListTile.adaptive(
-      key: const ValueKey('arrival-push-switch'),
-      value: _enabled,
-      onChanged: _onChanged,
-      activeThumbColor: AppColors.accentRose,
-      contentPadding: const EdgeInsets.symmetric(vertical: 4),
-      secondary: const IconBadge(IconsaxPlusLinear.home_2),
-      title: Text(
-        l10n.arrivalSettingsPushTitle,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Text(
-          l10n.arrivalSettingsPushSub(partner),
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 12,
-            height: 1.4,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _AnalyticsToggleTile extends StatefulWidget {
   const _AnalyticsToggleTile();
 

@@ -205,7 +205,11 @@ class ArrivalService {
     if (!isUsingFirebase || coupleId.isEmpty || uid.isEmpty) {
       return Stream<ArrivalShare?>.value(null);
     }
-    return _doc(coupleId, uid).snapshots().map((snap) {
+    // Metadata changes too: the server ack of a queued write flips
+    // `hasPendingWrites` without touching the data.
+    return _doc(coupleId, uid).snapshots(includeMetadataChanges: true).map((
+      snap,
+    ) {
       final data = snap.data();
       if (data == null) return null;
       final share = data['share'] == true;
@@ -213,6 +217,7 @@ class ArrivalService {
         share: share,
         auto: data['auto'] == true,
         last: share ? ArrivalEvent.fromMap(data['last'], _toDate) : null,
+        pending: snap.metadata.hasPendingWrites,
       );
     });
   }
