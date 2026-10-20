@@ -898,6 +898,8 @@ service cloud.firestore {
           && (!('updatedAt' in request.resource.data)
               || request.resource.data.updatedAt is timestamp);
         allow update: if isCoupleMember(coupleId)
+          // caro-game (đợt 2): this branch is for rps docs only.
+          && resource.data.get('type', 'rps') == 'rps'
           && request.resource.data.keys().hasOnly(
               ['type', 'createdBy', 'status', 'createdAt', 'presence',
                'rematchOf', 'updatedAt', 'startedAt', 'cancelledBy',
@@ -922,6 +924,16 @@ service cloud.firestore {
           && rpsCancelledByAllowed()
           && (!('updatedAt' in request.resource.data)
               || request.resource.data.updatedAt is timestamp);
+        // ── caro-game (đợt 2) ──
+        // Cờ caro (feature caro-game, overview §6.1): the whole game lives in
+        // this doc and only the `caroAction` callable (Admin SDK) creates or
+        // changes it. A member may only heartbeat THEIR OWN presence key —
+        // same helper as rps (server clock, no wiping the partner's key).
+        allow update: if isCoupleMember(coupleId)
+          && resource.data.get('type', '') == 'caro'
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['presence'])
+          && rpsPresenceTouchesOnlyOwnKey();
         allow delete: if false;
       }
 
@@ -946,8 +958,18 @@ service cloud.firestore {
           && request.resource.data.choice in ['rock', 'paper', 'scissors']
           && request.resource.data.createdAt == request.time
           && rpsGame().get('status', '') == 'playing'
-          && rpsGame().get('startedAt', null) is timestamp;
+          && rpsGame().get('startedAt', null) is timestamp
+          // caro-game (đợt 2): never a move doc under a non-rps game.
+          && rpsGame().get('type', 'rps') == 'rps';
         allow update, delete: if false;
+      }
+
+      // ── caro-game (đợt 2) ──
+      // Caro open-game pointer + all-time score (`caroState/main`): both
+      // members read it, only the `caroAction` callable writes it.
+      match /caroState/{docId} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if false;
       }
 
       // Question engine state (feature endless-questions, 2026-09-05): ONE doc
