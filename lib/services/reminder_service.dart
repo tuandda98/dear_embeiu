@@ -910,6 +910,88 @@ class ReminderService {
     }
   }
 
+  // ── expenses (đợt 2) ──
+  // Sổ tiền evening reminder (D18), band 1210–1219: 1210 = TODAY, 1211 =
+  // TOMORROW (so a day without opening the app still gets one), both
+  // ONE-SHOT, re-armed on every app open (never a repeating
+  // DateTimeComponents.time — the iOS trap, CLAUDE.md §6). 1212–1219 stay
+  // free for recurring entries (mốc B). Owned by
+  // ReminderProvider.refreshMoneyEvening.
+  static const int idMoneyEveningToday = 1210;
+  static const int idMoneyEveningTomorrow = 1211;
+
+  /// The slots to arm at [minuteOfDay]: today (unless something was already
+  /// logged today or the time has passed) + tomorrow. [variant] picks one of
+  /// the 3 bodies by date, so the line changes day to day.
+  static List<({int id, DateTime when, int variant})> moneyEveningSlots({
+    required DateTime now,
+    required int minuteOfDay,
+    required bool loggedToday,
+  }) {
+    final m = minuteOfDay.clamp(0, 24 * 60 - 1);
+    DateTime at(int dayOffset) =>
+        DateTime(now.year, now.month, now.day + dayOffset, m ~/ 60, m % 60);
+    final today = at(0), tomorrow = at(1);
+    return [
+      if (!loggedToday && today.isAfter(now))
+        (
+          id: idMoneyEveningToday,
+          when: today,
+          variant: moneyEveningVariant(today),
+        ),
+      (
+        id: idMoneyEveningTomorrow,
+        when: tomorrow,
+        variant: moneyEveningVariant(tomorrow),
+      ),
+    ];
+  }
+
+  /// 0..2, one step per calendar day.
+  static int moneyEveningVariant(DateTime day) =>
+      DateTime.utc(
+        day.year,
+        day.month,
+        day.day,
+      ).difference(DateTime.utc(2026)).inDays %
+      3;
+
+  /// Replaces the band with [slots] (from [moneyEveningSlots]).
+  Future<void> scheduleMoneyEvening(
+    List<({int id, DateTime when, String title, String body})> slots,
+  ) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelMoneyEvening();
+    for (final s in slots) {
+      final when = tz.TZDateTime(
+        tz.local,
+        s.when.year,
+        s.when.month,
+        s.when.day,
+        s.when.hour,
+        s.when.minute,
+      );
+      if (!when.isAfter(tz.TZDateTime.now(tz.local))) {
+        continue;
+      }
+      await _scheduleAt(id: s.id, when: when, title: s.title, body: s.body);
+    }
+  }
+
+  /// Drops both slots. Plain platform calls (no [initialize] needed).
+  Future<void> cancelMoneyEvening() async {
+    for (final id in [idMoneyEveningToday, idMoneyEveningTomorrow]) {
+      try {
+        await _plugin.cancel(id);
+      } catch (_) {
+        // Already in the desired state.
+      }
+    }
+  }
+
   /// Cancel ALL personal bands — used when the signed-in account is not the
   /// gated one (or on reset).
   Future<void> cancelPersonalReminders() async {

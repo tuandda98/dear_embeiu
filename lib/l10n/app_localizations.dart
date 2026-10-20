@@ -9393,6 +9393,396 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'not spending'**
   String get moneyNotSpending;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve saved'**
+  String get moneyGoalSaved;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get moneyGoalSavedMine;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Goal {amount}'**
+  String moneyGoalTargetOf(String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{left} to go. To make {date}, we need about {perMonth} a month.'**
+  String moneyGoalLeft(String left, String date, String perMonth);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{left} to go. To make {date}, I need about {perMonth} a month.'**
+  String moneyGoalLeftMine(String left, String date, String perMonth);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{left} to go.'**
+  String moneyGoalLeftOnly(String left);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'No deadline yet. Add one to see how much to save each month.'**
+  String get moneyGoalNoDeadline;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Full on {date}'**
+  String moneyGoalReachedOn(String date);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Done. Time to plan {trip}, and log trip costs straight from this fund.'**
+  String moneyGoalReached(String trip);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Who put in what'**
+  String get moneyGoalEach;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{name} put in {a}, I put in {b}, {left} still to go'**
+  String moneyGoalEachSemantics(String name, String a, String b, String left);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Contributions'**
+  String get moneyGoalHistory;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 time} other{{count} times}}'**
+  String moneyGoalTimes(int count);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing put in yet. Start with as little as 50k.'**
+  String get moneyGoalHistoryEmpty;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load older history, showing recent contributions.'**
+  String get moneyGoalHistoryPartial;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Add to fund'**
+  String get moneyContribute;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Spend from fund'**
+  String get moneySpendFromFund;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Add to {wallet}'**
+  String moneyContributeTitle(String wallet);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Who\'s putting in'**
+  String get moneyContributeWho;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'From wallet'**
+  String get moneyContributeFrom;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Put in {amount}'**
+  String moneyContributeSave(String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Put {amount} into {wallet}'**
+  String moneyContributed(String amount, String wallet);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} is full'**
+  String moneyContributedFull(String wallet);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to put in'**
+  String get moneyContributeHint;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Which fund?'**
+  String get moneyPickFund;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'No shared fund yet. Create one, like “Đà Lạt trip”, and put in together.'**
+  String get moneyNoFundYet;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{name} pays me back'**
+  String moneySettlePaysMe(String name);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'I pay {name} back'**
+  String moneySettlePaysPartner(String name);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Edit for a partial payment'**
+  String get moneySettlePartial;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'All of it'**
+  String get moneySettleAll;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Half · {amount}'**
+  String moneySettleHalf(String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Add it to my wallet'**
+  String get moneySettleToOwn;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Adds a line to my book, not counted as income'**
+  String get moneySettleToOwnSub;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Adds a line to my book, not counted as spending'**
+  String get moneySettleFromOwnSub;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'The app doesn\'t move any money. Tap below once {name} has sent it or handed over cash. This evens out the shared book and doesn\'t count as spending.'**
+  String moneySettleNoteThem(String name);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'The app doesn\'t move any money. Tap below once the money has reached {name}. This evens out the shared book and doesn\'t count as spending.'**
+  String moneySettleNoteMe(String name);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as settled'**
+  String get moneySettleDo;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'At most {amount}'**
+  String moneySettleTooMuch(String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Why {amount}'**
+  String moneySettleWhy(String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Plus: I covered {name}. Minus: {name} covered me. {n} treats and shared-wallet payments don\'t count.'**
+  String moneySettleLegend(String name, int n);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Plus: I covered {name}. Minus: {name} covered me. Shared-wallet payments don\'t count.'**
+  String moneySettleLegendNoTreat(String name);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get moneySettleSum;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Everything before {date}'**
+  String moneySettleEarlier(String date);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {name} paid · {split}'**
+  String moneySettleRowSub(String date, String name, String split);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {name} paid back'**
+  String moneySettleRowBack(String date, String name);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded: {name} paid back {amount}'**
+  String moneySettledThem(String name, String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded: I paid {name} back {amount}'**
+  String moneySettledMe(String name, String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'we\'re even now'**
+  String get moneySettledEven;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} still open'**
+  String moneySettledLeft(String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} +{amount}'**
+  String moneySettledIn(String wallet, String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} −{amount}'**
+  String moneySettledOut(String wallet, String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Log the cost'**
+  String get moneyLogFromDecision;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Anything from today you haven\'t logged?'**
+  String get moneyReminderBody1;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Log the rest of today\'s spending, it takes under a minute'**
+  String get moneyReminderBody2;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s evening. Take a look at what went out today'**
+  String get moneyReminderBody3;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Evening spending reminder'**
+  String get moneyReminderSettingTitle;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Once an evening. Skipped on days you\'ve already logged something.'**
+  String get moneyReminderSettingSubtitle;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Evening reminder'**
+  String get moneyMenuReminder;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Wallets, spending and shared funds'**
+  String get moneyProfileSub;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{name} just chipped in, the fund is at {percent}%'**
+  String moneyNotifGoal(String name, String percent);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} is full!'**
+  String moneyNotifGoalReached(String wallet);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'We hit the goal together. Time to plan it.'**
+  String get moneyNotifGoalReachedSub;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve used 80% of this month\'s budget'**
+  String get moneyNotifBudget80;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve used up this month\'s budget'**
+  String get moneyNotifBudget100;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Shared book · {month}'**
+  String moneyNotifBudgetSub(String month);
 }
 
 class _AppLocalizationsDelegate

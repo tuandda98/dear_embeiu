@@ -12,6 +12,8 @@ import '../../l10n/l10n.dart';
 import '../../models/money.dart';
 import '../../providers/money_provider.dart';
 import '../../screens/money/money_categories_screen.dart';
+import '../../services/analytics_service.dart';
+import '../../services/money_analytics.dart';
 import '../../services/money_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_motion.dart';
@@ -109,6 +111,8 @@ class AddTransactionSheet extends StatefulWidget {
     this.type = MoneyTxType.expense,
     this.walletId,
     this.categoryId,
+    this.note,
+    this.source,
   });
 
   final MoneyBookKind book;
@@ -121,6 +125,13 @@ class AddTransactionSheet extends StatefulWidget {
   /// Pre-selected category (first-entry chips).
   final String? categoryId;
 
+  // ── expenses (đợt 2) ── stage 3B
+  /// Pre-filled note (decision-wheel "Ghi chi": the pick, D20).
+  final String? note;
+
+  /// `source` of the new entry ('decision' from the wheel; null = manual).
+  final String? source;
+
   static Future<void> show(
     BuildContext context, {
     required MoneyBookKind book,
@@ -128,6 +139,8 @@ class AddTransactionSheet extends StatefulWidget {
     MoneyTxType type = MoneyTxType.expense,
     String? walletId,
     String? categoryId,
+    String? note,
+    String? source,
   }) async {
     final money = context.read<MoneyProvider>();
     var kind = book;
@@ -145,6 +158,8 @@ class AddTransactionSheet extends StatefulWidget {
         type: editing?.type ?? type,
         walletId: walletId,
         categoryId: categoryId,
+        note: note,
+        source: source,
       ),
     );
     if (result == null || !context.mounted) return;
@@ -213,6 +228,8 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   final TextEditingController _custom = TextEditingController();
   bool _detail = false;
   bool _saving = false;
+  // ── expenses (đợt 2) ── stage 3B: filled from "Ghi lại khoản quen".
+  bool _viaRepeat = false;
 
   MoneyTx? get _editing => widget.editing;
   bool get _isEdit => _editing != null;
@@ -256,8 +273,13 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         } else {
           _walletId = widget.walletId;
           _sharedWalletId = widget.walletId;
+          // ── expenses (đợt 2) ── stage 3B: spending from a shared wallet
+          // ("Chi từ quỹ") ⇒ the wallet pays, not a person.
+          if (_shared && _type == MoneyTxType.expense) _payer = _Payer.wallet;
         }
       }
+      // ── expenses (đợt 2) ── stage 3B
+      if (widget.note != null) _note.text = widget.note!;
       _fillDefaults(money);
     }
   }
@@ -375,6 +397,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
 
   void _useRepeat(MoneyTx t) {
     setState(() {
+      _viaRepeat = true;
       _input.setValue(t.amount);
       _categoryId = t.categoryId;
       _note.text = t.note;
@@ -683,9 +706,12 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         splitMode: draft.splitMode,
         payerShare: draft.payerShare,
         memberUids: draft.memberUids,
+        source: widget.source,
       );
       final budgetLine = _budgetLine(tx);
       final outcome = await money.addTx(kind, tx, ownWalletId: _ownDeduct);
+      // ── expenses (đợt 2) ── stage 3B: analytics D27 (no amount / note).
+      _logAdd(money, kind, tx);
       _rememberLast();
       HapticFeedback.lightImpact();
       if (!mounted) return;
@@ -726,6 +752,32 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       setState(() => _saving = false);
       showMoneySnack(context, message: l10n.moneyWriteFailed);
     }
+  }
+
+  // ── expenses (đợt 2) ── stage 3B
+  void _logAdd(MoneyProvider money, MoneyBookKind kind, MoneyTx tx) {
+    final walletId = tx.outWalletId.isNotEmpty
+        ? tx.outWalletId
+        : tx.inWalletId.isNotEmpty
+        ? tx.inWalletId
+        : (_ownDeduct ?? '');
+    final wallet = [
+      ...?money.book(kind)?.wallets,
+      ...?money.own?.wallets,
+    ].where((w) => w.id == walletId).firstOrNull;
+    AnalyticsService.instance.logMoneyTxAdd(
+      book: kind,
+      tx: tx,
+      uid: money.uid ?? '',
+      categories: money.book(kind)!.categories,
+      walletType: wallet?.type,
+      via: tx.source == 'decision'
+          ? 'decision'
+          : _viaRepeat
+          ? 'chip'
+          : 'manual',
+      linked: _ownDeduct != null,
+    );
   }
 
   /// "Hoàn tác" right after Save (§15 #8): the new entry (and its own-book
@@ -1296,7 +1348,16 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         _type == MoneyTxType.income ? l10n.moneyIntoWallet : l10n.moneyWallet,
       ),
       _walletChips(
-        _wallets(_book),
+        // ── expenses (đợt 2) ── stage 3B: "Chi từ quỹ" keeps the fund chip.
+        _wallets(
+          _book,
+          goals:
+              _wallets(
+                _book,
+                goals: true,
+              ).where((w) => w.id == _walletId).firstOrNull?.isGoal ??
+              false,
+        ),
         _walletId,
         (id) => setState(() => _walletId = id),
       ),

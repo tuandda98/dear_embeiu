@@ -38,6 +38,11 @@ import 'rps_game_screen.dart';
 import 'rps_history_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
+// ── expenses (đợt 2) ──
+import '../models/money.dart' show MoneyBookKind;
+import '../services/money_service.dart';
+import '../widgets/ink_tile.dart';
+import 'money/money_screen.dart' show openMoneyScreen;
 
 /// Profile v2 (redesign 2026-06-11): identity + memory chest + admin gateway.
 /// Every number appears exactly once — the daily/live numbers live on Home;
@@ -114,6 +119,12 @@ class ProfileScreen extends StatelessWidget {
                         _buildHeroCard(context, couple: couple),
                         const SizedBox(height: 18),
                         _buildJourneyTrail(context, totalDays: totalDays),
+                        // ── expenses (đợt 2) ── Sổ tiền entry (D25 lối phụ),
+                        // solo couples too; no book without Firebase.
+                        if (MoneyService.isAvailable) ...[
+                          const SizedBox(height: 18),
+                          _MoneyTile(waiting: couple.isWaitingForPartner),
+                        ],
                         // Achievements need a partner (streak/journal exist
                         // only once both are present); while waiting, the
                         // invite block takes the slot.
@@ -1023,3 +1034,65 @@ class _MedalPalette {
 /// Stateful for the same reason as [_AchievementsGrid]: the total is a one-shot
 /// Firestore `count()` aggregation, so it's fetched once and cached instead of
 /// re-querying on every Profile rebuild.
+
+// ── expenses (đợt 2) ── stage 3B
+/// "Sổ tiền" row: one tappable white card (IconBadge · title 15 w700 ·
+/// sub 12 · chevron), the same parts as the Settings rows next door.
+class _MoneyTile extends StatelessWidget {
+  const _MoneyTile({required this.waiting});
+
+  final bool waiting;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return InkTile(
+      borderRadius: 24,
+      onTap: () => openMoneyScreen(
+        context,
+        book: waiting ? MoneyBookKind.own : null,
+        from: 'profile',
+      ),
+      child: ContentCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Semantics(
+          button: true,
+          child: Row(
+            children: [
+              const IconBadge(IconsaxPlusLinear.wallet_2),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.moneyTitle,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.moneyProfileSub,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                IconsaxPlusLinear.arrow_right_3,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

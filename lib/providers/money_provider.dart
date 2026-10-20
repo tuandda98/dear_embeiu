@@ -704,6 +704,7 @@ class MoneyProvider extends ChangeNotifier {
   /// "Góp vào quỹ": a contribution into a shared wallet, by me (from
   /// [ownWalletId] when given) or recorded for the partner ([payer]).
   Future<MoneyWriteOutcome> contribute({
+    String id = '',
     required String sharedWalletId,
     required int amount,
     required String date,
@@ -713,7 +714,7 @@ class MoneyProvider extends ChangeNotifier {
   }) => addTx(
     MoneyBookKind.shared,
     MoneyTx(
-      id: '',
+      id: id,
       type: MoneyTxType.contribution,
       amount: amount,
       date: date,
@@ -728,6 +729,7 @@ class MoneyProvider extends ChangeNotifier {
   /// "Đánh dấu đã thanh toán": [payer] (who covered less) pays back
   /// [amount]; never spending. [ownWalletId] = "Ghi tiền về ví của mình".
   Future<MoneyWriteOutcome> settle({
+    String id = '',
     required String payer,
     required int amount,
     required String date,
@@ -736,7 +738,7 @@ class MoneyProvider extends ChangeNotifier {
   }) => addTx(
     MoneyBookKind.shared,
     MoneyTx(
-      id: '',
+      id: id,
       type: MoneyTxType.settle,
       amount: amount,
       date: date,
