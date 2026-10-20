@@ -1,256 +1,355 @@
-# Quỹ chung — sổ chi tiêu của chúng mình
+# Sổ tiền — quản lý tiền của mình và của chúng mình
 
 > File PO sở hữu. Nguồn sự thật chung cho cả feature. Designer/Dev/Tester đọc file này trước.
-> Đợt "mở app mỗi ngày" lần 2 (user chọn 2026-10-20 cùng `poke`, `caro-game`, `weather`, `arrival`). Nối với [decision-wheel](../decision-wheel/overview.md) qua nút "Ghi chi" (D14).
+> Đợt "mở app mỗi ngày" lần 2 (user chọn 2026-10-20 cùng `poke`, `caro-game`, `weather`, `arrival`). Nối với [decision-wheel](../decision-wheel/overview.md) qua nút "Ghi chi" (D20).
+> ⟪Lịch sử: spec đầu 2026-10-20 là "Quỹ chung" — sổ chi chung của cặp. Cùng ngày user nói "Feature Quỹ chung làm nó giống money management" → mở rộng thành app quản lý tiền đầy đủ: mỗi người một sổ riêng + một sổ chung. Tên thư mục giữ `expenses`; tên hiển thị chờ user chọn (§11).⟫
 
-- **Feature:** expenses
-- **Ưu tiên:** P1 (feature lớn nhất đợt; Phase 1 đủ dùng hằng ngày, phần còn lại sang Phase 2)
-- **Trạng thái:** 📋 Spec — chờ user duyệt
+- **Feature:** expenses (tên hiển thị đề xuất: **Sổ tiền**)
+- **Ưu tiên:** P1 — feature lớn nhất đợt, chia 3 mốc phát hành (§3)
+- **Trạng thái:** 📋 Spec — chờ user chọn tên (§11)
 - **Tạo ngày:** 2026-10-20
 - **Liên quan:** [roadmap.md](roadmap.md) · [design.md](design.md) · [dev.md](dev.md) · [test.md](test.md) · [`../decision-wheel/`](../decision-wheel/overview.md) · [`../widget-today/`](../widget-today/overview.md) · bối cảnh [`../../../CLAUDE.md`](../../../CLAUDE.md) · rules/CF [`../../firebase.md`](../../firebase.md)
 
 ## 1. Vấn đề & giá trị
 
-- *Vấn đề người dùng:* Tối thứ Sáu ăn lẩu hết 480k, anh trả. Thứ Bảy em đổ xăng 70k, mua bỏng nước 120k. Chủ nhật hai người ngồi nhớ lại "tuần này ai trả gì" và không ai nhớ. Cặp nào góp quỹ đi Đà Lạt thì thường ghi vào ghi chú điện thoại của một người: người kia không biết quỹ còn bao nhiêu, phải hỏi.
-- Money Lover, Sổ Thu Chi MISA làm tốt sổ của một người, có ví chia sẻ (MISA) nhưng không có khái niệm "ai trả, ai ứng nhiều hơn". Splitwise có đúng phần đó nhưng tiếng Anh, bản miễn phí giới hạn số khoản/ngày từ cuối 2023, và không phải chỗ cặp đôi VN đang ở.
-- *Giả thuyết giá trị:* ăn xong là mở app ghi, mất 3 chạm ("120k" → Ăn uống → Lưu). Người ấy thấy ngay khoản đó trong sổ chung, cuối tháng có câu trả lời "tháng này chúng mình tiêu 6,2 triệu, ăn uống chiếm một nửa, anh đang ứng nhiều hơn 340k". Việc chi tiêu xảy ra gần như mỗi ngày, nên đây là một lý do thật, lặp lại, để mở app, kể cả ngày không ai muốn viết câu trả lời.
+- *Vấn đề người dùng:*
+  - Tối thứ Sáu ăn lẩu hết 480k, anh quẹt thẻ. Thứ Bảy em đổ xăng 70k bằng MoMo. Chủ nhật hai người ngồi nhớ lại ai trả gì và không ai nhớ.
+  - Quỹ đi Đà Lạt nằm trong ghi chú điện thoại của một người. Người kia muốn biết còn bao nhiêu thì phải hỏi.
+  - Tiền của riêng mỗi người (lương về, tiền nhà, tiền điện, tháng này còn bao nhiêu) thì đang nằm ở một app khác: Money Lover, MISA, hoặc không ở đâu cả.
+- *Giả thuyết giá trị:* gộp hai thứ vào một chỗ. Sổ **của mình** dùng được như Money Lover: ví tiền mặt, Techcombank, MoMo, thẻ tín dụng; thu, chi, chuyển; ngân sách; báo cáo. Sổ **chung** thêm thứ app tài chính không có: ai trả, chia thế nào, ai đang ứng nhiều hơn, quỹ chung. Ghi một khoản mất 3 chạm ("120k" → Ăn ngoài → Lưu). Người ta ghi chi tiêu gần như mỗi ngày, nên đây là một lý do mở app không phụ thuộc vào việc người ấy có trả lời câu hỏi hay không.
 - *Đối tượng:*
-  - **Cặp đã ghép (28 cặp):** dùng sổ chung + quỹ mục tiêu + cân bằng.
-  - **Cặp đang chờ người ấy (52 cặp):** dùng như sổ chi tiêu của riêng mình. Đây là giá trị một-người hiếm hoi của app trước khi người ấy vào (CLAUDE.md §11 "single-player value trước partner join là then chốt").
-- *Đo bằng gì (metric):* xem §9.
+  - **Cặp đang chờ người ấy (52/80 cặp, PROD 2026-10-19):** sổ của mình là thứ đầu tiên trong app có giá trị trọn vẹn khi dùng một mình. Hôm nay một người vào app khi chưa có người ấy chỉ thấy đếm ngày và lời nhắc. Có sổ tiền, người đó có việc để làm mỗi ngày, và khi người ấy vào thì sổ chung mở ra ngay cạnh (CLAUDE.md §11: "single-player value trước partner join là then chốt").
+  - **Cặp đã ghép (28 cặp):** sổ của mình + sổ chung.
+- *Đo bằng gì:* §9.
 
 ## 2. Bối cảnh / nghiên cứu
 
-Bộ tính năng của app phổ biến (nguồn cuối mục), lọc theo câu hỏi "cặp đôi chưa cưới, quen dùng Zalo/MoMo, có cần không?":
+Đối chiếu 6 app (nguồn cuối mục), lọc theo câu hỏi "người trẻ VN, đang yêu, quen MoMo/ZaloPay, cần gì":
 
-| Tính năng | Ai có | Cặp đôi cần? | Phase |
+| Tính năng | Ai có | Quyết định | Mốc |
 |---|---|---|---|
-| Ghi chi nhanh + danh mục có icon | Money Lover, MISA, mọi app | Cần — là lõi | 1 |
-| Báo cáo tháng theo danh mục, so tháng trước | Money Lover, MISA (biểu đồ tròn/cột) | Cần — câu trả lời "tháng này tiêu gì" | 1 |
-| Ngân sách / hạn mức + cảnh báo khi vượt | Money Lover (tuần/tháng/quý), MISA (theo hạng mục) | Cần, nhưng một con số tổng tháng là đủ | 1 (tổng) · 2 (theo danh mục) |
-| Ai trả, chia tỉ lệ, "ai đang ứng", thanh toán | Splitwise (chia đều/%/số tiền, settle up) | Cần — thứ app VN không có | 1 |
-| Quỹ / tiết kiệm theo mục tiêu, gom chi theo dịp (chuyến đi) | Money Lover (Tiết kiệm + Sự kiện), MISA (sự kiện) | Cần — "Quỹ Đà Lạt" | 1 |
-| Khoản riêng / ẩn giao dịch khỏi người kia | Honeydue (ẩn từng giao dịch, vd quà bất ngờ) | Có ích, rẻ nếu mô hình dữ liệu tính sẵn | 1 (bản đơn giản) |
-| Khoản định kỳ, nhắc hoá đơn | Honeydue (bill reminder; 60% user tạo ≥1 nhắc lúc onboarding) | Hợp cặp sống chung (tiền nhà) | 2 |
-| Thu nhập | Money Lover, MISA | Nhạy cảm với cặp chưa cưới; ít người muốn khai | Later, tuỳ chọn |
-| Xuất Excel/CSV | MISA (Excel/PDF), Splitwise Pro | Hiếm dùng | 2 |
-| Đa tiền tệ | Splitwise (Pro) | Cặp yêu xa nước ngoài, ít | Later |
-| Liên kết ngân hàng, quét hoá đơn | Money Lover (>25 ngân hàng), MISA, Honeydue (Plaid) | Không — tốn, rủi ro bảo mật, ngoài niche | Không làm |
-| Vay nợ, nhiều ví, đầu tư | Money Lover, MISA | Không — đó là app tài chính | Không làm |
+| Ví/tài khoản nhiều loại, số dư đầu kỳ, số dư hiện tại | Money Lover, MISA, Wallet, Spendee (mỗi ví 1 tiền tệ) | Làm — lõi | A |
+| Thu / Chi / Chuyển giữa ví / Điều chỉnh số dư | Mọi app | Làm — lõi | A |
+| Danh mục thu–chi 2 cấp, icon, tự thêm/sửa/ẩn | Money Lover, MISA | Làm | A |
+| Ngân sách theo tháng, tổng + theo danh mục, cảnh báo | Money Lover (tuần/tháng/quý), MISA (hạn mức theo hạng mục), Wallet, Spendee (bản free 1 ngân sách) | Làm theo tháng, không giới hạn số ngân sách | A |
+| Báo cáo thu–chi, cơ cấu, xu hướng, theo ví | MISA (biểu đồ tròn/cột), Wallet (cash flow, xu hướng số dư) | Làm | A |
+| Tìm kiếm + lọc | Mọi app | Làm | A |
+| Mục tiêu tiết kiệm | Money Lover (Tiết kiệm), Wallet (Goals: đang chạy/tạm dừng/đã đạt, cần để dành bao nhiêu mỗi kỳ) | Làm dưới dạng ví "Mục tiêu" | A |
+| Ví chia sẻ cho người khác | MISA (chia sẻ ví), Wallet (chia sẻ tài khoản), Spendee (trả phí) | Làm — là sổ chung, miễn phí | A |
+| Ai trả, chia tỉ lệ, ai đang ứng, thanh toán | Splitwise | Làm — không app VN nào có | A |
+| Ẩn giao dịch khỏi người kia | Honeydue | Có sẵn nhờ tách sổ riêng / sổ chung | A |
+| Khoản định kỳ + nhắc hoá đơn | Wallet (planned payments), Honeydue (60% user tạo nhắc hoá đơn lúc onboarding), Money Lover | Làm | B |
+| Sổ nợ (cho vay / đi vay) | Money Lover, MISA | Làm | B |
+| Xuất CSV/Excel | MISA (Excel/PDF), Spendee (cả bản free) | Làm CSV | B |
+| Khoá bằng Face ID / vân tay | Money Lover, MISA | Làm | B |
+| Ảnh hoá đơn | Splitwise (Pro), Wallet | Làm | C |
+| Đa tiền tệ | Spendee, Wallet, Splitwise (Pro) | Chừa sẵn field, làm sau | Later |
+| Liên kết ngân hàng, tự kéo giao dịch | Money Lover (>25 ngân hàng VN), Wallet (3.500 ngân hàng), Honeydue (Plaid) | **Không làm** — cần đối tác, rủi ro bảo mật, chi phí | — |
+| Đầu tư, chứng khoán, nhiều sổ kế toán | MISA, Wallet | Không làm — vượt niche | — |
 
-Bài học: Splitwise gate tính năng chia tỉ lệ và giới hạn số khoản/ngày ở bản miễn phí, bị review 1 sao nhiều. Bản đầu của mình không giới hạn gì người dùng thấy được (giới hạn chỉ để chặn lạm dụng ở rules).
+Bài học: Splitwise khoá chia tỉ lệ và giới hạn số khoản/ngày ở bản miễn phí từ cuối 2023, bị review 1 sao nhiều. Spendee bắt trả phí mới chia sẻ ví. Mình không giới hạn gì người dùng nhìn thấy; các trần chỉ để chặn lạm dụng ở rules.
 
 Nguồn:
-- [FPT Shop — Money Lover](https://fptshop.com.vn/tin-tuc/danh-gia/money-lover-182808) · [Thế Giới Di Động — Money Lover](https://www.thegioididong.com/game-app/money-lover-ung-dung-quan-ly-chi-tieu-ca-nhan-gia-dinh-228454) · [Thế Giới Di Động — cách dùng Money Lover (Sự kiện, Tiết kiệm)](https://www.thegioididong.com/game-app/cach-su-dung-money-lover-chi-tiet-giup-quan-ly-chi-tieu-hieu-1311173)
-- [MISA — Sổ Thu Chi](https://sme.misa.vn/37480/so-thu-chi-ung-dung-quan-ly-tai-chinh-ca-nhan-danh-cho-moi-nguoi/) · [App Store — Sổ Thu Chi MISA (chia sẻ ví)](https://apps.apple.com/vn/app/s%E1%BB%95-thu-chi-misa-qu%E1%BA%A3n-l%C3%BD-ti%E1%BB%81n/id865818973?l=vi) · [FPT Shop — Sổ Thu Chi MISA](https://fptshop.com.vn/tin-tuc/danh-gia/so-thu-chi-misa-185508)
-- [App Store — Splitwise](https://apps.apple.com/app/splitwise-bill-splitter/id458023433) · [Yellow Slice — review Splitwise (giới hạn bản miễn phí)](https://www.yellowslice.in/blog/splitwise-app-review-ux-ui-improvements) · [Trustpilot — Splitwise](https://pt.trustpilot.com/review/splitwise.com?page=2)
-- [Experian — review Honeydue](https://www.experian.com/blogs/ask-experian/honeydue-app-review/) · [TechCrunch — Honeydue](https://techcrunch.com/2017/08/07/honeydue-is-a-money-management-app-for-couples/)
+- Money Lover: [FPT Shop](https://fptshop.com.vn/tin-tuc/danh-gia/money-lover-182808) · [Thế Giới Di Động](https://www.thegioididong.com/game-app/money-lover-ung-dung-quan-ly-chi-tieu-ca-nhan-gia-dinh-228454) · [TGDĐ — cách dùng (Sự kiện, Tiết kiệm)](https://www.thegioididong.com/game-app/cach-su-dung-money-lover-chi-tiet-giup-quan-ly-chi-tieu-hieu-1311173)
+- MISA: [Sổ Thu Chi MISA](https://sme.misa.vn/37480/so-thu-chi-ung-dung-quan-ly-tai-chinh-ca-nhan-danh-cho-moi-nguoi/) · [App Store (chia sẻ ví)](https://apps.apple.com/vn/app/s%E1%BB%95-thu-chi-misa-qu%E1%BA%A3n-l%C3%BD-ti%E1%BB%81n/id865818973?l=vi) · [FPT Shop](https://fptshop.com.vn/tin-tuc/danh-gia/so-thu-chi-misa-185508)
+- Wallet by BudgetBakers: [Beebom review](https://beebom.com/wallet-app-by-budgetbakers-review/amp/) · [APKMirror release notes](https://www.apkmirror.com/apk/budgetbakers-com/wallet-budget-tracker/wallet-budget-expense-tracker-9-2-15-release/)
+- Spendee: [Support (chia sẻ ví)](https://www.spendee.com/support) · [Premium](https://www.spendee.com/premium) · [App Store](https://apps.apple.com/app/id635861140)
+- Splitwise: [App Store](https://apps.apple.com/app/splitwise-bill-splitter/id458023433) · [Yellow Slice review](https://www.yellowslice.in/blog/splitwise-app-review-ux-ui-improvements) · [Trustpilot](https://pt.trustpilot.com/review/splitwise.com?page=2)
+- Honeydue: [Experian](https://www.experian.com/blogs/ask-experian/honeydue-app-review/) · [TechCrunch](https://techcrunch.com/2017/08/07/honeydue-is-a-money-management-app-for-couples/)
 
-Hạ tầng tái dùng: `memberIds` + `isCoupleMember` trong rules · `writeInboxNotifications` + `sendToRecipientDevices` · `handleCoupleOnAccountDeletion` / `deleteCoupleCompletely` / `notifyPartnerLeft` (cách dọn của `sleep`) · aggregate `count()` (đã dùng ở photo/rps) nay thêm `sum()` · `SubScreenHeader`, `ContentCard`, `InkTile`, `SectionHeader` · `MidnightBuilder` · `intl` (đã có `NumberFormat`).
+Hạ tầng tái dùng: `isCoupleMember` · `writeInboxNotifications` + `sendToRecipientDevices` · `handleCoupleOnAccountDeletion` / `deleteCoupleCompletely` / `deleteAccount` · aggregate `count()` (đã dùng) nay thêm `sum()` · `share_plus` (đã có trong pubspec, dùng cho CSV) · `SubScreenHeader`, `ContentCard`, `InkTile`, `SectionHeader` · `MidnightBuilder` · `intl` `NumberFormat`.
 
-## 3. Phạm vi (scope)
+## 3. Phạm vi — 3 mốc phát hành
 
-- **Trong phạm vi Phase 1 (bản phát hành đầu):**
-  1. **Ghi khoản chi** — số tiền VND (nhập nhanh + gợi ý 50k/100k/200k/500k + gõ tắt "50k", "1tr2"), danh mục có icon (8 mặc định + tự thêm), ghi chú, ngày, ai trả (mình / người ấy / một quỹ), cách chia (chia đôi / người trả mời / trả hộ người kia / tuỳ số tiền), "Chỉ mình thấy".
-  2. **Sổ tháng** — danh sách theo ngày, tổng tháng, theo danh mục, theo người trả, so với tháng trước; lùi/tiến tháng.
-  3. **Ngân sách tháng** — một con số tổng cho chi chung, thanh tiến độ, cảnh báo 80% và 100% (trong app cho cả hai + push cho người không ghi khoản làm vượt).
-  4. **Cân bằng** — "Ai đang ứng nhiều hơn bao nhiêu" + "Đánh dấu đã thanh toán".
-  5. **Quỹ mục tiêu** — tối đa 5 quỹ đang mở: tên, emoji, mục tiêu (tuỳ chọn), góp của mỗi người, tiến độ, chi từ quỹ; đóng quỹ.
-  6. **Sổ một người** cho cặp đang chờ.
-  7. **Nối decision-wheel:** sheet kết quả Ăn gì / Đi đâu có nút "Ghi chi".
-  8. **Nhắc tối (opt-in, mặc định tắt)** 21:30 "Hôm nay có khoản nào chưa ghi?".
-  9. Rules additive + 1 Cloud Function `notifyExpense` + dọn dữ liệu khi rời/xoá; vi + en; analytics không lộ số tiền.
-- **Ngoài phạm vi Phase 1 (ghi roadmap):** khoản định kỳ · ngân sách theo danh mục · xuất CSV · lịch sử sửa chi tiết từng lần · "chuyển khoản cũ sang sổ chung" sau khi ghép đôi · xem sổ của người ấy cũ · thu nhập · đa tiền tệ · ảnh hoá đơn · widget · liên kết ngân hàng / quét hoá đơn / vay nợ / nhiều ví (không bao giờ) · gate premium (chưa có monetization).
+Feature quá lớn cho một bản. Mỗi mốc là một bản phát hành MINOR riêng, mốc A tự đứng được.
+
+- **Mốc A — "Dùng thay Money Lover được" (bản phát hành đầu):**
+  1. **Hai sổ:** "Của mình" (mọi tài khoản) và "Chung" (chỉ khi couple `active`). Cặp đang chờ chỉ thấy sổ của mình, đầy đủ tính năng.
+  2. **Ví:** Tiền mặt · Ngân hàng · Ví điện tử · Thẻ tín dụng · Mục tiêu. Số dư đầu kỳ, số dư hiện tại tính từ giao dịch, ẩn/lưu trữ ví, "không tính vào tổng".
+  3. **Giao dịch:** Chi · Thu · Chuyển giữa ví · Điều chỉnh số dư. Ô số nhanh (chip, gõ tắt), danh mục, ghi chú, ngày, ví.
+  4. **Danh mục 2 cấp** thu và chi, icon emoji, thêm/sửa/ẩn (mỗi sổ một bộ).
+  5. **Ngân sách tháng:** tổng + theo danh mục, cảnh báo 80%/100%.
+  6. **Báo cáo:** thu–chi–còn lại theo tháng · cơ cấu chi theo danh mục · xu hướng 6 và 12 tháng · theo ví · (sổ chung) theo người.
+  7. **Tìm kiếm + lọc:** khoảng ngày, danh mục, ví, người (sổ chung), khoảng tiền, chữ trong ghi chú.
+  8. **Mục tiêu tiết kiệm** = ví loại Mục tiêu, có mục tiêu + hạn; "Quỹ Đà Lạt" là ví Mục tiêu trong sổ chung.
+  9. **Phần cặp đôi:** ai trả · 4 cách chia · ai đang ứng nhiều hơn · đánh dấu đã thanh toán · góp từ ví của mình vào ví chung · "trừ luôn vào ví của mình" khi trả khoản chung.
+  10. Nút "Ghi chi" ở decision-wheel · nhắc tối opt-in · push sổ chung (góp quỹ, đủ quỹ, ngân sách) · rules + CF + dọn dữ liệu · vi + en · analytics không lộ tiền.
+- **Mốc B — "Tiền chạy đều mỗi tháng":** khoản định kỳ (lương, tiền nhà, điện nước, Netflix) tự sinh hoặc chỉ nhắc + nhắc hoá đơn · sổ nợ (cho vay/đi vay với người ngoài) · xuất CSV · khoá Face ID/vân tay cho Sổ tiền.
+- **Mốc C — "Bằng chứng & tiện ích":** ảnh hoá đơn · lịch sử sửa từng lần · "Sổ cũ" (khoản chung với người ấy cũ sau khi rời) · chuyển khoản riêng sang sổ chung.
+- **Later:** đa tiền tệ · nhập từ Money Lover/MISA (CSV) · recap tháng dạng thẻ chia sẻ.
+- **Không bao giờ:** liên kết ngân hàng, kéo giao dịch tự động, quét SMS biến động số dư, đầu tư, AI phân loại trả phí.
 
 ## 4. Quyết định đã chốt (decision log)
-> Đừng lật lại trừ khi user/PO đổi ý. Mục *(PO tự chốt)* user lật được trước khi Dev bắt đầu.
+> Đừng lật lại trừ khi user/PO đổi ý. *(PO tự chốt)* = user lật được trước khi Dev bắt đầu.
 
-- **D1 — Một sổ, ba loại dòng, một collection `expenses`.** Khoản chi (`expense`), góp quỹ (`fund_in`), thanh toán (`settle`) đều là một dòng trong `couples/{coupleId}/expenses`. *Lý do:* tổng tháng, cân bằng, số dư quỹ đều tính được từ một luồng dữ liệu; một listener, một bộ rules, một chỗ dọn. App chi tiêu nào cũng coi "giao dịch" là đơn vị gốc.
+- **D1 — Hai sổ cùng một cấu trúc dữ liệu, khác chỗ ở.** Sổ riêng ở `users/{uid}/…`, sổ chung ở `couples/{coupleId}/…`. Tên collection và schema giống hệt; service nhận "gốc sổ" làm tham số. *Lý do:* (a) Lead chốt: tiền riêng là của người dùng, không gắn với couple, rời couple không mất; (b) một bộ màn hình, một bộ hàm tính, hai đường dẫn — giảm gần một nửa công sức so với hai mô hình.
 
-- **D2 — Quyền xem theo danh sách `memberUids` chụp lúc tạo, không theo couple hiện tại.** Khoản chung: `memberUids = [mình, người ấy]`. Khoản "Chỉ mình thấy" và mọi khoản ghi lúc đang chờ người ấy: `memberUids = [mình]`. Rules: đọc khi là thành viên couple **và** có tên trong `memberUids`. *Lý do:* (a) người ấy rời, người mới ghép vào cùng `coupleId` không đọc được sổ tiền của cặp cũ, rules chặn chứ không chỉ UI giấu (tiền nhạy cảm hơn ảnh/chat; tiền lệ `sleep`); (b) khoản riêng có sẵn mà không cần collection thứ hai; (c) cặp đang chờ dùng ngay, không di trú dữ liệu khi người ấy vào. Hệ quả: mọi truy vấn phải có `where('memberUids', arrayContains: myUid)`.
+- **D2 — Sổ riêng sống theo tài khoản.** Chỉ chủ đọc/ghi. Rời couple, ghép couple mới: sổ riêng giữ nguyên. Xoá tài khoản: CF `deleteAccount` xoá sạch. *Lý do:* Lead chốt; cũng là cách duy nhất để 52 cặp đang chờ dùng sổ mà không phải di trú dữ liệu khi người ấy vào.
 
-- **D3 — Sổ một người cho cặp đang chờ** *(PO tự chốt)*: cặp `waiting_partner` thấy màn đầy đủ trừ "ai trả / cách chia / cân bằng" (chỉ có mình). Mọi khoản là `memberUids: [mình]`. Khi người ấy vào, khoản cũ **vẫn là của mình**; khoản mới mặc định vào sổ chung. Một dòng giải thích ở đầu sổ: "Người ấy vào rồi thì khoản mới sẽ ghi vào sổ chung. Khoản đã ghi vẫn chỉ mình thấy." *Lý do:* không bất ngờ công khai lịch sử chi tiêu của một người. Chuyển hàng loạt sang sổ chung để Phase 2.
+- **D3 — Sổ chung: quyền xem theo `memberUids` chụp lúc tạo.** Mọi doc sổ chung mang `memberUids` = `couple.memberIds` tại thời điểm tạo (đúng 2 người, đúng thứ tự). Đọc khi là thành viên **và** có tên trong `memberUids`. *Lý do:* người ấy rời, người mới ghép vào cùng `coupleId` không đọc được tiền của cặp cũ, rules chặn chứ không chỉ UI giấu. Hệ quả: truy vấn sổ chung luôn có `where('memberUids', isEqualTo: couple.memberIds)` (đủ để rules chứng minh và lọc luôn khoản với người cũ).
 
-- **D4 — Cả hai sửa và xoá được mọi khoản chung; khoản riêng chỉ chủ.** Mỗi lần sửa ghi `updatedBy`, `updatedAt`, `editCount + 1`; dòng khoản hiện "Em sửa · 21:02". Xoá là xoá cứng, có snackbar "Hoàn tác" 5 giây (client chờ 5 giây rồi mới gửi lệnh xoá). Không lưu lịch sử từng lần sửa ở Phase 1. *Lý do:* sổ chung giấy cũng ai cầm bút thì sửa; người ghi nhầm "480k" thành "48k" thường là người kia phát hiện. Ghi "ai sửa" đủ chống "sao tự nhiên đổi". Lịch sử đầy đủ cần subcollection + UI riêng, để Phase 2 nếu có phàn nàn.
+- **D4 — Rời couple, xoá tài khoản** (user chốt 2026-10-20: "người ở lại giữ sổ chung"):
+  - Người ấy rời: sổ chung **giữ nguyên trong DB**, người ở lại vẫn đọc được. Mốc A: UI chỉ hiện doc có `memberUids` khớp couple hiện tại, nên sổ chung trông trống sau khi người ấy rời; mốc C thêm "Sổ cũ". Sổ riêng của cả hai không đổi.
+  - Người mới ghép vào couple của người ở lại: không đọc được gì của cặp cũ (D3), bắt đầu sổ chung mới.
+  - Xoá tài khoản: `deleteAccount` `recursiveDelete` 7 collection sổ riêng của người đó (D6). Khoản chung giữ cho người ở lại.
+  - Couple bị xoá hẳn (`deleteCoupleCompletely`): `recursiveDelete` 7 collection sổ chung (thêm vào danh sách tường minh cạnh `decisions`, `sleep`).
+  - `notifyPartnerLeft` **không** xoá gì của feature này.
 
-- **D5 — Mô hình dữ liệu:**
+- **D5 — Cặp đang chờ thấy đúng một sổ.** Tab "Chung" ẩn, thay bằng một thẻ nhỏ cuối sổ: "Khi người ấy vào, chúng mình sẽ có thêm sổ chung: ai trả, chia đôi, quỹ đi chơi." (một dòng, không che sổ). *Lý do:* sổ riêng phải dùng trọn vẹn một mình; thẻ nhỏ nhắc thêm một lý do để mời người ấy mà không biến sổ thành quảng cáo mời.
+
+- **D6 — Mô hình dữ liệu.** `{book}` = `users/{uid}` (riêng) hoặc `couples/{coupleId}` (chung). Khoá đánh dấu **[chung]** chỉ có ở sổ chung.
 
 ```
-couples/{coupleId}/expenses/{autoId}
-  type: 'expense' | 'fund_in' | 'settle'
-  amount: int               // VND, 1..1_000_000_000
-  currency?: 'VND'          // optional, để dành đa tiền tệ; thiếu = VND
-  date: 'YYYY-MM-DD'        // ngày phát sinh, người dùng chọn (mặc định hôm nay theo máy)
-  categoryId: string ≤24    // expense: 'food'|'date'|'transport'|'home'|'shopping'|'gift'|'travel'|'other' hoặc 'c_<id>' tự thêm; fund_in/settle: ''
-  note: string ≤100         // có thể rỗng
-  payer: uid | 'fund'       // ai bỏ tiền; 'fund' chỉ với expense
-  fundId: string ≤40        // bắt buộc khi payer=='fund' hoặc type=='fund_in'; còn lại ''
-  splitMode: 'equal'|'treat'|'for_partner'|'custom'|'solo'
-  payerShare: int           // phần người trả tự chịu, 0..amount. Người kia "nợ" amount - payerShare
-  memberUids: list<uid>     // 1 hoặc 2 phần tử, chụp lúc tạo (D2). BẤT BIẾN
-  shared: bool              // == (memberUids.size() == 2). BẤT BIẾN — dùng cho aggregate sum ở CF
-  createdBy: uid            createdAt: == request.time     // BẤT BIẾN
-  updatedBy?: uid           updatedAt?: == request.time     editCount?: int
-  source?: 'manual'|'decision'                              // optional, chỉ để thống kê
+{book}/moneyWallets/{autoId}
+  name: string 1..30              // "Techcombank", "MoMo", "Quỹ Đà Lạt"
+  type: 'cash'|'bank'|'ewallet'|'credit'|'goal'
+  emoji: string ≤8                color: string ≤12 (id màu trong bảng Designer)
+  currency?: 'VND'                // optional, thiếu = VND (để dành đa tiền tệ)
+  openingBalance: int             // -10_000_000_000..100_000_000_000 (thẻ tín dụng có thể âm)
+  includeInTotal: bool            archived: bool       order: int
+  goalTarget?: int 1..100_000_000_000   goalDeadline?: 'YYYY-MM-DD'   // chỉ type goal
+  goalReachedAt?: timestamp       // CHỈ CF ghi (sổ chung) / client ghi (sổ riêng)
+  memberUids [chung]: list<uid>   // bất biến
+  createdBy: uid  createdAt: == request.time   // bất biến
+  updatedAt?: == request.time
 
-couples/{coupleId}/expenseFunds/{autoId}
-  name: string 1..40   emoji: string ≤8   target: int 0..10_000_000_000 (0 = không đặt)
-  memberUids: list<uid> (như D2, bất biến)   status: 'open' | 'closed'
-  createdBy, createdAt (bất biến)   updatedAt?
-  reached100At?: timestamp          // CHỈ CF ghi (D10)
+{book}/moneyTx/{autoId | 'rec_<recId>_<YYYY-MM-DD>'}
+  type: 'expense'|'income'|'transfer'|'adjust'|'contribution'|'settle'
+  amount: int 1..10_000_000_000   // luôn dương; hướng tiền nằm ở 2 khoá dưới
+  outWalletId: string ≤40         // ví bị trừ; '' nếu không trừ ví nào trong sổ này
+  inWalletId: string ≤40          // ví được cộng; '' nếu không
+  date: 'YYYY-MM-DD'              // ngày phát sinh, người dùng chọn
+  categoryId: string ≤40          // expense/income; còn lại ''
+  note: string ≤200
+  linkId?: string ≤40             // nối 2 doc ở 2 sổ (D11); bất biến
+  recurringId?: string ≤40        // doc do khoản định kỳ sinh ra (mốc B)
+  source?: 'manual'|'decision'|'recurring'
+  payer [chung]: uid | 'wallet'   // 'wallet' = trả từ ví chung, không tạo nợ
+  splitMode [chung]: 'equal'|'treat'|'for_partner'|'custom'|'none'
+  payerShare [chung]: int 0..amount   // phần người trả tự chịu
+  memberUids [chung]: list<uid>   // bất biến
+  createdBy: uid  createdAt: == request.time    // bất biến
+  updatedBy?: uid  updatedAt?: == request.time  editCount?: int
 
-couples/{coupleId}/expenseMeta/main
-  monthlyBudget?: int 0..10_000_000_000   // 0 hoặc thiếu = chưa đặt; áp cho mọi tháng tới khi đổi
-  categories?: list<map{id, name ≤20, emoji ≤8}>  // ≤20 mục tự thêm
-  budgetAlerted?: map<'YYYY-MM', 80|100>  // CHỈ CF ghi
+{book}/moneyBudgets/{autoId}
+  categoryId: string ≤40          // '' = ngân sách tổng
+  amount: int 1..10_000_000_000   // mỗi tháng, áp tới khi sửa/xoá
+  createdBy, createdAt, updatedAt?
+  alerted [chung]?: map<'YYYY-MM', 80|100>   // CHỈ CF ghi
+
+{book}/moneyMeta/main
+  customCategories?: list<map{id, kind: expense|income, parentId ('' = cấp 1), name ≤24, emoji ≤8}>  // ≤80
+  overrides?: map<categoryId, map{name ≤24, emoji ≤8}>   // sửa tên/icon danh mục mặc định
+  hiddenCategoryIds?: list<string>  // ≤120
+  defaultWalletId?: string ≤40     // nhắc tối KHÔNG lưu ở đây — lưu Hive (D18)
   updatedAt?
+
+// Mốc B
+{book}/moneyRecurring/{autoId}    // khoản định kỳ: mẫu giao dịch + lịch
+  template: map (type, amount, outWalletId, inWalletId, categoryId, note, payer/splitMode/payerShare [chung])
+  freq: 'daily'|'weekly'|'monthly'|'yearly'   interval: int 1..12   dayOfMonth?: 1..31
+  startDate, endDate?: 'YYYY-MM-DD'   nextDate: 'YYYY-MM-DD'
+  mode: 'auto'|'remind'           // tự sinh giao dịch hay chỉ nhắc
+  remindDaysBefore: 0..7          paused: bool
+  memberUids [chung], createdBy, createdAt, updatedAt?
+users/{uid}/moneyDebts/{autoId}   // CHỈ sổ riêng (D14)
+  direction: 'lend'|'borrow'   person: string 1..40   amount: int 1..10_000_000_000
+  paid: int 0..amount   dueDate?: 'YYYY-MM-DD'   note ≤200   status: 'open'|'closed'
+  createdAt, updatedAt?
 ```
 
-  Quy ước tính (Dev viết hàm thuần `ExpenseMath` có test):
-  - **Tổng chi tháng (sổ chung)** = Σ `amount` của `type=='expense' && shared` trong tháng, kể cả khoản chi từ quỹ. **Sổ của mình** = Σ khoản `expense` không shared.
-  - **Cân bằng** = với mọi dòng shared có `payer` là một người (expense hoặc settle): người kia nợ người trả `amount - payerShare`. Cộng dồn từ đầu (không reset theo tháng). `fund_in` và khoản `payer=='fund'` không tạo nợ.
-  - **Đã thanh toán** = tạo dòng `settle`, `payer` = người đang nợ, `payerShare = 0`, `amount` = số đang lệch (sửa được nếu trả một phần). Dòng settle không vào tổng chi.
-  - **Số dư quỹ** = Σ `fund_in` − Σ `expense` có `payer=='fund'`, cùng `fundId`. Góp của mỗi người = Σ `fund_in` theo `payer` (không theo `createdBy`: em có thể ghi hộ "anh góp 1 triệu").
-  - Chia đôi số lẻ: `payerShare = ceil(amount / 2)` (người trả chịu phần lẻ 1đ — không ai thấy lệch).
-  *Lý do:* `payerShare` một số nguyên đủ biểu diễn cả 4 cách chia và để rules kiểm được (`0 <= payerShare <= amount`); map phần chia theo uid khó kiểm ở rules.
+  *Lý do chọn `outWalletId`/`inWalletId` thay vì số có dấu:* số dư ví = `openingBalance + Σ amount (inWalletId == ví) − Σ amount (outWalletId == ví)`, đúng 2 truy vấn aggregate `sum()` mỗi ví, đúng cho cả chuyển ví lẫn điều chỉnh, và rules vẫn ép `amount > 0`. Chi = trừ ví, Thu = cộng ví, Chuyển = trừ ví này cộng ví kia, Điều chỉnh = một trong hai.
 
-- **D6 — Rules (chỉ ADDITIVE, 3 match mới; app 1.10.x/1.11.0 không đụng tới):**
-  - `expenses/{id}`:
-    - **read:** `isCoupleMember(coupleId) && request.auth.uid in resource.data.memberUids`.
-    - **create:** thành viên; `keys().hasOnly([...16 khoá D5])` và `hasAll([type, amount, date, categoryId, note, payer, fundId, splitMode, payerShare, memberUids, shared, createdBy, createdAt])`; `createdBy == auth.uid`; `createdAt == request.time`; `amount is int && 1 <= amount <= 1000000000`; `payerShare is int && 0 <= payerShare <= amount`; `date` khớp `^\d{4}-\d{2}-\d{2}$`; `note.size() <= 100`; `categoryId.size() <= 24`; `fundId.size() <= 40`; `currency` (dùng `data.get('currency','VND')`) `== 'VND'`; `memberUids is list && auth.uid in memberUids && (memberUids.size() == 1 || (memberUids.size() == 2 && memberUids.hasOnly(get(couple).data.memberIds)))`; `shared == (memberUids.size() == 2)`; `payer == 'fund' ? (type == 'expense' && fundId.size() > 0) : payer in memberUids`; `type == 'fund_in'` → `fundId.size() > 0 && payerShare == amount`; `type == 'settle'` → `shared && payerShare == 0 && payer != 'fund'`; `splitMode in [...]`.
-    - **update:** `auth.uid in resource.data.memberUids` và còn là thành viên; **bất biến** `type, memberUids, shared, createdBy, createdAt` (`diff().affectedKeys()` không chứa); `updatedBy == auth.uid`; `updatedAt == request.time`; `editCount == resource.data.get('editCount', 0) + 1`; mọi ràng buộc giá trị như create.
-    - **delete:** `auth.uid in resource.data.memberUids` và còn là thành viên.
-  - `expenseFunds/{id}`: read như trên; create `hasOnly`, `name` 1..40, `target` int 0..10 tỷ, `status == 'open'`, `createdAt == request.time`, `memberUids` như trên; update chỉ `name, emoji, target, status, updatedAt` (không chạm `reached100At`); không delete (đóng quỹ = `status: 'closed'`, giữ lịch sử). Giới hạn 5 quỹ mở chỉ ở client.
-  - `expenseMeta/{doc}`: thành viên đọc/ghi, `hasOnly([monthlyBudget, categories, budgetAlerted, updatedAt])`, mọi khoá optional đọc bằng `data.get(...)`; client **không được đổi** `budgetAlerted` (`!diff().affectedKeys().hasAny(['budgetAlerted'])`); `categories.size() <= 20`; không delete.
-  - Index composite: `expenses` (`memberUids` array-contains, `date` desc) cho sổ tháng · (`fundId`, `memberUids` array-contains) cho quỹ · (`type`, `shared`, `date`) cho aggregate ở CF.
-  *Lý do:* chặn đúng 5 thứ lead yêu cầu (số âm, số quá lớn, chuỗi dài, sửa người tạo/thời điểm tạo, giả người tạo) + chặn người ngoài cặp và người mới ghép đọc sổ cũ.
+- **D7 — Quy ước tính** (Dev viết hàm thuần `MoneyMath` có test):
+  - **Chi/thu tháng** = Σ `expense` / Σ `income` theo `date` trong tháng. `transfer`, `adjust`, `contribution`, `settle` không vào thu–chi (chỉ đổi số dư). Ví `includeInTotal == false` và ví Mục tiêu không vào "Tổng tài sản".
+  - **Còn lại** = thu − chi của tháng.
+  - **Cân bằng sổ chung** = với mọi `expense`/`settle` có `payer` là một người: người kia "đang được ứng" `amount − payerShare`. Cộng dồn từ đầu, không reset theo tháng. `payer == 'wallet'` và `contribution` không tạo nợ.
+  - **Thanh toán** = `settle`, `payer` = người ứng ít hơn (người đang phải trả lại), `payerShare = 0`, `amount` = số lệch (sửa được khi trả một phần), không trừ ví nào. Không vào chi.
+  - **Góp vào ví chung** = `contribution` ở sổ chung (`inWalletId` = ví chung, `payer` = người góp). Góp của mỗi người = Σ theo `payer` (em ghi hộ "anh góp 1 triệu" được).
+  - **Chia đôi số lẻ:** `payerShare = ceil(amount / 2)`.
+  - **Tiến độ mục tiêu** = số dư ví Mục tiêu / `goalTarget`; còn `goalDeadline` thì hiện "cần để dành ~X mỗi tháng" (như Wallet).
 
-- **D7 — Định dạng tiền và cách nhập:**
-  - Hiển thị đầy đủ: `1.250.000 ₫` (vi) / `₫1,250,000` (en) qua `NumberFormat.currency(locale, symbol: '₫', decimalDigits: 0)`.
-  - Hiển thị gọn (chip, biểu đồ, dòng cân bằng): `50k`, `1,2tr` (vi) / `50K`, `1.2M` (en). Không dùng gọn ở số tổng tháng.
-  - Ô nhập: bàn phím số, hiện ngăn cách hàng nghìn khi gõ; nút nhanh `000`; 4 chip gợi ý **50k · 100k · 200k · 500k** (chạm = điền, chạm lần nữa = cộng dồn); nhận dán/gõ tắt "50k", "1tr", "1tr2", "1.5tr", "2 triệu", "1 củ" → parser thuần `parseVndInput` có test. Ô trống hoặc 0 → nút Lưu khoá.
-  *Lý do:* người VN nói "50k", "1 củ"; ăn xong ghi phải dưới 5 giây.
+- **D8 — Ví mặc định khi tạo sổ:** sổ riêng tạo sẵn 1 ví "Tiền mặt" số dư 0 lần đầu mở; người dùng thêm ví khác trong onboarding 1 màn (chọn nhanh: Tiền mặt · Ngân hàng · MoMo · ZaloPay · Thẻ tín dụng, nhập số dư hiện tại hoặc bỏ qua). Sổ chung tạo sẵn 1 ví "Ví chung" khi couple `active` lần đầu mở tab Chung. *Lý do:* giao dịch nào cũng cần một ví; bắt người mới tạo ví trước khi ghi khoản đầu tiên làm rơi người dùng ở bước 1. Gợi ý MoMo/ZaloPay vì đó là ví người trẻ VN dùng thật; chỉ là tên + emoji, không liên kết.
 
-- **D8 — Danh mục:** 8 mặc định, id cố định, tên + emoji theo ARB: 🍜 Ăn uống `food` · 💕 Hẹn hò `date` · 🛵 Đi lại `transport` · 🏠 Nhà cửa `home` · 🛍️ Mua sắm `shopping` · 🎁 Quà `gift` · ✈️ Du lịch `travel` · 📦 Khác `other`. Tự thêm tối đa 20 danh mục chung (tên ≤20 + chọn emoji) ở `expenseMeta/main.categories`; xoá danh mục tự thêm → khoản cũ hiện "Khác" (giữ `categoryId` cũ, map không thấy thì rơi `other`). Mặc định danh mục của khoản mới = danh mục dùng gần nhất trên máy. *Lý do:* 8 nhóm khớp gợi ý lead và nhóm của Money Lover/MISA bỏ bớt (không có "lương, đầu tư, hoá đơn điện nước riêng" vì gộp vào Nhà cửa). Icon là emoji để khỏi thêm bộ icon và để danh mục tự thêm dùng chung kiểu.
+- **D9 — Danh mục 2 cấp, mặc định chung cho cả hai sổ** (id cố định, tên theo ARB; Designer được đổi emoji, Dev không tự đổi tên):
+  - **Chi:** 🍜 Ăn uống (Ăn ngoài · Đi chợ, siêu thị · Cà phê, trà sữa · Ăn vặt) · 💕 Hẹn hò (Xem phim · Đi chơi · Quà cho người ấy) · 🛵 Đi lại (Xăng xe · Gửi xe · Grab, taxi · Sửa xe) · 🏠 Nhà cửa (Tiền nhà · Điện · Nước · Internet · Đồ dùng nhà) · 📱 Hoá đơn & gói (Điện thoại · Xem phim, nghe nhạc · Phần mềm) · 🛍️ Mua sắm (Quần áo · Mỹ phẩm · Đồ điện tử) · 💊 Sức khoẻ (Thuốc · Khám bệnh · Thể thao) · 📚 Học tập (Học phí · Sách, khoá học) · 🎁 Quà & hiếu hỉ (Quà tặng · Đám cưới, đám hiếu · Lì xì) · 👨‍👩‍👧 Gia đình (Biếu bố mẹ · Thú cưng) · ✈️ Du lịch (Vé · Chỗ ở · Ăn chơi) · 📦 Khác.
+  - **Thu:** 💼 Lương · 🎉 Thưởng · 🧑‍💻 Làm thêm · 🧧 Được cho, tặng · 📈 Lãi, đầu tư · 💰 Thu khác.
+  - Mỗi sổ tự thêm (≤80), sửa tên/icon (cả mặc định, qua `overrides`), ẩn (`hiddenCategoryIds`) độc lập. Danh mục bị ẩn vẫn hiện đúng trên khoản cũ. Xoá danh mục tự thêm → khoản cũ hiện "Khác" (map không thấy id thì rơi `other`).
+  - Khoản mới mặc định danh mục dùng gần nhất trong sổ đó.
+  *Lý do:* 12 nhóm chi gọn hơn Money Lover/MISA, thêm "Hẹn hò" và "Quà cho người ấy" cho đúng app cặp đôi; bỏ "Đầu tư/Vay" vì không làm.
 
-- **D9 — Cách chia, mặc định nhớ theo máy** *(PO tự chốt)*: 4 lựa chọn — **Chia đôi** (`equal`) · **Mình mời / người ấy mời** (`treat`, người trả chịu hết) · **Trả hộ** (`for_partner`, người kia chịu hết) · **Tuỳ** (`custom`, nhập phần người trả chịu, hoặc kéo tỉ lệ 10% một nấc). Mặc định lần đầu: **Chia đôi**; sau đó nhớ lựa chọn gần nhất trên máy. Khoản `memberUids` 1 người và khoản chi từ quỹ: `solo`, ẩn phần chọn. *Lý do:* có cặp chia sòng phẳng, có cặp "anh mời" là chính; nhớ lựa chọn trước thì mỗi cặp tự dừng ở thói quen của mình mà không cần màn cài đặt. Câu chữ tránh "nợ": "Anh đang ứng nhiều hơn 340k" thay vì "Em nợ anh 340k".
+- **D10 — Nhập và hiển thị tiền:**
+  - Đầy đủ: `1.250.000 ₫` (vi) / `₫1,250,000` (en) qua `NumberFormat.currency(locale, symbol: '₫', decimalDigits: 0)`. Số âm: `−320.000 ₫`.
+  - Gọn (chip, trục biểu đồ, dòng cân bằng): `50k`, `1,2tr`, `3,5 tỷ` (vi) / `50K`, `1.2M`, `3.5B` (en). Không dùng dạng gọn ở số dư ví và tổng tháng.
+  - Ô nhập: bàn phím số, ngăn cách hàng nghìn khi gõ, nút `000`, 4 chip **50k · 100k · 200k · 500k** (chạm = điền, chạm tiếp = cộng dồn); hiểu "50k", "1tr", "1tr2", "1.5tr", "2 triệu", "1 củ", "1 tỏi" → parser thuần `parseVndInput` có test. 0, trống, sai → khoá Lưu. Vượt trần → báo ngay ở ô.
+  *Lý do:* người VN nói "50k", "1 củ"; ăn xong mà phải gõ 6 số 0 thì không ai ghi.
 
-- **D10 — Push: KHÔNG push từng khoản chi.** Chỉ 3 trường hợp, qua 1 CF `notifyExpense` (xem §5). *Lý do:* cặp ghi 3–5 khoản/ngày, push mỗi khoản là spam; người ấy thấy khoản mới khi mở sổ. Ba trường hợp được push đều là "tin" thật: có người góp tiền, quỹ đủ, tháng vượt ngân sách.
+- **D11 — Hai sổ nối nhau bằng cặp doc cùng `linkId`** (ghi bằng 1 batch):
+  - **Góp vào ví chung từ ví của mình:** sổ riêng `contribution` (`outWalletId` = ví mình) + sổ chung `contribution` (`inWalletId` = ví chung, `payer` = mình).
+  - **Trả khoản chung bằng tiền của mình:** form khoản chung có công tắc "Trừ vào ví của mình: [Techcombank ▾]" (mặc định bật khi `payer` = mình và sổ riêng có ví) → thêm doc `expense` cùng `linkId` ở sổ riêng, cùng số tiền, cùng danh mục.
+  - Sửa/xoá phía mình → app hỏi "Sửa luôn bên sổ của mình?" và ghi cả hai trong 1 batch. Người ấy sửa phía sổ chung → sổ riêng của mình **không** tự đổi (người ấy không ghi được vào sổ riêng của mình); khoản riêng hiện dấu "Khoản chung đã đổi thành 520k · Cập nhật?" để mình chạm đồng bộ.
+  *Lý do:* tiền trong sổ riêng phải khớp tài khoản thật; người ta trả lẩu bằng thẻ của mình thì thẻ của mình phải bị trừ. Không cho người ấy chạm sổ riêng (D2), nên chỉ có thể đồng bộ một chiều có xác nhận.
 
-- **D11 — Không `wakeClients`, không dòng trạng thái widget.** *Lý do:* không có lịch local hay widget nào cần đổi khi người ấy ghi khoản; widget nằm trên màn hình chính ai cũng nhìn thấy, chuyện tiền không nên lên đó (cùng lý do widget-today bỏ lời quan tâm). Đỡ tốn hạn mức đánh thức nền iOS cho 4 feature cùng đợt.
+- **D12 — Sổ chung: ai trả, cách chia** *(PO tự chốt)*: **Ai trả** = mình · người ấy · ví chung. **Cách chia** (ẩn khi trả từ ví chung): **Chia đôi** (`equal`) · **Mình mời / người ấy mời** (`treat`) · **Trả hộ** (`for_partner`, người kia chịu hết) · **Tuỳ** (`custom`, nhập phần người trả chịu, hoặc kéo tỉ lệ 10% một nấc). Lần đầu mặc định Chia đôi, sau đó nhớ lựa chọn gần nhất trên máy. Câu chữ tránh "nợ": "Anh đang ứng nhiều hơn 340k". *Lý do:* có cặp chia sòng phẳng, có cặp "anh mời" là chính; nhớ lựa chọn thì mỗi cặp tự dừng ở thói quen của mình mà không cần màn cài đặt.
 
-- **D12 — Nhắc tối, opt-in, mặc định TẮT, 21:30** (đổi giờ được), ở Cài đặt → Lời nhắc và trong màn Quỹ chung. Arm one-shot **hôm nay + ngày mai** (2 slot, dải id **1210–1211**, Lead xác nhận không trùng 4 feature cùng đợt) mỗi lần mở app; slot hôm nay huỷ ngay khi mình ghi khoản đầu tiên trong ngày (khoản do người ấy ghi không huỷ — lời nhắc hỏi chính mình). Copy xoay 3 câu. *Lý do:* mặc định tắt vì nhắc chuyện tiền mỗi tối dễ thành cằn nhằn; không dùng repeat `DateTimeComponents.time` (bẫy iOS nổ trùng — CLAUDE.md §6); 2 slot để ngày không mở app vẫn được nhắc mà chỉ tốn 2/64 slot iOS.
+- **D13 — Sửa/xoá:** sổ riêng: chủ. Sổ chung: **cả hai** sửa/xoá mọi khoản; mỗi lần sửa ghi `updatedBy`, `updatedAt`, `editCount + 1`, dòng khoản hiện "Em sửa · 21:02". Ngoại lệ: khoản chung có `linkId` chỉ người tạo sửa được số tiền và ví (người kia sửa được danh mục, ghi chú, ngày) — tránh lệch sổ riêng âm thầm. Xoá là xoá cứng, snackbar "Hoàn tác" 5 giây (client đợi 5 giây rồi mới gửi lệnh). Lịch sử từng lần sửa để mốc C. *Lý do:* sổ chung giấy cũng ai cầm bút thì sửa; người ghi nhầm "480k" thành "48k" thường là người kia phát hiện.
 
-- **D13 — Rời couple, xoá tài khoản:**
-  - Người ấy rời (còn mình): khoản chung **giữ nguyên**, mình vẫn đọc được (có tên trong `memberUids`); UI Phase 1 chỉ hiện khoản có `memberUids` khớp couple hiện tại + khoản riêng, khoản với người cũ ẩn (Phase 2: "Sổ cũ"). Cân bằng tính lại chỉ trên couple hiện tại. Người mới ghép vào không đọc được gì của cặp cũ (rules D2).
-  - CF `notifyPartnerLeft` và `handleCoupleOnAccountDeletion`: **xoá khoản riêng của người rời** (`memberUids == [leaver]`, trong `expenses` và `expenseFunds`). Khoản chung giữ cho người ở lại.
-  - Couple bị xoá hẳn (`deleteCoupleCompletely`): `recursiveDelete` `expenses`, `expenseFunds`, `expenseMeta` (thêm vào danh sách tường minh cạnh `decisions`, `sleep`).
-  *Lý do:* khoản chung là lịch sử của cả hai, người ở lại có quyền giữ; khoản riêng của người rời thì không ai khác được thấy và người rời không còn tự xoá được (tiền lệ `sleep`).
+- **D14 — Sổ nợ chỉ ở sổ riêng (mốc B).** Cho vay/đi vay với người ngoài: tên người (chỉ chữ, không đọc danh bạ), số tiền, đã trả, hạn, ghi chú. Ghi trả nợ có thể kèm giao dịch vào ví (chọn ví, danh mục hệ thống "Cho vay / Thu nợ / Đi vay / Trả nợ", không vào thu–chi). Chuyện "ai đang ứng" giữa hai người vẫn là cân bằng sổ chung (D7), không nằm ở sổ nợ. *Lý do:* nợ với bạn bè là việc của từng người; hai sổ nợ cho hai người trong cặp sẽ trùng với cân bằng.
 
-- **D14 — Nối decision-wheel:** sheet kết quả kind `eat` và `go` thêm nút phụ **"Ghi chi"** → mở form thêm khoản với danh mục `food` (eat) / `date` (go), ghi chú = `result`, ngày = hôm nay, `source: 'decision'`. Kind `custom` không có nút. *Lý do:* "ăn xong là ghi" có sẵn điểm chạm ngay tại chỗ hai người vừa chốt món.
+- **D15 — Khoản định kỳ (mốc B).** Hai chế độ: **Tự ghi** (đến ngày, app tạo giao dịch — hợp lương, tiền nhà) và **Chỉ nhắc** (hợp tiền điện, số tiền đổi mỗi tháng; chạm thông báo mở form điền sẵn). Sinh giao dịch ở client lúc mở app, cho mọi kỳ đã tới hạn từ `nextDate` tới hôm nay, id `rec_<recId>_<date>` qua transaction `get` rồi `set` ⇒ hai máy cùng sinh không bị trùng. Nhắc local: mỗi khoản 1 lịch cho kỳ gần nhất trong 14 ngày tới, dải id **1212–1219** (tối đa 8 slot; quá 8 khoản thì chỉ arm 8 kỳ gần nhất). Ngày 31 ở tháng ngắn → ngày cuối tháng. *Lý do:* không có cron server cho từng user (đỡ CF chạy định kỳ tốn tiền); app tắt cả tháng thì lần mở sau bù đủ; iOS 64 thông báo → trần 8.
 
-- **D15 — Offline:** dùng cache + hàng đợi ghi sẵn của Firestore. Ghi khi mất mạng vẫn lưu và hiện ngay trong sổ với dấu "đang chờ mạng" (`metadata.hasPendingWrites`); có mạng tự gửi. Không cần transaction ở đâu cả (autoId, cân bằng tính ở client). *Lý do:* ghi chi tiêu hay xảy ra ở quán có sóng yếu; khác decision-wheel (D19 bên đó) vì ở đây không có push nào phụ thuộc lúc ghi, và hai máy ghi cùng lúc tạo hai doc khác nhau, không đè nhau. Rủi ro duy nhất: ghi offline rồi người ấy rời couple trước khi có mạng → rules từ chối, client hiện "Không lưu được khoản này" (Dev bắt lỗi ở listener ghi).
+- **D16 — Khoá Face ID / vân tay (mốc B), tắt sẵn, miễn phí.** Bật ở cài đặt Sổ tiền; mỗi lần vào Sổ tiền sau khi app ra nền >1 phút phải mở khoá; thất bại thì dùng mật khẩu máy. Cần package `local_auth` mới; Android phải đổi `MainActivity : FlutterActivity()` sang `FlutterFragmentActivity` — Dev spike trước vì `MainActivity.kt` đang giữ kênh widget, sleep, clipboard. *Lý do:* sổ tiền riêng nằm trong app mà người ấy hay cầm máy của nhau; Money Lover, MISA đều có. Ghi chú: `strategy.md` liệt app-lock là ứng viên premium — khoá **riêng Sổ tiền** vẫn miễn phí; khoá cả app vẫn để dành cho premium.
 
-- **D16 — Điểm vào UI (đề xuất, Designer chốt chung cả đợt):**
-  - **Màn `ExpensesScreen`** (màn con, chip "QUỸ CHUNG" / "OUR MONEY"): đầu màn thẻ tháng (tổng chi, ngân sách còn lại, so tháng trước) · dải cân bằng (ẩn khi lệch 0 hoặc chưa ghép) · hàng quỹ đang mở (cuộn ngang) · danh sách theo ngày · nút thêm nổi.
-  - **Lối vào chính:** một dòng/ô gọn ở Home (Designer gộp chung với lối vào các feature cùng đợt, vì Home đã dày). Nội dung đề xuất: "Hôm nay chúng mình chi 600k" hoặc, chưa có khoản: "+ Ghi khoản chi". Không hiện số dư quỹ hay cân bằng ở Home.
-  - **Lối phụ:** tile ở Profile (dưới nhóm "Quan tâm") · nút "Ghi chi" ở sheet decision-wheel (D14) · tap push/inbox `expense_*`.
-  - Màn con khác: form thêm/sửa khoản (sheet cao hoặc màn), chi tiết quỹ, tạo quỹ, báo cáo tháng (có thể là phần dưới của màn chính), cài đặt sổ (ngân sách, danh mục, nhắc).
-  *Lý do:* thói quen "ăn xong ghi" cần lối vào ≤1 chạm từ Home; báo cáo thì không cần nằm ở Home.
+- **D17 — Push: KHÔNG push từng khoản, chỉ sổ chung, không số tiền trên màn khoá.** Qua 1 CF `notifyMoney` (§5): có người góp vào ví Mục tiêu chung · ví Mục tiêu chung đạt 100% · tổng chi chung tháng vượt 80% rồi 100% ngân sách tổng. Sổ riêng không có push (cảnh báo ngân sách hiện trong app lúc mình ghi). Không `wakeClients`, không trạng thái widget. *Lý do:* 3–5 khoản/ngày mà push thì là spam; ba trường hợp trên mới là tin. Lead chốt: push chỉ hiện %, không hiện số tiền. Widget nằm trên màn hình chính ai cũng thấy, chuyện tiền không lên đó.
 
-- **D17 — Trạng thái phải thiết kế:** sổ rỗng lần đầu (giải thích 1 câu + nút ghi khoản đầu tiên) · tháng không có khoản · đang chờ người ấy (D3) · offline/đang chờ mạng (D15) · lỗi ghi bị từ chối · ngân sách chưa đặt / 80% / 100% / vượt · quỹ chưa có mục tiêu / đạt 100% / âm (chi quá số đã góp: cho phép, hiện "Quỹ đang thiếu 200k") · khoản người ấy cũ (ẩn) · khoản riêng (dấu ổ khoá "Chỉ mình thấy").
+- **D18 — Nhắc tối, opt-in, mặc định TẮT, 21:30** (đổi giờ được; lưu Hive như các lời nhắc local khác). Arm one-shot **hôm nay + ngày mai** (dải **1210–1211**) mỗi lần mở app; slot hôm nay huỷ khi mình ghi khoản đầu tiên trong ngày ở bất kỳ sổ nào. Copy xoay 3 câu: "Hôm nay có khoản nào chưa ghi không?" · "Ghi nốt chi tiêu hôm nay, mất chưa tới một phút" · "Tối rồi, xem hôm nay mình tiêu bao nhiêu nhé". *Lý do:* nhắc tiền mỗi tối dễ thành cằn nhằn nên để người dùng tự bật; không dùng repeat `DateTimeComponents.time` (bẫy iOS — CLAUDE.md §6); 2 slot để ngày không mở app vẫn được nhắc.
 
-- **D18 — Analytics** (qua `AnalyticsService`, không gửi số tiền, ghi chú, tên quỹ, tên danh mục tự thêm):
-  - `expense_add{type: expense|fund_in|settle, category: <id mặc định>|custom|none, payer: me|partner|fund, split: equal|treat|for_partner|custom|solo, private: bool, via: manual|chip|decision, has_note: bool}`
-  - `expense_edit{field_count}` · `expense_delete{undone: bool}` · `expense_settle_open` · `fund_create{has_target: bool}` · `fund_close{reached: bool}` · `budget_set{action: set|clear}` · `expense_report_open{month_offset}` · `expense_reminder_toggle{on: bool}` · `expense_screen_open{from: home|profile|decision|push|inbox}`.
+- **D19 — Báo cáo, tìm kiếm — cách lấy dữ liệu:**
+  - Tháng đang xem: listener `moneyTx` theo `date` trong tháng (sổ chung thêm `memberUids ==`). Báo cáo tháng, ngân sách, danh sách đều từ tập này.
+  - Số dư ví: 2 aggregate `sum()` mỗi ví, làm lại khi có thay đổi trên listener; cache Hive để mở app hiện ngay. Offline: hiện số đã cache + cộng/trừ các khoản đang chờ gửi.
+  - Xu hướng 6/12 tháng: aggregate `sum()` theo tháng × (chi, thu); tháng đã qua cache, chỉ làm lại tháng vừa có khoản sửa.
+  - Tìm kiếm: lọc ngày/danh mục/ví ở truy vấn; khoảng tiền + chữ trong ghi chú lọc ở client trên khoảng ngày đã chọn (mặc định 3 tháng, tối đa 12, ≤2.000 dòng) — Firestore không tìm theo chữ. Chữ so không dấu, không phân biệt hoa thường ("bun cha" ra "Bún chả").
+  *Lý do:* rẻ (aggregate tính 1 lượt đọc / 1.000 doc), không cần CF giữ số tổng, không cần dịch vụ tìm kiếm ngoài.
 
-- **D19 — Mixed version:** app 1.10.x/1.11.0 không biết collection mới, không bị ảnh hưởng. Push/inbox `expense_fund` · `expense_fund_reached` · `expense_budget` tới máy bản cũ: tap rơi về Home (default), inbox type lạ — Dev kiểm cách render type lạ như D13 decision-wheel. Rules chỉ thêm match mới.
+- **D20 — Nối decision-wheel:** sheet kết quả kind `eat` / `go` thêm nút phụ **"Ghi chi"** → form chi, danh mục Ăn ngoài (eat) / Đi chơi (go), ghi chú = `result`, ngày hôm nay, `source: 'decision'`; cặp `active` mặc định vào sổ chung, cặp đang chờ vào sổ riêng.
 
-- **D20 — Không dùng AI, không liên kết ngân hàng, không OCR hoá đơn.** *Lý do:* luật đợt (không AI trả phí); liên kết ngân hàng cần đối tác + rủi ro bảo mật lớn hơn giá trị cho cặp chưa cưới.
+- **D21 — Offline:** cache + hàng đợi ghi sẵn của Firestore. Khoản ghi lúc mất mạng hiện ngay kèm dấu "đang chờ mạng" (`hasPendingWrites`). Riêng sinh khoản định kỳ (transaction) cần mạng → để lần mở app có mạng. *Lý do:* ghi chi tiêu hay xảy ra ở quán sóng yếu; hai máy ghi cùng lúc tạo hai doc khác nhau, không đè nhau.
 
-- **D21 — Khai báo store:** dữ liệu chi tiêu là "Financial info → Other financial info" (Apple App Privacy) / "Thông tin tài chính → Thông tin tài chính khác" (Play An toàn dữ liệu) + cập nhật privacy policy `docs/`. Phải xong trước khi phát hành. *Lý do:* không khai là lý do từ chối duyệt; đây là việc ngoài code, cần user (xem §11).
+- **D22 — Xuất CSV (mốc B):** mỗi sổ một file, chọn khoảng ngày, cột: ngày · loại · số tiền · ví · danh mục · danh mục con · ghi chú · (sổ chung) người trả · cách chia · phần người trả chịu. UTF-8 có BOM để Excel đọc đúng tiếng Việt. Chia sẻ qua `share_plus` (đã có). Không lưu file lên server.
 
-## 5. Cloud Functions
+- **D23 — Ảnh hoá đơn (mốc C):** tối đa 1 ảnh/khoản, nén ≤1600px, Storage `money_receipts/{uid}/…` (riêng) và `money_receipts_couple/{coupleId}/…` (chung), rules như ảnh couple. Để mốc C vì thêm Storage rules + chi phí lưu trữ mà không làm người ta ghi nhiều hơn.
 
-**`notifyExpense`** — `onDocumentWritten` `couples/{coupleId}/expenses/{id}`, region us-central1, Node 22. Bỏ qua mọi dòng `shared == false`. Gửi qua `writeInboxNotifications` + `sendToRecipientDevices` (localize vi/en theo `languageCode`), **không `wakeClients`** (D11).
+- **D24 — Đa tiền tệ: Later.** Field `currency` đã chừa ở ví; rules mốc A ép `== 'VND'`. *Lý do:* ít cặp cần (yêu xa nước ngoài), mà làm đúng cần tỉ giá + quy đổi ở báo cáo.
+
+- **D25 — Điểm vào UI (đề xuất; Designer chốt chung cả đợt vì Home đã dày):**
+  - **Màn `MoneyScreen`** (màn con, chip theo tên chốt ở §11): đầu màn chuyển sổ **Của mình · Chung** (Chung ẩn khi đang chờ) · thẻ tháng (chi, thu, còn lại, ngân sách) · ví (cuộn ngang, có tổng tài sản) · dải cân bằng (sổ chung, ẩn khi lệch 0) · danh sách theo ngày · nút thêm nổi. Các tab con hoặc màn con: Báo cáo · Ngân sách · Ví & mục tiêu · Tìm kiếm · Cài đặt sổ (danh mục, nhắc, khoá, xuất).
+  - **Lối vào chính ở Home:** một ô gọn, không lộ số dư. Đề xuất nội dung: "Hôm nay: đã chi 600k" hoặc "+ Ghi khoản chi". Chạm ô → `MoneyScreen`; chạm "+" → form thêm luôn.
+  - **Lối phụ:** tile Profile · nút "Ghi chi" ở decision-wheel · tap push/inbox `money_*` · thông báo nhắc.
+  - Form thêm giao dịch là sheet cao hoặc màn: tab Chi · Thu · Chuyển; ô số to ở trên; danh mục lưới; ví; ngày; ghi chú; (sổ chung) ai trả + cách chia + "trừ vào ví của mình".
+
+- **D26 — Trạng thái phải thiết kế:** lần đầu mở (onboarding ví 1 màn) · sổ/tháng rỗng · đang chờ người ấy (D5) · offline / đang chờ mạng · ghi bị từ chối · ngân sách chưa đặt / 80% / 100% / vượt · ví âm (thẻ tín dụng là bình thường; ví khác hiện cảnh báo nhẹ) · mục tiêu chưa có hạn / đạt 100% · khoản riêng nối với khoản chung đã bị người ấy sửa (D11) · khoá Sổ tiền (mốc B) · khoản định kỳ chờ xác nhận (mốc B).
+
+- **D27 — Analytics** (qua `AnalyticsService`; **không** gửi số tiền, số dư, tên ví, ghi chú, tên danh mục tự thêm, tên người trong sổ nợ):
+  - `money_tx_add{book: own|shared, type, category: <id mặc định cấp 1>|custom|none, wallet_type, payer: me|partner|wallet|na, split, via: manual|chip|decision|recurring, has_note, linked: bool}`
+  - `money_tx_edit{book}` · `money_tx_delete{book, undone}` · `money_wallet_add{type, book}` · `money_goal_add{book, has_deadline}` · `money_goal_reached{book}` · `money_budget_set{book, scope: total|category}` · `money_settle{}` · `money_report_open{book, view: month|trend|wallet|person}` · `money_search{filter_count}` · `money_screen_open{from: home|profile|decision|push|inbox|reminder}` · `money_reminder_toggle{on}` · mốc B: `money_recurring_add{mode, freq}` · `money_debt_add{direction}` · `money_export{book}` · `money_lock_toggle{on}`.
+
+- **D28 — Mixed version:** app 1.10.x/1.11.0 không đọc collection mới. Push/inbox `money_goal` · `money_goal_reached` · `money_budget` tới bản cũ: tap rơi về Home, inbox type lạ — Dev kiểm cách render type lạ như D13 decision-wheel. Rules chỉ thêm match mới.
+
+- **D29 — Không AI, không liên kết ngân hàng, không đọc SMS/thông báo ngân hàng.** *Lý do:* luật đợt (không AI trả phí); đọc SMS/thông báo cần quyền nhạy cảm Play rất khó duyệt; liên kết ngân hàng cần đối tác.
+
+- **D30 — Khai báo store: user đã duyệt 2026-10-20.** Thêm "Financial info → Other financial info" (Apple App Privacy) / "Thông tin tài chính → Thông tin tài chính khác" (Play An toàn dữ liệu), mục đích "Tính năng của ứng dụng", không chia sẻ bên thứ ba; sửa privacy policy `docs/` (dữ liệu tiền lưu ở Firebase, sổ riêng chỉ chủ đọc, sổ chung hai người đọc, xoá khi xoá tài khoản). Làm trước khi gửi duyệt mốc A.
+
+## 5. Rules (chỉ ADDITIVE) + Cloud Functions
+
+**Rules — match mới, không đụng match cũ:**
+- **Sổ riêng** `users/{uid}/{coll}/{id}` với `coll in ['moneyWallets','moneyTx','moneyBudgets','moneyMeta','moneyRecurring','moneyDebts']`: đọc/ghi khi `request.auth.uid == uid` (viết thành 6 match riêng cho rõ). Kiểm giá trị như sổ chung, bỏ các khoá **[chung]**. Ví/khoản riêng KHÔNG có `memberUids`, `payer`, `splitMode`, `payerShare` (`hasOnly` chặn).
+- **Sổ chung** `couples/{coupleId}/{coll}/{id}` với `coll in ['moneyWallets','moneyTx','moneyBudgets','moneyMeta','moneyRecurring']`:
+  - **read:** `isCoupleMember(coupleId) && request.auth.uid in resource.data.memberUids` (`moneyMeta`, `moneyBudgets`: chỉ cần `isCoupleMember` — chỉ là tên danh mục và hạn mức).
+  - **create:** `hasOnly` đúng bộ khoá D6 + `hasAll` khoá bắt buộc; `createdBy == auth.uid`; `createdAt == request.time`; `memberUids == get(/couples/$(coupleId)).data.memberIds && memberUids.size() == 2`.
+  - **update:** người gọi là thành viên + có tên trong `memberUids`; bất biến `type, memberUids, createdBy, createdAt, linkId` (`!diff().affectedKeys().hasAny([...])`); `updatedBy == auth.uid`; `updatedAt == request.time`; `editCount == resource.data.get('editCount', 0) + 1`; doc có `linkId` mà người gọi ≠ `createdBy` thì không được đổi `amount, outWalletId, inWalletId, payer, payerShare, splitMode` (D13); client không ghi `alerted` (budget), không ghi `goalReachedAt` (ví chung).
+  - **delete:** thành viên + có tên trong `memberUids`; doc có `linkId` chỉ `createdBy` xoá. Ví: không delete, chỉ `archived: true` (giữ lịch sử giao dịch).
+- **Ràng buộc giá trị (cả hai sổ):** `amount is int && 1 <= amount <= 10000000000` (10 tỷ — đủ cho lương, tiền đặt cọc nhà; xem §11 nếu cần cao hơn) · `openingBalance is int && -10000000000 <= x <= 100000000000` · `goalTarget` 1..100 tỷ · budget `amount` 1..10 tỷ · `payerShare is int && 0 <= payerShare <= amount` · `date`, `goalDeadline` khớp `^\d{4}-\d{2}-\d{2}$` · `name` 1..30 · `note` ≤200 · id chuỗi ≤40 · emoji ≤8 · `type`/`splitMode`/wallet `type` trong danh sách · `data.get('currency','VND') == 'VND'` · `expense` cần `outWalletId != ''` hoặc (sổ chung) `payer` là người · `income` cần `inWalletId != ''` · `transfer` cần cả hai và khác nhau · `adjust` đúng một trong hai · `settle` chỉ sổ chung, `payerShare == 0`, không ví · `payer == 'wallet'` cần `outWalletId != ''` · `customCategories.size() <= 80` · `hiddenCategoryIds.size() <= 120` · `moneyDebts.paid <= amount`.
+- **Index composite:** `moneyTx` (`memberUids` ==, `date` desc) · (`memberUids` ==, `outWalletId`) · (`memberUids` ==, `inWalletId`) · (`memberUids` ==, `type`, `date`) — sổ riêng dùng index đơn mặc định cho `date`; (`outWalletId`/`inWalletId`) đơn cũng đủ.
+
+**`notifyMoney`** — `onDocumentWritten` `couples/{coupleId}/moneyTx/{id}`, us-central1, Node 22. Gửi qua `writeInboxNotifications` + `sendToRecipientDevices` (vi/en theo `languageCode`), **không `wakeClients`**, **không số tiền**.
 
 | Trường hợp | Gửi cho | vi | en | Inbox |
 |---|---|---|---|---|
-| Create `fund_in` | người không phải `createdBy` | Tiêu đề `{fundEmoji} {fundName}` · thân `{name} vừa góp vào quỹ, giờ được {percent}%` (không có mục tiêu: `{name} vừa góp thêm vào quỹ`) | `{fundEmoji} {fundName}` · `{name} just chipped in, the fund is at {percent}%` (no target: `{name} just added to the fund`) | `type: 'expense_fund'` `{fundId, actorName}` |
-| Quỹ vừa đạt 100% mục tiêu (lần đầu: `reached100At` chưa có → CF ghi) | cả hai | `{fundEmoji} {fundName} đủ rồi!` · `Chúng mình góp đủ mục tiêu rồi. Lên lịch đi thôi.` | `{fundEmoji} {fundName} is full!` · `We hit the goal together. Time to plan it.` | `type: 'expense_fund_reached'` `{fundId}` |
-| Tổng chi chung tháng `date` vượt 80% rồi 100% `monthlyBudget` (CF tính bằng aggregate `sum('amount')` trên `type=='expense' && shared && date trong tháng`; so `budgetAlerted[YYYY-MM]`, mỗi mốc 1 lần/tháng) | người **không** phải `updatedBy ?? createdBy` của dòng làm vượt | 80%: `Tháng này chúng mình đã tiêu 80% ngân sách` · `Còn {remaining} cho tới cuối tháng.` — 100%: `Tháng này mình tiêu hết ngân sách rồi` · `Đã chi {spent} trên {budget}. Chậm lại chút nhé.` | 80%: `We've used 80% of this month's budget` · `{remaining} left until the month ends.` — 100%: `We've used up this month's budget` · `{spent} of {budget} spent. Let's slow down a little.` | `type: 'expense_budget'` `{month, level}` |
+| Create `contribution` vào ví `goal` | người không phải `payer` | `{emoji} {walletName}` · `{name} vừa góp vào quỹ, giờ được {percent}%` | `{emoji} {walletName}` · `{name} just chipped in, the fund is at {percent}%` | `money_goal` `{walletId, actorName}` |
+| Ví `goal` vừa chạm 100% (CF ghi `goalReachedAt` lần đầu) | cả hai | `{emoji} {walletName} đủ rồi!` · `Chúng mình góp đủ mục tiêu rồi. Lên lịch đi thôi.` | `{emoji} {walletName} is full!` · `We hit the goal together. Time to plan it.` | `money_goal_reached` `{walletId}` |
+| Tổng chi chung tháng vượt 80% / 100% ngân sách tổng (aggregate `sum('amount')` trên `type == 'expense'`, `memberUids == couple.memberIds`, `date` trong tháng; mỗi mốc 1 lần/tháng qua `alerted`) | người không phải `updatedBy ?? createdBy` | 80%: `Tháng này chúng mình đã tiêu 80% ngân sách` · `Mở sổ chung xem còn lại bao nhiêu nhé.` — 100%: `Tháng này chúng mình tiêu hết ngân sách rồi` · `Chậm lại chút nhé, còn {daysLeft} ngày nữa mới sang tháng.` | 80%: `We've used 80% of this month's budget` · `Open our shared book to see what's left.` — 100%: `We've used up this month's budget` · `Let's slow down a little. {daysLeft} days to go this month.` | `money_budget` `{month, level}` |
 
-- Số tiền trong push ngân sách (`{remaining}`, `{spent}`, `{budget}`) dùng dạng gọn ("1,2tr" / "1.2M"). *(PO tự chốt; user lật được: bỏ hẳn số tiền khỏi push vì hiện trên màn khoá — §11 câu 2.)* Push góp quỹ chỉ có %, không có số tiền.
-- Tần suất ước lượng mỗi cặp: góp quỹ 2–8 lần/tháng · đạt mục tiêu ≤1 lần/quỹ · ngân sách ≤2 lần/tháng. Tổng < 0,5 push/ngày, không cần cooldown riêng. Không push khi sửa/xoá (trừ khi sửa làm vượt mốc ngân sách).
-- Chi phí: mỗi lần ghi khoản `expense` shared có ngân sách → 1 aggregate (1 lượt đọc / 1000 doc) + 1 đọc `expenseMeta/main`. Khoản không có ngân sách: 1 đọc meta rồi dừng.
-- Tap push/inbox → mở `ExpensesScreen` (`expense_fund*` thêm `focusFundId`); Dev thêm nhánh ở cả `push_notification_service._handleNotificationTap` lẫn `AppNotification` (2 chỗ map phải khớp — CLAUDE.md §6).
-- Chưa có pref tắt riêng (như `care_message`); nếu Phase 2 thêm thì đi qua `PUSH_TYPE_PREF_FIELD`.
-- Sửa thêm 3 hàm có sẵn theo D13: `notifyPartnerLeft`, `handleCoupleOnAccountDeletion`, `deleteCoupleCompletely`.
-- PROD deploy đích danh khi phát hành: `firestore:rules,firestore:indexes,functions:notifyExpense,functions:notifyPartnerLeft,functions:deleteAccount,functions:leaveCoupleCleanup` — **chờ lệnh user**. Rules PROD phải lên trước khi bản có feature live.
+- Tần suất ước lượng mỗi cặp: góp quỹ 2–8 lần/tháng · đạt mục tiêu ≤1 lần/quỹ · ngân sách ≤2 lần/tháng ⇒ < 0,5 push/ngày. Không cooldown riêng. Sửa/xoá không push (trừ khi sửa làm vượt mốc ngân sách). Ngân sách theo danh mục chỉ cảnh báo trong app.
+- Chi phí: khoản `expense` chung khi có ngân sách tổng → 1 đọc budget + 1 aggregate. Không có ngân sách → 1 đọc rồi dừng.
+- Tap push/inbox → `MoneyScreen` sổ chung (`money_goal*` kèm `focusWalletId`); thêm nhánh ở cả `push_notification_service._handleNotificationTap` lẫn `AppNotification.targetHomeTab` (2 chỗ phải khớp — CLAUDE.md §6).
+- **Sửa 2 hàm dọn có sẵn:** `deleteAccount` (`recursiveDelete` 6 collection sổ riêng của uid) · `deleteCoupleCompletely` (`recursiveDelete` 5 collection sổ chung). `notifyPartnerLeft` không đổi.
+- PROD deploy đích danh khi phát hành mốc A: `firestore:rules,firestore:indexes,functions:notifyMoney,functions:deleteAccount,functions:leaveCoupleCleanup` — **chờ lệnh user**; rules PROD lên trước khi bản có feature live.
 
-## 6. Acceptance criteria (xong khi…)
+## 6. Acceptance criteria — mốc A (xong khi…)
 
-Hai máy DEV: A = `test3`, B = `test4` (cặp đã ghép), C = `test1` (đang chờ).
+Máy DEV: A = `test3`, B = `test4` (cặp đã ghép), C = `test1` (đang chờ).
 
-- [ ] **Ghi nhanh:** A mở từ Home, gõ "120k" (hoặc chạm chip 100k rồi gõ thêm), chọn Ăn uống, Lưu → ≤3 chạm sau khi nhập số; khoản hiện ở sổ A ngay và ở sổ B trong ≤3 giây, B **không** nhận push.
-- [ ] **Parser:** "50k"=50.000 · "1tr"=1.000.000 · "1tr2"=1.200.000 · "1.5tr"=1.500.000 · "2 triệu"=2.000.000 · "1 củ"=1.000.000 · "abc"/"0"/"" → khoá Lưu · số > 1 tỷ → báo lỗi tại ô, không gửi. Test Dart PASS.
-- [ ] **Hiển thị tiền:** vi `1.250.000 ₫`, en `₫1,250,000`; chip gọn `50k`/`1,2tr` vi, `50K`/`1.2M` en.
-- [ ] **Chia & cân bằng:** A trả 480k chia đôi → dải cân bằng cả hai máy "Anh đang ứng nhiều hơn 240k" (đúng tên/xưng hô từng máy). B trả 70k "Trả hộ" → lệch còn 170k. A "Mình mời" 200k → lệch không đổi. Tuỳ: A trả 300k, A chịu 100k → B lệch thêm 200k. Số lẻ 75.001 chia đôi → người trả chịu 37.501.
-- [ ] **Thanh toán:** B bấm "Đánh dấu đã thanh toán" → dòng settle 170k + lệch về 0 ở cả hai; settle không vào tổng chi tháng. Trả một phần (100k) → còn 70k.
-- [ ] **Sửa/xoá:** B sửa số tiền khoản A ghi → A thấy số mới + "Em sửa · hh:mm" ≤3 giây. A xoá rồi "Hoàn tác" trong 5 giây → không có lệnh xoá nào lên Firestore. A xoá, chờ 5 giây → biến mất cả hai máy.
-- [ ] **Khoản riêng:** A bật "Chỉ mình thấy" ghi 90k → B không thấy (kể cả thử đọc thẳng doc bằng rules test); không vào tổng chung, không vào cân bằng; nằm ở phần "Của mình".
-- [ ] **Sổ tháng:** seed 60 khoản 2 tháng → tổng tháng, % theo danh mục, theo người trả, chênh so tháng trước (+/− %) đúng với `ExpenseMath` test; lùi tháng xem được; tháng rỗng có empty-state.
-- [ ] **Ngân sách:** đặt 5 triệu; ghi tới 4,1 triệu → cả hai thấy cảnh báo 80% trong app; người không ghi khoản đó nhận push 80% đúng 1 lần (ghi tiếp không lặp); vượt 5 triệu → push 100% đúng 1 lần; sang tháng mới → mốc reset. Client sửa `budgetAlerted` → rules từ chối.
-- [ ] **Quỹ:** tạo "Quỹ Đà Lạt" 🏔️ mục tiêu 5 triệu; A góp 2 triệu → B nhận push "Anh vừa góp vào quỹ, giờ được 40%" + inbox (không có số tiền); B góp 3 triệu → cả hai nhận push "đủ rồi" đúng 1 lần; chi 1,2 triệu từ quỹ (payer = quỹ) → số dư 3,8 triệu, khoản đó vào tổng chi tháng, không vào cân bằng. Tạo quỹ thứ 6 khi đã có 5 quỹ mở → client chặn. Đóng quỹ → ẩn khỏi hàng quỹ, vẫn xem được trong "Quỹ đã đóng".
-- [ ] **Cặp đang chờ (C):** dùng được sổ, không thấy ai trả/cách chia/cân bằng, có dòng giải thích D3. Ghép đôi C với tài khoản mới → khoản cũ vẫn chỉ C thấy, khoản mới vào sổ chung.
-- [ ] **Rời couple:** B rời → A vẫn đọc khoản chung cũ ở DB, UI ẩn (D13); khoản riêng của B bị CF xoá; người mới ghép vào couple của A đọc thẳng doc cũ → `permission-denied`. Xoá tài khoản người cuối → `expenses`, `expenseFunds`, `expenseMeta` bị xoá hết.
-- [ ] **Offline:** tắt mạng, ghi 2 khoản → hiện ngay với dấu chờ mạng; bật mạng → lên máy kia, dấu biến mất.
-- [ ] **decision-wheel:** chốt "Bún chả" → sheet có "Ghi chi" → form mở sẵn Ăn uống + ghi chú "Bún chả" + hôm nay; `expense_add.via = decision`. Kind custom không có nút.
-- [ ] **Nhắc tối:** mặc định tắt (không có id 1210/1211). Bật 21:30 → có 2 lịch (hôm nay, mai); ghi một khoản → id 1210 huỷ, 1211 còn; B ghi khoản → lịch của A không đổi; tắt → hết cả hai.
-- [ ] **Rules** `scripts/test-firebase-rules.sh` PASS, ≥30 case mới: người ngoài đọc/ghi · người mới ghép đọc doc cũ · đọc khoản riêng của người kia · amount 0 / âm / 1.000.000.001 / số thực / chuỗi · payerShare âm hoặc > amount · note 101 ký tự · categoryId 25 ký tự · date sai định dạng · `createdAt != request.time` · giả `createdBy` · `memberUids` có uid lạ / thiếu mình / 3 phần tử · `shared` không khớp · payer lạ · `payer == 'fund'` không có `fundId` · settle không shared / payerShare ≠ 0 · update đổi `type`/`memberUids`/`createdBy`/`createdAt` · `editCount` nhảy 2 · `updatedBy` giả · client ghi `reached100At` / `budgetAlerted` · xoá quỹ · `categories` 21 mục · currency 'USD' · doc thiếu `currency` vẫn tạo được.
-- [ ] **CF:** test emulator 3 trường hợp push + không push khoản thường + không push khoản riêng + mỗi mốc ngân sách 1 lần/tháng + dọn khi rời/xoá; deploy DEV có vết; PROD chưa deploy.
-- [ ] **Analytics:** DebugView có đủ event D18; grep payload không có số tiền, ghi chú, tên quỹ.
-- [ ] i18n vi + en đủ (8 danh mục, form, sổ, báo cáo, quỹ, cân bằng, nhắc, push/inbox, empty-state); `flutter analyze` 0; test Dart cho `parseVndInput`, định dạng tiền, `ExpenseMath` (tổng, theo danh mục, cân bằng 4 cách chia + settle, quỹ, lọc khoản người cũ, khoản riêng).
-- [ ] Không regression Home (thứ tự thẻ, entrance), decision-wheel sheet, notification center, cleanup khi rời couple của `sleep`/`decisions`.
+**Sổ của mình**
+- [ ] Lần đầu mở: có ví "Tiền mặt" + onboarding 1 màn; thêm MoMo số dư 1.500.000 → tổng tài sản 1.500.000 ₫.
+- [ ] Chi 120k từ MoMo (gõ "120k", chọn Ăn ngoài, Lưu, ≤3 chạm sau khi nhập số) → MoMo 1.380.000. Thu lương 15tr vào Techcombank → Techcombank +15tr, tháng "Thu 15.000.000". Chuyển 500k Techcombank → Tiền mặt → hai ví đổi, thu–chi tháng không đổi. Điều chỉnh MoMo về 1.000.000 → tạo `adjust` 380k ra, chi tháng không đổi.
+- [ ] Thẻ tín dụng số dư đầu −2tr hiện `−2.000.000 ₫`; ví "không tính vào tổng" không vào tổng tài sản.
+- [ ] B không đọc được bất kỳ doc nào trong `users/A/money*` (rules test).
+- [ ] **Parser** "50k", "1tr", "1tr2", "1.5tr", "2 triệu", "1 củ", "1 tỏi" ra đúng; "abc", "0", "" khoá Lưu; > 10 tỷ báo lỗi tại ô. Test Dart PASS.
+- [ ] **Hiển thị** vi `1.250.000 ₫`, en `₫1,250,000`; gọn `1,2tr` / `1.2M`.
 
-## 7. Giao việc 3 vai (tóm tắt — chi tiết ở file mỗi role)
+**Danh mục, ngân sách, báo cáo, tìm kiếm**
+- [ ] Đủ 12 nhóm chi + con, 6 nhóm thu, vi + en. Thêm "Cầu lông" dưới Sức khoẻ; đổi tên "Cà phê, trà sữa" thành "Trà sữa"; ẩn "Học tập" → không còn trong lưới chọn, khoản cũ vẫn hiện đúng tên.
+- [ ] Ngân sách tổng 5tr + Ăn uống 2tr: ghi tới 1,6tr Ăn uống → cảnh báo 80% Ăn uống trong app; vượt 2tr → 100%; sang tháng mới reset.
+- [ ] Báo cáo tháng (seed 120 khoản 12 tháng): thu, chi, còn lại, cơ cấu theo danh mục cấp 1 (chạm mở cấp 2), theo ví, xu hướng 6 và 12 tháng — khớp `MoneyMath` test. Tháng rỗng có empty-state.
+- [ ] Tìm "bun cha" ra khoản ghi chú "Bún chả"; lọc Ví = MoMo + 100k–500k + 3 tháng trả đúng tập; 0 kết quả có empty-state.
 
-- 🎨 **Designer:** lối vào Home (chốt chung với 4 feature cùng đợt) · màn Quỹ chung (thẻ tháng, dải cân bằng, hàng quỹ, danh sách ngày) · form thêm/sửa (ô số + chip + parser, danh mục, ai trả, cách chia, riêng tư, ngày) · báo cáo tháng (biểu đồ danh mục chọn kiểu đọc được với 8–28 danh mục) · quỹ (tạo, chi tiết, tiến độ, đóng) · thanh toán · cài đặt sổ · mọi trạng thái D17 · copy vi/en "chúng mình". Tra UI UX Pro Max (luật 8), đối chiếu `design-system.md`. → *expect:* `design.md` + mock bấm thử.
-- 💻 **Dev:** (1) `parseVndInput`, formatter, `ExpenseMath` thuần + test; (2) `ExpenseService` + `ExpenseProvider` (listener tháng đang xem + quỹ + meta, wire ở `session_resolver` — nhớ named-param `_resolve`, clear khi sign-out/no-couple); (3) UI các màn; (4) nút "Ghi chi" ở sheet decision-wheel; (5) nhắc band 1210–1211; (6) rules + index + test + CF `notifyExpense` + sửa 3 hàm dọn + nhánh tap push/inbox 2 chỗ; (7) analytics; (8) ARB + `gen-l10n`; (9) deploy DEV. Đụng rules/functions → `effort: high`. → *expect:* nhánh feature, analyze 0, rules test PASS, smoke 2 máy DEV.
-- 🧪 **Tester:** 18 tiêu chí §6 trên 2 máy (`test3`/`test4`) + `test1`; soi rules (người mới ghép, khoản riêng, giả tác giả, số biên); hai máy cùng sửa một khoản (last write wins, `editCount` từ chối bản thứ hai → client báo và tải lại); đổi múi giờ; bản 1.11.0 nhận push mới. → *expect:* bảng PASS/FAIL trong `test.md`.
+**Sổ chung**
+- [ ] C (đang chờ) không thấy tab Chung, thấy thẻ D5. A, B thấy tab Chung với "Ví chung" tự tạo.
+- [ ] A trả 480k chia đôi, bật "Trừ vào ví của mình: Techcombank" → sổ chung có khoản, Techcombank của A −480k, cân bằng hai máy "Anh đang ứng nhiều hơn 240k" ≤3 giây, B không nhận push.
+- [ ] B trả 70k "Trả hộ" → lệch 170k; A "Mình mời" 200k → lệch không đổi; Tuỳ 300k A chịu 100k → B lệch thêm 200k; 75.001 chia đôi → người trả chịu 37.501.
+- [ ] B "Đánh dấu đã thanh toán" → `settle` 170k, lệch về 0 hai máy, không vào chi tháng; trả một phần 100k → còn 70k.
+- [ ] B sửa ghi chú khoản của A → A thấy "Em sửa · hh:mm"; B sửa số tiền khoản có `linkId` của A → bị chặn (UI khoá ô + rules test). A sửa số tiền → app hỏi sửa luôn bên sổ riêng.
+- [ ] Xoá + "Hoàn tác" trong 5 giây → không có lệnh xoá nào lên Firestore.
+- [ ] Ví Mục tiêu chung "Quỹ Đà Lạt" 🏔️ 5tr hạn 2027-01-31: A góp 2tr từ MoMo → MoMo −2tr, quỹ 40%, B nhận push "Anh vừa góp vào quỹ, giờ được 40%" (không có số tiền) + inbox; B góp 3tr → cả hai nhận push "đủ rồi" đúng 1 lần; chi 1,2tr từ quỹ (`payer: wallet`) → không đổi cân bằng, vào chi tháng.
+- [ ] Ngân sách tổng sổ chung 5tr: vượt 4tr → người không ghi khoản đó nhận push 80% (chỉ %), ghi tiếp không lặp; vượt 5tr → push 100% 1 lần; client ghi `alerted` → rules từ chối.
+
+**Rời / xoá / offline / tích hợp**
+- [ ] B rời couple → A vẫn đọc doc chung cũ (rules), UI sổ chung trống; sổ riêng A, B nguyên vẹn. Tài khoản D ghép vào couple của A đọc doc chung cũ → `permission-denied`.
+- [ ] Xoá tài khoản B → toàn bộ `users/B/money*` biến mất; khoản chung còn cho A. Người cuối xoá → mọi `couples/{id}/money*` biến mất.
+- [ ] Tắt mạng ghi 2 khoản → hiện ngay có dấu chờ mạng, số dư ví cập nhật tạm; bật mạng → lên máy kia.
+- [ ] decision-wheel chốt "Bún chả" → "Ghi chi" → form Ăn ngoài + ghi chú "Bún chả" + hôm nay, sổ chung (A) / sổ riêng (C); `via = decision`.
+- [ ] Nhắc tối mặc định tắt; bật → id 1210 + 1211; ghi 1 khoản → 1210 huỷ; tắt → hết.
+
+**Kỹ thuật**
+- [ ] `scripts/test-firebase-rules.sh` PASS, ≥45 case mới: người ngoài / người ấy đọc sổ riêng · người ghép mới đọc sổ chung cũ · amount 0 / âm / 10.000.000.001 / số thực / chuỗi · openingBalance ngoài khoảng · payerShare âm / > amount · note 201 · name 31 · date sai · `createdAt != request.time` · giả `createdBy` / `updatedBy` · `memberUids` sai / 1 người / 3 người · khoá sổ chung lọt vào sổ riêng · `transfer` cùng ví · `adjust` cả hai ví · `settle` trong sổ riêng · đổi `type`/`memberUids`/`createdBy`/`createdAt`/`linkId` · `editCount` nhảy 2 · sửa tiền khoản có `linkId` của người khác · xoá ví · client ghi `alerted`/`goalReachedAt` · currency 'USD' · doc thiếu khoá optional vẫn tạo được.
+- [ ] CF emulator: 3 trường hợp push, không push khoản thường, mỗi mốc ngân sách 1 lần/tháng, không gửi cho người ghi, dọn khi xoá tài khoản/couple; deploy DEV có vết; PROD chưa deploy.
+- [ ] Analytics: DebugView đủ event D27; payload không có số tiền, tên ví, ghi chú.
+- [ ] `flutter analyze` 0; test Dart `parseVndInput`, formatter, `MoneyMath` (thu–chi, số dư 4 loại giao dịch + contribution, cân bằng 4 cách chia + settle, mục tiêu, ngân sách 80/100, lọc `memberUids`), tìm không dấu.
+- [ ] Không regression Home, decision-wheel, notification center, dọn `sleep`/`decisions` khi rời/xoá.
+
+Mốc B, C: PO viết acceptance riêng khi mở mốc (xem `roadmap.md`).
+
+## 7. Giao việc 3 vai — mốc A
+
+- 🎨 **Designer:** lối vào Home (chốt chung với 4 feature cùng đợt) · `MoneyScreen` 2 sổ · form giao dịch (Chi/Thu/Chuyển, ô số + chip + gõ tắt, lưới danh mục 2 cấp, ví, phần cặp đôi) · onboarding ví · ví & mục tiêu · ngân sách · báo cáo (tháng, cơ cấu, xu hướng, theo ví, theo người) · tìm kiếm + lọc · cài đặt sổ · cân bằng + thanh toán · mọi trạng thái D26. Copy vi/en "chúng mình". Tra UI UX Pro Max (luật 8), đối chiếu `design-system.md`. → *expect:* `design.md` + mock bấm thử.
+- 💻 **Dev:** (1) `parseVndInput`, formatter, `MoneyMath`, danh mục mặc định + test; (2) `MoneyService(bookRef)` + `MoneyProvider` cho 2 sổ (sổ riêng wire lúc đăng nhập, sổ chung khi couple active — `session_resolver` named-param, clear khi sign-out/no-couple); (3) UI; (4) nút decision-wheel; (5) nhắc 1210–1211; (6) rules + index + test + CF `notifyMoney` + sửa `deleteAccount`/`deleteCoupleCompletely` + tap push/inbox 2 chỗ; (7) analytics; (8) ARB + `gen-l10n`; (9) deploy DEV. Đụng rules/functions → `effort: high`. → *expect:* nhánh feature, analyze 0, rules test PASS, smoke 2 máy DEV.
+- 🧪 **Tester:** §6 trên `test3`/`test4`/`test1`; soi rules (sổ riêng, người ghép mới, `linkId`, số biên); hai máy cùng sửa một khoản; hai máy cùng sinh khoản định kỳ (mốc B); đổi múi giờ; bản 1.11.0 nhận push mới. → *expect:* bảng PASS/FAIL `test.md`.
 
 ## 8. Nợ kỹ thuật / rủi ro (Tester soi)
 
-- 🟡 **Hai người sửa cùng một khoản cùng lúc:** rules `editCount == cũ + 1` làm bản thứ hai bị từ chối (Firestore client có thể đã hiện tạm). Client phải bắt lỗi, báo "Người ấy vừa sửa khoản này" và hiện bản mới.
-- 🟡 **Ghi offline rồi couple đổi** (người ấy rời trước khi có mạng) → rules từ chối, mất khoản ghi tạm. Hiếm; client báo lỗi (D15).
-- 🟡 **Cân bằng tính ở client** từ toàn bộ khoản shared từ đầu → cặp ghi lâu năm (vài nghìn dòng) tải nặng. Phase 1 chấp nhận (28 cặp); Phase 2: CF giữ số tổng trong `expenseMeta` hoặc aggregate `sum` theo người.
+- 🔴 **Khối lượng:** mốc A riêng đã là feature lớn nhất từ trước tới nay của app (ước ~12–15 màn/sheet). Rủi ro trễ cả đợt → Lead nên cho mốc A đi bản riêng, không gói chung với 4 feature nhỏ (§10).
+- 🟡 **Hai người sửa cùng khoản chung:** rules `editCount == cũ + 1` từ chối bản thứ hai; client bắt lỗi, báo "Người ấy vừa sửa khoản này", hiện bản mới.
+- 🟡 **Sổ riêng lệch sổ chung** khi người ấy sửa khoản có `linkId` ở phần được phép (ngày/danh mục) — không ảnh hưởng tiền; tiền thì rules khoá (D13).
+- 🟡 **Số dư cần mạng để tính lại** (aggregate không chạy offline) → hiện số cache + chênh tạm; mất mạng lâu thì số dư có thể lệch tới khi có mạng.
+- 🟡 **Cân bằng tính từ toàn bộ khoản chung** → cặp ghi lâu năm tải nặng. Mốc A chấp nhận; sau này đổi sang aggregate `sum` theo `payer` hoặc CF giữ tổng.
 - 🟡 **Ngày theo máy người ghi** (lệch múi giờ cặp yêu xa) — như câu hỏi hằng ngày.
-- 🟡 **iOS 64 thông báo chờ:** +2 slot (1210–1211) khi bật nhắc. Tổng các band đã sát giới hạn — Lead cộng lại cả đợt.
-- 🟡 **Khoản với người ấy cũ bị ẩn ở UI** dù còn trong DB; người ở lại có thể hỏi "sổ cũ đâu". Phase 2 "Sổ cũ".
-- 🟡 **Quỹ âm** được phép (chi trước góp sau); chỉ cảnh báo.
-- 🟢 Riêng tư: push không có ghi chú hay số tiền khoản chi; push ngân sách có số gọn (xem §11 câu 2). Widget không hiện gì về tiền.
-- 🟢 Không giới hạn số khoản người dùng thấy được; lạm dụng chỉ tốn chính quota của cặp đó.
+- 🟡 **iOS 64 thông báo chờ:** +2 slot (mốc A) +≤8 slot (mốc B). Lead cộng band cả đợt.
+- 🟡 **`FlutterFragmentActivity` (mốc B)** có thể ảnh hưởng kênh native trong `MainActivity.kt` → spike trước.
+- 🟢 Riêng tư: push không có số tiền, ghi chú; widget không hiện gì về tiền; sổ riêng chỉ chủ đọc ở rules.
 
-## 9. Metric đo thành công
+## 9. Metric đo thành công (30 ngày sau mốc A)
 
-Đo sau 30 ngày phát hành (`AnalyticsService` + script đọc-only kiểu `scripts/prod-retention-stats.js`):
-- **% cặp đã ghép có ≥1 khoản chung mỗi tuần.** Mục tiêu ≥35% (≈10/28 cặp).
-- **Số ngày/tuần có ghi khoản** ở cặp đang dùng. Mục tiêu trung vị ≥3 ngày/tuần (thói quen "ăn xong ghi" thành thật).
-- **Ngày mở app chỉ vì sổ:** % ngày-cặp có `expense_add` mà không có hoạt động khác (câu hỏi, tâm trạng, chat, ảnh). >0 là sổ đang kéo thêm ngày mở app, đúng mục tiêu đợt.
-- **Cặp đang chờ:** % trong 52 cặp ghi ≥3 khoản trong 7 ngày đầu. Mục tiêu ≥15%; so tỉ lệ ghép đôi trong 30 ngày giữa nhóm có dùng sổ và nhóm không.
-- **Phụ:** số quỹ tạo, % quỹ có ≥2 lần góp từ 2 người; `expense_add.via = decision` / tổng lượt chốt eat của decision-wheel.
+- **Cặp đang chờ:** % trong nhóm đang chờ có ≥5 khoản trong 7 ngày đầu. Mục tiêu ≥20% (≈10/52). Phụ: tỉ lệ ghép đôi 30 ngày, nhóm dùng sổ so với nhóm không.
+- **Tất cả người dùng:** số ngày/tuần có ghi khoản (bất kỳ sổ nào), trung vị ở người đang dùng ≥4 ngày/tuần.
+- **Cặp đã ghép:** % có ≥1 khoản chung mỗi tuần, mục tiêu ≥35% (≈10/28).
+- **Ngày mở app nhờ sổ:** % ngày-người có `money_tx_add` mà không có hoạt động khác (câu hỏi, tâm trạng, chat, ảnh). Tăng = sổ đang kéo thêm ngày mở app, đúng mục tiêu đợt.
+- **Độ sâu:** % người dùng có ≥2 ví; % có ngân sách; số ví Mục tiêu chung có góp từ cả hai người.
 
 ## 10. Phụ thuộc / đụng chạm với feature cùng đợt
 
-- **decision-wheel** (đã xong, chờ phát hành 1.11.0): thêm nút ở sheet kết quả (D14) — sửa file của feature đó, Dev báo PO decision-wheel cập nhật changelog.
-- **poke, caro-game, weather, arrival:** cùng sửa `functions/index.js`, `firestore.rules`, `firestore.indexes.json`, ARB, `session_resolver` (named-param), `AnalyticsEvents`, `NotificationTapRouter` + `AppNotification.targetHomeTab` → Lead xếp thứ tự merge để tránh xung đột. Dải id local: feature này xin **1210–1211**; Lead đối chiếu với band 4 feature kia. Lối vào Home: Designer chốt một lần cho cả 5.
-- **widget-today:** không thêm loại trạng thái (D11).
+- **decision-wheel** (1.11.0): thêm nút ở sheet kết quả (D20) → sửa file feature đó, báo PO decision-wheel cập nhật changelog.
+- **poke, caro-game, weather, arrival:** cùng sửa `functions/index.js`, `firestore.rules`, `firestore.indexes.json`, ARB, `session_resolver`, `AnalyticsEvents`, `NotificationTapRouter` + `AppNotification.targetHomeTab` → Lead xếp thứ tự merge. Dải id local xin **1210–1219** (1210–1211 nhắc tối, 1212–1219 định kỳ) — Lead đối chiếu cả đợt. Lối vào Home: Designer chốt một lần cho cả 5.
+- **Đề xuất cho Lead:** 4 feature kia nhỏ hơn nhiều; nên phát hành chúng trước, sổ tiền mốc A đi bản kế tiếp (hoặc cùng bản nếu kịp), để feature lớn không giữ chân cả đợt.
+- **widget-today:** không thêm loại trạng thái (D17).
 
 ## 11. Câu hỏi cho user
 
-1. **Rời couple — sổ chung giữ hay xoá?** PO chốt (D13): người ở lại giữ khoản chung (ẩn ở UI Phase 1), khoản riêng của người rời bị xoá, người ghép mới không đọc được sổ cũ. Nếu anh muốn "rời là xoá sạch sổ chung" như cách làm với giấc ngủ, báo để đổi trước khi Dev làm.
-2. **Push ngân sách có hiện số tiền không?** PO để số gọn ("Còn 1,2tr cho tới cuối tháng") vì có số mới hành động được. Nó hiện trên màn khoá. Muốn bỏ số → copy chỉ còn "đã tiêu 80% ngân sách".
-3. **Khai báo store + privacy policy (D21):** cần anh duyệt cập nhật Apple App Privacy, Play An toàn dữ liệu (thêm "Thông tin tài chính khác") và sửa privacy policy trước khi gửi duyệt bản có feature này.
+- ✅ [2026-10-20] Tên hiển thị: user chọn **"Sổ tiền"**, hai tab "Của mình" · "Chung" (thư mục vẫn là `expenses`). Cách trình bày tên trên màn do Designer chốt theo nhận diện v2 (tasteskill cấm chip nhỏ đặt trên tiêu đề).
+- ✅ [2026-10-20] Trần 10 tỷ/giao dịch, 100 tỷ/ví: Lead chốt giữ nguyên (số lớn hơn thường là gõ thừa số 0). User lật được.
+- ✅ [2026-10-20] Rời couple: user chọn người ở lại giữ sổ chung; Lead chốt sổ riêng gắn với user, không mất khi rời.
+- ✅ [2026-10-20] Push ngân sách chỉ hiện %, không hiện số tiền (Lead chốt, đã báo user). Privacy policy + khai "Thông tin tài chính khác": user đồng ý.
 
 ## 12. Changelog feature
-- [2026-10-20] [PO] Tạo feature từ lựa chọn của user trong đợt "mở app mỗi ngày" lần 2 ("có tính năng giống như app quản lý chi tiêu"). Research Money Lover, Sổ Thu Chi MISA, Splitwise, Honeydue → bảng lọc tính năng cho cặp đôi (§2). Chốt D1–D21: một collection `expenses` 3 loại dòng, quyền xem theo `memberUids` chụp lúc tạo (chặn người ghép mới đọc sổ cũ + có sẵn khoản riêng + sổ một người cho 52 cặp đang chờ), `payerShare` một số cho 4 cách chia, cả hai sửa/xoá có "ai sửa", không push từng khoản (chỉ góp quỹ / đủ quỹ / ngân sách 80–100%), không `wakeClients`, không widget, nhắc tối mặc định tắt band 1210–1211, nút "Ghi chi" ở decision-wheel. 3 câu hỏi cho user ở §11.
+- [2026-10-20] [PO] Tạo feature "Quỹ chung" (sổ chi chung, D1–D21). User + Lead chốt cùng ngày: bỏ số tiền khỏi push ngân sách; người ở lại giữ sổ chung; duyệt khai báo store + privacy policy.
+- [2026-10-20] [PO] User: "Feature Quỹ chung làm nó giống money management" → viết lại toàn bộ thành app quản lý tiền: sổ riêng ở `users/{uid}` (không mất khi rời couple, chỉ xoá khi xoá tài khoản — Lead chốt) + sổ chung ở `couples/{coupleId}` (quyền theo `memberUids` chụp lúc tạo). Research thêm Wallet by BudgetBakers, Spendee. Chốt D1–D30: ví 5 loại, giao dịch 6 loại với `outWalletId`/`inWalletId`, danh mục 2 cấp 12 nhóm chi + 6 nhóm thu, ngân sách tổng + theo danh mục, báo cáo + xu hướng bằng aggregate `sum()`, tìm không dấu, mục tiêu = ví loại Mục tiêu, 2 sổ nối bằng `linkId`, CF `notifyMoney` chỉ sổ chung, chỉ %, không `wakeClients`. Chia 3 mốc: A (bản phát hành đầu) · B (định kỳ, sổ nợ, CSV, Face ID) · C (ảnh hoá đơn, lịch sử sửa, sổ cũ). 2 câu hỏi cho user ở §11 (tên, trần số tiền).
+- [2026-10-20] [Lead] User chọn tên "Sổ tiền"; Lead chốt trần 10 tỷ. Spec mở rộng thành app quản lý tiền (sổ riêng + sổ chung, mốc A/B/C) theo yêu cầu "làm nó giống money management".
