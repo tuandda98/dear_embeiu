@@ -19,6 +19,7 @@ import 'package:dear_embeiu/services/auth_service.dart';
 import 'package:dear_embeiu/services/sleep_service.dart';
 import 'package:dear_embeiu/theme/app_theme.dart';
 import 'package:dear_embeiu/widgets/content_card.dart';
+import 'package:dear_embeiu/widgets/person_label.dart';
 import 'package:dear_embeiu/widgets/sleep/sleep_card.dart';
 import 'package:dear_embeiu/widgets/sleep/sleep_sheets.dart';
 

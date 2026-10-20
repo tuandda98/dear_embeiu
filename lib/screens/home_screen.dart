@@ -2085,13 +2085,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 _entrance(4, MoodCard(key: _moodCardKey, couple: couple)),
               ),
             ],
-            // "Phân vân gì không?" (feature decision-wheel D6) — ăn gì · đi
-            // đâu · phân vân khác. Shown while waiting too (solo picks keep).
-            const SizedBox(height: 16),
-            KeyedSubtree(
-              key: _decisionKey,
-              child: _gutter(_entrance(5, const DecisionCard())),
-            ),
+            // ── Đợt 2 (Home C): ArrivalCard (feature arrival) chèn ở đây, chỉ khi đã ghép.
+
+            // ── Đợt 2 (Home C): WeatherCard (feature weather) chèn ở đây, hiện cả khi đang chờ.
+
             // Sleep "Đêm qua" (feature sleep) — under the mood card; shown
             // while still waiting too (my own nights, full width — state A0).
             Selector<SleepProvider, bool>(
@@ -2109,6 +2106,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               const SizedBox(height: 16),
               _gutter(_entrance(7, const RpsInviteCard())),
             ],
+
+            // ── Đợt 2 (Home C): MoneyHomeEntry (feature expenses) chèn ở đây.
+
+            // "Phân vân gì không?" (feature decision-wheel D6) — ăn gì · đi
+            // đâu · phân vân khác. Shown while waiting too (solo picks keep).
+            const SizedBox(height: 16),
+            KeyedSubtree(
+              key: _decisionKey,
+              child: _gutter(_entrance(7, const DecisionCard())),
+            ),
             // ── Nhóm 2: Kỷ niệm — create + browse.
             const SizedBox(height: 28),
             _gutter(
