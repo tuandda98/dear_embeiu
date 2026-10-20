@@ -22,12 +22,25 @@ import '../services/analytics_service.dart';
 /// Exported as a function so any entry point (profile menu, a Home header
 /// button added later) opens the screen the same way, with the same route name
 /// for analytics/back-stack readability.
-void openCareMessageScreen(BuildContext context) {
+///
+/// [initialTitle]/[initialBody] prefill the two fields (đợt 2: the weather
+/// "Nhắc Thảo mang ô" button, arrival "Hỏi thăm"); the user can still edit.
+/// [source] tags `care_message_sent` (`manual` · `weather` · `arrival`).
+void openCareMessageScreen(
+  BuildContext context, {
+  String initialTitle = '',
+  String initialBody = '',
+  String source = 'manual',
+}) {
   HapticFeedback.selectionClick();
   Navigator.of(context).push(
     MaterialPageRoute<void>(
       settings: const RouteSettings(name: 'CareMessage'),
-      builder: (_) => const CareMessageScreen(),
+      builder: (_) => CareMessageScreen(
+        initialTitle: initialTitle,
+        initialBody: initialBody,
+        source: source,
+      ),
     ),
   );
 }
@@ -39,15 +52,30 @@ void openCareMessageScreen(BuildContext context) {
 /// six everyday nudges), two fields, one primary button, and a small history of
 /// what the couple recently sent so the composer doesn't feel like a void.
 class CareMessageScreen extends StatefulWidget {
-  const CareMessageScreen({super.key});
+  const CareMessageScreen({
+    super.key,
+    this.initialTitle = '',
+    this.initialBody = '',
+    this.source = 'manual',
+  });
+
+  final String initialTitle;
+  final String initialBody;
+  final String source;
 
   @override
   State<CareMessageScreen> createState() => _CareMessageScreenState();
 }
 
 class _CareMessageScreenState extends State<CareMessageScreen> {
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _bodyController = TextEditingController();
+  // Prefilled → the send button is live at once; no autofocus, so the
+  // keyboard doesn't cover it (weather design §4.4).
+  late final TextEditingController _titleController = TextEditingController(
+    text: widget.initialTitle,
+  );
+  late final TextEditingController _bodyController = TextEditingController(
+    text: widget.initialBody,
+  );
   final CareMessageService _service = CareMessageService();
 
   bool _isSending = false;
@@ -109,7 +137,10 @@ class _CareMessageScreenState extends State<CareMessageScreen> {
         );
         return;
       }
-      AnalyticsService.instance.logCareMessageSent(queued: queued);
+      AnalyticsService.instance.logCareMessageSent(
+        queued: queued,
+        source: widget.source,
+      );
       messenger.showSnackBar(
         SnackBar(
           content: Text(
