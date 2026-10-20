@@ -741,6 +741,11 @@ service cloud.firestore {
           && isValidArrivalDoc(request.resource.data)
           && (!('last' in request.resource.data)
               || isValidArrivalEvent(request.resource.data.last))
+          // An automatic event never creates the doc: only the owner's own
+          // tap turns sharing on (D10 — after a partner change the doc is
+          // gone and a geofence must not share with the new partner).
+          && (!('last' in request.resource.data)
+              || request.resource.data.last.source != 'auto')
           // Sharing ON only while both members are in (sleep lesson: an "on"
           // queued offline must not land after the partner left).
           && (request.resource.data.get('share', false) != true
@@ -755,6 +760,12 @@ service cloud.firestore {
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['last'])
               || !('last' in request.resource.data)
               || isValidArrivalEvent(request.resource.data.last))
+          // Same for an update: an automatic event only lands on a doc that
+          // is already sharing.
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['last'])
+              || !('last' in request.resource.data)
+              || request.resource.data.last.source != 'auto'
+              || resource.data.get('share', false) == true)
           && (request.resource.data.get('share', false) != true
               || resource.data.get('share', false) == true
               || get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.size() == 2);

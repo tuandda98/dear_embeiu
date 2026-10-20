@@ -14,6 +14,7 @@ import '../models/arrival.dart';
 import '../utils/arrival_place_query.dart';
 import 'arrival_platform.dart';
 import 'arrival_service.dart';
+import 'firebase_bootstrap_service.dart';
 
 // Feature arrival, stage 2: the OS pieces behind `arrival_platform.dart`.
 //  • Geofences: plugin `native_geofence` (spike §6.1–6.6).
@@ -118,6 +119,10 @@ class NativeCurrentLocationReader implements CurrentLocationReader {
 class NativePlaceSearch implements PlaceSearch {
   const NativePlaceSearch();
 
+  /// iOS native waits 500 ms + its own 10 s; past this the UI falls back to
+  /// "Dùng vị trí hiện tại".
+  static const Duration searchTimeout = Duration(seconds: 12);
+
   @override
   bool get suggestsWhileTyping => Platform.isIOS;
 
@@ -137,10 +142,13 @@ class NativePlaceSearch implements PlaceSearch {
     final List<Object?> raw;
     try {
       raw =
-          await _channel.invokeListMethod<Object?>('search', {
-            'query': q.text,
-          }) ??
+          await _channel
+              .invokeListMethod<Object?>('search', {'query': q.text})
+              // Android 33+ GeocodeListener may never call back.
+              .timeout(searchTimeout) ??
           const [];
+    } on TimeoutException {
+      throw const PlaceSearchUnavailable();
     } on PlatformException catch (e) {
       if (e.code == 'offline') throw const PlaceSearchOffline();
       if (e.code == 'unavailable') throw const PlaceSearchUnavailable();
@@ -219,9 +227,14 @@ class NativeArrivalGeofence implements ArrivalGeofence {
         throw e;
       });
 
+  /// Called on every resume (provider `onResume`): also re-claims the
+  /// background bridge name if a background isolate left it pointing at
+  /// nothing.
   @override
-  Future<bool> hasAlwaysPermission() async =>
-      (await permissions.status()).canAuto;
+  Future<bool> hasAlwaysPermission() async {
+    ArrivalBackgroundBridge.listen(this);
+    return (await permissions.status()).canAuto;
+  }
 
   @override
   Future<void> sync(List<ArrivalPlace> places) async {
@@ -249,6 +262,14 @@ class NativeArrivalGeofence implements ArrivalGeofence {
           arrivalFence(e.key, e.value, ios: Platform.isIOS),
           arrivalGeofenceTriggered,
         );
+      }
+      // Android answers `getRegisteredGeofences` from the plugin's prefs, not
+      // from Play services: Force stop, clearing Play services data or
+      // turning location off drops the regions while the prefs still list
+      // them. Re-adding every region with the same id replaces it (no
+      // duplicate) and, with no initial trigger, fires nothing.
+      if (Platform.isAndroid && wanted.isNotEmpty) {
+        await manager.reCreateAfterReboot();
       }
     } catch (e) {
       // Permission lowered meanwhile, plugin error: the provider re-checks
@@ -308,7 +329,10 @@ Future<void> arrivalGeofenceTriggered(GeofenceCallbackParams params) async {
   try {
     DartPluginRegistrant.ensureInitialized();
     await Hive.initFlutter();
-    if (Firebase.apps.isEmpty) await Firebase.initializeApp();
+    // Same as the app: Firebase + App Check (once Firestore enforces App
+    // Check, a write without a token would read as "left the couple").
+    await FirebaseBootstrapService.initialize();
+    if (Firebase.apps.isEmpty) return;
   } catch (e) {
     debugPrint('arrival background init failed: $e');
     return;
@@ -324,8 +348,11 @@ Future<void> arrivalGeofenceTriggered(GeofenceCallbackParams params) async {
 }
 
 /// One geofence report → `ArrivalService.reportEvent` (edge filter D6 inside)
-/// per slot. No session / auto switched off → regions shouldn't exist: stop
-/// them. `permission-denied` (left the couple, signed out) → stop (§5).
+/// per slot. No session / auto switched off / remote switch
+/// `config/app.arrivalAutoEnabled` false (D13) → regions shouldn't exist:
+/// stop them. `permission-denied` or `not-found` (left the couple, signed
+/// out, partner changed so the doc is gone — D10) → stop AND forget "Tự báo"
+/// so a new partner never gets events without the user turning it on again.
 Future<void> handleArrivalGeofenceEvent({
   required List<String> slots,
   required ArrivalEventType type,
@@ -336,7 +363,9 @@ Future<void> handleArrivalGeofenceEvent({
 }) async {
   try {
     final session = await service.loadSession();
-    if (session == null || !await service.loadWantsAuto(session.uid)) {
+    if (session == null ||
+        !await service.loadWantsAuto(session.uid) ||
+        !await service.readRemoteAutoEnabled()) {
       await geofence.stopAll();
       return;
     }
@@ -357,6 +386,7 @@ Future<void> handleArrivalGeofenceEvent({
       );
       if (r == ArrivalSendResult.denied) {
         await geofence.stopAll();
+        await service.saveWantsAuto(session.uid, false);
         return;
       }
     }
@@ -367,14 +397,51 @@ Future<void> handleArrivalGeofenceEvent({
 
 /// Hands a geofence event from the plugin's isolate to the app's main isolate
 /// when the app is alive in the same process (IsolateNameServer is per
-/// process). A main isolate that died leaves a stale name: no "accepted"
-/// within 2 s → the background isolate does it itself.
+/// process), so only one isolate writes the Hive box. A main isolate that
+/// died leaves a stale name: no "accepted" within [acceptWithin] → the
+/// background isolate does it itself. The name is NOT removed then (a slow
+/// but live main isolate keeps it); instead the main isolate drops any
+/// message older than [lateAfter] — the sender has given up on it by then —
+/// and re-claims the name on every resume.
 class ArrivalBackgroundBridge {
   static const String portName = 'dear_embeiu.arrival.events';
+  static const Duration acceptWithin = Duration(seconds: 2);
+  static const Duration lateAfter = Duration(milliseconds: 1500);
   static ReceivePort? _port;
 
+  /// Test hook: what the main isolate runs for one event.
+  @visibleForTesting
+  static Future<void> Function(
+    List<String> slots,
+    ArrivalEventType type,
+    DateTime at,
+    ArrivalGeofence geofence,
+  )
+  handle = _handle;
+
+  static Future<void> _handle(
+    List<String> slots,
+    ArrivalEventType type,
+    DateTime at,
+    ArrivalGeofence geofence,
+  ) => handleArrivalGeofenceEvent(
+    slots: slots,
+    type: type,
+    at: at,
+    service: ArrivalService(),
+    battery: const PluginBatteryReader(),
+    geofence: geofence,
+  );
+
   static void listen(ArrivalGeofence geofence) {
-    if (_port != null) return;
+    final existing = _port;
+    if (existing != null) {
+      if (IsolateNameServer.lookupPortByName(portName) != existing.sendPort) {
+        IsolateNameServer.removePortNameMapping(portName);
+        IsolateNameServer.registerPortWithName(existing.sendPort, portName);
+      }
+      return;
+    }
     final port = ReceivePort();
     IsolateNameServer.removePortNameMapping(portName);
     if (!IsolateNameServer.registerPortWithName(port.sendPort, portName)) {
@@ -383,19 +450,33 @@ class ArrivalBackgroundBridge {
     }
     _port = port;
     port.listen((msg) async {
-      if (msg is! List || msg.length != 4 || msg[3] is! SendPort) return;
+      if (msg is! List || msg.length != 5 || msg[3] is! SendPort) return;
+      final sentAt = msg[4];
+      if (sentAt is! int ||
+          DateTime.now().millisecondsSinceEpoch - sentAt >
+              lateAfter.inMilliseconds) {
+        return; // the background isolate handles it itself
+      }
       final reply = msg[3] as SendPort;
       reply.send('accepted');
-      await handleArrivalGeofenceEvent(
-        slots: [for (final s in msg[0] as List) '$s'],
-        type: msg[1] == 'exit' ? ArrivalEventType.exit : ArrivalEventType.enter,
-        at: DateTime.fromMillisecondsSinceEpoch(msg[2] as int),
-        service: ArrivalService(),
-        battery: const PluginBatteryReader(),
-        geofence: geofence,
-      );
-      reply.send('done');
+      try {
+        await handle(
+          [for (final s in msg[0] as List) '$s'],
+          msg[1] == 'exit' ? ArrivalEventType.exit : ArrivalEventType.enter,
+          DateTime.fromMillisecondsSinceEpoch(msg[2] as int),
+          geofence,
+        );
+      } finally {
+        reply.send('done');
+      }
     });
+  }
+
+  /// Test hook: forget the listening port (as if the main isolate died).
+  @visibleForTesting
+  static void resetForTest() {
+    _port?.close();
+    _port = null;
   }
 
   static Future<bool> forward(
@@ -408,13 +489,16 @@ class ArrivalBackgroundBridge {
     final reply = ReceivePort();
     final replies = reply.asBroadcastStream();
     try {
-      target.send([slots, type.name, at.millisecondsSinceEpoch, reply.sendPort]);
-      await replies
-          .firstWhere((m) => m == 'accepted')
-          .timeout(const Duration(seconds: 2));
+      target.send([
+        slots,
+        type.name,
+        at.millisecondsSinceEpoch,
+        reply.sendPort,
+        DateTime.now().millisecondsSinceEpoch,
+      ]);
+      await replies.firstWhere((m) => m == 'accepted').timeout(acceptWithin);
     } catch (_) {
       reply.close();
-      IsolateNameServer.removePortNameMapping(portName);
       return false;
     }
     // Keep the plugin's callback (and so the OS wake) alive until it's sent.

@@ -13,6 +13,9 @@
         <exclude domain="root" path="app_flutter/sleep_local.hive" />
         <!-- ── arrival (đợt 2) ── places + coordinates stay on this phone (D2). -->
         <exclude domain="root" path="app_flutter/arrival_nobackup/" />
+        <!-- ── arrival (đợt 2) ── native_geofence keeps each region (lat/lng) in its
+             own prefs file: off the backup too (D2). -->
+        <exclude domain="sharedpref" path="native_geofence_plugin_cache.xml" />
         <exclude domain="sharedpref" path="dear_embeiu_motion.xml" />
     </cloud-backup>
     <device-transfer>
@@ -20,6 +23,9 @@
         <exclude domain="root" path="app_flutter/sleep_local.hive" />
         <!-- ── arrival (đợt 2) ── places + coordinates stay on this phone (D2). -->
         <exclude domain="root" path="app_flutter/arrival_nobackup/" />
+        <!-- ── arrival (đợt 2) ── native_geofence keeps each region (lat/lng) in its
+             own prefs file: off the backup too (D2). -->
+        <exclude domain="sharedpref" path="native_geofence_plugin_cache.xml" />
         <exclude domain="sharedpref" path="dear_embeiu_motion.xml" />
     </device-transfer>
 </data-extraction-rules>

@@ -219,15 +219,26 @@ class ArrivalService {
 
   static DateTime? _toDate(Object? v) => v is Timestamp ? v.toDate() : null;
 
-  /// Writes [event] as my latest (D3), sharing on. `mergeFields` replaces
-  /// `last` whole — a plain merge would keep the old event's `name` on a Home
-  /// event, which the rules reject.
+  /// Writes [event] as my latest (D3). A manual tap turns sharing on;
+  /// `mergeFields` replaces `last` whole — a plain merge would keep the old
+  /// event's `name` on a Home event, which the rules reject.
+  ///
+  /// An automatic event (geofence) only UPDATES a doc that already shares
+  /// (D10, rules): after a partner change the CF deleted the doc, so the
+  /// update fails `not-found` instead of sharing with the new partner.
+  /// `update` also replaces `last` whole.
   Future<void> putEvent(
     String coupleId,
     String uid,
     ArrivalEvent event, {
     required bool auto,
-  }) => _doc(coupleId, uid).set({
+  }) => event.source == ArrivalEventSource.auto
+      ? _doc(coupleId, uid).update({
+          'auto': true,
+          'last': event.toMap(Timestamp.fromDate),
+          'updatedAt': FieldValue.serverTimestamp(),
+        })
+      : _doc(coupleId, uid).set({
     'share': true,
     'auto': auto,
     'last': event.toMap(Timestamp.fromDate),
@@ -314,7 +325,9 @@ class ArrivalService {
     } on TimeoutException {
       return ArrivalSendResult.queued;
     } on FirebaseException catch (e) {
-      return e.code == 'permission-denied'
+      // not-found: an automatic event for a doc that is gone (sharing ended
+      // by a partner change) — same as denied for the caller: stop.
+      return e.code == 'permission-denied' || e.code == 'not-found'
           ? ArrivalSendResult.denied
           : ArrivalSendResult.failed;
     } catch (_) {
