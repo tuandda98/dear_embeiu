@@ -2872,7 +2872,7 @@ const CARO_COPY = {
   vi: {
     partnerFallback: "Người ấy",
     invite: {
-      title: (name) => `${name} rủ chơi cờ caro`,
+      title: (name) => `${name} rủ bạn chơi cờ caro`,
       body: () => "Nước đầu đã đi rồi, giờ đến lượt bạn.",
     },
     turn: {

@@ -7714,7 +7714,7 @@ abstract class AppLocalizations {
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'You played move {n} at {time}. You can close the app, we\'ll tell you when {name} moves.'**
+  /// **'You played move {n} at {time}. You can close the app. We\'ll let you know when {name} moves.'**
   String caroYouMoved(String n, String time, String name);
 
   /// caro-game (đợt 2)
@@ -8398,7 +8398,7 @@ abstract class AppLocalizations {
   /// Weather here and there (feature weather)
   ///
   /// In en, this message translates to:
-  /// **'Pick your city and {name}\'s. Their weather shows up here every morning.'**
+  /// **'Pick your city and {name}\'s. Both forecasts show up here every morning.'**
   String weatherSetupBody(String name);
 
   /// Weather here and there (feature weather)
@@ -8482,7 +8482,7 @@ abstract class AppLocalizations {
   /// Weather here and there (feature weather)
   ///
   /// In en, this message translates to:
-  /// **'Opens a care note, already written'**
+  /// **'Opens a care note with the message filled in'**
   String get weatherCtaHint;
 
   /// Weather here and there (feature weather)
@@ -8752,7 +8752,7 @@ abstract class AppLocalizations {
   /// Weather here and there (feature weather)
   ///
   /// In en, this message translates to:
-  /// **'Weather where your love is'**
+  /// **'Weather where your partner is'**
   String get weatherNotifToggle;
 
   /// Weather here and there (feature weather)
@@ -8860,7 +8860,7 @@ abstract class AppLocalizations {
   /// Weather here and there (feature weather)
   ///
   /// In en, this message translates to:
-  /// **'Weather in both places'**
+  /// **'Weather here and there'**
   String get weatherFeatureTourTitle;
 
   /// Weather here and there (feature weather)

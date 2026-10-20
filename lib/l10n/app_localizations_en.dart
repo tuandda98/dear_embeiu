@@ -4780,7 +4780,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String caroYouMoved(String n, String time, String name) {
-    return 'You played move $n at $time. You can close the app, we\'ll tell you when $name moves.';
+    return 'You played move $n at $time. You can close the app. We\'ll let you know when $name moves.';
   }
 
   @override
@@ -5255,7 +5255,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String weatherSetupBody(String name) {
-    return 'Pick your city and $name\'s. Their weather shows up here every morning.';
+    return 'Pick your city and $name\'s. Both forecasts show up here every morning.';
   }
 
   @override
@@ -5317,7 +5317,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get weatherCtaHint => 'Opens a care note, already written';
+  String get weatherCtaHint => 'Opens a care note with the message filled in';
 
   @override
   String get weatherCardHint => 'Opens the weather details';
@@ -5480,7 +5480,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weatherNotSet => 'Not set';
 
   @override
-  String get weatherNotifToggle => 'Weather where your love is';
+  String get weatherNotifToggle => 'Weather where your partner is';
 
   @override
   String weatherNotifToggleSub(String time, String name) {
@@ -5556,7 +5556,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weatherLaneFailed => 'Couldn\'t load';
 
   @override
-  String get weatherFeatureTourTitle => 'Weather in both places';
+  String get weatherFeatureTourTitle => 'Weather here and there';
 
   @override
   String get weatherFeatureTourBody =>

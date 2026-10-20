@@ -4795,7 +4795,7 @@
       }
     }
   },
-  "caroYouMoved": "You played move {n} at {time}. You can close the app, we'll tell you when {name} moves.",
+  "caroYouMoved": "You played move {n} at {time}. You can close the app. We'll let you know when {name} moves.",
   "@caroYouMoved": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
@@ -5593,7 +5593,7 @@
   "@weatherChooseForPartner": {
     "description": "Weather here and there (feature weather)"
   },
-  "weatherSetupBody": "Pick your city and {name}'s. Their weather shows up here every morning.",
+  "weatherSetupBody": "Pick your city and {name}'s. Both forecasts show up here every morning.",
   "@weatherSetupBody": {
     "description": "Weather here and there (feature weather)",
     "placeholders": {
@@ -5705,7 +5705,7 @@
       }
     }
   },
-  "weatherCtaHint": "Opens a care note, already written",
+  "weatherCtaHint": "Opens a care note with the message filled in",
   "@weatherCtaHint": {
     "description": "Weather here and there (feature weather)"
   },
@@ -5965,7 +5965,7 @@
   "@weatherNotSet": {
     "description": "Weather here and there (feature weather)"
   },
-  "weatherNotifToggle": "Weather where your love is",
+  "weatherNotifToggle": "Weather where your partner is",
   "@weatherNotifToggle": {
     "description": "Weather here and there (feature weather)"
   },
@@ -6107,7 +6107,7 @@
   "@weatherLaneFailed": {
     "description": "Weather here and there (feature weather)"
   },
-  "weatherFeatureTourTitle": "Weather in both places",
+  "weatherFeatureTourTitle": "Weather here and there",
   "@weatherFeatureTourTitle": {
     "description": "Weather here and there (feature weather)"
   },

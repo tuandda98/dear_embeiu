@@ -1003,7 +1003,7 @@ void main() {
       final rig = _Rig()..search.available = false;
       await open(tester, rig);
       expect(
-        find.textContaining('Máy này không tìm được địa chỉ.'),
+        find.textContaining('Máy này không tra được địa chỉ.'),
         findsOneWidget,
       );
       await tester.tap(find.text('Lưu tên, chỉ bấm tay'));

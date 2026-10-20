@@ -273,7 +273,7 @@ void main() {
       expect(n.type, AppNotificationType.caroInvite);
       expect(n.targetHomeTab, 0);
       expect(n.gameId, 'g7');
-      expect(vi.caroNotifInvite('Thảo'), 'Thảo rủ chơi cờ caro');
+      expect(vi.caroNotifInvite('Thảo'), 'Thảo rủ bạn chơi cờ caro');
     });
 
     test('no in-app banner for a push about the game on screen', () {

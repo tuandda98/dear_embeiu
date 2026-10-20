@@ -133,7 +133,7 @@ void main() {
   ) async {
     final (_, w) = await pump(tester, choices: {});
     expect(find.text('Chọn thành phố'), findsOneWidget);
-    expect(find.textContaining('chỗ Thảo'), findsOneWidget);
+    expect(find.textContaining('và của Thảo'), findsOneWidget);
     await tester.tap(find.text('Ẩn'));
     await tester.pump();
     expect(w.cardVisible, isFalse);
