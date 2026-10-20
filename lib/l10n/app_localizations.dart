@@ -7800,6 +7800,1599 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shared wallet'**
   String get moneyJointWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Money book'**
+  String get moneyTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'MONEY BOOK'**
+  String get moneyBadge;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get moneyTabMine;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get moneyTabShared;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared book · {month}'**
+  String moneyHomeShared(String month);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount} · {percent}% of budget'**
+  String moneyHomeSpent(String amount, String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount} this month'**
+  String moneyHomeSpentNoBudget(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount}'**
+  String moneyHomeSpentOnly(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{over} over'**
+  String moneyHomeOverPart(String over);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount} · nothing yet'**
+  String moneyHomeZero(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} · as of {time}'**
+  String moneyHomeStale(String amount, String time);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the shared book'**
+  String get moneyHomeError;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared book, loading'**
+  String get moneyHomeLoading;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'My money book'**
+  String get moneyHomeMine;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =0{Nothing logged today} =1{1 entry today} other{{n} entries today}}'**
+  String moneyHomeTodayCount(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Type 50k, pick a category, done'**
+  String get moneyHomeFirst;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add entry'**
+  String get moneyAddTx;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get moneyRetry;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Wallets, categories, budgets'**
+  String get moneyMoreLabel;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get moneyPrevMonth;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get moneyNextMonth;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent'**
+  String get moneyMonthSpentMine;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'We spent'**
+  String get moneyMonthSpentShared;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Left in budget'**
+  String get moneyBudgetLeftLabel;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'No budget yet'**
+  String get moneyBudgetNone;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% used'**
+  String moneyBudgetUsed(String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'of {amount}'**
+  String moneyBudgetOfShort(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get moneyToday;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of budget used, {left} left'**
+  String moneyBudgetSemantics(String percent, String left);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'The month is {passed}/{total} days in and {percent}% of the budget is used, so about {perDay} a day from now to month end.'**
+  String moneyFindingPerDay(
+    String passed,
+    String total,
+    String percent,
+    String perDay,
+  );
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'This month is {over} over budget.'**
+  String moneyFindingOver(String over);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared {category} is at {percent}% of budget, {left} left for {days} days.'**
+  String moneyFindingCategory(
+    String category,
+    String percent,
+    String left,
+    String days,
+  );
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get moneyIncome;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Income minus spent'**
+  String get moneyIncomeMinusSpent;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Who paid this month'**
+  String get moneyWhoPaid;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Total {amount}'**
+  String moneyLaneTotal(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get moneyMe;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{partner} paid {a}, shared wallet {b}, I paid {c}'**
+  String moneyLanesSemantics(String partner, String a, String b, String c);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve covered more'**
+  String get moneyBalanceMeAhead;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has covered more'**
+  String moneyBalancePartnerAhead(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re even'**
+  String get moneyBalanceEven;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'If {name} pays me this back, we\'re even'**
+  String moneyBalanceMeAheadSub(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'If I pay {name} this back, we\'re even'**
+  String moneyBalancePartnerAheadSub(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get moneyRecent;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in {month} yet. Tap ‹ above to look back at {prev}.'**
+  String moneyRecentEmpty(String month, String prev);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in {month} yet. Use the pink button below to add the first entry.'**
+  String moneyEmptyMonth(String month);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount}'**
+  String moneyDaySpent(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Today, {date}'**
+  String moneyDayToday(String date);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday, {date}'**
+  String moneyDayYesterday(String date);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Where it went'**
+  String get moneyWhere;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of budget'**
+  String moneyBudgetPercentShort(String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% over'**
+  String moneyOverPercent(String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Wallets'**
+  String get moneyWallets;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared wallets & funds'**
+  String get moneyWalletsShared;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Total money'**
+  String get moneyTotalAssets;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Total money {amount}'**
+  String moneyTotalAssetsValue(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Manage wallets'**
+  String get moneyManageWallets;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Each of us put in {amount} this month'**
+  String moneyJointContribEach(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of {target}'**
+  String moneyGoalProgress(String percent, String target);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} paid · {split}'**
+  String moneyPaidBy(String name, String split);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} paid'**
+  String moneyPaidByNoSplit(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from shared wallet'**
+  String get moneyPaidFromJoint;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'split'**
+  String get moneySplitEqual;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'treat'**
+  String get moneySplitTreat;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'covered'**
+  String get moneySplitForPartner;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'custom'**
+  String get moneySplitCustom;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Edited by {name} {time}'**
+  String moneyEditedBy(String name, String time);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'waiting for signal'**
+  String get moneyPending;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Offline. Balances are from {time} plus {n} entries waiting to send.'**
+  String moneyOffline(String time, int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Offline. {n} entries waiting to send.'**
+  String moneyOfflineNoTime(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load new entries. Figures are from {time}.'**
+  String moneyLoadError(String time);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load new entries.'**
+  String get moneyLoadErrorNoTime;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'When they join, we\'ll get a shared book too: who paid, splitting, a trip fund.'**
+  String get moneyWaitingCard;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Send invite'**
+  String get moneySendInvite;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Balance fix'**
+  String get moneyAdjustRow;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} · not spending'**
+  String moneyAdjustSub(String wallet);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{from} → {to}'**
+  String moneyTransferSub(String from, String to);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} put in'**
+  String moneyContribSub(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} → shared book'**
+  String moneyContribOwnSub(String wallet);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} settled up · not spending'**
+  String moneySettleSub(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Also in the shared book'**
+  String get moneyLinkedBadge;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Your first entry'**
+  String get moneyFirstEntryTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'What did you pay for today? Tap one, type the amount, then Save.'**
+  String get moneyFirstEntryBody;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Log a few days and you\'ll see where the money goes, then set a budget for next month.'**
+  String get moneyFirstEntryFoot;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Negative balance. Was something logged to the wrong wallet?'**
+  String get moneyNegWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get moneyCategories;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit entry'**
+  String get moneyEditTx;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get moneyClose;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared book'**
+  String get moneyBookShared;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Switch book, now {book}'**
+  String moneySwitchBook(String book);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get moneyTypeExpense;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get moneyTypeIncome;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get moneyTypeTransfer;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get moneyAmountLabel;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'50k, 1.2M or 1 million all work'**
+  String get moneyAmountHint;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'You typed “{raw}”'**
+  String moneyAmountEcho(String raw);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'That number didn\'t parse. Try 120k or 120000.'**
+  String get moneyAmountInvalid;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'10 billion max per entry. Check the zeros.'**
+  String get moneyAmountTooBig;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'That would push the wallet past 100 billion. Check the amount.'**
+  String get moneyWalletCapHit;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Log a usual one again'**
+  String get moneyQuickRepeat;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get moneyCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get moneyAllCategories;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get moneyWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Into wallet'**
+  String get moneyIntoWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Take it from my wallet'**
+  String get moneyDeductMine;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t deduct'**
+  String get moneyNoDeduct;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get moneyFromWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get moneyToWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note'**
+  String get moneyAddNote;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Who paid'**
+  String get moneyWhoPays;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'How to split'**
+  String get moneyHowSplit;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Split'**
+  String get moneySplitEqualCap;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'My treat'**
+  String get moneyTreatMe;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s treat'**
+  String moneyTreatPartner(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Covered'**
+  String get moneyForPartnerCap;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get moneyCustomCap;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} pays'**
+  String moneyBears(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{a} pays {x} · {b} pays {y}'**
+  String moneyShares(String a, String x, String b, String y);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount to see each share'**
+  String get moneySharesNeedAmount;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from the shared wallet, so nobody owes anyone.'**
+  String get moneyNoOneOwes;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'10% less'**
+  String get moneyStepDown;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'10% more'**
+  String get moneyStepUp;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get moneyDate;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get moneyNote;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Lunch, birthday gift…'**
+  String get moneyNoteHint;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Save {amount}'**
+  String moneySaveAmount(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount to save'**
+  String get moneySaveNeedAmount;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Fix the amount to save'**
+  String get moneySaveFixAmount;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a wallet to save'**
+  String get moneySaveNeedWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {amount} · {category}'**
+  String moneySaved(String amount, String category);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {amount} · transfer'**
+  String moneySavedTransfer(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Changes saved'**
+  String get moneySavedEdit;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for signal, it\'ll sync to the shared book'**
+  String get moneySavedOffline;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for signal, it\'ll sync when you\'re back online'**
+  String get moneySavedOfflineMine;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared {category} is {amount} over this month\'s budget'**
+  String moneyOverBudgetToast(String category, String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared {category} is at {percent}% of this month\'s budget'**
+  String moneyNearBudgetToast(String category, String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{category} is {amount} over this month\'s budget'**
+  String moneyOverBudgetToastMine(String category, String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{category} is at {percent}% of this month\'s budget'**
+  String moneyNearBudgetToastMine(String category, String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'The month is {amount} over budget'**
+  String moneyOverTotalToast(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'The month is at {percent}% of budget'**
+  String moneyNearTotalToast(String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Not saved: {name} just edited this entry'**
+  String moneyConflictTitle(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the latest version, edit again if needed'**
+  String get moneyConflictBody;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save this. Try again.'**
+  String get moneyWriteFailed;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete entry'**
+  String get moneyDeleteTx;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {note} · {amount}'**
+  String moneyDeleted(String note, String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get moneyUndo;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Change it in my book too?'**
+  String get moneyLinkedAskTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'“{note}” also takes {old} from {wallet}. Change both books to {amount}?'**
+  String moneyLinkedAskBody(
+    String note,
+    String old,
+    String wallet,
+    String amount,
+  );
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Change both'**
+  String get moneyLinkedBoth;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared book only'**
+  String get moneyLinkedSharedOnly;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} changed the shared entry to {amount}'**
+  String moneyLinkedChanged(String name, String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get moneyLinkedUpdate;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Only {name} can change the amount, it\'s also in their own book'**
+  String moneyLinkedLocked(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete from both books?'**
+  String get moneyDeleteBothTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'“{note}” {amount} is in the shared book and also comes out of my {wallet}. Deleting both puts {amount} back in {wallet}.'**
+  String moneyDeleteBothBody(String note, String amount, String wallet);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete both'**
+  String get moneyDeleteBoth;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Only the shared book'**
+  String get moneyDeleteSharedOnly;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get moneyCancel;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this entry?'**
+  String get moneyDiscardTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} · {category} isn\'t saved yet.'**
+  String moneyDiscardBody(String amount, String category);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get moneyKeepEditing;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get moneyDiscard;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a category'**
+  String get moneyPickCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get moneyEditCategoriesShort;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Find a category, e.g. “coffee”'**
+  String get moneyCategorySearchHint;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'No category matches.'**
+  String get moneyCategoryNoMatch;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete one character'**
+  String get moneyKeyDelete;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'thousand'**
+  String get moneyKeyThousand;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'million'**
+  String get moneyKeyMillion;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'million (củ)'**
+  String get moneyKeyCu;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Show number pad'**
+  String get moneyShowKeypad;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Where\'s my money right now?'**
+  String get moneyFirstRunTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on the wallets you use and enter today\'s balance. You can skip this, a Cash wallet is already set up.'**
+  String get moneyFirstRunBody;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Done, open my book'**
+  String get moneyFirstRunDone;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get moneySkip;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Built in'**
+  String get moneyBuiltIn;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get moneyWalletBank;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'E-wallet'**
+  String get moneyWalletEwallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Credit card'**
+  String get moneyWalletCredit;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get moneyWalletGoal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'How much you owe on it'**
+  String get moneyCreditOwed;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} balance'**
+  String moneyBalanceOf(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'100 billion max per wallet.'**
+  String get moneyWalletTooBig;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'WALLETS'**
+  String get moneyWalletsBadge;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add wallet'**
+  String get moneyAddWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Adds up {n} wallets in use, with card debt taken off. Goal savings are counted separately below.'**
+  String moneyAssetsNote(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'In use'**
+  String get moneyInUse;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 wallet} other{{n} wallets}}'**
+  String moneyWalletCount(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get moneyGoals;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'not in the total'**
+  String get moneyNotInTotal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'About {amount} a month'**
+  String moneyGoalPerMonthShort(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get moneyArchivedSection;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Archived {date}, history kept'**
+  String moneyArchived(String date);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Archived, history kept'**
+  String get moneyArchivedPlain;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'card debt'**
+  String get moneyOwingCard;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Current balance'**
+  String get moneyCurrentBalance;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{type} · counts in total money'**
+  String moneyWalletInTotal(String type);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{type} · not in the total'**
+  String moneyWalletNotInTotal(String type);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'In · {month}'**
+  String moneyInMonth(String month);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Out · {month}'**
+  String moneyOutMonth(String month);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get moneyTransferBtn;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Fix balance'**
+  String get moneyFixBalance;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 entry} other{{n} entries}}'**
+  String moneyEntryCount(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit wallet'**
+  String get moneyEditWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'No entries in this wallet this month.'**
+  String get moneyWalletNoEntries;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'New wallet'**
+  String get moneyNewWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'New goal'**
+  String get moneyNewGoal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Cash on hand'**
+  String get moneyHintCash;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Techcombank, VCB…'**
+  String get moneyHintBank;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'MoMo, ZaloPay…'**
+  String get moneyHintEwallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Owing on the card shows as negative, that\'s right'**
+  String get moneyHintCredit;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Saving for one thing, with a deadline'**
+  String get moneyHintGoal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get moneyName;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an icon'**
+  String get moneyPickEmoji;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Balance now'**
+  String get moneyBalanceNow;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Count in total money'**
+  String get moneyIncludeInTotal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off for money you hold for someone else'**
+  String get moneyIncludeInTotalSub;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Create wallet'**
+  String get moneyCreateWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Create goal'**
+  String get moneyCreateGoal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get moneyGoalTarget;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline (optional)'**
+  String get moneyGoalDeadline;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Save about {amount} a month for the next {n} months.'**
+  String moneyGoalPerMonth(String amount, int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get moneyNotSet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get moneySave;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Archive wallet'**
+  String get moneyArchiveWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Archive this wallet?'**
+  String get moneyArchiveAskTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'It stops showing when you add entries and keeps its history. You can bring it back any time.'**
+  String get moneyArchiveAskBody;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Use this wallet again'**
+  String get moneyUnarchiveWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add a name to save'**
+  String get moneyNameNeeded;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Match the real balance'**
+  String get moneyFixTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} · the book says {amount}'**
+  String moneyFixInBook(String wallet, String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'What you actually have'**
+  String get moneyAdjustReal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'The app shows {amount} more than you really have. It adds one “balance fix” line to match, which doesn\'t count as spending.'**
+  String moneyFixMore(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'The app shows {amount} less than you really have. It adds one “balance fix” line to match, which doesn\'t count as income.'**
+  String moneyFixLess(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Already matches, nothing to fix.'**
+  String get moneyFixSame;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Update balance'**
+  String get moneyAdjustSave;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} balance fixed'**
+  String moneyFixedToast(String wallet);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Created {name}'**
+  String moneyWalletCreated(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'CATEGORIES'**
+  String get moneyCategoriesBadge;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'My book · each book has its own categories'**
+  String get moneyCategoryScope;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared book · each book has its own categories'**
+  String get moneyCategoryScopeShared;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 subcategory} other{{n} subcategories}}'**
+  String moneySubCount(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add subcategory'**
+  String get moneyAddSub;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed from “{name}”'**
+  String moneyRenamedFrom(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Added by you'**
+  String get moneyCustom;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get moneyHidden;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'not shown when adding'**
+  String get moneyHiddenNote;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Old entries keep the name'**
+  String get moneyHiddenSub;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Show again'**
+  String get moneyShowAgain;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Hide this category'**
+  String get moneyHideCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit category'**
+  String get moneyEditCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'New group'**
+  String get moneyNewCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'New subcategory'**
+  String get moneyNewSub;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Original name: {name}. Renaming only changes this book.'**
+  String moneyOriginalName(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Under'**
+  String get moneyInGroup;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete category'**
+  String get moneyDeleteCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{name}”?'**
+  String moneyDeleteCategoryAsk(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Old entries in it move to “Other”.'**
+  String get moneyDeleteCategoryBody;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get moneyDelete;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get moneyAddCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'This book already has 80 custom categories.'**
+  String get moneyCategoryLimit;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Settle up'**
+  String get moneySettle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'not spending'**
+  String get moneyNotSpending;
 }
 
 class _AppLocalizationsDelegate

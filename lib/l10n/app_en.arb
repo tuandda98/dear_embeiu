@@ -4566,5 +4566,1570 @@
   "moneyCatInterest": "Interest",
   "moneyCatIncomeOther": "Other income",
   "moneyWalletCash": "Cash",
-  "moneyJointWallet": "Shared wallet"
+  "moneyJointWallet": "Shared wallet",
+  "moneyTitle": "Money book",
+  "@moneyTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBadge": "MONEY BOOK",
+  "@moneyBadge": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTabMine": "Mine",
+  "@moneyTabMine": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTabShared": "Shared",
+  "@moneyTabShared": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHomeShared": "Shared book · {month}",
+  "@moneyHomeShared": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeSpent": "Spent {amount} · {percent}% of budget",
+  "@moneyHomeSpent": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeSpentNoBudget": "Spent {amount} this month",
+  "@moneyHomeSpentNoBudget": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeSpentOnly": "Spent {amount}",
+  "@moneyHomeSpentOnly": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeOverPart": "{over} over",
+  "@moneyHomeOverPart": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "over": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeZero": "Spent {amount} · nothing yet",
+  "@moneyHomeZero": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeStale": "{amount} · as of {time}",
+  "@moneyHomeStale": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeError": "Couldn't load the shared book",
+  "@moneyHomeError": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHomeLoading": "Shared book, loading",
+  "@moneyHomeLoading": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHomeMine": "My money book",
+  "@moneyHomeMine": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHomeTodayCount": "{n, plural, =0{Nothing logged today} =1{1 entry today} other{{n} entries today}}",
+  "@moneyHomeTodayCount": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyHomeFirst": "Type 50k, pick a category, done",
+  "@moneyHomeFirst": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAddTx": "Add entry",
+  "@moneyAddTx": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyRetry": "Try again",
+  "@moneyRetry": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyMoreLabel": "Wallets, categories, budgets",
+  "@moneyMoreLabel": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyPrevMonth": "Previous month",
+  "@moneyPrevMonth": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNextMonth": "Next month",
+  "@moneyNextMonth": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyMonthSpentMine": "Spent",
+  "@moneyMonthSpentMine": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyMonthSpentShared": "We spent",
+  "@moneyMonthSpentShared": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgetLeftLabel": "Left in budget",
+  "@moneyBudgetLeftLabel": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgetNone": "No budget yet",
+  "@moneyBudgetNone": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgetUsed": "{percent}% used",
+  "@moneyBudgetUsed": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetOfShort": "of {amount}",
+  "@moneyBudgetOfShort": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyToday": "Today",
+  "@moneyToday": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgetSemantics": "{percent}% of budget used, {left} left",
+  "@moneyBudgetSemantics": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyFindingPerDay": "The month is {passed}/{total} days in and {percent}% of the budget is used, so about {perDay} a day from now to month end.",
+  "@moneyFindingPerDay": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "passed": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "perDay": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyFindingOver": "This month is {over} over budget.",
+  "@moneyFindingOver": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "over": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyFindingCategory": "Shared {category} is at {percent}% of budget, {left} left for {days} days.",
+  "@moneyFindingCategory": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyIncome": "Income",
+  "@moneyIncome": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyIncomeMinusSpent": "Income minus spent",
+  "@moneyIncomeMinusSpent": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWhoPaid": "Who paid this month",
+  "@moneyWhoPaid": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLaneTotal": "Total {amount}",
+  "@moneyLaneTotal": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyMe": "Me",
+  "@moneyMe": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLanesSemantics": "{partner} paid {a}, shared wallet {b}, I paid {c}",
+  "@moneyLanesSemantics": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "partner": {
+        "type": "String"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      },
+      "c": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBalanceMeAhead": "I've covered more",
+  "@moneyBalanceMeAhead": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBalancePartnerAhead": "{name} has covered more",
+  "@moneyBalancePartnerAhead": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBalanceEven": "We're even",
+  "@moneyBalanceEven": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBalanceMeAheadSub": "If {name} pays me this back, we're even",
+  "@moneyBalanceMeAheadSub": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBalancePartnerAheadSub": "If I pay {name} this back, we're even",
+  "@moneyBalancePartnerAheadSub": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyRecent": "Recent",
+  "@moneyRecent": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyRecentEmpty": "Nothing in {month} yet. Tap ‹ above to look back at {prev}.",
+  "@moneyRecentEmpty": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "prev": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyEmptyMonth": "Nothing in {month} yet. Use the pink button below to add the first entry.",
+  "@moneyEmptyMonth": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDaySpent": "Spent {amount}",
+  "@moneyDaySpent": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDayToday": "Today, {date}",
+  "@moneyDayToday": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDayYesterday": "Yesterday, {date}",
+  "@moneyDayYesterday": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyWhere": "Where it went",
+  "@moneyWhere": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgetPercentShort": "{percent}% of budget",
+  "@moneyBudgetPercentShort": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyOverPercent": "{percent}% over",
+  "@moneyOverPercent": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyWallets": "Wallets",
+  "@moneyWallets": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletsShared": "Shared wallets & funds",
+  "@moneyWalletsShared": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTotalAssets": "Total money",
+  "@moneyTotalAssets": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTotalAssetsValue": "Total money {amount}",
+  "@moneyTotalAssetsValue": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyManageWallets": "Manage wallets",
+  "@moneyManageWallets": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyJointContribEach": "Each of us put in {amount} this month",
+  "@moneyJointContribEach": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalProgress": "{percent}% of {target}",
+  "@moneyGoalProgress": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyPaidBy": "{name} paid · {split}",
+  "@moneyPaidBy": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "split": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyPaidByNoSplit": "{name} paid",
+  "@moneyPaidByNoSplit": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyPaidFromJoint": "Paid from shared wallet",
+  "@moneyPaidFromJoint": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySplitEqual": "split",
+  "@moneySplitEqual": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySplitTreat": "treat",
+  "@moneySplitTreat": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySplitForPartner": "covered",
+  "@moneySplitForPartner": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySplitCustom": "custom",
+  "@moneySplitCustom": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyEditedBy": "Edited by {name} {time}",
+  "@moneyEditedBy": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyPending": "waiting for signal",
+  "@moneyPending": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyOffline": "Offline. Balances are from {time} plus {n} entries waiting to send.",
+  "@moneyOffline": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyOfflineNoTime": "Offline. {n} entries waiting to send.",
+  "@moneyOfflineNoTime": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyLoadError": "Couldn't load new entries. Figures are from {time}.",
+  "@moneyLoadError": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyLoadErrorNoTime": "Couldn't load new entries.",
+  "@moneyLoadErrorNoTime": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWaitingCard": "When they join, we'll get a shared book too: who paid, splitting, a trip fund.",
+  "@moneyWaitingCard": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySendInvite": "Send invite",
+  "@moneySendInvite": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAdjustRow": "Balance fix",
+  "@moneyAdjustRow": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAdjustSub": "{wallet} · not spending",
+  "@moneyAdjustSub": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyTransferSub": "{from} → {to}",
+  "@moneyTransferSub": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContribSub": "{name} put in",
+  "@moneyContribSub": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContribOwnSub": "{wallet} → shared book",
+  "@moneyContribOwnSub": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettleSub": "{name} settled up · not spending",
+  "@moneySettleSub": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyLinkedBadge": "Also in the shared book",
+  "@moneyLinkedBadge": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstEntryTitle": "Your first entry",
+  "@moneyFirstEntryTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstEntryBody": "What did you pay for today? Tap one, type the amount, then Save.",
+  "@moneyFirstEntryBody": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstEntryFoot": "Log a few days and you'll see where the money goes, then set a budget for next month.",
+  "@moneyFirstEntryFoot": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNegWallet": "Negative balance. Was something logged to the wrong wallet?",
+  "@moneyNegWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategories": "Categories",
+  "@moneyCategories": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyEditTx": "Edit entry",
+  "@moneyEditTx": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyClose": "Close",
+  "@moneyClose": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBookShared": "Shared book",
+  "@moneyBookShared": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySwitchBook": "Switch book, now {book}",
+  "@moneySwitchBook": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "book": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyTypeExpense": "Expense",
+  "@moneyTypeExpense": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTypeIncome": "Income",
+  "@moneyTypeIncome": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTypeTransfer": "Transfer",
+  "@moneyTypeTransfer": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAmountLabel": "Amount",
+  "@moneyAmountLabel": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAmountHint": "50k, 1.2M or 1 million all work",
+  "@moneyAmountHint": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAmountEcho": "You typed “{raw}”",
+  "@moneyAmountEcho": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "raw": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyAmountInvalid": "That number didn't parse. Try 120k or 120000.",
+  "@moneyAmountInvalid": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAmountTooBig": "10 billion max per entry. Check the zeros.",
+  "@moneyAmountTooBig": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletCapHit": "That would push the wallet past 100 billion. Check the amount.",
+  "@moneyWalletCapHit": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyQuickRepeat": "Log a usual one again",
+  "@moneyQuickRepeat": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategory": "Category",
+  "@moneyCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAllCategories": "All",
+  "@moneyAllCategories": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWallet": "Wallet",
+  "@moneyWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyIntoWallet": "Into wallet",
+  "@moneyIntoWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeductMine": "Take it from my wallet",
+  "@moneyDeductMine": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNoDeduct": "Don't deduct",
+  "@moneyNoDeduct": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFromWallet": "From",
+  "@moneyFromWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyToWallet": "To",
+  "@moneyToWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAddNote": "Add a note",
+  "@moneyAddNote": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWhoPays": "Who paid",
+  "@moneyWhoPays": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHowSplit": "How to split",
+  "@moneyHowSplit": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySplitEqualCap": "Split",
+  "@moneySplitEqualCap": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTreatMe": "My treat",
+  "@moneyTreatMe": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTreatPartner": "{name}'s treat",
+  "@moneyTreatPartner": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyForPartnerCap": "Covered",
+  "@moneyForPartnerCap": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCustomCap": "Custom",
+  "@moneyCustomCap": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBears": "{name} pays",
+  "@moneyBears": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyShares": "{a} pays {x} · {b} pays {y}",
+  "@moneyShares": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "x": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      },
+      "y": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySharesNeedAmount": "Enter an amount to see each share",
+  "@moneySharesNeedAmount": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNoOneOwes": "Paid from the shared wallet, so nobody owes anyone.",
+  "@moneyNoOneOwes": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyStepDown": "10% less",
+  "@moneyStepDown": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyStepUp": "10% more",
+  "@moneyStepUp": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDate": "Date",
+  "@moneyDate": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNote": "Note",
+  "@moneyNote": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNoteHint": "Lunch, birthday gift…",
+  "@moneyNoteHint": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySaveAmount": "Save {amount}",
+  "@moneySaveAmount": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySaveNeedAmount": "Enter an amount to save",
+  "@moneySaveNeedAmount": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySaveFixAmount": "Fix the amount to save",
+  "@moneySaveFixAmount": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySaveNeedWallet": "Pick a wallet to save",
+  "@moneySaveNeedWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySaved": "Saved {amount} · {category}",
+  "@moneySaved": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySavedTransfer": "Saved {amount} · transfer",
+  "@moneySavedTransfer": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySavedEdit": "Changes saved",
+  "@moneySavedEdit": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySavedOffline": "Waiting for signal, it'll sync to the shared book",
+  "@moneySavedOffline": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySavedOfflineMine": "Waiting for signal, it'll sync when you're back online",
+  "@moneySavedOfflineMine": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyOverBudgetToast": "Shared {category} is {amount} over this month's budget",
+  "@moneyOverBudgetToast": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyNearBudgetToast": "Shared {category} is at {percent}% of this month's budget",
+  "@moneyNearBudgetToast": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyOverBudgetToastMine": "{category} is {amount} over this month's budget",
+  "@moneyOverBudgetToastMine": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyNearBudgetToastMine": "{category} is at {percent}% of this month's budget",
+  "@moneyNearBudgetToastMine": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyOverTotalToast": "The month is {amount} over budget",
+  "@moneyOverTotalToast": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyNearTotalToast": "The month is at {percent}% of budget",
+  "@moneyNearTotalToast": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyConflictTitle": "Not saved: {name} just edited this entry",
+  "@moneyConflictTitle": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyConflictBody": "Showing the latest version, edit again if needed",
+  "@moneyConflictBody": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWriteFailed": "Couldn't save this. Try again.",
+  "@moneyWriteFailed": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleteTx": "Delete entry",
+  "@moneyDeleteTx": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleted": "Deleted {note} · {amount}",
+  "@moneyDeleted": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "note": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyUndo": "Undo",
+  "@moneyUndo": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLinkedAskTitle": "Change it in my book too?",
+  "@moneyLinkedAskTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLinkedAskBody": "“{note}” also takes {old} from {wallet}. Change both books to {amount}?",
+  "@moneyLinkedAskBody": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "note": {
+        "type": "String"
+      },
+      "old": {
+        "type": "String"
+      },
+      "wallet": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyLinkedBoth": "Change both",
+  "@moneyLinkedBoth": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLinkedSharedOnly": "Shared book only",
+  "@moneyLinkedSharedOnly": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLinkedChanged": "{name} changed the shared entry to {amount}",
+  "@moneyLinkedChanged": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyLinkedUpdate": "Update",
+  "@moneyLinkedUpdate": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLinkedLocked": "Only {name} can change the amount, it's also in their own book",
+  "@moneyLinkedLocked": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDeleteBothTitle": "Delete from both books?",
+  "@moneyDeleteBothTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleteBothBody": "“{note}” {amount} is in the shared book and also comes out of my {wallet}. Deleting both puts {amount} back in {wallet}.",
+  "@moneyDeleteBothBody": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "note": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDeleteBoth": "Delete both",
+  "@moneyDeleteBoth": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleteSharedOnly": "Only the shared book",
+  "@moneyDeleteSharedOnly": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCancel": "Cancel",
+  "@moneyCancel": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDiscardTitle": "Discard this entry?",
+  "@moneyDiscardTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDiscardBody": "{amount} · {category} isn't saved yet.",
+  "@moneyDiscardBody": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyKeepEditing": "Keep editing",
+  "@moneyKeepEditing": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDiscard": "Discard",
+  "@moneyDiscard": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyPickCategory": "Pick a category",
+  "@moneyPickCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyEditCategoriesShort": "Edit",
+  "@moneyEditCategoriesShort": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategorySearchHint": "Find a category, e.g. “coffee”",
+  "@moneyCategorySearchHint": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategoryNoMatch": "No category matches.",
+  "@moneyCategoryNoMatch": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyKeyDelete": "Delete one character",
+  "@moneyKeyDelete": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyKeyThousand": "thousand",
+  "@moneyKeyThousand": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyKeyMillion": "million",
+  "@moneyKeyMillion": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyKeyCu": "million (củ)",
+  "@moneyKeyCu": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyShowKeypad": "Show number pad",
+  "@moneyShowKeypad": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstRunTitle": "Where's my money right now?",
+  "@moneyFirstRunTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstRunBody": "Turn on the wallets you use and enter today's balance. You can skip this, a Cash wallet is already set up.",
+  "@moneyFirstRunBody": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstRunDone": "Done, open my book",
+  "@moneyFirstRunDone": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySkip": "Skip",
+  "@moneySkip": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBuiltIn": "Built in",
+  "@moneyBuiltIn": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletBank": "Bank",
+  "@moneyWalletBank": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletEwallet": "E-wallet",
+  "@moneyWalletEwallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletCredit": "Credit card",
+  "@moneyWalletCredit": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletGoal": "Goal",
+  "@moneyWalletGoal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCreditOwed": "How much you owe on it",
+  "@moneyCreditOwed": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBalanceOf": "{name} balance",
+  "@moneyBalanceOf": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyWalletTooBig": "100 billion max per wallet.",
+  "@moneyWalletTooBig": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletsBadge": "WALLETS",
+  "@moneyWalletsBadge": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAddWallet": "Add wallet",
+  "@moneyAddWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAssetsNote": "Adds up {n} wallets in use, with card debt taken off. Goal savings are counted separately below.",
+  "@moneyAssetsNote": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyInUse": "In use",
+  "@moneyInUse": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletCount": "{n, plural, =1{1 wallet} other{{n} wallets}}",
+  "@moneyWalletCount": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyGoals": "Goals",
+  "@moneyGoals": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNotInTotal": "not in the total",
+  "@moneyNotInTotal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyGoalPerMonthShort": "About {amount} a month",
+  "@moneyGoalPerMonthShort": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyArchivedSection": "Archived",
+  "@moneyArchivedSection": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyArchived": "Archived {date}, history kept",
+  "@moneyArchived": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyArchivedPlain": "Archived, history kept",
+  "@moneyArchivedPlain": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyOwingCard": "card debt",
+  "@moneyOwingCard": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCurrentBalance": "Current balance",
+  "@moneyCurrentBalance": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletInTotal": "{type} · counts in total money",
+  "@moneyWalletInTotal": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyWalletNotInTotal": "{type} · not in the total",
+  "@moneyWalletNotInTotal": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyInMonth": "In · {month}",
+  "@moneyInMonth": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyOutMonth": "Out · {month}",
+  "@moneyOutMonth": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyTransferBtn": "Transfer",
+  "@moneyTransferBtn": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFixBalance": "Fix balance",
+  "@moneyFixBalance": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyEntryCount": "{n, plural, =1{1 entry} other{{n} entries}}",
+  "@moneyEntryCount": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyEditWallet": "Edit wallet",
+  "@moneyEditWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletNoEntries": "No entries in this wallet this month.",
+  "@moneyWalletNoEntries": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNewWallet": "New wallet",
+  "@moneyNewWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNewGoal": "New goal",
+  "@moneyNewGoal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHintCash": "Cash on hand",
+  "@moneyHintCash": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHintBank": "Techcombank, VCB…",
+  "@moneyHintBank": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHintEwallet": "MoMo, ZaloPay…",
+  "@moneyHintEwallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHintCredit": "Owing on the card shows as negative, that's right",
+  "@moneyHintCredit": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHintGoal": "Saving for one thing, with a deadline",
+  "@moneyHintGoal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyName": "Name",
+  "@moneyName": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyPickEmoji": "Pick an icon",
+  "@moneyPickEmoji": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBalanceNow": "Balance now",
+  "@moneyBalanceNow": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyIncludeInTotal": "Count in total money",
+  "@moneyIncludeInTotal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyIncludeInTotalSub": "Turn off for money you hold for someone else",
+  "@moneyIncludeInTotalSub": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCreateWallet": "Create wallet",
+  "@moneyCreateWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCreateGoal": "Create goal",
+  "@moneyCreateGoal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyGoalTarget": "Target",
+  "@moneyGoalTarget": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyGoalDeadline": "Deadline (optional)",
+  "@moneyGoalDeadline": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyGoalPerMonth": "Save about {amount} a month for the next {n} months.",
+  "@moneyGoalPerMonth": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyNotSet": "Not set",
+  "@moneyNotSet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySave": "Save",
+  "@moneySave": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyArchiveWallet": "Archive wallet",
+  "@moneyArchiveWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyArchiveAskTitle": "Archive this wallet?",
+  "@moneyArchiveAskTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyArchiveAskBody": "It stops showing when you add entries and keeps its history. You can bring it back any time.",
+  "@moneyArchiveAskBody": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyUnarchiveWallet": "Use this wallet again",
+  "@moneyUnarchiveWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNameNeeded": "Add a name to save",
+  "@moneyNameNeeded": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFixTitle": "Match the real balance",
+  "@moneyFixTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFixInBook": "{wallet} · the book says {amount}",
+  "@moneyFixInBook": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyAdjustReal": "What you actually have",
+  "@moneyAdjustReal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFixMore": "The app shows {amount} more than you really have. It adds one “balance fix” line to match, which doesn't count as spending.",
+  "@moneyFixMore": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyFixLess": "The app shows {amount} less than you really have. It adds one “balance fix” line to match, which doesn't count as income.",
+  "@moneyFixLess": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyFixSame": "Already matches, nothing to fix.",
+  "@moneyFixSame": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAdjustSave": "Update balance",
+  "@moneyAdjustSave": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFixedToast": "{wallet} balance fixed",
+  "@moneyFixedToast": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyWalletCreated": "Created {name}",
+  "@moneyWalletCreated": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyCategoriesBadge": "CATEGORIES",
+  "@moneyCategoriesBadge": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategoryScope": "My book · each book has its own categories",
+  "@moneyCategoryScope": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategoryScopeShared": "Shared book · each book has its own categories",
+  "@moneyCategoryScopeShared": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySubCount": "{n, plural, =1{1 subcategory} other{{n} subcategories}}",
+  "@moneySubCount": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyAddSub": "Add subcategory",
+  "@moneyAddSub": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyRenamedFrom": "Renamed from “{name}”",
+  "@moneyRenamedFrom": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyCustom": "Added by you",
+  "@moneyCustom": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHidden": "Hidden",
+  "@moneyHidden": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHiddenNote": "not shown when adding",
+  "@moneyHiddenNote": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHiddenSub": "Old entries keep the name",
+  "@moneyHiddenSub": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyShowAgain": "Show again",
+  "@moneyShowAgain": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHideCategory": "Hide this category",
+  "@moneyHideCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyEditCategory": "Edit category",
+  "@moneyEditCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNewCategory": "New group",
+  "@moneyNewCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNewSub": "New subcategory",
+  "@moneyNewSub": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyOriginalName": "Original name: {name}. Renaming only changes this book.",
+  "@moneyOriginalName": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyInGroup": "Under",
+  "@moneyInGroup": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleteCategory": "Delete category",
+  "@moneyDeleteCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleteCategoryAsk": "Delete “{name}”?",
+  "@moneyDeleteCategoryAsk": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDeleteCategoryBody": "Old entries in it move to “Other”.",
+  "@moneyDeleteCategoryBody": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDelete": "Delete",
+  "@moneyDelete": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAddCategory": "Add category",
+  "@moneyAddCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategoryLimit": "This book already has 80 custom categories.",
+  "@moneyCategoryLimit": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySettle": "Settle up",
+  "@moneySettle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNotSpending": "not spending",
+  "@moneyNotSpending": {
+    "description": "Sổ tiền (feature expenses)"
+  }
 }

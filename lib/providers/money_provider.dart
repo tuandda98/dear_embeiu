@@ -207,6 +207,17 @@ class MoneyProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// "Thử lại" after a load error: subscribe the book's streams again.
+  void retry(MoneyBookKind kind) {
+    final s = book(kind);
+    if (s == null) return;
+    s.dispose();
+    s.loadError = null;
+    _listen(s);
+    if (!s.isShared) unawaited(_refreshSums(s));
+    notifyListeners();
+  }
+
   /// Own book: re-subscribe when the day rolled over and the window moved.
   void refreshDay() {
     final state = _own;
@@ -378,6 +389,7 @@ class MoneyProvider extends ChangeNotifier {
   Future<void> ensureDefaultWallet(
     MoneyBookKind kind, {
     List<MoneyWallet> extra = const <MoneyWallet>[],
+    int starterBalance = 0,
   }) async {
     final s = book(kind), uid = _uid;
     if (s == null || uid == null) return;
@@ -393,6 +405,7 @@ class MoneyProvider extends ChangeNotifier {
               : l.moneyJointWallet,
           type: MoneyWalletType.cash,
           emoji: kind == MoneyBookKind.own ? '💵' : '👛',
+          openingBalance: starterBalance,
           memberUids: s.service.memberUids,
         ),
       for (final w in extra) _pinned(s, w),
@@ -934,6 +947,20 @@ class MoneyProvider extends ChangeNotifier {
       maxAmount: maxAmount,
     );
     return (rows: rows, capped: !s.isShared && source.length >= 2000);
+  }
+
+  /// Tests: put prepared books in place (no Firestore listeners).
+  @visibleForTesting
+  void debugSetBooks({
+    required String uid,
+    MoneyBookState? own,
+    MoneyBookState? shared,
+  }) {
+    _uid = uid;
+    _own = own;
+    _shared = shared;
+    _sharedCoupleId = shared == null ? null : 'debug';
+    notifyListeners();
   }
 
   // ---- Hive cache of own-book sums (D19: open the app → numbers at once) ---

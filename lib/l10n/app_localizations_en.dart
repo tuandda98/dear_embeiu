@@ -4783,4 +4783,1011 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyJointWallet => 'Shared wallet';
+
+  @override
+  String get moneyTitle => 'Money book';
+
+  @override
+  String get moneyBadge => 'MONEY BOOK';
+
+  @override
+  String get moneyTabMine => 'Mine';
+
+  @override
+  String get moneyTabShared => 'Shared';
+
+  @override
+  String moneyHomeShared(String month) {
+    return 'Shared book · $month';
+  }
+
+  @override
+  String moneyHomeSpent(String amount, String percent) {
+    return 'Spent $amount · $percent% of budget';
+  }
+
+  @override
+  String moneyHomeSpentNoBudget(String amount) {
+    return 'Spent $amount this month';
+  }
+
+  @override
+  String moneyHomeSpentOnly(String amount) {
+    return 'Spent $amount';
+  }
+
+  @override
+  String moneyHomeOverPart(String over) {
+    return '$over over';
+  }
+
+  @override
+  String moneyHomeZero(String amount) {
+    return 'Spent $amount · nothing yet';
+  }
+
+  @override
+  String moneyHomeStale(String amount, String time) {
+    return '$amount · as of $time';
+  }
+
+  @override
+  String get moneyHomeError => 'Couldn\'t load the shared book';
+
+  @override
+  String get moneyHomeLoading => 'Shared book, loading';
+
+  @override
+  String get moneyHomeMine => 'My money book';
+
+  @override
+  String moneyHomeTodayCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n entries today',
+      one: '1 entry today',
+      zero: 'Nothing logged today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyHomeFirst => 'Type 50k, pick a category, done';
+
+  @override
+  String get moneyAddTx => 'Add entry';
+
+  @override
+  String get moneyRetry => 'Try again';
+
+  @override
+  String get moneyMoreLabel => 'Wallets, categories, budgets';
+
+  @override
+  String get moneyPrevMonth => 'Previous month';
+
+  @override
+  String get moneyNextMonth => 'Next month';
+
+  @override
+  String get moneyMonthSpentMine => 'Spent';
+
+  @override
+  String get moneyMonthSpentShared => 'We spent';
+
+  @override
+  String get moneyBudgetLeftLabel => 'Left in budget';
+
+  @override
+  String get moneyBudgetNone => 'No budget yet';
+
+  @override
+  String moneyBudgetUsed(String percent) {
+    return '$percent% used';
+  }
+
+  @override
+  String moneyBudgetOfShort(String amount) {
+    return 'of $amount';
+  }
+
+  @override
+  String get moneyToday => 'Today';
+
+  @override
+  String moneyBudgetSemantics(String percent, String left) {
+    return '$percent% of budget used, $left left';
+  }
+
+  @override
+  String moneyFindingPerDay(
+    String passed,
+    String total,
+    String percent,
+    String perDay,
+  ) {
+    return 'The month is $passed/$total days in and $percent% of the budget is used, so about $perDay a day from now to month end.';
+  }
+
+  @override
+  String moneyFindingOver(String over) {
+    return 'This month is $over over budget.';
+  }
+
+  @override
+  String moneyFindingCategory(
+    String category,
+    String percent,
+    String left,
+    String days,
+  ) {
+    return 'Shared $category is at $percent% of budget, $left left for $days days.';
+  }
+
+  @override
+  String get moneyIncome => 'Income';
+
+  @override
+  String get moneyIncomeMinusSpent => 'Income minus spent';
+
+  @override
+  String get moneyWhoPaid => 'Who paid this month';
+
+  @override
+  String moneyLaneTotal(String amount) {
+    return 'Total $amount';
+  }
+
+  @override
+  String get moneyMe => 'Me';
+
+  @override
+  String moneyLanesSemantics(String partner, String a, String b, String c) {
+    return '$partner paid $a, shared wallet $b, I paid $c';
+  }
+
+  @override
+  String get moneyBalanceMeAhead => 'I\'ve covered more';
+
+  @override
+  String moneyBalancePartnerAhead(String name) {
+    return '$name has covered more';
+  }
+
+  @override
+  String get moneyBalanceEven => 'We\'re even';
+
+  @override
+  String moneyBalanceMeAheadSub(String name) {
+    return 'If $name pays me this back, we\'re even';
+  }
+
+  @override
+  String moneyBalancePartnerAheadSub(String name) {
+    return 'If I pay $name this back, we\'re even';
+  }
+
+  @override
+  String get moneyRecent => 'Recent';
+
+  @override
+  String moneyRecentEmpty(String month, String prev) {
+    return 'Nothing in $month yet. Tap ‹ above to look back at $prev.';
+  }
+
+  @override
+  String moneyEmptyMonth(String month) {
+    return 'Nothing in $month yet. Use the pink button below to add the first entry.';
+  }
+
+  @override
+  String moneyDaySpent(String amount) {
+    return 'Spent $amount';
+  }
+
+  @override
+  String moneyDayToday(String date) {
+    return 'Today, $date';
+  }
+
+  @override
+  String moneyDayYesterday(String date) {
+    return 'Yesterday, $date';
+  }
+
+  @override
+  String get moneyWhere => 'Where it went';
+
+  @override
+  String moneyBudgetPercentShort(String percent) {
+    return '$percent% of budget';
+  }
+
+  @override
+  String moneyOverPercent(String percent) {
+    return '$percent% over';
+  }
+
+  @override
+  String get moneyWallets => 'Wallets';
+
+  @override
+  String get moneyWalletsShared => 'Shared wallets & funds';
+
+  @override
+  String get moneyTotalAssets => 'Total money';
+
+  @override
+  String moneyTotalAssetsValue(String amount) {
+    return 'Total money $amount';
+  }
+
+  @override
+  String get moneyManageWallets => 'Manage wallets';
+
+  @override
+  String moneyJointContribEach(String amount) {
+    return 'Each of us put in $amount this month';
+  }
+
+  @override
+  String moneyGoalProgress(String percent, String target) {
+    return '$percent% of $target';
+  }
+
+  @override
+  String moneyPaidBy(String name, String split) {
+    return '$name paid · $split';
+  }
+
+  @override
+  String moneyPaidByNoSplit(String name) {
+    return '$name paid';
+  }
+
+  @override
+  String get moneyPaidFromJoint => 'Paid from shared wallet';
+
+  @override
+  String get moneySplitEqual => 'split';
+
+  @override
+  String get moneySplitTreat => 'treat';
+
+  @override
+  String get moneySplitForPartner => 'covered';
+
+  @override
+  String get moneySplitCustom => 'custom';
+
+  @override
+  String moneyEditedBy(String name, String time) {
+    return 'Edited by $name $time';
+  }
+
+  @override
+  String get moneyPending => 'waiting for signal';
+
+  @override
+  String moneyOffline(String time, int n) {
+    return 'Offline. Balances are from $time plus $n entries waiting to send.';
+  }
+
+  @override
+  String moneyOfflineNoTime(int n) {
+    return 'Offline. $n entries waiting to send.';
+  }
+
+  @override
+  String moneyLoadError(String time) {
+    return 'Couldn\'t load new entries. Figures are from $time.';
+  }
+
+  @override
+  String get moneyLoadErrorNoTime => 'Couldn\'t load new entries.';
+
+  @override
+  String get moneyWaitingCard =>
+      'When they join, we\'ll get a shared book too: who paid, splitting, a trip fund.';
+
+  @override
+  String get moneySendInvite => 'Send invite';
+
+  @override
+  String get moneyAdjustRow => 'Balance fix';
+
+  @override
+  String moneyAdjustSub(String wallet) {
+    return '$wallet · not spending';
+  }
+
+  @override
+  String moneyTransferSub(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String moneyContribSub(String name) {
+    return '$name put in';
+  }
+
+  @override
+  String moneyContribOwnSub(String wallet) {
+    return '$wallet → shared book';
+  }
+
+  @override
+  String moneySettleSub(String name) {
+    return '$name settled up · not spending';
+  }
+
+  @override
+  String get moneyLinkedBadge => 'Also in the shared book';
+
+  @override
+  String get moneyFirstEntryTitle => 'Your first entry';
+
+  @override
+  String get moneyFirstEntryBody =>
+      'What did you pay for today? Tap one, type the amount, then Save.';
+
+  @override
+  String get moneyFirstEntryFoot =>
+      'Log a few days and you\'ll see where the money goes, then set a budget for next month.';
+
+  @override
+  String get moneyNegWallet =>
+      'Negative balance. Was something logged to the wrong wallet?';
+
+  @override
+  String get moneyCategories => 'Categories';
+
+  @override
+  String get moneyEditTx => 'Edit entry';
+
+  @override
+  String get moneyClose => 'Close';
+
+  @override
+  String get moneyBookShared => 'Shared book';
+
+  @override
+  String moneySwitchBook(String book) {
+    return 'Switch book, now $book';
+  }
+
+  @override
+  String get moneyTypeExpense => 'Expense';
+
+  @override
+  String get moneyTypeIncome => 'Income';
+
+  @override
+  String get moneyTypeTransfer => 'Transfer';
+
+  @override
+  String get moneyAmountLabel => 'Amount';
+
+  @override
+  String get moneyAmountHint => '50k, 1.2M or 1 million all work';
+
+  @override
+  String moneyAmountEcho(String raw) {
+    return 'You typed “$raw”';
+  }
+
+  @override
+  String get moneyAmountInvalid =>
+      'That number didn\'t parse. Try 120k or 120000.';
+
+  @override
+  String get moneyAmountTooBig => '10 billion max per entry. Check the zeros.';
+
+  @override
+  String get moneyWalletCapHit =>
+      'That would push the wallet past 100 billion. Check the amount.';
+
+  @override
+  String get moneyQuickRepeat => 'Log a usual one again';
+
+  @override
+  String get moneyCategory => 'Category';
+
+  @override
+  String get moneyAllCategories => 'All';
+
+  @override
+  String get moneyWallet => 'Wallet';
+
+  @override
+  String get moneyIntoWallet => 'Into wallet';
+
+  @override
+  String get moneyDeductMine => 'Take it from my wallet';
+
+  @override
+  String get moneyNoDeduct => 'Don\'t deduct';
+
+  @override
+  String get moneyFromWallet => 'From';
+
+  @override
+  String get moneyToWallet => 'To';
+
+  @override
+  String get moneyAddNote => 'Add a note';
+
+  @override
+  String get moneyWhoPays => 'Who paid';
+
+  @override
+  String get moneyHowSplit => 'How to split';
+
+  @override
+  String get moneySplitEqualCap => 'Split';
+
+  @override
+  String get moneyTreatMe => 'My treat';
+
+  @override
+  String moneyTreatPartner(String name) {
+    return '$name\'s treat';
+  }
+
+  @override
+  String get moneyForPartnerCap => 'Covered';
+
+  @override
+  String get moneyCustomCap => 'Custom';
+
+  @override
+  String moneyBears(String name) {
+    return '$name pays';
+  }
+
+  @override
+  String moneyShares(String a, String x, String b, String y) {
+    return '$a pays $x · $b pays $y';
+  }
+
+  @override
+  String get moneySharesNeedAmount => 'Enter an amount to see each share';
+
+  @override
+  String get moneyNoOneOwes =>
+      'Paid from the shared wallet, so nobody owes anyone.';
+
+  @override
+  String get moneyStepDown => '10% less';
+
+  @override
+  String get moneyStepUp => '10% more';
+
+  @override
+  String get moneyDate => 'Date';
+
+  @override
+  String get moneyNote => 'Note';
+
+  @override
+  String get moneyNoteHint => 'Lunch, birthday gift…';
+
+  @override
+  String moneySaveAmount(String amount) {
+    return 'Save $amount';
+  }
+
+  @override
+  String get moneySaveNeedAmount => 'Enter an amount to save';
+
+  @override
+  String get moneySaveFixAmount => 'Fix the amount to save';
+
+  @override
+  String get moneySaveNeedWallet => 'Pick a wallet to save';
+
+  @override
+  String moneySaved(String amount, String category) {
+    return 'Saved $amount · $category';
+  }
+
+  @override
+  String moneySavedTransfer(String amount) {
+    return 'Saved $amount · transfer';
+  }
+
+  @override
+  String get moneySavedEdit => 'Changes saved';
+
+  @override
+  String get moneySavedOffline =>
+      'Waiting for signal, it\'ll sync to the shared book';
+
+  @override
+  String get moneySavedOfflineMine =>
+      'Waiting for signal, it\'ll sync when you\'re back online';
+
+  @override
+  String moneyOverBudgetToast(String category, String amount) {
+    return 'Shared $category is $amount over this month\'s budget';
+  }
+
+  @override
+  String moneyNearBudgetToast(String category, String percent) {
+    return 'Shared $category is at $percent% of this month\'s budget';
+  }
+
+  @override
+  String moneyOverBudgetToastMine(String category, String amount) {
+    return '$category is $amount over this month\'s budget';
+  }
+
+  @override
+  String moneyNearBudgetToastMine(String category, String percent) {
+    return '$category is at $percent% of this month\'s budget';
+  }
+
+  @override
+  String moneyOverTotalToast(String amount) {
+    return 'The month is $amount over budget';
+  }
+
+  @override
+  String moneyNearTotalToast(String percent) {
+    return 'The month is at $percent% of budget';
+  }
+
+  @override
+  String moneyConflictTitle(String name) {
+    return 'Not saved: $name just edited this entry';
+  }
+
+  @override
+  String get moneyConflictBody =>
+      'Showing the latest version, edit again if needed';
+
+  @override
+  String get moneyWriteFailed => 'Couldn\'t save this. Try again.';
+
+  @override
+  String get moneyDeleteTx => 'Delete entry';
+
+  @override
+  String moneyDeleted(String note, String amount) {
+    return 'Deleted $note · $amount';
+  }
+
+  @override
+  String get moneyUndo => 'Undo';
+
+  @override
+  String get moneyLinkedAskTitle => 'Change it in my book too?';
+
+  @override
+  String moneyLinkedAskBody(
+    String note,
+    String old,
+    String wallet,
+    String amount,
+  ) {
+    return '“$note” also takes $old from $wallet. Change both books to $amount?';
+  }
+
+  @override
+  String get moneyLinkedBoth => 'Change both';
+
+  @override
+  String get moneyLinkedSharedOnly => 'Shared book only';
+
+  @override
+  String moneyLinkedChanged(String name, String amount) {
+    return '$name changed the shared entry to $amount';
+  }
+
+  @override
+  String get moneyLinkedUpdate => 'Update';
+
+  @override
+  String moneyLinkedLocked(String name) {
+    return 'Only $name can change the amount, it\'s also in their own book';
+  }
+
+  @override
+  String get moneyDeleteBothTitle => 'Delete from both books?';
+
+  @override
+  String moneyDeleteBothBody(String note, String amount, String wallet) {
+    return '“$note” $amount is in the shared book and also comes out of my $wallet. Deleting both puts $amount back in $wallet.';
+  }
+
+  @override
+  String get moneyDeleteBoth => 'Delete both';
+
+  @override
+  String get moneyDeleteSharedOnly => 'Only the shared book';
+
+  @override
+  String get moneyCancel => 'Cancel';
+
+  @override
+  String get moneyDiscardTitle => 'Discard this entry?';
+
+  @override
+  String moneyDiscardBody(String amount, String category) {
+    return '$amount · $category isn\'t saved yet.';
+  }
+
+  @override
+  String get moneyKeepEditing => 'Keep editing';
+
+  @override
+  String get moneyDiscard => 'Discard';
+
+  @override
+  String get moneyPickCategory => 'Pick a category';
+
+  @override
+  String get moneyEditCategoriesShort => 'Edit';
+
+  @override
+  String get moneyCategorySearchHint => 'Find a category, e.g. “coffee”';
+
+  @override
+  String get moneyCategoryNoMatch => 'No category matches.';
+
+  @override
+  String get moneyKeyDelete => 'Delete one character';
+
+  @override
+  String get moneyKeyThousand => 'thousand';
+
+  @override
+  String get moneyKeyMillion => 'million';
+
+  @override
+  String get moneyKeyCu => 'million (củ)';
+
+  @override
+  String get moneyShowKeypad => 'Show number pad';
+
+  @override
+  String get moneyFirstRunTitle => 'Where\'s my money right now?';
+
+  @override
+  String get moneyFirstRunBody =>
+      'Turn on the wallets you use and enter today\'s balance. You can skip this, a Cash wallet is already set up.';
+
+  @override
+  String get moneyFirstRunDone => 'Done, open my book';
+
+  @override
+  String get moneySkip => 'Skip';
+
+  @override
+  String get moneyBuiltIn => 'Built in';
+
+  @override
+  String get moneyWalletBank => 'Bank';
+
+  @override
+  String get moneyWalletEwallet => 'E-wallet';
+
+  @override
+  String get moneyWalletCredit => 'Credit card';
+
+  @override
+  String get moneyWalletGoal => 'Goal';
+
+  @override
+  String get moneyCreditOwed => 'How much you owe on it';
+
+  @override
+  String moneyBalanceOf(String name) {
+    return '$name balance';
+  }
+
+  @override
+  String get moneyWalletTooBig => '100 billion max per wallet.';
+
+  @override
+  String get moneyWalletsBadge => 'WALLETS';
+
+  @override
+  String get moneyAddWallet => 'Add wallet';
+
+  @override
+  String moneyAssetsNote(int n) {
+    return 'Adds up $n wallets in use, with card debt taken off. Goal savings are counted separately below.';
+  }
+
+  @override
+  String get moneyInUse => 'In use';
+
+  @override
+  String moneyWalletCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n wallets',
+      one: '1 wallet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyGoals => 'Goals';
+
+  @override
+  String get moneyNotInTotal => 'not in the total';
+
+  @override
+  String moneyGoalPerMonthShort(String amount) {
+    return 'About $amount a month';
+  }
+
+  @override
+  String get moneyArchivedSection => 'Archived';
+
+  @override
+  String moneyArchived(String date) {
+    return 'Archived $date, history kept';
+  }
+
+  @override
+  String get moneyArchivedPlain => 'Archived, history kept';
+
+  @override
+  String get moneyOwingCard => 'card debt';
+
+  @override
+  String get moneyCurrentBalance => 'Current balance';
+
+  @override
+  String moneyWalletInTotal(String type) {
+    return '$type · counts in total money';
+  }
+
+  @override
+  String moneyWalletNotInTotal(String type) {
+    return '$type · not in the total';
+  }
+
+  @override
+  String moneyInMonth(String month) {
+    return 'In · $month';
+  }
+
+  @override
+  String moneyOutMonth(String month) {
+    return 'Out · $month';
+  }
+
+  @override
+  String get moneyTransferBtn => 'Transfer';
+
+  @override
+  String get moneyFixBalance => 'Fix balance';
+
+  @override
+  String moneyEntryCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n entries',
+      one: '1 entry',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyEditWallet => 'Edit wallet';
+
+  @override
+  String get moneyWalletNoEntries => 'No entries in this wallet this month.';
+
+  @override
+  String get moneyNewWallet => 'New wallet';
+
+  @override
+  String get moneyNewGoal => 'New goal';
+
+  @override
+  String get moneyHintCash => 'Cash on hand';
+
+  @override
+  String get moneyHintBank => 'Techcombank, VCB…';
+
+  @override
+  String get moneyHintEwallet => 'MoMo, ZaloPay…';
+
+  @override
+  String get moneyHintCredit =>
+      'Owing on the card shows as negative, that\'s right';
+
+  @override
+  String get moneyHintGoal => 'Saving for one thing, with a deadline';
+
+  @override
+  String get moneyName => 'Name';
+
+  @override
+  String get moneyPickEmoji => 'Pick an icon';
+
+  @override
+  String get moneyBalanceNow => 'Balance now';
+
+  @override
+  String get moneyIncludeInTotal => 'Count in total money';
+
+  @override
+  String get moneyIncludeInTotalSub =>
+      'Turn off for money you hold for someone else';
+
+  @override
+  String get moneyCreateWallet => 'Create wallet';
+
+  @override
+  String get moneyCreateGoal => 'Create goal';
+
+  @override
+  String get moneyGoalTarget => 'Target';
+
+  @override
+  String get moneyGoalDeadline => 'Deadline (optional)';
+
+  @override
+  String moneyGoalPerMonth(String amount, int n) {
+    return 'Save about $amount a month for the next $n months.';
+  }
+
+  @override
+  String get moneyNotSet => 'Not set';
+
+  @override
+  String get moneySave => 'Save';
+
+  @override
+  String get moneyArchiveWallet => 'Archive wallet';
+
+  @override
+  String get moneyArchiveAskTitle => 'Archive this wallet?';
+
+  @override
+  String get moneyArchiveAskBody =>
+      'It stops showing when you add entries and keeps its history. You can bring it back any time.';
+
+  @override
+  String get moneyUnarchiveWallet => 'Use this wallet again';
+
+  @override
+  String get moneyNameNeeded => 'Add a name to save';
+
+  @override
+  String get moneyFixTitle => 'Match the real balance';
+
+  @override
+  String moneyFixInBook(String wallet, String amount) {
+    return '$wallet · the book says $amount';
+  }
+
+  @override
+  String get moneyAdjustReal => 'What you actually have';
+
+  @override
+  String moneyFixMore(String amount) {
+    return 'The app shows $amount more than you really have. It adds one “balance fix” line to match, which doesn\'t count as spending.';
+  }
+
+  @override
+  String moneyFixLess(String amount) {
+    return 'The app shows $amount less than you really have. It adds one “balance fix” line to match, which doesn\'t count as income.';
+  }
+
+  @override
+  String get moneyFixSame => 'Already matches, nothing to fix.';
+
+  @override
+  String get moneyAdjustSave => 'Update balance';
+
+  @override
+  String moneyFixedToast(String wallet) {
+    return '$wallet balance fixed';
+  }
+
+  @override
+  String moneyWalletCreated(String name) {
+    return 'Created $name';
+  }
+
+  @override
+  String get moneyCategoriesBadge => 'CATEGORIES';
+
+  @override
+  String get moneyCategoryScope => 'My book · each book has its own categories';
+
+  @override
+  String get moneyCategoryScopeShared =>
+      'Shared book · each book has its own categories';
+
+  @override
+  String moneySubCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n subcategories',
+      one: '1 subcategory',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyAddSub => 'Add subcategory';
+
+  @override
+  String moneyRenamedFrom(String name) {
+    return 'Renamed from “$name”';
+  }
+
+  @override
+  String get moneyCustom => 'Added by you';
+
+  @override
+  String get moneyHidden => 'Hidden';
+
+  @override
+  String get moneyHiddenNote => 'not shown when adding';
+
+  @override
+  String get moneyHiddenSub => 'Old entries keep the name';
+
+  @override
+  String get moneyShowAgain => 'Show again';
+
+  @override
+  String get moneyHideCategory => 'Hide this category';
+
+  @override
+  String get moneyEditCategory => 'Edit category';
+
+  @override
+  String get moneyNewCategory => 'New group';
+
+  @override
+  String get moneyNewSub => 'New subcategory';
+
+  @override
+  String moneyOriginalName(String name) {
+    return 'Original name: $name. Renaming only changes this book.';
+  }
+
+  @override
+  String get moneyInGroup => 'Under';
+
+  @override
+  String get moneyDeleteCategory => 'Delete category';
+
+  @override
+  String moneyDeleteCategoryAsk(String name) {
+    return 'Delete “$name”?';
+  }
+
+  @override
+  String get moneyDeleteCategoryBody => 'Old entries in it move to “Other”.';
+
+  @override
+  String get moneyDelete => 'Delete';
+
+  @override
+  String get moneyAddCategory => 'Add category';
+
+  @override
+  String get moneyCategoryLimit =>
+      'This book already has 80 custom categories.';
+
+  @override
+  String get moneySettle => 'Settle up';
+
+  @override
+  String get moneyNotSpending => 'not spending';
 }

@@ -4561,4 +4561,987 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get moneyJointWallet => 'Ví chung';
+
+  @override
+  String get moneyTitle => 'Sổ tiền';
+
+  @override
+  String get moneyBadge => 'SỔ TIỀN';
+
+  @override
+  String get moneyTabMine => 'Của mình';
+
+  @override
+  String get moneyTabShared => 'Chung';
+
+  @override
+  String moneyHomeShared(String month) {
+    return 'Sổ chung tháng $month';
+  }
+
+  @override
+  String moneyHomeSpent(String amount, String percent) {
+    return 'Đã chi $amount · $percent% ngân sách';
+  }
+
+  @override
+  String moneyHomeSpentNoBudget(String amount) {
+    return 'Đã chi $amount tháng này';
+  }
+
+  @override
+  String moneyHomeSpentOnly(String amount) {
+    return 'Đã chi $amount';
+  }
+
+  @override
+  String moneyHomeOverPart(String over) {
+    return 'vượt $over';
+  }
+
+  @override
+  String moneyHomeZero(String amount) {
+    return 'Đã chi $amount · chưa có khoản nào';
+  }
+
+  @override
+  String moneyHomeStale(String amount, String time) {
+    return '$amount · số lúc $time';
+  }
+
+  @override
+  String get moneyHomeError => 'Chưa tải được sổ chung';
+
+  @override
+  String get moneyHomeLoading => 'Sổ chung, đang tải';
+
+  @override
+  String get moneyHomeMine => 'Sổ tiền của mình';
+
+  @override
+  String moneyHomeTodayCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Hôm nay đã ghi $n khoản',
+      zero: 'Hôm nay chưa ghi khoản nào',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyHomeFirst => 'Gõ 50k, chọn danh mục là xong';
+
+  @override
+  String get moneyAddTx => 'Ghi khoản';
+
+  @override
+  String get moneyRetry => 'Thử lại';
+
+  @override
+  String get moneyMoreLabel => 'Ví, danh mục, ngân sách';
+
+  @override
+  String get moneyPrevMonth => 'Tháng trước';
+
+  @override
+  String get moneyNextMonth => 'Tháng sau';
+
+  @override
+  String get moneyMonthSpentMine => 'Đã chi';
+
+  @override
+  String get moneyMonthSpentShared => 'Chúng mình đã chi';
+
+  @override
+  String get moneyBudgetLeftLabel => 'Còn trong ngân sách';
+
+  @override
+  String get moneyBudgetNone => 'Chưa đặt ngân sách';
+
+  @override
+  String moneyBudgetUsed(String percent) {
+    return 'Đã dùng $percent%';
+  }
+
+  @override
+  String moneyBudgetOfShort(String amount) {
+    return 'của $amount';
+  }
+
+  @override
+  String get moneyToday => 'Hôm nay';
+
+  @override
+  String moneyBudgetSemantics(String percent, String left) {
+    return 'Đã dùng $percent% ngân sách, còn $left';
+  }
+
+  @override
+  String moneyFindingPerDay(
+    String passed,
+    String total,
+    String percent,
+    String perDay,
+  ) {
+    return 'Tháng mới qua $passed/$total ngày mà đã dùng $percent% ngân sách, tức khoảng $perDay mỗi ngày từ giờ tới cuối tháng.';
+  }
+
+  @override
+  String moneyFindingOver(String over) {
+    return 'Tháng này đã vượt ngân sách $over.';
+  }
+
+  @override
+  String moneyFindingCategory(
+    String category,
+    String percent,
+    String left,
+    String days,
+  ) {
+    return '$category chung đã dùng $percent% ngân sách, còn $left cho $days ngày.';
+  }
+
+  @override
+  String get moneyIncome => 'Thu';
+
+  @override
+  String get moneyIncomeMinusSpent => 'Thu trừ chi';
+
+  @override
+  String get moneyWhoPaid => 'Ai trả tháng này';
+
+  @override
+  String moneyLaneTotal(String amount) {
+    return 'Tổng $amount';
+  }
+
+  @override
+  String get moneyMe => 'Mình';
+
+  @override
+  String moneyLanesSemantics(String partner, String a, String b, String c) {
+    return '$partner trả $a, Ví chung $b, mình trả $c';
+  }
+
+  @override
+  String get moneyBalanceMeAhead => 'Mình đang ứng nhiều hơn';
+
+  @override
+  String moneyBalancePartnerAhead(String name) {
+    return '$name đang ứng nhiều hơn';
+  }
+
+  @override
+  String get moneyBalanceEven => 'Hai bên đang ngang nhau';
+
+  @override
+  String moneyBalanceMeAheadSub(String name) {
+    return '$name trả lại mình chừng này là hai bên ngang nhau';
+  }
+
+  @override
+  String moneyBalancePartnerAheadSub(String name) {
+    return 'Mình trả lại $name chừng này là hai bên ngang nhau';
+  }
+
+  @override
+  String get moneyRecent => 'Gần đây';
+
+  @override
+  String moneyRecentEmpty(String month, String prev) {
+    return 'Chưa có khoản nào trong tháng $month. Mở tháng $prev bằng nút ‹ ở trên để xem lại.';
+  }
+
+  @override
+  String moneyEmptyMonth(String month) {
+    return 'Tháng $month chưa có khoản nào. Nút hồng ở góc dưới để ghi khoản đầu tiên.';
+  }
+
+  @override
+  String moneyDaySpent(String amount) {
+    return 'Chi $amount';
+  }
+
+  @override
+  String moneyDayToday(String date) {
+    return 'Hôm nay, $date';
+  }
+
+  @override
+  String moneyDayYesterday(String date) {
+    return 'Hôm qua, $date';
+  }
+
+  @override
+  String get moneyWhere => 'Tiêu vào đâu';
+
+  @override
+  String moneyBudgetPercentShort(String percent) {
+    return '$percent% ngân sách';
+  }
+
+  @override
+  String moneyOverPercent(String percent) {
+    return 'Vượt $percent%';
+  }
+
+  @override
+  String get moneyWallets => 'Ví';
+
+  @override
+  String get moneyWalletsShared => 'Ví chung & quỹ';
+
+  @override
+  String get moneyTotalAssets => 'Tổng tiền đang có';
+
+  @override
+  String moneyTotalAssetsValue(String amount) {
+    return 'Tổng tiền đang có $amount';
+  }
+
+  @override
+  String get moneyManageWallets => 'Quản lý ví';
+
+  @override
+  String moneyJointContribEach(String amount) {
+    return 'Mỗi người góp $amount tháng này';
+  }
+
+  @override
+  String moneyGoalProgress(String percent, String target) {
+    return '$percent% của $target';
+  }
+
+  @override
+  String moneyPaidBy(String name, String split) {
+    return '$name trả · $split';
+  }
+
+  @override
+  String moneyPaidByNoSplit(String name) {
+    return '$name trả';
+  }
+
+  @override
+  String get moneyPaidFromJoint => 'Trả từ Ví chung';
+
+  @override
+  String get moneySplitEqual => 'chia đôi';
+
+  @override
+  String get moneySplitTreat => 'mời';
+
+  @override
+  String get moneySplitForPartner => 'trả hộ';
+
+  @override
+  String get moneySplitCustom => 'tuỳ';
+
+  @override
+  String moneyEditedBy(String name, String time) {
+    return '$name sửa $time';
+  }
+
+  @override
+  String get moneyPending => 'chờ mạng';
+
+  @override
+  String moneyOffline(String time, int n) {
+    return 'Đang mất mạng. Số dư tính tạm từ lúc $time cộng $n khoản chờ gửi.';
+  }
+
+  @override
+  String moneyOfflineNoTime(int n) {
+    return 'Đang mất mạng. $n khoản đang chờ gửi.';
+  }
+
+  @override
+  String moneyLoadError(String time) {
+    return 'Chưa tải được khoản mới. Số liệu đúng lúc $time.';
+  }
+
+  @override
+  String get moneyLoadErrorNoTime => 'Chưa tải được khoản mới.';
+
+  @override
+  String get moneyWaitingCard =>
+      'Khi người ấy vào, chúng mình sẽ có thêm sổ chung: ai trả, chia đôi, quỹ đi chơi.';
+
+  @override
+  String get moneySendInvite => 'Gửi lời mời';
+
+  @override
+  String get moneyAdjustRow => 'Sửa số dư cho khớp';
+
+  @override
+  String moneyAdjustSub(String wallet) {
+    return '$wallet · không tính là chi';
+  }
+
+  @override
+  String moneyTransferSub(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String moneyContribSub(String name) {
+    return '$name góp';
+  }
+
+  @override
+  String moneyContribOwnSub(String wallet) {
+    return '$wallet → sổ chung';
+  }
+
+  @override
+  String moneySettleSub(String name) {
+    return '$name thanh toán · không tính vào chi';
+  }
+
+  @override
+  String get moneyLinkedBadge => 'Có ở sổ chung';
+
+  @override
+  String get moneyFirstEntryTitle => 'Ghi khoản đầu tiên';
+
+  @override
+  String get moneyFirstEntryBody =>
+      'Hôm nay vừa trả gì? Chạm một mục, gõ số tiền rồi Lưu.';
+
+  @override
+  String get moneyFirstEntryFoot =>
+      'Ghi vài hôm, mình sẽ thấy tiền đi đâu nhiều nhất và đặt ngân sách cho tháng sau.';
+
+  @override
+  String get moneyNegWallet => 'Số dư âm, có khoản nào ghi nhầm ví không?';
+
+  @override
+  String get moneyCategories => 'Danh mục';
+
+  @override
+  String get moneyEditTx => 'Sửa khoản';
+
+  @override
+  String get moneyClose => 'Đóng';
+
+  @override
+  String get moneyBookShared => 'Sổ chung';
+
+  @override
+  String moneySwitchBook(String book) {
+    return 'Đổi sổ, đang ở $book';
+  }
+
+  @override
+  String get moneyTypeExpense => 'Chi';
+
+  @override
+  String get moneyTypeIncome => 'Thu';
+
+  @override
+  String get moneyTypeTransfer => 'Chuyển';
+
+  @override
+  String get moneyAmountLabel => 'Số tiền';
+
+  @override
+  String get moneyAmountHint => 'Gõ 50k, 1tr2 hay 1 củ đều được';
+
+  @override
+  String moneyAmountEcho(String raw) {
+    return 'Bạn gõ “$raw”';
+  }
+
+  @override
+  String get moneyAmountInvalid => 'Chưa hiểu số này. Thử 120k hoặc 120000.';
+
+  @override
+  String get moneyAmountTooBig =>
+      'Tối đa 10 tỷ một khoản. Kiểm tra lại số 0 nhé.';
+
+  @override
+  String get moneyWalletCapHit =>
+      'Số dư ví sẽ vượt 100 tỷ. Kiểm tra lại số tiền nhé.';
+
+  @override
+  String get moneyQuickRepeat => 'Ghi lại khoản quen';
+
+  @override
+  String get moneyCategory => 'Danh mục';
+
+  @override
+  String get moneyAllCategories => 'Tất cả';
+
+  @override
+  String get moneyWallet => 'Ví';
+
+  @override
+  String get moneyIntoWallet => 'Vào ví';
+
+  @override
+  String get moneyDeductMine => 'Trừ vào ví của mình';
+
+  @override
+  String get moneyNoDeduct => 'Không trừ';
+
+  @override
+  String get moneyFromWallet => 'Từ ví';
+
+  @override
+  String get moneyToWallet => 'Sang ví';
+
+  @override
+  String get moneyAddNote => 'Thêm ghi chú';
+
+  @override
+  String get moneyWhoPays => 'Ai trả';
+
+  @override
+  String get moneyHowSplit => 'Chia thế nào';
+
+  @override
+  String get moneySplitEqualCap => 'Chia đôi';
+
+  @override
+  String get moneyTreatMe => 'Mình mời';
+
+  @override
+  String moneyTreatPartner(String name) {
+    return '$name mời';
+  }
+
+  @override
+  String get moneyForPartnerCap => 'Trả hộ';
+
+  @override
+  String get moneyCustomCap => 'Tuỳ';
+
+  @override
+  String moneyBears(String name) {
+    return '$name chịu';
+  }
+
+  @override
+  String moneyShares(String a, String x, String b, String y) {
+    return '$a chịu $x · $b chịu $y';
+  }
+
+  @override
+  String get moneySharesNeedAmount =>
+      'Nhập số tiền để xem mỗi người chịu bao nhiêu';
+
+  @override
+  String get moneyNoOneOwes => 'Trả từ Ví chung nên không ai phải trả lại ai.';
+
+  @override
+  String get moneyStepDown => 'Bớt 10%';
+
+  @override
+  String get moneyStepUp => 'Thêm 10%';
+
+  @override
+  String get moneyDate => 'Ngày';
+
+  @override
+  String get moneyNote => 'Ghi chú';
+
+  @override
+  String get moneyNoteHint => 'Bún chả, quà sinh nhật…';
+
+  @override
+  String moneySaveAmount(String amount) {
+    return 'Lưu $amount';
+  }
+
+  @override
+  String get moneySaveNeedAmount => 'Nhập số tiền để lưu';
+
+  @override
+  String get moneySaveFixAmount => 'Sửa số tiền để lưu';
+
+  @override
+  String get moneySaveNeedWallet => 'Chọn ví để lưu';
+
+  @override
+  String moneySaved(String amount, String category) {
+    return 'Đã ghi $amount · $category';
+  }
+
+  @override
+  String moneySavedTransfer(String amount) {
+    return 'Đã ghi $amount · chuyển ví';
+  }
+
+  @override
+  String get moneySavedEdit => 'Đã lưu thay đổi';
+
+  @override
+  String get moneySavedOffline =>
+      'Đang chờ mạng, có mạng sẽ tự gửi lên sổ chung';
+
+  @override
+  String get moneySavedOfflineMine => 'Đang chờ mạng, có mạng sẽ tự gửi lên';
+
+  @override
+  String moneyOverBudgetToast(String category, String amount) {
+    return '$category chung vượt ngân sách tháng $amount';
+  }
+
+  @override
+  String moneyNearBudgetToast(String category, String percent) {
+    return '$category chung đã dùng $percent% ngân sách tháng';
+  }
+
+  @override
+  String moneyOverBudgetToastMine(String category, String amount) {
+    return '$category vượt ngân sách tháng $amount';
+  }
+
+  @override
+  String moneyNearBudgetToastMine(String category, String percent) {
+    return '$category đã dùng $percent% ngân sách tháng';
+  }
+
+  @override
+  String moneyOverTotalToast(String amount) {
+    return 'Cả tháng đã vượt ngân sách $amount';
+  }
+
+  @override
+  String moneyNearTotalToast(String percent) {
+    return 'Cả tháng đã dùng $percent% ngân sách';
+  }
+
+  @override
+  String moneyConflictTitle(String name) {
+    return 'Chưa lưu được: $name vừa sửa khoản này';
+  }
+
+  @override
+  String get moneyConflictBody => 'Đã hiện bản mới nhất, sửa lại nếu cần';
+
+  @override
+  String get moneyWriteFailed => 'Chưa lưu được khoản này. Thử lại nhé.';
+
+  @override
+  String get moneyDeleteTx => 'Xoá khoản';
+
+  @override
+  String moneyDeleted(String note, String amount) {
+    return 'Đã xoá $note · $amount';
+  }
+
+  @override
+  String get moneyUndo => 'Hoàn tác';
+
+  @override
+  String get moneyLinkedAskTitle => 'Sửa luôn bên sổ của mình?';
+
+  @override
+  String moneyLinkedAskBody(
+    String note,
+    String old,
+    String wallet,
+    String amount,
+  ) {
+    return 'Khoản “$note” cũng đang trừ $old ở $wallet. Đổi thành $amount ở cả hai sổ?';
+  }
+
+  @override
+  String get moneyLinkedBoth => 'Sửa cả hai';
+
+  @override
+  String get moneyLinkedSharedOnly => 'Chỉ sổ chung';
+
+  @override
+  String moneyLinkedChanged(String name, String amount) {
+    return '$name đã đổi khoản chung thành $amount';
+  }
+
+  @override
+  String get moneyLinkedUpdate => 'Cập nhật';
+
+  @override
+  String moneyLinkedLocked(String name) {
+    return 'Chỉ $name sửa được số tiền vì khoản này có ở sổ của $name';
+  }
+
+  @override
+  String get moneyDeleteBothTitle => 'Xoá ở cả hai sổ?';
+
+  @override
+  String moneyDeleteBothBody(String note, String amount, String wallet) {
+    return '“$note” $amount có ở sổ chung và đang trừ $wallet của mình. Xoá cả hai thì số dư $wallet cộng lại $amount.';
+  }
+
+  @override
+  String get moneyDeleteBoth => 'Xoá cả hai';
+
+  @override
+  String get moneyDeleteSharedOnly => 'Chỉ xoá ở sổ chung';
+
+  @override
+  String get moneyCancel => 'Huỷ';
+
+  @override
+  String get moneyDiscardTitle => 'Bỏ khoản đang ghi?';
+
+  @override
+  String moneyDiscardBody(String amount, String category) {
+    return 'Khoản $amount · $category chưa lưu.';
+  }
+
+  @override
+  String get moneyKeepEditing => 'Tiếp tục ghi';
+
+  @override
+  String get moneyDiscard => 'Bỏ khoản này';
+
+  @override
+  String get moneyPickCategory => 'Chọn danh mục';
+
+  @override
+  String get moneyEditCategoriesShort => 'Sửa';
+
+  @override
+  String get moneyCategorySearchHint => 'Tìm danh mục, vd “trà sữa”';
+
+  @override
+  String get moneyCategoryNoMatch => 'Không có danh mục nào khớp.';
+
+  @override
+  String get moneyKeyDelete => 'Xoá một ký tự';
+
+  @override
+  String get moneyKeyThousand => 'nghìn';
+
+  @override
+  String get moneyKeyMillion => 'triệu';
+
+  @override
+  String get moneyKeyCu => 'củ';
+
+  @override
+  String get moneyShowKeypad => 'Mở bàn phím số';
+
+  @override
+  String get moneyFirstRunTitle => 'Tiền của mình đang nằm ở đâu?';
+
+  @override
+  String get moneyFirstRunBody =>
+      'Bật những ví đang dùng, nhập số dư lúc này. Bỏ qua cũng được: đã có sẵn ví Tiền mặt.';
+
+  @override
+  String get moneyFirstRunDone => 'Xong, vào sổ';
+
+  @override
+  String get moneySkip => 'Bỏ qua';
+
+  @override
+  String get moneyBuiltIn => 'Có sẵn';
+
+  @override
+  String get moneyWalletBank => 'Ngân hàng';
+
+  @override
+  String get moneyWalletEwallet => 'Ví điện tử';
+
+  @override
+  String get moneyWalletCredit => 'Thẻ tín dụng';
+
+  @override
+  String get moneyWalletGoal => 'Mục tiêu';
+
+  @override
+  String get moneyCreditOwed => 'Đang nợ thẻ bao nhiêu';
+
+  @override
+  String moneyBalanceOf(String name) {
+    return 'Số dư $name';
+  }
+
+  @override
+  String get moneyWalletTooBig => 'Tối đa 100 tỷ một ví.';
+
+  @override
+  String get moneyWalletsBadge => 'VÍ';
+
+  @override
+  String get moneyAddWallet => 'Thêm ví';
+
+  @override
+  String moneyAssetsNote(int n) {
+    return 'Cộng $n ví đang dùng, đã trừ tiền đang nợ thẻ. Tiền để dành cho mục tiêu tính riêng bên dưới.';
+  }
+
+  @override
+  String get moneyInUse => 'Đang dùng';
+
+  @override
+  String moneyWalletCount(int n) {
+    return '$n ví';
+  }
+
+  @override
+  String get moneyGoals => 'Mục tiêu';
+
+  @override
+  String get moneyNotInTotal => 'không tính vào tổng';
+
+  @override
+  String moneyGoalPerMonthShort(String amount) {
+    return 'Cần ~$amount mỗi tháng';
+  }
+
+  @override
+  String get moneyArchivedSection => 'Đã lưu trữ';
+
+  @override
+  String moneyArchived(String date) {
+    return 'Lưu trữ từ $date, giữ nguyên lịch sử';
+  }
+
+  @override
+  String get moneyArchivedPlain => 'Đã lưu trữ, giữ nguyên lịch sử';
+
+  @override
+  String get moneyOwingCard => 'đang nợ thẻ';
+
+  @override
+  String get moneyCurrentBalance => 'Số dư hiện tại';
+
+  @override
+  String moneyWalletInTotal(String type) {
+    return '$type · tính vào tổng tiền đang có';
+  }
+
+  @override
+  String moneyWalletNotInTotal(String type) {
+    return '$type · không tính vào tổng';
+  }
+
+  @override
+  String moneyInMonth(String month) {
+    return 'Vào tháng $month';
+  }
+
+  @override
+  String moneyOutMonth(String month) {
+    return 'Ra tháng $month';
+  }
+
+  @override
+  String get moneyTransferBtn => 'Chuyển tiền';
+
+  @override
+  String get moneyFixBalance => 'Sửa số dư';
+
+  @override
+  String moneyEntryCount(int n) {
+    return '$n khoản';
+  }
+
+  @override
+  String get moneyEditWallet => 'Sửa ví';
+
+  @override
+  String get moneyWalletNoEntries => 'Tháng này ví chưa có khoản nào.';
+
+  @override
+  String get moneyNewWallet => 'Ví mới';
+
+  @override
+  String get moneyNewGoal => 'Mục tiêu mới';
+
+  @override
+  String get moneyHintCash => 'Tiền trong túi';
+
+  @override
+  String get moneyHintBank => 'Techcombank, VCB…';
+
+  @override
+  String get moneyHintEwallet => 'MoMo, ZaloPay…';
+
+  @override
+  String get moneyHintCredit => 'Đang nợ thẻ thì số dư âm, vậy là đúng';
+
+  @override
+  String get moneyHintGoal => 'Để dành cho một việc, có hạn';
+
+  @override
+  String get moneyName => 'Tên';
+
+  @override
+  String get moneyPickEmoji => 'Chọn biểu tượng';
+
+  @override
+  String get moneyBalanceNow => 'Số dư lúc này';
+
+  @override
+  String get moneyIncludeInTotal => 'Tính vào tổng tiền đang có';
+
+  @override
+  String get moneyIncludeInTotalSub => 'Tắt cho ví giữ hộ người khác';
+
+  @override
+  String get moneyCreateWallet => 'Tạo ví';
+
+  @override
+  String get moneyCreateGoal => 'Tạo mục tiêu';
+
+  @override
+  String get moneyGoalTarget => 'Cần bao nhiêu';
+
+  @override
+  String get moneyGoalDeadline => 'Hạn (không bắt buộc)';
+
+  @override
+  String moneyGoalPerMonth(String amount, int n) {
+    return 'Cần để dành ~$amount mỗi tháng trong $n tháng tới.';
+  }
+
+  @override
+  String get moneyNotSet => 'Chưa chọn';
+
+  @override
+  String get moneySave => 'Lưu';
+
+  @override
+  String get moneyArchiveWallet => 'Lưu trữ ví';
+
+  @override
+  String get moneyArchiveAskTitle => 'Lưu trữ ví này?';
+
+  @override
+  String get moneyArchiveAskBody =>
+      'Ví thôi hiện khi ghi khoản, lịch sử giữ nguyên. Muốn dùng lại lúc nào cũng được.';
+
+  @override
+  String get moneyUnarchiveWallet => 'Dùng lại ví này';
+
+  @override
+  String get moneyNameNeeded => 'Đặt tên để lưu';
+
+  @override
+  String get moneyFixTitle => 'Sửa số dư cho khớp';
+
+  @override
+  String moneyFixInBook(String wallet, String amount) {
+    return '$wallet · trong sổ đang là $amount';
+  }
+
+  @override
+  String get moneyAdjustReal => 'Số tiền thật đang có';
+
+  @override
+  String moneyFixMore(String amount) {
+    return 'Trong app đang nhiều hơn tiền thật $amount. App ghi 1 dòng “sửa số dư” để khớp, dòng này không tính là chi tiêu.';
+  }
+
+  @override
+  String moneyFixLess(String amount) {
+    return 'Trong app đang ít hơn tiền thật $amount. App ghi 1 dòng “sửa số dư” để khớp, dòng này không tính là thu nhập.';
+  }
+
+  @override
+  String get moneyFixSame => 'Đã khớp với tiền thật, không cần sửa.';
+
+  @override
+  String get moneyAdjustSave => 'Cập nhật số dư';
+
+  @override
+  String moneyFixedToast(String wallet) {
+    return 'Đã sửa số dư $wallet';
+  }
+
+  @override
+  String moneyWalletCreated(String name) {
+    return 'Đã tạo $name';
+  }
+
+  @override
+  String get moneyCategoriesBadge => 'DANH MỤC';
+
+  @override
+  String get moneyCategoryScope => 'Sổ của mình · mỗi sổ có bộ danh mục riêng';
+
+  @override
+  String get moneyCategoryScopeShared =>
+      'Sổ chung · mỗi sổ có bộ danh mục riêng';
+
+  @override
+  String moneySubCount(int n) {
+    return '$n mục con';
+  }
+
+  @override
+  String get moneyAddSub => 'Thêm mục con';
+
+  @override
+  String moneyRenamedFrom(String name) {
+    return 'Đã đổi tên, gốc là “$name”';
+  }
+
+  @override
+  String get moneyCustom => 'Tự thêm';
+
+  @override
+  String get moneyHidden => 'Đã ẩn';
+
+  @override
+  String get moneyHiddenNote => 'không hiện khi ghi khoản';
+
+  @override
+  String get moneyHiddenSub => 'Khoản cũ vẫn giữ tên';
+
+  @override
+  String get moneyShowAgain => 'Hiện lại';
+
+  @override
+  String get moneyHideCategory => 'Ẩn danh mục này';
+
+  @override
+  String get moneyEditCategory => 'Sửa danh mục';
+
+  @override
+  String get moneyNewCategory => 'Nhóm mới';
+
+  @override
+  String get moneyNewSub => 'Mục con mới';
+
+  @override
+  String moneyOriginalName(String name) {
+    return 'Tên gốc: $name. Đổi tên chỉ áp cho sổ này.';
+  }
+
+  @override
+  String get moneyInGroup => 'Nằm trong';
+
+  @override
+  String get moneyDeleteCategory => 'Xoá danh mục';
+
+  @override
+  String moneyDeleteCategoryAsk(String name) {
+    return 'Xoá “$name”?';
+  }
+
+  @override
+  String get moneyDeleteCategoryBody =>
+      'Khoản cũ của danh mục này chuyển về “Khác”.';
+
+  @override
+  String get moneyDelete => 'Xoá';
+
+  @override
+  String get moneyAddCategory => 'Thêm danh mục';
+
+  @override
+  String get moneyCategoryLimit => 'Sổ này đã đủ 80 danh mục tự thêm.';
+
+  @override
+  String get moneySettle => 'Thanh toán';
+
+  @override
+  String get moneyNotSpending => 'không tính là chi';
 }
