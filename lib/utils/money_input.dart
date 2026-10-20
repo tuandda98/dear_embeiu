@@ -65,7 +65,8 @@ final RegExp _digits = RegExp(r'^\d+$');
 final RegExp _currencyTail = RegExp(r'\s*(₫|đ|vnd|vnđ)$', unicode: true);
 
 /// Reads what people actually type: "50k", "1tr", "1tr2" (1.200.000),
-/// "1.5tr", "2 triệu", "1 củ", "1 tỏi", "120000", "1.200.000", "1,200,000".
+/// "1.5tr", "1.500k" (1.500.000), "2 triệu", "1 củ", "1 tỏi", "120000",
+/// "1.200.000", "1,200,000".
 /// Anything above [max] is [VndParseError.tooBig] (10 tỷ for an entry; pass
 /// [kMoneyWalletMax] for a wallet balance).
 VndParseResult parseVndInput(String? raw, {int max = kMoneyTxMax}) {
@@ -82,17 +83,43 @@ VndParseResult parseVndInput(String? raw, {int max = kMoneyTxMax}) {
   final unitRaw = m.group(2);
   final tail = m.group(3);
 
-  int value;
-  if (unitRaw != null) {
+  final hasUnit = unitRaw != null;
+  final separators = RegExp('[.,]');
+  // BigInt, never double: "1" + 400 zeros + "k" must say tooBig, not throw.
+  BigInt big;
+  if (hasUnit) {
     final unit = _units[unitRaw];
-    // "1.2.3tr" — one decimal mark at most when a unit follows.
-    if (unit == null || number.split(RegExp('[.,]')).length > 2) {
+    if (unit == null) {
       return const VndParseResult._(null, VndParseError.invalid, true);
     }
-    final n = double.parse(number.replaceAll(',', '.'));
-    value = (n * unit).round();
-    // "1tr2" = 1.200.000, "2tr05" = 2.050.000.
-    if (tail != null) value += (double.parse('0.$tail') * unit).round();
+    // "1.500k" / "2.000k" are 1.500.000 / 2.000.000: a mark followed by
+    // exactly three digits groups thousands, like "1.500.000". Only one or
+    // two digits after a single mark are a decimal ("1.5tr", "1,25tr").
+    var whole = number, frac = '';
+    if (_grouped.hasMatch(number)) {
+      whole = number.replaceAll(separators, '');
+    } else {
+      final parts = number.split(separators);
+      if (parts.length > 2 || (parts.length == 2 && parts[1].length > 2)) {
+        return const VndParseResult._(null, VndParseError.invalid, true);
+      }
+      whole = parts[0];
+      frac = parts.length == 2 ? parts[1] : '';
+    }
+    // "1tr2" = 1.200.000, "2tr05" = 2.050.000; "1.5tr2" reads as nothing.
+    if (tail != null) {
+      if (whole != number) {
+        return const VndParseResult._(null, VndParseError.invalid, true);
+      }
+      frac = tail;
+    }
+    final u = BigInt.from(unit);
+    big = BigInt.parse(whole) * u;
+    if (frac.isNotEmpty) {
+      final den = BigInt.from(10).pow(frac.length);
+      // Rounded to the nearest đồng.
+      big += (BigInt.parse(frac) * u * BigInt.two + den) ~/ (den * BigInt.two);
+    }
   } else {
     if (tail != null) {
       return const VndParseResult._(null, VndParseError.invalid, false);
@@ -100,19 +127,15 @@ VndParseResult parseVndInput(String? raw, {int max = kMoneyTxMax}) {
     if (!_grouped.hasMatch(number) && !_digits.hasMatch(number)) {
       return const VndParseResult._(null, VndParseError.invalid, false);
     }
-    // 20+ digits would overflow int; it is way over any cap anyway.
-    final digits = number.replaceAll(RegExp('[.,]'), '');
-    final parsed = digits.length > 18 ? null : int.tryParse(digits);
-    if (parsed == null) {
-      return VndParseResult._(max + 1, VndParseError.tooBig, false);
-    }
-    value = parsed;
+    big = BigInt.parse(number.replaceAll(separators, ''));
   }
-  final hasUnit = unitRaw != null;
+  if (big > BigInt.from(max)) {
+    // Way past any cap may not even fit an int: show max + 1 then.
+    final shown = big.isValidInt ? big.toInt() : max + 1;
+    return VndParseResult._(shown, VndParseError.tooBig, hasUnit);
+  }
+  final value = big.toInt();
   if (value <= 0) return VndParseResult._(null, VndParseError.zero, hasUnit);
-  if (value > max) {
-    return VndParseResult._(value, VndParseError.tooBig, hasUnit);
-  }
   return VndParseResult._(value, null, hasUnit);
 }
 

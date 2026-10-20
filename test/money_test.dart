@@ -255,6 +255,13 @@ void main() {
       '  120k ': 120000,
       '120.000 ₫': 120000,
       '10000000000': kMoneyTxMax,
+      // Review stage 1, #1: a mark before three digits groups thousands.
+      '1.500k': 1500000,
+      '2.000k': 2000000,
+      '1,500k': 1500000,
+      '1.200tr': 1200000000,
+      '1.25tr': 1250000,
+      '0.5tr': 500000,
     };
     ok.forEach((input, value) {
       test('"$input" → $value', () {
@@ -273,7 +280,17 @@ void main() {
       expect(parseVndInput('').error, VndParseError.empty);
       expect(parseVndInput(null).error, VndParseError.empty);
       expect(parseVndInput('   ').error, VndParseError.empty);
-      for (final s in ['abc', '1.2.3tr', '12x', '1,5', 'k50', '1tr2tr']) {
+      for (final s in [
+        'abc',
+        '1.2.3tr',
+        '12x',
+        '1,5',
+        'k50',
+        '1tr2tr',
+        '1.5000tr',
+        '1.5tr2',
+        '1.500k2',
+      ]) {
         expect(parseVndInput(s).error, VndParseError.invalid, reason: s);
       }
       expect(parseVndInput('0').error, VndParseError.zero);
@@ -289,6 +306,15 @@ void main() {
         parseVndInput('99999999999999999999999').error,
         VndParseError.tooBig,
       );
+    });
+
+    test('a huge number with a unit says tooBig instead of throwing', () {
+      final long = '1${'0' * 400}';
+      for (final s in ['${long}k', '$long tỷ', '${long}tr5', long]) {
+        final r = parseVndInput(s);
+        expect(r.error, VndParseError.tooBig, reason: s);
+        expect(r.value, kMoneyTxMax + 1);
+      }
     });
 
     test('wallet balances allow up to 100 tỷ', () {
