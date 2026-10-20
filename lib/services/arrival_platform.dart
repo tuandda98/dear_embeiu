@@ -55,6 +55,7 @@ class PlaceSearchResult {
     required this.lat,
     required this.lng,
     this.hasHouseNumber = true,
+    this.approximate = false,
   });
 
   /// Bold line: house number + street / place name.
@@ -67,6 +68,11 @@ class PlaceSearchResult {
 
   /// False → the confirm screen warns "chưa có số nhà" (D21).
   final bool hasHouseNumber;
+
+  /// The typed number was an alley one ("45/12 Lê Văn Sỹ"): the OS geocoder
+  /// only finds the alley mouth (spike §6.8), so the confirm screen shows the
+  /// alley warning (Lead 2026-10-20, copy `arrivalConfirmAlleyWarn`).
+  final bool approximate;
 
   String get address => subtitle.isEmpty ? title : '$title, $subtitle';
 }
