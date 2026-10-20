@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status dot (feature widget-today, design §9.2): white over a photo. Decorative only. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <size android:width="6dp" android:height="6dp" />
+    <solid android:color="#FFFFFF" />
+</shape>

@@ -1,6 +1,6 @@
 /* Gallery widget (hệ thống hiện trước khi có dữ liệu) + trạng thái trống khi app chưa mở lần nào sau bản này. Mọi chuỗi khác do Flutter gửi (D4). */
 "widget_display_name" = "Đếm ngày yêu";
-"widget_description" = "Số ngày chúng mình bên nhau, cập nhật mỗi ngày.";
+"widget_description" = "Số ngày bên nhau và việc người ấy vừa làm hôm nay.";
 "empty_tap" = "Chạm để bắt đầu đếm ngày yêu";
 "preview_lang" = "vi";
 "preview_name1" = "Anh";

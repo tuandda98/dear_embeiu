@@ -31,6 +31,8 @@ import '../services/analytics_service.dart';
 import '../services/catchup_service.dart';
 import '../services/home_prefs_service.dart';
 import '../services/home_widget_bridge.dart';
+import '../services/daily_question_service.dart';
+import '../services/home_widget_status.dart';
 import '../services/love_tree_service.dart';
 import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
@@ -47,7 +49,12 @@ import '../widgets/memory_cinema_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/streak_chip.dart';
+import '../models/decision.dart';
+import '../providers/decision_provider.dart';
+import '../providers/locale_provider.dart';
 import '../providers/mood_provider.dart';
+import '../widgets/decision_card.dart';
+import '../widgets/decision_parts.dart';
 import '../widgets/mood_card.dart';
 import '../widgets/rps_invite_card.dart';
 import '../widgets/sleep/sleep_card.dart';
@@ -397,6 +404,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// notification can scroll it into view (deep-link within Home).
   final GlobalKey _dailyQuestionKey = GlobalKey();
 
+  /// Anchor for the mood card: a widget tap on "Thảo hôm nay: vui" scrolls it
+  /// into view (feature widget-today, D7).
+  final GlobalKey _moodCardKey = GlobalKey();
+
+  /// Providers the widget's "hôm nay" line is computed from (widget-today
+  /// D5a), captured so dispose can detach without a context.
+  PhotoProvider? _photoProvider;
+  CoupleProvider? _coupleProvider;
+
+  /// Anchor for the decision card (a tapped `decision` push scrolls to it).
+  final GlobalKey _decisionKey = GlobalKey();
+
   // Streak milestone celebration (feature streak): listen for a freshly-reached
   // milestone and auto-show the StreakSheet in celebration mode, once. The
   // provider's per-couple Hive guard prevents re-firing across launches; this
@@ -409,6 +428,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // they fire only while today's question isn't both-answered yet.
   DailyQuestionProvider? _dqProvider;
   MoodProvider? _moodProvider;
+  DecisionProvider? _decisionProvider;
+  LocaleProvider? _localeProvider;
 
   /// Guards [FeatureTour.maybeShow] to one attempt per Home lifetime.
   bool _featureTourChecked = false;
@@ -507,7 +528,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _streakProvider!.addListener(_refreshDqSafetyNet);
     _moodProvider = context.read<MoodProvider>();
     _moodProvider!.addListener(_refreshDqSafetyNet);
+    // Meal-pick reminder (decision-wheel D10): re-arm / drop id 1200 whenever
+    // today's picks change.
+    _decisionProvider = context.read<DecisionProvider>();
+    _decisionProvider!.addListener(_refreshDecisionReminder);
     WidgetsBinding.instance.addPostFrameCallback((_) => _refreshDqSafetyNet());
+    // Home-screen widget "hôm nay" line (widget-today D5a): recomputed from the
+    // same streams as the constellation whenever one of them changes.
+    _photoProvider = context.read<PhotoProvider>();
+    _coupleProvider = context.read<CoupleProvider>();
+    for (final p in <ChangeNotifier>[
+      _dqProvider!,
+      _moodProvider!,
+      _chatProvider!,
+      _photoProvider!,
+      _coupleProvider!,
+      _decisionProvider!,
+    ]) {
+      p.addListener(_pushWidgetStatus);
+    }
+    // In-app language switch: the line is localized, re-send it once the new
+    // locale reached this context (next frame) — widget-today B1.
+    _localeProvider = context.read<LocaleProvider>();
+    _localeProvider!.addListener(_onLocaleChangedForWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _pushWidgetStatus());
     // "Có gì mới" tour (feature onboarding, 2026-09-05): once per build, after
     // the first frame settles and never on top of the catch-up gate.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -592,6 +636,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _streakProvider?.removeListener(_refreshDqSafetyNet);
     _dqProvider?.removeListener(_refreshDqSafetyNet);
     _moodProvider?.removeListener(_refreshDqSafetyNet);
+    for (final p in <ChangeNotifier?>[
+      _dqProvider,
+      _moodProvider,
+      _chatProvider,
+      _photoProvider,
+      _coupleProvider,
+      _decisionProvider,
+    ]) {
+      p?.removeListener(_pushWidgetStatus);
+    }
+    _localeProvider?.removeListener(_onLocaleChangedForWidget);
+    _decisionProvider?.removeListener(_refreshDecisionReminder);
     _bgHintTimer?.cancel();
     _stopChatPresence();
     WidgetsBinding.instance.removeObserver(this);
@@ -617,6 +673,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // the "already armed" debounce and re-evaluate from live state.
       context.read<ReminderProvider>().invalidateDailyQuestionSchedule();
       _refreshDqSafetyNet();
+      context.read<DecisionProvider>().refreshDay();
+      _refreshDecisionReminder();
     }
     // Chat presence (presence-suppress 2026-06-19): only meaningful while the
     // chat tab is the active screen. Backgrounding clears presence so the
@@ -658,10 +716,123 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
+  void _onLocaleChangedForWidget() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _pushWidgetStatus());
+  }
+
+  /// Sends the widget's "hôm nay" line from live state (widget-today D5a) —
+  /// the same inputs as the constellation, plus the partner's photos. Waits
+  /// while today's answers / moods / chat / picks are still loading, so a
+  /// cold start never wipes the line a background push just wrote. Signing
+  /// out / leaving goes through the snapshot's `empty`, which clears the line
+  /// natively (D6).
+  void _pushWidgetStatus() {
+    if (!mounted) {
+      return;
+    }
+    final couple = _coupleProvider?.couple;
+    final dq = _dqProvider;
+    final mood = _moodProvider;
+    if (couple == null || dq == null || mood == null) {
+      return;
+    }
+    // Not watching yet (dateKey empty / no couple wired) or first snapshot
+    // still on its way: the data says nothing yet, keep what the widget shows.
+    if (dq.dateKey.isEmpty || dq.isLoading || !mood.isReady || mood.isLoading) {
+      return;
+    }
+    // Same for chat / today's picks (B6): an empty list mid-load would flash
+    // an older line over the one a background push just wrote.
+    if ((_chatProvider?.isLoading ?? false) ||
+        (_decisionProvider?.isLoading ?? false)) {
+      return;
+    }
+    final myUid = context.read<AuthProvider>().currentUser?.id;
+    final now = DateTime.now();
+    final questionToday = dq.dateKey == DailyQuestionService.dateKey(now);
+    final today = TodayConstellation.from(
+      myUid: myUid,
+      now: now,
+      questionDay: dq.dateKey,
+      myAnswer: dq.myAnswer,
+      partnerAnswer: dq.partnerAnswer,
+      myMood: mood.myMood,
+      partnerMood: mood.partnerMood,
+      messages: _chatProvider?.messages ?? const [],
+    );
+    final iAmCreator = myUid != null && myUid == couple.createdByUserId;
+    HomeWidgetBridge.pushStatus(
+      HomeWidgetStatus.build(
+        today: today,
+        l10n: context.l10n,
+        now: now,
+        active: !couple.isWaitingForPartner,
+        partnerName: iAmCreator ? couple.person2Name : couple.person1Name,
+        questionReady: questionToday,
+        partnerPhotoAt: HomeWidgetStatus.latestPartnerPhotoAt(
+          _photoProvider?.photos ?? const [],
+          myUid,
+          now,
+        ),
+        decision: _latestWidgetDecision(),
+      ),
+    );
+  }
+
+  /// Today's newest pick across the three modes (decision-wheel), named the
+  /// way the card names it, for the widget line (widget-today D2, D3).
+  WidgetDecision? _latestWidgetDecision() {
+    final decisions = _decisionProvider;
+    if (decisions == null) {
+      return null;
+    }
+    final picks = <Decision>[
+      if (decisions.todayEat != null) decisions.todayEat!,
+      if (decisions.todayGo != null) decisions.todayGo!,
+      ...decisions.todayCustoms,
+    ];
+    if (picks.isEmpty) {
+      return null;
+    }
+    final epoch = DateTime.fromMillisecondsSinceEpoch(0);
+    picks.sort((a, b) => (b.pickedAt ?? epoch).compareTo(a.pickedAt ?? epoch));
+    final d = picks.first;
+    return WidgetDecision(
+      kind: d.kind.name,
+      result: decisionDisplayName(
+        d.kind,
+        d.result,
+        d.resultId,
+        english: context.l10n.localeName.startsWith('en'),
+      ),
+      question: d.question,
+      at: d.pickedAt,
+    );
+  }
+
   /// Re-arm the end-of-day daily-question nudges (21/22/23h) from the current
   /// habit state. Fired on every daily-question / streak update (and once on
   /// launch); the ReminderProvider debounces redundant reschedules and only
   /// schedules while today's question isn't both-answered yet.
+  /// Arms today's "Hôm nay ăn gì?" nudge (id 1200) while nobody has picked
+  /// food yet, drops it once someone has (decision-wheel D10). Skipped while
+  /// the picks are still loading so a flicker can't re-arm a stale nudge.
+  void _refreshDecisionReminder() {
+    if (!mounted) {
+      return;
+    }
+    final decisions = _decisionProvider;
+    final couple = context.read<CoupleProvider>().couple;
+    if (decisions == null || couple == null || decisions.isLoading) {
+      return;
+    }
+    context.read<ReminderProvider>().refreshDecisionReminder(
+      coupleActive: !couple.isWaitingForPartner,
+      decidedToday: decisions.todayEat != null,
+      l10n: context.l10n,
+    );
+  }
+
   void _refreshDqSafetyNet() {
     if (!mounted) {
       return;
@@ -915,6 +1086,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     switch (focus) {
       case 'daily_question':
         _scrollToCard(_dailyQuestionKey);
+      case 'mood':
+        _scrollToCard(_moodCardKey);
+      case NotificationTapRouter.focusDecision:
+        _scrollToCard(_decisionKey);
       case NotificationTapRouter.focusRpsGame:
         // gameId was published BEFORE the focus (push + notification center),
         // so it's readable here even on a cold start (initState).
@@ -1052,6 +1227,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // yet) / +20h / +72h after the couple was created; the provider cancels
       // the band as soon as the couple goes active, and for good once it was
       // (PA7 — a partner who leaves doesn't restart them).
+      _refreshDecisionReminder();
       reminderProvider.refreshInviteFollowUps(
         coupleId: coupleId,
         waiting: !coupleActive,
@@ -1684,6 +1860,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           );
           // Mood (feature mood) — re-arm so the card is live + resets at midnight.
           context.read<MoodProvider>().watchForCouple(couple.id, myUid);
+          // Decision wheel (feature decision-wheel) — re-arm + roll the day.
+          context.read<DecisionProvider>().watchForCouple(couple.id, myUid);
           // Rock-paper-scissors — re-arm with the live partner so a partner
           // joining mid-session unlocks invites ('' while waiting, RPS-12).
           final partnerUid = couple.isWaitingForPartner
@@ -1903,8 +2081,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // (a one-sided mood card has no "how is your person" payoff).
             if (!couple.isWaitingForPartner) ...[
               const SizedBox(height: 16),
-              _gutter(_entrance(4, MoodCard(couple: couple))),
+              _gutter(
+                _entrance(4, MoodCard(key: _moodCardKey, couple: couple)),
+              ),
             ],
+            // "Phân vân gì không?" (feature decision-wheel D6) — ăn gì · đi
+            // đâu · phân vân khác. Shown while waiting too (solo picks keep).
+            const SizedBox(height: 16),
+            KeyedSubtree(
+              key: _decisionKey,
+              child: _gutter(_entrance(5, const DecisionCard())),
+            ),
             // Sleep "Đêm qua" (feature sleep) — under the mood card; shown
             // while still waiting too (my own nights, full width — state A0).
             Selector<SleepProvider, bool>(
@@ -1913,20 +2100,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ? const SizedBox.shrink()
                   : Padding(
                       padding: const EdgeInsets.only(top: 16),
-                      child: _gutter(_entrance(5, SleepCard(couple: couple))),
+                      child: _gutter(_entrance(6, SleepCard(couple: couple))),
                     ),
             ),
             if (!couple.isWaitingForPartner) ...[
               // Rock-paper-scissors entry (feature rps-game, design D1): a
               // small card that also carries the "người ấy đang rủ" badge.
               const SizedBox(height: 16),
-              _gutter(_entrance(6, const RpsInviteCard())),
+              _gutter(_entrance(7, const RpsInviteCard())),
             ],
             // ── Nhóm 2: Kỷ niệm — create + browse.
             const SizedBox(height: 28),
             _gutter(
               _entrance(
-                6,
+                7,
                 SectionHeader(
                   title: l10n.recentMemoriesTitle,
                   subtitle: photos.isEmpty ? l10n.addPhotosPrompt : null,
@@ -1942,7 +2129,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // Memory cinema sits in the standard gutter like every other card
             // (user 2026-06-11) — the section pads itself inside.
             _entrance(
-              7,
+              8,
               _buildRecentPhotosSection(
                 recentPhotos,
                 isUploadingPhoto,

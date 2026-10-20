@@ -19,7 +19,7 @@
 - [ ] Kiểm StandBy (iOS 17) ban đêm
 - *Xong khi:* 3 cỡ màn khoá thêm được, đọc được ở chế độ vibrant.
 
-### ⚪ Phase 3 (Later) — Widget theo "hôm nay"
+### ⚪ Phase 3 — Widget theo "hôm nay" → tách thành feature riêng [widget-today](../widget-today/overview.md) (spec 2026-10-19, P0; giữ ảnh nền, chỉ thêm dòng trạng thái)
 - [ ] Câu hỏi hôm nay (nối `wakeClients` của `notifyDailyAnswer` sang reload widget; chạm → mở thẳng sheet trả lời cần đọc deep link — xem lại D8 audit)
 - [ ] Ảnh kỷ niệm / ngày này năm xưa (copy ảnh thu nhỏ sang App Group khi app chạy hoặc được push đánh thức)
 - [ ] Đêm qua (giấc ngủ), chuỗi ngày — cân nhắc theo số liệu `widget_tap` của Phase 1

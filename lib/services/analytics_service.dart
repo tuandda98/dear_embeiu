@@ -71,6 +71,14 @@ class AnalyticsEvents {
   static const String coupleJoinFailed = 'couple_join_failed';
   static const String coupleCreateFailed = 'couple_create_failed';
 
+  // "Chọn giúp chúng mình" (feature decision-wheel, D12). Never the result or
+  // the question — only kind / filter / counts.
+  static const String decisionSpin = 'decision_spin';
+  static const String decisionCommit = 'decision_commit';
+  static const String decisionRespin = 'decision_respin';
+  static const String decisionPhotoCta = 'decision_photo_cta';
+  static const String decisionHistoryOpen = 'decision_history_open';
+
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
   static const String pResult = 'result'; // couple_join_attempt
@@ -82,6 +90,8 @@ class AnalyticsEvents {
   static const String pLocale = 'locale'; // language_changed
   static const String pRematch = 'rematch'; // rps_invite_sent (bool)
   static const String pFamily = 'family'; // widget_tap: small / medium
+  static const String pTarget = 'target'; // widget_tap: home / chat / gallery / none
+  static const String pStatusKind = 'status_kind'; // widget_tap: widget-today kind / none
   static const String pHasNote = 'has_note'; // mood_set (bool)
   static const String pQueued = 'queued'; // care_message_sent (bool, offline)
   static const String pMode = 'mode'; // sleep_enabled: auto / health / manual
@@ -90,6 +100,11 @@ class AnalyticsEvents {
   static const String pSkipped = 'skipped'; // intro_finished (bool)
   static const String pManual = 'manual'; // feature_tour_shown (bool)
   static const String pReason = 'reason'; // *_failed events
+  static const String pKind = 'kind'; // decision_*: eat / go / custom
+  static const String pFilter = 'filter'; // decision_spin: tuy/nha/ngoai/…
+  static const String pSpins = 'spins'; // decision_commit (count)
+  static const String pVia = 'via'; // decision_commit: spin / manual
+  static const String pPreset = 'preset'; // decision_commit: who / which
 
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
@@ -371,10 +386,16 @@ class AnalyticsService {
   void logCounterBgSwiped() => logEvent(AnalyticsEvents.counterBgSwiped);
 
   /// The app was opened by tapping the home-screen widget (feature home-widget).
-  /// [family] is `small` or `medium`.
-  void logWidgetTap(String family) => logEvent(
+  /// [family] is `small` or `medium`; [target] (`home`/`chat`/`gallery`) and
+  /// [statusKind] (widget-today D2 kind) are `none` when no line was showing.
+  void logWidgetTap(String family, {String target = '', String statusKind = ''}) =>
+      logEvent(
         AnalyticsEvents.widgetTap,
-        params: {AnalyticsEvents.pFamily: family},
+        params: {
+          AnalyticsEvents.pFamily: family,
+          AnalyticsEvents.pTarget: target.isEmpty ? 'none' : target,
+          AnalyticsEvents.pStatusKind: statusKind.isEmpty ? 'none' : statusKind,
+        },
       );
 
   /// Opened the Memory Cinema viewer on Home (feature home).
@@ -437,6 +458,40 @@ class AnalyticsService {
       );
 
   void logLoveTreeOpened() => logEvent(AnalyticsEvents.loveTreeOpened);
+
+  void logDecisionSpin({required String kind, required String filter}) =>
+      logEvent(
+        AnalyticsEvents.decisionSpin,
+        params: {AnalyticsEvents.pKind: kind, AnalyticsEvents.pFilter: filter},
+      );
+
+  void logDecisionCommit({
+    required String kind,
+    required int spins,
+    required String via,
+    String? preset,
+  }) => logEvent(
+    AnalyticsEvents.decisionCommit,
+    params: {
+      AnalyticsEvents.pKind: kind,
+      AnalyticsEvents.pSpins: spins,
+      AnalyticsEvents.pVia: via,
+      AnalyticsEvents.pPreset: preset,
+    },
+  );
+
+  void logDecisionRespin({required String kind}) => logEvent(
+    AnalyticsEvents.decisionRespin,
+    params: {AnalyticsEvents.pKind: kind},
+  );
+
+  void logDecisionPhotoCta({required String kind}) => logEvent(
+    AnalyticsEvents.decisionPhotoCta,
+    params: {AnalyticsEvents.pKind: kind},
+  );
+
+  void logDecisionHistoryOpen() =>
+      logEvent(AnalyticsEvents.decisionHistoryOpen);
 
   void logIntroFinished({required bool skipped}) => logEvent(
         AnalyticsEvents.introFinished,

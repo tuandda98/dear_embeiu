@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import '../screens/care_message_screen.dart';
+import '../widgets/decision_parts.dart';
 import '../screens/love_tree_screen.dart';
 import '../screens/rps_game_screen.dart';
 import '../screens/sleep_screen.dart';
@@ -102,5 +103,19 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
     title: (l10n) => l10n.featureTourSleepMotionTitle,
     body: (l10n) => l10n.featureTourSleepMotionBody,
     onOpen: openSleepScreen,
+  ),
+  // ---- Build 32 (1.11.0) ---------------------------------------------------
+  FeatureTourEntry(
+    sinceBuild: 32,
+    icon: IconsaxPlusLinear.shuffle,
+    title: (l10n) => l10n.featureTourDecisionTitle,
+    body: (l10n) => l10n.featureTourDecisionBody,
+    onOpen: (context) => openDecisionWheel(context),
+  ),
+  FeatureTourEntry(
+    sinceBuild: 32,
+    icon: IconsaxPlusLinear.element_3,
+    title: (l10n) => l10n.featureTourWidgetTodayTitle,
+    body: (l10n) => l10n.featureTourWidgetTodayBody,
   ),
 ];

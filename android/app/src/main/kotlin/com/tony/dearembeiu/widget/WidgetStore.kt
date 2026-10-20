@@ -15,36 +15,28 @@ import android.os.Bundle
 import java.io.File
 
 /**
- * Shared store between the Flutter channel and the widget provider
- * (feature home-widget). Snapshot keys: lib/services/home_widget_snapshot.dart.
- * The launch flag lives in its own file so clearing a snapshot never eats a tap.
+ * Reader side of the store the Flutter channel writes (feature home-widget).
+ * Snapshot keys: lib/services/home_widget_snapshot.dart; status keys:
+ * lib/services/home_widget_status.dart. The writer is the plugin
+ * packages/dear_embeiu_widget_channel (WidgetChannelPlugin.java, widget-today
+ * D13) — file names below must match it. The launch flag lives in its own
+ * file so clearing a snapshot never eats a tap.
  */
 object WidgetStore {
     private const val SNAPSHOT_PREFS = "dear_embeiu_widget"
+    private const val STATUS_PREFS = "dear_embeiu_widget_status"
     private const val LAUNCH_PREFS = "dear_embeiu_widget_launch"
-    private const val KEY_FAMILY = "family"
     private const val PHOTO_FILE = "widget_photo.png"
 
-    fun save(context: Context, snapshot: Map<String, String>) {
-        val editor = context.getSharedPreferences(SNAPSHOT_PREFS, Context.MODE_PRIVATE).edit().clear()
-        snapshot.forEach { (key, value) -> editor.putString(key, value) }
-        editor.apply()
-    }
+    fun load(context: Context): Map<String, String> = read(context, SNAPSHOT_PREFS)
 
-    fun load(context: Context): Map<String, String> =
-        context.getSharedPreferences(SNAPSHOT_PREFS, Context.MODE_PRIVATE).all
+    /** "Hôm nay" line (feature widget-today, D6): todayDate, statusKind, statusText, … */
+    fun loadStatus(context: Context): Map<String, String> = read(context, STATUS_PREFS)
+
+    private fun read(context: Context, file: String): Map<String, String> =
+        context.getSharedPreferences(file, Context.MODE_PRIVATE).all
             .mapNotNull { (key, value) -> (value as? String)?.let { key to it } }
             .toMap()
-
-    /** PNG already downscaled by Flutter (HomeWidgetBridge.photoMaxEdge); null removes it. */
-    fun savePhoto(context: Context, png: ByteArray?) {
-        val file = File(context.filesDir, PHOTO_FILE)
-        if (png == null) {
-            file.delete()
-        } else {
-            File(file.path + ".tmp").apply { writeBytes(png); renameTo(file) }
-        }
-    }
 
     /**
      * The couple photo center-cropped to this widget's cell and with the
@@ -87,16 +79,10 @@ object WidgetStore {
         return out
     }
 
-    fun recordLaunch(context: Context, family: String) {
+    /** The plugin's consumeLaunch hands these back to Dart once and clears them. */
+    fun recordLaunch(context: Context, family: String, target: String, focus: String, kind: String) {
         context.getSharedPreferences(LAUNCH_PREFS, Context.MODE_PRIVATE).edit()
-            .putString(KEY_FAMILY, family).apply()
-    }
-
-    /** Returns the family of the widget that opened the app, once. */
-    fun consumeLaunch(context: Context): String? {
-        val prefs = context.getSharedPreferences(LAUNCH_PREFS, Context.MODE_PRIVATE)
-        val family = prefs.getString(KEY_FAMILY, null) ?: return null
-        prefs.edit().remove(KEY_FAMILY).apply()
-        return family
+            .putString("family", family).putString("target", target)
+            .putString("focus", focus).putString("kind", kind).apply()
     }
 }

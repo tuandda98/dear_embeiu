@@ -1,6 +1,6 @@
 /* Widget gallery (shown before any data exists) + empty state when the app has not been opened since this build. Everything else comes from Flutter (D4). */
 "widget_display_name" = "Day counter";
-"widget_description" = "Your days together, updated every day.";
+"widget_description" = "Your days together, and what your partner just did today.";
 "empty_tap" = "Tap to start counting your days together";
 "preview_lang" = "en";
 "preview_name1" = "Me";

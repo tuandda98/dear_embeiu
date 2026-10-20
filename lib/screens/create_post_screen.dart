@@ -39,10 +39,18 @@ class CreatePostResult {
 /// `files.isEmpty` = CANCEL (nothing posts); a result with `files.isNotEmpty`
 /// = post.
 class CreatePostScreen extends StatefulWidget {
-  const CreatePostScreen({super.key, required this.initialFiles});
+  const CreatePostScreen({
+    super.key,
+    required this.initialFiles,
+    this.initialCaption,
+  });
 
   /// The freshly picked/captured photos (1 from camera, N from the library).
   final List<XFile> initialFiles;
+
+  /// Caption pre-filled in the field (decision wheel "Chụp lại", D8). The
+  /// user can edit or clear it.
+  final String? initialCaption;
 
   @override
   State<CreatePostScreen> createState() => _CreatePostScreenState();
@@ -50,7 +58,9 @@ class CreatePostScreen extends StatefulWidget {
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
   late final List<XFile> _files = List<XFile>.from(widget.initialFiles);
-  final TextEditingController _caption = TextEditingController();
+  late final TextEditingController _caption = TextEditingController(
+    text: widget.initialCaption ?? '',
+  );
 
   @override
   void dispose() {
@@ -95,7 +105,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   /// Only ask to discard when the user has invested effort writing a caption
   /// (removing photos doesn't count). Caption empty → close straight away.
   Future<void> _onClose() async {
-    if (_caption.text.trim().isEmpty) {
+    // A pre-filled caption the user didn't touch isn't effort either.
+    final typed = _caption.text.trim();
+    if (typed.isEmpty || typed == (widget.initialCaption ?? '').trim()) {
       Navigator.of(context).pop();
       return;
     }

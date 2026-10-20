@@ -138,5 +138,45 @@
             android:shadowRadius="6"
             android:textColor="#EBFFFFFF"
             android:textSize="12sp" />
+
+        <!-- "Hôm nay" line (feature widget-today, design §5.4). GONE = 1.9.1 layout. -->
+        <LinearLayout
+            android:id="@+id/widget_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="top"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/widget_status_dot"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:importantForAccessibility="no"
+                android:paddingTop="5dp"
+                android:src="@drawable/widget_status_dot" />
+
+            <TextView
+                android:id="@+id/widget_status_text"
+                android:layout_width="0dp"
+                android:layout_height="16dp"
+                android:layout_weight="1"
+                android:autoSizeMaxTextSize="12sp"
+                android:autoSizeMinTextSize="10sp"
+                android:autoSizeTextType="uniform"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif"
+                android:gravity="center_vertical|start"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:shadowColor="#4D000000"
+                android:shadowDy="1"
+                android:shadowRadius="8"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 </FrameLayout>

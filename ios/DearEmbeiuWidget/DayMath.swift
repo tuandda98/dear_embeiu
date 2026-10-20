@@ -8,6 +8,13 @@ import Foundation
 enum DayMath {
   static let milestones = [30, 50, 100, 180, 365, 500, 730, 1000, 1500, 2000, 3000]
 
+  /// `YYYY-MM-DD` of `date` in the Gregorian calendar, local time — Dart's
+  /// `DailyQuestionService.dateKey`, the `todayDate` of the widget status.
+  static func dateKey(_ date: Date, calendar: Calendar = gregorian) -> String {
+    let c = calendar.dateComponents([.year, .month, .day], from: date)
+    return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
+  }
+
   /// `YYYY-MM-DD` (the snapshot's `anniversary`) → year/month/day.
   static func parseDate(_ s: String) -> DateComponents? {
     let parts = s.split(separator: "-").compactMap { Int($0) }

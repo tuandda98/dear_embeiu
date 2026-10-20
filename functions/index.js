@@ -122,6 +122,9 @@ exports.sendPartnerPhotoNotification = onDocumentCreated(
     const coupleId = `${photo.coupleId || event.params.coupleId || ""}`.trim();
     const photoId = `${event.params.photoId || snapshot.id || ""}`.trim();
     const authorUserId = `${photo.authorUserId || ""}`.trim();
+    // Raw (possibly "") for the widget line — the client localizes its own
+    // fallback (widget-today D8); the push copy keeps "Người ấy".
+    const rawAuthorName = `${photo.authorName || ""}`.trim();
     const authorName = normalizeActorName(photo.authorName);
     const caption = `${photo.caption || ""}`.trim();
 
@@ -178,7 +181,12 @@ exports.sendPartnerPhotoNotification = onDocumentCreated(
         coupleId,
         photoId,
         authorUserId,
+        actorName: rawAuthorName,
+        sentAt: String(Date.now()), // widget "today?" check (widget-today B2)
       },
+      // Wake the partner's app so the home-screen widget reads "<name> vừa
+      // đăng ảnh mới" while it is closed (feature widget-today, D8).
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
@@ -491,7 +499,13 @@ exports.notifyPartnerLeft = onDocumentUpdated(
         type: "partner_left",
         coupleId,
         leaverUserId: leaverUid,
+        // When they left: the widget clears only a line older than this
+        // (widget-today WT-R2-1, pushes can arrive late / out of order).
+        sentAt: String(Date.now()),
       },
+      // Wake the app so it clears the widget's "người ấy vừa…" line right away
+      // (widget-today B5), even when it is closed.
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
@@ -742,6 +756,7 @@ exports.notifyChatMessage = onDocumentCreated(
         message: err && err.message,
       });
     }
+    const rawAuthorName = authorName; // widget line (widget-today D8)
     authorName = normalizeActorName(authorName);
 
     // Inbox record: structured, content-free (no excerpt — privacy by design).
@@ -759,7 +774,14 @@ exports.notifyChatMessage = onDocumentCreated(
       {
         type: "chat_message",
         coupleId,
+        actorName: rawAuthorName,
+        // Send time for the widget's "today?" check: chat pushes carry no
+        // `date`, and iOS often has no RemoteMessage.sentTime (widget-today B2).
+        sentAt: String(Date.now()),
       },
+      // Home-screen widget "<name> vừa nhắn cho mình" while the app is closed
+      // (widget-today D8). Recipients watching the chat were skipped above.
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
@@ -926,6 +948,7 @@ exports.notifyPartnerMood = onDocumentWritten(
         message: err && err.message,
       });
     }
+    const rawAuthorName = authorName; // widget line (widget-today D8)
     authorName = normalizeActorName(authorName);
 
     // Push only — no writeInboxNotifications (mood is ephemeral "today" state).
@@ -935,7 +958,13 @@ exports.notifyPartnerMood = onDocumentWritten(
       {
         type: "partner_mood",
         coupleId,
+        // Home-screen widget "<name> hôm nay: <mood>" (widget-today D8): the
+        // mood key (client translates it) and its day (stale pushes ignored).
+        mood,
+        date,
+        actorName: rawAuthorName,
       },
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
@@ -1218,11 +1247,13 @@ exports.notifyDailyAnswer = onDocumentCreated(
         // YESTERDAY that only arrives when the app wakes this morning must not
         // cancel TODAY's freshly armed nudges. Older clients ignore the key.
         date,
+        // Raw name for the home-screen widget line (widget-today D8).
+        actorName: authorName,
       },
-      // Only the pair-completing push needs to wake the recipient's app (iOS
-      // content-available + Android data-only companion); the "answer yours to
-      // unlock" one has nothing for the client to act on.
-      {wakeClients: bothAnswered},
+      // ALWAYS wake now (widget-today D8): the home-screen widget shows "<name>
+      // đã trả lời, đến lượt mình" / "Cả hai đã trả lời". The background
+      // handler still cancels today's nudges only when bothAnswered == "true".
+      {wakeClients: true},
     );
 
     if (result.deviceCount === 0) {
@@ -1614,6 +1645,158 @@ exports.notifyCareMessage = onDocumentCreated(
       successCount: result.successCount,
       failureCount: result.failureCount,
     });
+  },
+);
+
+// ── Chọn giúp chúng mình (feature decision-wheel, 2026-10-19) ─────────────
+// A member locked in (create) or re-spun (update, `result` changed) a pick in
+// couples/{coupleId}/decisions/{id}. Tell the OTHER member(s): inbox always,
+// push with `wakeClients` (the partner's app refreshes its widget and drops
+// today's 16:30 meal nudge when kind == eat). Pushes for one doc are spaced
+// by DECISION_PUSH_COOLDOWN_MS PER SPINNER (claimed in a transaction on
+// `lastPushAt` + `lastPushBy`, Admin-only fields): a burst of re-spins by the
+// same person becomes inbox items only, but the first re-spin by the OTHER
+// person always pushes (D2 "báo ngược lại", test BUG-1). Our own stamp write
+// re-triggers this function and stops at "result unchanged".
+const DECISION_PUSH_COOLDOWN_MS = 10 * 60 * 1000;
+
+const DECISION_COPY = {
+  vi: {
+    title: {eat: "Hôm nay ăn gì?", go: "Hôm nay đi đâu?", custom: "Chọn giúp chúng mình"},
+    eat: (n, r) => `${n} quay ra: hôm nay ăn ${r}`,
+    // D18: most plans already start with "Đi …", so no extra verb.
+    go: (n, r) => `${n} quay ra: ${r}`,
+    custom: (n, q, r) => `${n} quay "${q}": ${r}`,
+    respin: (n, r) => `${n} quay lại: ${r}`,
+    partnerFallback: "Người ấy",
+  },
+  en: {
+    title: {eat: "What to eat?", go: "Where to go?", custom: "Decide for us"},
+    eat: (n, r) => `${n} spun: ${r} today`,
+    go: (n, r) => `${n} spun: let's ${r}`,
+    custom: (n, q, r) => `${n} spun "${q}": ${r}`,
+    respin: (n, r) => `${n} re-spun: ${r}`,
+    partnerFallback: "Your person",
+  },
+};
+
+function buildDecisionText(languageCode, kind, actorName, question, result, respin) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = DECISION_COPY[code] || DECISION_COPY.vi;
+  const name = actorName || copy.partnerFallback;
+  const k = kind === "eat" || kind === "go" ? kind : "custom";
+  let body;
+  if (respin) {
+    body = copy.respin(name, result);
+  } else if (k === "custom") {
+    body = copy.custom(name, question, result);
+  } else {
+    body = copy[k](name, result);
+  }
+  return {title: copy.title[k], body};
+}
+
+// Core of notifyDecision, kept free of the trigger wrapper so the unit tests
+// (functions/test) can drive it with fakes. `before`/`after` = doc data or null.
+async function processDecisionWrite(coupleId, decisionId, before, after, ref) {
+  if (!after) {
+    return {skipped: "deleted"};
+  }
+  const result = `${after.result || ""}`.trim().slice(0, 40);
+  const isCreate = !before;
+  if (!isCreate && `${before.result || ""}`.trim() === result) {
+    return {skipped: "unchanged"}; // incl. our own lastPushAt stamp
+  }
+  const kind = `${after.kind || ""}`.trim();
+  const byUserId = `${after.byUserId || ""}`.trim();
+  const date = `${after.date || ""}`.trim();
+  const question = `${after.question || ""}`.trim().slice(0, 60);
+  const resultId = `${after.resultId || ""}`.trim().slice(0, 40);
+  if (!coupleId || !byUserId || !result || !["eat", "go", "custom"].includes(kind)) {
+    return {skipped: "invalid"};
+  }
+
+  const memberIds = await rpsLoadMemberIds(coupleId);
+  const recipientIds = (memberIds || []).filter((id) => id !== byUserId);
+  if (recipientIds.length === 0) {
+    return {skipped: "no_partner"};
+  }
+  const actorName = await rpsLoadDisplayName(byUserId);
+  const respin = !isCreate;
+
+  await writeInboxNotifications(recipientIds, {
+    type: "decision",
+    coupleId,
+    actorUserId: byUserId,
+    actorName,
+    decisionId,
+    kind,
+    question,
+    result,
+    resultId,
+    date,
+    respin,
+  });
+
+  // Claim the push slot. Only blocked when the same person was pushed about
+  // within the cooldown (creates always push and stamp).
+  const claimed = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) {
+      return false;
+    }
+    const lastMs = rpsToMillis(snap.get("lastPushAt"));
+    const lastBy = `${snap.get("lastPushBy") || ""}`;
+    if (!isCreate && lastBy === byUserId && lastMs &&
+        Date.now() - lastMs < DECISION_PUSH_COOLDOWN_MS) {
+      return false;
+    }
+    tx.update(ref, {
+      lastPushAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastPushBy: byUserId,
+    });
+    return true;
+  });
+  // Within the cooldown there is no banner, but the partner's app still gets
+  // a silent data-only wake with the same data, so their widget shows the new
+  // result and (eat) the 16:30 nudge stays cancelled (DW-R2-2).
+  const sent = await sendToRecipientDevices(
+    recipientIds,
+    (languageCode) => buildDecisionText(languageCode, kind, actorName, question, result, respin),
+    {
+      type: "decision",
+      coupleId,
+      decisionId,
+      kind,
+      result,
+      resultId,
+      question,
+      date,
+      actorName,
+    },
+    claimed ? {wakeClients: true} : {silent: true},
+  );
+  if (sent.failures.length > 0) {
+    logger.warn("Decision push had delivery failures.", {coupleId, decisionId, failures: sent.failures});
+  }
+  if (!claimed) {
+    return {pushed: false, silent: true, recipientIds, deviceCount: sent.deviceCount};
+  }
+  return {pushed: true, recipientIds, deviceCount: sent.deviceCount};
+}
+
+exports.notifyDecision = onDocumentWritten(
+  {document: "couples/{coupleId}/decisions/{decisionId}", region: "us-central1"},
+  async (event) => {
+    const change = event.data;
+    const before = change && change.before && change.before.exists ? change.before.data() : null;
+    const after = change && change.after && change.after.exists ? change.after.data() : null;
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const decisionId = `${event.params.decisionId || ""}`.trim();
+    const outcome = await processDecisionWrite(
+      coupleId, decisionId, before, after, change && change.after && change.after.ref,
+    );
+    logger.info("Processed decision notification.", {coupleId, decisionId, ...outcome});
   },
 );
 
@@ -2404,6 +2587,12 @@ exports.nudgeRpsPlayer = onCall(
 //    the handler there. So each Android device additionally gets a data-only
 //    companion (high priority, same `dataExtra`, deliberately WITHOUT title/body
 //    so the foreground handler shows no second banner).
+// `options.silent` (decision-wheel DW-R2-2, 2026-10-20) sends ONLY a wake, no
+// banner anywhere: every device gets a data-only message (same `dataExtra`, no
+// title/body, `buildText` is not called). iOS: background push
+// (`apns-push-type: background`, priority 5, `content-available`, no alert /
+// sound / badge); Android: data-only, high priority. Off by default — callers
+// that pass no `silent` behave exactly as before.
 // Per-type mute prefs (D-notif-4): maps a push `type` to the device-doc field
 // the user can switch off. Types not listed (love_note, partner_joined/left)
 // are always-on and never filtered. Absent field on a device → not muted.
@@ -2412,6 +2601,14 @@ const PUSH_TYPE_PREF_FIELD = {
   photo_reaction: "pushReaction",
   daily_question: "pushDailyQuestion",
 };
+
+// `data.lang` = the recipient device's app language (vi/en), so a handler with
+// no UI translates in the same language as the push (feature widget-today,
+// D5). Omitted when the device never registered one — the client falls back
+// to the phone's locale.
+function langData(device) {
+  return device.languageCode ? {lang: device.languageCode} : {};
+}
 
 async function sendToRecipientDevices(recipientIds, buildText, dataExtra, options = {}) {
   const muteField = PUSH_TYPE_PREF_FIELD[dataExtra && dataExtra.type];
@@ -2471,7 +2668,18 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
   // Each outgoing entry keeps its device so delivery failures can be attributed
   // (and dead tokens pruned) even after companion messages are appended — a bare
   // `messages[index] → deviceDocs[index]` mapping would break then.
-  const outgoing = deviceDocs.map((device) => {
+  const outgoing = options.silent ? deviceDocs.map((device) => ({
+    device,
+    message: {
+      token: device.token,
+      data: {...dataExtra, ...langData(device)},
+      android: {priority: "high"},
+      apns: {
+        headers: {"apns-priority": "5", "apns-push-type": "background"},
+        payload: {aps: {contentAvailable: true}},
+      },
+    },
+  })) : deviceDocs.map((device) => {
     const {title, body} = buildText(device.languageCode);
     return {
       device,
@@ -2480,6 +2688,7 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
         notification: {title, body},
         data: {
           ...dataExtra,
+          ...langData(device),
           title,
           body,
         },
@@ -2514,7 +2723,7 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
   // Android wake companion — see the wakeClients note above the function. The
   // data payload carries NO title/body on purpose: in the foreground the client's
   // onMessage handler acts on the data, then bails before showing a banner.
-  if (options.wakeClients) {
+  if (options.wakeClients && !options.silent) {
     for (const device of deviceDocs) {
       if (device.platform !== "android") {
         continue;
@@ -2523,7 +2732,7 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
         device,
         message: {
           token: device.token,
-          data: {...dataExtra},
+          data: {...dataExtra, ...langData(device)},
           android: {priority: "high"},
         },
       });
@@ -3027,6 +3236,17 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
   tasks.push(
     db.recursiveDelete(coupleRef.collection("dailyAnswers")).catch((err) => {
       logger.warn("Failed to recursively delete dailyAnswers during couple teardown.", {
+        coupleId: coupleRef.id,
+        message: err && err.message,
+      });
+      return null;
+    }),
+  );
+
+  // Decision wheel (feature decision-wheel): every pick of the couple.
+  tasks.push(
+    db.recursiveDelete(coupleRef.collection("decisions")).catch((err) => {
+      logger.warn("Failed to recursively delete decisions during couple teardown.", {
         coupleId: coupleRef.id,
         message: err && err.message,
       });

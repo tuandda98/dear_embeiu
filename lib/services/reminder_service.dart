@@ -161,6 +161,12 @@ class ReminderService {
   static const int _idInviteFollowUpBase = 1180;
   static const int _maxInviteFollowUps = 10;
 
+  // Meal-pick nudge (feature decision-wheel D10), band 1200–1209, only 1200
+  // used: ONE-SHOT today at the user's time (default 16:30) while nobody has
+  // picked food yet. Owned by ReminderProvider.refreshDecisionReminder; the
+  // partner's `decision` push (kind eat) cancels it from the background.
+  static const int _idDecision = 1200;
+
   // Partner reminders (feature partner-nudge, 2026-06-29): scheduled reminders
   // one partner set FOR the other, synced via Firestore and armed LOCALLY on the
   // recipient's device (so they fire in the recipient's own timezone). Reserved
@@ -861,6 +867,46 @@ class ReminderService {
       } catch (_) {
         // Already in the desired state.
       }
+    }
+  }
+
+  /// Arm today's meal-pick nudge (id 1200) at [hour]:[minute] — skipped when
+  /// that moment has passed (tomorrow's re-arm covers it). Replaces any
+  /// earlier one.
+  Future<void> scheduleDecisionReminder({
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+  }) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelDecisionReminder();
+    final now = tz.TZDateTime.now(tz.local);
+    final when = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
+    if (!when.isAfter(now)) {
+      return;
+    }
+    await _scheduleAt(id: _idDecision, when: when, title: title, body: body);
+  }
+
+  /// Drop the meal-pick nudge. Works WITHOUT [initialize] (plain platform
+  /// call), so the FCM background isolate can run it — like
+  /// [cancelDailyQuestionBands].
+  Future<void> cancelDecisionReminder() async {
+    try {
+      await _plugin.cancel(_idDecision);
+    } catch (_) {
+      // Already in the desired state.
     }
   }
 

@@ -30,28 +30,10 @@ private const val MOTION_REQ = 4711
 class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        // Feature home-widget (D3/D8): Dart pushes the pre-translated snapshot,
-        // we store it and redraw every widget; consumeLaunch hands back which
-        // widget opened the app (recorded from the intent extra below).
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "dear_embeiu/widget")
-            .setMethodCallHandler { call, result ->
-                when (call.method) {
-                    "update" -> {
-                        val args = call.arguments as? Map<*, *>
-                        val snapshot = args?.entries?.associate { it.key.toString() to it.value.toString() } ?: emptyMap()
-                        WidgetStore.save(this, snapshot)
-                        DayCounterWidget.updateAll(this)
-                        result.success(null)
-                    }
-                    "setPhoto" -> {
-                        WidgetStore.savePhoto(this, call.arguments as? ByteArray)
-                        DayCounterWidget.updateAll(this)
-                        result.success(null)
-                    }
-                    "consumeLaunch" -> result.success(WidgetStore.consumeLaunch(this))
-                    else -> result.notImplemented()
-                }
-            }
+        // The widget channel (`dear_embeiu/widget`) is the plugin in
+        // packages/dear_embeiu_widget_channel (widget-today D13): registered
+        // here by GeneratedPluginRegistrant AND in firebase_messaging's
+        // background engine, which never runs this method.
         // Feature sleep (2026-10-10): rebuild last nights from screen on/off
         // events (UsageStatsManager, API 28+). Needs the special "Usage access"
         // the user grants in system Settings. Reads timestamps only — no app
@@ -141,11 +123,22 @@ class MainActivity : FlutterActivity() {
         recordWidgetLaunch(intent)
     }
 
-    /** A tap on the home-screen widget carries its family; park it for Dart (feature home-widget). */
+    /**
+     * A tap on the home-screen widget carries its family and where the "hôm
+     * nay" line points (widget-today D7); park them for Dart (consumeLaunch).
+     */
     private fun recordWidgetLaunch(intent: Intent?) {
         val family = intent?.getStringExtra(DayCounterWidget.EXTRA_FAMILY) ?: return
-        WidgetStore.recordLaunch(this, family)
-        intent.removeExtra(DayCounterWidget.EXTRA_FAMILY)
+        WidgetStore.recordLaunch(
+            this, family,
+            target = intent.getStringExtra(DayCounterWidget.EXTRA_TARGET) ?: "",
+            focus = intent.getStringExtra(DayCounterWidget.EXTRA_FOCUS) ?: "",
+            kind = intent.getStringExtra(DayCounterWidget.EXTRA_KIND) ?: "",
+        )
+        for (extra in listOf(DayCounterWidget.EXTRA_FAMILY, DayCounterWidget.EXTRA_TARGET,
+                DayCounterWidget.EXTRA_FOCUS, DayCounterWidget.EXTRA_KIND)) {
+            intent.removeExtra(extra)
+        }
     }
 
     private fun hasUsageAccess(): Boolean {

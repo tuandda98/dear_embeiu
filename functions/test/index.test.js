@@ -335,3 +335,195 @@ test("N2 teardown: the couple's own code pointer is still removed", async () => 
   assert.ok(b.log.includes("delete couple_codes/MCODE1"));
   assert.ok(!b.store.has("couple_codes/MCODE1"));
 });
+
+// ---- notifyDecision (feature decision-wheel, 2026-10-19) ---------------------
+
+function fakeDecision({lastPushMs = 0, lastPushBy = ""} = {}) {
+  const inbox = [];
+  const pushes = [];
+  const stamps = [];
+  const ref = {path: "couples/C/decisions/D"};
+  const process = load("processDecisionWrite", [
+    "const DECISION_PUSH_COOLDOWN_MS",
+    "function buildDecisionText",
+    "async function processDecisionWrite",
+  ], {
+    db: {
+      runTransaction: async (fn) => fn({
+        get: async () => ({
+          exists: true,
+          get: (k) => ({lastPushAt: lastPushMs, lastPushBy})[k],
+        }),
+        update: (r, data) => stamps.push(Object.keys(data)),
+      }),
+    },
+    admin: {firestore: {FieldValue: {serverTimestamp: () => "SERVER_TS"}}},
+    logger: {warn: () => {}},
+    rpsLoadMemberIds: async () => ["alice", "bob"],
+    rpsLoadDisplayName: async (uid) => (uid === "alice" ? "Thảo" : "Tuấn"),
+    rpsToMillis: (v) => v || 0,
+    writeInboxNotifications: async (ids, payload) => inbox.push({ids, payload}),
+    sendToRecipientDevices: async (ids, buildText, data, options) => {
+      pushes.push({ids, vi: buildText("vi"), en: buildText("en"), data, options});
+      return {deviceCount: 1, failures: []};
+    },
+  });
+  return {process, inbox, pushes, stamps, ref};
+}
+
+const eatDoc = (over = {}) => ({
+  kind: "eat", date: "2026-10-21", question: "", result: "Bún chả",
+  resultId: "bun_cha", spins: 1, byUserId: "alice", ...over,
+});
+
+test("decision create: inbox + wake push to the partner only, slot stamped", async () => {
+  const f = fakeDecision();
+  await f.process("C", "2026-10-21_eat", null, eatDoc(), f.ref);
+  assert.deepStrictEqual(f.inbox.map((i) => i.ids), [["bob"]]);
+  assert.strictEqual(f.inbox[0].payload.type, "decision");
+  assert.strictEqual(f.inbox[0].payload.respin, false);
+  assert.strictEqual(f.pushes.length, 1);
+  assert.deepStrictEqual(f.pushes[0].ids, ["bob"]);
+  assert.deepStrictEqual(f.pushes[0].options, {wakeClients: true});
+  assert.strictEqual(f.pushes[0].vi.body, "Thảo quay ra: hôm nay ăn Bún chả");
+  assert.strictEqual(f.pushes[0].en.body, "Thảo spun: Bún chả today");
+  const d = f.pushes[0].data;
+  assert.deepStrictEqual(
+    [d.type, d.kind, d.result, d.resultId, d.date, d.decisionId, d.actorName],
+    ["decision", "eat", "Bún chả", "bun_cha", "2026-10-21", "2026-10-21_eat", "Thảo"],
+  );
+  assert.deepStrictEqual(f.stamps, [["lastPushAt", "lastPushBy"]]);
+});
+
+test("decision create by bob goes to alice", async () => {
+  const f = fakeDecision();
+  await f.process("C", "x", null, eatDoc({byUserId: "bob"}), f.ref);
+  assert.deepStrictEqual(f.pushes[0].ids, ["alice"]);
+  assert.deepStrictEqual(f.inbox[0].ids, ["alice"]);
+});
+
+test("decision: alice locks in, bob re-spins within 10' → alice still gets a push", async () => {
+  const f = fakeDecision({lastPushMs: Date.now() - 2 * 60 * 1000, lastPushBy: "alice"});
+  await f.process("C", "D", eatDoc(), eatDoc({result: "Lẩu Thái", byUserId: "bob", spins: 2}), f.ref);
+  assert.strictEqual(f.inbox.length, 1);
+  assert.strictEqual(f.inbox[0].payload.respin, true);
+  assert.strictEqual(f.pushes.length, 1);
+  assert.deepStrictEqual(f.pushes[0].ids, ["alice"]);
+  assert.deepStrictEqual(f.pushes[0].options, {wakeClients: true});
+  assert.strictEqual(f.pushes[0].vi.body, "Tuấn quay lại: Lẩu Thái");
+  assert.deepStrictEqual(f.stamps, [["lastPushAt", "lastPushBy"]]);
+});
+
+test("decision: bob re-spins a 2nd time within 10' of his own push → inbox + silent wake, no banner", async () => {
+  const f = fakeDecision({lastPushMs: Date.now() - 1 * 60 * 1000, lastPushBy: "bob"});
+  const prev = eatDoc({result: "Lẩu Thái", byUserId: "bob", spins: 2});
+  await f.process("C", "D", prev, eatDoc({result: "Phở", byUserId: "bob", spins: 3}), f.ref);
+  assert.strictEqual(f.inbox.length, 1);
+  assert.strictEqual(f.inbox[0].payload.respin, true);
+  // DW-R2-2: no banner, but a silent data-only wake with the same contract so
+  // alice's widget shows "Phở" (stamp untouched: the cooldown keeps running).
+  assert.strictEqual(f.pushes.length, 1);
+  assert.deepStrictEqual(f.pushes[0].ids, ["alice"]);
+  assert.deepStrictEqual(f.pushes[0].options, {silent: true});
+  const d = f.pushes[0].data;
+  assert.deepStrictEqual(
+    [d.type, d.kind, d.result, d.resultId, d.date, d.decisionId, d.actorName],
+    ["decision", "eat", "Phở", "bun_cha", "2026-10-21", "D", "Tuấn"],
+  );
+  assert.deepStrictEqual(f.stamps, []);
+});
+
+test("decision re-spin after the cooldown pushes the re-spin copy", async () => {
+  const f = fakeDecision({lastPushMs: Date.now() - 11 * 60 * 1000, lastPushBy: "bob"});
+  await f.process("C", "D", eatDoc(), eatDoc({result: "Lẩu Thái", byUserId: "bob", spins: 2}), f.ref);
+  assert.strictEqual(f.pushes.length, 1);
+  assert.deepStrictEqual(f.pushes[0].ids, ["alice"]);
+  assert.strictEqual(f.pushes[0].vi.body, "Tuấn quay lại: Lẩu Thái");
+});
+
+test("decision update without a new result (e.g. our lastPushAt stamp) does nothing", async () => {
+  const f = fakeDecision();
+  await f.process("C", "D", eatDoc(), {...eatDoc(), lastPushAt: "SERVER_TS"}, f.ref);
+  assert.strictEqual(f.inbox.length, 0);
+  assert.strictEqual(f.pushes.length, 0);
+});
+
+test("decision copy: go drops the extra verb in vi, custom quotes the question", async () => {
+  const f = fakeDecision();
+  await f.process("C", "g", null, eatDoc({kind: "go", result: "Đi cà phê"}), f.ref);
+  assert.strictEqual(f.pushes[0].vi.body, "Thảo quay ra: Đi cà phê");
+  const g = fakeDecision();
+  await g.process("C", "g", null, eatDoc({kind: "go", result: "grab coffee"}), g.ref);
+  assert.strictEqual(g.pushes[0].en.body, "Thảo spun: let's grab coffee");
+  const c = fakeDecision();
+  await c.process("C", "c", null, eatDoc({kind: "custom", question: "Ai rửa bát?", result: "Tuấn"}), c.ref);
+  assert.strictEqual(c.pushes[0].vi.body, 'Thảo quay "Ai rửa bát?": Tuấn');
+});
+
+// ---- sendToRecipientDevices silent wake (DW-R2-2, 2026-10-20) ---------------
+
+function fakeSend(devices) {
+  const sent = [];
+  const send = load("sendToRecipientDevices", [
+    "const PUSH_TYPE_PREF_FIELD",
+    "function langData",
+    "async function sendToRecipientDevices",
+  ], {
+    db: {
+      collection: () => ({doc: () => ({collection: (name) => ({
+        where: () => (name === "notifications"
+          ? {count: () => ({get: async () => ({data: () => ({count: 3})})})}
+          : {get: async () => ({docs: devices.map((d) => ({
+            ref: {delete: async () => null},
+            get: (k) => d[k],
+          }))})}),
+      })})}),
+    },
+    admin: {messaging: () => ({sendEach: async (msgs) => {
+      sent.push(...msgs);
+      return {successCount: msgs.length, failureCount: 0, responses: msgs.map(() => ({success: true}))};
+    }})},
+  });
+  return {send, sent};
+}
+
+const DEVICES = [
+  {token: "ios1", platform: "ios", languageCode: "en", notificationsEnabled: true},
+  {token: "and1", platform: "android", languageCode: "vi", notificationsEnabled: true},
+];
+const DATA = {type: "decision", kind: "eat", result: "Phở", resultId: "pho", date: "2026-10-21"};
+
+test("silent: one data-only message per device, no title/body/alert/badge", async () => {
+  const f = fakeSend(DEVICES);
+  let built = 0;
+  await f.send(["alice"], () => { built++; return {title: "T", body: "B"}; }, DATA, {silent: true});
+  assert.strictEqual(built, 0);
+  assert.strictEqual(f.sent.length, 2);
+  for (const m of f.sent) {
+    assert.strictEqual(m.notification, undefined);
+    assert.strictEqual(m.data.title, undefined);
+    assert.strictEqual(m.data.body, undefined);
+    assert.strictEqual(m.data.result, "Phở");
+  }
+  const ios = f.sent.find((m) => m.token === "ios1");
+  assert.deepStrictEqual(ios.apns, {
+    headers: {"apns-priority": "5", "apns-push-type": "background"},
+    payload: {aps: {contentAvailable: true}},
+  });
+  assert.strictEqual(ios.data.lang, "en");
+  assert.strictEqual(f.sent.find((m) => m.token === "and1").data.lang, "vi");
+});
+
+test("default callers unchanged: alert per device + Android companion only with wakeClients", async () => {
+  const plain = fakeSend(DEVICES);
+  await plain.send(["alice"], () => ({title: "T", body: "B"}), DATA);
+  assert.strictEqual(plain.sent.length, 2);
+  assert.ok(plain.sent.every((m) => m.notification && m.notification.title === "T"));
+  assert.strictEqual(plain.sent[0].apns.headers["apns-push-type"], "alert");
+  assert.strictEqual(plain.sent[0].apns.payload.aps.contentAvailable, undefined);
+  const wake = fakeSend(DEVICES);
+  await wake.send(["alice"], () => ({title: "T", body: "B"}), DATA, {wakeClients: true});
+  assert.strictEqual(wake.sent.length, 3);
+  assert.strictEqual(wake.sent[2].token, "and1");
+  assert.strictEqual(wake.sent[2].notification, undefined);
+});

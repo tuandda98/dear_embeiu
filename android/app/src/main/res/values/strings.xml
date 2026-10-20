@@ -5,7 +5,7 @@
 <resources>
     <string name="widget_display_name">Day counter</string>
     <string name="widget_display_name_medium">Day counter (wide)</string>
-    <string name="widget_description">Your days together, updated every day.</string>
+    <string name="widget_description">Your days together, and what your partner just did today.</string>
     <string name="widget_empty_tap">Tap to start counting your days together</string>
     <string name="widget_preview_name1">ME</string>
     <string name="widget_preview_name2">YOU</string>

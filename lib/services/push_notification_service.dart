@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:ui' show DartPluginRegistrant;
+import 'dart:ui' show DartPluginRegistrant, Locale;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -12,10 +12,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 
 import '../l10n/app_l10n.dart';
+import '../l10n/app_localizations.dart';
 import '../models/app_user.dart';
 import 'analytics_service.dart';
 import 'daily_question_service.dart';
 import 'firebase_bootstrap_service.dart';
+import 'home_widget_bridge.dart';
+import 'home_widget_status.dart';
 import 'notification_settings_service.dart';
 import 'reminder_service.dart';
 import 'user_service.dart';
@@ -35,6 +38,51 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
   await _cancelStaleDailyQuestionNudges(message);
   await _cancelInviteFollowUpsIfPartnerJoined(message);
+  await _updateWidgetStatus(message);
+  await _cancelMealReminderIfDecided(message);
+}
+
+/// "Người ấy vừa…" on the home-screen widget while the app is not on screen
+/// (feature widget-today, D5b/D9). The four partner pushes (+ decision) carry
+/// `wakeClients`, so this runs with no UI: map the push's own data to a line,
+/// translated in the device's language, and hand it to native. No reads.
+///
+/// ⚠️ An iOS app the user force-quit gets no wake: the widget then keeps
+/// today's last line until the app opens (and drops it at 0:00, D4.1).
+Future<void> _updateWidgetStatus(RemoteMessage message) async {
+  try {
+    final lang = HomeWidgetStatus.pushLang(message.data, Platform.localeName);
+    final status = HomeWidgetStatus.fromPush(
+      message.data,
+      l10n: lookupAppLocalizations(Locale(lang)),
+      now: DateTime.now(),
+      sentAt: message.sentTime,
+    );
+    if (status != null) {
+      await HomeWidgetBridge.sendStatus(status);
+    }
+  } catch (e) {
+    debugPrint('widget status from push failed: $e');
+  }
+}
+
+/// Whether a push says today's FOOD was just picked (`type == 'decision'`,
+/// `kind == 'eat'`, `date` == today — CF `notifyDecision`). A pick for another
+/// day (a push queued overnight) must not cancel today's nudge.
+@visibleForTesting
+bool isTodayMealDecisionPush(Map<String, dynamic> data, DateTime now) =>
+    data['type'] == 'decision' &&
+    data['kind'] == 'eat' &&
+    '${data['date'] ?? ''}'.trim() == DailyQuestionService.dateKey(now);
+
+/// Drops today's "Hôm nay ăn gì?" nudge (id 1200, decision-wheel D10) once the
+/// partner picked food — their phone sent a `wakeClients` push, so this runs
+/// with no UI alive. Same no-initialize cancel as the bands above.
+Future<void> _cancelMealReminderIfDecided(RemoteMessage message) async {
+  if (!isTodayMealDecisionPush(message.data, DateTime.now())) {
+    return;
+  }
+  await ReminderService.instance.cancelDecisionReminder();
 }
 
 /// Whether a push says the partner just joined (`type == 'partner_joined'`,
@@ -159,6 +207,10 @@ class NotificationTapRouter {
   /// [pendingHomeFocus] value for a tapped `rps_result` push: HomeScreen opens
   /// the rock-paper-scissors history.
   static const String focusRpsHistory = 'rps_history';
+
+  /// [pendingHomeFocus] value for a tapped `decision` push / inbox item:
+  /// HomeScreen scrolls the "Phân vân gì không?" card into view.
+  static const String focusDecision = 'decision';
 
   /// Game id that accompanies a [focusRpsGame] focus request. Set BEFORE the
   /// focus value (cold-start: both are set in `initialize()` before HomeScreen
@@ -594,6 +646,14 @@ class PushNotificationService {
         }
         NotificationTapRouter.pendingHomeFocus.value =
             NotificationTapRouter.focusRpsGame;
+        break;
+      case 'decision':
+        // The partner locked in a pick (feature decision-wheel) → Home,
+        // scrolled to the card. Keep in sync with AppNotification.targetHomeTab
+        // + the notification center tap.
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        NotificationTapRouter.pendingHomeFocus.value =
+            NotificationTapRouter.focusDecision;
         break;
       case 'rps_result':
         // Game settled while I was away → the history (score + that game).

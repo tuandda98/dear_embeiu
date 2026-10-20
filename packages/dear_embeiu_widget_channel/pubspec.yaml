@@ -1,0 +1,19 @@
+name: dear_embeiu_widget_channel
+description: "Android side of the dear_embeiu/widget channel as a plugin, so it is also registered in firebase_messaging's background engine (feature widget-today, D13)."
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: ^3.11.4
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.tony.dearembeiu.widgetchannel
+        pluginClass: WidgetChannelPlugin

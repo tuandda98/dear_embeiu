@@ -25,12 +25,23 @@ open class DayCounterWidget : AppWidgetProvider() {
         ids.forEach { render(context, manager, it) }
     }
 
+    /** The widget channel plugin (widget-today D13) asks for a redraw after every write. */
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == ACTION_REFRESH) updateAll(context) else super.onReceive(context, intent)
+    }
+
     override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, id: Int, newOptions: Bundle) {
         render(context, manager, id)
     }
 
     companion object {
         const val EXTRA_FAMILY = "widget_family"
+        // Where the "hôm nay" line on screen points (widget-today D7) + its kind for analytics.
+        const val EXTRA_TARGET = "widget_target"
+        const val EXTRA_FOCUS = "widget_focus"
+        const val EXTRA_KIND = "widget_kind"
+        // Sent by packages/dear_embeiu_widget_channel (WidgetChannelPlugin.ACTION_REFRESH).
+        const val ACTION_REFRESH = "com.tony.dearembeiu.widget.REFRESH"
         private const val MEDIUM_MIN_WIDTH_DP = 250
 
         private val PROVIDERS = listOf(DayCounterWidget::class.java, DayCounterWidgetMedium::class.java)
@@ -68,7 +79,8 @@ open class DayCounterWidget : AppWidgetProvider() {
                     views.setViewVisibility(R.id.widget_photo, View.VISIBLE)
                     views.setViewVisibility(R.id.widget_scrim, View.VISIBLE)
                 }
-                applyStyle(views, dark = photo == null, counter = true, medium = medium)
+                // Never a status line in the picker: a sample, and private (design §6).
+                applyStyle(views, dark = photo == null, counter = true, medium = medium, status = null)
                 try {
                     manager.setWidgetPreview(ComponentName(context, cls), AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN, views)
                 } catch (_: Exception) {
@@ -91,8 +103,10 @@ open class DayCounterWidget : AppWidgetProvider() {
                 views.setViewVisibility(R.id.widget_photo, View.VISIBLE)
                 views.setViewVisibility(R.id.widget_scrim, View.VISIBLE)
             }
-            applyStyle(views, dark = photo == null, counter = counter, medium = medium)
-            views.setOnClickPendingIntent(R.id.widget_root, openApp(context, if (medium) "medium" else "small"))
+            val status = if (counter) todayStatus(WidgetStore.loadStatus(context)) else null
+            applyStyle(views, dark = photo == null, counter = counter, medium = medium, status = status,
+                fontScale = context.resources.configuration.fontScale)
+            views.setOnClickPendingIntent(R.id.widget_root, openApp(context, if (medium) "medium" else "small", status))
             manager.updateAppWidget(id, views)
         }
 
@@ -138,7 +152,18 @@ open class DayCounterWidget : AppWidgetProvider() {
          * inflated layout has are touched — an action on a missing id fails
          * the whole widget.
          */
-        private fun applyStyle(views: RemoteViews, dark: Boolean, counter: Boolean, medium: Boolean) {
+        /**
+         * The stored "hôm nay" line, or null unless it belongs to today (D4.1:
+         * after 0:00 it disappears at the next redraw, ≤30' with
+         * updatePeriodMillis) and has text.
+         */
+        fun todayStatus(status: Map<String, String>, today: LocalDate = LocalDate.now()): Map<String, String>? =
+            status.takeIf { it["todayDate"] == today.toString() && !it["statusText"].isNullOrEmpty() }
+
+        private fun applyStyle(
+            views: RemoteViews, dark: Boolean, counter: Boolean, medium: Boolean,
+            status: Map<String, String>?, fontScale: Float = 1f,
+        ) {
             val ink = if (dark) 0xFFFFFFFF.toInt() else 0xFF1A1A2E.toInt()
             views.setInt(R.id.widget_chip, "setBackgroundResource", if (dark) R.drawable.widget_chip_bg_dark else R.drawable.widget_chip_bg)
             views.setTextColor(R.id.widget_name1, ink)
@@ -156,6 +181,24 @@ open class DayCounterWidget : AppWidgetProvider() {
                 views.setViewVisibility(R.id.widget_progress_light, if (dark) View.GONE else View.VISIBLE)
                 // Night sky: keep 48dp clear for the constellation top-right.
                 views.setViewPadding(R.id.widget_milestone, 0, 0, if (dark) dp(views, 48) else 0, 0)
+            }
+            // "Hôm nay" line (widget-today, design §5.4/§9.1): both branches set
+            // every property, for the same reapply reason as above. No status =
+            // XML defaults = pixel-identical to 1.9.1.
+            if (counter) {
+                val show = status != null
+                val text = if (medium) status?.get("statusText")
+                    else status?.get("statusTextShort")?.takeIf { it.isNotEmpty() } ?: status?.get("statusText")
+                views.setViewVisibility(R.id.widget_status, if (show) View.VISIBLE else View.GONE)
+                views.setTextViewText(R.id.widget_status_text, text ?: "")
+                views.setImageViewResource(R.id.widget_status_dot,
+                    if (dark) R.drawable.widget_status_dot else R.drawable.widget_status_dot_light)
+                if (medium) {
+                    views.setViewVisibility(R.id.widget_since, if (show) View.GONE else View.VISIBLE)
+                    views.setInt(R.id.widget_status_text, "setMaxLines", if (fontScale >= 1.3f) 1 else 2)
+                } else {
+                    views.setInt(R.id.widget_caption, "setMaxLines", if (show) 1 else 2)
+                }
             }
         }
 
@@ -178,10 +221,14 @@ open class DayCounterWidget : AppWidgetProvider() {
         }
 
         /** Explicit intent (not ACTION_MAIN) so a running singleTop MainActivity gets onNewIntent + the extra. */
-        private fun openApp(context: Context, family: String): PendingIntent {
+        private fun openApp(context: Context, family: String, status: Map<String, String>?): PendingIntent {
             val intent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 putExtra(EXTRA_FAMILY, family)
+                // "" when no line shows: the tap then lands on Home as before.
+                putExtra(EXTRA_TARGET, status?.get("statusTarget") ?: "")
+                putExtra(EXTRA_FOCUS, status?.get("statusFocus") ?: "")
+                putExtra(EXTRA_KIND, status?.get("statusKind") ?: "")
             }
             val requestCode = if (family == "medium") 2 else 1
             return PendingIntent.getActivity(context, requestCode, intent,

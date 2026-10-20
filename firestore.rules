@@ -707,6 +707,96 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
+      // Chọn giúp chúng mình (feature decision-wheel, 2026-10-19): one pick
+      // per doc. Food / plans use id '{date}_eat' / '{date}_go' (one per day,
+      // re-spinning bumps `spins`), custom questions an auto id. Members read;
+      // the creator writes the whole doc once, then any member may re-spin it
+      // (only result/resultId/spins/byUserId/updatedAt move, spins + 1 exactly).
+      // `lastPushAt` + `lastPushBy` (push cooldown per spinner) are written by
+      // CF notifyDecision only — no client path lists them (create `hasOnly`
+      // and update `affectedKeys().hasOnly` both leave them out). Optional
+      // keys go through `.get(..)` (backward compat). Brand-new collection ⇒
+      // fully ADDITIVE. No delete.
+      // One custom option: a 1..40-char string. Rules have no loops, so the
+      // create rule calls this for index 0..11 (past the end ⇒ true, `||`
+      // short-circuits before the out-of-range read).
+      function isDecisionOption(opts, i) {
+        return opts.size() <= i
+          || (opts[i] is string && opts[i].size() > 0 && opts[i].size() <= 40);
+      }
+
+      function isValidDecisionCreate(decisionId) {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['kind', 'date', 'question', 'options',
+              'filter', 'result', 'resultId', 'spins', 'byUserId',
+              'createdBy', 'createdAt', 'updatedAt'])
+          && d.keys().hasAll(['kind', 'date', 'result', 'spins', 'byUserId',
+              'createdBy', 'createdAt'])
+          && d.createdBy == request.auth.uid
+          && d.byUserId == request.auth.uid
+          && d.createdAt == request.time
+          && d.get('updatedAt', request.time) == request.time
+          && d.kind in ['eat', 'go', 'custom']
+          && d.date is string
+          && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && d.result is string
+          && d.result.size() > 0
+          && d.result.size() <= 40
+          && d.get('question', '') is string
+          && d.get('question', '').size() <= 60
+          && d.get('filter', '') is string
+          && d.get('filter', '').size() <= 20
+          && d.get('resultId', '') is string
+          && d.get('resultId', '').size() <= 40
+          && d.spins == 1
+          && d.get('options', []) is list
+          && (d.kind == 'custom'
+            ? (d.get('options', []).size() >= 2
+              && d.get('options', []).size() <= 12
+              && d.get('options', []).join('').size() <= 480
+              && isDecisionOption(d.get('options', []), 0)
+              && isDecisionOption(d.get('options', []), 1)
+              && isDecisionOption(d.get('options', []), 2)
+              && isDecisionOption(d.get('options', []), 3)
+              && isDecisionOption(d.get('options', []), 4)
+              && isDecisionOption(d.get('options', []), 5)
+              && isDecisionOption(d.get('options', []), 6)
+              && isDecisionOption(d.get('options', []), 7)
+              && isDecisionOption(d.get('options', []), 8)
+              && isDecisionOption(d.get('options', []), 9)
+              && isDecisionOption(d.get('options', []), 10)
+              && isDecisionOption(d.get('options', []), 11)
+              && d.result in d.get('options', [])
+              // A custom doc must not squat today's food / plan id.
+              && !decisionId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_(eat|go)$'))
+            : (decisionId == d.date + '_' + d.kind
+              && d.get('options', []).size() == 0));
+      }
+
+      function isValidDecisionRespin() {
+        let d = request.resource.data;
+        return d.diff(resource.data).affectedKeys()
+              .hasOnly(['result', 'resultId', 'spins', 'byUserId', 'updatedAt'])
+          && d.byUserId == request.auth.uid
+          && d.spins == resource.data.spins + 1
+          && d.get('updatedAt', null) == request.time
+          && d.result is string
+          && d.result.size() > 0
+          && d.result.size() <= 40
+          && d.get('resultId', '') is string
+          && d.get('resultId', '').size() <= 40
+          && (resource.data.kind != 'custom'
+            || d.result in resource.data.get('options', []));
+      }
+
+      match /decisions/{decisionId} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && isValidDecisionCreate(decisionId);
+        allow update: if isCoupleMember(coupleId) && isValidDecisionRespin();
+        allow delete: if false;
+      }
+
       // Oẳn tù tì (feature rps-game, 2026-09-13): one doc per game under the
       // couple. Both members read; the client only ever drives the EARLY part
       // of the state machine (invited → playing/cancelled/expired) and its own

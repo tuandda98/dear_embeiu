@@ -72,12 +72,25 @@ struct DayCounterView: View {
 
   private var familyName: String { family == .systemMedium ? "medium" : "small" }
 
+  /// One tap area (D7): opens where the line on screen points.
+  private var launchURL: URL? {
+    var c = URLComponents(string: "dearembeiu://widget")
+    var items = [URLQueryItem(name: "family", value: familyName)]
+    if let s = entry.status {
+      items += [URLQueryItem(name: "target", value: s["statusTarget"]),
+                URLQueryItem(name: "focus", value: s["statusFocus"]),
+                URLQueryItem(name: "kind", value: s["statusKind"])]
+    }
+    c?.queryItems = items
+    return c?.url
+  }
+
   var body: some View {
     // Photo only with a couple: the empty state never shows a stale file.
     let photo = (entry.snapshot?.isCounter ?? false) ? WidgetSnapshot.loadPhoto() : nil
     content(dark: photo == nil)
       .widgetBackground(WidgetBackground(medium: family == .systemMedium, photo: photo))
-      .widgetURL(URL(string: "dearembeiu://widget?family=\(familyName)"))
+      .widgetURL(launchURL)
   }
 
   /// `dark` = night-sky default (design M2); false = over the couple photo (P3).
@@ -85,9 +98,9 @@ struct DayCounterView: View {
     if let snapshot = entry.snapshot, snapshot.isCounter {
       let model = DayModel(snapshot: snapshot, today: entry.date)
       if family == .systemMedium {
-        MediumCounter(model: model, dark: dark)
+        MediumCounter(model: model, dark: dark, status: entry.status)
       } else {
-        SmallCounter(model: model, dark: dark)
+        SmallCounter(model: model, dark: dark, status: entry.status)
       }
     } else {
       EmptyState(chip: entry.snapshot?["emptyChip"] ?? "DEAR EMBEIU",
@@ -232,13 +245,43 @@ struct DayNumber: View {
 
 struct Caption: View {
   let text: String
+  var lines: Int = 2
+  var minScale: CGFloat = 1
   var body: some View {
     Text(text)
       .font(.quicksand("SemiBold", 12))
       .foregroundColor(.white.opacity(0.92))
-      .lineLimit(2)
+      .lineLimit(lines)
+      .minimumScaleFactor(minScale)
       .inkShadow(0.28)
       .accentable()
+  }
+}
+
+/// The "hôm nay" line (feature widget-today, design §5.2/§5.3): a 6pt dot +
+/// the pre-translated sentence, one Text so tinted mode paints both in the
+/// tint with no fill behind (§7.1). VoiceOver reads the sentence only.
+/// Capped at xxxLarge so it never pushes the day number (§7.2).
+struct StatusLine: View {
+  let text: String
+  let size: CGFloat
+  let lines: Int
+  var dark: Bool = true
+  var body: some View {
+    (Text(Image(systemName: "circle.fill"))
+      .font(.system(size: 6, weight: .bold))
+      .foregroundColor(dark ? blush : .white)
+      + Text(" ") + Text(text))
+      .font(.quicksand("Bold", size))
+      .foregroundColor(.white)
+      .lineLimit(lines)
+      .truncationMode(.tail)
+      // 12 → 10 (small) · 14 → 12 (medium): never below the chip's 10.
+      .minimumScaleFactor(size == 14 ? 0.857 : 0.84)
+      .inkShadow()
+      .accentable()
+      .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+      .accessibilityLabel(text)
   }
 }
 
@@ -247,12 +290,21 @@ struct Caption: View {
 struct SmallCounter: View {
   let model: DayModel
   var dark: Bool = true
+  /// nil = exactly the 1.9.1 layout (design §9.1): no extra view, no spacing.
+  var status: WidgetStatus? = nil
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       NamesChip(name1: model.name1, name2: model.name2, dark: dark)
       Spacer(minLength: 4)
-      DayNumber(text: model.daysText)
-      Caption(text: model.daysLabel).padding(.top, 6)
+      if let status {
+        DayNumber(text: model.daysText).layoutPriority(1)
+        Caption(text: model.daysLabel, lines: 1, minScale: 0.85).padding(.top, 6)
+          .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        StatusLine(text: status.shortText, size: 12, lines: 1, dark: dark).padding(.top, 6)
+      } else {
+        DayNumber(text: model.daysText)
+        Caption(text: model.daysLabel).padding(.top, 6)
+      }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
   }
@@ -275,6 +327,7 @@ struct ProgressBar: View {
 struct MediumCounter: View {
   let model: DayModel
   var dark: Bool = true
+  var status: WidgetStatus? = nil
   var body: some View {
     HStack(spacing: 0) {
       SmallCounter(model: model, dark: dark).frame(width: 150)
@@ -290,9 +343,14 @@ struct MediumCounter: View {
         ProgressBar(value: model.progress, dark: dark)
         Caption(text: model.daysLeftText)
         Spacer(minLength: 0)
-        // "Bắt đầu từ 28 thg 12, 2023" is 133pt — two lines rather than losing the year.
-        Text(model.sinceText)
-          .font(.quicksand("Medium", 11)).foregroundColor(.white.opacity(0.84)).lineLimit(2).inkShadow(0.28)
+        // Same slot either way, so the VStack spacing does not change (§5.3).
+        if let status {
+          StatusLine(text: status.text, size: 14, lines: 2, dark: dark)
+        } else {
+          // "Bắt đầu từ 28 thg 12, 2023" is 133pt — two lines rather than losing the year.
+          Text(model.sinceText)
+            .font(.quicksand("Medium", 11)).foregroundColor(.white.opacity(0.84)).lineLimit(2).inkShadow(0.28)
+        }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
       .accentable()

@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.10.2+31
+version: 1.11.0+32
 
 environment:
   sdk: ^3.11.4
@@ -47,6 +47,10 @@ dependencies:
   cloud_functions: ^6.0.1
   firebase_storage: ^13.0.1
   firebase_messaging: ^16.0.2
+  # Android handler of the dear_embeiu/widget channel as a plugin, so the
+  # firebase_messaging background engine has it too (feature widget-today D13).
+  dear_embeiu_widget_channel:
+    path: packages/dear_embeiu_widget_channel
   firebase_crashlytics: ^5.2.2
 
   # Image handling
