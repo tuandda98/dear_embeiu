@@ -13,3 +13,8 @@
 "NSHealthUpdateUsageDescription" = "Dear Embeiu doesn't write anything to the Health app. It only reads your sleep data to show when you fell asleep and when you got up.";
 
 "NSMotionUsageDescription" = "Dear Embeiu checks when your phone lies still at night to estimate when you fall asleep and wake up. Raw motion data stays on your phone; only your sleep and wake times are shared, and only if you turn sharing on.";
+
+/* ── arrival (đợt 2) ── overview D12 */
+"NSLocationWhenInUseUsageDescription" = "Dear Embeiu reads your location when you tap “Use current location” to save a place, and to notice when you arrive there. Coordinates stay on your phone.";
+
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "So your partner knows when you arrive, even when the app is closed. Only the place name, time and battery level are sent, never coordinates.";

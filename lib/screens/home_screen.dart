@@ -26,6 +26,9 @@ import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/rps_game_provider.dart';
 import '../providers/sleep_provider.dart';
+// ── arrival (đợt 2) ──
+import '../providers/arrival_provider.dart';
+import '../widgets/arrival/arrival_card.dart';
 import '../providers/streak_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/catchup_service.dart';
@@ -429,6 +432,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // ── weather (đợt 2) ──
   /// Anchor for the weather card (`pendingHomeFocus == 'weather'`).
   final GlobalKey _weatherKey = GlobalKey();
+  // ── arrival (đợt 2) ──
+  /// Anchor for "Về đến nhà chưa?" (a tapped `arrival` push / widget line
+  /// scrolls to it); captured provider so dispose can detach the widget line.
+  final GlobalKey _arrivalKey = GlobalKey();
+  ArrivalProvider? _arrivalProvider;
 
   // Streak milestone celebration (feature streak): listen for a freshly-reached
   // milestone and auto-show the StreakSheet in celebration mode, once. The
@@ -565,6 +573,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ]) {
       p.addListener(_pushWidgetStatus);
     }
+    // ── arrival (đợt 2) ── the partner's arrival feeds the widget line too.
+    _arrivalProvider = context.read<ArrivalProvider>();
+    _arrivalProvider!.addListener(_pushWidgetStatus);
     // In-app language switch: the line is localized, re-send it once the new
     // locale reached this context (next frame) — widget-today B1.
     _localeProvider = context.read<LocaleProvider>();
@@ -718,6 +729,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ]) {
       p?.removeListener(_pushWidgetStatus);
     }
+    // ── arrival (đợt 2) ──
+    _arrivalProvider?.removeListener(_pushWidgetStatus);
     _localeProvider?.removeListener(_onLocaleChangedForWidget);
     _decisionProvider?.removeListener(_refreshDecisionReminder);
     _bgHintTimer?.cancel();
@@ -739,6 +752,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // Sleep: re-check Usage access (maybe just granted in Settings) and
       // re-scan last nights — the only time sleep is computed.
       context.read<SleepProvider>().onResume();
+      // ── arrival (đợt 2) ── re-read location permission + remote switch (D8).
+      context.read<ArrivalProvider>().onResume();
       _maybeRunCatchup(force: true);
       // A `bothAnswered` push handled while we were away may have cancelled
       // today's daily-question bands (or the day may have rolled over): drop
@@ -851,6 +866,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         decision: _latestWidgetDecision(),
         // ── caro-game (đợt 2) ──
         caroTurnAt: HomeWidgetStatus.caroTurnAt(_caroProvider?.openGame, myUid),
+        // ── arrival (đợt 2) ──
+        partnerArrival: _arrivalProvider?.partnerLast,
       ),
     );
   }
@@ -1169,6 +1186,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // ── weather (đợt 2) ──
       case 'weather':
         _scrollToCard(_weatherKey);
+      // ── arrival (đợt 2) ──
+      case NotificationTapRouter.focusArrival:
+        _scrollToCard(_arrivalKey);
       case NotificationTapRouter.focusRpsGame:
         // gameId was published BEFORE the focus (push + notification center),
         // so it's readable here even on a cold start (initState).
@@ -1988,6 +2008,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               weather_names.SleepFormat.partnerName(context, couple, myUid),
             );
           weather.refresh();
+          // ── arrival (đợt 2) ── same partner rule ('' while waiting = hidden).
+          context.read<ArrivalProvider>().watchForCouple(
+            couple.id,
+            myUid,
+            partnerUid,
+          );
           // Chat stream (feature chat) — must run from Home so the unread dot
           // works on every tab. watchForCouple no-ops when unchanged.
           context.read<ChatProvider>().watchForCouple(couple.id, myUid);
@@ -2192,6 +2218,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ],
             // ── Đợt 2 (Home C): ArrivalCard (feature arrival) chèn ở đây, chỉ khi đã ghép.
+            // ── arrival (đợt 2) ──
+            if (!couple.isWaitingForPartner)
+              Selector<ArrivalProvider, bool>(
+                selector: (_, arrival) => arrival.visible,
+                builder: (_, visible, _) => !visible
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: KeyedSubtree(
+                          key: _arrivalKey,
+                          child: _gutter(
+                            _entrance(5, ArrivalCard(couple: couple)),
+                          ),
+                        ),
+                      ),
+              ),
 
             // ── Đợt 2 (Home C): WeatherCard (feature weather) chèn ở đây, hiện cả khi đang chờ.
             // ── weather (đợt 2) ──

@@ -495,6 +495,9 @@ exports.notifyPartnerLeft = onDocumentUpdated(
           message: err && err.message,
         });
       });
+    // ── arrival (đợt 2) ── the leaver's doc goes; whoever stays stops sharing
+    // too, so a partner joining later sees nothing old.
+    await arrivalCleanupOnLeave(coupleId, [leaverUid, ...recipientIds]);
 
     // Leaver display name: prefer their user profile (still exists — they only
     // left the couple), fall back to "Người ấy" via normalizeActorName.
@@ -1012,6 +1015,244 @@ exports.notifyPartnerMood = onDocumentWritten(
     });
   },
 );
+
+// ── arrival (đợt 2) ──
+// "Về đến nhà chưa?" (overview §7). couples/{c}/arrival/{uid} holds ONE latest
+// event (`last`, D3). A push goes to the partner only when someone ARRIVES
+// (D4), and never for: a bounce at the edge of a place (D6, flagged by the
+// sender's phone), an event older than 30' (sent late from the offline
+// queue), the same place pushed within 30', more than 6 pushes a day per
+// sender. Push only, no inbox (D15); muted per device by `pushArrival` (D16);
+// no time in the text (D17). The bookkeeping (lastPushAt.{slot}, pushDay,
+// pushCount) lives in couples/{c}/arrivalPush/{uid}, which no client reads
+// (rules): on the arrival doc the partner would see when each place was last
+// reached (D3/D11). It survives a switch-off so off/on can't reset the cap.
+const ARRIVAL_SLOTS = ["home", "p1", "p2", "p3", "p4"];
+const ARRIVAL_ICONS = ["work", "school", "family", "gym", "cafe", "shop", "pin"];
+const ARRIVAL_PUSH_COOLDOWN_MS = 30 * 60 * 1000;
+const ARRIVAL_STALE_MS = 30 * 60 * 1000;
+const ARRIVAL_DAILY_CAP = 6;
+const ARRIVAL_LOW_BATTERY = 20;
+
+const ARRIVAL_COPY = {
+  vi: {
+    partnerFallback: "Người ấy",
+    home: (n) => `${n} đã về đến nhà`,
+    place: (n, p) => `${n} đã đến ${p}`,
+    lowBattery: (b) => `Pin còn ${b}%`,
+    body: "Nhắn một câu hỏi thăm nhé",
+  },
+  en: {
+    partnerFallback: "Your partner",
+    home: (n) => `${n} got home`,
+    place: (n, p) => `${n} arrived at ${p}`,
+    lowBattery: (b) => `Battery at ${b}%`,
+    body: "Send a quick hello",
+  },
+};
+
+// Day bucket of the daily cap and of `data.date`: Vietnam time (UTC+7) for
+// everyone. Simple on purpose — the couples are in Vietnam, and the cap only
+// needs a stable "day".
+function arrivalVnDateKey(ms) {
+  return new Date(ms + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+// `last` normalised, or null when unusable. The name is cut at 24 again
+// (rules already do) — it is user text going into a push title.
+function arrivalEvent(raw) {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const place = `${raw.place || ""}`;
+  const atMs = rpsToMillis(raw.at);
+  if (!ARRIVAL_SLOTS.includes(place) || !atMs) {
+    return null;
+  }
+  const battery = Number.isInteger(raw.battery) && raw.battery >= 0 && raw.battery <= 100 ?
+    raw.battery : null;
+  return {
+    place,
+    name: place === "home" ? "" : `${raw.name || ""}`.trim().slice(0, 24),
+    icon: place !== "home" && ARRIVAL_ICONS.includes(raw.icon) ? raw.icon : "",
+    type: raw.type === "enter" || raw.type === "exit" ? raw.type : "",
+    atMs,
+    battery,
+    bounce: raw.bounce === true,
+  };
+}
+
+// What one write of arrival/{uid} asks for: {skip: reason} or {event}.
+function arrivalPushPlan(before, after, nowMs) {
+  if (!after) {
+    return {skip: "deleted"};
+  }
+  if (after.share !== true) {
+    return {skip: "not_shared"};
+  }
+  const event = arrivalEvent(after.last);
+  if (!event) {
+    return {skip: "no_event"};
+  }
+  const prev = arrivalEvent(before && before.last);
+  if (prev && prev.place === event.place && prev.type === event.type && prev.atMs === event.atMs) {
+    return {skip: "unchanged"}; // incl. our own bookkeeping write
+  }
+  if (event.type !== "enter") {
+    return {skip: "exit"};
+  }
+  if (event.bounce) {
+    return {skip: "bounce"};
+  }
+  if (nowMs - event.atMs > ARRIVAL_STALE_MS) {
+    return {skip: "stale"};
+  }
+  if (event.place !== "home" && !event.name) {
+    return {skip: "no_event"};
+  }
+  return {event};
+}
+
+// Cooldown per place + daily cap, against the doc's bookkeeping.
+// {ok:false, reason} or {ok:true, day, count} (count = the new total).
+function arrivalClaim(data, place, nowMs) {
+  const lastMs = rpsToMillis(data && data.lastPushAt && data.lastPushAt[place]);
+  if (lastMs && nowMs - lastMs < ARRIVAL_PUSH_COOLDOWN_MS) {
+    return {ok: false, reason: "cooldown"};
+  }
+  const day = arrivalVnDateKey(nowMs);
+  const count = data && data.pushDay === day && Number.isInteger(data.pushCount) ?
+    data.pushCount : 0;
+  if (count >= ARRIVAL_DAILY_CAP) {
+    return {ok: false, reason: "daily_cap"};
+  }
+  return {ok: true, day, count: count + 1};
+}
+
+// `actorName` may be empty: the fallback follows the RECIPIENT's language.
+// `{place}` is the sender's own text, never translated.
+function buildArrivalText(languageCode, actorName, event) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = ARRIVAL_COPY[code] || ARRIVAL_COPY.vi;
+  const name = `${actorName || ""}`.trim() || copy.partnerFallback;
+  return {
+    title: event.place === "home" ? copy.home(name) : copy.place(name, event.name),
+    body: event.battery !== null && event.battery <= ARRIVAL_LOW_BATTERY ?
+      copy.lowBattery(event.battery) : copy.body,
+  };
+}
+
+// Core of notifyArrival, kept out of the trigger so functions/test can drive
+// it with fakes. `before`/`after` = doc data or null; `ref` = the arrival doc,
+// `pushRef` = its bookkeeping doc in arrivalPush.
+async function processArrivalWrite(coupleId, uid, before, after, ref, pushRef) {
+  const plan = arrivalPushPlan(before, after, Date.now());
+  if (plan.skip) {
+    return {skipped: plan.skip};
+  }
+  const event = plan.event;
+
+  const coupleSnap = await db.collection("couples").doc(coupleId).get();
+  if (!coupleSnap.exists) {
+    return {skipped: "no_couple"};
+  }
+  const memberIds = (Array.isArray(coupleSnap.get("memberIds")) ? coupleSnap.get("memberIds") : [])
+    .filter((id) => typeof id === "string" && id.trim());
+  if (`${coupleSnap.get("status") || ""}` !== "active" || !memberIds.includes(uid)) {
+    return {skipped: "inactive"};
+  }
+  const recipientIds = memberIds.filter((id) => id !== uid);
+  if (recipientIds.length === 0) {
+    return {skipped: "no_partner"};
+  }
+
+  const claim = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const book = await tx.get(pushRef);
+    // Re-read inside the transaction: sharing switched off (doc deleted) or a
+    // newer event since this trigger fired ⇒ this event no longer stands.
+    const now = snap.exists ? snap.data() : null;
+    const live = now && now.share === true ? arrivalEvent(now.last) : null;
+    if (!live || live.place !== event.place || live.atMs !== event.atMs) {
+      return {ok: false, reason: "superseded"};
+    }
+    const c = arrivalClaim(book.exists ? book.data() : null, event.place, Date.now());
+    if (c.ok) {
+      tx.set(pushRef, {
+        lastPushAt: {[event.place]: admin.firestore.FieldValue.serverTimestamp()},
+        pushDay: c.day,
+        pushCount: c.count,
+      }, {merge: true});
+    }
+    return c;
+  });
+  if (!claim.ok) {
+    return {skipped: claim.reason};
+  }
+
+  const actorName = await rpsLoadDisplayName(uid);
+  const sent = await sendToRecipientDevices(
+    recipientIds,
+    (languageCode) => buildArrivalText(languageCode, actorName, event),
+    {
+      type: "arrival",
+      coupleId,
+      place: event.place,
+      ...(event.name ? {placeName: event.name} : {}),
+      ...(event.icon ? {icon: event.icon} : {}),
+      ...(event.battery !== null ? {battery: `${event.battery}`} : {}),
+      // Widget-today line (§8): raw name (client falls back), the event's day
+      // (a push about another day is ignored by the background handler).
+      actorName,
+      date: arrivalVnDateKey(event.atMs),
+    },
+    // A newer arrival replaces the older banner of the same sender.
+    {wakeClients: true, collapseId: `arrival_${uid}`},
+  );
+  if (sent.failures.length > 0) {
+    logger.warn("Arrival push had delivery failures.", {coupleId, failures: sent.failures});
+  }
+  return {pushed: true, recipientIds, deviceCount: sent.deviceCount};
+}
+
+exports.notifyArrival = onDocumentWritten(
+  {document: "couples/{coupleId}/arrival/{uid}", region: "us-central1"},
+  async (event) => {
+    const change = event.data;
+    const before = change && change.before && change.before.exists ? change.before.data() : null;
+    const after = change && change.after && change.after.exists ? change.after.data() : null;
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const uid = `${event.params.uid || ""}`.trim();
+    const outcome = await processArrivalWrite(
+      coupleId, uid, before, after, change && change.after && change.after.ref,
+      db.collection("couples").doc(coupleId).collection("arrivalPush").doc(uid),
+    );
+    // Sent / skipped counts per reason = the auto-event metric (§9, §13).
+    logger.info("Processed arrival notification.", {coupleId, ...outcome});
+  },
+);
+
+// Someone left the couple: every listed member's arrival doc + push
+// bookkeeping goes (the one who stays then looks like "never turned on", and a
+// new partner sees nothing old). Missing docs are fine; errors are logged.
+async function arrivalCleanupOnLeave(coupleId, uids) {
+  const coupleRef = db.collection("couples").doc(coupleId);
+  await Promise.all(
+    uids.flatMap((uid) => [
+      coupleRef.collection("arrival").doc(uid),
+      coupleRef.collection("arrivalPush").doc(uid),
+    ]).map((ref) =>
+      db.recursiveDelete(ref).catch((err) => {
+        logger.warn("Could not clean up arrival data on partner left.", {
+          coupleId,
+          path: ref.path,
+          message: err && err.message,
+        });
+        return null;
+      }),
+    ),
+  );
+}
 
 // ── Love Note → Chat auto-migration (2026-06-14) ───────────────────────────
 // The couple chat replaces the old two-way love notes. Users still on an older
@@ -3220,6 +3461,8 @@ const PUSH_TYPE_PREF_FIELD = {
   photo_posted: "pushPhoto",
   photo_reaction: "pushReaction",
   daily_question: "pushDailyQuestion",
+  // ── arrival (đợt 2) ── "Khi người ấy đến nơi" (D16)
+  arrival: "pushArrival",
 };
 
 // `data.lang` = the recipient device's app language (vi/en), so a handler with
@@ -3786,6 +4029,18 @@ async function handleCoupleOnAccountDeletion(coupleId, uid) {
     });
     return null;
   });
+  // ── arrival (đợt 2) ── same reasoning: the leaver's arrival doc + push
+  // bookkeeping (the CF notifyPartnerLeft then switches off whoever stays).
+  for (const name of ["arrival", "arrivalPush"]) {
+    await db.recursiveDelete(coupleRef.collection(name).doc(uid)).catch((err) => {
+      logger.warn("Failed to delete the leaving member's arrival data.", {
+        coupleId,
+        uid,
+        message: err && err.message,
+      });
+      return null;
+    });
+  }
 
   // SECURITY (audit 2026-10-12): deleteAccount takes coupleId from
   // users/{uid}, which the client writes itself, and couple/invite codes are
@@ -3904,6 +4159,19 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
     tasks.push(
       db.recursiveDelete(coupleRef.collection(name)).catch((err) => {
         logger.warn(`Failed to recursively delete ${name} during couple teardown.`, {
+          coupleId: coupleRef.id,
+          message: err && err.message,
+        });
+        return null;
+      }),
+    );
+  }
+
+  // ── arrival (đợt 2) ── every member's arrival doc + push bookkeeping.
+  for (const name of ["arrival", "arrivalPush"]) {
+    tasks.push(
+      db.recursiveDelete(coupleRef.collection(name)).catch((err) => {
+        logger.warn("Failed to recursively delete arrival during couple teardown.", {
           coupleId: coupleRef.id,
           message: err && err.message,
         });

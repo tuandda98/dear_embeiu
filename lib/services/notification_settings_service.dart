@@ -28,6 +28,12 @@ class NotificationSettingsService {
 
   static const List<String> allKeys = [keyPhoto, keyReaction, keyDailyQuestion];
 
+  // ── arrival (đợt 2) ──
+  /// "Khi người ấy đến nơi" (arrival D16). Unlike [allKeys] this one is a real
+  /// switch: [currentOrDefault] mirrors the stored value. Not in [allKeys], so
+  /// the legacy keys keep their forced-ON behaviour.
+  static const String keyArrival = 'pushArrival';
+
   /// Reads all per-type prefs, defaulting each to ON when unset.
   Future<Map<String, bool>> load() async {
     final box = await Hive.openBox<dynamic>(_boxName);
@@ -41,7 +47,20 @@ class NotificationSettingsService {
   /// couple always gets every push regardless of any stored value. The keys are
   /// still sent (the device-doc `hasOnly` rule lists them).
   Map<String, bool> currentOrDefault() {
-    return {for (final key in allKeys) key: true};
+    return {
+      for (final key in allKeys) key: true,
+      // ── arrival (đợt 2) ── the stored choice (default ON). Box not open
+      // yet → key left out, so the merge write keeps what the device doc has.
+      if (Hive.isBoxOpen(_boxName))
+        keyArrival: Hive.box<dynamic>(_boxName).get(keyArrival) != false,
+    };
+  }
+
+  // ── arrival (đợt 2) ──
+  /// Current value of [keyArrival] (default ON).
+  Future<bool> arrivalPushEnabled() async {
+    final box = await Hive.openBox<dynamic>(_boxName);
+    return box.get(keyArrival) != false;
   }
 
   /// Persists one pref locally. Mirroring to the device doc is the caller's job

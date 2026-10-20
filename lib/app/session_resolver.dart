@@ -24,6 +24,8 @@ import '../providers/sleep_provider.dart';
 import '../providers/streak_provider.dart';
 // ── weather (đợt 2) ──
 import '../providers/weather_provider.dart';
+// ── arrival (đợt 2) ──
+import '../providers/arrival_provider.dart';
 import '../services/app_update_service.dart';
 import '../services/storage_service.dart';
 import 'app_routes.dart';
@@ -67,6 +69,8 @@ class SessionResolver {
     final sleepProvider = context.read<SleepProvider>();
     // ── weather (đợt 2) ──
     final weatherProvider = context.read<WeatherProvider>();
+    // ── arrival (đợt 2) ──
+    final arrivalProvider = context.read<ArrivalProvider>();
 
     try {
       return await _resolve(
@@ -90,6 +94,8 @@ class SessionResolver {
         sleepProvider: sleepProvider,
         // ── weather (đợt 2) ──
         weatherProvider: weatherProvider,
+        // ── arrival (đợt 2) ──
+        arrivalProvider: arrivalProvider,
       ).timeout(_globalResolveTimeout);
     } catch (_) {
       // Global backstop: never hang on the splash. Pick a safe route from
@@ -142,6 +148,8 @@ class SessionResolver {
     required SleepProvider sleepProvider,
     // ── weather (đợt 2) ──
     required WeatherProvider weatherProvider,
+    // ── arrival (đợt 2) ──
+    required ArrivalProvider arrivalProvider,
   }) async {
     // Force-update gate (feature force-update): a build older than the server's
     // minimum is sealed off behind the update screen BEFORE any auth/couple
@@ -183,6 +191,8 @@ class SessionResolver {
       sleepProvider.clear(signedOut: true);
       // ── weather (đợt 2) ──
       weatherProvider.clear(signedOut: true);
+      // ── arrival (đợt 2) ──
+      arrivalProvider.clear(signedOut: true);
       // Signed out / account deleted: forget the couple too — the home-screen
       // widget bridge listens to CoupleProvider and pushes its empty state.
       await coupleProvider.loadCoupleForUser(null);
@@ -215,6 +225,8 @@ class SessionResolver {
       sleepProvider.clear(signedOut: true);
       // ── weather (đợt 2) ──
       weatherProvider.clear(signedOut: true);
+      // ── arrival (đợt 2) ──
+      arrivalProvider.clear(signedOut: true);
       await coupleProvider.loadCoupleForUser(
         null,
       ); // same reason as the guest branch
@@ -330,6 +342,14 @@ class SessionResolver {
         currentUser.id,
         rpsPartnerUid,
       );
+      // ── arrival (đợt 2) ── hidden while waiting (partner uid '', D9).
+      unawaited(
+        arrivalProvider.watchForCouple(
+          currentUser.coupleId!,
+          currentUser.id,
+          rpsPartnerUid,
+        ),
+      );
     } else {
       await photoProvider.clearForSignOut();
       chatProvider.clear();
@@ -348,6 +368,8 @@ class SessionResolver {
       sleepProvider.clear();
       // ── weather (đợt 2) ──
       weatherProvider.clear();
+      // ── arrival (đợt 2) ──
+      arrivalProvider.clear();
       // Authenticated but no couple yet — cancel the daily-question nudge (b2)
       // until a partner joins; the preference persists for re-arming via sync.
       await reminderProvider.cancelDailyQuestionSchedule();

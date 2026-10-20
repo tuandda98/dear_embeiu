@@ -36,6 +36,10 @@ import 'lunar_calendar_screen.dart';
 import 'reminders_screen.dart';
 // ── weather (đợt 2) ──
 import '../widgets/weather/weather_sheets.dart' show WeatherSettingsSection;
+// ── arrival (đợt 2) ──
+import '../providers/arrival_provider.dart';
+import '../widgets/arrival/arrival_settings_tiles.dart';
+import 'arrival_manage_screen.dart';
 
 /// The app-wide Settings screen (feature: settings — v2 redesign 2026-06-11).
 ///
@@ -526,6 +530,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const _DecisionReminderTile(),
                     _rowDivider(),
                   ],
+                  // ── arrival (đợt 2) ── "Khi người ấy đến nơi" (D16), paired only.
+                  if (context.select<ArrivalProvider, bool>(
+                    (a) => a.visible,
+                  )) ...[
+                    const ArrivalPushTile(),
+                    _rowDivider(),
+                  ],
                   // AI-personalised daily questions (endless-questions,
                   // 2026-09-05): couple-shared opt-in, hidden until paired.
                   if (kAiQuestionsFeatureEnabled) const _AiQuestionsTile(),
@@ -769,6 +780,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               _rowDivider(),
+              // ── arrival (đợt 2) ── "Về đến nhà", paired couples only (D9).
+              if (context.watch<ArrivalProvider>().visible) ...[
+                _navRow(
+                  icon: IconsaxPlusLinear.home_2,
+                  title: l10n.arrivalSettingsTitle,
+                  subtitle: arrivalSettingsSubtitle(context),
+                  onTap: () => openArrivalManage(context, from: 'settings'),
+                ),
+                _rowDivider(),
+              ],
               // Counter-card background picker (2026-06-14): choose which
               // photos may back the Home hero card.
               _navRow(

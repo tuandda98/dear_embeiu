@@ -140,4 +140,12 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
     body: (l10n) => l10n.weatherFeatureTourBody,
     onOpen: openWeatherFromTour,
   ),
+  // ── arrival (đợt 2) ──
+  FeatureTourEntry(
+    sinceBuild: 33,
+    icon: IconsaxPlusLinear.home_2,
+    title: (l10n) => l10n.arrivalTourTitle,
+    body: (l10n) => l10n.arrivalTourBody,
+    targetTab: 0,
+  ),
 ];
