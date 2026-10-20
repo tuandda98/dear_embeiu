@@ -4608,7 +4608,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get caroSendError =>
-      'Chưa đi được. Mạng đang chập chờn, ô bạn chọn vẫn giữ nguyên.';
+      'Chưa đi được nước này, ô bạn chọn vẫn giữ nguyên. Thử lại nhé.';
 
   @override
   String get caroStaleBoard => 'Bàn vừa đổi, xem lại rồi đi nhé.';
@@ -5167,7 +5167,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String weatherTheirTimeNow(String time) {
-    return 'bây giờ $time';
+    return 'bên đó đang $time';
   }
 
   @override

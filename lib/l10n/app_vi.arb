@@ -4036,7 +4036,7 @@
   "caroPickCell": "Chạm một ô để chọn",
   "caroPlayHere": "Đi nước này",
   "caroSending": "Đang đi…",
-  "caroSendError": "Chưa đi được. Mạng đang chập chờn, ô bạn chọn vẫn giữ nguyên.",
+  "caroSendError": "Chưa đi được nước này, ô bạn chọn vẫn giữ nguyên. Thử lại nhé.",
   "caroStaleBoard": "Bàn vừa đổi, xem lại rồi đi nhé.",
   "caroOffline": "Đang mất mạng. Có mạng lại là đi tiếp được.",
   "caroWaitNetwork": "Chờ có mạng",
@@ -4769,7 +4769,7 @@
   "weatherSetByMe": "bạn chọn giúp",
   "weatherChangeCity": "Đổi thành phố",
   "weatherChangeForPartner": "Đổi giúp",
-  "weatherTheirTimeNow": "bây giờ {time}",
+  "weatherTheirTimeNow": "bên đó đang {time}",
   "@weatherTheirTimeNow": {
     "description": "Weather here and there (feature weather)",
     "placeholders": {
