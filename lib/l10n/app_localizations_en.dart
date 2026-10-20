@@ -4618,4 +4618,169 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifDecisionRespin(String name, String result) {
     return '$name re-spun: $result';
   }
+
+  @override
+  String get moneyCatFood => 'Food & drink';
+
+  @override
+  String get moneyCatFoodOut => 'Eating out';
+
+  @override
+  String get moneyCatFoodMarket => 'Groceries';
+
+  @override
+  String get moneyCatFoodCoffee => 'Coffee & bubble tea';
+
+  @override
+  String get moneyCatFoodSnack => 'Snacks';
+
+  @override
+  String get moneyCatDate => 'Dates';
+
+  @override
+  String get moneyCatDateMovie => 'Movies';
+
+  @override
+  String get moneyCatDateOut => 'Going out';
+
+  @override
+  String get moneyCatDateGift => 'Gifts for my love';
+
+  @override
+  String get moneyCatMove => 'Getting around';
+
+  @override
+  String get moneyCatMoveFuel => 'Fuel';
+
+  @override
+  String get moneyCatMoveParking => 'Parking';
+
+  @override
+  String get moneyCatMoveGrab => 'Grab & taxi';
+
+  @override
+  String get moneyCatMoveRepair => 'Repairs';
+
+  @override
+  String get moneyCatHome => 'Home';
+
+  @override
+  String get moneyCatHomeRent => 'Rent';
+
+  @override
+  String get moneyCatHomePower => 'Electricity';
+
+  @override
+  String get moneyCatHomeWater => 'Water';
+
+  @override
+  String get moneyCatHomeNet => 'Internet';
+
+  @override
+  String get moneyCatHomeGoods => 'Household items';
+
+  @override
+  String get moneyCatBill => 'Bills & subscriptions';
+
+  @override
+  String get moneyCatBillPhone => 'Phone plan';
+
+  @override
+  String get moneyCatBillStream => 'Streaming';
+
+  @override
+  String get moneyCatBillSoft => 'Software';
+
+  @override
+  String get moneyCatShop => 'Shopping';
+
+  @override
+  String get moneyCatShopClothes => 'Clothes';
+
+  @override
+  String get moneyCatShopBeauty => 'Beauty';
+
+  @override
+  String get moneyCatShopTech => 'Electronics';
+
+  @override
+  String get moneyCatHealth => 'Health';
+
+  @override
+  String get moneyCatHealthMed => 'Medicine';
+
+  @override
+  String get moneyCatHealthDoctor => 'Doctor';
+
+  @override
+  String get moneyCatHealthSport => 'Sport';
+
+  @override
+  String get moneyCatEdu => 'Learning';
+
+  @override
+  String get moneyCatEduFee => 'Tuition';
+
+  @override
+  String get moneyCatEduBooks => 'Books & courses';
+
+  @override
+  String get moneyCatGift => 'Gifts & occasions';
+
+  @override
+  String get moneyCatGiftPresent => 'Presents';
+
+  @override
+  String get moneyCatGiftWedding => 'Weddings & funerals';
+
+  @override
+  String get moneyCatGiftLixi => 'Lucky money';
+
+  @override
+  String get moneyCatFamily => 'Family';
+
+  @override
+  String get moneyCatFamilyParents => 'For my parents';
+
+  @override
+  String get moneyCatFamilyPet => 'Pets';
+
+  @override
+  String get moneyCatTravel => 'Travel';
+
+  @override
+  String get moneyCatTravelTicket => 'Tickets';
+
+  @override
+  String get moneyCatTravelStay => 'Stays';
+
+  @override
+  String get moneyCatTravelFun => 'Fun';
+
+  @override
+  String get moneyCatOther => 'Other';
+
+  @override
+  String get moneyCatSalary => 'Salary';
+
+  @override
+  String get moneyCatBonus => 'Bonus';
+
+  @override
+  String get moneyCatSide => 'Side work';
+
+  @override
+  String get moneyCatGifted => 'Gifts received';
+
+  @override
+  String get moneyCatInterest => 'Interest';
+
+  @override
+  String get moneyCatIncomeOther => 'Other income';
+
+  @override
+  String get moneyWalletCash => 'Cash';
+
+  @override
+  String get moneyJointWallet => 'Shared wallet';
 }

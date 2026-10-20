@@ -7470,6 +7470,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} re-spun: {result}'**
   String notifDecisionRespin(String name, String result);
+
+  /// No description provided for @moneyCatFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & drink'**
+  String get moneyCatFood;
+
+  /// No description provided for @moneyCatFoodOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Eating out'**
+  String get moneyCatFoodOut;
+
+  /// No description provided for @moneyCatFoodMarket.
+  ///
+  /// In en, this message translates to:
+  /// **'Groceries'**
+  String get moneyCatFoodMarket;
+
+  /// No description provided for @moneyCatFoodCoffee.
+  ///
+  /// In en, this message translates to:
+  /// **'Coffee & bubble tea'**
+  String get moneyCatFoodCoffee;
+
+  /// No description provided for @moneyCatFoodSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Snacks'**
+  String get moneyCatFoodSnack;
+
+  /// No description provided for @moneyCatDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get moneyCatDate;
+
+  /// No description provided for @moneyCatDateMovie.
+  ///
+  /// In en, this message translates to:
+  /// **'Movies'**
+  String get moneyCatDateMovie;
+
+  /// No description provided for @moneyCatDateOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Going out'**
+  String get moneyCatDateOut;
+
+  /// No description provided for @moneyCatDateGift.
+  ///
+  /// In en, this message translates to:
+  /// **'Gifts for my love'**
+  String get moneyCatDateGift;
+
+  /// No description provided for @moneyCatMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting around'**
+  String get moneyCatMove;
+
+  /// No description provided for @moneyCatMoveFuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel'**
+  String get moneyCatMoveFuel;
+
+  /// No description provided for @moneyCatMoveParking.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking'**
+  String get moneyCatMoveParking;
+
+  /// No description provided for @moneyCatMoveGrab.
+  ///
+  /// In en, this message translates to:
+  /// **'Grab & taxi'**
+  String get moneyCatMoveGrab;
+
+  /// No description provided for @moneyCatMoveRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Repairs'**
+  String get moneyCatMoveRepair;
+
+  /// No description provided for @moneyCatHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get moneyCatHome;
+
+  /// No description provided for @moneyCatHomeRent.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent'**
+  String get moneyCatHomeRent;
+
+  /// No description provided for @moneyCatHomePower.
+  ///
+  /// In en, this message translates to:
+  /// **'Electricity'**
+  String get moneyCatHomePower;
+
+  /// No description provided for @moneyCatHomeWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Water'**
+  String get moneyCatHomeWater;
+
+  /// No description provided for @moneyCatHomeNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet'**
+  String get moneyCatHomeNet;
+
+  /// No description provided for @moneyCatHomeGoods.
+  ///
+  /// In en, this message translates to:
+  /// **'Household items'**
+  String get moneyCatHomeGoods;
+
+  /// No description provided for @moneyCatBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills & subscriptions'**
+  String get moneyCatBill;
+
+  /// No description provided for @moneyCatBillPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone plan'**
+  String get moneyCatBillPhone;
+
+  /// No description provided for @moneyCatBillStream.
+  ///
+  /// In en, this message translates to:
+  /// **'Streaming'**
+  String get moneyCatBillStream;
+
+  /// No description provided for @moneyCatBillSoft.
+  ///
+  /// In en, this message translates to:
+  /// **'Software'**
+  String get moneyCatBillSoft;
+
+  /// No description provided for @moneyCatShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get moneyCatShop;
+
+  /// No description provided for @moneyCatShopClothes.
+  ///
+  /// In en, this message translates to:
+  /// **'Clothes'**
+  String get moneyCatShopClothes;
+
+  /// No description provided for @moneyCatShopBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'Beauty'**
+  String get moneyCatShopBeauty;
+
+  /// No description provided for @moneyCatShopTech.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronics'**
+  String get moneyCatShopTech;
+
+  /// No description provided for @moneyCatHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get moneyCatHealth;
+
+  /// No description provided for @moneyCatHealthMed.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine'**
+  String get moneyCatHealthMed;
+
+  /// No description provided for @moneyCatHealthDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor'**
+  String get moneyCatHealthDoctor;
+
+  /// No description provided for @moneyCatHealthSport.
+  ///
+  /// In en, this message translates to:
+  /// **'Sport'**
+  String get moneyCatHealthSport;
+
+  /// No description provided for @moneyCatEdu.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get moneyCatEdu;
+
+  /// No description provided for @moneyCatEduFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition'**
+  String get moneyCatEduFee;
+
+  /// No description provided for @moneyCatEduBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Books & courses'**
+  String get moneyCatEduBooks;
+
+  /// No description provided for @moneyCatGift.
+  ///
+  /// In en, this message translates to:
+  /// **'Gifts & occasions'**
+  String get moneyCatGift;
+
+  /// No description provided for @moneyCatGiftPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Presents'**
+  String get moneyCatGiftPresent;
+
+  /// No description provided for @moneyCatGiftWedding.
+  ///
+  /// In en, this message translates to:
+  /// **'Weddings & funerals'**
+  String get moneyCatGiftWedding;
+
+  /// No description provided for @moneyCatGiftLixi.
+  ///
+  /// In en, this message translates to:
+  /// **'Lucky money'**
+  String get moneyCatGiftLixi;
+
+  /// No description provided for @moneyCatFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get moneyCatFamily;
+
+  /// No description provided for @moneyCatFamilyParents.
+  ///
+  /// In en, this message translates to:
+  /// **'For my parents'**
+  String get moneyCatFamilyParents;
+
+  /// No description provided for @moneyCatFamilyPet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pets'**
+  String get moneyCatFamilyPet;
+
+  /// No description provided for @moneyCatTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get moneyCatTravel;
+
+  /// No description provided for @moneyCatTravelTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets'**
+  String get moneyCatTravelTicket;
+
+  /// No description provided for @moneyCatTravelStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Stays'**
+  String get moneyCatTravelStay;
+
+  /// No description provided for @moneyCatTravelFun.
+  ///
+  /// In en, this message translates to:
+  /// **'Fun'**
+  String get moneyCatTravelFun;
+
+  /// No description provided for @moneyCatOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get moneyCatOther;
+
+  /// No description provided for @moneyCatSalary.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary'**
+  String get moneyCatSalary;
+
+  /// No description provided for @moneyCatBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus'**
+  String get moneyCatBonus;
+
+  /// No description provided for @moneyCatSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Side work'**
+  String get moneyCatSide;
+
+  /// No description provided for @moneyCatGifted.
+  ///
+  /// In en, this message translates to:
+  /// **'Gifts received'**
+  String get moneyCatGifted;
+
+  /// No description provided for @moneyCatInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest'**
+  String get moneyCatInterest;
+
+  /// No description provided for @moneyCatIncomeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other income'**
+  String get moneyCatIncomeOther;
+
+  /// No description provided for @moneyWalletCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get moneyWalletCash;
+
+  /// No description provided for @moneyJointWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared wallet'**
+  String get moneyJointWallet;
 }
 
 class _AppLocalizationsDelegate

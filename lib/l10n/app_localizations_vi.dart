@@ -4396,4 +4396,169 @@ class AppLocalizationsVi extends AppLocalizations {
   String notifDecisionRespin(String name, String result) {
     return '$name quay lại: $result';
   }
+
+  @override
+  String get moneyCatFood => 'Ăn uống';
+
+  @override
+  String get moneyCatFoodOut => 'Ăn ngoài';
+
+  @override
+  String get moneyCatFoodMarket => 'Đi chợ, siêu thị';
+
+  @override
+  String get moneyCatFoodCoffee => 'Cà phê, trà sữa';
+
+  @override
+  String get moneyCatFoodSnack => 'Ăn vặt';
+
+  @override
+  String get moneyCatDate => 'Hẹn hò';
+
+  @override
+  String get moneyCatDateMovie => 'Xem phim';
+
+  @override
+  String get moneyCatDateOut => 'Đi chơi';
+
+  @override
+  String get moneyCatDateGift => 'Quà cho người ấy';
+
+  @override
+  String get moneyCatMove => 'Đi lại';
+
+  @override
+  String get moneyCatMoveFuel => 'Xăng xe';
+
+  @override
+  String get moneyCatMoveParking => 'Gửi xe';
+
+  @override
+  String get moneyCatMoveGrab => 'Grab, taxi';
+
+  @override
+  String get moneyCatMoveRepair => 'Sửa xe';
+
+  @override
+  String get moneyCatHome => 'Nhà cửa';
+
+  @override
+  String get moneyCatHomeRent => 'Tiền nhà';
+
+  @override
+  String get moneyCatHomePower => 'Điện';
+
+  @override
+  String get moneyCatHomeWater => 'Nước';
+
+  @override
+  String get moneyCatHomeNet => 'Internet';
+
+  @override
+  String get moneyCatHomeGoods => 'Đồ dùng nhà';
+
+  @override
+  String get moneyCatBill => 'Hoá đơn & gói';
+
+  @override
+  String get moneyCatBillPhone => 'Điện thoại';
+
+  @override
+  String get moneyCatBillStream => 'Xem phim, nghe nhạc';
+
+  @override
+  String get moneyCatBillSoft => 'Phần mềm';
+
+  @override
+  String get moneyCatShop => 'Mua sắm';
+
+  @override
+  String get moneyCatShopClothes => 'Quần áo';
+
+  @override
+  String get moneyCatShopBeauty => 'Mỹ phẩm';
+
+  @override
+  String get moneyCatShopTech => 'Đồ điện tử';
+
+  @override
+  String get moneyCatHealth => 'Sức khoẻ';
+
+  @override
+  String get moneyCatHealthMed => 'Thuốc';
+
+  @override
+  String get moneyCatHealthDoctor => 'Khám bệnh';
+
+  @override
+  String get moneyCatHealthSport => 'Thể thao';
+
+  @override
+  String get moneyCatEdu => 'Học tập';
+
+  @override
+  String get moneyCatEduFee => 'Học phí';
+
+  @override
+  String get moneyCatEduBooks => 'Sách, khoá học';
+
+  @override
+  String get moneyCatGift => 'Quà & hiếu hỉ';
+
+  @override
+  String get moneyCatGiftPresent => 'Quà tặng';
+
+  @override
+  String get moneyCatGiftWedding => 'Đám cưới, đám hiếu';
+
+  @override
+  String get moneyCatGiftLixi => 'Lì xì';
+
+  @override
+  String get moneyCatFamily => 'Gia đình';
+
+  @override
+  String get moneyCatFamilyParents => 'Biếu bố mẹ';
+
+  @override
+  String get moneyCatFamilyPet => 'Thú cưng';
+
+  @override
+  String get moneyCatTravel => 'Du lịch';
+
+  @override
+  String get moneyCatTravelTicket => 'Vé';
+
+  @override
+  String get moneyCatTravelStay => 'Chỗ ở';
+
+  @override
+  String get moneyCatTravelFun => 'Ăn chơi';
+
+  @override
+  String get moneyCatOther => 'Khác';
+
+  @override
+  String get moneyCatSalary => 'Lương';
+
+  @override
+  String get moneyCatBonus => 'Thưởng';
+
+  @override
+  String get moneyCatSide => 'Làm thêm';
+
+  @override
+  String get moneyCatGifted => 'Được cho, tặng';
+
+  @override
+  String get moneyCatInterest => 'Lãi, đầu tư';
+
+  @override
+  String get moneyCatIncomeOther => 'Thu khác';
+
+  @override
+  String get moneyWalletCash => 'Tiền mặt';
+
+  @override
+  String get moneyJointWallet => 'Ví chung';
 }
