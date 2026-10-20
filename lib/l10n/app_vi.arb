@@ -3733,5 +3733,758 @@
         "type": "String"
       }
     }
-  }
+  },
+  "caroPlayTogetherTitle": "Chơi cùng nhau",
+  "caroGameTitle": "Cờ caro",
+  "caroEntryInvited": "{name} rủ bạn một ván và đã đi nước đầu.",
+  "@caroEntryInvited": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryMyTurn": "Đến lượt bạn. {name} vừa đi nước {n}.",
+  "@caroEntryMyTurn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryWaiting": "Đang chờ {name}. Bạn đi nước {n} lúc {time}.",
+  "@caroEntryWaiting": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryWatching": "Đang chờ {name}. {name} đang xem ván.",
+  "@caroEntryWatching": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryStale": "Ván dừng {days} ngày rồi. Vào kết thúc để rủ ván mới.",
+  "@caroEntryStale": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryJustLost": "{name} thắng ván vừa rồi. {score}.",
+  "@caroEntryJustLost": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryJustWon": "Bạn thắng ván vừa rồi. {score}.",
+  "@caroEntryJustWon": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryJustDraw": "Ván vừa rồi hoà. {score}.",
+  "@caroEntryJustDraw": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryIdle": "{score}. Rủ {name} một ván?",
+  "@caroEntryIdle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryFirst": "Rủ {name} một ván, bạn đi trước.",
+  "@caroEntryFirst": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroScore": "{me} {a} – {b} {partner}",
+  "@caroScore": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "me": {
+        "type": "String"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      },
+      "partner": {
+        "type": "String"
+      }
+    }
+  },
+  "caroScoreDraws": "{score}, {n} ván hoà",
+  "@caroScoreDraws": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroScorePair": "{a} – {b}",
+  "@caroScorePair": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCtaJoin": "Vào chơi",
+  "caroCtaPlayOn": "Đi tiếp",
+  "caroCtaRematch": "Phục thù",
+  "caroCtaNewGame": "Ván mới",
+  "caroCtaInvite": "Rủ chơi",
+  "caroCtaRetry": "Thử lại",
+  "caroNewTitle": "Rủ {name} chơi caro",
+  "@caroNewTitle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNewSub": "Chọn luật cho ván này. Đổi được ở ván sau.",
+  "caroRuleVn": "Chặn hai đầu",
+  "caroRuleVnDesc": "Năm quân liền nhau là thắng, trừ khi cả hai đầu đều bị quân người kia chặn.",
+  "caroRuleFree": "Tự do",
+  "caroRuleFreeDesc": "Cứ năm quân liền nhau là thắng, bị chặn hai đầu vẫn tính.",
+  "caroRuleExampleNoWin": "Thế này chưa thắng",
+  "caroRuleExampleWin": "Thế này là thắng",
+  "caroRuleLastUsed": "lần trước",
+  "caroNewFirstNote": "Bạn cầm X, quân đầu đặt ở giữa bàn. {name} nhận lời rủ ngay.",
+  "@caroNewFirstNote": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNewCta": "Rủ {name} chơi",
+  "@caroNewCta": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNewPickFirst": "Tự chọn ô đầu tiên",
+  "caroBadge": "CỜ CARO",
+  "caroMyTurn": "Đến lượt bạn",
+  "caroLastMove": "{name} vừa đi nước {n} lúc {time}.",
+  "@caroLastMove": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWaiting": "Đang chờ {name}",
+  "@caroWaiting": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroYouMoved": "Bạn đi nước {n} lúc {time}. Cứ thoát app, {name} đi xong sẽ báo bạn.",
+  "@caroYouMoved": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroPartnerWatching": "Bạn đi nước {n} lúc {time}. {name} đang xem ván.",
+  "@caroPartnerWatching": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWaitedMin": "Bạn đi nước {n} lúc {time}. Đã {m} phút rồi.",
+  "@caroWaitedMin": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNudged": "Đã nhắc {name} lúc {time}.",
+  "@caroNudged": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLaneWins": "thắng",
+  "caroLaneWatching": "đang xem",
+  "caroLaneMove": "nước {n}",
+  "@caroLaneMove": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLaneNew": "ván mới",
+  "caroLaneGames": "{n} ván",
+  "@caroLaneGames": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLanePlusOne": "+1 ván này",
+  "caroPickCell": "Chạm một ô để chọn",
+  "caroPlayHere": "Đi nước này",
+  "caroSending": "Đang đi…",
+  "caroSendError": "Chưa đi được. Mạng đang chập chờn, ô bạn chọn vẫn giữ nguyên.",
+  "caroStaleBoard": "Bàn vừa đổi, xem lại rồi đi nhé.",
+  "caroOffline": "Đang mất mạng. Có mạng lại là đi tiếp được.",
+  "caroWaitNetwork": "Chờ có mạng",
+  "caroTapAgainHint": "Chạm lại ô đang chọn cũng là đi. Chạm ô khác để đổi.",
+  "caroNudge": "Nhắc {name}",
+  "@caroNudge": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNudgeIn": "Nhắc được sau {m} phút",
+  "@caroNudgeIn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNudgeSent": "Đã nhắc {name}",
+  "@caroNudgeSent": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInvitedTitle": "{name} rủ bạn chơi caro",
+  "@caroInvitedTitle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInvitedSubVn": "{name} đã đi nước đầu. Luật chặn hai đầu: năm quân bị chặn cả hai đầu thì chưa thắng.",
+  "@caroInvitedSubVn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInvitedSubFree": "{name} đã đi nước đầu. Luật tự do: cứ năm quân liền nhau là thắng.",
+  "@caroInvitedSubFree": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLater": "Để sau",
+  "caroFirstTitle": "Đặt quân đầu tiên",
+  "caroFirstSub": "Bạn cầm X và đi trước. {name} nhận lời rủ khi bạn đi xong.",
+  "@caroFirstSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInviteCta": "Rủ {name} chơi",
+  "@caroInviteCta": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroStaleTitle": "Ván dừng {days} ngày rồi",
+  "@caroStaleTitle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "caroStaleSub": "Không ai đi từ {date}. Nhắc {name}, hoặc kết thúc để rủ ván mới.",
+  "@caroStaleSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEndGame": "Kết thúc ván",
+  "caroInvitedYesterday": "Bạn rủ {name} lúc {time} hôm qua.",
+  "@caroInvitedYesterday": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroOldAppHint": "Nếu {name} chưa thấy ván, có thể app của {name} cần cập nhật.",
+  "@caroOldAppHint": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLoading": "Đang tải ván",
+  "caroCancelledTitle": "Ván này đã huỷ",
+  "caroCancelledSub": "{name} bấm Để sau lúc {time}. Ván huỷ không tính vào tỉ số.",
+  "@caroCancelledSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroExpiredTitle": "Ván này đã kết thúc vì để lâu",
+  "caroExpiredSub": "7 ngày không ai đi nên ván dừng ở đây, không tính tỉ số.",
+  "caroNewInviteCta": "Rủ {name} ván mới",
+  "@caroNewInviteCta": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistoryTooltip": "Lịch sử ván",
+  "caroRuleTapHint": "Luật {rule}, chạm để xem giải thích",
+  "@caroRuleTapHint": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "rule": {
+        "type": "String"
+      }
+    }
+  },
+  "caroResign": "Xin thua",
+  "caroRuleEdgeNote": "Mép bàn không tính là chặn.",
+  "caroEndKeep": "Để đó",
+  "caroEndConfirm": "Kết thúc",
+  "caroResignTitle": "Xin thua ván này?",
+  "caroResignBody": "{name} được tính thắng. Tỉ số thành {score}.",
+  "@caroResignBody": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroKeepPlaying": "Chơi tiếp",
+  "caroCancelTitle": "Bỏ ván này?",
+  "caroCancelBody": "Ván huỷ không tính tỉ số. {name} sẽ thấy ván đã huỷ.",
+  "@caroCancelBody": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCancelConfirm": "Bỏ ván",
+  "caroEndTitle": "Kết thúc ván này?",
+  "caroEndBody": "Ván không tính tỉ số. Xong là rủ ván mới được.",
+  "caroZoomIn": "Phóng to quanh nước cuối",
+  "caroZoomOut": "Xem toàn bàn",
+  "caroYouWon": "Bạn thắng ván này",
+  "caroPartnerWon": "{name} thắng ván này",
+  "@caroPartnerWon": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWinDetail": "Năm quân liền nhau ở nước {n}, lúc {time}. Ván kéo dài {span}.",
+  "@caroWinDetail": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "span": {
+        "type": "String"
+      }
+    }
+  },
+  "caroSpanHours": "{h} giờ",
+  "@caroSpanHours": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "h": {
+        "type": "String"
+      }
+    }
+  },
+  "caroSpanMinutes": "{m} phút",
+  "@caroSpanMinutes": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "caroPartnerResigned": "{name} xin thua",
+  "@caroPartnerResigned": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroPartnerResignedSub": "Ván này bạn thắng, ở nước {n}.",
+  "@caroPartnerResignedSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroYouResigned": "Bạn đã xin thua",
+  "caroYouResignedSub": "{name} được tính thắng ván này.",
+  "@caroYouResignedSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroDraw": "Ván này hoà",
+  "caroDrawSub": "Kín cả 225 ô mà chưa ai thắng.",
+  "caroSeeHistory": "Xem lịch sử ván",
+  "caroHistoryBadge": "LỊCH SỬ CARO",
+  "caroLeads": "{name} dẫn trước {n} ván",
+  "@caroLeads": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroTied": "Đang hoà {a} – {a}",
+  "@caroTied": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySub": "{n} ván từ {date}. Ván gần nhất {name} thắng {when}.",
+  "@caroHistorySub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySubDraw": "{n} ván từ {date}. Ván gần nhất hoà {when}.",
+  "@caroHistorySubDraw": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWhenToday": "hôm nay",
+  "caroWhenYesterday": "hôm qua",
+  "caroWhenOn": "ngày {date}",
+  "@caroWhenOn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "caroDateToday": "Hôm nay",
+  "caroDateYesterday": "Hôm qua",
+  "caroRowWon": "{name} thắng",
+  "@caroRowWon": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroRowDraw": "Hoà",
+  "caroRowFive": "Năm quân liền, {n} nước",
+  "@caroRowFive": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroRowResign": "{name} xin thua ở nước {n}",
+  "@caroRowResign": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroRowFull": "Kín bàn, 225 nước",
+  "caroRowFreeSuffix": ". Tự do",
+  "caroHistoryEmpty": "Chưa có ván nào xong",
+  "caroHistoryEmptySub": "Ván đầu tiên đang chờ đó. Tỉ số bắt đầu từ 0 – 0.",
+  "caroOpenCurrent": "Mở ván đang chơi",
+  "caroStartWith": "Rủ {name} một ván",
+  "@caroStartWith": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistoryPageError": "Chưa tải thêm được ván cũ.",
+  "caroReplayBadge": "VÁN {date}",
+  "@caroReplayBadge": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellEmpty": "Hàng {r}, cột {c}, trống",
+  "@caroCellEmpty": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "r": {
+        "type": "String"
+      },
+      "c": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellX": "Hàng {r}, cột {c}, quân X của {name}",
+  "@caroCellX": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "r": {
+        "type": "String"
+      },
+      "c": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellO": "Hàng {r}, cột {c}, quân O của {name}",
+  "@caroCellO": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "r": {
+        "type": "String"
+      },
+      "c": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellLast": ", nước vừa đi",
+  "caroCellSelected": ", đang chọn",
+  "caroCellWinning": ", trong đường thắng",
+  "caroNotifInvite": "{name} rủ chơi cờ caro",
+  "@caroNotifInvite": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNotifInviteBody": "Nước đầu đã đi rồi, giờ đến lượt bạn.",
+  "caroWidgetTurn": "{name} đã đi caro, đến lượt mình",
+  "@caroWidgetTurn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWidgetTurnShort": "Lượt mình đi caro",
+  "caroTourTitle": "Cờ caro theo lượt",
+  "caroTourBody": "Mỗi người đi một nước khi rảnh, rải cả ngày cũng được. Thắng thua cộng vào tỉ số chung của chúng mình."
 }

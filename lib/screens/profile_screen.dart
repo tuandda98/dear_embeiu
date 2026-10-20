@@ -11,6 +11,11 @@ import '../models/couple.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
+// ── caro-game (đợt 2) ──
+import '../providers/caro_game_provider.dart';
+import '../widgets/caro/caro_common.dart' show CaroPeople;
+import 'caro_game_screen.dart' show openCaroGame;
+import 'caro_history_screen.dart' show openCaroHistory;
 import '../providers/rps_game_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/care_message_service.dart';
@@ -35,7 +40,6 @@ import '../widgets/streak_sheet.dart';
 import 'care_timeline_screen.dart';
 import 'journal_screen.dart';
 import 'rps_game_screen.dart';
-import 'rps_history_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
 
@@ -644,25 +648,19 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
     final nf = NumberFormat.decimalPattern(
       Localizations.localeOf(context).toString(),
     );
-    // Rock-paper-scissors badge (feature rps-game): all-time W – D – L from
-    // the provider's cached aggregation (one lazy load), plus a dot while the
-    // partner is waiting on me: their invite, or a started round where they
-    // have thrown and I haven't (no-skip rule, design addendum §C).
+    // ── caro-game (đợt 2) ──
+    // "Chơi cùng nhau" (Lead chốt: caro + oẳn tù tì in ONE badge, grid stays
+    // 2×3): the all-time caro score "me – partner", a dot while the partner
+    // waits on me in either game (caro: my turn / invited; rps: their invite
+    // or "tới lượt bạn").
     final rps = context.watch<RpsGameProvider>();
-    final rpsScore = rps.totalScore;
-    // Only while not loaded / not loading / not in the 30s post-failure
-    // backoff (Tester RPS-6 — a failing count() used to re-fire three reads
-    // on every rebuild).
-    if (rps.shouldAutoLoadTotalScore) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.read<RpsGameProvider>().loadTotalScore();
-        }
-      });
-    }
+    final caro = context.watch<CaroGameProvider>();
     final rpsInviteId = (rps.hasPendingInvite || rps.isMyTurn)
         ? rps.openGame?.id
         : null;
+    final caroTurnId = caro.isMyTurn ? caro.openGame?.id : null;
+    final playDot = caroTurnId != null || rpsInviteId != null;
+    final caroPeople = CaroPeople.of(context, l10n);
 
     final milestonesReached = StreakProvider.milestones
         .where((m) => streak.longestStreak >= m)
@@ -783,24 +781,19 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
                 icon: IconsaxPlusBold.game,
                 medalGradient: _MedalPalette.game.gradient,
                 accent: _MedalPalette.game.accent,
-                // "W – D – L" (en dashes) — three numbers, so a notch smaller
-                // than the single-number badges.
-                value: rpsScore == null
-                    ? null
-                    : l10n.rpsScoreFormat(
-                        nf.format(rpsScore.wins),
-                        nf.format(rpsScore.draws),
-                        nf.format(rpsScore.losses),
-                      ),
+                value: caro.isStateLoaded
+                    ? l10n.caroScorePair(
+                        nf.format(caro.myWins),
+                        nf.format(caro.partnerWins),
+                      )
+                    : null,
                 valueSize: 22,
-                valueSemantics: rpsScore == null
-                    ? null
-                    : l10n.rpsScoreSemantics(
-                        nf.format(rpsScore.wins),
-                        nf.format(rpsScore.draws),
-                        nf.format(rpsScore.losses),
-                      ),
-                medalOverlay: rpsInviteId == null
+                valueSemantics: caroPeople.score(
+                  l10n,
+                  caro.myWins,
+                  caro.partnerWins,
+                ),
+                medalOverlay: !playDot
                     ? null
                     : Positioned(
                         top: -3,
@@ -818,17 +811,17 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
                           ),
                         ),
                       ),
-                label: l10n.rpsGameTitle,
+                label: l10n.caroPlayTogetherTitle,
                 onTap: () {
                   HapticFeedback.selectionClick();
-                  // The partner waiting on me (invite / "tới lượt bạn")
-                  // takes precedence over the history (design §5.7 +
-                  // addendum §C); unplayed / awaiting rounds are the Home
-                  // card's job.
-                  if (rpsInviteId != null) {
+                  // Whoever waits on me first (caro, then rps); otherwise
+                  // the caro history (design §3.6).
+                  if (caroTurnId != null) {
+                    openCaroGame(context, gameId: caroTurnId, source: 'profile');
+                  } else if (rpsInviteId != null) {
                     openRpsGame(context, gameId: rpsInviteId);
                   } else {
-                    openRpsHistory(context);
+                    openCaroHistory(context);
                   }
                 },
               ),

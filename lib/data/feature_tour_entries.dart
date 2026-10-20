@@ -1,3 +1,5 @@
+// ── caro-game (đợt 2) ──
+import '../screens/caro_game_screen.dart' show openCaroGame;
 import 'package:flutter/widgets.dart';
 import '../screens/care_message_screen.dart';
 import '../widgets/decision_parts.dart';
@@ -117,5 +119,14 @@ final List<FeatureTourEntry> featureTourEntries = <FeatureTourEntry>[
     icon: IconsaxPlusLinear.element_3,
     title: (l10n) => l10n.featureTourWidgetTodayTitle,
     body: (l10n) => l10n.featureTourWidgetTodayBody,
+  ),
+  // ── caro-game (đợt 2) ──
+  // ---- Build 33 (1.12.0, dự kiến) -----------------------------------------
+  FeatureTourEntry(
+    sinceBuild: 33,
+    icon: IconsaxPlusLinear.grid_5,
+    title: (l10n) => l10n.caroTourTitle,
+    body: (l10n) => l10n.caroTourBody,
+    onOpen: (context) => openCaroGame(context, source: 'home'),
   ),
 ];

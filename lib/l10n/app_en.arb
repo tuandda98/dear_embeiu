@@ -4511,5 +4511,983 @@
         "type": "String"
       }
     }
+  },
+  "caroPlayTogetherTitle": "Play together",
+  "@caroPlayTogetherTitle": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroGameTitle": "Caro",
+  "@caroGameTitle": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroEntryInvited": "{name} started a game and made the first move.",
+  "@caroEntryInvited": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryMyTurn": "Your turn. {name} just played move {n}.",
+  "@caroEntryMyTurn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryWaiting": "Waiting for {name}. You played move {n} at {time}.",
+  "@caroEntryWaiting": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryWatching": "Waiting for {name}, who has the game open.",
+  "@caroEntryWatching": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryStale": "No moves for {days} days. Open it to end the game.",
+  "@caroEntryStale": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryJustLost": "{name} won the last game. {score}.",
+  "@caroEntryJustLost": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryJustWon": "You won the last game. {score}.",
+  "@caroEntryJustWon": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryJustDraw": "The last game was a draw. {score}.",
+  "@caroEntryJustDraw": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryIdle": "{score}. Another game with {name}?",
+  "@caroEntryIdle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryFirst": "Start a game with {name}. You go first.",
+  "@caroEntryFirst": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroScore": "{me} {a}–{b} {partner}",
+  "@caroScore": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "me": {
+        "type": "String"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      },
+      "partner": {
+        "type": "String"
+      }
+    }
+  },
+  "caroScoreDraws": "{score}, {n} draws",
+  "@caroScoreDraws": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroScorePair": "{a} – {b}",
+  "@caroScorePair": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCtaJoin": "Play",
+  "@caroCtaJoin": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroCtaPlayOn": "Your move",
+  "@caroCtaPlayOn": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroCtaRematch": "Rematch",
+  "@caroCtaRematch": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroCtaNewGame": "New game",
+  "@caroCtaNewGame": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroCtaInvite": "Start",
+  "@caroCtaInvite": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroCtaRetry": "Try again",
+  "@caroCtaRetry": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroNewTitle": "Start a caro game with {name}",
+  "@caroNewTitle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNewSub": "Pick the rules for this game. You can switch next time.",
+  "@caroNewSub": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRuleVn": "Blocked ends",
+  "@caroRuleVn": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRuleVnDesc": "Five in a row wins, unless both ends are blocked by the other player.",
+  "@caroRuleVnDesc": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRuleFree": "Freestyle",
+  "@caroRuleFree": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRuleFreeDesc": "Any five in a row wins, even with both ends blocked.",
+  "@caroRuleFreeDesc": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRuleExampleNoWin": "This doesn't win",
+  "@caroRuleExampleNoWin": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRuleExampleWin": "This wins",
+  "@caroRuleExampleWin": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRuleLastUsed": "last time",
+  "@caroRuleLastUsed": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroNewFirstNote": "You play X and your first piece goes in the centre. {name} gets the invite right away.",
+  "@caroNewFirstNote": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNewCta": "Invite {name}",
+  "@caroNewCta": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNewPickFirst": "Choose your own first square",
+  "@caroNewPickFirst": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroBadge": "CARO",
+  "@caroBadge": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroMyTurn": "Your turn",
+  "@caroMyTurn": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroLastMove": "{name} played move {n} at {time}.",
+  "@caroLastMove": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWaiting": "Waiting for {name}",
+  "@caroWaiting": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroYouMoved": "You played move {n} at {time}. You can close the app, we'll tell you when {name} moves.",
+  "@caroYouMoved": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroPartnerWatching": "You played move {n} at {time}. {name} is looking at the board.",
+  "@caroPartnerWatching": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWaitedMin": "You played move {n} at {time}, {m} minutes ago.",
+  "@caroWaitedMin": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNudged": "You nudged {name} at {time}.",
+  "@caroNudged": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLaneWins": "wins",
+  "@caroLaneWins": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroLaneWatching": "watching",
+  "@caroLaneWatching": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroLaneMove": "move {n}",
+  "@caroLaneMove": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLaneNew": "new game",
+  "@caroLaneNew": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroLaneGames": "{n} games",
+  "@caroLaneGames": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLanePlusOne": "+1 this game",
+  "@caroLanePlusOne": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroPickCell": "Tap a square",
+  "@caroPickCell": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroPlayHere": "Play here",
+  "@caroPlayHere": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroSending": "Playing…",
+  "@caroSending": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroSendError": "That move didn't go through. Your square is still selected.",
+  "@caroSendError": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroStaleBoard": "The board changed. Take another look before you move.",
+  "@caroStaleBoard": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroOffline": "You're offline. You can move once you're back.",
+  "@caroOffline": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroWaitNetwork": "Waiting for connection",
+  "@caroWaitNetwork": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroTapAgainHint": "Tap the selected square again to play it, or pick another.",
+  "@caroTapAgainHint": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroNudge": "Nudge {name}",
+  "@caroNudge": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNudgeIn": "You can nudge in {m} min",
+  "@caroNudgeIn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNudgeSent": "Nudged {name}",
+  "@caroNudgeSent": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInvitedTitle": "{name} wants to play caro",
+  "@caroInvitedTitle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInvitedSubVn": "{name} made the first move. Blocked ends: a five blocked at both ends doesn't win.",
+  "@caroInvitedSubVn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInvitedSubFree": "{name} made the first move. Freestyle: any five in a row wins.",
+  "@caroInvitedSubFree": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLater": "Not now",
+  "@caroLater": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroFirstTitle": "Place your first piece",
+  "@caroFirstTitle": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroFirstSub": "You play X and go first. {name} gets the invite after your move.",
+  "@caroFirstSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInviteCta": "Invite {name}",
+  "@caroInviteCta": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroStaleTitle": "No moves for {days} days",
+  "@caroStaleTitle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "caroStaleSub": "Nobody has moved since {date}. Nudge {name}, or end it and start over.",
+  "@caroStaleSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEndGame": "End game",
+  "@caroEndGame": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroInvitedYesterday": "You invited {name} yesterday at {time}.",
+  "@caroInvitedYesterday": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroOldAppHint": "If {name} can't see the game, their app may need an update.",
+  "@caroOldAppHint": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLoading": "Loading game",
+  "@caroLoading": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroCancelledTitle": "This game was cancelled",
+  "@caroCancelledTitle": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroCancelledSub": "{name} chose Not now at {time}. Cancelled games don't count.",
+  "@caroCancelledSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroExpiredTitle": "This game has ended",
+  "@caroExpiredTitle": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroExpiredSub": "Nobody moved for 7 days, so it stopped here. It doesn't count.",
+  "@caroExpiredSub": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroNewInviteCta": "New game with {name}",
+  "@caroNewInviteCta": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistoryTooltip": "Game history",
+  "@caroHistoryTooltip": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRuleTapHint": "{rule} rules, tap for details",
+  "@caroRuleTapHint": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "rule": {
+        "type": "String"
+      }
+    }
+  },
+  "caroResign": "Resign",
+  "@caroResign": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRuleEdgeNote": "The edge of the board doesn't count as a block.",
+  "@caroRuleEdgeNote": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroEndKeep": "Leave it",
+  "@caroEndKeep": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroEndConfirm": "End it",
+  "@caroEndConfirm": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroResignTitle": "Resign this game?",
+  "@caroResignTitle": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroResignBody": "{name} gets the win. The score becomes {score}.",
+  "@caroResignBody": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroKeepPlaying": "Keep playing",
+  "@caroKeepPlaying": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroCancelTitle": "Skip this game?",
+  "@caroCancelTitle": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroCancelBody": "It won't count. {name} will see it was cancelled.",
+  "@caroCancelBody": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCancelConfirm": "Skip",
+  "@caroCancelConfirm": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroEndTitle": "End this game?",
+  "@caroEndTitle": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroEndBody": "It won't count, and you can start a new one.",
+  "@caroEndBody": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroZoomIn": "Zoom in on the last move",
+  "@caroZoomIn": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroZoomOut": "Show the whole board",
+  "@caroZoomOut": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroYouWon": "You won this game",
+  "@caroYouWon": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroPartnerWon": "{name} won this game",
+  "@caroPartnerWon": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWinDetail": "Five in a row on move {n}, at {time}. The game took {span}.",
+  "@caroWinDetail": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "span": {
+        "type": "String"
+      }
+    }
+  },
+  "caroSpanHours": "{h} hours",
+  "@caroSpanHours": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "h": {
+        "type": "String"
+      }
+    }
+  },
+  "caroSpanMinutes": "{m} minutes",
+  "@caroSpanMinutes": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "caroPartnerResigned": "{name} resigned",
+  "@caroPartnerResigned": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroPartnerResignedSub": "You win this one, on move {n}.",
+  "@caroPartnerResignedSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroYouResigned": "You resigned",
+  "@caroYouResigned": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroYouResignedSub": "{name} gets the win.",
+  "@caroYouResignedSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroDraw": "This game is a draw",
+  "@caroDraw": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroDrawSub": "All 225 squares are full and nobody won.",
+  "@caroDrawSub": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroSeeHistory": "See game history",
+  "@caroSeeHistory": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroHistoryBadge": "CARO HISTORY",
+  "@caroHistoryBadge": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroLeads": "{name} leads by {n}",
+  "@caroLeads": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroTied": "Tied at {a}–{a}",
+  "@caroTied": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySub": "{n} games since {date}. {name} won the last one {when}.",
+  "@caroHistorySub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySubDraw": "{n} games since {date}. The last one was a draw {when}.",
+  "@caroHistorySubDraw": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWhenToday": "today",
+  "@caroWhenToday": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroWhenYesterday": "yesterday",
+  "@caroWhenYesterday": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroWhenOn": "on {date}",
+  "@caroWhenOn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "caroDateToday": "Today",
+  "@caroDateToday": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroDateYesterday": "Yesterday",
+  "@caroDateYesterday": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRowWon": "{name} won",
+  "@caroRowWon": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroRowDraw": "Draw",
+  "@caroRowDraw": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRowFive": "Five in a row, {n} moves",
+  "@caroRowFive": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroRowResign": "{name} resigned on move {n}",
+  "@caroRowResign": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroRowFull": "Board full, 225 moves",
+  "@caroRowFull": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroRowFreeSuffix": ". Freestyle",
+  "@caroRowFreeSuffix": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroHistoryEmpty": "No finished games yet",
+  "@caroHistoryEmpty": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroHistoryEmptySub": "Your first game is waiting. The score starts at 0–0.",
+  "@caroHistoryEmptySub": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroOpenCurrent": "Open current game",
+  "@caroOpenCurrent": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroStartWith": "Start a game with {name}",
+  "@caroStartWith": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistoryPageError": "Couldn't load older games.",
+  "@caroHistoryPageError": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroReplayBadge": "GAME {date}",
+  "@caroReplayBadge": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellEmpty": "Row {r}, column {c}, empty",
+  "@caroCellEmpty": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "r": {
+        "type": "String"
+      },
+      "c": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellX": "Row {r}, column {c}, {name}'s X",
+  "@caroCellX": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "r": {
+        "type": "String"
+      },
+      "c": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellO": "Row {r}, column {c}, {name}'s O",
+  "@caroCellO": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "r": {
+        "type": "String"
+      },
+      "c": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellLast": ", last move",
+  "@caroCellLast": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroCellSelected": ", selected",
+  "@caroCellSelected": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroCellWinning": ", part of the winning line",
+  "@caroCellWinning": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroNotifInvite": "{name} started a game of caro",
+  "@caroNotifInvite": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNotifInviteBody": "They made the first move. Your turn.",
+  "@caroNotifInviteBody": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroWidgetTurn": "{name} moved in caro, your turn",
+  "@caroWidgetTurn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWidgetTurnShort": "Your caro move",
+  "@caroWidgetTurnShort": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroTourTitle": "Turn-based caro",
+  "@caroTourTitle": {
+    "description": "caro-game (đợt 2)"
+  },
+  "caroTourBody": "Take turns whenever you have a minute, all day if you like. Every win adds to your shared score.",
+  "@caroTourBody": {
+    "description": "caro-game (đợt 2)"
   }
 }

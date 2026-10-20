@@ -4396,4 +4396,551 @@ class AppLocalizationsVi extends AppLocalizations {
   String notifDecisionRespin(String name, String result) {
     return '$name quay lại: $result';
   }
+
+  @override
+  String get caroPlayTogetherTitle => 'Chơi cùng nhau';
+
+  @override
+  String get caroGameTitle => 'Cờ caro';
+
+  @override
+  String caroEntryInvited(String name) {
+    return '$name rủ bạn một ván và đã đi nước đầu.';
+  }
+
+  @override
+  String caroEntryMyTurn(String name, String n) {
+    return 'Đến lượt bạn. $name vừa đi nước $n.';
+  }
+
+  @override
+  String caroEntryWaiting(String name, String n, String time) {
+    return 'Đang chờ $name. Bạn đi nước $n lúc $time.';
+  }
+
+  @override
+  String caroEntryWatching(String name) {
+    return 'Đang chờ $name. $name đang xem ván.';
+  }
+
+  @override
+  String caroEntryStale(String days) {
+    return 'Ván dừng $days ngày rồi. Vào kết thúc để rủ ván mới.';
+  }
+
+  @override
+  String caroEntryJustLost(String name, String score) {
+    return '$name thắng ván vừa rồi. $score.';
+  }
+
+  @override
+  String caroEntryJustWon(String score) {
+    return 'Bạn thắng ván vừa rồi. $score.';
+  }
+
+  @override
+  String caroEntryJustDraw(String score) {
+    return 'Ván vừa rồi hoà. $score.';
+  }
+
+  @override
+  String caroEntryIdle(String score, String name) {
+    return '$score. Rủ $name một ván?';
+  }
+
+  @override
+  String caroEntryFirst(String name) {
+    return 'Rủ $name một ván, bạn đi trước.';
+  }
+
+  @override
+  String caroScore(String me, String a, String b, String partner) {
+    return '$me $a – $b $partner';
+  }
+
+  @override
+  String caroScoreDraws(String score, String n) {
+    return '$score, $n ván hoà';
+  }
+
+  @override
+  String caroScorePair(String a, String b) {
+    return '$a – $b';
+  }
+
+  @override
+  String get caroCtaJoin => 'Vào chơi';
+
+  @override
+  String get caroCtaPlayOn => 'Đi tiếp';
+
+  @override
+  String get caroCtaRematch => 'Phục thù';
+
+  @override
+  String get caroCtaNewGame => 'Ván mới';
+
+  @override
+  String get caroCtaInvite => 'Rủ chơi';
+
+  @override
+  String get caroCtaRetry => 'Thử lại';
+
+  @override
+  String caroNewTitle(String name) {
+    return 'Rủ $name chơi caro';
+  }
+
+  @override
+  String get caroNewSub => 'Chọn luật cho ván này. Đổi được ở ván sau.';
+
+  @override
+  String get caroRuleVn => 'Chặn hai đầu';
+
+  @override
+  String get caroRuleVnDesc =>
+      'Năm quân liền nhau là thắng, trừ khi cả hai đầu đều bị quân người kia chặn.';
+
+  @override
+  String get caroRuleFree => 'Tự do';
+
+  @override
+  String get caroRuleFreeDesc =>
+      'Cứ năm quân liền nhau là thắng, bị chặn hai đầu vẫn tính.';
+
+  @override
+  String get caroRuleExampleNoWin => 'Thế này chưa thắng';
+
+  @override
+  String get caroRuleExampleWin => 'Thế này là thắng';
+
+  @override
+  String get caroRuleLastUsed => 'lần trước';
+
+  @override
+  String caroNewFirstNote(String name) {
+    return 'Bạn cầm X, quân đầu đặt ở giữa bàn. $name nhận lời rủ ngay.';
+  }
+
+  @override
+  String caroNewCta(String name) {
+    return 'Rủ $name chơi';
+  }
+
+  @override
+  String get caroNewPickFirst => 'Tự chọn ô đầu tiên';
+
+  @override
+  String get caroBadge => 'CỜ CARO';
+
+  @override
+  String get caroMyTurn => 'Đến lượt bạn';
+
+  @override
+  String caroLastMove(String name, String n, String time) {
+    return '$name vừa đi nước $n lúc $time.';
+  }
+
+  @override
+  String caroWaiting(String name) {
+    return 'Đang chờ $name';
+  }
+
+  @override
+  String caroYouMoved(String n, String time, String name) {
+    return 'Bạn đi nước $n lúc $time. Cứ thoát app, $name đi xong sẽ báo bạn.';
+  }
+
+  @override
+  String caroPartnerWatching(String n, String time, String name) {
+    return 'Bạn đi nước $n lúc $time. $name đang xem ván.';
+  }
+
+  @override
+  String caroWaitedMin(String n, String time, String m) {
+    return 'Bạn đi nước $n lúc $time. Đã $m phút rồi.';
+  }
+
+  @override
+  String caroNudged(String name, String time) {
+    return 'Đã nhắc $name lúc $time.';
+  }
+
+  @override
+  String get caroLaneWins => 'thắng';
+
+  @override
+  String get caroLaneWatching => 'đang xem';
+
+  @override
+  String caroLaneMove(String n) {
+    return 'nước $n';
+  }
+
+  @override
+  String get caroLaneNew => 'ván mới';
+
+  @override
+  String caroLaneGames(String n) {
+    return '$n ván';
+  }
+
+  @override
+  String get caroLanePlusOne => '+1 ván này';
+
+  @override
+  String get caroPickCell => 'Chạm một ô để chọn';
+
+  @override
+  String get caroPlayHere => 'Đi nước này';
+
+  @override
+  String get caroSending => 'Đang đi…';
+
+  @override
+  String get caroSendError =>
+      'Chưa đi được. Mạng đang chập chờn, ô bạn chọn vẫn giữ nguyên.';
+
+  @override
+  String get caroStaleBoard => 'Bàn vừa đổi, xem lại rồi đi nhé.';
+
+  @override
+  String get caroOffline => 'Đang mất mạng. Có mạng lại là đi tiếp được.';
+
+  @override
+  String get caroWaitNetwork => 'Chờ có mạng';
+
+  @override
+  String get caroTapAgainHint =>
+      'Chạm lại ô đang chọn cũng là đi. Chạm ô khác để đổi.';
+
+  @override
+  String caroNudge(String name) {
+    return 'Nhắc $name';
+  }
+
+  @override
+  String caroNudgeIn(String m) {
+    return 'Nhắc được sau $m phút';
+  }
+
+  @override
+  String caroNudgeSent(String name) {
+    return 'Đã nhắc $name';
+  }
+
+  @override
+  String caroInvitedTitle(String name) {
+    return '$name rủ bạn chơi caro';
+  }
+
+  @override
+  String caroInvitedSubVn(String name) {
+    return '$name đã đi nước đầu. Luật chặn hai đầu: năm quân bị chặn cả hai đầu thì chưa thắng.';
+  }
+
+  @override
+  String caroInvitedSubFree(String name) {
+    return '$name đã đi nước đầu. Luật tự do: cứ năm quân liền nhau là thắng.';
+  }
+
+  @override
+  String get caroLater => 'Để sau';
+
+  @override
+  String get caroFirstTitle => 'Đặt quân đầu tiên';
+
+  @override
+  String caroFirstSub(String name) {
+    return 'Bạn cầm X và đi trước. $name nhận lời rủ khi bạn đi xong.';
+  }
+
+  @override
+  String caroInviteCta(String name) {
+    return 'Rủ $name chơi';
+  }
+
+  @override
+  String caroStaleTitle(String days) {
+    return 'Ván dừng $days ngày rồi';
+  }
+
+  @override
+  String caroStaleSub(String date, String name) {
+    return 'Không ai đi từ $date. Nhắc $name, hoặc kết thúc để rủ ván mới.';
+  }
+
+  @override
+  String get caroEndGame => 'Kết thúc ván';
+
+  @override
+  String caroInvitedYesterday(String name, String time) {
+    return 'Bạn rủ $name lúc $time hôm qua.';
+  }
+
+  @override
+  String caroOldAppHint(String name) {
+    return 'Nếu $name chưa thấy ván, có thể app của $name cần cập nhật.';
+  }
+
+  @override
+  String get caroLoading => 'Đang tải ván';
+
+  @override
+  String get caroCancelledTitle => 'Ván này đã huỷ';
+
+  @override
+  String caroCancelledSub(String name, String time) {
+    return '$name bấm Để sau lúc $time. Ván huỷ không tính vào tỉ số.';
+  }
+
+  @override
+  String get caroExpiredTitle => 'Ván này đã kết thúc vì để lâu';
+
+  @override
+  String get caroExpiredSub =>
+      '7 ngày không ai đi nên ván dừng ở đây, không tính tỉ số.';
+
+  @override
+  String caroNewInviteCta(String name) {
+    return 'Rủ $name ván mới';
+  }
+
+  @override
+  String get caroHistoryTooltip => 'Lịch sử ván';
+
+  @override
+  String caroRuleTapHint(String rule) {
+    return 'Luật $rule, chạm để xem giải thích';
+  }
+
+  @override
+  String get caroResign => 'Xin thua';
+
+  @override
+  String get caroRuleEdgeNote => 'Mép bàn không tính là chặn.';
+
+  @override
+  String get caroEndKeep => 'Để đó';
+
+  @override
+  String get caroEndConfirm => 'Kết thúc';
+
+  @override
+  String get caroResignTitle => 'Xin thua ván này?';
+
+  @override
+  String caroResignBody(String name, String score) {
+    return '$name được tính thắng. Tỉ số thành $score.';
+  }
+
+  @override
+  String get caroKeepPlaying => 'Chơi tiếp';
+
+  @override
+  String get caroCancelTitle => 'Bỏ ván này?';
+
+  @override
+  String caroCancelBody(String name) {
+    return 'Ván huỷ không tính tỉ số. $name sẽ thấy ván đã huỷ.';
+  }
+
+  @override
+  String get caroCancelConfirm => 'Bỏ ván';
+
+  @override
+  String get caroEndTitle => 'Kết thúc ván này?';
+
+  @override
+  String get caroEndBody => 'Ván không tính tỉ số. Xong là rủ ván mới được.';
+
+  @override
+  String get caroZoomIn => 'Phóng to quanh nước cuối';
+
+  @override
+  String get caroZoomOut => 'Xem toàn bàn';
+
+  @override
+  String get caroYouWon => 'Bạn thắng ván này';
+
+  @override
+  String caroPartnerWon(String name) {
+    return '$name thắng ván này';
+  }
+
+  @override
+  String caroWinDetail(String n, String time, String span) {
+    return 'Năm quân liền nhau ở nước $n, lúc $time. Ván kéo dài $span.';
+  }
+
+  @override
+  String caroSpanHours(String h) {
+    return '$h giờ';
+  }
+
+  @override
+  String caroSpanMinutes(String m) {
+    return '$m phút';
+  }
+
+  @override
+  String caroPartnerResigned(String name) {
+    return '$name xin thua';
+  }
+
+  @override
+  String caroPartnerResignedSub(String n) {
+    return 'Ván này bạn thắng, ở nước $n.';
+  }
+
+  @override
+  String get caroYouResigned => 'Bạn đã xin thua';
+
+  @override
+  String caroYouResignedSub(String name) {
+    return '$name được tính thắng ván này.';
+  }
+
+  @override
+  String get caroDraw => 'Ván này hoà';
+
+  @override
+  String get caroDrawSub => 'Kín cả 225 ô mà chưa ai thắng.';
+
+  @override
+  String get caroSeeHistory => 'Xem lịch sử ván';
+
+  @override
+  String get caroHistoryBadge => 'LỊCH SỬ CARO';
+
+  @override
+  String caroLeads(String name, String n) {
+    return '$name dẫn trước $n ván';
+  }
+
+  @override
+  String caroTied(String a) {
+    return 'Đang hoà $a – $a';
+  }
+
+  @override
+  String caroHistorySub(String n, String date, String name, String when) {
+    return '$n ván từ $date. Ván gần nhất $name thắng $when.';
+  }
+
+  @override
+  String caroHistorySubDraw(String n, String date, String when) {
+    return '$n ván từ $date. Ván gần nhất hoà $when.';
+  }
+
+  @override
+  String get caroWhenToday => 'hôm nay';
+
+  @override
+  String get caroWhenYesterday => 'hôm qua';
+
+  @override
+  String caroWhenOn(String date) {
+    return 'ngày $date';
+  }
+
+  @override
+  String get caroDateToday => 'Hôm nay';
+
+  @override
+  String get caroDateYesterday => 'Hôm qua';
+
+  @override
+  String caroRowWon(String name) {
+    return '$name thắng';
+  }
+
+  @override
+  String get caroRowDraw => 'Hoà';
+
+  @override
+  String caroRowFive(String n) {
+    return 'Năm quân liền, $n nước';
+  }
+
+  @override
+  String caroRowResign(String name, String n) {
+    return '$name xin thua ở nước $n';
+  }
+
+  @override
+  String get caroRowFull => 'Kín bàn, 225 nước';
+
+  @override
+  String get caroRowFreeSuffix => '. Tự do';
+
+  @override
+  String get caroHistoryEmpty => 'Chưa có ván nào xong';
+
+  @override
+  String get caroHistoryEmptySub =>
+      'Ván đầu tiên đang chờ đó. Tỉ số bắt đầu từ 0 – 0.';
+
+  @override
+  String get caroOpenCurrent => 'Mở ván đang chơi';
+
+  @override
+  String caroStartWith(String name) {
+    return 'Rủ $name một ván';
+  }
+
+  @override
+  String get caroHistoryPageError => 'Chưa tải thêm được ván cũ.';
+
+  @override
+  String caroReplayBadge(String date) {
+    return 'VÁN $date';
+  }
+
+  @override
+  String caroCellEmpty(String r, String c) {
+    return 'Hàng $r, cột $c, trống';
+  }
+
+  @override
+  String caroCellX(String r, String c, String name) {
+    return 'Hàng $r, cột $c, quân X của $name';
+  }
+
+  @override
+  String caroCellO(String r, String c, String name) {
+    return 'Hàng $r, cột $c, quân O của $name';
+  }
+
+  @override
+  String get caroCellLast => ', nước vừa đi';
+
+  @override
+  String get caroCellSelected => ', đang chọn';
+
+  @override
+  String get caroCellWinning => ', trong đường thắng';
+
+  @override
+  String caroNotifInvite(String name) {
+    return '$name rủ chơi cờ caro';
+  }
+
+  @override
+  String get caroNotifInviteBody => 'Nước đầu đã đi rồi, giờ đến lượt bạn.';
+
+  @override
+  String caroWidgetTurn(String name) {
+    return '$name đã đi caro, đến lượt mình';
+  }
+
+  @override
+  String get caroWidgetTurnShort => 'Lượt mình đi caro';
+
+  @override
+  String get caroTourTitle => 'Cờ caro theo lượt';
+
+  @override
+  String get caroTourBody =>
+      'Mỗi người đi một nước khi rảnh, rải cả ngày cũng được. Thắng thua cộng vào tỉ số chung của chúng mình.';
 }

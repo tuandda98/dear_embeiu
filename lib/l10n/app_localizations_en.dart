@@ -4618,4 +4618,554 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifDecisionRespin(String name, String result) {
     return '$name re-spun: $result';
   }
+
+  @override
+  String get caroPlayTogetherTitle => 'Play together';
+
+  @override
+  String get caroGameTitle => 'Caro';
+
+  @override
+  String caroEntryInvited(String name) {
+    return '$name started a game and made the first move.';
+  }
+
+  @override
+  String caroEntryMyTurn(String name, String n) {
+    return 'Your turn. $name just played move $n.';
+  }
+
+  @override
+  String caroEntryWaiting(String name, String n, String time) {
+    return 'Waiting for $name. You played move $n at $time.';
+  }
+
+  @override
+  String caroEntryWatching(String name) {
+    return 'Waiting for $name, who has the game open.';
+  }
+
+  @override
+  String caroEntryStale(String days) {
+    return 'No moves for $days days. Open it to end the game.';
+  }
+
+  @override
+  String caroEntryJustLost(String name, String score) {
+    return '$name won the last game. $score.';
+  }
+
+  @override
+  String caroEntryJustWon(String score) {
+    return 'You won the last game. $score.';
+  }
+
+  @override
+  String caroEntryJustDraw(String score) {
+    return 'The last game was a draw. $score.';
+  }
+
+  @override
+  String caroEntryIdle(String score, String name) {
+    return '$score. Another game with $name?';
+  }
+
+  @override
+  String caroEntryFirst(String name) {
+    return 'Start a game with $name. You go first.';
+  }
+
+  @override
+  String caroScore(String me, String a, String b, String partner) {
+    return '$me $a–$b $partner';
+  }
+
+  @override
+  String caroScoreDraws(String score, String n) {
+    return '$score, $n draws';
+  }
+
+  @override
+  String caroScorePair(String a, String b) {
+    return '$a – $b';
+  }
+
+  @override
+  String get caroCtaJoin => 'Play';
+
+  @override
+  String get caroCtaPlayOn => 'Your move';
+
+  @override
+  String get caroCtaRematch => 'Rematch';
+
+  @override
+  String get caroCtaNewGame => 'New game';
+
+  @override
+  String get caroCtaInvite => 'Start';
+
+  @override
+  String get caroCtaRetry => 'Try again';
+
+  @override
+  String caroNewTitle(String name) {
+    return 'Start a caro game with $name';
+  }
+
+  @override
+  String get caroNewSub =>
+      'Pick the rules for this game. You can switch next time.';
+
+  @override
+  String get caroRuleVn => 'Blocked ends';
+
+  @override
+  String get caroRuleVnDesc =>
+      'Five in a row wins, unless both ends are blocked by the other player.';
+
+  @override
+  String get caroRuleFree => 'Freestyle';
+
+  @override
+  String get caroRuleFreeDesc =>
+      'Any five in a row wins, even with both ends blocked.';
+
+  @override
+  String get caroRuleExampleNoWin => 'This doesn\'t win';
+
+  @override
+  String get caroRuleExampleWin => 'This wins';
+
+  @override
+  String get caroRuleLastUsed => 'last time';
+
+  @override
+  String caroNewFirstNote(String name) {
+    return 'You play X and your first piece goes in the centre. $name gets the invite right away.';
+  }
+
+  @override
+  String caroNewCta(String name) {
+    return 'Invite $name';
+  }
+
+  @override
+  String get caroNewPickFirst => 'Choose your own first square';
+
+  @override
+  String get caroBadge => 'CARO';
+
+  @override
+  String get caroMyTurn => 'Your turn';
+
+  @override
+  String caroLastMove(String name, String n, String time) {
+    return '$name played move $n at $time.';
+  }
+
+  @override
+  String caroWaiting(String name) {
+    return 'Waiting for $name';
+  }
+
+  @override
+  String caroYouMoved(String n, String time, String name) {
+    return 'You played move $n at $time. You can close the app, we\'ll tell you when $name moves.';
+  }
+
+  @override
+  String caroPartnerWatching(String n, String time, String name) {
+    return 'You played move $n at $time. $name is looking at the board.';
+  }
+
+  @override
+  String caroWaitedMin(String n, String time, String m) {
+    return 'You played move $n at $time, $m minutes ago.';
+  }
+
+  @override
+  String caroNudged(String name, String time) {
+    return 'You nudged $name at $time.';
+  }
+
+  @override
+  String get caroLaneWins => 'wins';
+
+  @override
+  String get caroLaneWatching => 'watching';
+
+  @override
+  String caroLaneMove(String n) {
+    return 'move $n';
+  }
+
+  @override
+  String get caroLaneNew => 'new game';
+
+  @override
+  String caroLaneGames(String n) {
+    return '$n games';
+  }
+
+  @override
+  String get caroLanePlusOne => '+1 this game';
+
+  @override
+  String get caroPickCell => 'Tap a square';
+
+  @override
+  String get caroPlayHere => 'Play here';
+
+  @override
+  String get caroSending => 'Playing…';
+
+  @override
+  String get caroSendError =>
+      'That move didn\'t go through. Your square is still selected.';
+
+  @override
+  String get caroStaleBoard =>
+      'The board changed. Take another look before you move.';
+
+  @override
+  String get caroOffline => 'You\'re offline. You can move once you\'re back.';
+
+  @override
+  String get caroWaitNetwork => 'Waiting for connection';
+
+  @override
+  String get caroTapAgainHint =>
+      'Tap the selected square again to play it, or pick another.';
+
+  @override
+  String caroNudge(String name) {
+    return 'Nudge $name';
+  }
+
+  @override
+  String caroNudgeIn(String m) {
+    return 'You can nudge in $m min';
+  }
+
+  @override
+  String caroNudgeSent(String name) {
+    return 'Nudged $name';
+  }
+
+  @override
+  String caroInvitedTitle(String name) {
+    return '$name wants to play caro';
+  }
+
+  @override
+  String caroInvitedSubVn(String name) {
+    return '$name made the first move. Blocked ends: a five blocked at both ends doesn\'t win.';
+  }
+
+  @override
+  String caroInvitedSubFree(String name) {
+    return '$name made the first move. Freestyle: any five in a row wins.';
+  }
+
+  @override
+  String get caroLater => 'Not now';
+
+  @override
+  String get caroFirstTitle => 'Place your first piece';
+
+  @override
+  String caroFirstSub(String name) {
+    return 'You play X and go first. $name gets the invite after your move.';
+  }
+
+  @override
+  String caroInviteCta(String name) {
+    return 'Invite $name';
+  }
+
+  @override
+  String caroStaleTitle(String days) {
+    return 'No moves for $days days';
+  }
+
+  @override
+  String caroStaleSub(String date, String name) {
+    return 'Nobody has moved since $date. Nudge $name, or end it and start over.';
+  }
+
+  @override
+  String get caroEndGame => 'End game';
+
+  @override
+  String caroInvitedYesterday(String name, String time) {
+    return 'You invited $name yesterday at $time.';
+  }
+
+  @override
+  String caroOldAppHint(String name) {
+    return 'If $name can\'t see the game, their app may need an update.';
+  }
+
+  @override
+  String get caroLoading => 'Loading game';
+
+  @override
+  String get caroCancelledTitle => 'This game was cancelled';
+
+  @override
+  String caroCancelledSub(String name, String time) {
+    return '$name chose Not now at $time. Cancelled games don\'t count.';
+  }
+
+  @override
+  String get caroExpiredTitle => 'This game has ended';
+
+  @override
+  String get caroExpiredSub =>
+      'Nobody moved for 7 days, so it stopped here. It doesn\'t count.';
+
+  @override
+  String caroNewInviteCta(String name) {
+    return 'New game with $name';
+  }
+
+  @override
+  String get caroHistoryTooltip => 'Game history';
+
+  @override
+  String caroRuleTapHint(String rule) {
+    return '$rule rules, tap for details';
+  }
+
+  @override
+  String get caroResign => 'Resign';
+
+  @override
+  String get caroRuleEdgeNote =>
+      'The edge of the board doesn\'t count as a block.';
+
+  @override
+  String get caroEndKeep => 'Leave it';
+
+  @override
+  String get caroEndConfirm => 'End it';
+
+  @override
+  String get caroResignTitle => 'Resign this game?';
+
+  @override
+  String caroResignBody(String name, String score) {
+    return '$name gets the win. The score becomes $score.';
+  }
+
+  @override
+  String get caroKeepPlaying => 'Keep playing';
+
+  @override
+  String get caroCancelTitle => 'Skip this game?';
+
+  @override
+  String caroCancelBody(String name) {
+    return 'It won\'t count. $name will see it was cancelled.';
+  }
+
+  @override
+  String get caroCancelConfirm => 'Skip';
+
+  @override
+  String get caroEndTitle => 'End this game?';
+
+  @override
+  String get caroEndBody => 'It won\'t count, and you can start a new one.';
+
+  @override
+  String get caroZoomIn => 'Zoom in on the last move';
+
+  @override
+  String get caroZoomOut => 'Show the whole board';
+
+  @override
+  String get caroYouWon => 'You won this game';
+
+  @override
+  String caroPartnerWon(String name) {
+    return '$name won this game';
+  }
+
+  @override
+  String caroWinDetail(String n, String time, String span) {
+    return 'Five in a row on move $n, at $time. The game took $span.';
+  }
+
+  @override
+  String caroSpanHours(String h) {
+    return '$h hours';
+  }
+
+  @override
+  String caroSpanMinutes(String m) {
+    return '$m minutes';
+  }
+
+  @override
+  String caroPartnerResigned(String name) {
+    return '$name resigned';
+  }
+
+  @override
+  String caroPartnerResignedSub(String n) {
+    return 'You win this one, on move $n.';
+  }
+
+  @override
+  String get caroYouResigned => 'You resigned';
+
+  @override
+  String caroYouResignedSub(String name) {
+    return '$name gets the win.';
+  }
+
+  @override
+  String get caroDraw => 'This game is a draw';
+
+  @override
+  String get caroDrawSub => 'All 225 squares are full and nobody won.';
+
+  @override
+  String get caroSeeHistory => 'See game history';
+
+  @override
+  String get caroHistoryBadge => 'CARO HISTORY';
+
+  @override
+  String caroLeads(String name, String n) {
+    return '$name leads by $n';
+  }
+
+  @override
+  String caroTied(String a) {
+    return 'Tied at $a–$a';
+  }
+
+  @override
+  String caroHistorySub(String n, String date, String name, String when) {
+    return '$n games since $date. $name won the last one $when.';
+  }
+
+  @override
+  String caroHistorySubDraw(String n, String date, String when) {
+    return '$n games since $date. The last one was a draw $when.';
+  }
+
+  @override
+  String get caroWhenToday => 'today';
+
+  @override
+  String get caroWhenYesterday => 'yesterday';
+
+  @override
+  String caroWhenOn(String date) {
+    return 'on $date';
+  }
+
+  @override
+  String get caroDateToday => 'Today';
+
+  @override
+  String get caroDateYesterday => 'Yesterday';
+
+  @override
+  String caroRowWon(String name) {
+    return '$name won';
+  }
+
+  @override
+  String get caroRowDraw => 'Draw';
+
+  @override
+  String caroRowFive(String n) {
+    return 'Five in a row, $n moves';
+  }
+
+  @override
+  String caroRowResign(String name, String n) {
+    return '$name resigned on move $n';
+  }
+
+  @override
+  String get caroRowFull => 'Board full, 225 moves';
+
+  @override
+  String get caroRowFreeSuffix => '. Freestyle';
+
+  @override
+  String get caroHistoryEmpty => 'No finished games yet';
+
+  @override
+  String get caroHistoryEmptySub =>
+      'Your first game is waiting. The score starts at 0–0.';
+
+  @override
+  String get caroOpenCurrent => 'Open current game';
+
+  @override
+  String caroStartWith(String name) {
+    return 'Start a game with $name';
+  }
+
+  @override
+  String get caroHistoryPageError => 'Couldn\'t load older games.';
+
+  @override
+  String caroReplayBadge(String date) {
+    return 'GAME $date';
+  }
+
+  @override
+  String caroCellEmpty(String r, String c) {
+    return 'Row $r, column $c, empty';
+  }
+
+  @override
+  String caroCellX(String r, String c, String name) {
+    return 'Row $r, column $c, $name\'s X';
+  }
+
+  @override
+  String caroCellO(String r, String c, String name) {
+    return 'Row $r, column $c, $name\'s O';
+  }
+
+  @override
+  String get caroCellLast => ', last move';
+
+  @override
+  String get caroCellSelected => ', selected';
+
+  @override
+  String get caroCellWinning => ', part of the winning line';
+
+  @override
+  String caroNotifInvite(String name) {
+    return '$name started a game of caro';
+  }
+
+  @override
+  String get caroNotifInviteBody => 'They made the first move. Your turn.';
+
+  @override
+  String caroWidgetTurn(String name) {
+    return '$name moved in caro, your turn';
+  }
+
+  @override
+  String get caroWidgetTurnShort => 'Your caro move';
+
+  @override
+  String get caroTourTitle => 'Turn-based caro';
+
+  @override
+  String get caroTourBody =>
+      'Take turns whenever you have a minute, all day if you like. Every win adds to your shared score.';
 }

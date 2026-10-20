@@ -7470,6 +7470,834 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} re-spun: {result}'**
   String notifDecisionRespin(String name, String result);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Play together'**
+  String get caroPlayTogetherTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Caro'**
+  String get caroGameTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} started a game and made the first move.'**
+  String caroEntryInvited(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your turn. {name} just played move {n}.'**
+  String caroEntryMyTurn(String name, String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name}. You played move {n} at {time}.'**
+  String caroEntryWaiting(String name, String n, String time);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name}, who has the game open.'**
+  String caroEntryWatching(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'No moves for {days} days. Open it to end the game.'**
+  String caroEntryStale(String days);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} won the last game. {score}.'**
+  String caroEntryJustLost(String name, String score);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You won the last game. {score}.'**
+  String caroEntryJustWon(String score);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The last game was a draw. {score}.'**
+  String caroEntryJustDraw(String score);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{score}. Another game with {name}?'**
+  String caroEntryIdle(String score, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Start a game with {name}. You go first.'**
+  String caroEntryFirst(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{me} {a}–{b} {partner}'**
+  String caroScore(String me, String a, String b, String partner);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{score}, {n} draws'**
+  String caroScoreDraws(String score, String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{a} – {b}'**
+  String caroScorePair(String a, String b);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get caroCtaJoin;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your move'**
+  String get caroCtaPlayOn;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Rematch'**
+  String get caroCtaRematch;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'New game'**
+  String get caroCtaNewGame;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get caroCtaInvite;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get caroCtaRetry;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Start a caro game with {name}'**
+  String caroNewTitle(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the rules for this game. You can switch next time.'**
+  String get caroNewSub;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked ends'**
+  String get caroRuleVn;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Five in a row wins, unless both ends are blocked by the other player.'**
+  String get caroRuleVnDesc;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Freestyle'**
+  String get caroRuleFree;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Any five in a row wins, even with both ends blocked.'**
+  String get caroRuleFreeDesc;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This doesn\'t win'**
+  String get caroRuleExampleNoWin;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This wins'**
+  String get caroRuleExampleWin;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'last time'**
+  String get caroRuleLastUsed;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You play X and your first piece goes in the centre. {name} gets the invite right away.'**
+  String caroNewFirstNote(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Invite {name}'**
+  String caroNewCta(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your own first square'**
+  String get caroNewPickFirst;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'CARO'**
+  String get caroBadge;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your turn'**
+  String get caroMyTurn;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} played move {n} at {time}.'**
+  String caroLastMove(String name, String n, String time);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name}'**
+  String caroWaiting(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You played move {n} at {time}. You can close the app, we\'ll tell you when {name} moves.'**
+  String caroYouMoved(String n, String time, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You played move {n} at {time}. {name} is looking at the board.'**
+  String caroPartnerWatching(String n, String time, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You played move {n} at {time}, {m} minutes ago.'**
+  String caroWaitedMin(String n, String time, String m);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You nudged {name} at {time}.'**
+  String caroNudged(String name, String time);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'wins'**
+  String get caroLaneWins;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'watching'**
+  String get caroLaneWatching;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'move {n}'**
+  String caroLaneMove(String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'new game'**
+  String get caroLaneNew;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} games'**
+  String caroLaneGames(String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'+1 this game'**
+  String get caroLanePlusOne;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a square'**
+  String get caroPickCell;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Play here'**
+  String get caroPlayHere;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Playing…'**
+  String get caroSending;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'That move didn\'t go through. Your square is still selected.'**
+  String get caroSendError;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The board changed. Take another look before you move.'**
+  String get caroStaleBoard;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline. You can move once you\'re back.'**
+  String get caroOffline;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for connection'**
+  String get caroWaitNetwork;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the selected square again to play it, or pick another.'**
+  String get caroTapAgainHint;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Nudge {name}'**
+  String caroNudge(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You can nudge in {m} min'**
+  String caroNudgeIn(String m);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Nudged {name}'**
+  String caroNudgeSent(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} wants to play caro'**
+  String caroInvitedTitle(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} made the first move. Blocked ends: a five blocked at both ends doesn\'t win.'**
+  String caroInvitedSubVn(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} made the first move. Freestyle: any five in a row wins.'**
+  String caroInvitedSubFree(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get caroLater;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Place your first piece'**
+  String get caroFirstTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You play X and go first. {name} gets the invite after your move.'**
+  String caroFirstSub(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Invite {name}'**
+  String caroInviteCta(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'No moves for {days} days'**
+  String caroStaleTitle(String days);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody has moved since {date}. Nudge {name}, or end it and start over.'**
+  String caroStaleSub(String date, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'End game'**
+  String get caroEndGame;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You invited {name} yesterday at {time}.'**
+  String caroInvitedYesterday(String name, String time);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'If {name} can\'t see the game, their app may need an update.'**
+  String caroOldAppHint(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Loading game'**
+  String get caroLoading;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This game was cancelled'**
+  String get caroCancelledTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} chose Not now at {time}. Cancelled games don\'t count.'**
+  String caroCancelledSub(String name, String time);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This game has ended'**
+  String get caroExpiredTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody moved for 7 days, so it stopped here. It doesn\'t count.'**
+  String get caroExpiredSub;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'New game with {name}'**
+  String caroNewInviteCta(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Game history'**
+  String get caroHistoryTooltip;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{rule} rules, tap for details'**
+  String caroRuleTapHint(String rule);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Resign'**
+  String get caroResign;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The edge of the board doesn\'t count as a block.'**
+  String get caroRuleEdgeNote;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Leave it'**
+  String get caroEndKeep;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'End it'**
+  String get caroEndConfirm;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Resign this game?'**
+  String get caroResignTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gets the win. The score becomes {score}.'**
+  String caroResignBody(String name, String score);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep playing'**
+  String get caroKeepPlaying;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this game?'**
+  String get caroCancelTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'It won\'t count. {name} will see it was cancelled.'**
+  String caroCancelBody(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get caroCancelConfirm;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'End this game?'**
+  String get caroEndTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'It won\'t count, and you can start a new one.'**
+  String get caroEndBody;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in on the last move'**
+  String get caroZoomIn;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Show the whole board'**
+  String get caroZoomOut;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You won this game'**
+  String get caroYouWon;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} won this game'**
+  String caroPartnerWon(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Five in a row on move {n}, at {time}. The game took {span}.'**
+  String caroWinDetail(String n, String time, String span);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{h} hours'**
+  String caroSpanHours(String h);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{m} minutes'**
+  String caroSpanMinutes(String m);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} resigned'**
+  String caroPartnerResigned(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You win this one, on move {n}.'**
+  String caroPartnerResignedSub(String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You resigned'**
+  String get caroYouResigned;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gets the win.'**
+  String caroYouResignedSub(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This game is a draw'**
+  String get caroDraw;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'All 225 squares are full and nobody won.'**
+  String get caroDrawSub;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'See game history'**
+  String get caroSeeHistory;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'CARO HISTORY'**
+  String get caroHistoryBadge;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} leads by {n}'**
+  String caroLeads(String name, String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Tied at {a}–{a}'**
+  String caroTied(String a);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} games since {date}. {name} won the last one {when}.'**
+  String caroHistorySub(String n, String date, String name, String when);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} games since {date}. The last one was a draw {when}.'**
+  String caroHistorySubDraw(String n, String date, String when);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get caroWhenToday;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get caroWhenYesterday;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'on {date}'**
+  String caroWhenOn(String date);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get caroDateToday;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get caroDateYesterday;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} won'**
+  String caroRowWon(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get caroRowDraw;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Five in a row, {n} moves'**
+  String caroRowFive(String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} resigned on move {n}'**
+  String caroRowResign(String name, String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Board full, 225 moves'**
+  String get caroRowFull;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'. Freestyle'**
+  String get caroRowFreeSuffix;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'No finished games yet'**
+  String get caroHistoryEmpty;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your first game is waiting. The score starts at 0–0.'**
+  String get caroHistoryEmptySub;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Open current game'**
+  String get caroOpenCurrent;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Start a game with {name}'**
+  String caroStartWith(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load older games.'**
+  String get caroHistoryPageError;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'GAME {date}'**
+  String caroReplayBadge(String date);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Row {r}, column {c}, empty'**
+  String caroCellEmpty(String r, String c);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Row {r}, column {c}, {name}\'s X'**
+  String caroCellX(String r, String c, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Row {r}, column {c}, {name}\'s O'**
+  String caroCellO(String r, String c, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **', last move'**
+  String get caroCellLast;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **', selected'**
+  String get caroCellSelected;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **', part of the winning line'**
+  String get caroCellWinning;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} started a game of caro'**
+  String caroNotifInvite(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'They made the first move. Your turn.'**
+  String get caroNotifInviteBody;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} moved in caro, your turn'**
+  String caroWidgetTurn(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your caro move'**
+  String get caroWidgetTurnShort;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn-based caro'**
+  String get caroTourTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Take turns whenever you have a minute, all day if you like. Every win adds to your shared score.'**
+  String get caroTourBody;
 }
 
 class _AppLocalizationsDelegate
