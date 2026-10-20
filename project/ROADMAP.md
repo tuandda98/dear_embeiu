@@ -39,7 +39,7 @@
 
 | Feature | Ưu tiên | Trạng thái | Spec / Roadmap riêng |
 |---------|---------|-----------|----------------------|
-| 💗 **poke (Chọc 1 chạm)** | P0 | 📋 **Spec xong 2026-10-20** (đợt 2 "mở app mỗi ngày", nhánh `feature/daily-open-2`) — chạm tim ở Home hoặc NÚT TIM TRÊN WIDGET (iOS 17+, Android) gửi thẳng không mở app; đếm "nhớ nhau N lần", push gộp 1 dòng, đêm vẫn báo; endpoint HTTPS + token thiết bị. Chờ thiết kế (nhận diện v2). | [spec](features/poke/overview.md) · [roadmap](features/poke/roadmap.md) |
+| 💗 **poke (Chọc 1 chạm)** | — | ⛔ **Huỷ 2026-10-20** — làm xong spec + thiết kế thì user bỏ: "xoá cái chạm, không phù hợp". | [spec](features/poke/overview.md) |
 | ⭕ **caro-game (Cờ caro theo lượt)** | P1 | 📋 **Spec xong 2026-10-20** — bàn 15×15, công tắc luật mỗi ván ("Chặn hai đầu"/"Tự do"), callable `caroAction` kiểm nước, 1 ván/cặp, push "đến lượt" gộp theo ván. Chờ thiết kế. | [spec](features/caro-game/overview.md) · [roadmap](features/caro-game/roadmap.md) |
 | 🌦️ **weather (Thời tiết hai nơi)** | P1 | 📋 **Spec xong 2026-10-20** — MET Norway qua CF (cache theo thành phố), chọn thành phố tay, nút gợi ý mở Quan tâm soạn sẵn, nhắc sáng 7:30 (id 1160, ≤3 lần/tuần). Chờ thiết kế. | [spec](features/weather/overview.md) · [roadmap](features/weather/roadmap.md) |
 | 🏠 **arrival (Về đến nhà chưa)** | P1 | 📋 **Spec xong 2026-10-20** — geofence ≤3 địa điểm, chỉ báo khi đến, toạ độ chỉ trên máy, mỗi người tự bật; user chốt phát hành CHUNG cả 2 nền tảng (kế hoạch B khi Play từ chối quyền vị trí nền). Chờ thiết kế. | [spec](features/arrival/overview.md) · [roadmap](features/arrival/roadmap.md) |

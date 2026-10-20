@@ -1,3 +1,5 @@
+> ⛔ **ĐÃ HUỶ 2026-10-20.** User xem mockup rồi chốt: "xoá cái chạm, không phù hợp" → bỏ hẳn tính năng Chọc 1 chạm (không tim ở Home, widget, thông báo). Giữ spec để tham khảo; không code.
+
 # Chọc 1 chạm — chạm tim là người ấy biết mình đang nhớ
 
 > File PO sở hữu. Nguồn sự thật chung cho cả feature. Designer/Dev/Tester đọc file này trước.
@@ -232,3 +234,4 @@
 ## 12. Changelog feature
 - [2026-10-20] [PO] Tạo feature `poke` trong đợt "mở app mỗi ngày" lần 2 (user chọn 5 hướng: poke · caro-game · weather · arrival · expenses). User chốt D1 (gửi từ Home + widget, không mở app) và D2 (đêm vẫn báo). PO chốt D3–D17: doc đếm theo ngày + endpoint HTTPS duy nhất bằng token thiết bị lưu hash; push gộp `collapse-id`/`tag`; đánh thức ≤1 lần/15 phút/người nhận; loại trạng thái widget `poke` theo luật "mới nhất thắng"; inbox 1 mục/ngày/người gửi; iOS 15–16 không có tim trên widget. Mở 2 câu hỏi Q1 (công tắc) + Q2 (iOS < 17). Chờ user duyệt spec.
 - [2026-10-20] [Lead] Chốt Q1 (có công tắc, mặc định bật) + Q2 (iOS 15–16 chỉ chạm trong app); đã báo user.
+- [2026-10-20] [Lead] User bỏ hẳn tính năng (xem mockup Home: "xoá cái chạm, không phù hợp"). Feature dừng ở bước thiết kế.
