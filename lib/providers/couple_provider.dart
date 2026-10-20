@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/couple.dart';
+import '../models/money.dart';
 import '../services/analytics_service.dart';
 import '../services/couple_service.dart';
 import '../services/storage_service.dart';
+import 'money_provider.dart';
 
 class CoupleProvider extends ChangeNotifier {
   CoupleProvider({CoupleService? coupleService})
@@ -272,6 +274,9 @@ class CoupleProvider extends ChangeNotifier {
     _isLeaving = true;
 
     try {
+      // Sổ tiền: shared deletes in their undo window go out while still a
+      // member (bounded, best effort).
+      await MoneyProvider.flushPendingDeletes(MoneyBookKind.shared);
       final updatedUser = await _coupleService.leaveCouple(currentUser: currentUser);
       await _coupleSubscription?.cancel();
       _coupleSubscription = null;

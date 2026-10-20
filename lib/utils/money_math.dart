@@ -1,5 +1,11 @@
 import '../models/money.dart';
 
+/// A write made on this phone that the server sums may not include yet
+/// (review stage 1, #2). [before] = the version the sums count (null = the
+/// entry is not on the server), [after] = the version on this phone now
+/// (null = deleted, or hidden in its undo window).
+typedef MoneyLocalWrite = ({MoneyTx? before, MoneyTx? after});
+
 /// Month totals of one book (D7). [left] = income − spent ("Thu trừ chi").
 class MoneyMonthTotals {
   const MoneyMonthTotals(this.expense, this.income);
@@ -162,12 +168,20 @@ class MoneyMath {
     return out;
   }
 
-  /// What the entries still waiting for the network add to [walletId]: the
-  /// server aggregate can't see them yet (D19 offline, design §4).
-  static int pendingDelta(Iterable<MoneyTx> txs, String walletId) {
+  /// What [writes] change on top of a server sum (D19 offline, design §4):
+  /// Σ measure(after) − Σ measure(before). A new entry adds itself, an edit
+  /// adds only the difference (100k → 120k = −20k, not −120k), a delete
+  /// takes back what the server still counts, and a new entry deleted in
+  /// its undo window changes nothing. [measure] = `t.deltaFor(walletId)` for
+  /// a wallet, or the entry's part of [coupleBalance].
+  static int localCorrection(
+    Iterable<MoneyLocalWrite> writes,
+    int Function(MoneyTx t) measure,
+  ) {
     var sum = 0;
-    for (final t in txs) {
-      if (t.pending) sum += t.deltaFor(walletId);
+    for (final w in writes) {
+      if (w.after != null) sum += measure(w.after!);
+      if (w.before != null) sum -= measure(w.before!);
     }
     return sum;
   }
@@ -278,6 +292,16 @@ class MoneyMath {
     return sum;
   }
 
+  /// [coupleBalance] from the server's aggregate `sum()` per payer
+  /// (expenses + settlements): what each of us covered for the other is
+  /// amount − payerShare.
+  static int coupleBalanceFromSums({
+    required int mineAmount,
+    required int mineShare,
+    required int partnerAmount,
+    required int partnerShare,
+  }) => (mineAmount - mineShare) - (partnerAmount - partnerShare);
+
   /// The settlement that evens out [balance] (from [coupleBalance]): the
   /// person who covered less pays the difference. null when already even.
   static ({String payer, int amount})? settlementFor(
@@ -321,11 +345,24 @@ class MoneyMath {
     return out;
   }
 
+  /// The other half of [tx]'s link (D11) among [others] (the other book).
+  /// Both halves are always written by [me] in one batch, so a shared entry
+  /// the partner made with the same `linkId` is never it (review #7).
+  static MoneyTx? linkedHalf(Iterable<MoneyTx> others, MoneyTx tx, String me) {
+    final linkId = tx.linkId;
+    if (linkId == null) return null;
+    for (final t in others) {
+      if (t.linkId == linkId && t.createdBy == me) return t;
+    }
+    return null;
+  }
+
   /// The partner changed the shared side of a linked pair (D11): the shared
   /// amount when it no longer matches [own], else null.
   static int? linkedDrift(MoneyTx own, MoneyTx? shared) =>
       shared != null &&
           shared.linkId == own.linkId &&
+          shared.createdBy == own.createdBy &&
           shared.amount != own.amount
       ? shared.amount
       : null;

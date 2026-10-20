@@ -10,12 +10,11 @@ import '../models/money.dart';
 import '../services/money_service.dart';
 import '../utils/money_math.dart';
 
-/// Live state of one book. Own book: entries of the last ~45 days (always
-/// the whole current month) + wallet balances from aggregate `sum()`
-/// (cached in Hive). Shared book: the pair's WHOLE history — the couple
-/// balance adds up from the very first entry (D7), and at 15–40 entries a
-/// month that is small (overview §8 accepts it for mốc A) — so its wallet
-/// balances, trend and search come straight from that list, offline too.
+/// Live state of one book, the same for both: entries of the last ~45 days
+/// (always the whole current month) + wallet balances (and, shared book,
+/// the couple balance) from aggregate `sum()` over the whole history,
+/// cached in Hive. Review #4: the shared book no longer listens to its
+/// whole history (500 entries = 500 reads per reopen).
 class MoneyBookState {
   MoneyBookState(this.service);
 
@@ -30,13 +29,16 @@ class MoneyBookState {
   List<MoneyTx> txs = const <MoneyTx>[];
   bool txLoaded = false;
 
-  /// Own book: first date of the live window.
+  /// First date of the live window.
   String? windowFrom;
   List<MoneyBudget> budgets = const <MoneyBudget>[];
   MoneyMeta meta = MoneyMeta.empty;
 
-  /// Own book: Σ in − Σ out per wallet (server aggregate, or the Hive copy).
+  /// Σ in − Σ out per wallet (server aggregate, or the Hive copy).
   Map<String, int> netSums = const <String, int>{};
+
+  /// Shared book: [MoneyMath.coupleBalance] of the server's history.
+  int coupleNet = 0;
   DateTime? netSumsAt;
 
   /// The last aggregate failed (offline): balances are cache + pending.
@@ -46,7 +48,7 @@ class MoneyBookState {
   DateTime? lastSyncAt;
   Object? loadError;
 
-  /// Own book, a month older than the live window.
+  /// A month older than the live window.
   String? viewMonth;
   List<MoneyTx>? viewTxs;
 
@@ -82,6 +84,19 @@ class MoneyBookState {
   }
 }
 
+/// One entry this phone wrote ([seq] writes so far, [acked] of them
+/// confirmed by the server) — kept until a server sum that started after
+/// the last ack has replaced it (review #2).
+class _LocalWrite {
+  _LocalWrite(this.kind, this.before);
+
+  final MoneyBookKind kind;
+  final MoneyTx? before;
+  MoneyTx? after;
+  int seq = 0;
+  int acked = 0;
+}
+
 /// Sổ tiền (feature expenses): the own book (wired at sign-in, works with or
 /// without a partner) and the shared book (only while the couple is active).
 /// `session_resolver` calls [watchOwn] / [watchShared] / [clearShared] /
@@ -92,7 +107,29 @@ class MoneyBookState {
 /// in one batch (both books when an entry is linked, D11) and return as soon
 /// as Firestore queued them; a later refusal lands in [lastWriteError].
 class MoneyProvider extends ChangeNotifier {
-  MoneyProvider({DateTime Function()? clock}) : _clock = clock ?? DateTime.now;
+  MoneyProvider({DateTime Function()? clock}) : _clock = clock ?? DateTime.now {
+    _current = this;
+  }
+
+  /// The live provider, for [flushPendingDeletes] (AuthProvider /
+  /// CoupleProvider hold no BuildContext).
+  static MoneyProvider? _current;
+
+  /// Sends the deletes still in their undo window and waits for the server
+  /// (≤ ~5 s) — call BEFORE signing out ([kind] null) or leaving the couple
+  /// ([MoneyBookKind.shared]); after that the rules refuse them (review #9).
+  /// Offline they stay in Firestore's queue for this account.
+  static Future<void> flushPendingDeletes([MoneyBookKind? kind]) async {
+    final p = _current;
+    if (p == null) return;
+    try {
+      await Future.wait(
+        p._flushDeletes(kind),
+      ).timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Best effort: never block a sign-out on it.
+    }
+  }
 
   final DateTime Function() _clock;
 
@@ -111,6 +148,10 @@ class MoneyProvider extends ChangeNotifier {
     ({MoneyBookKind kind, MoneyTx tx, MoneyTx? linked, Timer timer})
   >
   _pendingDeletes = {};
+
+  /// 'own/{txId}' or 'shared/{txId}' → writes the server sums may not count
+  /// yet.
+  final Map<String, _LocalWrite> _localWrites = {};
 
   String? get uid => _uid;
   MoneyBookState? get own => _own;
@@ -135,10 +176,69 @@ class MoneyProvider extends ChangeNotifier {
     _lastWriteError = null;
   }
 
-  void _onLateError(MoneyWriteError e) {
+  /// Late refusals of a book that is gone (signed out, left the couple)
+  /// are dropped: they belong to the previous session (review #9).
+  void Function(MoneyWriteError) _lateErrorFor(MoneyBookState s) => (e) {
+    if (!identical(book(s.kind), s)) return;
     _lastWriteError = e;
     notifyListeners();
+  };
+
+  /// Notes [now] (null = deleted) as the latest local version of [id], over
+  /// [old] (what the server sums count; null = a new entry). Returns the
+  /// write's number for [_ackFor].
+  (String, int) _track(
+    MoneyBookKind kind,
+    String id, {
+    MoneyTx? old,
+    required MoneyTx? now,
+  }) {
+    final key = '${kind.name}/$id';
+    final w = _localWrites[key] ??= _LocalWrite(kind, old);
+    w.after = now;
+    return (key, ++w.seq);
   }
+
+  /// [MoneyService.commit] `onDone` for the writes in [marks].
+  void Function(Object?) _ackFor(List<(String, int)> marks) => (error) {
+    for (final (key, seq) in marks) {
+      final w = _localWrites[key];
+      if (w == null) continue;
+      if (error == null) {
+        if (seq > w.acked) w.acked = seq;
+      } else if (w.seq == seq) {
+        _localWrites.remove(key); // refused → Firestore rolled it back
+      }
+    }
+    for (final s in [_own, _shared]) {
+      if (s != null) _scheduleSums(s);
+    }
+    notifyListeners();
+  };
+
+  /// The local writes of [kind] (+ entries hidden in their undo window)
+  /// as [MoneyLocalWrite]s for [MoneyMath.localCorrection].
+  List<MoneyLocalWrite> _localWritesOf(MoneyBookKind kind) {
+    final out = <MoneyLocalWrite>[];
+    final seen = <String>{};
+    for (final e in _localWrites.entries) {
+      final w = e.value;
+      if (w.kind != kind) continue;
+      final id = e.key.substring(kind.name.length + 1);
+      seen.add(id);
+      final hidden = _pendingDeletes[id]?.kind == kind;
+      out.add((before: w.before, after: hidden ? null : w.after));
+    }
+    for (final d in _pendingDeletes.values) {
+      if (d.kind == kind && !seen.contains(d.tx.id)) {
+        out.add((before: d.tx, after: null));
+      }
+    }
+    return out;
+  }
+
+  void _dropLocalWrites(MoneyBookKind kind) =>
+      _localWrites.removeWhere((_, w) => w.kind == kind);
 
   /// Today's date key on this phone (default date of a new entry).
   String get today => MoneyMath.dateKey(_clock());
@@ -182,11 +282,13 @@ class MoneyProvider extends ChangeNotifier {
     final state = MoneyBookState(MoneyService.shared(coupleId, memberIds));
     _shared = state;
     _listen(state);
+    unawaited(_loadSumsCache(state));
     notifyListeners();
   }
 
   void clearShared({bool notify = true}) {
     _flushDeletes(MoneyBookKind.shared);
+    _dropLocalWrites(MoneyBookKind.shared);
     _shared?.dispose();
     _shared = null;
     _sharedCoupleId = null;
@@ -197,27 +299,29 @@ class MoneyProvider extends ChangeNotifier {
   /// cached balances on this phone).
   void clear({bool signedOut = false}) {
     _flushDeletes(null);
-    final uid = _uid;
+    _dropLocalWrites(MoneyBookKind.own);
     _own?.dispose();
     _own = null;
     clearShared(notify: false);
     _uid = null;
     _lastWriteError = null;
-    if (signedOut && uid != null) unawaited(_dropSumsCache(uid));
+    if (signedOut) unawaited(_dropSumsCache());
     notifyListeners();
   }
 
-  /// Own book: re-subscribe when the day rolled over and the window moved.
+  /// Day rolled over / app resumed: move the live windows, and re-read the
+  /// sums (the partner may have edited an entry older than the window).
   void refreshDay() {
-    final state = _own;
-    if (state != null && state.windowFrom != _ownWindowFrom()) {
-      _listenTx(state);
+    for (final s in [_own, _shared]) {
+      if (s == null) continue;
+      if (s.windowFrom != _windowFrom()) _listenTx(s);
+      _scheduleSums(s);
     }
   }
 
-  /// First day of the own book's live window: ≥ 44 days back and never
-  /// after the 1st of this month.
-  String _ownWindowFrom() {
+  /// First day of a book's live window: ≥ 44 days back and never after the
+  /// 1st of this month.
+  String _windowFrom() {
     final now = _clock();
     final back = MoneyMath.dateKey(now.subtract(const Duration(days: 44)));
     final monthStart = '${MoneyMath.monthKey(now)}-01';
@@ -255,7 +359,7 @@ class MoneyProvider extends ChangeNotifier {
 
   void _listenTx(MoneyBookState s) {
     s.txSub?.cancel();
-    s.windowFrom = s.isShared ? null : _ownWindowFrom();
+    s.windowFrom = _windowFrom();
     s.txSub = s.service
         .watchTx(from: s.windowFrom)
         .listen(
@@ -279,7 +383,6 @@ class MoneyProvider extends ChangeNotifier {
   // ---- balances ------------------------------------------------------------
 
   void _scheduleSums(MoneyBookState s) {
-    if (s.isShared) return; // computed from the full list
     s.sumsDebounce?.cancel();
     s.sumsDebounce = Timer(
       const Duration(milliseconds: 600),
@@ -288,19 +391,51 @@ class MoneyProvider extends ChangeNotifier {
   }
 
   Future<void> _refreshSums(MoneyBookState s) async {
-    if (s.wallets.isEmpty) return;
+    final uid = _uid;
+    if (uid == null || (!s.isShared && s.wallets.isEmpty)) return;
+    // Writes the server had confirmed before these sums started are in them.
+    final settled = [
+      for (final e in _localWrites.entries)
+        if (e.value.kind == s.kind && e.value.acked == e.value.seq)
+          (e.key, e.value, e.value.seq),
+    ];
     try {
-      final sums = await s.service.walletNetSums(s.wallets.map((w) => w.id));
-      if (!identical(_own, s)) return;
+      final sumsF = s.service.walletNetSums(s.wallets.map((w) => w.id));
+      final coupleF = s.isShared ? _coupleNet(s, uid) : Future.value(0);
+      final (sums, couple) = await (sumsF, coupleF).wait;
+      if (!identical(book(s.kind), s)) return;
       s.netSums = sums;
+      s.coupleNet = couple;
       s.netSumsAt = _clock();
       s.netSumsStale = false;
+      for (final (key, w, seq) in settled) {
+        if (identical(_localWrites[key], w) && w.seq == seq) {
+          _localWrites.remove(key);
+        }
+      }
       unawaited(_saveSumsCache(s));
     } catch (_) {
-      if (!identical(_own, s)) return;
+      if (!identical(book(s.kind), s)) return;
       s.netSumsStale = true; // offline: keep the cached sums
     }
     notifyListeners();
+  }
+
+  Future<int> _coupleNet(MoneyBookState s, String uid) async {
+    final partner = s.service.memberUids.firstWhere(
+      (id) => id != uid,
+      orElse: () => '',
+    );
+    final (mine, theirs) = await (
+      s.service.paidSums(uid),
+      s.service.paidSums(partner),
+    ).wait;
+    return MoneyMath.coupleBalanceFromSums(
+      mineAmount: mine.amount,
+      mineShare: mine.share,
+      partnerAmount: theirs.amount,
+      partnerShare: theirs.share,
+    );
   }
 
   /// Entries of [kind] minus the ones in their undo window: a deleted entry
@@ -315,32 +450,36 @@ class MoneyProvider extends ChangeNotifier {
     ];
   }
 
-  /// Current balance of every wallet of [kind] (archived ones included).
+  /// Current balance of every wallet of [kind] (archived ones included):
+  /// server sum (or its cached copy) + this phone's writes the sum may not
+  /// count yet − entries in their undo window.
   Map<String, int> balances(MoneyBookKind kind) {
     final s = book(kind);
     if (s == null) return const <String, int>{};
-    final visible = visibleTxs(kind);
-    if (s.isShared) return MoneyMath.balancesFrom(s.wallets, visible);
-    final hidden = [
-      for (final d in _pendingDeletes.values)
-        if (d.kind == kind) d.tx,
-    ];
+    final local = _localWritesOf(kind);
     return {
       for (final w in s.wallets)
         w.id:
             w.openingBalance +
             (s.netSums[w.id] ?? 0) +
-            MoneyMath.pendingDelta(visible, w.id) -
-            hidden.fold<int>(0, (sum, t) => sum + t.deltaFor(w.id)),
+            MoneyMath.localCorrection(local, (t) => t.deltaFor(w.id)),
     };
   }
 
-  /// Own book: balances are known (server aggregate or a cached copy).
-  bool balancesReady(MoneyBookKind kind) {
-    final s = book(kind);
-    if (s == null) return false;
-    return s.isShared ? s.txLoaded : s.netSumsAt != null;
+  /// Shared book, all time: positive = I covered more ([MoneyMath.
+  /// coupleBalance]). null until the sums (or their cached copy) are known.
+  int? coupleBalance() {
+    final s = _shared, uid = _uid;
+    if (s == null || uid == null || s.netSumsAt == null) return null;
+    return s.coupleNet +
+        MoneyMath.localCorrection(
+          _localWritesOf(MoneyBookKind.shared),
+          (t) => MoneyMath.coupleBalance([t], uid),
+        );
   }
+
+  /// Balances are known (server aggregate or a cached copy).
+  bool balancesReady(MoneyBookKind kind) => book(kind)?.netSumsAt != null;
 
   int totalAssets(MoneyBookKind kind) {
     final s = book(kind);
@@ -474,13 +613,19 @@ class MoneyProvider extends ChangeNotifier {
       mine = _ownSideOf(tx, ownWalletId, linkId: linkId, me: uid);
       if (mine != null) tx = tx.copyWith(linkId: linkId);
     }
+    final ops = [
+      s.service.createTxOp(tx, uid: uid),
+      if (mine != null) own!.service.createTxOp(mine, uid: uid),
+    ];
+    final marks = [
+      _track(kind, tx.id, now: tx),
+      if (mine != null) _track(MoneyBookKind.own, mine.id, now: mine),
+    ];
     return s.service.commit(
-      [
-        s.service.createTxOp(tx, uid: uid),
-        if (mine != null) own!.service.createTxOp(mine, uid: uid),
-      ],
+      ops,
       docId: tx.id,
-      onLateError: _onLateError,
+      onLateError: _lateErrorFor(s),
+      onDone: _ackFor(marks),
     );
   }
 
@@ -572,16 +717,15 @@ class MoneyProvider extends ChangeNotifier {
 
   /// The other half of a linked entry (from memory, else one query).
   Future<MoneyTx?> linkedOf(MoneyBookKind kind, MoneyTx tx) async {
-    final linkId = tx.linkId;
+    final linkId = tx.linkId, uid = _uid;
     final other = book(
       kind == MoneyBookKind.own ? MoneyBookKind.shared : MoneyBookKind.own,
     );
-    if (linkId == null || other == null) return null;
-    for (final t in other.txs) {
-      if (t.linkId == linkId) return t;
-    }
+    if (linkId == null || other == null || uid == null) return null;
+    final inMemory = MoneyMath.linkedHalf(other.txs, tx, uid);
+    if (inMemory != null) return inMemory;
     try {
-      return await other.service.findByLinkId(linkId);
+      return await other.service.findByLinkId(linkId, createdBy: uid);
     } catch (_) {
       return null;
     }
@@ -589,13 +733,15 @@ class MoneyProvider extends ChangeNotifier {
 
   /// The shared side of a linked own entry changed amount ("Khoản chung đã
   /// đổi thành 520k · Cập nhật?"): the new shared amount, else null. Only
-  /// looks in memory (the shared book is fully loaded).
+  /// looks in memory: both halves carry the same date, so the half of an
+  /// own entry in the live window is in the shared window too.
   int? linkedDrift(MoneyTx ownTx) {
-    final linkId = ownTx.linkId;
-    final s = _shared;
-    if (linkId == null || s == null) return null;
-    final match = s.txs.where((t) => t.linkId == linkId).firstOrNull;
-    return MoneyMath.linkedDrift(ownTx, match);
+    final s = _shared, uid = _uid;
+    if (s == null || uid == null) return null;
+    return MoneyMath.linkedDrift(
+      ownTx,
+      MoneyMath.linkedHalf(s.txs, ownTx, uid),
+    );
   }
 
   /// Saves an edit. [alsoLinked] ("Sửa cả hai") mirrors amount / date /
@@ -618,28 +764,34 @@ class MoneyProvider extends ChangeNotifier {
                 ? MoneyBookKind.shared
                 : MoneyBookKind.own,
           );
+    final linkedUpdated = linked == null || otherBook == null
+        ? null
+        : linked.copyWith(
+            amount: updated.amount,
+            date: updated.date,
+            note: updated.note,
+            categoryId: linked.type == MoneyTxType.expense
+                ? updated.categoryId
+                : linked.categoryId,
+            payerShare: linked.memberUids.isEmpty
+                ? null
+                : _rescaledShare(linked, updated.amount),
+          );
+    final ops = [
+      s.service.updateTxOp(old, updated, uid: uid),
+      if (linkedUpdated != null)
+        otherBook!.service.updateTxOp(linked!, linkedUpdated, uid: uid),
+    ];
+    final marks = [
+      _track(kind, old.id, old: old, now: updated),
+      if (linkedUpdated != null)
+        _track(otherBook!.kind, linked!.id, old: linked, now: linkedUpdated),
+    ];
     return s.service.commit(
-      [
-        s.service.updateTxOp(old, updated, uid: uid),
-        if (linked != null && otherBook != null)
-          otherBook.service.updateTxOp(
-            linked,
-            linked.copyWith(
-              amount: updated.amount,
-              date: updated.date,
-              note: updated.note,
-              categoryId: linked.type == MoneyTxType.expense
-                  ? updated.categoryId
-                  : linked.categoryId,
-              payerShare: linked.memberUids.isEmpty
-                  ? null
-                  : _rescaledShare(linked, updated.amount),
-            ),
-            uid: uid,
-          ),
-      ],
+      ops,
       docId: old.id,
-      onLateError: _onLateError,
+      onLateError: _lateErrorFor(s),
+      onDone: _ackFor(marks),
     );
   }
 
@@ -670,7 +822,7 @@ class MoneyProvider extends ChangeNotifier {
       kind: kind,
       tx: tx,
       linked: alsoLinked,
-      timer: Timer(deleteDelay, () => _commitDelete(tx.id)),
+      timer: Timer(deleteDelay, () => unawaited(_commitDelete(tx.id))),
     );
     notifyListeners();
   }
@@ -686,7 +838,7 @@ class MoneyProvider extends ChangeNotifier {
 
   bool isDeleting(String txId) => _pendingDeletes.containsKey(txId);
 
-  void _commitDelete(String txId) {
+  Future<void> _commitDelete(String txId) async {
     final d = _pendingDeletes.remove(txId);
     if (d == null) return;
     final s = book(d.kind);
@@ -698,35 +850,43 @@ class MoneyProvider extends ChangeNotifier {
                 ? MoneyBookKind.shared
                 : MoneyBookKind.own,
           );
-    if (s != null) {
-      unawaited(
-        s.service
-            .commit(
-              [
-                s.service.deleteTxOp(txId),
-                if (linked != null && otherBook != null)
-                  otherBook.service.deleteTxOp(linked.id),
-              ],
-              docId: txId,
-              onLateError: _onLateError,
-            )
-            .catchError((Object e) {
-              _onLateError(MoneyWriteError(d.kind, txId, e));
-              return MoneyWriteOutcome.queued;
-            }),
-      );
+    if (s == null) {
+      notifyListeners();
+      return;
     }
+    final late = _lateErrorFor(s);
+    final marks = [
+      _track(d.kind, txId, old: d.tx, now: null),
+      if (linked != null && otherBook != null)
+        _track(otherBook.kind, linked.id, old: linked, now: null),
+    ];
     notifyListeners();
+    try {
+      await s.service.commit(
+        [
+          s.service.deleteTxOp(txId),
+          if (linked != null && otherBook != null)
+            otherBook.service.deleteTxOp(linked.id),
+        ],
+        docId: txId,
+        onLateError: late,
+        onDone: _ackFor(marks),
+      );
+    } catch (e) {
+      late(MoneyWriteError(d.kind, txId, e));
+    }
   }
 
   /// Leaving a book (sign-out / partner left): send the deletes now.
-  void _flushDeletes(MoneyBookKind? kind) {
+  List<Future<void>> _flushDeletes(MoneyBookKind? kind) {
+    final sent = <Future<void>>[];
     for (final id in _pendingDeletes.keys.toList()) {
       final d = _pendingDeletes[id]!;
       if (kind != null && d.kind != kind) continue;
       d.timer.cancel();
-      _commitDelete(id);
+      sent.add(_commitDelete(id));
     }
+    return sent;
   }
 
   // ---- defaults when adding (design §15) -----------------------------------
@@ -772,7 +932,7 @@ class MoneyProvider extends ChangeNotifier {
     final s = book(kind);
     if (s == null) return null;
     final from = s.windowFrom;
-    if (s.isShared || (from != null && '$month-01'.compareTo(from) >= 0)) {
+    if (from != null && '$month-01'.compareTo(from) >= 0) {
       return [
         for (final t in visibleTxs(kind))
           if (t.month == month) t,
@@ -790,10 +950,10 @@ class MoneyProvider extends ChangeNotifier {
     return null;
   }
 
-  /// Own book: live-load a month older than the window.
+  /// Live-load a month older than the window.
   void viewMonth(MoneyBookKind kind, String month) {
     final s = book(kind);
-    if (s == null || s.isShared || s.viewMonth == month) return;
+    if (s == null || s.viewMonth == month) return;
     final (from, to) = MoneyMath.monthRange(month);
     if (s.windowFrom != null && from.compareTo(s.windowFrom!) >= 0) return;
     s.viewSub?.cancel();
@@ -861,7 +1021,7 @@ class MoneyProvider extends ChangeNotifier {
   }
 
   /// Spent / earned per month for the last [n] months (oldest first). A
-  /// month that could not be loaded (offline, own book) is null — the chart
+  /// month that could not be loaded (offline) is null — the chart
   /// leaves it empty instead of drawing a fake 0.
   Future<Map<String, MoneyMonthTotals?>> trend(
     MoneyBookKind kind,
@@ -897,7 +1057,7 @@ class MoneyProvider extends ChangeNotifier {
   }
 
   /// Search over [from]..[to] (default 3 months, max 12 — the screen
-  /// decides): date bounds on the server (own book), everything else here.
+  /// decides): date bounds on the server, everything else here.
   /// `capped` = the 2.000-row limit was hit (design §3.9 notice).
   Future<({List<MoneyTx> rows, bool capped})> search(
     MoneyBookKind kind, {
@@ -912,15 +1072,11 @@ class MoneyProvider extends ChangeNotifier {
   }) async {
     final s = book(kind);
     if (s == null) return (rows: const <MoneyTx>[], capped: false);
-    final source = s.isShared
-        ? [
-            for (final t in visibleTxs(kind))
-              if (t.date.compareTo(from) >= 0 && t.date.compareTo(to) <= 0) t,
-          ]
-        : [
-            for (final t in await s.service.fetchTx(from: from, to: to))
-              if (!_pendingDeletes.containsKey(t.id)) t,
-          ];
+    final fetched = await s.service.fetchTx(from: from, to: to);
+    final source = [
+      for (final t in fetched)
+        if (!_pendingDeletes.containsKey(t.id)) t,
+    ];
     final idx = s.categories;
     final rows = MoneyMath.search(
       source,
@@ -933,10 +1089,10 @@ class MoneyProvider extends ChangeNotifier {
       minAmount: minAmount,
       maxAmount: maxAmount,
     );
-    return (rows: rows, capped: !s.isShared && source.length >= 2000);
+    return (rows: rows, capped: fetched.length >= 2000);
   }
 
-  // ---- Hive cache of own-book sums (D19: open the app → numbers at once) ---
+  // ---- Hive cache of the sums (D19: open the app → numbers at once) --------
 
   Future<Box<String>?> _box() async {
     try {
@@ -948,15 +1104,23 @@ class MoneyProvider extends ChangeNotifier {
     }
   }
 
+  /// One entry per book (and per pair for the shared book).
+  static String _cacheKey(MoneyBookState s) => s.isShared
+      ? '${s.service.book.path}|${s.service.memberUids.join(',')}'
+      : s.service.book.path;
+
   Future<void> _loadSumsCache(MoneyBookState s) async {
-    final raw = (await _box())?.get('own_${_uid ?? ''}');
-    if (raw == null || !identical(_own, s) || s.netSumsAt != null) return;
+    final raw = (await _box())?.get(_cacheKey(s));
+    if (raw == null || !identical(book(s.kind), s) || s.netSumsAt != null) {
+      return;
+    }
     try {
       final json = jsonDecode(raw) as Map<String, dynamic>;
       s.netSums = {
         for (final e in (json['sums'] as Map<String, dynamic>).entries)
           e.key: (e.value as num).toInt(),
       };
+      s.coupleNet = (json['couple'] as num?)?.toInt() ?? 0;
       s.netSumsAt = DateTime.fromMillisecondsSinceEpoch(json['at'] as int);
       s.netSumsStale = true;
       notifyListeners();
@@ -966,20 +1130,26 @@ class MoneyProvider extends ChangeNotifier {
   }
 
   Future<void> _saveSumsCache(MoneyBookState s) async {
-    final at = s.netSumsAt, uid = _uid;
-    if (at == null || uid == null) return;
+    final at = s.netSumsAt;
+    if (at == null) return;
     await (await _box())?.put(
-      'own_$uid',
-      jsonEncode({'at': at.millisecondsSinceEpoch, 'sums': s.netSums}),
+      _cacheKey(s),
+      jsonEncode({
+        'at': at.millisecondsSinceEpoch,
+        'sums': s.netSums,
+        if (s.isShared) 'couple': s.coupleNet,
+      }),
     );
   }
 
-  Future<void> _dropSumsCache(String uid) async {
-    await (await _box())?.delete('own_$uid');
+  /// Signed out: this phone forgets every cached money number.
+  Future<void> _dropSumsCache() async {
+    await (await _box())?.clear();
   }
 
   @override
   void dispose() {
+    if (identical(_current, this)) _current = null;
     for (final d in _pendingDeletes.values) {
       d.timer.cancel();
     }

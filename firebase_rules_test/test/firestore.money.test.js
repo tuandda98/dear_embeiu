@@ -19,6 +19,8 @@ const {
   query,
   where,
   serverTimestamp,
+  getAggregateFromServer,
+  sum,
 } = require('firebase/firestore');
 const {
   assertSucceeds,
@@ -348,6 +350,27 @@ describe('firestore: money — shared book', () => {
       where('memberUids', '==', PAIR), where('date', '>=', '2026-10-01'));
     await assertSucceeds(getDocs(q));
     await assertFails(getDocs(collection(authedDb('dave'), 'couples/c1/moneyTx')));
+  });
+
+  it('the balance sums (aggregate per payer / per wallet) work for the pair only', async () => {
+    await seedDoc(T, stored(sharedExpense('alice', {amount: 480000, payerShare: 240000})));
+    await seedDoc(SH('moneyTx', 's2'), stored(sharedExpense('bob', {type: 'settle', categoryId: '',
+      splitMode: 'none', payerShare: 0, amount: 100000})));
+    const paid = (db, who) => getAggregateFromServer(query(collection(db, 'couples/c1/moneyTx'),
+      where('memberUids', '==', PAIR), where('type', 'in', ['expense', 'settle']), where('payer', '==', who)),
+    {amount: sum('amount'), share: sum('payerShare')});
+    const mine = await assertSucceeds(paid(authedDb('bob'), 'alice'));
+    if (mine.data().amount !== 480000 || mine.data().share !== 240000) {
+      throw new Error(`alice sums ${JSON.stringify(mine.data())}`);
+    }
+    const theirs = await assertSucceeds(paid(authedDb('alice'), 'bob'));
+    if (theirs.data().amount !== 100000) throw new Error(`bob sums ${JSON.stringify(theirs.data())}`);
+    await assertSucceeds(getAggregateFromServer(query(collection(authedDb('alice'), 'couples/c1/moneyTx'),
+      where('memberUids', '==', PAIR), where('outWalletId', '==', 'joint')), {t: sum('amount')}));
+    await assertFails(paid(authedDb('dave'), 'alice'));
+    // Without the pair filter the rules cannot prove access.
+    await assertFails(getAggregateFromServer(query(collection(authedDb('alice'), 'couples/c1/moneyTx'),
+      where('payer', '==', 'alice')), {t: sum('amount')}));
   });
 
   it('someone who joins later cannot read the old pair\'s money; the one who stayed can', async () => {

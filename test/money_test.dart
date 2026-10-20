@@ -4,6 +4,7 @@
 import 'package:dear_embeiu/data/money_categories.dart';
 import 'package:dear_embeiu/l10n/app_localizations.dart';
 import 'package:dear_embeiu/models/money.dart';
+import 'package:dear_embeiu/providers/money_provider.dart';
 import 'package:dear_embeiu/utils/money_input.dart';
 import 'package:dear_embeiu/utils/money_math.dart';
 import 'package:flutter/widgets.dart';
@@ -27,6 +28,7 @@ MoneyTx tx(
   bool shared = false,
   bool pending = false,
   String? linkId,
+  String by = '',
 }) => MoneyTx(
   id: id,
   type: type,
@@ -42,6 +44,7 @@ MoneyTx tx(
   memberUids: shared ? members : const [],
   pending: pending,
   linkId: linkId,
+  createdBy: by,
 );
 
 const e = MoneyTxType.expense;
@@ -450,22 +453,60 @@ void main() {
       },
     );
 
-    test('pending entries add on top of a cached aggregate', () {
-      final p = [
-        tx('p1', '2026-10-20', e, 35000, out: 'momo', pending: true),
-        tx(
-          'p2',
-          '2026-10-20',
-          MoneyTxType.transfer,
-          10000,
-          out: 'tcb',
-          into: 'momo',
-          pending: true,
-        ),
-        tx('p3', '2026-10-20', e, 1, out: 'momo'),
+    test('local writes correct a cached aggregate (review #2)', () {
+      int momo(List<MoneyLocalWrite> w) =>
+          MoneyMath.localCorrection(w, (t) => t.deltaFor('momo'));
+      final coffee = tx('p1', '2026-10-20', e, 35000, out: 'momo');
+      final move = tx(
+        'p2',
+        '2026-10-20',
+        MoneyTxType.transfer,
+        10000,
+        out: 'tcb',
+        into: 'momo',
+      );
+      // New entries not on the server yet add themselves.
+      final created = <MoneyLocalWrite>[
+        (before: null, after: coffee),
+        (before: null, after: move),
       ];
-      expect(MoneyMath.pendingDelta(p, 'momo'), -25000);
-      expect(MoneyMath.pendingDelta(p, 'tcb'), -10000);
+      expect(momo(created), -25000);
+      expect(
+        MoneyMath.localCorrection(created, (t) => t.deltaFor('tcb')),
+        -10000,
+      );
+      // Offline edit 100k → 120k: the server still counts 100k → −20k.
+      final lunch = tx('l', '2026-10-20', e, 100000, out: 'momo');
+      expect(
+        momo([(before: lunch, after: lunch.copyWith(amount: 120000))]),
+        -20000,
+      );
+      // Moved to another wallet: momo gets the 100k back.
+      expect(
+        momo([(before: lunch, after: lunch.copyWith(outWalletId: 'tcb'))]),
+        100000,
+      );
+      // Offline delete (or undo window) of a server entry gives it back.
+      expect(momo([(before: lunch, after: null)]), 100000);
+      // A new entry deleted in its undo window: not counted, not taken twice.
+      expect(momo([(before: null, after: null)]), 0);
+      // Couple balance: my 480k equal split edited to treat → +240k → +0.
+      final dinner = tx(
+        'd',
+        '2026-10-20',
+        e,
+        480000,
+        payer: me,
+        split: eq,
+        share: 240000,
+        shared: true,
+      );
+      expect(
+        MoneyMath.localCorrection([
+          (before: dinner, after: dinner.copyWith(payerShare: 480000)),
+        ], (t) => MoneyMath.coupleBalance([t], me)),
+        -240000,
+      );
     });
 
     test('wallet cap ±100 tỷ', () {
@@ -544,6 +585,21 @@ void main() {
     test('balance of the reference book = 359.000 (I covered more)', () {
       expect(MoneyMath.coupleBalance(sharedTx, me), 359000);
       expect(MoneyMath.coupleBalance(sharedTx, partner), -359000);
+      // The same number from the server's per-payer sums (review #4).
+      int sumOf(String who, int Function(MoneyTx t) f) => [
+        for (final t in sharedTx)
+          if ((t.type == e || t.type == MoneyTxType.settle) && t.payer == who)
+            f(t),
+      ].fold(0, (a, b) => a + b);
+      expect(
+        MoneyMath.coupleBalanceFromSums(
+          mineAmount: sumOf(me, (t) => t.amount),
+          mineShare: sumOf(me, (t) => t.payerShare),
+          partnerAmount: sumOf(partner, (t) => t.amount),
+          partnerShare: sumOf(partner, (t) => t.payerShare),
+        ),
+        359000,
+      );
       expect(MoneyMath.settlementFor(359000, me: me, partner: partner), (
         payer: partner,
         amount: 359000,
@@ -733,6 +789,38 @@ void main() {
         isNull,
       );
       expect(MoneyMath.linkedDrift(own, null), isNull);
+    });
+
+    test('a linked half is only one I wrote (review #7)', () {
+      final own = tx(
+        'o',
+        '2026-10-03',
+        e,
+        480000,
+        out: 'tcb',
+        linkId: 'L2',
+        by: me,
+      );
+      MoneyTx half(String by, int amount) => tx(
+        's$by',
+        '2026-10-03',
+        e,
+        amount,
+        payer: by,
+        split: eq,
+        share: amount ~/ 2,
+        shared: true,
+        linkId: 'L2',
+        by: by,
+      );
+      final mine = half(me, 480000), theirs = half(partner, 520000);
+      expect(MoneyMath.linkedHalf([theirs, mine], own, me), same(mine));
+      expect(MoneyMath.linkedHalf([theirs], own, me), isNull);
+      expect(MoneyMath.linkedDrift(own, theirs), isNull);
+      expect(
+        MoneyMath.linkedHalf([mine], tx('x', '2026-10-03', e, 1), me),
+        isNull,
+      );
     });
   });
 
@@ -1166,6 +1254,32 @@ void main() {
         ).isWellFormed,
         isFalse,
       );
+    });
+  });
+
+  group('MoneyProvider — deletes before the session ends (review #9)', () {
+    test(
+      'flushPendingDeletes sends the undo-window deletes of that book now',
+      () async {
+        final p = MoneyProvider();
+        addTearDown(p.dispose);
+        final own = tx('o1', '2026-10-20', e, 1000, out: 'cash');
+        final shared = tx('s1', '2026-10-20', e, 1000, payer: me, shared: true);
+        p.scheduleDelete(MoneyBookKind.own, own);
+        p.scheduleDelete(MoneyBookKind.shared, shared);
+        // Leaving the couple: only the shared book's delete goes out.
+        await MoneyProvider.flushPendingDeletes(MoneyBookKind.shared);
+        expect(p.isDeleting('s1'), isFalse);
+        expect(p.isDeleting('o1'), isTrue);
+        // Signing out: everything left.
+        await MoneyProvider.flushPendingDeletes();
+        expect(p.isDeleting('o1'), isFalse);
+      },
+    );
+
+    test('no live provider: nothing to flush, never throws', () async {
+      MoneyProvider().dispose();
+      await MoneyProvider.flushPendingDeletes();
     });
   });
 }

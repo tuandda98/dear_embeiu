@@ -142,11 +142,18 @@ class MoneyService {
     return _parseTx(s);
   }
 
-  /// The other half of a linked pair when it is not in memory.
-  Future<MoneyTx?> findByLinkId(String linkId) async {
-    final s = await _pair(
-      _txs,
-    ).where('linkId', isEqualTo: linkId).limit(1).get();
+  /// The other half of a linked pair when it is not in memory. Both halves
+  /// are written by the same person ([createdBy]); a partner's shared entry
+  /// carrying the same linkId is not it.
+  Future<MoneyTx?> findByLinkId(
+    String linkId, {
+    required String createdBy,
+  }) async {
+    final s = await _pair(_txs)
+        .where('linkId', isEqualTo: linkId)
+        .where('createdBy', isEqualTo: createdBy)
+        .limit(1)
+        .get();
     return s.docs.isEmpty ? null : _parseTx(s).firstOrNull;
   }
 
@@ -178,6 +185,21 @@ class MoneyService {
     };
   }
 
+  /// Shared book: Σ amount and Σ payerShare of the expenses + settlements
+  /// [payer] covered, all time — the couple balance without reading the
+  /// history (review #4). Server-only (throws offline).
+  Future<({int amount, int share})> paidSums(String payer) async {
+    final s = await _pair(_txs)
+        .where('type', whereIn: const ['expense', 'settle'])
+        .where('payer', isEqualTo: payer)
+        .aggregate(sum('amount'), sum('payerShare'))
+        .get();
+    return (
+      amount: (s.getSum('amount') ?? 0).round(),
+      share: (s.getSum('payerShare') ?? 0).round(),
+    );
+  }
+
   /// Spent / earned in one month (trend chart), server-only.
   Future<(int expense, int income)> monthSums(String from, String to) async {
     Query<Map<String, dynamic>> range(String type) => _pair(_txs)
@@ -196,16 +218,22 @@ class MoneyService {
   /// Commits [ops] in ONE batch (both books when a pair is linked, D11).
   /// Returns [MoneyWriteOutcome.queued] when the server did not answer
   /// within [writeTimeout]; a later refusal goes to [onLateError].
+  /// [onDone] runs once the server answered, however long that takes
+  /// (null = accepted, else the error).
   Future<MoneyWriteOutcome> commit(
     List<MoneyBatchOp> ops, {
     required String docId,
     void Function(MoneyWriteError error)? onLateError,
+    void Function(Object? error)? onDone,
   }) async {
     final batch = _db.batch();
     for (final op in ops) {
       op(batch);
     }
     final write = batch.commit();
+    if (onDone != null) {
+      unawaited(write.then((_) => onDone(null), onError: onDone));
+    }
     try {
       await write.timeout(writeTimeout);
       return MoneyWriteOutcome.saved;
