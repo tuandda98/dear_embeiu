@@ -38,7 +38,9 @@ function event(overrides = {}, minutesAgo = 1) {
     type: 'enter',
     at: Timestamp.fromMillis(Date.now() - minutesAgo * MIN),
     battery: 12,
-    source: 'auto',
+    // Creating the doc = the owner's own tap; automatic events only update
+    // a doc that already shares (see "automatic events" below).
+    source: 'manual',
     ...overrides,
   };
 }
@@ -181,6 +183,33 @@ describe('firestore: arrival', () => {
     await assertFails(updateDoc(doc(authedDb('alice'), PATH('alice')), { pushCount: 0 }));
     await assertFails(updateDoc(doc(authedDb('alice'), PATH('alice')), { pushDay: '2026-10-20' }));
     await assertFails(updateDoc(doc(authedDb('alice'), PATH('alice')), { 'lastPushAt.home': TS }));
+  });
+
+  // ---- automatic events (D10) ---------------------------------------------------
+  describe('automatic events never turn sharing on', () => {
+    const auto = (over = {}) => event({ source: 'auto', ...over });
+    const ref = () => doc(authedDb('alice'), PATH('alice'));
+    const autoUpdate = () => ({ last: auto(), auto: true, updatedAt: serverTimestamp() });
+
+    it('an auto event cannot create the doc (partner changed, doc deleted)', async () => {
+      await assertFails(write('alice', sharing(auto())));
+      await assertFails(updateDoc(ref(), autoUpdate())); // not-found
+      await assertSucceeds(write('alice', sharing(event()))); // own tap
+    });
+
+    it('an auto event updates a doc that already shares', async () => {
+      await seedDoc(PATH('alice'), { share: true, auto: true, updatedAt: TS });
+      await assertSucceeds(updateDoc(ref(), autoUpdate()));
+    });
+
+    it('an auto event cannot flip sharing from off / absent to on', async () => {
+      await seedDoc(PATH('alice'), { share: false, auto: false });
+      await assertFails(updateDoc(ref(), { share: true, ...autoUpdate() }));
+      await seedDoc(PATH('alice'), { auto: false });
+      await assertFails(updateDoc(ref(), { share: true, ...autoUpdate() }));
+      // A manual tap may.
+      await assertSucceeds(updateDoc(ref(), { share: true, last: event(), updatedAt: serverTimestamp() }));
+    });
   });
 
   // ---- update ----------------------------------------------------------------

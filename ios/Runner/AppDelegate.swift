@@ -480,9 +480,9 @@ final class ArrivalChannel: NSObject, CLLocationManagerDelegate {
 
   private func request(always: Bool, _ result: @escaping FlutterResult) {
     let status = manager.authorizationStatus
-    let canAsk = always
-      ? (status == .notDetermined || status == .authorizedWhenInUse)
-      : status == .notDetermined
+    // D8 order: "Luôn luôn" only after "Khi dùng ứng dụng" — from
+    // notDetermined, requestAlways just reports the current state.
+    let canAsk = always ? status == .authorizedWhenInUse : status == .notDetermined
     guard canAsk else {
       result(state())
       return

@@ -289,6 +289,25 @@ test("deleteAccount: a profile with a malformed inviteCode can still be deleted"
   assert.ok(b.log.includes("auth delete u"));
 });
 
+test("deleteAccount: a couple member's arrival doc + push bookkeeping go (arrival)", async () => {
+  const b = fakeBackend({
+    "couples/C": {memberIds: ["alice", "bob"], memberCount: 2, status: "active"},
+    "users/alice": {coupleId: "C"},
+  });
+  const chain = teardownChain(b);
+  const deleteAccount = callable("deleteAccount", {
+    db: b.db,
+    admin: b.admin,
+    isDocId: chain.isDocId,
+    handleCoupleOnAccountDeletion: chain.handleCoupleOnAccountDeletion,
+    callableErrorCopy: load("callableErrorCopy", ["const CALLABLE_ERROR_COPY", "function callableErrorCopy"]),
+  });
+  assert.deepStrictEqual(await deleteAccount({auth: {uid: "alice"}, data: {}}), {success: true});
+  assert.ok(b.log.includes("recursiveDelete couples/C/arrival/alice"), b.log.join("\n"));
+  assert.ok(b.log.includes("recursiveDelete couples/C/arrivalPush/alice"));
+  assert.ok(!b.log.some((l) => /arrival(Push)?\/bob/.test(l)));
+});
+
 test("N1 leaveCoupleCleanup: a path as coupleId is rejected before anything is read", async () => {
   const b = attackScene();
   const chain = teardownChain(b);

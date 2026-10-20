@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui' show IsolateNameServer;
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseException;
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +18,10 @@ class _Service extends ArrivalService {
   _Service() : super(ackTimeout: const Duration(milliseconds: 20));
   final events = <ArrivalEvent>[];
   Object? error;
+  bool remoteAuto = true;
+
+  @override
+  Future<bool> readRemoteAutoEnabled() async => remoteAuto;
 
   @override
   Future<void> putEvent(
@@ -121,6 +127,41 @@ void main() {
       );
       await fire(denied);
       expect(g.stops, 3);
+      expect(await denied.loadWantsAuto('u'), isFalse);
+    });
+
+    test('doc gone (partner changed, D10) → stop + "Tự báo" forgotten', () async {
+      final s = await ready();
+      s.error = FirebaseException(plugin: 'cloud_firestore', code: 'not-found');
+      final g = _Geofence();
+      await handleArrivalGeofenceEvent(
+        slots: ['home'],
+        type: ArrivalEventType.enter,
+        at: DateTime.now(),
+        service: s,
+        battery: _Battery(),
+        geofence: g,
+      );
+      expect(s.events.single.source, ArrivalEventSource.auto); // tried once
+      expect(g.stops, 1);
+      expect(await s.loadWantsAuto('u'), isFalse);
+      // A failed write leaves the in/out state alone (no "already inside").
+      expect((await s.loadEdge('u', 'home')).inside, isNull);
+    });
+
+    test('remote switch off (D13) → stop, nothing sent', () async {
+      final s = await ready()..remoteAuto = false;
+      final g = _Geofence();
+      await handleArrivalGeofenceEvent(
+        slots: ['home'],
+        type: ArrivalEventType.enter,
+        at: DateTime.now(),
+        service: s,
+        battery: _Battery(),
+        geofence: g,
+      );
+      expect(s.events, isEmpty);
+      expect(g.stops, 1);
     });
   });
 
@@ -164,5 +205,79 @@ void main() {
     expect(out.every((r) => r.approximate), isTrue);
     expect(out[1].title, 'Lê Văn Sỹ');
     expect(out[1].hasHouseNumber, isFalse);
+  });
+
+  group('background bridge', () {
+    final handled = <String>[];
+    setUp(() {
+      handled.clear();
+      ArrivalBackgroundBridge.resetForTest();
+      IsolateNameServer.removePortNameMapping(ArrivalBackgroundBridge.portName);
+      ArrivalBackgroundBridge.handle = (slots, type, at, g) async =>
+          handled.add('${slots.join(',')} ${type.name}');
+    });
+    tearDown(ArrivalBackgroundBridge.resetForTest);
+
+    test('no app isolate → the background isolate handles it', () async {
+      expect(
+        await ArrivalBackgroundBridge.forward(['home'], ArrivalEventType.enter, DateTime.now()),
+        isFalse,
+      );
+    });
+
+    test('live app isolate takes it, exactly once', () async {
+      ArrivalBackgroundBridge.listen(_Geofence());
+      expect(
+        await ArrivalBackgroundBridge.forward(['home'], ArrivalEventType.enter, DateTime.now()),
+        isTrue,
+      );
+      expect(handled, ['home enter']);
+    });
+
+    test('a late message is dropped by the app isolate', () async {
+      ArrivalBackgroundBridge.listen(_Geofence());
+      final reply = ReceivePort();
+      final got = <Object?>[];
+      reply.listen(got.add);
+      IsolateNameServer.lookupPortByName(ArrivalBackgroundBridge.portName)!.send([
+        ['home'],
+        'enter',
+        DateTime.now().millisecondsSinceEpoch,
+        reply.sendPort,
+        DateTime.now().millisecondsSinceEpoch - 3000, // sender gave up
+      ]);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(handled, isEmpty);
+      expect(got, isEmpty);
+      reply.close();
+    });
+
+    test('stale name: falls back after 2 s, keeps the name; resume re-claims it', () async {
+      final dead = ReceivePort()..close();
+      IsolateNameServer.registerPortWithName(dead.sendPort, ArrivalBackgroundBridge.portName);
+      expect(
+        await ArrivalBackgroundBridge.forward(['home'], ArrivalEventType.exit, DateTime.now()),
+        isFalse,
+      );
+      expect(IsolateNameServer.lookupPortByName(ArrivalBackgroundBridge.portName), dead.sendPort);
+      ArrivalBackgroundBridge.listen(_Geofence());
+      expect(
+        await ArrivalBackgroundBridge.forward(['home'], ArrivalEventType.exit, DateTime.now()),
+        isTrue,
+      );
+      expect(handled, ['home exit']);
+    });
+  });
+
+  test('Android backups skip the plugin\'s region cache (lat/lng, D2)', () {
+    final backup = File('android/app/src/main/res/xml/backup_rules.xml').readAsStringSync();
+    final extraction = File('android/app/src/main/res/xml/data_extraction_rules.xml').readAsStringSync();
+    const rule = '<exclude domain="sharedpref" path="native_geofence_plugin_cache.xml" />';
+    expect(RegExp(RegExp.escape(rule)).allMatches(backup), hasLength(1));
+    for (final block in ['cloud-backup', 'device-transfer']) {
+      final body = RegExp('<$block>(.*?)</$block>', dotAll: true).firstMatch(extraction)![1]!;
+      expect(body, contains(rule), reason: block);
+      expect(body, contains('app_flutter/arrival_nobackup/'), reason: block);
+    }
   });
 }
