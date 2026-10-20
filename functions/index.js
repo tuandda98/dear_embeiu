@@ -3299,6 +3299,19 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
     }),
   );
 
+  // ── weather (đợt 2) ──
+  // Weather (feature weather): each member's city (coarse location). The
+  // last member leaving never reaches notifyPartnerLeft's cleanup.
+  tasks.push(
+    db.recursiveDelete(coupleRef.collection("weather")).catch((err) => {
+      logger.warn("Failed to recursively delete weather during couple teardown.", {
+        coupleId: coupleRef.id,
+        message: err && err.message,
+      });
+      return null;
+    }),
+  );
+
   // Couple entry code (feature couple-code): the couple_codes/{code} pointer is
   // a TOP-LEVEL doc, not a subcollection, so recursiveDelete on the couple won't
   // touch it. Remove it explicitly or the 6-char code stays mapped to a dead
@@ -4127,6 +4140,8 @@ const WEATHER_CONFIG = {
   // After a failed MET call, serve the cache (stale) for this long before
   // trying again — a MET outage must not turn every app open into a request.
   retryMs: 10 * 60 * 1000,
+  // How long one caller holds the refresh of a city (see getWeatherForCity).
+  lockMs: 60 * 1000,
   timeoutMs: 8000,
   hours: 36,
 };
@@ -4224,6 +4239,20 @@ async function getWeatherForCity(city, nowMs) {
   }
   if (doc.retryAt > nowMs) {
     return cached ? fromCache(true) : null;
+  }
+  // Soft lock: the first caller after expiry claims the refresh for
+  // lockMs; callers arriving meanwhile get the old copy instead of N MET
+  // calls + N writes for the same city.
+  const claimed = await db.runTransaction(async (tx) => {
+    const cur = (await tx.get(ref)).data() || {};
+    if (cur.lockUntil > nowMs || (Array.isArray(cur.hours) && cur.expiresAt > nowMs)) {
+      return false;
+    }
+    tx.set(ref, {lockUntil: nowMs + WEATHER_CONFIG.lockMs}, {merge: true});
+    return true;
+  }).catch(() => true);
+  if (!claimed) {
+    return cached ? fromCache(false) : null;
   }
 
   const headers = {"User-Agent": WEATHER_CONFIG.userAgent, "Accept": "application/json"};

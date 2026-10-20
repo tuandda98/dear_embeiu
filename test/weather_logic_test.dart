@@ -323,7 +323,7 @@ void main() {
       expect(cond(hotAndCold, now).kind, WeatherConditionKind.hot);
     });
 
-    test('after 21:00 the window stretches to 09:00 tomorrow', () {
+    test('under 3 hours left, the window stretches to 09:59 tomorrow', () {
       final lateRain = [
         for (final h in hanoi)
           h.t == vnAt(31)
@@ -341,8 +341,13 @@ void main() {
       );
       expect(
         cond(lateRain, vnAt(21, 30)).kind,
+        WeatherConditionKind.rainTomorrowMorning,
+        reason: '21:30 has under 3 hours left (counted to the minute)',
+      );
+      expect(
+        cond(lateRain, vnAt(21)).kind,
         WeatherConditionKind.sky,
-        reason: '21:xx still has 3 hours',
+        reason: '21:00 sharp still has 3 hours',
       );
       expect(cond(lateRain, vnAt(20)).kind, WeatherConditionKind.sky);
     });
@@ -705,4 +710,39 @@ void main() {
     expect(WeatherChoice.fromDoc('u1', {'cityId': ''}), isNull);
     expect(WeatherChoice.fromDoc('u1', null), isNull);
   });
+
+  test(
+    'DST switch inside the window: each hour on its own offset (London)',
+    () {
+      // BST (+1) ends 25/10/2026 01:00 UTC. Now = 22:30 BST, < 3 h left →
+      // window to 09:59 tomorrow. Rain at 09:00 UTC = 09:00 GMT: inside.
+      final now = DateTime.utc(2026, 10, 24, 21, 30);
+      final hours = [
+        for (var i = 0; i < 16; i++)
+          WeatherHour(
+            t: DateTime.utc(2026, 10, 24, 21).add(Duration(hours: i)),
+            temp: 20,
+            symbol: i == 12 ? 'lightrain' : 'cloudy',
+            rain: i == 12 ? 0.8 : 0,
+          ),
+      ];
+      Duration london(DateTime t) => t.isBefore(DateTime.utc(2026, 10, 25, 1))
+          ? const Duration(hours: 1)
+          : Duration.zero;
+      expect(
+        weatherConditionFor(
+          hours,
+          now,
+          const Duration(hours: 1),
+          offsetAt: london,
+        )!.kind,
+        WeatherConditionKind.rainTomorrowMorning,
+      );
+      // One offset for the whole window reads that hour as 10:00: outside.
+      expect(
+        weatherConditionFor(hours, now, const Duration(hours: 1))!.kind,
+        WeatherConditionKind.sky,
+      );
+    },
+  );
 }

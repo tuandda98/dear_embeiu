@@ -175,14 +175,17 @@ function harness(cache, replies) {
     "function weatherExpiresAt",
     "async function getWeatherForCity",
   ], {
-    db: {collection: (name) => {
-      assert.strictEqual(name, "weatherCache");
-      return {doc: ref};
-    }},
+    db: {
+      collection: (name) => {
+        assert.strictEqual(name, "weatherCache");
+        return {doc: ref};
+      },
+      runTransaction: async (fn) => fn({get: (r) => r.get(), set: (r, d, o) => r.set(d, o)}),
+    },
     fetch: fetchFake,
     logger: {warn: () => {}},
   });
-  return {get: (now = NOW) => get({id: "HN", lat: 21.03, lon: 105.85}, now), store, fetches};
+  return {get: (now = NOW) => get({id: "HN", lat: 21.03, lon: 105.85}, now), store, fetches, replies};
 }
 
 const oldCache = () => ({
@@ -274,4 +277,85 @@ test("every city in the JSON is a valid MET point (≤ 4 decimals, in range)", (
     assert.ok(Math.abs(c.lon * 100 - Math.round(c.lon * 100)) < 1e-9, c.id);
   }
   assert.strictEqual(CITIES.length, 116);
+});
+
+// ---- review 2026-10-20 -------------------------------------------------------
+
+test("MET 403 / 429 → stale old copy + 10-minute backoff", async () => {
+  for (const status of [403, 429]) {
+    const h = harness(oldCache(), [{status, headers: {}}]);
+    const out = await h.get();
+    assert.strictEqual(out.stale, true, `${status}`);
+    assert.strictEqual(h.store.get("HN").retryAt, NOW + 10 * 60000);
+  }
+});
+
+test("retryAt stops mattering after one good fetch", async () => {
+  const h = harness(oldCache(), [new Error("timeout"), {status: 200, headers: {}, body: metBody()}]);
+  await h.get();
+  await h.get(NOW + 11 * 60000);
+  assert.strictEqual(h.store.get("HN").retryAt, undefined);
+  // Next expiry: MET is asked again straight away, no leftover backoff.
+  h.replies.push({status: 304, headers: {}});
+  await h.get(NOW + 60 * 60000);
+  assert.strictEqual(h.fetches.length, 3);
+});
+
+test("soft lock: a second caller during a refresh gets the old copy, no MET call", async () => {
+  const h = harness({...oldCache(), lockUntil: NOW + 30000}, []);
+  const out = await h.get();
+  assert.deepStrictEqual([out.stale, out.fetchedAt], [false, NOW - 2 * HOUR]);
+  assert.strictEqual(h.fetches.length, 0);
+  // Lock expired → this caller refreshes.
+  h.replies.push({status: 200, headers: {}, body: metBody()});
+  await h.get(NOW + 61000);
+  assert.strictEqual(h.fetches.length, 1);
+});
+
+test("6-hour data only still makes a forecast", () => {
+  const hours = normalize()(metBody({hourly: 0, sixHourly: 6}), NOW);
+  assert.ok(hours.length > 0);
+  assert.ok(hours.every((h) => h.symbol === "lightrain" && h.rain === 0.5));
+});
+
+class HttpsError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.code = code;
+  }
+}
+
+function callableWith(results) {
+  const start = SRC.indexOf("exports.getCityWeather = onCall(");
+  const end = SRC.indexOf("\n);", start);
+  const body = `const exports = {};\n${SRC.slice(start, end + 3)}\nreturn exports.getCityWeather;`;
+  const parse = load("parseWeatherCityIds", ["function parseWeatherCityIds"], {
+    WEATHER_CITIES: new Map(CITIES.map((c) => [c.id, c])),
+  });
+  const scope = {
+    onCall: (opts, handler) => handler,
+    HttpsError,
+    weatherErrorCopy: () => ({signIn: "s", badCities: "b", unavailable: "u"}),
+    parseWeatherCityIds: parse,
+    WEATHER_CITIES: new Map(CITIES.map((c) => [c.id, c])),
+    getWeatherForCity: async (city) => results[city.id] || null,
+  };
+  return new Function(...Object.keys(scope), body)(...Object.values(scope));
+}
+
+test("getCityWeather: sign-in required, bad ids refused", async () => {
+  const call = callableWith({});
+  await assert.rejects(call({data: {cityIds: ["vn-ha-noi"]}}), {code: "unauthenticated"});
+  await assert.rejects(call({auth: {uid: "a"}, data: {cityIds: ["fake"]}}), {code: "invalid-argument"});
+});
+
+test("getCityWeather: one city with data + one without → only the one", async () => {
+  const hn = {fetchedAt: NOW, stale: false, hours: []};
+  const call = callableWith({"vn-ha-noi": hn});
+  const out = await call({auth: {uid: "a"}, data: {cityIds: ["vn-ha-noi", "vn-tp-hcm"]}});
+  assert.deepStrictEqual(out, {ok: true, cities: {"vn-ha-noi": hn}});
+  await assert.rejects(
+    callableWith({})({auth: {uid: "a"}, data: {cityIds: ["vn-ha-noi", "vn-tp-hcm"]}}),
+    {code: "unavailable"},
+  );
 });

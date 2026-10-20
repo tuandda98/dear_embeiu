@@ -336,6 +336,13 @@ test("N2 teardown: the couple's own code pointer is still removed", async () => 
   assert.ok(!b.store.has("couple_codes/MCODE1"));
 });
 
+test("teardown also removes every member's weather city (feature weather)", async () => {
+  const b = fakeBackend({"couples/M": {memberIds: ["mallory"], memberCount: 1}});
+  const {deleteCoupleCompletely} = teardownChain(b);
+  await deleteCoupleCompletely(b.db.collection("couples").doc("M"), b.store.get("couples/M"));
+  assert.ok(b.log.includes("recursiveDelete couples/M/weather"));
+});
+
 // ---- notifyDecision (feature decision-wheel, 2026-10-19) ---------------------
 
 function fakeDecision({lastPushMs = 0, lastPushBy = ""} = {}) {

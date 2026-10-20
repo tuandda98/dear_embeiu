@@ -235,4 +235,76 @@ void main() {
     expect(p.forecastFor('vn-ha-noi'), isNull);
     expect(svc.cacheCleared, isTrue);
   });
+
+  test('only one of two cities answered → lastRefreshFailed', () async {
+    svc.server = {'vn-ha-noi': forecast(t0)};
+    p.watchForCouple('c1', 'me', 'her');
+    svc.choices.add({
+      'me': choice('me', 'vn-ha-noi'),
+      'her': choice('her', 'vn-tp-hcm'),
+    });
+    await settle();
+    await settle();
+    expect(p.lastRefreshFailed, isTrue);
+    expect(p.myPlace!.usable, isTrue);
+    expect(p.partnerPlace!.freshness, WeatherFreshness.none);
+  });
+
+  test('after an error: no new call for 3 minutes unless forced', () async {
+    svc.server = null;
+    p.watchForCouple('c1', 'me', '');
+    svc.choices.add({'me': choice('me', 'vn-ha-noi')});
+    await settle();
+    await settle();
+    expect(svc.calls.length, 1);
+    now = t0.add(const Duration(minutes: 1));
+    await p.onResume();
+    await p.refresh();
+    expect(svc.calls.length, 1, reason: 'backing off');
+    await p.refresh(force: true);
+    expect(svc.calls.length, 2, reason: '"Thử lại" still asks');
+    svc.server = {'vn-ha-noi': forecast(now)};
+    now = now.add(const Duration(minutes: 4));
+    await p.refresh();
+    expect(svc.calls.length, 3);
+    expect(p.lastRefreshFailed, isFalse);
+  });
+
+  test('"Thử lại" while a call is running runs once more afterwards', () async {
+    final gate = Completer<void>();
+    final slow = _SlowService(gate)..server = {'vn-ha-noi': forecast(t0)};
+    final q = WeatherProvider(service: slow, clock: () => now);
+    q.watchForCouple('c1', 'me', '');
+    slow.choices.add({'me': choice('me', 'vn-ha-noi')});
+    await settle();
+    await settle();
+    expect(q.isRefreshing, isTrue);
+    unawaited(q.refresh(force: true));
+    gate.complete();
+    await settle();
+    await settle();
+    await settle();
+    expect(slow.calls.length, 2);
+    q.dispose();
+  });
+}
+
+class _SlowService extends FakeWeatherService {
+  _SlowService(this.gate);
+
+  final Completer<void> gate;
+
+  @override
+  Future<Map<String, CityForecast>> fetchForecasts(
+    List<String> cityIds, {
+    required String languageCode,
+    DateTime? now,
+  }) async {
+    if (calls.isEmpty) {
+      calls.add(List<String>.of(cityIds));
+      await gate.future;
+      return {};
+    }
+    return super.fetchForecasts(cityIds, languageCode: languageCode, now: now);
+  }
 }

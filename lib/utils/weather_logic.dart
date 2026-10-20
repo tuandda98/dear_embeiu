@@ -138,23 +138,29 @@ class WeatherCondition {
 DateTime _wall(DateTime utc, Duration offset) => utc.toUtc().add(offset);
 
 /// The condition from [now] to 23:59 on the city's clock ([offset] = the
-/// city's UTC offset now); with under 3 hours left (22:00 or later) the window
-/// stretches to 09:59 tomorrow. Priority: raining now > rain later > hot >
-/// cold > sky. Null when no forecast hour falls in the window (cache too old).
+/// city's UTC offset now); with under 3 hours left (after 21:00, to the
+/// minute) the window stretches to 09:59 tomorrow. [offsetAt] (the city's
+/// offset at a given instant) reads each hour on its own offset, so a DST
+/// switch inside the window (London, Sydney…) doesn't shift the hours.
+/// Priority: raining now > rain later > hot > cold > sky. Null when no
+/// forecast hour falls in the window (cache too old).
 WeatherCondition? weatherConditionFor(
   List<WeatherHour> hours,
   DateTime now,
-  Duration offset,
-) {
-  final nowWall = _wall(now, offset);
+  Duration offset, {
+  Duration Function(DateTime utc)? offsetAt,
+}) {
+  DateTime wallOf(DateTime utc) =>
+      _wall(utc, offsetAt == null ? offset : offsetAt(utc));
+  final nowWall = wallOf(now);
   final midnight = DateTime.utc(nowWall.year, nowWall.month, nowWall.day + 1);
-  final end = 24 - nowWall.hour < 3
+  final end = midnight.difference(nowWall) < const Duration(hours: 3)
       ? midnight.add(const Duration(hours: 10))
       : midnight;
   final from = now.toUtc().subtract(const Duration(hours: 1));
   final window = <WeatherHour>[
     for (final h in hours)
-      if (h.t.isAfter(from) && _wall(h.t, offset).isBefore(end)) h,
+      if (h.t.isAfter(from) && wallOf(h.t).isBefore(end)) h,
   ]..sort((a, b) => a.t.compareTo(b.t));
   if (window.isEmpty) {
     return null;
@@ -185,7 +191,7 @@ WeatherCondition? weatherConditionFor(
     if (!weatherHourIsRainy(h)) {
       continue;
     }
-    final at = _wall(h.t, offset);
+    final at = wallOf(h.t);
     if (!at.isBefore(midnight)) {
       return make(WeatherConditionKind.rainTomorrowMorning);
     }

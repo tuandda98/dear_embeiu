@@ -30,6 +30,15 @@ class WeatherProvider extends ChangeNotifier {
 
   static const Duration refreshEvery = Duration(minutes: 30);
 
+  /// After a failed call, wait this long before asking again on its own
+  /// (opening Home / resuming / a snapshot); "Thử lại" still forces it.
+  static const Duration retryAfterError = Duration(minutes: 3);
+
+  /// A city write that hasn't been confirmed by then (offline) counts as
+  /// saved: Firestore queues it, and a later refusal comes back through the
+  /// stream as the old value.
+  static const Duration writeWait = Duration(seconds: 4);
+
   StreamSubscription<Map<String, WeatherChoice>>? _sub;
   String? _coupleId;
   String? _myUid;
@@ -39,6 +48,8 @@ class WeatherProvider extends ChangeNotifier {
   bool _choicesLoaded = false;
   bool _refreshing = false;
   bool _lastRefreshFailed = false;
+  DateTime? _retryNotBefore;
+  bool _pendingForce = false;
 
   /// Bumped on every couple / account change so a late answer of the old
   /// session never lands in the new one.
@@ -112,7 +123,12 @@ class WeatherProvider extends ChangeNotifier {
       freshness: weatherFreshness(f?.fetchedAt, now),
       condition: f == null
           ? null
-          : weatherConditionFor(f.hours, now, cityUtcOffset(city, now)),
+          : weatherConditionFor(
+              f.hours,
+              now,
+              cityUtcOffset(city, now),
+              offsetAt: (t) => cityUtcOffset(city, t),
+            ),
     );
   }
 
@@ -163,6 +179,8 @@ class WeatherProvider extends ChangeNotifier {
     _choicesLoaded = false;
     _refreshing = false;
     _lastRefreshFailed = false;
+    _retryNotBefore = null;
+    _pendingForce = false;
     _sub?.cancel();
     _sub = _service
         .watchChoices(coupleId)
@@ -205,6 +223,8 @@ class WeatherProvider extends ChangeNotifier {
     _choicesLoaded = false;
     _refreshing = false;
     _lastRefreshFailed = false;
+    _retryNotBefore = null;
+    _pendingForce = false;
     if (signedOut) {
       unawaited(_service.clearCache());
     }
@@ -216,10 +236,18 @@ class WeatherProvider extends ChangeNotifier {
   /// Fetches the cities whose copy on this phone is ≥ 30 minutes old (all of
   /// them when [force]). One callable for both cities.
   Future<void> refresh({bool force = false}) async {
-    if (_refreshing || _myUid == null) {
+    if (_myUid == null) {
+      return;
+    }
+    if (_refreshing) {
+      // "Thử lại" during an automatic call: run again once it ends.
+      _pendingForce = _pendingForce || force;
       return;
     }
     final now = _clock();
+    if (!force && _retryNotBefore != null && now.isBefore(_retryNotBefore!)) {
+      return;
+    }
     final due = [
       for (final id in _wantedIds())
         if (force || _isDue(_forecasts[id], now)) id,
@@ -251,8 +279,14 @@ class WeatherProvider extends ChangeNotifier {
       if (session == _session) {
         _refreshing = false;
         _lastRefreshFailed = failed;
+        _retryNotBefore = failed ? _clock().add(retryAfterError) : null;
         notifyListeners();
       }
+    }
+    if (session == _session && _pendingForce) {
+      _pendingForce = false;
+      unawaited(refresh(force: true));
+      return;
     }
     // A city picked while that call was in flight still needs its numbers.
     if (session == _session &&
@@ -299,11 +333,20 @@ class WeatherProvider extends ChangeNotifier {
     notifyListeners();
     unawaited(refresh());
     try {
-      await _service.setCity(
+      final write = _service.setCity(
         coupleId: coupleId,
         ownerUid: ownerUid,
         myUid: myUid,
         cityId: cityId,
+      );
+      // Offline the server never answers: don't hold the picker on it.
+      await write.timeout(
+        writeWait,
+        onTimeout: () {
+          unawaited(
+            write.catchError((_) {}),
+          ); // refused later → the stream reverts it
+        },
       );
       return true;
     } catch (_) {
