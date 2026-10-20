@@ -7476,6 +7476,1110 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} re-spun: {result}'**
   String notifDecisionRespin(String name, String result);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home yet?'**
+  String get arrivalCardTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Open arrival settings'**
+  String get arrivalOpenManageA11y;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'When you get home, your phone tells {name}. No texting from the road.'**
+  String arrivalPitch(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on arrivals'**
+  String get arrivalEnableCta;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m home'**
+  String get arrivalManualHome;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve arrived'**
+  String get arrivalManualOther;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get arrivalHomeName;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Got home'**
+  String get arrivalEnterHome;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Left home'**
+  String get arrivalExitHome;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Arrived at {place}'**
+  String arrivalEnterPlace(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Left {place}'**
+  String arrivalExitPlace(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday {time}'**
+  String arrivalYesterdayAt(String time);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}%'**
+  String arrivalBattery(int pct);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Battery at {pct}%'**
+  String arrivalBatteryLow(int pct);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'manual'**
+  String get arrivalManualTag;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Arrivals are on'**
+  String get arrivalPartnerOn;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll see it here when {name} arrives.'**
+  String arrivalPartnerOnSub(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Arrivals are off'**
+  String get arrivalPartnerOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Say hi'**
+  String get arrivalCareCta;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Say hi to {name}'**
+  String arrivalCareA11y(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You made it. Get some rest'**
+  String get arrivalCareSuggestion;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing yet today'**
+  String get arrivalNoEventToday;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Auto: {places}'**
+  String arrivalMineAuto(String places);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home and {n} more'**
+  String arrivalPlacesMany(int n);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t send on its own yet: needs Always location'**
+  String get arrivalMineNeedAlways;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Manual only for now'**
+  String get arrivalMineRemoteOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Only when you tap'**
+  String get arrivalMineManual;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home address not set'**
+  String get arrivalMineNoAddress;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Set address'**
+  String get arrivalSetAddress;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get arrivalOpenSettings;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The app recognized {place}'**
+  String arrivalFirstDetected(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {name}'**
+  String arrivalSent(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Sends when you\'re back online. After 30 minutes, {name} only sees it on the card, with no notification.'**
+  String arrivalQueued(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send “{what}”.'**
+  String arrivalSendFailed(String what);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get arrivalRetry;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Where did you just arrive?'**
+  String get arrivalPickTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap and {name} gets “{me} arrived at …” right away. No location access needed.'**
+  String arrivalPickNote(String name, String me);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Add a place'**
+  String get arrivalAddPlace;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} left'**
+  String arrivalSlotsLeft(int n);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'ARRIVALS'**
+  String get arrivalBadge;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'New place'**
+  String get arrivalNewPlaceTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Place name'**
+  String get arrivalNameLabel;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Work, Mom and Dad\'s'**
+  String get arrivalNameHint;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner sees this name when you arrive.'**
+  String get arrivalNameNote;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Type a name to continue. Up to 24 characters.'**
+  String get arrivalNameEmpty;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get arrivalChipWork;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get arrivalChipSchool;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Mom and Dad\'s'**
+  String get arrivalChipFamily;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Gym'**
+  String get arrivalChipGym;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Usual spot'**
+  String get arrivalChipCafe;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get arrivalIconLabel;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Picking a suggestion picks its icon too. You can change it.'**
+  String get arrivalIconAuto;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get arrivalIconWork;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get arrivalIconSchool;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get arrivalIconFamily;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Workout'**
+  String get arrivalIconGym;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Café'**
+  String get arrivalIconCafe;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get arrivalIconShop;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get arrivalIconPin;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will see:'**
+  String arrivalPreviewLead(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get arrivalContinue;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Where is {place}?'**
+  String arrivalWhereTitle(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Include the house number, street and ward for the best match.'**
+  String get arrivalWhereSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 12 Nguyen Trai, Thanh Xuan, Ha Noi'**
+  String get arrivalSearchHint;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Searching…'**
+  String get arrivalSearching;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Search on the keyboard if nothing shows up.'**
+  String get arrivalSearchTip;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get arrivalClearSearch;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t find it? Use current location'**
+  String get arrivalUseCurrentRow;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap this while you\'re there'**
+  String get arrivalUseCurrentRowSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find that address. Try adding the ward or province, or use your current location while you\'re there.'**
+  String get arrivalNoResults;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Finding an address needs internet. Try again when you\'re online, or use your current location while you\'re there.'**
+  String get arrivalSearchOffline;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t search right now. Try again in a bit, or use your current location while you\'re there.'**
+  String get arrivalSearchError;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This phone can\'t look up addresses. Save the place with your current location while you\'re there.'**
+  String get arrivalNoGeocoder;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Use current location'**
+  String get arrivalUseCurrent;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Save the name, tap manually'**
+  String get arrivalNameOnly;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Are you at {place} now?'**
+  String arrivalCurrentTitle(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The app reads your location once to save this spot. Coordinates stay on your phone.'**
+  String get arrivalCurrentBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The first time, your phone asks for location access. Choose “While Using the App” and keep Precise Location on.'**
+  String get arrivalCurrentHint;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Read location'**
+  String get arrivalReadLocation;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Reading location…'**
+  String get arrivalReading;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Back to search'**
+  String get arrivalBackToSearch;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get your location. Move somewhere more open and try again.'**
+  String get arrivalReadTimeout;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Precise Location'**
+  String get arrivalPreciseTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'With approximate location, the app can\'t tell your door from a few streets away.'**
+  String get arrivalPreciseBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Is this the right spot?'**
+  String get arrivalConfirmTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'From the address'**
+  String get arrivalFromAddress;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your current location, within about {m} m'**
+  String arrivalFromCurrent(int m);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The app lets them know when you\'re within about {m} m of here.'**
+  String arrivalRadiusLine(int m);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This address has no house number, so the alert may come a little early or late.'**
+  String get arrivalNoHouseNumber;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Alley addresses usually only resolve to the alley entrance, so the alert may come a little early or late.'**
+  String get arrivalConfirmAlleyWarn;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get arrivalSave;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong spot? Use your current location while you\'re there'**
+  String get arrivalWrongSpot;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Read location again'**
+  String get arrivalReread;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{place} saved'**
+  String arrivalSaved(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {place}'**
+  String arrivalEditTitle(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'A new name applies from your next arrival.'**
+  String get arrivalRenameNote;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get arrivalLocationLabel;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Saved from address · {date}'**
+  String arrivalSavedFromAddress(String date);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Saved from current location · {date}'**
+  String arrivalSavedFromCurrent(String date);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'No address yet, manual only'**
+  String get arrivalNoAddressManual;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get arrivalPaused;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this place'**
+  String get arrivalDeletePlace;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll be asked to confirm.'**
+  String get arrivalDeletePlaceSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {place}?'**
+  String arrivalDeletePlaceTitle(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll stop sending arrivals for it. Updates already sent keep the old name.'**
+  String get arrivalDeletePlaceBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home always stays on the card. You can only change where it is.'**
+  String get arrivalHomeEditBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Remove address'**
+  String get arrivalDeleteHomeAddress;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home goes back to tapping “I\'m home”.'**
+  String get arrivalDeleteHomeAddressSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Home\'s address?'**
+  String get arrivalDeleteHomeAddressTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home stays on the card. Tap “I\'m home” each time you get back.'**
+  String get arrivalDeleteHomeAddressBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get arrivalDelete;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get arrivalCancel;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{place} deleted'**
+  String arrivalDeleted(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home\'s address removed'**
+  String get arrivalHomeAddressDeleted;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get arrivalUndo;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'First, where\'s home?'**
+  String get arrivalNeedPlaceTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone needs to know where Home is to send on its own. Typing the address is enough, no permissions yet.'**
+  String get arrivalNeedPlaceBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'No address yet'**
+  String get arrivalNoAddressYet;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Set Home address'**
+  String get arrivalSetHomeAddress;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get arrivalLater;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} knows when you arrive'**
+  String arrivalDisclosureTitle(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Dear Embeiu uses your location to let your partner know when you get Home or reach a place you saved, even when the app is closed or not in use. Addresses and coordinates stay on your phone. Your partner only sees the place name, the time and your battery level. You can turn this off anytime.'**
+  String get arrivalDisclosureBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will get'**
+  String arrivalPreviewLabel(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Send a quick hello'**
+  String get arrivalPushBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Agree and continue'**
+  String get arrivalAgree;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get arrivalPrivacyLink;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Choose “{label}”'**
+  String arrivalAlwaysTitle(String label);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'To send it even when the app is closed, choose “{label}” on the next screen.'**
+  String arrivalAlwaysBody(String label);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get arrivalAlwaysLabelIos;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Allow all the time'**
+  String get arrivalAlwaysLabelAndroid;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The next screen looks like this'**
+  String get arrivalNextLooksLike;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get arrivalOsNever;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Next Time'**
+  String get arrivalOsAskNext;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'While Using the App'**
+  String get arrivalOsWhileUsing;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Allow only while using the app'**
+  String get arrivalOsAndroidWhileUsing;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Ask every time'**
+  String get arrivalOsAndroidAsk;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t allow'**
+  String get arrivalOsAndroidDeny;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t swipe Dear Embeiu away in the app switcher, or your iPhone may not send arrivals.'**
+  String get arrivalSwipeHint;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'On Xiaomi, Oppo or Vivo, also turn on Autostart for Dear Embeiu so arrivals aren\'t blocked.'**
+  String get arrivalAutostartHint;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Open permissions'**
+  String get arrivalOpenPermission;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Later, I\'ll tap manually'**
+  String get arrivalLaterManual;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Arrivals are on'**
+  String get arrivalDoneTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'From now on, {name} knows when you get home. To turn it off, go to Settings → Arrivals. Turning it off deletes your latest update, and {name} gets no notification.'**
+  String arrivalDoneBody(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Sends when you reach Home'**
+  String get arrivalDoneRow;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Add work, the gym… to cover those too'**
+  String get arrivalDoneRowSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll send it manually for now'**
+  String get arrivalPartialTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Each time you get home, tap “I\'m home” on the Home card. {name} gets the same message. Your saved places stay.'**
+  String arrivalPartialBody(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Home'**
+  String get arrivalBackHome;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'What {name} sees'**
+  String arrivalSeesLabel(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Share with {name}'**
+  String arrivalShareTitle(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turning this off deletes your latest update from the server. {name} gets no notification.'**
+  String arrivalShareSub(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn it back on to let {name} know when you arrive.'**
+  String arrivalShareOffSub(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Send automatically'**
+  String get arrivalAutoTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone sends it when you reach {places}.'**
+  String arrivalAutoSub(String places);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Set an address for Home or another place first.'**
+  String get arrivalAutoNeedPlace;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t send on its own yet: needs Always location.'**
+  String get arrivalAutoNeedAlways;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Manual only for now. You can still tap “I\'m home” on the Home card.'**
+  String get arrivalAutoRemoteOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get arrivalPlacesTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home is always there. Add up to 4 more. Addresses stay on this phone.'**
+  String get arrivalPlacesSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Location access'**
+  String get arrivalPermTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Location: Always'**
+  String get arrivalPermAlways;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Enough to send even when the app is closed.'**
+  String get arrivalPermAlwaysSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Location: While Using'**
+  String get arrivalPermWhileUsing;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Needs “Always” to send while the app is closed.'**
+  String get arrivalPermWhileUsingSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Location: Not allowed'**
+  String get arrivalPermNone;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Precise Location: On'**
+  String get arrivalPermPreciseOn;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Precise Location: Off'**
+  String get arrivalPermPreciseOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'So it knows you\'re at the door, not the end of the street.'**
+  String get arrivalPermPreciseSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Open phone Settings'**
+  String get arrivalPermOpenSettings;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off arrivals?'**
+  String get arrivalTurnOffTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your latest update is deleted from the server right away. {name} will see that {me}\'s arrivals are off and won\'t get a notification.'**
+  String arrivalTurnOffBody(String name, String me);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Also delete the saved addresses of {n} places on this phone'**
+  String arrivalTurnOffAlsoPlaces(int n);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off'**
+  String get arrivalTurnOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'When your partner arrives'**
+  String get arrivalSettingsPushTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when {name} gets home or reaches a saved place. The Home card still shows it when this is off.'**
+  String arrivalSettingsPushSub(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Arrivals'**
+  String get arrivalSettingsTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing with {name}: {places}'**
+  String arrivalSettingsSharing(String name, String places);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get arrivalSettingsOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} got home'**
+  String arrivalWidgetHome(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is home'**
+  String arrivalWidgetHomeShort(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} arrived at {place}'**
+  String arrivalWidgetPlace(String name, String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} at {place}'**
+  String arrivalWidgetPlaceShort(String name, String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home yet?'**
+  String get arrivalTourTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Got home? Tap “I\'m home” on the Home tab and your partner knows, no texting. You can also let your phone send it when you reach a saved place.'**
+  String get arrivalTourBody;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,6 @@
 import '../l10n/app_localizations.dart';
+// ── arrival (đợt 2) ──
+import '../models/arrival.dart';
 import '../models/decision.dart';
 import '../models/photo.dart';
 import '../utils/decision_suggester.dart' show decisionDisplayName;
@@ -41,6 +43,9 @@ abstract final class HomeWidgetStatus {
   static const String decisionEat = 'decision_eat';
   static const String decisionGo = 'decision_go';
   static const String decisionCustom = 'decision_custom';
+  // ── arrival (đợt 2) ── the partner got Home / reached a named place.
+  static const String arrivalHome = 'arrival_home';
+  static const String arrivalPlace = 'arrival_place';
 
   /// `statusTarget` → Home tab index (mirrors HomeScreen's IndexedStack).
   static const Map<String, int> targetTabs = {
@@ -50,7 +55,13 @@ abstract final class HomeWidgetStatus {
   };
 
   /// Valid `statusFocus` values (HomeScreen._applyPendingFocus).
-  static const Set<String> focuses = {'daily_question', 'mood', 'decision'};
+  static const Set<String> focuses = {
+    'daily_question',
+    'mood',
+    'decision',
+    // ── arrival (đợt 2) ──
+    'arrival',
+  };
 
   /// Every kind, for whitelisting what comes back from a widget tap.
   static const Set<String> kinds = {
@@ -63,6 +74,9 @@ abstract final class HomeWidgetStatus {
     decisionEat,
     decisionGo,
     decisionCustom,
+    // ── arrival (đợt 2) ──
+    arrivalHome,
+    arrivalPlace,
   };
 
   /// No line today: the widget looks exactly like 1.9.1 (D12).
@@ -90,6 +104,8 @@ abstract final class HomeWidgetStatus {
     required bool questionReady,
     DateTime? partnerPhotoAt,
     WidgetDecision? decision,
+    // ── arrival (đợt 2) ── `ArrivalProvider.partnerLast`.
+    ArrivalEvent? partnerArrival,
   }) {
     if (!active) {
       return none(now);
@@ -157,6 +173,22 @@ abstract final class HomeWidgetStatus {
           ),
         );
       }
+    }
+    // ── arrival (đợt 2) ── only an arrival of today, never a departure (D4).
+    final arrival = partnerArrival;
+    if (arrival != null &&
+        arrival.type == ArrivalEventType.enter &&
+        _sameDay(arrival.at.toLocal(), now)) {
+      add(
+        _status(
+          l10n,
+          arrival.isHome ? arrivalHome : arrivalPlace,
+          arrival.at.toLocal(),
+          now,
+          name: name,
+          result: arrival.name ?? '',
+        ),
+      );
     }
     if (candidates.isEmpty) {
       return none(now);
@@ -273,6 +305,19 @@ abstract final class HomeWidgetStatus {
                 english: l10n.localeName.startsWith('en'),
               );
         s = _decision(l10n, v('kind'), result, v('question'), at, now);
+      // ── arrival (đợt 2) ── CF notifyArrival: `place` slot, `placeName`.
+      case 'arrival':
+        final home = v('place') == 'home';
+        if (home || v('placeName').isNotEmpty) {
+          s = _status(
+            l10n,
+            home ? arrivalHome : arrivalPlace,
+            at,
+            now,
+            name: name,
+            result: v('placeName'),
+          );
+        }
     }
     return s == null ? null : {...s, 'onlyIfNewer': '1'};
   }
@@ -377,6 +422,19 @@ abstract final class HomeWidgetStatus {
         l10n.widgetStatusShortDecisionGo(result),
         'home',
         'decision',
+      ),
+      // ── arrival (đợt 2) ── [result] carries the place name.
+      arrivalHome => (
+        l10n.arrivalWidgetHome(name),
+        l10n.arrivalWidgetHomeShort(name),
+        'home',
+        'arrival',
+      ),
+      arrivalPlace => (
+        l10n.arrivalWidgetPlace(name, result),
+        l10n.arrivalWidgetPlaceShort(name, result),
+        'home',
+        'arrival',
       ),
       _ => (
         l10n.widgetStatusDecisionCustom(question, result),
