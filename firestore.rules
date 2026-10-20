@@ -116,6 +116,8 @@ service cloud.firestore {
           'pushPhoto',
           'pushReaction',
           'pushDailyQuestion',
+          // ── arrival (đợt 2) ── "Khi người ấy đến nơi" (D16)
+          'pushArrival',
           'updatedAt',
         ])
         && isNonEmptyString(data.token)
@@ -131,6 +133,8 @@ service cloud.firestore {
         && data.get('pushPhoto', true) is bool
         && data.get('pushReaction', true) is bool
         && data.get('pushDailyQuestion', true) is bool
+        // ── arrival (đợt 2) ──
+        && data.get('pushArrival', true) is bool
         && data.updatedAt is timestamp;
     }
 
@@ -682,6 +686,79 @@ service cloud.firestore {
         allow delete: if isCoupleMember(coupleId)
           && uid == request.auth.uid
           && (sleepEditable(resource.data.wakeAt) || !sleepShared(coupleId, uid));
+      }
+
+      // ── arrival (đợt 2) ── "Về đến nhà chưa?" (overview §5, D2/D3/D11/D14/D23).
+      // One doc per member (id == uid): `share`, `auto`, `last` (the ONE latest
+      // event — no history, no address, no coordinates, no list of places).
+      // Both members read (share off ⇒ no `last`, the partner just sees "chưa
+      // bật"); only the owner writes. CF notifyArrival keeps its push
+      // bookkeeping (`lastPushAt`, `pushDay`, `pushCount`) on the same doc via
+      // Admin: no client path may list them, and an update leaving them alone
+      // passes. Brand-new collection ⇒ fully ADDITIVE. No client delete:
+      // sharing off = `share:false` + `last` removed; CF cleans up on leave.
+      function isValidArrivalEvent(e) {
+        return e is map
+          && e.keys().hasOnly(['place', 'name', 'icon', 'type', 'at', 'battery', 'source', 'bounce'])
+          && e.keys().hasAll(['place', 'type', 'at', 'source'])
+          && e.place in ['home', 'p1', 'p2', 'p3', 'p4']
+          // Home: no name/icon (the app says "Nhà"/"Home"). A custom place
+          // carries its name (1..24 UTF-16 units, one line) + optional icon
+          // snapshot (D23).
+          && (e.place == 'home'
+              ? !('name' in e) && !('icon' in e)
+              : (e.get('name', null) is string
+                 && e.name.size() >= 1 && e.name.size() <= 24
+                 && e.name.trim().size() >= 1
+                 && !e.name.matches('(?s).*[\\r\\n].*')
+                 && (!('icon' in e)
+                     || e.icon in ['work', 'school', 'family', 'gym', 'cafe', 'shop', 'pin'])))
+          && e.type in ['enter', 'exit']
+          // Phone clock (a background write may sit in the offline queue):
+          // ≤ 5' ahead for clock skew, ≤ 12 h old.
+          && e.at is timestamp
+          && e.at <= request.time + duration.value(5, 'm')
+          && e.at >= request.time - duration.value(12, 'h')
+          && (!('battery' in e)
+              || (e.battery is int && e.battery >= 0 && e.battery <= 100))
+          && e.source in ['auto', 'manual']
+          && (!('bounce' in e) || e.bounce is bool);
+      }
+
+      function isValidArrivalDoc(d) {
+        return d.get('share', false) is bool
+          && (!('auto' in d) || d.auto is bool)
+          && (!('updatedAt' in d) || d.updatedAt is timestamp)
+          // Sharing off ⇒ no event left behind, in the same write (D11).
+          && (d.get('share', false) == true || !('last' in d));
+      }
+
+      match /arrival/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['share', 'auto', 'last', 'updatedAt'])
+          && isValidArrivalDoc(request.resource.data)
+          && (!('last' in request.resource.data)
+              || isValidArrivalEvent(request.resource.data.last))
+          // Sharing ON only while both members are in (sleep lesson: an "on"
+          // queued offline must not land after the partner left).
+          && (request.resource.data.get('share', false) != true
+              || get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.size() == 2);
+        allow update: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['share', 'auto', 'last', 'updatedAt'])
+          && isValidArrivalDoc(request.resource.data)
+          // A new event is checked; an old one left untouched (e.g. flipping
+          // `auto` 13 h after the last arrival) is not re-dated.
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['last'])
+              || !('last' in request.resource.data)
+              || isValidArrivalEvent(request.resource.data.last))
+          && (request.resource.data.get('share', false) != true
+              || resource.data.get('share', false) == true
+              || get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.size() == 2);
+        allow delete: if false;
       }
 
       // Care message (feature care-message): a one-shot "quan tâm" note one

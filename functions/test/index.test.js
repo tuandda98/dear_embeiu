@@ -63,7 +63,10 @@ test("account deletion: an outsider pointing at a couple only loses their own sl
   const f = fakeCouple({...active});
   await f.handle("C", "mallory");
   assert.deepStrictEqual(f.couple(), active);
-  assert.deepStrictEqual(f.calls, ["recursiveDelete couples/C/sleep/mallory"]);
+  assert.deepStrictEqual(f.calls, [
+    "recursiveDelete couples/C/sleep/mallory",
+    "recursiveDelete couples/C/arrival/mallory",
+  ]);
 });
 
 test("account deletion: one of two members leaves → partner waits, leaver's sleep goes", async () => {
@@ -75,7 +78,11 @@ test("account deletion: one of two members leaves → partner waits, leaver's sl
     status: "waiting_partner",
     updatedAt: "SERVER_TS",
   });
-  assert.deepStrictEqual(f.calls, ["recursiveDelete couples/C/sleep/alice", "set couples/C"]);
+  assert.deepStrictEqual(f.calls, [
+    "recursiveDelete couples/C/sleep/alice",
+    "recursiveDelete couples/C/arrival/alice",
+    "set couples/C",
+  ]);
 });
 
 test("account deletion: the only member leaves → the couple is torn down", async () => {
@@ -83,6 +90,7 @@ test("account deletion: the only member leaves → the couple is torn down", asy
   await f.handle("C", "alice");
   assert.deepStrictEqual(f.calls, [
     "recursiveDelete couples/C/sleep/alice",
+    "recursiveDelete couples/C/arrival/alice",
     "deleteCoupleCompletely couples/C",
   ]);
 });
@@ -526,4 +534,202 @@ test("default callers unchanged: alert per device + Android companion only with 
   assert.strictEqual(wake.sent.length, 3);
   assert.strictEqual(wake.sent[2].token, "and1");
   assert.strictEqual(wake.sent[2].notification, undefined);
+});
+
+// ---- notifyArrival (arrival, đợt 2) -------------------------------------------
+
+// `declaration()` runs to the first column-0 `}`, so this one head lifts every
+// ARRIVAL_* constant through ARRIVAL_COPY.
+const ARRIVAL_HEADS = [
+  "const ARRIVAL_SLOTS",
+  "function arrivalVnDateKey",
+  "function arrivalEvent",
+  "function arrivalPushPlan",
+  "function arrivalClaim",
+  "function buildArrivalText",
+  "function rpsToMillis",
+];
+
+// `doc` = the stored arrival doc the transaction reads (bookkeeping);
+// `couple` = the couple doc.
+function fakeArrival({doc = {}, couple = {memberIds: ["alice", "bob"], status: "active"}} = {}) {
+  const pushes = [];
+  const stamps = [];
+  const updates = [];
+  const ref = {
+    path: "couples/C/arrival/alice",
+    update: async (data) => updates.push(data),
+  };
+  const process = load("processArrivalWrite", [
+    ...ARRIVAL_HEADS,
+    "async function processArrivalWrite",
+  ], {
+    db: {
+      collection: () => ({doc: () => ({get: async () => ({
+        exists: true,
+        get: (k) => couple[k],
+      })})}),
+      runTransaction: async (fn) => fn({
+        get: async () => ({exists: true, data: () => doc}),
+        update: (r, data) => stamps.push(data),
+      }),
+    },
+    admin: {firestore: {FieldValue: {serverTimestamp: () => "SERVER_TS", delete: () => "DELETE"}}},
+    logger: {warn: () => {}},
+    rpsLoadDisplayName: async (uid) => (uid === "alice" ? "Thảo" : ""),
+    sendToRecipientDevices: async (ids, buildText, data, options) => {
+      pushes.push({ids, vi: buildText("vi"), en: buildText("en"), data, options});
+      return {deviceCount: 1, failures: []};
+    },
+  });
+  return {process, pushes, stamps, updates, ref};
+}
+
+const MINUTE = 60 * 1000;
+const arrivalDoc = (last = {}, over = {}) => ({
+  share: true,
+  auto: true,
+  last: {place: "home", type: "enter", at: Date.now() - MINUTE, battery: 60, source: "auto", ...last},
+  ...over,
+});
+
+test("arrival: Home enter → one wake push to the partner, slot stamped, no inbox", async () => {
+  const f = fakeArrival();
+  const out = await f.process("C", "alice", null, arrivalDoc(), f.ref);
+  assert.strictEqual(out.pushed, true);
+  assert.strictEqual(f.pushes.length, 1);
+  const p = f.pushes[0];
+  assert.deepStrictEqual(p.ids, ["bob"]);
+  assert.deepStrictEqual(p.vi, {title: "Thảo đã về đến nhà", body: "Nhắn một câu hỏi thăm nhé"});
+  assert.deepStrictEqual(p.en, {title: "Thảo got home", body: "Send a quick hello"});
+  assert.deepStrictEqual(p.options, {wakeClients: true, collapseId: "arrival_alice"});
+  assert.strictEqual(p.data.type, "arrival");
+  assert.strictEqual(p.data.place, "home");
+  assert.strictEqual(p.data.battery, "60"); // FCM data values are strings
+  assert.strictEqual(p.data.actorName, "Thảo");
+  assert.match(p.data.date, /^\d{4}-\d{2}-\d{2}$/);
+  assert.strictEqual(p.data.placeName, undefined);
+  assert.strictEqual(f.stamps.length, 1);
+  assert.strictEqual(f.stamps[0]["lastPushAt.home"], "SERVER_TS");
+  assert.strictEqual(f.stamps[0].pushCount, 1);
+});
+
+test("arrival: custom place uses its name verbatim + low battery line", async () => {
+  const f = fakeArrival();
+  await f.process("C", "alice", null,
+    arrivalDoc({place: "p2", name: "Phòng gym", icon: "gym", battery: 15}), f.ref);
+  assert.deepStrictEqual(f.pushes[0].vi, {title: "Thảo đã đến Phòng gym", body: "Pin còn 15%"});
+  assert.deepStrictEqual(f.pushes[0].en, {title: "Thảo arrived at Phòng gym", body: "Battery at 15%"});
+  assert.strictEqual(f.pushes[0].data.placeName, "Phòng gym");
+  assert.strictEqual(f.pushes[0].data.icon, "gym");
+  const edge = fakeArrival();
+  await edge.process("C", "alice", null, arrivalDoc({battery: 20}), edge.ref);
+  assert.strictEqual(edge.pushes[0].vi.body, "Pin còn 20%");
+  const none = fakeArrival();
+  const noBattery = arrivalDoc();
+  delete noBattery.last.battery;
+  await none.process("C", "alice", null, noBattery, none.ref);
+  assert.strictEqual(none.pushes[0].vi.body, "Nhắn một câu hỏi thăm nhé");
+  assert.strictEqual(none.pushes[0].data.battery, undefined);
+});
+
+test("arrival: no display name → fallback in the recipient's language", () => {
+  const text = load("buildArrivalText", ARRIVAL_HEADS);
+  const ev = {place: "home", name: "", battery: null};
+  assert.strictEqual(text("vi", "", ev).title, "Người ấy đã về đến nhà");
+  assert.strictEqual(text("en", " ", ev).title, "Your partner got home");
+  assert.strictEqual(text("fr", "Tuấn", ev).title, "Tuấn đã về đến nhà");
+});
+
+test("arrival: exit, bounce, stale, not shared, unchanged → no push", async () => {
+  const cases = [
+    [null, arrivalDoc({type: "exit"}), "exit"],
+    [null, arrivalDoc({bounce: true}), "bounce"],
+    [null, arrivalDoc({at: Date.now() - 31 * MINUTE}), "stale"],
+    [null, {share: false}, "not_shared"],
+    [null, null, "deleted"],
+  ];
+  for (const [before, after, reason] of cases) {
+    const f = fakeArrival();
+    const out = await f.process("C", "alice", before, after, f.ref);
+    assert.strictEqual(out.skipped, reason, reason);
+    assert.strictEqual(f.pushes.length, 0, reason);
+  }
+  // Our own bookkeeping write re-triggers with the same `last`.
+  const doc = arrivalDoc();
+  const f = fakeArrival();
+  const out = await f.process("C", "alice", doc, {...doc, pushCount: 1}, f.ref);
+  assert.strictEqual(out.skipped, "unchanged");
+});
+
+test("arrival: same place within 30' → cooldown; another place still pushes", async () => {
+  const doc = {lastPushAt: {home: Date.now() - 29 * MINUTE}};
+  const f = fakeArrival({doc});
+  assert.strictEqual((await f.process("C", "alice", null, arrivalDoc(), f.ref)).skipped, "cooldown");
+  const g = fakeArrival({doc});
+  await g.process("C", "alice", null, arrivalDoc({place: "p1", name: "Công ty", icon: "work"}), g.ref);
+  assert.strictEqual(g.pushes.length, 1);
+  const later = fakeArrival({doc: {lastPushAt: {home: Date.now() - 31 * MINUTE}}});
+  await later.process("C", "alice", null, arrivalDoc(), later.ref);
+  assert.strictEqual(later.pushes.length, 1);
+});
+
+test("arrival: at most 6 pushes a day; the count resets on a new day", async () => {
+  const today = load("arrivalVnDateKey", ARRIVAL_HEADS)(Date.now());
+  const full = fakeArrival({doc: {pushDay: today, pushCount: 6}});
+  assert.strictEqual((await full.process("C", "alice", null, arrivalDoc(), full.ref)).skipped, "daily_cap");
+  const fifth = fakeArrival({doc: {pushDay: today, pushCount: 5}});
+  await fifth.process("C", "alice", null, arrivalDoc(), fifth.ref);
+  assert.strictEqual(fifth.stamps[0].pushCount, 6);
+  const yesterday = fakeArrival({doc: {pushDay: "2000-01-01", pushCount: 6}});
+  await yesterday.process("C", "alice", null, arrivalDoc(), yesterday.ref);
+  assert.strictEqual(yesterday.stamps[0].pushCount, 1);
+  assert.strictEqual(yesterday.stamps[0].pushDay, today);
+});
+
+test("arrival: day bucket is Vietnam time", () => {
+  const key = load("arrivalVnDateKey", ARRIVAL_HEADS);
+  assert.strictEqual(key(Date.UTC(2026, 9, 20, 16, 59)), "2026-10-20"); // 23:59 VN
+  assert.strictEqual(key(Date.UTC(2026, 9, 20, 17, 0)), "2026-10-21"); // 00:00 VN
+});
+
+test("arrival: waiting couple / ex-member / never to the sender", async () => {
+  const waiting = fakeArrival({couple: {memberIds: ["alice"], status: "waiting_partner"}});
+  assert.strictEqual((await waiting.process("C", "alice", null, arrivalDoc(), waiting.ref)).skipped, "inactive");
+  const left = fakeArrival({couple: {memberIds: ["bob", "carol"], status: "active"}});
+  assert.strictEqual((await left.process("C", "alice", null, arrivalDoc(), left.ref)).skipped, "inactive");
+  assert.strictEqual(waiting.pushes.length + left.pushes.length, 0);
+});
+
+test("arrival: sharing off drops the push times the partner could read", async () => {
+  const f = fakeArrival();
+  const out = await f.process("C", "alice", arrivalDoc(), {share: false, lastPushAt: {home: 1}}, f.ref);
+  assert.strictEqual(out.skipped, "not_shared");
+  assert.deepStrictEqual(f.updates, [{lastPushAt: "DELETE"}]);
+  assert.strictEqual(f.pushes.length, 0);
+});
+
+test("arrival: pushArrival mutes only arrival pushes on that device", async () => {
+  const muted = [
+    {token: "a", platform: "ios", languageCode: "vi", notificationsEnabled: true, pushArrival: false},
+    {token: "b", platform: "ios", languageCode: "vi", notificationsEnabled: true},
+  ];
+  const f = fakeSend(muted);
+  await f.send(["bob"], () => ({title: "T", body: "B"}), {type: "arrival"});
+  assert.deepStrictEqual(f.sent.map((m) => m.token), ["b"]);
+  const g = fakeSend(muted);
+  await g.send(["bob"], () => ({title: "T", body: "B"}), {type: "partner_mood"});
+  assert.deepStrictEqual(g.sent.map((m) => m.token), ["a", "b"]);
+});
+
+test("arrival: partner left → leaver's doc deleted, the one who stays stops sharing", () => {
+  const start = SRC.indexOf("// ── arrival (đợt 2) ── the leaver's doc goes");
+  assert.notStrictEqual(start, -1);
+  const chunk = SRC.slice(start, SRC.indexOf("// Leaver display name", start));
+  assert.match(chunk, /recursiveDelete\(arrivalRef\.doc\(leaverUid\)\)/);
+  assert.match(chunk, /share: false/);
+  assert.match(chunk, /last: admin\.firestore\.FieldValue\.delete\(\)/);
+  assert.match(chunk, /lastPushAt: admin\.firestore\.FieldValue\.delete\(\)/);
+  const teardown = declaration("async function deleteCoupleCompletely");
+  assert.match(teardown, /recursiveDelete\(coupleRef\.collection\("arrival"\)\)/);
 });
