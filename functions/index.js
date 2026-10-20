@@ -470,6 +470,23 @@ exports.notifyPartnerLeft = onDocumentUpdated(
       ),
     );
 
+    // ── weather (đợt 2) ──
+    // The leaver's city goes too (feature weather D18): whoever joins next
+    // must not see where the previous partner lives.
+    await db
+      .collection("couples")
+      .doc(coupleId)
+      .collection("weather")
+      .doc(leaverUid)
+      .delete()
+      .catch((err) => {
+        logger.warn("Could not delete weather city on partner left.", {
+          coupleId,
+          leaverUid,
+          message: err && err.message,
+        });
+      });
+
     // Leaver display name: prefer their user profile (still exists — they only
     // left the couple), fall back to "Người ấy" via normalizeActorName.
     let leaverName = "";
@@ -4077,5 +4094,190 @@ exports.generateDailyQuestion = onCall(
       });
       return {ok: false, reason: "error"};
     }
+  },
+);
+
+// ── weather (đợt 2) ──
+// Thời tiết hai nơi (feature weather, overview §5.3). One callable returns the
+// MET Norway forecast for 1–2 cities of the bundled list. MET's terms forbid
+// apps calling it directly: this is the caching proxy they ask for, so MET
+// traffic follows the number of cities in use, never the number of users
+// (D7). The client turns the raw numbers into text itself (D8). No push, no
+// inbox, no wakeClients (D14).
+
+// Same ids + coordinates as lib/data/weather_cities.dart (a Dart test compares
+// the two). Only these ids are accepted (D9): nobody can make us call MET for
+// arbitrary coordinates under our User-Agent.
+const WEATHER_CITIES = new Map(require("./weather_cities.json").map((c) => [c.id, c]));
+
+const WEATHER_CONFIG = {
+  // MET terms: identify the app + a contact, or get 403.
+  userAgent: "DearEmbeiu/1.0 (https://dearembeiu.com; thesavior9820@gmail.com)",
+  baseUrl: "https://api.met.no/weatherapi/locationforecast/2.0/compact",
+  // Never refresh more often than this, whatever MET's Expires says (D7).
+  minTtlMs: 30 * 60 * 1000,
+  // After a failed MET call, serve the cache (stale) for this long before
+  // trying again — a MET outage must not turn every app open into a request.
+  retryMs: 10 * 60 * 1000,
+  timeoutMs: 8000,
+  hours: 36,
+};
+
+const WEATHER_ERROR_COPY = {
+  vi: {
+    signIn: "Bạn cần đăng nhập để xem thời tiết.",
+    badCities: "Thành phố này chưa có trong danh sách.",
+    unavailable: "Chưa tải được thời tiết. Bạn thử lại sau nhé.",
+  },
+  en: {
+    signIn: "Please sign in to see the weather.",
+    badCities: "That city isn't on the list.",
+    unavailable: "Couldn't load the weather. Please try again later.",
+  },
+};
+
+// Language rule of CALLABLE_ERROR_COPY (`lang` / `languageCode`, else vi).
+function weatherErrorCopy(request) {
+  return callableErrorCopy(request) === CALLABLE_ERROR_COPY.en ?
+    WEATHER_ERROR_COPY.en : WEATHER_ERROR_COPY.vi;
+}
+
+// `cityIds` → deduped list of 1–2 known ids, or null.
+function parseWeatherCityIds(raw) {
+  if (!Array.isArray(raw) || raw.length < 1 || raw.length > 2) {
+    return null;
+  }
+  const ids = [];
+  for (const id of raw) {
+    if (typeof id !== "string" || !WEATHER_CITIES.has(id)) {
+      return null;
+    }
+    if (!ids.includes(id)) {
+      ids.push(id);
+    }
+  }
+  return ids;
+}
+
+// MET `/compact` body → up to 36 hours from the current hour:
+// [{t: epoch ms UTC, temp: °C, symbol: symbol_code, rain: mm in that hour}].
+// Hourly steps use next_1_hours; once MET switches to 6-hour steps the
+// 6-hour symbol is kept and its rain spread evenly over the 6 hours.
+function normalizeMetForecast(body, nowMs) {
+  const series = body && body.properties && Array.isArray(body.properties.timeseries) ?
+    body.properties.timeseries : [];
+  const from = Math.floor(nowMs / 3600000) * 3600000;
+  const until = from + WEATHER_CONFIG.hours * 3600000;
+  const hours = [];
+  for (const step of series) {
+    const t = Date.parse(step && step.time);
+    if (!Number.isFinite(t) || t < from) {
+      continue;
+    }
+    if (t >= until || hours.length >= WEATHER_CONFIG.hours) {
+      break;
+    }
+    const data = (step && step.data) || {};
+    const temp = data.instant && data.instant.details && data.instant.details.air_temperature;
+    const next = data.next_1_hours || data.next_6_hours;
+    if (typeof temp !== "number" || !Number.isFinite(temp) || !next) {
+      continue;
+    }
+    const span = data.next_1_hours ? 1 : 6;
+    const mm = next.details && next.details.precipitation_amount;
+    const symbol = next.summary && next.summary.symbol_code;
+    hours.push({
+      t,
+      temp: Math.round(temp * 10) / 10,
+      symbol: typeof symbol === "string" ? symbol : "",
+      rain: typeof mm === "number" && mm > 0 ? Math.round((mm / span) * 100) / 100 : 0,
+    });
+  }
+  return hours;
+}
+
+// MET's `Expires` header, but never sooner than minTtlMs from now.
+function weatherExpiresAt(expiresHeader, nowMs) {
+  const expires = Date.parse(expiresHeader || "");
+  return Math.max(Number.isFinite(expires) ? expires : 0, nowMs + WEATHER_CONFIG.minTtlMs);
+}
+
+// One city: cache hit, or ask MET (If-Modified-Since), or fall back to the old
+// cache marked stale. Returns {fetchedAt, stale, hours} or null (no data at
+// all). weatherCache/{cityId} is Admin-SDK only — no rule matches it.
+async function getWeatherForCity(city, nowMs) {
+  const ref = db.collection("weatherCache").doc(city.id);
+  const snap = await ref.get();
+  const doc = (snap.exists && snap.data()) || {};
+  const cached = Array.isArray(doc.hours) ? doc : null;
+  const fromCache = (stale) => ({fetchedAt: cached.fetchedAt, stale, hours: cached.hours});
+  if (cached && cached.expiresAt > nowMs) {
+    return fromCache(false);
+  }
+  if (doc.retryAt > nowMs) {
+    return cached ? fromCache(true) : null;
+  }
+
+  const headers = {"User-Agent": WEATHER_CONFIG.userAgent, "Accept": "application/json"};
+  if (cached && cached.lastModified) {
+    headers["If-Modified-Since"] = cached.lastModified;
+  }
+  const url = `${WEATHER_CONFIG.baseUrl}?lat=${city.lat}&lon=${city.lon}`;
+  try {
+    const res = await fetch(url, {headers, signal: AbortSignal.timeout(WEATHER_CONFIG.timeoutMs)});
+    const expiresAt = weatherExpiresAt(res.headers.get("expires"), nowMs);
+    if (res.status === 304 && cached) {
+      await ref.set({expiresAt}, {merge: true});
+      return fromCache(false);
+    }
+    if (!res.ok) {
+      throw new Error(`MET answered ${res.status}`);
+    }
+    const hours = normalizeMetForecast(await res.json(), nowMs);
+    if (hours.length === 0) {
+      throw new Error("MET answered without forecast hours");
+    }
+    await ref.set({
+      cityId: city.id,
+      fetchedAt: nowMs,
+      expiresAt,
+      lastModified: res.headers.get("last-modified") || "",
+      hours,
+    });
+    return {fetchedAt: nowMs, stale: false, hours};
+  } catch (err) {
+    logger.warn("MET forecast fetch failed.", {cityId: city.id, message: err && err.message});
+    await ref.set({retryAt: nowMs + WEATHER_CONFIG.retryMs}, {merge: true}).catch(() => null);
+    return cached ? fromCache(true) : null;
+  }
+}
+
+exports.getCityWeather = onCall(
+  {region: "us-central1", timeoutSeconds: 30, memory: "256MiB"},
+  async (request) => {
+    const copy = weatherErrorCopy(request);
+    // Signed-in is enough: the answer is public weather for a listed city, so
+    // couple membership adds nothing (overview §5.3).
+    if (!request.auth || !request.auth.uid) {
+      throw new HttpsError("unauthenticated", copy.signIn);
+    }
+    const ids = parseWeatherCityIds((request.data || {}).cityIds);
+    if (!ids) {
+      throw new HttpsError("invalid-argument", copy.badCities);
+    }
+    const nowMs = Date.now();
+    const results = await Promise.all(ids.map((id) => getWeatherForCity(WEATHER_CITIES.get(id), nowMs)));
+    const cities = {};
+    ids.forEach((id, i) => {
+      if (results[i]) {
+        cities[id] = results[i];
+      }
+    });
+    // One city failing with no cache is left out; the client keeps its own
+    // copy for it. Only "nothing at all" is an error.
+    if (Object.keys(cities).length === 0) {
+      throw new HttpsError("unavailable", copy.unavailable);
+    }
+    return {ok: true, cities};
   },
 );
