@@ -2814,7 +2814,7 @@ function caroStateRef(coupleId) {
 // One push (+ inbox for `caro_invite`) to the other player. All pushes of a
 // game share the tray slot `caro_{gameId}` (D8). Never throws.
 async function sendCaroPush(coupleId, gameId, push) {
-  const {type, kind, actorUid, recipientId, moveNo, wake} = push;
+  const {type, kind, actorUid, recipientId, moveNo, wake, inboxOnly} = push;
   try {
     const actorName = await rpsLoadDisplayName(actorUid);
     if (type === "caro_invite") {
@@ -2823,6 +2823,11 @@ async function sendCaroPush(coupleId, gameId, push) {
         inboxPayload.actorName = actorName;
       }
       await writeInboxNotifications([recipientId], inboxPayload);
+    }
+    if (inboxOnly === true) {
+      // The partner is looking at the game already: the inbox keeps the
+      // invite, the phone stays quiet (review 2026-10-20 #1).
+      return;
     }
     const result = await sendToRecipientDevices(
       [recipientId],
@@ -2849,11 +2854,22 @@ async function sendCaroPush(coupleId, gameId, push) {
 // The transaction of one `caroAction` op. Resolves to
 // {reply: <what the client gets>, push?: <sendCaroPush args>}.
 async function caroRunOp(op, ctx) {
-  const {coupleId, uid, partnerUid, memberIds, gameId, cell, moveNo, rule, rematchOf} = ctx;
+  const {coupleId, uid, gameId, cell, moveNo, rule, rematchOf} = ctx;
   const FieldValue = admin.firestore.FieldValue;
   const stateRef = caroStateRef(coupleId);
+  const coupleRef = db.collection("couples").doc(coupleId);
   return db.runTransaction(async (tx) => {
     const nowMs = Date.now();
+    // Members read inside the transaction (review #5): a partner leaving
+    // between the caller's check and this op can't slip a move through.
+    const coupleSnap = await tx.get(coupleRef);
+    const rawMembers = coupleSnap.exists && Array.isArray(coupleSnap.get("memberIds")) ?
+      coupleSnap.get("memberIds") : [];
+    const memberIds = rawMembers.filter((id) => typeof id === "string" && id.trim());
+    const partnerUid = memberIds.find((id) => id !== uid);
+    if (!memberIds.includes(uid) || memberIds.length !== 2 || !partnerUid) {
+      return {reply: {ok: false, reason: "no_partner"}};
+    }
     const stateSnap = await tx.get(stateRef);
     const openGameId = stateSnap.exists ? stateSnap.get("openGameId") : null;
 
@@ -2910,8 +2926,11 @@ async function caroRunOp(op, ctx) {
       tx.set(stateRef, state, {merge: true});
       return {
         reply: {ok: true, gameId: newRef.id, status: "playing", cellsLength: 1},
-        push: partnerOnPrev ? null : {
-          type: "caro_invite", kind: "invite", actorUid: uid, recipientId: partnerUid, moveNo: 1, wake: true,
+        // Partner on the previous result: their screen follows the new game,
+        // so no push — but the inbox still records the invite (review #1).
+        push: {
+          type: "caro_invite", kind: "invite", actorUid: uid, recipientId: partnerUid, moveNo: 1,
+          wake: !partnerOnPrev, inboxOnly: partnerOnPrev,
         },
       };
     }
@@ -2926,6 +2945,11 @@ async function caroRunOp(op, ctx) {
     const {players, cells, lastWakeAt} = caroGameParts(game);
     if (uid !== players.x && uid !== players.o) {
       return {reply: {ok: false, reason: "not_player"}};
+    }
+    // A game of an earlier pair is dead for every op, not only `move`
+    // (review #3): no nudge to an ex, no win counted on the new score.
+    if (!memberIds.includes(players.x) || !memberIds.includes(players.o)) {
+      return {reply: {ok: false, reason: "not_playing"}};
     }
     const other = uid === players.x ? players.o : players.x;
     const clearOpen = openGameId === gameId ?
@@ -3008,7 +3032,9 @@ async function caroRunOp(op, ctx) {
     }
 
     if (op === "expire") {
-      const idleMs = nowMs - (rpsToMillis(game.lastMoveAt) || nowMs);
+      // Same fallback as the client's isStale (review #4): no lastMoveAt →
+      // createdAt; neither → very old, so it can end.
+      const idleMs = nowMs - (rpsToMillis(game.lastMoveAt) || rpsToMillis(game.createdAt) || 0);
       if (idleMs < CARO_STALE_MS) {
         return {reply: {ok: false, reason: "too_early", retryAfterMs: CARO_STALE_MS - idleMs}};
       }
@@ -3071,8 +3097,6 @@ exports.caroAction = onCall(
     const ctx = {
       coupleId,
       uid,
-      partnerUid,
-      memberIds,
       gameId,
       cell: caroCell(data.cell),
       moveNo: Number.isInteger(data.moveNo) ? data.moveNo : -1,
@@ -3102,7 +3126,7 @@ exports.caroAction = onCall(
       try {
         const fresh = await caroGamesRef(coupleId).doc(reply.gameId).get();
         if (caroPresenceFresh(fresh.get("presence"), partnerUid, Date.now())) {
-          push = null;
+          push = {...push, wake: false, inboxOnly: true};
         }
       } catch (err) {
         logger.warn("caroAction: could not re-read the new game.", {coupleId, message: err && err.message});
@@ -3126,10 +3150,16 @@ async function caroCleanupOnLeave(coupleId) {
   }
   const openGameId = stateSnap.get("openGameId");
   if (isDocId(openGameId)) {
-    const gameRef = caroGamesRef(coupleId).doc(openGameId);
-    const gameSnap = await gameRef.get();
-    if (gameSnap.exists && gameSnap.get("type") === "caro" && gameSnap.get("status") === "playing") {
-      await gameRef.update({status: "expired", updatedAt: admin.firestore.FieldValue.serverTimestamp()});
+    // A failed expire must not keep the old score for the next pair
+    // (review #6): log it and still drop the state doc.
+    try {
+      const gameRef = caroGamesRef(coupleId).doc(openGameId);
+      const gameSnap = await gameRef.get();
+      if (gameSnap.exists && gameSnap.get("type") === "caro" && gameSnap.get("status") === "playing") {
+        await gameRef.update({status: "expired", updatedAt: admin.firestore.FieldValue.serverTimestamp()});
+      }
+    } catch (err) {
+      logger.warn("caroCleanupOnLeave: could not expire the open game.", {coupleId, message: err && err.message});
     }
   }
   await stateRef.delete();

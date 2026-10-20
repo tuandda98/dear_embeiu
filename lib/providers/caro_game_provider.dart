@@ -183,6 +183,19 @@ class CaroGameProvider extends ChangeNotifier {
     }
     _openSub = _service.watchGame(coupleId, gameId).listen((game) {
       _openGame = game;
+      // Review 2026-10-20 #1: I'm on the result of G1 and the partner started
+      // the rematch — the CF skipped my push because I was watching, so the
+      // screen follows the new game by itself.
+      final current = _current;
+      if (game != null &&
+          game.isPlaying &&
+          current != null &&
+          !current.isPlaying &&
+          game.rematchOf == current.id &&
+          _currentId == current.id) {
+        enter(game.id);
+        return;
+      }
       notifyListeners();
     }, onError: (_) {});
   }
@@ -237,6 +250,7 @@ class CaroGameProvider extends ChangeNotifier {
     _myUid = null;
     _partnerUid = null;
     _resetHistory();
+    _heartbeatPaused = false;
     if (notify) {
       notifyListeners();
     }
@@ -271,6 +285,16 @@ class CaroGameProvider extends ChangeNotifier {
   void _onCurrent(CaroGame? game) {
     _current = game;
     _currentLoaded = true;
+    // The rematch pointer may arrive before this game's own `finished`.
+    final open = _openGame;
+    if (game != null &&
+        !game.isPlaying &&
+        open != null &&
+        open.isPlaying &&
+        open.rematchOf == game.id) {
+      enter(open.id);
+      return;
+    }
     final pending = _pendingCell;
     if (pending != null &&
         (game == null || !game.isPlaying || game.cells.contains(pending))) {
@@ -444,6 +468,16 @@ class CaroGameProvider extends ChangeNotifier {
         notifyListeners();
       }
     }
+  }
+
+  /// One game read once — the replay of an old game (no presence stamp).
+  Future<CaroGame?> fetchGame(String gameId) async {
+    final coupleId = _coupleId;
+    if (coupleId == null) {
+      return null;
+    }
+    final game = await _service.fetchGame(coupleId, gameId);
+    return game != null && _isOurs(game) ? game : null;
   }
 
   // ---------------------------------------------------------------- history
