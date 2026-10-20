@@ -732,6 +732,8 @@ test("arrival: partner left → leaver's doc deleted, the one who stays stops sh
   assert.match(chunk, /lastPushAt: admin\.firestore\.FieldValue\.delete\(\)/);
   const teardown = declaration("async function deleteCoupleCompletely");
   assert.match(teardown, /recursiveDelete\(coupleRef\.collection\("arrival"\)\)/);
+});
+
 // ---- sendToRecipientDevices: collapseId + muted devices (đợt 2, 2026-10-20) ---
 
 test("collapseId: alert replaces the previous one (Android tag, iOS apns-collapse-id)", async () => {
